@@ -42,6 +42,10 @@
             </children>
         </HBox>
 
+        <!-- Empty state: says what to do to see properties (shown by populateCaret). -->
+        <Label fx:id="emptyHint" id="inspector-empty-hint" wrapText="true" visible="false" managed="false"
+               styleClass="fxt-placeholder-text, fxt-inspector-empty-hint"/>
+
         <!-- The sections can exceed the window height; the header above stays pinned. -->
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" minHeight="0"
                     styleClass="fxt-inspector-scroll" VBox.vgrow="ALWAYS">

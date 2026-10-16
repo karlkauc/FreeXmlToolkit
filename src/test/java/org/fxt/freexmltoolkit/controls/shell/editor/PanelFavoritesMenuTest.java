@@ -23,7 +23,7 @@ import org.testfx.util.WaitForAsyncUtils;
 /**
  * Every file-pick row in the side panels must offer the favorites star menu:
  * Schematron in the Validation panel, XSL/XML in the FOP panel, keystore and
- * trust store in the Signature panel (parity with the XSD/XSLT rows that
+ * trust store on the Signature page (parity with the XSD/XSLT rows that
  * already had it). Also covers the new KEYSTORE favorite type mapping.
  */
 @ExtendWith(ApplicationExtension.class)
@@ -32,7 +32,7 @@ class PanelFavoritesMenuTest {
     private EditorHost host;
     private ValidationPanel validationPanel;
     private FopPanel fopPanel;
-    private SignaturePanel signaturePanel;
+    private SignatureView signaturePanel;
 
     @Start
     void start(Stage stage) {
@@ -40,7 +40,7 @@ class PanelFavoritesMenuTest {
         host = new EditorHost();
         validationPanel = new ValidationPanel(host);
         fopPanel = new FopPanel(host);
-        signaturePanel = new SignaturePanel(host);
+        signaturePanel = new SignatureView(host);
         stage.setScene(new Scene(new HBox(host, validationPanel, fopPanel, signaturePanel), 1400, 700));
         stage.show();
     }
@@ -110,7 +110,8 @@ class PanelFavoritesMenuTest {
                 signaturePanel.setKeystore(jks.toFile());
                 return null;
             });
-            assertEquals(jks.toFile(), signaturePanel.currentKeystoreFile());
+            assertEquals("signer.jks",
+                    ((javafx.scene.control.Label) signaturePanel.lookup("#sig-keystore-name")).getText());
         } finally {
             svc.removeFavoriteByPath(jks.toAbsolutePath().toString());
         }

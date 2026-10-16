@@ -12,18 +12,14 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -59,30 +55,23 @@ public class TransformPanel extends VBox {
 
     private final EditorHost editorHost;
     private final TransformOutputPanel out;
-    @FXML private TextArea xqueryArea;
-    @FXML private TextField xpathField;
-    @FXML private SidePanelSection pathSection;
     @FXML private SourceRow xsltRow;
     @FXML private SourceRow inputRow;
     @FXML private Label xsltName;
     @FXML private Label inputName;
     @FXML private ContextMenu inputMenu;
-    @FXML private VBox formatGrid;
+    @FXML private javafx.scene.control.ComboBox<FormatChoice> formatChoice;
     @FXML private VBox paramsBox;
     @FXML private VBox paramRows;
     @FXML private VBox runBox;
-    @FXML private PanelActionList xpathActions;
-    @FXML private PanelActionList xqueryActions;
-    private final ToggleGroup formatGroup = new ToggleGroup();
-    private final MenuButton savedQueriesMenu;
     private final MenuButton recentXsltMenu = new MenuButton();
-    @FXML private MenuButton overflowMenu;
     @FXML private PanelActionList tools;
-    @FXML private CheckMenuItem livePreview;
-    @FXML private CheckMenuItem watchXslt;
-    @FXML private CheckMenuItem profileCheck;
-    @FXML private CheckMenuItem traceCheck;
-    @FXML private CheckMenuItem autoOpenResultTab;
+    @FXML private javafx.scene.control.CheckBox runAutomatically;
+    @FXML private javafx.scene.control.CheckBox livePreview;
+    @FXML private javafx.scene.control.CheckBox watchXslt;
+    @FXML private javafx.scene.control.CheckBox profileCheck;
+    @FXML private javafx.scene.control.CheckBox traceCheck;
+    @FXML private javafx.scene.control.CheckBox autoOpenResultTab;
     private final PauseTransition liveDebounce = new PauseTransition(Duration.millis(600));
     private File xsltFile;
     private long lastXsltModified;
@@ -125,6 +114,7 @@ public class TransformPanel extends VBox {
         xsltFavMenu.getStyleClass().add("fxt-vp-source-fav");
         xsltFavMenu.setOnShowing(e -> refreshXsltFavMenu());
         xsltPos.getStyleClass().add("fxt-vp-browse-pos");
+        xsltPos.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE); // "2 / 5" never shrinks to "…"
         xsltRow.addExtras(recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
         // Drops behave like picking a favorite: record access, sync the browse position, auto-run.
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsltRow,
@@ -136,6 +126,7 @@ public class TransformPanel extends VBox {
         inputFavMenu.getStyleClass().add("fxt-vp-source-fav");
         inputFavMenu.setOnShowing(e -> refreshInputFavMenu());
         inputPos.getStyleClass().add("fxt-vp-browse-pos");
+        inputPos.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE); // "2 / 5" never shrinks to "…"
         inputRow.addExtras(inputFavMenu, prevInputBtn, inputPos, nextInputBtn);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(inputRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::applyInput);
@@ -144,7 +135,7 @@ public class TransformPanel extends VBox {
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshInputName());
 
         // --- OUTPUT METHOD -----------------------------------------------------
-        fillFormatGrid();
+        fillFormatChoice();
 
         // --- PARAMETERS ----------------------------------------------------------
         Button addParam = PanelActionList.inlineRow("Add parameter", "bi-plus-circle", () -> addParameter("", ""));
@@ -153,22 +144,6 @@ public class TransformPanel extends VBox {
 
         // --- Run Transform ----------------------------------------------------
         transformButton.prefWidthProperty().bind(runBox.widthProperty());
-
-        // --- XPATH / JSONPATH (collapsed) -------------------------------------
-        updatePathMode();
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updatePathMode());
-        savedQueriesMenu = new MenuButton();
-        savedQueriesMenu.setOnShowing(e -> refreshSavedQueriesMenu());
-        xpathActions.addMenu(savedQueriesMenu, "transform-xpath-saved", "bi-collection", "Saved Queries");
-
-        // --- XQUERY (collapsed) -------------------------------------------------
-        MenuButton examplesMenu = new MenuButton();
-        examplesMenu.getItems().addAll(
-                exampleItem("Simple", "simple"),
-                exampleItem("FLWOR", "flwor"),
-                exampleItem("HTML report", "html"),
-                exampleItem("Data-quality check", "dq"));
-        xqueryActions.addMenu(examplesMenu, "transform-xquery-examples", "bi-journal-code", "Examples");
 
         // Live preview: re-run the XSLT transform shortly after the active document
         // changes (typing / tab switch), when enabled and a stylesheet is set.
@@ -230,33 +205,16 @@ public class TransformPanel extends VBox {
         return tools.labels();
     }
 
-    /** Fills the segmented OUTPUT METHOD control: all six choices in a 2×3 grid, one selected. */
-    private void fillFormatGrid() {
-        HBox row1 = formatRow(FormatChoice.AUTO, FormatChoice.XML, FormatChoice.HTML);
-        HBox row2 = formatRow(FormatChoice.XHTML, FormatChoice.TEXT, FormatChoice.JSON);
-        formatGroup.getToggles().getFirst().setSelected(true);
-        // A segmented control always has exactly one active segment.
-        formatGroup.selectedToggleProperty().addListener((obs, oldV, newV) -> {
+    /** Fills the OUTPUT METHOD choice: Auto (from xsl:output) or a concrete format; Auto is the default. */
+    private void fillFormatChoice() {
+        formatChoice.getItems().setAll(FormatChoice.values());
+        formatChoice.setValue(FormatChoice.AUTO);
+        // A choice always has a value: Auto stands in for "nothing chosen".
+        formatChoice.valueProperty().addListener((obs, oldV, newV) -> {
             if (newV == null) {
-                formatGroup.selectToggle(oldV);
+                formatChoice.setValue(FormatChoice.AUTO);
             }
         });
-        formatGrid.getChildren().addAll(row1, row2);
-    }
-
-    private HBox formatRow(FormatChoice... choices) {
-        HBox row = new HBox(2);
-        row.getStyleClass().add("fxt-seg-group");
-        for (FormatChoice choice : choices) {
-            ToggleButton toggle = new ToggleButton(choice.toString());
-            toggle.setUserData(choice);
-            toggle.setToggleGroup(formatGroup);
-            toggle.getStyleClass().add("fxt-seg");
-            toggle.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(toggle, Priority.ALWAYS);
-            row.getChildren().add(toggle);
-        }
-        return row;
     }
 
     // ----- INPUT (active editor vs explicit file) ---------------------------
@@ -283,74 +241,14 @@ public class TransformPanel extends VBox {
 
     /** Updates the INPUT row label: the override file, or the active document (live). */
     private void refreshInputName() {
-        String name = inputOverride != null
-                ? inputOverride.getName()
-                : editorHost.getActiveDocument().map(OpenDocument::getDisplayName).orElse("none");
-        inputName.setText(name);
-        boolean none = inputOverride == null && editorHost.getActiveDocument().isEmpty();
-        inputName.getStyleClass().remove("fxt-vp-source-none");
-        if (none) {
-            inputName.getStyleClass().add("fxt-vp-source-none");
-        }
-    }
-
-    // ----- XQuery ------------------------------------------------------------
-
-    /** Executes the XQuery against the active XML (async), honouring params + output format. */
-    @FXML
-    public void runXQuery() {
-        if (editorHost.getActiveDocument().isEmpty()) {
-            out.showError("No document open.");
+        if (inputOverride != null) {
+            inputRow.showFile(inputOverride);
             return;
         }
-        String xquery = xqueryArea.getText();
-        if (xquery == null || xquery.isBlank()) {
-            return;
-        }
-        String xml = editorHost.getActiveText().orElse("");
-        Map<String, Object> params = collectParameters();
-        // AUTO defers to the XQuery's own output declaration (the engine detects it).
-        OutputFormat format = chosenFormat(OutputFormat.XML);
-        out.showPending("Running…");
-        FxtGui.executorService.submit(() -> {
-            long t0 = System.nanoTime();
-            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance()
-                    .begin(org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY, "XQuery editor");
-            TransformRunner.QueryRun run = TransformRunner.xquery(xml, xquery, params, format);
-            String result = run.text();
-            XQueryTableRunner.XQueryTable table = XQueryTableRunner.run(xml, xquery);
-            boolean ok = !result.startsWith("ERROR");
-            UsageEvents.xqueryExecuted(t0, run.failure());
-            long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
-                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
-            Platform.runLater(() -> out.showXQueryResult(result, table, format, elapsedMs));
-        });
-    }
-
-    /** Sets the XQuery text (for tests/observers). */
-    public void setXQuery(String xquery) {
-        xqueryArea.setText(xquery);
-    }
-
-    /** @return the current XQuery text (for tests/observers). */
-    public String getXQueryText() {
-        return xqueryArea.getText();
-    }
-
-    /** Inserts a built-in XQuery example by key (simple, flwor, html, dq). */
-    public void insertXQueryExample(String key) {
-        String example = switch (key) {
-            case "simple" -> "for $x in //item return string($x)";
-            case "flwor" -> "for $x in //item\norder by $x\nreturn <row>{string($x)}</row>";
-            case "html" -> "<html><body><ul>{\n  for $x in //item return <li>{string($x)}</li>\n}</ul></body></html>";
-            case "dq" -> "(: data-quality: items missing a value :)\nfor $x in //item[not(normalize-space())]\nreturn <missing>{name($x)}</missing>";
-            default -> "for $x in //item return string($x)";
-        };
-        xqueryArea.setText(example);
-    }
-
-    private MenuItem exampleItem(String label, String key) {
-        return menuItem(label, () -> insertXQueryExample(key));
+        var active = editorHost.getActiveDocument();
+        inputRow.showName(active.map(OpenDocument::getDisplayName).orElse(null),
+                active.map(d -> d.getPath() != null ? d.getPath() + " (active document)" : "Active document (unsaved)")
+                        .orElse(null));
     }
 
     // ----- parameters ----------------------------------------------------------
@@ -373,15 +271,20 @@ public class TransformPanel extends VBox {
 
     // ----- output format ----------------------------------------------------
 
-    /** Sets the output format to a concrete value (selects the matching segment); used by tests. */
+    /** Sets the output format to a concrete value (Auto for {@code null}); used by tests. */
     public void setOutputFormat(OutputFormat format) {
-        for (var toggle : formatGroup.getToggles()) {
-            if (((FormatChoice) toggle.getUserData()).format == format) {
-                formatGroup.selectToggle(toggle);
+        for (FormatChoice choice : FormatChoice.values()) {
+            if (choice.format == format) {
+                formatChoice.setValue(choice);
                 return;
             }
         }
-        formatGroup.selectToggle(formatGroup.getToggles().getFirst()); // Auto
+        formatChoice.setValue(FormatChoice.AUTO);
+    }
+
+    /** @return the OUTPUT METHOD choice currently selected (for tests/observers). */
+    public FormatChoice getFormatChoice() {
+        return formatChoice.getValue();
     }
 
     /**
@@ -389,8 +292,7 @@ public class TransformPanel extends VBox {
      * {@code autoFallback} for the Auto choice.
      */
     private OutputFormat chosenFormat(OutputFormat autoFallback) {
-        var toggle = formatGroup.getSelectedToggle();
-        FormatChoice choice = toggle != null ? (FormatChoice) toggle.getUserData() : FormatChoice.AUTO;
+        FormatChoice choice = formatChoice.getValue() != null ? formatChoice.getValue() : FormatChoice.AUTO;
         return choice.format != null ? choice.format : autoFallback;
     }
 
@@ -425,10 +327,16 @@ public class TransformPanel extends VBox {
         editorHost.startXsltDebug(xsltFile, xml, collectParameters(), format);
     }
 
-    /** Opens the batch-transform tool tab for the active stylesheet/XQuery. */
+    /**
+     * Opens the batch-transform tool tab for the selected stylesheet, or - without one - for
+     * the active XQuery document (queries are written in the editor / Query Console now).
+     */
     @FXML
     public void openBatch() {
-        String xqueryText = xqueryArea.getText();
+        String xqueryText = editorHost.getActiveDocument()
+                .filter(d -> d.getFileType() == EditorFileType.XQUERY)
+                .flatMap(d -> editorHost.getActiveText())
+                .orElse(null);
         BatchTransformView view;
         if (xsltFile != null) {
             String xsltContent;
@@ -444,7 +352,7 @@ public class TransformPanel extends VBox {
             view = new BatchTransformView(BatchTransformView.Kind.XQUERY,
                     xqueryText, collectParameters(), chosenFormat(OutputFormat.XML));
         } else {
-            out.showError("Set an XSLT stylesheet or enter an XQuery first.");
+            out.showError("Set an XSLT stylesheet, or open an XQuery document, first.");
             return;
         }
         editorHost.openToolTab("Batch", "bi-files", view);
@@ -473,11 +381,7 @@ public class TransformPanel extends VBox {
     public void setXsltFile(File file) {
         this.xsltFile = file;
         this.lastXsltModified = file != null ? file.lastModified() : 0L;
-        xsltName.setText(file != null ? file.getName() : "none");
-        xsltName.getStyleClass().remove("fxt-vp-source-none");
-        if (file == null) {
-            xsltName.getStyleClass().add("fxt-vp-source-none");
-        }
+        xsltRow.showFile(file);
         if (file != null) {
             try {
                 org.fxt.freexmltoolkit.di.ServiceRegistry
@@ -671,7 +575,12 @@ public class TransformPanel extends VBox {
      */
     boolean readyToAutoRun() {
         boolean hasInput = inputOverride != null || editorHost.getActiveDocument().isPresent();
-        return xsltFile != null && hasInput;
+        return runAutomatically.isSelected() && xsltFile != null && hasInput;
+    }
+
+    /** Switches the automatic run on drop / favourite pick / browse on or off (the "Run automatically" box). */
+    public void setRunAutomatically(boolean enabled) {
+        runAutomatically.setSelected(enabled);
     }
 
     /** Refreshes the STYLESHEET position label and shows/hides its ◀/▶ controls. */
@@ -685,7 +594,8 @@ public class TransformPanel extends VBox {
     }
 
     private void updateBrowseControls(List<File> browse, int idx, Label pos, Button prev, Button next) {
-        boolean active = !browse.isEmpty();
+        // Browsing needs at least two entries: with one there is nothing to step to.
+        boolean active = browse.size() > 1;
         pos.setText(active ? (idx + 1) + " / " + browse.size() : "");
         for (var node : new javafx.scene.Node[]{pos, prev, next}) {
             node.setVisible(active);
@@ -743,6 +653,17 @@ public class TransformPanel extends VBox {
         if (!inputFavMenu.getItems().isEmpty()) {
             inputFavMenu.getItems().getFirst().fire();
         }
+    }
+
+    /** Opens the Query Console: XPath / XQuery / JSONPath against the open document live there. */
+    @FXML
+    public void onOpenQueryConsole() {
+        editorHost.requestQueryConsole();
+    }
+
+    /** @return whether a stylesheet is set (the toolbar's Transform asks for one otherwise). */
+    public boolean hasStylesheet() {
+        return xsltFile != null && xsltFile.isFile();
     }
 
     /** @return the currently selected stylesheet file (for tests). */
@@ -913,250 +834,6 @@ public class TransformPanel extends VBox {
                 || editorHost.getActiveDocument()
                         .map(document -> document != out.getResultDocument())
                         .orElse(false);
-    }
-
-    // ----- XPath / JSONPath -------------------------------------------------
-
-    /** Evaluates the XPath field against the active XML (async). */
-    @FXML
-    public void runXPath() {
-        if (editorHost.getActiveDocument().isEmpty()) {
-            out.showError("No document open.");
-            return;
-        }
-        String content = editorHost.getActiveText().orElse("");
-        String path = xpathField.getText();
-        if (path == null || path.isBlank()) {
-            return;
-        }
-        boolean json = isJsonActive();
-        out.showPending("Running…");
-        FxtGui.executorService.submit(() -> {
-            long t0 = System.nanoTime();
-            var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
-                    json ? org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.JSONPATH
-                            : org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XPATH,
-                    path.length() > 60 ? path.substring(0, 57) + "…" : path);
-            TransformRunner.QueryRun run = json ? TransformRunner.jsonPath(content, path)
-                    : TransformRunner.xpath(content, path);
-            String result = run.text();
-            boolean ok = !result.startsWith("ERROR");
-            if (json) {
-                UsageEvents.jsonPathExecuted(t0, run.failure());
-            } else {
-                UsageEvents.xpathExecuted(t0, run.failure());
-            }
-            long elapsedMs = probe.finish(content.length(), ok ? result.length() : -1, ok,
-                    org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
-            Platform.runLater(() -> out.showQueryResult(result, elapsedMs));
-        });
-    }
-
-    private boolean isJsonActive() {
-        return editorHost.getActiveDocument()
-                .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
-    }
-
-    private void updatePathMode() {
-        boolean json = isJsonActive();
-        pathSection.setTitle(json ? "JSONPATH" : "XPATH");
-        xpathField.setPromptText(json ? "$.root.element" : "/root/element");
-    }
-
-    /** Sets the XPath expression (for tests/observers). */
-    public void setXPathExpression(String expression) {
-        xpathField.setText(expression);
-    }
-
-    /** @return the current query expression text. */
-    public String getQueryText() {
-        return xpathField.getText();
-    }
-
-    /** Loads a saved query file's content into the query field. */
-    public void loadQueryFromFile(File file) {
-        try {
-            xpathField.setText(Files.readString(file.toPath(), StandardCharsets.UTF_8).strip());
-        } catch (Exception e) {
-            out.showFailure("Could not load query: " + e.getMessage());
-        }
-    }
-
-    /** Saves the current query expression under a chosen name (reuses FavoritesService). */
-    @FXML
-    public void saveCurrentQuery() {
-        String expression = xpathField.getText();
-        if (expression == null || expression.isBlank()) {
-            out.showError("Enter a query expression to save.");
-            return;
-        }
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Save Query");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Query name:");
-        dialog.showAndWait().ifPresent(name -> {
-            if (name.isBlank()) {
-                return;
-            }
-            File saved = FavoritesService.getInstance().saveXPathQuery(name.trim(), expression);
-            if (saved != null) {
-                out.showQueryResult("Saved query: " + saved.getName(), 0);
-            } else {
-                out.showFailure("Could not save query.");
-            }
-        });
-    }
-
-    private void refreshSavedQueriesMenu() {
-        savedQueriesMenu.getItems().clear();
-        var files = FavoritesService.getInstance().getSavedXPathQueries();
-        if (files.isEmpty()) {
-            MenuItem empty = new MenuItem("(no saved queries)");
-            empty.setDisable(true);
-            savedQueriesMenu.getItems().add(empty);
-            return;
-        }
-        for (File file : files) {
-            savedQueriesMenu.getItems().add(savedQueryItem(file));
-        }
-    }
-
-    /**
-     * Builds a submenu that loads a saved query into the field, opens it as an
-     * editor tab, or manages it (overwrite / rename / delete) — mirroring the
-     * Query Console's snippets menu.
-     */
-    private MenuItem savedQueryItem(File file) {
-        Menu menu = new Menu(savedQueryDisplayName(file));
-
-        MenuItem load = new MenuItem("Load into query field", SemanticIcon.paint(icon("bi-slash-square", 16), ActionColor.NAVIGATE));
-        load.setOnAction(e -> loadQueryFromFile(file));
-
-        MenuItem open = new MenuItem("Open in editor", SemanticIcon.paint(icon("bi-pencil-square", 16), ActionColor.NAVIGATE));
-        open.setOnAction(e -> editorHost.openFile(file));
-
-        MenuItem overwrite = new MenuItem("Overwrite with current query", SemanticIcon.paint(icon("bi-save", 16), ActionColor.MODIFY));
-        overwrite.setOnAction(e -> overwriteSavedQuery(file));
-
-        MenuItem rename = new MenuItem("Rename…", SemanticIcon.paint(icon("bi-pencil", 16), ActionColor.MODIFY));
-        rename.setOnAction(e -> renameSavedQuery(file));
-
-        MenuItem delete = new MenuItem("Delete…", SemanticIcon.paint(icon("bi-trash", 16), ActionColor.DELETE));
-        delete.setOnAction(e -> deleteSavedQuery(file));
-
-        menu.getItems().addAll(load, open, new SeparatorMenuItem(), overwrite, rename, delete);
-        return menu;
-    }
-
-    /** The saved query's display name: the file name without its .xpath extension. */
-    private static String savedQueryDisplayName(File file) {
-        return file.getName().replaceFirst("\\.xpath$", "");
-    }
-
-    /** Asks for confirmation, then deletes the saved query file. */
-    private void deleteSavedQuery(File file) {
-        if (DialogHelper.showConfirmation("Delete Query",
-                "Delete query '" + savedQueryDisplayName(file) + "'?",
-                "The file " + file.getName() + " will be deleted permanently.")) {
-            deleteSavedQueryForTest(file);
-        }
-    }
-
-    /**
-     * Deletes {@code file} via {@link FavoritesService} (no prompt), used by the
-     * menu and tests.
-     *
-     * @param file the saved query file to delete
-     * @return whether the file was deleted
-     */
-    boolean deleteSavedQueryForTest(File file) {
-        boolean deleted = FavoritesService.getInstance().deleteQuery(file);
-        if (deleted) {
-            out.showQueryResult("Deleted query: " + file.getName(), 0);
-        } else {
-            out.showFailure("Could not delete query: " + file.getName());
-        }
-        return deleted;
-    }
-
-    /** Prompts for a new name (prefilled with the current one) and renames the saved query file. */
-    private void renameSavedQuery(File file) {
-        TextInputDialog dialog = new TextInputDialog(savedQueryDisplayName(file));
-        dialog.setTitle("Rename Query");
-        dialog.setHeaderText(null);
-        dialog.setContentText("New name:");
-        dialog.showAndWait().ifPresent(name -> {
-            if (!name.isBlank()) {
-                renameSavedQueryForTest(file, name.trim());
-            }
-        });
-    }
-
-    /**
-     * Renames the saved query (no prompt), rejecting a collision with an
-     * existing query. Used by the menu and tests.
-     *
-     * @param file    the saved query file to rename
-     * @param newName the new name (without extension; sanitized like a save)
-     * @return the renamed file, or {@code null} when rejected or failed
-     */
-    File renameSavedQueryForTest(File file, String newName) {
-        File target = new File(file.getParentFile(),
-                FavoritesService.sanitizeQueryFileName(newName, ".xpath"));
-        if (target.exists() && !target.equals(file)) {
-            out.showFailure("A query named '" + target.getName() + "' already exists.");
-            return null;
-        }
-        File renamed = FavoritesService.getInstance().renameQuery(file, newName);
-        if (renamed != null) {
-            out.showQueryResult("Renamed query to: " + renamed.getName(), 0);
-        } else {
-            out.showFailure("Could not rename query: " + file.getName());
-        }
-        return renamed;
-    }
-
-    /** Asks for confirmation, then overwrites the saved query with the field's text. */
-    private void overwriteSavedQuery(File file) {
-        String expression = xpathField.getText();
-        if (expression == null || expression.isBlank()) {
-            out.showError("The query field is empty — nothing to overwrite with.");
-            return;
-        }
-        if (DialogHelper.showConfirmation("Overwrite Query",
-                "Overwrite query '" + savedQueryDisplayName(file) + "'?",
-                "The saved query will be replaced with the current field content.")) {
-            overwriteSavedQueryForTest(file);
-        }
-    }
-
-    /**
-     * Overwrites {@code file} with the query field's current text (no prompt),
-     * used by the menu and tests.
-     *
-     * @param file the saved query file to overwrite
-     * @return the saved file, or {@code null} when the field is blank or the save failed
-     */
-    File overwriteSavedQueryForTest(File file) {
-        String expression = xpathField.getText();
-        if (expression == null || expression.isBlank()) {
-            out.showError("The query field is empty — nothing to overwrite with.");
-            return null;
-        }
-        File saved = FavoritesService.getInstance()
-                .saveXPathQuery(savedQueryDisplayName(file), expression);
-        if (saved != null) {
-            out.showQueryResult("Overwrote query: " + saved.getName(), 0);
-        } else {
-            out.showFailure("Could not overwrite query.");
-        }
-        return saved;
-    }
-
-    /** Test seam: the freshly rebuilt items of the "Saved" queries menu. */
-    List<MenuItem> savedQueriesMenuItemsForTest() {
-        refreshSavedQueriesMenu();
-        return savedQueriesMenu.getItems();
     }
 
     // ----- output-panel delegates (kept on the panel for tests/observers) ------

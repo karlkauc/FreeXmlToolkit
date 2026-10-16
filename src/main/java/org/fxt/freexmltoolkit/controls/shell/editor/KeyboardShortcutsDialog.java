@@ -44,7 +44,8 @@ public final class KeyboardShortcutsDialog {
                 new String[]{mod("Shift+H"), "Replace in Files"},
                 new String[]{"Shift+Alt+F", "Format Document"},
                 new String[]{MAC ? "Ctrl+Cmd+F / F11" : "F11", "Toggle Full Screen"},
-                new String[]{"F5", "Execute: run XQuery/XSLT/XProc, otherwise validate"},
+                new String[]{"F5", "Run the active XQuery / XPath / XSLT / XProc document"},
+                new String[]{"F8", "Validate the active document"},
                 new String[]{mod("D"), "Add to Favorites"},
                 new String[]{mod("Shift+D"), "Toggle Favorites Panel"},
                 new String[]{mod("L"), "Toggle Side Panel"},
@@ -55,8 +56,11 @@ public final class KeyboardShortcutsDialog {
                 new String[]{mod("T"), "Insert Template"},
                 new String[]{"Ctrl++ / Ctrl+-", "Grid view: zoom in / out"},
                 new String[]{mod("0"), "Grid view: reset zoom to 100%"},
+                new String[]{mod("Alt+X"), "Grid view: copy XPath / JSONPath of the selected node"},
+                new String[]{mod("Alt+C"), "Grid view: copy the selected node as XML / JSON"},
+                new String[]{mod("Shift+C"), "Grid view: copy the cell content"},
                 new String[]{"Ctrl+Mouse wheel", "Zoom (Text view: font size, Grid view: whole grid)"},
-                new String[]{"F1", "Open the Help panel"}
+                new String[]{"F1", "Show the Help menu"}
         );
         return DialogHelper.createHelpDialog(
                 "Keyboard Shortcuts",

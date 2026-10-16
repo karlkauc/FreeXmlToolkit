@@ -48,6 +48,13 @@ public class ProblemsPanel extends VBox {
 
         editorHost.getActiveProblems().addListener(
                 (ListChangeListener<ValidationProblem>) c -> refresh());
+        editorHost.problemsRevealRequestsProperty().addListener((obs, oldV, newV) -> {
+            setCollapsed(false);
+            list.requestFocus();
+            if (!items.isEmpty() && list.getSelectionModel().isEmpty()) {
+                list.getFocusModel().focus(0);
+            }
+        });
         refresh();
     }
 

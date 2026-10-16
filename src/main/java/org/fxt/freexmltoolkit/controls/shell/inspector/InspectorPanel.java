@@ -72,6 +72,7 @@ public class InspectorPanel extends VBox {
     private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode currentJsonNode;
 
     @FXML private Label nodeHeaderName;
+    @FXML private Label emptyHint;
     @FXML private Label nodeHeaderKind;
     @FXML private Label validationBadge;
 
@@ -671,6 +672,7 @@ public class InspectorPanel extends VBox {
     // ----- refresh / populate ---------------------------------------------
 
     private void refresh() {
+        showEmptyHint(null);
         XsdNode selected = editorHost.activeSelectedNodeProperty().get();
         XmlNode xmlSelected = editorHost.activeXmlNodeProperty().get();
         var jsonSelected = editorHost.activeJsonNodeProperty().get();
@@ -1135,16 +1137,31 @@ public class InspectorPanel extends VBox {
         show(docSection, visible);
     }
 
+    /** Shows the empty-state hint below the header, or hides it for {@code null}. */
+    private void showEmptyHint(String text) {
+        boolean shown = text != null;
+        emptyHint.setText(shown ? text : "");
+        emptyHint.setVisible(shown);
+        emptyHint.setManaged(shown);
+    }
+
+    /** @return the empty-state hint currently shown, or {@code null} (for tests) */
+    String emptyHintText() {
+        return emptyHint.isVisible() ? emptyHint.getText() : null;
+    }
+
     /** Text/caret mode (no XSD node): show read-only Node & XPath, hide the editable rows. */
     private void populateCaret() {
         var docOpt = editorHost.getActiveDocument();
         if (docOpt.isEmpty()) {
+            showEmptyHint("Open a document to see the properties of its nodes here.");
             setHeader(PLACEHOLDER, null);
             kindValue.setText(PLACEHOLDER);
             nameField.setText("");
             xpathValue.setText(PLACEHOLDER);
             depthValue.setText(PLACEHOLDER);
         } else if (docOpt.get().getFileType() == EditorFileType.JSON) {
+            showEmptyHint("Select a node in the Tree or Graphic view to see and edit its properties.");
             setHeader(PLACEHOLDER, "JSON");
             kindValue.setText("JSON");
             nameField.setText("");
@@ -1154,6 +1171,10 @@ public class InspectorPanel extends VBox {
             String text = editorHost.getActiveText().orElse("");
             int caret = editorHost.activeCaretProperty().get();
             NodeXPathInfo info = NodeXPathInfo.fromCaret(xpathCalculator, text, caret);
+            if (info.depth() == 0) {
+                showEmptyHint("Place the caret on an element, or select a node in the Tree or Graphic view, "
+                        + "to see and edit its properties.");
+            }
             setHeader(blankToPlaceholder(info.name()), info.kind());
             kindValue.setText(info.kind());
             nameField.setText(PLACEHOLDER.equals(blankToPlaceholder(info.name())) ? "" : info.name());

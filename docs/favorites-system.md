@@ -53,7 +53,7 @@ at a glance. Click an entry to open it as an editor tab; the search field filter
 
 Keystore and trust store files (`.jks`, `.p12`, `.pfx`, `.keystore`)
 are recognized as their own **Keystore** type with a lock icon - they form their own group in the Favorites panel and feed the keystore
-star menus in the Signature panel (see below).
+star menus on the Signature page (see below).
 
 ### Star Menus in the Side Panels
 
@@ -74,6 +74,10 @@ it in a single click, without browsing the file system:
 The menu is rebuilt each time you open it, so newly added favorites appear immediately.
 When you use more than one favorites folder, the entries are grouped by folder as
 submenus. While you have no matching favorites, the star button is grayed out.
+
+The **Explorer** panel no longer has a FAVORITES tab - its bottom list shows only
+**RECENT** files. Manage your favorites in the **Favorites** activity and use them via the
+star menus.
 
 ---
 

@@ -52,6 +52,9 @@ class ExecutionStatsDocScreenshotGenerator {
     @Start
     void start(Stage stage) throws Exception {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        // The one-time FundsXML hint would sit above the editor in every later image.
+        org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                .set(org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.SHOWN_KEY, "true");
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
         root = loader.load();

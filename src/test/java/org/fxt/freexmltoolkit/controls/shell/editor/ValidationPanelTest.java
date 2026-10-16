@@ -325,9 +325,7 @@ class ValidationPanelTest {
     }
 
     @Test
-    void constructsWithFundsXmlEntryGatedOnFeatureFlag() {
-        // The "Validate against FundsXML" ⋮-menu entry is conditional on the feature
-        // flag and may be absent when it is off — construction must succeed either way.
+    void constructsWithoutAFundsXmlDuplicate() {
         ValidationPanel[] built = new ValidationPanel[1];
         assertDoesNotThrow(() -> WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             built[0] = new ValidationPanel(host);
@@ -336,10 +334,9 @@ class ValidationPanelTest {
         WaitForAsyncUtils.waitForFxEvents();
         assertNotNull(built[0], "ValidationPanel must construct");
 
-        boolean fundsEntryPresent = built[0].toolLabels()
-                .contains("Validate against FundsXML");
-        assertEquals(FundsXmlRunner.isEnabled(), fundsEntryPresent,
-                "the FundsXML validation entry must be present iff the feature flag is enabled");
+        // One place per task (UX plan 3.1): FundsXML validation lives in the FundsXML panel only.
+        assertFalse(built[0].toolLabels().contains("Validate against FundsXML"),
+                "the Validation panel must not duplicate the FundsXML validation entry");
     }
 
     @Test
@@ -393,7 +390,7 @@ class ValidationPanelTest {
 
     @Test
     void droppingASchematronOnTheSourceRowBindsIt(@TempDir Path tmp) throws Exception {
-        javafx.scene.layout.HBox row = (javafx.scene.layout.HBox) panel.lookup("#validation-schematron-row");
+        javafx.scene.layout.Region row = (javafx.scene.layout.Region) panel.lookup("#validation-schematron-row");
         assertNotNull(row, "the SCHEMATRON row must exist");
         assertNotNull(row.getOnDragOver(), "the SCHEMATRON row must accept file drags");
 
@@ -423,7 +420,7 @@ class ValidationPanelTest {
 
     @Test
     void droppingAnXsdOnTheSourceRowBindsItAndValidates(@TempDir Path tmp) throws Exception {
-        javafx.scene.layout.HBox row = (javafx.scene.layout.HBox) panel.lookup("#validation-xsd-row");
+        javafx.scene.layout.Region row = (javafx.scene.layout.Region) panel.lookup("#validation-xsd-row");
         assertNotNull(row, "the XSD row must exist");
         assertNotNull(row.getOnDragOver(), "the XSD row must accept file drags");
 

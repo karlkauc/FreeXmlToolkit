@@ -80,6 +80,19 @@ class JsonGridContextMenuTest {
     }
 
     @Test
+    void ctrlShiftXIsLeftToTheQueryConsoleInsteadOfCutting() {
+        JsonNode first = items().get(0);
+        KeyEvent event = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.X, true, true, false, false);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            menu.handleKeyPress(event, first);
+            return null;
+        });
+        assertFalse(event.isConsumed(), "Ctrl+Shift+X must reach the shell (Query Console toggle)");
+        assertEquals(3, items().size(), "Ctrl+Shift+X must not cut the node");
+        assertFalse(menu.hasClipboard());
+    }
+
+    @Test
     void duplicateKeepsPositionAndUniquifiesKeys() {
         key(root().getProperty("name"), KeyCode.D, true, false, false);
         assertNotNull(root().getProperty("name_copy"));

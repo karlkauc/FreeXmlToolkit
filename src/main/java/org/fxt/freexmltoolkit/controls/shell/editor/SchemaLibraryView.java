@@ -25,10 +25,11 @@ import org.fxt.freexmltoolkit.service.*;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
- * Side panel of the Schema Library activity: namespace mappings, registered XML catalogs
- * and the remote schema cache. All disk/network work runs on the shared executor.
+ * The Schema Library page, a tab in the main editor area opened by the Schema Library activity
+ * (like Settings): namespace mappings, registered XML catalogs and the remote schema cache, in
+ * labelled tabs with the full editor width. All disk/network work runs on the shared executor.
  */
-public class SchemaLibraryPanel extends VBox {
+public class SchemaLibraryView extends VBox {
 
     private final EditorHost editorHost;
     private final SchemaLibraryService library;
@@ -79,20 +80,20 @@ public class SchemaLibraryPanel extends VBox {
     @FXML private Label cacheFooter;
     @FXML private Label legacyInfo;
 
-    public SchemaLibraryPanel(EditorHost editorHost) {
+    public SchemaLibraryView(EditorHost editorHost) {
         this(editorHost, SchemaLibraryServiceImpl.shared(), SchemaResourceCache.shared(),
                 ServiceRegistry.get(XmlService.class));
     }
 
-    /** Loads the layout from {@code /pages/panels/SchemaLibraryPanel.fxml} and wires the three tabs. */
-    public SchemaLibraryPanel(EditorHost editorHost, SchemaLibraryService library,
+    /** Loads the layout from {@code /pages/views/SchemaLibraryView.fxml} and wires the three tabs. */
+    public SchemaLibraryView(EditorHost editorHost, SchemaLibraryService library,
                               SchemaResourceCache cache, XmlService xmlService) {
         this.editorHost = editorHost;
         this.library = library;
         this.cache = cache;
         this.xmlService = xmlService;
         filtered = new FilteredList<>(library.getEntries());
-        FxmlViews.load(this, "/pages/panels/SchemaLibraryPanel.fxml");
+        FxmlViews.load(this, "/pages/views/SchemaLibraryView.fxml");
 
         initMappingsTab();
         initCatalogsTab();
@@ -102,7 +103,31 @@ public class SchemaLibraryPanel extends VBox {
         });
     }
 
+    /** The page's sections, in tab order (keys for {@link #showSection(String)}). */
+    public static final java.util.List<PageNavigator.Entry> SECTIONS = java.util.List.of(
+            new PageNavigator.Entry("mappings", "Mappings", "bi-diagram-3", "namespace location schema"),
+            new PageNavigator.Entry("catalogs", "Catalogs", "bi-journal-bookmark", "oasis catalog.xml"),
+            new PageNavigator.Entry("cache", "Cache", "bi-hdd", "download remote"));
+
     public void showCacheTab() { tabs.getSelectionModel().select(cacheTab); }
+
+    /** Selects the tab of a {@link #SECTIONS} key; unknown keys are ignored. */
+    public void showSection(String key) {
+        switch (key) {
+            case "mappings" -> tabs.getSelectionModel().select(mappingsTab);
+            case "catalogs" -> tabs.getSelectionModel().select(catalogsTab);
+            case "cache" -> tabs.getSelectionModel().select(cacheTab);
+            default -> { }
+        }
+    }
+
+    /** Reports the key of the selected tab now and on every change (for the side panel's mark). */
+    public void setOnSectionShown(java.util.function.Consumer<String> handler) {
+        java.util.function.Consumer<Tab> report = t ->
+                handler.accept(t == catalogsTab ? "catalogs" : t == cacheTab ? "cache" : "mappings");
+        tabs.getSelectionModel().selectedItemProperty().addListener((o, a, t) -> report.accept(t));
+        report.accept(tabs.getSelectionModel().getSelectedItem());
+    }
 
     // ------------------------------------------------------------------ Mappings
 

@@ -113,6 +113,7 @@ public class XPathSearchPane extends VBox {
         modeChoice.getSelectionModel().selectedIndexProperty().addListener(
                 (obs, oldV, newV) -> refreshArgumentPrompt(newV.intValue()));
         refreshArgumentPrompt(0);
+        resultsTree.setEmptyHint("Results appear here. Enter an XPath expression above to find matching nodes in all XML files of the folder.");
         resultsTree.setOnNavigate(this::navigateTo);
         refreshFolderLabel();
     }
@@ -194,8 +195,9 @@ public class XPathSearchPane extends VBox {
 
     private void refreshFolderLabel() {
         Path folder = effectiveFolder();
-        folderLabel.setText(folder != null ? folder.getFileName() + "  (" + folder + ")" : "(no folder)");
-        folderLabel.setTooltip(folder != null ? new Tooltip(folder.toString()) : null);
+        folderLabel.setText(folder != null ? String.valueOf(folder.getFileName()) : "No folder — choose one");
+        folderLabel.setTooltip(new Tooltip(folder != null ? folder.toString() : "Choose the folder to search"));
+        folderLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CENTER_ELLIPSIS);
     }
 
     private List<String> globs() {

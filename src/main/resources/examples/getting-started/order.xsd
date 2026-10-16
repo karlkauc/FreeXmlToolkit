@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- FreeXmlToolkit example: the schema of order.xml. Open it to see the graphical XSD editor. -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <xs:element name="order" type="OrderType"/>
+
+    <xs:complexType name="OrderType">
+        <xs:annotation>
+            <xs:documentation>A purchase order: who ordered what.</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="customer" type="CustomerType"/>
+            <xs:element name="items" type="ItemsType"/>
+            <xs:element name="note" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="id" type="OrderIdType" use="required"/>
+        <xs:attribute name="date" type="xs:date" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="CustomerType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="email" type="xs:string" minOccurs="0"/>
+            <xs:element name="address" type="AddressType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AddressType">
+        <xs:sequence>
+            <xs:element name="street" type="xs:string"/>
+            <xs:element name="city" type="xs:string"/>
+            <xs:element name="country" type="CountryCodeType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ItemsType">
+        <xs:sequence>
+            <xs:element name="item" type="ItemType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ItemType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="sku" type="xs:string" use="required"/>
+                <xs:attribute name="quantity" type="xs:positiveInteger" use="required"/>
+                <xs:attribute name="price" type="PriceType" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <xs:simpleType name="OrderIdType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="PO-[0-9]{4}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="CountryCodeType">
+        <xs:restriction base="xs:string">
+            <xs:length value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="PriceType">
+        <xs:restriction base="xs:decimal">
+            <xs:minInclusive value="0"/>
+            <xs:fractionDigits value="2"/>
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

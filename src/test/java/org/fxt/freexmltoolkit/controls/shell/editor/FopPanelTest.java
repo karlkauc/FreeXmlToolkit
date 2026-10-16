@@ -145,8 +145,8 @@ class FopPanelTest {
 
     @Test
     void droppingFilesOnTheInputRowsLoadsThem(@TempDir Path tmp) throws Exception {
-        javafx.scene.layout.HBox xmlRow = (javafx.scene.layout.HBox) panel.lookup("#fop-xml-row");
-        javafx.scene.layout.HBox xslRow = (javafx.scene.layout.HBox) panel.lookup("#fop-xsl-row");
+        javafx.scene.layout.Region xmlRow = (javafx.scene.layout.Region) panel.lookup("#fop-xml-row");
+        javafx.scene.layout.Region xslRow = (javafx.scene.layout.Region) panel.lookup("#fop-xsl-row");
         assertNotNull(xmlRow, "the XML input row must exist");
         assertNotNull(xslRow, "the XSL stylesheet row must exist");
         assertNotNull(xmlRow.getOnDragOver(), "the XML row must accept file drags");

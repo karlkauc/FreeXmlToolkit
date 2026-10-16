@@ -56,7 +56,7 @@ Use this mode to validate one XML file against a schema.
      checked against your XML catalogs and library mappings before anything is downloaded,
      and the status bar indicator shows how the schema was found: **"XSD: name"** (declared),
      **"(catalog)"**, **"(library)"** or **"(manual)"**.
-   - **Manual**: Bind an XSD yourself - click the **"No XSD"** indicator in the status bar (or
+   - **Manual**: Bind an XSD yourself - click the **"No XSD"** chip in the status bar (or
      click the toolbar's **Schema** button - **Set XSD Schema…**), pick a schema in the Validation panel's
      **SOURCES** section, or simply **drop** an `.xsd` file from your file manager onto the
      panel's XSD source row or onto the status bar's XSD indicator.
@@ -73,10 +73,14 @@ The panel's status line reports the outcome right away:
 | Status line | Meaning |
 |-------------|---------|
 | **Valid** | The document conforms to the bound XSD (and Schematron, if one is bound) |
-| **Well-formed** | No schema is bound - only the well-formedness check ran and it passed |
-| **N problem(s)** | Problems were found; they are listed in the **PROBLEMS** section |
+| **Well-formed · no schema bound** | No schema is bound - only the well-formedness check ran and it passed (neutral, not green: bind an XSD in SOURCES to validate) |
+| **1 problem / N problems** | Problems were found; they are listed in the **PROBLEMS** panel below the editor |
 
-Each entry in the **PROBLEMS** list reads `[source] Ln N: message`:
+In **Single file** mode the side panel does not repeat the problem list: below the status
+line it shows a row such as *"3 problems — show below the editor"*. Click it to expand and
+focus the **PROBLEMS** panel below the editor.
+
+Each entry in the problem list reads `[source] Ln N: message`:
 
 - **Source** - `XSD`, `Well-formed`, or `Schematron`, so you can tell which check reported it
 - **Line number** - where the problem is
@@ -86,7 +90,7 @@ Selecting a problem jumps to its line in the editor. The same problems are mirro
 **PROBLEMS** panel below the editor, whose header shows error and warning counters; see
 [Jump to Validation Errors](unified-shell.md#jump-to-validation-errors) for navigation details.
 
-> **Validate while typing** (on by default, toggle in the panel's ⋮ menu) re-runs validation
+> **Validate while typing** (on by default, toggle in the panel header's ⋮ menu) re-runs validation
 > shortly after every edit, tab switch, or schema change, so the list stays current without
 > pressing F8.
 
@@ -110,7 +114,7 @@ Validation panel's **SOURCES** section and in the status bar's XSD indicator:
 |------------------|-------------------------|
 | **XSD** | Every file is validated against that one schema |
 | **Schematron** | Every file is additionally checked against that Schematron |
-| **none** | Every file gets a well-formedness check only |
+| *(nothing bound)* | Every file gets a well-formedness check only |
 
 The files' own `xsi:schemaLocation` references are **not** consulted during a batch run.
 To validate a folder against a particular schema, open any XML document, bind the XSD
@@ -139,10 +143,11 @@ The **RESULTS** list shows one row per file:
 | **File name** | Name of the XML file |
 | **Badge** | Number of problems found in that file |
 
-Select a row to see that file's problems in the **PROBLEMS** section; **double-click** a row
-to open the file in the editor. A plain-text report of the run (schema names plus one
-`file: valid / N problem(s)` line per file) opens as a document via the panel's ⋮ menu
-(**Open last batch report**). A running batch can be cancelled from the progress bar; the
+The **RESULTS** list and the panel's **PROBLEMS** list are only shown in **Batch** mode
+(starting a batch run switches to it). Select a row to see that file's problems in the
+**PROBLEMS** section; **double-click** a row to open the file in the editor. A plain-text
+report of the run (schema names plus one line per file) opens as a document via **Open
+Last Batch Report** in the panel's **REPORTS & CHECKS** section. A running batch can be cancelled from the progress bar; the
 results collected so far are kept.
 
 ### Summary
@@ -159,13 +164,13 @@ and the panel's status line repeats it ("2 of 25 file(s) failed").
 
 ## Exporting Results
 
-There is one export: the **Export problems to Excel** button (Excel icon) in the header of
-the **PROBLEMS** section. It is enabled whenever the list contains problems and writes
+There is one export: the **Export Problems to Excel** row (Excel icon) in the panel's
+**REPORTS & CHECKS** section. It is enabled whenever the list contains problems and writes
 **exactly the problems currently shown**:
 
 - after a single-file run, the active document's problems;
 - after a batch run, the problems of the file selected in **RESULTS** - pick a row first,
-  then export. There is no all-files export; use **Open last batch report** (⋮ menu) for a
+  then export. There is no all-files export; use **Open Last Batch Report** for a
   per-file overview of the whole run.
 
 The suggested file name is `<document>-problems.xlsx`. The workbook contains:
@@ -194,15 +199,18 @@ Save frequently used XML and XSD files to favorites for quick access:
 
 | Control | Description |
 |---------|-------------|
-| **SOURCES · XSD row** | The bound XSD (or *none*). Click the name to open the schema in the editor, **★** to pick a favorite, **Change** to browse; drop an `.xsd` onto the row to bind it. |
-| **SOURCES · Schematron row** | The bound Schematron (`.sch`), with the same name / ★ / Change / drop behavior. |
+| **SOURCES · XSD row** | Two lines: icon, caption **XSD**, **★** and **Change** on the first; the bound file's name on the second (shortened in the middle, full path as tooltip). While nothing is bound it reads *"No XSD bound — choose or drop a file"* and a click acts like **Change**. Click the name to open the schema in the editor, **★** to pick a favorite, **Change** to browse; drop an `.xsd` onto the row to bind it. |
+| **SOURCES · Schematron row** | The bound Schematron (`.sch`), with the same layout and name / ★ / Change / drop behavior (*"No Schematron — choose or drop a file"* while empty). |
 | **SOURCES · JSON Schema row** | Shown instead of the two rows above while a JSON document is active. |
 | **Single file / Batch** | Segmented toggle that decides what **Run Validation** does. |
 | **Run Validation** | Single file: validates the active document. Batch: opens the **Select XML files…** / **Select folder…** menu. |
-| **Status line** | *Valid*, *Well-formed*, *N problem(s)*, batch summaries, or a precondition hint (e.g. *No document open*). |
-| **RESULTS** | Per-file rows of the last batch run (collapsible section). |
-| **PROBLEMS** | The problem list (collapsible), with two header buttons: **Open detailed Schematron report** (enabled after a run with a bound Schematron) and **Export problems to Excel**. |
-| **⋮ menu** | **Schematron Tools** (Rule Templates, Tester, Rule Builder, Check Rules, Validation Report, Documentation), **Validate against FundsXML** (only when the FundsXML extension is enabled in Settings), **Validate while typing**, **Open last batch report**. |
+| **Status line** | *Valid*, *Well-formed · no schema bound*, *1 problem* / *N problems*, batch summaries, or a precondition hint (e.g. *No document open*). |
+| **"N problems — show below the editor"** | *(Single file mode.)* Expands and focuses the PROBLEMS panel below the editor. |
+| **RESULTS** | *(Batch mode only.)* Per-file rows of the last batch run (collapsible section). |
+| **PROBLEMS** | *(Batch mode only.)* The problems of the file selected in RESULTS (collapsible). |
+| **REPORTS & CHECKS** | Collapsed section: **Validation Report** (enabled after a run with a bound Schematron), **Export Problems to Excel**, **Open Last Batch Report**. (FundsXML validation lives in the FundsXML panel.) |
+| **SCHEMATRON AUTHORING** | Collapsed section: **Rule Templates**, **Schematron Tester**, **Rule Builder**, **Check Rules**, **Schematron Documentation**. |
+| **⋮ menu** | **Validate while typing**. |
 
 ### Editor toolbar and status bar
 
@@ -210,8 +218,8 @@ Save frequently used XML and XSD files to favorites for quick access:
 |---------|----------|-------------|
 | **Validate** | F8 | Validates the active document - well-formedness, or against the bound XSD / Schematron |
 | **Schema** (primary click) | - | **Set XSD Schema…** - bind an XSD (or a JSON Schema for JSON documents) to the active document |
-| **Schema ▾** menu | - | **Set XSD Schema…**, **Generate Documentation…**, **Type Editor…** |
-| **XSD indicator** (status bar) | - | Shows *No XSD*, *Detecting XSD…*, *XSD: name* (with *(catalog)* / *(library)* / *(manual)*), or *XSD error*; click it to bind a schema, or drop an `.xsd` onto it |
+| **Schema ▾** menu | - | **Set XSD Schema…**, **Generate Documentation…**, **Type Editor…**, **Generate XSD from XML**, **Generate XSD from XML Files…** |
+| **XSD indicator** (status bar) | - | Shows *No XSD* (a clickable chip), *Detecting XSD…*, *XSD: name* (with *(catalog)* / *(library)* / *(manual)*), or *XSD error*; click it to bind a schema, or drop an `.xsd` onto it. While an XSD schema itself is the active document it shows *XSD 1.1 schema* / *XSD 1.0 schema* instead (from `vc:minVersion`). |
 
 ---
 

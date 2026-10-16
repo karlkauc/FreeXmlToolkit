@@ -50,38 +50,35 @@ class TransformPanelRedesignTest {
     }
 
     @Test
-    void overflowMenuKeepsAllSecondaryOptions() {
+    void optionsAndToolsShareOneCollapsedSection() {
         WaitForAsyncUtils.waitForFxEvents();
-        MenuButton overflow = (MenuButton) panel.lookup("#transform-overflow");
-        assertNotNull(overflow, "the panel header must carry the ⋮ overflow menu");
-        var texts = overflow.getItems().stream().map(MenuItem::getText)
-                .filter(java.util.Objects::nonNull).toList();
-        assertTrue(texts.containsAll(java.util.List.of(
-                        "Live preview", "Watch stylesheet file", "Profile run", "Trace run",
-                        "Auto-open result tab")),
-                "all former ADVANCED toggles must remain in the ⋮ menu, was: " + texts);
+        assertNull(panel.lookup("#transform-overflow"), "no hidden ⋮ menu: options and tools are one section");
+        var section = (SidePanelSection) panel.lookup("#transform-options-section");
+        assertNotNull(section, "OPTIONS & TOOLS must exist");
+        assertTrue(section.isCollapsed(), "secondary options start collapsed below the run");
+        for (String id : new String[]{"#transform-live-preview", "#transform-watch-xslt", "#transform-profile",
+                "#transform-trace", "#transform-auto-open"}) {
+            assertInstanceOf(javafx.scene.control.CheckBox.class, panel.lookup(id), id + " must be a visible switch");
+        }
         assertTrue(panel.toolLabels().containsAll(java.util.List.of(
                         "Debug XSLT…", "Batch Transform…", "Execution Statistics")),
-                "the former ADVANCED tools must be visible TOOLS rows, was: " + panel.toolLabels());
-        long checkItems = overflow.getItems().stream().filter(i -> i instanceof CheckMenuItem).count();
-        assertEquals(5, checkItems, "the five toggles must be check menu items");
+                "the tools must stay visible rows, was: " + panel.toolLabels());
     }
 
     @Test
-    void outputMethodSegmentsCoverAllSixChoices() {
+    void outputMethodIsOneChoiceWithAllSixFormats() {
         WaitForAsyncUtils.waitForFxEvents();
-        // lookupAll must run on the FX thread (scene graph may still be mutating)
-        var segments = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".fxt-seg").stream()
-                .filter(n -> n instanceof javafx.scene.control.ToggleButton)
-                .map(n -> ((javafx.scene.control.ToggleButton) n).getText())
-                .toList());
-        assertTrue(segments.containsAll(java.util.List.of("Auto", "XML", "HTML", "XHTML", "Text", "JSON")),
-                "the OUTPUT METHOD control must keep all six format choices, was: " + segments);
-        // Default: Auto selected.
-        boolean autoSelected = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".fxt-seg").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.ToggleButton t
-                        && "Auto".equals(t.getText()) && t.isSelected()));
-        assertTrue(autoSelected, "Auto must be the default output method");
+        @SuppressWarnings("unchecked")
+        var combo = (javafx.scene.control.ComboBox<TransformPanel.FormatChoice>) panel.lookup("#transform-output-method");
+        assertNotNull(combo, "OUTPUT METHOD must be a single choice field");
+        assertEquals(java.util.List.of("Auto", "XML", "HTML", "XHTML", "Text", "JSON"),
+                combo.getItems().stream().map(Object::toString).toList());
+        assertEquals(TransformPanel.FormatChoice.AUTO, panel.getFormatChoice(), "Auto must be the default");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setOutputFormat(org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.JSON);
+            return null;
+        });
+        assertEquals(TransformPanel.FormatChoice.JSON, panel.getFormatChoice());
     }
 
     @Test
@@ -122,9 +119,40 @@ class TransformPanelRedesignTest {
                 .map(n -> ((javafx.scene.control.Label) n).getText())
                 .toList());
         assertTrue(sectionLabels.containsAll(java.util.List.of(
-                        "STYLESHEET", "INPUT", "OUTPUT METHOD", "PARAMETERS", "XPATH", "XQUERY")),
+                        "STYLESHEET", "INPUT", "OUTPUT METHOD", "PARAMETERS")),
                 "the mockup sections must exist, was: " + sectionLabels);
         // The primary action is a full-width "Run Transform" button.
         assertNotNull(panel.lookup("#transform-run"), "the Run Transform primary button must exist");
+    }
+
+    @Test
+    void queriesPointToTheQueryConsoleInsteadOfOwnSections() {
+        WaitForAsyncUtils.waitForFxEvents();
+        var sectionLabels = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".fxt-sp-section-header").stream()
+                .flatMap(h -> h.lookupAll(".label").stream())
+                .filter(n -> n instanceof javafx.scene.control.Label)
+                .map(n -> ((javafx.scene.control.Label) n).getText())
+                .toList());
+        assertFalse(sectionLabels.contains("XPATH") || sectionLabels.contains("XQUERY"),
+                "queries against the open document live in the Query Console (UX plan 3.3): " + sectionLabels);
+        int before = host.queryConsoleRequestsProperty().get();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ((javafx.scene.control.Button) panel.lookup("#transform-open-query-console")).fire();
+            return null;
+        });
+        assertEquals(before + 1, host.queryConsoleRequestsProperty().get(), "the pointer opens the Query Console");
+    }
+
+    @Test
+    void runAutomaticallyCanBeSwitchedOff() {
+        WaitForAsyncUtils.waitForFxEvents();
+        var box = (javafx.scene.control.CheckBox) panel.lookup("#transform-auto-run");
+        assertNotNull(box, "the automatic run is visible next to Run Transform (UX plan 3.6)");
+        assertTrue(box.isSelected(), "on by default (the previous behaviour)");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setRunAutomatically(false);
+            return null;
+        });
+        assertFalse(panel.readyToAutoRun(), "no automatic run while switched off");
     }
 }

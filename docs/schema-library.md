@@ -6,6 +6,13 @@ The **Schema Library** maps namespaces (and JSON `$schema` URIs) to schema files
 documents that don't carry an explicit reference to their schema can still be validated
 and get IntelliSense automatically.
 
+**Where to find it:** click **Schema Library** in the activity bar. The library opens as a
+**page** - a tab named **Schema Library** in the main editor area, just like Settings - with
+three tabs: **Mappings**, **Catalogs** and **Cache**. The side panel on the left lists the same
+three sections: click one to jump to its tab; the tab you are on is highlighted. A shared status
+line at the bottom of the page reports the outcome of the last action. The Properties inspector
+is hidden while the page is selected, so the tables get the full width.
+
 ---
 
 ## 1. What the Schema Library is
@@ -47,14 +54,12 @@ The library is consulted whenever a document needs a schema but doesn't say whic
 ## 2. Mappings tab
 
 ![Schema Library - Mappings](img/unified-shell-schema-library-mappings.png)
-*The Mappings tab: namespace → schema entries with status icons, filter and toolbar.*
+*The Mappings tab: namespace → schema entries with status icons, filter and action buttons.*
 
 The table has one row per mapping: a status icon, **Namespace** (or `<root> (no namespace)`
-for root-element mappings), **Location** and an **On** checkbox to enable/disable the row
-without deleting it. Two more columns, **Kind** (`XSD` or `JSON_SCHEMA`) and **Source**
-(`user`, `catalog` or `bundled`), are hidden by default to keep the table readable in the
-narrow side panel - click the small menu button at the table's top-right corner to show
-them. The **filter** field searches namespace, location, description and root element.
+for root-element mappings), **Location**, **Kind** (`XSD` or `JSON_SCHEMA`), **Source**
+(`user`, `catalog` or `bundled`) and an **On** checkbox to enable/disable the row
+without deleting it. All columns are visible. The **filter** field searches namespace, location, description and root element.
 Bundled rows render in italics and can only be enabled/disabled, never edited or removed.
 
 | Icon | Status | Meaning |
@@ -64,7 +69,7 @@ Bundled rows render in italics and can only be enabled/disabled, never edited or
 | ⚠ | File missing | A local path that no longer exists on disk |
 | ✖ | Error | The last download/verification attempt failed (hover for the error message) |
 
-Toolbar actions: **Add mapping…** and **Edit…** open the mapping dialog (namespace,
+The labelled buttons above the table: **Add mapping…** and **Edit…** open the mapping dialog (namespace,
 location, kind, description, optional root element); **Remove** deletes a `USER` mapping;
 **Enable / disable** toggles the **On** column for the selected row; **Add schema of
 current document** prefills a new mapping from the active document's bound schema; and
@@ -87,6 +92,8 @@ During validation a reference is looked up by its **system identifier** first, t
 **public identifier** (`public` entries), and finally by namespace. `public` entries are
 therefore honoured for schema resolution even though they cannot be imported into the
 Mappings tab (a public identifier is not a namespace).
+
+The tab's labelled buttons:
 
 - **Add catalog…** registers a `catalog.xml` file; **Remove** unregisters it (the file
   itself is untouched); **Enable / disable** toggles it without removing it; **Reload
@@ -126,16 +133,17 @@ Register `catalog.xml` in the Catalogs tab, open the documents and validate; the
 Every remote schema resolved through the library (or downloaded because a document
 referenced it directly) is cached under `~/.freeXmlToolkit/cache/schemas`. The Cache tab
 lists **URL**, **Target namespace** and file **Size** by default, with a **filter** over
-URL/namespace. Two more columns, **Downloaded** timestamp and **Hits** (access count), are
-hidden by default - click the table's menu button to show them. **Open** opens the cached
-file as an editor tab; **Reveal** shows the cache folder in the system file manager;
-**Refresh** re-downloads the selected entry; **Delete** removes one cached file
-(re-downloaded on next use); **Clear** wipes the entire cache. A footer line reports the
+URL/namespace, plus the **Downloaded** timestamp and **Hits** (access count) - all columns
+are visible. The labelled buttons: **Open cached file** opens the cached file as an editor
+tab; **Show in system file manager** shows the cache folder in your file manager;
+**Re-download** fetches the selected entry again; **Delete cached file** removes one cached
+file (re-downloaded on next use); **Clear entire cache** wipes the entire cache. A footer line reports the
 total file count, total size and the cache hit ratio.
 
 A collapsible **"Auto-detected schemas (legacy cache)"** group underneath holds the older,
 separate cache of schemas auto-downloaded from `xsi:schemaLocation` references (one folder
-per schema URL, keyed by an MD5 hash). It is read-only except for a **Clear** button; those
+per schema URL, keyed by an MD5 hash). It is read-only except for a **Clear auto-detected
+schema cache** button; those
 files are simply re-downloaded the next time a document references them.
 
 ## 5. Bundled standards
@@ -173,7 +181,8 @@ cached entries always resolve, with or without network access.
 
 ## 6. Settings
 
-The **SCHEMA LIBRARY** card in Settings (gear icon at the bottom of the activity bar) holds:
+The **SCHEMA LIBRARY** card in Settings (gear icon at the bottom of the activity bar, group
+**Schemas & Validation**) holds:
 
 - **"Use the Schema Library to bind schemas automatically"** - controls **automatic binding
   in the editor** only (default **on**): the XML root-namespace / root-element lookup and the
@@ -184,8 +193,9 @@ The **SCHEMA LIBRARY** card in Settings (gear icon at the bottom of the activity
   bindings are unaffected.
 - The **library file** location, `~/.freeXmlToolkit/schema-library.json`, shown for
   reference.
-- A **"Manage schema cache…"** link that jumps straight to the Schema Library activity's
-  Cache tab. The same link also appears in the **TEMP & CACHE** card.
+- A **"Manage schema cache…"** link that opens the Schema Library page directly on its
+  **Cache** tab. The same link also appears in the **TEMP & CACHE** card (group **Files &
+  Cache**).
 
 ## 7. Troubleshooting
 

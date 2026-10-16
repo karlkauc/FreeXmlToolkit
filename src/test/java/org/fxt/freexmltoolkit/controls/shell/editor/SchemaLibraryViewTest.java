@@ -23,7 +23,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 @ExtendWith(ApplicationExtension.class)
-class SchemaLibraryPanelTest {
+class SchemaLibraryViewTest {
 
     private static final String BUNDLED = """
             {"version":1,"entries":[{"namespace":"urn:bundled","location":"https://example.org/b.xsd","kind":"XSD","description":"B"}]}""";
@@ -31,7 +31,7 @@ class SchemaLibraryPanelTest {
     private Path dir;
     private SchemaLibraryServiceImpl library;
     private SchemaResourceCache cache;
-    private SchemaLibraryPanel panel;
+    private SchemaLibraryView panel;
     private EditorHost host;
 
     @Start
@@ -42,7 +42,7 @@ class SchemaLibraryPanelTest {
         library = new SchemaLibraryServiceImpl(dir.resolve("lib.json"), cache,
                 () -> new ByteArrayInputStream(BUNDLED.getBytes()));
         host = new EditorHost();
-        panel = new SchemaLibraryPanel(host, library, cache, ServiceRegistry.get(XmlService.class));
+        panel = new SchemaLibraryView(host, library, cache, ServiceRegistry.get(XmlService.class));
         stage.setScene(new Scene(panel, 480, 640));
         stage.show();
     }
@@ -51,6 +51,25 @@ class SchemaLibraryPanelTest {
     void tearDown() throws Exception {
         ServiceRegistry.reset();
         org.apache.commons.io.FileUtils.deleteDirectory(dir.toFile());
+    }
+
+    @Test
+    void pageHasLabelledTabsAndActionsAndShowsEveryColumn(FxRobot robot) {
+        WaitForAsyncUtils.waitForFxEvents();
+        javafx.scene.control.TabPane tabs = robot.lookup("#schema-library-tabs").queryAs(javafx.scene.control.TabPane.class);
+        assertEquals(java.util.List.of("Mappings", "Catalogs", "Cache"),
+                tabs.getTabs().stream().map(javafx.scene.control.Tab::getText).toList());
+        assertEquals("Add mapping…", robot.lookup("#library-add").queryButton().getText());
+        assertTrue(table(robot).getColumns().stream().allMatch(javafx.scene.control.TableColumn::isVisible),
+                "the page has room for every column");
+        for (String key : new String[]{"cache", "catalogs", "mappings"}) {
+            robot.interact(() -> panel.showSection(key));
+            assertEquals(key, tabs.getSelectionModel().getSelectedItem().getText().toLowerCase(java.util.Locale.ROOT));
+        }
+        java.util.List<String> shown = new java.util.ArrayList<>();
+        robot.interact(() -> panel.setOnSectionShown(shown::add));
+        robot.interact(() -> panel.showCacheTab());
+        assertEquals(java.util.List.of("mappings", "cache"), shown, "reports the current tab, then every change");
     }
 
     @SuppressWarnings("unchecked")

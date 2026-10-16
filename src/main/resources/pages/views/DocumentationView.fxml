@@ -76,7 +76,7 @@
                                         <HBox spacing="8" alignment="CENTER_LEFT">
                                             <children>
                                                 <IconifyIcon iconLiteral="bi-diagram-3" iconSize="15"/>
-                                                <Label fx:id="xsdName" id="docgen-xsd-name" text="none"
+                                                <Label fx:id="xsdName" id="docgen-xsd-name" text="Not selected"
                                                        styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
                                                 <Hyperlink text="Browse" styleClass="fxt-vp-change"
@@ -86,7 +86,7 @@
                                         <HBox spacing="8" alignment="CENTER_LEFT">
                                             <children>
                                                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="15"/>
-                                                <Label fx:id="outputName" id="docgen-output-name" text="none"
+                                                <Label fx:id="outputName" id="docgen-output-name" text="Not selected"
                                                        styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
                                                 <Hyperlink text="Browse" styleClass="fxt-vp-change"
@@ -144,7 +144,7 @@
                                                 <HBox spacing="8" alignment="CENTER_LEFT">
                                                     <children>
                                                         <IconifyIcon iconLiteral="bi-image" iconSize="15"/>
-                                                        <Label fx:id="faviconName" id="docgen-favicon-name" text="none"
+                                                        <Label fx:id="faviconName" id="docgen-favicon-name" text="Not selected"
                                                                styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
                                                         <Region HBox.hgrow="ALWAYS"/>
                                                         <Hyperlink text="Browse" styleClass="fxt-vp-change"

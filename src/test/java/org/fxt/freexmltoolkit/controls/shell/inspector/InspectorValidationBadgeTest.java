@@ -35,7 +35,7 @@ class InspectorValidationBadgeTest {
     @Test
     void showsInvalidBadgeWithProblemCount() throws Exception {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            host.setValidationStatus(EditorHost.ValidationState.INVALID, 2, "2 problem(s)");
+            host.setValidationStatus(EditorHost.ValidationState.INVALID, 2, "2 problems");
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();
@@ -43,7 +43,7 @@ class InspectorValidationBadgeTest {
         Label badge = badge();
         assertNotNull(badge, "the validation badge must exist");
         assertTrue(badge.isVisible(), "the badge must be visible when validated");
-        assertTrue(badge.getText().contains("2 problem(s)"), "badge shows the problem summary: " + badge.getText());
+        assertTrue(badge.getText().contains("2 problems"), "badge shows the problem summary: " + badge.getText());
     }
 
     @Test

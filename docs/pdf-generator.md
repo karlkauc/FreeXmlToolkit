@@ -32,9 +32,9 @@ bar. The panel is organized into three sections plus the primary action:
 
 | Section | Contents |
 |---------|----------|
-| **INPUT** | The XML (follows the active editor; *Change* fixes it to a file) and the XSL-FO stylesheet |
+| **INPUT** | The **XML** (follows the active editor; *Change* fixes it to a file) and the **XSL-FO stylesheet**. Each slot shows the file name on its own line (full path as tooltip); an empty slot shows a hint such as *"No stylesheet — choose or drop a file"* and works like *Change* when clicked |
 | **METADATA** | PDF **Title**, **Author** (pre-filled from your user name), **Subject** |
-| **OPTIONS** | **PDF/A-1b compliant** toggle and the **Page size** (A4/Letter · Portrait/Landscape) |
+| **OPTIONS** | **PDF/A-1b compliant** toggle and the **Page size** dropdown (A4/Letter · Portrait/Landscape) |
 | **Generate PDF** | Asks for the output file and renders off the UI thread |
 
 ---
@@ -65,9 +65,11 @@ Add metadata to your PDF document in the **METADATA** section:
 - **PDF/A-1b compliant** - produces an archival-grade PDF. The stylesheet must use
   embeddable **system fonts** (e.g. `Liberation Sans`); the PDF base-14 fonts
   (Helvetica, Times, Courier) cannot be embedded and FOP will report exactly that.
-- **Page size** - passed to the stylesheet as the XSLT parameters `page-size`
-  (`A4`/`Letter`) and `page-orientation` (`Portrait`/`Landscape`). Stylesheets that
-  declare these parameters can switch their `fo:simple-page-master` accordingly.
+- **Page size** - a dropdown whose value is passed to the stylesheet as the XSLT parameters
+  `page-size` (`A4`/`Letter`) and `page-orientation` (`Portrait`/`Landscape`). As the hint
+  below the dropdown says, it **only applies if the stylesheet uses these parameters** -
+  stylesheets that declare them can switch their `fo:simple-page-master` accordingly;
+  others ignore the setting.
 
 ### Step 4: Generate the PDF
 

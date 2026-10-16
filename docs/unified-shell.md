@@ -20,12 +20,12 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, Help, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (Settings opens as a full page in the editor area - see [Settings Page](#settings-page).) |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Signature, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (**Settings**, **Schema Library** and **Signature** open as a full page in the editor area - see [Settings Page](#settings-page), [Schema Library Page](#schema-library-page) and [Signature Page](#signature-panel). Help is not an activity - it is the **Help** menu, see [Help Menu & About](#help-menu-about).) |
 | **Menu bar** (very top) | **File / Edit / View / Tools / Help** - every action of the toolbar, the Activity Bar and the keyboard shortcuts in one place (see [Menu Bar](#menu-bar)). On macOS it is the system menu bar at the top of the screen. |
-| **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Search · run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](#query-console) when clicked, and the Help and Theme buttons. |
+| **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](#query-console) when clicked, the **?** button (opens the [Help menu](#help-menu-about) as a popup - same as **F1**) and the Theme button. |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes)). |
-| **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
+| **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). Hidden automatically while a page without a document (Settings, Schema Library, Signature, reports, tool tabs) is selected. |
 | **Status bar** (bottom) | Caret position (Ln/Col), character count, file type, the XSD / IntelliSense indicator, the encoding label (UTF-8), the last recorded run (Developer feature), a memory indicator and the active file's path (see [Status Bar](#status-bar)). |
 
 #### Resizing and collapsing the side panels {#collapsing-the-side-panels}
@@ -46,14 +46,21 @@ collapsed to give the editor more room - the activity bar always stays visible.
 
 **Collapsing** - each panel can also be hidden completely:
 
-- **Collapse**: click the discreet double-chevron at the panel's inner edge (`<<` on the left
-  panel, `>>` on the inspector). The panel is hidden completely.
-- **Re-open**: click the matching toggle button in the editor toolbar (left-most toggle for the
-  side panel, right-most for the inspector) - the same mechanism on both sides. Selecting any
+- **Collapse**: click the discreet collapse button at the panel's inner edge (a chevron
+  pointing at a bar: `|<` on the left panel, `>|` on the inspector). The panel is hidden
+  completely.
+- **Re-open**: click the matching toggle button in the editor toolbar (left-most toggle, a
+  sidebar icon, for the side panel; right-most toggle, a mirrored sidebar icon, for the
+  inspector) - the same mechanism on both sides. Selecting any
   activity from the activity bar also re-opens the left side panel. A re-opened panel comes
   back at its **last dragged width**.
 - The collapsed/expanded state is **remembered across restarts** and can also be changed under
-  **Settings → General** ("Show left side panel" / "Show Properties (inspector) panel").
+  **Settings → Appearance → Layout** ("Show left side panel" / "Show Properties (inspector) panel").
+- **The inspector only appears next to documents.** When you switch to a tab that is not a
+  document - **Settings**, **Schema Library**, **Signature**, a report or another tool tab - the
+  inspector hides automatically, so the page gets the full width. Its toggle button is greyed out
+  on such tabs. As soon as you select a document tab again, the inspector comes back. Your own
+  show/hide choice is not changed by this - if you had hidden the inspector, it stays hidden.
 
 ### Key Features
 
@@ -86,7 +93,7 @@ Colour tells you two things at a glance, and the two never mix on one surface:
   chrome that names the workflow: the bar next to the selected Activity-Bar icon, the panel
   title (VALIDATION, TRANSFORM, …), the panel's one primary button (Run Validation, Run
   Transform, Generate PDF, Validate Signature), the tint of the matching toolbar group, the
-  Welcome tool card chips and the "last run" badge in the status bar. Help and Settings stay
+  icons of the Welcome page's task list and the "last run" badge in the status bar. Settings stays
   neutral, so the default view of the app looks as before.
 - **What an action does.** Menu items and the action rows of the side panels colour their icon
   by the kind of action, in every editor and every view: green adds or creates (Add, Paste,
@@ -148,7 +155,8 @@ the new document.
 
 > The segmented view switch offers the **Text**, **Tree**, and **Graphic** view
 > modes - each with its own icon - plus, for **HTML documents only**, a rendered read-only
-> **Preview** (eye icon). There is no separate **Grid** mode - the grid is part of
+> **Preview** (eye icon) - the Preview segment only appears while an HTML document is
+> active. There is no separate **Grid** mode - the grid is part of
 > **Graphic**.
 
 Every document tab offers the same view modes:
@@ -193,10 +201,10 @@ shows the editable grid:
   the parent), **Enter** toggles a container / starts editing a value, **Home/End** jump to
   the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**, **Ctrl+D** (duplicate)
   and **Delete** act on the selected node.
-- **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Shift+X**),
-  **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**). Note that
-  **inside the grid Ctrl+Shift+X is Copy XPath**, so the shell-level Query Console toggle
-  needs the terminal-icon toolbar button while the grid has focus.
+- **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),
+  **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
+  shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query
+  Console everywhere, including while the grid has focus.
 
 ### The Grid (Graphic view for JSON) {#json-grid}
 
@@ -221,7 +229,7 @@ looks and feels exactly like an XML file in the grid:
   (duplicate keys are refused).
 - The context menu mirrors the XML one: **Add** (Property / Array Item / Sibling Before /
   After), **Rename Key** (F2), **Duplicate** (Ctrl+D), **Copy / Cut / Paste as Sibling /
-  Paste as Child**, **Copy Cell Content**, **Copy JSONPath** (Ctrl+Shift+X - e.g.
+  Paste as Child**, **Copy Cell Content**, **Copy JSONPath** (Ctrl+Alt+X - e.g.
   `$.items[1].name`), **Copy Node (JSON)** (Ctrl+Alt+C), **Change Type** (String / Number /
   Boolean / Null / Object / Array), **Move Up / Down** (Alt+↑/↓), **Expand All / Collapse
   All**, **Sort Column** and **Delete**. Copy Cell Content is Ctrl+Shift+C, as in the XML grid.
@@ -320,7 +328,7 @@ schemas, **Save** needs an open document).
 | **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
 | **View** | The view modes (Text / Tree / Graphic / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), Toggle Light / Dark Theme, Full Screen |
 | **Tools** | Validate, Run, Transform with XSLT…, Set Schema…, Generate Documentation…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites |
-| **Help** | Help panel, Documentation, Keyboard Shortcuts, Report a Problem… (when error reporting is enabled), GitHub Repository, Check for Updates…, About FreeXmlToolkit |
+| **Help** | Documentation, Keyboard Shortcuts, FundsXML Website and FundsXML Schema Docs (only while the [FundsXML extension](fundsxml-extensions.md) is enabled), Report a Problem… (when error reporting is enabled), GitHub Repository, Sponsor this Project, Check for Updates…, About FreeXmlToolkit - see [Help Menu & About](#help-menu-about) |
 
 ### macOS
 
@@ -340,8 +348,16 @@ On macOS the menus appear in the **system menu bar** and follow the platform con
 > under **Format ▾**, **Run Query / Run Transform / Run Pipeline** under **Run ▾**, and
 > **Set XSD Schema… / Generate Documentation… / Type Editor…** under **Schema ▾**.
 
-Every function is still reachable through a visible button - there is no hidden "overflow"
-menu. Only when the window gets very narrow does the row wrap onto a second line as a
+The toolbar shows only what you can use right now. **Without a document** - on the Welcome
+page, or while a page such as **Settings**, **Signature** or **Schema Library** is in front - it
+shows just **New** and **Open**; the document groups (Save, Undo/Redo, Format, Query Console,
+Transform, Run, Schema, Validate) and the **Text / Tree / Graphic** view switch are hidden
+rather than shown greyed out. They come back as soon as a document tab is active.
+
+There is no hidden "overflow" menu. Less frequent tools - **Insert Template…** (Ctrl+T),
+**Compare with File…** and **Spreadsheet Converter…** (Ctrl+E) - are in the
+[Menu Bar](#menu-bar) (**Edit** and **Tools** menus) instead of the toolbar; their shortcuts
+work as before. Only when the window gets very narrow does the row wrap onto a second line as a
 fallback. The toolbar groups its actions three ways:
 
 ### Labeled buttons (frequent actions)
@@ -359,32 +375,29 @@ with the closely related actions:
 |--------------|---------------|----------------|
 | **Save** | Save the current tab (Ctrl+S) | **Save As…** (Ctrl+Shift+S) - save under a new name (the file chooser is pre-set to the tab's file type) · **Save All** - save every open tab at once |
 | **Format** | Pretty-print the active document (Shift+Alt+F; note: **Ctrl+Shift+F** opens the [Search panel](#search-panel), not document search). XML is indented by two spaces per level and every start tag stays on one line, however many attributes it carries | **Minify** - remove all insignificant whitespace |
-| **Run** | Run the active document against the selected **Target** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Run Pipeline** (XProc) |
-| **Schema** | **Set XSD Schema…** - bind an XSD to the active document for IntelliSense and validation | **Set XSD Schema…** · **Generate Documentation…** (HTML/PDF/Word for the active XSD) · **Type Editor…** (edit a named type of the active XSD) |
+| **Run** | Run the active document against the selected **Input** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Run Pipeline** (XProc) |
+| **Schema** | **Set XSD Schema…** - bind an XSD to the active document for IntelliSense and validation | **Set XSD Schema…** · **Generate Documentation…** (HTML/PDF/Word for the active XSD) · **Type Editor…** (edit a named type of the active XSD) · **Generate XSD from XML** (infer a schema from the active XML document) · **Generate XSD from XML Files…** (infer one schema from several XML files) |
 
 ### Icon-only buttons (hover for the tooltip)
 
 - **Undo** (Ctrl+Z) / **Redo** (Ctrl+Y)
-- **Insert Template…** (Ctrl+T) - Insert a snippet from the template system
-- **Compare with File…** - Side-by-side diff and merge (see [Compare & Merge](#compare-merge))
-- **Spreadsheet Converter…** (Ctrl+E) - Excel / CSV ↔ XML conversion
 - **Query Console** (Ctrl+Shift+X) - Toggle the bottom XPath/XQuery console (terminal icon)
-- **Transform with XSLT…** - Pick a stylesheet and transform the active XML document
+- **Transform with XSLT…** - Opens the [Transform panel](#transform-panel) on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel)
 
-### Type-gating and the Target dropdown
+### Type-gating and the Input dropdown {#type-gating-and-the-target-dropdown}
 
 The document actions act on the **active document** and are **enabled only when they apply to
 its type** (greyed out otherwise) - this covers **Validate**, **Transform with XSLT…**, the
-**Run** button and its menu entries, and the Schema menu's **Generate Documentation…** /
-**Type Editor…**. The **Target** dropdown appears next to **Run** only while a query, XSLT, or
+**Run** button and its menu entries (and **Tools → Run** / **F5**), and the Schema menu's **Generate Documentation…** /
+**Type Editor…**. The **Input** dropdown (labelled *"Input: …"*, formerly *Target*) appears next to **Run** only while a query, XSLT, or
 XProc document is active and selects the XML document the run works on. See
 [Editor Toolbar Document Actions](#editor-toolbar-document-actions) and
-[Query Documents & the Target Selector](#query-documents-the-target-selector) below.
+[Query Documents & the Input Selector](#query-documents-the-target-selector) below.
 
 ## Panel Toggles
 
 - **Side panel** (Ctrl+L) - Show/hide the left side panel (the active activity's Explorer,
-  Validation, Transform, Schema, … panel); the same as the **«** button in the panel header
+  Validation, Transform, Schema, … panel); the same as the collapse button (`|<`) at the panel's inner edge
 - **Query Console** (Ctrl+Shift+X) - Show/hide the bottom XPath/XQuery query console (terminal
   icon in the editor toolbar). See [Query Console](#query-console) below.
 - **Properties** (Ctrl+Shift+P) - Show/hide properties and validation sidebar. For XML files,
@@ -429,10 +442,14 @@ The **Schema** activity's side panel lists the active schema's top-level declara
 grouped into **GLOBAL ELEMENTS**, **COMPLEX TYPES**, and **SIMPLE TYPES** (collapsible
 sections), with a **filter field** on top. Click a declaration to reveal it in the Tree
 view; double-click a type to open it in its dedicated **Type Editor** tab; right-click for
-**Reveal in Tree / Open Type Editor / Find Usage**. The schema tools (Generate XSD from
-XML / batch, Sample XML plain/advanced, Flatten, Schema Analysis,
-Documentation) are **labelled rows in the collapsible TOOLS section directly above the
-filter** - each row shows an icon and the tool's name, so nothing hides behind a tooltip.
+**Reveal in Tree / Open Type Editor / Find Usage**. The schema tools (Generate Sample XML…, Sample XML with Options…, Flatten Schema…,
+Schema Analysis, Generate Documentation…) are **labelled rows in the TOOLS section below
+the type lists** - each row shows an icon and the tool's name, so nothing hides behind a
+tooltip. TOOLS starts collapsed; click its header to expand it.
+
+**Generate XSD from XML** (infer a schema from the active XML document) and **Generate XSD
+from XML Files…** (infer one schema from several XML files) are not in the Schema panel -
+they are in the editor toolbar's **Schema ▾** split menu.
 
 The **whole panel is a drop zone**: drop an `.xsd` file from your
 file manager anywhere on it to **open that schema as a document** - the panel then shows
@@ -443,7 +460,7 @@ border** for any other extension - a red drop is rejected and does not open the 
 
 ### Documentation Generator (editor area)
 
-**Generate Documentation…** (Schema panel ⋮ or the editor toolbar's **Schema ▾** menu) opens the generator as
+**Generate Documentation…** (Schema panel **TOOLS** section or the editor toolbar's **Schema ▾** menu) opens the generator as
 a tab in the main editor area with the full option set:
 
 - **SOURCE & OUTPUT** - the XSD (the active schema is pre-filled) and the output folder
@@ -464,15 +481,15 @@ a tab in the main editor area with the full option set:
 - **PROGRESS** - the right-hand log streams the pipeline's task messages live while
   generating; the run can be **cancelled**, and the result can open automatically.
 
-## Query Documents & the Target Selector
+## Query Documents & the Input Selector {#query-documents-the-target-selector}
 
 > XPath and XQuery files are first-class editor documents: open a
 > `.xq` or `.xpath` file (or any file from `examples/xpath/` and `examples/xquery/`),
 > press **Run Query**, and read the result in the OUTPUT panel - no console or panel
 > switching required.
 
-![A query document with the Target dropdown open and its CSV result in the OUTPUT panel](img/unified-shell-query-target.png)
-*An XQuery document from `examples/xquery/` with the **Target** dropdown open: pick an
+![A query document with the Input dropdown open and its CSV result in the OUTPUT panel](img/unified-shell-query-target.png)
+*An XQuery document from `examples/xquery/` with the **Input** dropdown open: pick an
 open XML-family document, a file from disk, or Automatic (the most recently active XML
 document, here checked). Below, the OUTPUT panel shows the query's CSV result.*
 
@@ -498,10 +515,10 @@ editor, with execution time and result size in the status line. A tabular XQuery
 a preview, and everything can be opened as an editor tab, opened in the browser, or
 saved from the panel's header buttons.
 
-### The Target dropdown
+### The Input dropdown {#the-target-dropdown}
 
-The query, stylesheet or pipeline runs against an **XML target document**. The
-**Target** dropdown in the editor toolbar (shown only for query/XSLT/XProc documents)
+The query, stylesheet or pipeline runs against an **XML input document**. The
+**Input** dropdown in the editor toolbar (its label reads *"Input: …"* followed by the chosen document) (shown only for query/XSLT/XProc documents)
 controls which one:
 
 - **Automatic (last active XML document)** - the default: the most recently active
@@ -526,11 +543,11 @@ Run Query/Run Transform show a short guard message instead of failing.
 XSLT work happens in the [Transform Panel](#transform-panel) (Activity Bar → **Transform**):
 
 - **Run Transform** - Run an XSLT transformation against the chosen input
-- **Live preview** (⋮ menu) - Re-run automatically while you edit
+- **Live preview** (OPTIONS & TOOLS section) - Re-run automatically while you edit
 - **Parameters** - Define XSLT parameters (name = value rows)
 - **Output method** - Auto-detect or choose XML, HTML, XHTML, Text, or JSON output
 - **Timing** - The OUTPUT panel status shows execution time and output size
-- **Profile / Trace** (⋮ menu) and **Debug XSLT…** (TOOLS section) - Per-template timings,
+- **Profile / Trace** and **Debug XSLT…** (OPTIONS & TOOLS section) - Per-template timings,
   template-match trace with `xsl:message` output, and the interactive debugger
 - **Open in browser** - View HTML output in your default browser from the OUTPUT panel
 
@@ -545,7 +562,7 @@ the CSV export stylesheet (referenced with a relative href) against the Automati
 target and streams the result into the OUTPUT panel.*
 
 - **Run Pipeline** (the toolbar's **Run** button or its ▾ menu, or `Ctrl+Enter`) runs the active pipeline. The
-  primary input (`source` port) is the document chosen in the **Target** dropdown —
+  primary input (`source` port) is the document chosen in the **Input** dropdown —
   by default the most recently active XML document, exactly like
   [Run Query and Run Transform](#query-documents-the-target-selector).
 - Relative `href`s in the pipeline (`p:document`, `p:xslt` stylesheets, Schematron
@@ -567,26 +584,31 @@ target and streams the result into the OUTPUT panel.*
 ## Transform Panel
 
 > The panel is organized into **collapsible sections**
-> (STYLESHEET, INPUT, OUTPUT METHOD, PARAMETERS, XPATH, XQUERY) with a single primary
-> **Run Transform** button. Results do not open as an editor tab -
+> (STYLESHEET, INPUT, OUTPUT METHOD, PARAMETERS) with a single primary
+> **Run Transform** button and a **Run automatically** checkbox next to it. Results do not open as an editor tab -
 > they appear in the **[OUTPUT panel](#the-output-panel-results)** docked below the
-> editor. The secondary toggles sit in the panel header's ⋮ (overflow) menu; the advanced
-> tools are labelled rows in the **TOOLS** section below the run button.
+> editor. The run options (checkboxes) and the advanced tools share the collapsed
+> **OPTIONS & TOOLS** section below the run button.
 
 The **Transform** panel (open it from the **Transform** icon in the activity bar on the
-left) runs XSLT transformations, XPath/JSONPath queries, and XQuery expressions. The panel
-header reads **TRANSFORM** and carries a **⋮ (overflow) menu** with the secondary toggles
-(see [The ⋮ Menu and the TOOLS section](#the-transform-menu) below). Each section header
+left) runs XSLT transformations. XPath, XQuery and JSONPath queries against the open
+document live in the [Query Console](#query-console) - the panel shows a short hint with an
+**Open Query Console** button for them. The panel
+header reads **TRANSFORM**; the run options and tools are in the **OPTIONS & TOOLS**
+section (see [OPTIONS & TOOLS](#the-transform-menu) below). Each section header
 is clickable to collapse or expand that section.
 
 !!! tip
-    For a quick, one-click transform without opening this panel, use the
-    **[Transform bar](#transform-bar-one-click-xslt-from-the-explorer)** in the Explorer. It shares
+    For a quick transform without opening this panel, right-click XML files in the Explorer
+    and choose **[Transform with …](#explorer-context-menu)**. It shares
     the same recent-stylesheet list and shows its result in the same OUTPUT panel.
 
 ### STYLESHEET
 
-- Shows the **name of the chosen XSLT stylesheet** (or *none* if no stylesheet is set yet).
+- Shows the **name of the chosen XSLT stylesheet** on its own line below the icon, the
+  favorites/browse controls and **Change** (long names are shortened in the middle; hover
+  for the full path). While no stylesheet is set, the row reads *"No stylesheet — choose or
+  drop a file"* - clicking it works like **Change**.
 - **Change** - pick an `.xsl` / `.xslt` file from disk.
 - The **clock icon** opens the **recent stylesheets** menu: reapply a recently used
   stylesheet in a single click, or choose **Clear recent** to empty the list.
@@ -597,11 +619,13 @@ is clickable to collapse or expand that section.
   as if you had picked it via **Change** or a favorite. While dragging, the row glows
   **green** when the file can be loaded and **red** when it has the wrong extension (a
   red drop is rejected). As with favorites, the transform **runs automatically** as soon
-  as both a stylesheet and an input are ready.
+  as both a stylesheet and an input are ready (while **Run automatically** is checked).
 
 ### INPUT
 
-The INPUT section shows which document the transform will use as its input:
+The INPUT section shows which document the transform will use as its input (the name on
+its own line, the full path as tooltip; *"No input — open a document or drop a file"* while
+there is none):
 
 - By default the input **follows the active editor document**: switch to another tab and
   the next run transforms that document (the shown input name updates live).
@@ -615,7 +639,7 @@ The INPUT section shows which document the transform will use as its input:
   straight onto the INPUT row to transform that file - exactly like **Select XML file…**
   or picking a favorite. The same **green** (loadable) / **red** (rejected) drag-over
   feedback applies, and the transform **runs automatically** as soon as both a stylesheet
-  and an input are ready.
+  and an input are ready (while **Run automatically** is checked).
 
 ### Browsing favorites with ◀ / ▶ {#browsing-favorites}
 
@@ -627,7 +651,8 @@ The INPUT section shows which document the transform will use as its input:
 ![Transform panel browsing XSLT and XML favorites: the STYLESHEET and INPUT rows show the star menu and ◀ / ▶ navigation, and the auto-run result appears in the output dock below.](img/unified-shell-transform-favorites.png)
 
 Both the **STYLESHEET** and the **INPUT** rows carry a **star icon**, a pair of
-**◀ / ▶ navigation buttons**, and a small **"i / n" position label**.
+**◀ / ▶ navigation buttons**, and a small **"i / n" position label**. The ◀ / ▶ buttons and
+the label only appear once the browse list holds **at least two** entries.
 
 - The **star menu** lists the favorites of the matching type - **XSLT** favorites for
   STYLESHEET, **XML** favorites for INPUT - grouped by their folder (category). An
@@ -637,7 +662,8 @@ Both the **STYLESHEET** and the **INPUT** rows carry a **star icon**, a pair of
 - The **◀ / ▶ buttons** then step backward and forward through that browse list. Browsing
   is **cyclic**: pressing ▶ on the last entry wraps to the first, and ◀ on the first wraps
   to the last. The **"i / n" label** shows your position (for example, *3 / 12*).
-- Each ◀ / ▶ step **runs the transformation automatically** - but only once **both** sides
+- Each ◀ / ▶ step **runs the transformation automatically** (while **Run automatically** is
+  checked) - but only once **both** sides
   are ready: a stylesheet is selected **and** an input is available (either a chosen input
   file or the active editor document). Until both are present, stepping just loads the file
   without transforming.
@@ -654,7 +680,7 @@ active editor** all keep working exactly as before.
 
 ### OUTPUT METHOD
 
-A segmented control with **Auto · XML · HTML · XHTML · Text · JSON**. **Auto** (the
+A single dropdown with **Auto, XML, HTML, XHTML, Text, JSON**. **Auto** (the
 default) detects the output format from the stylesheet's `xsl:output` declaration; pick a
 concrete format to override the detection.
 
@@ -672,29 +698,27 @@ Define XSLT parameters as **name = value** rows:
 2. Check the **INPUT** section shows the document you want to transform.
 3. Click **Run Transform**.
 
+The **Run automatically** checkbox next to **Run Transform** (on by default) controls the
+automatic run that starts when you drop a stylesheet or input, pick one from your favorites,
+or browse with ◀ / ▶. Uncheck it to only set the file and run with **Run Transform** yourself.
+
 The result appears in the **OUTPUT panel** below the editor - see
 [The OUTPUT Panel](#the-output-panel-results) below.
 
-### XPATH and XQUERY
+### Queries (XPath, XQuery, JSONPath)
 
-Two further sections, **collapsed by default**, run queries against the transform input:
+The Transform panel no longer has its own XPATH and XQUERY sections. Below the run
+controls, a short hint and an **Open Query Console** button take you to the
+[Query Console](#query-console), which runs XPath, XQuery and JSONPath queries against the
+open document and offers the saved queries (**Snippets** menu) and the XQuery **Examples**.
 
-- **XPATH** - a query field with the action rows **Run Query**, **Save Query** (store the
-  current expression under a name), and a **Saved Queries** drop-down listing your saved
-  queries (pick one to load it).
-  When the active document is **JSON**, the section is titled **JSONPATH** and the field
-  evaluates a JSONPath expression instead.
-- **XQUERY** - a multi-line query area with the **Run XQuery** row and an **Examples**
-  drop-down (Simple, FLWOR, HTML report, Data-quality check).
+### OPTIONS & TOOLS {#the-transform-menu}
 
-Both inputs offer context-aware [autocomplete](#xpath-xquery-autocomplete). Query results
-appear in the same OUTPUT panel below the editor.
+The collapsible **OPTIONS & TOOLS** section below the **Run Transform** button (collapsed by
+default - click its header to expand it) holds everything secondary. First the run
+**options**, as checkboxes:
 
-### The Transform ⋮ Menu
-
-The secondary **toggles** live in the panel header's ⋮ (overflow) menu:
-
-| Entry | What it does |
+| Option | What it does |
 |-------|--------------|
 | **Live preview** | Re-runs the transform automatically (debounced) while you edit the input document. |
 | **Watch stylesheet file** | Re-runs the transform whenever the chosen stylesheet changes on disk - handy while editing the stylesheet in another tool. |
@@ -702,13 +726,12 @@ The secondary **toggles** live in the panel header's ⋮ (overflow) menu:
 | **Trace run** | A transform also opens a **Trace** tool tab (template matches + `xsl:message` output). |
 | **Auto-open result tab** | Additionally opens every successful result as a regular editor tab (HTML/XHTML results open rendered in the [Preview](#html-preview) view). **Off by default.** |
 
-The advanced **tools** are labelled rows (icon + name) in the collapsible **TOOLS**
-section directly below the **Run Transform** button:
+Below the options, the advanced **tools** are labelled rows (icon + name):
 
 | Row | What it does |
 |-----|--------------|
 | **Debug XSLT…** | Opens the stylesheet as a document with a breakpoint gutter and a Debug tool tab (step into/over/out, continue, stop; variables, call stack, breakpoints, and XPath watches). |
-| **Batch Transform…** | Runs the active stylesheet/XQuery over many XML files, with per-file results and "Save All". |
+| **Batch Transform…** | Runs the chosen stylesheet - or, when no stylesheet is set, the active XQuery document - over many XML files, with per-file results and "Save All". |
 | **Execution Statistics** | Opens the **Execution Statistics** tool tab (duration, CPU and memory per XSLT/XQuery/validation run). Runs are only recorded while **Record execution statistics** is enabled in the Settings page's **DEVELOPER** card. |
 
 > XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
@@ -757,7 +780,7 @@ The OUTPUT panel header shows:
     In earlier versions, every transform opened a `Transform-Result.*` editor tab, and HTML
     output additionally opened an "HTML Preview" tool tab. Both were replaced by the OUTPUT
     panel: an editor tab now opens only via the panel's **Open result as editor tab** action
-    or the **Auto-open result tab** toggle in the ⋮ menu, and HTML is rendered inline via
+    or the **Auto-open result tab** option in OPTIONS & TOOLS, and HTML is rendered inline via
     the panel's **Preview** view.
 
 ## Explorer Panel
@@ -766,134 +789,79 @@ Open the **Explorer** panel from the activity bar to manage files.
 
 - **Header actions** (top right): New file, Open folder, Refresh workspace. **New file**
   opens the same guided [New File dialog](#new-file-dialog) as the toolbar's **New** button.
-- **TOOLS** - a collapsible section directly below the header with the three file pickers
-  (stylesheet, XSD, Schematron - see the sections below), each followed by its labelled
-  action row, plus the **Open file…** and **Clear recent** rows. There is no hidden ⋮
-  menu: every Explorer action is a visible row with icon and name.
+The sections appear from top to bottom in this order:
+
 - **OPEN EDITORS** - one row per open document. The **active document is highlighted**
   (blue, bold) and unsaved documents show a **dot** on the right. Click a row to switch to
-  that document.
+  that document. The list shows about six rows; with more open documents it scrolls, so the
+  workspace tree below keeps its space.
 - **Workspace** - the file tree of the opened folder; the section is titled after the
   folder's name. Folders expand with their chevron; double-click (or Enter) opens a file.
-  Only XML-family and JSON files are shown.
-- **RECENT** - recently opened files; click to reopen.
-- **FAVORITES** - your favorited files with their type-colored icons; click one to open it
-  directly, without switching to the Favorites activity. Right-click an entry and choose
-  **Remove from favorites** to drop it from the list - the file itself is not touched.
-- **Collapsible sections** - the **OPEN EDITORS**, workspace,
-  **RECENT**, and **FAVORITES** section headers are clickable: click a header to collapse or
-  expand its section (the chevron next to the title flips accordingly). Use this to give the
-  file tree more room when you have many open editors or recent files.
+  Only XML-family and JSON files are shown. While no folder is open, the section shows a
+  short hint (*"No folder open. Open a folder to browse its XML, XSD and stylesheet files
+  here."*) and an **Open folder…** button.
+- **TOOLS** - a collapsible section below the files with the **Open file…** and
+  **Clear recent** rows. It is **collapsed by default**; whether you leave it open or closed
+  is remembered. Transforming and Schematron-validating the selected files is done from the
+  workspace tree's [context menu](#explorer-context-menu).
+- **RECENT** - at the bottom, the recently opened files; click one to reopen it (drag the
+  thin grip above the list to change its height). Favorites are not listed here: manage them
+  in the [Favorites](#favorites-panel) activity (**View → Favorites Panel**, Ctrl+Shift+D)
+  and use them via the star menus; **Ctrl+D** adds the active document to your favorites.
+- **Collapsible sections** - the **OPEN EDITORS**, workspace and **TOOLS** section headers
+  are clickable: click a header to collapse or expand its section (the chevron next to the
+  title flips accordingly). Use this to give the file tree more room when you have many
+  open editors.
 
-### Transform Bar (one-click XSLT from the Explorer)
+!!! note "Binding an XSD"
+    The Explorer has no XSD picker. Bind a schema to the active document via the status-bar
+    **schema indicator**, **Tools → Set Schema…** / the toolbar's **Schema ▾** button, or the
+    Validation panel's **SOURCES** section.
 
-> Run an XSLT stylesheet against XML files straight from the Explorer,
-> without switching to the Transform activity.
+### Transform and Validate from the Explorer {#explorer-context-menu}
 
-The first block of the **TOOLS** section is the **Transform** block. It lets you keep a
-stylesheet fixed and apply it to whichever XML file you pick in the tree - ideal for repeatedly
-running the same evaluation, dashboard, or data-quality stylesheet across many files.
+> Run an XSLT stylesheet or a Schematron against XML files straight from the Explorer,
+> without switching to the Transform or Validation activity first.
 
-The block has two controls:
+Select one or more XML files in the workspace tree (hold **Ctrl** or **Shift** while clicking
+to select several), then **right-click** them. The context menu offers:
 
-- **Stylesheet picker** - a dropdown (file-code icon) labelled **"Stylesheet…"** until you choose
-  one, then showing the chosen stylesheet's file name. Click it to:
-    - reapply one of your **recently used stylesheets** (listed at the top),
-    - **Choose stylesheet…** - pick an `.xsl` / `.xslt` file from disk, or
-    - **Clear recent** - empty the recent list.
+| Entry | What it does |
+|-------|--------------|
+| **Open** | Opens the selected file(s) in the editor. |
+| **Transform with *&lt;stylesheet&gt;*** | Transforms the selection with the last-used stylesheet (the entry names it). Reads **Transform with XSLT…** while no stylesheet has been used yet - you are then asked to pick one. |
+| **Transform with Other Stylesheet ▸** | Lists your recently used stylesheets and **Choose stylesheet…**; picking one makes it the current stylesheet and runs the transform. |
+| **Validate with *&lt;Schematron&gt;*** | Validates the selection with the last-used Schematron (the entry names it). Reads **Validate with Schematron…** while none has been used yet - you are then asked to pick one. |
+| **Validate with Other Schematron ▸** | Lists your recently used Schematrons, your Schematron **Favorites**, **Choose Schematron…** and **Clear recent**. |
 
-    You can also **drop** an `.xsl` / `.xslt` file from your file
-    manager directly onto the picker - it becomes the current stylesheet and joins the
-    recent list, just like choosing it from the menu. The picker glows **green** while a
-    loadable file hovers over it and **red** for a wrong file type (which is rejected).
-- **Transform selected file(s)** row (play icon) - runs the chosen stylesheet against your
-  selected XML file(s). Tooltip: *"Transform selected XML file(s) with the current stylesheet"*.
+When nothing is selected in the tree, Transform and Validate use the **active editor
+document** (if it is XML).
 
-The chosen stylesheet is **sticky** and is **shared with the [Transform panel](#transform-panel)**:
-both places draw from the same recent-stylesheet list, so a stylesheet you pick here also appears
-there (and vice versa).
-
-The workspace file tree supports **multi-selection** - hold **Ctrl** or **Shift** while clicking to
-select several files at once.
+The last-used stylesheet and Schematron are **sticky** and **shared with the
+[Transform panel](#transform-panel)** and the [Validation panel](#validation-panel): both
+places draw from the same recent lists.
 
 **What Transform does** depends on how many XML files are selected:
 
-- **One XML file selected** (or, if nothing is selected in the tree, the **active editor document**
-  when it is XML): the stylesheet runs and the result appears in the docked
-  **[Transform OUTPUT panel](#the-output-panel-results)** below the editor. HTML dashboards render
-  in the **Preview** (WebView). The output format is auto-detected from the stylesheet's
-  `xsl:output` declaration.
-- **Several XML files selected**: the **Batch Transform** tool tab opens, pre-loaded with those
-  files, and the run starts automatically. Save the results with **Save All…**.
+- **One XML file** (or the active document): the stylesheet runs and the result appears in
+  the docked **[Transform OUTPUT panel](#the-output-panel-results)** below the editor. HTML
+  dashboards render in the **Preview** (WebView). The output format is auto-detected from the
+  stylesheet's `xsl:output` declaration.
+- **Several XML files**: the **Batch Transform** tool tab opens, pre-loaded with those files,
+  and the run starts automatically. Save the results with **Save All…**.
+
+**What Validate does:** the chosen Schematron is also **bound to the active document**, so the
+Validation panel and live validation use it too. The result is shown in the **Validation**
+activity: a single document runs through the normal single-file flow (problems list, detailed
+Schematron report), a multi-file selection through the **batch** flow with one RESULTS row per
+file. Batch runs additionally check each file against the **active document's bound XSD** (if
+any) - bind or clear the XSD in the Validation panel's SOURCES section to control that.
 
 !!! tip
-    Primary workflow: choose your stylesheet once, then just switch the selected XML file in the
-    tree and click **Transform selected file(s)** again - the stylesheet stays put. For output-format overrides,
-    parameters, watch-and-rerun, and the result table, use the full
-    [Transform panel](#transform-panel).
-
-### XSD Bar (the active document's schema)
-
-> See - and change - the XSD schema bound to the active document without leaving
-> the Explorer; switching the schema re-validates immediately.
-
-The **XSD picker** sits between the Transform and Schematron blocks of the TOOLS section.
-Unlike the two sticky pickers around it, the **XSD picker** (file-code icon) always mirrors the
-**active document**: it shows the name of the schema currently bound to it - whether
-that binding came from an `xsi:schemaLocation` declaration, the Schema Library, or a
-manual choice - and reads **"XSD…"** while the document has no schema. Switching tabs
-updates the label. Click it to:
-
-- rebind one of your **recently used XSDs** (listed at the top),
-- pick one of your **Favorites** (the XSD favorites the
-  [Validation panel](#validation-panel) offers too),
-- **Choose XSD…** - pick an `.xsd` file from disk,
-- **Unbind schema** - remove the document's schema binding (disabled when none is bound), or
-- **Clear recent** - empty the recent list.
-
-You can also **drop** an `.xsd` file from your file manager onto the picker.
-
-Choosing, dropping, or unbinding a schema **binds it to the active document as a manual
-binding** (the status-bar XSD indicator and the Validation panel's SOURCES row follow) and
-**runs validation right away** - the PROBLEMS list and the status bar refresh without
-pressing **F8**. The recent-XSD list is shared across documents and sessions.
-
-### Schematron Bar (one-click validation from the Explorer)
-
-> Validate XML files against a Schematron straight from the
-> Explorer, without switching to the Validation activity first.
-
-The **Schematron** block sits directly below the XSD picker in the TOOLS section. It keeps
-one Schematron fixed and validates whichever XML file(s) you pick in the tree - ideal for
-repeatedly checking many files against the same rule set.
-
-The block has two controls:
-
-- **Schematron picker** - a dropdown (checks-grid icon) labelled **"Schematron…"** until you
-  choose one, then showing the chosen file's name. Click it to:
-    - reapply one of your **recently used Schematrons** (listed at the top),
-    - pick one of your **Favorites** (the same Schematron favorites the
-      [Validation panel](#validation-panel) offers),
-    - **Choose Schematron…** - pick a `.sch` / `.schematron` file from disk, or
-    - **Clear recent** - empty the recent list.
-
-    You can also **drop** a `.sch` / `.schematron` file from your
-    file manager directly onto the picker - it becomes the current Schematron and joins
-    the recent list, just like choosing it from the menu. The picker glows **green**
-    while a loadable file hovers over it and **red** for a wrong file type (which is
-    rejected).
-- **Validate with Schematron** row (play icon) - validates your selected XML file(s) against
-  the chosen Schematron. Tooltip: *"Validate selected XML file(s) with the current Schematron"*.
-
-Picking a Schematron also **binds it to the active document**, so the
-[Validation panel](#validation-panel) and live validation use it too. Clicking
-**Validate with Schematron** switches to the **Validation** activity and shows the result there:
-a single active document runs through the normal single-file flow (problems list,
-detailed Schematron report), a multi-file tree selection through the **batch** flow
-with one RESULTS row per file. With no tree selection, the active editor document
-is validated. Batch runs additionally check each file against the **active
-document's bound XSD** (if any) - bind or clear the XSD in the Validation panel's
-SOURCES section to control that.
+    Primary workflow: choose your stylesheet once, then just select another XML file in the
+    tree and right-click **Transform with *&lt;stylesheet&gt;*** again - the stylesheet stays
+    put. For output-format overrides, parameters, watch-and-rerun, and the result table, use
+    the full [Transform panel](#transform-panel).
 
 ## Search Panel
 
@@ -906,22 +874,25 @@ SOURCES section to control that.
 Open the **Search** panel from the magnifying-glass icon in the activity bar (directly
 below Explorer), or press **Ctrl+Shift+F** - any text selected in the editor is
 prefilled as the search term - or **Ctrl+Shift+H**, which opens the same panel with the
-replace row already expanded. A **Text | XPath** toggle at the top switches between the
+replace row already expanded. A **Find text | Find by XPath** toggle at the top switches between the
 panel's two modes.
 
-### Text mode (Find in Files)
+### Find text (Find in Files)
 
 Searches all files of a folder for plain text. Results appear **as you type** - the
 search re-runs automatically after a short pause.
 
-- **Where it searches** - by default the folder opened in the **Explorer** workspace
-  (falling back to the last-used directory); the **Browse** button picks any other
-  folder. The **file globs** field filters which files are searched - it defaults to the
+- **Where it searches** - the **Search in folder** line shows the folder's name (hover
+  for the full path, or *"No folder — choose one"* when none is set). By default it is the
+  folder opened in the **Explorer** workspace (falling back to the last-used directory);
+  the **Browse** button picks any other folder. The **Files matching** field filters which
+  files are searched - it defaults to the
   XML-family extensions
   (`*.xml,*.xsd,*.xsl,*.xslt,*.sch,*.schematron,*.json,*.xq,*.xquery,*.xqm,*.xqy,*.xpath,*.xpl,*.xproc`).
-- **Options** - three toggles next to the search field: **Aa** (match case), **W**
-  (whole word), and **.\*** (regular expression).
-- **Results** - matches are grouped **file → matches** in a tree with checkboxes. Click
+- **Options** - labelled switches below the search field: **Match case**, **Whole word**,
+  **Regex** (regular expression) and **Replace** (shows the replace row).
+- **Results** - before the first search, the result area shows a short hint on what to
+  type. Matches are grouped **file → matches** in a tree with checkboxes. Click
   a match to open the file and select the exact match in the Text view. All matches in
   the active document are also **highlighted in the editor** (translucent amber).
 - **Limits** - files larger than 20 MB and binary files are skipped, and at most 1000
@@ -931,7 +902,7 @@ search re-runs automatically after a short pause.
 
 #### Replace in Files
 
-Click the **⇄** toggle (or open the panel with **Ctrl+Shift+H**) to reveal the replace
+Click the **Replace** switch (or open the panel with **Ctrl+Shift+H**) to reveal the replace
 row:
 
 1. Type the replacement text. In regular-expression mode, **$1**-style group references
@@ -948,14 +919,19 @@ Replacements are applied safely:
 - A file that **changed on disk after the search ran** is skipped and reported - it is
   never overwritten with stale results. Re-run the search and replace again.
 
-### XPath mode
+### Find by XPath
+
+Find & replace by XPath in a document or across a folder. For queries against the open
+document, use the [Query Console](#query-console) (Ctrl+K).
 
 Evaluates an **XPath 3.1** expression (Saxon; the `map`, `array`, `math`, `fn` and `xs`
 prefixes are pre-declared) and lists the matching nodes:
 
 - **Scope** - a **Document | Folder** toggle: evaluate against the **active document**,
   or against every file of a **folder** (with its own file-glob filter, default
-  `*.xml`).
+  `*.xml`). The folder line shows the folder's name (full path as tooltip), or *"No
+  folder — choose one"* when none is set. Before the first search, the result area shows
+  a short hint.
 - **Namespaces** - enter bindings as `prefix=uri` lines (an empty prefix sets the
   default element namespace). The **Detect** button reads the bindings from the active
   document's root element, so you rarely have to type them.
@@ -966,7 +942,7 @@ prefixes are pre-declared) and lists the matching nodes:
 
 #### Replacing via XPath
 
-Pick a **Replace** mode, then click **Replace checked…** and confirm - as in Text mode,
+Pick a **Replace** mode, then click **Replace checked…** and confirm - as in Find text mode,
 only the **checked** matches are changed:
 
 | Mode | What it does |
@@ -980,7 +956,7 @@ All XPath replacements are **formatting-preserving text edits** - outside the re
 ranges the document stays byte-for-byte identical. In the active document the whole
 replacement is **one undo step** (Ctrl+Z reverts it). In folder mode, open files are
 edited via the editor and all other files are written to disk atomically, with the same
-changed-on-disk staleness check as Text mode.
+changed-on-disk staleness check as Find text mode.
 
 ## Favorites Panel
 
@@ -1022,13 +998,19 @@ See [Favorites System](favorites-system.md) for more.
 Open the **Validation** panel from the activity bar to validate the active document.
 
 > The panel offers a SOURCES section, a Single file / Batch mode toggle, a primary
-> **Run Validation** button, and a color-coded RESULTS list.
+> **Run Validation** button, a status line, and - in Batch mode - a color-coded RESULTS
+> list.
 
 ### Sources
 
 The **SOURCES** section shows the schemas bound to the active document, and its rows
 follow the document's type: for XML-family documents it shows the **XSD** and
 **Schematron** rows, for JSON documents a single **JSON Schema** row.
+Each row has two lines: the first carries the icon, a caption (**XSD**, **Schematron** or
+**JSON Schema**), the favorites button and **Change**; the second shows the bound file's
+name (long names are shortened in the middle - hover for the full path). An empty row
+shows a hint such as *"No XSD bound — choose or drop a file"*, and clicking it works like
+**Change**.
 Click the **Change** button next to a source to pick a different file. **Every**
 row carries a **star button** next to its *Change* button: on the XSD row it opens a
 quick-select menu of your favorited XSD schemas, on the Schematron row a menu of your
@@ -1092,17 +1074,27 @@ appearing in the recent list.
 
   The **RESULTS** list then shows one row per file with a status icon (red ✕ = errors,
   orange ⚠ = warnings only, green ✓ = valid) and a badge with the problem count. Select a
-  row to see that file's problems; double-click to open the file. The plain-text batch
-  report opens from the **TOOLS** section (**Open Last Batch Report**).
+  row to see that file's problems in the panel's **PROBLEMS** list; double-click to open
+  the file. The plain-text batch report opens from the **REPORTS & CHECKS** section
+  (**Open Last Batch Report**).
+
+The **status line** below the button summarises the run: **Valid**, **1 problem** /
+**N problems**, or - when no schema is bound and only the well-formedness check ran -
+**Well-formed · no schema bound** (shown neutral, not green: bind an XSD in SOURCES to
+validate against a schema).
+
+The **RESULTS** list and the panel's own **PROBLEMS** list are only shown in **Batch**
+mode. In **Single file** mode the problems are listed in the PROBLEMS panel below the
+editor, and the side panel shows a single row such as *"3 problems — show below the
+editor"* - click it to expand and focus that PROBLEMS panel.
 
 ### Problems
 
 Problems appear in two places:
 
-- The **PROBLEMS** list at the bottom of the side panel. Its section header carries an
-  **Export problems to Excel** button (spreadsheet icon, enabled once there are problems)
-  that saves the current list as an `.xlsx` workbook, plus the Schematron report button
-  described below.
+- The **PROBLEMS** list in the side panel (**Batch mode only**): the problems of the file
+  selected in RESULTS. **Export Problems to Excel** in the **REPORTS & CHECKS** section
+  saves the current list as an `.xlsx` workbook.
 - The **PROBLEMS panel below the editor**: it appears automatically when
   validation finds problems, shows error/warning counts in its header, and can be collapsed
   to just the header. Each row shows the message and the file/line in a monospaced label.
@@ -1131,7 +1123,7 @@ editor gutter on lines with fixable problems (click it, or press **Alt+Enter** /
 After validating a document that has a Schematron file bound, open the report in
 either of two ways:
 
-- Click the **Validation Report** row in the Validation panel's **TOOLS** section (it is
+- Click the **Validation Report** row in the Validation panel's **REPORTS & CHECKS** section (it is
   enabled once a run with a bound Schematron has finished).
 
 The report opens as a **Schematron Report** tool tab showing the document name, the
@@ -1154,11 +1146,23 @@ report:
 - **Save SVRL (XML)** - the raw SVRL output (Schematron Validation Report Language)
   of the run, for further processing by other tools.
 
-### The TOOLS Section and the ⋮ Menu
+### The Tool Sections and the ⋮ Menu
 
-The Schematron tooling and the report exports are labelled rows (icon + name) in the
-collapsible **TOOLS** section between the run button and RESULTS. It starts collapsed so
-the result lists keep their space; click the header to expand it:
+The tools are labelled rows (icon + name) in two collapsible sections below the status
+line. Both start collapsed so the results keep their space; click a header to expand it.
+
+**REPORTS & CHECKS** - results and exports of a run:
+
+| Row | What It Does |
+|-----|--------------|
+| **Validation Report** | Open the [detailed Schematron report](#detailed-schematron-report) of the last validation run (enabled after such a run) |
+| **Export Problems to Excel** | Save the current problems as an Excel workbook (enabled while there are problems) |
+| **Open Last Batch Report** | Open the plain-text report of the last batch run |
+
+FundsXML validation lives in the [FundsXML panel](fundsxml-extensions.md) (when the
+FundsXML extension is enabled).
+
+**SCHEMATRON AUTHORING** - tools for writing Schematron rules (usable without a run):
 
 | Row | What It Does |
 |-----|--------------|
@@ -1166,11 +1170,7 @@ the result lists keep their space; click the header to expand it:
 | **Schematron Tester** | Run the Schematron rules against an XML file |
 | **Rule Builder** | Build rules visually |
 | **Check Rules** | Run an error detector over the Schematron itself and show a categorised issue table |
-| **Validation Report** | Open the [detailed Schematron report](#detailed-schematron-report) of the last validation run (enabled after such a run) |
 | **Schematron Documentation** | Open the Schematron documentation generator |
-| **Export Problems to Excel** | Save the PROBLEMS list as an Excel workbook (enabled while there are problems) |
-| **Open Last Batch Report** | Open the plain-text report of the last batch run |
-| **Validate against FundsXML** | (When the FundsXML extension is enabled) validate against the FundsXML schema |
 
 The panel header's ⋮ (overflow) menu keeps only the **Validate while typing** toggle for
 continuous (debounced) validation.
@@ -1187,7 +1187,7 @@ browsing, the panel offers actions to generate sample XML from the schema:
 
 - **Generate Sample XML** - The simple generator. It builds one sample document using
   mandatory-only / maximum-occurrence options and realistic example values.
-- **Generate Sample XML (Advanced)…** - Opens a dialog for full control over how the sample
+- **Sample XML with Options…** - Opens a dialog for full control over how the sample
   data is built (see below).
 
 ### Advanced Sample-Data Generation
@@ -1237,27 +1237,48 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
 - **Delete a constraint** - In the **CONSTRAINTS** section, select a `key`, `keyref`, `unique`,
   or `assert` constraint and click **Delete constraint** to remove it.
 
-## Signature Panel
+## Signature Page {#signature-panel}
 
-The **Signature** panel (open it from the activity bar) signs and validates XML signatures.
-Its top is an **action nav** of four buttons - selecting one shows the matching form
-below it, next to the shared **KEYSTORE** section (keystore file with a **Change** button,
-alias, and the two passwords). Secondary actions such as **Validate (Details)** are
-labelled rows (icon + name) below the section's primary button.
-The keystore row also carries a **star menu** that lists your favorited keystores -
-keystore files (`.jks`, `.p12`, `.pfx`, `.keystore`) are now their own **Keystore**
+Clicking **Signature** in the activity bar opens one page, **Signature**, as a tab in the main
+editor area. The side panel on the left only lists the four actions in order of use - **Sign XML
+File**, **Validate Signature**, **Create Certificate** and **Expert Mode**. Click one to show it on
+the page; the current action is highlighted, and the status message of the previous action is
+cleared.
+
+The page is built the same way for every action, from top to bottom:
+
+1. A **header** naming the selected action.
+2. **DOCUMENT** - the XML file to work on: the active document by default, **Browse** picks a
+   different file. Shown for **Sign XML File**, **Validate Signature** and **Expert Mode**.
+3. **KEYSTORE** - the keystore file, **Keystore alias**, **Keystore password** and **Alias
+   password**, entered only once and shared by the actions that need them (**Sign XML File** and
+   **Create Certificate**). The keystore slot shows the file name on its own line (full path as
+   tooltip); while none is chosen it reads *"No keystore — choose or drop a .jks / .p12"*, and
+   clicking it works like **Change**.
+4. The **form of the action** with its primary button (for example **Sign Document**).
+5. The **status line** with the outcome of the last action.
+
+Secondary actions such as **Validate (Details)** are labelled rows (icon + name) below the primary
+button. The keystore row also carries a **star menu** that lists your favorited keystores -
+keystore files (`.jks`, `.p12`, `.pfx`, `.keystore`) are their own **Keystore**
 favorite type with a lock icon (see [Favorites](favorites-system.md)):
 
-- **Sign XML File** *(default)* - Opens the **Sign XML Document card in the editor area**:
-  the document to sign (the active document, changeable via *Browse*), the keystore alias
-  and password (shared with the KEYSTORE section), the signature type (enveloped XML-DSig)
-  and algorithm (RSA-SHA256 · C14N exclusive), and a **Sign Document** button. The signed
-  copy is written next to the original (`name.signed.xml`) and opened.
+- **Sign XML File** *(default)* - The document to sign (DOCUMENT row), the keystore (KEYSTORE),
+  the signature type and algorithm (RSA-SHA256 · C14N exclusive), and a
+  **Sign Document** button. Signature types: **Enveloped** (the signature is inserted into the
+  document, written as `name.signed.xml`), **Enveloping** (the content is wrapped in a
+  `ds:Object` inside the signature, also `name.signed.xml`; comments and processing
+  instructions outside the root element are not kept) and **Detached** (a separate
+  `name.sig.xml` that references the original - validate that file and keep both in the same
+  folder; the card shows this hint when Detached is selected). The result is opened in a
+  new tab. The saved file on disk is signed - if the document has unsaved changes, you are
+  first asked whether to save them (see [Tools that read the saved file](#tools-that-read-the-saved-file)).
   **Show certificate details** loads the keystore's certificate and shows the mockup's
   certificate inspector: subject (CN/O/C) with a self-signed/CA badge, the validity window
   with a *"Valid · N days remaining"* banner (red when expired), serial, signature
   algorithm, key usage, and the **SHA-256 fingerprint** with a copy button.
-- **Validate Signature** - **Validate Signature** checks the active document's signature;
+- **Validate Signature** - **Validate Signature** checks the signature of the document in the
+  page's **DOCUMENT** row (the active document unless you picked another one with **Browse**);
   **Validate (Details)** opens a detailed report (validity + signing-certificate details).
   The result is explained in plain language: a valid signature
   shows a green status; a document without a signature shows a red hint suggesting you sign
@@ -1269,12 +1290,13 @@ favorite type with a lock icon (see [Favorites](favorites-system.md)):
   the weak SHA-1 algorithm are rejected for security (re-sign with SHA-256 or SHA-512).
   Any other error shows a dialog with collapsible technical details.
 - **Create Certificate** - Creates a self-signed certificate / keystore from the DN fields,
-  using the alias and passwords from the KEYSTORE section. The new keystore is selected
+  using the alias and passwords from the KEYSTORE row. The new keystore is selected
   automatically so you can sign immediately.
-- **Expert Mode** - Full PKIX trust validation: choose a **trust store** (defaults to the
-  JVM's built-in `cacerts`; the trust store row also has a **star
-  menu** with your favorited keystores), optionally **Check revocation (OCSP/CRL)**, then
-  **Validate (Trust)** produces a trust report (trusted / trust anchor / revocation /
+- **Expert Mode** - Full PKIX trust validation of the document in the DOCUMENT row: choose a
+  **trust store** (defaults to the JVM's built-in `cacerts`; the trust store row also has a **star
+  menu** with your favorited keystores), enter its **Trust store password** if it has one (the
+  field is optional and separate from the keystore password), optionally tick **Check revocation
+  (OCSP/CRL)**, then **Validate (Trust)** produces a trust report (trusted / trust anchor / revocation /
   timestamp).
 
 The **KEYSTORE row** and Expert Mode's **trust store row** are also
@@ -1293,8 +1315,11 @@ See [XML Digital Signatures](digital-signatures.md) for full details.
 
 The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache FOP):
 
-- **INPUT** - The XML (follows the active editor; *Change* can fix it to a file) and the
-  **XSL-FO stylesheet** (*Change*). Both rows also carry a **star
+- **INPUT** - The **XML** (follows the active editor; *Change* can fix it to a file) and the
+  **XSL-FO stylesheet** (*Change*). Each slot shows its caption, the favorites button and
+  *Change* on the first line and the file name on its own second line (full path as
+  tooltip); an empty slot shows a hint such as *"No stylesheet — choose or drop a file"*,
+  and clicking it works like *Change*. Both rows also carry a **star
   menu** next to their *Change* link - **XML** favorites for the input, **XSLT** favorites
   for the stylesheet - so you can pick a favorited file in one click (see
   [Favorites](favorites-system.md)). Both rows are also **drop
@@ -1306,9 +1331,10 @@ The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache
   name) and **Subject**, embedded into the generated PDF.
 - **OPTIONS** - **PDF/A-1b compliant** renders an archival-grade PDF (requires the
   stylesheet to use embeddable system fonts - the built-in base-14 fonts like Helvetica
-  cannot be embedded, and the error message will say so). **Page size** (A4/Letter,
-  Portrait/Landscape) is passed to the stylesheet as the XSLT parameters `page-size` and
-  `page-orientation` for stylesheets that support them.
+  cannot be embedded, and the error message will say so). **Page size** is a dropdown (A4/Letter,
+  Portrait/Landscape); a hint below it explains that the choice is passed as the
+  `page-size` and `page-orientation` parameters and **only applies if the stylesheet uses
+  them**.
 - **Generate PDF** asks for the output file, renders off the UI thread, and opens the
   result in the in-app **PDF preview**; the **RESULT** rows **Preview PDF** and **Open PDF**
   re-open it any time.
@@ -1339,27 +1365,45 @@ The panel offers three collapsible sections whose actions are labelled rows (ico
   FundsXML schema.
 - **DOCS & RESOURCES** - **Open Schema in Editor** opens the active version's
   `FundsXML4.xsd` as a normal editor tab (Text or Graphic/diagram view);
-  **Generate Schema Documentation** produces browsable HTML docs; the **Open … Folder**
+  **Generate Documentation…** produces browsable HTML docs; the **Open … Folder**
   rows show the cached examples, schema and Schematron files; **Open Online Docs**
   opens fundsxml.org.
 
 See the [FundsXML Extensions guide](fundsxml-extensions.md) for the full feature
 description, cache locations and troubleshooting.
 
-## Schema Library Panel
+## Schema Library Page {#schema-library-page}
 
 The **Schema Library** activity (icon: collection) manages namespace → schema mappings used
-to auto-bind XML, XSD and JSON documents that don't carry an explicit schema reference. It
-has three tabs - **Mappings**, **Catalogs** and **Cache** - and a shared status line at the
-bottom. See the [Schema Library guide](schema-library.md) for the full reference, including
-the resolution order, the bundled standards list and troubleshooting.
+to auto-bind XML, XSD and JSON documents that don't carry an explicit schema reference.
+Like Settings, it opens as a **page** - a tab named **Schema Library** in the main editor
+area, where all table columns fit. The page has three tabs - **Mappings**, **Catalogs** and
+**Cache** - each with clearly labelled action buttons, and a shared status line at the bottom.
+The side panel on the left lists the same three sections: click one to jump to that tab; the
+tab you are on is highlighted. **Settings → Manage schema cache…** opens the page directly on
+the **Cache** tab. See the [Schema Library guide](schema-library.md) for the full reference,
+including the resolution order, the bundled standards list and troubleshooting.
 
-## Help Panel & About
+## Help Menu & About {#help-menu-about}
 
-The **Help** activity (F1) shows the version and build, followed by labelled action rows
-grouped into **PROJECT** (**GitHub**, **Sponsor this Project**, **About**, **Keyboard
-Shortcuts**, and **Report a Problem…** when error reporting is enabled), **DOCUMENTATION**
-(links to the documentation) and **UPDATES** (**Check for Updates**).
+Help is not a side panel - it lives in the **Help** menu of the menu bar. The **?** button in
+the header bar and the **F1** key open the same menu as a popup, right where you are working.
+It contains:
+
+| Item | What it does |
+|------|--------------|
+| **Documentation** | Opens the online documentation |
+| **Keyboard Shortcuts** | Lists all keyboard shortcuts |
+| **FundsXML Website** / **FundsXML Schema Docs** | Only while the [FundsXML extension](fundsxml-extensions.md) is enabled |
+| **Report a Problem…** | Sends an anonymous error report (only while error reporting is enabled, see below) |
+| **GitHub Repository** | Opens the project page on GitHub |
+| **Sponsor this Project** | Opens the GitHub Sponsors page |
+| **Check for Updates…** | Looks for a newer version |
+| **About FreeXmlToolkit** | Shows the version and build, licenses and links |
+
+On **macOS**, **Check for Updates…** and **About FreeXmlToolkit** are in the **FreeXmlToolkit**
+application menu instead (see [macOS](#macos)). To find out which version you are running, open
+**About FreeXmlToolkit**.
 
 - **Sponsor this Project** opens the project's [GitHub Sponsors](https://github.com/sponsors/karlkauc)
   page in your browser. The same link is in the **About** dialog, as a small banner on the
@@ -1381,32 +1425,38 @@ These buttons are only shown while **Send anonymous error reports** is enabled i
 ## Settings Page
 
 > Settings open as a **full page** (a tab in the main editor
-> area) rather than in the narrow left side panel. The sections are presented
-> as **color-coded cards**.
+> area) rather than in the narrow left side panel. The options are presented
+> as **color-coded cards**, sorted into seven groups.
 
-Click the gear icon at the bottom of the activity bar: the **Settings page opens as a tab in
-the main editor area**, where there is room for all options (the left side panel just shows a
-short note that settings are edited in the main window). Change any option and click
-**Save Settings** to apply (theme changes apply immediately).
+Click the gear icon at the bottom of the activity bar (or press **Ctrl+,**): the **Settings page
+opens as a tab in the main editor area**, where there is room for all options.
 
-| Section | Options |
-|---------|---------|
-| **Theme** | Switch between **Light** and **Dark**. |
-| **Editor** | XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**. |
-| **XSD** | **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). |
-| **Schema Library** | **Use the Schema Library to bind schemas automatically**; shows the library file's location and a **Manage schema cache…** link. See [Schema Library](schema-library.md). |
-| **Parser** | **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
-| **Rendering** | JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status. See [Rendering mode (hardware vs. software)](#rendering-mode) below. |
-| **Temp & Cache** | **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. |
-| **General** | **Check for updates on startup**; **Use small icons**; **Show toolbar button labels**; **Show activity bar labels**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. |
-| **File Associations** | Make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights). See [File Associations](file-associations.md). |
-| **User Info** | **Name**, **Email** and **Company** - used, for example, when generating documentation or signing. |
-| **Security** | **Trust all certificates** - accept any TLS certificate for HTTPS downloads (schemas, updates). Use with care. |
-| **Usage Statistics** | **Enable usage tracking** (local, anonymous feature-usage counters shown on the Welcome page) and **Clear statistics**. Below them: **Send anonymous usage statistics** and **Send anonymous error reports** (both on by default) and a **What is sent?** link that shows the exact data and your anonymous installation ID. See [Privacy & Anonymous Telemetry](telemetry.md). |
-| **Developer** | **Record execution statistics** - collects duration, CPU and memory per XSLT/XQuery/validation run; view them in the **Execution Statistics** tool tab or via the "last run" item in the status bar. |
-| **FundsXML** | **Enable FundsXML extensions** - adds the [FundsXML activity](fundsxml-extensions.md) to the activity bar. |
-| **Templates** | A configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates. See [Managing your templates](#managing-your-templates) below. |
-| **HTTP Proxy** | **Use system proxy**, or enter a proxy host and port. |
+**Finding a setting** - the side panel on the left lists the seven groups. Click a group to
+scroll the page to it; the group you are looking at is highlighted. Type into the **search field** at the top of the side panel to filter both
+the group list and the cards on the page down to the matching settings; if nothing matches, the
+page shows *"No settings match the search."*.
+
+**Saving** - a save bar stays fixed at the bottom of the page:
+
+- **Unsaved changes** appears as soon as you change an option that has not been saved yet.
+- **Save Settings** stores and applies your changes.
+- **Reset to Defaults…** asks for confirmation and then puts the default values into the
+  controls. Nothing is stored until you click **Save Settings**, so you can still review or
+  adjust the values first. The reset leaves your privacy / usage statistics choices, your user
+  info, your templates, the file associations and the extension settings (FundsXML, Developer)
+  unchanged.
+- A few actions take effect **immediately**, without Save: switching the **theme**, registering
+  or unregistering **file associations**, and creating, editing or deleting **templates**.
+
+| Group | Cards and options |
+|-------|-------------------|
+| **Appearance** | **Theme** - switch between **Light** and **Dark**. **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. |
+| **Editor** | **Editor** - XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**. **Templates** - a configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates; see [Managing your templates](#managing-your-templates) below. **User Info** - **Name**, **Email** and **Company**, used for example when generating documentation or signing. |
+| **Schemas & Validation** | **XSD** - **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). **Schema Library** - **Use the Schema Library to bind schemas automatically**; shows the library file's location and a **Manage schema cache…** link; see [Schema Library](schema-library.md). **Parser** - **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
+| **Files & Cache** | **Temp & Cache** - **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. **File Associations** - make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights); see [File Associations](file-associations.md). |
+| **Network & Security** | **HTTP Proxy** - **Use system proxy**, or enter a proxy host and port. **Security** - **Trust all certificates**: accept any TLS certificate for HTTPS downloads (schemas, updates); use with care. **Updates** - **Check for updates on startup**. |
+| **Privacy** | **Usage Statistics** - **Enable usage tracking** (local, anonymous feature-usage counters shown on the Welcome page) and **Clear statistics**. Below them: **Send anonymous usage statistics** and **Send anonymous error reports** (both on by default) and a **What is sent?** link that shows the exact data and your anonymous installation ID. See [Privacy & Anonymous Telemetry](telemetry.md). |
+| **Extensions** | **FundsXML** - **Enable FundsXML extensions** adds the [FundsXML activity](fundsxml-extensions.md) to the activity bar. **Developer** - **Record execution statistics** collects duration, CPU and memory per XSLT/XQuery/validation run; view them in the **Execution Statistics** tool tab or via the "last run" item in the status bar. **Support the Project** - a **Sponsor on GitHub** link. |
 
 ### Clearing the Cache Folder
 
@@ -1472,22 +1522,39 @@ template and XPath-snippet system, see [Template Management](template-management
 
 ## Welcome / Dashboard
 
-> The welcome screen shows live statistics and quick tips, and the
-> Tools grid covers **every** page - including **Explorer** and **Settings** cards.
+> The welcome screen starts from **tasks**, not tools: a short list titled
+> *"What do you want to do?"* takes you straight to the right panel. On a first start it stays
+> uncluttered and offers a ready-made example to try.
 
 When no document is open, the editor shows a welcome dashboard with:
 
+- **Quick cards** - **New File**, **Open File**, **Open Folder** and **From URL**. While you
+  have no recent files yet, a fifth card **Open an Example** is shown (see
+  [Trying the bundled example](#trying-the-bundled-example) below).
 - **Stat cards** - At-a-glance counts of your **Recent files**, **Favorites**, **Templates**,
-  and **Saved queries**.
+  and **Saved queries**. They appear only once at least one of them is above zero, so a
+  fresh installation does not show a row of zeros.
+- **Activity trend** - The **ACTIVITY (LAST 7 DAYS)** chart appears only once you have used
+  the application in the last seven days.
 - **Tips banner** - A short hint banner with handy shortcuts (for example, drag a file onto the
   window to open it, or use Ctrl+F / Ctrl+H to find and replace).
-- **Recent files** list - Click an entry to reopen it.
-- **Tools grid** - One card per tool; clicking a card opens the matching activity:
-  **Validate**, **Transform**, **Schema**, **PDF / FOP**, **Signature**, **Favorites**,
-  **Explorer** (files & workspace), and **Settings** (application preferences) - so every
-  page can be opened directly from the start screen.
-  A **Search** card (*Find in files & XPath*) opens the
-  [Search panel](#search-panel).
+- **Recent files** list - Click an entry to reopen it. While the list is still empty it
+  shows a hint: files you open or create appear here - start with **Open File** or
+  **New File** above.
+- **What do you want to do?** - A task list with six rows:
+
+    | Task | What happens |
+    |------|--------------|
+    | **Validate an XML file** | Asks for a file, opens it and shows the [Validation panel](#validation-panel) |
+    | **Run an XSLT transformation** | Asks for an XML file, opens it and shows the [Transform panel](#transform-panel), where you choose the stylesheet |
+    | **Query a document** | Asks for an XML file, opens it and opens the [Query Console](#query-console) for XPath / XQuery |
+    | **Edit a schema** | Asks for an XSD file, opens it and shows the Schema panel |
+    | **Create a PDF** | Asks for an XML file, opens it and shows the **PDF / FOP** panel, where you pick the XSL-FO stylesheet |
+    | **Sign or verify a document** | Opens the **Signature** page directly (no file needed first) |
+
+    If you cancel the file chooser, nothing happens. The other activities (Explorer, Search,
+    Favorites, Settings, …) are always one click away in the Activity Bar.
+
 - **FUNDSXML quick access** - When the optional
   [FundsXML extension](fundsxml-extensions.md) is enabled and its content is cached, an
   extra row with three cards appears: **Open Example** (opens a compact starter sample),
@@ -1495,7 +1562,41 @@ When no document is open, the editor shows a welcome dashboard with:
   cached examples folder). The row shows up live as soon as the automatic background
   download finishes.
 
+![Welcome page with recent files, counters and the task list](img/unified-shell-welcome.png)
+
+### Trying the bundled example {#trying-the-bundled-example}
+
+**Open an Example** gives you something to experiment with right away. It copies a small
+example set into `~/.freeXmlToolkit/examples/getting-started/` in your home folder and opens
+`order.xml`:
+
+- `order.xml` - an order document that already points to its schema, so it is
+  **validated against `order.xsd` immediately** - no need to bind a schema yourself.
+- `order.xsd` - the schema for the order.
+- `order-summary.xslt` - a stylesheet that turns the order into an HTML summary.
+
+If the files already exist there (for example because you edited them), they are kept and
+not overwritten. A comment at the top of `order.xml` suggests what to try next:
+
+1. Press **F8** to validate the document.
+2. Switch between the **Tree** and **Graphic** views.
+3. Choose **Tools → Transform with XSLT…** and pick `order-summary.xslt`.
+4. Open the **Query Console** (Ctrl+Shift+X) and run `sum(//item/(@quantity * @price))` to
+   get the order total.
+
 ![Welcome page with the FUNDSXML quick-access row](img/unified-shell-welcome-fundsxml.png)
+
+## Tools that read the saved file {#tools-that-read-the-saved-file}
+
+Some tools read the document **from disk** rather than from the editor: **Generate Sample
+XML…** and **Sample XML with Options…** (Schema panel), **Generate Documentation…** and
+**signing** a document (Signature). If the document has **unsaved changes**, they first ask
+*"Save changes to <file> first?"*:
+
+- **Save and Continue** - saves the document, then runs the tool on the saved file.
+- **Use Saved Version** - runs the tool on the file as it is on disk; your unsaved editor
+  changes are not included.
+- **Cancel** - does nothing.
 
 ## Status Bar
 
@@ -1513,7 +1614,8 @@ The status bar at the bottom of the window includes (left to right):
     |-------|---------|
     | **Detecting XSD…** (hourglass) | The linked schema is being detected and parsed in the background - IntelliSense is not available *yet*. |
     | **XSD: name** (green check) | The schema is loaded - **IntelliSense and schema validation are available**. |
-    | **No XSD** | The document references no schema - IntelliSense is limited. |
+    | **No XSD** (clickable chip) | The document references no schema - IntelliSense is limited. Click the chip to bind one. |
+    | **XSD 1.1 schema** / **XSD 1.0 schema** | The active document **is** an XSD schema itself. The version comes from `vc:minVersion` on `xs:schema`; without it the schema counts as XSD 1.0 (1.1 features still validate). Clicking it does nothing. |
     | **XSD error** (amber warning) | The document references a schema that could not be found or parsed - IntelliSense is unavailable. Bind one manually to fix it. |
 
     For JSON documents the same four states read **"Detecting JSON Schema…"**,
@@ -1527,7 +1629,7 @@ The status bar at the bottom of the window includes (left to right):
     by hand — the tooltip adds the resolved catalog target or matched namespace/root
     element plus the schema's absolute path.
 
-    **Click the indicator** in any state to choose a schema file (`.xsd`, or `.json` for
+    **Click the indicator** (in any state except for an open XSD schema) to choose a schema file (`.xsd`, or `.json` for
     JSON documents) and bind it to the active
     document; for XML the binding drives both **IntelliSense** and **schema validation**,
     for JSON it drives **validation**. (The editor
@@ -1562,15 +1664,15 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+H | Find and Replace (in the active document); **Alt+Cmd+F** on macOS |
 | Ctrl+Shift+F | **Find in Files** - opens the [Search panel](#search-panel), prefilled with the editor selection |
 | Ctrl+Shift+H | **Replace in Files** - opens the Search panel with the replace row expanded |
-| F8 | Validate |
+| F8 | Validate the active document (same run as Tools → Validate, the toolbar's **Validate** button and the Validation panel's **Run Validation**) |
 | Shift+Alt+F | Format (pretty-print) the active document |
 | Ctrl+D | Add the active document to favorites |
 | Ctrl+Shift+D | Show the Favorites panel (press again to collapse the side panel) |
 | Ctrl+Shift+X | Toggle Query Console (XPath/XQuery) |
 | Ctrl+K | Open the Query Console and focus its input (same as the header search pill) |
 | Ctrl+Enter | Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline) |
-| F5 | Execute: runs the active XPath/XQuery, XSLT or XProc document, validates any other document |
-| F1 | Open the Help panel |
+| F5 | Run the active XQuery / XPath / XSLT / XProc document (does nothing for other documents - use F8 to validate) |
+| F1 | Show the Help menu (as a popup, like the header's **?** button) |
 | F11 | Toggle full screen (also **Ctrl+Cmd+F** on macOS) |
 | Ctrl+L | Show/hide the left side panel |
 | Ctrl+Shift+P | Show/hide the Properties inspector |
@@ -1579,6 +1681,9 @@ The status bar at the bottom of the window includes (left to right):
 | Alt+Enter / Ctrl+. | Quick Fix - apply a [Schematron Quick Fix](schematron-quick-fixes.md) on the caret line |
 | Ctrl++ / Ctrl+- | Graphic view: zoom the grid in / out (10 % steps, 50-300 %) |
 | Ctrl+0 | Reset the zoom to 100 % (Text view: font size, Graphic view: the grid) |
+| Ctrl+Alt+X | Graphic view: copy the XPath / JSONPath of the selected node |
+| Ctrl+Alt+C | Graphic view: copy the selected node as XML / JSON |
+| Ctrl+Shift+C | Graphic view: copy the cell content |
 | Ctrl+mouse wheel | Zoom (Text view: font size, Graphic view: the whole grid) |
 
 On macOS use **Cmd** instead of Ctrl for the shortcuts above (see [Menu Bar → macOS](#macos)).
@@ -1593,10 +1698,10 @@ On macOS use **Cmd** instead of Ctrl for the shortcuts above (see [Menu Bar → 
 
 ## Compare & Merge
 
-Both the XML and XSD editors include a **Compare** toolbar button (tooltip *"Compare with file..."*)
-for side-by-side diffing and merging.
+**Tools → Compare with File…** compares the active document (XML, XSD or any other text file)
+with another file, side by side, and lets you merge the differences.
 
-1. Click **Compare** and pick a file to compare against the current document.
+1. Choose **Tools → Compare with File…** and pick a file to compare against the current document.
 2. A new tab opens titled `Compare: <left> ↔ <right>` with synchronized scrolling and live re-diff.
 3. Changed lines are highlighted, with intra-line word-level coloring.
 
@@ -1635,6 +1740,11 @@ any error to jump straight to its location:
 > between the editor and the inspector to make it wider (handy for long XPaths, attribute
 > values, or documentation). The width is remembered across restarts - see
 > [Resizing and collapsing the side panels](#collapsing-the-side-panels).
+
+While nothing is selected, the inspector shows a short hint instead of empty sections:
+*"Open a document to see the properties of its nodes here."* when no document is open, and
+*"Select a node in the Tree or Graphic view to see and edit its properties."* (or, in the
+Text view, a hint to place the caret on an element) when no node is selected.
 
 ### Copying the XPath or the node
 
@@ -1716,24 +1826,25 @@ and **Transform with XSLT…** are their own buttons; **Run Query / Run Transfor
 are the **Run ▾** split button (the primary click runs whichever of the three the active file
 type supports); **Generate Documentation…** and **Type Editor…** sit in the **Schema ▾** split
 button's menu next to **Set XSD Schema…**. Each action is **type-gated**: it is enabled only
-when it applies to the active document's type, and disabled (greyed out) otherwise. Each
-action's output opens as a **tool tab**.
+when it applies to the active document's type, and disabled (greyed out) otherwise.
+**Tools → Run** and **F5** follow the same rule: they only run XQuery, XPath, XSLT and XProc
+documents (Tools → Run is greyed out for other documents, and F5 does nothing). To validate,
+use **F8**, **Tools → Validate**, the toolbar's **Validate** button or the Validation panel's
+**Run Validation** - all four start the same validation run.
 
 | Action | Applies to | What it does |
 |--------|-----------|--------------|
 | **Validate** | XML, XSD, XSLT, Schematron, JSON | Validates the active document and lists any problems (or reports it is valid / well-formed). For an XML document this uses the bound XSD/Schematron if one is set; a JSON document uses its bound JSON Schema if one is set, otherwise it is checked for syntax only. |
-| **Transform with XSLT…** | XML | Prompts you to pick an XSLT stylesheet, then transforms the active XML with it and shows the output. |
+| **Transform with XSLT…** | XML | Opens the [Transform panel](#transform-panel) on the active XML document, asks you to pick a stylesheet if none is set, and runs it there - with the panel's parameters and output method; the result appears in the [OUTPUT panel](#the-output-panel-results) (including **Save**). Also available as **Tools → Transform with XSLT…**. |
 | **Generate Documentation…** (Schema ▾ menu) | XSD | Lets you choose a format - **HTML**, **PDF**, or **Word** - and an output location, then generates the schema documentation there. |
 | **Type Editor…** (Schema ▾ menu) | XSD | Lets you pick one of the schema's named types and opens it in a focused Type Editor tab. |
-| **Target** (dropdown) | XQuery, XPath, XSLT, XProc | Selects the XML document the next run works on: Automatic (last active XML document), any open XML-family tab, or a file chosen from disk. Remembered per document. |
+| **Input** (dropdown) | XQuery, XPath, XSLT, XProc | Selects the XML document the next run works on: Automatic (last active XML document), any open XML-family tab, or a file chosen from disk. Remembered per document. |
 | **Run Query** (Run ▾) | XQuery, XPath | Runs the active query against the selected target and shows the result in the [OUTPUT panel](#the-output-panel-results) (`Ctrl+Enter`). |
 | **Run Transform** (Run ▾) | XSLT | Runs the active stylesheet against the selected target, output format auto-detected from `xsl:output` (`Ctrl+Enter`). |
 | **Run Pipeline** (Run ▾) | XProc | Runs the active pipeline with XML Calabash, the selected target feeding the `source` port (`Ctrl+Enter`). |
 
 These actions reuse the same engines as the corresponding activity-bar panels - they are simply a
-faster way to reach them. In this version, **Transform with XSLT…** produces **XML** output with no
-parameters; for output-format options, parameters, recent stylesheets, and watch-and-rerun, use the
-[Transform Panel](#transform-panel).
+faster way to reach them.
 
 !!! tip
     Generate Documentation works from the schema's **last-saved** version on disk so that relative
@@ -1742,8 +1853,9 @@ parameters; for output-format options, parameters, recent stylesheets, and watch
 
 ## Query Console
 
-> Run XPath and XQuery against the open document right from the editor,
-> without switching to the Transform activity.
+> Run XPath, XQuery and JSONPath against the open document right from the editor. This is
+> the one place for queries - the Transform panel links here with its **Open Query Console**
+> button.
 
 The **Query Console** is a panel that opens along the **bottom of the editor**. Toggle it with the
 **terminal icon** in the editor toolbar or with **Ctrl+Shift+X**; **Ctrl+K** (or a click on the
@@ -1758,7 +1870,8 @@ pane shows the previous run's XML result with syntax highlighting.*
 ### Layout
 
 - **Left - the query:**
-  - An **XPath / XQuery** mode toggle.
+  - An **XPath / XQuery** mode toggle. While a JSON document is active, the XPath toggle
+    reads **JSONPath**.
   - The query input **with IntelliSense** (autocomplete): suggestions pop up as you type after
     `/`, `//`, `@`, `[`, `(`, `$` and `::`, or on demand with **Ctrl+Space**. It suggests element
     and attribute names from the active document, XPath/XQuery functions, axes, operators and
@@ -1771,12 +1884,17 @@ pane shows the previous run's XML result with syntax highlighting.*
   - **Save** - Save the current expression as a reusable snippet (see below).
   - **Snippets** - A menu of your saved XPath and XQuery snippets; pick one to load it (the console
     switches to the matching mode automatically).
+  - **Examples** - Inserts a built-in XQuery example: **Simple**, **FLWOR**, **HTML report** or
+    **Data-quality check**.
 - **Right - the results:**
   - A read-only, selectable results editor with **line numbers** showing the query
     result. **XML results are
     syntax-highlighted** (tags, attributes, values, comments), and **JSON results** (e.g. from
     JSONPath queries) get JSON highlighting; scalar results and messages stay plain.
   - **Copy** - Copy the full result to the clipboard.
+  - **Table** - Shows the last XQuery result as a table in the
+    [OUTPUT panel](#the-output-panel-results) (enabled after an XQuery run whose result can be
+    shown as a table).
 
 Like the text editor, every console area zooms with the mouse: hold **Ctrl** and scroll the
 **mouse wheel** over the query input or the results to change that area's font size
@@ -1790,8 +1908,8 @@ Like the text editor, every console area zooms with the mouse: hold **Ctrl** and
 4. The result appears on the right. Use **Copy** to put it on the clipboard.
 
 The console always runs against the **active** document. For an **XML** document it evaluates the
-expression directly; for a **JSON** document the XPath input is evaluated as a **JSONPath**
-expression. When no document is open, **Run** is disabled and the results pane shows
+expression directly; for a **JSON** document the toggle reads **JSONPath** and the input is
+evaluated as a **JSONPath** expression. When no document is open, **Run** is disabled and the results pane shows
 *"No document open."*
 
 The `map:`, `array:` and `math:` function namespaces are
@@ -1812,8 +1930,7 @@ Reusable XPath **and** XQuery expressions are saved as **snippets**:
 - **Snippets** - Lists every saved snippet, prefixed with its kind (*XPath* / *XQuery*). Selecting
   one loads it into the console and switches to the matching mode.
 
-Snippets are kept in the shared query folder, so anything saved here is also available from the XML
-Editor's XPath/XQuery panel and vice versa.
+Snippets are kept in the shared query folder.
 
 Saved snippets can be **managed** directly from the menu. Each snippet's
 submenu offers, next to *Load into console* and *Open in editor*:
@@ -1844,7 +1961,7 @@ content cache and are re-registered automatically on every start.
 
 ## XPath / XQuery Autocomplete
 
-The XPath/XQuery inputs (in the Query Console and in the Transform panel) offer context-aware
+The XPath/XQuery inputs of the Query Console offer context-aware
 autocomplete in both the XPath and
 XQuery input fields. Suggestions appear automatically after trigger characters (`/`, `[`, `@`, `(`,
 `$`, `::`) or on demand with **Ctrl+Space**. Depending on context it suggests element names, attribute
@@ -1854,19 +1971,8 @@ their parentheses / `::` automatically.
 
 ### Saving, Loading and Examples
 
-The Transform panel's query sections provide query management (the bottom
-[Query Console](#query-console) offers a lighter Save / Snippets pair instead):
-
-- **XPATH section** - **Save Query** stores the current expression under a name, and the
-  **Saved Queries** drop-down lists every saved query. Each entry is a submenu
-  offering the same management actions as the Query Console's Snippets menu: **Load into
-  query field**, **Open in editor**, **Overwrite with current query**, **Rename…** and
-  **Delete…** (the latter three with the same confirmation/collision rules).
-- **XQUERY section** - the **Examples** menu inserts ready-made sample expressions
-  (Simple, FLWOR, HTML report, Data-quality check).
-
-Queries are stored in the shared query folder, so anything saved here is also available from the XML
-Editor's XPath/XQuery panel and vice versa.
+Saved queries are the Query Console's **Snippets** menu, and its **Examples** menu inserts the
+built-in XQuery examples - see [Saving and Loading Snippets](#saving-and-loading-snippets).
 
 ## Drag and Drop
 
@@ -1875,16 +1981,14 @@ Drag files from your file manager directly into the editor to open them. Multipl
 The file **pickers and source rows** across the shell are **drop
 targets too**:
 
-- Drop an `.xsl` / `.xslt` file onto the Explorer's
-  **[Stylesheet picker](#transform-bar-one-click-xslt-from-the-explorer)** or the Transform
-  panel's **[STYLESHEET](#stylesheet)** row to make it the current stylesheet.
+- Drop an `.xsl` / `.xslt` file onto the Transform panel's **[STYLESHEET](#stylesheet)** row
+  to make it the current stylesheet.
 - Drop an `.xml` file onto the Transform panel's **[INPUT](#input)** row to make it the
   transform's input file. On both Transform panel rows a drop behaves like picking a
   favorite: the transform **runs automatically** once both a stylesheet and an input are
-  ready.
-- Drop a `.sch` / `.schematron` file onto the Explorer's
-  **[Schematron picker](#schematron-bar-one-click-validation-from-the-explorer)** or the
-  Validation panel's **[SCHEMATRON source row](#sources)** to make it the current
+  ready (while **Run automatically** is checked).
+- Drop a `.sch` / `.schematron` file onto the Validation panel's
+  **[SCHEMATRON source row](#sources)** to make it the current
   Schematron (and bind it to the active document).
 - Drop an `.xsd` file onto the Validation panel's **[XSD source row](#sources)** or onto
   the **[schema indicator in the status bar](#status-bar)** (shown for XML-family documents)
@@ -1896,7 +2000,7 @@ targets too**:
   an `.xsl` / `.xslt` file onto its XSL-FO stylesheet row, to set the PDF rendering
   sources.
 - Drop a keystore file (`.jks`, `.keystore`, `.p12`, `.pfx`) onto the
-  **[Signature panel](#signature-panel)**'s KEYSTORE row or Expert Mode's trust store row.
+  **[Signature page](#signature-panel)**'s KEYSTORE row or Expert Mode's trust store row.
 - Drop an `.xsd` file anywhere on the **[Schema panel](#the-schema-panel)** (Type
   Library) to **open it as a document** - unlike the targets above, this drop *opens* the
   file instead of binding or selecting it; the panel shows a **dashed** green/red border
@@ -1923,8 +2027,8 @@ functionality now lives in the shell:
 | JSON Editor | Open a `.json` / `.jsonc` / `.json5`: Text / Tree / Graphic (grid) views + inspector; JSONPath via the Query Console; JSON Schema validation in the **Validation** activity |
 | XSLT Viewer | **Transform** panel (set stylesheet, transform, preview, browser) |
 | Schematron | **Validation** activity: check rules, templates, tester, builder, documentation, CSV/JSON export |
-| Schema Generator | **Schema** activity / Generate XSD from XML |
+| Schema Generator | Editor toolbar **Schema ▾** → Generate XSD from XML |
 | Digital Signatures | **Signature** activity (sign, validate, trust validation, certificate creation) |
 | FOP / PDF | **FOP** activity (XSL-FO → PDF + preview) |
-| XSLT Developer | **Transform** panel + editor: run/live transform, parameters, and the ⋮ tools (batch, profile, trace, debugger) — see [XSLT Developer](xslt-developer.md) |
+| XSLT Developer | **Transform** panel + editor: run/live transform, parameters, and the OPTIONS & TOOLS section (batch, profile, trace, debugger) — see [XSLT Developer](xslt-developer.md) |
 | XML Editor | The shell's editor itself: every XML document opens with IntelliSense, Text/Tree/Graphic views and the Properties inspector |

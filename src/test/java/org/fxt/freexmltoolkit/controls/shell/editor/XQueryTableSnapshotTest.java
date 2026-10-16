@@ -51,9 +51,15 @@ class XQueryTableSnapshotTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("orders")).orElse(false));
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.setXQuery("for $o in /orders/order return $o");
-            panel.runXQuery();
+            console.setXQuery("for $o in /orders/order return $o");
+            console.runForTest();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, console::isTableAvailableForTest);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.onShowTable();
             return null;
         });
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> panel.getResultRowCount() == 3);

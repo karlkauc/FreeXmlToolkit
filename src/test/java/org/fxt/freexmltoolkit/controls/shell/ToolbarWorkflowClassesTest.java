@@ -27,9 +27,7 @@ class ToolbarWorkflowClassesTest {
         assertTrue(classesOf(fxml, "action-open").contains("fxt-tool-primary"), "Open = workspace blue (was warning)");
         assertTrue(classesOf(fxml, "action-save").contains("fxt-tool-primary"));
         assertTrue(classesOf(fxml, "action-format").contains("fxt-tool-neutral"), "Format is neutral (was info)");
-        assertTrue(classesOf(fxml, "action-insert-template").contains("fxt-tool-neutral"));
-        assertTrue(classesOf(fxml, "action-compare").contains("fxt-tool-neutral"));
-        assertTrue(classesOf(fxml, "action-spreadsheet").contains("fxt-tool-neutral"));
+        assertTrue(classesOf(fxml, "action-query-console").contains("fxt-tool-neutral"));
         assertTrue(classesOf(fxml, "doc-action-transform").contains("fxt-tool-transform"));
         assertTrue(classesOf(fxml, "doc-action-run").contains("fxt-tool-transform"));
         assertTrue(classesOf(fxml, "action-set-schema").contains("fxt-tool-schema"));

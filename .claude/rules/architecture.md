@@ -38,9 +38,11 @@ Legacy per-tool tabs/controllers are gone; `controller/` only keeps `UnifiedShel
 | `ExternalChangeMonitor` + `DiskStamp` / `ExternalChangePrompt` | Polls open tabs' files off-thread (2 s while the window is focused + on focus gain; no `WatchService` — network drives); `EditorHost.handleExternalChanges` asks Reload/Ignore or Keep/Close. Every editor write must go through `EditorHost.write()` so the stamp follows | `controls/shell/editor/` |
 | `ViewMode` | `TEXT` / `TREE` / `GRAPHIC` (no Grid mode — Graphic shows the XSD diagram for schemas, the XMLSpy-style instance grid for XML-family files) | `controls/shell/editor/` |
 | `EditorView` + `XmlEditorView`/`JsonEditorView` (`EditorViews` factory) | Per-file-type text editor adapter (wraps `XmlCodeEditorV2`) | `controls/shell/editor/` |
-| `ExplorerPanel`, `ValidationPanel`, `TransformPanel`, `FavoritesActivityPanel`, `FopPanel`, `SignaturePanel`, `FundsXmlPanel`, `SchemaLibraryPanel`, `HelpPanel`, `SettingsPanel` | Side-panel content per activity (Settings opens as a main-area tab instead) | `controls/shell/editor/` |
+| `ExplorerPanel`, `ValidationPanel`, `TransformPanel`, `FavoritesActivityPanel`, `FopPanel`, `FundsXmlPanel` | Side-panel content per activity | `controls/shell/editor/` |
+| `SettingsPanel`, `SchemaLibraryView`, `SignatureView` + `PageNavigator` | Activities whose content is a main-area page (tool tab). Their side panel is a `PageNavigator`: the page's sections (Settings groups with search, library tabs, signature actions), current one marked. Tool tabs hide the Inspector (`UnifiedShellView` chrome updater) without changing the user's choice | `controls/shell/editor/` |
 | `SchemaLibraryService` / `SchemaCatalogParser` | Namespace→schema mappings, catalogs, bundled list; consulted first by all resolvers | `service/`, `service/catalog/` |
-| `EditorWelcomePane` | Welcome/Dashboard (quick actions, stats, tools grid) | `controls/shell/editor/` |
+| `EditorWelcomePane` | Welcome/Dashboard (quick actions, task list, stats/trend only once they show data; first start offers "Open an Example" = `ExampleFiles`, bundled in `resources/examples/getting-started/`) | `controls/shell/editor/` |
+| `FundsXmlHint` + `FundsXmlHintBar` | One-time bar above the editor offering the FundsXML extension when a FundsXML document is opened while it is off (`EditorHost.setDocumentLoadedHandler`) | `controls/shell/editor/` |
 | `GridViewShell` → `XmlGridView` / `JsonGridView` | Grid shown in Graphic mode for XML / JSON (shared header + placeholder) | `controls/shell/editor/` |
 | `GridCanvasView<N>` + `GridModelAdapter<N>` | Model-agnostic XMLSpy-style grid canvas (render, scroll, hit-test, inline edit, search); `XmlCanvasView`/`XmlGridAdapter` bind XML, `JsonCanvasView`/`JsonGridAdapter` bind JSON | `controls/v2/xmleditor/view/`, `controls/jsoneditor/grid/` |
 | `JsonEditorContext` + `controls/jsoneditor/commands/` | Shared JSON model + undo stack across Text/Tree/Graphic (JSON counterpart of `XmlEditorContext`) | `controls/jsoneditor/editor/` |
@@ -129,8 +131,8 @@ public void setName(String name) {
 |------|---------|
 | `tab_unified_shell.fxml` | Bootstrap page; its `UnifiedShellController` instantiates `UnifiedShellView` |
 | `shell.fxml` | The shell chrome (`fx:root` BorderPane: header · toolbar · status bar · work-area skeleton + `fx:id` placeholders), loaded by `UnifiedShellView`; **the Scene-Builder-editable layout** |
-| `panels/<Class>.fxml` | Activity side panels and their panes (Explorer, Validation, Transform, FOP, Signature, FundsXML, Help, Search, Schema Library, Favorites, Type Library, Problems, Transform Output) |
-| `views/<Class>.fxml` | Main-area pages and embedded views (Settings, Welcome, Documentation, Sign Document, Favorites Manager, Query Console, Execution Stats, Schema Analysis + sections, grid header, XSD properties / documentation / appinfo editors, Schematron builder and template library) |
+| `panels/<Class>.fxml` | Activity side panels and their panes (Explorer, Validation, Transform, FOP, FundsXML, Search, Favorites, Type Library, Problems, Transform Output) |
+| `views/<Class>.fxml` | Main-area pages and embedded views (Settings, Schema Library, Signature, Welcome, Documentation, Favorites Manager, Query Console, Execution Stats, Schema Analysis + sections, grid header, XSD properties / documentation / appinfo editors, Schematron builder and template library) |
 | `dialogs/<Class>.fxml` | Content of the `DialogPane`; buttons, result converter and theme stylesheets stay in code |
 | `inspector/<Class>.fxml` | `InspectorPanel` and `AppInfoFieldsEditor` |
 

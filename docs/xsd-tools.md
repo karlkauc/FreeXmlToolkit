@@ -141,7 +141,8 @@ top-level declarations so you can browse, find, and open every type in the schem
 | **Reveal in Tree**    | Click a declaration to reveal it in the schema's Tree view           |
 | **Open Type Editor**  | Double-click a type to open it in its own [Type Editor](#3-type-editor) tab |
 | **Find Usage**        | Right-click a type to find the places where it is used              |
-| **Schema tools**      | Labelled rows in the collapsible **TOOLS** section above the filter: Generate XSD from XML (single/batch), Generate Sample XML (plain/advanced), Flatten Schema, Schema Analysis, and Generate Documentation |
+| **Schema tools**      | Labelled rows in the **TOOLS** section below the type lists (collapsed by default): Generate Sample XML…, Sample XML with Options…, Flatten Schema…, Schema Analysis, and Generate Documentation… |
+| **Generate XSD from XML** | Not in the Schema panel: **Generate XSD from XML** and **Generate XSD from XML Files…** are in the editor toolbar's **Schema ▾** split menu |
 
 ### How to Use
 
@@ -268,7 +269,7 @@ For the selected schema node you can edit:
 
 ## 5. Schema Analysis
 
-The **Schema Analysis** row in the **Schema** panel's **TOOLS** section analyzes the active XSD
+The **Schema Analysis** row in the **Schema** panel's **TOOLS** section (below the type lists; expand it if collapsed) analyzes the active XSD
 and opens the report as a tool tab in the editor area. The analysis runs in the background on
 the current editor text (unsaved changes included); imports and includes are resolved relative
 to the file. The header shows the document, the quality score, the number of issues, the
@@ -423,7 +424,9 @@ Create professional documentation from your XSD file automatically.
 
 1. Open your XSD file in the editor host
 2. Click **Generate Documentation…** in the **Schema** panel's **TOOLS** section (or pick it from
-   the editor toolbar's **Schema ▾** menu) - the generator opens as a tab in the editor area
+   the editor toolbar's **Schema ▾** menu) - the generator opens as a tab in the editor area.
+   The generator reads the saved schema file: if it has unsaved changes, you are asked to
+   **Save and Continue**, **Use Saved Version** or **Cancel**
 3. Check **SOURCE & OUTPUT**: the active schema is pre-filled; choose the output folder
    (HTML) or file (PDF/Word)
 4. Select your output format (HTML, PDF, or Word) and the diagram format (SVG, PNG, or JPG)
@@ -576,7 +579,7 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 
 > **Unified Shell:** In the [Unified Shell](unified-shell.md), sample-data
 > generation lives in the **Schema** panel. It offers two actions: **Generate Sample XML** for
-> the basic generation described below, and **Generate Sample XML (Advanced)…** for the
+> the basic generation described below, and **Sample XML with Options…** for the
 > rule-based, batch-capable generation shown above.
 
 ### Quick Start (Basic Generation)
@@ -584,7 +587,9 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 For simple use cases, you can generate sample XML in seconds:
 
 1. Load your XSD file
-2. Open the **Schema** panel from the activity bar and click **Generate Sample XML…**
+2. Open the **Schema** panel from the activity bar and click **Generate Sample XML…** in its
+   **TOOLS** section (below the type lists; expand it if collapsed). If the schema has
+   unsaved changes, choose **Save and Continue** or **Use Saved Version** when asked
 3. Choose your options:
     - **Only mandatory elements**: Include only required elements
     - **Max. repetitions**: Limit repeating elements
@@ -596,7 +601,7 @@ For simple use cases, you can generate sample XML in seconds:
 ### Profiled Generation (Advanced)
 
 For more control, you can define rules that specify exactly how each element or attribute gets
-its value. Open it from **Generate Sample XML (Advanced)…** in the Schema panel. It includes:
+its value. Open it from **Sample XML with Options…** in the Schema panel. It includes:
 
 | Feature | Description |
 |---------|-------------|

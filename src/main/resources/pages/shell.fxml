@@ -6,6 +6,7 @@
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitMenuButton?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ToggleButton?>
@@ -60,15 +61,15 @@
                                       prefWidth="460" styleClass="fxt-header-search" onMouseClicked="#onSearchPillClicked">
                                     <children>
                                         <IconifyIcon iconLiteral="bi-search" iconSize="13"/>
-                                        <Label text="Search · run XPath / XQuery…" styleClass="fxt-header-search-hint"/>
+                                        <Label text="Run XPath / XQuery…" styleClass="fxt-header-search-hint"/>
                                         <Region HBox.hgrow="ALWAYS"/>
                                         <Label text="Ctrl K" styleClass="fxt-header-kbd"/>
                                     </children>
                                 </HBox>
                                 <Region HBox.hgrow="ALWAYS"/>
-                                <Button styleClass="fxt-header-icon" focusTraversable="false" onAction="#onHelp">
+                                <Button fx:id="helpButton" id="header-help" styleClass="fxt-header-icon" focusTraversable="false" onAction="#onHelp">
                                     <graphic><IconifyIcon iconLiteral="bi-question-circle" iconSize="16"/></graphic>
-                                    <tooltip><Tooltip text="Help"/></tooltip>
+                                    <tooltip><Tooltip text="Help (F1)"/></tooltip>
                                 </Button>
                                 <Button fx:id="themeToggleButton" styleClass="fxt-header-icon"
                                         focusTraversable="false" onAction="#onToggleTheme">
@@ -84,7 +85,7 @@
                                 <ToggleButton fx:id="leftPanelToggle" id="toggle-left-panel" focusTraversable="false"
                                               styleClass="fxt-tool-button, fxt-tool-neutral, fxt-panel-toggle"
                                               onAction="#onToggleLeftPanel">
-                                    <graphic><IconifyIcon iconLiteral="bi-chevron-double-right"/></graphic>
+                                    <graphic><IconifyIcon iconLiteral="bi-layout-sidebar"/></graphic>
                                     <tooltip><Tooltip text="Show / hide the side panel"/></tooltip>
                                 </ToggleButton>
 
@@ -95,6 +96,9 @@
                                              buttons; related actions fold into SplitMenuButtons (primary click +
                                              visible ▾ menu); secondary tools are icon-only with tooltips. Buttons
                                              with text="" stay icon-only regardless of the show-labels setting.
+                                             Insert Template, Compare and Spreadsheet Converter live in the menu bar
+                                             (Edit / Tools) only (UX plan 5.4). Without a document only New and Open
+                                             are shown; UnifiedShellView hides the rest (UX plan 5.3).
                                              Icon tints follow the owning workflow (spec 2026-09-26 §2): file group =
                                              workspace blue, New = CREATE, editing tools neutral, Transform/Run =
                                              transform, Schema = schema, Validate filled in validation green. -->
@@ -145,21 +149,6 @@
                                                 </MenuItem>
                                             </items>
                                         </SplitMenuButton>
-                                        <Button id="action-insert-template" text=""
-                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onInsertTemplate">
-                                            <graphic><IconifyIcon iconLiteral="bi-puzzle" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Insert Template…"/></tooltip>
-                                        </Button>
-                                        <Button id="action-compare" text=""
-                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onCompare">
-                                            <graphic><IconifyIcon iconLiteral="bi-layout-split" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Compare with File…"/></tooltip>
-                                        </Button>
-                                        <Button id="action-spreadsheet" text=""
-                                                styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onSpreadsheet">
-                                            <graphic><IconifyIcon iconLiteral="bi-table" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Spreadsheet Converter… (Excel / CSV ↔ XML)"/></tooltip>
-                                        </Button>
                                         <Button id="action-query-console" text=""
                                                 styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onQueryConsole">
                                             <graphic><IconifyIcon iconLiteral="bi-terminal" iconSize="16"/></graphic>
@@ -171,7 +160,7 @@
                                             <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Transform with XSLT… (choose a stylesheet)"/></tooltip>
                                         </Button>
-                                        <MenuButton fx:id="queryTargetButton" id="doc-query-target" text="Target: Automatic"
+                                        <MenuButton fx:id="queryTargetButton" id="doc-query-target" text="Input: Automatic"
                                                     styleClass="fxt-tool-button, fxt-tool-neutral">
                                             <graphic><IconifyIcon iconLiteral="bi-bullseye" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Choose the XML document the query / transform runs against"/></tooltip>
@@ -200,7 +189,7 @@
                                                          styleClass="fxt-tool-button, fxt-tool-schema, fxt-tool-split"
                                                          onAction="#onSetSchema">
                                             <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Set XSD Schema… (IntelliSense &amp; validation) — arrow: Generate Docs / Type Editor"/></tooltip>
+                                            <tooltip><Tooltip text="Set XSD Schema… (IntelliSense &amp; validation) — arrow: Generate Docs / Type Editor / Generate XSD from XML"/></tooltip>
                                             <items>
                                                 <MenuItem id="action-set-schema-item" text="Set XSD Schema…" onAction="#onSetSchema">
                                                     <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
@@ -212,6 +201,15 @@
                                                 <MenuItem fx:id="actionTypeEditor" id="doc-action-type-editor"
                                                           text="Type Editor…" onAction="#onTypeEditor">
                                                     <graphic><IconifyIcon iconLiteral="bi-braces-asterisk" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <SeparatorMenuItem/>
+                                                <MenuItem fx:id="actionGenerateXsd" id="doc-action-generate-xsd"
+                                                          text="Generate XSD from XML" onAction="#onGenerateXsdFromXml">
+                                                    <graphic><IconifyIcon iconLiteral="bi-magic" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <MenuItem id="doc-action-generate-xsd-batch"
+                                                          text="Generate XSD from XML Files…" onAction="#onGenerateXsdBatch">
+                                                    <graphic><IconifyIcon iconLiteral="bi-files" iconSize="16"/></graphic>
                                                 </MenuItem>
                                             </items>
                                         </SplitMenuButton>
@@ -231,7 +229,7 @@
                                 <ToggleButton fx:id="inspectorToggle" id="toggle-inspector" focusTraversable="false"
                                               styleClass="fxt-tool-button, fxt-tool-neutral, fxt-panel-toggle"
                                               onAction="#onToggleInspector">
-                                    <graphic><IconifyIcon iconLiteral="bi-chevron-double-left"/></graphic>
+                                    <graphic><IconifyIcon iconLiteral="bi-layout-sidebar-reverse"/></graphic>
                                     <tooltip><Tooltip text="Show / hide the Properties panel"/></tooltip>
                                 </ToggleButton>
                             </children>
@@ -257,7 +255,7 @@
                                         <Button fx:id="leftCollapseChevron" focusTraversable="false"
                                                 styleClass="fxt-tool-button, fxt-panel-collapse"
                                                 onAction="#onCollapseLeftPanel" StackPane.alignment="TOP_RIGHT">
-                                            <graphic><IconifyIcon iconLiteral="bi-chevron-double-left" iconSize="14"/></graphic>
+                                            <graphic><IconifyIcon iconLiteral="bi-chevron-bar-left" iconSize="14"/></graphic>
                                             <tooltip><Tooltip text="Collapse the side panel"/></tooltip>
                                             <StackPane.margin><Insets top="4" right="4" bottom="4" left="4"/></StackPane.margin>
                                         </Button>
@@ -279,7 +277,7 @@
                                         <Button fx:id="inspectorCollapseChevron" focusTraversable="false"
                                                 styleClass="fxt-tool-button, fxt-panel-collapse"
                                                 onAction="#onCollapseInspector" StackPane.alignment="TOP_LEFT">
-                                            <graphic><IconifyIcon iconLiteral="bi-chevron-double-right" iconSize="14"/></graphic>
+                                            <graphic><IconifyIcon iconLiteral="bi-chevron-bar-right" iconSize="14"/></graphic>
                                             <tooltip><Tooltip text="Collapse the Properties panel"/></tooltip>
                                             <StackPane.margin><Insets top="4" right="4" bottom="4" left="4"/></StackPane.margin>
                                         </Button>

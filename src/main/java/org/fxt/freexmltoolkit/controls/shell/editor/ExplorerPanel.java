@@ -10,7 +10,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -37,8 +36,9 @@ public class ExplorerPanel extends VBox {
     private final EditorHost editorHost;
     private final PropertiesService propertiesService = resolvePropertiesService();
 
-    /** Persisted height (px) of the FAVORITES | RECENT pane, set by dragging its grip. */
+    /** Persisted height (px) of the RECENT pane, set by dragging its grip. */
     static final String FAV_RECENT_HEIGHT_KEY = "explorer.favRecent.height";
+    static final String TOOLS_COLLAPSED_KEY = "explorer.tools.collapsed";
     static final double FAV_RECENT_DEFAULT_HEIGHT = 240;
     static final double FAV_RECENT_MIN_HEIGHT = 96;
     static final double FAV_RECENT_MAX_HEIGHT = 2000;
@@ -46,9 +46,8 @@ public class ExplorerPanel extends VBox {
     private static final double FAV_RECENT_RESERVED_HEIGHT = 200;
     private final ObservableList<File> recentFiles = FXCollections.observableArrayList();
     @FXML private ListView<File> recentList;
-    private final ObservableList<org.fxt.freexmltoolkit.domain.FileFavorite> favorites =
-            FXCollections.observableArrayList();
-    @FXML private ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favoritesList;
+    /** OPEN EDITORS scrolls inside a capped height (about six rows). */
+    @FXML private javafx.scene.control.ScrollPane openEditorsScroll;
     /**
      * OPEN EDITORS is a plain VBox of rows, not a virtualized ListView: the list is small, and a
      * ListView populated after construction (via the open-documents listener) while the panel was
@@ -58,38 +57,24 @@ public class ExplorerPanel extends VBox {
     private final WorkspaceTree workspace = new WorkspaceTree(this::openWorkspaceFile);
     private final Label workspaceTitle = new Label("WORKSPACE");
     @FXML private VBox toolsBody;
-    @FXML private PanelActionList transformActions;
-    @FXML private PanelActionList validateActions;
     @FXML private PanelActionList fileActions;
     @FXML private javafx.scene.layout.Region favRecentGrip;
     @FXML private VBox favRecentPane;
-    @FXML private javafx.scene.control.ToggleButton favTab;
-    @FXML private javafx.scene.control.ToggleButton recentTab;
     /** Sticky stylesheet for the Explorer's one-click transform; shared via the recent-XSLT store. */
     private File currentXslt;
-    @FXML private MenuButton stylesheetMenu;
     /** Sticky Schematron for the Explorer's one-click validation; shared via the recent-Schematron store. */
     private File currentSchematron;
-    @FXML private MenuButton schematronMenu;
     /** Shell-wired: (files, schematron) → run validation in the Validation activity. */
     private java.util.function.BiConsumer<java.util.List<File>, File> schematronValidateAction;
-    /**
-     * XSD picker: unlike the sticky Schematron it mirrors the schema bound to the
-     * active document (auto-detected or manual); picking rebinds and re-validates.
-     */
-    @FXML private MenuButton xsdMenu;
-    /** Shell-wired: re-run validation of the active document after its XSD changed. */
-    private Runnable xsdValidateAction;
 
     /** Loads the layout from {@code /pages/panels/ExplorerPanel.fxml} and wires the data-driven parts. */
     public ExplorerPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
         FxmlViews.load(this, "/pages/panels/ExplorerPanel.fxml");
 
-        // --- TOOLS: the three pickers ------------------------------------------
-        wireTransformPicker();
-        wireXsdPicker();
-        wireSchematronPicker();
+        // --- one-click transform / Schematron validation: a context menu on the selected files
+        // (UX plan 3.1/3.2) instead of picker rows in TOOLS.
+        workspace.setFileContextMenu(buildFileContextMenu());
 
         // --- RECENT -----------------------------------------------------------
         recentList.setItems(recentFiles);
@@ -101,43 +86,29 @@ public class ExplorerPanel extends VBox {
             }
         });
 
-        // --- FAVORITES ----------------------------------------------------------
-        favoritesList.setItems(favorites);
-        favoritesList.setCellFactory(lv -> new FavoriteCell());
-        favoritesList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            if (newV != null) {
-                String favoritePath = newV.getFilePath();
-                java.io.File file = new java.io.File(favoritePath);
-                if (file.isFile()) {
-                    javafx.application.Platform.runLater(() -> {
-                        org.fxt.freexmltoolkit.service.FavoritesService.getInstance()
-                                .recordAccess(favoritePath);
-                        editorHost.openFile(file.toPath());
-                    });
-                }
-            }
-        });
-
         // --- collapsible section headers, each in front of the content it toggles ----
-        HBox toolsHeader = SidePanelLayout.sectionHeader(new Label("TOOLS"), toolsBody);
-        toolsHeader.setId("explorer-tools-header");
-        HBox openHeader = SidePanelLayout.sectionHeader(new Label("OPEN EDITORS"), openEditorsBox);
+        // Panel schema (UX plan 2.1/2.2): the files the panel is opened for come first
+        // (OPEN EDITORS, WORKSPACE); the TOOLS sit below them, collapsed by default.
+        HBox openHeader = SidePanelLayout.sectionHeader(new Label("OPEN EDITORS"), openEditorsScroll, openEditorsBox);
         openHeader.setId("explorer-open-editors-header");
         workspaceTitle.getStyleClass().add("fxt-sp-section-label");
+        workspace.setOnOpenFolder(this::onChooseFolder);
         HBox workspaceHeader = SidePanelLayout.sectionHeader(workspaceTitle, workspace);
         workspaceHeader.setId("explorer-workspace-header");
         VBox.setVgrow(workspace, Priority.ALWAYS);
+        HBox toolsHeader = SidePanelLayout.sectionHeader(loadToolsCollapsed(), new Label("TOOLS"), toolsBody);
+        toolsHeader.setId("explorer-tools-header");
+        toolsBody.visibleProperty().addListener((obs, oldV, visible) -> saveToolsCollapsed(!visible));
+        getChildren().add(getChildren().indexOf(openEditorsScroll), openHeader);
+        getChildren().addAll(getChildren().indexOf(openEditorsScroll) + 1, java.util.List.of(workspaceHeader, workspace));
         getChildren().add(getChildren().indexOf(toolsBody), toolsHeader);
-        getChildren().add(getChildren().indexOf(openEditorsBox), openHeader);
-        getChildren().addAll(getChildren().indexOf(favRecentGrip), java.util.List.of(workspaceHeader, workspace));
 
-        // FAVORITES | RECENT pinned to the bottom, resizable by dragging the grip above it. A fixed,
+        // RECENT pinned to the bottom, resizable by dragging the grip above it. Favorites are
+        // managed in the Favorites activity and used via the star menus (UX plan 3.4). A fixed,
         // user-chosen height: the workspace tree above (vgrow) gives way first, so the lists are
         // never squeezed to an unreadable sliver on shorter (e.g. scaled HiDPI) screens.
         favRecentPane.setPrefHeight(clampFavRecentHeight(loadFavRecentHeight()));
         installResizeGrip(favRecentGrip, favRecentPane);
-
-        refreshFavorites();
 
         // Track recent files as documents open and keep OPEN EDITORS in sync (rebuilds the rows;
         // also re-styles the active row when the active tab changes).
@@ -152,13 +123,8 @@ public class ExplorerPanel extends VBox {
             syncOpenEditors();
             added.forEach(this::rememberRecent);
         });
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
-            syncOpenEditors();
-            refreshXsdLabel();
-        });
-        editorHost.activeSchemaProperty().addListener((obs, oldV, newV) -> refreshXsdLabel());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> syncOpenEditors());
         syncOpenEditors();
-        refreshXsdLabel();
 
         // The recent/favorites ListViews are built while the side panel is hidden (welcome mode,
         // width 0); refresh them once the panel gets a real width so their cells render correctly.
@@ -169,7 +135,6 @@ public class ExplorerPanel extends VBox {
                 if (newW != null && newW.doubleValue() > 1.0) {
                     widthProperty().removeListener(this);
                     recentList.refresh();
-                    favoritesList.refresh();
                 }
             }
         });
@@ -185,45 +150,9 @@ public class ExplorerPanel extends VBox {
         workspace.refresh();
     }
 
-    @FXML
-    public void onRunTransform() {
-        runExplorerTransform();
-    }
-
-    @FXML
-    public void onRunValidation() {
-        runExplorerValidation();
-    }
-
-    @FXML
-    public void onRemoveFavorite() {
-        removeSelectedFavorite();
-    }
-
     // Every press of a FAVORITES | RECENT tab is routed through an explicit selection so a tab
     // can never be toggled off (a ToggleGroup would otherwise allow deselecting the active tab,
     // leaving none).
-
-    @FXML
-    public void onShowFavorites() {
-        favTab.setSelected(true);
-        syncFavRecentTabs();
-    }
-
-    @FXML
-    public void onShowRecent() {
-        recentTab.setSelected(true);
-        syncFavRecentTabs();
-    }
-
-    /** Shows the list of the selected FAVORITES | RECENT tab. */
-    private void syncFavRecentTabs() {
-        boolean fav = favTab.isSelected();
-        favoritesList.setVisible(fav);
-        favoritesList.setManaged(fav);
-        recentList.setVisible(!fav);
-        recentList.setManaged(!fav);
-    }
 
     /**
      * Makes {@code grip} (the thin strip above {@code pane}) draggable: dragging it up/down
@@ -252,6 +181,31 @@ public class ExplorerPanel extends VBox {
 
     static double clampFavRecentHeight(double height) {
         return Math.max(FAV_RECENT_MIN_HEIGHT, Math.min(FAV_RECENT_MAX_HEIGHT, height));
+    }
+
+    /** @return whether TOOLS starts collapsed (the default; the user's last choice is kept). */
+    private boolean loadToolsCollapsed() {
+        if (propertiesService != null) {
+            try {
+                String value = propertiesService.get(TOOLS_COLLAPSED_KEY);
+                if (value != null) {
+                    return Boolean.parseBoolean(value);
+                }
+            } catch (RuntimeException ignored) {
+                // unreadable - fall back to the default
+            }
+        }
+        return true;
+    }
+
+    private void saveToolsCollapsed(boolean collapsed) {
+        if (propertiesService != null) {
+            try {
+                propertiesService.set(TOOLS_COLLAPSED_KEY, String.valueOf(collapsed));
+            } catch (RuntimeException ignored) {
+                // properties unavailable - keep the state for this session only
+            }
+        }
     }
 
     private double loadFavRecentHeight() {
@@ -320,54 +274,12 @@ public class ExplorerPanel extends VBox {
 
     // ----- one-click XSLT transform --------------------------------------------
 
-    /**
-     * Wires the Explorer transform bar: a stylesheet picker ({@link #stylesheetMenu}) and a
-     * Transform button. The chosen stylesheet stays fixed across files, so switching the XML
-     * selection and clicking Transform is a single click. With multiple files selected the run
-     * is delegated to the batch transform tooling.
-     */
-    private void wireTransformPicker() {
-        stylesheetMenu.setOnShowing(e -> refreshStylesheetMenu());
-        refreshStylesheetLabel();
-        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(stylesheetMenu,
-                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setCurrentXslt);
-    }
-
-    /** Rebuilds the stylesheet dropdown from the shared recent-XSLT store. */
-    private void refreshStylesheetMenu() {
-        stylesheetMenu.getItems().clear();
-        for (File file : recentXsltFiles()) {
-            MenuItem item = new MenuItem(file.getName());
-            item.setOnAction(e -> setCurrentXslt(file));
-            stylesheetMenu.getItems().add(item);
-        }
-        if (!stylesheetMenu.getItems().isEmpty()) {
-            stylesheetMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
-        }
-        stylesheetMenu.getItems().add(menuItem("Choose stylesheet…", this::chooseStylesheet));
-        MenuItem clear = menuItem("Clear recent", () -> {
-            if (propertiesService != null) {
-                propertiesService.clearRecentXsltFiles();
-            }
-            currentXslt = null;
-            refreshStylesheetLabel();
-        });
-        stylesheetMenu.getItems().add(clear);
-    }
-
-    /** Updates the dropdown text to the current (or most recent) stylesheet's name. */
-    private void refreshStylesheetLabel() {
-        File xslt = currentStylesheet();
-        stylesheetMenu.setText(xslt != null ? xslt.getName() : "Stylesheet…");
-    }
-
     /** Sets the active stylesheet and records it as the most recent one. */
     private void setCurrentXslt(File file) {
         currentXslt = file;
         if (file != null && propertiesService != null) {
             propertiesService.addRecentXsltFile(file);
         }
-        refreshStylesheetLabel();
     }
 
     /** Opens a file chooser to pick a stylesheet, then makes it the current one. */
@@ -456,166 +368,9 @@ public class ExplorerPanel extends VBox {
 
     // ----- one-click Schematron validation --------------------------------------
 
-    /**
-     * Wires the Explorer XSD bar: a picker ({@link #xsdMenu}) that shows the schema
-     * bound to the active document. Choosing (or dropping) an XSD binds it to the
-     * active document and immediately re-runs validation via {@link #xsdValidateAction}.
-     */
-    private void wireXsdPicker() {
-        xsdMenu.setOnShowing(e -> refreshXsdMenu());
-        refreshXsdLabel();
-        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdMenu,
-                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::useXsd);
-    }
-
-    /** Rebuilds the XSD dropdown: recents · Favorites · Choose… · Unbind · Clear recent. */
-    private void refreshXsdMenu() {
-        xsdMenu.getItems().clear();
-        for (File file : recentXsdFiles()) {
-            MenuItem item = new MenuItem(file.getName());
-            item.setOnAction(e -> useXsd(file));
-            xsdMenu.getItems().add(item);
-        }
-        if (!xsdMenu.getItems().isEmpty()) {
-            xsdMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
-        }
-        xsdMenu.getItems().add(FavoritesMenu.submenu("Favorites",
-                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSD, this::useXsd));
-        xsdMenu.getItems().add(menuItem("Choose XSD…", this::chooseXsdFile));
-        MenuItem unbind = menuItem("Unbind schema", this::unbindXsd);
-        unbind.setDisable(editorHost.activeSchemaProperty().get() == null);
-        xsdMenu.getItems().add(unbind);
-        xsdMenu.getItems().add(menuItem("Clear recent", this::clearRecentXsd));
-    }
-
-    /** Updates the dropdown text to the name of the active document's bound schema. */
-    private void refreshXsdLabel() {
-        File schema = editorHost.activeSchemaProperty().get();
-        xsdMenu.setText(schema != null ? schema.getName() : "XSD…");
-    }
-
-    /**
-     * Binds {@code file} as the XSD of the active document, records it as most recent
-     * and re-runs validation. Also the programmatic entry point for the shell and tests.
-     */
-    public void useXsd(File file) {
-        if (file == null) {
-            return;
-        }
-        if (propertiesService != null) {
-            propertiesService.addRecentXsdFile(file);
-        }
-        if (editorHost.setSchemaForActiveDocument(file)) {
-            runXsdValidation();
-        }
-        refreshXsdLabel();
-    }
-
-    /** Removes the XSD binding of the active document and re-validates (clears stale problems). */
-    public void unbindXsd() {
-        if (editorHost.setSchemaForActiveDocument(null)) {
-            runXsdValidation();
-        }
-        refreshXsdLabel();
-    }
-
-    private void runXsdValidation() {
-        if (xsdValidateAction != null) {
-            xsdValidateAction.run();
-        }
-    }
-
-    /** Clears the recent-XSD store (the document binding is untouched). */
-    public void clearRecentXsd() {
-        if (propertiesService != null) {
-            propertiesService.clearRecentXsdFiles();
-        }
-    }
-
-    /** Opens a file chooser to pick an XSD, then binds it to the active document. */
-    private void chooseXsdFile() {
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Choose XSD Schema");
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD Schema", "*.xsd"));
-        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
-                getScene() != null ? getScene().getWindow() : null);
-        if (file != null) {
-            useXsd(file);
-        }
-    }
-
-    private java.util.List<File> recentXsdFiles() {
-        if (propertiesService == null) {
-            return java.util.List.of();
-        }
-        try {
-            return propertiesService.getRecentXsdFiles();
-        } catch (Throwable t) {
-            return java.util.List.of();
-        }
-    }
-
-    /**
-     * Wires the XSD picker to the shell: the action re-validates the active document
-     * after its schema was changed through the Explorer.
-     *
-     * @param action the action to run (ignored if {@code null})
-     */
-    public void setXsdValidateAction(Runnable action) {
-        if (action != null) {
-            this.xsdValidateAction = action;
-        }
-    }
-
-    /** @return the XSD dropdown item texts (rebuilds the menu) — for tests/observers. */
-    public java.util.List<String> xsdMenuItemTexts() {
-        refreshXsdMenu();
-        return xsdMenu.getItems().stream().map(MenuItem::getText).toList();
-    }
-
-    /**
-     * Wires the Explorer validation bar: a Schematron picker ({@link #schematronMenu})
-     * and a Validate button — the Schematron sibling of {@link #wireTransformPicker()}.
-     * The chosen Schematron stays fixed across files, so switching the XML selection
-     * and clicking Validate is a single click.
-     */
-    private void wireSchematronPicker() {
-        schematronMenu.setOnShowing(e -> refreshSchematronMenu());
-        refreshSchematronLabel();
-        org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronMenu,
-                org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::useSchematron);
-    }
-
     /** @return the labels of the TOOLS action rows in display order (for tests/observers). */
     public java.util.List<String> toolLabels() {
-        java.util.List<String> labels = new java.util.ArrayList<>(transformActions.labels());
-        labels.addAll(validateActions.labels());
-        labels.addAll(fileActions.labels());
-        return labels;
-    }
-
-    /** Rebuilds the Schematron dropdown: recents · Favorites · Choose… · Clear recent. */
-    private void refreshSchematronMenu() {
-        schematronMenu.getItems().clear();
-        for (File file : recentSchematronFiles()) {
-            MenuItem item = new MenuItem(file.getName());
-            item.setOnAction(e -> useSchematron(file));
-            schematronMenu.getItems().add(item);
-        }
-        if (!schematronMenu.getItems().isEmpty()) {
-            schematronMenu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
-        }
-        schematronMenu.getItems().add(FavoritesMenu.submenu("Favorites",
-                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON,
-                this::useSchematron));
-        schematronMenu.getItems().add(menuItem("Choose Schematron…", this::chooseSchematronFile));
-        schematronMenu.getItems().add(menuItem("Clear recent", this::clearRecentSchematron));
-    }
-
-    /** Updates the dropdown text to the current (or most recent) Schematron's name. */
-    private void refreshSchematronLabel() {
-        File schematron = currentSchematronFile();
-        schematronMenu.setText(schematron != null ? schematron.getName() : "Schematron…");
+        return fileActions.labels();
     }
 
     /**
@@ -631,7 +386,6 @@ public class ExplorerPanel extends VBox {
             }
             editorHost.setActiveSchematron(file);
         }
-        refreshSchematronLabel();
     }
 
     /** Clears the recent-Schematron store and resets the sticky choice. */
@@ -640,7 +394,6 @@ public class ExplorerPanel extends VBox {
             propertiesService.clearRecentSchematronFiles();
         }
         currentSchematron = null;
-        refreshSchematronLabel();
     }
 
     /** Opens a file chooser to pick a Schematron, then makes it the current one. */
@@ -719,10 +472,126 @@ public class ExplorerPanel extends VBox {
         }
     }
 
-    /** @return the Schematron dropdown item texts (rebuilds the menu) — for tests/observers. */
+    /** @return the "Validate with Other Schematron" submenu texts (rebuilt) — for tests/observers. */
     public java.util.List<String> schematronMenuItemTexts() {
-        refreshSchematronMenu();
-        return schematronMenu.getItems().stream().map(MenuItem::getText).toList();
+        return schematronSubmenu().getItems().stream().map(MenuItem::getText).toList();
+    }
+
+    // ----- context menu on the selected files (UX plan 3.1/3.2) -------------------------------
+
+    /**
+     * Builds the workspace context menu. It acts on the tree selection (falling back to the
+     * active XML document) and is rebuilt on every show, so the "Transform with …" and
+     * "Validate with …" entries always name the stylesheet / Schematron that will be used.
+     */
+    private javafx.scene.control.ContextMenu buildFileContextMenu() {
+        javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
+        menu.setOnShowing(e -> menu.getItems().setAll(fileContextMenuItems()));
+        return menu;
+    }
+
+    /** @return the context-menu entries for the current selection (rebuilt each time). */
+    java.util.List<MenuItem> fileContextMenuItems() {
+        boolean hasXml = !selectedXmlFiles().isEmpty();
+        java.util.List<MenuItem> items = new java.util.ArrayList<>();
+
+        File xslt = currentStylesheet();
+        MenuItem transform = menuItem(xslt != null ? "Transform with " + xslt.getName() : "Transform with XSLT…",
+                this::runTransformOnSelection);
+        transform.setId("explorer-ctx-transform");
+        transform.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-arrow-repeat", 16),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL));
+        transform.setDisable(!hasXml);
+        javafx.scene.control.Menu otherXslt = new javafx.scene.control.Menu("Transform with Other Stylesheet");
+        otherXslt.setId("explorer-ctx-transform-with");
+        otherXslt.setGraphic(icon("bi-file-earmark-code", 16));
+        for (File file : recentXsltFiles()) {
+            MenuItem recent = menuItem(file.getName(), () -> {
+                setCurrentXslt(file);
+                runTransformOnSelection();
+            });
+            recent.setGraphic(icon("bi-file-earmark-code", 16));
+            otherXslt.getItems().add(recent);
+        }
+        MenuItem chooseXslt = menuItem("Choose stylesheet…", () -> {
+            chooseStylesheet();
+            if (currentXslt != null) {
+                runTransformOnSelection();
+            }
+        });
+        chooseXslt.setGraphic(icon("bi-folder2-open", 16));
+        otherXslt.getItems().add(chooseXslt);
+        otherXslt.setDisable(!hasXml);
+
+        File schematron = currentSchematronFile();
+        MenuItem validate = menuItem(schematron != null ? "Validate with " + schematron.getName()
+                : "Validate with Schematron…", this::runValidationOnSelection);
+        validate.setId("explorer-ctx-validate");
+        validate.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-ui-checks-grid", 16),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.CREATE));
+        validate.setDisable(!hasXml);
+        javafx.scene.control.Menu otherSch = schematronSubmenu();
+        otherSch.setDisable(!hasXml);
+
+        MenuItem open = menuItem("Open", () -> workspace.getSelectedFiles().forEach(this::openWorkspaceFile));
+        open.setId("explorer-ctx-open");
+        open.setGraphic(icon("bi-box-arrow-up-right", 16));
+        open.setDisable(workspace.getSelectedFiles().isEmpty());
+
+        items.add(open);
+        items.add(new javafx.scene.control.SeparatorMenuItem());
+        items.addAll(java.util.List.of(transform, otherXslt, validate, otherSch));
+        return items;
+    }
+
+    /** The "Validate with Other Schematron" submenu: recents · Favorites · Choose… · Clear recent. */
+    private javafx.scene.control.Menu schematronSubmenu() {
+        javafx.scene.control.Menu menu = new javafx.scene.control.Menu("Validate with Other Schematron");
+        menu.setId("explorer-ctx-validate-with");
+        menu.setGraphic(icon("bi-ui-checks-grid", 16));
+        for (File file : recentSchematronFiles()) {
+            MenuItem recent = menuItem(file.getName(), () -> {
+                useSchematron(file);
+                runValidationOnSelection();
+            });
+            recent.setGraphic(icon("bi-ui-checks-grid", 16));
+            menu.getItems().add(recent);
+        }
+        if (!menu.getItems().isEmpty()) {
+            menu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+        }
+        menu.getItems().add(FavoritesMenu.submenu("Favorites",
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON, file -> {
+                    useSchematron(file);
+                    runValidationOnSelection();
+                }));
+        MenuItem choose = menuItem("Choose Schematron…", () -> {
+            chooseSchematronFile();
+            if (currentSchematron != null) {
+                runValidationOnSelection();
+            }
+        });
+        choose.setGraphic(icon("bi-folder2-open", 16));
+        MenuItem clear = menuItem("Clear recent", this::clearRecentSchematron);
+        clear.setGraphic(icon("bi-eraser", 16));
+        menu.getItems().addAll(choose, clear);
+        return menu;
+    }
+
+    /** Transforms the selected XML file(s) with the current stylesheet (context menu, tests). */
+    public void runTransformOnSelection() {
+        runExplorerTransform();
+    }
+
+    /** Validates the selected XML file(s) with the current Schematron (context menu, tests). */
+    public void runValidationOnSelection() {
+        runExplorerValidation();
+    }
+
+    /** @return the name of the Schematron the next "Validate with …" uses, or {@code null} (tests). */
+    public String currentSchematronName() {
+        File file = currentSchematronFile();
+        return file != null ? file.getName() : null;
     }
 
     /** Overridable "New file" action; {@code null} falls back to a blank XML document. */
@@ -872,64 +741,4 @@ public class ExplorerPanel extends VBox {
         }
     }
 
-    /**
-     * Removes the selected entry from the favorites store - the file on disk is
-     * untouched. Wired to the FAVORITES list's context menu.
-     */
-    void removeSelectedFavorite() {
-        var selected = favoritesList.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            return;
-        }
-        try {
-            org.fxt.freexmltoolkit.service.FavoritesService.getInstance().removeFavorite(selected);
-        } catch (Throwable t) {
-            // no favorites store (tests) - just refresh the view
-        }
-        refreshFavorites();
-    }
-
-    /** Reloads the FAVORITES list from the favorites store (best-effort). */
-    private void refreshFavorites() {
-        try {
-            favoritesList.getSelectionModel().clearSelection();
-            favorites.setAll(org.fxt.freexmltoolkit.service.FavoritesService.getInstance().getAllFavorites());
-        } catch (Throwable t) {
-            favorites.clear(); // no favorites store (tests) - section just stays empty
-        }
-    }
-
-    /** A favorite: type-colored file icon + display name (same look as RECENT). */
-    private static final class FavoriteCell extends ListCell<org.fxt.freexmltoolkit.domain.FileFavorite> {
-        private FavoriteCell() {
-            setPrefWidth(0);
-        }
-
-        @Override
-        protected void updateItem(org.fxt.freexmltoolkit.domain.FileFavorite item, boolean empty) {
-            super.updateItem(item, empty);
-            if (empty || item == null) {
-                setText(null);
-                setGraphic(null);
-                return;
-            }
-            String name = item.getName() != null && !item.getName().isBlank()
-                    ? item.getName() : new File(item.getFilePath()).getName();
-            setText(name);
-            var type = item.getFileType();
-            IconifyIcon icon = new IconifyIcon(type != null ? type.getIconLiteral() : "bi-file-earmark");
-            icon.setIconSize(14);
-            if (type != null) {
-                try {
-                    // Bind (not set): the list's CSS -fx-icon-color rule must not
-                    // override the per-type color on the next CSS pass.
-                    icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(
-                            javafx.scene.paint.Color.web(type.getDefaultColor())));
-                } catch (Exception ignored) {
-                    // unparsable color: keep the default icon color
-                }
-            }
-            setGraphic(icon);
-        }
-    }
 }

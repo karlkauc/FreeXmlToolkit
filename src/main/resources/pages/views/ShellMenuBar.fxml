@@ -121,17 +121,25 @@
 
         <Menu fx:id="helpMenu" id="menu-help" text="_Help">
             <items>
-                <ShellMenuItem id="menu-help-panel" text="Help" iconLiteral="bi-question-circle" color="NAVIGATE"
-                               accelerator="F1" onAction="#onHelp"/>
+                <!-- Help is this menu only (no activity); the header's Help button and F1 show a copy. -->
                 <ShellMenuItem id="menu-help-docs" text="Documentation" iconLiteral="bi-book" color="NAVIGATE"
                                onAction="#onDocs"/>
                 <ShellMenuItem id="menu-help-shortcuts" text="Keyboard Shortcuts" iconLiteral="bi-keyboard"
                                color="NAVIGATE" onAction="#onShortcuts"/>
+                <!-- FundsXML links: only visible while the extension is enabled -->
+                <SeparatorMenuItem fx:id="fundsSeparator"/>
+                <ShellMenuItem fx:id="fundsSiteItem" id="menu-help-fundsxml-site" text="FundsXML Website"
+                               iconLiteral="bi-globe" color="NAVIGATE" onAction="#onFundsXmlSite"/>
+                <ShellMenuItem fx:id="fundsDocsItem" id="menu-help-fundsxml-docs" text="FundsXML Schema Docs"
+                               iconLiteral="bi-file-earmark-text" color="NAVIGATE" onAction="#onFundsXmlDocs"/>
                 <SeparatorMenuItem/>
                 <ShellMenuItem fx:id="reportProblemItem" id="menu-help-report" text="Report a Problem…"
                                iconLiteral="bi-bug" color="MODIFY" onAction="#onReportProblem"/>
                 <ShellMenuItem id="menu-help-github" text="GitHub Repository" iconLiteral="bi-github"
                                color="NAVIGATE" onAction="#onGitHub"/>
+                <!-- The sponsor heart keeps its own colour; ShellMenuBar sets the graphic. -->
+                <ShellMenuItem fx:id="sponsorItem" id="menu-help-sponsor" text="Sponsor this Project"
+                               onAction="#onSponsor"/>
                 <SeparatorMenuItem fx:id="helpAppSeparator"/>
                 <ShellMenuItem fx:id="updatesItem" id="menu-help-updates" text="Check for Updates…"
                                iconLiteral="bi-arrow-repeat" color="TOOL" onAction="#onCheckForUpdates"/>

@@ -20,9 +20,9 @@ Without any rules (all rows left on **Auto**) the dialog produces exactly what t
 
 ## Opening the Dialog
 
-1. Open your XSD in the [Unified Shell](unified-shell.md) so it is the active document. An unsaved schema works too -- the current editor text is used.
+1. Open your XSD in the [Unified Shell](unified-shell.md) so it is the active document. A new, never-saved schema works too -- the current editor text is used. For a schema file with unsaved changes you are asked first whether to save them (see step 3).
 2. Open the **Schema** activity in the activity bar.
-3. In the panel's tool button row, click **Generate Sample XML (Advanced)…** (the sliders icon).
+3. In the panel's **TOOLS** section (below the type lists - click its header to expand it if it is collapsed), click **Sample XML with Options…** (the sliders icon), which opens the **Generate Sample XML (Advanced)** dialog. If the schema has unsaved changes, you are first asked *"Save changes to <file> first?"* - **Save and Continue**, **Use Saved Version** (generate from the file as last saved) or **Cancel**.
 
 FreeXmlToolkit first scans the schema in the background and then shows the dialog with one row per element and attribute path. If the active document is not an XSD you get the message *Open an XSD schema first.*; if no paths can be extracted, *Could not extract any XPaths from the schema.*
 

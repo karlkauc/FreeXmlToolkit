@@ -10,8 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
@@ -23,8 +22,8 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * Verifies the Explorer's Schematron bar: the sticky picker (label, menu
- * entries, active-document binding, recents) and the Validate button's
+ * Verifies the Explorer's one-click Schematron validation, which is a context action on the
+ * selected files (UX plan 3.1): the sticky Schematron, the "Validate with …" entries and the
  * delegation to the shell-wired callback.
  */
 @ExtendWith(ApplicationExtension.class)
@@ -36,7 +35,7 @@ class ExplorerPanelSchematronTest {
     @Start
     void start(Stage stage) {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
-        // A clean recent store so label/menu assertions are deterministic.
+        // A clean recent store so name/menu assertions are deterministic.
         org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance()
                 .clearRecentSchematronFiles();
         host = new EditorHost();
@@ -46,118 +45,49 @@ class ExplorerPanelSchematronTest {
     }
 
     @Test
-    void pickerStartsUnsetAndShowsTheChosenSchematron(@TempDir Path tmp) throws Exception {
-        MenuButton picker = (MenuButton) panel.lookup("#explorer-schematron");
-        assertNotNull(picker, "the Explorer must offer a Schematron picker");
-        assertEquals("Schematron…", picker.getText(), "unset picker shows the placeholder");
-
-        Path xml = tmp.resolve("doc.xml");
+    void contextMenuNamesTheSchematronThatWillBeUsed(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("active.xml");
         Files.writeString(xml, "<root/>");
         Path sch = tmp.resolve("rules.sch");
-        Files.writeString(sch, "<sch:schema xmlns:sch=\"http://purl.oclc.org/dsdl/schematron\"/>");
+        Files.writeString(sch, "<x/>");
+        openActive(xml);
 
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
-        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
-                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        List<String> before = WaitForAsyncUtils.waitForAsyncFx(2000, this::contextTexts);
+        assertTrue(before.contains("Validate with Schematron…"), "unset: the entry asks for one: " + before);
+
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             panel.useSchematron(sch.toFile());
             return null;
         });
-
-        assertEquals("rules.sch", picker.getText(), "picker label follows the chosen file");
-        assertEquals(sch.toFile(), host.getActiveSchematron(),
-                "picking must bind the Schematron to the active document");
-        assertTrue(org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance()
-                        .getRecentSchematronFiles().contains(sch.toFile().getAbsoluteFile()),
-                "picking must record the file in the shared recent store");
+        assertEquals("rules.sch", panel.currentSchematronName());
+        List<String> after = WaitForAsyncUtils.waitForAsyncFx(2000, this::contextTexts);
+        assertTrue(after.contains("Validate with rules.sch"), after.toString());
+        assertTrue(after.contains("Transform with XSLT…") || after.stream().anyMatch(t -> t.startsWith("Transform with ")),
+                "the transform context action sits next to it: " + after);
+        assertEquals(sch.toFile(), host.getActiveSchematron(), "using a Schematron binds it to the active document");
     }
 
     @Test
-    void menuOffersRecentsFavoritesChooseAndClear(@TempDir Path tmp) throws Exception {
-        Path sch = tmp.resolve("recent-rules.sch");
+    void otherSchematronSubmenuOffersRecentsFavoritesChooseAndClear(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
         Files.writeString(sch, "<x/>");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             panel.useSchematron(sch.toFile());
             return null;
         });
+        List<String> texts = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.schematronMenuItemTexts());
+        assertEquals("rules.sch", texts.get(0), "the recent Schematron comes first: " + texts);
+        assertTrue(texts.containsAll(List.of("Favorites", "Choose Schematron…", "Clear recent")), texts.toString());
 
-        List<String> texts = WaitForAsyncUtils.waitForAsyncFx(2000,
-                () -> panel.schematronMenuItemTexts());
-        assertTrue(texts.contains("recent-rules.sch"), "menu lists recents, was: " + texts);
-        assertTrue(texts.contains("Favorites"), "menu offers the Favorites submenu, was: " + texts);
-        assertTrue(texts.contains("Choose Schematron…"), texts.toString());
-        assertTrue(texts.contains("Clear recent"), texts.toString());
-    }
-
-    @Test
-    void clearRecentResetsThePickerLabel(@TempDir Path tmp) throws Exception {
-        Path sch = tmp.resolve("gone.sch");
-        Files.writeString(sch, "<x/>");
-        MenuButton picker = (MenuButton) panel.lookup("#explorer-schematron");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.useSchematron(sch.toFile());
-            panel.schematronMenuItemTexts(); // rebuild the menu items
             panel.clearRecentSchematron();
             return null;
         });
-        assertEquals("Schematron…", picker.getText(), "clearing resets the sticky choice");
-        assertTrue(org.fxt.freexmltoolkit.service.PropertiesServiceImpl.getInstance()
-                .getRecentSchematronFiles().isEmpty());
+        assertNull(panel.currentSchematronName(), "clearing the recents resets the sticky choice");
     }
 
     @Test
-    void droppingASchematronFileOnThePickerBindsIt(@TempDir Path tmp) throws Exception {
-        MenuButton picker = (MenuButton) panel.lookup("#explorer-schematron");
-        assertNotNull(picker.getOnDragOver(), "the picker must accept file drags");
-
-        Path xml = tmp.resolve("doc.xml");
-        Files.writeString(xml, "<root/>");
-        Path sch = tmp.resolve("dropped.sch");
-        Files.writeString(sch, "<x/>");
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
-        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
-                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
-
-        javafx.scene.input.DragEvent event = dropEventWithFiles(sch.toFile());
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            picker.getOnDragDropped().handle(event);
-            return null;
-        });
-
-        assertEquals("dropped.sch", picker.getText(), "picker label follows the dropped file");
-        assertEquals(sch.toFile(), host.getActiveSchematron(),
-                "dropping must bind the Schematron like picking it");
-        org.mockito.Mockito.verify(event).setDropCompleted(true);
-    }
-
-    @Test
-    void droppingAFileWithWrongExtensionOnThePickerIsRejected(@TempDir Path tmp) throws Exception {
-        MenuButton picker = (MenuButton) panel.lookup("#explorer-schematron");
-        Path txt = tmp.resolve("notes.txt");
-        Files.writeString(txt, "not a schematron");
-
-        javafx.scene.input.DragEvent event = dropEventWithFiles(txt.toFile());
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            picker.getOnDragDropped().handle(event);
-            return null;
-        });
-
-        assertEquals("Schematron…", picker.getText(), "a rejected drop must not change the picker");
-        org.mockito.Mockito.verify(event).setDropCompleted(false);
-    }
-
-    /** Mocks a DRAG_DROPPED event carrying OS files (TestFX cannot simulate real file drags). */
-    private static javafx.scene.input.DragEvent dropEventWithFiles(File... files) {
-        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
-        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
-        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(List.of(files));
-        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
-        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
-        return event;
-    }
-
-    @Test
-    void validateButtonDelegatesActiveDocumentAndSchematron(@TempDir Path tmp) throws Exception {
+    void validateActionDelegatesActiveDocumentAndSchematron(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("active.xml");
         Files.writeString(xml, "<root/>");
         Path sch = tmp.resolve("rules.sch");
@@ -170,12 +100,10 @@ class ExplorerPanelSchematronTest {
             gotSchematron.set(schematron);
         });
 
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
-        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
-                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        openActive(xml);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             panel.useSchematron(sch.toFile());
-            ((Button) panel.lookup("#explorer-validate")).fire();
+            panel.runValidationOnSelection();
             return null;
         });
 
@@ -183,5 +111,16 @@ class ExplorerPanelSchematronTest {
         assertEquals(List.of(xml.toFile()), gotFiles.get(),
                 "with no tree selection the active document is the fallback input");
         assertEquals(sch.toFile(), gotSchematron.get());
+    }
+
+    private void openActive(Path xml) throws Exception {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+    }
+
+    private List<String> contextTexts() {
+        return panel.fileContextMenuItems().stream().map(MenuItem::getText)
+                .filter(java.util.Objects::nonNull).toList();
     }
 }

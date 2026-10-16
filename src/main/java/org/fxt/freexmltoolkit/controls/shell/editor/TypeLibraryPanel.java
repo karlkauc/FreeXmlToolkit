@@ -400,7 +400,8 @@ public class TypeLibraryPanel extends VBox {
         try {
             java.nio.file.Path path = docOpt.get().getPath();
             if (path != null) {
-                return path.toFile();
+                // The tool reads the saved file: offer to save editor changes first.
+                return editorHost.ensureSavedBeforeTool(path, title) ? path.toFile() : null;
             }
             File tmp = File.createTempFile("fxt-schema-", ".xsd");
             tmp.deleteOnExit();

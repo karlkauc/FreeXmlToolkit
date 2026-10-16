@@ -75,64 +75,6 @@ class ExplorerPanelTest {
     }
 
     @Test
-    void favoritesSectionListsAndOpensFavorites() throws Exception {
-        WaitForAsyncUtils.waitForFxEvents();
-        @SuppressWarnings("unchecked")
-        ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favorites =
-                (ListView<org.fxt.freexmltoolkit.domain.FileFavorite>) panel.lookup("#explorer-favorites-list");
-        assertNotNull(favorites, "Explorer must offer a FAVORITES section");
-
-        int index = -1;
-        for (int i = 0; i < favorites.getItems().size(); i++) {
-            if (favXml.toString().equals(favorites.getItems().get(i).getFilePath())) {
-                index = i;
-                break;
-            }
-        }
-        assertTrue(index >= 0, "the seeded favorite must be listed");
-
-        int select = index;
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            favorites.getSelectionModel().select(select);
-            return null;
-        });
-        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> host.getOpenDocuments().stream()
-                .anyMatch(d -> d.getPath() != null && d.getPath().equals(favXml)));
-    }
-
-    @Test
-    void removingAFavoriteKeepsTheFileOnDisk() throws Exception {
-        WaitForAsyncUtils.waitForFxEvents();
-        @SuppressWarnings("unchecked")
-        ListView<org.fxt.freexmltoolkit.domain.FileFavorite> favorites =
-                (ListView<org.fxt.freexmltoolkit.domain.FileFavorite>) panel.lookup("#explorer-favorites-list");
-        int index = -1;
-        for (int i = 0; i < favorites.getItems().size(); i++) {
-            if (favXml.toString().equals(favorites.getItems().get(i).getFilePath())) {
-                index = i;
-                break;
-            }
-        }
-        assertTrue(index >= 0, "the seeded favorite must be listed");
-
-        int select = index;
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            favorites.getSelectionModel().select(select);
-            panel.removeSelectedFavorite();
-            return null;
-        });
-        WaitForAsyncUtils.waitForFxEvents();
-
-        assertTrue(favorites.getItems().stream()
-                        .noneMatch(f -> favXml.toString().equals(f.getFilePath())),
-                "the favorite entry must be gone from the list");
-        assertTrue(Files.exists(favXml), "removing a favorite must NOT delete the file itself");
-        assertTrue(panel.lookup(".context-menu") != null
-                        || favorites.getContextMenu() != null,
-                "the FAVORITES list must offer the remove action via its context menu");
-    }
-
-    @Test
     void openingDocumentsWhileAnEntryIsSelectedDoesNotCrash(@TempDir Path tmp) throws Exception {
         Path a = tmp.resolve("a.xml");
         Path b = tmp.resolve("b.xml");
@@ -197,10 +139,9 @@ class ExplorerPanelTest {
         }
         assertNull(panel.lookup("#explorer-overflow"), "no hidden ⋮ menu: every action is a visible row");
         var labels = panel.toolLabels();
-        assertEquals(java.util.List.of("Transform selected file(s)", "Validate with Schematron",
-                "Open file…", "Clear recent"), labels);
-        for (String id : new String[]{"#explorer-transform", "#explorer-validate",
-                "#explorer-open-file", "#explorer-clear-recent"}) {
+        // Transform / validate the selection is a context action on the files (UX plan 3.1/3.2).
+        assertEquals(java.util.List.of("Open file…", "Clear recent"), labels);
+        for (String id : new String[]{"#explorer-open-file", "#explorer-clear-recent"}) {
             assertNotNull(panel.lookup(id), "TOOLS must offer the " + id + " row");
         }
     }
@@ -256,35 +197,29 @@ class ExplorerPanelTest {
         return null;
     }
 
-    @Test
-    void droppingAStylesheetOnThePickerMakesItCurrent(@TempDir Path tmp) throws Exception {
-        javafx.scene.control.MenuButton picker =
-                (javafx.scene.control.MenuButton) panel.lookup("#explorer-stylesheet");
-        assertNotNull(picker, "the Explorer must offer a stylesheet picker");
-        assertNotNull(picker.getOnDragOver(), "the picker must accept file drags");
-
-        Path xslt = tmp.resolve("dropped.xslt");
-        Files.writeString(xslt, "<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" version=\"2.0\"/>");
-        javafx.scene.input.Dragboard dragboard = org.mockito.Mockito.mock(javafx.scene.input.Dragboard.class);
-        org.mockito.Mockito.when(dragboard.hasFiles()).thenReturn(true);
-        org.mockito.Mockito.when(dragboard.getFiles()).thenReturn(java.util.List.of(xslt.toFile()));
-        javafx.scene.input.DragEvent event = org.mockito.Mockito.mock(javafx.scene.input.DragEvent.class);
-        org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
-
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            picker.getOnDragDropped().handle(event);
-            return null;
-        });
-
-        assertEquals("dropped.xslt", picker.getText(), "picker label follows the dropped stylesheet");
-        org.mockito.Mockito.verify(event).setDropCompleted(true);
-    }
-
     /** Extracts the name Label's text from an OPEN EDITORS row. */
     private static String rowName(javafx.scene.Node row) {
         return ((HBox) row).getChildren().stream()
                 .filter(n -> n instanceof javafx.scene.control.Label)
                 .map(n -> ((javafx.scene.control.Label) n).getText())
                 .findFirst().orElse(null);
+    }
+
+    @Test
+    void bottomListShowsOnlyRecentFiles() {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNull(panel.lookup("#explorer-tab-favorites"), "favourites live in the Favorites activity (UX plan 3.4)");
+        assertNull(panel.lookup("#explorer-favorites-list"));
+        assertNotNull(panel.lookup("#explorer-recent-list"), "the pane at the bottom lists the recent files");
+    }
+
+    @Test
+    void contextMenuTransformsTheSelectionWithTheNamedStylesheet() {
+        WaitForAsyncUtils.waitForFxEvents();
+        var texts = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.fileContextMenuItems().stream()
+                .map(javafx.scene.control.MenuItem::getText).filter(java.util.Objects::nonNull).toList());
+        assertTrue(texts.stream().anyMatch(t -> t.startsWith("Transform with ")), texts.toString());
+        assertTrue(texts.contains("Transform with Other Stylesheet"), texts.toString());
+        assertTrue(texts.contains("Open"), texts.toString());
     }
 }

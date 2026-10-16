@@ -70,8 +70,8 @@ toggles:
 | **Table**   | For XQuery results that return a sequence: the items shown as a table    |
 
 The **OUTPUT METHOD** defaults to **Auto**: the format (XML, HTML, XHTML, Text, JSON) is
-detected from the stylesheet's `xsl:output` declaration. Pick a concrete segment to
-override the detection.
+detected from the stylesheet's `xsl:output` declaration. Pick a concrete format in the
+dropdown to override the detection.
 
 ---
 
@@ -80,12 +80,17 @@ override the detection.
 | Control                       | Description                                                                  |
 |-------------------------------|------------------------------------------------------------------------------|
 | **Run Transform**             | Runs the transformation with the current stylesheet and input                |
+| **Run automatically**         | (Checkbox next to Run Transform, on by default) Runs as soon as a stylesheet or input is dropped, picked from favorites or browsed with ◀ / ▶ |
+| **Transform with XSLT…**      | (Editor toolbar / Tools menu, XML documents) Opens this panel on the active document, asks for a stylesheet if none is set, and runs it |
 | **Open result as editor tab** | (OUTPUT panel) Opens the result as an editable, savable document. HTML/XHTML results open as an HTML document rendered in the editor's read-only [Preview view](unified-shell.md#html-preview); re-running the transform updates the open tab |
 | **Open in browser**           | (OUTPUT panel) Opens the result in your default web browser                  |
 | **Save result…**              | (OUTPUT panel) Writes the result straight to a file                          |
-| **⋮ → Watch stylesheet file** | Re-runs automatically when the stylesheet changes on disk                    |
-| **⋮ → Live preview**          | Re-runs automatically (debounced) while you edit the input document          |
-| **⋮ → Auto-open result tab**  | Also opens every successful result as an editor tab (off by default)         |
+| **Watch stylesheet file**     | (OPTIONS & TOOLS checkbox) Re-runs automatically when the stylesheet changes on disk |
+| **Live preview**              | (OPTIONS & TOOLS checkbox) Re-runs automatically (debounced) while you edit the input document |
+| **Auto-open result tab**      | (OPTIONS & TOOLS checkbox) Also opens every successful result as an editor tab (off by default) |
+
+The **OPTIONS & TOOLS** section sits below **Run Transform** and is collapsed by default -
+click its header to expand it.
 
 ---
 
@@ -367,7 +372,7 @@ form `Transformed · N ms · M chars`:
 - **Execution time** - How long the transformation took (milliseconds)
 - **Output size** - Size of the generated output (characters)
 
-For detailed per-template timings, enable **Profile run** in the Transform panel's ⋮ menu -
+For detailed per-template timings, enable **Profile run** in the Transform panel's **OPTIONS & TOOLS** section -
 the next run also opens a read-only Profile tool tab.
 
 ---
@@ -380,7 +385,7 @@ the next run also opens a read-only Profile tool tab.
 - **Try the example files** - Learn from the included examples in the `examples/` folder
 - **Need more features?** - See the [XSLT Developer](xslt-developer.md) guide for parameters,
   the interactive debugger, profiling/tracing, and batch processing (all in the Transform
-  panel and its ⋮ menu)
+  panel and its OPTIONS & TOOLS section)
 
 ---
 

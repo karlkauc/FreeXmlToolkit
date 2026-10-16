@@ -181,7 +181,8 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         copyPathItem = new MenuItem("Copy JSONPath");
         copyPathItem.setGraphic(createColoredIcon("bi-diagram-3", ActionColor.NEUTRAL));
         copyPathItem.setOnAction(e -> copyPath());
-        copyPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+        // Ctrl+Alt+X: Ctrl+Shift+X belongs to the global Query Console toggle.
+        copyPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
 
         copyNodeItem = new MenuItem("Copy Node (JSON)");
         copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
@@ -786,6 +787,11 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
 
     // ==================== Keyboard ====================
 
+    /** @return whether only Ctrl (no Shift/Alt) is held - the plain clipboard shortcuts */
+    private static boolean plainShortcut(KeyEvent event) {
+        return event.isControlDown() && !event.isShiftDown() && !event.isAltDown();
+    }
+
     @Override
     public void handleKeyPress(KeyEvent event, JsonNode selectedNode) {
         if (selectedNode == null) {
@@ -799,11 +805,24 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
             context.getSelectionModel().setSelectedNode(selectedNode);
             renameKey();
             event.consume();
-        } else if (event.isControlDown() && event.getCode() == KeyCode.C) {
+        } else if (event.isControlDown() && event.isAltDown() && event.getCode() == KeyCode.X) {
+            context.getSelectionModel().setSelectedNode(selectedNode);
+            copyPath();
+            event.consume();
+        } else if (event.isControlDown() && event.isAltDown() && event.getCode() == KeyCode.C) {
+            context.getSelectionModel().setSelectedNode(selectedNode);
+            copyNodeJson();
+            event.consume();
+        } else if (event.isControlDown() && event.isShiftDown() && event.getCode() == KeyCode.C) {
+            context.getSelectionModel().setSelectedNode(selectedNode);
+            copyCellContent();
+            event.consume();
+        } else if (plainShortcut(event) && event.getCode() == KeyCode.C) {
             context.getSelectionModel().setSelectedNode(selectedNode);
             copyNodeToInternalClipboard();
             event.consume();
-        } else if (event.isControlDown() && event.getCode() == KeyCode.X) {
+        } else if (plainShortcut(event) && event.getCode() == KeyCode.X) {
+            // Only plain Ctrl+X cuts: Ctrl+Shift+X must reach the shell (Query Console).
             context.getSelectionModel().setSelectedNode(selectedNode);
             cutNode();
             event.consume();

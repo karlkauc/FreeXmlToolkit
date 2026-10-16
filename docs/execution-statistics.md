@@ -22,7 +22,8 @@ work step costs and where optimizing the script pays off.
 
 ## Enabling
 
-Open **Settings → DEVELOPER** and tick **Record execution statistics**. The flag is
+Open **Settings → Extensions → DEVELOPER** and tick **Record execution statistics**, then click
+**Save Settings**. The flag is
 persisted; regular users who leave it off see no change anywhere in the UI and no
 measurements are taken (zero overhead).
 
@@ -39,7 +40,8 @@ measurements are taken (zero overhead).
 - **Execution Statistics tool tab** — the complete history (last 200 runs):
   a table with time, operation, target, duration, CPU, memory delta, GC, sizes and
   status; selecting a row shows the **detail report** with the phase breakdown and
-  throughput. Also reachable via the Transform panel's ⋮ menu.
+  throughput. Also reachable via **Execution Statistics** in the Transform panel's
+  **OPTIONS & TOOLS** section.
 
 ![Execution Statistics tool tab with the run history and detail report](img/execution-statistics-history.png)
 

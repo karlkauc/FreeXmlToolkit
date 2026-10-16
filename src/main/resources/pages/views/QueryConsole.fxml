@@ -69,6 +69,15 @@
                                 <Tooltip text="Load a saved XPath/XQuery snippet"/>
                             </tooltip>
                         </MenuButton>
+                        <MenuButton fx:id="examplesMenu" id="query-examples" text="Examples"
+                                    styleClass="fxt-tool-button">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-lightbulb" iconSize="16"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Insert a built-in XQuery example"/>
+                            </tooltip>
+                        </MenuButton>
                     </children>
                 </HBox>
                 <HBox spacing="6" alignment="CENTER_LEFT">
@@ -101,6 +110,15 @@
                         <Label text="RESULTS" styleClass="fxt-side-panel-title"/>
                         <Label fx:id="statsLabel" styleClass="fxt-output-status"/>
                         <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="tableButton" id="query-show-table" text="Table" styleClass="fxt-tool-button"
+                                disable="true" onAction="#onShowTable">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-table" iconSize="16"/>
+                            </graphic>
+                            <tooltip>
+                                <Tooltip text="Show the XQuery result as a table in the OUTPUT panel"/>
+                            </tooltip>
+                        </Button>
                         <Button text="Copy" styleClass="fxt-tool-button" onAction="#onCopyResults">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-clipboard" iconSize="16"/>

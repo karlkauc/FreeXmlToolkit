@@ -10,6 +10,7 @@ import java.util.Set;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.fxml.FXML;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -61,7 +62,7 @@ public final class ShellMenuBar extends MenuBar {
             "menu-file-save", "menu-file-save-as", "menu-file-save-all",
             "menu-edit-undo", "menu-edit-redo", "menu-edit-find", "menu-edit-replace",
             "menu-edit-format", "menu-edit-minify", "menu-edit-insert-template",
-            "menu-tools-run", "menu-tools-set-schema", "menu-tools-compare");
+            "menu-tools-set-schema", "menu-tools-compare");
 
     /** Items that only apply to some file types. */
     private static final Map<String, EditorAction> TYPE_ITEMS = Map.of(
@@ -86,6 +87,10 @@ public final class ShellMenuBar extends MenuBar {
     @FXML private ShellMenuItem replaceItem;
     @FXML private ShellMenuItem fullScreenItem;
     @FXML private ShellMenuItem reportProblemItem;
+    @FXML private SeparatorMenuItem fundsSeparator;
+    @FXML private ShellMenuItem fundsSiteItem;
+    @FXML private ShellMenuItem fundsDocsItem;
+    @FXML private ShellMenuItem sponsorItem;
     @FXML private SeparatorMenuItem helpAppSeparator;
     @FXML private ShellMenuItem updatesItem;
     @FXML private ShellMenuItem aboutItem;
@@ -103,6 +108,7 @@ public final class ShellMenuBar extends MenuBar {
         buildViewModeItems();
         buildActivityItems();
         rebuildRecentFiles();
+        sponsorItem.setGraphic(ProjectLinks.sponsorIcon(16));
         if (!ErrorReportDialog.isAvailable()) {
             helpMenu.getItems().remove(reportProblemItem);
         }
@@ -207,7 +213,15 @@ public final class ShellMenuBar extends MenuBar {
                 item.setDisable(document.map(OpenDocument::getPath).isEmpty());
             }
         }
+        // Run only for runnable documents, exactly like the toolbar's Run button.
+        allItems().stream().filter(i -> "menu-tools-run".equals(i.getId()))
+                .forEach(i -> i.setDisable(!shell.isActiveDocumentRunnable()));
         closeTabItem.setDisable(editorHost.activeTabProperty().get() == null);
+        // The extension can be switched on and off in the settings while the app runs.
+        boolean funds = FundsXmlRunner.isEnabled();
+        for (MenuItem item : List.of(fundsSeparator, fundsSiteItem, fundsDocsItem)) {
+            item.setVisible(funds);
+        }
         viewModeItems.forEach((mode, item) -> item.setDisable(!editorHost.activeSupportsView(mode)));
     }
 
@@ -239,6 +253,42 @@ public final class ShellMenuBar extends MenuBar {
         fileMenu.getItems().removeAll(fileAppSeparator, settingsItem, exitItem);
         helpMenu.getItems().removeAll(helpAppSeparator, updatesItem, aboutItem);
         return List.of(aboutItem, updatesItem, settingsItem);
+    }
+
+    /**
+     * Builds a copy of the Help menu as a popup, for the header's Help button and F1: the same
+     * items with the same actions, without hidden items and without doubled separators.
+     *
+     * @return a new context menu; its item ids use the prefix {@code help-popup-}
+     */
+    public ContextMenu createHelpPopup() {
+        refresh();
+        ContextMenu popup = new ContextMenu();
+        popup.setId("help-popup");
+        for (MenuItem item : helpMenu.getItems()) {
+            if (!item.isVisible()) {
+                continue;
+            }
+            List<MenuItem> copied = popup.getItems();
+            if (item instanceof SeparatorMenuItem) {
+                if (!copied.isEmpty() && !(copied.getLast() instanceof SeparatorMenuItem)) {
+                    copied.add(new SeparatorMenuItem());
+                }
+                continue;
+            }
+            MenuItem copy = item == sponsorItem
+                    ? new MenuItem(item.getText(), ProjectLinks.sponsorIcon(16))
+                    : new ShellMenuItem(item.getText(), ((ShellMenuItem) item).getIconLiteral(),
+                            ((ShellMenuItem) item).getColor());
+            copy.setId(item.getId() != null ? item.getId().replace("menu-help-", "help-popup-") : null);
+            copy.setOnAction(item.getOnAction());
+            copy.setDisable(item.isDisable());
+            copied.add(copy);
+        }
+        if (!popup.getItems().isEmpty() && popup.getItems().getLast() instanceof SeparatorMenuItem) {
+            popup.getItems().removeLast();
+        }
+        return popup;
     }
 
     /** @return the Help menu (macOS inserts the Window menu before it). */
@@ -302,11 +352,17 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onSpreadsheet() { run("spreadsheet", shell::onSpreadsheet); }
     @FXML public void onAddToFavorites() { run("add_favorite", shell::addActiveDocumentToFavorites); }
 
-    @FXML public void onHelp() { run("help", shell::onHelp); }
     @FXML public void onDocs() { run("docs", () -> ProjectLinks.openInBrowser(ProjectLinks.DOCS_URL)); }
     @FXML public void onShortcuts() { run("shortcuts", KeyboardShortcutsDialog::show); }
     @FXML public void onReportProblem() { run("report_problem", () -> ErrorReportDialog.show(window(), null)); }
     @FXML public void onGitHub() { run("github", () -> ProjectLinks.openInBrowser(ProjectLinks.GITHUB_URL)); }
+    @FXML public void onSponsor() { run("sponsor", () -> ProjectLinks.openInBrowser(ProjectLinks.SPONSORS_URL)); }
+    @FXML public void onFundsXmlSite() {
+        run("fundsxml_site", () -> ProjectLinks.openInBrowser(ProjectLinks.FUNDSXML_SITE_URL));
+    }
+    @FXML public void onFundsXmlDocs() {
+        run("fundsxml_docs", () -> ProjectLinks.openInBrowser(ProjectLinks.FUNDSXML_SCHEMA_DOCS_URL));
+    }
     @FXML public void onAbout() { run("about", () -> AboutDialog.show(window())); }
 
     /** Checks for an application update in the background and reports the outcome in a dialog. */

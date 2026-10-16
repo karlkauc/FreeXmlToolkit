@@ -4,8 +4,8 @@
 
 > **Note:** Signing, signature validation (including detailed and PKIX
 > trust/chain/revocation/timestamp validation) and self-signed certificate creation
-> live in the **Unified Shell's Signature activity panel** - they are reached through
-> the shell rather than a dedicated sidebar tab.
+> live on the **Signature page** of the Unified Shell. Click **Signature** in the activity
+> bar to open it as a tab in the main editor area.
 
 This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.
 
@@ -14,34 +14,42 @@ This tool lets you digitally sign XML documents and verify signatures. A digital
 ## Overview
 
 ![Signature activity in the Unified Shell](img/unified-shell-signature.png)
-*Signing, validation and certificate creation now live in the Unified Shell's Signature activity panel*
+*Signing, validation and certificate creation live on the Signature page (screenshot may show an older layout)*
 
 ### What Can You Do?
 
-In the [Unified Shell](unified-shell.md), open the **Signature** activity from the activity bar.
-The top of the panel is an **action nav** of four buttons - rendered as raised, bordered
-buttons so they are recognizable as clickable. Selecting one
-shows the matching form below the shared **KEYSTORE** section (keystore file, alias, passwords):
+In the [Unified Shell](unified-shell.md), click **Signature** in the activity bar. The
+**Signature** page opens as a tab in the main editor area, and the side panel on the left lists
+the four actions in order of use. Click an action to show it on the page; the current action is
+highlighted, and the status message of the previously selected action is cleared:
 
 | Action | Description |
 |-----|-------------|
-| **Create Certificate** | Generate your own digital ID (keystore) |
-| **Sign XML File** | Opens the **Sign XML Document card** in the editor area *(default)* |
+| **Sign XML File** | Sign a document with your keystore *(default)* |
 | **Validate Signature** | Check if the signed document is valid (plus a detailed report) |
+| **Create Certificate** | Generate your own digital ID (keystore) |
 | **Expert Mode** | PKIX trust validation against a trust store, with optional revocation check |
+
+### How the Page Is Organized
+
+Every action uses the same layout, from top to bottom:
+
+| Part | Shown for | Description |
+|------|-----------|-------------|
+| **Header** | All actions | The name of the selected action |
+| **DOCUMENT** | Sign XML File, Validate Signature, Expert Mode | The XML file to work on - the active document by default; **Browse** picks a different file |
+| **KEYSTORE** | Sign XML File, Create Certificate | The keystore file, alias and passwords (see below) - you enter them only once, both actions share them |
+| **Action form** | All actions | The options of the action and its primary button (e.g. **Sign Document**) |
+| **Status line** | All actions | The outcome of the last action |
 
 ### The KEYSTORE Section
 
-The **KEYSTORE** section sits directly below the action nav and is shared by all actions:
-
 | Field | Description |
 |-------|-------------|
-| **Keystore row** | The selected keystore file (`none` until you pick one). Click **Change** to browse, pick a favorite from the **star menu**, or drop a file from your file manager (`.jks`, `.keystore`, `.p12`, `.pfx`) |
+| **Keystore row** | The selected keystore file, its name on its own line (full path as tooltip). Until you pick one it reads *"No keystore — choose or drop a .jks / .p12"*, and clicking it works like **Change**. Click **Change** to browse, pick a favorite from the **star menu**, or drop a file from your file manager (`.jks`, `.keystore`, `.p12`, `.pfx`) |
 | **Keystore alias** | Name of the key entry in the keystore |
-| **Keystore password** | Password protecting the keystore file (also used to open a password-protected trust store in Expert Mode) |
+| **Keystore password** | Password protecting the keystore file |
 | **Alias password** | Password protecting the private key |
-
-The status line at the bottom of the panel reports the outcome of the last action.
 
 ---
 
@@ -69,7 +77,7 @@ All fields are optional - blank ones are simply omitted from the subject.
 
 ### Keystore Security
 
-The alias and passwords come from the shared **KEYSTORE** section - all three are required:
+The alias and passwords come from the page's **KEYSTORE** section - all three are required:
 
 | Field | Description |
 |-------|-------------|
@@ -99,7 +107,7 @@ The files are written to `certs/<alias>/` in the application's working directory
 
 ### How to Create a Certificate
 
-1. In the **Signature** panel, choose **Create Certificate**
+1. On the **Signature** page, choose **Create Certificate** in the side panel
 2. Fill in the alias and both passwords in the **KEYSTORE** section
 3. Fill in the Distinguished Name fields
 4. Click **"Create Certificate"**
@@ -119,18 +127,18 @@ The files are written to `certs/<alias>/` in the application's working directory
 ![Sign Document](img/signature-sign-process.png)
 *Document signing interface*
 
-Choosing **Sign XML File** opens the **Sign XML Document** card as a tool tab in the editor
-area. It is pre-filled with the active document.
+**Sign XML File** is the action the Signature page shows first. The DOCUMENT row is pre-filled
+with the active document.
 
-### The Sign Card
+### The Sign Form
 
 | Section | Description |
 |---------|-------------|
 | **DOCUMENT** | The XML file to sign (the active document by default); **Browse** picks a different file |
-| **Keystore alias** / **Keystore password** | Mirrors the fields of the panel's KEYSTORE section (the **alias password** stays in the side panel) |
-| **SIGNATURE OPTIONS - Signature type** | **Enveloped** *(default)*, **Enveloping** or **Detached** (see below) |
+| **KEYSTORE** | The keystore file, **Keystore alias**, **Keystore password** and **Alias password** |
+| **SIGNATURE OPTIONS - Signature type** | **Enveloped** *(default)*, **Enveloping** or **Detached** (see below). With **Detached** selected, a hint explains that a separate `<name>.sig.xml` is written - validate that file and keep both files in the same folder |
 | **SIGNATURE OPTIONS - Algorithm** | Read-only: `RSA-SHA256 · C14N exclusive` |
-| **Sign Document** | Runs the signing; the status line mirrors the panel's status |
+| **Sign Document** | Runs the signing; the outcome appears in the status line |
 | **CERTIFICATE** | **Show certificate details** loads the certificate of the selected keystore/alias: subject, issued/expires, serial, signature algorithm, key usage and the SHA-256 fingerprint (with a copy button) |
 
 ### Signature Types and Output Files
@@ -149,17 +157,22 @@ untouched, and opened in the editor automatically.
 
 ### How to Sign a Document
 
-1. In the **Signature** panel, select your keystore in the **KEYSTORE** section - click
+1. Open the **Signature** page and choose **Sign XML File** in the side panel
+2. Select your keystore in the **KEYSTORE** section - click
    **Change**, pick a favorited keystore from the **star menu** next to the keystore row (see
    [Favorites Integration](#favorites-integration) below), or **drop** a keystore file
    (`.jks`, `.keystore`, `.p12`, `.pfx`) from your file manager onto the KEYSTORE row
    (Expert Mode's trust store row accepts drops the same way)
-2. Enter the keystore alias, keystore password and alias password
-3. Choose **Sign XML File** - the **Sign XML Document** card opens with the active document
-   (click **Browse** in the DOCUMENT row to sign a different file)
-4. Pick the signature type (Enveloped, Enveloping or Detached)
-5. Click **"Sign Document"**
-6. The signed file (`<name>.signed.xml` or `<name>.sig.xml`) opens in a new editor tab
+3. Enter the keystore alias, keystore password and alias password
+4. Check the **DOCUMENT** row - it shows the active document; click **Browse** to sign a
+   different file
+5. Pick the signature type (Enveloped, Enveloping or Detached)
+6. Click **"Sign Document"**
+7. The signed file (`<name>.signed.xml` or `<name>.sig.xml`) opens in a new editor tab
+
+> **Unsaved changes:** signing reads the document **from disk**. If it has unsaved changes,
+> you are asked *"Save changes to <file> first?"* - **Save and Continue** signs your current
+> text, **Use Saved Version** signs the file as last saved, **Cancel** stops.
 
 > **Tip:** Missing inputs are highlighted in red when you click **Sign Document**: signing
 > without a keystore marks the keystore entry, and a blank alias or password marks that field.
@@ -175,12 +188,14 @@ untouched, and opened in the editor automatically.
 ### How to Verify a Signature
 
 1. Open the signed XML file in the editor (it becomes the active document)
-2. In the **Signature** panel, choose the **Validate Signature** action
-3. Click the **Validate Signature** button
-4. See the result in the status area (failures additionally open an explanatory dialog)
+2. On the **Signature** page, choose **Validate Signature** in the side panel
+3. Check the **DOCUMENT** row - it shows the active document; click **Browse** to check a
+   different file
+4. Click the **Validate Signature** button
+5. See the result in the status line (failures additionally open an explanatory dialog)
 
 For a detailed report (validity plus signing-certificate details), use the outlined
-**Validate (Details)** button instead - the report opens as `Signature-Report.txt` in a new tab.
+**Validate (Details)** button instead - it also checks the document in the DOCUMENT row, and the report opens as `Signature-Report.txt` in a new tab.
 
 ### Validation Results
 
@@ -218,23 +233,26 @@ validation** goes further: it checks the signing certificate's chain against a *
 a collection of certificate authorities you trust - to decide whether the certificate really
 comes from a trusted source (PKIX path validation).
 
-Expert Mode consists of the **TRUST STORE** section and one action:
+Expert Mode shows the **DOCUMENT** row, the **TRUST STORE** section and one action:
 
 | Control | Description |
 |---------|-------------|
+| **DOCUMENT** | The signed XML file to check - the active document by default; **Browse** picks a different file |
 | **Trust store row** | The trust store to validate against - `default (cacerts)` until you pick one. **Change** opens a file chooser (`.jks`, `.p12`, `.pfx`, `.keystore`); the **star menu** lists your keystore favorites; dropping a file onto the row works too |
+| **Trust store password (optional)** | The password of the trust store, if it has one. This field is separate from the keystore password |
 | **Check revocation (OCSP/CRL)** | Also verify that the certificate has not been revoked |
-| **Validate (Trust)** | Runs the validation on the active document and opens the report |
+| **Validate (Trust)** | Runs the validation on the document in the DOCUMENT row and opens the report |
 
 ### How to Run Trust Validation
 
-1. Open the signed XML document.
+1. Open the signed XML document, then choose **Expert Mode** on the **Signature** page (the
+   DOCUMENT row shows the active document; **Browse** picks a different file).
 2. (Optional) Click **Change** in the trust store row to choose the trust store to validate
    against - or pick a favorited keystore from the **star menu** next to the trust store row.
    By default the application uses the JVM's built-in `cacerts` store, which contains
    well-known public certificate authorities.
 3. (Optional) If your trust store is password-protected, enter its password in the
-   **Keystore password** field of the KEYSTORE section - it is reused for the trust store.
+   **Trust store password** field below the trust store row.
 4. (Optional) Tick **Check revocation (OCSP/CRL)** to also verify that the certificate has not
    been revoked.
 5. Click **Validate (Trust)**.
@@ -267,7 +285,7 @@ The Favorites panel provides quick access to your saved keystores, XML files, an
 
 > Keystore and trust store files (`.jks`, `.p12`, `.pfx`,
 > `.keystore`) are their own **Keystore** favorite type with a lock icon.
-> In the Signature panel, the **keystore row** (KEYSTORE
+> On the Signature page, the **keystore row** (KEYSTORE
 > section) and the **trust store row** (Expert Mode) each carry a **star menu** listing
 > your keystore favorites - pick one to select it without browsing the file system. See
 > [Favorites System](favorites-system.md) for details.
@@ -276,7 +294,7 @@ The Favorites panel provides quick access to your saved keystores, XML files, an
 
 ## Keyboard Shortcuts
 
-The Signature panel has no shortcuts of its own; the shell-wide favorites shortcuts are the
+The Signature page has no shortcuts of its own; the shell-wide favorites shortcuts are the
 useful ones here:
 
 | Shortcut | Action |
@@ -295,7 +313,7 @@ useful ones here:
 - **Use strong passwords** - At least 12 characters with mixed case, numbers, symbols
 - **Backup your keystore** - Store copies in secure locations
 - **Check validity regularly** - Certificates expire after the validity period (one year for
-  certificates created here; **Show certificate details** on the sign card shows the days remaining)
+  certificates created here; **Show certificate details** in the Sign form shows the days remaining)
 
 ---
 
@@ -338,7 +356,7 @@ Currently, files must be signed one at a time.
 ### What signature type is used?
 
 The tool creates XML signatures (XMLDSig) with RSA-SHA256 and exclusive canonicalization.
-You choose the structure on the sign card: **enveloped** (default - the signature is embedded
+You choose the structure in the Sign form: **enveloped** (default - the signature is embedded
 within the XML document), **enveloping** (the content is wrapped inside the signature document)
 or **detached** (a separate `.sig.xml` file referencing the original).
 

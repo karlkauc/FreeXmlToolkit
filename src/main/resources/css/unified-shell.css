@@ -416,6 +416,19 @@
     -fx-font-weight: 600;
 }
 
+/* "No XSD" is the entry point for binding a schema: make it look clickable. */
+.fxt-status-item.fxt-status-schema-none {
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 0 6 0 6;
+}
+
+.fxt-status-item.fxt-status-schema-none:hover {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-primary;
+}
+
 /* Last-run badge: chip in the workflow's bg/border/fg; the result icon is bound to a semantic
    colour in UnifiedShellView.showLastRunBadge (spec 2026-09-26 §2). Padding lives only here. */
 .fxt-status-badge {
@@ -759,6 +772,16 @@
     -fx-padding: 2 6 2 8;
 }
 
+/* Tab icons follow the theme (without a rule they keep the control's dark default and vanish
+   on the dark tab strip). */
+.fxt-editor-tabpane > .tab-header-area .tab .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-editor-tabpane > .tab-header-area .tab:selected .iconify-icon {
+    -fx-icon-color: -fxt-text-primary;
+}
+
 .fxt-view-seg {
     -fx-background-color: transparent;
     -fx-text-fill: -fxt-text-secondary;
@@ -876,6 +899,30 @@
 /* ----- Settings page (main editor area, color-coded section cards) ----- */
 .fxt-settings-page {
     -fx-padding: 24 28 24 28;
+}
+
+/* One heading per group (Appearance, Editor, …); the side panel lists the same groups. */
+.fxt-settings-group-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+/* Fixed save bar under the scrolling cards (decision E5). */
+.fxt-settings-save-bar {
+    -fx-padding: 8 28 8 28;
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.fxt-settings-dirty {
+    -fx-text-fill: -fxt-warning;
+    -fx-font-weight: bold;
+}
+
+.fxt-settings-dirty .iconify-icon {
+    -fx-icon-color: -fxt-warning;
 }
 
 .fxt-settings-card {
@@ -1847,8 +1894,72 @@
     -fx-text-fill: -fxt-text-primary;
 }
 
+/* Two-line source slot: head line (icon · caption · extras · Change), then the name over
+   the full width, indented to the caption so it reads as the icon's label. */
+.fxt-vp-source-caption {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+/* Search options: labelled switches whose on state is unmistakable (filled + bold). */
+.toggle-button.fxt-search-option-toggle {
+    -fx-font-size: 11.5px;
+    -fx-padding: 2 8 2 8;
+}
+
+.toggle-button.fxt-search-option-toggle {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.toggle-button.fxt-search-option-toggle:hover {
+    -fx-border-color: -fxt-primary;
+}
+
+.toggle-button.fxt-search-option-toggle:selected {
+    -fx-background-color: -fxt-primary;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* OPEN EDITORS scrolls inside a capped height; no scroll-pane chrome. */
+.fxt-open-editors-scroll,
+.fxt-open-editors-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.fxt-explorer-recent-header {
+    -fx-padding: 6 12 4 14;
+}
+
+.fxt-workspace-empty {
+    -fx-padding: 8 12 8 14;
+}
+
+.fxt-inspector-empty-hint {
+    -fx-padding: 4 14 8 14;
+}
+
+.fxt-vp-source-name-line {
+    -fx-padding: 0 0 0 23;
+}
+
 .fxt-vp-source-none {
     -fx-text-fill: -fxt-text-muted;
+}
+
+/* An empty slot is clickable (acts like "Change"). */
+.fxt-vp-source-none.fxt-vp-source-name-line {
+    -fx-cursor: hand;
+}
+
+.fxt-vp-source-none.fxt-vp-source-name-line:hover {
+    -fx-text-fill: -fxt-primary;
 }
 
 /* A bound source name is clickable (opens the file in the editor). */
@@ -1862,13 +1973,9 @@
 }
 
 /* ...but not while the source is unset ("none" placeholder). */
-.fxt-vp-source-open.fxt-vp-source-none {
-    -fx-cursor: default;
-}
-
 .fxt-vp-source-open.fxt-vp-source-none:hover {
     -fx-underline: false;
-    -fx-text-fill: -fxt-text-muted;
+    -fx-text-fill: -fxt-primary;
 }
 
 .fxt-vp-source-fav {
@@ -2138,53 +2245,7 @@
     -fx-background-color: -fxt-bg-subtle;
 }
 
-/* ----- Signature side panel (Figma node 50:2) --------------------------- */
-.fxt-signature-panel {
-    -fx-background-color: -fxt-bg-surface;
-}
-
-/* The action nav (Create Certificate / Sign XML File / Validate Signature /
-   Expert Mode): flat rows, selected = subtle indigo bg + primary text. */
-.fxt-sig-nav-box {
-    -fx-padding: 4 8 4 8;
-    -fx-spacing: 4;
-}
-
-/* Each nav action reads as a real button: raised surface, visible border,
-   hover lift — not a plain text list. */
-.fxt-sig-nav {
-    -fx-background-color: -fxt-bg-surface;
-    -fx-background-radius: 6;
-    -fx-border-color: -fxt-border;
-    -fx-border-width: 1;
-    -fx-border-radius: 6;
-    -fx-padding: 6 10 6 10;
-    -fx-font-size: 12.5px;
-    -fx-text-fill: -fxt-text-primary;
-    -fx-graphic-text-gap: 8;
-    -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 2, 0, 0, 1);
-}
-
-.fxt-sig-nav .iconify-icon {
-    -fx-icon-color: -fxt-text-secondary;
-}
-
-.fxt-sig-nav:hover {
-    -fx-background-color: -fxt-bg-subtle;
-    -fx-border-color: -fxt-primary;
-}
-
-.fxt-sig-nav:selected {
-    -fx-background-color: -fxt-bg-subtle;
-    -fx-border-color: -fxt-primary;
-    -fx-text-fill: -fxt-primary;
-}
-
-.fxt-sig-nav:selected .iconify-icon {
-    -fx-icon-color: -fxt-primary;
-}
-
+/* ----- Signature page (main-area tab; the side panel is a PageNavigator) ----- */
 /* Small muted label above a keystore input field. */
 .fxt-sig-field-label {
     -fx-font-size: 11px;
@@ -2192,13 +2253,17 @@
     -fx-padding: 4 0 0 0;
 }
 
-/* Explanatory hint inside a form section. */
-.fxt-sig-hint {
-    -fx-font-size: 11.5px;
-    -fx-text-fill: -fxt-text-muted;
+/* Text inputs on the white page cards (Settings, Signature, Schema Library): the base themes
+   paint them white without an edge, which makes them invisible on a white card. */
+.fxt-settings-page .text-field,
+.fxt-sign-card .text-field,
+.fxt-page-card .text-field {
+    -fx-background-color: -fxt-border, -fxt-bg-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
 }
 
-/* The "Sign XML Document" card in the editor area (Figma 50:2). */
+/* The Signature page card in the editor area (Figma 50:2). */
 .fxt-sign-view,
 .fxt-sign-view > .viewport {
     -fx-background-color: -fxt-bg-canvas;
@@ -2333,33 +2398,48 @@
     -fx-max-height: 26;
 }
 
-/* ----- Favorites manager (editor-area tool tab) --------------------------- */
-.fxt-favmgr {
+/* ----- Favorites manager and other management pages (editor-area tool tabs) -----
+ * .fxt-page / -card / -header / -title / -subtitle is the shared frame of a management page
+ * in the main area (Schema Library, …): canvas background, one raised card with a title. */
+.fxt-favmgr,
+.fxt-page {
     -fx-background-color: -fxt-bg-canvas;
 }
 
-.fxt-favmgr-card {
+.fxt-page {
+    -fx-padding: 24;
+}
+
+.fxt-favmgr-card,
+.fxt-page-card {
     -fx-background-color: -fxt-bg-surface;
     -fx-background-radius: 12;
     -fx-padding: 24;
     -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.10), 24, 0, 0, 6);
 }
 
-.fxt-favmgr-header {
+.fxt-favmgr-header,
+.fxt-page-header {
     -fx-padding: 0 0 4 0;
 }
 
-.fxt-favmgr-title {
+.fxt-favmgr-title,
+.fxt-page-title {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
     -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-schema-library-panel .fxt-page-title .iconify-icon {
+    -fx-icon-color: -fxt-wf-schema-library-accent;
 }
 
 .fxt-favmgr-title .iconify-icon {
     -fx-icon-color: -fxt-warning;
 }
 
-.fxt-favmgr-subtitle {
+.fxt-favmgr-subtitle,
+.fxt-page-subtitle {
     -fx-font-size: 12px;
     -fx-text-fill: -fxt-text-secondary;
 }
@@ -2841,7 +2921,8 @@
     -fx-icon-color: -fxt-text-secondary;
 }
 
-.fxt-analysis-filter .combo-box {
+.fxt-analysis-filter .combo-box,
+.combo-box.fxt-neutral-combo {
     -fx-background-color: -fxt-bg-surface;
     -fx-background-radius: 6;
     -fx-border-color: -fxt-border;
@@ -2850,22 +2931,27 @@
 }
 
 .fxt-analysis-filter .combo-box:hover,
-.fxt-analysis-filter .combo-box:focused {
+.fxt-analysis-filter .combo-box:focused,
+.combo-box.fxt-neutral-combo:hover,
+.combo-box.fxt-neutral-combo:focused {
     -fx-border-color: -fxt-primary;
 }
 
-.fxt-analysis-filter .combo-box > .list-cell {
+.fxt-analysis-filter .combo-box > .list-cell,
+.combo-box.fxt-neutral-combo > .list-cell {
     -fx-background-color: transparent;
     -fx-text-fill: -fxt-text-primary;
     -fx-font-size: 12px;
     -fx-padding: 4 6 4 8;
 }
 
-.fxt-analysis-filter .combo-box > .arrow-button {
+.fxt-analysis-filter .combo-box > .arrow-button,
+.combo-box.fxt-neutral-combo > .arrow-button {
     -fx-background-color: transparent;
 }
 
-.fxt-analysis-filter .combo-box > .arrow-button > .arrow {
+.fxt-analysis-filter .combo-box > .arrow-button > .arrow,
+.combo-box.fxt-neutral-combo > .arrow-button > .arrow {
     -fx-background-color: -fxt-text-secondary;
 }
 
@@ -3073,6 +3159,13 @@
 
 .fxt-action-row:disabled {
     -fx-opacity: 0.45;
+}
+
+/* PageNavigator (Settings, Schema Library): the section shown on the page. */
+.fxt-action-row.fxt-nav-current,
+.fxt-action-row.fxt-nav-current:hover {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-font-weight: bold;
 }
 
 .fxt-action-row-primary {
@@ -3364,19 +3457,27 @@
     -fx-text-fill: -fxt-on-primary;
 }
 
-/* --- Schema Library panel --------------------------------------------------- */
-/* Icon-only tabs (Mappings/Catalogs/Cache) with tooltips still need every spare pixel at the
- * default ~260px side-panel width: drop the header-area's own padding and tighten each tab's
- * padding so all three fit without the TabPane's built-in overflow menu kicking in. */
-.fxt-schema-library-panel .tab-pane > .tab-header-area {
-    -fx-padding: 0;
-}
-.fxt-schema-library-panel .tab-pane > .tab-header-area .tab {
-    -fx-padding: 3 8 3 8;
-}
+/* --- Schema Library page (main-area tab) --------------------------------------- */
 .fxt-schema-library-panel .table-row-cell.fxt-lib-bundled .table-cell { -fx-text-fill: -fxt-text-muted; -fx-font-style: italic; }
 .fxt-lib-status { -fx-padding: 4 8 6 8; -fx-font-size: 11px; -fx-text-fill: -fxt-text-muted; }
 .fxt-lib-error { -fx-text-fill: -fxt-danger; }
 .fxt-lib-catalog-path { -fx-font-weight: bold; }
 .fxt-lib-catalog-count { -fx-text-fill: -fxt-text-muted; -fx-font-size: 11px; }
 .fxt-lib-catalog-error { -fx-text-fill: -fxt-danger; -fx-font-size: 11px; }
+
+/* One-time hint bar above the editor (FundsXML discoverability, UX plan 5.5). */
+.fxt-hint-bar {
+    -fx-background-color: -fxt-wf-fundsxml-bg;
+    -fx-border-color: -fxt-wf-fundsxml-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 12 8 12;
+}
+
+.fxt-hint-bar .fxt-hint-bar-icon {
+    -fx-icon-color: -fxt-wf-fundsxml-fg;
+}
+
+.fxt-hint-bar-text {
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-size: 12px;
+}

@@ -116,10 +116,12 @@ class TypeLibraryPanelTest {
     void schemaToolsAreVisibleAboveTheFilter() {
         WaitForAsyncUtils.waitForFxEvents();
         var names = panel.toolNames();
-        assertTrue(names.contains("Generate XSD from XML"), names.toString());
-        assertTrue(names.contains("Generate XSD (Batch)…"), names.toString());
+        // Generating an XSD from XML is not a tool for the open schema: it lives in the toolbar's
+        // Schema ▾ menu (UX plan 2.3), not in the panel.
+        assertFalse(names.contains("Generate XSD from XML"), names.toString());
+        assertFalse(names.contains("Generate XSD (Batch)…"), names.toString());
         assertTrue(names.contains("Generate Sample XML…"), names.toString());
-        assertTrue(names.contains("Generate Sample XML (Advanced)…"), names.toString());
+        assertTrue(names.contains("Sample XML with Options…"), names.toString());
         assertTrue(names.contains("Flatten Schema…"), names.toString());
         assertTrue(names.contains("Schema Analysis"), names.toString());
         assertFalse(names.contains("Statistics"), "replaced by Schema Analysis: " + names);

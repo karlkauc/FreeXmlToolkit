@@ -108,9 +108,10 @@ class AppSmokeTourTest {
         onFx(() -> shell.getSelectionModel().select(Activity.FAVORITES));
         settle();
         shot("10_favorites");
-        onFx(() -> shell.getSelectionModel().select(Activity.HELP));
+        onFx(shell::showHelpMenu);
         settle();
         shot("11_help");
+        onFx(shell::showHelpMenu); // a second call closes the popup
         onFx(() -> shell.getSelectionModel().select(Activity.SETTINGS));
         settle();
         shot("12_settings");

@@ -89,7 +89,7 @@ public final class FopPanel extends VBox {
 - Keep the test `id="…"` next to `fx:id`; tests look nodes up by `#id`.
 - Building blocks as tags: `SidePanelHeader`, `SidePanelSection`, `PanelActionList` +
   `PanelActionButton` (`iconLiteral`, `color` = `ActionColor`, `primary`), `SourceRow`,
-  `PanelProgress`, `SettingsCard`, `WelcomeQuickCard` / `WelcomeToolCard` / `WelcomeStatCard`;
+  `PanelProgress`, `SettingsCard`, `WelcomeQuickCard` / `WelcomeToolCard` (task rows) / `WelcomeStatCard`;
   table columns in FXML, value binding via `FxmlColumns.text(column, fn)`.
 - No `stylesheets=` in panel FXMLs (inherited from the shell root).
 - `FxmlContractTest` fails for an `@FXML` field without `fx:id`, a missing or non-public

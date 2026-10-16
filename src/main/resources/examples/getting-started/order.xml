@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  FreeXmlToolkit example: a small purchase order bound to order.xsd.
+
+  Things to try:
+    - Validate (F8): the document is valid. Change a quantity to "two" and validate again.
+    - Tree / Graphic: switch the view mode in the top-right corner of the editor.
+    - Transform: Tools > Transform with XSLT... and pick order-summary.xslt from this folder.
+    - Query Console (Ctrl+Shift+X): sum(//item/(@quantity * @price))
+-->
+<order xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="order.xsd"
+       id="PO-1042" date="2026-03-14">
+    <customer>
+        <name>Northwind Books</name>
+        <email>orders@northwind.example</email>
+        <address>
+            <street>12 Harbour Lane</street>
+            <city>Portsmouth</city>
+            <country>GB</country>
+        </address>
+    </customer>
+    <items>
+        <item sku="BK-101" quantity="2" price="24.90">XML in a Nutshell</item>
+        <item sku="BK-207" quantity="1" price="39.50">XSLT 3.0 Cookbook</item>
+        <item sku="BK-318" quantity="3" price="12.00">XPath Pocket Guide</item>
+    </items>
+    <note>Please deliver before Friday.</note>
+</order>

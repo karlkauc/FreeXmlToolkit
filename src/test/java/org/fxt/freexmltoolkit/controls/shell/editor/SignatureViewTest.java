@@ -20,21 +20,20 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * TestFX verification of the Signature panel (Figma mockup node 50:2): an action
- * nav (Create Certificate / Sign XML File / Validate Signature / Expert Mode)
- * switching the visible form section, a shared KEYSTORE section, and the
- * existing sign/validate/create behaviors.
+ * TestFX verification of the Signature page (UX plan 4.3): one page whose form follows the
+ * action picked in the side panel, the KEYSTORE inputs shown once above the forms that need
+ * them, and the sign/validate/create/trust behaviours.
  */
 @ExtendWith(ApplicationExtension.class)
-class SignaturePanelTest {
+class SignatureViewTest {
 
     private EditorHost host;
-    private SignaturePanel panel;
+    private SignatureView panel;
 
     @Start
     void start(Stage stage) {
         host = new EditorHost();
-        panel = new SignaturePanel(host);
+        panel = new SignatureView(host);
         stage.setScene(new Scene(new HBox(host, panel), 1000, 700));
         stage.show();
     }
@@ -49,6 +48,7 @@ class SignaturePanelTest {
                 () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.useActiveDocument();
             panel.validateActive();
             return null;
         });
@@ -58,94 +58,75 @@ class SignaturePanelTest {
     }
 
     @Test
-    void titleFollowsTheSharedSidePanelConvention() {
+    void signIsTheDefaultActionAndTheKeystoreStandsOnceAboveItsForm() {
         WaitForAsyncUtils.waitForFxEvents();
-        Label title = (Label) panel.lookup(".fxt-side-panel-title");
-        assertNotNull(title, "panel must keep the shared side-panel title class");
-        assertEquals("SIGNATURE", title.getText());
+        assertEquals(SignatureView.Action.SIGN, panel.currentAction());
+        assertVisible("#sig-section-document", "#sig-section-keystore", "#sig-section-sign");
+        assertHidden("#sig-section-validate", "#sig-section-create", "#sig-section-expert");
+        assertEquals(1, panel.lookupAll("#sig-alias").size(), "alias and passwords exist once");
+        assertNotNull(panel.lookup("#sign-card-run"));
     }
 
     @Test
-    void signIsTheDefaultActionAndKeepsThePanelFormFree() {
-        // Per the mockup the sign form lives in the editor area, not in the panel:
-        // SIGN is selected by default and no panel form section is visible.
-        WaitForAsyncUtils.waitForFxEvents();
-        javafx.scene.control.ToggleButton signNav =
-                (javafx.scene.control.ToggleButton) panel.lookup("#sig-nav-sign");
-        assertTrue(signNav.isSelected(), "Sign XML File must be the default nav action");
-        assertNull(panel.lookup("#sig-section-sign"), "the sign form must not live in the panel");
-        assertFalse(panel.lookup("#sig-section-validate").isVisible());
-        assertFalse(panel.lookup("#sig-section-create").isVisible());
-        assertFalse(panel.lookup("#sig-section-expert").isVisible());
-    }
-
-    @Test
-    void selectingANavActionSwitchesTheVisibleSection() {
+    void everyActionShowsTheInputsItNeedsAndItsPrimaryButton() {
+        java.util.List<String> shown = new java.util.ArrayList<>();
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.selectAction(SignaturePanel.Action.VALIDATE);
+            panel.setOnActionShown(shown::add);
+            panel.selectAction(SignatureView.Action.VALIDATE);
             return null;
         });
-        WaitForAsyncUtils.waitForFxEvents();
-        assertTrue(panel.lookup("#sig-section-validate").isVisible());
+        assertVisible("#sig-section-document", "#sig-section-validate");
+        assertHidden("#sig-section-keystore", "#sig-section-create");
+        assertEquals("Validate Signature", ((Button) panel.lookup("#sig-validate-run")).getText());
+        assertEquals("Validate (Details)", ((Button) panel.lookup("#sig-validate-details")).getText());
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.selectAction(SignaturePanel.Action.EXPERT);
+            panel.selectAction(SignatureView.Action.CREATE);
             return null;
         });
-        WaitForAsyncUtils.waitForFxEvents();
-        assertTrue(panel.lookup("#sig-section-expert").isVisible());
-        assertFalse(panel.lookup("#sig-section-validate").isVisible());
-    }
-
-    @Test
-    void signNavOpensTheSignCardInTheEditorArea(@TempDir Path tmp) throws Exception {
-        Path xml = tmp.resolve("doc.xml");
-        Files.writeString(xml, "<root/>");
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
-        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
-                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        assertVisible("#sig-section-keystore", "#sig-section-create");
+        assertHidden("#sig-section-document", "#sig-section-validate");
+        assertEquals("Create Certificate", ((Button) panel.lookup("#sig-create-run")).getText());
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            ((javafx.scene.control.ToggleButton) panel.lookup("#sig-nav-sign")).fire();
+            panel.selectAction(SignatureView.Action.EXPERT);
             return null;
         });
-        WaitForAsyncUtils.waitForFxEvents();
+        assertVisible("#sig-section-document", "#sig-section-expert");
+        assertHidden("#sig-section-keystore");
+        assertEquals("Validate (Trust)", ((Button) panel.lookup("#sig-trust-run")).getText());
+        assertNotNull(panel.lookup("#sig-truststore-password"), "the trust store has its own password");
 
-        Label docName = (Label) host.lookup("#sign-doc-name");
-        assertNotNull(docName, "the Sign card must open in the editor area");
-        assertEquals("doc.xml", docName.getText(), "the card must show the active document");
-        assertNotNull(host.lookup("#sign-card-run"), "the card must offer Sign Document");
+        assertEquals(java.util.List.of("sign", "validate", "create", "expert"), shown,
+                "the side panel learns the current action, then every switch");
+        assertEquals(java.util.List.of("sign", "validate", "create", "expert"),
+                SignatureView.SECTIONS.stream().map(PageNavigator.Entry::key).toList(), "order of use");
     }
 
     @Test
-    void exposesCertificateCreationViaTheNav() {
+    void switchingTheActionClearsTheStatus() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            panel.selectAction(SignaturePanel.Action.CREATE);
+            panel.signFile(null);
             return null;
         });
-        WaitForAsyncUtils.waitForFxEvents();
-        assertTrue(panel.lookup("#sig-section-create").isVisible(), "create section must show");
-        Button create = (Button) panel.lookup("#sig-create-run");
-        assertNotNull(create, "panel must offer a 'Create Certificate' action");
-        assertEquals("Create Certificate", create.getText());
+        assertFalse(panel.getStatusText().isBlank(), "a precondition message is shown");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.selectAction(SignatureView.Action.VALIDATE);
+            return null;
+        });
+        assertTrue(panel.getStatusText().isBlank(), "the old result does not carry over to another action");
     }
 
-    @Test
-    void exposesTheDetailedValidationAction() {
-        WaitForAsyncUtils.waitForFxEvents();
-        // lookupAll must run on the FX thread (scene graph may still be mutating)
-        boolean present = WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookupAll(".button").stream()
-                .anyMatch(n -> n instanceof Button b && "Validate (Details)".equals(b.getText())));
-        assertTrue(present, "panel must offer the detailed-validation action");
+    private void assertVisible(String... selectors) {
+        for (String selector : selectors) {
+            assertTrue(panel.lookup(selector).isVisible(), selector + " must be shown");
+        }
     }
 
-    @Test
-    void exposesTheTrustValidationInTheExpertSection() {
-        WaitForAsyncUtils.waitForFxEvents();
-        Button trust = (Button) panel.lookup("#sig-trust-run");
-        assertNotNull(trust, "expert section must offer the trust validation");
-        assertEquals("Validate (Trust)", trust.getText());
-        assertNotNull(panel.lookup("#sig-truststore-name"), "expert section must show the trust store");
+    private void assertHidden(String... selectors) {
+        for (String selector : selectors) {
+            assertFalse(panel.lookup(selector).isVisible(), selector + " must be hidden");
+        }
     }
 
     @Test
@@ -154,7 +135,7 @@ class SignaturePanelTest {
         Files.writeString(ks, "stub");
         Label name = (Label) panel.lookup("#sig-keystore-name");
         assertNotNull(name, "keystore section must show the keystore file");
-        assertEquals("none", name.getText());
+        assertTrue(name.getText().startsWith("No keystore"), "an empty slot names the action that fills it");
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             panel.setKeystore(ks.toFile());
@@ -165,10 +146,10 @@ class SignaturePanelTest {
     }
 
     @Test
-    void signCardRendersCertificateDetails() {
-        java.util.concurrent.atomic.AtomicReference<SignDocumentView> ref = new java.util.concurrent.atomic.AtomicReference<>();
+    void signFormRendersCertificateDetails() {
+        java.util.concurrent.atomic.AtomicReference<SignatureView> ref = new java.util.concurrent.atomic.AtomicReference<>();
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            SignDocumentView view = new SignDocumentView(panel, host);
+            SignatureView view = new SignatureView(host);
             view.showCertificate(new CertificateDetailsRunner.CertificateDetails(
                     "fxt-signer", "FreeXmlToolkit", "AT", true,
                     java.time.LocalDateTime.now().minusDays(1),
@@ -247,8 +228,8 @@ class SignaturePanelTest {
 
     @Test
     void droppingStoresOnTheSourceRowsLoadsThem(@TempDir Path tmp) throws Exception {
-        javafx.scene.layout.HBox keystoreRow = (javafx.scene.layout.HBox) panel.lookup("#sig-keystore-row");
-        javafx.scene.layout.HBox trustRow = (javafx.scene.layout.HBox) panel.lookup("#sig-truststore-row");
+        javafx.scene.layout.Region keystoreRow = (javafx.scene.layout.Region) panel.lookup("#sig-keystore-row");
+        javafx.scene.layout.Region trustRow = (javafx.scene.layout.Region) panel.lookup("#sig-truststore-row");
         assertNotNull(keystoreRow, "the KEYSTORE row must exist");
         assertNotNull(trustRow, "the TRUST STORE row must exist");
         assertNotNull(keystoreRow.getOnDragOver(), "the KEYSTORE row must accept file drags");
@@ -284,4 +265,5 @@ class SignaturePanelTest {
         org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
         return event;
     }
+
 }

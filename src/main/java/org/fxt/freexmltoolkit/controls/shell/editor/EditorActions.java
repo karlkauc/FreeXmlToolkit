@@ -40,6 +40,17 @@ public final class EditorActions {
 
     private final EditorHost editorHost;
 
+    /**
+     * Status of a clean run without any schema: only well-formedness was checked. Not a
+     * green "Valid" - the text says that no schema took part.
+     */
+    public static final String WELL_FORMED_NO_SCHEMA = "Well-formed · no schema bound";
+
+    /** @return "1 problem" / "n problems" — the shared wording of validation counts */
+    public static String problemCount(int count) {
+        return count + (count == 1 ? " problem" : " problems");
+    }
+
     public EditorActions(EditorHost editorHost) {
         this.editorHost = editorHost;
     }
@@ -112,8 +123,8 @@ public final class EditorActions {
                     docKind, content.length(), result.size(), t0, false, false);
             Platform.runLater(() -> {
                 String summary = result.isEmpty()
-                        ? (hasSchema ? "Valid" : "Well-formed")
-                        : result.size() + " problem(s)";
+                        ? (hasSchema ? "Valid" : WELL_FORMED_NO_SCHEMA)
+                        : problemCount(result.size());
                 editorHost.setValidationStatus(
                         result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
                         result.size(), summary);
@@ -133,55 +144,6 @@ public final class EditorActions {
             sb.append('[').append(p.source()).append("] ").append(line).append(p.message()).append('\n');
         }
         return textRegion(sb.toString());
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // Transform with XSLT
-    // ---------------------------------------------------------------------------------------------
-
-    /**
-     * Prompts for an XSLT stylesheet, transforms the active XML with it (no parameters,
-     * XML output — mirroring {@code TransformPanel.transform()}) off the FX thread, and
-     * shows the output (or the error) in a tool tab.
-     *
-     * @param window the owner window for the file chooser (may be {@code null})
-     */
-    public void transformActiveWithXslt(Window window) {
-        if (editorHost.getActiveDocument().isEmpty()) {
-            return;
-        }
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Transform with XSLT…");
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));
-        File xslt = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window);
-        if (xslt == null) {
-            return;
-        }
-        String xml = editorHost.getActiveText().orElse("");
-        Map<String, Object> params = Map.of();
-        XsltTransformationEngine.OutputFormat format = XsltTransformationEngine.OutputFormat.XML;
-        FxtGui.executorService.submit(() -> {
-            long t0 = System.nanoTime();
-            String output;
-            boolean ok = false;
-            XsltTransformationResult result = null;
-            try {
-                String xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
-                result = TransformRunner.transformForReport(xml, xsltContent, params, format);
-                ok = result.isSuccess();
-                output = result.isSuccess()
-                        ? result.getOutputContent()
-                        : "ERROR: " + result.getErrorMessage();
-            } catch (Exception e) {
-                output = "ERROR: " + e.getMessage();
-            }
-            UsageEvents.xsltTransformed(1, t0, ok, false,
-                    result != null ? result.getErrorCode() : null,
-                    result != null ? result.getErrorPhase() : null, xml.length());
-            String finalOutput = output;
-            Platform.runLater(() -> editorHost.openToolTab(
-                    "Transform: " + xslt.getName(), "bi-arrow-left-right", textRegion(finalOutput)));
-        });
     }
 
     // ---------------------------------------------------------------------------------------------

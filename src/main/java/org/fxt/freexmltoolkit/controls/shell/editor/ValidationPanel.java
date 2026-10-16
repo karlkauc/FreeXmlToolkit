@@ -65,6 +65,10 @@ public class ValidationPanel extends VBox {
     private final MenuButton schematronFavoritesMenu;
     @FXML private MenuButton overflowMenu;
     @FXML private CheckMenuItem liveValidation;
+    @FXML private PanelActionList authoringTools;
+    /** Single-file mode: "N problems — show below the editor" (jumps to the PROBLEMS dock). */
+    private final javafx.scene.control.Button problemsJump =
+            PanelActionList.inlineRow("", "bi-arrow-down-square", this::revealProblemsDock);
     @FXML private ToggleGroup modeGroup;
     @FXML private ToggleButton singleMode;
     @FXML private ToggleButton batchMode;
@@ -73,7 +77,6 @@ public class ValidationPanel extends VBox {
     @FXML private Button exportProblems;
     @FXML private Button schematronReportButton;
     @FXML private Button batchReportButton;
-    @FXML private Button fundsXmlButton;
     private SchematronReportData lastSchematronReport;
     @FXML private ContextMenu batchSourceMenu;
     private final PauseTransition debounce = new PauseTransition(Duration.millis(600));
@@ -136,11 +139,6 @@ public class ValidationPanel extends VBox {
         // --- TOOLS ---------------------------------------------------------
         exportProblems.disableProperty().bind(javafx.beans.binding.Bindings.isEmpty(problems));
         batchReportButton.disableProperty().bind(batchReportMissing);
-        // FundsXML extension — only when enabled in the settings. The FundsXML activity
-        // is its primary home; this row keeps it reachable from the validation context.
-        if (!FundsXmlRunner.isEnabled()) {
-            tools.getChildren().remove(fundsXmlButton);
-        }
 
         // --- RESULTS (batch) -----------------------------------------------
         resultsHeaderLabel.setId("validation-results-header");
@@ -217,7 +215,27 @@ public class ValidationPanel extends VBox {
         // validation off) so the fixed problem disappears from every list.
         editorHost.getQuickFixController().setOnFixApplied(this::revalidate);
 
-        getChildren().addAll(resultsSection, problemsSection);
+        // RESULTS and the per-file PROBLEMS list only exist for batch runs; a single-file run
+        // lists its problems in the PROBLEMS dock below the editor, and the panel only shows
+        // the count with a jump there (UX plan 2.4).
+        for (CollapsibleSection batchOnly : new CollapsibleSection[]{resultsSection, problemsSection}) {
+            batchOnly.visibleProperty().bind(batchMode.selectedProperty());
+            batchOnly.managedProperty().bind(batchMode.selectedProperty());
+        }
+        problemsJump.setId("validation-show-problems");
+        problemsJump.getStyleClass().add("fxt-vp-problems-jump");
+        Runnable syncJump = () -> {
+            boolean show = !isBatchMode() && !problems.isEmpty();
+            problemsJump.setText(EditorActions.problemCount(problems.size()) + " — show below the editor");
+            problemsJump.setVisible(show);
+            problemsJump.setManaged(show);
+        };
+        problems.addListener((javafx.collections.ListChangeListener<ValidationProblem>) c -> syncJump.run());
+        batchMode.selectedProperty().addListener((obs, oldV, newV) -> syncJump.run());
+        syncJump.run();
+        getChildren().add(getChildren().indexOf(status) + 1, problemsJump);
+        // Sections are inserted before the TOOLS groups: results belong to the run above them.
+        getChildren().addAll(getChildren().indexOf(status) + 2, java.util.List.of(resultsSection, problemsSection));
     }
 
     @FXML
@@ -240,16 +258,6 @@ public class ValidationPanel extends VBox {
         if (lastBatchReport != null) {
             editorHost.openGeneratedDocument(lastBatchReport, EditorFileType.OTHER, "BatchReport.txt");
         }
-    }
-
-    @FXML
-    public void onValidateFundsXml() {
-        String xml = editorHost.getActiveText().orElse(null);
-        PanelStatus.info(status, "Validating against FundsXML…");
-        FxtGui.executorService.submit(() -> {
-            String summary = FundsXmlRunner.validateSummary(xml);
-            Platform.runLater(() -> PanelStatus.info(status, summary));
-        });
     }
 
     /**
@@ -421,11 +429,15 @@ public class ValidationPanel extends VBox {
                 schematronReportButton.setDisable(lastSchematronReport == null);
                 boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
                 String summary = (result.isEmpty()
-                        ? (hasSchema ? "Valid" : "Well-formed")
-                        : result.size() + " problem(s)")
+                        ? (hasSchema ? "Valid" : EditorActions.WELL_FORMED_NO_SCHEMA)
+                        : EditorActions.problemCount(result.size()))
                         + (showStats ? " · " + elapsedMs + " ms" : "");
-                if (result.isEmpty()) {
+                if (result.isEmpty() && hasSchema) {
                     PanelStatus.success(status, summary);
+                } else if (result.isEmpty()) {
+                    // Only well-formedness was checked: neutral, and the SOURCES slot above
+                    // ("No XSD bound — choose or drop a file") is the next step.
+                    PanelStatus.info(status, summary);
                 } else {
                     PanelStatus.info(status, summary);
                 }
@@ -454,7 +466,7 @@ public class ValidationPanel extends VBox {
         return problems.size();
     }
 
-    /** @return the current validation status text (e.g. "Well-formed", "Valid", "N problem(s)"). */
+    /** @return the current validation status text (e.g. "Well-formed · no schema bound", "Valid", "N problems"). */
     public String getStatusText() {
         return status.getText();
     }
@@ -464,9 +476,15 @@ public class ValidationPanel extends VBox {
         return liveValidation.isSelected();
     }
 
+    private void revealProblemsDock() {
+        editorHost.revealProblems();
+    }
+
     /** @return the TOOLS rows' labels in display order (for tests/observers). */
     public List<String> toolLabels() {
-        return tools.labels();
+        List<String> labels = new java.util.ArrayList<>(tools.labels());
+        labels.addAll(authoringTools.labels());
+        return labels;
     }
 
     /** @return all ⋮-menu item texts, flattened including submenu entries (for tests/observers). */
@@ -528,6 +546,7 @@ public class ValidationPanel extends VBox {
         if (files == null || files.isEmpty()) {
             return;
         }
+        setBatchMode(true); // RESULTS is only shown in batch mode
         File xsd = editorHost.activeSchemaProperty().get();
         int total = files.size();
         java.util.concurrent.atomic.AtomicBoolean cancelled = new java.util.concurrent.atomic.AtomicBoolean(false);
@@ -682,19 +701,19 @@ public class ValidationPanel extends VBox {
 
     private void refreshXsdStatus() {
         File xsd = editorHost.activeSchemaProperty().get();
-        setSourceName(xsdName, xsd != null ? xsd.getName() : null);
+        showOpenableSource(xsdRow, xsd);
     }
 
     private void refreshJsonSchemaStatus() {
         // activeSchema carries whichever schema kind the active tab holds (XSD for the
         // XML family, JSON Schema for JSON) — the visible row decides the interpretation.
         File schema = editorHost.activeSchemaProperty().get();
-        setSourceName(jsonSchemaName, schema != null ? schema.getName() : null);
+        jsonSchemaRow.showFile(schema);
     }
 
     private void refreshSchematronStatus() {
         File schematron = editorHost.getActiveSchematron();
-        setSourceName(schematronName, schematron != null ? schematron.getName() : null);
+        showOpenableSource(schematronRow, schematron);
     }
 
     /**
@@ -703,7 +722,6 @@ public class ValidationPanel extends VBox {
      */
     private void makeSourceNameOpenable(Label label, java.util.function.Supplier<File> file) {
         label.getStyleClass().add("fxt-vp-source-open");
-        label.setTooltip(new javafx.scene.control.Tooltip("Open in editor"));
         label.setOnMouseClicked(e -> {
             File bound = file.get();
             if (bound != null && bound.exists()) {
@@ -712,14 +730,10 @@ public class ValidationPanel extends VBox {
         });
     }
 
-    /** Shows the file name, or a muted "none" while the source is unset. */
-    private static void setSourceName(Label label, String name) {
-        label.setText(name != null ? name : "none");
-        if (name != null) {
-            label.getStyleClass().remove("fxt-vp-source-none");
-        } else if (!label.getStyleClass().contains("fxt-vp-source-none")) {
-            label.getStyleClass().add("fxt-vp-source-none");
-        }
+    /** Shows a bound file whose name opens it in the editor (path + hint as tooltip). */
+    private static void showOpenableSource(SourceRow row, File file) {
+        row.showName(file != null ? file.getName() : null,
+                file != null ? file.getAbsolutePath() + "\nClick to open in the editor" : null);
     }
 
     @FXML
@@ -814,14 +828,14 @@ public class ValidationPanel extends VBox {
         }
         File output = target.getName().toLowerCase().endsWith(".xlsx")
                 ? target : new File(target.getParentFile(), target.getName() + ".xlsx");
-        PanelStatus.info(status, "Exporting " + snapshot.size() + " problem(s)…");
+        PanelStatus.info(status, "Exporting " + EditorActions.problemCount(snapshot.size()) + "…");
         FxtGui.executorService.submit(() -> {
             try {
                 ValidationExcelExporter.export(snapshot, sourceName, output.toPath());
                 Platform.runLater(() -> {
-                    PanelStatus.success(status, "Exported " + snapshot.size() + " problem(s)");
+                    PanelStatus.success(status, "Exported " + EditorActions.problemCount(snapshot.size()));
                     org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Export problems",
-                            null, "Wrote " + snapshot.size() + " problem(s) to:\n" + output.getAbsolutePath());
+                            null, "Wrote " + EditorActions.problemCount(snapshot.size()) + " to:\n" + output.getAbsolutePath());
                 });
             } catch (Exception ex) {
                 Platform.runLater(() -> PanelStatus.failure(status, "Export problems",
