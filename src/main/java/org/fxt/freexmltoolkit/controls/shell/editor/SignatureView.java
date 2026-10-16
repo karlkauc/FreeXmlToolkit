@@ -121,6 +121,7 @@ public class SignatureView extends ScrollPane {
     @FXML private PasswordField trustStorePassword;
     @FXML private CheckBox checkRevocation;
     @FXML private Label status;
+    @FXML private javafx.scene.control.Hyperlink validateSignedLink;
 
     private final Map<Action, VBox> sections = new EnumMap<>(Action.class);
     private final javafx.scene.control.MenuButton keystoreFavoritesMenu;
@@ -129,6 +130,8 @@ public class SignatureView extends ScrollPane {
     private Consumer<String> onActionShown = key -> { };
     private File xmlFile;
     private File keystoreFile;
+    /** The file the last successful signing wrote ("Validate this signature" checks it). */
+    private File signedFile;
     private File trustStoreFile;
 
     /** Loads the layout from {@code /pages/views/SignatureView.fxml}; starts on {@link Action#SIGN}. */
@@ -177,6 +180,7 @@ public class SignatureView extends ScrollPane {
     public void selectAction(Action action) {
         if (currentAction != action) {
             PanelStatus.info(status, "");
+            showValidateSignedLink(false);
         }
         currentAction = action;
         actionIcon.setIconLiteral(action.icon);
@@ -352,13 +356,34 @@ public class SignatureView extends ScrollPane {
                 if (success) {
                     PanelStatus.success(status, finalResult);
                     if (output.exists()) {
+                        // Open the signed file, but keep this page in front: the next step is
+                        // usually checking the signature, offered right below the status.
                         editorHost.openFile(output.toPath());
+                        editorHost.selectTabShowing(this);
+                        signedFile = output;
+                        showValidateSignedLink(true);
                     }
                 } else {
                     PanelStatus.failure(status, "Signing failed", finalResult);
                 }
             });
         });
+    }
+
+    /** Switches to Validate with the file just signed as the document and runs the check. */
+    @FXML
+    public void onValidateSigned() {
+        File file = signedFile;
+        selectAction(Action.VALIDATE);
+        if (file != null) {
+            setDocument(file);
+        }
+        validateActive();
+    }
+
+    private void showValidateSignedLink(boolean visible) {
+        validateSignedLink.setVisible(visible);
+        validateSignedLink.setManaged(visible);
     }
 
     /** Marks blank alias / password fields; @return whether one was blank */

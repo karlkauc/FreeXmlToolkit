@@ -298,7 +298,7 @@ against the **active** document.
 2. Choose **XPath** or **XQuery** with the mode toggle
 3. Enter your expression - it is syntax-highlighted, and IntelliSense suggests element
    names, functions, and axes as you type (or on **Ctrl+Space**)
-4. Click **Run** (in XPath mode, **Enter** also runs; in XQuery mode use **Ctrl+Enter**)
+4. Click **Run** or press **Ctrl+Enter** (Enter inserts a new line; the hint below the query says so)
 5. The result appears in the read-only results pane on the right, with syntax highlighting;
    **Copy** puts it on the clipboard
 

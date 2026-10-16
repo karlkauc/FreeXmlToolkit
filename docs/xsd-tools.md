@@ -587,8 +587,8 @@ Create sample XML files based on your XSD schema. This is useful for testing, da
 For simple use cases, you can generate sample XML in seconds:
 
 1. Load your XSD file
-2. Open the **Schema** panel from the activity bar and click **Generate Sample XML…** in its
-   **TOOLS** section (below the type lists; expand it if collapsed). If the schema has
+2. Choose **Generate Sample XML…** in the toolbar's **Schema ▾** menu or under **Tools**
+   (or in the **Schema** panel's **TOOLS** section below the type lists). If the schema has
    unsaved changes, choose **Save and Continue** or **Use Saved Version** when asked
 3. Choose your options:
     - **Only mandatory elements**: Include only required elements

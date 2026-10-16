@@ -77,7 +77,7 @@ class SignatureViewTest {
         });
         assertVisible("#sig-section-document", "#sig-section-validate");
         assertHidden("#sig-section-keystore", "#sig-section-create");
-        assertEquals("Validate Signature", ((Button) panel.lookup("#sig-validate-run")).getText());
+        assertEquals("Run Validation", ((Button) panel.lookup("#sig-validate-run")).getText());
         assertEquals("Validate (Details)", ((Button) panel.lookup("#sig-validate-details")).getText());
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
@@ -115,6 +115,32 @@ class SignatureViewTest {
             return null;
         });
         assertTrue(panel.getStatusText().isBlank(), "the old result does not carry over to another action");
+    }
+
+    @Test
+    void afterSigningThePageOffersToValidateTheSignedFile(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<order><item>A</item></order>");
+        java.io.File keystore = new java.io.File("release/examples/signature/fundsxml-demo_KeyStore.jks");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setKeystore(keystore);
+            panel.setCredentials("fundsxml-demo", "changeit", "changeit");
+            panel.signFile(xml.toFile());
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.lookup("#sig-validate-signed").isVisible()));
+        assertTrue(Files.exists(tmp.resolve("order.signed.xml")));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ((javafx.scene.control.Hyperlink) panel.lookup("#sig-validate-signed")).fire();
+            return null;
+        });
+        assertEquals(SignatureView.Action.VALIDATE, panel.currentAction());
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> !panel.getStatusText().equals("Validating…")
+                && !panel.getStatusText().isBlank());
+        assertTrue(panel.getStatusText().toLowerCase().contains("valid"), panel.getStatusText());
+        assertFalse(panel.getStatusText().toLowerCase().contains("invalid"), panel.getStatusText());
     }
 
     private void assertVisible(String... selectors) {

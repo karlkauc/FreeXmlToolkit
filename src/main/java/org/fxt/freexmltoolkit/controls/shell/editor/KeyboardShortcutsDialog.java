@@ -51,7 +51,7 @@ public final class KeyboardShortcutsDialog {
                 new String[]{mod("L"), "Toggle Side Panel"},
                 new String[]{mod("Shift+P"), "Toggle Properties Inspector"},
                 new String[]{mod("Shift+X"), "Toggle Query Console"},
-                new String[]{mod("K"), "Open Query Console (search)"},
+                new String[]{mod("K"), "Open Query Console and focus the query (header search pill)"},
                 new String[]{mod("E"), "Spreadsheet Converter"},
                 new String[]{mod("T"), "Insert Template"},
                 new String[]{"Ctrl++ / Ctrl+-", "Grid view: zoom in / out"},

@@ -378,18 +378,21 @@ with the closely related actions:
 | **Run** | Run the active document against the selected **Input** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Run Pipeline** (XProc) |
 | **Schema** | **Set XSD Schema…** - bind an XSD to the active document for IntelliSense and validation | **Set XSD Schema…** · **Generate Documentation…** (HTML/PDF/Word for the active XSD) · **Type Editor…** (edit a named type of the active XSD) · **Generate XSD from XML** (infer a schema from the active XML document) · **Generate XSD from XML Files…** (infer one schema from several XML files) |
 
+- **Transform** (labelled button, tooltip *Transform with XSLT…*) - Opens the [Transform panel](#transform-panel) on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel)
+
 ### Icon-only buttons (hover for the tooltip)
 
 - **Undo** (Ctrl+Z) / **Redo** (Ctrl+Y)
-- **Query Console** (Ctrl+Shift+X) - Toggle the bottom XPath/XQuery console (terminal icon)
-- **Transform with XSLT…** - Opens the [Transform panel](#transform-panel) on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel)
+- **Query Console** - Shows / hides the bottom XPath/XQuery console (terminal icon). **Ctrl+Shift+X**
+  shows or hides it; **Ctrl+K** (and the header's *Run XPath / XQuery…* pill) opens it and puts the
+  cursor in the query.
 
 ### Type-gating and the Input dropdown {#type-gating-and-the-target-dropdown}
 
 The document actions act on the **active document** and are **enabled only when they apply to
 its type** (greyed out otherwise) - this covers **Validate**, **Transform with XSLT…**, the
 **Run** button and its menu entries (and **Tools → Run** / **F5**), and the Schema menu's **Generate Documentation…** /
-**Type Editor…**. The **Input** dropdown (labelled *"Input: …"*, formerly *Target*) appears next to **Run** only while a query, XSLT, or
+**Type Editor…** / **Generate Sample XML…** (also in **Tools**). The **Input** dropdown (labelled *"Input: …"*, formerly *Target*) appears next to **Run** only while a query, XSLT, or
 XProc document is active and selects the XML document the run works on. See
 [Editor Toolbar Document Actions](#editor-toolbar-document-actions) and
 [Query Documents & the Input Selector](#query-documents-the-target-selector) below.
@@ -767,13 +770,13 @@ The OUTPUT panel header shows:
       from each item's child elements (or, if an item has no child elements, its
       attributes). A sequence of plain values is shown in a single **value** column.
 - **Actions**:
-    - **Open result as editor tab** - opens the result as a regular document
+    - **Open as Tab** (*Open result as editor tab*) - opens the result as a regular document
       (`Transform-Result.xml` / `.html` / `.json` / `.txt`) that you can edit and save.
       An **HTML/XHTML result** opens as an HTML document rendered in the
       [Preview](#html-preview) view (switch to Text to see the markup); re-running the
       transform updates the open result tab, re-rendering the preview if it is showing.
-    - **Open in browser** - opens the result (typically HTML) in your system web browser.
-    - **Save result…** - writes the result straight to a file.
+    - **Browser** (*Open in browser*) - opens the result (typically HTML) in your system web browser.
+    - **Save…** (*Save result…*) - writes the result straight to a file.
     - **✕** - hides the OUTPUT panel; it reappears automatically on the next run.
 
 !!! note
@@ -1080,8 +1083,8 @@ appearing in the recent list.
 
 The **status line** below the button summarises the run: **Valid**, **1 problem** /
 **N problems**, or - when no schema is bound and only the well-formedness check ran -
-**Well-formed · no schema bound** (shown neutral, not green: bind an XSD in SOURCES to
-validate against a schema).
+**Well-formed · no schema bound** (shown neutral, not green - in the panel and in the
+Inspector's badge: bind an XSD in SOURCES to validate against a schema).
 
 The **RESULTS** list and the panel's own **PROBLEMS** list are only shown in **Batch**
 mode. In **Single file** mode the problems are listed in the PROBLEMS panel below the
@@ -1105,7 +1108,8 @@ run combines several checks you can tell at a glance where each problem comes fr
 Hovering a **Schematron** row shows a **tooltip** with the full message, the failed
 rule/test expression, and the XPath of the failing node.
 
-Selecting a problem in either list jumps to its line in the editor. This works for
+Selecting a problem in either list jumps to its line - and, for XML and XSD errors, to the
+reported column - in the editor (Text view). This works for
 **Schematron problems too**: the failing rule's context node is resolved back to its
 line in the XML, so a click navigates straight to the offending element.
 
@@ -1271,13 +1275,14 @@ favorite type with a lock icon (see [Favorites](favorites-system.md)):
   instructions outside the root element are not kept) and **Detached** (a separate
   `name.sig.xml` that references the original - validate that file and keep both in the same
   folder; the card shows this hint when Detached is selected). The result is opened in a
-  new tab. The saved file on disk is signed - if the document has unsaved changes, you are
+  background tab; the page stays in front and offers **Validate this signature**, which switches
+  to Validate Signature with the signed file and runs the check. The saved file on disk is signed - if the document has unsaved changes, you are
   first asked whether to save them (see [Tools that read the saved file](#tools-that-read-the-saved-file)).
   **Show certificate details** loads the keystore's certificate and shows the mockup's
   certificate inspector: subject (CN/O/C) with a self-signed/CA badge, the validity window
   with a *"Valid · N days remaining"* banner (red when expired), serial, signature
   algorithm, key usage, and the **SHA-256 fingerprint** with a copy button.
-- **Validate Signature** - **Validate Signature** checks the signature of the document in the
+- **Validate Signature** - **Run Validation** checks the signature of the document in the
   page's **DOCUMENT** row (the active document unless you picked another one with **Browse**);
   **Validate (Details)** opens a detailed report (validity + signing-certificate details).
   The result is explained in plain language: a valid signature
@@ -1545,7 +1550,7 @@ When no document is open, the editor shows a welcome dashboard with:
 
     | Task | What happens |
     |------|--------------|
-    | **Validate an XML file** | Asks for a file, opens it and shows the [Validation panel](#validation-panel) |
+    | **Validate an XML file** | Asks for a file, opens it, shows the [Validation panel](#validation-panel) and validates it as soon as it is loaded |
     | **Run an XSLT transformation** | Asks for an XML file, opens it and shows the [Transform panel](#transform-panel), where you choose the stylesheet |
     | **Query a document** | Asks for an XML file, opens it and opens the [Query Console](#query-console) for XPath / XQuery |
     | **Edit a schema** | Asks for an XSD file, opens it and shows the Schema panel |
@@ -1878,8 +1883,8 @@ pane shows the previous run's XML result with syntax highlighting.*
     (in XQuery mode) FLWOR keywords. Use ↑/↓ to navigate and **Enter**/**Tab** to accept.
   - The query is **syntax-highlighted** as you type: keywords, functions, axes, variables,
     strings, numbers and comments each get their own color.
-  - To run: in **XPath** mode press **Enter**; in **XQuery** mode press **Ctrl+Enter** (Enter
-    inserts a newline). The **Run** button works in both modes.
+  - To run: press **Ctrl+Enter** in either mode (Enter inserts a new line, so queries can
+    span several lines; a hint below the query says so). The **Run** button works in both modes.
   - **Run** - Execute the query against the active document.
   - **Save** - Save the current expression as a reusable snippet (see below).
   - **Snippets** - A menu of your saved XPath and XQuery snippets; pick one to load it (the console

@@ -1255,12 +1255,18 @@ public class InspectorPanel extends VBox {
             return;
         }
         boolean valid = status.state() == EditorHost.ValidationState.VALID;
-        IconifyIcon icon = new IconifyIcon(valid ? "bi-check-circle-fill" : "bi-x-circle-fill");
+        // Well-formed without a schema is no "valid": neutral, like the Validation panel.
+        boolean noSchema = valid && org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.WELL_FORMED_NO_SCHEMA
+                .equals(status.summary());
+        IconifyIcon icon = new IconifyIcon(noSchema ? "bi-info-circle-fill"
+                : valid ? "bi-check-circle-fill" : "bi-x-circle-fill");
         icon.setIconSize(12);
         validationBadge.setGraphic(icon);
         validationBadge.setText(status.summary());
-        validationBadge.getStyleClass().removeAll("fxt-inspector-valid-badge", "fxt-inspector-invalid-badge");
-        validationBadge.getStyleClass().add(valid ? "fxt-inspector-valid-badge" : "fxt-inspector-invalid-badge");
+        validationBadge.getStyleClass().removeAll("fxt-inspector-valid-badge", "fxt-inspector-invalid-badge",
+                "fxt-inspector-neutral-badge");
+        validationBadge.getStyleClass().add(noSchema ? "fxt-inspector-neutral-badge"
+                : valid ? "fxt-inspector-valid-badge" : "fxt-inspector-invalid-badge");
         validationBadge.setVisible(true);
         validationBadge.setManaged(true);
     }

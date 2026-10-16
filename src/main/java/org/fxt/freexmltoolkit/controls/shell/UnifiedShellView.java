@@ -100,6 +100,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.SplitMenuButton actionRun;
     @FXML private javafx.scene.control.MenuItem actionGenerateDocs;
     @FXML private javafx.scene.control.MenuItem actionTypeEditor;
+    @FXML private javafx.scene.control.MenuItem actionGenerateSample;
     @FXML private javafx.scene.control.MenuItem actionGenerateXsd;
     @FXML private javafx.scene.control.MenuItem actionRunQuery;
     @FXML private javafx.scene.control.MenuItem actionRunTransform;
@@ -293,6 +294,10 @@ public class UnifiedShellView extends BorderPane {
         editorHost.setWelcomeActionHandler(this::handleWelcomeAction);
         // A FundsXML document while the extension is off: offer it once (UX plan 5.5).
         editorHost.setDocumentLoadedHandler((doc, content) -> {
+            if (doc == validateWhenLoaded) {
+                validateWhenLoaded = null;
+                validateActive();
+            }
             if (org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.shouldOffer(content)) {
                 showFundsXmlHint();
             }
@@ -400,13 +405,28 @@ public class UnifiedShellView extends BorderPane {
      */
     private void runWelcomeTask(String key) {
         switch (key) {
-            case "task-validate" -> pickFileThen(() -> showActivity(Activity.VALIDATION));
+            case "task-validate" -> pickFileThen(() -> {
+                showActivity(Activity.VALIDATION);
+                validateOnceLoaded();
+            });
             case "task-transform" -> pickFileThen(() -> showActivity(Activity.TRANSFORM));
             case "task-query" -> pickFileThen(this::openQueryConsole);
             case "task-schema" -> pickFileThen(() -> showActivity(Activity.SCHEMA));
             case "task-pdf" -> pickFileThen(() -> showActivity(Activity.PDF_FOP));
             case "task-sign" -> showActivity(Activity.SIGNATURE);
             default -> { }
+        }
+    }
+
+    /** The document the Validate task waits for (validated as soon as its file is read), or null. */
+    private org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument validateWhenLoaded;
+
+    /** Validates the active document now, or as soon as its file has been read. */
+    private void validateOnceLoaded() {
+        if (editorHost.isActiveDocumentLoading()) {
+            validateWhenLoaded = editorHost.getActiveDocument().orElse(null);
+        } else {
+            validateActive();
         }
     }
 
@@ -1328,6 +1348,8 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onSetSchema() { toolbar("set_schema"); setSchema(); }
     @FXML public void onGenerateDocs() { toolbar("generate_docs"); editorActions.generateDocsActive(window()); }
     @FXML public void onTypeEditor() { toolbar("type_editor"); editorActions.openTypeEditorActive(); }
+    /** Schema ▾ / Tools → Generate Sample XML… for the active XSD (same as the Schema panel tool). */
+    @FXML public void onGenerateSample() { toolbar("generate_sample"); schemaTools().generateSampleXmlForActive(); }
 
     /** Schema ▾ → Generate XSD from XML: infers a schema from the active XML document. */
     @FXML public void onGenerateXsdFromXml() { toolbar("generate_xsd"); schemaTools().generateXsdFromActive(); }
@@ -1565,6 +1587,8 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TRANSFORM));
         actionGenerateDocs.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.GENERATE_DOCS));
+        actionGenerateSample.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
         actionTypeEditor.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.TYPE_EDITOR));
         actionGenerateXsd.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML);

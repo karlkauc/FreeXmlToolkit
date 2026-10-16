@@ -147,4 +147,13 @@ class ValidationRunnerTest {
         assertTrue(report.matches("(?s).*bad\\.xml: \\d+ problem.*"), report);
         assertTrue(report.contains("good.xml: valid"), report);
     }
+
+    @Test
+    void wellFormednessErrorsCarryTheirColumn() {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        List<ValidationProblem> problems = ValidationRunner.run("<root>\n  <a></b>\n</root>", null, null);
+        assertFalse(problems.isEmpty(), "a mismatched end tag is reported");
+        assertEquals(2, problems.getFirst().line());
+        assertTrue(problems.getFirst().column() > 0, "Xerces reports a column: " + problems.getFirst());
+    }
 }

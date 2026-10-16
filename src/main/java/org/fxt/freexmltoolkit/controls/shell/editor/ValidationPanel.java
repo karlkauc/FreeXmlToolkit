@@ -183,7 +183,7 @@ public class ValidationPanel extends VBox {
         problemsList.setCellFactory(lv -> new ProblemCell());
         problemsList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.line() > 0) {
-                editorHost.goToLine(newV.line());
+                editorHost.goToLine(newV.line(), newV.column());
             }
         });
 

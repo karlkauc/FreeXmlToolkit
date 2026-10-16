@@ -69,6 +69,19 @@ class InspectorValidationBadgeTest {
         assertFalse(badge().isVisible(), "the badge is hidden until the document is validated");
     }
 
+    @Test
+    void wellFormedWithoutASchemaIsNeutralNotGreen() throws Exception {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setValidationStatus(EditorHost.ValidationState.VALID, 0,
+                    org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.WELL_FORMED_NO_SCHEMA);
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        Label badge = badge();
+        assertTrue(badge.getStyleClass().contains("fxt-inspector-neutral-badge"), badge.getStyleClass().toString());
+        assertFalse(badge.getStyleClass().contains("fxt-inspector-valid-badge"), "no green check without a schema");
+    }
+
     private Label badge() {
         return (Label) inspector.lookup("#inspector-validation-badge");
     }

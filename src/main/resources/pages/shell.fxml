@@ -152,10 +152,10 @@
                                         <Button id="action-query-console" text=""
                                                 styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onQueryConsole">
                                             <graphic><IconifyIcon iconLiteral="bi-terminal" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Query Console (XPath/XQuery)  Ctrl+Shift+X"/></tooltip>
+                                            <tooltip><Tooltip text="Query Console (XPath/XQuery) — Ctrl+Shift+X shows / hides it, Ctrl+K opens it and puts the cursor in the query"/></tooltip>
                                         </Button>
                                         <Separator orientation="VERTICAL"/>
-                                        <Button fx:id="actionTransform" id="doc-action-transform" text=""
+                                        <Button fx:id="actionTransform" id="doc-action-transform" text="Transform"
                                                 styleClass="fxt-tool-button, fxt-tool-transform" onAction="#onTransform">
                                             <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="16"/></graphic>
                                             <tooltip><Tooltip text="Transform with XSLT… (choose a stylesheet)"/></tooltip>
@@ -189,7 +189,7 @@
                                                          styleClass="fxt-tool-button, fxt-tool-schema, fxt-tool-split"
                                                          onAction="#onSetSchema">
                                             <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Set XSD Schema… (IntelliSense &amp; validation) — arrow: Generate Docs / Type Editor / Generate XSD from XML"/></tooltip>
+                                            <tooltip><Tooltip text="Set XSD Schema… (IntelliSense &amp; validation) — arrow: Generate Docs / Type Editor / Sample XML / Generate XSD from XML"/></tooltip>
                                             <items>
                                                 <MenuItem id="action-set-schema-item" text="Set XSD Schema…" onAction="#onSetSchema">
                                                     <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
@@ -201,6 +201,10 @@
                                                 <MenuItem fx:id="actionTypeEditor" id="doc-action-type-editor"
                                                           text="Type Editor…" onAction="#onTypeEditor">
                                                     <graphic><IconifyIcon iconLiteral="bi-braces-asterisk" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <MenuItem fx:id="actionGenerateSample" id="doc-action-generate-sample"
+                                                          text="Generate Sample XML…" onAction="#onGenerateSample">
+                                                    <graphic><IconifyIcon iconLiteral="bi-file-earmark-play" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <SeparatorMenuItem/>
                                                 <MenuItem fx:id="actionGenerateXsd" id="doc-action-generate-xsd"

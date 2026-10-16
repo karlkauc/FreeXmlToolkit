@@ -168,7 +168,8 @@ untouched, and opened in the editor automatically.
    different file
 5. Pick the signature type (Enveloped, Enveloping or Detached)
 6. Click **"Sign Document"**
-7. The signed file (`<name>.signed.xml` or `<name>.sig.xml`) opens in a new editor tab
+7. The signed file (`<name>.signed.xml` or `<name>.sig.xml`) opens in a new editor tab in the
+   background; the Signature page stays in front and offers **Validate this signature**
 
 > **Unsaved changes:** signing reads the document **from disk**. If it has unsaved changes,
 > you are asked *"Save changes to <file> first?"* - **Save and Continue** signs your current
@@ -187,11 +188,13 @@ untouched, and opened in the editor automatically.
 
 ### How to Verify a Signature
 
-1. Open the signed XML file in the editor (it becomes the active document)
+1. Right after signing, click **Validate this signature** below the status line - it switches to
+   **Validate Signature** with the signed file and runs the check. Otherwise open the signed XML
+   file in the editor (it becomes the active document)
 2. On the **Signature** page, choose **Validate Signature** in the side panel
 3. Check the **DOCUMENT** row - it shows the active document; click **Browse** to check a
    different file
-4. Click the **Validate Signature** button
+4. Click the **Run Validation** button
 5. See the result in the status line (failures additionally open an explanatory dialog)
 
 For a detailed report (validity plus signing-certificate details), use the outlined

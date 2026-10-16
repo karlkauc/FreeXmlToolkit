@@ -69,6 +69,7 @@ public final class ShellMenuBar extends MenuBar {
             "menu-tools-validate", EditorAction.VALIDATE,
             "menu-tools-transform", EditorAction.TRANSFORM,
             "menu-tools-generate-docs", EditorAction.GENERATE_DOCS,
+            "menu-tools-generate-sample", EditorAction.TYPE_EDITOR,
             "menu-tools-type-editor", EditorAction.TYPE_EDITOR);
 
     private final UnifiedShellView shell;
@@ -348,6 +349,7 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onSetSchema() { run("set_schema", shell::onSetSchema); }
     @FXML public void onGenerateDocs() { run("generate_docs", shell::onGenerateDocs); }
     @FXML public void onTypeEditor() { run("type_editor", shell::onTypeEditor); }
+    @FXML public void onGenerateSample() { run("generate_sample", shell::onGenerateSample); }
     @FXML public void onCompare() { run("compare", shell::onCompare); }
     @FXML public void onSpreadsheet() { run("spreadsheet", shell::onSpreadsheet); }
     @FXML public void onAddToFavorites() { run("add_favorite", shell::addActiveDocumentToFavorites); }

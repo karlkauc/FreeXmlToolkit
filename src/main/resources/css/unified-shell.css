@@ -1658,7 +1658,7 @@
 /* ----- Editor toolbar: Validate now uses the shared .fxt-tool-primary variant ----- */
 
 /* ----- Inspector validation badge (Figma node header "✓ Valid") ----- */
-.fxt-inspector-valid-badge, .fxt-inspector-invalid-badge {
+.fxt-inspector-valid-badge, .fxt-inspector-invalid-badge, .fxt-inspector-neutral-badge {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 10px;
     -fx-font-weight: bold;
@@ -1679,6 +1679,14 @@
 }
 .fxt-inspector-invalid-badge .iconify-icon {
     -fx-icon-color: #dc3545;
+}
+/* Well-formed, but no schema bound: informational, not a pass. */
+.fxt-inspector-neutral-badge {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-background-color: -fxt-bg-subtle;
+}
+.fxt-inspector-neutral-badge .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
 }
 
 /* ----- Inspector editable fields (Phase: editable properties pane) ----- */
@@ -3480,4 +3488,13 @@
 .fxt-hint-bar-text {
     -fx-text-fill: -fxt-text-primary;
     -fx-font-size: 12px;
+}
+
+/* Labelled actions in the OUTPUT dock header (UX plan 7): icon + short text. */
+.fxt-output-action {
+    -fx-content-display: left;
+    -fx-graphic-text-gap: 4;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-padding: 2 6 2 6;
 }

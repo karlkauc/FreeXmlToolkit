@@ -178,7 +178,7 @@
                         <!-- VALIDATE -->
                         <VBox fx:id="validateSection" id="sig-section-validate" spacing="8">
                             <children>
-                                <Button id="sig-validate-run" text="Validate Signature" maxWidth="Infinity"
+                                <Button id="sig-validate-run" text="Run Validation" maxWidth="Infinity"
                                         styleClass="fxt-primary-button" onAction="#validateActive">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-shield-check" iconSize="15"/>
@@ -263,6 +263,10 @@
                         </VBox>
 
                         <Label fx:id="status" id="sig-status" wrapText="true" styleClass="fxt-vp-status"/>
+                        <!-- After signing: check the new file without leaving the page (UX plan 7) -->
+                        <Hyperlink fx:id="validateSignedLink" id="sig-validate-signed" text="Validate this signature"
+                                   visible="false" managed="false" styleClass="fxt-vp-change"
+                                   onAction="#onValidateSigned"/>
                     </children>
                 </VBox>
             </children>

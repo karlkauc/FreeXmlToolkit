@@ -1168,6 +1168,21 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /** @return whether the active document's file is still being read from disk */
+    public boolean isActiveDocumentLoading() {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et && et.loading;
+    }
+
+    /** Brings the tab whose content is {@code content} (e.g. a tool page) to the front, if open. */
+    public void selectTabShowing(javafx.scene.Node content) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab.getContent() == content) {
+                tabPane.getSelectionModel().select(tab);
+                return;
+            }
+        }
+    }
+
     /** Open type-editor tabs, keyed by type name, so a type is edited in at most one tab. */
     private final java.util.Map<String, Tab> openTypeTabs = new java.util.HashMap<>();
 
@@ -2624,12 +2639,21 @@ public class EditorHost extends BorderPane {
 
     /** Switches to Text mode and moves the caret to the given 1-based line (jump-to-problem). */
     public void goToLine(int line) {
+        goToLine(line, 0);
+    }
+
+    /**
+     * Switches to Text mode and moves the caret to the given 1-based line and column (a column
+     * below 1 means the line start; one past the line end is clamped to it).
+     */
+    public void goToLine(int line, int column) {
         setActiveViewMode(ViewMode.TEXT);
         withActive(et -> {
             var codeArea = et.view.getCodeArea();
             int paragraphs = codeArea.getParagraphs().size();
             int paragraph = Math.max(0, Math.min(line - 1, Math.max(0, paragraphs - 1)));
-            codeArea.moveTo(paragraph, 0);
+            int col = Math.max(0, Math.min(column - 1, codeArea.getParagraphLength(paragraph)));
+            codeArea.moveTo(paragraph, col);
             codeArea.requestFollowCaret();
             et.view.getNode().requestFocus();
         });

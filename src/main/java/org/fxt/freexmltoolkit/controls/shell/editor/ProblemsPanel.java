@@ -42,7 +42,7 @@ public class ProblemsPanel extends VBox {
         list.setCellFactory(lv -> new ProblemRowCell());
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.line() > 0) {
-                editorHost.goToLine(newV.line());
+                editorHost.goToLine(newV.line(), newV.column());
             }
         });
 

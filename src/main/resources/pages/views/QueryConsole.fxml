@@ -97,6 +97,9 @@
                     </children>
                 </HBox>
                 <StackPane fx:id="inputStack" maxHeight="Infinity" VBox.vgrow="ALWAYS"/>
+                <!-- Enter adds a line (queries can span lines); say how to run (UX plan 7) -->
+                <Label id="query-run-hint" text="Ctrl+Enter runs the query · Enter adds a line"
+                       styleClass="fxt-placeholder-text"/>
             </children>
         </VBox>
 

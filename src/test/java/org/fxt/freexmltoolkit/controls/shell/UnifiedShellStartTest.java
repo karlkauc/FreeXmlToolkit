@@ -133,6 +133,46 @@ class UnifiedShellStartTest {
         }
     }
 
+    @Test
+    void theValidateTaskValidatesTheFileOnceItIsRead(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp)
+            throws Exception {
+        java.nio.file.Path xml = tmp.resolve("broken.xml");
+        java.nio.file.Files.writeString(xml, "<root><a></b></root>");
+        shell.setWelcomeFilePicker(() -> {
+            shell.getEditorHost().openFile(xml);
+            return true;
+        });
+        fire("#task-validate");
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> shell.getEditorHost().getActiveProblems().size()) > 0);
+        assertEquals(Activity.VALIDATION, shell.getSelectionModel().getActive());
+    }
+
+    @Test
+    void transformIsLabelledAndSampleXmlSitsInTheSchemaMenu() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.getEditorHost().newDocument(EditorFileType.XSD));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals("Transform", WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> ((ButtonBase) shell.lookup("#doc-action-transform")).getText()));
+        javafx.scene.control.MenuItem sample = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            var split = (javafx.scene.control.SplitMenuButton) shell.lookup("#action-set-schema");
+            return split.getItems().stream().filter(i -> "doc-action-generate-sample".equals(i.getId()))
+                    .findFirst().orElse(null);
+        });
+        assertNotNull(sample, "Generate Sample XML is in the Schema menu");
+        assertFalse(sample.isDisable(), "and enabled for an XSD");
+        assertEquals("Save…", WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> ((ButtonBase) new org.fxt.freexmltoolkit.controls.shell.editor.TransformOutputPanel(
+                        shell.getEditorHost()).lookup("#transform-output-save")).getText()));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            shell.openQueryConsole(); // the split's items are only in the scene graph once shown
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNotNull(WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> shell.getQueryConsole().lookup("#query-run-hint")), "the console says Ctrl+Enter runs");
+    }
+
     private Node lookup(String selector) {
         return WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.lookup(selector));
     }
