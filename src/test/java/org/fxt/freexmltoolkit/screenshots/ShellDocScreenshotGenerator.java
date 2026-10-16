@@ -163,6 +163,15 @@ class ShellDocScreenshotGenerator {
             }
             settle(600);
             shot("unified-shell-schema-statistics");
+            // Close the analysis tab so the activity shots below show a document, not the report.
+            onFx(host::closeActiveTab);
+            settle();
+        }
+
+        // The activity panels below work on the XML document: bring it to the front.
+        if (xml.exists()) {
+            onFx(() -> host.openFile(xml.toPath()));
+            settle();
         }
 
         // --- Activity panels (selecting the activity shows its side panel) ---
