@@ -996,10 +996,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#read-only-schema-hints" class="md-nav__link">
+  <a href="#schema-information" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Read-Only Schema Hints
+        Schema Information
       
     </span>
   </a>
@@ -2502,10 +2502,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#read-only-schema-hints" class="md-nav__link">
+  <a href="#schema-information" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Read-Only Schema Hints
+        Schema Information
       
     </span>
   </a>
@@ -2969,23 +2969,37 @@ the right side of the editor.</p>
 <h3 id="what-you-can-edit">What You Can Edit<a class="headerlink" href="#what-you-can-edit" title="Permanent link">&para;</a></h3>
 <p>Depending on the node type, the inspector lets you edit:</p>
 <ul>
-<li><strong>Element name</strong> and its <strong>namespace</strong> (prefix and URI)</li>
-<li><strong>Attributes</strong> - add, rename, and remove them</li>
+<li><strong>Element name</strong> - click the name in the node header at the top of the inspector to rename it</li>
+<li><strong>Namespace</strong> (prefix and URI) - in the <strong>NAMESPACE</strong> section, which is collapsed by default</li>
+<li><strong>Attributes</strong> - in the framed list of the <strong>VALUE &amp; ATTRIBUTES</strong> section: click a name to
+  rename it, click a value to edit it (<strong>Enter</strong> saves, <strong>Esc</strong> cancels), point at a row and
+  click the trash icon to delete it, and use the row below the list to add one</li>
 <li><strong>Text content</strong> of leaf elements</li>
 <li><strong>Text</strong> of comments, CDATA sections, and processing instructions</li>
 </ul>
+<p>Editable values look like plain text; the field frame appears when you point at or click them.
+The <strong>⋮</strong> menu at the top of the inspector offers <strong>Copy XPath</strong>, <strong>Copy Node (XML)</strong>,
+<strong>Expand All Sections</strong> and <strong>Collapse All Sections</strong>, and the <strong>star</strong> next to it adds the file
+to your Favorites. For the full layout, see
+<a href="../unified-shell/#properties-inspector">Unified Shell - Properties Inspector</a>.</p>
 <p>Your edits are written straight back to the document, so the source text always stays in sync.
 In the Text view, edits are applied as a minimal change that keeps your caret and scroll
 position in place.</p>
-<h3 id="read-only-schema-hints">Read-Only Schema Hints<a class="headerlink" href="#read-only-schema-hints" title="Permanent link">&para;</a></h3>
-<p>When the XML file is bound to an XSD schema, the inspector also shows helpful, read-only
-information for the selected element:</p>
+<h3 id="schema-information">Schema Information<a class="headerlink" href="#schema-information" title="Permanent link">&para;</a></h3>
+<p>When the XML file is bound to an XSD schema, the inspector also shows what the schema says
+about the selected element. The node header's validation pill shows <strong>Valid</strong>, the number of
+errors, or <em>Well-formed · no schema bound</em> when no schema is bound.</p>
 <ul>
-<li>The <strong>schema type</strong> derived from the XSD</li>
-<li>The element's <strong>documentation</strong></li>
-<li>Lists of <strong>valid child elements</strong> and <strong>example values</strong></li>
+<li><strong>Schema facts</strong> (read-only) - Type, Base type, Derivation, the facets, minOccurs/maxOccurs,
+  Use, and <strong>Order</strong> (the element's position in its parent sequence or choice, e.g.
+  <em>3 of 3 · sequence</em>). Change these in the schema, not in the XML.</li>
+<li><strong>Documentation</strong> - the element's documentation from the schema.</li>
+<li><strong>Value check</strong> - <em>"Value matches the schema facets"</em> in green, or an amber warning such as
+  <em>"Value should be one of: …"</em> when the current text breaks a facet.</li>
+<li><strong>EXAMPLE VALUES</strong> - shown as chips; click one to use it as the element's text.</li>
+<li><strong>VALID CHILDREN</strong> - shown as chips; click one to add that child element.</li>
+<li><strong>USED IN</strong> - the containing element and its type.</li>
 </ul>
-<p>These hints help you fill in correct content but cannot be edited from the inspector.</p>
 <h3 id="shared-across-views">Shared Across Views<a class="headerlink" href="#shared-across-views" title="Permanent link">&para;</a></h3>
 <p>All three views share a single in-memory model for each open document. This means your edits -
 and your full <strong>Undo / Redo</strong> history - are preserved when you switch between the Text, Tree,

@@ -2710,11 +2710,14 @@ it with the panel toggle at the right end of the editor toolbar.</p>
 <ul>
 <li><strong>Select a node</strong> by moving the text caret into an element (Text view), clicking a node
   (Tree view), or selecting a row in the grid (Graphic view).</li>
-<li><strong>Edit</strong> the element name, namespace (prefix/URI), attributes (add/rename/remove), leaf text,
-  and the text of comments, CDATA, and processing instructions.</li>
+<li><strong>Edit</strong> the element name (click it in the node header), namespace (prefix/URI), attributes
+  (add/rename/edit/delete in a framed list), leaf text, and the text of comments, CDATA, and
+  processing instructions.</li>
 <li>Edits are written straight back to the document text, keeping everything in sync.</li>
-<li>When a schema is bound, the inspector also shows read-only hints: the schema-derived type,
-  documentation, and lists of valid child elements and example values.</li>
+<li>When a schema is bound, the inspector also shows the schema facts read-only (type, base type,
+  facets, cardinality, order), the documentation, a check whether the value matches the facets,
+  and <strong>example values</strong> and <strong>valid children</strong> as chips - click one to use it.</li>
+<li>The <strong>⋮</strong> menu offers Copy XPath, Copy Node (XML) and Expand / Collapse All Sections.</li>
 <li>All views share one in-memory model, so edits and Undo/Redo history carry over when you
   switch views.</li>
 </ul>

@@ -1658,10 +1658,32 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#layout-of-the-inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layout of the inspector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#copying-the-xpath-or-the-node" class="md-nav__link">
     <span class="md-ellipsis">
       
         Copying the XPath or the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#facets-and-attributes-lists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Facets and attributes lists
       
     </span>
   </a>
@@ -3983,10 +4005,32 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#layout-of-the-inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layout of the inspector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#copying-the-xpath-or-the-node" class="md-nav__link">
     <span class="md-ellipsis">
       
         Copying the XPath or the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#facets-and-attributes-lists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Facets and attributes lists
       
     </span>
   </a>
@@ -5694,6 +5738,8 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
   use <strong>Add Comment…</strong> in a node's right-click context menu.</li>
 <li><strong>Delete a constraint</strong> - In the <strong>CONSTRAINTS</strong> section, select a <code>key</code>, <code>keyref</code>, <code>unique</code>,
   or <code>assert</code> constraint and click <strong>Delete constraint</strong> to remove it.</li>
+<li><strong>See where a component is used</strong> - <strong>USED IN</strong> (in <strong>DOCUMENTATION &amp; REFS</strong>) lists every
+  reference to a global type, element or group; click one to select the referring node.</li>
 </ul>
 <h2 id="signature-panel">Signature Page<a class="headerlink" href="#signature-panel" title="Permanent link">&para;</a></h2>
 <p>Clicking <strong>Signature</strong> in the activity bar opens one page, <strong>Signature</strong>, as a tab in the main
@@ -6421,36 +6467,107 @@ any error to jump straight to its location:</p>
 Graphic, and for XSD files in the <strong>Text</strong> view as well as the Tree and Graphic views
 (see <a href="#xsd-files">XSD Files</a> below). For JSON files the inspector edits keys and values
 from the Tree and Graphic views (see <a href="#json-files">JSON Files</a> below).</p>
-<p>The <strong>NODE &amp; XPATH</strong> section shows the XPath on its own full-width
-line below the "XPath" header, so long paths do not get squeezed by the icon column.</p>
 <p>The inspector is not fixed-width: drag the divider line
 between the editor and the inspector to make it wider (handy for long XPaths, attribute
 values, or documentation). The width is remembered across restarts - see
 <a href="#collapsing-the-side-panels">Resizing and collapsing the side panels</a>.</p>
 </blockquote>
+<p><img alt="Properties inspector" src="../img/unified-shell-inspector.png" />
+<em>The Properties inspector for an XML element with a bound schema: node header with validation
+pill, NODE &amp; XPATH, schema facts, and documentation with example values and valid children.</em></p>
 <p>While nothing is selected, the inspector shows a short hint instead of empty sections:
 <em>"Open a document to see the properties of its nodes here."</em> when no document is open, and
 <em>"Select a node in the Tree or Graphic view to see and edit its properties."</em> (or, in the
 Text view, a hint to place the caret on an element) when no node is selected.</p>
-<h3 id="copying-the-xpath-or-the-node">Copying the XPath or the node<a class="headerlink" href="#copying-the-xpath-or-the-node" title="Permanent link">&para;</a></h3>
-<p>The <strong>NODE &amp; XPATH</strong> section at the top of the inspector shows the selected node's XPath.
-Next to the "XPath" header sit two copy buttons:</p>
+<h3 id="layout-of-the-inspector">Layout of the inspector<a class="headerlink" href="#layout-of-the-inspector" title="Permanent link">&para;</a></h3>
+<p>From top to bottom:</p>
 <ul>
-<li><strong>Copy XPath</strong> - copies the positional XPath (e.g. <code>/root/item[2]</code>) to the clipboard.</li>
-<li><strong>Copy Node (XML)</strong> - copies the selected node's XML serialization.</li>
+<li><strong>Top bar</strong> - the title <strong>PROPERTIES</strong>, a <strong>star</strong> button and a <strong>⋮</strong> menu.</li>
+<li>The <strong>star</strong> adds the active file to <a href="../favorites-system/">Favorites</a> (or removes it, when it
+    is already a favorite). It is greyed out for a document that has never been saved.</li>
+<li>The <strong>⋮</strong> menu offers <strong>Copy XPath</strong>, <strong>Copy Node (XML)</strong>, <strong>Expand All Sections</strong> and
+    <strong>Collapse All Sections</strong>.</li>
+<li><strong>Node header</strong> - an icon for the kind of node, the node's <strong>name</strong>, a subtitle such as
+  <em>Element · xs:string</em> (kind · type), and the <strong>validation pill</strong>: <strong>Valid</strong>, the number of
+  errors, or <em>Well-formed · no schema bound</em>. <strong>Click the name to rename the node</strong> in place
+  (only for nodes that have a name).</li>
+<li><strong>Sections</strong> - collapsible sections with a full-width title bar. Each row shows the property
+  name on the left and its value on the right.</li>
 </ul>
-<p>You can also simply <strong>click the XPath value itself</strong> to copy it. In the Text view both actions
-act on the element enclosing the caret; in the Tree/Graphic views they act on the selected node.</p>
+<p><strong>Editing in place:</strong> editable values (type, minOccurs/maxOccurs, use, form, fixed, default, …)
+look like plain text until you point at them or click them - then the field frame, the
+drop-down arrow or the spinner buttons appear. Values without that hover effect are read-only.</p>
+<p>The sections appear in this order (only the ones that apply to the selected node are shown):</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NODE &amp; XPATH</strong></td>
+<td><strong>Kind</strong>, <strong>Namespace</strong> (the URI, marked <em>(default)</em> for an unprefixed namespace, otherwise <em>prefix → URI</em>; for schema nodes the schema's target namespace), <strong>Position</strong> <em>Ln x · Col y</em> (Text view only), and the <strong>XPath</strong> in a code box with a copy button</td>
+</tr>
+<tr>
+<td><strong>TYPE &amp; FACETS</strong></td>
+<td><strong>Type</strong>, <strong>Base type</strong>, <strong>Derivation</strong> (restriction / extension / list / union) and the list of <strong>facets</strong></td>
+</tr>
+<tr>
+<td><strong>CARDINALITY &amp; USE</strong></td>
+<td>minOccurs / maxOccurs, Use, and <strong>Order</strong> - the node's position in its parent compositor, e.g. <em>3 of 3 · sequence</em></td>
+</tr>
+<tr>
+<td><strong>VALUE &amp; ATTRIBUTES</strong></td>
+<td>The element text and the list of <strong>attributes</strong></td>
+</tr>
+<tr>
+<td><strong>CONTENT</strong> / <strong>PROCESSING INSTRUCTION</strong> / <strong>XML DECLARATION</strong></td>
+<td>The text of comments, CDATA sections, processing instructions and the XML declaration</td>
+</tr>
+<tr>
+<td><strong>DOCUMENTATION &amp; REFS</strong></td>
+<td>Documentation, value check, example values, valid children and <strong>USED IN</strong> (see below)</td>
+</tr>
+<tr>
+<td><strong>NAMESPACE</strong></td>
+<td>Edit the element's namespace prefix and URI (collapsed by default)</td>
+</tr>
+<tr>
+<td><strong>ADVANCED</strong>, <strong>SCHEMA</strong>, <strong>CONSTRAINTS</strong></td>
+<td>Further schema-node properties (fixed/default, form, appinfo, identity constraints, …)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="copying-the-xpath-or-the-node">Copying the XPath or the node<a class="headerlink" href="#copying-the-xpath-or-the-node" title="Permanent link">&para;</a></h3>
+<p>The <strong>NODE &amp; XPATH</strong> section shows the selected node's XPath in a code box:</p>
+<ul>
+<li><strong>Copy XPath</strong> - click the copy button next to the XPath, or <strong>click the XPath itself</strong>, to
+  copy the positional XPath (e.g. <code>/root/item[2]</code>) to the clipboard.</li>
+<li><strong>Copy Node (XML)</strong> - in the <strong>⋮</strong> menu of the top bar; copies the selected node's XML
+  serialization. <strong>Copy XPath</strong> is also in this menu.</li>
+</ul>
+<p>In the Text view both actions act on the element enclosing the caret; in the Tree/Graphic
+views they act on the selected node.</p>
+<h3 id="facets-and-attributes-lists">Facets and attributes lists<a class="headerlink" href="#facets-and-attributes-lists" title="Permanent link">&para;</a></h3>
+<p>Facets (in <strong>TYPE &amp; FACETS</strong>) and attributes (in <strong>VALUE &amp; ATTRIBUTES</strong>) are shown as framed
+lists that you edit directly:</p>
+<ul>
+<li><strong>Click a value</strong> to edit it. <strong>Enter</strong> saves the change, <strong>Esc</strong> cancels it.</li>
+<li>For attributes, <strong>click the name</strong> to rename the attribute.</li>
+<li><strong>Point at a row</strong> to show its <strong>trash</strong> icon; click it to delete the facet or attribute.</li>
+<li><strong>Add</strong> a new entry with the row below the list (facet kind or attribute name, value, <strong>Add</strong>).</li>
+<li><strong>Inherited facets</strong> (from a base type) are shown in <em>italics</em> and cannot be edited here.</li>
+</ul>
 <h3 id="xml-files">XML Files<a class="headerlink" href="#xml-files" title="Permanent link">&para;</a></h3>
 <p>When an XML file is open, the Properties sidebar (Ctrl+Shift+P) shows the selected node and
 lets you edit it from whichever view you are in:</p>
 <ul>
 <li><strong>Text view</strong> - Move the text caret into an element to select it. The inspector shows the
-  element's name, namespace, attributes, and text as editable fields, plus read-only,
-  schema-derived hints (type, documentation, valid child elements, and example values) when a
-  schema is bound. Edits round-trip into the source as a minimal change that preserves your
-  caret and scroll position. If the caret is not inside a well-formed element, the inspector
-  falls back to a read-only name/XPath view.</li>
+  element's name, namespace, attributes, and text as editable fields. Edits round-trip into the
+  source as a minimal change that preserves your caret and scroll position. If the caret is not
+  inside a well-formed element, the inspector falls back to a read-only name/XPath view.</li>
 <li><strong>Tree view</strong> - Click any node (element, text, comment, CDATA, or processing instruction) to
   edit its properties.</li>
 <li><strong>Graphic view</strong> (the grid) - Select a row to edit its properties. The grid also handles
@@ -6458,13 +6575,25 @@ lets you edit it from whichever view you are in:</p>
 </ul>
 <p>All three views share one in-memory model per open document, so your edits and Undo/Redo
 history are preserved when you switch between Text, Tree, and Graphic.</p>
+<p><strong>With a bound XSD schema</strong>, the inspector also shows what the schema says about the selected
+element. These schema facts are <strong>read-only</strong> (you change them in the schema, not in the XML):
+Type, Base type, Derivation, the facets, minOccurs/maxOccurs/Use and Order. The
+<strong>DOCUMENTATION &amp; REFS</strong> section adds:</p>
+<ul>
+<li>the element's <strong>documentation</strong> from the schema;</li>
+<li>a <strong>value check</strong> - <em>"Value matches the schema facets"</em> in green, or an amber warning such
+  as <em>"Value should be one of: …"</em> when the current text breaks a facet;</li>
+<li><strong>EXAMPLE VALUES</strong> as chips - click one to set it as the element's text;</li>
+<li><strong>VALID CHILDREN</strong> as chips - click one to add that child element;</li>
+<li><strong>USED IN</strong> - the containing element and its type.</li>
+</ul>
 <h3 id="xsd-files">XSD Files<a class="headerlink" href="#xsd-files" title="Permanent link">&para;</a></h3>
 <p>When an XSD (schema) file is open, the Properties sidebar shows the selected schema node and
 lets you edit it from whichever view you are in. XSD files have the same three views - <strong>Text</strong>,
 <strong>Tree</strong>, and <strong>Graphic</strong> (for XSD, the Graphic view shows the schema diagram):</p>
 <ul>
 <li><strong>Tree</strong> and <strong>Graphic</strong> views - Select a schema node to edit its name, type,
-  cardinality/occurrence, use, form, constraints, documentation, and facets. (Unchanged.)</li>
+  cardinality/occurrence, use, form, constraints, documentation, and facets.</li>
 <li><strong>Text</strong> view - Move the text caret into an XSD construct (such as an <code>xs:element</code>,
   <code>xs:complexType</code>, <code>xs:simpleType</code>, <code>xs:attribute</code>, a compositor, or a facet) to select the
   matching schema node and edit the same properties you would in the Tree and Graphic views -
@@ -6472,6 +6601,12 @@ lets you edit it from whichever view you are in. XSD files have the same three v
   that preserves your caret and scroll position. If the caret is not inside a recognizable
   construct (for example inside an <code>xs:annotation</code>, a comment, or blank space), the pane falls
   back to a read-only caret/XPath view.</li>
+</ul>
+<p><strong>USED IN</strong> (in <strong>DOCUMENTATION &amp; REFS</strong>) shows where a node is used:</p>
+<ul>
+<li>For a <strong>global</strong> type, element or group, it lists every place that references it. Click an
+  entry to select the referring node in the Tree or Graphic view.</li>
+<li>For a <strong>local</strong> declaration, it shows the global component that contains it.</li>
 </ul>
 <p>All three XSD views share one in-memory schema model, so your edits and Undo/Redo history are
 preserved when you switch between Text, Tree, and Graphic. Structural editing (adding, deleting,
@@ -6482,11 +6617,11 @@ Properties sidebar shows it:</p>
 <ul>
 <li><strong>NODE &amp; XPATH</strong> shows the node's <strong>JSONPath</strong> (e.g. <code>$.items[1]</code>) instead of an XPath;
   click the value to copy it.</li>
-<li>The <strong>key</strong> field is editable for object properties - changing it renames the key
-  (duplicate keys are refused). Array items (<code>[0]</code>, <code>[1]</code>, …) and the root <code>$</code> have no key.</li>
+<li>The <strong>key</strong> is editable for object properties - click the name in the node header to rename
+  the key (duplicate keys are refused). Array items (<code>[0]</code>, <code>[1]</code>, …) and the root <code>$</code> have no key.</li>
 <li>The <strong>Value</strong> field is editable for scalars (strings, numbers, booleans, <code>null</code>); the type
   is kept, so a number must stay a number. Objects and arrays show a summary instead.</li>
-<li>The node <strong>type</strong> and <strong>depth</strong> are shown for information.</li>
+<li>The node <strong>kind</strong> (object, array, string, …) is shown for information.</li>
 </ul>
 <p>The inspector shares the document model with the grid, the tree and the text, so an edit here
 is one undo step (Ctrl+Z) and is written back into the text immediately. Structural editing
