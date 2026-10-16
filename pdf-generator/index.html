@@ -2397,7 +2397,7 @@ bar. The panel is organized into three sections plus the primary action:</p>
 <tbody>
 <tr>
 <td><strong>INPUT</strong></td>
-<td>The XML (follows the active editor; <em>Change</em> fixes it to a file) and the XSL-FO stylesheet</td>
+<td>The <strong>XML</strong> (follows the active editor; <em>Change</em> fixes it to a file) and the <strong>XSL-FO stylesheet</strong>. Each slot shows the file name on its own line (full path as tooltip); an empty slot shows a hint such as <em>"No stylesheet — choose or drop a file"</em> and works like <em>Change</em> when clicked</td>
 </tr>
 <tr>
 <td><strong>METADATA</strong></td>
@@ -2405,7 +2405,7 @@ bar. The panel is organized into three sections plus the primary action:</p>
 </tr>
 <tr>
 <td><strong>OPTIONS</strong></td>
-<td><strong>PDF/A-1b compliant</strong> toggle and the <strong>Page size</strong> (A4/Letter · Portrait/Landscape)</td>
+<td><strong>PDF/A-1b compliant</strong> toggle and the <strong>Page size</strong> dropdown (A4/Letter · Portrait/Landscape)</td>
 </tr>
 <tr>
 <td><strong>Generate PDF</strong></td>
@@ -2452,9 +2452,11 @@ bar. The panel is organized into three sections plus the primary action:</p>
 <li><strong>PDF/A-1b compliant</strong> - produces an archival-grade PDF. The stylesheet must use
   embeddable <strong>system fonts</strong> (e.g. <code>Liberation Sans</code>); the PDF base-14 fonts
   (Helvetica, Times, Courier) cannot be embedded and FOP will report exactly that.</li>
-<li><strong>Page size</strong> - passed to the stylesheet as the XSLT parameters <code>page-size</code>
-  (<code>A4</code>/<code>Letter</code>) and <code>page-orientation</code> (<code>Portrait</code>/<code>Landscape</code>). Stylesheets that
-  declare these parameters can switch their <code>fo:simple-page-master</code> accordingly.</li>
+<li><strong>Page size</strong> - a dropdown whose value is passed to the stylesheet as the XSLT parameters
+  <code>page-size</code> (<code>A4</code>/<code>Letter</code>) and <code>page-orientation</code> (<code>Portrait</code>/<code>Landscape</code>). As the hint
+  below the dropdown says, it <strong>only applies if the stylesheet uses these parameters</strong> -
+  stylesheets that declare them can switch their <code>fo:simple-page-master</code> accordingly;
+  others ignore the setting.</li>
 </ul>
 <h3 id="step-4-generate-the-pdf">Step 4: Generate the PDF<a class="headerlink" href="#step-4-generate-the-pdf" title="Permanent link">&para;</a></h3>
 <p>Click <strong>Generate PDF</strong>. You are asked where to save the output file, and the PDF is

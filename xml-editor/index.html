@@ -2852,21 +2852,6 @@ tooltips. See <a href="../unified-shell/#toolbar">Unified Shell - Toolbar</a> fo
 <td>Pretty-print the document; the arrow menu holds <strong>Minify</strong>. (Note: Ctrl+Shift+F opens <a href="../unified-shell/#search-panel">Find in Files</a>, not document search.)</td>
 </tr>
 <tr>
-<td><strong>Insert Template</strong></td>
-<td>-</td>
-<td>Insert a snippet from the template system (icon button)</td>
-</tr>
-<tr>
-<td><strong>Compare</strong></td>
-<td>-</td>
-<td>Compare the document with another file, side by side (icon button)</td>
-</tr>
-<tr>
-<td><strong>Spreadsheet</strong></td>
-<td>-</td>
-<td>Excel / CSV ↔ XML converter (icon button)</td>
-</tr>
-<tr>
 <td><strong>Query Console</strong></td>
 <td>Ctrl+Shift+X</td>
 <td>Toggle the bottom XPath/XQuery console (icon button)</td>
@@ -2879,7 +2864,7 @@ tooltips. See <a href="../unified-shell/#toolbar">Unified Shell - Toolbar</a> fo
 <tr>
 <td><strong>Schema ▾</strong></td>
 <td>-</td>
-<td><strong>Set XSD Schema…</strong> for IntelliSense and validation; the arrow menu also holds <strong>Generate Documentation…</strong> and <strong>Type Editor…</strong> (enabled for XSD files)</td>
+<td><strong>Set XSD Schema…</strong> for IntelliSense and validation; the arrow menu also holds <strong>Generate Documentation…</strong> and <strong>Type Editor…</strong> (enabled for XSD files) and <strong>Generate XSD from XML</strong> / <strong>Generate XSD from XML Files…</strong></td>
 </tr>
 <tr>
 <td><strong>Validate</strong></td>
@@ -2888,7 +2873,11 @@ tooltips. See <a href="../unified-shell/#toolbar">Unified Shell - Toolbar</a> fo
 </tr>
 </tbody>
 </table>
-<p>The <strong>Run ▾</strong> button and the <strong>Target</strong> dropdown appear when a query, XSLT, or XProc document
+<p><strong>Insert Template…</strong> (Ctrl+T, <strong>Edit</strong> menu), <strong>Compare with File…</strong> and <strong>Spreadsheet
+Converter…</strong> (Ctrl+E, both in the <strong>Tools</strong> menu) are menu commands, not toolbar buttons.
+Without an open document (for example on the Welcome page) the toolbar shows only <strong>New</strong> and
+<strong>Open</strong>.</p>
+<p>The <strong>Run ▾</strong> button and the <strong>Input</strong> dropdown (<em>"Input: …"</em>) appear when a query, XSLT, or XProc document
 is active - see <a href="../unified-shell/#query-documents-the-target-selector">Query Documents</a>.</p>
 <hr />
 <h2 id="working-with-files">Working with Files<a class="headerlink" href="#working-with-files" title="Permanent link">&para;</a></h2>
@@ -3134,7 +3123,7 @@ against the <strong>active</strong> document.</p>
 <li>Choose <strong>XPath</strong> or <strong>XQuery</strong> with the mode toggle</li>
 <li>Enter your expression - it is syntax-highlighted, and IntelliSense suggests element
    names, functions, and axes as you type (or on <strong>Ctrl+Space</strong>)</li>
-<li>Click <strong>Run</strong> (in XPath mode, <strong>Enter</strong> also runs; in XQuery mode use <strong>Ctrl+Enter</strong>)</li>
+<li>Click <strong>Run</strong> or press <strong>Ctrl+Enter</strong> (Enter inserts a new line; the hint below the query says so)</li>
 <li>The result appears in the read-only results pane on the right, with syntax highlighting;
    <strong>Copy</strong> puts it on the clipboard</li>
 </ol>
@@ -3211,7 +3200,7 @@ collections in the <code>examples</code> folder next to the application:</p>
 <p>All examples target the FundsXML4 sample documents in <code>examples/xml/</code>. The simplest way
 to run one: <strong>open the file directly</strong> and press the toolbar's <strong>Run</strong> button
 (<code>Ctrl+Enter</code>) - query, XSLT and XProc files are first-class editor documents that run
-against the <a href="../unified-shell/#query-documents-the-target-selector">Target dropdown</a>'s
+against the <a href="../unified-shell/#query-documents-the-target-selector">Input dropdown</a>'s
 selection (by default the most recently active XML document). Alternatively paste a query
 into the query panel or the <a href="../unified-shell/#query-console">Query Console</a> - the
 <code>map:</code>, <code>array:</code> and <code>math:</code> function namespaces are pre-declared, so expressions using
@@ -3219,7 +3208,7 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 <code>README.md</code> describing every example.</p>
 <hr />
 <h2 id="xmlexcelcsv-converter">XML/Excel/CSV Converter<a class="headerlink" href="#xmlexcelcsv-converter" title="Permanent link">&para;</a></h2>
-<p>Click the <strong>Spreadsheet Converter</strong> toolbar button (Ctrl+E) to open the converter dialog:</p>
+<p>Choose <strong>Tools → Spreadsheet Converter…</strong> (Ctrl+E) to open the converter dialog:</p>
 <ul>
 <li><strong>XML to Excel</strong>: Export XML data to Excel spreadsheet</li>
 <li><strong>XML to CSV</strong>: Export XML data to CSV file</li>
@@ -3228,7 +3217,7 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 </ul>
 <hr />
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
-<p>Click the <strong>Insert Template</strong> toolbar button (Ctrl+T) to insert a snippet:</p>
+<p>Choose <strong>Edit → Insert Template…</strong> (Ctrl+T) to insert a snippet:</p>
 <ul>
 <li>Insert pre-defined XML snippets</li>
 <li>Create your own templates (Settings → Templates)</li>
@@ -3237,8 +3226,9 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 <p>Learn more: <a href="../template-management/">Template Management</a></p>
 <hr />
 <h2 id="schema-generator">Schema Generator<a class="headerlink" href="#schema-generator" title="Permanent link">&para;</a></h2>
-<p>Open the <strong>Schema</strong> activity and click its <strong>Generate XSD from XML</strong> tool button (or
-<strong>Generate XSD (Batch)…</strong> for several files) to generate an XSD schema from your XML:</p>
+<p>With the XML document active, open the editor toolbar's <strong>Schema ▾</strong> menu (click the small
+arrow next to the <strong>Schema</strong> button) and choose <strong>Generate XSD from XML</strong> (or <strong>Generate XSD
+from XML Files…</strong> for several files) to generate an XSD schema from your XML:</p>
 <ul>
 <li>Analyze XML structure</li>
 <li>Generate matching XSD schema</li>
@@ -3251,8 +3241,7 @@ into the query panel or the <a href="../unified-shell/#query-console">Query Cons
 <li><strong>Add Favorite</strong> (Ctrl+D) - Save the current file to favorites</li>
 <li><strong>Favorites activity</strong> - Click the star icon in the activity bar to open the Favorites
   panel; click any entry to open it as a tab</li>
-<li>Your favorites also appear in the Explorer panel's <strong>FAVORITES</strong> section and as <strong>star
-  menus</strong> next to the file rows of the Transform, Validation, PDF/FOP, and Signature panels</li>
+<li>Your favorites appear as <strong>star menus</strong> next to the file rows of the Transform, Validation, PDF/FOP panels and the Signature page</li>
 </ul>
 <p>Learn more: <a href="../favorites-system/">Favorites System</a></p>
 <hr />

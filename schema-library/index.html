@@ -2172,6 +2172,12 @@
 <p>The <strong>Schema Library</strong> maps namespaces (and JSON <code>$schema</code> URIs) to schema files, so
 documents that don't carry an explicit reference to their schema can still be validated
 and get IntelliSense automatically.</p>
+<p><strong>Where to find it:</strong> click <strong>Schema Library</strong> in the activity bar. The library opens as a
+<strong>page</strong> - a tab named <strong>Schema Library</strong> in the main editor area, just like Settings - with
+three tabs: <strong>Mappings</strong>, <strong>Catalogs</strong> and <strong>Cache</strong>. The side panel on the left lists the same
+three sections: click one to jump to its tab; the tab you are on is highlighted. A shared status
+line at the bottom of the page reports the outcome of the last action. The Properties inspector
+is hidden while the page is selected, so the tables get the full width.</p>
 <hr />
 <h2 id="1-what-the-schema-library-is">1. What the Schema Library is<a class="headerlink" href="#1-what-the-schema-library-is" title="Permanent link">&para;</a></h2>
 <p>A <strong>mapping</strong> connects a namespace - or, for no-namespace XSDs, a root element name - to a
@@ -2208,13 +2214,11 @@ namespace or catalog target.</p>
 </ul>
 <h2 id="2-mappings-tab">2. Mappings tab<a class="headerlink" href="#2-mappings-tab" title="Permanent link">&para;</a></h2>
 <p><img alt="Schema Library - Mappings" src="../img/unified-shell-schema-library-mappings.png" />
-<em>The Mappings tab: namespace → schema entries with status icons, filter and toolbar.</em></p>
+<em>The Mappings tab: namespace → schema entries with status icons, filter and action buttons.</em></p>
 <p>The table has one row per mapping: a status icon, <strong>Namespace</strong> (or <code>&lt;root&gt; (no namespace)</code>
-for root-element mappings), <strong>Location</strong> and an <strong>On</strong> checkbox to enable/disable the row
-without deleting it. Two more columns, <strong>Kind</strong> (<code>XSD</code> or <code>JSON_SCHEMA</code>) and <strong>Source</strong>
-(<code>user</code>, <code>catalog</code> or <code>bundled</code>), are hidden by default to keep the table readable in the
-narrow side panel - click the small menu button at the table's top-right corner to show
-them. The <strong>filter</strong> field searches namespace, location, description and root element.
+for root-element mappings), <strong>Location</strong>, <strong>Kind</strong> (<code>XSD</code> or <code>JSON_SCHEMA</code>), <strong>Source</strong>
+(<code>user</code>, <code>catalog</code> or <code>bundled</code>) and an <strong>On</strong> checkbox to enable/disable the row
+without deleting it. All columns are visible. The <strong>filter</strong> field searches namespace, location, description and root element.
 Bundled rows render in italics and can only be enabled/disabled, never edited or removed.</p>
 <table>
 <thead>
@@ -2247,7 +2251,7 @@ Bundled rows render in italics and can only be enabled/disabled, never edited or
 </tr>
 </tbody>
 </table>
-<p>Toolbar actions: <strong>Add mapping…</strong> and <strong>Edit…</strong> open the mapping dialog (namespace,
+<p>The labelled buttons above the table: <strong>Add mapping…</strong> and <strong>Edit…</strong> open the mapping dialog (namespace,
 location, kind, description, optional root element); <strong>Remove</strong> deletes a <code>USER</code> mapping;
 <strong>Enable / disable</strong> toggles the <strong>On</strong> column for the selected row; <strong>Add schema of
 current document</strong> prefills a new mapping from the active document's bound schema; and
@@ -2266,6 +2270,7 @@ followed for local files, with cycle protection and a depth cap of 10.</p>
 <strong>public identifier</strong> (<code>public</code> entries), and finally by namespace. <code>public</code> entries are
 therefore honoured for schema resolution even though they cannot be imported into the
 Mappings tab (a public identifier is not a namespace).</p>
+<p>The tab's labelled buttons:</p>
 <ul>
 <li><strong>Add catalog…</strong> registers a <code>catalog.xml</code> file; <strong>Remove</strong> unregisters it (the file
   itself is untouched); <strong>Enable / disable</strong> toggles it without removing it; <strong>Reload
@@ -2298,15 +2303,16 @@ Register <code>catalog.xml</code> in the Catalogs tab, open the documents and va
 <p>Every remote schema resolved through the library (or downloaded because a document
 referenced it directly) is cached under <code>~/.freeXmlToolkit/cache/schemas</code>. The Cache tab
 lists <strong>URL</strong>, <strong>Target namespace</strong> and file <strong>Size</strong> by default, with a <strong>filter</strong> over
-URL/namespace. Two more columns, <strong>Downloaded</strong> timestamp and <strong>Hits</strong> (access count), are
-hidden by default - click the table's menu button to show them. <strong>Open</strong> opens the cached
-file as an editor tab; <strong>Reveal</strong> shows the cache folder in the system file manager;
-<strong>Refresh</strong> re-downloads the selected entry; <strong>Delete</strong> removes one cached file
-(re-downloaded on next use); <strong>Clear</strong> wipes the entire cache. A footer line reports the
+URL/namespace, plus the <strong>Downloaded</strong> timestamp and <strong>Hits</strong> (access count) - all columns
+are visible. The labelled buttons: <strong>Open cached file</strong> opens the cached file as an editor
+tab; <strong>Show in system file manager</strong> shows the cache folder in your file manager;
+<strong>Re-download</strong> fetches the selected entry again; <strong>Delete cached file</strong> removes one cached
+file (re-downloaded on next use); <strong>Clear entire cache</strong> wipes the entire cache. A footer line reports the
 total file count, total size and the cache hit ratio.</p>
 <p>A collapsible <strong>"Auto-detected schemas (legacy cache)"</strong> group underneath holds the older,
 separate cache of schemas auto-downloaded from <code>xsi:schemaLocation</code> references (one folder
-per schema URL, keyed by an MD5 hash). It is read-only except for a <strong>Clear</strong> button; those
+per schema URL, keyed by an MD5 hash). It is read-only except for a <strong>Clear auto-detected
+schema cache</strong> button; those
 files are simply re-downloaded the next time a document references them.</p>
 <h2 id="5-bundled-standards">5. Bundled standards<a class="headerlink" href="#5-bundled-standards" title="Permanent link">&para;</a></h2>
 <p>FreeXmlToolkit ships a curated list of 25 well-known namespace → schema mappings so common
@@ -2338,7 +2344,8 @@ turns them off (the test suite does this) - resolution then uses <strong>local f
 already-cached copies only</strong>, and every other entry is simply a miss. Local entries and
 cached entries always resolve, with or without network access.</p>
 <h2 id="6-settings">6. Settings<a class="headerlink" href="#6-settings" title="Permanent link">&para;</a></h2>
-<p>The <strong>SCHEMA LIBRARY</strong> card in Settings (gear icon at the bottom of the activity bar) holds:</p>
+<p>The <strong>SCHEMA LIBRARY</strong> card in Settings (gear icon at the bottom of the activity bar, group
+<strong>Schemas &amp; Validation</strong>) holds:</p>
 <ul>
 <li><strong>"Use the Schema Library to bind schemas automatically"</strong> - controls <strong>automatic binding
   in the editor</strong> only (default <strong>on</strong>): the XML root-namespace / root-element lookup and the
@@ -2349,8 +2356,9 @@ cached entries always resolve, with or without network access.</p>
   bindings are unaffected.</li>
 <li>The <strong>library file</strong> location, <code>~/.freeXmlToolkit/schema-library.json</code>, shown for
   reference.</li>
-<li>A <strong>"Manage schema cache…"</strong> link that jumps straight to the Schema Library activity's
-  Cache tab. The same link also appears in the <strong>TEMP &amp; CACHE</strong> card.</li>
+<li>A <strong>"Manage schema cache…"</strong> link that opens the Schema Library page directly on its
+  <strong>Cache</strong> tab. The same link also appears in the <strong>TEMP &amp; CACHE</strong> card (group <strong>Files &amp;
+  Cache</strong>).</li>
 </ul>
 <h2 id="7-troubleshooting">7. Troubleshooting<a class="headerlink" href="#7-troubleshooting" title="Permanent link">&para;</a></h2>
 <p><strong>A document isn't binding a schema I expect:</strong></p>

@@ -1623,6 +1623,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Enabling the Feature">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-fundsxml-hint-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The FundsXML hint bar
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2165,6 +2182,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Enabling the Feature">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-fundsxml-hint-bar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The FundsXML hint bar
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2396,12 +2430,13 @@
 </blockquote>
 <hr />
 <h2 id="enabling-the-feature">Enabling the Feature<a class="headerlink" href="#enabling-the-feature" title="Permanent link">&para;</a></h2>
-<p>The feature is opt-in. Until you enable it, nothing in the application changes.</p>
+<p>The feature is opt-in. Until you enable it, nothing in the application changes - apart from a
+one-time hint when you open a FundsXML document (see <a href="#the-fundsxml-hint-bar">The FundsXML hint bar</a>).</p>
 <ol>
 <li>Open <strong>Settings</strong> (the gear icon at the bottom of the activity bar).</li>
-<li>Scroll to the <strong>FUNDSXML</strong> card.</li>
+<li>Select the <strong>Extensions</strong> group in the side panel (or type <em>FundsXML</em> into the settings search field) to reach the <strong>FUNDSXML</strong> card.</li>
 <li>Check <strong>Enable FundsXML extensions</strong>.</li>
-<li>Save your settings.</li>
+<li>Click <strong>Save Settings</strong> in the save bar at the bottom of the page.</li>
 </ol>
 <blockquote>
 <p>Enabling the feature is all you need to do: the FundsXML content
@@ -2430,12 +2465,30 @@ you when it is ready. There is no separate download step.</p>
 <td>A <strong>FUNDSXML</strong> section in the <strong>Snippets</strong> menu with the community's example queries</td>
 </tr>
 <tr>
-<td><strong>Validation panel</strong></td>
-<td>A <strong>Validate against FundsXML</strong> entry in the ⋮ menu</td>
+<td><strong>Help menu</strong></td>
+<td>The <strong>FundsXML Website</strong> and <strong>FundsXML Schema Docs</strong> links</td>
 </tr>
 </tbody>
 </table>
 <p>You can turn the feature off again at any time from the same Settings card. Disabling it hides these entries, but leaves the downloaded content on disk intact.</p>
+<h3 id="the-fundsxml-hint-bar">The FundsXML hint bar<a class="headerlink" href="#the-fundsxml-hint-bar" title="Permanent link">&para;</a></h3>
+<p>You do not have to know about the extension in advance. When you open a document whose root
+element is a FundsXML root (for example <code>FundsXML4</code>) while the extension is <strong>off</strong>, a hint bar
+appears above the editor:</p>
+<blockquote>
+<p><em>This looks like a FundsXML document. The FundsXML extension adds its schemas, examples and
+quality checks.</em></p>
+</blockquote>
+<ul>
+<li><strong>Enable FundsXML extensions</strong> - does the same as checking the box on the <strong>FUNDSXML</strong> Settings card
+  and saving: the <strong>FundsXML</strong> activity appears in the activity bar and the content is
+  downloaded in the background (or, if it was downloaded before, the cached content is used
+  right away).</li>
+<li><strong>Not now</strong> - closes the bar.</li>
+</ul>
+<p>The hint is shown <strong>only once</strong>. If you dismiss it and change your mind later, enable the
+feature in Settings as described above.</p>
+<p><img alt="FundsXML hint bar above the editor" src="../img/unified-shell-fundsxml-hint.png" /></p>
 <hr />
 <h2 id="downloading-fundsxml-content">Downloading FundsXML Content<a class="headerlink" href="#downloading-fundsxml-content" title="Permanent link">&para;</a></h2>
 <blockquote>
@@ -2483,7 +2536,7 @@ back and forth freely.</p>
 <p>The fastest way to check an XML file against the FundsXML schema:</p>
 <ol>
 <li>Open your XML document in the editor.</li>
-<li>Click <strong>Validate active document</strong> in the <strong>FundsXML</strong> side panel, or choose <strong>Validate against FundsXML</strong> from the Validation panel's ⋮ menu.</li>
+<li>Click <strong>Validate active document</strong> in the <strong>FundsXML</strong> side panel (FundsXML validation lives only there).</li>
 <li>If the document is valid, you get a confirmation message.</li>
 <li>If there are errors, they are listed line-by-line in an alert dialog so you can locate and fix each one.</li>
 </ol>
@@ -2533,7 +2586,7 @@ sections:</p>
 <td>Opens the active version's <code>FundsXML4.xsd</code> directly as an editor tab - explore it in the Text view or as a diagram in the Graphic view</td>
 </tr>
 <tr>
-<td><strong>Generate Schema Documentation</strong></td>
+<td><strong>Generate Documentation…</strong></td>
 <td>Generates browsable HTML documentation for the active schema into <code>~/.freeXmlToolkit/fundsxml/docs/&lt;version&gt;/</code></td>
 </tr>
 <tr>

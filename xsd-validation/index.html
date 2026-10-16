@@ -2526,7 +2526,7 @@ dedicated sidebar tab.</p>
      checked against your XML catalogs and library mappings before anything is downloaded,
      and the status bar indicator shows how the schema was found: <strong>"XSD: name"</strong> (declared),
      <strong>"(catalog)"</strong>, <strong>"(library)"</strong> or <strong>"(manual)"</strong>.</li>
-<li><strong>Manual</strong>: Bind an XSD yourself - click the <strong>"No XSD"</strong> indicator in the status bar (or
+<li><strong>Manual</strong>: Bind an XSD yourself - click the <strong>"No XSD"</strong> chip in the status bar (or
      click the toolbar's <strong>Schema</strong> button - <strong>Set XSD Schema…</strong>), pick a schema in the Validation panel's
      <strong>SOURCES</strong> section, or simply <strong>drop</strong> an <code>.xsd</code> file from your file manager onto the
      panel's XSD source row or onto the status bar's XSD indicator.
@@ -2549,16 +2549,19 @@ dedicated sidebar tab.</p>
 <td>The document conforms to the bound XSD (and Schematron, if one is bound)</td>
 </tr>
 <tr>
-<td><strong>Well-formed</strong></td>
-<td>No schema is bound - only the well-formedness check ran and it passed</td>
+<td><strong>Well-formed · no schema bound</strong></td>
+<td>No schema is bound - only the well-formedness check ran and it passed (neutral, not green: bind an XSD in SOURCES to validate)</td>
 </tr>
 <tr>
-<td><strong>N problem(s)</strong></td>
-<td>Problems were found; they are listed in the <strong>PROBLEMS</strong> section</td>
+<td><strong>1 problem / N problems</strong></td>
+<td>Problems were found; they are listed in the <strong>PROBLEMS</strong> panel below the editor</td>
 </tr>
 </tbody>
 </table>
-<p>Each entry in the <strong>PROBLEMS</strong> list reads <code>[source] Ln N: message</code>:</p>
+<p>In <strong>Single file</strong> mode the side panel does not repeat the problem list: below the status
+line it shows a row such as <em>"3 problems — show below the editor"</em>. Click it to expand and
+focus the <strong>PROBLEMS</strong> panel below the editor.</p>
+<p>Each entry in the problem list reads <code>[source] Ln N: message</code>:</p>
 <ul>
 <li><strong>Source</strong> - <code>XSD</code>, <code>Well-formed</code>, or <code>Schematron</code>, so you can tell which check reported it</li>
 <li><strong>Line number</strong> - where the problem is</li>
@@ -2568,7 +2571,7 @@ dedicated sidebar tab.</p>
 <strong>PROBLEMS</strong> panel below the editor, whose header shows error and warning counters; see
 <a href="../unified-shell/#jump-to-validation-errors">Jump to Validation Errors</a> for navigation details.</p>
 <blockquote>
-<p><strong>Validate while typing</strong> (on by default, toggle in the panel's ⋮ menu) re-runs validation
+<p><strong>Validate while typing</strong> (on by default, toggle in the panel header's ⋮ menu) re-runs validation
 shortly after every edit, tab switch, or schema change, so the list stays current without
 pressing F8.</p>
 </blockquote>
@@ -2598,7 +2601,7 @@ Validation panel's <strong>SOURCES</strong> section and in the status bar's XSD 
 <td>Every file is additionally checked against that Schematron</td>
 </tr>
 <tr>
-<td><strong>none</strong></td>
+<td><em>(nothing bound)</em></td>
 <td>Every file gets a well-formedness check only</td>
 </tr>
 </tbody>
@@ -2644,10 +2647,11 @@ opens a small menu so you can pick files or a whole folder in one step.</p>
 </tr>
 </tbody>
 </table>
-<p>Select a row to see that file's problems in the <strong>PROBLEMS</strong> section; <strong>double-click</strong> a row
-to open the file in the editor. A plain-text report of the run (schema names plus one
-<code>file: valid / N problem(s)</code> line per file) opens as a document via the panel's ⋮ menu
-(<strong>Open last batch report</strong>). A running batch can be cancelled from the progress bar; the
+<p>The <strong>RESULTS</strong> list and the panel's <strong>PROBLEMS</strong> list are only shown in <strong>Batch</strong> mode
+(starting a batch run switches to it). Select a row to see that file's problems in the
+<strong>PROBLEMS</strong> section; <strong>double-click</strong> a row to open the file in the editor. A plain-text
+report of the run (schema names plus one line per file) opens as a document via <strong>Open
+Last Batch Report</strong> in the panel's <strong>REPORTS &amp; CHECKS</strong> section. A running batch can be cancelled from the progress bar; the
 results collected so far are kept.</p>
 <h3 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h3>
 <p>The RESULTS header shows a summary of the run, for example:</p>
@@ -2656,13 +2660,13 @@ results collected so far are kept.</p>
 <p>and the panel's status line repeats it ("2 of 25 file(s) failed").</p>
 <hr />
 <h2 id="exporting-results">Exporting Results<a class="headerlink" href="#exporting-results" title="Permanent link">&para;</a></h2>
-<p>There is one export: the <strong>Export problems to Excel</strong> button (Excel icon) in the header of
-the <strong>PROBLEMS</strong> section. It is enabled whenever the list contains problems and writes
+<p>There is one export: the <strong>Export Problems to Excel</strong> row (Excel icon) in the panel's
+<strong>REPORTS &amp; CHECKS</strong> section. It is enabled whenever the list contains problems and writes
 <strong>exactly the problems currently shown</strong>:</p>
 <ul>
 <li>after a single-file run, the active document's problems;</li>
 <li>after a batch run, the problems of the file selected in <strong>RESULTS</strong> - pick a row first,
-  then export. There is no all-files export; use <strong>Open last batch report</strong> (⋮ menu) for a
+  then export. There is no all-files export; use <strong>Open Last Batch Report</strong> for a
   per-file overview of the whole run.</li>
 </ul>
 <p>The suggested file name is <code>&lt;document&gt;-problems.xlsx</code>. The workbook contains:</p>
@@ -2706,11 +2710,11 @@ the <strong>PROBLEMS</strong> section. It is enabled whenever the list contains 
 <tbody>
 <tr>
 <td><strong>SOURCES · XSD row</strong></td>
-<td>The bound XSD (or <em>none</em>). Click the name to open the schema in the editor, <strong>★</strong> to pick a favorite, <strong>Change</strong> to browse; drop an <code>.xsd</code> onto the row to bind it.</td>
+<td>Two lines: icon, caption <strong>XSD</strong>, <strong>★</strong> and <strong>Change</strong> on the first; the bound file's name on the second (shortened in the middle, full path as tooltip). While nothing is bound it reads <em>"No XSD bound — choose or drop a file"</em> and a click acts like <strong>Change</strong>. Click the name to open the schema in the editor, <strong>★</strong> to pick a favorite, <strong>Change</strong> to browse; drop an <code>.xsd</code> onto the row to bind it.</td>
 </tr>
 <tr>
 <td><strong>SOURCES · Schematron row</strong></td>
-<td>The bound Schematron (<code>.sch</code>), with the same name / ★ / Change / drop behavior.</td>
+<td>The bound Schematron (<code>.sch</code>), with the same layout and name / ★ / Change / drop behavior (<em>"No Schematron — choose or drop a file"</em> while empty).</td>
 </tr>
 <tr>
 <td><strong>SOURCES · JSON Schema row</strong></td>
@@ -2726,19 +2730,31 @@ the <strong>PROBLEMS</strong> section. It is enabled whenever the list contains 
 </tr>
 <tr>
 <td><strong>Status line</strong></td>
-<td><em>Valid</em>, <em>Well-formed</em>, <em>N problem(s)</em>, batch summaries, or a precondition hint (e.g. <em>No document open</em>).</td>
+<td><em>Valid</em>, <em>Well-formed · no schema bound</em>, <em>1 problem</em> / <em>N problems</em>, batch summaries, or a precondition hint (e.g. <em>No document open</em>).</td>
+</tr>
+<tr>
+<td><strong>"N problems — show below the editor"</strong></td>
+<td><em>(Single file mode.)</em> Expands and focuses the PROBLEMS panel below the editor.</td>
 </tr>
 <tr>
 <td><strong>RESULTS</strong></td>
-<td>Per-file rows of the last batch run (collapsible section).</td>
+<td><em>(Batch mode only.)</em> Per-file rows of the last batch run (collapsible section).</td>
 </tr>
 <tr>
 <td><strong>PROBLEMS</strong></td>
-<td>The problem list (collapsible), with two header buttons: <strong>Open detailed Schematron report</strong> (enabled after a run with a bound Schematron) and <strong>Export problems to Excel</strong>.</td>
+<td><em>(Batch mode only.)</em> The problems of the file selected in RESULTS (collapsible).</td>
+</tr>
+<tr>
+<td><strong>REPORTS &amp; CHECKS</strong></td>
+<td>Collapsed section: <strong>Validation Report</strong> (enabled after a run with a bound Schematron), <strong>Export Problems to Excel</strong>, <strong>Open Last Batch Report</strong>. (FundsXML validation lives in the FundsXML panel.)</td>
+</tr>
+<tr>
+<td><strong>SCHEMATRON AUTHORING</strong></td>
+<td>Collapsed section: <strong>Rule Templates</strong>, <strong>Schematron Tester</strong>, <strong>Rule Builder</strong>, <strong>Check Rules</strong>, <strong>Schematron Documentation</strong>.</td>
 </tr>
 <tr>
 <td><strong>⋮ menu</strong></td>
-<td><strong>Schematron Tools</strong> (Rule Templates, Tester, Rule Builder, Check Rules, Validation Report, Documentation), <strong>Validate against FundsXML</strong> (only when the FundsXML extension is enabled in Settings), <strong>Validate while typing</strong>, <strong>Open last batch report</strong>.</td>
+<td><strong>Validate while typing</strong>.</td>
 </tr>
 </tbody>
 </table>
@@ -2765,12 +2781,12 @@ the <strong>PROBLEMS</strong> section. It is enabled whenever the list contains 
 <tr>
 <td><strong>Schema ▾</strong> menu</td>
 <td>-</td>
-<td><strong>Set XSD Schema…</strong>, <strong>Generate Documentation…</strong>, <strong>Type Editor…</strong></td>
+<td><strong>Set XSD Schema…</strong>, <strong>Generate Documentation…</strong>, <strong>Type Editor…</strong>, <strong>Generate XSD from XML</strong>, <strong>Generate XSD from XML Files…</strong></td>
 </tr>
 <tr>
 <td><strong>XSD indicator</strong> (status bar)</td>
 <td>-</td>
-<td>Shows <em>No XSD</em>, <em>Detecting XSD…</em>, <em>XSD: name</em> (with <em>(catalog)</em> / <em>(library)</em> / <em>(manual)</em>), or <em>XSD error</em>; click it to bind a schema, or drop an <code>.xsd</code> onto it</td>
+<td>Shows <em>No XSD</em> (a clickable chip), <em>Detecting XSD…</em>, <em>XSD: name</em> (with <em>(catalog)</em> / <em>(library)</em> / <em>(manual)</em>), or <em>XSD error</em>; click it to bind a schema, or drop an <code>.xsd</code> onto it. While an XSD schema itself is the active document it shows <em>XSD 1.1 schema</em> / <em>XSD 1.0 schema</em> instead (from <code>vc:minVersion</code>).</td>
 </tr>
 </tbody>
 </table>

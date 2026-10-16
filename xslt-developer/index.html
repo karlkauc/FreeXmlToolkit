@@ -2836,11 +2836,14 @@
 <p><strong>Version:</strong> 2.1.0</p>
 <p><strong>Note:</strong> The standalone <em>XSLT Developer</em> tab has been retired. Its
 capabilities now live in the <strong><a href="../unified-shell/">Unified Shell</a>'s Transform panel</strong>
-(stylesheet, input, output method, parameters, XPath/XQuery) together with the
-advanced tools in the panel's <strong>⋮ (overflow) menu</strong> — <strong>Debug XSLT…</strong> (the interactive
+(stylesheet, input, output method, parameters) together with the
+run options and advanced tools in the panel's collapsed <strong>OPTIONS &amp; TOOLS</strong> section —
+<strong>Debug XSLT…</strong> (the interactive
 debugger with breakpoints, step, variables, call stack, watch), <strong>Batch Transform…</strong>,
 <strong>Profile run</strong>, and <strong>Trace run</strong>. This page describes how to do XSLT and XQuery
-development in the shell, plus a collection of ready-to-use XSLT and XQuery patterns.</p>
+development in the shell, plus a collection of ready-to-use XSLT and XQuery patterns.
+XPath / XQuery queries against the open document run in the
+<a href="../unified-shell/#query-console">Query Console</a>.</p>
 </blockquote>
 <p>FreeXmlToolkit is a full-featured environment for creating and testing XSLT stylesheets and
 XQuery scripts. It includes live transformation, parameter support, batch processing, and
@@ -2880,7 +2883,7 @@ and input selected, and the transformation result in the OUTPUT panel below the 
 </tr>
 <tr>
 <td><strong>Run a transformation</strong></td>
-<td>The panel's <strong>Run Transform</strong> button — or, with the XSLT file active, the toolbar's <strong>Run</strong> button (<code>Ctrl+Enter</code>)</td>
+<td>The panel's <strong>Run Transform</strong> button (with <strong>Run automatically</strong> checked, dropping or browsing a stylesheet/input runs it right away) — or, with the XSLT file active, the toolbar's <strong>Run</strong> button (<code>Ctrl+Enter</code> / <code>F5</code>). From an XML document, the toolbar's <strong>Transform with XSLT…</strong> opens the Transform panel and runs it there</td>
 </tr>
 <tr>
 <td><strong>See the result</strong></td>
@@ -2892,11 +2895,11 @@ and input selected, and the transformation result in the OUTPUT panel below the 
 </tr>
 <tr>
 <td><strong>XPath / XQuery queries</strong></td>
-<td>The panel's <strong>XPATH</strong> and <strong>XQUERY</strong> sections, or the bottom <a href="../unified-shell/#query-console">Query Console</a> (<code>Ctrl+Shift+X</code>)</td>
+<td>The bottom <a href="../unified-shell/#query-console">Query Console</a> (<code>Ctrl+Shift+X</code>, or the Transform panel's <strong>Open Query Console</strong> button)</td>
 </tr>
 <tr>
 <td><strong>Debugger, batch, profile, trace</strong></td>
-<td>The Transform panel header's <strong>⋮ (overflow) menu</strong></td>
+<td>The Transform panel's <strong>OPTIONS &amp; TOOLS</strong> section (below <strong>Run Transform</strong>, collapsed by default)</td>
 </tr>
 </tbody>
 </table>
@@ -2914,15 +2917,15 @@ and input selected, and the transformation result in the OUTPUT panel below the 
 </ol>
 <h3 id="step-2-transform">Step 2: Transform<a class="headerlink" href="#step-2-transform" title="Permanent link">&para;</a></h3>
 <p>Click <strong>Run Transform</strong>. (With the stylesheet itself as the active document, the toolbar's
-<strong>Run</strong> button or <code>Ctrl+Enter</code> runs it against the selected
-<a href="../unified-shell/#query-documents-the-target-selector">Target</a>.)</p>
+<strong>Run</strong> button or <code>Ctrl+Enter</code> runs it against the document selected in the
+<a href="../unified-shell/#query-documents-the-target-selector">Input</a> dropdown.)</p>
 <h3 id="step-3-view-results">Step 3: View Results<a class="headerlink" href="#step-3-view-results" title="Permanent link">&para;</a></h3>
 <p>The output appears in the <strong>OUTPUT panel</strong> docked below the editor. The header shows a
 format badge and the run status (<code>Transformed · N ms · M chars</code>). For HTML output, switch
 the panel to the <strong>Preview</strong> view to see the rendered page, or click <strong>Open in browser</strong>.</p>
 <hr />
 <h2 id="live-preview-and-watch-mode">Live Preview and Watch Mode<a class="headerlink" href="#live-preview-and-watch-mode" title="Permanent link">&para;</a></h2>
-<p>Two toggles in the Transform panel's <strong>⋮ menu</strong> re-run the transformation automatically:</p>
+<p>Two checkboxes in the Transform panel's <strong>OPTIONS &amp; TOOLS</strong> section re-run the transformation automatically:</p>
 <ul>
 <li><strong>Live preview</strong> — re-runs (debounced) whenever you edit the <strong>input document</strong>.</li>
 <li><strong>Watch stylesheet file</strong> — re-runs whenever the chosen <strong>stylesheet</strong> changes on disk,
@@ -2973,10 +2976,10 @@ it:</p>
 <ul>
 <li><strong>XQuery documents</strong> — open (or create) a <code>.xq</code> / <code>.xquery</code> file; it gets its own editor
   with highlighting and autocomplete. Press the toolbar's <strong>Run</strong> button (<code>Ctrl+Enter</code>) to
-  run it against the selected <a href="../unified-shell/#query-documents-the-target-selector">Target</a>;
+  run it against the selected <a href="../unified-shell/#query-documents-the-target-selector">Input</a>;
   the result appears in the OUTPUT panel.</li>
-<li><strong>The XQUERY section</strong> of the Transform panel — a multi-line query area with
-  <strong>Run XQuery</strong>, evaluated against the transform input.</li>
+<li><strong>The <a href="../unified-shell/#query-console">Query Console</a></strong> — switch it to <strong>XQuery</strong> mode and
+  run a query against the active document.</li>
 </ul>
 <h3 id="basic-xquery-example">Basic XQuery Example<a class="headerlink" href="#basic-xquery-example" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">for</span><span class="w"> </span><span class="nv">$</span><span class="n">book</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="p">/</span><span class="nt">books</span><span class="p">/</span><span class="nt">book</span>
@@ -2985,7 +2988,7 @@ it:</p>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">return</span><span class="w"> </span><span class="nt">&lt;result&gt;</span><span class="p">{</span><span class="nv">$</span><span class="n">book</span><span class="p">/</span><span class="nt">title</span><span class="p">}</span><span class="nt">&lt;/result&gt;</span>
 </code></pre></div>
 <h3 id="built-in-xquery-examples">Built-in XQuery Examples<a class="headerlink" href="#built-in-xquery-examples" title="Permanent link">&para;</a></h3>
-<p>The XQUERY section's <strong>Examples</strong> menu inserts sample queries:</p>
+<p>The Query Console's <strong>Examples</strong> menu inserts sample queries:</p>
 <table>
 <thead>
 <tr>
@@ -2995,19 +2998,19 @@ it:</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Simple Query</strong></td>
+<td><strong>Simple</strong></td>
 <td>Basic element selection</td>
 </tr>
 <tr>
-<td><strong>FLWOR Expression</strong></td>
+<td><strong>FLWOR</strong></td>
 <td>For-Let-Where-Order-Return</td>
 </tr>
 <tr>
-<td><strong>HTML Report</strong></td>
+<td><strong>HTML report</strong></td>
 <td>Generate HTML output</td>
 </tr>
 <tr>
-<td><strong>Data Quality Check</strong></td>
+<td><strong>Data-quality check</strong></td>
 <td>Validate data completeness</td>
 </tr>
 </tbody>
@@ -3020,20 +3023,20 @@ it:</p>
 </div>
 <hr />
 <h2 id="multi-file-batch-processing">Multi-File Batch Processing<a class="headerlink" href="#multi-file-batch-processing" title="Permanent link">&para;</a></h2>
-<p><strong>Batch Transform…</strong> (Transform panel <strong>⋮ menu</strong>) runs the active stylesheet <strong>or</strong> XQuery
-script over many XML files at once.</p>
+<p><strong>Batch Transform…</strong> (Transform panel, <strong>OPTIONS &amp; TOOLS</strong> section) runs the chosen stylesheet
+over many XML files at once - or, when no stylesheet is set, the active XQuery document.</p>
 <ol>
 <li>Open the stylesheet (or XQuery file) you want to apply, then pick
-   <strong>⋮ → Batch Transform…</strong> — a <strong>Batch</strong> tool tab opens.</li>
+   <strong>OPTIONS &amp; TOOLS → Batch Transform…</strong> — a <strong>Batch</strong> tool tab opens.</li>
 <li>Add the XML files to process (each file is transformed/queried <strong>independently</strong>).</li>
 <li>Run the batch: the table shows one row per file with its status, and selecting a row
    shows that file's <strong>RESULT</strong>.</li>
 <li><strong>Save All…</strong> writes every result to a folder you choose.</li>
 </ol>
 <p>The Explorer offers an even faster route: select <strong>several XML files</strong> in the workspace tree
-(Ctrl/Shift+click) and press the <a href="../unified-shell/#transform-bar-one-click-xslt-from-the-explorer">Transform bar</a>'s
-<strong>Transform</strong> button — the Batch tool tab opens pre-loaded with those files and starts
-automatically.</p>
+(Ctrl/Shift+click), right-click and choose
+<a href="../unified-shell/#explorer-context-menu">Transform with <em>&lt;stylesheet&gt;</em></a> — the Batch tool
+tab opens pre-loaded with those files and starts automatically.</p>
 <hr />
 <h2 id="xslt-30-examples">XSLT 3.0 Examples<a class="headerlink" href="#xslt-30-examples" title="Permanent link">&para;</a></h2>
 <p>FreeXmlToolkit supports XSLT 3.0 via Saxon HE. Here are some advanced patterns:</p>
@@ -3134,12 +3137,12 @@ automatically.</p>
 <h2 id="performance-and-profiling">Performance and Profiling<a class="headerlink" href="#performance-and-profiling" title="Permanent link">&para;</a></h2>
 <p>Every run shows compact statistics in the OUTPUT panel's status line:
 <code>Transformed · N ms · M chars</code> — the <strong>execution time</strong> and the <strong>output size</strong>.</p>
-<p>For a deeper look, enable <strong>Profile run</strong> in the Transform panel's <strong>⋮ menu</strong>: the next
+<p>For a deeper look, enable <strong>Profile run</strong> in the Transform panel's <strong>OPTIONS &amp; TOOLS</strong> section: the next
 transformation additionally opens a read-only <strong>Profile</strong> tool tab with overall timings and
 <strong>per-template execution times</strong>, so you can see exactly where the time goes.</p>
 <hr />
 <h2 id="tracing-and-messages">Tracing and Messages<a class="headerlink" href="#tracing-and-messages" title="Permanent link">&para;</a></h2>
-<p>Enable <strong>Trace run</strong> in the <strong>⋮ menu</strong> to open a <strong>Trace</strong> tool tab with the next run. It
+<p>Enable <strong>Trace run</strong> in <strong>OPTIONS &amp; TOOLS</strong> to open a <strong>Trace</strong> tool tab with the next run. It
 shows the sequence of <strong>template matches</strong> and all <code>xsl:message</code> output:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">&lt;xsl:message</span><span class="nt">&gt;</span>Processing<span class="w"> </span>book:<span class="w"> </span><span class="k">&lt;xsl:value-of</span><span class="w"> </span><span class="na">select=</span><span class="s">"title"</span><span class="nt">/&gt;</span><span class="k">&lt;/xsl:message&gt;</span>
 </code></pre></div>
@@ -3151,7 +3154,7 @@ shows the sequence of <strong>template matches</strong> and all <code>xsl:messag
 </ol>
 <hr />
 <h2 id="interactive-live-debugger">Interactive Live Debugger<a class="headerlink" href="#interactive-live-debugger" title="Permanent link">&para;</a></h2>
-<p><strong>Debug XSLT…</strong> (Transform panel <strong>⋮ menu</strong>) starts a full interactive debugger that lets
+<p><strong>Debug XSLT…</strong> (Transform panel, <strong>OPTIONS &amp; TOOLS</strong> section) starts a full interactive debugger that lets
 you pause a transformation, step through your stylesheet, and inspect state - similar to
 debugging in an IDE. It opens the stylesheet as a document with a <strong>breakpoint gutter</strong> and
 a <strong>Debug</strong> tool tab.</p>
@@ -3229,8 +3232,8 @@ arrow over the red circle.</p>
 </table>
 <hr />
 <h2 id="output-format">Output Format<a class="headerlink" href="#output-format" title="Permanent link">&para;</a></h2>
-<p>The Transform panel's <strong>OUTPUT METHOD</strong> section is a segmented control with
-<strong>Auto · XML · HTML · XHTML · Text · JSON</strong>. <strong>Auto</strong> (the default) detects the format from
+<p>The Transform panel's <strong>OUTPUT METHOD</strong> section is a single dropdown with
+<strong>Auto, XML, HTML, XHTML, Text, JSON</strong>. <strong>Auto</strong> (the default) detects the format from
 the stylesheet's <code>xsl:output</code> declaration; pick a concrete format to override the detection.</p>
 <blockquote>
 <p>XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE auto-detects
@@ -3248,7 +3251,7 @@ the version from the stylesheet's <code>version</code> attribute.</p>
 <tbody>
 <tr>
 <td>Ctrl+Enter</td>
-<td>Run the active XSLT / XQuery / XPath document against the selected Target</td>
+<td>Run the active XSLT / XQuery / XPath document against the selected Input</td>
 </tr>
 <tr>
 <td>Ctrl+Shift+X</td>
@@ -3343,7 +3346,7 @@ the version from the stylesheet's <code>version</code> attribute.</p>
 </tr>
 <tr>
 <td>Slow transformation</td>
-<td>Enable <strong>⋮ → Profile run</strong> and check the per-template timings</td>
+<td>Enable <strong>Profile run</strong> (OPTIONS &amp; TOOLS) and check the per-template timings</td>
 </tr>
 <tr>
 <td>Batch results empty</td>

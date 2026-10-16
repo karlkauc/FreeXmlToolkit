@@ -2526,9 +2526,9 @@
 <hr />
 <h2 id="opening-the-dialog">Opening the Dialog<a class="headerlink" href="#opening-the-dialog" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Open your XSD in the <a href="../unified-shell/">Unified Shell</a> so it is the active document. An unsaved schema works too -- the current editor text is used.</li>
+<li>Open your XSD in the <a href="../unified-shell/">Unified Shell</a> so it is the active document. A new, never-saved schema works too -- the current editor text is used. For a schema file with unsaved changes you are asked first whether to save them (see step 3).</li>
 <li>Open the <strong>Schema</strong> activity in the activity bar.</li>
-<li>In the panel's tool button row, click <strong>Generate Sample XML (Advanced)…</strong> (the sliders icon).</li>
+<li>In the panel's <strong>TOOLS</strong> section (below the type lists - click its header to expand it if it is collapsed), click <strong>Sample XML with Options…</strong> (the sliders icon), which opens the <strong>Generate Sample XML (Advanced)</strong> dialog. If the schema has unsaved changes, you are first asked <em>"Save changes to <file> first?"</em> - <strong>Save and Continue</strong>, <strong>Use Saved Version</strong> (generate from the file as last saved) or <strong>Cancel</strong>.</li>
 </ol>
 <p>FreeXmlToolkit first scans the schema in the background and then shows the dialog with one row per element and attribute path. If the active document is not an XSD you get the message <em>Open an XSD schema first.</em>; if no paths can be extracted, <em>Could not extract any XPaths from the schema.</em></p>
 <hr />

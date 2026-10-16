@@ -2650,7 +2650,8 @@
 <code>.sch</code> files open as ordinary editor tabs in the <a href="../unified-shell/">Unified Shell</a>,
 and validation runs in the <strong>Validation activity panel</strong>. The Schematron tools —
 rule check, templates, tester, visual builder, documentation, and the validation
-report — sit in the Validation panel's <strong>⋮ menu → Schematron Tools</strong>. The
+report — are labelled rows in the Validation panel's <strong>SCHEMATRON AUTHORING</strong> and
+<strong>REPORTS &amp; CHECKS</strong> sections. The
 capabilities below are unchanged; they are reached through the shell rather than a
 dedicated sidebar tab.</p>
 </blockquote>
@@ -2769,38 +2770,46 @@ expression before putting it into a rule. See
 <a href="../unified-shell/#query-console">Query Console</a> in the Unified Shell guide.</p>
 <hr />
 <h2 id="schematron-tools-in-the-unified-shell">Schematron Tools in the Unified Shell<a class="headerlink" href="#schematron-tools-in-the-unified-shell" title="Permanent link">&para;</a></h2>
-<p>The <strong>Validation</strong> activity panel offers a set of Schematron tools in its <strong>⋮ menu</strong>
-under <em>Schematron Tools</em>. Each one opens as a closable tool tab in the editor area:</p>
+<p>The <strong>Validation</strong> activity panel offers the Schematron tools as labelled rows in two
+collapsible sections (both collapsed at first - click a header to expand it). Each tool
+opens as a closable tool tab in the editor area:</p>
 <table>
 <thead>
 <tr>
 <th>Tool</th>
+<th>Section</th>
 <th>What It Does</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Rule Templates</strong></td>
+<td>SCHEMATRON AUTHORING</td>
 <td>Insert ready-made Schematron rule patterns into the active editor</td>
 </tr>
 <tr>
-<td><strong>Tester</strong></td>
+<td><strong>Schematron Tester</strong></td>
+<td>SCHEMATRON AUTHORING</td>
 <td>Run the rules against an XML file (pre-loads the bound Schematron, if any)</td>
 </tr>
 <tr>
 <td><strong>Rule Builder</strong></td>
+<td>SCHEMATRON AUTHORING</td>
 <td>Build rules visually</td>
 </tr>
 <tr>
 <td><strong>Check Rules</strong></td>
+<td>SCHEMATRON AUTHORING</td>
 <td>Inspect the Schematron file itself for problems</td>
 </tr>
 <tr>
-<td><strong>Documentation</strong></td>
+<td><strong>Schematron Documentation</strong></td>
+<td>SCHEMATRON AUTHORING</td>
 <td>Generate documentation for the Schematron file</td>
 </tr>
 <tr>
 <td><strong>Validation Report</strong></td>
+<td>REPORTS &amp; CHECKS</td>
 <td>Open a detailed report of the last Schematron validation run</td>
 </tr>
 </tbody>
@@ -2840,12 +2849,11 @@ grouped into categories:</p>
 </tbody>
 </table>
 <h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
-<p><strong>Documentation</strong> opens the Schematron documentation generator, which produces readable
+<p><strong>Schematron Documentation</strong> opens the Schematron documentation generator, which produces readable
 documentation describing the patterns, rules, and assertions in your Schematron file.</p>
 <h3 id="validation-report">Validation Report<a class="headerlink" href="#validation-report" title="Permanent link">&para;</a></h3>
 <p>After validating an XML document that has a Schematron file bound, <strong>Validation Report</strong>
-(in the ⋮ menu under <em>Schematron Tools</em>, or via the report button in the Validation panel's
-PROBLEMS header) opens a <strong>Schematron Report</strong> tool tab. It shows the document name, the
+(a row in the Validation panel's <strong>REPORTS &amp; CHECKS</strong> section) opens a <strong>Schematron Report</strong> tool tab. It shows the document name, the
 Schematron file, an error/warning summary, and a table with one row per finding - severity,
 line, message, the failed rule/test expression, and the failing node's XPath context.
 Clicking a row jumps to that line in the editor.</p>
@@ -2919,22 +2927,23 @@ Shell guide.</p>
 <h2 id="testing-rules">Testing Rules<a class="headerlink" href="#testing-rules" title="Permanent link">&para;</a></h2>
 <h3 id="test-against-xml-files">Test Against XML Files<a class="headerlink" href="#test-against-xml-files" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Open the <strong>Validation</strong> activity and choose <strong>⋮ → Schematron Tools → Tester</strong></li>
+<li>Open the <strong>Validation</strong> activity and click <strong>Schematron Tester</strong> in the <strong>SCHEMATRON
+   AUTHORING</strong> section</li>
 <li>Pick the Schematron file with <strong>Browse…</strong> (the one bound to the active document is
    pre-loaded) and add the XML file(s) to test with <strong>Add XML Files</strong></li>
 <li>Click <strong>Run Tests</strong> and review the results in the Tester tab</li>
 </ol>
-<p>For a quick check of many files at once, the Explorer's
-<a href="../unified-shell/#schematron-bar-one-click-validation-from-the-explorer">Schematron bar</a>
-validates the selected XML files against a sticky Schematron in one click.</p>
+<p>For a quick check of many files at once, select the XML files in the Explorer's workspace
+tree, right-click and choose
+<a href="../unified-shell/#explorer-context-menu">Validate with <em>&lt;Schematron&gt;</em></a> - it validates
+them against the last-used Schematron.</p>
 <h3 id="integration-with-xml-editor">Integration with XML Editor<a class="headerlink" href="#integration-with-xml-editor" title="Permanent link">&para;</a></h3>
 <p>Use Schematron validation directly in the XML Editor:</p>
 <ol>
 <li>Open an XML file in the editor</li>
 <li>In the <strong>Validation</strong> panel's SOURCES section, click the <strong>Schematron</strong> row to select
    your Schematron file (or pick one from its favorites menu) - or simply <strong>drop</strong> a
-   <code>.sch</code> / <code>.schematron</code> file from your file manager onto that row or onto the
-   Explorer's Schematron picker</li>
+   <code>.sch</code> / <code>.schematron</code> file from your file manager onto that row</li>
 <li>Press <strong>Validate</strong> (F8) or click <strong>Run Validation</strong> in the panel; with <strong>Validate while
    typing</strong> on, the document is re-checked as you edit</li>
 <li>Errors are highlighted in the editor; click a problem to jump to its location</li>

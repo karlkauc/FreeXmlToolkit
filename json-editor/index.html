@@ -2578,7 +2578,7 @@ very same grid the shell uses for XML files, so it is instantly familiar:</p>
 </tr>
 <tr>
 <td><strong>Context menu</strong></td>
-<td>Add Property / Array Item / Sibling Before / After, Rename Key (F2), Duplicate (Ctrl+D), Copy / Cut / Paste as Sibling / Paste as Child, Copy Cell Content (Ctrl+Shift+C), Copy JSONPath (Ctrl+Shift+X), Copy Node (JSON) (Ctrl+Alt+C), Change Type, Move Up/Down (Alt+↑/↓), Expand All / Collapse All, Sort Column, Delete</td>
+<td>Add Property / Array Item / Sibling Before / After, Rename Key (F2), Duplicate (Ctrl+D), Copy / Cut / Paste as Sibling / Paste as Child, Copy Cell Content (Ctrl+Shift+C), Copy JSONPath (Ctrl+Alt+X), Copy Node (JSON) (Ctrl+Alt+C), Change Type, Move Up/Down (Alt+↑/↓), Expand All / Collapse All, Sort Column, Delete</td>
 </tr>
 <tr>
 <td><strong>Undo/Redo</strong></td>
@@ -2648,7 +2648,7 @@ grid edits. See <a href="../unified-shell/#json-files">Unified Shell - Propertie
 </tbody>
 </table>
 <p><strong>To run a query:</strong>
-1. Open the <strong>Query Console</strong> (terminal icon in the toolbar, or Ctrl+Shift+X) - with a JSON document active it evaluates JSONPath
+1. Open the <strong>Query Console</strong> (terminal icon in the toolbar, or Ctrl+Shift+X) - with a JSON document active its mode toggle reads <strong>JSONPath</strong> and it evaluates JSONPath
 2. Enter your JSONPath expression
 3. Run it to see the results in the console's result pane</p>
 <h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
@@ -2742,8 +2742,12 @@ dialect demo each for Draft-07 and 2019-09. Open
 <td>Move the selected node up / down (grid)</td>
 </tr>
 <tr>
+<td><code>Ctrl+Alt+X</code></td>
+<td>Copy JSONPath (grid)</td>
+</tr>
+<tr>
 <td><code>Ctrl+Shift+X</code></td>
-<td>Copy JSONPath (grid; elsewhere it toggles the Query Console)</td>
+<td>Toggle the Query Console (also while the grid has focus)</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+C</code></td>

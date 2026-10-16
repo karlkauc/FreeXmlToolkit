@@ -1744,6 +1744,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#how-the-page-is-organized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the Page Is Organized
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#the-keystore-section" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1833,10 +1844,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-sign-card" class="md-nav__link">
+  <a href="#the-sign-form" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Sign Card
+        The Sign Form
       
     </span>
   </a>
@@ -2325,6 +2336,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#how-the-page-is-organized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the Page Is Organized
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#the-keystore-section" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2414,10 +2436,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-sign-card" class="md-nav__link">
+  <a href="#the-sign-form" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Sign Card
+        The Sign Form
       
     </span>
   </a>
@@ -2692,19 +2714,19 @@
 <p><strong>Version:</strong> 2.1.0</p>
 <p><strong>Note:</strong> Signing, signature validation (including detailed and PKIX
 trust/chain/revocation/timestamp validation) and self-signed certificate creation
-live in the <strong>Unified Shell's Signature activity panel</strong> - they are reached through
-the shell rather than a dedicated sidebar tab.</p>
+live on the <strong>Signature page</strong> of the Unified Shell. Click <strong>Signature</strong> in the activity
+bar to open it as a tab in the main editor area.</p>
 </blockquote>
 <p>This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.</p>
 <hr />
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p><img alt="Signature activity in the Unified Shell" src="../img/unified-shell-signature.png" />
-<em>Signing, validation and certificate creation now live in the Unified Shell's Signature activity panel</em></p>
+<em>Signing, validation and certificate creation live on the Signature page (screenshot may show an older layout)</em></p>
 <h3 id="what-can-you-do">What Can You Do?<a class="headerlink" href="#what-can-you-do" title="Permanent link">&para;</a></h3>
-<p>In the <a href="../unified-shell/">Unified Shell</a>, open the <strong>Signature</strong> activity from the activity bar.
-The top of the panel is an <strong>action nav</strong> of four buttons - rendered as raised, bordered
-buttons so they are recognizable as clickable. Selecting one
-shows the matching form below the shared <strong>KEYSTORE</strong> section (keystore file, alias, passwords):</p>
+<p>In the <a href="../unified-shell/">Unified Shell</a>, click <strong>Signature</strong> in the activity bar. The
+<strong>Signature</strong> page opens as a tab in the main editor area, and the side panel on the left lists
+the four actions in order of use. Click an action to show it on the page; the current action is
+highlighted, and the status message of the previously selected action is cleared:</p>
 <table>
 <thead>
 <tr>
@@ -2714,16 +2736,16 @@ shows the matching form below the shared <strong>KEYSTORE</strong> section (keys
 </thead>
 <tbody>
 <tr>
-<td><strong>Create Certificate</strong></td>
-<td>Generate your own digital ID (keystore)</td>
-</tr>
-<tr>
 <td><strong>Sign XML File</strong></td>
-<td>Opens the <strong>Sign XML Document card</strong> in the editor area <em>(default)</em></td>
+<td>Sign a document with your keystore <em>(default)</em></td>
 </tr>
 <tr>
 <td><strong>Validate Signature</strong></td>
 <td>Check if the signed document is valid (plus a detailed report)</td>
+</tr>
+<tr>
+<td><strong>Create Certificate</strong></td>
+<td>Generate your own digital ID (keystore)</td>
 </tr>
 <tr>
 <td><strong>Expert Mode</strong></td>
@@ -2731,8 +2753,45 @@ shows the matching form below the shared <strong>KEYSTORE</strong> section (keys
 </tr>
 </tbody>
 </table>
+<h3 id="how-the-page-is-organized">How the Page Is Organized<a class="headerlink" href="#how-the-page-is-organized" title="Permanent link">&para;</a></h3>
+<p>Every action uses the same layout, from top to bottom:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Shown for</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Header</strong></td>
+<td>All actions</td>
+<td>The name of the selected action</td>
+</tr>
+<tr>
+<td><strong>DOCUMENT</strong></td>
+<td>Sign XML File, Validate Signature, Expert Mode</td>
+<td>The XML file to work on - the active document by default; <strong>Browse</strong> picks a different file</td>
+</tr>
+<tr>
+<td><strong>KEYSTORE</strong></td>
+<td>Sign XML File, Create Certificate</td>
+<td>The keystore file, alias and passwords (see below) - you enter them only once, both actions share them</td>
+</tr>
+<tr>
+<td><strong>Action form</strong></td>
+<td>All actions</td>
+<td>The options of the action and its primary button (e.g. <strong>Sign Document</strong>)</td>
+</tr>
+<tr>
+<td><strong>Status line</strong></td>
+<td>All actions</td>
+<td>The outcome of the last action</td>
+</tr>
+</tbody>
+</table>
 <h3 id="the-keystore-section">The KEYSTORE Section<a class="headerlink" href="#the-keystore-section" title="Permanent link">&para;</a></h3>
-<p>The <strong>KEYSTORE</strong> section sits directly below the action nav and is shared by all actions:</p>
 <table>
 <thead>
 <tr>
@@ -2743,7 +2802,7 @@ shows the matching form below the shared <strong>KEYSTORE</strong> section (keys
 <tbody>
 <tr>
 <td><strong>Keystore row</strong></td>
-<td>The selected keystore file (<code>none</code> until you pick one). Click <strong>Change</strong> to browse, pick a favorite from the <strong>star menu</strong>, or drop a file from your file manager (<code>.jks</code>, <code>.keystore</code>, <code>.p12</code>, <code>.pfx</code>)</td>
+<td>The selected keystore file, its name on its own line (full path as tooltip). Until you pick one it reads <em>"No keystore — choose or drop a .jks / .p12"</em>, and clicking it works like <strong>Change</strong>. Click <strong>Change</strong> to browse, pick a favorite from the <strong>star menu</strong>, or drop a file from your file manager (<code>.jks</code>, <code>.keystore</code>, <code>.p12</code>, <code>.pfx</code>)</td>
 </tr>
 <tr>
 <td><strong>Keystore alias</strong></td>
@@ -2751,7 +2810,7 @@ shows the matching form below the shared <strong>KEYSTORE</strong> section (keys
 </tr>
 <tr>
 <td><strong>Keystore password</strong></td>
-<td>Password protecting the keystore file (also used to open a password-protected trust store in Expert Mode)</td>
+<td>Password protecting the keystore file</td>
 </tr>
 <tr>
 <td><strong>Alias password</strong></td>
@@ -2759,7 +2818,6 @@ shows the matching form below the shared <strong>KEYSTORE</strong> section (keys
 </tr>
 </tbody>
 </table>
-<p>The status line at the bottom of the panel reports the outcome of the last action.</p>
 <hr />
 <h2 id="1-create-a-certificate">1. Create a Certificate<a class="headerlink" href="#1-create-a-certificate" title="Permanent link">&para;</a></h2>
 <p>Before signing documents, you need a digital certificate (like a digital ID card).</p>
@@ -2814,7 +2872,7 @@ shows the matching form below the shared <strong>KEYSTORE</strong> section (keys
 </tbody>
 </table>
 <h3 id="keystore-security">Keystore Security<a class="headerlink" href="#keystore-security" title="Permanent link">&para;</a></h3>
-<p>The alias and passwords come from the shared <strong>KEYSTORE</strong> section - all three are required:</p>
+<p>The alias and passwords come from the page's <strong>KEYSTORE</strong> section - all three are required:</p>
 <table>
 <thead>
 <tr>
@@ -2894,7 +2952,7 @@ shows the matching form below the shared <strong>KEYSTORE</strong> section (keys
 </table>
 <h3 id="how-to-create-a-certificate">How to Create a Certificate<a class="headerlink" href="#how-to-create-a-certificate" title="Permanent link">&para;</a></h3>
 <ol>
-<li>In the <strong>Signature</strong> panel, choose <strong>Create Certificate</strong></li>
+<li>On the <strong>Signature</strong> page, choose <strong>Create Certificate</strong> in the side panel</li>
 <li>Fill in the alias and both passwords in the <strong>KEYSTORE</strong> section</li>
 <li>Fill in the Distinguished Name fields</li>
 <li>Click <strong>"Create Certificate"</strong></li>
@@ -2911,9 +2969,9 @@ in red when you click <strong>Create Certificate</strong>. The highlight clears 
 <h2 id="2-sign-an-xml-document">2. Sign an XML Document<a class="headerlink" href="#2-sign-an-xml-document" title="Permanent link">&para;</a></h2>
 <p><img alt="Sign Document" src="../img/signature-sign-process.png" />
 <em>Document signing interface</em></p>
-<p>Choosing <strong>Sign XML File</strong> opens the <strong>Sign XML Document</strong> card as a tool tab in the editor
-area. It is pre-filled with the active document.</p>
-<h3 id="the-sign-card">The Sign Card<a class="headerlink" href="#the-sign-card" title="Permanent link">&para;</a></h3>
+<p><strong>Sign XML File</strong> is the action the Signature page shows first. The DOCUMENT row is pre-filled
+with the active document.</p>
+<h3 id="the-sign-form">The Sign Form<a class="headerlink" href="#the-sign-form" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -2927,12 +2985,12 @@ area. It is pre-filled with the active document.</p>
 <td>The XML file to sign (the active document by default); <strong>Browse</strong> picks a different file</td>
 </tr>
 <tr>
-<td><strong>Keystore alias</strong> / <strong>Keystore password</strong></td>
-<td>Mirrors the fields of the panel's KEYSTORE section (the <strong>alias password</strong> stays in the side panel)</td>
+<td><strong>KEYSTORE</strong></td>
+<td>The keystore file, <strong>Keystore alias</strong>, <strong>Keystore password</strong> and <strong>Alias password</strong></td>
 </tr>
 <tr>
 <td><strong>SIGNATURE OPTIONS - Signature type</strong></td>
-<td><strong>Enveloped</strong> <em>(default)</em>, <strong>Enveloping</strong> or <strong>Detached</strong> (see below)</td>
+<td><strong>Enveloped</strong> <em>(default)</em>, <strong>Enveloping</strong> or <strong>Detached</strong> (see below). With <strong>Detached</strong> selected, a hint explains that a separate <code>&lt;name&gt;.sig.xml</code> is written - validate that file and keep both files in the same folder</td>
 </tr>
 <tr>
 <td><strong>SIGNATURE OPTIONS - Algorithm</strong></td>
@@ -2940,7 +2998,7 @@ area. It is pre-filled with the active document.</p>
 </tr>
 <tr>
 <td><strong>Sign Document</strong></td>
-<td>Runs the signing; the status line mirrors the panel's status</td>
+<td>Runs the signing; the outcome appears in the status line</td>
 </tr>
 <tr>
 <td><strong>CERTIFICATE</strong></td>
@@ -2983,19 +3041,24 @@ the signature references the file by name and cannot be verified without it.</p>
 </blockquote>
 <h3 id="how-to-sign-a-document">How to Sign a Document<a class="headerlink" href="#how-to-sign-a-document" title="Permanent link">&para;</a></h3>
 <ol>
-<li>In the <strong>Signature</strong> panel, select your keystore in the <strong>KEYSTORE</strong> section - click
+<li>Open the <strong>Signature</strong> page and choose <strong>Sign XML File</strong> in the side panel</li>
+<li>Select your keystore in the <strong>KEYSTORE</strong> section - click
    <strong>Change</strong>, pick a favorited keystore from the <strong>star menu</strong> next to the keystore row (see
    <a href="#favorites-integration">Favorites Integration</a> below), or <strong>drop</strong> a keystore file
    (<code>.jks</code>, <code>.keystore</code>, <code>.p12</code>, <code>.pfx</code>) from your file manager onto the KEYSTORE row
    (Expert Mode's trust store row accepts drops the same way)</li>
 <li>Enter the keystore alias, keystore password and alias password</li>
-<li>Choose <strong>Sign XML File</strong> - the <strong>Sign XML Document</strong> card opens with the active document
-   (click <strong>Browse</strong> in the DOCUMENT row to sign a different file)</li>
+<li>Check the <strong>DOCUMENT</strong> row - it shows the active document; click <strong>Browse</strong> to sign a
+   different file</li>
 <li>Pick the signature type (Enveloped, Enveloping or Detached)</li>
 <li>Click <strong>"Sign Document"</strong></li>
-<li>The signed file (<code>&lt;name&gt;.signed.xml</code> or <code>&lt;name&gt;.sig.xml</code>) opens in a new editor tab</li>
+<li>The signed file (<code>&lt;name&gt;.signed.xml</code> or <code>&lt;name&gt;.sig.xml</code>) opens in a new editor tab in the
+   background; the Signature page stays in front and offers <strong>Validate this signature</strong></li>
 </ol>
 <blockquote>
+<p><strong>Unsaved changes:</strong> signing reads the document <strong>from disk</strong>. If it has unsaved changes,
+you are asked <em>"Save changes to <file> first?"</em> - <strong>Save and Continue</strong> signs your current
+text, <strong>Use Saved Version</strong> signs the file as last saved, <strong>Cancel</strong> stops.</p>
 <p><strong>Tip:</strong> Missing inputs are highlighted in red when you click <strong>Sign Document</strong>: signing
 without a keystore marks the keystore entry, and a blank alias or password marks that field.
 The highlight disappears as soon as you start typing.</p>
@@ -3006,13 +3069,17 @@ The highlight disappears as soon as you start typing.</p>
 <em>Verifying a signed document</em></p>
 <h3 id="how-to-verify-a-signature">How to Verify a Signature<a class="headerlink" href="#how-to-verify-a-signature" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Open the signed XML file in the editor (it becomes the active document)</li>
-<li>In the <strong>Signature</strong> panel, choose the <strong>Validate Signature</strong> action</li>
-<li>Click the <strong>Validate Signature</strong> button</li>
-<li>See the result in the status area (failures additionally open an explanatory dialog)</li>
+<li>Right after signing, click <strong>Validate this signature</strong> below the status line - it switches to
+   <strong>Validate Signature</strong> with the signed file and runs the check. Otherwise open the signed XML
+   file in the editor (it becomes the active document)</li>
+<li>On the <strong>Signature</strong> page, choose <strong>Validate Signature</strong> in the side panel</li>
+<li>Check the <strong>DOCUMENT</strong> row - it shows the active document; click <strong>Browse</strong> to check a
+   different file</li>
+<li>Click the <strong>Run Validation</strong> button</li>
+<li>See the result in the status line (failures additionally open an explanatory dialog)</li>
 </ol>
 <p>For a detailed report (validity plus signing-certificate details), use the outlined
-<strong>Validate (Details)</strong> button instead - the report opens as <code>Signature-Report.txt</code> in a new tab.</p>
+<strong>Validate (Details)</strong> button instead - it also checks the document in the DOCUMENT row, and the report opens as <code>Signature-Report.txt</code> in a new tab.</p>
 <h3 id="validation-results">Validation Results<a class="headerlink" href="#validation-results" title="Permanent link">&para;</a></h3>
 <blockquote>
 <p>Each validation outcome explains in plain language what happened and what to do about it.</p>
@@ -3086,7 +3153,7 @@ check whether the signing certificate is actually <strong>trusted</strong>.</p>
 validation</strong> goes further: it checks the signing certificate's chain against a <strong>trust store</strong> -
 a collection of certificate authorities you trust - to decide whether the certificate really
 comes from a trusted source (PKIX path validation).</p>
-<p>Expert Mode consists of the <strong>TRUST STORE</strong> section and one action:</p>
+<p>Expert Mode shows the <strong>DOCUMENT</strong> row, the <strong>TRUST STORE</strong> section and one action:</p>
 <table>
 <thead>
 <tr>
@@ -3096,8 +3163,16 @@ comes from a trusted source (PKIX path validation).</p>
 </thead>
 <tbody>
 <tr>
+<td><strong>DOCUMENT</strong></td>
+<td>The signed XML file to check - the active document by default; <strong>Browse</strong> picks a different file</td>
+</tr>
+<tr>
 <td><strong>Trust store row</strong></td>
 <td>The trust store to validate against - <code>default (cacerts)</code> until you pick one. <strong>Change</strong> opens a file chooser (<code>.jks</code>, <code>.p12</code>, <code>.pfx</code>, <code>.keystore</code>); the <strong>star menu</strong> lists your keystore favorites; dropping a file onto the row works too</td>
+</tr>
+<tr>
+<td><strong>Trust store password (optional)</strong></td>
+<td>The password of the trust store, if it has one. This field is separate from the keystore password</td>
 </tr>
 <tr>
 <td><strong>Check revocation (OCSP/CRL)</strong></td>
@@ -3105,19 +3180,20 @@ comes from a trusted source (PKIX path validation).</p>
 </tr>
 <tr>
 <td><strong>Validate (Trust)</strong></td>
-<td>Runs the validation on the active document and opens the report</td>
+<td>Runs the validation on the document in the DOCUMENT row and opens the report</td>
 </tr>
 </tbody>
 </table>
 <h3 id="how-to-run-trust-validation">How to Run Trust Validation<a class="headerlink" href="#how-to-run-trust-validation" title="Permanent link">&para;</a></h3>
 <ol>
-<li>Open the signed XML document.</li>
+<li>Open the signed XML document, then choose <strong>Expert Mode</strong> on the <strong>Signature</strong> page (the
+   DOCUMENT row shows the active document; <strong>Browse</strong> picks a different file).</li>
 <li>(Optional) Click <strong>Change</strong> in the trust store row to choose the trust store to validate
    against - or pick a favorited keystore from the <strong>star menu</strong> next to the trust store row.
    By default the application uses the JVM's built-in <code>cacerts</code> store, which contains
    well-known public certificate authorities.</li>
 <li>(Optional) If your trust store is password-protected, enter its password in the
-   <strong>Keystore password</strong> field of the KEYSTORE section - it is reused for the trust store.</li>
+   <strong>Trust store password</strong> field below the trust store row.</li>
 <li>(Optional) Tick <strong>Check revocation (OCSP/CRL)</strong> to also verify that the certificate has not
    been revoked.</li>
 <li>Click <strong>Validate (Trust)</strong>.</li>
@@ -3167,14 +3243,14 @@ are self-signed, so they are only trusted if you add them to the trust store you
 <blockquote>
 <p>Keystore and trust store files (<code>.jks</code>, <code>.p12</code>, <code>.pfx</code>,
 <code>.keystore</code>) are their own <strong>Keystore</strong> favorite type with a lock icon.
-In the Signature panel, the <strong>keystore row</strong> (KEYSTORE
+On the Signature page, the <strong>keystore row</strong> (KEYSTORE
 section) and the <strong>trust store row</strong> (Expert Mode) each carry a <strong>star menu</strong> listing
 your keystore favorites - pick one to select it without browsing the file system. See
 <a href="../favorites-system/">Favorites System</a> for details.</p>
 </blockquote>
 <hr />
 <h2 id="keyboard-shortcuts">Keyboard Shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
-<p>The Signature panel has no shortcuts of its own; the shell-wide favorites shortcuts are the
+<p>The Signature page has no shortcuts of its own; the shell-wide favorites shortcuts are the
 useful ones here:</p>
 <table>
 <thead>
@@ -3204,7 +3280,7 @@ useful ones here:</p>
 <li><strong>Use strong passwords</strong> - At least 12 characters with mixed case, numbers, symbols</li>
 <li><strong>Backup your keystore</strong> - Store copies in secure locations</li>
 <li><strong>Check validity regularly</strong> - Certificates expire after the validity period (one year for
-  certificates created here; <strong>Show certificate details</strong> on the sign card shows the days remaining)</li>
+  certificates created here; <strong>Show certificate details</strong> in the Sign form shows the days remaining)</li>
 </ul>
 <hr />
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
@@ -3286,7 +3362,7 @@ useful ones here:</p>
 <p>Currently, files must be signed one at a time.</p>
 <h3 id="what-signature-type-is-used">What signature type is used?<a class="headerlink" href="#what-signature-type-is-used" title="Permanent link">&para;</a></h3>
 <p>The tool creates XML signatures (XMLDSig) with RSA-SHA256 and exclusive canonicalization.
-You choose the structure on the sign card: <strong>enveloped</strong> (default - the signature is embedded
+You choose the structure in the Sign form: <strong>enveloped</strong> (default - the signature is embedded
 within the XML document), <strong>enveloping</strong> (the content is wrapped inside the signature document)
 or <strong>detached</strong> (a separate <code>.sig.xml</code> file referencing the original).</p>
 <h3 id="can-i-sign-pdfs">Can I sign PDFs?<a class="headerlink" href="#can-i-sign-pdfs" title="Permanent link">&para;</a></h3>
