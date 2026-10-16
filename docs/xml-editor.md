@@ -150,25 +150,39 @@ How you select a node depends on the active view:
 
 Depending on the node type, the inspector lets you edit:
 
-- **Element name** and its **namespace** (prefix and URI)
-- **Attributes** - add, rename, and remove them
+- **Element name** - click the name in the node header at the top of the inspector to rename it
+- **Namespace** (prefix and URI) - in the **NAMESPACE** section, which is collapsed by default
+- **Attributes** - in the framed list of the **VALUE & ATTRIBUTES** section: click a name to
+  rename it, click a value to edit it (**Enter** saves, **Esc** cancels), point at a row and
+  click the trash icon to delete it, and use the row below the list to add one
 - **Text content** of leaf elements
 - **Text** of comments, CDATA sections, and processing instructions
+
+Editable values look like plain text; the field frame appears when you point at or click them.
+The **⋮** menu at the top of the inspector offers **Copy XPath**, **Copy Node (XML)**,
+**Expand All Sections** and **Collapse All Sections**, and the **star** next to it adds the file
+to your Favorites. For the full layout, see
+[Unified Shell - Properties Inspector](unified-shell.md#properties-inspector).
 
 Your edits are written straight back to the document, so the source text always stays in sync.
 In the Text view, edits are applied as a minimal change that keeps your caret and scroll
 position in place.
 
-### Read-Only Schema Hints
+### Schema Information
 
-When the XML file is bound to an XSD schema, the inspector also shows helpful, read-only
-information for the selected element:
+When the XML file is bound to an XSD schema, the inspector also shows what the schema says
+about the selected element. The node header's validation pill shows **Valid**, the number of
+errors, or *Well-formed · no schema bound* when no schema is bound.
 
-- The **schema type** derived from the XSD
-- The element's **documentation**
-- Lists of **valid child elements** and **example values**
-
-These hints help you fill in correct content but cannot be edited from the inspector.
+- **Schema facts** (read-only) - Type, Base type, Derivation, the facets, minOccurs/maxOccurs,
+  Use, and **Order** (the element's position in its parent sequence or choice, e.g.
+  *3 of 3 · sequence*). Change these in the schema, not in the XML.
+- **Documentation** - the element's documentation from the schema.
+- **Value check** - *"Value matches the schema facets"* in green, or an amber warning such as
+  *"Value should be one of: …"* when the current text breaks a facet.
+- **EXAMPLE VALUES** - shown as chips; click one to use it as the element's text.
+- **VALID CHILDREN** - shown as chips; click one to add that child element.
+- **USED IN** - the containing element and its type.
 
 ### Shared Across Views
 

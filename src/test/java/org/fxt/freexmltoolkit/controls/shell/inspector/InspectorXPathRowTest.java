@@ -59,16 +59,20 @@ class InspectorXPathRowTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
                 () -> value.getText() != null && value.getText().startsWith("/root"));
 
-        // Layout: the value is the second child of the block; the header line above it
-        // carries the "XPath" key and the two copy buttons (no icons beside the value).
-        assertInstanceOf(VBox.class, value.getParent(), "the XPath value must sit on its own line");
-        VBox block = (VBox) value.getParent();
-        assertEquals(2, block.getChildren().size());
-        HBox header = (HBox) block.getChildren().get(0);
-        assertEquals(value, block.getChildren().get(1), "the value must be below the header");
-        assertEquals("XPath", ((Label) header.getChildren().get(0)).getText());
-        assertEquals(2, header.getChildren().stream().filter(n -> n instanceof Button).count(),
-                "the header must carry the Copy XPath and Copy Node buttons");
+        // Layout (Figma 33:2): an "XPATH" sub-label, then a code box holding the value and one
+        // copy button; "Copy Node (XML)" lives in the top bar's ⋮ menu.
+        assertInstanceOf(HBox.class, value.getParent(), "the XPath value sits in its code box");
+        HBox box = (HBox) value.getParent();
+        assertTrue(box.getStyleClass().contains("fxt-inspector-codebox"), box.getStyleClass().toString());
+        assertEquals(value, box.getChildren().get(0));
+        assertEquals(1, box.getChildren().stream().filter(n -> n instanceof Button).count(),
+                "the code box carries the Copy XPath button");
+        VBox body = (VBox) box.getParent();
+        Label sublabel = (Label) body.getChildren().get(body.getChildren().indexOf(box) - 1);
+        assertEquals("XPATH", sublabel.getText(), "the sub-label sits above the code box");
+        javafx.scene.control.MenuButton more = (javafx.scene.control.MenuButton) inspector.lookup("#inspector-more");
+        assertTrue(more.getItems().stream().anyMatch(i -> "Copy Node (XML)".equals(i.getText())),
+                "Copy Node (XML) is in the ⋮ menu");
 
         // Wait until the caret-selected model node is fully resolved (not just the transient
         // text-mode XPath), so the displayed value and the copy source are the same.

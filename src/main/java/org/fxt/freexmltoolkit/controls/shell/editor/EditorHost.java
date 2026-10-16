@@ -42,6 +42,8 @@ public class EditorHost extends BorderPane {
     private final ReadOnlyIntegerWrapper activeCaret = new ReadOnlyIntegerWrapper(this, "activeCaret", 0);
     private final ReadOnlyIntegerWrapper schemaImportsRevision =
             new ReadOnlyIntegerWrapper(this, "schemaImportsRevision", 0);
+    private final ReadOnlyIntegerWrapper xmlSchemaProviderRevision =
+            new ReadOnlyIntegerWrapper(this, "xmlSchemaProviderRevision", 0);
     private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
     private final ReadOnlyObjectWrapper<SchemaStatus> activeSchemaStatus =
             new ReadOnlyObjectWrapper<>(this, "activeSchemaStatus", SchemaStatus.NONE);
@@ -436,6 +438,15 @@ public class EditorHost extends BorderPane {
      */
     public ReadOnlyIntegerProperty schemaImportsRevisionProperty() {
         return schemaImportsRevision.getReadOnlyProperty();
+    }
+
+    /**
+     * @return a counter that increases whenever an XML document's schema provider has finished
+     *         loading in the background; schema-derived views (the inspector) refresh on it, since
+     *         the selected node itself does not change.
+     */
+    public ReadOnlyIntegerProperty xmlSchemaProviderRevisionProperty() {
+        return xmlSchemaProviderRevision.getReadOnlyProperty();
     }
 
     /**
@@ -3577,9 +3588,13 @@ public class EditorHost extends BorderPane {
                     if (tab.xmlEditorContext != null) {
                         tab.xmlEditorContext.setSchemaProvider(adapter);
                     }
+                    // Binding the schema drops the caret-selected node; pick it up again so the
+                    // inspector shows the schema facts without the user moving the caret.
+                    tab.resolveCaretXmlNode();
                     if (tab.isSelected()) {
                         refreshSelectedNode();
                     }
+                    xmlSchemaProviderRevision.set(xmlSchemaProviderRevision.get() + 1);
                 });
             } catch (Exception e) {
                 // schema-derived info is best-effort; ignore failures
@@ -3670,6 +3685,120 @@ public class EditorHost extends BorderPane {
             });
         }
         return values.stream().filter(s -> s != null && !s.isBlank()).distinct().toList();
+    }
+
+    /**
+     * @return base type and derivation ({@code restriction} / {@code extension}) of the schema type
+     * of the XML element at the given XPath; empty when no schema is bound or the type is not derived
+     */
+    public java.util.Optional<org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation.Derivation>
+            resolveActiveXmlElementDerivation(String elementXPath) {
+        var element = activeXsdElement(elementXPath);
+        if (element == null) {
+            return java.util.Optional.empty();
+        }
+        var restriction = element.getRestrictionInfo();
+        if (restriction != null && restriction.base() != null && !restriction.base().isBlank()) {
+            return java.util.Optional.of(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation
+                    .Derivation(restriction.base(), "restriction"));
+        }
+        String extensionBase = element.getSimpleContentExtensionBase();
+        if (extensionBase != null && !extensionBase.isBlank()) {
+            return java.util.Optional.of(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation
+                    .Derivation(extensionBase, "extension"));
+        }
+        return java.util.Optional.empty();
+    }
+
+    /**
+     * @return the position of the XML element's declaration in its parent compositor
+     * ({@code "2 of 6 · sequence"}); empty when no schema is bound or the parent is no compositor
+     */
+    public java.util.Optional<String> resolveActiveXmlElementOrder(String elementXPath) {
+        var map = activeXsdElementMap();
+        var element = activeXsdElement(elementXPath);
+        if (map == null || element == null || element.getParentXpath() == null) {
+            return java.util.Optional.empty();
+        }
+        var parent = map.get(element.getParentXpath());
+        String compositor = parent == null ? null : localXmlName(parent.getCurrentXpath());
+        if (parent == null || !isCompositorName(compositor) || parent.getChildren() == null) {
+            return java.util.Optional.empty();
+        }
+        java.util.List<String> particles = parent.getChildren().stream()
+                .filter(x -> x != null && !x.contains("@")).toList();
+        int index = particles.indexOf(element.getCurrentXpath());
+        if (index < 0) {
+            return java.util.Optional.empty();
+        }
+        String kind = compositor.replaceAll("_\\d+$", "").toLowerCase(java.util.Locale.ROOT);
+        return java.util.Optional.of(org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation
+                .format(index + 1, particles.size(), kind));
+    }
+
+    /**
+     * Checks a value against the schema facets/enumeration of the XML element at the given XPath.
+     *
+     * @return the validator's message ({@code null} when the value fits); empty when no schema is
+     * bound to the active document
+     */
+    public java.util.Optional<org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult>
+            validateActiveXmlElementValue(String elementXPath, String value) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et && et.xmlSchemaProvider != null && elementXPath != null) {
+            return java.util.Optional.of(et.xmlSchemaProvider.validateElementValue(elementXPath, value));
+        }
+        return java.util.Optional.empty();
+    }
+
+    /** A place a schema component is used: the referring node and a short description. */
+    public record SchemaUsage(XsdNode node, String name, String detail) {
+    }
+
+    /**
+     * Where the given XSD node is used in the active schema. For a global component (named type,
+     * global element/attribute, group) these are the places that reference it; for a local
+     * declaration it is the global component that contains it. Builds a reference graph — call it
+     * off the FX thread.
+     */
+    public java.util.List<SchemaUsage> resolveSchemaUsages(org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema,
+            XsdNode node) {
+        if (schema == null || node == null) {
+            return java.util.List.of();
+        }
+        var key = org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.keyOf(node);
+        boolean global = key != null && node.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+        java.util.List<SchemaUsage> out = new java.util.ArrayList<>();
+        if (global) {
+            var graph = org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.build(schema);
+            for (var ref : graph.referencesTo(key)) {
+                if (ref.isSelfReference() || ref.referrer() == null) {
+                    continue;
+                }
+                XsdNode owner = ref.owner() != null && graph.component(ref.owner()) != null
+                        ? graph.component(ref.owner()).node() : null;
+                String name = ref.referrer().getName() != null && !ref.referrer().getName().isBlank()
+                        ? ref.referrer().getName()
+                        : owner != null ? owner.getName() : ref.referrer().getNodeType().name();
+                out.add(new SchemaUsage(ref.referrer(), name, usageDetail(ref.referrer(), owner)));
+            }
+        } else {
+            for (XsdNode n = node.getParent(); n != null; n = n.getParent()) {
+                if (n.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema
+                        && n.getName() != null && !n.getName().isBlank()) {
+                    out.add(new SchemaUsage(n, n.getName(), org.fxt.freexmltoolkit.controls.shell.schema
+                            .XsdNodeLabels.kindLabel(n.getNodeType())));
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+
+    private static String usageDetail(XsdNode referrer, XsdNode owner) {
+        String kind = org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels.kindLabel(referrer.getNodeType());
+        return owner != null && owner != referrer && owner.getName() != null
+                ? kind + " in " + owner.getName() : kind;
     }
 
     /** Adds a new child element with the given name to the selected XML element. */

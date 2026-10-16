@@ -130,7 +130,6 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
             }
             // "Go to Definition" applies to element rows only (and only when wired).
             setContextMenu(item instanceof XmlElement && onGoToDefinition != null ? cellMenu() : null);
-            String iconLiteral = "bi-code-slash";
             if (item instanceof XmlElement element) {
                 StringBuilder label = new StringBuilder(element.getQualifiedName());
                 for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
@@ -139,23 +138,18 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
                 setText(label.toString());
             } else if (item instanceof XmlText text) {
                 setText("\"" + text.getText().strip() + "\"");
-                iconLiteral = "bi-fonts";
             } else if (item instanceof XmlComment comment) {
                 setText("<!-- " + comment.getText().strip() + " -->");
-                iconLiteral = "bi-chat-left-text";
             } else if (item instanceof XmlCData cdata) {
                 setText("<![CDATA[ " + cdata.getText().strip() + " ]]>");
-                iconLiteral = "bi-file-earmark-code";
             } else if (item instanceof XmlProcessingInstruction pi) {
                 setText("<?" + pi.getTarget() + " " + pi.getData() + "?>");
-                iconLiteral = "bi-gear";
             } else if (item instanceof XmlDocument) {
                 setText("(document)");
-                iconLiteral = "bi-file-earmark";
             } else {
                 setText(item.toString());
             }
-            IconifyIcon icon = new IconifyIcon(iconLiteral);
+            IconifyIcon icon = new IconifyIcon(XmlNodeIcons.icon(item));
             icon.setIconSize(14);
             setGraphic(icon);
         }

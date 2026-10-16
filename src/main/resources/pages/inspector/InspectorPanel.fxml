@@ -5,7 +5,10 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -13,32 +16,101 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <?import org.fxt.freexmltoolkit.controls.shell.inspector.DocLanguagesEditor?>
+<?import org.fxt.freexmltoolkit.controls.shell.inspector.InspectorKeyValueList?>
 
 <!--
-  The shell inspector (right-hand Properties pane): pinned PROPERTIES header and node header,
-  then the flat sections in a vertical scroll pane. Loaded by InspectorPanel via the fx:root
-  pattern (FxmlViews.load); InspectorPanel is root and controller.
-  A key/value row is an HBox "fxt-inspector-row": a 92px key label plus the control, which grows.
+  The shell inspector (right-hand Properties pane), laid out after Figma "03 · Unified Editor"
+  (node 33:2): a pinned top bar (PROPERTIES · favourite star · ⋮ menu) and node header (kind icon
+  tile · name · "Kind · type" subtitle · validation badge), then full-width section bars in a
+  vertical scroll pane. Loaded by InspectorPanel via the fx:root pattern (FxmlViews.load);
+  InspectorPanel is root and controller.
+  A key/value row is an HBox "fxt-inspector-row": the key label on the left and the value (or an
+  inline editor that looks like plain text until hovered/focused) right-aligned, growing.
   InspectorPanel shows/hides whole sections and single rows (those with an fx:id) per node type,
-  and keeps everything data-driven in code: combo choices, table cell factories, list cells, the
+  and keeps everything data-driven in code: combo choices, the facet/attribute lists, chips, the
   commit listeners (all edits go through the EditorHost command stack) and the AppInfoFieldsEditor.
   Stylesheets are inherited from the shell root.
 -->
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-inspector"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Label text="PROPERTIES" styleClass="fxt-inspector-header"/>
-        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-node-header">
+        <!-- Top bar: title, favourite star for the active file, more-actions menu -->
+        <HBox alignment="CENTER_LEFT" spacing="2" styleClass="fxt-inspector-topbar">
             <children>
-                <Label fx:id="nodeHeaderName" text="—" styleClass="fxt-inspector-node-name"/>
-                <Label fx:id="nodeHeaderKind" styleClass="fxt-inspector-kind-chip"/>
+                <Label text="PROPERTIES" styleClass="fxt-inspector-header"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="validationBadge" id="inspector-validation-badge" visible="false" managed="false"/>
+                <Button fx:id="favoriteButton" id="inspector-favorite" onAction="#onToggleFavorite"
+                        styleClass="fxt-inspector-icon-button, fxt-inspector-star">
+                    <graphic>
+                        <IconifyIcon fx:id="favoriteIcon" iconLiteral="bi-star" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip fx:id="favoriteTooltip" text="Add this file to Favorites"/>
+                    </tooltip>
+                </Button>
+                <MenuButton fx:id="moreButton" id="inspector-more" styleClass="fxt-inspector-icon-button, fxt-inspector-more">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-three-dots-vertical" iconSize="15"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="More actions"/>
+                    </tooltip>
+                    <items>
+                        <MenuItem fx:id="copyXPathMenuItem" id="inspector-menu-copy-xpath" text="Copy XPath" onAction="#copyXPathToClipboard">
+                            <graphic><IconifyIcon iconLiteral="bi-clipboard" iconSize="16"/></graphic>
+                        </MenuItem>
+                        <MenuItem fx:id="copyNodeMenuItem" id="inspector-menu-copy-node" text="Copy Node (XML)" onAction="#copyNodeToClipboard">
+                            <graphic><IconifyIcon iconLiteral="bi-clipboard-data" iconSize="16"/></graphic>
+                        </MenuItem>
+                        <SeparatorMenuItem/>
+                        <MenuItem id="inspector-menu-expand" text="Expand All Sections" onAction="#onExpandAllSections">
+                            <graphic><IconifyIcon iconLiteral="bi-arrows-expand" iconSize="16"/></graphic>
+                        </MenuItem>
+                        <MenuItem id="inspector-menu-collapse" text="Collapse All Sections" onAction="#onCollapseAllSections">
+                            <graphic><IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="16"/></graphic>
+                        </MenuItem>
+                    </items>
+                </MenuButton>
+            </children>
+        </HBox>
+
+        <!-- Node header: kind icon tile, name (editable in place when the node has one), subtitle, badge -->
+        <HBox alignment="CENTER_LEFT" spacing="11" styleClass="fxt-inspector-node-header">
+            <children>
+                <StackPane styleClass="fxt-inspector-tile" minWidth="34" minHeight="34" prefWidth="34" prefHeight="34" maxWidth="34" maxHeight="34">
+                    <children>
+                        <IconifyIcon fx:id="nodeIcon" iconLiteral="bi-code-slash" iconSize="17"/>
+                    </children>
+                </StackPane>
+                <VBox spacing="2" minWidth="0" HBox.hgrow="ALWAYS">
+                    <children>
+                        <StackPane alignment="CENTER_LEFT">
+                            <children>
+                                <Label fx:id="nodeHeaderName" text="—" styleClass="fxt-inspector-node-name" maxWidth="Infinity"/>
+                                <TextField fx:id="nameField" id="inspector-name" styleClass="fxt-inspector-edit, fxt-inspector-name-edit" maxWidth="Infinity">
+                                    <tooltip>
+                                        <Tooltip text="Click to rename"/>
+                                    </tooltip>
+                                </TextField>
+                            </children>
+                        </StackPane>
+                        <HBox fx:id="subtitleBox" spacing="6" alignment="CENTER_LEFT" minWidth="0">
+                            <children>
+                                <Label fx:id="nodeHeaderKind" id="inspector-subtitle-kind" styleClass="fxt-inspector-node-subtitle" minWidth="-Infinity"/>
+                                <Label fx:id="subtitleDot" text="•" styleClass="fxt-inspector-subtitle-dot" minWidth="-Infinity"/>
+                                <Label fx:id="nodeHeaderType" id="inspector-subtitle-type" styleClass="fxt-inspector-node-subtitle-type" minWidth="0"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+                <Label fx:id="validationBadge" id="inspector-validation-badge" visible="false" managed="false" minWidth="-Infinity"/>
             </children>
         </HBox>
 
@@ -50,60 +122,48 @@
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" minHeight="0"
                     styleClass="fxt-inspector-scroll" VBox.vgrow="ALWAYS">
             <content>
-                <VBox spacing="8">
+                <VBox styleClass="fxt-inspector-sections">
                     <children>
                         <TitledPane text="NODE &amp; XPATH" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Kind" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <Label fx:id="kindValue" text="—" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
+                                                <Label text="Kind" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="kindValue" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
                                             </children>
                                         </HBox>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="namespaceRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Name" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="nameField" id="inspector-name" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="Namespace" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="namespaceValue" id="inspector-namespace" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
                                             </children>
                                         </HBox>
-                                        <!-- XPath: key + copy buttons, the value on its own full-width line (click copies it) -->
-                                        <VBox spacing="2" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="positionRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <HBox spacing="4" alignment="CENTER_LEFT">
-                                                    <children>
-                                                        <Label text="XPath" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                        <Button fx:id="copyXPathButton" styleClass="fxt-inspector-icon-button" onAction="#copyXPathToClipboard">
-                                                            <graphic>
-                                                                <IconifyIcon iconLiteral="bi-clipboard" iconSize="13"/>
-                                                            </graphic>
-                                                            <tooltip>
-                                                                <Tooltip text="Copy XPath"/>
-                                                            </tooltip>
-                                                        </Button>
-                                                        <Button fx:id="copyNodeButton" styleClass="fxt-inspector-icon-button" onAction="#copyNodeToClipboard">
-                                                            <graphic>
-                                                                <IconifyIcon iconLiteral="bi-clipboard-data" iconSize="13"/>
-                                                            </graphic>
-                                                            <tooltip>
-                                                                <Tooltip text="Copy Node (XML)"/>
-                                                            </tooltip>
-                                                        </Button>
-                                                    </children>
-                                                </HBox>
-                                                <Label fx:id="xpathValue" id="inspector-xpath-value" text="—" wrapText="true" maxWidth="Infinity"
-                                                       styleClass="fxt-inspector-value" onMouseClicked="#copyXPathToClipboard">
+                                                <Label text="Position" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="positionValue" id="inspector-position" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
+                                            </children>
+                                        </HBox>
+                                        <!-- XPath: sub-label, then the value in a code box with a copy button (click copies too) -->
+                                        <Label text="XPATH" styleClass="fxt-inspector-sublabel"/>
+                                        <HBox alignment="CENTER_LEFT" spacing="8" styleClass="fxt-inspector-codebox, fxt-inspector-xpath-box">
+                                            <children>
+                                                <Label fx:id="xpathValue" id="inspector-xpath-value" text="—" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                                                       styleClass="fxt-inspector-xpath-text" onMouseClicked="#copyXPathToClipboard">
                                                     <tooltip>
                                                         <Tooltip text="Click to copy XPath"/>
                                                     </tooltip>
                                                 </Label>
-                                            </children>
-                                        </VBox>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
-                                            <children>
-                                                <Label text="Depth" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <Label fx:id="depthValue" text="—" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
+                                                <Button fx:id="copyXPathButton" id="inspector-copy-xpath" styleClass="fxt-inspector-icon-button" onAction="#copyXPathToClipboard">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-files" iconSize="13"/>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="Copy XPath"/>
+                                                    </tooltip>
+                                                </Button>
                                             </children>
                                         </HBox>
                                     </children>
@@ -113,35 +173,43 @@
 
                         <TitledPane fx:id="typeFacetsSection" text="TYPE &amp; FACETS" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <HBox fx:id="typeRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="typeRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Type" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <ComboBox fx:id="typeCombo" id="inspector-type" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="Type" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <ComboBox fx:id="typeCombo" id="inspector-type" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit, fxt-inspector-mono"/>
                                             </children>
                                         </HBox>
-                                        <VBox fx:id="facetBox" spacing="4">
+                                        <!-- Schema type of an XML instance element (read-only, from the bound XSD) -->
+                                        <HBox fx:id="schemaTypeRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <TableView fx:id="facetTable" editable="true" prefHeight="120" styleClass="fxt-facet-table">
-                                                    <columnResizePolicy>
-                                                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
-                                                    </columnResizePolicy>
-                                                    <placeholder>
-                                                        <Label text="No facets"/>
-                                                    </placeholder>
-                                                    <columns>
-                                                        <TableColumn fx:id="facetNameCol" text="Facet" prefWidth="140"/>
-                                                        <TableColumn fx:id="facetValueCol" text="Value" prefWidth="180" editable="true"/>
-                                                    </columns>
-                                                </TableView>
-                                                <!-- Add a facet (type + value) / delete the selected one -->
-                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                <Label text="Type" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="xmlSchemaTypeValue" id="inspector-schema-type" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value, fxt-inspector-mono"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="baseTypeRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Base type" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="baseTypeValue" id="inspector-base-type" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value, fxt-inspector-mono"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="derivationRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Derivation" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="derivationValue" id="inspector-derivation" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
+                                            </children>
+                                        </HBox>
+                                        <VBox fx:id="facetBox" spacing="6">
+                                            <children>
+                                                <Label text="FACETS" styleClass="fxt-inspector-sublabel"/>
+                                                <InspectorKeyValueList fx:id="facetList" id="inspector-facets"/>
+                                                <!-- Add a facet (type + value); delete is the trash button on a row -->
+                                                <HBox fx:id="facetAddRow" spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <ComboBox fx:id="facetTypeCombo" id="inspector-facet-type" styleClass="fxt-inspector-edit"/>
-                                                        <TextField fx:id="facetValueField" id="inspector-facet-value" promptText="value" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
-                                                        <Button id="inspector-facet-add" text="Add" minWidth="-Infinity" onAction="#onAddFacet"/>
-                                                        <Button id="inspector-facet-delete" text="Delete" minWidth="-Infinity" onAction="#onDeleteFacet"/>
+                                                        <ComboBox fx:id="facetTypeCombo" id="inspector-facet-type" promptText="facet" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                        <TextField fx:id="facetValueField" id="inspector-facet-value" promptText="value" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                        <Button id="inspector-facet-add" text="Add" minWidth="-Infinity" onAction="#onAddFacet" styleClass="fxt-inspector-add-button"/>
                                                     </children>
                                                 </HBox>
                                             </children>
@@ -151,21 +219,97 @@
                             </content>
                         </TitledPane>
 
-                        <!-- XML element namespace (prefix + URI) -->
-                        <TitledPane fx:id="namespaceSection" text="NAMESPACE" expanded="true" styleClass="fxt-inspector-section">
+                        <!-- Rows are toggled per node type; the "Value" rows are the read-only XML-instance view -->
+                        <TitledPane fx:id="cardUseSection" text="CARDINALITY &amp; USE" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="minRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Prefix" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="nsPrefixField" id="inspector-ns-prefix" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="minOccurs" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Spinner fx:id="minSpinner" id="inspector-min" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit, fxt-inspector-mono">
+                                                    <valueFactory>
+                                                        <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="9999" initialValue="1"/>
+                                                    </valueFactory>
+                                                </Spinner>
                                             </children>
                                         </HBox>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="maxRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="URI" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="nsUriField" id="inspector-ns-uri" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="maxOccurs" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <HBox spacing="8" alignment="CENTER_RIGHT" maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Spinner fx:id="maxSpinner" id="inspector-max" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit, fxt-inspector-mono">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="9999" initialValue="1"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                        <CheckBox fx:id="unboundedCheck" text="unbounded" minWidth="-Infinity" styleClass="fxt-inspector-check-box"/>
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="useRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Use" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <ComboBox fx:id="useCombo" id="inspector-use" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="formRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Form" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <ComboBox fx:id="formCombo" id="inspector-form" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="nillableRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Nillable" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <CheckBox fx:id="nillableCheck" styleClass="fxt-inspector-check-box"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="abstractRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Abstract" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <CheckBox fx:id="abstractCheck" styleClass="fxt-inspector-check-box"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="fixedRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Fixed" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="fixedField" id="inspector-fixed" promptText="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="substRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Subst. Group" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="substField" id="inspector-subst" promptText="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                            </children>
+                                        </HBox>
+                                        <!-- Read-only cardinality of a schema-bound XML instance element -->
+                                        <HBox fx:id="xmlMinRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="minOccurs" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="xmlMinValue" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value, fxt-inspector-mono"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="xmlMaxRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="maxOccurs" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="xmlMaxValue" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value, fxt-inspector-mono"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="xmlUseRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Use" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="xmlUseValue" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="orderRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Order" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="orderValue" id="inspector-order" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
                                             </children>
                                         </HBox>
                                     </children>
@@ -176,64 +320,26 @@
                         <!-- XML-instance / JSON value and attributes -->
                         <TitledPane fx:id="valueAttrSection" text="VALUE &amp; ATTRIBUTES" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <VBox fx:id="xmlTextBox" spacing="4">
+                                        <VBox fx:id="xmlTextBox" spacing="6">
                                             <children>
-                                                <Label fx:id="xmlTextLabel" text="Text" styleClass="fxt-inspector-key"/>
-                                                <TextArea fx:id="xmlTextArea" id="inspector-xml-text" wrapText="true" prefRowCount="2" styleClass="fxt-inspector-edit"/>
+                                                <Label fx:id="xmlTextLabel" text="TEXT" styleClass="fxt-inspector-sublabel"/>
+                                                <TextArea fx:id="xmlTextArea" id="inspector-xml-text" wrapText="true" prefRowCount="2" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
                                             </children>
                                         </VBox>
-                                        <VBox fx:id="xmlAttrBox" spacing="4">
+                                        <VBox fx:id="xmlAttrBox" spacing="6">
                                             <children>
-                                                <Label text="Attributes" styleClass="fxt-inspector-key"/>
-                                                <TableView fx:id="xmlAttrTable" id="inspector-xml-attrs" editable="true" prefHeight="120" styleClass="fxt-facet-table">
-                                                    <columnResizePolicy>
-                                                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
-                                                    </columnResizePolicy>
-                                                    <placeholder>
-                                                        <Label text="No attributes"/>
-                                                    </placeholder>
-                                                    <columns>
-                                                        <TableColumn fx:id="attrNameCol" text="Attribute" prefWidth="140" editable="true"/>
-                                                        <TableColumn fx:id="attrValueCol" text="Value" editable="true"/>
-                                                    </columns>
-                                                </TableView>
-                                                <!-- Add an attribute (name + value) / delete the selected one -->
+                                                <Label text="ATTRIBUTES" styleClass="fxt-inspector-sublabel"/>
+                                                <InspectorKeyValueList fx:id="xmlAttrList" id="inspector-xml-attrs"/>
+                                                <!-- Add an attribute (name + value); delete is the trash button on a row -->
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <TextField fx:id="attrNameField" id="inspector-xml-attr-name" promptText="name" styleClass="fxt-inspector-edit"/>
-                                                        <TextField fx:id="attrValueField" id="inspector-xml-attr-value" promptText="value" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
-                                                        <Button id="inspector-xml-attr-add" text="Add" minWidth="-Infinity" onAction="#onAddXmlAttribute"/>
-                                                        <Button id="inspector-xml-attr-delete" text="Delete" minWidth="-Infinity" onAction="#onDeleteXmlAttribute"/>
+                                                        <TextField fx:id="attrNameField" id="inspector-xml-attr-name" promptText="name" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                        <TextField fx:id="attrValueField" id="inspector-xml-attr-value" promptText="value" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                        <Button id="inspector-xml-attr-add" text="Add" minWidth="-Infinity" onAction="#onAddXmlAttribute" styleClass="fxt-inspector-add-button"/>
                                                     </children>
                                                 </HBox>
-                                            </children>
-                                        </VBox>
-                                        <!-- XSD-derived, read-only info for an XML element when a schema is bound -->
-                                        <VBox fx:id="xmlSchemaBox" spacing="4">
-                                            <children>
-                                                <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
-                                                    <children>
-                                                        <Label text="Schema type" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                        <Label fx:id="xmlSchemaTypeValue" text="—" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
-                                                    </children>
-                                                </HBox>
-                                                <!-- "Documentation" sits above its (often long, wrapping) text -->
-                                                <Label text="Documentation" styleClass="fxt-inspector-key"/>
-                                                <Label fx:id="xmlSchemaDocValue" text="—" wrapText="true" styleClass="fxt-inspector-value"/>
-                                                <Label text="Valid children (double-click to add)" styleClass="fxt-inspector-key"/>
-                                                <ListView fx:id="validChildrenList" id="inspector-valid-children" prefHeight="90" onMouseClicked="#onValidChildClicked">
-                                                    <placeholder>
-                                                        <Label text="—"/>
-                                                    </placeholder>
-                                                </ListView>
-                                                <Label text="Example values (double-click to set)" styleClass="fxt-inspector-key"/>
-                                                <ListView fx:id="exampleValuesList" id="inspector-example-values" prefHeight="70" onMouseClicked="#onExampleValueClicked">
-                                                    <placeholder>
-                                                        <Label text="—"/>
-                                                    </placeholder>
-                                                </ListView>
                                             </children>
                                         </VBox>
                                     </children>
@@ -244,10 +350,10 @@
                         <!-- Comment / CDATA / text node content -->
                         <TitledPane fx:id="contentSection" text="CONTENT" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <Label fx:id="contentLabel" text="Content" styleClass="fxt-inspector-key"/>
-                                        <TextArea fx:id="contentArea" id="inspector-content" wrapText="true" prefRowCount="3" styleClass="fxt-inspector-edit"/>
+                                        <Label fx:id="contentLabel" text="Content" styleClass="fxt-inspector-sublabel"/>
+                                        <TextArea fx:id="contentArea" id="inspector-content" wrapText="true" prefRowCount="3" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
                                     </children>
                                 </VBox>
                             </content>
@@ -255,17 +361,17 @@
 
                         <TitledPane fx:id="piSection" text="PROCESSING INSTRUCTION" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Target" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Target" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <TextField fx:id="piTargetField" id="inspector-pi-target" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Data" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Data" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <TextField fx:id="piDataField" id="inspector-pi-data" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
@@ -276,23 +382,23 @@
 
                         <TitledPane fx:id="declarationSection" text="XML DECLARATION" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Version" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Version" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <TextField fx:id="declVersionField" id="inspector-decl-version" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Encoding" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Encoding" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <TextField fx:id="declEncodingField" id="inspector-decl-encoding" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Standalone" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Standalone" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <ComboBox fx:id="declStandaloneCombo" id="inspector-decl-standalone" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
@@ -301,70 +407,71 @@
                             </content>
                         </TitledPane>
 
-                        <!-- Rows are toggled per node type -->
-                        <TitledPane fx:id="cardUseSection" text="CARDINALITY &amp; USE" expanded="true" styleClass="fxt-inspector-section">
+                        <TitledPane fx:id="docSection" text="DOCUMENTATION &amp; REFS" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <HBox fx:id="minRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <!-- Schema documentation of an XML instance element (read-only) -->
+                                        <Label fx:id="xmlSchemaDocValue" id="inspector-schema-doc" text="—" wrapText="true" styleClass="fxt-inspector-doc-text"/>
+                                        <!-- Does the element's text fit the schema facets? -->
+                                        <HBox fx:id="valueCheckBox" id="inspector-value-check" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-check">
                                             <children>
-                                                <Label text="minOccurs" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <Spinner fx:id="minSpinner" id="inspector-min" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit">
-                                                    <valueFactory>
-                                                        <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="9999" initialValue="1"/>
-                                                    </valueFactory>
-                                                </Spinner>
+                                                <IconifyIcon fx:id="valueCheckIcon" iconLiteral="bi-check-circle-fill" iconSize="14"/>
+                                                <Label fx:id="valueCheckText" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-check-text"/>
                                             </children>
                                         </HBox>
-                                        <HBox fx:id="maxRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <VBox fx:id="examplesBox" spacing="8">
                                             <children>
-                                                <Label text="maxOccurs" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <HBox spacing="8" alignment="CENTER_LEFT" maxWidth="Infinity" HBox.hgrow="ALWAYS">
-                                                    <children>
-                                                        <Spinner fx:id="maxSpinner" id="inspector-max" editable="true" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit">
-                                                            <valueFactory>
-                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="9999" initialValue="1"/>
-                                                            </valueFactory>
-                                                        </Spinner>
-                                                        <CheckBox fx:id="unboundedCheck" text="unbounded"/>
-                                                    </children>
-                                                </HBox>
+                                                <Label text="EXAMPLE VALUES" styleClass="fxt-inspector-sublabel"/>
+                                                <FlowPane fx:id="exampleValuesPane" id="inspector-example-values" hgap="8" vgap="8"/>
+                                            </children>
+                                        </VBox>
+                                        <VBox fx:id="validChildrenBox" spacing="8">
+                                            <children>
+                                                <Label text="VALID CHILDREN" styleClass="fxt-inspector-sublabel"/>
+                                                <FlowPane fx:id="validChildrenPane" id="inspector-valid-children" hgap="8" vgap="8"/>
+                                            </children>
+                                        </VBox>
+                                        <VBox fx:id="usedInBox" spacing="8">
+                                            <children>
+                                                <Label text="USED IN" styleClass="fxt-inspector-sublabel"/>
+                                                <VBox fx:id="usedInList" id="inspector-used-in" spacing="6"/>
+                                            </children>
+                                        </VBox>
+                                        <VBox fx:id="docBox" spacing="6">
+                                            <children>
+                                                <DocLanguagesEditor fx:id="docEditor" id="inspector-doc"/>
+                                                <Label text="APP INFO (@TAGS)" styleClass="fxt-inspector-sublabel"/>
+                                                <!-- InspectorPanel inserts the AppInfoFieldsEditor here (it needs constructor arguments) -->
+                                                <!-- Nested sub-pane: shares the section look but is not a top-level fxt-inspector-section -->
+                                                <TitledPane text="Raw appinfo" expanded="false" styleClass="fxt-inspector-subsection">
+                                                    <content>
+                                                        <TextArea fx:id="appinfoArea" id="inspector-appinfo" wrapText="true" prefRowCount="2"
+                                                                  promptText="xs:appinfo (raw display string)" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                    </content>
+                                                </TitledPane>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </TitledPane>
+
+                        <!-- XML element namespace (prefix + URI), editable; collapsed — the NODE row shows it -->
+                        <TitledPane fx:id="namespaceSection" text="NAMESPACE" expanded="false" styleClass="fxt-inspector-section">
+                            <content>
+                                <VBox styleClass="fxt-inspector-section-body">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Prefix" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="nsPrefixField" id="inspector-ns-prefix" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox fx:id="useRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Use" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <ComboBox fx:id="useCombo" id="inspector-use" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
-                                            </children>
-                                        </HBox>
-                                        <HBox fx:id="formRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
-                                            <children>
-                                                <Label text="Form" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <ComboBox fx:id="formCombo" id="inspector-form" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
-                                            </children>
-                                        </HBox>
-                                        <HBox fx:id="nillableRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
-                                            <children>
-                                                <Label text="Nillable" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <CheckBox fx:id="nillableCheck" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                                            </children>
-                                        </HBox>
-                                        <HBox fx:id="abstractRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
-                                            <children>
-                                                <Label text="Abstract" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <CheckBox fx:id="abstractCheck" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                                            </children>
-                                        </HBox>
-                                        <HBox fx:id="fixedRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
-                                            <children>
-                                                <Label text="Fixed" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="fixedField" id="inspector-fixed" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
-                                            </children>
-                                        </HBox>
-                                        <HBox fx:id="substRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
-                                            <children>
-                                                <Label text="Subst. Group" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="substField" id="inspector-subst" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="URI" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="nsUriField" id="inspector-ns-uri" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
                                     </children>
@@ -375,47 +482,48 @@
                         <!-- default/ref/block/final/mixed + xs:any wildcard; each row is toggled per node type -->
                         <TitledPane fx:id="advancedSection" text="ADVANCED" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <HBox fx:id="defaultRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="defaultRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Default" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="defaultField" id="inspector-default" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="Default" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="defaultField" id="inspector-default" promptText="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox fx:id="refRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="refRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Ref" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="refField" id="inspector-ref" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="Ref" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="refField" id="inspector-ref" promptText="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit, fxt-inspector-mono"/>
                                             </children>
                                         </HBox>
-                                        <HBox fx:id="blockRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="blockRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Block" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="blockField" id="inspector-block" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="Block" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="blockField" id="inspector-block" promptText="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox fx:id="finalRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="finalRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Final" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="finalField" id="inspector-final" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="Final" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="finalField" id="inspector-final" promptText="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox fx:id="mixedRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="mixedRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Mixed" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <CheckBox fx:id="mixedCheck" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                                <Label text="Mixed" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <CheckBox fx:id="mixedCheck" styleClass="fxt-inspector-check-box"/>
                                             </children>
                                         </HBox>
-                                        <HBox fx:id="wildcardNsRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="wildcardNsRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Namespace" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Namespace" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <TextField fx:id="wildcardNsField" id="inspector-wildcard-ns" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox fx:id="wildcardProcessRow" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox fx:id="wildcardProcessRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Process" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Process" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <ComboBox fx:id="wildcardProcessCombo" id="inspector-wildcard-process" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
@@ -427,47 +535,47 @@
                         <!-- Schema-level attributes, shown only for the xs:schema root -->
                         <TitledPane fx:id="schemaSection" text="SCHEMA" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Target NS" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Target NS" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <TextField fx:id="schemaTargetNsField" id="inspector-schema-targetns" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Version" minWidth="92" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="schemaVersionField" id="inspector-schema-version" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                                <Label text="Version" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="schemaVersionField" id="inspector-schema-version" promptText="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Element form" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Element form" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <ComboBox fx:id="schemaElementFormCombo" id="inspector-schema-elementform" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
-                                        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
-                                                <Label text="Attr form" minWidth="92" styleClass="fxt-inspector-key"/>
+                                                <Label text="Attr form" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
                                                 <ComboBox fx:id="schemaAttributeFormCombo" id="inspector-schema-attrform" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
                                         <!-- xs:import / xs:include directives with add/delete -->
-                                        <VBox spacing="4">
+                                        <VBox spacing="6">
                                             <children>
-                                                <Label text="Imports / Includes" styleClass="fxt-inspector-sub-label"/>
+                                                <Label text="IMPORTS / INCLUDES" styleClass="fxt-inspector-sublabel"/>
                                                 <ListView fx:id="schemaRefList" id="inspector-schema-refs" prefHeight="90" styleClass="fxt-facet-table">
                                                     <placeholder>
                                                         <Label text="No imports/includes"/>
                                                     </placeholder>
                                                 </ListView>
-                                                <ComboBox fx:id="schemaRefKindCombo" id="inspector-schema-ref-kind" styleClass="fxt-inspector-edit"/>
-                                                <TextField fx:id="schemaRefNsField" id="inspector-schema-ref-ns" promptText="namespace (import)" styleClass="fxt-inspector-edit"/>
-                                                <TextField fx:id="schemaRefLocationField" id="inspector-schema-ref-location" promptText="schemaLocation" styleClass="fxt-inspector-edit"/>
+                                                <ComboBox fx:id="schemaRefKindCombo" id="inspector-schema-ref-kind" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                <TextField fx:id="schemaRefNsField" id="inspector-schema-ref-ns" promptText="namespace (import)" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                <TextField fx:id="schemaRefLocationField" id="inspector-schema-ref-location" promptText="schemaLocation" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Button id="inspector-schema-ref-add" text="Add" minWidth="-Infinity" onAction="#onAddSchemaRef"/>
+                                                        <Button id="inspector-schema-ref-add" text="Add" minWidth="-Infinity" onAction="#onAddSchemaRef" styleClass="fxt-inspector-add-button"/>
                                                         <Button id="inspector-schema-ref-delete" text="Delete" minWidth="-Infinity" onAction="#onDeleteSchemaRef"/>
                                                     </children>
                                                 </HBox>
@@ -481,7 +589,7 @@
                         <!-- Identity constraints / assertions of the selected node -->
                         <TitledPane fx:id="constraintsSection" text="CONSTRAINTS" expanded="true" styleClass="fxt-inspector-section">
                             <content>
-                                <VBox spacing="4">
+                                <VBox styleClass="fxt-inspector-section-body">
                                     <children>
                                         <TableView fx:id="constraintsTable" prefHeight="110" styleClass="fxt-facet-table">
                                             <columnResizePolicy>
@@ -498,36 +606,17 @@
                                         </TableView>
                                         <Button fx:id="deleteConstraintButton" text="Delete constraint" minWidth="-Infinity" onAction="#onDeleteConstraint"/>
                                         <!-- Add an identity constraint (key/unique/keyref) to the selected element -->
-                                        <VBox fx:id="constraintAddBox" spacing="4">
+                                        <VBox fx:id="constraintAddBox" spacing="6">
                                             <children>
-                                                <Label text="Add identity constraint" styleClass="fxt-inspector-sub-label"/>
-                                                <ComboBox fx:id="constraintKindCombo" id="inspector-constraint-kind" styleClass="fxt-inspector-edit"/>
-                                                <TextField fx:id="constraintNameField" id="inspector-constraint-name" promptText="name" styleClass="fxt-inspector-edit"/>
-                                                <TextField fx:id="constraintSelectorField" id="inspector-constraint-selector" promptText="selector XPath, e.g. .//item" styleClass="fxt-inspector-edit"/>
-                                                <TextField fx:id="constraintFieldField" id="inspector-constraint-field" promptText="field XPath, e.g. @id" styleClass="fxt-inspector-edit"/>
-                                                <TextField fx:id="constraintReferField" id="inspector-constraint-refer" promptText="refer (keyref only)" disable="true" styleClass="fxt-inspector-edit"/>
-                                                <Button id="inspector-constraint-add" text="Add constraint" minWidth="-Infinity" onAction="#onAddConstraint"/>
+                                                <Label text="ADD IDENTITY CONSTRAINT" styleClass="fxt-inspector-sublabel"/>
+                                                <ComboBox fx:id="constraintKindCombo" id="inspector-constraint-kind" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                <TextField fx:id="constraintNameField" id="inspector-constraint-name" promptText="name" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                <TextField fx:id="constraintSelectorField" id="inspector-constraint-selector" promptText="selector XPath, e.g. .//item" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                <TextField fx:id="constraintFieldField" id="inspector-constraint-field" promptText="field XPath, e.g. @id" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                <TextField fx:id="constraintReferField" id="inspector-constraint-refer" promptText="refer (keyref only)" disable="true" styleClass="fxt-inspector-edit, fxt-inspector-edit-boxed"/>
+                                                <Button id="inspector-constraint-add" text="Add constraint" minWidth="-Infinity" onAction="#onAddConstraint" styleClass="fxt-inspector-add-button"/>
                                             </children>
                                         </VBox>
-                                    </children>
-                                </VBox>
-                            </content>
-                        </TitledPane>
-
-                        <TitledPane fx:id="docSection" text="DOCUMENTATION &amp; REFS" expanded="true" styleClass="fxt-inspector-section">
-                            <content>
-                                <VBox fx:id="docBox" spacing="4">
-                                    <children>
-                                        <DocLanguagesEditor fx:id="docEditor" id="inspector-doc"/>
-                                        <Label text="App info (@tags)" styleClass="fxt-inspector-sub-label"/>
-                                        <!-- InspectorPanel inserts the AppInfoFieldsEditor here (it needs constructor arguments) -->
-                                        <!-- Nested sub-pane: shares the section look but is not a top-level fxt-inspector-section -->
-                                        <TitledPane text="Raw appinfo" expanded="false" styleClass="fxt-inspector-subsection">
-                                            <content>
-                                                <TextArea fx:id="appinfoArea" id="inspector-appinfo" wrapText="true" prefRowCount="2"
-                                                          promptText="xs:appinfo (raw display string)" styleClass="fxt-inspector-edit"/>
-                                            </content>
-                                        </TitledPane>
                                     </children>
                                 </VBox>
                             </content>

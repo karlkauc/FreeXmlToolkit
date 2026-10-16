@@ -1240,6 +1240,8 @@ node. In addition to name, type, cardinality, facets, and constraints, you can n
   use **Add Comment…** in a node's right-click context menu.
 - **Delete a constraint** - In the **CONSTRAINTS** section, select a `key`, `keyref`, `unique`,
   or `assert` constraint and click **Delete constraint** to remove it.
+- **See where a component is used** - **USED IN** (in **DOCUMENTATION & REFS**) lists every
+  reference to a global type, element or group; click one to select the referring node.
 
 ## Signature Page {#signature-panel}
 
@@ -1738,29 +1740,75 @@ any error to jump straight to its location:
 > (see [XSD Files](#xsd-files) below). For JSON files the inspector edits keys and values
 > from the Tree and Graphic views (see [JSON Files](#json-files) below).
 >
-> The **NODE & XPATH** section shows the XPath on its own full-width
-> line below the "XPath" header, so long paths do not get squeezed by the icon column.
->
 > The inspector is not fixed-width: drag the divider line
 > between the editor and the inspector to make it wider (handy for long XPaths, attribute
 > values, or documentation). The width is remembered across restarts - see
 > [Resizing and collapsing the side panels](#collapsing-the-side-panels).
+
+![Properties inspector](img/unified-shell-inspector.png)
+*The Properties inspector for an XML element with a bound schema: node header with validation
+pill, NODE & XPATH, schema facts, and documentation with example values and valid children.*
 
 While nothing is selected, the inspector shows a short hint instead of empty sections:
 *"Open a document to see the properties of its nodes here."* when no document is open, and
 *"Select a node in the Tree or Graphic view to see and edit its properties."* (or, in the
 Text view, a hint to place the caret on an element) when no node is selected.
 
+### Layout of the inspector
+
+From top to bottom:
+
+- **Top bar** - the title **PROPERTIES**, a **star** button and a **⋮** menu.
+  - The **star** adds the active file to [Favorites](favorites-system.md) (or removes it, when it
+    is already a favorite). It is greyed out for a document that has never been saved.
+  - The **⋮** menu offers **Copy XPath**, **Copy Node (XML)**, **Expand All Sections** and
+    **Collapse All Sections**.
+- **Node header** - an icon for the kind of node, the node's **name**, a subtitle such as
+  *Element · xs:string* (kind · type), and the **validation pill**: **Valid**, the number of
+  errors, or *Well-formed · no schema bound*. **Click the name to rename the node** in place
+  (only for nodes that have a name).
+- **Sections** - collapsible sections with a full-width title bar. Each row shows the property
+  name on the left and its value on the right.
+
+**Editing in place:** editable values (type, minOccurs/maxOccurs, use, form, fixed, default, …)
+look like plain text until you point at them or click them - then the field frame, the
+drop-down arrow or the spinner buttons appear. Values without that hover effect are read-only.
+
+The sections appear in this order (only the ones that apply to the selected node are shown):
+
+| Section | Content |
+|---------|---------|
+| **NODE & XPATH** | **Kind**, **Namespace** (the URI, marked *(default)* for an unprefixed namespace, otherwise *prefix → URI*; for schema nodes the schema's target namespace), **Position** *Ln x · Col y* (Text view only), and the **XPath** in a code box with a copy button |
+| **TYPE & FACETS** | **Type**, **Base type**, **Derivation** (restriction / extension / list / union) and the list of **facets** |
+| **CARDINALITY & USE** | minOccurs / maxOccurs, Use, and **Order** - the node's position in its parent compositor, e.g. *3 of 3 · sequence* |
+| **VALUE & ATTRIBUTES** | The element text and the list of **attributes** |
+| **CONTENT** / **PROCESSING INSTRUCTION** / **XML DECLARATION** | The text of comments, CDATA sections, processing instructions and the XML declaration |
+| **DOCUMENTATION & REFS** | Documentation, value check, example values, valid children and **USED IN** (see below) |
+| **NAMESPACE** | Edit the element's namespace prefix and URI (collapsed by default) |
+| **ADVANCED**, **SCHEMA**, **CONSTRAINTS** | Further schema-node properties (fixed/default, form, appinfo, identity constraints, …) |
+
 ### Copying the XPath or the node
 
-The **NODE & XPATH** section at the top of the inspector shows the selected node's XPath.
-Next to the "XPath" header sit two copy buttons:
+The **NODE & XPATH** section shows the selected node's XPath in a code box:
 
-- **Copy XPath** - copies the positional XPath (e.g. `/root/item[2]`) to the clipboard.
-- **Copy Node (XML)** - copies the selected node's XML serialization.
+- **Copy XPath** - click the copy button next to the XPath, or **click the XPath itself**, to
+  copy the positional XPath (e.g. `/root/item[2]`) to the clipboard.
+- **Copy Node (XML)** - in the **⋮** menu of the top bar; copies the selected node's XML
+  serialization. **Copy XPath** is also in this menu.
 
-You can also simply **click the XPath value itself** to copy it. In the Text view both actions
-act on the element enclosing the caret; in the Tree/Graphic views they act on the selected node.
+In the Text view both actions act on the element enclosing the caret; in the Tree/Graphic
+views they act on the selected node.
+
+### Facets and attributes lists
+
+Facets (in **TYPE & FACETS**) and attributes (in **VALUE & ATTRIBUTES**) are shown as framed
+lists that you edit directly:
+
+- **Click a value** to edit it. **Enter** saves the change, **Esc** cancels it.
+- For attributes, **click the name** to rename the attribute.
+- **Point at a row** to show its **trash** icon; click it to delete the facet or attribute.
+- **Add** a new entry with the row below the list (facet kind or attribute name, value, **Add**).
+- **Inherited facets** (from a base type) are shown in *italics* and cannot be edited here.
 
 ### XML Files
 
@@ -1768,11 +1816,9 @@ When an XML file is open, the Properties sidebar (Ctrl+Shift+P) shows the select
 lets you edit it from whichever view you are in:
 
 - **Text view** - Move the text caret into an element to select it. The inspector shows the
-  element's name, namespace, attributes, and text as editable fields, plus read-only,
-  schema-derived hints (type, documentation, valid child elements, and example values) when a
-  schema is bound. Edits round-trip into the source as a minimal change that preserves your
-  caret and scroll position. If the caret is not inside a well-formed element, the inspector
-  falls back to a read-only name/XPath view.
+  element's name, namespace, attributes, and text as editable fields. Edits round-trip into the
+  source as a minimal change that preserves your caret and scroll position. If the caret is not
+  inside a well-formed element, the inspector falls back to a read-only name/XPath view.
 - **Tree view** - Click any node (element, text, comment, CDATA, or processing instruction) to
   edit its properties.
 - **Graphic view** (the grid) - Select a row to edit its properties. The grid also handles
@@ -1781,6 +1827,18 @@ lets you edit it from whichever view you are in:
 All three views share one in-memory model per open document, so your edits and Undo/Redo
 history are preserved when you switch between Text, Tree, and Graphic.
 
+**With a bound XSD schema**, the inspector also shows what the schema says about the selected
+element. These schema facts are **read-only** (you change them in the schema, not in the XML):
+Type, Base type, Derivation, the facets, minOccurs/maxOccurs/Use and Order. The
+**DOCUMENTATION & REFS** section adds:
+
+- the element's **documentation** from the schema;
+- a **value check** - *"Value matches the schema facets"* in green, or an amber warning such
+  as *"Value should be one of: …"* when the current text breaks a facet;
+- **EXAMPLE VALUES** as chips - click one to set it as the element's text;
+- **VALID CHILDREN** as chips - click one to add that child element;
+- **USED IN** - the containing element and its type.
+
 ### XSD Files
 
 When an XSD (schema) file is open, the Properties sidebar shows the selected schema node and
@@ -1788,7 +1846,7 @@ lets you edit it from whichever view you are in. XSD files have the same three v
 **Tree**, and **Graphic** (for XSD, the Graphic view shows the schema diagram):
 
 - **Tree** and **Graphic** views - Select a schema node to edit its name, type,
-  cardinality/occurrence, use, form, constraints, documentation, and facets. (Unchanged.)
+  cardinality/occurrence, use, form, constraints, documentation, and facets.
 - **Text** view - Move the text caret into an XSD construct (such as an `xs:element`,
   `xs:complexType`, `xs:simpleType`, `xs:attribute`, a compositor, or a facet) to select the
   matching schema node and edit the same properties you would in the Tree and Graphic views -
@@ -1796,6 +1854,12 @@ lets you edit it from whichever view you are in. XSD files have the same three v
   that preserves your caret and scroll position. If the caret is not inside a recognizable
   construct (for example inside an `xs:annotation`, a comment, or blank space), the pane falls
   back to a read-only caret/XPath view.
+
+**USED IN** (in **DOCUMENTATION & REFS**) shows where a node is used:
+
+- For a **global** type, element or group, it lists every place that references it. Click an
+  entry to select the referring node in the Tree or Graphic view.
+- For a **local** declaration, it shows the global component that contains it.
 
 All three XSD views share one in-memory schema model, so your edits and Undo/Redo history are
 preserved when you switch between Text, Tree, and Graphic. Structural editing (adding, deleting,
@@ -1808,11 +1872,11 @@ Properties sidebar shows it:
 
 - **NODE & XPATH** shows the node's **JSONPath** (e.g. `$.items[1]`) instead of an XPath;
   click the value to copy it.
-- The **key** field is editable for object properties - changing it renames the key
-  (duplicate keys are refused). Array items (`[0]`, `[1]`, …) and the root `$` have no key.
+- The **key** is editable for object properties - click the name in the node header to rename
+  the key (duplicate keys are refused). Array items (`[0]`, `[1]`, …) and the root `$` have no key.
 - The **Value** field is editable for scalars (strings, numbers, booleans, `null`); the type
   is kept, so a number must stay a number. Objects and arrays show a summary instead.
-- The node **type** and **depth** are shown for information.
+- The node **kind** (object, array, string, …) is shown for information.
 
 The inspector shares the document model with the grid, the tree and the text, so an edit here
 is one undo step (Ctrl+Z) and is written back into the text immediately. Structural editing

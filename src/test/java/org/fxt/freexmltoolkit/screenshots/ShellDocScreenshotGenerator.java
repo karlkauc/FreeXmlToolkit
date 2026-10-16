@@ -104,6 +104,24 @@ class ShellDocScreenshotGenerator {
             darkShot("unified-shell-overview-dark");
         }
 
+        // --- Properties inspector (Figma 33:2): a schema-bound FundsXML leaf element, caret in Text ---
+        File inspectorXml = new File("src/test/resources/FundsXML_306.xml");
+        File inspectorXsd = new File("src/test/resources/FundsXML_306.xsd");
+        if (inspectorXml.exists() && inspectorXsd.exists()) {
+            onFx(() -> host.openFile(inspectorXml.toPath()));
+            WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("TypeOfDataSupplier")).orElse(false));
+            onFx(() -> host.setSchemaForActiveDocument(inspectorXsd));
+            settle(4000);
+            // Line 13: <TypeOfDataSupplier> — an enumeration, so the value check and chips show.
+            onFx(() -> host.goToLine(13, 30));
+            settle(1500);
+            shot("unified-shell-inspector");
+            darkShot("unified-shell-inspector-dark");
+            onFx(host::closeActiveTab);
+            settle();
+        }
+
         // --- XSD in the Graphic view (Schema activity) ---
         File xsd = new File(EXAMPLES, "xsd/context-sensitive-demo.xsd");
         if (xsd.exists()) {

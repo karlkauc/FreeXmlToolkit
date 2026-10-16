@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.animation.PauseTransition;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
@@ -16,7 +15,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -27,7 +25,10 @@ import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints;
+import org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets;
+import org.fxt.freexmltoolkit.controls.shell.schema.XmlNodeIcons;
+import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSchemaReferenceCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSchemaPropertyCommand;
@@ -67,19 +68,49 @@ public class InspectorPanel extends VBox {
 
     /** True while repopulating controls from the model — suppresses edit commits. */
     private boolean updating;
+    /** Bumped on every refresh so a late "Used in" result for a previous node is dropped. */
+    private int usedInRequest;
     private XsdNode currentXsdNode;
     private XmlNode currentXmlNode;
     private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode currentJsonNode;
 
+    // Top bar + node header
+    @FXML private javafx.scene.control.Button favoriteButton;
+    @FXML private IconifyIcon favoriteIcon;
+    @FXML private javafx.scene.control.Tooltip favoriteTooltip;
+    @FXML private javafx.scene.control.MenuButton moreButton;
+    @FXML private javafx.scene.control.MenuItem copyXPathMenuItem;
+    @FXML private javafx.scene.control.MenuItem copyNodeMenuItem;
+    @FXML private IconifyIcon nodeIcon;
     @FXML private Label nodeHeaderName;
     @FXML private Label emptyHint;
+    @FXML private HBox subtitleBox;
     @FXML private Label nodeHeaderKind;
+    @FXML private Label subtitleDot;
+    @FXML private Label nodeHeaderType;
     @FXML private Label validationBadge;
 
     // Read-only values
     @FXML private Label kindValue;
     @FXML private Label xpathValue;
-    @FXML private Label depthValue;
+    @FXML private HBox namespaceRow;
+    @FXML private Label namespaceValue;
+    @FXML private HBox positionRow;
+    @FXML private Label positionValue;
+    @FXML private HBox schemaTypeRow;
+    @FXML private HBox baseTypeRow;
+    @FXML private Label baseTypeValue;
+    @FXML private HBox derivationRow;
+    @FXML private Label derivationValue;
+    @FXML private HBox orderRow;
+    @FXML private Label orderValue;
+    // Read-only cardinality of a schema-bound XML instance element
+    @FXML private HBox xmlMinRow;
+    @FXML private HBox xmlMaxRow;
+    @FXML private HBox xmlUseRow;
+    @FXML private Label xmlMinValue;
+    @FXML private Label xmlMaxValue;
+    @FXML private Label xmlUseValue;
     // Editable controls
     @FXML private TextField nameField;
     @FXML private ComboBox<String> typeCombo;
@@ -113,15 +144,16 @@ public class InspectorPanel extends VBox {
     @FXML private DocLanguagesEditor docEditor;
     private AppInfoFieldsEditor appInfoFieldsEditor;
     @FXML private TextArea appinfoArea;
-    @FXML private TableView<XsdFacet> facetTable;
+    @FXML private InspectorKeyValueList<XsdFacet> facetList;
     @FXML private VBox facetBox;
+    @FXML private HBox facetAddRow;
     /** Facets currently shown that are inherited via a named-type reference (read-only). */
     private final java.util.Set<XsdFacet> inheritedFacets = new java.util.HashSet<>();
     @FXML private ComboBox<org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType> facetTypeCombo;
     @FXML private TextField facetValueField;
     // XML-instance value/attributes
     @FXML private TextArea xmlTextArea;
-    @FXML private TableView<AttrEntry> xmlAttrTable;
+    @FXML private InspectorKeyValueList<String> xmlAttrList;
     @FXML private Label xmlTextLabel;
     @FXML private VBox xmlTextBox;
     @FXML private VBox xmlAttrBox;
@@ -146,9 +178,15 @@ public class InspectorPanel extends VBox {
     // XSD-derived, read-only info shown for an XML element when a schema is bound
     @FXML private Label xmlSchemaTypeValue;
     @FXML private Label xmlSchemaDocValue;
-    @FXML private javafx.scene.control.ListView<String> validChildrenList;
-    @FXML private javafx.scene.control.ListView<String> exampleValuesList;
-    @FXML private VBox xmlSchemaBox;
+    @FXML private HBox valueCheckBox;
+    @FXML private IconifyIcon valueCheckIcon;
+    @FXML private Label valueCheckText;
+    @FXML private VBox examplesBox;
+    @FXML private javafx.scene.layout.FlowPane exampleValuesPane;
+    @FXML private VBox validChildrenBox;
+    @FXML private javafx.scene.layout.FlowPane validChildrenPane;
+    @FXML private VBox usedInBox;
+    @FXML private VBox usedInList;
     @FXML private TitledPane typeFacetsSection;
     @FXML private TitledPane cardUseSection;
     @FXML private TitledPane docSection;
@@ -184,13 +222,8 @@ public class InspectorPanel extends VBox {
     @FXML private TitledPane advancedSection;
     @FXML private TitledPane schemaSection;
     @FXML private VBox docBox;
-    // Nodes that only need wiring: copy buttons, table columns, the bound Delete button.
+    // Nodes that only need wiring: copy button, table columns, the bound Delete button.
     @FXML private javafx.scene.control.Button copyXPathButton;
-    @FXML private javafx.scene.control.Button copyNodeButton;
-    @FXML private TableColumn<XsdFacet, String> facetNameCol;
-    @FXML private TableColumn<XsdFacet, String> facetValueCol;
-    @FXML private TableColumn<AttrEntry, String> attrNameCol;
-    @FXML private TableColumn<AttrEntry, String> attrValueCol;
     @FXML private TableColumn<SchemaConstraints.ConstraintInfo, String> constraintKindCol;
     @FXML private TableColumn<SchemaConstraints.ConstraintInfo, String> constraintNameCol;
     @FXML private TableColumn<SchemaConstraints.ConstraintInfo, String> constraintDetailCol;
@@ -207,6 +240,7 @@ public class InspectorPanel extends VBox {
         editorHost.validationStatusProperty().addListener((obs, oldV, newV) -> updateValidationBadge(newV));
         updateValidationBadge(editorHost.validationStatusProperty().get());
 
+        initHeader();
         initXPathRow();
         initTypeFacets();
         initValueAttr();
@@ -221,11 +255,15 @@ public class InspectorPanel extends VBox {
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
             // The schema (and its cached XPath index for {@link} autocomplete) changes with the tab.
             appInfoFieldsEditor.invalidateSchema();
+            updateFavoriteStar();
             debounce.playFromStart();
         });
+        editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeSelectedNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         // Remote imports downloaded in the background add types to the type list.
         editorHost.schemaImportsRevisionProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
+        // A bound XSD loads off-thread: show its facts once it is there, without a caret move.
+        editorHost.xmlSchemaProviderRevisionProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeXmlNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeJsonNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         refresh();
@@ -234,7 +272,82 @@ public class InspectorPanel extends VBox {
     // ----- wiring of the FXML-defined sections ------------------------------
 
     /**
-     * The "XPath" block: the two copy buttons ("Copy XPath" positional, "Copy Node (XML)") and the
+     * The top bar's favourite star follows the active file (and favourites changed elsewhere).
+     */
+    private void initHeader() {
+        org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addChangeListener(() -> {
+            if (javafx.application.Platform.isFxApplicationThread()) {
+                updateFavoriteStar();
+            } else {
+                javafx.application.Platform.runLater(this::updateFavoriteStar);
+            }
+        });
+        updateFavoriteStar();
+        // Long namespace URIs keep their distinctive end visible; the tooltip has the full URI.
+        namespaceValue.setTextOverrun(javafx.scene.control.OverrunStyle.LEADING_ELLIPSIS);
+        javafx.scene.control.Tooltip nsTip = new javafx.scene.control.Tooltip();
+        nsTip.textProperty().bind(namespaceValue.textProperty());
+        namespaceValue.setTooltip(nsTip);
+    }
+
+    /** @return the active document's file, or {@code null} for none / an unsaved buffer */
+    private java.nio.file.Path activeFile() {
+        return editorHost.getActiveDocument().map(d -> d.getPath()).orElse(null);
+    }
+
+    private void updateFavoriteStar() {
+        java.nio.file.Path file = activeFile();
+        boolean active = file != null && org.fxt.freexmltoolkit.service.FavoritesService.getInstance()
+                .isFavorite(file.toFile().getAbsolutePath());
+        favoriteButton.setDisable(file == null);
+        favoriteIcon.setIconLiteral(active ? "bi-star-fill" : "bi-star");
+        favoriteButton.getStyleClass().remove("fxt-inspector-star-active");
+        if (active) {
+            favoriteButton.getStyleClass().add("fxt-inspector-star-active");
+        }
+        favoriteTooltip.setText(file == null ? "Save the file to add it to Favorites"
+                : active ? "Remove this file from Favorites" : "Add this file to Favorites");
+    }
+
+    /** The star: adds the active file to Favorites, or removes it when it already is one. */
+    @FXML
+    public void onToggleFavorite() {
+        java.nio.file.Path file = activeFile();
+        if (file == null) {
+            return;
+        }
+        var favorites = org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
+        String path = file.toFile().getAbsolutePath();
+        if (favorites.isFavorite(path)) {
+            favorites.removeFavoriteByPath(path);
+        } else {
+            favorites.addFavorite(file.toFile());
+        }
+        updateFavoriteStar();
+    }
+
+    /** ⋮ menu: expands every visible section. */
+    @FXML
+    public void onExpandAllSections() {
+        setSectionsExpanded(true);
+    }
+
+    /** ⋮ menu: collapses every visible section. */
+    @FXML
+    public void onCollapseAllSections() {
+        setSectionsExpanded(false);
+    }
+
+    private void setSectionsExpanded(boolean expanded) {
+        for (Node n : lookupAll(".fxt-inspector-section")) {
+            if (n instanceof TitledPane pane && !pane.getStyleClass().contains("fxt-inspector-subsection")) {
+                pane.setExpanded(expanded);
+            }
+        }
+    }
+
+    /**
+     * The "XPath" block: the copy button, the ⋮ menu's "Copy XPath" / "Copy Node (XML)" and the
      * value itself (one click copies the XPath) act on the selected model node when one is present
      * (grid/graphic mode), otherwise on the element enclosing the editor caret (text mode), and are
      * inert while no node/XPath is shown.
@@ -247,42 +360,23 @@ public class InspectorPanel extends VBox {
                 },
                 xpathValue.textProperty());
         copyXPathButton.disableProperty().bind(disabled);
-        copyNodeButton.disableProperty().bind(disabled);
+        copyXPathMenuItem.disableProperty().bind(disabled);
+        copyNodeMenuItem.disableProperty().bind(disabled);
         xpathValue.cursorProperty().bind(javafx.beans.binding.Bindings.when(disabled)
                 .then(javafx.scene.Cursor.DEFAULT).otherwise(javafx.scene.Cursor.HAND));
     }
 
     private void initTypeFacets() {
-        facetNameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(
-                c.getValue().getFacetType().getXmlName()));
-        facetValueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
-        // Editable facet value (inline facets); inherited facets are read-only.
-        facetValueCol.setCellFactory(col -> new javafx.scene.control.cell.TextFieldTableCell<XsdFacet, String>(
-                new javafx.util.converter.DefaultStringConverter()) {
-            @Override
-            public void startEdit() {
-                XsdFacet f = getTableRow() == null ? null : getTableRow().getItem();
-                if (f != null && inheritedFacets.contains(f)) {
-                    return; // inherited from a referenced named type — not editable here
-                }
-                super.startEdit();
+        // Editable facet values (inline facets); inherited facets are read-only rows.
+        facetList.setPlaceholderText("No facets");
+        facetList.setOnValueCommit((entry, value) -> {
+            if (!updating && !inheritedFacets.contains(entry.item())) {
+                editorHost.editActiveFacet(entry.item(), value);
             }
         });
-        facetValueCol.setOnEditCommit(e -> {
-            if (!updating && e.getRowValue() != null && !inheritedFacets.contains(e.getRowValue())) {
-                editorHost.editActiveFacet(e.getRowValue(), e.getNewValue());
-            }
-        });
-        // Render inherited facet rows in muted italics, with a hint tooltip.
-        facetTable.setRowFactory(tv -> new javafx.scene.control.TableRow<>() {
-            @Override
-            protected void updateItem(XsdFacet item, boolean empty) {
-                super.updateItem(item, empty);
-                boolean inherited = !empty && item != null && inheritedFacets.contains(item);
-                setStyle(inherited ? "-fx-font-style: italic; -fx-opacity: 0.8;" : "");
-                setTooltip(inherited
-                        ? new javafx.scene.control.Tooltip("Inherited from the referenced named type")
-                        : null);
+        facetList.setOnDelete(entry -> {
+            if (!inheritedFacets.contains(entry.item())) {
+                editorHost.deleteActiveFacet(entry.item());
             }
         });
 
@@ -312,15 +406,6 @@ public class InspectorPanel extends VBox {
         }
     }
 
-    /** Deletes the selected facet unless it is inherited from a referenced named type. */
-    @FXML
-    public void onDeleteFacet() {
-        XsdFacet sel = facetTable.getSelectionModel().getSelectedItem();
-        if (sel != null && !inheritedFacets.contains(sel)) {
-            editorHost.deleteActiveFacet(sel);
-        }
-    }
-
     private void initValueAttr() {
         xmlTextArea.focusedProperty().addListener((o, was, isNow) -> {
             if (!isNow) {
@@ -328,20 +413,18 @@ public class InspectorPanel extends VBox {
             }
         });
 
-        attrNameCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getName()));
-        attrNameCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
-        attrNameCol.setOnEditCommit(e -> {
-            if (!updating && e.getRowValue() != null && !e.getNewValue().isBlank()) {
-                editorHost.renameActiveXmlAttribute(e.getRowValue().getName(), e.getNewValue().trim());
+        xmlAttrList.setPlaceholderText("No attributes");
+        xmlAttrList.setOnNameCommit((entry, name) -> {
+            if (!updating && !name.isBlank()) {
+                editorHost.renameActiveXmlAttribute(entry.item(), name.trim());
             }
         });
-        attrValueCol.setCellValueFactory(c -> new javafx.beans.property.SimpleStringProperty(c.getValue().getValue()));
-        attrValueCol.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
-        attrValueCol.setOnEditCommit(e -> {
-            if (!updating && e.getRowValue() != null) {
-                editorHost.setActiveXmlAttribute(e.getRowValue().getName(), e.getNewValue());
+        xmlAttrList.setOnValueCommit((entry, value) -> {
+            if (!updating) {
+                editorHost.setActiveXmlAttribute(entry.item(), value);
             }
         });
+        xmlAttrList.setOnDelete(entry -> editorHost.removeActiveXmlAttribute(entry.item()));
     }
 
     /** Adds (or overwrites) the attribute named in the add row on the selected XML element. */
@@ -353,33 +436,6 @@ public class InspectorPanel extends VBox {
                     attrValueField.getText() == null ? "" : attrValueField.getText());
             attrNameField.clear();
             attrValueField.clear();
-        }
-    }
-
-    /** Removes the attribute selected in the XML attributes table. */
-    @FXML
-    public void onDeleteXmlAttribute() {
-        AttrEntry sel = xmlAttrTable.getSelectionModel().getSelectedItem();
-        if (sel != null) {
-            editorHost.removeActiveXmlAttribute(sel.getName());
-        }
-    }
-
-    /** A double-click on a valid child adds it to the selected XML element. */
-    @FXML
-    public void onValidChildClicked(MouseEvent e) {
-        String sel = validChildrenList.getSelectionModel().getSelectedItem();
-        if (e.getClickCount() == 2 && sel != null) {
-            editorHost.addActiveXmlChildElement(sel);
-        }
-    }
-
-    /** A double-click on an example value sets it as the selected XML element's text. */
-    @FXML
-    public void onExampleValueClicked(MouseEvent e) {
-        String sel = exampleValuesList.getSelectionModel().getSelectedItem();
-        if (e.getClickCount() == 2 && sel != null) {
-            editorHost.setActiveXmlElementText(sel);
         }
     }
 
@@ -683,6 +739,7 @@ public class InspectorPanel extends VBox {
         updating = true;
         try {
             resetXmlNodeSections();
+            resetFigmaRows();
             if (selected != null) {
                 populateXsdNode(selected);
             } else if (currentXmlNode instanceof XmlElement el) {
@@ -694,9 +751,54 @@ public class InspectorPanel extends VBox {
             } else {
                 populateCaret();
             }
+            updateNameDisplay();
+            updatePosition();
         } finally {
             updating = false;
         }
+    }
+
+    /** Hides the optional read-only rows and boxes; each populate path re-shows what applies. */
+    private void resetFigmaRows() {
+        usedInRequest++;
+        for (HBox row : new HBox[]{namespaceRow, schemaTypeRow, baseTypeRow, derivationRow, orderRow,
+                xmlMinRow, xmlMaxRow, xmlUseRow}) {
+            showRow(row, false);
+        }
+        show(valueCheckBox, false);
+        show(examplesBox, false);
+        show(validChildrenBox, false);
+        show(usedInBox, false);
+        show(xmlSchemaDocValue, false);
+        show(facetAddRow, true);
+        usedInList.getChildren().clear();
+        exampleValuesPane.getChildren().clear();
+        validChildrenPane.getChildren().clear();
+    }
+
+    /** The header shows the editable name field for nameable nodes, otherwise a plain title. */
+    private void updateNameDisplay() {
+        boolean editable = nameField.isEditable() && nameField.getText() != null && !nameField.getText().isBlank();
+        show(nameField, editable);
+        show(nodeHeaderName, !editable);
+    }
+
+    /** "Ln x · Col y" of the caret — only meaningful (and shown) in the Text view. */
+    private void updatePosition() {
+        boolean text = editorHost.getActiveDocument().isPresent()
+                && editorHost.activeViewModeProperty().get() == org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TEXT;
+        if (text) {
+            int[] lc = editorHost.getActiveCaretLineColumn();
+            positionValue.setText("Ln " + lc[0] + " · Col " + lc[1]);
+        }
+        showRow(positionRow, text);
+    }
+
+    /** Shows a read-only value row, or hides it for a blank value. */
+    private void showValue(HBox row, Label label, String value) {
+        boolean shown = value != null && !value.isBlank() && !PLACEHOLDER.equals(value);
+        label.setText(shown ? value : PLACEHOLDER);
+        showRow(row, shown);
     }
 
     /** Hides all XML-node-specific sections; each populate path re-shows what it needs. */
@@ -713,7 +815,6 @@ public class InspectorPanel extends VBox {
         nameField.setEditable(false);
         nameField.setText("");
         xpathValue.setText(PLACEHOLDER);
-        depthValue.setText(PLACEHOLDER);
         showXsdSections(false);
 
         if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment comment) {
@@ -740,12 +841,13 @@ public class InspectorPanel extends VBox {
             setHeader(PLACEHOLDER, "Node");
             kindValue.setText("Node");
         }
+        nodeIcon.setIconLiteral(XmlNodeIcons.icon(node));
     }
 
     private void populateContent(String kind, String label, String text) {
         setHeader(kind, kind);
         kindValue.setText(kind);
-        contentLabel.setText(label);
+        contentLabel.setText(label.toUpperCase(java.util.Locale.ROOT));
         contentArea.setText(text == null ? "" : text);
         show(contentSection, true);
     }
@@ -754,11 +856,11 @@ public class InspectorPanel extends VBox {
     private void populateXsdComment(org.fxt.freexmltoolkit.controls.v2.model.XsdComment comment) {
         SelectedNodeInfo info = SelectedNodeInfo.of(comment);
         xpathValue.setText(info.xpath());
-        depthValue.setText(Integer.toString(info.depth()));
         nameField.setEditable(false);
         nameField.setText("");
         contentArea.setEditable(true);
         populateContent("Comment", "Comment", comment.getContent());
+        nodeIcon.setIconLiteral("bi-chat-left-text");
         show(typeFacetsSection, false);
         show(cardUseSection, false);
         show(advancedSection, false);
@@ -775,13 +877,21 @@ public class InspectorPanel extends VBox {
             return;
         }
         SelectedNodeInfo info = SelectedNodeInfo.of(node);
-        setHeader(blankToPlaceholder(info.name()), info.kind());
+        setHeader(blankToPlaceholder(info.name()), info.kind(), info.type(),
+                XsdNodeLabels.icon(node.getNodeType()));
         kindValue.setText(info.kind());
         xpathValue.setText(info.xpath());
-        depthValue.setText(Integer.toString(info.depth()));
+        showValue(namespaceRow, namespaceValue, editorHost.getActiveSchema()
+                .map(XsdSchema::getTargetNamespace).orElse(null));
 
         boolean isElement = node instanceof XsdElement;
         boolean isAttribute = node instanceof XsdAttribute;
+        XsdNode schemaRoot = editorHost.getActiveSchemaRoot().orElse(null);
+        var derivation = SchemaDerivation.of(node, schemaRoot);
+        showValue(baseTypeRow, baseTypeValue, derivation.map(SchemaDerivation.Derivation::base).orElse(null));
+        showValue(derivationRow, derivationValue, derivation.map(SchemaDerivation.Derivation::method).orElse(null));
+        showValue(orderRow, orderValue, SchemaDerivation.order(node).orElse(null));
+        loadUsedIn(node);
 
         nameField.setEditable(nameEditable(node));
         nameField.setText(blankToPlaceholder(info.name()).equals(PLACEHOLDER) ? "" : info.name());
@@ -868,9 +978,9 @@ public class InspectorPanel extends VBox {
 
         // Section visibility: TYPE & FACETS only when a type field or facets apply;
         // CARDINALITY & USE only for elements/attributes; DOCUMENTATION for all nodes.
-        boolean facets = facetsApplicable(node, editorHost.getActiveSchemaRoot().orElse(null));
+        boolean facets = facetsApplicable(node, schemaRoot);
         show(facetBox, facets);
-        show(typeFacetsSection, isElement || isAttribute || facets);
+        show(typeFacetsSection, isElement || isAttribute || facets || derivation.isPresent());
         show(cardUseSection, isElement || isAttribute);
         // Identity constraints / assertions (read-only) — shown only when the node has any.
         java.util.List<SchemaConstraints.ConstraintInfo> constraints = SchemaConstraints.collect(node);
@@ -881,6 +991,63 @@ public class InspectorPanel extends VBox {
         show(docSection, true);
         show(namespaceSection, false);
         show(valueAttrSection, false);
+    }
+
+    /**
+     * Fills USED IN for an XSD node off the FX thread (building the reference graph walks the whole
+     * schema); a result that arrives after the selection moved on is dropped.
+     */
+    private void loadUsedIn(XsdNode node) {
+        XsdSchema schema = editorHost.getActiveSchema().orElse(null);
+        if (schema == null) {
+            return;
+        }
+        int request = usedInRequest;
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            List<EditorHost.SchemaUsage> usages;
+            try {
+                usages = editorHost.resolveSchemaUsages(schema, node);
+            } catch (RuntimeException e) {
+                usages = List.of();
+            }
+            List<EditorHost.SchemaUsage> result = usages;
+            javafx.application.Platform.runLater(() -> {
+                if (request == usedInRequest && node == currentXsdNode) {
+                    showUsedIn(result.stream().map(u -> new UsedInEntry(u.name(), u.detail(),
+                            XsdNodeLabels.icon(u.node().getNodeType()), () -> editorHost.selectNodeInActiveTree(u.node())))
+                            .toList());
+                }
+            });
+        });
+    }
+
+    /** One USED IN row: icon, name (a link when it can navigate) and a muted detail. */
+    private record UsedInEntry(String name, String detail, String icon, Runnable onOpen) {
+    }
+
+    private void showUsedIn(List<UsedInEntry> entries) {
+        usedInList.getChildren().clear();
+        for (UsedInEntry entry : entries) {
+            IconifyIcon icon = new IconifyIcon(entry.icon());
+            icon.setIconSize(13);
+            icon.getStyleClass().add("fxt-inspector-usage-icon");
+            Label name = new Label(entry.name());
+            name.getStyleClass().add("fxt-inspector-usage-name");
+            name.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+            Label detail = new Label(entry.detail() == null || entry.detail().isBlank() ? "" : "· " + entry.detail());
+            detail.getStyleClass().add("fxt-inspector-usage-detail");
+            detail.setMinWidth(0);
+            HBox row = new HBox(8, icon, name, detail);
+            row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            row.getStyleClass().add("fxt-inspector-usage-row");
+            if (entry.onOpen() != null) {
+                row.getStyleClass().add("fxt-inspector-usage-link");
+                row.setOnMouseClicked(e -> entry.onOpen().run());
+            }
+            usedInList.getChildren().add(row);
+        }
+        show(usedInBox, !entries.isEmpty());
+        show(docSection, docSection.isVisible() || !entries.isEmpty());
     }
 
     /**
@@ -942,49 +1109,123 @@ public class InspectorPanel extends VBox {
         show(advancedSection, isElement || isAttribute || isComplexType || isWildcard);
     }
 
-    /** XML-instance node: editable name + text + attributes; hide the XSD-only sections. */
+    /**
+     * XML-instance element: editable name, namespace, text and attributes. With a bound schema the
+     * read-only schema facts follow (type, base/derivation, facets, cardinality, order,
+     * documentation, a value check, example values, valid children and the containing element).
+     */
     private void populateXmlNode(XmlElement el) {
-        setHeader(el.getName(), "Element");
+        String xpath = xmlXPath(el);
+        var info = editorHost.resolveActiveXmlElementInfo(xpath);
+        setHeader(el.getName(), "Element", info.map(i -> i.typeName()).orElse(null), XmlNodeIcons.icon(el));
         kindValue.setText("Element");
         nameField.setEditable(true);
         nameField.setText(el.getName());
-        xpathValue.setText(xmlXPath(el));
-        depthValue.setText(Integer.toString(xmlDepth(el)));
+        xpathValue.setText(xpath);
 
-        // Namespace (prefix + URI).
-        nsPrefixField.setText(el.getNamespacePrefix() == null ? "" : el.getNamespacePrefix());
-        nsUriField.setText(el.getNamespaceURI() == null ? "" : el.getNamespaceURI());
+        // Namespace: a summary row, plus the editable NAMESPACE section (prefix + URI).
+        String prefix = el.getNamespacePrefix();
+        String uri = el.getNamespaceURI();
+        showValue(namespaceRow, namespaceValue, uri == null || uri.isBlank() ? null
+                : prefix == null || prefix.isBlank() ? uri + " (default)" : prefix + " → " + uri);
+        nsPrefixField.setText(prefix == null ? "" : prefix);
+        nsUriField.setText(uri == null ? "" : uri);
         show(namespaceSection, true);
 
         // Text content is only editable for leaf elements (no child elements → no mixed content).
         boolean leaf = !el.hasElementChildren();
-        xmlTextLabel.setText("Text");
+        xmlTextLabel.setText("TEXT");
         xmlTextArea.setEditable(true);
-        xmlTextArea.setText(leaf && el.getTextContent() != null ? el.getTextContent() : "");
+        String text = leaf && el.getTextContent() != null ? el.getTextContent() : "";
+        xmlTextArea.setText(text);
         show(xmlTextBox, leaf);
 
-        List<AttrEntry> entries = new ArrayList<>();
-        el.getAttributes().forEach((k, v) -> entries.add(new AttrEntry(k, v)));
-        xmlAttrTable.getItems().setAll(entries);
+        List<InspectorKeyValueList.Entry<String>> entries = new ArrayList<>();
+        el.getAttributes().forEach((k, v) -> entries.add(new InspectorKeyValueList.Entry<>(k, k, v)));
+        xmlAttrList.setItems(entries);
         show(xmlAttrBox, true);
-
-        // XSD-derived read-only info, when a schema is bound to the document.
-        String xpath = xmlXPath(el);
-        var info = editorHost.resolveActiveXmlElementInfo(xpath);
-        if (info.isPresent()) {
-            xmlSchemaTypeValue.setText(blankToPlaceholder(info.get().typeName()));
-            String doc = formatSchemaDoc(editorHost.resolveActiveXmlElementDocs(xpath),
-                    info.get().documentation());
-            xmlSchemaDocValue.setText(doc.isBlank() ? PLACEHOLDER : doc);
-            validChildrenList.getItems().setAll(editorHost.resolveValidChildren(xpath));
-            exampleValuesList.getItems().setAll(editorHost.resolveExampleValues(xpath));
-            show(xmlSchemaBox, true);
-        } else {
-            show(xmlSchemaBox, false);
-        }
 
         showXsdSections(false);
         show(valueAttrSection, true);
+        if (info.isPresent()) {
+            populateXmlSchemaFacts(el, xpath, info.get(), leaf, text);
+        }
+    }
+
+    /** The read-only schema facts of a schema-bound XML element (see {@link #populateXmlNode}). */
+    private void populateXmlSchemaFacts(XmlElement el, String xpath,
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ElementTypeInfo info,
+            boolean leaf, String text) {
+        // TYPE & FACETS
+        showRow(typeRow, false);
+        xmlSchemaTypeValue.setText(blankToPlaceholder(info.typeName()));
+        showRow(schemaTypeRow, true);
+        var derivation = editorHost.resolveActiveXmlElementDerivation(xpath);
+        showValue(baseTypeRow, baseTypeValue, derivation.map(SchemaDerivation.Derivation::base).orElse(null));
+        showValue(derivationRow, derivationValue, derivation.map(SchemaDerivation.Derivation::method).orElse(null));
+        List<InspectorKeyValueList.Entry<XsdFacet>> facets = new ArrayList<>();
+        if (info.facets() != null) {
+            info.facets().forEach((name, value) ->
+                    facets.add(new InspectorKeyValueList.Entry<>(null, name, value, true, "Defined by the schema")));
+        }
+        facetList.setItems(facets);
+        show(facetAddRow, false);
+        show(facetBox, !facets.isEmpty());
+        show(typeFacetsSection, true);
+
+        // CARDINALITY & USE (read-only) + position in the parent compositor
+        for (HBox r : new HBox[]{minRow, maxRow, useRow, formRow, nillableRow, abstractRow, fixedRow, substRow}) {
+            showRow(r, false);
+        }
+        showValue(xmlMinRow, xmlMinValue, info.minOccurs());
+        showValue(xmlMaxRow, xmlMaxValue, info.maxOccurs());
+        showValue(xmlUseRow, xmlUseValue, info.isMandatory() ? "required" : "optional");
+        showValue(orderRow, orderValue, editorHost.resolveActiveXmlElementOrder(xpath).orElse(null));
+        show(cardUseSection, true);
+
+        // DOCUMENTATION & REFS
+        String doc = formatSchemaDoc(editorHost.resolveActiveXmlElementDocs(xpath), info.documentation());
+        xmlSchemaDocValue.setText(doc.isBlank() ? PLACEHOLDER : doc);
+        show(xmlSchemaDocValue, !doc.isBlank());
+        show(docBox, false);
+        boolean constrained = !facets.isEmpty() || (info.enumerationValues() != null && !info.enumerationValues().isEmpty());
+        if (leaf && constrained) {
+            editorHost.validateActiveXmlElementValue(xpath, text).ifPresent(result -> showValueCheck(
+                    result.errorMessage() == null, result.errorMessage()));
+        }
+        fillChips(exampleValuesPane, examplesBox, editorHost.resolveExampleValues(xpath),
+                "Set as the element's text", editorHost::setActiveXmlElementText);
+        fillChips(validChildrenPane, validChildrenBox, editorHost.resolveValidChildren(xpath),
+                "Add as a child element", editorHost::addActiveXmlChildElement);
+        if (el.getParent() instanceof XmlElement parent) {
+            String parentType = editorHost.resolveActiveXmlElementInfo(xmlXPath(parent))
+                    .map(i -> i.typeName()).filter(t -> t != null && !t.isBlank()).orElse("element");
+            showUsedIn(List.of(new UsedInEntry(parent.getName(), parentType, XmlNodeIcons.icon(parent), null)));
+        }
+        show(docSection, true);
+    }
+
+    /** The value-check box: green "matches" or an amber warning with the validator's message. */
+    private void showValueCheck(boolean ok, String message) {
+        valueCheckBox.getStyleClass().removeAll("fxt-inspector-check-ok", "fxt-inspector-check-warn");
+        valueCheckBox.getStyleClass().add(ok ? "fxt-inspector-check-ok" : "fxt-inspector-check-warn");
+        valueCheckIcon.setIconLiteral(ok ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill");
+        valueCheckText.setText(ok ? "Value matches the schema facets" : message);
+        show(valueCheckBox, true);
+    }
+
+    /** Fills a chip row; a click on a chip runs {@code action} with its text. */
+    private void fillChips(javafx.scene.layout.FlowPane pane, VBox box, List<String> values, String tooltip,
+            java.util.function.Consumer<String> action) {
+        pane.getChildren().clear();
+        for (String value : values) {
+            javafx.scene.control.Button chip = new javafx.scene.control.Button(value);
+            chip.getStyleClass().add("fxt-inspector-chip");
+            chip.setTooltip(new javafx.scene.control.Tooltip(tooltip));
+            chip.setOnAction(e -> action.accept(value));
+            pane.getChildren().add(chip);
+        }
+        show(box, !values.isEmpty());
     }
 
     /**
@@ -1056,19 +1297,17 @@ public class InspectorPanel extends VBox {
         String kind = node.getNodeType() == null ? "JSON" : node.getNodeType().name();
         boolean keyEditable = node.getParent() instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject;
         boolean valueEditable = node instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive;
-        setHeader(blankToPlaceholder(key != null ? key : jsonLabel(node)), kind);
+        setHeader(blankToPlaceholder(key != null ? key : jsonLabel(node)), kind, null, "bi-braces");
         kindValue.setText(kind);
         nameField.setEditable(keyEditable);
         nameField.setText(key == null ? "" : key);
         xpathValue.setText(node.getPath());
-        depthValue.setText(Integer.toString(jsonDepth(node)));
 
-        xmlTextLabel.setText("Value");
+        xmlTextLabel.setText("VALUE");
         xmlTextArea.setEditable(valueEditable);
         xmlTextArea.setText(jsonValue(node));
         show(xmlTextBox, true);
         show(xmlAttrBox, false);
-        show(xmlSchemaBox, false);
 
         showXsdSections(false);
         show(namespaceSection, false);
@@ -1159,14 +1398,12 @@ public class InspectorPanel extends VBox {
             kindValue.setText(PLACEHOLDER);
             nameField.setText("");
             xpathValue.setText(PLACEHOLDER);
-            depthValue.setText(PLACEHOLDER);
         } else if (docOpt.get().getFileType() == EditorFileType.JSON) {
             showEmptyHint("Select a node in the Tree or Graphic view to see and edit its properties.");
-            setHeader(PLACEHOLDER, "JSON");
+            setHeader(PLACEHOLDER, "JSON", null, "bi-braces");
             kindValue.setText("JSON");
             nameField.setText("");
             xpathValue.setText(PLACEHOLDER);
-            depthValue.setText(PLACEHOLDER);
         } else {
             String text = editorHost.getActiveText().orElse("");
             int caret = editorHost.activeCaretProperty().get();
@@ -1179,7 +1416,6 @@ public class InspectorPanel extends VBox {
             kindValue.setText(info.kind());
             nameField.setText(PLACEHOLDER.equals(blankToPlaceholder(info.name())) ? "" : info.name());
             xpathValue.setText(info.xpath());
-            depthValue.setText(Integer.toString(info.depth()));
         }
         nameField.setEditable(false);
         for (HBox r : new HBox[]{typeRow, minRow, maxRow, useRow, formRow, nillableRow, abstractRow, fixedRow, substRow}) {
@@ -1192,18 +1428,32 @@ public class InspectorPanel extends VBox {
     }
 
     private void setHeader(String name, String kind) {
-        nodeHeaderName.setText(name);
+        setHeader(name, kind, null, null);
+    }
+
+    /**
+     * Node header: the title (the kind stands in for a node without a name), the subtitle
+     * "Kind · type" and the kind icon in the tile ({@code null} keeps the element icon).
+     */
+    private void setHeader(String name, String kind, String type, String icon) {
         boolean hasKind = kind != null && !PLACEHOLDER.equals(kind) && !kind.isBlank();
+        boolean hasType = type != null && !PLACEHOLDER.equals(type) && !type.isBlank();
+        boolean noName = name == null || name.isBlank() || PLACEHOLDER.equals(name);
+        nodeHeaderName.setText(noName && hasKind ? kind : noName ? PLACEHOLDER : name);
         nodeHeaderKind.setText(hasKind ? kind : "");
-        nodeHeaderKind.setVisible(hasKind);
-        nodeHeaderKind.setManaged(hasKind);
+        nodeHeaderType.setText(hasType ? type : "");
+        show(nodeHeaderKind, hasKind);
+        show(nodeHeaderType, hasType);
+        show(subtitleDot, hasKind && hasType);
+        show(subtitleBox, hasKind || hasType);
+        nodeIcon.setIconLiteral(icon != null ? icon : "bi-code-slash");
     }
 
     private void updateFacets(XsdNode node) {
         inheritedFacets.clear();
         XsdNode schemaRoot = editorHost.getActiveSchemaRoot().orElse(null);
         if (node == null || !facetsApplicable(node, schemaRoot)) {
-            facetTable.getItems().setAll(FXCollections.emptyObservableList());
+            facetList.setItems(List.of());
             return;
         }
         java.util.List<XsdFacet> inline = SchemaFacets.collect(node);
@@ -1221,7 +1471,13 @@ public class InspectorPanel extends VBox {
         inherited.addAll(SchemaFacets.resolveListUnionFacets(node, schemaRoot));
         inheritedFacets.addAll(inherited);
         facets.addAll(inherited);
-        facetTable.getItems().setAll(facets);
+        List<InspectorKeyValueList.Entry<XsdFacet>> rows = new ArrayList<>();
+        for (XsdFacet facet : facets) {
+            boolean readOnly = inheritedFacets.contains(facet);
+            rows.add(new InspectorKeyValueList.Entry<>(facet, facet.getFacetType().getXmlName(), facet.getValue(),
+                    readOnly, readOnly ? "Inherited from the referenced named type" : null));
+        }
+        facetList.setItems(rows);
     }
 
     /**
@@ -1397,17 +1653,17 @@ public class InspectorPanel extends VBox {
 
     /** @return the number of valid child elements listed (for tests/observers). */
     public int getValidChildCount() {
-        return validChildrenList.getItems().size();
+        return validChildrenPane.getChildren().size();
     }
 
     /** @return the number of example values listed (for tests/observers). */
     public int getExampleValueCount() {
-        return exampleValuesList.getItems().size();
+        return exampleValuesPane.getChildren().size();
     }
 
     /** @return the number of facets currently shown (for tests/observers). */
     public int getFacetCount() {
-        return facetTable.getItems().size();
+        return facetList.size();
     }
 
     /** @return how many of the shown facets are read-only inherited (for tests/observers). */
@@ -1422,7 +1678,7 @@ public class InspectorPanel extends VBox {
 
     /** @return the number of XML attributes currently shown (for tests/observers). */
     public int getXmlAttributeCount() {
-        return xmlAttrTable.getItems().size();
+        return xmlAttrList.size();
     }
 
     /** @return the element namespace prefix shown (for tests/observers). */
@@ -1470,27 +1726,70 @@ public class InspectorPanel extends VBox {
         return declVersionField.getText() == null ? "" : declVersionField.getText();
     }
 
+    /** @return the text of a value row, or "" while the row is hidden */
+    private static String rowText(HBox row, Label value) {
+        return row.isVisible() && value.getText() != null ? value.getText() : "";
+    }
+
+    /** @return the caret position row ("Ln x · Col y"), "" when hidden (for tests/observers). */
+    public String getPositionText() {
+        return rowText(positionRow, positionValue);
+    }
+
+    /** @return the Namespace row, "" when hidden (for tests/observers). */
+    public String getNamespaceText() {
+        return rowText(namespaceRow, namespaceValue);
+    }
+
+    /** @return the Base type row, "" when hidden (for tests/observers). */
+    public String getBaseTypeText() {
+        return rowText(baseTypeRow, baseTypeValue);
+    }
+
+    /** @return the Derivation row, "" when hidden (for tests/observers). */
+    public String getDerivationText() {
+        return rowText(derivationRow, derivationValue);
+    }
+
+    /** @return the Order row ("2 of 6 · sequence"), "" when hidden (for tests/observers). */
+    public String getOrderText() {
+        return rowText(orderRow, orderValue);
+    }
+
+    /** @return the value-check message, "" when no check is shown (for tests/observers). */
+    public String getValueCheckText() {
+        return valueCheckBox.isVisible() && valueCheckText.getText() != null ? valueCheckText.getText() : "";
+    }
+
+    /** @return whether the shown value check passed (for tests/observers). */
+    public boolean isValueCheckOk() {
+        return valueCheckBox.isVisible() && valueCheckBox.getStyleClass().contains("fxt-inspector-check-ok");
+    }
+
+    /** @return the number of USED IN rows (for tests/observers). */
+    public int getUsedInCount() {
+        return usedInBox.isVisible() ? usedInList.getChildren().size() : 0;
+    }
+
+    /** @return the header subtitle, e.g. "Element · xs:string" (for tests/observers). */
+    public String getHeaderSubtitleText() {
+        String kind = nodeHeaderKind.isVisible() ? nodeHeaderKind.getText() : "";
+        String type = nodeHeaderType.isVisible() ? nodeHeaderType.getText() : "";
+        return kind.isEmpty() ? type : type.isEmpty() ? kind : kind + " · " + type;
+    }
+
+    /** @return the kind icon shown in the header tile (for tests/observers). */
+    public String getHeaderIconLiteral() {
+        return nodeIcon.getIconLiteral();
+    }
+
+    /** @return whether the top bar's star marks the active file as a favourite (for tests/observers). */
+    public boolean isFavoriteStarActive() {
+        return favoriteButton.getStyleClass().contains("fxt-inspector-star-active");
+    }
+
     /** @return whether the XML DECLARATION section is visible (for tests/observers). */
     public boolean isDeclarationSectionVisible() {
         return declarationSection.isVisible();
-    }
-
-    /** A name/value row in the XML attributes table. */
-    public static final class AttrEntry {
-        private final String name;
-        private final String value;
-
-        AttrEntry(String name, String value) {
-            this.name = name;
-            this.value = value;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getValue() {
-            return value;
-        }
     }
 }

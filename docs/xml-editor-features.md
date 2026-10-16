@@ -165,11 +165,14 @@ it with the panel toggle at the right end of the editor toolbar.
 
 - **Select a node** by moving the text caret into an element (Text view), clicking a node
   (Tree view), or selecting a row in the grid (Graphic view).
-- **Edit** the element name, namespace (prefix/URI), attributes (add/rename/remove), leaf text,
-  and the text of comments, CDATA, and processing instructions.
+- **Edit** the element name (click it in the node header), namespace (prefix/URI), attributes
+  (add/rename/edit/delete in a framed list), leaf text, and the text of comments, CDATA, and
+  processing instructions.
 - Edits are written straight back to the document text, keeping everything in sync.
-- When a schema is bound, the inspector also shows read-only hints: the schema-derived type,
-  documentation, and lists of valid child elements and example values.
+- When a schema is bound, the inspector also shows the schema facts read-only (type, base type,
+  facets, cardinality, order), the documentation, a check whether the value matches the facets,
+  and **example values** and **valid children** as chips - click one to use it.
+- The **⋮** menu offers Copy XPath, Copy Node (XML) and Expand / Collapse All Sections.
 - All views share one in-memory model, so edits and Undo/Redo history carry over when you
   switch views.
 

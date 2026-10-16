@@ -252,6 +252,9 @@ For the selected schema node you can edit:
 
 - **Name, type, cardinality/occurrence, use, form** - The core properties of the node.
 - **Facets** - Add, edit, and remove facets such as patterns, enumerations, and length limits.
+  In the facet list, click a value to edit it (**Enter** saves, **Esc** cancels), point at a row
+  and click the trash icon to delete it, and use the row below the list to add one. Facets
+  inherited from a base type appear in *italics* and are read-only.
 - **App info (`xs:appinfo`)** - The machine-readable metadata attached to the node (for example
   the technical tags described in [Documentation Generator](#6-documentation-generator)).
 - **Multi-language documentation (`xs:documentation`)** - One row per language. Use **Add
@@ -260,6 +263,14 @@ For the selected schema node you can edit:
   **Add Comment…** from a node's right-click context menu.
 - **Constraints** - In the **CONSTRAINTS** section, select a `key`, `keyref`, `unique`, or
   `assert` constraint and click **Delete constraint** to remove it.
+
+The pane also shows information you cannot edit directly: the **Base type** and **Derivation**
+(restriction / extension / list / union), the **Order** of the node in its parent compositor
+(e.g. *2 of 5 · sequence*), and **USED IN** - for a global type, element or group every place
+that references it (click an entry to select the referring node), for a local declaration the
+global component that contains it. Editable values look like plain text until you point at
+them. See [Unified Shell - Properties Inspector](unified-shell.md#properties-inspector) for the
+full layout.
 
 > **Note:** Structural editing (adding, deleting, and moving nodes) remains a **Tree** and
 > **Graphic** capability via the right-click context menu. The **Text** view provides

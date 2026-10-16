@@ -50,6 +50,9 @@ public record SelectedNodeInfo(String kind, String name, String xpath, int depth
         if (node instanceof XsdElement element) {
             return value(element.getType());
         }
+        if (node instanceof XsdAttribute attribute) {
+            return value(attribute.getType());
+        }
         return NONE;
     }
 

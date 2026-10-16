@@ -60,6 +60,16 @@ public final class XsdNodeLabels {
         return " [" + min + ".." + maxText + "]";
     }
 
+    /** @return the XSD component name of the node type in camel case ({@code complexType}, {@code element}) */
+    public static String kindLabel(XsdNodeType type) {
+        String[] words = type.name().toLowerCase(Locale.ROOT).split("_");
+        StringBuilder out = new StringBuilder(words[0]);
+        for (int i = 1; i < words.length; i++) {
+            out.append(Character.toUpperCase(words[i].charAt(0))).append(words[i].substring(1));
+        }
+        return out.toString();
+    }
+
     private static String typeLabel(XsdNodeType type) {
         return type.name().toLowerCase(Locale.ROOT).replace('_', ' ');
     }
