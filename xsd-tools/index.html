@@ -3349,11 +3349,15 @@ when you switch between Text, Tree, and Graphic.</p>
 <h3 id="what-you-can-edit-in-the-properties-pane">What You Can Edit in the Properties Pane<a class="headerlink" href="#what-you-can-edit-in-the-properties-pane" title="Permanent link">&para;</a></h3>
 <p>For the selected schema node you can edit:</p>
 <ul>
-<li><strong>Name, type, cardinality/occurrence, use, form</strong> - The core properties of the node.</li>
+<li><strong>Name, type, cardinality/occurrence, use, form</strong> - The core properties of the node.
+  Compositors (<code>xs:sequence</code>, <code>xs:choice</code>, <code>xs:all</code>), group references and <code>xs:any</code> also show
+  editable minOccurs/maxOccurs and their Order in <strong>CARDINALITY &amp; USE</strong>.</li>
 <li><strong>Facets</strong> - Add, edit, and remove facets such as patterns, enumerations, and length limits.
   In the facet list, click a value to edit it (<strong>Enter</strong> saves, <strong>Esc</strong> cancels), point at a row
   and click the trash icon to delete it, and use the row below the list to add one. Facets
-  inherited from a base type appear in <em>italics</em> and are read-only.</li>
+  inherited from a base type appear in <em>italics</em> and are read-only. When all facets come from a
+  named type, the add row is replaced by <em>"Facets come from T – click to edit them there."</em>;
+  click it to select that type.</li>
 <li><strong>App info (<code>xs:appinfo</code>)</strong> - The machine-readable metadata attached to the node (for example
   the technical tags described in <a href="#6-documentation-generator">Documentation Generator</a>).</li>
 <li><strong>Multi-language documentation (<code>xs:documentation</code>)</strong> - One row per language. Use <strong>Add
@@ -3364,13 +3368,19 @@ when you switch between Text, Tree, and Graphic.</p>
   <code>assert</code> constraint and click <strong>Delete constraint</strong> to remove it.</li>
 </ul>
 <p>The pane also shows information you cannot edit directly: the <strong>Base type</strong> and <strong>Derivation</strong>
-(restriction / extension / list / union), the <strong>Order</strong> of the node in its parent compositor
+(restriction / extension / list / union), <strong>final</strong> for a simple type (in ADVANCED), the <strong>Order</strong>
+of the node in its parent compositor
 (e.g. <em>2 of 5 · sequence</em>), and <strong>USED IN</strong> - for a global type, element or group every place
 that references it (click an entry to select the referring node), for a local declaration the
 global component that contains it. Editable values look like plain text until you point at
 them. See <a href="../unified-shell/#properties-inspector">Unified Shell - Properties Inspector</a> for the
 full layout.</p>
+<p>In the Tree/Graphic view, the <strong>Copy XPath</strong> and <strong>Copy Node</strong> buttons in NODE &amp; XPATH copy the
+schema XPath and the XSD source of the selected node.</p>
 <blockquote>
+<p><strong>Tip:</strong> You can also edit a declaration from an XML document that uses this schema: select
+the element there and change type, cardinality, facets or documentation in its inspector - see
+<a href="../unified-shell/#editing-the-bound-schema">Unified Shell - Editing the bound schema</a>.</p>
 <p><strong>Note:</strong> Structural editing (adding, deleting, and moving nodes) remains a <strong>Tree</strong> and
 <strong>Graphic</strong> capability via the right-click context menu. The <strong>Text</strong> view provides
 <em>property</em> editing through the Properties pane.</p>

@@ -2970,14 +2970,18 @@ the right side of the editor.</p>
 <p>Depending on the node type, the inspector lets you edit:</p>
 <ul>
 <li><strong>Element name</strong> - click the name in the node header at the top of the inspector to rename it</li>
-<li><strong>Namespace</strong> (prefix and URI) - in the <strong>NAMESPACE</strong> section, which is collapsed by default</li>
+<li><strong>Namespace</strong> (prefix and URI) - in the <strong>NAMESPACE</strong> section, right below NODE &amp; XPATH</li>
 <li><strong>Attributes</strong> - in the framed list of the <strong>VALUE &amp; ATTRIBUTES</strong> section: click a name to
   rename it, click a value to edit it (<strong>Enter</strong> saves, <strong>Esc</strong> cancels), point at a row and
-  click the trash icon to delete it, and use the row below the list to add one</li>
+  click the trash icon to delete it, and use the row below the list to add one. You can also
+  reach the rows with <strong>Tab</strong>: <strong>Enter</strong> edits the value, <strong>Delete</strong> removes the row</li>
 <li><strong>Text content</strong> of leaf elements</li>
 <li><strong>Text</strong> of comments, CDATA sections, and processing instructions</li>
 </ul>
 <p>Editable values look like plain text; the field frame appears when you point at or click them.
+Long values wrap instead of being cut off. <strong>NODE &amp; XPATH</strong> shows the element's <strong>Depth</strong> (the
+root element is 0) and has <strong>Copy XPath</strong> and <strong>Copy Node (XML)</strong> buttons next to the XPath.
+Sections without content are not shown.
 The <strong>⋮</strong> menu at the top of the inspector offers <strong>Copy XPath</strong>, <strong>Copy Node (XML)</strong>,
 <strong>Expand All Sections</strong> and <strong>Collapse All Sections</strong>, and the <strong>star</strong> next to it adds the file
 to your Favorites. For the full layout, see
@@ -2990,15 +2994,32 @@ position in place.</p>
 about the selected element. The node header's validation pill shows <strong>Valid</strong>, the number of
 errors, or <em>Well-formed · no schema bound</em> when no schema is bound.</p>
 <ul>
-<li><strong>Schema facts</strong> (read-only) - Type, Base type, Derivation, the facets, minOccurs/maxOccurs,
-  Use, and <strong>Order</strong> (the element's position in its parent sequence or choice, e.g.
-  <em>3 of 3 · sequence</em>). Change these in the schema, not in the XML.</li>
-<li><strong>Documentation</strong> - the element's documentation from the schema.</li>
+<li><strong>Schema facts</strong> - Type, Base type, Derivation (with list item type / union member types),
+  the facets including enumeration values, minOccurs/maxOccurs, Use, <strong>Order</strong> (the element's
+  position in its parent sequence or choice, e.g. <em>3 of 3 · sequence</em>), nillable, default and
+  fixed values, <em>Since …</em> / <em>Deprecated: …</em>, the schema's appinfo, and identity constraints,
+  assertions and type alternatives in <strong>CONSTRAINTS</strong>.</li>
+<li><strong>Declaration box</strong> - <em>Declared in X.xsd · local element · type T</em> with an <strong>Open in schema</strong>
+  link that opens the XSD and selects this declaration in the Tree view.</li>
+<li><strong>Editing the schema from here</strong> - where the declaration is editable, Type,
+  minOccurs/maxOccurs, Nillable, Fixed, Default, the facets and the documentation/appinfo change
+  the declaration <strong>in the XSD</strong>. The XSD opens as a background tab (your XML stays in front),
+  the change is one undo step there, and after you save the XSD the XML document's schema facts
+  are reloaded. Declarations from included/imported schemas and cached Schema Library copies are
+  read-only. See
+  <a href="../unified-shell/#editing-the-bound-schema">Unified Shell - Editing the bound schema</a>.</li>
+<li><strong>Documentation</strong> - the element's documentation from the schema (<em>"No documentation in the
+  schema"</em> when there is none).</li>
 <li><strong>Value check</strong> - <em>"Value matches the schema facets"</em> in green, or an amber warning such as
   <em>"Value should be one of: …"</em> when the current text breaks a facet.</li>
 <li><strong>EXAMPLE VALUES</strong> - shown as chips; click one to use it as the element's text.</li>
-<li><strong>VALID CHILDREN</strong> - shown as chips; click one to add that child element.</li>
+<li><strong>VALID CHILDREN</strong> - shown as chips; click one to add that child element (<em>None</em> when the
+  element allows no children).</li>
 <li><strong>USED IN</strong> - the containing element and its type.</li>
+<li><strong>Attributes</strong> - each row shows its declared type as a badge (<code>*</code> = required); attributes the
+  schema does not declare are marked <strong>undeclared</strong>; enumerated attributes get a drop-down.
+  <strong>DECLARED, NOT SET</strong> chips (e.g. <strong>+ id *</strong>) add a missing declared attribute, with a
+  default or fixed value filled in.</li>
 </ul>
 <h3 id="shared-across-views">Shared Across Views<a class="headerlink" href="#shared-across-views" title="Permanent link">&para;</a></h3>
 <p>All three views share a single in-memory model for each open document. This means your edits -

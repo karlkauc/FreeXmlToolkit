@@ -2714,10 +2714,16 @@ it with the panel toggle at the right end of the editor toolbar.</p>
   (add/rename/edit/delete in a framed list), leaf text, and the text of comments, CDATA, and
   processing instructions.</li>
 <li>Edits are written straight back to the document text, keeping everything in sync.</li>
-<li>When a schema is bound, the inspector also shows the schema facts read-only (type, base type,
-  facets, cardinality, order), the documentation, a check whether the value matches the facets,
-  and <strong>example values</strong> and <strong>valid children</strong> as chips - click one to use it.</li>
-<li>The <strong>⋮</strong> menu offers Copy XPath, Copy Node (XML) and Expand / Collapse All Sections.</li>
+<li>When a schema is bound, the inspector also shows the schema facts (type, base type,
+  facets, cardinality, order, nillable, default/fixed, constraints), the documentation, a check
+  whether the value matches the facets, and <strong>example values</strong> and <strong>valid children</strong> as chips -
+  click one to use it. Attributes show their declared type, and <strong>DECLARED, NOT SET</strong> chips add
+  missing declared attributes.</li>
+<li>Where the declaration is editable, changing type, cardinality, facets or documentation there
+  edits <strong>the bound XSD</strong> (opened as a background tab, saved by you); <strong>Open in schema</strong> jumps to
+  the declaration.</li>
+<li><strong>Copy XPath</strong> and <strong>Copy Node (XML)</strong> are buttons next to the XPath and in the <strong>⋮</strong> menu,
+  together with Expand / Collapse All Sections.</li>
 <li>All views share one in-memory model, so edits and Undo/Redo history carry over when you
   switch views.</li>
 </ul>
