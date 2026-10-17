@@ -164,7 +164,7 @@ public class SchematronServiceImpl implements SchematronService {
         String svrlString = null;
         try {
             // unvalidated for the same reason as validateSVRL(false) above
-            svrlString = new SVRLMarshaller(false).getAsString(svrl);
+            svrlString = new SVRLMarshaller().setUseSchema(false).getAsString(svrl);
         } catch (Exception e) {
             logger.warn("Could not marshal SVRL report for {}: {}", schematronFile, e.getMessage());
         }
