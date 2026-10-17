@@ -184,7 +184,8 @@ errors, or *Well-formed · no schema bound* when no schema is bound.
   fixed values, *Since …* / *Deprecated: …*, the schema's appinfo, and identity constraints,
   assertions and type alternatives in **CONSTRAINTS**.
 - **Declaration box** - *Declared in X.xsd · local element · type T* with an **Open in schema**
-  link that opens the XSD and selects this declaration in the Tree view.
+  link that opens the XSD in the Graphic view, expanded along the element's path in the
+  document, and selects this element there.
 - **Editing the schema from here** - where the declaration is editable, Type,
   minOccurs/maxOccurs, Nillable, Fixed, Default, the facets and the documentation/appinfo change
   the declaration **in the XSD**. The XSD opens as a background tab (your XML stays in front),

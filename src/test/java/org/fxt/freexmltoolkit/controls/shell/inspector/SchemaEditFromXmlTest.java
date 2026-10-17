@@ -13,6 +13,8 @@ import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
+import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -176,5 +178,20 @@ class SchemaEditFromXmlTest {
                 }));
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> done[0]);
         assertFalse(ok[0], "an included declaration is never written through the main schema");
+    }
+
+    @Test
+    void openInSchemaShowsTheGraphicViewAtTheNode() throws Exception {
+        caretOn(4, "code");
+        WaitForAsyncUtils.waitForAsyncFx(2000, inspector::onOpenInSchema);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.getActiveDocument()
+                .map(d -> "order.xsd".equals(d.getDisplayName())).orElse(false)
+                && host.activeSelectedNodeProperty().get() != null);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(ViewMode.GRAPHIC, host.activeViewModeProperty().get());
+        XsdNode selected = host.activeSelectedNodeProperty().get();
+        assertEquals("code", selected.getName());
+        assertEquals("order", selected.getParent().getParent().getParent().getName(),
+                "the local particle inside order's sequence");
     }
 }

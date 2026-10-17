@@ -45,9 +45,16 @@ public final class XsdInstanceLocator {
      * @param global      whether the declaration is a top-level schema component
      * @param foreign     whether the declaration comes from an included or imported schema file
      *                    (edits to it would not reach the root document)
+     * @param particlePath the particle of every instance step from the global root element down
+     *                    to {@code particle} (a {@code ref=} particle, not the referenced global),
+     *                    ending with the attribute particle for an attribute lookup — the cards
+     *                    the Graphic view shows along that instance path
      */
     public record Located(XsdNode particle, XsdNode declaration, XsdNode namedType, boolean global,
-                          boolean foreign) {
+                          boolean foreign, List<XsdNode> particlePath) {
+        public Located {
+            particlePath = particlePath == null ? List.of() : List.copyOf(particlePath);
+        }
     }
 
     /** Locates the element at {@code instancePath}. */
@@ -68,6 +75,10 @@ public final class XsdInstanceLocator {
         List<XsdSchema> schemas = allSchemas(schema);
         XsdNode particle = findGlobal(schemas, XsdNodeType.ELEMENT, instancePath.get(0));
         XsdNode declaration = particle;
+        List<XsdNode> particlePath = new ArrayList<>();
+        if (particle != null) {
+            particlePath.add(particle);
+        }
         for (int i = 1; i < instancePath.size() && declaration != null; i++) {
             String step = instancePath.get(i);
             particle = null;
@@ -76,6 +87,9 @@ public final class XsdInstanceLocator {
                     particle = candidate;
                     break;
                 }
+            }
+            if (particle != null) {
+                particlePath.add(particle);
             }
             declaration = particle == null ? null : resolveRef(particle, schemas, XsdNodeType.ELEMENT);
         }
@@ -94,6 +108,7 @@ public final class XsdInstanceLocator {
                 return Optional.empty();
             }
             particle = attrParticle;
+            particlePath.add(attrParticle);
             declaration = resolveRef(attrParticle, schemas, XsdNodeType.ATTRIBUTE);
             if (declaration == null) {
                 return Optional.empty();
@@ -102,7 +117,7 @@ public final class XsdInstanceLocator {
         XsdNode namedType = namedTypeOf(declaration, schemas);
         boolean global = declaration.getParent() instanceof XsdSchema;
         boolean foreign = isForeign(declaration, schema) || isForeign(particle, schema);
-        return Optional.of(new Located(particle, declaration, namedType, global, foreign));
+        return Optional.of(new Located(particle, declaration, namedType, global, foreign, particlePath));
     }
 
     /**

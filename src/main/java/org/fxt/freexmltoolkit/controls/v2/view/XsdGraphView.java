@@ -1973,6 +1973,76 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         if (match == null) {
             return;
         }
+        revealAndSelect(match);
+    }
+
+    /**
+     * Reveals and selects the card at an instance path: {@code particlePath} holds the model
+     * particle of every step from a global element down to the target (as
+     * {@code XsdInstanceLocator.Located#particlePath()} returns it). Unlike
+     * {@link #selectModelNode}, this tells apart the occurrences of a named type's children —
+     * {@code person/work/street} selects the {@code street} card under {@code work}, not the first
+     * one under {@code home} — and loads lazy subtrees along the way. If a step cannot be found
+     * (circular-ref or external placeholder), the deepest card reached is selected.
+     *
+     * @return true if the card of the last particle was found and selected
+     */
+    public boolean revealModelPath(java.util.List<? extends org.fxt.freexmltoolkit.controls.v2.model.XsdNode> particlePath) {
+        if (particlePath == null || particlePath.isEmpty() || rootNode == null) {
+            return false;
+        }
+        VisualNode current = rootNode.getModelObject() == particlePath.get(0)
+                ? rootNode : findInContent(rootNode, particlePath.get(0));
+        if (current == null) {
+            selectModelNode(particlePath.get(particlePath.size() - 1));
+            return false;
+        }
+        boolean exact = true;
+        for (int i = 1; i < particlePath.size(); i++) {
+            VisualNode next = findInContent(current, particlePath.get(i));
+            if (next == null) {
+                exact = false;
+                break;
+            }
+            current = next;
+        }
+        revealAndSelect(current);
+        return exact;
+    }
+
+    /**
+     * Breadth-first search below {@code card} for the card backed by {@code model}, passing
+     * through compositor and group cards (expanding them, which loads lazy children) but not into
+     * other element cards, so the match stays in {@code card}'s own content model.
+     */
+    private VisualNode findInContent(VisualNode card, Object model) {
+        java.util.Deque<VisualNode> queue = new java.util.ArrayDeque<>();
+        card.setExpanded(true);
+        queue.addAll(card.getChildren());
+        java.util.Set<VisualNode> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        while (!queue.isEmpty()) {
+            VisualNode n = queue.poll();
+            if (!seen.add(n)) {
+                continue;
+            }
+            if (n.getModelObject() == model) {
+                return n;
+            }
+            switch (n.getType()) {
+                case SEQUENCE, CHOICE, ALL, GROUP -> {
+                    n.setExpanded(true);
+                    queue.addAll(n.getChildren());
+                }
+                default -> {
+                    // element / attribute cards belong to another step of the path
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Expands every ancestor of {@code match}, selects it and scrolls it into view. */
+    private void revealAndSelect(VisualNode match) {
         // Expand every ancestor so the node is laid out and actually visible (P3).
         for (VisualNode ancestor = match.getParent(); ancestor != null; ancestor = ancestor.getParent()) {
             ancestor.setExpanded(true);

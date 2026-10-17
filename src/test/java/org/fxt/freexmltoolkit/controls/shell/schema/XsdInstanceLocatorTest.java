@@ -166,4 +166,19 @@ class XsdInstanceLocatorTest {
         assertTrue(XsdInstanceLocator.locateElement(schema, List.of("part")).orElseThrow().foreign());
         assertFalse(XsdInstanceLocator.locateElement(schema, List.of("own")).orElseThrow().foreign());
     }
+
+    @Test
+    void particlePathFollowsTheInstancePath() throws Exception {
+        XsdSchema schema = parse(XSD);
+        var located = XsdInstanceLocator.locateElement(schema, List.of("root", "item", "note")).orElseThrow();
+        List<String> names = located.particlePath().stream()
+                .map(n -> n instanceof XsdElement el && el.getRef() != null ? "ref:" + el.getRef() : n.getName())
+                .toList();
+        assertEquals(List.of("root", "item", "ref:note"), names, "the ref particle, not the global note");
+        assertSame(located.particle(), located.particlePath().get(2));
+
+        var attr = XsdInstanceLocator.locate(schema, List.of("root", "item"), "lang").orElseThrow();
+        assertEquals(3, attr.particlePath().size());
+        assertInstanceOf(XsdAttribute.class, attr.particlePath().get(2));
+    }
 }

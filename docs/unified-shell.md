@@ -1870,8 +1870,9 @@ value is filled in for you.
 
 For an XML element with a bound XSD, **TYPE & FACETS** starts with a box such as
 *Declared in order.xsd · local element · type AmountType* and an **Open in schema** link. The
-link opens the XSD and selects exactly this declaration in the Tree view - also when the schema
-has several local elements with the same name.
+link opens the XSD in the **Graphic** view, expanded along the element's path in the document
+(root element › … › element), and selects exactly this card - also when the schema has several
+local elements with the same name or the element sits in a named type used in several places.
 
 When the declaration is editable, these inspector fields change **the declaration in the XSD**
 (not the XML): **Type**, **minOccurs/maxOccurs**, **Nillable**, **Fixed**, **Default** (in

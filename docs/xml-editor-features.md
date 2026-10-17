@@ -176,7 +176,7 @@ it with the panel toggle at the right end of the editor toolbar.
   missing declared attributes.
 - Where the declaration is editable, changing type, cardinality, facets or documentation there
   edits **the bound XSD** (opened as a background tab, saved by you); **Open in schema** jumps to
-  the declaration.
+  the element in the schema's Graphic view, expanded along its path in the document.
 - **Copy XPath** and **Copy Node (XML)** are buttons next to the XPath and in the **⋮** menu,
   together with Expand / Collapse All Sections.
 - All views share one in-memory model, so edits and Undo/Redo history carry over when you

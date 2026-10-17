@@ -958,6 +958,24 @@ public class EditorHost extends BorderPane {
         return fallback;
     }
 
+    /**
+     * Reveals, in the active Graphic view, the card at an instance path (the model particle of
+     * every step from the global root element down, see {@code XsdInstanceLocator.Located#particlePath()}),
+     * expanding the diagram along that path; in the Tree view the last particle is revealed.
+     */
+    public void revealPathInActiveGraph(java.util.List<XsdNode> particlePath) {
+        if (particlePath == null || particlePath.isEmpty()) {
+            return;
+        }
+        withActive(et -> {
+            if (et.viewMode == ViewMode.GRAPHIC && et.xsdGraphView != null) {
+                et.xsdGraphView.revealModelPath(particlePath);
+            } else if (et.viewMode == ViewMode.TREE && et.treeView != null) {
+                et.treeView.revealNode(particlePath.get(particlePath.size() - 1));
+            }
+        });
+    }
+
     /** Selects (reveals) the given node in the active structured view (Tree or Graphic). */
     public void selectNodeInActiveTree(XsdNode node) {
         withActive(et -> {
@@ -4076,9 +4094,10 @@ public class EditorHost extends BorderPane {
     }
 
     /**
-     * Opens the bound XSD of the active XML document in front and selects the declaration of the
-     * element at {@code elementXPath} (or its attribute) in the Tree view — by structure, not by
-     * name, so same-named local declarations are told apart.
+     * Opens the bound XSD of the active XML document in front, in the Graphic view, expanded along
+     * the instance path down to the card of the element at {@code elementXPath} (or its
+     * attribute), and selects it — by structure, not by name, so same-named local declarations and
+     * the several occurrences of a named type's children are told apart.
      */
     public void revealActiveXmlSchemaDeclaration(String elementXPath, String attributeName) {
         if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab xmlTab)
@@ -4089,13 +4108,13 @@ public class EditorHost extends BorderPane {
                 org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(elementXPath);
         withSchemaTab(xmlTab.schemaFile.toPath(), schemaTab -> {
             tabPane.getSelectionModel().select(schemaTab);
-            setActiveViewMode(ViewMode.TREE);
+            setActiveViewMode(ViewMode.GRAPHIC);
             if (schemaTab.editorContext == null) {
                 return;
             }
             org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.locate(
                     schemaTab.editorContext.getSchema(), path, attributeName)
-                    .ifPresent(l -> selectNodeInActiveTree(l.declaration()));
+                    .ifPresent(l -> revealPathInActiveGraph(l.particlePath()));
         });
     }
 
