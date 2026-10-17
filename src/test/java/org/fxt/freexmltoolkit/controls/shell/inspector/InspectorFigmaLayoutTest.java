@@ -74,6 +74,11 @@ class InspectorFigmaLayoutTest {
         assertEquals("xs:string", inspector.getBaseTypeText());
         assertEquals("restriction", inspector.getDerivationText());
         assertEquals("3 of 3 · sequence", inspector.getOrderText());
+        assertEquals("2", inspector.getDepthText(), "FundsXML/DataSupplier/TypeOfDataSupplier");
+        assertTrue(inspector.isNamespaceSectionVisible(), "NAMESPACE is shown for an element");
+        assertTrue(inspector.getDeclarationText().startsWith("Declared in ")
+                && inspector.getDeclarationText().contains("· local element"), inspector.getDeclarationText());
+        assertEquals(4, inspector.getFacetCount(), "the four enumeration facets of the declaration");
         assertEquals(1, inspector.getUsedInCount(), "the containing DataSupplier element");
 
         // "Vendor" is not one of the enumerated values: the check warns, the chips offer them.

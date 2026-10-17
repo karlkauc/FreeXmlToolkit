@@ -151,14 +151,18 @@ How you select a node depends on the active view:
 Depending on the node type, the inspector lets you edit:
 
 - **Element name** - click the name in the node header at the top of the inspector to rename it
-- **Namespace** (prefix and URI) - in the **NAMESPACE** section, which is collapsed by default
+- **Namespace** (prefix and URI) - in the **NAMESPACE** section, right below NODE & XPATH
 - **Attributes** - in the framed list of the **VALUE & ATTRIBUTES** section: click a name to
   rename it, click a value to edit it (**Enter** saves, **Esc** cancels), point at a row and
-  click the trash icon to delete it, and use the row below the list to add one
+  click the trash icon to delete it, and use the row below the list to add one. You can also
+  reach the rows with **Tab**: **Enter** edits the value, **Delete** removes the row
 - **Text content** of leaf elements
 - **Text** of comments, CDATA sections, and processing instructions
 
 Editable values look like plain text; the field frame appears when you point at or click them.
+Long values wrap instead of being cut off. **NODE & XPATH** shows the element's **Depth** (the
+root element is 0) and has **Copy XPath** and **Copy Node (XML)** buttons next to the XPath.
+Sections without content are not shown.
 The **⋮** menu at the top of the inspector offers **Copy XPath**, **Copy Node (XML)**,
 **Expand All Sections** and **Collapse All Sections**, and the **star** next to it adds the file
 to your Favorites. For the full layout, see
@@ -174,15 +178,32 @@ When the XML file is bound to an XSD schema, the inspector also shows what the s
 about the selected element. The node header's validation pill shows **Valid**, the number of
 errors, or *Well-formed · no schema bound* when no schema is bound.
 
-- **Schema facts** (read-only) - Type, Base type, Derivation, the facets, minOccurs/maxOccurs,
-  Use, and **Order** (the element's position in its parent sequence or choice, e.g.
-  *3 of 3 · sequence*). Change these in the schema, not in the XML.
-- **Documentation** - the element's documentation from the schema.
+- **Schema facts** - Type, Base type, Derivation (with list item type / union member types),
+  the facets including enumeration values, minOccurs/maxOccurs, Use, **Order** (the element's
+  position in its parent sequence or choice, e.g. *3 of 3 · sequence*), nillable, default and
+  fixed values, *Since …* / *Deprecated: …*, the schema's appinfo, and identity constraints,
+  assertions and type alternatives in **CONSTRAINTS**.
+- **Declaration box** - *Declared in X.xsd · local element · type T* with an **Open in schema**
+  link that opens the XSD and selects this declaration in the Tree view.
+- **Editing the schema from here** - where the declaration is editable, Type,
+  minOccurs/maxOccurs, Nillable, Fixed, Default, the facets and the documentation/appinfo change
+  the declaration **in the XSD**. The XSD opens as a background tab (your XML stays in front),
+  the change is one undo step there, and after you save the XSD the XML document's schema facts
+  are reloaded. Declarations from included/imported schemas and cached Schema Library copies are
+  read-only. See
+  [Unified Shell - Editing the bound schema](unified-shell.md#editing-the-bound-schema).
+- **Documentation** - the element's documentation from the schema (*"No documentation in the
+  schema"* when there is none).
 - **Value check** - *"Value matches the schema facets"* in green, or an amber warning such as
   *"Value should be one of: …"* when the current text breaks a facet.
 - **EXAMPLE VALUES** - shown as chips; click one to use it as the element's text.
-- **VALID CHILDREN** - shown as chips; click one to add that child element.
+- **VALID CHILDREN** - shown as chips; click one to add that child element (*None* when the
+  element allows no children).
 - **USED IN** - the containing element and its type.
+- **Attributes** - each row shows its declared type as a badge (`*` = required); attributes the
+  schema does not declare are marked **undeclared**; enumerated attributes get a drop-down.
+  **DECLARED, NOT SET** chips (e.g. **+ id \***) add a missing declared attribute, with a
+  default or fixed value filled in.
 
 ### Shared Across Views
 

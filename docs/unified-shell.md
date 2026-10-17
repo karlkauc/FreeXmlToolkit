@@ -1762,7 +1762,7 @@ From top to bottom:
   - The **star** adds the active file to [Favorites](favorites-system.md) (or removes it, when it
     is already a favorite). It is greyed out for a document that has never been saved.
   - The **⋮** menu offers **Copy XPath**, **Copy Node (XML)**, **Expand All Sections** and
-    **Collapse All Sections**.
+    **Collapse All Sections** (the two copy actions are also buttons in **NODE & XPATH**).
 - **Node header** - an icon for the kind of node, the node's **name**, a subtitle such as
   *Element · xs:string* (kind · type), and the **validation pill**: **Valid**, the number of
   errors, or *Well-formed · no schema bound*. **Click the name to rename the node** in place
@@ -1774,30 +1774,38 @@ From top to bottom:
 look like plain text until you point at them or click them - then the field frame, the
 drop-down arrow or the spinner buttons appear. Values without that hover effect are read-only.
 
-The sections appear in this order (only the ones that apply to the selected node are shown):
+The sections appear in this order. A section is shown only when it has content for the
+selected node - empty sections are left out:
 
 | Section | Content |
 |---------|---------|
-| **NODE & XPATH** | **Kind**, **Namespace** (the URI, marked *(default)* for an unprefixed namespace, otherwise *prefix → URI*; for schema nodes the schema's target namespace), **Position** *Ln x · Col y* (Text view only), and the **XPath** in a code box with a copy button |
-| **TYPE & FACETS** | **Type**, **Base type**, **Derivation** (restriction / extension / list / union) and the list of **facets** |
+| **NODE & XPATH** | **Kind**, **Namespace**, **Depth** (the nesting level; the root element is 0), **Position** *Ln x · Col y* (Text view only), and the **XPath** in a code box with the **Copy XPath** and **Copy Node (XML)** buttons |
+| **NAMESPACE** | Edit the element's namespace **prefix** and **URI** (expanded by default) |
+| **TYPE & FACETS** | **Type**, **Base type**, **Derivation** (restriction / extension / list / union) and the list of **facets**; for an XML element with a bound schema it starts with the declaration box (see [Editing the bound schema from the XML document](#editing-the-bound-schema)) |
 | **CARDINALITY & USE** | minOccurs / maxOccurs, Use, and **Order** - the node's position in its parent compositor, e.g. *3 of 3 · sequence* |
 | **VALUE & ATTRIBUTES** | The element text and the list of **attributes** |
 | **CONTENT** / **PROCESSING INSTRUCTION** / **XML DECLARATION** | The text of comments, CDATA sections, processing instructions and the XML declaration |
 | **DOCUMENTATION & REFS** | Documentation, value check, example values, valid children and **USED IN** (see below) |
-| **NAMESPACE** | Edit the element's namespace prefix and URI (collapsed by default) |
-| **ADVANCED**, **SCHEMA**, **CONSTRAINTS** | Further schema-node properties (fixed/default, form, appinfo, identity constraints, …) |
+| **ADVANCED**, **SCHEMA**, **CONSTRAINTS** | Further schema-node properties (fixed/default, nillable, form, final, appinfo, identity constraints, assertions, …) |
+
+The **Namespace** row in NODE & XPATH shows the URI, marked *(default)* for an unprefixed
+namespace, otherwise *prefix → URI*. An undeclared prefix shows as *prefix → (unbound)*, an
+element without a namespace as *(no namespace)*. For an XSD declaration the row shows the target
+namespace for global and qualified declarations, and *(no namespace)* for unqualified local ones.
 
 ### Copying the XPath or the node
 
 The **NODE & XPATH** section shows the selected node's XPath in a code box:
 
-- **Copy XPath** - click the copy button next to the XPath, or **click the XPath itself**, to
-  copy the positional XPath (e.g. `/root/item[2]`) to the clipboard.
-- **Copy Node (XML)** - in the **⋮** menu of the top bar; copies the selected node's XML
-  serialization. **Copy XPath** is also in this menu.
+- **Copy XPath** - click the **Copy XPath** button next to the code box, or **click the XPath
+  itself**, to copy the positional XPath (e.g. `/root/item[2]`) to the clipboard.
+- **Copy Node (XML)** - the second button next to the code box; copies the selected node's XML
+  serialization.
 
-In the Text view both actions act on the element enclosing the caret; in the Tree/Graphic
-views they act on the selected node.
+Both actions are also in the **⋮** menu of the top bar. In the Text view they act on the element
+enclosing the caret; in the Tree/Graphic views they act on the selected node. For an **XSD** node
+selected in the Tree or Graphic view, Copy XPath copies the schema XPath and Copy Node copies the
+XSD source of that node; for **JSON** they copy the JSONPath and the JSON source.
 
 ### Facets and attributes lists
 
@@ -1809,6 +1817,11 @@ lists that you edit directly:
 - **Point at a row** to show its **trash** icon; click it to delete the facet or attribute.
 - **Add** a new entry with the row below the list (facet kind or attribute name, value, **Add**).
 - **Inherited facets** (from a base type) are shown in *italics* and cannot be edited here.
+- **Long values wrap** onto several lines instead of being cut off. The row's tooltip shows the
+  full value, plus where it comes from (*inherited from the referenced named type* or
+  *defined by the schema*).
+- **Keyboard:** press **Tab** to move to a row; **Enter** edits its value and **Delete** removes
+  the row.
 
 ### XML Files
 
@@ -1818,7 +1831,8 @@ lets you edit it from whichever view you are in:
 - **Text view** - Move the text caret into an element to select it. The inspector shows the
   element's name, namespace, attributes, and text as editable fields. Edits round-trip into the
   source as a minimal change that preserves your caret and scroll position. If the caret is not
-  inside a well-formed element, the inspector falls back to a read-only name/XPath view.
+  inside a well-formed element, the inspector falls back to a read-only name/XPath view. When you
+  switch back to the Text view, the inspector shows the node at the caret again right away.
 - **Tree view** - Click any node (element, text, comment, CDATA, or processing instruction) to
   edit its properties.
 - **Graphic view** (the grid) - Select a row to edit its properties. The grid also handles
@@ -1828,16 +1842,55 @@ All three views share one in-memory model per open document, so your edits and U
 history are preserved when you switch between Text, Tree, and Graphic.
 
 **With a bound XSD schema**, the inspector also shows what the schema says about the selected
-element. These schema facts are **read-only** (you change them in the schema, not in the XML):
-Type, Base type, Derivation, the facets, minOccurs/maxOccurs/Use and Order. The
-**DOCUMENTATION & REFS** section adds:
+element: Type, Base type, Derivation (including the **list item type** or the **union member
+types**), the facets (including the **enumeration** values), minOccurs/maxOccurs/Use, Order,
+**nillable**, **default** and **fixed** values, *Since …* / *Deprecated: …* from the schema's
+documentation tags, the schema's **appinfo**, and in **CONSTRAINTS** the identity constraints,
+assertions and type alternatives. Where the declaration is editable you can change many of these
+right here - see [Editing the bound schema from the XML document](#editing-the-bound-schema).
+The **DOCUMENTATION & REFS** section adds:
 
-- the element's **documentation** from the schema;
+- the element's **documentation** from the schema, or *"No documentation in the schema"* when
+  the schema has none;
 - a **value check** - *"Value matches the schema facets"* in green, or an amber warning such
   as *"Value should be one of: …"* when the current text breaks a facet;
 - **EXAMPLE VALUES** as chips - click one to set it as the element's text;
-- **VALID CHILDREN** as chips - click one to add that child element;
+- **VALID CHILDREN** as chips - click one to add that child element (*None* for a container
+  element that allows no children);
 - **USED IN** - the containing element and its type.
+
+**Attributes with a bound schema:** each attribute row shows its declared type as a small badge
+(`*` marks a required attribute). Attributes the schema does not declare are marked
+**undeclared**. For an attribute with enumerated values, the value editor is a drop-down. Below
+the list, **DECLARED, NOT SET** shows chips such as **+ id \*** for declared attributes that are
+missing - click one to add the attribute. Required ones are highlighted, and a default or fixed
+value is filled in for you.
+
+#### Editing the bound schema from the XML document {#editing-the-bound-schema}
+
+For an XML element with a bound XSD, **TYPE & FACETS** starts with a box such as
+*Declared in order.xsd · local element · type AmountType* and an **Open in schema** link. The
+link opens the XSD and selects exactly this declaration in the Tree view - also when the schema
+has several local elements with the same name.
+
+When the declaration is editable, these inspector fields change **the declaration in the XSD**
+(not the XML): **Type**, **minOccurs/maxOccurs**, **Nillable**, **Fixed**, **Default** (in
+ADVANCED), the **facets** (add, edit, delete) and the **documentation/appinfo**. What happens:
+
+1. The XSD opens as a background tab - your XML document stays in front.
+2. The change is one undo step in the XSD tab, and the XSD tab shows as unsaved.
+3. Save the XSD. The XML document's schema facts (value check, example values, attribute
+   information) are then reloaded.
+
+Things to know:
+
+- If the element uses a **named simple type**, its facets are the facets of that type. The list
+  says so: *"Facets of the named type T – a change applies to every element of that type"*.
+- Before you change a type or a global declaration that is used in several places, the inspector
+  asks once for confirmation (**Change T**).
+- Some declarations are **read-only**, with a note:
+  - *"Read-only: declared in an included or imported schema."*
+  - *"Read-only: a cached copy from the Schema Library."* (also for read-only files)
 
 ### XSD Files
 
@@ -1847,6 +1900,11 @@ lets you edit it from whichever view you are in. XSD files have the same three v
 
 - **Tree** and **Graphic** views - Select a schema node to edit its name, type,
   cardinality/occurrence, use, form, constraints, documentation, and facets.
+  Compositors (`xs:sequence`, `xs:choice`, `xs:all`), group references and `xs:any` show
+  editable **minOccurs/maxOccurs** and their **Order** in **CARDINALITY & USE**. A simple type
+  shows its **final** value (read-only) in **ADVANCED**. When all facets of an element or
+  attribute come from a named type, the add row is replaced by the hint *"Facets come from T –
+  click to edit them there."*; clicking it selects that type.
 - **Text** view - Move the text caret into an XSD construct (such as an `xs:element`,
   `xs:complexType`, `xs:simpleType`, `xs:attribute`, a compositor, or a facet) to select the
   matching schema node and edit the same properties you would in the Tree and Graphic views -

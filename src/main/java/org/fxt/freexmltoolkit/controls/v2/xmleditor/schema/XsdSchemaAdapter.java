@@ -106,11 +106,55 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
 
     @Override
     public List<String> getValidAttributes(String elementXPath) {
-        if (!hasSchema()) {
+        if (!hasSchema() || xsdDocumentationData == null) {
             return Collections.emptyList();
         }
+        List<String> names = new java.util.ArrayList<>();
+        for (XsdExtendedElement attribute : declaredAttributes(elementXPath)) {
+            names.add(attributeName(attribute));
+        }
+        return names;
+    }
 
-        return Collections.emptyList();
+    /**
+     * The attribute declarations of the element at {@code elementXPath}: the {@code @…} children
+     * the documentation model lists under the element's (compositor-aware) map entry.
+     */
+    private List<XsdExtendedElement> declaredAttributes(String elementXPath) {
+        XsdExtendedElement element = findElement(elementXPath);
+        if (element == null || element.getChildren() == null) {
+            return Collections.emptyList();
+        }
+        var map = xsdDocumentationData.getExtendedXsdElementMap();
+        List<XsdExtendedElement> out = new java.util.ArrayList<>();
+        for (String child : element.getChildren()) {
+            if (child == null || !child.substring(child.lastIndexOf('/') + 1).startsWith("@")) {
+                continue;
+            }
+            XsdExtendedElement attribute = map.get(child);
+            if (attribute != null) {
+                out.add(attribute);
+            }
+        }
+        return out;
+    }
+
+    /** @return the local attribute name, without "@" and prefix */
+    private static String attributeName(XsdExtendedElement attribute) {
+        String name = attribute.getElementName() == null ? "" : attribute.getElementName();
+        if (name.startsWith("@")) {
+            name = name.substring(1);
+        }
+        return name.substring(name.indexOf(':') + 1);
+    }
+
+    private Optional<XsdExtendedElement> findAttribute(String elementXPath, String attributeName) {
+        if (attributeName == null) {
+            return Optional.empty();
+        }
+        String wanted = attributeName.startsWith("@") ? attributeName.substring(1) : attributeName;
+        String local = wanted.substring(wanted.indexOf(':') + 1);
+        return declaredAttributes(elementXPath).stream().filter(a -> local.equals(attributeName(a))).findFirst();
     }
 
     @Override
@@ -130,11 +174,22 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
 
     @Override
     public Optional<AttributeTypeInfo> getAttributeTypeInfo(String elementXPath, String attributeName) {
-        if (!hasSchema()) {
+        if (!hasSchema() || xsdDocumentationData == null) {
             return Optional.empty();
         }
-
-        return Optional.empty();
+        return findAttribute(elementXPath, attributeName).map(attribute -> {
+            org.w3c.dom.Node node = attribute.getCurrentNode();
+            return new AttributeTypeInfo(
+                    attributeName(attribute),
+                    attribute.getElementType(),
+                    determineXsdType(attribute),
+                    attribute.isMandatory(),
+                    getEnumerationValues(attribute),
+                    getFacetsMap(attribute),
+                    node != null ? getAttributeValue(node, "default", null) : null,
+                    node != null ? getAttributeValue(node, "fixed", null) : null,
+                    attribute.getDocumentationAsHtml());
+        });
     }
 
     @Override
@@ -156,11 +211,12 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
 
     @Override
     public Optional<String> getAttributeDocumentation(String elementXPath, String attributeName) {
-        if (!hasSchema()) {
+        if (!hasSchema() || xsdDocumentationData == null) {
             return Optional.empty();
         }
-
-        return Optional.empty();
+        return findAttribute(elementXPath, attributeName)
+                .map(XsdExtendedElement::getDocumentationAsHtml)
+                .filter(doc -> !doc.isEmpty());
     }
 
     @Override

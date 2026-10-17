@@ -2878,9 +2878,16 @@ public class EditorHost extends BorderPane {
     }
 
     private void addTab(EditorTab tab) {
+        addTab(tab, true);
+    }
+
+    /** Adds a tab; {@code select = false} opens it behind the active one (e.g. a schema edited from XML). */
+    private void addTab(EditorTab tab, boolean select) {
         tab.remoteImportsCallback = this::onRemoteImportsAvailable;
         tabPane.getTabs().add(tab);
-        tabPane.getSelectionModel().select(tab);
+        if (select) {
+            tabPane.getSelectionModel().select(tab);
+        }
         // No-op for non-query views; the lazy indirection tolerates the handler
         // being registered after the first tabs open.
         tab.view.configureQuerySupport(
@@ -3062,6 +3069,11 @@ public class EditorHost extends BorderPane {
                 UsageEvents.fileOpened(tab.document.getFileType().docKind(), sizeOrUnknown(path),
                         UsageEvents.SOURCE_FILE, openStart);
                 documentLoadedHandler.accept(tab.document, content);
+                Runnable after = tab.afterLoad;
+                tab.afterLoad = null;
+                if (after != null) {
+                    after.run();
+                }
             });
 
             if (isAbandoned(tab)) {
@@ -3583,7 +3595,18 @@ public class EditorHost extends BorderPane {
                 service.processXsd(Boolean.TRUE);
                 var adapter = new org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter();
                 adapter.setXsdDocumentationData(service.xsdDocumentationData);
+                // The V2 model of the same XSD: lets the inspector show (and, through the schema's
+                // own tab, edit) the declaration behind an element. Best-effort like the provider.
+                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema model = null;
+                try {
+                    model = XsdUiParser.parse(Files.readString(xsd.toPath(), StandardCharsets.UTF_8),
+                            xsd.toPath(), null);
+                } catch (Exception | LinkageError e) {
+                    model = null;
+                }
+                var boundModel = model;
                 Platform.runLater(() -> {
+                    tab.boundSchemaModel = boundModel;
                     tab.xmlSchemaProvider = adapter;
                     if (tab.xmlEditorContext != null) {
                         tab.xmlEditorContext.setSchemaProvider(adapter);
@@ -3751,6 +3774,380 @@ public class EditorHost extends BorderPane {
         return java.util.Optional.empty();
     }
 
+    /**
+     * Schema facts of an XML-instance element beyond {@code ElementTypeInfo}: nillable, the
+     * {@code @since}/{@code @deprecated} doc tags, list/union member types, raw appinfo entries and
+     * the identity constraints / assertions / type alternatives declared on it.
+     */
+    public record XmlSchemaDetails(boolean nillable, String since, String deprecated, String listItemType,
+            java.util.List<String> unionMemberTypes, java.util.List<String> appInfos,
+            java.util.List<org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo> rules) {
+    }
+
+    /** @return the extra schema facts of the XML element at the given XPath; empty without a schema */
+    public java.util.Optional<XmlSchemaDetails> resolveActiveXmlElementDetails(String elementXPath) {
+        var element = activeXsdElement(elementXPath);
+        if (element == null) {
+            return java.util.Optional.empty();
+        }
+        boolean nillable = element.getCurrentNode() instanceof org.w3c.dom.Element dom
+                && "true".equals(dom.getAttribute("nillable").trim());
+        var docInfo = element.getXsdDocInfo();
+        java.util.List<org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo> rules =
+                new java.util.ArrayList<>();
+        if (element.getIdentityConstraints() != null) {
+            for (var ic : element.getIdentityConstraints()) {
+                String detail = "selector " + ic.getSelector() + " · field " + String.join(", ", ic.getFields())
+                        + (ic.getRefer() != null && !ic.getRefer().isBlank() ? " · refer " + ic.getRefer() : "");
+                rules.add(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo(
+                        ic.getTypeDisplayName(), ic.getName(), detail, null));
+            }
+        }
+        if (element.getAssertions() != null) {
+            for (var as : element.getAssertions()) {
+                rules.add(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo(
+                        "Assertion", "", as.getTest(), null));
+            }
+        }
+        if (element.getTypeAlternatives() != null) {
+            for (var alt : element.getTypeAlternatives()) {
+                rules.add(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo(
+                        "Alternative", alt.getType(), alt.getDisplayCondition(), null));
+            }
+        }
+        return java.util.Optional.of(new XmlSchemaDetails(nillable,
+                docInfo == null ? null : docInfo.getSince(),
+                docInfo == null ? null : docInfo.getDeprecated(),
+                element.getListItemType(),
+                element.getUnionMemberTypes() == null ? java.util.List.of() : java.util.List.copyOf(element.getUnionMemberTypes()),
+                element.getGenericAppInfos() == null ? java.util.List.of() : java.util.List.copyOf(element.getGenericAppInfos()),
+                rules));
+    }
+
+    /** @return schema facts of an attribute of the XML element at the given XPath; empty without a schema */
+    public java.util.Optional<org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.AttributeTypeInfo>
+            resolveActiveXmlAttributeInfo(String elementXPath, String attributeName) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et && et.xmlSchemaProvider != null && elementXPath != null
+                && attributeName != null) {
+            try {
+                return et.xmlSchemaProvider.getAttributeTypeInfo(elementXPath, attributeName);
+            } catch (RuntimeException e) {
+                return java.util.Optional.empty();
+            }
+        }
+        return java.util.Optional.empty();
+    }
+
+    /** @return the attribute names the schema declares for the XML element at the given XPath */
+    public java.util.List<String> resolveActiveXmlValidAttributes(String elementXPath) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et && et.xmlSchemaProvider != null && elementXPath != null) {
+            try {
+                return et.xmlSchemaProvider.getValidAttributes(elementXPath);
+            } catch (RuntimeException e) {
+                return java.util.List.of();
+            }
+        }
+        return java.util.List.of();
+    }
+
+    // ----- the bound XSD declaration behind an XML element (show + edit from the XML document) -----
+
+    /**
+     * The declaration in the bound XSD that governs an XML-instance element or attribute.
+     *
+     * @param located        particle/declaration/named type in {@code schema}
+     * @param schema         the V2 model it was found in (the schema tab's live model when that tab
+     *                       is open, else a read-only cache parsed when the schema was bound)
+     * @param schemaFileName the bound XSD's file name, for display
+     * @param editable       whether edits can be written into the bound XSD
+     * @param readOnlyReason why not, when {@code editable} is false
+     */
+    public record XmlSchemaDeclaration(org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.Located located,
+            org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema, String schemaFileName, boolean editable,
+            String readOnlyReason) {
+    }
+
+    /**
+     * @return the XSD declaration of the element at {@code elementXPath} (or of its attribute
+     * {@code attributeName}) in the active XML document's bound schema; empty without a schema or
+     * when the path cannot be mapped unambiguously
+     */
+    public java.util.Optional<XmlSchemaDeclaration> resolveActiveXmlSchemaDeclaration(String elementXPath,
+            String attributeName) {
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)
+                || et.document.getFileType() != EditorFileType.XML || et.schemaFile == null || elementXPath == null) {
+            return java.util.Optional.empty();
+        }
+        EditorTab schemaTab = findTabFor(et.schemaFile.toPath());
+        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = et.boundSchemaModel;
+        if (schemaTab != null && !schemaTab.loading) {
+            schemaTab.ensureModelParsed();
+            schema = schemaTab.editorContext != null ? schemaTab.editorContext.getSchema() : null;
+        }
+        if (schema == null) {
+            return java.util.Optional.empty();
+        }
+        var located = org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.locate(schema,
+                org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(elementXPath),
+                attributeName);
+        if (located.isEmpty()) {
+            return java.util.Optional.empty();
+        }
+        String reason = located.get().foreign()
+                ? "Read-only: declared in an included or imported schema."
+                : schemaReadOnlyReason(et.schemaFile);
+        return java.util.Optional.of(new XmlSchemaDeclaration(located.get(), schema, et.schemaFile.getName(),
+                reason == null, reason));
+    }
+
+    /**
+     * @return why a bound XSD must not be edited from an XML document, or {@code null}: a copy the
+     * application manages (schema cache / library under {@code ~/.freeXmlToolkit}) would be
+     * overwritten by the next download, and a read-only file cannot be saved
+     */
+    static String schemaReadOnlyReason(File xsd) {
+        if (xsd == null) {
+            return "No schema file.";
+        }
+        Path file = xsd.toPath().toAbsolutePath().normalize();
+        Path appDir = Path.of(System.getProperty("user.home"), ".freeXmlToolkit").toAbsolutePath().normalize();
+        if (file.startsWith(appDir)) {
+            return "Read-only: a cached copy from the Schema Library.";
+        }
+        if (Files.exists(file) && !Files.isWritable(file)) {
+            return "The schema file is read-only.";
+        }
+        return null;
+    }
+
+    /** One edit of a bound-XSD declaration, applied to the schema's own tab. */
+    @FunctionalInterface
+    public interface SchemaEdit {
+        boolean apply(SchemaEditTarget target);
+    }
+
+    /**
+     * The declaration being edited, in the bound XSD's tab: every change is a command on that tab's
+     * stack (one undo step there, the tab turns dirty, the text follows by round-trip). Cardinality
+     * and {@code use} go to the particle, everything else to the declaration; facets go to
+     * {@code facetOwner} (the declaration, or its named simple type).
+     */
+    public static final class SchemaEditTarget {
+        private final EditorTab tab;
+        private final org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.Located located;
+
+        private SchemaEditTarget(EditorTab tab,
+                org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.Located located) {
+            this.tab = tab;
+            this.located = located;
+        }
+
+        /** @return the located nodes in the schema tab's live model */
+        public org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.Located located() {
+            return located;
+        }
+
+        public boolean changeType(String type) {
+            return tab.changeType(located.declaration(), type);
+        }
+
+        public boolean changeCardinality(int min, int max) {
+            return tab.changeCardinality(located.particle(), min, max);
+        }
+
+        public boolean changeUse(String use) {
+            return tab.changeUse(located.particle(), use);
+        }
+
+        public boolean changeForm(String form) {
+            return tab.changeForm(located.declaration(), form);
+        }
+
+        public boolean changeConstraints(boolean nillable, boolean abstractFlag, String fixed) {
+            return tab.changeConstraints(located.declaration(), nillable, abstractFlag, fixed);
+        }
+
+        public boolean changeDefaultValue(String value) {
+            return tab.changeDefaultValue(located.declaration(), value);
+        }
+
+        public boolean changeSubstitutionGroup(String group) {
+            return tab.changeSubstitutionGroup(located.declaration(), group);
+        }
+
+        public boolean changeBlock(String block) {
+            return tab.changeBlock(located.declaration(), block);
+        }
+
+        public boolean changeDocumentations(java.util.List<org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation> docs) {
+            return tab.changeDocumentations(located.declaration(), docs);
+        }
+
+        public boolean changeAppinfo(org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo appinfo) {
+            return tab.changeAppinfo(located.declaration(), appinfo);
+        }
+
+        public boolean changeAppinfo(String appinfo) {
+            return tab.changeAppinfo(located.declaration(), appinfo);
+        }
+
+        /** @return the node whose facets are edited: the named simple type, or the declaration */
+        public XsdNode facetOwner(boolean namedType) {
+            return namedType && located.namedType() != null ? located.namedType() : located.declaration();
+        }
+
+        public boolean addFacet(boolean namedType, org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType type,
+                String value) {
+            return tab.addFacet(facetOwner(namedType), type, value);
+        }
+
+        /** Edits the facet matching {@code shown} (same kind and value) — {@code shown} may come from the cache. */
+        public boolean editFacet(boolean namedType, org.fxt.freexmltoolkit.controls.v2.model.XsdFacet shown,
+                String value) {
+            var facet = matchingFacet(facetOwner(namedType), shown);
+            return facet != null && tab.editFacet(facet, value);
+        }
+
+        public boolean deleteFacet(boolean namedType, org.fxt.freexmltoolkit.controls.v2.model.XsdFacet shown) {
+            var facet = matchingFacet(facetOwner(namedType), shown);
+            return facet != null && tab.deleteFacet(facet);
+        }
+
+        private static org.fxt.freexmltoolkit.controls.v2.model.XsdFacet matchingFacet(XsdNode owner,
+                org.fxt.freexmltoolkit.controls.v2.model.XsdFacet shown) {
+            if (owner == null || shown == null) {
+                return null;
+            }
+            for (var facet : org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets.collect(owner)) {
+                if (facet == shown) {
+                    return facet;
+                }
+            }
+            for (var facet : org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets.collect(owner)) {
+                if (facet.getFacetType() == shown.getFacetType()
+                        && java.util.Objects.equals(facet.getValue(), shown.getValue())) {
+                    return facet;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Applies {@code edit} to the bound-XSD declaration of the active XML document's element at
+     * {@code elementXPath} (or its attribute). The schema opens in a background tab first when it
+     * is not open yet, so the change lands on its undo stack and shows as unsaved there; the XML
+     * tab keeps the focus. Asynchronous when the schema still has to be loaded.
+     *
+     * @param onDone receives whether the edit was applied (on the FX thread); may be {@code null}
+     */
+    public void editActiveXmlSchemaDeclaration(String elementXPath, String attributeName, SchemaEdit edit,
+            java.util.function.Consumer<Boolean> onDone) {
+        java.util.function.Consumer<Boolean> done = onDone != null ? onDone : ok -> { };
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab xmlTab)
+                || xmlTab.schemaFile == null || edit == null) {
+            done.accept(false);
+            return;
+        }
+        File xsd = xmlTab.schemaFile;
+        withSchemaTab(xsd.toPath(), schemaTab -> {
+            schemaTab.ensureModelParsed();
+            if (schemaTab.editorContext == null) {
+                done.accept(false);
+                return;
+            }
+            var located = org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.locate(
+                    schemaTab.editorContext.getSchema(),
+                    org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(elementXPath),
+                    attributeName);
+            if (located.isEmpty() || located.get().foreign() || schemaReadOnlyReason(xsd) != null) {
+                done.accept(false);
+                return;
+            }
+            boolean ok = edit.apply(new SchemaEditTarget(schemaTab, located.get()));
+            if (ok) {
+                // The inspector re-reads the declaration from the schema tab's live model.
+                xmlSchemaProviderRevision.set(xmlSchemaProviderRevision.get() + 1);
+            }
+            done.accept(ok);
+        });
+    }
+
+    /**
+     * Opens the bound XSD of the active XML document in front and selects the declaration of the
+     * element at {@code elementXPath} (or its attribute) in the Tree view — by structure, not by
+     * name, so same-named local declarations are told apart.
+     */
+    public void revealActiveXmlSchemaDeclaration(String elementXPath, String attributeName) {
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab xmlTab)
+                || xmlTab.schemaFile == null) {
+            return;
+        }
+        java.util.List<String> path =
+                org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(elementXPath);
+        withSchemaTab(xmlTab.schemaFile.toPath(), schemaTab -> {
+            tabPane.getSelectionModel().select(schemaTab);
+            setActiveViewMode(ViewMode.TREE);
+            if (schemaTab.editorContext == null) {
+                return;
+            }
+            org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.locate(
+                    schemaTab.editorContext.getSchema(), path, attributeName)
+                    .ifPresent(l -> selectNodeInActiveTree(l.declaration()));
+        });
+    }
+
+    /** @return the open editor tab of {@code path}, or {@code null} */
+    private EditorTab findTabFor(Path path) {
+        Path wanted = path.toAbsolutePath().normalize();
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document.getPath() != null
+                    && wanted.equals(et.document.getPath().toAbsolutePath().normalize())) {
+                return et;
+            }
+        }
+        return null;
+    }
+
+    /** Runs {@code action} with the loaded tab of {@code path}, opening it behind the active tab if needed. */
+    private void withSchemaTab(Path path, java.util.function.Consumer<EditorTab> action) {
+        EditorTab open = findTabFor(path);
+        if (open != null) {
+            if (open.loading) {
+                Runnable previous = open.afterLoad;
+                open.afterLoad = () -> {
+                    if (previous != null) {
+                        previous.run();
+                    }
+                    action.accept(open);
+                };
+            } else {
+                action.accept(open);
+            }
+            return;
+        }
+        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
+                this::openNamedTypeEditor, this::goToXmlDefinition);
+        addTab(tab, false);
+        tab.view.setGoToDefinitionHandler(req ->
+                openXsdAndReveal(req.xsdFile().toPath(), req.elementName()));
+        tab.afterLoad = () -> action.accept(tab);
+        loadAsync(tab, path);
+    }
+
+    /** After an XSD was saved: XML tabs bound to it reload their schema facts from the new file. */
+    private void reloadXmlSchemasBoundTo(Path xsd) {
+        Path saved = xsd.toAbsolutePath().normalize();
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.schemaFile != null
+                    && saved.equals(et.schemaFile.toPath().toAbsolutePath().normalize())) {
+                loadXmlSchemaProviderAsync(et, et.schemaFile);
+            }
+        }
+    }
+
     /** A place a schema component is used: the referring node and a short description. */
     public record SchemaUsage(XsdNode node, String name, String detail) {
     }
@@ -3887,6 +4284,10 @@ public class EditorHost extends BorderPane {
             tab.document.setDirty(false);
             // Our own write must not be reported as an external change.
             tab.document.setDiskStamp(DiskStamp.of(target));
+            if (tab.document.getFileType() == EditorFileType.XSD) {
+                // XML documents bound to this schema pick up the saved declarations.
+                reloadXmlSchemasBoundTo(target);
+            }
             return true;
         } catch (IOException e) {
             return false;
@@ -4169,6 +4570,10 @@ public class EditorHost extends BorderPane {
                 new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
         /** Read on validation worker threads (schema reconcile) — hence volatile. */
         private volatile File schemaFile;
+        /** V2 model of {@link #schemaFile} for an XML tab (read-only cache; edits go to the XSD's tab). */
+        private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema boundSchemaModel;
+        /** Runs once after the async file load has put the text into the editor (background tabs). */
+        private Runnable afterLoad;
         /** How {@link #schemaFile} was bound; MANUAL bindings survive auto-redetection. */
         private volatile SchemaRebindPolicy.SchemaBindingOrigin schemaOrigin =
                 SchemaRebindPolicy.SchemaBindingOrigin.NONE;
@@ -4292,6 +4697,11 @@ public class EditorHost extends BorderPane {
             this.currentJsonSelection = null;
             if (target == ViewMode.TEXT) {
                 showOnly(view.getNode());
+                // The Tree/Graphic selection was just dropped: map the caret again, so the inspector
+                // shows the node at the caret instead of nothing until the caret moves.
+                if (document.getFileType() != EditorFileType.JSON) {
+                    xmlCaretDebounce.playFromStart();
+                }
                 return;
             }
             // HTML renders read-only in a WebView; editing happens in Text mode.
@@ -5081,9 +5491,15 @@ public class EditorHost extends BorderPane {
         }
 
         boolean addFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType type, String value) {
-            if (editorContext == null || currentSelection == null || type == null || value == null) {
+            return addFacet(currentSelection, type, value);
+        }
+
+        /** Adds a facet to {@code node}'s restriction (pattern/enumeration/assertion create one). */
+        boolean addFacet(XsdNode node, org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType type, String value) {
+            if (editorContext == null || node == null || type == null || value == null) {
                 return false;
             }
+            XsdNode currentSelection = node;
             org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction =
                     org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets.findRestriction(currentSelection);
             if (restriction != null) {

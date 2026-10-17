@@ -169,10 +169,16 @@ it with the panel toggle at the right end of the editor toolbar.
   (add/rename/edit/delete in a framed list), leaf text, and the text of comments, CDATA, and
   processing instructions.
 - Edits are written straight back to the document text, keeping everything in sync.
-- When a schema is bound, the inspector also shows the schema facts read-only (type, base type,
-  facets, cardinality, order), the documentation, a check whether the value matches the facets,
-  and **example values** and **valid children** as chips - click one to use it.
-- The **⋮** menu offers Copy XPath, Copy Node (XML) and Expand / Collapse All Sections.
+- When a schema is bound, the inspector also shows the schema facts (type, base type,
+  facets, cardinality, order, nillable, default/fixed, constraints), the documentation, a check
+  whether the value matches the facets, and **example values** and **valid children** as chips -
+  click one to use it. Attributes show their declared type, and **DECLARED, NOT SET** chips add
+  missing declared attributes.
+- Where the declaration is editable, changing type, cardinality, facets or documentation there
+  edits **the bound XSD** (opened as a background tab, saved by you); **Open in schema** jumps to
+  the declaration.
+- **Copy XPath** and **Copy Node (XML)** are buttons next to the XPath and in the **⋮** menu,
+  together with Expand / Collapse All Sections.
 - All views share one in-memory model, so edits and Undo/Redo history carry over when you
   switch views.
 

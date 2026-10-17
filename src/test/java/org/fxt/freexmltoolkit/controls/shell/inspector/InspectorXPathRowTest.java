@@ -22,9 +22,9 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * The inspector's XPath block: a header line ("XPath" key + the two copy buttons) with the
- * XPath value on its own full-width line below, and a click on the value copies the XPath
- * to the system clipboard.
+ * The inspector's XPath block: an "XPATH" sub-label above a code box with the value and the two
+ * copy buttons (Copy XPath, Copy Node); a click on the value copies the XPath. With an XSD node
+ * selected in the Tree view, both copy that node — not the element under the text caret.
  */
 @ExtendWith(ApplicationExtension.class)
 class InspectorXPathRowTest {
@@ -59,14 +59,15 @@ class InspectorXPathRowTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
                 () -> value.getText() != null && value.getText().startsWith("/root"));
 
-        // Layout (Figma 33:2): an "XPATH" sub-label, then a code box holding the value and one
-        // copy button; "Copy Node (XML)" lives in the top bar's ⋮ menu.
+        // Layout (Figma 33:2): an "XPATH" sub-label, then a code box holding the value and the
+        // Copy XPath / Copy Node buttons; "Copy Node (XML)" is in the top bar's ⋮ menu as well.
         assertInstanceOf(HBox.class, value.getParent(), "the XPath value sits in its code box");
         HBox box = (HBox) value.getParent();
         assertTrue(box.getStyleClass().contains("fxt-inspector-codebox"), box.getStyleClass().toString());
         assertEquals(value, box.getChildren().get(0));
-        assertEquals(1, box.getChildren().stream().filter(n -> n instanceof Button).count(),
-                "the code box carries the Copy XPath button");
+        assertEquals(2, box.getChildren().stream().filter(n -> n instanceof Button).count(),
+                "the code box carries the Copy XPath and Copy Node buttons");
+        assertNotNull(inspector.lookup("#inspector-copy-node"));
         VBox body = (VBox) box.getParent();
         Label sublabel = (Label) body.getChildren().get(body.getChildren().indexOf(box) - 1);
         assertEquals("XPATH", sublabel.getText(), "the sub-label sits above the code box");
@@ -86,5 +87,38 @@ class InspectorXPathRowTest {
         String clipboard = WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> javafx.scene.input.Clipboard.getSystemClipboard().getString());
         assertEquals(value.getText(), clipboard, "a click on the XPath value must copy it");
+    }
+
+    @Test
+    void copyActsOnTheSelectedXsdNode(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("s.xsd");
+        Files.writeString(xsd, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:complexType name="PartyType">
+                    <xs:sequence><xs:element name="name" type="xs:string"/></xs:sequence>
+                  </xs:complexType>
+                  <xs:element name="root" type="PartyType"/>
+                </xs:schema>
+                """);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("PartyType")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.setActiveViewMode(
+                org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TREE));
+        String typeXPath = "/xs:schema/xs:complexType[@name='PartyType']";
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> {
+            WaitForAsyncUtils.asyncFx(() -> host.revealSchemaNodeByXPath(typeXPath));
+            Thread.sleep(300);
+            return "PartyType".equals(inspector.getNodeNameText());
+        });
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, inspector::copyXPathToClipboard);
+        assertEquals(typeXPath, WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> javafx.scene.input.Clipboard.getSystemClipboard().getString()));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, inspector::copyNodeToClipboard);
+        String node = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> javafx.scene.input.Clipboard.getSystemClipboard().getString());
+        assertTrue(node.startsWith("<xs:complexType") && node.contains("name=\"PartyType\""), node);
     }
 }

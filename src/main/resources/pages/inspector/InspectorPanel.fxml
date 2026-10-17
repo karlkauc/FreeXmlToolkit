@@ -131,7 +131,13 @@
                                         <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
                                                 <Label text="Kind" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
-                                                <Label fx:id="kindValue" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
+                                                <Label fx:id="kindValue" text="—" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="depthRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Depth" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="depthValue" id="inspector-depth" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value, fxt-inspector-mono"/>
                                             </children>
                                         </HBox>
                                         <HBox fx:id="namespaceRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
@@ -164,6 +170,36 @@
                                                         <Tooltip text="Copy XPath"/>
                                                     </tooltip>
                                                 </Button>
+                                                <Button fx:id="copyNodeButton" id="inspector-copy-node" styleClass="fxt-inspector-icon-button" onAction="#copyNodeToClipboard">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-clipboard-data" iconSize="13"/>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="Copy Node (XML)"/>
+                                                    </tooltip>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </TitledPane>
+
+                        <!-- XML element namespace (prefix + URI), editable; right after NODE &amp; XPATH -->
+                        <TitledPane fx:id="namespaceSection" text="NAMESPACE" expanded="true" styleClass="fxt-inspector-section">
+                            <content>
+                                <VBox styleClass="fxt-inspector-section-body">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Prefix" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="nsPrefixField" id="inspector-ns-prefix" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="URI" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <TextField fx:id="nsUriField" id="inspector-ns-uri" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
                                             </children>
                                         </HBox>
                                     </children>
@@ -175,6 +211,20 @@
                             <content>
                                 <VBox styleClass="fxt-inspector-section-body">
                                     <children>
+                                        <!-- XML element with a bound XSD: where it is declared; edits below go into that XSD -->
+                                        <VBox fx:id="declarationBox" spacing="6" styleClass="fxt-inspector-codebox, fxt-inspector-decl-box">
+                                            <children>
+                                                <Label fx:id="declarationInfo" id="inspector-declaration" wrapText="true" styleClass="fxt-inspector-decl-text"/>
+                                                <Button fx:id="openInSchemaButton" id="inspector-open-in-schema" text="Open in schema" onAction="#onOpenInSchema" styleClass="fxt-inspector-link-button">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="12"/>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="Open the schema and select this declaration"/>
+                                                    </tooltip>
+                                                </Button>
+                                            </children>
+                                        </VBox>
                                         <HBox fx:id="typeRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
                                                 <Label text="Type" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
@@ -185,7 +235,7 @@
                                         <HBox fx:id="schemaTypeRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
                                                 <Label text="Type" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
-                                                <Label fx:id="xmlSchemaTypeValue" id="inspector-schema-type" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value, fxt-inspector-mono"/>
+                                                <Label fx:id="xmlSchemaTypeValue" id="inspector-schema-type" text="—" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value, fxt-inspector-mono"/>
                                             </children>
                                         </HBox>
                                         <HBox fx:id="baseTypeRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
@@ -204,6 +254,8 @@
                                             <children>
                                                 <Label text="FACETS" styleClass="fxt-inspector-sublabel"/>
                                                 <InspectorKeyValueList fx:id="facetList" id="inspector-facets"/>
+                                                <!-- Shown instead of the add row when every facet comes from a referenced named type -->
+                                                <Label fx:id="facetHint" id="inspector-facet-hint" wrapText="true" styleClass="fxt-inspector-hint"/>
                                                 <!-- Add a facet (type + value); delete is the trash button on a row -->
                                                 <HBox fx:id="facetAddRow" spacing="6" alignment="CENTER_LEFT">
                                                     <children>
@@ -306,6 +358,24 @@
                                                 <Label fx:id="xmlUseValue" text="—" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
                                             </children>
                                         </HBox>
+                                        <HBox fx:id="xmlNillableRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Nillable" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="xmlNillableValue" id="inspector-xml-nillable" text="—" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="xmlDefaultRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Default" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="xmlDefaultValue" id="inspector-xml-default" text="—" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value, fxt-inspector-mono"/>
+                                            </children>
+                                        </HBox>
+                                        <HBox fx:id="xmlFixedRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Fixed" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
+                                                <Label fx:id="xmlFixedValue" id="inspector-xml-fixed" text="—" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-value, fxt-inspector-mono"/>
+                                            </children>
+                                        </HBox>
                                         <HBox fx:id="orderRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
                                                 <Label text="Order" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
@@ -332,6 +402,13 @@
                                             <children>
                                                 <Label text="ATTRIBUTES" styleClass="fxt-inspector-sublabel"/>
                                                 <InspectorKeyValueList fx:id="xmlAttrList" id="inspector-xml-attrs"/>
+                                                <!-- Attributes the schema declares that are not set yet; a click adds one -->
+                                                <VBox fx:id="missingAttrBox" spacing="6">
+                                                    <children>
+                                                        <Label text="DECLARED, NOT SET" styleClass="fxt-inspector-sublabel"/>
+                                                        <FlowPane fx:id="missingAttrPane" id="inspector-missing-attrs" hgap="8" vgap="8"/>
+                                                    </children>
+                                                </VBox>
                                                 <!-- Add an attribute (name + value); delete is the trash button on a row -->
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
@@ -413,6 +490,14 @@
                                     <children>
                                         <!-- Schema documentation of an XML instance element (read-only) -->
                                         <Label fx:id="xmlSchemaDocValue" id="inspector-schema-doc" text="—" wrapText="true" styleClass="fxt-inspector-doc-text"/>
+                                        <!-- @since / @deprecated of the schema declaration -->
+                                        <Label fx:id="xmlDocTagsValue" id="inspector-doc-tags" wrapText="true" styleClass="fxt-inspector-doc-tags"/>
+                                        <VBox fx:id="xmlAppInfoBox" spacing="6">
+                                            <children>
+                                                <Label text="APP INFO" styleClass="fxt-inspector-sublabel"/>
+                                                <Label fx:id="xmlAppInfoValue" id="inspector-xml-appinfo" wrapText="true" styleClass="fxt-inspector-codebox, fxt-inspector-xpath-text, fxt-inspector-xml-appinfo"/>
+                                            </children>
+                                        </VBox>
                                         <!-- Does the element's text fit the schema facets? -->
                                         <HBox fx:id="valueCheckBox" id="inspector-value-check" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-inspector-check">
                                             <children>
@@ -457,27 +542,6 @@
                             </content>
                         </TitledPane>
 
-                        <!-- XML element namespace (prefix + URI), editable; collapsed — the NODE row shows it -->
-                        <TitledPane fx:id="namespaceSection" text="NAMESPACE" expanded="false" styleClass="fxt-inspector-section">
-                            <content>
-                                <VBox styleClass="fxt-inspector-section-body">
-                                    <children>
-                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
-                                            <children>
-                                                <Label text="Prefix" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="nsPrefixField" id="inspector-ns-prefix" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
-                                            </children>
-                                        </HBox>
-                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
-                                            <children>
-                                                <Label text="URI" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
-                                                <TextField fx:id="nsUriField" id="inspector-ns-uri" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit"/>
-                                            </children>
-                                        </HBox>
-                                    </children>
-                                </VBox>
-                            </content>
-                        </TitledPane>
 
                         <!-- default/ref/block/final/mixed + xs:any wildcard; each row is toggled per node type -->
                         <TitledPane fx:id="advancedSection" text="ADVANCED" expanded="true" styleClass="fxt-inspector-section">

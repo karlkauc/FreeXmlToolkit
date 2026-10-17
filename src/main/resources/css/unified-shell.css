@@ -464,6 +464,11 @@
     -fx-font-size: 11.5px;
     -fx-text-fill: -fxt-code-val;
     -fx-alignment: CENTER_RIGHT;
+    -fx-text-alignment: right;
+}
+/* Keyboard focus on a row (Tab): Enter edits, Delete removes */
+.fxt-inspector-kv-row:focused {
+    -fx-background-color: -fxt-bg-subtle;
 }
 .fxt-inspector-kv-editable {
     -fx-cursor: text;
@@ -487,12 +492,56 @@
     -fx-padding: 0 4 0 4;
 }
 
+/* XML element with a bound XSD: "Declared in X.xsd · local element · type T" + Open in schema */
+.fxt-inspector-decl-box {
+    -fx-padding: 8 10 8 10;
+}
+.fxt-inspector-decl-text {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-inspector-link-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-primary;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 5;
+}
+.fxt-inspector-link-button .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+.fxt-inspector-link-button:hover {
+    -fx-underline: true;
+}
+
+/* Hint shown instead of the facet add row ("Facets come from T – click to edit them there.") */
+.fxt-inspector-hint {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-muted;
+}
+.fxt-inspector-hint-link {
+    -fx-text-fill: -fxt-primary;
+    -fx-cursor: hand;
+}
+.fxt-inspector-hint-link:hover {
+    -fx-underline: true;
+}
+
 /* Documentation text, value check, chips, used-in rows */
 .fxt-inspector-doc-text {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12.5px;
     -fx-text-fill: -fxt-text-primary;
     -fx-line-spacing: 3;
+}
+/* "No documentation in the schema" */
+.fxt-inspector-doc-text.fxt-inspector-doc-empty {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-muted;
 }
 .fxt-inspector-check {
     -fx-padding: 8 10 8 10;
@@ -533,6 +582,36 @@
     -fx-font-size: 11.5px;
     -fx-text-fill: -fxt-primary;
     -fx-cursor: hand;
+}
+/* Declared-but-not-set attribute chip for a required attribute */
+.fxt-inspector-chip.fxt-inspector-chip-required {
+    -fx-text-fill: -fxt-tool-warning-fg;
+    -fx-background-color: -fxt-tool-warning-bg;
+}
+/* Schema type badge after an attribute name ("xs:string *" = required) */
+.fxt-inspector-kv-badge {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 10px;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-padding: 1 5 1 5;
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-radius: 4;
+}
+/* "Since 2.1 · Deprecated: …" under the schema documentation */
+.fxt-inspector-doc-tags {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-inspector-doc-tags.fxt-inspector-doc-deprecated {
+    -fx-text-fill: -fxt-tool-warning-fg;
+}
+.fxt-inspector-xml-appinfo {
+    -fx-padding: 6 8 6 10;
+}
+/* "None" in an empty chip row (e.g. no valid children) */
+.fxt-inspector-chip-none {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -fxt-text-muted;
 }
 .fxt-inspector-chip:hover {
     -fx-border-color: -fxt-primary;
