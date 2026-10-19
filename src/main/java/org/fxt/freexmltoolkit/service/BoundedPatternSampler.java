@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.random.RandomGenerator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +33,15 @@ final class BoundedPatternSampler {
     static final int MAX_SAMPLED_REPETITIONS = 256;
     /** Exact repetition counts above this are refused (the automaton would be too large); callers fall back. */
     static final int MAX_EXACT_REPETITIONS = 4096;
+    /**
+     * Patterns whose automaton is estimated to need more states than this are refused; callers fall back. Building
+     * and minimizing such automata took minutes and ran out of memory on real schemas (nested repetitions multiply).
+     */
+    static final long MAX_ESTIMATED_STATES = 20_000;
+    /** Compiled patterns kept for reuse; a schema repeats the same pattern across many elements. */
+    private static final int MAX_CACHED_PATTERNS = 512;
+    /** Compiled automata by original pattern: building one is the expensive part, a walk is cheap. */
+    private static final Map<String, Compiled> COMPILED = new ConcurrentHashMap<>();
     /** Longest sample the walk produces even when the caller allows more. */
     private static final int MAX_SAMPLE_LENGTH = 4096;
     /** Probability of stopping in an accepting state once the minimum length is reached (as in Generex). */
@@ -56,16 +66,143 @@ final class BoundedPatternSampler {
      * @throws IllegalArgumentException if the pattern cannot be parsed or repeats a group too often
      */
     BoundedPatternSampler(String pattern, RandomGenerator random) {
-        String regex = capRepetitionBounds(pattern);
-        for (Map.Entry<String, String> characterClass : PREDEFINED_CHARACTER_CLASSES.entrySet()) {
-            regex = regex.replaceAll(characterClass.getKey(), characterClass.getValue());
+        Compiled compiled = COMPILED.get(pattern);
+        if (compiled == null) {
+            compiled = compile(pattern);
+            if (COMPILED.size() >= MAX_CACHED_PATTERNS) {
+                COMPILED.clear(); // crude bound; schemas rarely carry this many distinct patterns
+            }
+            COMPILED.put(pattern, compiled);
         }
-        // RegExp.NONE: '&', '~', '#', '@' and '<' are literals in XSD patterns, not automaton operators (KML .+@.+);
-        // a double quote would open a brics string literal
-        this.automaton = new RegExp(regex.replace("\"", "\\\""), RegExp.NONE).toAutomaton();
-        this.distanceToAccept = distancesToAccept(automaton);
-        this.longestToAccept = longestDistancesToAccept(automaton, distanceToAccept);
+        if (compiled.failure() != null) {
+            throw new IllegalArgumentException(compiled.failure());
+        }
+        this.automaton = compiled.automaton();
+        this.distanceToAccept = compiled.distanceToAccept();
+        this.longestToAccept = compiled.longestToAccept();
         this.random = random;
+    }
+
+    /**
+     * The automaton of a pattern and its distance tables, or why it cannot be sampled. Shared between samplers (and
+     * threads): nothing mutates them after {@link #compile}, and the walk only reads them.
+     */
+    private record Compiled(Automaton automaton, Map<State, Integer> distanceToAccept,
+                            Map<State, Integer> longestToAccept, String failure) {
+    }
+
+    private static Compiled compile(String pattern) {
+        try {
+            String regex = capRepetitionBounds(pattern);
+            for (Map.Entry<String, String> characterClass : PREDEFINED_CHARACTER_CLASSES.entrySet()) {
+                regex = regex.replaceAll(characterClass.getKey(), characterClass.getValue());
+            }
+            long estimate = estimatedStates(regex);
+            if (estimate > MAX_ESTIMATED_STATES) {
+                return new Compiled(null, null, null,
+                        "Pattern too complex for sampling (~" + estimate + " states): " + pattern);
+            }
+            // RegExp.NONE: '&', '~', '#', '@' and '<' are literals in XSD patterns, not automaton operators
+            // (KML .+@.+); a double quote would open a brics string literal
+            Automaton automaton = new RegExp(regex.replace("\"", "\\\""), RegExp.NONE).toAutomaton();
+            Map<State, Integer> distances = distancesToAccept(automaton);
+            return new Compiled(automaton, distances, longestDistancesToAccept(automaton, distances), null);
+        } catch (IllegalArgumentException e) {
+            return new Compiled(null, null, null, e.getMessage());
+        }
+    }
+
+    /**
+     * Rough upper estimate of the automaton's size: every atom counts once, multiplied by the bounds of the
+     * repetitions around it, so {@code (a{1,100}){1,100}} counts 10,000. Unbounded {@code *}, {@code +} and
+     * {@code {m,}} add no states beyond {@code m} copies. Escapes and character classes count as one atom.
+     */
+    static long estimatedStates(String regex) {
+        ArrayDeque<long[]> groups = new ArrayDeque<>(); // per open group: {cost so far}
+        long[] current = {0};
+        long lastAtom = 0;
+        int i = 0;
+        while (i < regex.length()) {
+            char c = regex.charAt(i);
+            if (c == '\\') {
+                i += 2;
+                lastAtom = 1;
+                current[0] = saturatingAdd(current[0], 1);
+                continue;
+            }
+            if (c == '[') {
+                i = classEnd(regex, i);
+                lastAtom = 1;
+                current[0] = saturatingAdd(current[0], 1);
+                continue;
+            }
+            if (c == '(') {
+                groups.push(current);
+                current = new long[]{0};
+                i++;
+                continue;
+            }
+            if (c == ')' && !groups.isEmpty()) {
+                lastAtom = current[0];
+                current = groups.pop();
+                current[0] = saturatingAdd(current[0], lastAtom);
+                i++;
+                continue;
+            }
+            if (c == '{') {
+                Matcher repetition = REPETITION.matcher(regex);
+                if (repetition.find(i) && repetition.start() == i) {
+                    long min = parseBound(repetition.group(1));
+                    String upper = repetition.group(3);
+                    long bound = repetition.group(2) == null || upper == null || upper.isEmpty()
+                            ? Math.max(min, 1) : Math.max(parseBound(upper), 1);
+                    long repeated = saturatingMultiply(lastAtom, bound);
+                    current[0] = saturatingAdd(current[0], repeated - lastAtom);
+                    lastAtom = repeated;
+                    i = repetition.end();
+                    continue;
+                }
+            }
+            if (c != '|' && c != '*' && c != '+' && c != '?') {
+                lastAtom = 1;
+                current[0] = saturatingAdd(current[0], 1);
+            }
+            i++;
+        }
+        long total = current[0];
+        while (!groups.isEmpty()) { // unbalanced: count what was opened
+            total = saturatingAdd(total, groups.pop()[0]);
+        }
+        return total;
+    }
+
+    /** @return the index after the character class starting at {@code start} (escapes and nested classes skipped) */
+    private static int classEnd(String regex, int start) {
+        int depth = 0;
+        int i = start;
+        while (i < regex.length()) {
+            char c = regex.charAt(i);
+            if (c == '\\') {
+                i += 2;
+                continue;
+            }
+            if (c == '[') {
+                depth++;
+            } else if (c == ']' && --depth == 0) {
+                return i + 1;
+            }
+            i++;
+        }
+        return regex.length();
+    }
+
+    private static long saturatingAdd(long a, long b) {
+        long sum = a + b;
+        return sum < 0 ? Long.MAX_VALUE : sum;
+    }
+
+    private static long saturatingMultiply(long a, long b) {
+        return a != 0 && b > Long.MAX_VALUE / a ? Long.MAX_VALUE : a * b;
     }
 
     /**

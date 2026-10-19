@@ -62,7 +62,7 @@ class InspectorXmlSchemaInfoTest {
                 () -> host.getActiveText().map(t -> t.contains("note")).orElse(false));
 
         // Bind the XSD explicitly (triggers async schema-provider load).
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(xsd.toFile()));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(xsd.toFile())).get(30, java.util.concurrent.TimeUnit.SECONDS);
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             host.setActiveViewMode(ViewMode.GRAPHIC);
@@ -81,9 +81,12 @@ class InspectorXmlSchemaInfoTest {
         });
 
         // The provider loads on a background thread; allow generous time, then re-select to refresh.
+        // Type and documentation can land in different pulses: wait for both, then assert each.
         WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () -> {
             String type = inspector.getSchemaTypeText();
-            return type != null && type.toLowerCase().contains("string");
+            String doc = inspector.getSchemaDocText();
+            return type != null && type.toLowerCase().contains("string")
+                    && doc != null && doc.toLowerCase().contains("short note");
         });
         assertTrue(inspector.getSchemaTypeText().toLowerCase().contains("string"),
                 "schema-derived type must be shown, was: " + inspector.getSchemaTypeText());

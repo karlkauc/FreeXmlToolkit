@@ -631,10 +631,10 @@ class UnifiedShellViewTest {
         WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
                 () -> shell.getEditorHost().getActiveText().map(t -> t.contains("wrong")).orElse(false));
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-            shell.getEditorHost().setSchemaForActiveDocument(vXsd);
+            var bound = shell.getEditorHost().setSchemaForActiveDocument(vXsd);
             shell.getSelectionModel().select(org.fxt.freexmltoolkit.controls.shell.Activity.VALIDATION);
-            return null;
-        });
+            return bound;
+        }).get(30, java.util.concurrent.TimeUnit.SECONDS);
         // Trigger the panel's Validate button.
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             shell.lookupAll(".button").stream()

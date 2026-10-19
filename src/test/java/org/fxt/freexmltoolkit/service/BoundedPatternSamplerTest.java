@@ -3,8 +3,11 @@ package org.fxt.freexmltoolkit.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -142,5 +145,39 @@ class BoundedPatternSamplerTest {
         assertEquals("[a-z]{1,256}x{3}\\{0,9999\\}", BoundedPatternSampler.capRepetitionBounds("[a-z]{1,100000}x{3}\\{0,9999\\}"));
         assertEquals("a{300,300}", BoundedPatternSampler.capRepetitionBounds("a{300,5000}"));
         assertEquals("b{2,}", BoundedPatternSampler.capRepetitionBounds("b{2,}"));
+    }
+
+    @Test
+    void stateEstimateMultipliesNestedRepetitions() {
+        assertEquals(3, BoundedPatternSampler.estimatedStates("abc"));
+        assertEquals(1, BoundedPatternSampler.estimatedStates("[A-Z]"), "a character class is one atom");
+        assertEquals(256, BoundedPatternSampler.estimatedStates("[A-Z]{1,256}"));
+        assertEquals(512, BoundedPatternSampler.estimatedStates("(.|x){0,256}"));
+        assertEquals(10_000, BoundedPatternSampler.estimatedStates("(a{1,100}){1,100}"));
+        assertEquals(3, BoundedPatternSampler.estimatedStates("a{3,}"), "an open bound counts its minimum copies");
+        assertEquals(3, BoundedPatternSampler.estimatedStates("\\{9\\}"), "escaped braces are atoms, no repetition");
+    }
+
+    @Test
+    void patternsWithAHugeAutomatonAreRefusedQuickly() {
+        // Telemetry: building and minimizing such automata ran for minutes and out of memory on a real schema
+        String nested = "(([A-Z0-9]{1,256})-){1,256}";
+        assertTrue(BoundedPatternSampler.estimatedStates(BoundedPatternSampler.capRepetitionBounds(nested))
+                > BoundedPatternSampler.MAX_ESTIMATED_STATES);
+        assertTimeoutPreemptively(Duration.ofSeconds(2), () -> {
+            assertThrows(IllegalArgumentException.class, () -> new BoundedPatternSampler(nested, new Random(1)));
+            // the refusal is cached as well
+            assertThrows(IllegalArgumentException.class, () -> new BoundedPatternSampler(nested, new Random(2)));
+        });
+    }
+
+    @Test
+    void aCachedPatternStillSamplesIndependentlyPerSeed() {
+        String pattern = "[A-Z]{2}[0-9]{4,8}";
+        List<String> first = samplesOf(pattern);
+        assertEquals(first, samplesOf(pattern), "reusing the compiled automaton keeps seeded samples stable");
+        for (String sample : first) {
+            assertTrue(sample.matches(pattern), sample);
+        }
     }
 }

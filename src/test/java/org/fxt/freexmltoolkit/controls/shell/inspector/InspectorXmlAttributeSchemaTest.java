@@ -80,7 +80,7 @@ class InspectorXmlAttributeSchemaTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("<item")).orElse(false));
-        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.setSchemaForActiveDocument(xsd.toFile()));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.setSchemaForActiveDocument(xsd.toFile())).get(30, java.util.concurrent.TimeUnit.SECONDS);
         WaitForAsyncUtils.asyncFx(() -> host.goToLine(3, 5));
         WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> "item".equals(inspector.getNodeNameText())
                 && !inspector.getMissingAttributeChips().isEmpty());

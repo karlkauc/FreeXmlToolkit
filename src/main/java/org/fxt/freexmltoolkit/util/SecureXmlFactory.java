@@ -202,6 +202,31 @@ public final class SecureXmlFactory {
         return factory;
     }
 
+    /** Implementation the first {@link TransformerFactory#newInstance()} resolved; reused to skip the lookup. */
+    private static volatile Class<?> transformerFactoryClass;
+
+    /**
+     * A new {@link TransformerFactory} of the platform's configured implementation. The first call runs the JAXP
+     * lookup ({@code TransformerFactory.newInstance()}), which scans the {@code META-INF/services} entries of every jar
+     * on the class path; on Windows that took seconds per call (and allocated enough to run out of memory once). Later
+     * calls instantiate the same class directly. Each call still returns a fresh factory: factories are not
+     * thread-safe.
+     */
+    static TransformerFactory newTransformerFactory() {
+        Class<?> known = transformerFactoryClass;
+        if (known != null) {
+            try {
+                return TransformerFactory.newInstance(known.getName(), known.getClassLoader());
+            } catch (javax.xml.transform.TransformerFactoryConfigurationError e) {
+                logger.debug("Cached TransformerFactory {} unusable, looking it up again: {}", known.getName(),
+                        e.getMessage());
+            }
+        }
+        TransformerFactory factory = TransformerFactory.newInstance();
+        transformerFactoryClass = factory.getClass();
+        return factory;
+    }
+
     /**
      * Creates a secure TransformerFactory with XXE protection enabled.
      *
@@ -212,7 +237,7 @@ public final class SecureXmlFactory {
      * @return a secure TransformerFactory instance
      */
     public static TransformerFactory createSecureTransformerFactory() {
-        TransformerFactory factory = TransformerFactory.newInstance();
+        TransformerFactory factory = newTransformerFactory();
 
         try {
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);

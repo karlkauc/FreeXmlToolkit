@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -18,6 +19,9 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
@@ -33,6 +37,7 @@ import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
  */
 public class EditorHost extends BorderPane {
 
+    private static final Logger logger = LogManager.getLogger(EditorHost.class);
     private final TabPane tabPane = new TabPane();
     /** Tab pane plus an overlaid view-mode switch pinned to the top-right of the tab header. */
     private final javafx.scene.layout.StackPane tabArea = new javafx.scene.layout.StackPane();
@@ -2583,9 +2588,9 @@ public class EditorHost extends BorderPane {
      * Binds a schema to the active document — an XSD (schema-aware IntelliSense +
      * validation) for the XML family, a JSON Schema (validation) for JSON documents.
      *
-     * @return success
+     * @return completes on the FX thread with {@code true} once bound (the schema is parsed off-thread)
      */
-    public boolean setSchemaForActiveDocument(File xsd) {
+    public CompletableFuture<Boolean> setSchemaForActiveDocument(File xsd) {
         return bindSchemaToActiveDocument(xsd, SchemaRebindPolicy.SchemaBindingOrigin.MANUAL,
                 SchemaSource.MANUAL, null, null);
     }
@@ -2599,15 +2604,15 @@ public class EditorHost extends BorderPane {
      * declaration is unchanged, and re-detects when the user edits or the first save
      * relativizes the reference.
      *
-     * @return success
+     * @return completes on the FX thread with {@code true} once bound
      */
-    public boolean bindGeneratedSchemaToActiveDocument(File xsd) {
+    public CompletableFuture<Boolean> bindGeneratedSchemaToActiveDocument(File xsd) {
         if (xsd == null) {
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         if (!(tab instanceof EditorTab et)) {
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
         // What the reconcile will sniff from the buffer (no base directory: untitled).
         String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
@@ -2618,40 +2623,118 @@ public class EditorHost extends BorderPane {
                 SchemaSource.DECLARED, xsd.getAbsolutePath(), declared);
     }
 
-    private boolean bindSchemaToActiveDocument(File xsd, SchemaRebindPolicy.SchemaBindingOrigin origin,
-                                               SchemaSource source, String sourceDetail, String declared) {
+    /**
+     * Binds {@code xsd} (or clears the binding for {@code null}) on the active tab. Parsing a
+     * schema can take seconds to minutes for large XSDs, so it runs on a worker thread while
+     * the status bar shows LOADING; the FX thread only applies the result. Call on the FX thread.
+     *
+     * @return completes on the FX thread with {@code true} once the schema is bound, or
+     *         {@code false} if it failed to load, the tab was closed, or a newer bind superseded it
+     */
+    private CompletableFuture<Boolean> bindSchemaToActiveDocument(File xsd,
+                                                                  SchemaRebindPolicy.SchemaBindingOrigin origin,
+                                                                  SchemaSource source, String sourceDetail,
+                                                                  String declared) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         if (!(tab instanceof EditorTab et) || !et.view.supportsSchema()) {
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
+        long request = et.schemaBindRequest.incrementAndGet();
         et.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
-        boolean bound;
         if (xsd == null) {
             et.view.clearSchema(); // loadSchema(null) is a no-op failure in the views
-            bound = true;
-        } else {
-            bound = et.view.loadSchema(xsd);
+            et.schemaFile = null;
+            et.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.NONE;
+            applySchemaBindingUi(et, null, SchemaSource.NONE, null);
+            return CompletableFuture.completedFuture(true);
         }
-        if (bound) {
-            et.schemaFile = xsd;
-            et.schemaOrigin = xsd == null ? SchemaRebindPolicy.SchemaBindingOrigin.NONE : origin;
-            if (xsd != null && origin == SchemaRebindPolicy.SchemaBindingOrigin.AUTO) {
-                // Behaves like a detection result: an unchanged declaration is KEEP-fast-pathed.
-                // Manual bindings/clears leave the last detection alone (MANUAL never rebinds).
-                et.lastDetectedSchemaLocation = declared;
+        publishSchemaStatus(et, SchemaStatus.LOADING);
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            boolean bound = false;
+            // Same per-tab lock as the detections: the Xerces DOM behind the schema pipeline is
+            // not thread-safe, and holding it until the binding fields are set keeps a validation
+            // reconcile from re-detecting over the user's choice in between.
+            if (acquireSchemaDetection(et, () -> et.schemaBindRequest.get() != request)) {
+                try {
+                    if (et.schemaBindRequest.get() == request) {
+                        bound = loadSchemaSafely(et, xsd);
+                        // re-checked after the (long) parse: a newer bind or a clear may have arrived
+                        if (bound && et.schemaBindRequest.get() == request) {
+                            et.schemaFile = xsd;
+                            et.schemaOrigin = origin;
+                            if (origin == SchemaRebindPolicy.SchemaBindingOrigin.AUTO) {
+                                // Behaves like a detection result: an unchanged declaration is
+                                // KEEP-fast-pathed. Manual bindings leave the last detection alone
+                                // (MANUAL never rebinds).
+                                et.lastDetectedSchemaLocation = declared;
+                            }
+                        }
+                    }
+                } finally {
+                    et.schemaDetecting.set(false);
+                }
             }
-            et.view.invalidateIntelliSenseCache();
+            boolean applied = bound;
+            Platform.runLater(() -> {
+                if (isAbandoned(et) || et.schemaBindRequest.get() != request) {
+                    result.complete(false); // closed, or a newer bind owns the status now
+                    return;
+                }
+                if (applied) {
+                    applySchemaBindingUi(et, xsd, source, sourceDetail);
+                } else {
+                    // the user picked a schema that failed to load — surface it in the status bar
+                    publishSchemaStatus(et, SchemaStatus.ERROR);
+                }
+                result.complete(applied);
+            });
+        });
+        return result;
+    }
+
+    /** FX-thread half of a successful bind or clear: caches, active-schema mirror, status, provider. */
+    private void applySchemaBindingUi(EditorTab et, File xsd, SchemaSource source, String sourceDetail) {
+        et.view.invalidateIntelliSenseCache();
+        if (et.isSelected()) {
             activeSchema.set(xsd);
-            publishSchemaSource(et, xsd == null ? SchemaSource.NONE : source, xsd == null ? null : sourceDetail);
-            publishSchemaStatus(et, xsd == null ? SchemaStatus.NONE : SchemaStatus.READY);
-            loadXmlSchemaProviderAsync(et, xsd);
-            return true;
         }
-        if (xsd != null) {
-            // the user picked a schema that failed to load — surface it in the status bar
-            publishSchemaStatus(et, SchemaStatus.ERROR);
+        publishSchemaSource(et, xsd == null ? SchemaSource.NONE : source, xsd == null ? null : sourceDetail);
+        publishSchemaStatus(et, xsd == null ? SchemaStatus.NONE : SchemaStatus.READY);
+        loadXmlSchemaProviderAsync(et, xsd);
+    }
+
+    /** {@code view.loadSchema} on a worker thread; an unexpected failure counts as "not bound". */
+    private static boolean loadSchemaSafely(EditorTab tab, File xsd) {
+        try {
+            return tab.view.loadSchema(xsd);
+        } catch (RuntimeException | StackOverflowError | OutOfMemoryError e) {
+            logger.warn("Could not load schema {}: {}", xsd, e.toString());
+            return false;
         }
-        return false;
+    }
+
+    /**
+     * Takes the tab's {@link EditorTab#schemaDetecting} lock on a worker thread, waiting for a
+     * running detection (bounded, like {@link #redetectSchemaForActiveDocument()}).
+     *
+     * @param giveUp checked while waiting; {@code true} means the caller has been superseded
+     * @return {@code true} if the lock is now held (release it with {@code schemaDetecting.set(false)})
+     */
+    private static boolean acquireSchemaDetection(EditorTab tab, java.util.function.BooleanSupplier giveUp) {
+        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(120);
+        while (!tab.schemaDetecting.compareAndSet(false, true)) {
+            if (giveUp.getAsBoolean() || System.nanoTime() > deadline || isAbandoned(tab)) {
+                return false;
+            }
+            try {
+                Thread.sleep(25);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        return true;
     }
 
     // ----- navigation ------------------------------------------------------
@@ -3608,11 +3691,18 @@ public class EditorHost extends BorderPane {
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
-                var service = new org.fxt.freexmltoolkit.service.XsdDocumentationService();
-                service.setXsdFilePath(xsd.getAbsolutePath());
-                service.processXsd(Boolean.TRUE);
+                // The editor view has usually just parsed this very XSD for IntelliSense: share that
+                // model (read-only) instead of running the whole schema pipeline a second time.
+                var data = tab.view instanceof XmlEditorView xmlView ? xmlView.loadedSchemaData(xsd) : null;
+                if (data == null) {
+                    var service = new org.fxt.freexmltoolkit.service.XsdDocumentationService();
+                    service.setXsdFilePath(xsd.getAbsolutePath());
+                    service.setEagerSampleData(false);
+                    service.processXsd(Boolean.TRUE);
+                    data = service.xsdDocumentationData;
+                }
                 var adapter = new org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter();
-                adapter.setXsdDocumentationData(service.xsdDocumentationData);
+                adapter.setXsdDocumentationData(data);
                 // The V2 model of the same XSD: lets the inspector show (and, through the schema's
                 // own tab, edit) the declaration behind an element. Best-effort like the provider.
                 org.fxt.freexmltoolkit.controls.v2.model.XsdSchema model = null;
@@ -4634,6 +4724,13 @@ public class EditorHost extends BorderPane {
          * task could revert a binding that a fresher detection just established.
          */
         private final java.util.concurrent.atomic.AtomicLong schemaBindingGen =
+                new java.util.concurrent.atomic.AtomicLong();
+        /**
+         * Counts explicit binds ({@link #bindSchemaToActiveDocument}). Unlike
+         * {@link #schemaBindingGen}, validation reconciles do not bump it, so a bind whose schema
+         * is still parsing is only superseded by a newer bind, never by a validation run.
+         */
+        private final java.util.concurrent.atomic.AtomicLong schemaBindRequest =
                 new java.util.concurrent.atomic.AtomicLong();
         /** XSD-derived, read-only schema info for XML-instance nodes (lazily built off-thread). */
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider xmlSchemaProvider;

@@ -44,6 +44,13 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     private volatile File xsdFile;
     private volatile XsdDocumentationData xsdDocumentationData;
 
+    /** Serializes parsing: the Xerces deferred DOM inside the schema pipeline is not thread-safe. */
+    private final Object parseLock = new Object();
+    /** Guards publishing and clearing the loaded schema; only ever held briefly. */
+    private final Object stateLock = new Object();
+    /** Bumped by {@link #clearSchema()}: a load that started earlier must not publish over the clear. */
+    private long generation;
+
     /**
      * Creates a new mutable schema provider without any schema loaded.
      */
@@ -52,9 +59,10 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     }
 
     /**
-     * Loads an XSD schema from a file. Synchronized: the Xerces deferred DOM inside
+     * Loads an XSD schema from a file. Loads are serialized: the Xerces deferred DOM inside
      * {@link XsdDocumentationService} is not thread-safe — concurrent loads corrupted
-     * it (IndexOutOfBoundsException from DeferredDocumentImpl).
+     * it (IndexOutOfBoundsException from DeferredDocumentImpl). Can take long for large
+     * schemas, so call it on a worker thread.
      *
      * <p>A fresh service instance per load is essential: {@code processXsd} mutates the
      * service's single {@link XsdDocumentationData} in place, and reusing it would
@@ -64,48 +72,70 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
      * and publishing it atomically leaves readers on a consistent old snapshot.
      *
      * @param xsdFile the XSD file to load
-     * @return true if the schema was loaded successfully, false otherwise
+     * @return true if the schema was loaded (and not cleared meanwhile), false otherwise
      */
-    public synchronized boolean loadSchema(File xsdFile) {
+    public boolean loadSchema(File xsdFile) {
         if (xsdFile == null || !xsdFile.exists()) {
             logger.warn("Cannot load XSD: file is null or does not exist");
             return false;
         }
 
-        try {
-            File oldFile = this.xsdFile;
-            XsdDocumentationData oldData = this.xsdDocumentationData;
+        synchronized (parseLock) {
+            long startGeneration;
+            synchronized (stateLock) {
+                startGeneration = generation;
+            }
+            try {
+                XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
+                xsdDocumentationService.setXsdFilePath(xsdFile.getAbsolutePath());
+                // IntelliSense shows a sample only for the few elements a completion lists: generating
+                // all of them up front took minutes (and memory) on large, pattern-heavy schemas.
+                xsdDocumentationService.setEagerSampleData(false);
+                xsdDocumentationService.processXsd(true);
 
-            XsdDocumentationService xsdDocumentationService = new XsdDocumentationService();
-            xsdDocumentationService.setXsdFilePath(xsdFile.getAbsolutePath());
-            xsdDocumentationService.processXsd(true);
+                File oldFile;
+                XsdDocumentationData oldData;
+                XsdDocumentationData newData = xsdDocumentationService.xsdDocumentationData;
+                synchronized (stateLock) {
+                    if (generation != startGeneration) {
+                        logger.debug("Schema {} was cleared while loading; not published", xsdFile.getName());
+                        return false;
+                    }
+                    oldFile = this.xsdFile;
+                    oldData = this.xsdDocumentationData;
+                    this.xsdFile = xsdFile;
+                    this.xsdDocumentationData = newData;
+                }
 
-            this.xsdFile = xsdFile;
-            this.xsdDocumentationData = xsdDocumentationService.xsdDocumentationData;
+                logger.info("Loaded XSD schema: {}", xsdFile.getName());
 
-            logger.info("Loaded XSD schema: {}", xsdFile.getName());
+                // Fire property change events
+                pcs.firePropertyChange("xsdFile", oldFile, xsdFile);
+                pcs.firePropertyChange("xsdDocumentationData", oldData, newData);
+                pcs.firePropertyChange("hasSchema", oldFile != null, true);
 
-            // Fire property change events
-            pcs.firePropertyChange("xsdFile", oldFile, xsdFile);
-            pcs.firePropertyChange("xsdDocumentationData", oldData, xsdDocumentationData);
-            pcs.firePropertyChange("hasSchema", oldFile != null, true);
-
-            return true;
-        } catch (Exception e) {
-            logger.error("Failed to load XSD schema: {}", e.getMessage(), e);
-            return false;
+                return true;
+            } catch (Exception e) {
+                logger.error("Failed to load XSD schema: {}", e.getMessage(), e);
+                return false;
+            }
         }
     }
 
     /**
-     * Clears the current schema.
+     * Clears the current schema. Never waits for a load that is still parsing (it is called on
+     * the FX thread); such a load then does not publish its result.
      */
-    public synchronized void clearSchema() {
-        File oldFile = this.xsdFile;
-        XsdDocumentationData oldData = this.xsdDocumentationData;
-
-        this.xsdFile = null;
-        this.xsdDocumentationData = null;
+    public void clearSchema() {
+        File oldFile;
+        XsdDocumentationData oldData;
+        synchronized (stateLock) {
+            generation++;
+            oldFile = this.xsdFile;
+            oldData = this.xsdDocumentationData;
+            this.xsdFile = null;
+            this.xsdDocumentationData = null;
+        }
 
         pcs.firePropertyChange("xsdFile", oldFile, null);
         pcs.firePropertyChange("xsdDocumentationData", oldData, null);
@@ -126,6 +156,18 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
     @Override
     public boolean hasSchema() {
         return xsdFile != null && xsdDocumentationData != null;
+    }
+
+    /**
+     * The loaded model if {@code xsd} is the schema this provider holds, read together with the file
+     * under the state lock so a concurrent reload never pairs one schema's file with another's model.
+     *
+     * @return the model of {@code xsd}, or {@code null} if a different (or no) schema is loaded
+     */
+    public XsdDocumentationData getXsdDocumentationDataFor(File xsd) {
+        synchronized (stateLock) {
+            return xsdFile != null && xsdFile.equals(xsd) ? xsdDocumentationData : null;
+        }
     }
 
     @Override

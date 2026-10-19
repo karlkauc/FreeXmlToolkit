@@ -126,7 +126,7 @@ class EditorHostLibraryAutoBindTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml.toFile()));
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null
                         && host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.READY);
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(manualXsd.toFile()));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(manualXsd.toFile())).get(30, java.util.concurrent.TimeUnit.SECONDS);
         WaitForAsyncUtils.waitForFxEvents();
 
         // redetectSchemaForActiveDocument() is a no-op once a schema is bound (it returns

@@ -58,7 +58,7 @@ class EditorHostXmlSchemaAssistTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(xsd.toFile()));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(xsd.toFile())).get(30, java.util.concurrent.TimeUnit.SECONDS);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             host.setActiveViewMode(ViewMode.GRAPHIC);
             return null;

@@ -130,7 +130,8 @@ public class XmlServiceImpl implements XmlService {
     SchemaFactory factory = SecureXmlFactory.createSecureSchemaFactory(
             SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI),
             SecureXmlFactory.LOCAL_AND_REMOTE_SCHEMA_PROTOCOLS);
-    Transformer transform;
+    /** Serializer for {@link #getNodeAsString}; created on first use (most instances never need it). */
+    private Transformer transform;
     XsltExecutable stylesheet;
     private File cachedXsltFile = null; // Added for caching compiled stylesheet
     File currentXmlFile = null, currentXsltFile = null, currentXsdFile = null;
@@ -149,13 +150,17 @@ public class XmlServiceImpl implements XmlService {
     private String xmlContent;
 
     public XmlServiceImpl() {
-        try {
+        // Nothing eager: schema detection creates an instance per document, and building the
+        // serializer here (a TransformerFactory lookup) cost seconds on every detection.
+    }
+
+    private Transformer nodeSerializer() throws TransformerException {
+        if (transform == null) {
             transform = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory().newTransformer();
             transform.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             transform.setOutputProperty(OutputKeys.INDENT, "yes");
-        } catch (Exception e) {
-            logger.error(e.getMessage());
         }
+        return transform;
     }
 
     public static XmlServiceImpl getInstance() {
@@ -906,7 +911,7 @@ public class XmlServiceImpl implements XmlService {
     public String getNodeAsString(Node node) {
         try {
             sw = new StringWriter();
-            transform.transform(new DOMSource(node), new StreamResult(sw));
+            nodeSerializer().transform(new DOMSource(node), new StreamResult(sw));
             return sw.toString();
 
         } catch (TransformerException e) {

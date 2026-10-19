@@ -693,10 +693,13 @@ public class ValidationPanel extends VBox {
      * @param xsd the schema file to validate against
      */
     public void useXsd(File xsd) {
-        if (editorHost.setSchemaForActiveDocument(xsd)) {
-            refreshXsdStatus();
-            revalidate();
-        }
+        // The schema is parsed off the FX thread; the future completes back on it.
+        editorHost.setSchemaForActiveDocument(xsd).thenAccept(bound -> {
+            if (bound) {
+                refreshXsdStatus();
+                revalidate();
+            }
+        });
     }
 
     private void refreshXsdStatus() {
@@ -787,10 +790,12 @@ public class ValidationPanel extends VBox {
      * @param schema the JSON Schema file to validate against
      */
     public void useJsonSchema(File schema) {
-        if (editorHost.setSchemaForActiveDocument(schema)) {
-            refreshJsonSchemaStatus();
-            revalidate();
-        }
+        editorHost.setSchemaForActiveDocument(schema).thenAccept(bound -> {
+            if (bound) {
+                refreshJsonSchemaStatus();
+                revalidate();
+            }
+        });
     }
 
     /** Binds the JSON Schema used when validating a JSON document (for tests/observers). */

@@ -68,6 +68,14 @@ final class XmlEditorView implements EditorView {
         return schemaProvider.loadSchema(xsd);
     }
 
+    /**
+     * @return the parsed model of {@code xsd} if it is the schema this view has loaded, else {@code null};
+     *         lets the inspector's schema provider reuse it instead of parsing the same XSD a second time
+     */
+    org.fxt.freexmltoolkit.domain.XsdDocumentationData loadedSchemaData(File xsd) {
+        return schemaProvider.getXsdDocumentationDataFor(xsd);
+    }
+
     @Override
     public void clearSchema() {
         schemaProvider.clearSchema();

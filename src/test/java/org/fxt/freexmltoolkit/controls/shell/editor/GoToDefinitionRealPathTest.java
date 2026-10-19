@@ -64,9 +64,9 @@ class GoToDefinitionRealPathTest {
                     return v != null && v.getText() != null && v.getText().contains("<child>");
                 })));
 
-        // Bind the schema (synchronous loadSchema → hasSchema() becomes true).
+        // Bind the schema (parsed off-thread; the future completes once hasSchema() is true).
         Boolean bound = WaitForAsyncUtils.waitForAsyncFx(4000,
-                () -> host.setSchemaForActiveDocument(xsd.toFile()));
+                () -> host.setSchemaForActiveDocument(xsd.toFile())).get(30, java.util.concurrent.TimeUnit.SECONDS);
         assertTrue(Boolean.TRUE.equals(bound), "schema should bind to the active XML document");
 
         XmlEditorView view = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

@@ -102,7 +102,7 @@ class SchemaEditFromXmlTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("<order>")).orElse(false));
-        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.setSchemaForActiveDocument(xsd.toFile()));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.setSchemaForActiveDocument(xsd.toFile())).get(30, java.util.concurrent.TimeUnit.SECONDS);
         WaitForAsyncUtils.asyncFx(() -> host.goToLine(line, 6));
         WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> element.equals(inspector.getNodeNameText())
                 && !inspector.getDeclarationText().isEmpty());

@@ -443,6 +443,8 @@ class ValidationPanelTest {
             return null;
         });
 
+        // the schema is parsed off the FX thread; the binding lands a moment later
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> host.activeSchemaProperty().get() != null);
         assertEquals(xsd.toFile(), host.activeSchemaProperty().get(),
                 "dropping must bind the XSD like choosing it");
         org.mockito.Mockito.verify(event).setDropCompleted(true);
@@ -452,6 +454,6 @@ class ValidationPanelTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(xsd.toFile()));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(xsd.toFile())).get(30, java.util.concurrent.TimeUnit.SECONDS);
     }
 }

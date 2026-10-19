@@ -50,9 +50,10 @@ class InspectorFigmaLayoutTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(XML.toPath()));
         WaitForAsyncUtils.waitFor(8, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("TypeOfDataSupplier")).orElse(false));
-        // Binding the ~1.4 MB XSD takes a while on the FX thread: fire it; the callers wait for
-        // the schema facts to surface.
-        WaitForAsyncUtils.asyncFx(() -> host.setSchemaForActiveDocument(XSD));
+        // The ~1.4 MB XSD is parsed off the FX thread; wait for the bind so the caret moves below run
+        // against the bound schema (the inspector's provider then still loads on its own).
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(XSD))
+                .get(60, TimeUnit.SECONDS);
     }
 
     @Test
@@ -98,7 +99,9 @@ class InspectorFigmaLayoutTest {
     void positionIsHiddenOutsideTheTextView() throws Exception {
         openFundsXmlWithSchema();
         WaitForAsyncUtils.asyncFx(() -> host.goToLine(11, 17));
-        WaitForAsyncUtils.waitFor(40, TimeUnit.SECONDS, () -> "Short".equals(inspector.getNodeNameText()));
+        // name and position can land in different pulses: wait for both
+        WaitForAsyncUtils.waitFor(40, TimeUnit.SECONDS, () -> "Short".equals(inspector.getNodeNameText())
+                && !inspector.getPositionText().isEmpty());
         assertFalse(inspector.getPositionText().isEmpty());
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setActiveViewMode(ViewMode.TREE));
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> inspector.getPositionText().isEmpty());

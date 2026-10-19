@@ -119,12 +119,12 @@ class EditorHostJsonSchemaBindingTest {
         awaitStatus(SchemaStatus.NONE);
 
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(12000,
-                () -> host.setSchemaForActiveDocument(goodSchema.toFile())));
+                () -> host.setSchemaForActiveDocument(goodSchema.toFile())).get(30, java.util.concurrent.TimeUnit.SECONDS));
         awaitStatus(SchemaStatus.READY);
         assertEquals("good-schema.json", host.activeSchemaProperty().get().getName());
 
         assertFalse(WaitForAsyncUtils.waitForAsyncFx(12000,
-                () -> host.setSchemaForActiveDocument(badSchema.toFile())));
+                () -> host.setSchemaForActiveDocument(badSchema.toFile())).get(30, java.util.concurrent.TimeUnit.SECONDS));
         awaitStatus(SchemaStatus.ERROR);
     }
 

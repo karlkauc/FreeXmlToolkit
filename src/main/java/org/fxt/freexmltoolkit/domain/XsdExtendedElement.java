@@ -77,6 +77,8 @@ public class XsdExtendedElement implements Serializable {
 
     // atrificial sample values:
     private String sampleData;
+    /** Produces {@link #sampleData} on first read when the schema was loaded without eager samples. */
+    private java.util.function.Supplier<String> sampleDataSupplier;
 
     // Lazily computed "clean" XPath (without CHOICE/SEQUENCE/ALL container segments).
     // Computing it walks the whole parent chain, so the result is cached here and shared across
@@ -612,6 +614,7 @@ public class XsdExtendedElement implements Serializable {
      * @return The cleaned sample data or an empty string if none are available.
      */
     public String getSampleData() {
+        String sampleData = materializedSampleData();
         if (sampleData == null || sampleData.isEmpty()) {
             return "";
         }
@@ -645,8 +648,28 @@ public class XsdExtendedElement implements Serializable {
     }
 
 
-    public void setSampleData(String sampleData) {
+    public synchronized void setSampleData(String sampleData) {
         this.sampleData = sampleData;
+        this.sampleDataSupplier = null;
+    }
+
+    /**
+     * Defers sample generation to the first {@link #getSampleData()} call. Schema loads for the editor use this:
+     * generating a sample for every element up front cost seconds to minutes on large schemas, while the editor
+     * only ever shows the samples of the few elements a completion popup lists.
+     */
+    public synchronized void setSampleDataSupplier(java.util.function.Supplier<String> supplier) {
+        this.sampleData = null;
+        this.sampleDataSupplier = supplier;
+    }
+
+    private synchronized String materializedSampleData() {
+        if (sampleDataSupplier != null) {
+            java.util.function.Supplier<String> supplier = sampleDataSupplier;
+            sampleDataSupplier = null; // once, even if it fails
+            sampleData = supplier.get();
+        }
+        return sampleData;
     }
 
     public List<String> getChildren() {

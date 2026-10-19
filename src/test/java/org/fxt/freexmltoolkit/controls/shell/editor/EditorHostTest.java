@@ -275,7 +275,7 @@ class EditorHostTest {
         boolean bound = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
             host.openGeneratedDocument(sample, EditorFileType.XML, "Sample.xml");
             return host.bindGeneratedSchemaToActiveDocument(xsd.toFile());
-        });
+        }).get(30, java.util.concurrent.TimeUnit.SECONDS);
         assertTrue(bound, "the source schema must be bound to the generated tab");
         assertEquals(xsd.toFile(), host.activeSchemaProperty().get());
 

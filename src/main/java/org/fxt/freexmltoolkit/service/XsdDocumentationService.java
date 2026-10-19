@@ -142,6 +142,8 @@ public class XsdDocumentationService {
 
     private TaskProgressListener progressListener;
     private final XsdSampleDataGenerator xsdSampleDataGenerator = new XsdSampleDataGenerator();
+    /** Generate every element's sample during traversal; {@code false} defers it to the first read. */
+    private boolean eagerSampleData = true;
     private RandomGenerator random = RandomGenerator.getDefault();
 
     /** Separates the value stream from the choice stream of one seed, so a changed choice does not shift values. */
@@ -646,6 +648,15 @@ public class XsdDocumentationService {
         } catch (IOException e) {
             logger.error("Failed to generate languages.json", e);
         }
+    }
+
+    /**
+     * Whether {@link #processXsd} generates every element's sample value up front (the default: documentation,
+     * data dictionary and sample XML need them all, in a reproducible order). Editor schema loads pass
+     * {@code false}: they only show a few samples in completion hints, so those are generated on first read.
+     */
+    public void setEagerSampleData(boolean eagerSampleData) {
+        this.eagerSampleData = eagerSampleData;
     }
 
     /**
@@ -2575,8 +2586,22 @@ public class XsdDocumentationService {
             extendedElem.setSampleData(fixedValue);
         } else if (defaultValue != null) {
             extendedElem.setSampleData(defaultValue);
-        } else {
+        } else if (eagerSampleData) {
             extendedElem.setSampleData(xsdSampleDataGenerator.generate(extendedElem));
+        } else {
+            extendedElem.setSampleDataSupplier(() -> lazySample(extendedElem));
+        }
+    }
+
+    /** First-read sample of a lazily loaded schema; the generator is not thread-safe, hence the lock. */
+    private String lazySample(XsdExtendedElement element) {
+        synchronized (xsdSampleDataGenerator) {
+            try {
+                return xsdSampleDataGenerator.generate(element);
+            } catch (RuntimeException | StackOverflowError e) {
+                logger.debug("No sample for {}: {}", element.getElementName(), e.toString());
+                return "";
+            }
         }
     }
 
