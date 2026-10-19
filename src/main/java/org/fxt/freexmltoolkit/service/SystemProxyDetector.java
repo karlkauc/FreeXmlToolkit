@@ -257,6 +257,22 @@ public final class SystemProxyDetector {
 
     // ========== Private Detection Methods ==========
 
+    /** Startup must not wait for a hanging system command (netsh/reg can stall for seconds). */
+    private static final long COMMAND_TIMEOUT_SECONDS = 2;
+
+    /**
+     * Waits for {@code process} to exit, at most {@link #COMMAND_TIMEOUT_SECONDS}; kills it otherwise.
+     * The commands print a few lines, so their output fits the pipe buffer and is read afterwards.
+     */
+    private static boolean finishesInTime(Process process) throws InterruptedException {
+        if (process.waitFor(COMMAND_TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS)) {
+            return true;
+        }
+        process.destroyForcibly();
+        logger.debug("System command did not finish within {} s: skipped", COMMAND_TIMEOUT_SECONDS);
+        return false;
+    }
+
     /**
      * Reads proxy settings from netsh winhttp.
      * This is the Windows system-wide WinHTTP proxy configuration.
@@ -270,6 +286,9 @@ public final class SystemProxyDetector {
             ProcessBuilder pb = new ProcessBuilder("netsh", "winhttp", "show", "proxy");
             pb.redirectErrorStream(true);
             Process process = pb.start();
+            if (!finishesInTime(process)) {
+                return null;
+            }
 
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
@@ -334,6 +353,9 @@ public final class SystemProxyDetector {
                     "/v", "ProxyServer");
             pb.redirectErrorStream(true);
             Process process = pb.start();
+            if (!finishesInTime(process)) {
+                return null;
+            }
 
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
@@ -455,6 +477,9 @@ public final class SystemProxyDetector {
                     "/v", "ProxyEnable");
             pb.redirectErrorStream(true);
             Process process = pb.start();
+            if (!finishesInTime(process)) {
+                return true; // unknown: as on any other failure, assume enabled
+            }
 
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
@@ -495,6 +520,9 @@ public final class SystemProxyDetector {
                     "/v", "AutoConfigURL");
             pb.redirectErrorStream(true);
             Process process = pb.start();
+            if (!finishesInTime(process)) {
+                return null;
+            }
 
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {

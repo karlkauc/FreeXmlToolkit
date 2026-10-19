@@ -79,6 +79,15 @@ public final class IconifyIconService {
     private IconifyIconService() {
     }
 
+    /**
+     * Loads an icon set now (call it on a background thread at startup): parsing the 1.1 MB Bootstrap
+     * set on the first icon of the UI took hundreds of ms on the FX thread. A caller that needs the set
+     * meanwhile waits for this load instead of starting a second one.
+     */
+    public void preload(String prefix) {
+        sets.computeIfAbsent(prefix, IconifyIconService::loadSet);
+    }
+
     public static IconifyIconService getInstance() {
         return INSTANCE;
     }

@@ -147,10 +147,19 @@ public class FxtGui extends Application {
         logger.info("Enabling NTLM proxy authentication...");
         SystemProxyDetector.enableNtlmAuthentication();
         
-        // Detect and set global proxy properties for WebEngine compatibility
-        SystemProxyDetector.detectSystemProxy().ifPresent(config -> {
-            SystemProxyDetector.configureProxyForWebEngine(config.host(), config.port());
-        });
+        // Detect the system proxy for WebEngine in the background: on Windows it runs netsh/reg and may
+        // trigger WPAD discovery, which delayed the window by seconds. Regular connections use
+        // java.net.useSystemProxies (set above) meanwhile; WebViews are created later, on demand.
+        Thread proxyDetection = new Thread(() -> {
+            try {
+                SystemProxyDetector.detectSystemProxy().ifPresent(config ->
+                        SystemProxyDetector.configureProxyForWebEngine(config.host(), config.port()));
+            } catch (RuntimeException e) {
+                logger.warn("System proxy detection failed: {}", e.toString());
+            }
+        }, "ProxyDetection");
+        proxyDetection.setDaemon(true);
+        proxyDetection.start();
         
         logger.info("NTLM proxy authentication enabled");
 
@@ -293,6 +302,9 @@ public class FxtGui extends Application {
         splash.updateProgress(LoadingStep.INITIALIZING);
 
         loadFontsAsync();
+        executorService.submit(() -> org.fxt.freexmltoolkit.controls.icons.IconifyIconService.getInstance()
+                .preload("bi")); // before the UI's first icon needs it
+        warmUpWebKitLibrary();
         splash.updateProgress(LoadingStep.LOADING_FONTS);
 
         // Yield to let the splash screen render, then load the main UI
@@ -314,7 +326,10 @@ public class FxtGui extends Application {
 
                 setupTaskbarIcons(primaryStage);
 
-                CSSFX.start();
+                // Live CSS reloading is a development aid: not in the packaged application
+                if (System.getProperty("jpackage.app-path") == null || Boolean.getBoolean("fxt.dev")) {
+                    CSSFX.start();
+                }
 
                 primaryStage.setScene(scene);
                 primaryStage.setMaximized(true);
@@ -412,6 +427,40 @@ public class FxtGui extends Application {
      * <p>Fonts are loaded at 10pt size and become available system-wide within the application.
      * Loading happens in the background to improve startup time.
      */
+    /**
+     * Reads the WebKit native library once in the background, some seconds after startup. The first
+     * WebView (HTML preview, transform output) loads it on the FX thread; cold, and with the virus
+     * scanner inspecting tens of MB, that froze the UI for up to 11 s on Windows. Afterwards the file
+     * is in the OS cache and already scanned.
+     */
+    private static void warmUpWebKitLibrary() {
+        Thread warmUp = new Thread(() -> {
+            try {
+                Thread.sleep(8000); // after the window is up and the startup work is done
+                java.nio.file.Path home = java.nio.file.Path.of(System.getProperty("java.home"));
+                for (String name : new String[]{"bin/jfxwebkit.dll", "lib/libjfxwebkit.so", "lib/libjfxwebkit.dylib"}) {
+                    java.nio.file.Path library = home.resolve(name);
+                    if (java.nio.file.Files.isRegularFile(library)) {
+                        try (var in = java.nio.file.Files.newInputStream(library)) {
+                            byte[] buffer = new byte[1 << 20];
+                            while (in.read(buffer) >= 0) {
+                                // reading is the point
+                            }
+                        }
+                        logger.debug("WebKit library warmed up: {}", library);
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                logger.debug("WebKit warm-up skipped: {}", e.toString());
+            }
+        }, "WebKitWarmUp");
+        warmUp.setDaemon(true);
+        warmUp.setPriority(Thread.MIN_PRIORITY);
+        warmUp.start();
+    }
+
     private void loadFontsAsync() {
         executorService.submit(() -> {
             String[] fonts = {
@@ -454,6 +503,15 @@ public class FxtGui extends Application {
     @Override
     public void stop() {
         logger.debug("stopping Application");
+        // The shutdown below waits for the executor and telemetry (up to a few seconds) on the FX
+        // thread: hide the windows first, so the user does not look at a frozen application meanwhile.
+        try {
+            for (javafx.stage.Window window : new java.util.ArrayList<>(javafx.stage.Window.getWindows())) {
+                window.hide();
+            }
+        } catch (Throwable t) {
+            logger.debug("Hiding windows before shutdown failed: {}", t.toString());
+        }
         // From here on the session ends on purpose: the executor and service shutdowns below
         // can take seconds, and a process killed meanwhile (updater, OS logoff) is not a crash.
         try {
@@ -536,6 +594,7 @@ public class FxtGui extends Application {
 
         prop.setProperty("usageDuration", String.valueOf(newSeconds));
         getPropertiesService().saveProperties(prop);
+        getPropertiesService().flush(); // saves are written in the background: write it before exiting
         logger.debug("Duration: {}", currentDuration);
         logger.debug("Duration overall: {}", newSeconds);
 
