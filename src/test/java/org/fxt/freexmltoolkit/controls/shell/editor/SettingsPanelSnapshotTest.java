@@ -27,9 +27,12 @@ class SettingsPanelSnapshotTest {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
         panel = new SettingsPanel();
         Scene scene = new Scene(panel, 900, 1000);
-        var css = getClass().getResource("/css/unified-shell.css");
-        if (css != null) {
-            scene.getStylesheets().add(css.toExternalForm());
+        // design tokens first, like the app's ThemeManager: unified-shell.css looks its -fxt-* colours up there
+        for (String sheet : new String[] {"/css/design-tokens.css", "/css/unified-shell.css"}) {
+            var css = getClass().getResource(sheet);
+            if (css != null) {
+                scene.getStylesheets().add(css.toExternalForm());
+            }
         }
         stage.setScene(scene);
         stage.show();

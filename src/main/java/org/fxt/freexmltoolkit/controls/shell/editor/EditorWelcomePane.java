@@ -192,7 +192,7 @@ public class EditorWelcomePane extends VBox {
             for (var cat : org.fxt.freexmltoolkit.service.SkillTracker.getFeaturesByCategory()) {
                 double progress = org.fxt.freexmltoolkit.service.SkillTracker
                         .getCategoryProgress(cat.name(), statsModel);
-                Region card = trendCategoryCard(cat.name(), progress, categoryAccent(cat.name()));
+                Region card = trendCategoryCard(cat.name(), progress, categoryWorkflow(cat.name()));
                 HBox.setHgrow(card, Priority.ALWAYS);
                 trendRow.getChildren().add(card);
             }
@@ -205,28 +205,32 @@ public class EditorWelcomePane extends VBox {
     }
 
     /**
-     * Workflow accent per feature category (spec 2026-09-26 §2, Welcome) as a looked-up colour name
-     * ({@code -fxt-wf-<id>-accent}). Inline styles resolve looked-up colours through the scene, so the
-     * dot and bar follow a live light/dark switch instead of baking one theme's hex. Package-private for tests.
+     * Workflow family per feature category (spec 2026-09-26 §2, Welcome). Its style class on the card
+     * lets {@code unified-shell.css} colour the dot and bar with the family accent, so they follow a live
+     * light/dark switch. Package-private for tests.
      */
-    static String categoryAccent(String category) {
-        return org.fxt.freexmltoolkit.controls.theme.Workflow.forCategory(category).accent().cssVariable();
+    static org.fxt.freexmltoolkit.controls.theme.Workflow categoryWorkflow(String category) {
+        return org.fxt.freexmltoolkit.controls.theme.Workflow.forCategory(category);
     }
 
     /**
      * A compact, colour-coded category card: a coloured dot + name, a tinted progress bar and a
-     * percentage caption. Used in the ACTIVITY (LAST 7 DAYS) strip.
+     * percentage caption. Used in the ACTIVITY (LAST 7 DAYS) strip. The colours come from the
+     * workflow class rules ({@code .fxt-trend-cat-card.fxt-wf-<id>}), not from inline styles: an inline
+     * looked-up colour fails to convert (and logs a warning per CSS pass) wherever the design tokens
+     * are not in scope.
      *
      * @param category the category display name
      * @param progress discovery progress as a 0–100 percentage
-     * @param color    the category accent colour (a looked-up colour name such as -fxt-wf-validation-accent)
+     * @param workflow the category's workflow family
      */
-    private Region trendCategoryCard(String category, double progress, String color) {
+    private Region trendCategoryCard(String category, double progress,
+                                     org.fxt.freexmltoolkit.controls.theme.Workflow workflow) {
         Region dot = new Region();
+        dot.getStyleClass().add("fxt-trend-cat-dot");
         dot.setMinSize(8, 8);
         dot.setPrefSize(8, 8);
         dot.setMaxSize(8, 8);
-        dot.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 4;");
 
         Label name = new Label(category);
         name.getStyleClass().add("fxt-trend-cat-name");
@@ -237,13 +241,12 @@ public class EditorWelcomePane extends VBox {
         javafx.scene.control.ProgressBar bar = new javafx.scene.control.ProgressBar(progress / 100.0);
         bar.getStyleClass().add("fxt-trend-cat-bar");
         bar.setMaxWidth(Double.MAX_VALUE);
-        bar.setStyle("-fx-accent: " + color + ";");
 
         Label pct = new Label(Math.round(progress) + "%");
         pct.getStyleClass().add("fxt-trend-cat-pct");
 
         VBox card = new VBox(6, nameRow, bar, pct);
-        card.getStyleClass().add("fxt-trend-cat-card");
+        card.getStyleClass().addAll("fxt-trend-cat-card", workflow.cssClass());
         card.setMaxWidth(Double.MAX_VALUE);
         return card;
     }

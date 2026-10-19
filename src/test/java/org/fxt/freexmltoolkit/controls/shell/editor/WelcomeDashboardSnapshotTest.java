@@ -37,9 +37,12 @@ class WelcomeDashboardSnapshotTest {
                 new File("transform.xslt")));
         pane.setStats(new EditorWelcomePane.WelcomeStats(8, 4, 15, 6));
         Scene scene = new Scene(pane, 1180, 780);
-        var css = getClass().getResource("/css/unified-shell.css");
-        if (css != null) {
-            scene.getStylesheets().add(css.toExternalForm());
+        // design tokens first, like the app's ThemeManager: unified-shell.css looks its -fxt-* colours up there
+        for (String sheet : new String[] {"/css/design-tokens.css", "/css/unified-shell.css"}) {
+            var css = getClass().getResource(sheet);
+            if (css != null) {
+                scene.getStylesheets().add(css.toExternalForm());
+            }
         }
         stage.setScene(scene);
         stage.show();
