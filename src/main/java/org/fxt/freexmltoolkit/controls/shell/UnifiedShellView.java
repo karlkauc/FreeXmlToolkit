@@ -520,13 +520,10 @@ public class UnifiedShellView extends BorderPane {
             case "fundsxml-browse-examples" -> {
                 java.nio.file.Path dir =
                         org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.examplesDir();
-                try {
-                    if (dir != null && java.awt.Desktop.isDesktopSupported()) {
-                        java.awt.Desktop.getDesktop().open(dir.toFile());
-                    }
-                } catch (Exception e) {
-                    org.apache.logging.log4j.LogManager.getLogger(UnifiedShellView.class)
-                            .warn("Could not open FundsXML examples folder: {}", e.getMessage());
+                if (dir != null) {
+                    org.fxt.freexmltoolkit.util.DesktopActions.open(dir.toFile(), e ->
+                            org.apache.logging.log4j.LogManager.getLogger(UnifiedShellView.class)
+                                    .warn("Could not open FundsXML examples folder: {}", e.getMessage()));
                 }
             }
             default -> { }
@@ -795,8 +792,8 @@ public class UnifiedShellView extends BorderPane {
         var doc = docOpt.get();
         statusType.setText(doc.getFileType().label());
         // Character count (relocated from the per-editor status line, which the shell hides).
-        statusChars.setText(editorHost.getActiveText()
-                .map(t -> String.format("%,d chars", t.length())).orElse(""));
+        int length = editorHost.getActiveTextLength();
+        statusChars.setText(length >= 0 ? String.format("%,d chars", length) : "");
         statusFile.setText(doc.getPath() != null ? doc.getPath().toString() : doc.getDisplayName());
     }
 

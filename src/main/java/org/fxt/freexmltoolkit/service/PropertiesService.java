@@ -54,6 +54,14 @@ public interface PropertiesService {
     void saveProperties(Properties save);
 
     /**
+     * Writes pending changes to disk now. {@link #saveProperties} may write in the background (so
+     * settings changes never wait for the disk on the UI thread); call this before the application
+     * exits. The default does nothing (implementations that write synchronously).
+     */
+    default void flush() {
+    }
+
+    /**
      * Creates and saves default application properties.
      *
      * <p>This method initializes all properties with their default values

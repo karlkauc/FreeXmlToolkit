@@ -18,7 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls.dialogs;
 
-import java.awt.Desktop;
 import java.net.URI;
 
 import javafx.fxml.FXML;
@@ -215,12 +214,9 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         }
 
         try {
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(new URI(url));
-                logger.info("Opened download page: {}", url);
-            } else {
-                logger.warn("Desktop browsing not supported on this platform");
-            }
+            org.fxt.freexmltoolkit.util.DesktopActions.browse(new URI(url),
+                    e -> logger.error("Failed to open download page", e));
+            logger.info("Opening download page: {}", url);
         } catch (Exception e) {
             logger.error("Failed to open download page", e);
         }

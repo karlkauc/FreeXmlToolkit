@@ -72,9 +72,8 @@ class EditorHostUsageEventsTest {
         Path target = tmp.resolve("out.xml");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             host.newDocument(EditorFileType.XML);
-            host.saveActiveAs(target);
-            return null;
-        });
+            return host.saveActiveAs(target);
+        }).get(30, java.util.concurrent.TimeUnit.SECONDS);
 
         TelemetryEvent open = telemetry.events("file_open").get(0);
         assertEquals("new", open.meta().get("source"));
@@ -115,7 +114,7 @@ class EditorHostUsageEventsTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("b>x")).orElse(false));
 
-        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.formatActive()));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.formatActive()).get(30, java.util.concurrent.TimeUnit.SECONDS));
 
         TelemetryEvent e = telemetry.events("format").get(0);
         assertEquals(TelemetryEvent.Status.OK, e.status());

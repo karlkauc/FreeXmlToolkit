@@ -144,36 +144,53 @@ public class FavoritesService {
     }
 
     /**
-     * Save favorites to the JSON file and notify the change listeners.
+     * Saves the favorites to the JSON file and notifies the change listeners. All writes of the file run
+     * on one background thread, in order ({@link #queueWrite}): this save waits for its write, while
+     * {@link #recordAccess} (access statistics, on every opened favorite) does not wait for the disk.
      */
     private void saveFavorites() {
-        saveFavorites(true);
-    }
-
-    /**
-     * Save favorites to the JSON file.
-     *
-     * @param notify whether to notify the change listeners (not for pure access statistics)
-     */
-    private void saveFavorites(boolean notify) {
-        try {
-            String json = gson.toJson(favorites);
-            Files.writeString(favoritesFile, json);
-            logger.debug("Saved {} favorites", favorites.size());
-        } catch (IOException e) {
-            logger.error("Failed to save favorites", e);
-        }
-        if (notify) {
-            for (Runnable listener : changeListeners) {
-                try {
-                    listener.run();
-                } catch (RuntimeException e) {
-                    logger.warn("Favorites change listener failed", e);
-                }
+        awaitWrite(queueWrite());
+        for (Runnable listener : changeListeners) {
+            try {
+                listener.run();
+            } catch (RuntimeException e) {
+                logger.warn("Favorites change listener failed", e);
             }
         }
     }
-    
+
+    /** Writes the favorites file in order, off the calling thread. */
+    private static final java.util.concurrent.ExecutorService WRITER =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "FavoritesWriter");
+                t.setDaemon(true);
+                return t;
+            });
+
+    /** Serializes the favorites now (on the caller, so the snapshot is consistent) and queues the write. */
+    private java.util.concurrent.Future<?> queueWrite() {
+        String json = gson.toJson(favorites);
+        int count = favorites.size();
+        return WRITER.submit(() -> {
+            try {
+                Files.writeString(favoritesFile, json);
+                logger.debug("Saved {} favorites", count);
+            } catch (IOException e) {
+                logger.error("Failed to save favorites", e);
+            }
+        });
+    }
+
+    private static void awaitWrite(java.util.concurrent.Future<?> write) {
+        try {
+            write.get(30, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (java.util.concurrent.ExecutionException | java.util.concurrent.TimeoutException e) {
+            logger.warn("Waiting for the favorites file failed: {}", e.toString());
+        }
+    }
+
     /**
      * Organize favorites by folder
      */
@@ -392,7 +409,7 @@ public class FavoritesService {
             .ifPresent(f -> {
                 f.setLastAccessed(java.time.LocalDateTime.now());
                 f.setAccessCount(f.getAccessCount() + 1);
-                saveFavorites(false); // statistics only - the set of favorites is unchanged
+                queueWrite(); // statistics only - the set of favorites is unchanged; no need to wait
             });
     }
     

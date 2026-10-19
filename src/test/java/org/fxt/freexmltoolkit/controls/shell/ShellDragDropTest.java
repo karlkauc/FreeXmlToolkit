@@ -69,6 +69,8 @@ class ShellDragDropTest {
             return null;
         });
 
+        // the schema is parsed off the FX thread; the binding lands a moment later
+        WaitForAsyncUtils.waitFor(10, SECONDS, () -> shell.getEditorHost().activeSchemaProperty().get() != null);
         assertEquals(xsd.toFile(), shell.getEditorHost().activeSchemaProperty().get(),
                 "dropping must bind the XSD like clicking the indicator and choosing it");
         org.mockito.Mockito.verify(event).setDropCompleted(true);
@@ -100,6 +102,8 @@ class ShellDragDropTest {
         Path schema = tmp.resolve("dropped-schema.json");
         Files.writeString(schema, "{\"type\": \"object\"}");
         dropOn(indicator, schema.toFile());
+        // the schema loads off the FX thread; the binding lands a moment later
+        WaitForAsyncUtils.waitFor(10, SECONDS, () -> shell.getEditorHost().activeSchemaProperty().get() != null);
         assertEquals(schema.toFile(), shell.getEditorHost().activeSchemaProperty().get(),
                 "dropping a JSON Schema must bind it to the JSON document");
     }

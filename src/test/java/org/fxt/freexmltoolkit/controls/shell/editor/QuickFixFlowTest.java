@@ -91,9 +91,14 @@ class QuickFixFlowTest {
             panel.revalidate();
             return null;
         });
+        // the panel publishes its list first and the host's second (same FX pulse): wait for the host's
+        // list and copy it on the FX thread, or a poll between the two sees an empty host list
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getProblemCount() > 0);
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> WaitForAsyncUtils.asyncFx(
+                () -> !host.getActiveProblems().isEmpty()).get());
 
-        List<ValidationProblem> problems = List.copyOf(host.getActiveProblems());
+        List<ValidationProblem> problems = WaitForAsyncUtils.asyncFx(
+                () -> List.copyOf(host.getActiveProblems())).get();
         ValidationProblem problem = problems.stream()
                 .filter(ValidationProblem::hasFixes).findFirst().orElse(null);
         assertTrue(problem != null, "the Schematron problem must carry the SQF fix: " + problems);

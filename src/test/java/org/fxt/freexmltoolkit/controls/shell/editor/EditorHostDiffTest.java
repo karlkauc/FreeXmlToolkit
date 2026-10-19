@@ -45,18 +45,21 @@ class EditorHostDiffTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("<a>1</a>")).orElse(false));
 
-        DiffView diff = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openDiffWithFile(right.toFile()));
+        // the file is read and the documents compared off the FX thread
+        DiffView diff = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openDiffWithFile(right.toFile()))
+                .get(10, TimeUnit.SECONDS);
 
         assertNotNull(diff, "a diff view should be created for the active document");
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> !diff.getChunksForTesting().isEmpty());
         assertFalse(diff.getChunksForTesting().isEmpty(),
                 "differing documents must produce at least one diff chunk");
     }
 
     @Test
-    void returnsNullWithoutAnActiveDocument() {
+    void returnsNullWithoutAnActiveDocument() throws Exception {
         // A fresh host has no open document, so there is nothing to compare.
         DiffView diff = WaitForAsyncUtils.waitForAsyncFx(2000,
-                () -> new EditorHost().openDiffWithFile(new File("/tmp/whatever.xml")));
+                () -> new EditorHost().openDiffWithFile(new File("/tmp/whatever.xml"))).get(10, TimeUnit.SECONDS);
         assertNull(diff);
     }
 }

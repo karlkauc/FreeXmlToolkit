@@ -76,12 +76,38 @@ public final class DiffView extends Tab {
      */
     public DiffView(String leftDisplayName, String leftInitialText, Consumer<String> leftSaveHandler,
                     File rightFile) {
+        this(leftDisplayName, leftInitialText, leftSaveHandler, rightFile, readFileSafely(rightFile), false);
+    }
+
+    /**
+     * Opens a diff whose right file is read on a worker thread and whose first comparison runs off the
+     * FX thread too (reading and diffing two large files froze the UI for seconds).
+     *
+     * @return completes on the FX thread with the view (its highlights arrive once the diff is computed)
+     */
+    public static java.util.concurrent.CompletableFuture<DiffView> open(String leftDisplayName, String leftInitialText,
+                                                                       Consumer<String> leftSaveHandler, File rightFile) {
+        java.util.concurrent.CompletableFuture<DiffView> result = new java.util.concurrent.CompletableFuture<>();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String rightText = readFileSafely(rightFile);
+            Platform.runLater(() -> {
+                try {
+                    result.complete(new DiffView(leftDisplayName, leftInitialText, leftSaveHandler, rightFile,
+                            rightText, true));
+                } catch (RuntimeException e) {
+                    result.completeExceptionally(e);
+                }
+            });
+        });
+        return result;
+    }
+
+    private DiffView(String leftDisplayName, String leftInitialText, Consumer<String> leftSaveHandler,
+                     File rightFile, String rightInitialText, boolean computeInBackground) {
         this.leftDisplayName = leftDisplayName;
         this.rightDisplayName = rightFile.getName();
         this.leftSaveHandler = leftSaveHandler;
         this.rightFile = rightFile;
-
-        String rightInitialText = readFileSafely(rightFile);
 
         suppressDebounce = true;
         leftArea.replaceText(leftInitialText == null ? "" : leftInitialText);
@@ -103,7 +129,11 @@ public final class DiffView extends Tab {
         setOnCloseRequest(this::handleCloseRequest);
 
         updateHeaders();
-        recomputeNow();
+        if (computeInBackground) {
+            recomputeInBackground();
+        } else {
+            recomputeNow();
+        }
     }
 
     private BorderPane buildLayout() {
@@ -228,15 +258,17 @@ public final class DiffView extends Tab {
     }
 
     private void installDebouncedRecompute() {
-        leftDebounce.setOnFinished(e -> recomputeNow());
-        rightDebounce.setOnFinished(e -> recomputeNow());
+        // After typing, the comparison runs off the FX thread (diffing large files took seconds).
+        leftDebounce.setOnFinished(e -> recomputeInBackground());
+        rightDebounce.setOnFinished(e -> recomputeInBackground());
 
-        leftArea.textProperty().addListener((obs, o, n) -> {
+        // plainTextChanges, not textProperty: a ChangeListener builds the whole text per keystroke
+        leftArea.plainTextChanges().subscribe(change -> {
             if (suppressDebounce) return;
             setDirty(0, true);
             leftDebounce.playFromStart();
         });
-        rightArea.textProperty().addListener((obs, o, n) -> {
+        rightArea.plainTextChanges().subscribe(change -> {
             if (suppressDebounce) return;
             setDirty(1, true);
             rightDebounce.playFromStart();
@@ -259,6 +291,32 @@ public final class DiffView extends Tab {
         rightArea.setStyleSpans(0, DiffHighlighter.computeHighlighting(right, chunks, DiffHighlighter.Side.RIGHT));
         gutter.setChunks(chunks);
         if (currentChunkIndex >= chunks.size()) currentChunkIndex = -1;
+    }
+
+    /**
+     * {@link #recomputeNow()} with the diff and the highlight spans computed on a worker thread; the
+     * result is applied on the FX thread unless a newer recompute (or an edit) superseded it.
+     */
+    private void recomputeInBackground() {
+        long gen = recomputeGeneration.incrementAndGet();
+        String left = leftArea.getText();
+        String right = rightArea.getText();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            List<DiffChunk> result = DiffEngine.compute(left, right);
+            var leftSpans = DiffHighlighter.computeHighlighting(left, result, DiffHighlighter.Side.LEFT);
+            var rightSpans = DiffHighlighter.computeHighlighting(right, result, DiffHighlighter.Side.RIGHT);
+            Platform.runLater(() -> {
+                if (gen != recomputeGeneration.get()
+                        || leftArea.getLength() != left.length() || rightArea.getLength() != right.length()) {
+                    return; // superseded or edited meanwhile: the next recompute covers it
+                }
+                this.chunks = result;
+                leftArea.setStyleSpans(0, leftSpans);
+                rightArea.setStyleSpans(0, rightSpans);
+                gutter.setChunks(chunks);
+                if (currentChunkIndex >= chunks.size()) currentChunkIndex = -1;
+            });
+        });
     }
 
     private void applyChunk(DiffChunk chunk, DiffGutter.Direction direction) {

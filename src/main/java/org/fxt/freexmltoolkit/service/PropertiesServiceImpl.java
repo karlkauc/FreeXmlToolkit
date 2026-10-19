@@ -43,6 +43,27 @@ public class PropertiesServiceImpl implements PropertiesService {
     private final PasswordEncryptionService passwordEncryptionService =
             PasswordEncryptionServiceImpl.getInstance();
 
+    /** Guards {@link #pendingSave}, {@link #writing} and the file stamp. */
+    private final Object diskLock = new Object();
+    /**
+     * Writes the file in the background, coalesced: every setter used to rewrite the whole file (and
+     * re-encrypt every password, 10,000 PBKDF2 rounds each) on the calling thread - usually the UI.
+     */
+    private final java.util.concurrent.ScheduledExecutorService writer =
+            java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "PropertiesWriter");
+                t.setDaemon(true);
+                return t;
+            });
+    private java.util.concurrent.ScheduledFuture<?> pendingSave;
+    private boolean writing;
+    /** Last-modified time and size of the file as last read or written: unchanged means no re-read. */
+    private long fileStampModified = -1;
+    private long fileStampSize = -1;
+    /** Whether recent files exist, as last checked (refreshed in the background). */
+    private final java.util.Map<String, Boolean> recentFileExists = new java.util.concurrent.ConcurrentHashMap<>();
+    private volatile long recentCheckStarted;
+
     /**
      * Resolves the properties file. Earlier versions kept it relative to the working
      * directory, which is not writable for installed builds (Program Files, macOS app
@@ -91,6 +112,8 @@ public class PropertiesServiceImpl implements PropertiesService {
      * Migrates plain text passwords to encrypted format if needed.
      */
     private PropertiesServiceImpl() {
+        // Saves are written in the background: write the last one even if the JVM exits right after
+        Runtime.getRuntime().addShutdownHook(new Thread(this::flush, "PropertiesFlush"));
         if (!propertiesFile.exists()) {
             logger.debug("Creating properties file...");
             createDefaultProperties();
@@ -109,16 +132,30 @@ public class PropertiesServiceImpl implements PropertiesService {
      */
     @Override
     public Properties loadProperties() {
-        try (FileInputStream fis = new FileInputStream(propertiesFile)) {
-            properties.load(fis);
-            decryptPasswords();
-            logger.debug("Loaded Properties '{}': {}", propertiesFile.getAbsolutePath(), properties);
-        } catch (IOException e) {
-            logger.warn("No properties found!");
+        synchronized (diskLock) {
+            // Read (and decrypt) the file only when it changed on disk; while a save is queued or
+            // being written, memory is newer than the file anyway.
+            if (pendingSave == null && !writing && fileChangedOnDisk()) {
+                try (FileInputStream fis = new FileInputStream(propertiesFile)) {
+                    properties.load(fis);
+                    decryptPasswords();
+                    rememberFileStamp();
+                    logger.debug("Loaded Properties '{}': {}", propertiesFile.getAbsolutePath(), properties);
+                } catch (IOException e) {
+                    logger.warn("No properties found!");
+                }
+            }
         }
-        Properties copy = new Properties();
-        copy.putAll(properties);
-        return copy;
+        return (Properties) properties.clone();
+    }
+
+    private boolean fileChangedOnDisk() {
+        return propertiesFile.lastModified() != fileStampModified || propertiesFile.length() != fileStampSize;
+    }
+
+    private void rememberFileStamp() {
+        fileStampModified = propertiesFile.lastModified();
+        fileStampSize = propertiesFile.length();
     }
 
     /**
@@ -129,20 +166,59 @@ public class PropertiesServiceImpl implements PropertiesService {
      */
     @Override
     public void saveProperties(Properties save) {
-        this.properties = new Properties();
-        this.properties.putAll(save);
+        Properties updated = new Properties();
+        updated.putAll(save);
+        synchronized (diskLock) {
+            this.properties = updated;
+            // Coalesced: a burst of setter calls (the Settings page saves ~35 of them) writes once.
+            if (pendingSave != null) {
+                pendingSave.cancel(false);
+            }
+            pendingSave = writer.schedule(this::writeToDisk, 300, java.util.concurrent.TimeUnit.MILLISECONDS);
+        }
+    }
 
-        // Create a copy for saving with encrypted passwords
-        Properties saveProps = new Properties();
-        saveProps.putAll(properties);
-        encryptPasswords(saveProps);
+    @Override
+    public void flush() {
+        synchronized (diskLock) {
+            if (pendingSave == null) {
+                return;
+            }
+            pendingSave.cancel(false);
+        }
+        writeToDisk();
+    }
 
-        try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
-            saveProps.store(fos, null);
-        } catch (IOException e) {
+    /** Writes the current settings (passwords encrypted) atomically: a reader never sees a half-written file. */
+    private void writeToDisk() {
+        Properties saveProps;
+        synchronized (diskLock) {
+            pendingSave = null;
+            writing = true;
+            saveProps = (Properties) properties.clone(); // clone() is synchronized: safe against setters
+        }
+        try {
+            encryptPasswords(saveProps);
+            Path target = propertiesFile.toPath();
+            Path temp = target.resolveSibling(target.getFileName() + ".tmp");
+            try (FileOutputStream fos = new FileOutputStream(temp.toFile())) {
+                saveProps.store(fos, null);
+            }
+            try {
+                Files.move(temp, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                        java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+            } catch (java.nio.file.AtomicMoveNotSupportedException e) {
+                Files.move(temp, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException | RuntimeException e) {
             logger.error("Could not save settings to {}: {}", propertiesFile.getAbsolutePath(), e.getMessage());
             if (saveFailureReported.compareAndSet(false, true)) {
                 Telemetry.reportError(e, "properties.save");
+            }
+        } finally {
+            synchronized (diskLock) {
+                writing = false;
+                rememberFileStamp();
             }
         }
     }
@@ -200,19 +276,41 @@ public class PropertiesServiceImpl implements PropertiesService {
     public List<File> getLastOpenFiles() {
         Properties p = loadProperties();
         List<File> files = new LinkedList<>();
+        List<File> listed = new java.util.ArrayList<>();
         // Load only the 5 most recent entries
         for (int i = 0; i < 5; i++) {
             String filePath = p.getProperty("LastOpenFile." + i);
             if (filePath != null) {
                 File f = new File(filePath);
-                if (f.exists()) {
+                listed.add(f);
+                if (exists(f)) {
                     files.add(f);
                 }
             } else {
                 break;
             }
         }
+        refreshRecentFileExistence(listed); // all of them: a missing file may come back
         return files;
+    }
+
+    /**
+     * Whether a recent file exists: checked on the calling thread the first time, then answered from
+     * the last background check. The list is read on every document open and menu build, and each
+     * check could stall on an unreachable network path.
+     */
+    private boolean exists(File file) {
+        return recentFileExists.computeIfAbsent(file.getAbsolutePath(), path -> file.exists());
+    }
+
+    private void refreshRecentFileExistence(List<File> files) {
+        long now = System.currentTimeMillis();
+        if (now - recentCheckStarted < 2000 || files.isEmpty()) {
+            return;
+        }
+        recentCheckStarted = now;
+        List<File> snapshot = List.copyOf(files);
+        writer.execute(() -> snapshot.forEach(f -> recentFileExists.put(f.getAbsolutePath(), f.exists())));
     }
 
     /**

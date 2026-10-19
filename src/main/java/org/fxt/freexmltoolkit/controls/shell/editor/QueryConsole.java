@@ -34,9 +34,7 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
-import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.XPathSyntaxHighlighter;
-import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 import org.fxt.freexmltoolkit.domain.XPathSnippet;
@@ -467,13 +465,8 @@ public class QueryConsole extends Region {
             return;
         }
         String trimmed = value.stripLeading();
-        if (trimmed.startsWith("<")) {
-            resultsArea.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.flattenDenseLines(
-                    value, XmlSyntaxHighlighter.computeHighlighting(value)));
-        } else if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-            resultsArea.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.flattenDenseLines(
-                    value, JsonSyntaxHighlighter.computeHighlighting(value)));
-        }
+        ResultHighlighter.highlight(resultsArea, value, trimmed.startsWith("<"),
+                trimmed.startsWith("{") || trimmed.startsWith("["));
     }
 
     /**

@@ -104,7 +104,9 @@ class TypeLibraryPanelTest {
             ((TextField) panel.lookup("#schema-filter")).setText("asset");
             return null;
         });
-        WaitForAsyncUtils.waitForFxEvents();
+        // the filter is debounced: wait for the narrowed lists
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> list("schema-complex-list").getItems().size() == 1);
 
         assertEquals(0, list("schema-elements-list").getItems().size());
         assertEquals(1, list("schema-complex-list").getItems().size());
@@ -239,5 +241,21 @@ class TypeLibraryPanelTest {
                         .noneMatch(d -> d.getPath() != null && d.getPath().equals(xml)),
                 "a non-XSD drop on the Schema panel must not open the file");
         org.mockito.Mockito.verify(event).setDropCompleted(false);
+    }
+
+    @Test
+    void typingInTheFilterAndMovingTheCaretStayOffTheFxThread() throws Exception {
+        // Telemetry: refresh parsed the whole XSD on the FX thread, twice per keystroke (seconds for FundsXML)
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(org.fxt.freexmltoolkit.test.LargeDocuments.FUNDSXML_XSD.toPath()));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("FundsXML")).orElse(false));
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> !list("schema-complex-list").getItems().isEmpty());
+
+        TextField filter = (TextField) panel.lookup("#schema-filter");
+        int[] key = {0};
+        org.fxt.freexmltoolkit.test.FxThreadBudget.assertFast(50, "a keystroke in the type filter",
+                () -> filter.setText("Type" + (key[0]++)));
+        org.fxt.freexmltoolkit.test.FxThreadBudget.assertFast(50, "a caret move in the large XSD",
+                () -> host.activeEditorView().getCodeArea().moveTo(key[0]++ * 100));
     }
 }

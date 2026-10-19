@@ -681,13 +681,8 @@ public class DocumentationView extends BorderPane {
     }
 
     private static void openInDesktop(File file) {
-        try {
-            if (file.exists() && java.awt.Desktop.isDesktopSupported()) {
-                java.awt.Desktop.getDesktop().open(file);
-            }
-        } catch (Throwable ignored) {
-            // best-effort preview; never fail the action because the OS can't open it
-        }
+        // best-effort preview, off the FX thread; never fail the action because the OS can't open it
+        org.fxt.freexmltoolkit.util.DesktopActions.open(file, ignored -> { });
     }
 
     private static void setSourceName(Label label, String name) {

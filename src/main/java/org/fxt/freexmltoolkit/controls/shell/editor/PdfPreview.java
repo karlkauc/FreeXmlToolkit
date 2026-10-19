@@ -34,8 +34,13 @@ public class PdfPreview extends BorderPane {
     private final Button next;
 
     public PdfPreview(File pdf) throws IOException {
+        this(pdf, PdfPreviewRenderer.pageCount(pdf));
+    }
+
+    /** A preview whose page count was determined beforehand (off the FX thread: it loads the whole PDF). */
+    PdfPreview(File pdf, int pageCount) {
         this.pdf = pdf;
-        this.pageCount = PdfPreviewRenderer.pageCount(pdf);
+        this.pageCount = pageCount;
         getStyleClass().add("fxt-pdf-preview");
 
         imageView.setPreserveRatio(true);

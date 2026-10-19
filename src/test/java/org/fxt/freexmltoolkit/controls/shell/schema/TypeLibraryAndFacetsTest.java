@@ -62,6 +62,9 @@ class TypeLibraryAndFacetsTest {
     void typeLibraryListsNamedTypesAndRevealSelectsThem(@TempDir Path tmp) throws Exception {
         openXsd(tmp);
 
+        // In the Text view the model is parsed in the background: wait until the listing has it
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000, () ->
+                host.getActiveNamedTypes().stream().anyMatch(t -> "AgeType".equals(t.getName()))));
         List<String> typeNames = WaitForAsyncUtils.waitForAsyncFx(2000, () ->
                 host.getActiveNamedTypes().stream().map(XsdNode::getName).collect(Collectors.toList()));
         assertTrue(typeNames.contains("AgeType"), typeNames.toString());

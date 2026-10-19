@@ -100,7 +100,8 @@ public class WorkspaceTree extends VBox {
         if (folder == null || !Files.isDirectory(folder)) {
             return;
         }
-        FileExplorerTreeItem root = new FileExplorerTreeItem(folder, ALLOWED);
+        // Folders are listed off the FX thread as they are expanded (large and network folders froze the UI)
+        FileExplorerTreeItem root = FileExplorerTreeItem.withBackgroundListing(folder, ALLOWED);
         root.setExpanded(true);
         tree.setRoot(root);
         showEmptyState(false);
@@ -136,7 +137,8 @@ public class WorkspaceTree extends VBox {
         if (root == null) {
             return List.of();
         }
-        return root.getChildren().stream()
+        var children = root instanceof FileExplorerTreeItem item ? item.loadChildrenNow() : root.getChildren();
+        return children.stream()
                 .map(TreeItem::getValue)
                 .map(Path::getFileName)
                 .filter(java.util.Objects::nonNull)
@@ -182,7 +184,10 @@ public class WorkspaceTree extends VBox {
             }
             Path name = item.getFileName();
             setText(name != null ? name.toString() : item.toString());
-            if (Files.isDirectory(item)) {
+            // the kind is known from the folder listing: no disk access per rendered (or scrolled) row
+            boolean directory = getTreeItem() instanceof FileExplorerTreeItem entry
+                    ? entry.isDirectoryItem() : Files.isDirectory(item);
+            if (directory) {
                 setGraphic(null);
                 if (!getStyleClass().contains("fxt-tree-folder")) {
                     getStyleClass().add("fxt-tree-folder");

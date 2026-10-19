@@ -289,6 +289,8 @@ public class InspectorPanel extends VBox {
         editorHost.activeSelectedNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         // Remote imports downloaded in the background add types to the type list.
         editorHost.schemaImportsRevisionProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
+        // The Text view's XSD model is parsed in the background: refresh once it has landed.
+        editorHost.activeModelRevisionProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         // A bound XSD loads off-thread: show its facts once it is there, without a caret move.
         editorHost.xmlSchemaProviderRevisionProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());
         editorHost.activeXmlNodeProperty().addListener((obs, oldV, newV) -> debounce.playFromStart());

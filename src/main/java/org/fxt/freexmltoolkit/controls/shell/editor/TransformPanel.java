@@ -73,8 +73,12 @@ public class TransformPanel extends VBox {
     @FXML private javafx.scene.control.CheckBox traceCheck;
     @FXML private javafx.scene.control.CheckBox autoOpenResultTab;
     private final PauseTransition liveDebounce = new PauseTransition(Duration.millis(600));
-    private File xsltFile;
-    private long lastXsltModified;
+    /** Set on the FX thread, read by the stylesheet watch on a worker. */
+    private volatile File xsltFile;
+    private volatile long lastXsltModified;
+    /** A stylesheet poll is running on a worker (the watch timer never stacks them). */
+    private final java.util.concurrent.atomic.AtomicBoolean xsltPollRunning =
+            new java.util.concurrent.atomic.AtomicBoolean();
     /** A fixed input file overriding the active editor as the transform source, if set. */
     private File inputOverride;
     /** The source document of the latest transform (so a re-run from the result tab works). */
@@ -159,9 +163,24 @@ public class TransformPanel extends VBox {
         // Watch the stylesheet file: re-transform when it changes on disk (e.g. edited externally).
         javafx.animation.Timeline xsltWatch = new javafx.animation.Timeline(
                 new javafx.animation.KeyFrame(Duration.millis(1500), e -> {
-                    if (watchXslt.isSelected() && xsltFile != null && pollXsltChanged()
-                            && isTransformableDocumentActive()) {
-                        transform(true);
+                    // The stat runs off the FX thread (it can stall on a network drive), one at a time.
+                    if (watchXslt.isSelected() && xsltFile != null && xsltPollRunning.compareAndSet(false, true)) {
+                        File watched = xsltFile;
+                        FxtGui.executorService.submit(() -> {
+                            boolean changed;
+                            try {
+                                changed = pollXsltChanged();
+                            } finally {
+                                xsltPollRunning.set(false);
+                            }
+                            if (changed) {
+                                Platform.runLater(() -> {
+                                    if (watched.equals(xsltFile) && isTransformableDocumentActive()) {
+                                        transform(true);
+                                    }
+                                });
+                            }
+                        });
                     }
                 }));
         xsltWatch.setCycleCount(javafx.animation.Animation.INDEFINITE);
@@ -366,10 +385,11 @@ public class TransformPanel extends VBox {
      * @return {@code true} once after each external modification of the current XSLT file
      */
     public boolean pollXsltChanged() {
-        if (xsltFile == null || !xsltFile.isFile()) {
+        File file = xsltFile;
+        if (file == null || !file.isFile()) {
             return false;
         }
-        long modified = xsltFile.lastModified();
+        long modified = file.lastModified();
         if (modified != lastXsltModified) {
             lastXsltModified = modified;
             return true;
@@ -711,13 +731,10 @@ public class TransformPanel extends VBox {
             return;
         }
         String xml;
-        if (inputOverride != null) {
-            try {
-                xml = Files.readString(inputOverride.toPath(), StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                out.showFailure("Could not read input file: " + e.getMessage());
-                return;
-            }
+        // An input file is read on the worker below (it can be large, and live preview re-runs often)
+        File inputFile = inputOverride;
+        if (inputFile != null) {
+            xml = null;
         } else {
             OpenDocument active = editorHost.getActiveDocument().orElse(null);
             if (active == null) {
@@ -758,7 +775,25 @@ public class TransformPanel extends VBox {
             transformButton.setDisable(false);
             out.showPending("Cancelled");
         });
+        String editorXml = xml;
         task[0] = FxtGui.executorService.submit(() -> {
+            String xmlInput;
+            if (inputFile != null) {
+                try {
+                    xmlInput = Files.readString(inputFile.toPath(), StandardCharsets.UTF_8);
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        if (!abandoned.get()) {
+                            progress.finish();
+                            transformButton.setDisable(false);
+                            out.showFailure("Could not read input file: " + e.getMessage());
+                        }
+                    });
+                    return;
+                }
+            } else {
+                xmlInput = editorXml;
+            }
             long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance()
                     .begin(org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT, xslt.getName());
@@ -772,8 +807,8 @@ public class TransformPanel extends VBox {
                 // One single run: the full result feeds the output view, the statistics
                 // probe, and (when requested) the Profile/Trace report tabs.
                 fullResult = (wantProfile || wantTrace)
-                        ? TransformRunner.transformForReport(xml, xsltContent, params, format)
-                        : TransformRunner.xsltTransformResult(xml, xsltContent, params, format);
+                        ? TransformRunner.transformForReport(xmlInput, xsltContent, params, format)
+                        : TransformRunner.xsltTransformResult(xmlInput, xsltContent, params, format);
                 result = fullResult.isSuccess()
                         ? fullResult.getOutputContent()
                         : "ERROR: " + fullResult.getErrorMessage();
@@ -787,8 +822,8 @@ public class TransformPanel extends VBox {
             boolean ok = !result.startsWith("ERROR");
             UsageEvents.xsltTransformed(1, t0, ok, live,
                     fullResult != null ? fullResult.getErrorCode() : null,
-                    fullResult != null ? fullResult.getErrorPhase() : null, xml.length());
-            long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
+                    fullResult != null ? fullResult.getErrorPhase() : null, xmlInput.length());
+            long elapsedMs = probe.finish(xmlInput.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
             OutputFormat finalFormat = format;

@@ -147,6 +147,9 @@ class TransformOutputPanelTest {
     @Test
     void xmlResultIsSyntaxHighlightedWithLineNumbers(@TempDir Path tmp) throws Exception {
         transformGreeting(tmp);
+        // the spans are computed off the FX thread
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                out::outputStyleClassesForTest).contains("anytag"));
         java.util.Set<String> classes =
                 WaitForAsyncUtils.waitForAsyncFx(2000, out::outputStyleClassesForTest);
         assertTrue(classes.contains("tagmark") && classes.contains("anytag"),
@@ -162,6 +165,9 @@ class TransformOutputPanelTest {
             out.showQueryResult("{\"greeting\": \"Hello\", \"count\": 2}", 7);
             return null;
         });
+        // the spans are computed off the FX thread
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                out::outputStyleClassesForTest).contains("json-key"));
         java.util.Set<String> classes =
                 WaitForAsyncUtils.waitForAsyncFx(2000, out::outputStyleClassesForTest);
         assertTrue(classes.contains("json-key"),

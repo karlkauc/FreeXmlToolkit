@@ -50,13 +50,17 @@ public class TypeLibraryPanel extends VBox {
     private boolean lastRefreshEmpty = true;
     private final javafx.animation.PauseTransition refreshDebounce =
             new javafx.animation.PauseTransition(javafx.util.Duration.millis(400));
+    private final javafx.animation.PauseTransition filterDebounce =
+            new javafx.animation.PauseTransition(javafx.util.Duration.millis(200));
 
     /** Loads the layout from {@code /pages/panels/TypeLibraryPanel.fxml} and wires the lists. */
     public TypeLibraryPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
         FxmlViews.load(this, "/pages/panels/TypeLibraryPanel.fxml");
 
-        filter.textProperty().addListener((obs, oldV, newV) -> refresh());
+        // Debounced: each refresh walks the schema's declarations; typing must stay instant.
+        filterDebounce.setOnFinished(e -> refresh());
+        filter.textProperty().addListener((obs, oldV, newV) -> filterDebounce.playFromStart());
 
         // --- grouped declaration lists ----------------------------------------------
         configureList(elementsList, elements, false);
@@ -73,6 +77,8 @@ public class TypeLibraryPanel extends VBox {
         editorHost.activeViewModeProperty().addListener((obs, oldV, newV) -> refresh());
         // Imported types arrive late when a remote import had to be downloaded first.
         editorHost.schemaImportsRevisionProperty().addListener((obs, oldV, newV) -> refresh());
+        // The Text view's model is parsed in the background; list its declarations once it lands.
+        editorHost.activeModelRevisionProperty().addListener((obs, oldV, newV) -> refresh());
         // The document text loads asynchronously AFTER the tab change. Refresh again
         // once content lands - but ONLY while the library is still unpopulated:
         // refresh parses the XSD text, so it must not run per keystroke.

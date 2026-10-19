@@ -83,7 +83,7 @@ public class EditorWelcomePane extends VBox {
         fillTrend();
 
         recentList.setItems(recentFiles);
-        recentList.setCellFactory(lv -> new RecentCell());
+        recentList.setCellFactory(lv -> new RecentCell(this::knownModified));
         recentList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) {
                 // Defer out of the selection-change processing (opening builds an editor and
@@ -125,10 +125,27 @@ public class EditorWelcomePane extends VBox {
 
     /** Replaces the recent-files list (most-recent first). */
     public void setRecentFiles(List<File> files) {
+        setRecentFiles(files, java.util.Map.of());
+    }
+
+    /**
+     * Sets the recent files with their last-modified times, read beforehand off the FX thread: the
+     * list cells used to stat each file on every layout pass, which stalls on unreachable network paths.
+     */
+    public void setRecentFiles(List<File> files, java.util.Map<File, Long> lastModified) {
+        this.recentModified = lastModified;
         // Clear the selection before replacing the items to avoid a JavaFX
         // ListViewBehavior IndexOutOfBoundsException (see javafx-listview-setall-crash).
         recentList.getSelectionModel().clearSelection();
         recentFiles.setAll(files);
+    }
+
+    /** Last-modified times of the recent files as passed in (see {@link #setRecentFiles(List, java.util.Map)}). */
+    private java.util.Map<File, Long> recentModified = java.util.Map.of();
+
+    private long knownModified(File file) {
+        Long known = recentModified.get(file);
+        return known != null ? known : file.lastModified();
     }
 
     /**
@@ -171,9 +188,40 @@ public class EditorWelcomePane extends VBox {
 
     // ----- activity trend ----------------------------------------------------
 
-    /** Draws the 7-day sparkline and adds one colour-coded mini-card per feature category. */
+    /** The trend's data: daily totals and each feature category's progress (0-100). */
+    private record TrendData(java.util.List<Integer> totals, java.util.List<java.util.Map.Entry<String, Double>> categories) {
+    }
+
+    /**
+     * Fills the 7-day trend. The usage statistics are read from disk on a background thread (loading
+     * them on the FX thread delayed the shell's first frame); the strip is drawn once they are there.
+     */
     private void fillTrend() {
+        show(trendBox, false);
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            TrendData data = loadTrend();
+            javafx.application.Platform.runLater(() -> drawTrend(data));
+        });
+    }
+
+    private static TrendData loadTrend() {
         java.util.List<Integer> totals = WelcomeTrend.dailyTotals(7);
+        java.util.List<java.util.Map.Entry<String, Double>> categories = new java.util.ArrayList<>();
+        try {
+            var statsModel = org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance().getStatistics();
+            for (var cat : org.fxt.freexmltoolkit.service.SkillTracker.getFeaturesByCategory()) {
+                categories.add(java.util.Map.entry(cat.name(),
+                        org.fxt.freexmltoolkit.service.SkillTracker.getCategoryProgress(cat.name(), statsModel)));
+            }
+        } catch (Throwable ignored) {
+            // no stats model available → omit the strip gracefully
+        }
+        return new TrendData(totals, categories);
+    }
+
+    /** Draws the 7-day sparkline and adds one colour-coded mini-card per feature category. */
+    private void drawTrend(TrendData data) {
+        java.util.List<Integer> totals = data.totals();
         // Nothing recorded in the last 7 days: a flat line and 0 % bars say nothing (UX plan 5.1).
         show(trendBox, totals.stream().anyMatch(t -> t > 0));
         java.util.List<Double> norm = WelcomeTrend.normalize(totals);
@@ -186,18 +234,10 @@ public class EditorWelcomePane extends VBox {
         }
         this.sparklinePointCount = sparkline.getPoints().size() / 2;
 
-        var stats = org.fxt.freexmltoolkit.service.UsageTrackingServiceImpl.getInstance();
-        try {
-            var statsModel = stats.getStatistics();
-            for (var cat : org.fxt.freexmltoolkit.service.SkillTracker.getFeaturesByCategory()) {
-                double progress = org.fxt.freexmltoolkit.service.SkillTracker
-                        .getCategoryProgress(cat.name(), statsModel);
-                Region card = trendCategoryCard(cat.name(), progress, categoryWorkflow(cat.name()));
-                HBox.setHgrow(card, Priority.ALWAYS);
-                trendRow.getChildren().add(card);
-            }
-        } catch (Throwable ignored) {
-            // no stats model available → omit the strip gracefully
+        for (var category : data.categories()) {
+            Region card = trendCategoryCard(category.getKey(), category.getValue(), categoryWorkflow(category.getKey()));
+            HBox.setHgrow(card, Priority.ALWAYS);
+            trendRow.getChildren().add(card);
         }
         if (trendRow.getChildren().isEmpty()) {
             trendBox.getChildren().remove(trendRow);
@@ -291,7 +331,10 @@ public class EditorWelcomePane extends VBox {
         private final IconifyIcon icon = new IconifyIcon();
         private final HBox row;
 
-        RecentCell() {
+        private final java.util.function.ToLongFunction<File> lastModified;
+
+        RecentCell(java.util.function.ToLongFunction<File> lastModified) {
+            this.lastModified = lastModified;
             name.getStyleClass().add("fxt-recent-name");
             path.getStyleClass().add("fxt-recent-path");
             time.getStyleClass().add("fxt-recent-time");
@@ -311,7 +354,7 @@ public class EditorWelcomePane extends VBox {
                 icon.setIconLiteral(EditorFileType.fromFileName(item.getName()).icon());
                 name.setText(item.getName());
                 path.setText(item.getParent() == null ? "" : item.getParent());
-                time.setText(relativeTime(item.lastModified()));
+                time.setText(relativeTime(lastModified.applyAsLong(item)));
                 setGraphic(row);
             }
         }

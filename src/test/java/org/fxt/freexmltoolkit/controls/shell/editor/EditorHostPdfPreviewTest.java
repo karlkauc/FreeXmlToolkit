@@ -42,7 +42,7 @@ class EditorHostPdfPreviewTest {
             doc.save(pdf);
         }
 
-        PdfPreview preview = WaitForAsyncUtils.waitForAsyncFx(3000, () -> host.openPdfPreview(pdf));
+        PdfPreview preview = WaitForAsyncUtils.waitForAsyncFx(3000, () -> host.openPdfPreview(pdf)).get(30, java.util.concurrent.TimeUnit.SECONDS);
         WaitForAsyncUtils.waitForFxEvents();
 
         assertNotNull(preview, "a preview should be created for a readable PDF");
@@ -59,7 +59,7 @@ class EditorHostPdfPreviewTest {
         File pdf = tmp.resolve("doc.pdf").toFile();
         // A content-rich PDF so the snapshot shows a real page.
         DocumentationRunner.exportPdf(new File("src/test/resources/purchageOrder.xsd"), pdf);
-        PdfPreview preview = WaitForAsyncUtils.waitForAsyncFx(3000, () -> host.openPdfPreview(pdf));
+        PdfPreview preview = WaitForAsyncUtils.waitForAsyncFx(3000, () -> host.openPdfPreview(pdf)).get(30, java.util.concurrent.TimeUnit.SECONDS);
         assertNotNull(preview);
         WaitForAsyncUtils.waitFor(6, java.util.concurrent.TimeUnit.SECONDS, () -> {
             var iv = (javafx.scene.image.ImageView) host.lookup(".fxt-pdf-page");
@@ -77,7 +77,7 @@ class EditorHostPdfPreviewTest {
     void returnsNullForAnUnreadablePdf(@TempDir Path tmp) throws Exception {
         File notPdf = tmp.resolve("broken.pdf").toFile();
         java.nio.file.Files.writeString(notPdf.toPath(), "this is not a pdf");
-        PdfPreview preview = WaitForAsyncUtils.waitForAsyncFx(3000, () -> host.openPdfPreview(notPdf));
+        PdfPreview preview = WaitForAsyncUtils.waitForAsyncFx(3000, () -> host.openPdfPreview(notPdf)).get(30, java.util.concurrent.TimeUnit.SECONDS);
         assertNull(preview);
     }
 }

@@ -49,6 +49,8 @@ public class EditorHost extends BorderPane {
             new ReadOnlyIntegerWrapper(this, "schemaImportsRevision", 0);
     private final ReadOnlyIntegerWrapper xmlSchemaProviderRevision =
             new ReadOnlyIntegerWrapper(this, "xmlSchemaProviderRevision", 0);
+    private final ReadOnlyIntegerWrapper activeModelRevision =
+            new ReadOnlyIntegerWrapper(this, "activeModelRevision", 0);
     private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
     private final ReadOnlyObjectWrapper<SchemaStatus> activeSchemaStatus =
             new ReadOnlyObjectWrapper<>(this, "activeSchemaStatus", SchemaStatus.NONE);
@@ -281,6 +283,15 @@ public class EditorHost extends BorderPane {
         return tab instanceof EditorTab et ? Optional.of(et.view.getText()) : Optional.empty();
     }
 
+    /**
+     * @return the active document's length in characters without building its text (O(1); for the
+     *         status bar, which updates on every caret move), or -1 if no editor tab is active
+     */
+    public int getActiveTextLength() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        return tab instanceof EditorTab et ? et.view.getCodeArea().getLength() : -1;
+    }
+
     /** @return the text of the given (possibly non-active) open document, or empty if closed. */
     public Optional<String> getDocumentText(OpenDocument document) {
         for (Tab tab : tabPane.getTabs()) {
@@ -446,6 +457,14 @@ public class EditorHost extends BorderPane {
     }
 
     /**
+     * @return a counter that increases when a background parse has brought the active document's model
+     *         up to date with its text (XSD/XML Text view); views that read the model refresh on it
+     */
+    public ReadOnlyIntegerProperty activeModelRevisionProperty() {
+        return activeModelRevision.getReadOnlyProperty();
+    }
+
+    /**
      * @return a counter that increases whenever an XML document's schema provider has finished
      *         loading in the background; schema-derived views (the inspector) refresh on it, since
      *         the selected node itself does not change.
@@ -488,10 +507,10 @@ public class EditorHost extends BorderPane {
             if (et.viewMode != before && et.viewMode != null) {
                 String modeName = et.viewMode.name().toLowerCase(java.util.Locale.ROOT);
                 var kind = et.document.getFileType().docKind();
-                Path docPath = et.document.getPath();
+                // The document's length (not Files.size: a stat on the FX thread can stall on network drives)
+                long size = et.view.getCodeArea().getLength();
                 // Measured on the next pulse, so layout/CSS work queued by the switch is included.
-                Platform.runLater(() -> UsageEvents.viewModeChanged(modeName, kind,
-                        docPath != null ? sizeOrUnknown(docPath) : -1, t0));
+                Platform.runLater(() -> UsageEvents.viewModeChanged(modeName, kind, size, t0));
             }
         });
     }
@@ -839,19 +858,15 @@ public class EditorHost extends BorderPane {
     /** Resolves the active XSD's schema root for the Type Library (model, text parse, or tool-tab source). */
     private XsdNode resolveActiveSchemaForLibrary() {
         XsdNode schema = getActiveSchemaRoot().orElse(null);
-        if (schema == null) {
-            var doc = getActiveDocument();
-            if (doc.isPresent() && doc.get().getFileType() == EditorFileType.XSD) {
-                try {
-                    // Resolve relative xs:import/xs:include against the file's directory when
-                    // it is on disk, so the Type Library sees externally defined types instead
-                    // of falling back to a namespace-URL download (issue #36).
-                    schema = XsdUiParser.parse(getActiveText().orElse(""), doc.get().getPath(),
-                            this::onRemoteImportsAvailable);
-                } catch (Exception ignored) {
-                    return null;
-                }
-            }
+        if (schema == null && tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab active
+                && active.document.getFileType() == EditorFileType.XSD) {
+            // Text view: the tab's shared model, brought up to date off the FX thread (the parse
+            // resolves relative xs:import/xs:include against the file's directory, issue #36).
+            // Until a newer parse lands, the last model is listed; activeModelRevision then
+            // tells the views to refresh. Parsing the text here on every call froze the UI
+            // for seconds per caret move on large schemas.
+            active.ensureModelParsedAsync(() -> { });
+            return active.editorContext != null ? active.editorContext.getSchema() : null;
         }
         if (schema == null && !(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab)) {
             // A tool tab (e.g. a type editor) is active — keep listing the structured XSD tab's types.
@@ -1366,11 +1381,12 @@ public class EditorHost extends BorderPane {
      * {@code rightFile} (right), reusing the existing {@link org.fxt.freexmltoolkit.controls.diff.DiffView}.
      * Saving the left side writes back to the active document (and its file, if any).
      *
-     * @return the created diff tab, or {@code null} if no document is active
+     * @return completes on the FX thread with the created diff tab (the file is read and the documents
+     *         compared off the FX thread), or with {@code null} if no document is active
      */
-    public org.fxt.freexmltoolkit.controls.diff.DiffView openDiffWithFile(File rightFile) {
+    public CompletableFuture<org.fxt.freexmltoolkit.controls.diff.DiffView> openDiffWithFile(File rightFile) {
         if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab left)) {
-            return null;
+            return CompletableFuture.completedFuture(null);
         }
         String leftName = left.document.getDisplayName();
         String leftText = left.view.getText();
@@ -1383,29 +1399,40 @@ public class EditorHost extends BorderPane {
                 write(left, path);
             }
         };
-        org.fxt.freexmltoolkit.controls.diff.DiffView diff =
-                new org.fxt.freexmltoolkit.controls.diff.DiffView(leftName, leftText, leftSave, rightFile);
-        tabPane.getTabs().add(diff);
-        tabPane.getSelectionModel().select(diff);
-        return diff;
+        return org.fxt.freexmltoolkit.controls.diff.DiffView.open(leftName, leftText, leftSave, rightFile)
+                .thenApply(diff -> {
+                    tabPane.getTabs().add(diff);
+                    tabPane.getSelectionModel().select(diff);
+                    return diff;
+                });
     }
 
     /**
      * Opens an in-app preview of {@code pdf} as a new tab (lazy page rendering).
      *
-     * @return the preview control, or {@code null} if the PDF cannot be read
+     * @return completes on the FX thread with the preview control, or {@code null} if the PDF cannot be read
      */
-    public PdfPreview openPdfPreview(File pdf) {
-        try {
-            PdfPreview preview = new PdfPreview(pdf);
-            Tab tab = new Tab(pdf.getName(), preview);
-            tab.setGraphic(new IconifyIcon("bi-file-earmark-pdf"));
-            tabPane.getTabs().add(tab);
-            tabPane.getSelectionModel().select(tab);
-            return preview;
-        } catch (IOException e) {
-            return null;
-        }
+    public CompletableFuture<PdfPreview> openPdfPreview(File pdf) {
+        // Counting the pages loads the whole PDF (and PDFBox on first use): do it off the FX thread
+        CompletableFuture<PdfPreview> result = new CompletableFuture<>();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            int pages;
+            try {
+                pages = PdfPreviewRenderer.pageCount(pdf);
+            } catch (IOException | RuntimeException e) {
+                Platform.runLater(() -> result.complete(null));
+                return;
+            }
+            Platform.runLater(() -> {
+                PdfPreview preview = new PdfPreview(pdf, pages);
+                Tab tab = new Tab(pdf.getName(), preview);
+                tab.setGraphic(new IconifyIcon("bi-file-earmark-pdf"));
+                tabPane.getTabs().add(tab);
+                tabPane.getSelectionModel().select(tab);
+                result.complete(preview);
+            });
+        });
+        return result;
     }
 
     /** Shows the welcome empty-state when no tab is open, the tab pane otherwise. */
@@ -1432,13 +1459,41 @@ public class EditorHost extends BorderPane {
 
     private void updateCenter() {
         if (tabPane.getTabs().isEmpty()) {
-            welcomePane.setRecentFiles(recentFiles());
-            welcomePane.setStats(welcomeStats());
-            welcomePane.setFundsXmlVisible(fundsXmlContentAvailable());
             setCenter(welcomePane);
+            refreshWelcomeData();
         } else {
             setCenter(tabArea);
         }
+    }
+
+    /** Bumped per welcome refresh (FX thread); an older result is dropped. */
+    private long welcomeRequest;
+
+    /**
+     * Collects the dashboard's data off the FX thread - recent files (each stat-ed), favorites, the
+     * template repository, saved queries, the FundsXML cache - and shows it once ready. Reading all of it
+     * on the FX thread delayed the shell's first frame, and an unreachable network path in the recent
+     * files froze it for many seconds.
+     */
+    private void refreshWelcomeData() {
+        long request = ++welcomeRequest;
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            java.util.List<File> recent = recentFiles();
+            java.util.Map<File, Long> modified = new java.util.HashMap<>();
+            for (File file : recent) {
+                modified.put(file, file.lastModified());
+            }
+            EditorWelcomePane.WelcomeStats stats = welcomeStats(recent.size());
+            boolean fundsXml = fundsXmlContentAvailable();
+            Platform.runLater(() -> {
+                if (request != welcomeRequest || !tabPane.getTabs().isEmpty()) {
+                    return;
+                }
+                welcomePane.setRecentFiles(recent, modified);
+                welcomePane.setStats(stats);
+                welcomePane.setFundsXmlVisible(fundsXml);
+            });
+        });
     }
 
     /**
@@ -1511,7 +1566,10 @@ public class EditorHost extends BorderPane {
 
     /** @return the dashboard counters (recent / favorites / templates / saved queries), best-effort. */
     private EditorWelcomePane.WelcomeStats welcomeStats() {
-        int recent = recentFiles().size();
+        return welcomeStats(recentFiles().size());
+    }
+
+    private EditorWelcomePane.WelcomeStats welcomeStats(int recent) {
         int favorites = safeCount(() -> org.fxt.freexmltoolkit.service.FavoritesService.getInstance()
                 .getAllFavorites().size());
         int templates = safeCount(() -> TemplateRunner.list().size());
@@ -1822,39 +1880,64 @@ public class EditorHost extends BorderPane {
 
     // ----- saving / editing ------------------------------------------------
 
-    /** Saves the active document to its current path (must be titled). @return success */
-    public boolean saveActive() {
+    /**
+     * Saves the active document to its current path (must be titled). The file is written on a worker
+     * thread (a large file on a network drive blocked the UI for seconds).
+     *
+     * @return completes on the FX thread with whether the file was written
+     */
+    public CompletableFuture<Boolean> saveActive() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        boolean saved = tab instanceof EditorTab et && !et.document.isUntitled() && write(et, et.document.getPath());
-        if (saved) {
-            UsageEvents.fileSaved(((EditorTab) tab).document.getFileType().docKind(), 1);
+        if (!(tab instanceof EditorTab et) || et.document.isUntitled()) {
+            return CompletableFuture.completedFuture(false);
         }
-        return saved;
+        return writeAsync(et, et.document.getPath()).thenApply(saved -> {
+            if (saved) {
+                UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
+            }
+            return saved;
+        });
     }
 
-    /** Saves the active document to {@code target} (Save As). */
-    public boolean saveActiveAs(Path target) {
+    /**
+     * Saves the active document to {@code target} (Save As), written on a worker thread.
+     *
+     * @return completes on the FX thread with whether the file was written
+     */
+    public CompletableFuture<Boolean> saveActiveAs(Path target) {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab instanceof EditorTab et && write(et, relocateGeneratedSchemaReference(et, target))) {
-            et.document.setPath(target);
-            et.refreshIcon();
-            UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
-            return true;
+        if (!(tab instanceof EditorTab et)) {
+            return CompletableFuture.completedFuture(false);
         }
-        return false;
+        return writeAsync(et, relocateGeneratedSchemaReference(et, target)).thenApply(saved -> {
+            if (saved) {
+                et.document.setPath(target);
+                et.refreshIcon();
+                UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
+            }
+            return saved;
+        });
     }
 
-    /** Saves all titled, dirty documents. @return the number of files written. */
-    public int saveAll() {
-        int saved = 0;
+    /**
+     * Saves all titled, dirty documents, written on worker threads.
+     *
+     * @return completes on the FX thread with the number of files written
+     */
+    public CompletableFuture<Integer> saveAll() {
+        java.util.List<CompletableFuture<Boolean>> writes = new java.util.ArrayList<>();
         for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && !et.document.isUntitled() && et.document.isDirty()
-                    && write(et, et.document.getPath())) {
-                saved++;
+            if (tab instanceof EditorTab et && !et.document.isUntitled() && et.document.isDirty()) {
+                writes.add(writeAsync(et, et.document.getPath()));
             }
         }
-        UsageEvents.fileSaved(null, saved);
-        return saved;
+        CompletableFuture<Integer> result = new CompletableFuture<>();
+        CompletableFuture.allOf(writes.toArray(CompletableFuture[]::new)).whenComplete((ignored, error) -> {
+            int saved = (int) writes.stream().filter(w -> Boolean.TRUE.equals(w.getNow(false))).count();
+            UsageEvents.fileSaved(null, saved);
+            result.complete(saved);
+        });
+        return result;
     }
 
     /**
@@ -2495,50 +2578,79 @@ public class EditorHost extends BorderPane {
         return false;
     }
 
-    /** Pretty-prints the active document (XML or JSON). @return {@code true} if reformatted. */
-    public boolean formatActive() {
+    /**
+     * Pretty-prints the active document (XML or JSON) off the FX thread: formatting a multi-MB document
+     * took seconds. The result replaces the text only if nothing was typed meanwhile.
+     *
+     * @return completes on the FX thread with whether the text was formatted
+     */
+    public CompletableFuture<Boolean> formatActive() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         if (!(tab instanceof EditorTab et)) {
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
-        try {
-            String text = et.view.getText();
-            String formatted = et.document.getFileType() == EditorFileType.JSON
-                    ? new org.fxt.freexmltoolkit.service.JsonService().formatJson(text, 2)
-                    : org.fxt.freexmltoolkit.service.XmlService.prettyFormat(text, 2);
-            if (formatted != null && !formatted.isBlank()) {
-                et.view.setText(formatted);
-                et.document.setDirty(true);
-                UsageEvents.formatted(et.document.getFileType().docKind(), true);
-                return true;
-            }
-        } catch (Exception ignored) {
-            // invalid content: leave the text untouched
-        }
-        UsageEvents.formatted(et.document.getFileType().docKind(), false);
-        return false;
+        boolean json = et.document.getFileType() == EditorFileType.JSON;
+        return transformActiveText(et, text -> json
+                ? new org.fxt.freexmltoolkit.service.JsonService().formatJson(text, 2)
+                : org.fxt.freexmltoolkit.service.XmlService.prettyFormat(text, 2))
+                .thenApply(done -> {
+                    UsageEvents.formatted(et.document.getFileType().docKind(), done);
+                    return done;
+                });
     }
 
-    /** Minifies the active document (XML: drop inter-tag whitespace; JSON: compact). @return success */
-    public boolean minifyActive() {
+    /**
+     * Minifies the active document (XML: drop inter-tag whitespace; JSON: compact) off the FX thread.
+     *
+     * @return completes on the FX thread with whether the text was minified
+     */
+    public CompletableFuture<Boolean> minifyActive() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         if (!(tab instanceof EditorTab et)) {
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
-        try {
-            String text = et.view.getText();
-            String minified = et.document.getFileType() == EditorFileType.JSON
-                    ? new org.fxt.freexmltoolkit.service.JsonService().compactJson(text)
-                    : text.replaceAll(">\\s+<", "><").strip();
-            if (minified != null && !minified.isBlank()) {
-                et.view.setText(minified);
-                et.document.setDirty(true);
-                return true;
+        boolean json = et.document.getFileType() == EditorFileType.JSON;
+        return transformActiveText(et, text -> json
+                ? new org.fxt.freexmltoolkit.service.JsonService().compactJson(text)
+                : text.replaceAll(">\\s+<", "><").strip());
+    }
+
+    /** A whole-text rewrite (format/minify) that may fail on invalid content. */
+    @FunctionalInterface
+    private interface TextRewrite {
+        String apply(String text) throws Exception;
+    }
+
+    /**
+     * Applies {@code rewrite} to the tab's text on a worker thread (the tab shows its loading overlay
+     * if it takes a while) and puts the result into the editor on the FX thread, unless the text was
+     * edited meanwhile or the rewrite failed or produced nothing.
+     */
+    private CompletableFuture<Boolean> transformActiveText(EditorTab et, TextRewrite rewrite) {
+        String text = et.view.getText();
+        long revision = et.textRevision;
+        et.beginLoading();
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String rewritten;
+            try {
+                rewritten = rewrite.apply(text);
+            } catch (Exception e) {
+                rewritten = null; // invalid content: leave the text untouched
             }
-        } catch (Exception ignored) {
-            // invalid content: leave the text untouched
-        }
-        return false;
+            String output = rewritten;
+            Platform.runLater(() -> {
+                et.endLoading();
+                boolean apply = output != null && !output.isBlank() && et.textRevision == revision
+                        && !isAbandoned(et);
+                if (apply) {
+                    et.view.setText(output);
+                    et.document.setDirty(true);
+                }
+                result.complete(apply);
+            });
+        });
+        return result;
     }
 
     /** @return the active editor's code area, or {@code null} (no editor tab in front). */
@@ -2985,6 +3097,17 @@ public class EditorHost extends BorderPane {
     /** Adds a tab; {@code select = false} opens it behind the active one (e.g. a schema edited from XML). */
     private void addTab(EditorTab tab, boolean select) {
         tab.remoteImportsCallback = this::onRemoteImportsAvailable;
+        tab.modelInstalledCallback = () -> {
+            if (tab.isSelected()) {
+                activeModelRevision.set(activeModelRevision.get() + 1);
+            }
+        };
+        tab.viewModeAppliedCallback = () -> {
+            if (tab.isSelected()) {
+                activeViewMode.set(tab.viewMode);
+                refreshSelectedNode();
+            }
+        };
         tabPane.getTabs().add(tab);
         if (select) {
             tabPane.getSelectionModel().select(tab);
@@ -3151,6 +3274,7 @@ public class EditorHost extends BorderPane {
                 return;
             }
 
+            long fileSize = sizeOrUnknown(path); // here, not in the FX pulse below: a stat can stall
             // Show the document as soon as it has been read. Schema detection below can take
             // seconds - a remote xsi:schemaLocation (or a namespace the Schema Library resolves
             // remotely) is downloaded - and the editor must not sit empty for that long. The
@@ -3167,7 +3291,7 @@ public class EditorHost extends BorderPane {
                 tab.document.setDiskStamp(stamp);
                 tab.loading = false;
                 tab.attachDirtyTracking();
-                UsageEvents.fileOpened(tab.document.getFileType().docKind(), sizeOrUnknown(path),
+                UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
                         UsageEvents.SOURCE_FILE, openStart);
                 documentLoadedHandler.accept(tab.document, content);
                 Runnable after = tab.afterLoad;
@@ -4387,6 +4511,47 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /**
+     * {@link #write(EditorTab, Path)} off the FX thread: the text is taken now, written on a worker, and the
+     * document marked clean afterwards only if nothing was typed meanwhile. Writes of one tab run in order.
+     * While a write runs the tab is not checked for external changes, so the save itself is never
+     * reported as one.
+     *
+     * @return completes on the FX thread with whether the file was written
+     */
+    private CompletableFuture<Boolean> writeAsync(EditorTab tab, Path target) {
+        String text = tab.view.getText();
+        long revision = tab.textRevision;
+        tab.saving++;
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+        CompletableFuture<?> previous = tab.pendingWrite;
+        tab.pendingWrite = result;
+        previous.handle((ignored, error) -> null).thenRunAsync(() -> {
+            DiskStamp stamp;
+            try {
+                Files.writeString(target, text, StandardCharsets.UTF_8);
+                stamp = DiskStamp.of(target);
+            } catch (IOException e) {
+                stamp = null;
+            }
+            DiskStamp written = stamp;
+            Platform.runLater(() -> {
+                tab.saving--;
+                if (written != null) {
+                    if (tab.textRevision == revision) {
+                        tab.document.setDirty(false);
+                    }
+                    tab.document.setDiskStamp(written);
+                    if (tab.document.getFileType() == EditorFileType.XSD) {
+                        reloadXmlSchemasBoundTo(target);
+                    }
+                }
+                result.complete(written != null);
+            });
+        }, org.fxt.freexmltoolkit.FxtGui.executorService);
+        return result;
+    }
+
     private boolean write(EditorTab tab, Path target) {
         try {
             Files.writeString(target, tab.view.getText(), StandardCharsets.UTF_8);
@@ -4409,7 +4574,7 @@ public class EditorHost extends BorderPane {
     private java.util.List<ExternalChangeMonitor.Watched> watchedDocuments() {
         java.util.List<ExternalChangeMonitor.Watched> watched = new java.util.ArrayList<>();
         for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && !et.document.isUntitled() && !et.loading) {
+            if (tab instanceof EditorTab et && !et.document.isUntitled() && !et.loading && et.saving == 0) {
                 watched.add(new ExternalChangeMonitor.Watched(
                         et.document, et.document.getPath(), et.document.getDiskStamp()));
             }
@@ -4432,7 +4597,7 @@ public class EditorHost extends BorderPane {
                     break;
                 }
             }
-            if (tab == null || tab.loading || !change.path().equals(tab.document.getPath())
+            if (tab == null || tab.loading || tab.saving > 0 || !change.path().equals(tab.document.getPath())
                     || !java.util.Objects.equals(change.known(), tab.document.getDiskStamp())) {
                 continue;
             }
@@ -4655,12 +4820,39 @@ public class EditorHost extends BorderPane {
         private boolean dirtyTrackingAttached;
         /** True while the file is being (re)read; the external-change check skips the tab. */
         private boolean loading;
+        /** Writes in flight ({@link #writeAsync}); the external-change check skips the tab meanwhile. */
+        private int saving;
+        /** The last write started for this tab: the next one waits for it, so writes land in order. */
+        private CompletableFuture<?> pendingWrite = CompletableFuture.completedFuture(null);
         /** Editor text the current {@link #editorContext} was parsed from (P2: avoid needless re-parse). */
         private String lastParsedText;
+        /**
+         * Counts the editor's text changes. The {@code last*Revision} fields record which revision a model
+         * was parsed from, so "is the model current?" is a number comparison instead of building and
+         * comparing the whole document text on every caret move.
+         */
+        private long textRevision;
+        private long lastParsedRevision = -1;
+        private long lastParsedXmlRevision = -1;
+        private long lastParsedJsonRevision = -1;
+        private long caretMapRevision = -1;
+        /** Revision a background XSD/XML model parse is running for (-1 = none), and who waits for it. */
+        private long pendingXsdParseRevision = -1;
+        private java.util.List<Runnable> pendingXsdParseCallbacks;
+        private long pendingXmlParseRevision = -1;
+        private java.util.List<Runnable> pendingXmlParseCallbacks;
+        /** Revision whose XSD parse failed: not retried until the text changes. */
+        private long failedXsdParseRevision = -1;
+        private long failedXmlParseRevision = -1;
+        private long failedJsonParseRevision = -1;
         /** Whether the last model parse left out remote imports that were not in the schema cache. */
         private boolean remoteImportsMissing;
         /** Host callback for remote imports that became available after a background download. */
         private Runnable remoteImportsCallback;
+        /** Host callback after a background parse installed a fresh model (FX thread). */
+        private Runnable modelInstalledCallback = () -> { };
+        /** Host callback after a view switch that waited for a background parse has been applied. */
+        private Runnable viewModeAppliedCallback = () -> { };
         /** Shared XML-instance model+command context across Text/Tree/Grid (mirrors {@link #editorContext}). */
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext xmlEditorContext;
         /** Editor text {@link #xmlEditorContext} was parsed from (avoid needless re-parse; detect external edits). */
@@ -4753,6 +4945,7 @@ public class EditorHost extends BorderPane {
             this.openTypeEditorCallback = openTypeEditorCallback;
             this.goToDefinitionCallback = goToDefinitionCallback;
             this.view = EditorViews.create(document.getFileType());
+            view.getCodeArea().plainTextChanges().subscribe(change -> textRevision++);
             contentStack.getChildren().add(view.getNode());
             // Overlay sits ABOVE contentStack (not inside it) so showOnly() — which toggles
             // visibility of every contentStack child — never touches the spinner.
@@ -4807,6 +5000,28 @@ public class EditorHost extends BorderPane {
             // text we read below — and the new view — see the latest model state.
             flushPendingRoundTrip();
             ViewMode target = supportsView(mode) ? mode : ViewMode.TEXT;
+            pendingViewMode = null;
+            if (needsBackgroundParse(target)) {
+                // A large document whose model is stale: parse it off the FX thread (parsing multi-MB
+                // documents here froze the UI for seconds) and finish the switch once the model is there.
+                // The loading overlay shows meanwhile; a newer switch request supersedes this one.
+                pendingViewMode = target;
+                beginLoading();
+                Runnable finish = () -> {
+                    endLoading();
+                    if (pendingViewMode == target && !isAbandoned(this)) {
+                        pendingViewMode = null;
+                        setViewMode(target);
+                        viewModeAppliedCallback.run();
+                    }
+                };
+                switch (document.getFileType()) {
+                    case XSD -> ensureModelParsedAsync(finish);
+                    case JSON -> ensureJsonModelParsedAsync(finish);
+                    default -> ensureXmlModelParsedAsync(finish);
+                }
+                return;
+            }
             this.viewMode = target;
             this.currentSelection = null;
             this.currentXmlSelection = null;
@@ -4891,9 +5106,32 @@ public class EditorHost extends BorderPane {
 
         /** (Re)parses the model only when missing or when the text changed since the last parse (P2). */
         private void ensureModelParsed() {
-            if (editorContext == null || !java.util.Objects.equals(view.getText(), lastParsedText)) {
+            if ((editorContext == null || lastParsedRevision != textRevision)
+                    && failedXsdParseRevision != textRevision) { // a known failure is not parsed again
                 parseModel();
             }
+        }
+
+        /** Above this size a structured view's stale model is parsed off the FX thread. */
+        private static final int BACKGROUND_PARSE_THRESHOLD = 256 * 1024;
+
+        /** The view mode a background parse will switch to, or {@code null}. */
+        private ViewMode pendingViewMode;
+
+        /** Whether switching to {@code target} has to parse a large document's model first. */
+        private boolean needsBackgroundParse(ViewMode target) {
+            if (target == ViewMode.TEXT || target == ViewMode.PREVIEW
+                    || view.getCodeArea().getLength() < BACKGROUND_PARSE_THRESHOLD) {
+                return false;
+            }
+            return switch (document.getFileType()) {
+                case XSD -> (editorContext == null || lastParsedRevision != textRevision)
+                        && failedXsdParseRevision != textRevision;
+                case JSON -> (jsonEditorContext == null || lastParsedJsonRevision != textRevision)
+                        && failedJsonParseRevision != textRevision;
+                default -> (xmlEditorContext == null || lastParsedXmlRevision != textRevision)
+                        && failedXmlParseRevision != textRevision;
+            };
         }
 
         private void parseModel() {
@@ -4909,12 +5147,15 @@ public class EditorHost extends BorderPane {
                         parsedText, document.getPath(), remoteImportsCallback);
                 editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(parsed.schema());
                 lastParsedText = parsedText;
+                lastParsedRevision = textRevision;
                 remoteImportsMissing = parsed.remoteImportsMissing();
                 // A new context means a new schema: ensureCanvasGraphic() rebuilds the
                 // Graphic view (it compares getEditorContext() and discards the stale one).
             } catch (Exception e) {
                 editorContext = null;
                 lastParsedText = null;
+                lastParsedRevision = -1;
+                failedXsdParseRevision = textRevision; // the same text fails again: do not re-parse it
                 remoteImportsMissing = false;
             }
         }
@@ -4933,8 +5174,13 @@ public class EditorHost extends BorderPane {
                 return;
             }
             lastParsedText = null;
+            lastParsedRevision = -1;
             if (viewMode != ViewMode.TEXT) {
                 setViewMode(viewMode);
+            } else {
+                // Text view: re-parse in the background now, so the listings (Type Library, inspector)
+                // pick the imported types up via activeModelRevision without waiting for a caret move.
+                ensureModelParsedAsync(() -> { });
             }
         }
 
@@ -4944,7 +5190,8 @@ public class EditorHost extends BorderPane {
          * switches (the XML counterpart of {@link #ensureModelParsed()}).
          */
         private void ensureXmlModelParsed() {
-            if (xmlEditorContext == null || !java.util.Objects.equals(view.getText(), lastParsedXmlText)) {
+            if ((xmlEditorContext == null || lastParsedXmlRevision != textRevision)
+                    && failedXmlParseRevision != textRevision) { // a known failure is not parsed again
                 parseXmlModel();
             }
         }
@@ -4954,25 +5201,161 @@ public class EditorHost extends BorderPane {
             if (text == null || text.isBlank()) {
                 xmlEditorContext = null;
                 lastParsedXmlText = null;
+                lastParsedXmlRevision = -1;
                 return;
             }
             try {
-                // Use the line-aware streaming parser so XmlElement.getSourceLineNumber() is
-                // populated — the Text view maps the caret line to a model node from it.
-                var doc = new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization
-                        .StreamingXmlParser().parse(text);
-                var ctx = new org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext(doc);
-                if (xmlSchemaProvider != null) {
-                    ctx.setSchemaProvider(xmlSchemaProvider);
-                }
-                // Wire "Go to Definition" for the Graphic view's context menu (fresh ctx per parse).
-                ctx.setGoToDefinitionHandler(goToDefinitionCallback);
-                xmlEditorContext = ctx;
-                lastParsedXmlText = text;
+                installXmlModel(parseXmlDocument(text), text, textRevision);
             } catch (Exception e) {
                 xmlEditorContext = null;
                 lastParsedXmlText = null;
+                lastParsedXmlRevision = -1;
+                failedXmlParseRevision = textRevision; // the same text fails again: do not re-parse it
             }
+        }
+
+        /** Line-aware parse (XmlElement.getSourceLineNumber is set: the Text view maps the caret line to a node). */
+        private static org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument parseXmlDocument(String text)
+                throws Exception {
+            return new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.StreamingXmlParser().parse(text);
+        }
+
+        /** Makes {@code doc} the shared XML model (fresh context: schema provider and Go to Definition wired). */
+        private void installXmlModel(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc,
+                                     String text, long revision) {
+            var ctx = new org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext(doc);
+            if (xmlSchemaProvider != null) {
+                ctx.setSchemaProvider(xmlSchemaProvider);
+            }
+            ctx.setGoToDefinitionHandler(goToDefinitionCallback);
+            xmlEditorContext = ctx;
+            lastParsedXmlText = text;
+            lastParsedXmlRevision = revision;
+        }
+
+        /**
+         * Brings the XSD model up to date with the text without blocking the FX thread: when it is stale, a
+         * snapshot is parsed on a worker and installed on the FX thread if the text is still at that
+         * revision; then {@code onCurrent} runs (on the FX thread). If the text moved on meanwhile, the
+         * parse chases the newest revision. Runs {@code onCurrent} at once when the model is current or
+         * the current text is known not to parse. Must be called on the FX thread.
+         */
+        void ensureModelParsedAsync(Runnable onCurrent) {
+            if ((editorContext != null && lastParsedRevision == textRevision)
+                    || failedXsdParseRevision == textRevision) {
+                onCurrent.run();
+                return;
+            }
+            long revision = textRevision;
+            if (pendingXsdParseRevision == revision) {
+                pendingXsdParseCallbacks.add(onCurrent);
+                return;
+            }
+            java.util.List<Runnable> waiting = new java.util.ArrayList<>();
+            if (pendingXsdParseCallbacks != null) {
+                waiting.addAll(pendingXsdParseCallbacks); // an older parse is superseded by this one
+            }
+            waiting.add(onCurrent);
+            pendingXsdParseRevision = revision;
+            pendingXsdParseCallbacks = waiting;
+            String text = view.getText();
+            java.nio.file.Path path = document.getPath();
+            Runnable remoteCallback = remoteImportsCallback;
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                XsdUiParser.Result parsed;
+                try {
+                    parsed = XsdUiParser.parseDetailed(text, path, remoteCallback);
+                } catch (Exception | LinkageError e) {
+                    parsed = null;
+                }
+                XsdUiParser.Result result = parsed;
+                Platform.runLater(() -> {
+                    if (pendingXsdParseRevision != revision) {
+                        return; // superseded: the newer parse runs the callbacks
+                    }
+                    java.util.List<Runnable> callbacks = pendingXsdParseCallbacks;
+                    pendingXsdParseRevision = -1;
+                    pendingXsdParseCallbacks = null;
+                    if (isAbandoned(this)) {
+                        return;
+                    }
+                    if (textRevision != revision) {
+                        callbacks.forEach(this::ensureModelParsedAsync); // edited meanwhile: chase it
+                        return;
+                    }
+                    if (!(editorContext != null && lastParsedRevision == revision)) { // not parsed sync meanwhile
+                        if (result != null) {
+                            editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(
+                                    result.schema());
+                            lastParsedText = text;
+                            lastParsedRevision = revision;
+                            remoteImportsMissing = result.remoteImportsMissing();
+                        } else {
+                            failedXsdParseRevision = revision;
+                        }
+                        modelInstalledCallback.run();
+                    }
+                    callbacks.forEach(Runnable::run);
+                });
+            });
+        }
+
+        /** XML counterpart of {@link #ensureModelParsedAsync(Runnable)} for the shared instance model. */
+        void ensureXmlModelParsedAsync(Runnable onCurrent) {
+            if ((xmlEditorContext != null && lastParsedXmlRevision == textRevision)
+                    || failedXmlParseRevision == textRevision) {
+                onCurrent.run();
+                return;
+            }
+            long revision = textRevision;
+            if (pendingXmlParseRevision == revision) {
+                pendingXmlParseCallbacks.add(onCurrent);
+                return;
+            }
+            java.util.List<Runnable> waiting = new java.util.ArrayList<>();
+            if (pendingXmlParseCallbacks != null) {
+                waiting.addAll(pendingXmlParseCallbacks);
+            }
+            waiting.add(onCurrent);
+            pendingXmlParseRevision = revision;
+            pendingXmlParseCallbacks = waiting;
+            String text = view.getText();
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument parsed;
+                try {
+                    parsed = text == null || text.isBlank() ? null : parseXmlDocument(text);
+                } catch (Exception | LinkageError e) {
+                    parsed = null;
+                }
+                var doc = parsed;
+                Platform.runLater(() -> {
+                    if (pendingXmlParseRevision != revision) {
+                        return;
+                    }
+                    java.util.List<Runnable> callbacks = pendingXmlParseCallbacks;
+                    pendingXmlParseRevision = -1;
+                    pendingXmlParseCallbacks = null;
+                    if (isAbandoned(this)) {
+                        return;
+                    }
+                    if (textRevision != revision) {
+                        callbacks.forEach(this::ensureXmlModelParsedAsync);
+                        return;
+                    }
+                    if (!(xmlEditorContext != null && lastParsedXmlRevision == revision)) {
+                        if (doc != null) {
+                            installXmlModel(doc, text, revision);
+                        } else {
+                            xmlEditorContext = null;
+                            lastParsedXmlText = null;
+                            lastParsedXmlRevision = -1;
+                            failedXmlParseRevision = revision;
+                        }
+                        modelInstalledCallback.run();
+                    }
+                    callbacks.forEach(Runnable::run);
+                });
+            });
         }
 
         /** Serializes the shared XML model back into the editor text via a minimal diff (caret/scroll preserved). */
@@ -4985,16 +5368,67 @@ public class EditorHost extends BorderPane {
             int[] region = TextDiff.minimalReplaceRegion(current, xml);
             if (region[0] == region[1] && region[0] == region[2]) {
                 lastParsedXmlText = current; // already in sync
+                lastParsedXmlRevision = textRevision;
                 return;
             }
             view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
             lastParsedXmlText = view.getText();
+            lastParsedXmlRevision = textRevision;
             document.setDirty(true);
+        }
+
+        /**
+         * JSON counterpart of {@link #ensureXmlModelParsedAsync(Runnable)}: parses the text into a fresh
+         * {@link org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext} on a worker and installs
+         * it on the FX thread if the text is unchanged, then runs {@code onCurrent}. FX thread.
+         */
+        void ensureJsonModelParsedAsync(Runnable onCurrent) {
+            if (jsonEditorContext != null && lastParsedJsonRevision == textRevision) {
+                onCurrent.run();
+                return;
+            }
+            long revision = textRevision;
+            String text = view.getText();
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext ctx = null;
+                String error = null;
+                if (text != null && !text.isBlank()) {
+                    try {
+                        ctx = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext();
+                        ctx.loadDocumentFromString(text);
+                    } catch (Exception e) {
+                        ctx = null;
+                        error = e.getMessage();
+                    }
+                }
+                var parsed = ctx;
+                String parseError = error;
+                Platform.runLater(() -> {
+                    if (isAbandoned(this)) {
+                        return;
+                    }
+                    if (textRevision != revision) {
+                        ensureJsonModelParsedAsync(onCurrent); // edited meanwhile: chase it
+                        return;
+                    }
+                    if (!(jsonEditorContext != null && lastParsedJsonRevision == revision)) {
+                        jsonEditorContext = parsed;
+                        lastParsedJsonText = parsed != null ? text : null;
+                        lastParsedJsonRevision = parsed != null ? revision : -1;
+                        lastJsonParseError = parseError;
+                        if (parsed == null) {
+                            failedJsonParseRevision = revision;
+                        }
+                    }
+                    onCurrent.run();
+                });
+            });
         }
 
         /** JSON counterpart of {@link #ensureXmlModelParsed()}: re-parses only when the text changed. */
         private void ensureJsonModelParsed() {
-            if (jsonEditorContext == null || !java.util.Objects.equals(view.getText(), lastParsedJsonText)) {
+            if ((jsonEditorContext == null || lastParsedJsonRevision != textRevision)
+                    && failedJsonParseRevision != textRevision) { // a known failure is not parsed again
                 parseJsonModel();
             }
         }
@@ -5012,12 +5446,15 @@ public class EditorHost extends BorderPane {
                 ctx.loadDocumentFromString(text);
                 jsonEditorContext = ctx;
                 lastParsedJsonText = text;
+                lastParsedJsonRevision = textRevision;
             } catch (Exception e) {
                 // Invalid JSON while typing is expected; the views show a placeholder.
                 org.apache.logging.log4j.LogManager.getLogger(EditorHost.class)
                         .debug("JSON structured views: could not parse current text", e);
                 jsonEditorContext = null;
                 lastParsedJsonText = null;
+                lastParsedJsonRevision = -1;
+                failedJsonParseRevision = textRevision; // the same text fails again: do not re-parse it
                 lastJsonParseError = e.getMessage();
             }
         }
@@ -5032,16 +5469,16 @@ public class EditorHost extends BorderPane {
             int[] region = TextDiff.minimalReplaceRegion(current, json);
             if (region[0] == region[1] && region[0] == region[2]) {
                 lastParsedJsonText = current; // already in sync
+                lastParsedJsonRevision = textRevision;
                 return;
             }
             view.replaceTextRegion(region[0], region[1], json.substring(region[0], region[2]));
             lastParsedJsonText = view.getText();
+            lastParsedJsonRevision = textRevision;
             document.setDirty(true);
         }
 
-        /** Current text the {@link #caretMapDoc} was parsed from (line numbers match THIS text). */
-        private String caretMapText;
-        /** Transient line-aware parse of the CURRENT text, used only to map a caret line to a node path. */
+        /** Transient line-aware parse of the text at {@link #caretMapRevision}, used only to map a caret line to a node path. */
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument caretMapDoc;
 
         /**
@@ -5058,19 +5495,48 @@ public class EditorHost extends BorderPane {
                     || document.getFileType() == EditorFileType.JSON) {
                 return;
             }
-            ensureXmlModelParsed();
+            // Both parses (shared model, caret map) run off the FX thread; the mapping below is cheap.
+            ensureXmlModelParsedAsync(() -> ensureCaretMapAsync(this::applyCaretXmlNode));
+        }
+
+        /**
+         * Parses the line-aware {@link #caretMapDoc} for the current text on a worker and installs it on
+         * the FX thread if the text is still unchanged, then runs {@code onCurrent}. Runs it at once when
+         * the caret map is already current. FX thread.
+         */
+        private void ensureCaretMapAsync(Runnable onCurrent) {
+            if (caretMapRevision == textRevision) {
+                onCurrent.run();
+                return;
+            }
+            long revision = textRevision;
+            String text = view.getText();
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument parsed;
+                try {
+                    parsed = parseXmlDocument(text);
+                } catch (Exception | LinkageError e) {
+                    parsed = null;
+                }
+                var doc = parsed;
+                Platform.runLater(() -> {
+                    if (isAbandoned(this) || textRevision != revision) {
+                        return; // edited meanwhile: the caret debounce asks again
+                    }
+                    caretMapDoc = doc;
+                    caretMapRevision = revision;
+                    onCurrent.run();
+                });
+            });
+        }
+
+        /** FX-thread half of {@link #resolveCaretXmlNode()}: maps the caret line with current models. */
+        private void applyCaretXmlNode() {
+            if (viewMode != ViewMode.TEXT) {
+                return;
+            }
             org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode resolved = null;
             if (xmlEditorContext != null && xmlEditorContext.getDocument() != null) {
-                String text = view.getText();
-                if (!java.util.Objects.equals(text, caretMapText)) {
-                    try {
-                        caretMapDoc = new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization
-                                .StreamingXmlParser().parse(text);
-                    } catch (Exception e) {
-                        caretMapDoc = null;
-                    }
-                    caretMapText = text;
-                }
                 if (caretMapDoc != null && caretMapDoc.getRootElement() != null) {
                     int line = view.getCodeArea().getCurrentParagraph() + 1;
                     var target = findElementByLine(caretMapDoc.getRootElement(), line);
@@ -5141,19 +5607,17 @@ public class EditorHost extends BorderPane {
             if (viewMode != ViewMode.TEXT || document.getFileType() != EditorFileType.XSD) {
                 return;
             }
-            ensureModelParsed();
+            // Both parses (XSD model, caret map) run off the FX thread; the mapping below is cheap.
+            ensureModelParsedAsync(() -> ensureCaretMapAsync(this::applyCaretXsdNode));
+        }
+
+        /** FX-thread half of {@link #resolveCaretXsdNode()}: maps the caret line with current models. */
+        private void applyCaretXsdNode() {
+            if (viewMode != ViewMode.TEXT) {
+                return;
+            }
             XsdNode resolved = null;
             if (editorContext != null && editorContext.getSchema() != null) {
-                String text = view.getText();
-                if (!java.util.Objects.equals(text, caretMapText)) {
-                    try {
-                        caretMapDoc = new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization
-                                .StreamingXmlParser().parse(text);
-                    } catch (Exception e) {
-                        caretMapDoc = null;
-                    }
-                    caretMapText = text;
-                }
                 if (caretMapDoc != null && caretMapDoc.getRootElement() != null) {
                     int line = view.getCodeArea().getCurrentParagraph() + 1;
                     var target = findElementByLine(caretMapDoc.getRootElement(), line);
@@ -5740,11 +6204,13 @@ public class EditorHost extends BorderPane {
             int[] region = TextDiff.minimalReplaceRegion(current, xml);
             if (region[0] == region[1] && region[0] == region[2]) {
                 lastParsedText = current; // already in sync; nothing to write
+                lastParsedRevision = textRevision;
                 return;
             }
             view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
             // The text now mirrors the model, so it must not look like an external edit (P2).
             lastParsedText = view.getText();
+            lastParsedRevision = textRevision;
             document.setDirty(true);
         }
 
@@ -6095,6 +6561,10 @@ public class EditorHost extends BorderPane {
             lastParsedText = null;
             lastParsedXmlText = null;
             lastParsedJsonText = null;
+            lastParsedRevision = -1;
+            lastParsedXmlRevision = -1;
+            lastParsedJsonRevision = -1;
+            caretMapRevision = -1;
             if (viewMode != ViewMode.TEXT) {
                 setViewMode(viewMode);
             }
@@ -6106,7 +6576,12 @@ public class EditorHost extends BorderPane {
                 return;
             }
             dirtyTrackingAttached = true;
-            view.getCodeArea().textProperty().addListener((obs, oldV, newV) -> document.setDirty(true));
+            // plainTextChanges, not textProperty: a ChangeListener there builds the whole text per keystroke
+            view.getCodeArea().plainTextChanges().subscribe(change -> {
+                if (!change.getInserted().equals(change.getRemoved())) {
+                    document.setDirty(true);
+                }
+            });
         }
 
         void refreshIcon() {

@@ -155,7 +155,7 @@ class EditorHostTest {
             host.getOpenDocuments().forEach(d -> d.setDirty(true));
             return null;
         });
-        int saved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveAll());
+        int saved = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveAll()).get(30, java.util.concurrent.TimeUnit.SECONDS);
 
         assertEquals(2, saved);
         assertTrue(host.getOpenDocuments().stream().noneMatch(OpenDocument::isDirty));
@@ -170,7 +170,7 @@ class EditorHostTest {
         WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("<b>")).orElse(false));
 
-        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.formatActive());
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.formatActive()).get(30, java.util.concurrent.TimeUnit.SECONDS);
 
         assertTrue(ok, "formatActive should reformat valid XML");
         assertTrue(host.getActiveText().orElse("").lines().count() > 1,
@@ -186,7 +186,7 @@ class EditorHostTest {
         WaitForAsyncUtils.waitFor(3, java.util.concurrent.TimeUnit.SECONDS,
                 () -> host.getActiveText().map(t -> t.contains("\"a\"")).orElse(false));
 
-        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.formatActive());
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.formatActive()).get(30, java.util.concurrent.TimeUnit.SECONDS);
 
         assertTrue(ok, "formatActive should reformat valid JSON");
         assertEquals(EditorFileType.JSON, host.getActiveDocument().orElseThrow().getFileType());
@@ -240,7 +240,7 @@ class EditorHostTest {
         OpenDocument doc = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.newDocument(EditorFileType.XML));
         assertTrue(doc.isUntitled());
 
-        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveActiveAs(target));
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveActiveAs(target)).get(30, java.util.concurrent.TimeUnit.SECONDS);
         WaitForAsyncUtils.waitForFxEvents();
 
         assertTrue(ok, "saveActiveAs should succeed");
@@ -279,7 +279,7 @@ class EditorHostTest {
         assertTrue(bound, "the source schema must be bound to the generated tab");
         assertEquals(xsd.toFile(), host.activeSchemaProperty().get());
 
-        boolean ok = WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.saveActiveAs(target));
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.saveActiveAs(target)).get(30, java.util.concurrent.TimeUnit.SECONDS);
         WaitForAsyncUtils.waitForFxEvents();
 
         assertTrue(ok, "saveActiveAs should succeed");

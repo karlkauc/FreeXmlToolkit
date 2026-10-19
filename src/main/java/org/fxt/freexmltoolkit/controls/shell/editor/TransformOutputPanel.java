@@ -22,8 +22,6 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
-import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
-import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
@@ -229,13 +227,7 @@ public class TransformOutputPanel extends VBox {
             xml = trimmed.startsWith("<");
             json = trimmed.startsWith("{") || trimmed.startsWith("[");
         }
-        if (xml) {
-            output.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.flattenDenseLines(
-                    value, XmlSyntaxHighlighter.computeHighlighting(value)));
-        } else if (json) {
-            output.setStyleSpans(0, org.fxt.freexmltoolkit.controls.shared.DenseLineGuard.flattenDenseLines(
-                    value, JsonSyntaxHighlighter.computeHighlighting(value)));
-        }
+        ResultHighlighter.highlight(output, value, xml, json);
     }
 
     /** @return a compact "N ms · M chars" stat, or "error" for a failed run. */
@@ -278,15 +270,17 @@ public class TransformOutputPanel extends VBox {
     /** Opens the current result in the system browser (renders HTML output). */
     @FXML
     public void openInBrowser() {
-        try {
-            File file = writeHtmlPreview(output.getText());
-            if (java.awt.Desktop.isDesktopSupported()
-                    && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
-                java.awt.Desktop.getDesktop().browse(file.toURI());
+        String html = output.getText();
+        // Writing the preview file and asking the OS to open it both run off the FX thread
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try {
+                File file = writeHtmlPreview(html);
+                org.fxt.freexmltoolkit.util.DesktopActions.browse(file.toURI(),
+                        e -> statusLabel.setText("browser: " + e.getMessage()));
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() -> statusLabel.setText("browser: " + e.getMessage()));
             }
-        } catch (Exception e) {
-            statusLabel.setText("browser: " + e.getMessage());
-        }
+        });
     }
 
     /** Saves the current result to a file chosen by the user (extension per format). */

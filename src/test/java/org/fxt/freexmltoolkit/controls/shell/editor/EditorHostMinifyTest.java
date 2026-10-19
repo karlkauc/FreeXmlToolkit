@@ -37,7 +37,7 @@ class EditorHostMinifyTest {
         Files.writeString(xml, "<a>\n  <b>x</b>\n  <c>y</c>\n</a>\n");
         open(xml, "b>x");
 
-        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.minifyActive());
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.minifyActive()).get(30, java.util.concurrent.TimeUnit.SECONDS);
         assertTrue(ok);
         assertEquals("<a><b>x</b><c>y</c></a>", host.getActiveText().orElse("").strip());
     }
@@ -48,7 +48,7 @@ class EditorHostMinifyTest {
         Files.writeString(json, "{\n  \"a\": 1,\n  \"b\": [1, 2]\n}\n");
         open(json, "\"a\"");
 
-        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.minifyActive());
+        boolean ok = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.minifyActive()).get(30, java.util.concurrent.TimeUnit.SECONDS);
         assertTrue(ok);
         String text = host.getActiveText().orElse("").strip();
         assertFalse(text.contains("\n"), "minified JSON must be single-line: " + text);

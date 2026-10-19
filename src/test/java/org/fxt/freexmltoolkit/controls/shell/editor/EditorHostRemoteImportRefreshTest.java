@@ -130,6 +130,8 @@ class EditorHostRemoteImportRefreshTest {
 
         downloader.release.countDown();
         awaitRevision();
+        // the Text view's model is re-parsed in the background after the signal
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> typeNames().contains("RType"));
         assertTrue(typeNames().contains("RType"), "after the signal the listing resolves from the cache");
     }
 

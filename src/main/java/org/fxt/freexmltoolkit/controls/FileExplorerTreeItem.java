@@ -61,6 +61,10 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
     private long subdirectoryCount = -1;
 
     private final List<String> allowedExtensions;
+    /** Whether this path is a directory, as known from the parent's listing ({@code null} = ask the disk). */
+    private final Boolean knownDirectory;
+    /** List directories on a worker thread (the shell's workspace tree); children inherit it. */
+    private final boolean asyncListing;
 
     /**
      * Creates a new FileExplorerTreeItem with the specified path.
@@ -80,8 +84,41 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
      *                          or null/empty to allow all files
      */
     public FileExplorerTreeItem(Path value, List<String> allowedExtensions) {
+        this(value, allowedExtensions, null, false);
+    }
+
+    private FileExplorerTreeItem(Path value, List<String> allowedExtensions, Boolean knownDirectory,
+                                 boolean asyncListing) {
         super(value);
         this.allowedExtensions = allowedExtensions;
+        this.knownDirectory = knownDirectory;
+        this.asyncListing = asyncListing;
+    }
+
+    /**
+     * A root whose directories are listed on a worker thread when first expanded, with the children
+     * filled in on the FX thread. Listing (and stat-ing every entry, several times while sorting) on the FX
+     * thread froze the UI for seconds on large or network folders. {@link #isLeaf()} then assumes a
+     * directory has children until its listing shows otherwise.
+     */
+    public static FileExplorerTreeItem withBackgroundListing(Path value, List<String> allowedExtensions) {
+        return new FileExplorerTreeItem(value, allowedExtensions, null, true);
+    }
+
+    private boolean isDirectory() {
+        return knownDirectory != null ? knownDirectory : Files.isDirectory(getValue());
+    }
+
+    /**
+     * Loads the children now, on the calling thread, if they were not listed yet: for code that needs
+     * them immediately (revealing a path, tests), not for the user expanding a folder.
+     */
+    public ObservableList<TreeItem<Path>> loadChildrenNow() {
+        if (isFirstTimeChildren) {
+            isFirstTimeChildren = false;
+            super.getChildren().setAll(buildChildren(this));
+        }
+        return super.getChildren();
     }
 
     /**
@@ -103,9 +140,9 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
         }
 
         // 3. If it's a directory, we need to expand it and search its children.
-        if (Files.isDirectory(getValue())) {
-            // Ensure children are loaded for the lazy-loading mechanism by calling getChildren().
-            getChildren();
+        if (isDirectory()) {
+            // Ensure children are loaded (now: the caller needs them; only the folders on the path).
+            loadChildrenNow();
 
             // Recursively search in the children.
             for (TreeItem<Path> child : super.getChildren()) {
@@ -222,9 +259,25 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
     public ObservableList<TreeItem<Path>> getChildren() {
         if (isFirstTimeChildren) {
             isFirstTimeChildren = false;
-            super.getChildren().setAll(buildChildren(this));
+            if (asyncListing) {
+                listInBackground();
+            } else {
+                super.getChildren().setAll(buildChildren(this));
+            }
         }
         return super.getChildren();
+    }
+
+    /** Lists the directory on a worker and fills in the children on the FX thread. */
+    private void listInBackground() {
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            List<Entry> entries = list(getValue(), allowedExtensions);
+            javafx.application.Platform.runLater(() -> {
+                isLeaf = entries.isEmpty();
+                isFirstTimeLeaf = false;
+                super.getChildren().setAll(toItems(entries));
+            });
+        });
     }
 
     @Override
@@ -233,7 +286,11 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
             isFirstTimeLeaf = false;
             Path path = getValue();
 
-            if (Files.isRegularFile(path)) {
+            if (asyncListing) {
+                // No disk access here (this runs for every row the tree shows): a directory is assumed
+                // to have children until its listing arrives (listInBackground corrects it).
+                isLeaf = !isDirectory();
+            } else if (Files.isRegularFile(path)) {
                 isLeaf = true;
             } else if (Files.isDirectory(path)) {
                 // A directory is a "leaf" if it contains NO children that would be displayed.
@@ -265,41 +322,60 @@ public class FileExplorerTreeItem extends TreeItem<Path> {
     private ObservableList<TreeItem<Path>> buildChildren(TreeItem<Path> treeItem) {
         Path path = treeItem.getValue();
         if (path != null && Files.isDirectory(path)) {
-            try {
-                var children = javafx.collections.FXCollections.<TreeItem<Path>>observableArrayList();
-                try (var stream = Files.list(path)) {
-                    stream
-                            // Filter the stream before processing the entries.
-                            .filter(p -> {
-                                // Directories are always displayed.
-                                if (Files.isDirectory(p)) {
-                                    return true;
-                                }
-                                // If no filter is set, all files are displayed.
-                                if (allowedExtensions == null || allowedExtensions.isEmpty()) {
-                                    return true;
-                                }
-                                // Otherwise check whether the file extension is in the list of allowed extensions.
-                                String extension = FilenameUtils.getExtension(p.getFileName().toString()).toLowerCase();
-                                return allowedExtensions.contains(extension);
-                            })
-                            .sorted((p1, p2) -> {
-                                if (Files.isDirectory(p1) && !Files.isDirectory(p2)) {
-                                    return -1;
-                                }
-                                if (!Files.isDirectory(p1) && Files.isDirectory(p2)) {
-                                    return 1;
-                                }
-                                return p1.getFileName().toString().compareToIgnoreCase(p2.getFileName().toString());
-                            })
-                            // Pass the filter list on to the child items.
-                            .forEach(p -> children.add(new FileExplorerTreeItem(p, this.allowedExtensions)));
-                }
-                return children;
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
+            return toItems(list(path, allowedExtensions));
         }
         return javafx.collections.FXCollections.emptyObservableList();
+    }
+
+    /** A directory entry with its kind, read once while listing. */
+    private record Entry(Path path, boolean directory) {
+    }
+
+    /**
+     * The displayed entries of {@code directory}: subdirectories first, then the files the filter allows,
+     * each group by name. Every entry's attributes are read once; the former comparator asked the disk
+     * whether an entry is a directory on every comparison.
+     */
+    private static List<Entry> list(Path directory, List<String> allowedExtensions) {
+        List<Entry> entries = new java.util.ArrayList<>();
+        try (var stream = Files.list(directory)) {
+            stream.forEach(p -> {
+                boolean dir;
+                try {
+                    dir = Files.readAttributes(p, java.nio.file.attribute.BasicFileAttributes.class).isDirectory();
+                } catch (IOException e) {
+                    dir = false;
+                }
+                // Directories are always displayed; files only if no filter is set or they match it.
+                if (dir || allowedExtensions == null || allowedExtensions.isEmpty()
+                        || allowedExtensions.contains(FilenameUtils.getExtension(p.getFileName().toString()).toLowerCase())) {
+                    entries.add(new Entry(p, dir));
+                }
+            });
+        } catch (IOException | java.io.UncheckedIOException e) {
+            logger.error(e.getMessage(), e);
+            return List.of();
+        }
+        entries.sort((a, b) -> {
+            if (a.directory() != b.directory()) {
+                return a.directory() ? -1 : 1;
+            }
+            return a.path().getFileName().toString().compareToIgnoreCase(b.path().getFileName().toString());
+        });
+        return entries;
+    }
+
+    private ObservableList<TreeItem<Path>> toItems(List<Entry> entries) {
+        var children = javafx.collections.FXCollections.<TreeItem<Path>>observableArrayList();
+        for (Entry entry : entries) {
+            // Pass the filter list (and the kind just read) on to the child items.
+            children.add(new FileExplorerTreeItem(entry.path(), allowedExtensions, entry.directory(), asyncListing));
+        }
+        return children;
+    }
+
+    /** @return whether this item is a directory (known from the parent's listing when possible) */
+    public boolean isDirectoryItem() {
+        return isDirectory();
     }
 }

@@ -310,11 +310,8 @@ public class FopPanel extends VBox {
         if (lastPdf == null || !lastPdf.exists()) {
             return;
         }
-        try {
-            java.awt.Desktop.getDesktop().open(lastPdf);
-        } catch (Exception e) {
-            PanelStatus.failure(status, "Could not open PDF", "Could not open PDF (no desktop handler).");
-        }
+        org.fxt.freexmltoolkit.util.DesktopActions.open(lastPdf, e ->
+                PanelStatus.failure(status, "Could not open PDF", "Could not open PDF (no desktop handler)."));
     }
 
     // ----- shared mockup-language helpers ------------------------------------

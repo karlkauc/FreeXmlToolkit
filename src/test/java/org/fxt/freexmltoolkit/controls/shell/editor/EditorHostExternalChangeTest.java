@@ -120,7 +120,7 @@ class EditorHostExternalChangeTest {
     void savingFromTheEditorIsNotAnExternalChange(@TempDir Path tmp) throws Exception {
         Path file = open(tmp, "doc.xml", "<old/>");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeEditorView().setText("<saved-by-me/>"));
-        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveActive()));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveActive()).get(30, java.util.concurrent.TimeUnit.SECONDS));
         assertEquals("<saved-by-me/>", Files.readString(file));
 
         check();
@@ -142,7 +142,7 @@ class EditorHostExternalChangeTest {
         assertEquals("<keep-me/>", activeText());
         assertTrue(host.getActiveDocument().orElseThrow().isDirty());
 
-        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveActive()));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveActive()).get(30, java.util.concurrent.TimeUnit.SECONDS));
         assertEquals("<keep-me/>", Files.readString(file));
         check();
         assertEquals(1, prompt.asked.size(), "recreating the file by saving is not an external change");

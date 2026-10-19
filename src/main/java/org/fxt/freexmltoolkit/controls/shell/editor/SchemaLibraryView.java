@@ -215,13 +215,18 @@ public class SchemaLibraryView extends VBox {
                 if (empty || ref == null) { setGraphic(null); setText(null); return; }
                 Label path = new Label(ref.path());
                 path.getStyleClass().add("fxt-lib-catalog-path");
-                String err = library.catalogErrors().get(ref.id());
+                // From the status cache (filled off the FX thread): asking the library here parsed or
+                // stat-ed every catalog for every cell on every layout pass.
+                String err = catalogErrorCache.get(ref.id());
                 Label info = new Label();
-                if (err != null) {
+                if (!catalogStatusKnown) {
+                    info.setText("…");
+                    info.getStyleClass().add("fxt-lib-catalog-count");
+                } else if (err != null) {
                     info.setText("Error: " + err);
                     info.getStyleClass().add("fxt-lib-catalog-error");
                 } else {
-                    info.setText(library.catalogEntryCount(ref.id()) + " entries" + (ref.enabled() ? "" : " (disabled)"));
+                    info.setText(catalogCountCache.getOrDefault(ref.id(), -1) + " entries" + (ref.enabled() ? "" : " (disabled)"));
                     info.getStyleClass().add("fxt-lib-catalog-count");
                 }
                 info.setWrapText(true);
@@ -258,13 +263,40 @@ public class SchemaLibraryView extends VBox {
 
     @FXML
     public void onReloadCatalogs() {
-        library.reloadCatalogs();
-        refreshCatalogs();
+        // Re-reading the catalogs parses them: off the FX thread
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            library.reloadCatalogs();
+            Platform.runLater(this::refreshCatalogs);
+        });
     }
+
+    /** Catalog errors and entry counts as last determined (off the FX thread); read by the list cells. */
+    private java.util.Map<String, String> catalogErrorCache = java.util.Map.of();
+    private java.util.Map<String, Integer> catalogCountCache = java.util.Map.of();
+    private boolean catalogStatusKnown;
+    private long catalogStatusRequest;
 
     void refreshCatalogs() {
         catalogList.getSelectionModel().clearSelection();
-        catalogList.getItems().setAll(library.getCatalogs());
+        java.util.List<SchemaCatalogRef> catalogs = library.getCatalogs();
+        catalogList.getItems().setAll(catalogs);
+        long request = ++catalogStatusRequest;
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            java.util.Map<String, String> errors = library.catalogErrors();
+            java.util.Map<String, Integer> counts = new java.util.HashMap<>();
+            for (SchemaCatalogRef ref : catalogs) {
+                counts.put(ref.id(), library.catalogEntryCount(ref.id()));
+            }
+            Platform.runLater(() -> {
+                if (request != catalogStatusRequest) {
+                    return; // a newer refresh follows
+                }
+                catalogErrorCache = errors;
+                catalogCountCache = counts;
+                catalogStatusKnown = true;
+                catalogList.refresh();
+            });
+        });
     }
 
     // ------------------------------------------------------------------ Cache

@@ -431,7 +431,7 @@ public class SettingsPanel extends VBox {
 
     @FXML
     public void onClearTemp() {
-        tempStatus.setText("Cleared " + clearTempFolder() + " file(s).");
+        clearInBackground(this::clearTempFolder, " file(s).");
     }
 
     @FXML
@@ -440,8 +440,17 @@ public class SettingsPanel extends VBox {
                 "Clear the local cache folder?",
                 "This deletes all cached files (downloaded schemas etc.) under\n"
                         + cacheFolder().getAbsolutePath() + "\n\nThis action cannot be undone.")) {
-            tempStatus.setText("Cleared " + clearCacheFolder() + " cached file(s).");
+            clearInBackground(this::clearCacheFolder, " cached file(s).");
         }
+    }
+
+    /** Deletes off the FX thread (thousands of cached schemas took seconds) and reports the count. */
+    private void clearInBackground(java.util.function.IntSupplier clear, String what) {
+        tempStatus.setText("Clearing…");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            int cleared = clear.getAsInt();
+            javafx.application.Platform.runLater(() -> tempStatus.setText("Cleared " + cleared + what));
+        });
     }
 
     @FXML

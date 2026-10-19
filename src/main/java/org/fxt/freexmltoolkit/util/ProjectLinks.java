@@ -9,7 +9,6 @@ import javafx.scene.paint.Paint;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
 
@@ -61,16 +60,10 @@ public final class ProjectLinks {
      * @param url absolute URL to open
      */
     public static void openInBrowser(String url) {
-        FxtGui.executorService.submit(() -> {
-            try {
-                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(URI.create(url));
-                } else {
-                    logger.warn("No desktop browser available to open {}", url);
-                }
-            } catch (Exception ex) {
-                logger.warn("Could not open URL {}: {}", url, ex.getMessage());
-            }
-        });
+        try {
+            DesktopActions.browse(URI.create(url), ex -> logger.warn("Could not open URL {}: {}", url, ex.getMessage()));
+        } catch (IllegalArgumentException ex) {
+            logger.warn("Could not open URL {}: {}", url, ex.getMessage());
+        }
     }
 }

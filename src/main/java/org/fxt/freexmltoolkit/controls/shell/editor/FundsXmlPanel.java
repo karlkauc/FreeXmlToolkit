@@ -166,24 +166,21 @@ public class FundsXmlPanel extends VBox {
     }
 
     private void openFolder(java.nio.file.Path dir) {
-        try {
-            if (dir != null && java.awt.Desktop.isDesktopSupported()) {
-                java.awt.Desktop.getDesktop().open(dir.toFile());
-            }
-        } catch (Exception e) {
-            PanelStatus.failure(status, "Could not open folder", "Could not open folder: " + e.getMessage(),
-                    "Open the folder in your file manager instead.", e);
+        if (dir == null) {
+            return;
         }
+        org.fxt.freexmltoolkit.util.DesktopActions.open(dir.toFile(), e ->
+                PanelStatus.failure(status, "Could not open folder", "Could not open folder: " + e.getMessage(),
+                        "Open the folder in your file manager instead.", e));
     }
 
     private void openUrl(String url) {
+        java.util.function.Consumer<Exception> failed = e -> PanelStatus.failure(status, "Could not open browser",
+                "Could not open browser: " + e.getMessage(), "Copy the address into your browser instead.", e);
         try {
-            if (java.awt.Desktop.isDesktopSupported()) {
-                java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
-            }
-        } catch (Exception e) {
-            PanelStatus.failure(status, "Could not open browser", "Could not open browser: " + e.getMessage(),
-                    "Copy the address into your browser instead.", e);
+            org.fxt.freexmltoolkit.util.DesktopActions.browse(new java.net.URI(url), failed);
+        } catch (java.net.URISyntaxException e) {
+            failed.accept(e);
         }
     }
 }
