@@ -2005,6 +2005,14 @@ public class UnifiedShellView extends BorderPane {
         if (!result.isError()) {
             org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Spreadsheet Converter",
                     "Conversion finished", "Done: " + file.getAbsolutePath());
+        } else if (!imported && result.error() instanceof org.xml.sax.SAXParseException parse) {
+            // A malformed document is an input problem, not a failure of the converter: say where
+            // it is instead of raising an error dialog (and an error report) with a stack trace.
+            org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Spreadsheet Converter",
+                    "The document is not well-formed XML, so it cannot be converted.",
+                    "Line " + parse.getLineNumber() + ", column " + parse.getColumnNumber() + ": "
+                            + parse.getMessage()
+                            + "\n\nFix the document (the Validation panel lists the problem), then convert again.");
         } else {
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Spreadsheet Converter",
                     "The conversion could not be completed.",

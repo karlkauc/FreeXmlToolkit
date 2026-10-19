@@ -84,7 +84,7 @@ public final class FxStallWatchdog {
         }
         Thread fxThread = Thread.currentThread();
         FxStallWatchdog watchdog = new FxStallWatchdog(javafx.application.Platform::runLater,
-                fxThread::getStackTrace, System::nanoTime, new TelemetrySink());
+                fxThread::getStackTrace, System::nanoTime, new TelemetrySink(TelemetrySink.backgroundReporter()));
         watchdog.start();
         running = watchdog;
     }
@@ -202,20 +202,58 @@ public final class FxStallWatchdog {
 
         private final Set<String> seenFreezeHashes = ConcurrentHashMap.newKeySet();
         private final AtomicInteger freezeReports = new AtomicInteger();
+        /** Runs the signature and the report of a finished stall; the stall itself ends on the FX thread. */
+        private final java.util.concurrent.Executor reporter;
+
+        /** Reports synchronously, on the calling thread. */
+        TelemetrySink() {
+            this(Runnable::run);
+        }
+
+        TelemetrySink(java.util.concurrent.Executor reporter) {
+            this.reporter = reporter;
+        }
+
+        /**
+         * A daemon thread for {@link #stalled}: it is called on the FX thread right after a stall, and
+         * normalizing and hashing the stack there (regular expressions over every frame) showed up as a
+         * stall of its own in the reports.
+         */
+        static java.util.concurrent.Executor backgroundReporter() {
+            return Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "FX-Stall-Reporter");
+                t.setDaemon(true);
+                return t;
+            });
+        }
 
         @Override
         public void stalled(long durationMs, StackTraceElement[] stack) {
+            if (reports.get() >= MAX_REPORTS_PER_SESSION) {
+                return;
+            }
+            // UI context and document shape are read here, on the FX thread; the rest runs on the reporter
+            Map<String, String> context = UsageEvents.uiContext();
+            UsageEvents.DocShape shape = UsageEvents.activeDocShape();
+            DocKind docKind = UsageEvents.activeDocKind();
+            try {
+                reporter.execute(() -> report(durationMs, stack, context, shape, docKind));
+            } catch (java.util.concurrent.RejectedExecutionException ignored) {
+                // shutting down: the stall goes unreported
+            }
+        }
+
+        private void report(long durationMs, StackTraceElement[] stack, Map<String, String> context,
+                            UsageEvents.DocShape shape, DocKind docKind) {
             ErrorSignature sig = signature(stack);
             if (!seenHashes.add(sig.hash()) || reports.incrementAndGet() > MAX_REPORTS_PER_SESSION) {
                 return;
             }
-            Map<String, String> context = UsageEvents.uiContext();
-            UsageEvents.DocShape shape = UsageEvents.activeDocShape();
             Telemetry.get().track("ui_stall", TelemetryEvent.Category.ACTION, b -> {
                 b.status(TelemetryEvent.Status.TIMEOUT).durationMs(durationMs)
                         .errorDetail(sig.detail()).errorHash(sig.hash());
                 context.forEach(b::meta);
-                b.docKind(UsageEvents.activeDocKind());
+                b.docKind(docKind);
                 if (shape != null) {
                     b.inputBytes(shape.chars()).meta("lines", shape.lines())
                             .meta("max_line_len", UsageEvents.lineLengthBucket(shape.maxLineLen()));

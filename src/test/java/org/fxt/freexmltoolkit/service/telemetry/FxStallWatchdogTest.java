@@ -215,6 +215,30 @@ class FxStallWatchdogTest {
         assertEquals(">=100k", e.meta().get("max_line_len"));
     }
 
+    @Test
+    void telemetrySinkReadsTheUiOnTheCallerAndReportsOnTheReporter() {
+        RecordingTelemetryService telemetry = new RecordingTelemetryService();
+        Telemetry.install(telemetry);
+        UsageEvents.activityOpened("validation");
+        UsageEvents.activeDocumentChanged(DocKind.XML, "text");
+
+        List<Runnable> reporter = new ArrayList<>();
+        FxStallWatchdog.TelemetrySink sink = new FxStallWatchdog.TelemetrySink(reporter::add);
+        sink.stalled(4000, stack);
+        assertTrue(telemetry.events("ui_stall").isEmpty(),
+                "signature and report must not run on the (FX) thread that ends the stall");
+
+        // the UI changes before the reporter gets to it: the event keeps what was current at the stall
+        UsageEvents.activityOpened("explorer");
+        reporter.forEach(Runnable::run);
+
+        List<TelemetryEvent> events = telemetry.events("ui_stall");
+        assertEquals(1, events.size());
+        assertEquals(4000L, events.getFirst().durationMs());
+        assertEquals("validation", events.getFirst().meta().get("activity"));
+        assertEquals(DocKind.XML, events.getFirst().docKind());
+    }
+
     private static StackTraceElement frame(String cls, String method) {
         return new StackTraceElement(cls, method, null, -1);
     }

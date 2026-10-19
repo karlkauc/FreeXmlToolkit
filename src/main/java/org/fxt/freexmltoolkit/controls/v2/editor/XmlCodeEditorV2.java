@@ -143,10 +143,13 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         // Setup combined paragraph graphics (fold indicators + line numbers)
         codeArea.setParagraphGraphicFactory(createCombinedParagraphGraphicFactory());
 
-        // Highlight the caret's line (Figma current-line tint).
-        codeArea.currentParagraphProperty().addListener(
-                (obs, oldP, newP) -> updateCurrentLineStyle(newP.intValue()));
+        // Highlight the caret's line (Figma current-line tint). Deferred to the next pulse: the caret
+        // moves in the middle of an edit (undo/redo, replace), and re-styling a paragraph from inside
+        // that change re-entered the viewport and threw an NPE in VirtualizedScrollPane.setVPosition.
+        codeArea.currentParagraphProperty().addListener((obs, oldP, newP) -> scheduleCurrentLineStyle());
         updateCurrentLineStyle(codeArea.getCurrentParagraph());
+
+        ignoreFlowlessHitRace(codeArea);
 
         // Layout: scrollpane + status line
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
@@ -170,6 +173,51 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
 
     /** Paragraph index currently carrying the {@code current-line} style. */
     private int currentLineIndex = -1;
+    /** A current-line update is queued for the next pulse (several caret moves collapse into one). */
+    private boolean currentLineStyleQueued;
+
+    private void scheduleCurrentLineStyle() {
+        if (currentLineStyleQueued) {
+            return;
+        }
+        currentLineStyleQueued = true;
+        Platform.runLater(() -> {
+            currentLineStyleQueued = false;
+            updateCurrentLineStyle(codeArea.getCurrentParagraph());
+        });
+    }
+
+    /**
+     * Drops a mouse event that RichTextFX cannot hit-test. Flowless throws
+     * {@code NoSuchElementException} from {@code CellListManager.getPresentCell} when a press or drag
+     * lands while the viewport has no laid-out cell at that spot (seen right after large edits); the
+     * click is lost either way, so it is ignored and a layout is requested instead of an uncaught error
+     * per mouse event. Any other exception propagates unchanged.
+     */
+    static void ignoreFlowlessHitRace(CodeArea area) {
+        javafx.event.EventDispatcher original = area.getEventDispatcher();
+        area.setEventDispatcher((event, tail) -> {
+            try {
+                return original.dispatchEvent(event, tail);
+            } catch (java.util.NoSuchElementException e) {
+                if (!(event instanceof javafx.scene.input.MouseEvent) || !isFlowlessHitRace(e)) {
+                    throw e;
+                }
+                logger.debug("Ignored {} that hit no laid-out cell", event.getEventType());
+                area.requestLayout();
+                return null;
+            }
+        });
+    }
+
+    private static boolean isFlowlessHitRace(Throwable e) {
+        for (StackTraceElement frame : e.getStackTrace()) {
+            if (frame.getClassName().startsWith("org.fxmisc.flowless.")) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Moves the {@code current-line} paragraph style to the caret's line so the
