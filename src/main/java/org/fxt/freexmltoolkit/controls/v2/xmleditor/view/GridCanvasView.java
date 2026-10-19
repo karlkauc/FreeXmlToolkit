@@ -85,6 +85,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** Cumulative Y offset for each visible row index, accounting for expanded tables above. */
     private double[] rowYPositions = new double[0];
+    /**
+     * For each visible row, the index of its last visible descendant (itself if none), computed once
+     * per {@link #recalculateVisibleRows()}. Rendering and hit-testing used to scan forward through all
+     * descendants of every expanded row from index 0, per frame and per mouse move.
+     */
+    private int[] lastDescendantIndex = new int[0];
 
     // ==================== Search State ====================
 
@@ -558,6 +564,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (!adapter.hasDocument()) {
             allRows = new ArrayList<>();
             visibleRows = new ArrayList<>();
+            lastDescendantIndex = new int[0];
             totalHeight = 0;
             totalWidth = 0;
             updateScrollBars();
@@ -569,7 +576,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         adapter.attachTables(allRows, this::markLayoutDirty);
         for (FlatRow row : allRows) {
             if (row.hasRepeatingTable()) {
-                row.getRepeatingTable().setMetrics(metrics);
+                row.whenRepeatingTableReady(table -> table.setMetrics(metrics)); // without building it now
             }
         }
 
@@ -623,6 +630,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 visibleRows.add(row);
             }
         }
+        lastDescendantIndex = lastDescendantIndices(visibleRows);
 
         // Name column: measured label (+ child-count extras) of the widest visible row
         double maxNameWidth = MIN_NAME_COL_WIDTH;
@@ -1087,23 +1095,30 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Finds the index (in visibleRows) of the last visible descendant of the given row.
      */
     private int findLastVisibleDescendantIndex(FlatRow parentRow, int parentIndex) {
-        int lastIndex = parentIndex;
-        for (int i = parentIndex + 1; i < visibleRows.size(); i++) {
-            FlatRow candidate = visibleRows.get(i);
-            if (isDescendantOf(candidate, parentRow)) {
-                lastIndex = i;
-            } else {
-                break; // All descendants are contiguous in the flat list
-            }
-        }
-        return lastIndex;
+        return parentIndex < lastDescendantIndex.length ? lastDescendantIndex[parentIndex] : parentIndex;
     }
 
     /**
-     * Checks if candidate is a descendant of ancestor.
+     * Index of each row's last descendant: descendants are contiguous in the flat (pre-order) list, so a
+     * row's run ends at the first following row that is not its descendant. One pass with a stack of the
+     * open ancestors.
      */
-    private boolean isDescendantOf(FlatRow candidate, FlatRow ancestor) {
-        return FlatRow.isDescendantOf(candidate, ancestor);
+    static int[] lastDescendantIndices(List<FlatRow> rows) {
+        int[] last = new int[rows.size()];
+        int[] stack = new int[rows.size()];
+        int top = -1;
+        for (int i = 0; i < rows.size(); i++) {
+            FlatRow row = rows.get(i);
+            while (top >= 0 && !FlatRow.isDescendantOf(row, rows.get(stack[top]))) {
+                last[stack[top--]] = i - 1;
+            }
+            last[i] = i;
+            stack[++top] = i;
+        }
+        while (top >= 0) {
+            last[stack[top--]] = rows.size() - 1;
+        }
+        return last;
     }
 
     /**

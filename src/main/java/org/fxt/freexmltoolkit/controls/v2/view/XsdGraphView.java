@@ -542,12 +542,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             nodeMap.clear();
 
             XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
-            // Provide redraw callback for Model → View synchronization
-            // IMPORTANT: Use this::redraw instead of this::rebuildVisualTree for performance!
-            // VisualNode.updateFromModel() already updates the visual properties in-place.
-            // We only need to redraw to show the changes.
-            // Structural changes (add/delete) are handled separately by XsdGraphView.propertyChange()
-            rootNode = builder.buildFromSchema(xsdSchema, this::redraw, importedSchemas);
+            // Redraw callback for Model → View synchronization, debounced: VisualNode.updateFromModel()
+            // already updates the visual properties in-place, and one edit notifies many nodes, each of
+            // which used to run a full layout. Structural changes (add/delete) are handled separately
+            // by XsdGraphView.propertyChange().
+            disposeVisualTree();
+            rootNode = builder.buildFromSchema(xsdSchema, this::requestRedraw, importedSchemas);
             nodeMap.putAll(builder.getNodeMap());
             logger.debug("Visual tree built from XsdSchema with {} nodes (with redraw callback for property changes)", nodeMap.size());
         } finally {
@@ -605,9 +605,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.trace("Saved {} selected nodes", selectedNodeIds.size());
 
             // 3. Rebuild tree from schema
-            // Use this::redraw as callback - structural changes are handled by XsdGraphView.propertyChange()
+            // Debounced redraw as callback - structural changes are handled by XsdGraphView.propertyChange()
             XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
-            rootNode = builder.buildFromSchema(xsdSchema, this::redraw, importedSchemas);
+            disposeVisualTree();
+            rootNode = builder.buildFromSchema(xsdSchema, this::requestRedraw, importedSchemas);
             nodeMap.clear();
             nodeMap.putAll(builder.getNodeMap());
             logger.debug("Visual tree rebuilt with {} nodes", nodeMap.size());
@@ -628,7 +629,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             }
             logger.trace("Restored selection state (using HashMap O(1) lookup)");
 
-            // Note: Callback update removed - we now consistently use this::redraw
+            // Note: Callback update removed - the nodes consistently use the debounced requestRedraw
             // Structural changes are handled by XsdGraphView.propertyChange() which calls scheduleFullRebuild()
 
         } finally {
@@ -698,6 +699,25 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * (expand/collapse, model edits) that move nodes. Pure scroll/selection repaints should call
      * {@link #renderViewport()} instead so the layout is not recomputed.
      */
+    /** Detaches the current visual tree's listeners from the model (before it is replaced). */
+    private void disposeVisualTree() {
+        if (rootNode != null) {
+            rootNode.dispose();
+        }
+    }
+
+    /**
+     * Coalesces redraw requests from the visual nodes into one layout per short burst (the same
+     * debounce as {@link #scheduleIncrementalUpdate}). FX thread.
+     */
+    private void requestRedraw() {
+        if (incrementalUpdateDebounce == null) {
+            incrementalUpdateDebounce = new PauseTransition(Duration.millis(INCREMENTAL_DEBOUNCE_MS));
+            incrementalUpdateDebounce.setOnFinished(e -> redraw());
+        }
+        incrementalUpdateDebounce.playFromStart();
+    }
+
     private void redraw() {
         if (rootNode == null) {
             logger.warn("redraw() aborted: rootNode is null");

@@ -32,6 +32,8 @@ public class TypeUsageFinder {
     private static final Logger logger = LogManager.getLogger(TypeUsageFinder.class);
 
     private final XsdSchema schema;
+    /** Reference graph of a {@link #snapshot(XsdSchema)} finder; {@code null} = rebuilt per call. */
+    private final SchemaReferenceGraph snapshot;
 
     /**
      * Creates a new TypeUsageFinder for the given schema.
@@ -40,8 +42,27 @@ public class TypeUsageFinder {
      * @throws NullPointerException if schema is null
      */
     public TypeUsageFinder(XsdSchema schema) {
+        this(schema, null);
+    }
+
+    private TypeUsageFinder(XsdSchema schema, SchemaReferenceGraph snapshot) {
         Objects.requireNonNull(schema, "Schema cannot be null");
         this.schema = schema;
+        this.snapshot = snapshot;
+    }
+
+    /**
+     * A finder over one reference graph built now, for a pass that asks about many types without
+     * editing the schema in between (a type list counting every type's usages). The per-call graph of
+     * {@link #TypeUsageFinder(XsdSchema)} made such a pass O(types x schema) and froze the UI for
+     * seconds on large schemas.
+     *
+     * @param schema the XSD schema to search (must not be null)
+     * @return a finder that does not see later edits of the schema
+     */
+    public static TypeUsageFinder snapshot(XsdSchema schema) {
+        Objects.requireNonNull(schema, "Schema cannot be null");
+        return new TypeUsageFinder(schema, SchemaReferenceGraph.build(schema));
     }
 
     /**
@@ -56,9 +77,9 @@ public class TypeUsageFinder {
             throw new IllegalArgumentException("Type name cannot be null or empty");
         }
         logger.debug("Finding usages of type: {}", typeName);
-        // The graph is rebuilt per call: callers create the finder once and keep editing the
-        // model (tests add nodes after construction), so a cached snapshot would go stale.
-        SchemaReferenceGraph graph = SchemaReferenceGraph.build(schema);
+        // Rebuilt per call unless this is a snapshot: callers create the finder once and keep editing
+        // the model (tests add nodes after construction), so a cached graph would go stale.
+        SchemaReferenceGraph graph = snapshot != null ? snapshot : SchemaReferenceGraph.build(schema);
         List<TypeUsageLocation> usages = new ArrayList<>();
         for (SchemaReferenceGraph.Reference reference : graph.typeReferencesTo(typeName)) {
             usages.add(reference.toUsageLocation());

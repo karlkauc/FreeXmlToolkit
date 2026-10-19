@@ -79,44 +79,6 @@ public abstract class EditorEvent {
     // Specific event types
 
     /**
-     * Event fired when text content changes.
-     */
-    public static class TextChangedEvent extends EditorEvent {
-        private final String oldText;
-        private final String newText;
-
-        /**
-         * Creates a new text changed event.
-         *
-         * @param oldText the text before the change
-         * @param newText the text after the change
-         */
-        public TextChangedEvent(String oldText, String newText) {
-            super(Type.TEXT_CHANGED);
-            this.oldText = oldText;
-            this.newText = newText;
-        }
-
-        /**
-         * Returns the text before the change.
-         *
-         * @return the text before the change
-         */
-        public String getOldText() {
-            return oldText;
-        }
-
-        /**
-         * Returns the text after the change.
-         *
-         * @return the text after the change
-         */
-        public String getNewText() {
-            return newText;
-        }
-    }
-
-    /**
      * Event fired when caret position changes.
      */
     public static class CaretMovedEvent extends EditorEvent {

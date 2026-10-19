@@ -344,18 +344,16 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      * Sets up text change listeners.
      */
     private void setupTextChangeListeners() {
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            if (newText != null && !newText.equals(oldText)) {
-                // Apply syntax highlighting
-                Platform.runLater(() -> syntaxManager.applySyntaxHighlighting(newText));
-
-                // Mark as dirty
-                editorContext.setDirty(true);
-
-                // Publish text changed event
-                eventBus.publish(new org.fxt.freexmltoolkit.controls.v2.editor.core.EditorEvent.TextChangedEvent(
-                        oldText, newText));
+        // plainTextChanges, not a textProperty ChangeListener: the latter materializes the whole
+        // document as a String on every keystroke (twice, with the old value), which cost tens of ms per
+        // key on multi-MB files. The highlighter reads the text itself, once, after its debounce.
+        codeArea.plainTextChanges().subscribe(change -> {
+            if (change.getInserted().equals(change.getRemoved())) {
+                return;
             }
+            textRevision++;
+            editorContext.setDirty(true);
+            syntaxManager.requestHighlighting();
         });
 
         // Caret position listener for status line
@@ -393,18 +391,13 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             Platform.runLater(() -> {
                 syntaxManager.applySyntaxHighlighting(text);
 
-                // Only update folding if enabled (disabled for single-line XML files to prevent freezing)
+                // Only update folding if enabled (disabled for single-line XML files to prevent freezing).
+                // The regions are computed off the FX thread; applying them refreshes the gutter once.
                 if (foldingEnabled) {
-                    foldingManager.updateFoldingRegions(text);
+                    foldingManager.updateFoldingRegionsAsync(text);
                 } else {
                     logger.info("Folding disabled - skipping folding region calculation");
                 }
-
-                // Force paragraph graphics refresh after folding regions are updated
-                logger.debug("Refreshing paragraph graphics after setText()");
-                var factory = codeArea.getParagraphGraphicFactory();
-                codeArea.setParagraphGraphicFactory(null);
-                codeArea.setParagraphGraphicFactory(factory);
             });
         }
     }
@@ -435,19 +428,19 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         }
         codeArea.moveTo(Math.max(0, Math.min(restored, codeArea.getLength())));
 
-        String full = codeArea.getText();
-        if (!full.isEmpty()) {
-            Platform.runLater(() -> {
-                syntaxManager.applySyntaxHighlighting(full);
-                if (foldingEnabled) {
-                    foldingManager.updateFoldingRegions(full);
-                }
-                // Force paragraph graphics refresh (folding gutter) after the edit.
-                var factory = codeArea.getParagraphGraphicFactory();
-                codeArea.setParagraphGraphicFactory(null);
-                codeArea.setParagraphGraphicFactory(factory);
-            });
+        // Highlighting follows from the text change itself (plainTextChanges → requestHighlighting).
+        // Folding regions are recomputed off the FX thread; applying them refreshes the gutter once.
+        if (foldingEnabled && codeArea.getLength() > 0) {
+            foldingManager.updateFoldingRegionsAsync(codeArea.getText());
         }
+    }
+
+    /** Edits seen since creation; compare two values instead of comparing whole document strings. */
+    private long textRevision;
+
+    /** @return a counter that changes with every text edit (FX thread) */
+    public long getTextRevision() {
+        return textRevision;
     }
 
     /**
@@ -743,6 +736,31 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     private String lastSearchText = "";
 
     /**
+     * Case-insensitive {@code indexOf} on the text itself. Lower-casing the whole document per Find Next
+     * cost tens of ms on large files, and its offsets drift wherever lower-casing changes the length
+     * (e.g. U+0130), which then selected the wrong range.
+     */
+    static int indexOfIgnoreCase(String text, String needle, int from) {
+        int last = text.length() - needle.length();
+        for (int i = Math.max(0, from); i <= last; i++) {
+            if (text.regionMatches(true, i, needle, 0, needle.length())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** Case-insensitive {@code lastIndexOf}: the last match starting at or before {@code from}. */
+    static int lastIndexOfIgnoreCase(String text, String needle, int from) {
+        for (int i = Math.min(from, text.length() - needle.length()); i >= 0; i--) {
+            if (text.regionMatches(true, i, needle, 0, needle.length())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Finds text in the editor.
      *
      * @param searchText the text to find
@@ -771,18 +789,18 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         if (forward) {
             // Search forward from current position
             int startPos = currentPos;
-            foundPos = content.toLowerCase().indexOf(searchText.toLowerCase(), startPos);
+            foundPos = indexOfIgnoreCase(content, searchText, startPos);
             // Wrap around if not found
             if (foundPos < 0 && startPos > 0) {
-                foundPos = content.toLowerCase().indexOf(searchText.toLowerCase());
+                foundPos = indexOfIgnoreCase(content, searchText, 0);
             }
         } else {
             // Search backward from current position
             int endPos = currentPos > 0 ? currentPos - 1 : content.length();
-            foundPos = content.toLowerCase().lastIndexOf(searchText.toLowerCase(), endPos);
+            foundPos = lastIndexOfIgnoreCase(content, searchText, endPos);
             // Wrap around if not found
             if (foundPos < 0) {
-                foundPos = content.toLowerCase().lastIndexOf(searchText.toLowerCase());
+                foundPos = lastIndexOfIgnoreCase(content, searchText, content.length());
             }
         }
 
@@ -812,12 +830,10 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             return 0;
         }
 
-        String lowerContent = content.toLowerCase();
-        String lowerSearch = searchText.toLowerCase();
         int count = 0;
         int pos = 0;
 
-        while ((pos = lowerContent.indexOf(lowerSearch, pos)) >= 0) {
+        while ((pos = indexOfIgnoreCase(content, searchText, pos)) >= 0) {
             count++;
             pos += searchText.length();
         }
@@ -876,9 +892,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         // Count occurrences first
         int count = 0;
         int pos = 0;
-        String lowerContent = content.toLowerCase();
-        String lowerFind = findText.toLowerCase();
-        while ((pos = lowerContent.indexOf(lowerFind, pos)) >= 0) {
+        while ((pos = indexOfIgnoreCase(content, findText, pos)) >= 0) {
             count++;
             pos += findText.length();
         }
@@ -888,7 +902,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             StringBuilder result = new StringBuilder();
             int lastEnd = 0;
             pos = 0;
-            while ((pos = lowerContent.indexOf(lowerFind, pos)) >= 0) {
+            while ((pos = indexOfIgnoreCase(content, findText, pos)) >= 0) {
                 result.append(content, lastEnd, pos);
                 result.append(replaceText != null ? replaceText : "");
                 lastEnd = pos + findText.length();

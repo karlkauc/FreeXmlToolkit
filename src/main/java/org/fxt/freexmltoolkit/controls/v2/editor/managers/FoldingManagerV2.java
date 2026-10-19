@@ -36,7 +36,7 @@ import org.fxmisc.richtext.CodeArea;
  *   <li>Batch operations (fold all, unfold all)</li>
  * </ul>
  *
- * <p>Ported from the original XmlCodeFoldingManager with improvements:</p>
+ * <p>Improvements over the earlier folding manager:</p>
  * <ul>
  *   <li>Uses standalone FoldingRegion class</li>
  *   <li>AtomicBoolean for thread-safe fold operation tracking</li>
@@ -58,9 +58,22 @@ public class FoldingManagerV2 {
     // Tracks which regions are currently folded
     private final Set<Integer> foldedRegions = new HashSet<>();
 
-    // Pattern to match XML opening tags (excluding self-closing)
+    // Pattern to match XML opening tags. Lines containing "/>" contribute no opening tags at all (see
+    // calculateFoldingRegions), so the former "(?!.*/>)" lookahead - which rescanned the rest of the line
+    // for every match - is checked once per line instead.
     private static final Pattern OPEN_TAG_PATTERN = Pattern.compile(
-            "<([a-zA-Z][\\w:.-]*)(?:\\s+[^>]*)?>(?!.*/>)", Pattern.MULTILINE);
+            "<([a-zA-Z][\\w:.-]*)(?:\\s+[^>]*)?>", Pattern.MULTILINE);
+
+    /** Computes folding regions off the FX thread; one daemon thread shared by all editors. */
+    private static final java.util.concurrent.ExecutorService FOLDING_EXECUTOR =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "FoldingRegions");
+                t.setDaemon(true);
+                return t;
+            });
+
+    /** Bumped per async request (FX thread); a result for an older request is dropped. */
+    private long asyncRequest;
 
     // Pattern to match XML closing tags
     private static final Pattern CLOSE_TAG_PATTERN = Pattern.compile(
@@ -108,8 +121,44 @@ public class FoldingManagerV2 {
         }
 
         try {
-            Map<Integer, FoldingRegion> newRegions = calculateFoldingRegions(text);
+            applyRegions(calculateFoldingRegions(text));
+        } catch (Exception e) {
+            logger.error("Error updating folding regions: {}", e.getMessage(), e);
+        }
+    }
 
+    /**
+     * Like {@link #updateFoldingRegions(String)}, but the regions are computed on a background thread
+     * (a split plus two regular expressions per line: hundreds of ms for multi-MB documents) and applied
+     * on the FX thread. Call on the FX thread; a newer request supersedes a pending one.
+     *
+     * @param text the XML text to analyze (a snapshot taken on the FX thread)
+     */
+    public void updateFoldingRegionsAsync(String text) {
+        long request = ++asyncRequest;
+        if (text == null || text.isEmpty()) {
+            foldingRegions.clear();
+            return;
+        }
+        FOLDING_EXECUTOR.execute(() -> {
+            Map<Integer, FoldingRegion> regions;
+            try {
+                regions = hasExtremelyLongLine(text) ? new TreeMap<>() : calculateFoldingRegions(text);
+            } catch (RuntimeException e) {
+                logger.debug("Could not compute folding regions: {}", e.toString());
+                return;
+            }
+            Platform.runLater(() -> {
+                if (request == asyncRequest && !isFoldingInProgress.get()) {
+                    applyRegions(regions);
+                }
+            });
+        });
+    }
+
+    /** Installs freshly computed regions, keeping the fold state of regions that still exist. FX thread. */
+    private void applyRegions(Map<Integer, FoldingRegion> newRegions) {
+        try {
             // Preserve fold state for existing regions
             Set<Integer> currentlyFolded = new HashSet<>(foldedRegions);
 
@@ -167,13 +216,11 @@ public class FoldingManagerV2 {
             String line = lines[i];
             final int lineNumber = i;
 
-            // Check for opening tags
-            Matcher openMatcher = OPEN_TAG_PATTERN.matcher(line);
-            while (openMatcher.find()) {
-                String tagName = openMatcher.group(1);
-
-                // Skip self-closing tags (handled by regex, but double-check)
-                if (!line.contains("/>")) {
+            // Opening tags; a line with a self-closing tag contributes none (as before)
+            if (line.indexOf("/>") < 0) {
+                Matcher openMatcher = OPEN_TAG_PATTERN.matcher(line);
+                while (openMatcher.find()) {
+                    String tagName = openMatcher.group(1);
                     ElementPosition pos = new ElementPosition(tagName, lineNumber, openMatcher.start());
                     elementStacks.computeIfAbsent(tagName, k -> new Stack<>()).push(pos);
                 }

@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for TypeLibraryView usage detection to verify that extension base types
+ * Test for TypeUsageFinder usage detection to verify that extension base types
  * are correctly detected as "used" (fixes bug where positiveDecimals was shown as unused).
  *
  * @since 2.0

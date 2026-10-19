@@ -166,6 +166,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
     /** Rebuilds the tree items from the (mutated) model, restoring expansion and selection by node id. */
     public void rebuildPreservingState() {
         Set<String> expandedIds = new HashSet<>();
+        Set<String> knownIds = new HashSet<>(nodeIdToTreeItem.keySet());
         for (Map.Entry<String, TreeItem<JsonNode>> e : nodeIdToTreeItem.entrySet()) {
             if (e.getValue().isExpanded()) {
                 expandedIds.add(e.getKey());
@@ -173,18 +174,19 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
         }
         JsonNode selected = getSelectedNode();
         boolean hadTree = treeView.getRoot() != null;
+        // Items are created lazily: the former expansion is applied as each item is created again
+        restoreExpanded = hadTree ? expandedIds : null;
+        restoreKnown = hadTree ? knownIds : null;
         rebuildTree();
-        if (hadTree) {
-            for (Map.Entry<String, TreeItem<JsonNode>> e : nodeIdToTreeItem.entrySet()) {
-                if (!e.getValue().getChildren().isEmpty()) {
-                    e.getValue().setExpanded(expandedIds.contains(e.getKey()));
-                }
-            }
-        }
         if (selected != null) {
             selectNode(selected);
         }
     }
+
+    /** Expansion to restore on items created after {@link #rebuildPreservingState()} (null = default rule). */
+    private Set<String> restoreExpanded;
+    /** Ids that had an item before the rebuild: only their expansion is restored, new nodes use the default. */
+    private Set<String> restoreKnown;
 
     public void setDocument(JsonDocument document) {
         // Remove old listener
@@ -194,6 +196,8 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
 
         this.document = document;
         nodeIdToTreeItem.clear();
+        restoreExpanded = null; // a new document starts with the default expansion
+        restoreKnown = null;
 
         if (document != null) {
             document.addPropertyChangeListener(this);
@@ -242,21 +246,51 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
      * Creates a TreeItem for a JsonNode and its children.
      */
     private TreeItem<JsonNode> createTreeItem(JsonNode node) {
-        TreeItem<JsonNode> item = new TreeItem<>(node);
+        TreeItem<JsonNode> item = new LazyJsonItem(node);
         nodeIdToTreeItem.put(node.getId(), item);
 
-        // Add children
-        for (JsonNode child : node.getChildren()) {
-            item.getChildren().add(createTreeItem(child));
-        }
-
-        // Expand objects and arrays by default if they have few children
-        if ((node instanceof JsonObject || node instanceof JsonArray) &&
-                node.getChildCount() <= 10) {
+        boolean container = node instanceof JsonObject || node instanceof JsonArray;
+        if (restoreKnown != null && restoreKnown.contains(node.getId())) {
+            if (!node.getChildren().isEmpty()) {
+                item.setExpanded(restoreExpanded.contains(node.getId()));
+            }
+        } else if (container && node.getChildCount() <= 10) {
+            // Expand objects and arrays by default if they have few children
             item.setExpanded(true);
         }
 
         return item;
+    }
+
+    /**
+     * A tree item whose children are created on first access (when it is expanded or shown), not when
+     * the tree is built: creating every item up front (and again after each edit) took seconds for
+     * multi-MB JSON.
+     */
+    private final class LazyJsonItem extends TreeItem<JsonNode> {
+        private boolean childrenCreated;
+
+        LazyJsonItem(JsonNode node) {
+            super(node);
+        }
+
+        @Override
+        public boolean isLeaf() {
+            return getValue().getChildren().isEmpty();
+        }
+
+        @Override
+        public javafx.collections.ObservableList<TreeItem<JsonNode>> getChildren() {
+            if (!childrenCreated) {
+                childrenCreated = true;
+                List<TreeItem<JsonNode>> children = new ArrayList<>();
+                for (JsonNode child : getValue().getChildren()) {
+                    children.add(createTreeItem(child));
+                }
+                super.getChildren().setAll(children);
+            }
+            return super.getChildren();
+        }
     }
 
     /**
@@ -332,6 +366,25 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
         return null;
     }
 
+    /** @return the item of {@code node}, creating the lazy items on the path to it; null if not in the tree */
+    private TreeItem<JsonNode> itemFor(JsonNode node) {
+        TreeItem<JsonNode> item = nodeIdToTreeItem.get(node.getId());
+        if (item != null || treeView.getRoot() == null) {
+            return item;
+        }
+        java.util.ArrayDeque<JsonNode> path = new java.util.ArrayDeque<>();
+        for (JsonNode current = node; current != null; current = current.getParent()) {
+            path.push(current);
+        }
+        for (JsonNode step : path) {
+            TreeItem<JsonNode> stepItem = nodeIdToTreeItem.get(step.getId());
+            if (stepItem != null) {
+                stepItem.getChildren(); // creates the next level's items
+            }
+        }
+        return nodeIdToTreeItem.get(node.getId());
+    }
+
     /**
      * Selects a node in the tree view, expanding parent nodes as needed.
      *
@@ -342,7 +395,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
             return;
         }
 
-        TreeItem<JsonNode> item = nodeIdToTreeItem.get(node.getId());
+        TreeItem<JsonNode> item = itemFor(node);
         if (item != null) {
             // Expand parents
             TreeItem<JsonNode> parent = item.getParent();

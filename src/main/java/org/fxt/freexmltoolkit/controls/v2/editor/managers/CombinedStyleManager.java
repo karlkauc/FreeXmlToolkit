@@ -50,6 +50,7 @@ public class CombinedStyleManager {
     /** Sets the syntax layer (called by the highlight manager after each pass). */
     public void setSyntaxStyles(StyleSpans<Collection<String>> styles) {
         this.syntaxStyles = styles;
+        this.syntaxChanged = true;
         applyStyles();
     }
 
@@ -98,15 +99,24 @@ public class CombinedStyleManager {
 
     // ---------------------------------------------------------------------
 
-    /** Recomputes and applies the merged styles on the FX thread. */
+    /** A new syntax layer arrived since the last apply (otherwise only overlays changed). */
+    private boolean syntaxChanged;
+    /** An apply is queued for the next pulse: several layer updates in one pulse apply once. */
+    private boolean applyQueued;
+    /** The overlays as last applied, so an overlay-only update restyles just what changed. */
+    private NavigableMap<Integer, Integer> appliedErrors = new TreeMap<>();
+    private NavigableMap<Integer, Integer> appliedMatches = new TreeMap<>();
+
+    /** Queues the merged styles for the FX thread (coalesced per pulse). */
     private void applyStyles() {
+        if (applyQueued) {
+            return;
+        }
+        applyQueued = true;
         Platform.runLater(() -> {
+            applyQueued = false;
             try {
-                String text = codeArea.getText();
-                if (text == null || text.isEmpty()) {
-                    return;
-                }
-                codeArea.setStyleSpans(0, mergeStyles(text.length()));
+                applyNow();
             } catch (Exception e) {
                 logger.error("Error applying combined styles", e);
             }
@@ -114,71 +124,124 @@ public class CombinedStyleManager {
     }
 
     /**
-     * Builds the merged spans over {@code [0, textLength)}: the syntax layer
-     * split at every overlay boundary, with overlay classes added exactly on
-     * their ranges. Without a syntax layer the overlays render on plain text.
+     * Applies the layers. A new syntax layer restyles the whole text in one linear pass (directly when
+     * there are no overlays). An overlay-only change restyles just the ranges that gained or lost an
+     * overlay, on top of the styles the text already has: rebuilding the whole document's spans for every
+     * search keystroke froze large files, and in viewport mode (no syntax layer) it wiped the highlighting.
      */
-    private StyleSpans<Collection<String>> mergeStyles(int textLength) {
-        // Collect all boundaries: syntax span edges + overlay edges.
-        List<int[]> syntax = new ArrayList<>(); // {start, end, index-into-styles}
-        List<Collection<String>> syntaxClasses = new ArrayList<>();
-        int pos = 0;
-        if (syntaxStyles != null) {
-            for (var span : syntaxStyles) {
-                syntax.add(new int[]{pos, pos + span.getLength()});
-                syntaxClasses.add(span.getStyle());
-                pos += span.getLength();
+    void applyNow() {
+        int textLength = codeArea.getLength();
+        if (textLength == 0) {
+            return;
+        }
+        if (syntaxChanged && syntaxStyles != null) {
+            syntaxChanged = false;
+            StyleSpans<Collection<String>> base = fitted(syntaxStyles, textLength);
+            codeArea.setStyleSpans(0, errorRanges.isEmpty() && matchRanges.isEmpty() ? base : withOverlays(base, 0));
+        } else {
+            for (int[] region : changedRegions(textLength)) {
+                StyleSpans<Collection<String>> current = codeArea.getStyleSpans(region[0], region[1]);
+                codeArea.setStyleSpans(region[0], withOverlays(withoutOverlays(current), region[0]));
             }
         }
-        int syntaxEnd = pos;
-        var boundaries = new java.util.TreeSet<Integer>();
-        boundaries.add(0);
-        boundaries.add(textLength);
-        for (int[] s : syntax) {
-            boundaries.add(Math.min(s[0], textLength));
-            boundaries.add(Math.min(s[1], textLength));
-        }
-        for (var layer : List.of(errorRanges, matchRanges)) {
-            layer.forEach((start, end) -> {
-                if (start < textLength) {
-                    boundaries.add(start);
-                    boundaries.add(Math.min(end, textLength));
-                }
-            });
-        }
+        appliedErrors = errorRanges;
+        appliedMatches = matchRanges;
+    }
 
+    /** {@code styles} cut or padded (unstyled) to exactly {@code length}. */
+    private static StyleSpans<Collection<String>> fitted(StyleSpans<Collection<String>> styles, int length) {
+        if (styles.length() == length) {
+            return styles;
+        }
+        if (styles.length() > length) {
+            return styles.subView(0, length);
+        }
         StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
-        Integer prev = null;
-        int syntaxIndex = 0;
-        boolean added = false;
-        for (int boundary : boundaries) {
-            if (prev != null && boundary > prev) {
-                int segStart = prev;
-                Set<String> classes = new HashSet<>();
-                // advance to the syntax span containing segStart
-                while (syntaxIndex < syntax.size() && syntax.get(syntaxIndex)[1] <= segStart) {
-                    syntaxIndex++;
-                }
-                if (syntaxIndex < syntax.size() && segStart >= syntax.get(syntaxIndex)[0]
-                        && segStart < Math.min(syntax.get(syntaxIndex)[1], syntaxEnd)) {
-                    classes.addAll(syntaxClasses.get(syntaxIndex));
-                }
-                if (covered(errorRanges, segStart)) {
-                    classes.add(ERROR_STYLE);
-                }
-                if (covered(matchRanges, segStart)) {
-                    classes.add(MATCH_STYLE);
-                }
-                builder.add(classes.isEmpty() ? Collections.emptyList() : classes,
-                        boundary - segStart);
-                added = true;
+        builder.addAll(styles);
+        builder.add(Collections.emptyList(), length - styles.length());
+        return builder.create();
+    }
+
+    /** The ranges covered by an overlay now or at the last apply, merged and clipped to the text. */
+    private List<int[]> changedRegions(int textLength) {
+        NavigableMap<Integer, Integer> all = new TreeMap<>();
+        for (var layer : List.of(appliedErrors, appliedMatches, errorRanges, matchRanges)) {
+            layer.forEach((start, end) -> all.merge(start, end, Math::max));
+        }
+        List<int[]> regions = new ArrayList<>();
+        for (var range : all.entrySet()) {
+            int start = range.getKey();
+            int end = Math.min(range.getValue(), textLength);
+            if (start >= end) {
+                continue;
             }
-            prev = boundary;
+            int[] last = regions.isEmpty() ? null : regions.get(regions.size() - 1);
+            if (last != null && start <= last[1]) {
+                last[1] = Math.max(last[1], end);
+            } else {
+                regions.add(new int[]{start, end});
+            }
+        }
+        return regions;
+    }
+
+    /** {@code styles} without the overlay classes (what the syntax layer painted). */
+    private static StyleSpans<Collection<String>> withoutOverlays(StyleSpans<Collection<String>> styles) {
+        return styles.mapStyles(style -> style.contains(ERROR_STYLE) || style.contains(MATCH_STYLE)
+                ? style.stream().filter(c -> !ERROR_STYLE.equals(c) && !MATCH_STYLE.equals(c)).toList()
+                : style);
+    }
+
+    /**
+     * Adds the overlay classes to {@code base}, which starts at text offset {@code offset}: base spans are
+     * split exactly where an overlay starts or ends. One pass over the spans.
+     */
+    private StyleSpans<Collection<String>> withOverlays(StyleSpans<Collection<String>> base, int offset) {
+        StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
+        int pos = offset;
+        boolean added = false;
+        for (var span : base) {
+            int spanEnd = pos + span.getLength();
+            int cur = pos;
+            while (cur < spanEnd) {
+                int next = Math.min(spanEnd, Math.min(nextBoundary(errorRanges, cur), nextBoundary(matchRanges, cur)));
+                boolean error = covered(errorRanges, cur);
+                boolean match = covered(matchRanges, cur);
+                Collection<String> style = span.getStyle();
+                if (error || match) {
+                    Set<String> classes = new HashSet<>(style);
+                    if (error) {
+                        classes.add(ERROR_STYLE);
+                    }
+                    if (match) {
+                        classes.add(MATCH_STYLE);
+                    }
+                    style = classes;
+                }
+                builder.add(style, next - cur);
+                added = true;
+                cur = next;
+            }
+            pos = spanEnd;
         }
         if (!added) {
-            builder.add(Collections.emptyList(), textLength);
+            builder.add(Collections.emptyList(), 0);
         }
         return builder.create();
+    }
+
+    /** @return the first overlay boundary (a range start or end) after {@code offset}, or MAX_VALUE */
+    private static int nextBoundary(NavigableMap<Integer, Integer> ranges, int offset) {
+        int next = Integer.MAX_VALUE;
+        var containing = ranges.floorEntry(offset);
+        if (containing != null && containing.getValue() > offset) {
+            next = containing.getValue();
+        }
+        Integer nextStart = ranges.higherKey(offset);
+        if (nextStart != null) {
+            next = Math.min(next, nextStart);
+        }
+        return next;
     }
 
     private static boolean covered(NavigableMap<Integer, Integer> ranges, int offset) {

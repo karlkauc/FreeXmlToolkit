@@ -164,6 +164,8 @@ public class FlatRow {
      * Null when not applicable.
      */
     private RepeatingElementsTable repeatingTable = null;
+    /** Builds {@link #repeatingTable} on first use (see {@link #setRepeatingTableFactory}). */
+    private java.util.function.Supplier<RepeatingElementsTable> repeatingTableFactory;
 
     /**
      * Index of this row's attribute within its parent element's attribute map.
@@ -358,7 +360,37 @@ public class FlatRow {
      * @return the repeating table, or null if this row is not displayed as a table
      */
     public RepeatingElementsTable getRepeatingTable() {
+        if (repeatingTable == null && repeatingTableFactory != null) {
+            java.util.function.Supplier<RepeatingElementsTable> factory = repeatingTableFactory;
+            repeatingTableFactory = null;
+            repeatingTable = factory.get();
+        }
         return repeatingTable;
+    }
+
+    /**
+     * Assigns the table lazily: it is built (records analysed, every cell laid out) on the first
+     * {@link #getRepeatingTable()}, when the group is expanded or drawn. Building the tables of all
+     * repeating groups up front took hundreds of ms on the FX thread for large documents, mostly for
+     * groups the user never opened.
+     */
+    public void setRepeatingTableFactory(java.util.function.Supplier<RepeatingElementsTable> factory) {
+        this.repeatingTable = null;
+        this.repeatingTableFactory = factory;
+    }
+
+    /** Runs {@code setup} on the table now if it exists, or as soon as it is built. */
+    public void whenRepeatingTableReady(java.util.function.Consumer<RepeatingElementsTable> setup) {
+        if (repeatingTable != null) {
+            setup.accept(repeatingTable);
+        } else if (repeatingTableFactory != null) {
+            java.util.function.Supplier<RepeatingElementsTable> factory = repeatingTableFactory;
+            repeatingTableFactory = () -> {
+                RepeatingElementsTable table = factory.get();
+                setup.accept(table);
+                return table;
+            };
+        }
     }
 
     /**
@@ -368,6 +400,7 @@ public class FlatRow {
      */
     public void setRepeatingTable(RepeatingElementsTable repeatingTable) {
         this.repeatingTable = repeatingTable;
+        this.repeatingTableFactory = null;
     }
 
     /**
@@ -421,7 +454,7 @@ public class FlatRow {
      * @return true if a repeating table has been assigned to this row
      */
     public boolean hasRepeatingTable() {
-        return repeatingTable != null;
+        return repeatingTable != null || repeatingTableFactory != null;
     }
 
     // ==================== Static Flattening Algorithm ====================
@@ -689,33 +722,25 @@ public class FlatRow {
                 }
             }
         } else {
-            // Expand: show direct children; recursively show if child is also expanded
+            // Expand: show direct children; recursively show the children of child containers that are
+            // themselves expanded. The children are grouped once: scanning all rows again for every
+            // expanded container made expanding a large document quadratic.
             elementRow.setExpanded(true);
+            java.util.Map<FlatRow, List<FlatRow>> children = new java.util.IdentityHashMap<>();
             for (FlatRow row : allRows) {
-                if (row.getParentRow() == elementRow) {
+                if (row.getParentRow() != null) {
+                    children.computeIfAbsent(row.getParentRow(), k -> new java.util.ArrayList<>()).add(row);
+                }
+            }
+            java.util.ArrayDeque<FlatRow> pending = new java.util.ArrayDeque<>();
+            pending.push(elementRow);
+            while (!pending.isEmpty()) {
+                for (FlatRow row : children.getOrDefault(pending.pop(), List.of())) {
                     row.setVisible(true);
                     // If this child container is itself expanded, show its subtree too
                     if (row.getType().isContainer() && row.isExpanded()) {
-                        showExpandedSubtree(row, allRows);
+                        pending.push(row);
                     }
-                }
-            }
-        }
-    }
-
-    /**
-     * Recursively makes visible the children of an already-expanded element row.
-     * Called during expand to restore previously-visible subtree state.
-     *
-     * @param elementRow the expanded element whose children should be shown
-     * @param allRows    the complete flat row list
-     */
-    private static void showExpandedSubtree(FlatRow elementRow, List<FlatRow> allRows) {
-        for (FlatRow row : allRows) {
-            if (row.getParentRow() == elementRow) {
-                row.setVisible(true);
-                if (row.getType().isContainer() && row.isExpanded()) {
-                    showExpandedSubtree(row, allRows);
                 }
             }
         }

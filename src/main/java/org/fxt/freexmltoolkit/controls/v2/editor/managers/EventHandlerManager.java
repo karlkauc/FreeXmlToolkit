@@ -45,6 +45,7 @@ public class EventHandlerManager {
     public EventHandlerManager(EditorContext editorContext) {
         this.editorContext = editorContext;
         this.codeArea = editorContext.getCodeArea();
+        this.codeArea.plainTextChanges().subscribe(change -> editRevision++);
         logger.info("EventHandlerManager created");
     }
 
@@ -207,6 +208,7 @@ public class EventHandlerManager {
     private void handleMouseMove(MouseEvent event) {
         // Only show tooltips when not in Ctrl mode
         if (ctrlPressed) {
+            hoverPause.stop();
             removeTooltip();
             return;
         }
@@ -214,9 +216,47 @@ public class EventHandlerManager {
         // Get character position at mouse cursor
         int charPos = getCharacterPosition(event);
         if (charPos < 0) {
+            hoverPause.stop();
             removeTooltip();
             return;
         }
+
+        // The tooltip analyses the document up to the mouse position: do that once the mouse rests,
+        // not for every pixel it moves (tens of ms per event on multi-MB documents).
+        hoverPosition = charPos;
+        hoverPause.playFromStart();
+    }
+
+    /** Counts text edits, so an unchanged tooltip spot is recognized without comparing texts. */
+    private long editRevision;
+
+    private long textRevision() {
+        return editRevision;
+    }
+
+    /** Character position the mouse rests on (see {@link #hoverPause}). */
+    private int hoverPosition = -1;
+    /** Text revision and position the current tooltip was built for: an unchanged spot is not re-analysed. */
+    private long tooltipRevision = -1;
+    private int tooltipPosition = -1;
+    private final javafx.animation.PauseTransition hoverPause = createHoverPause();
+
+    private javafx.animation.PauseTransition createHoverPause() {
+        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
+        pause.setOnFinished(e -> showTooltipAt(hoverPosition));
+        return pause;
+    }
+
+    private void showTooltipAt(int charPos) {
+        if (charPos < 0 || ctrlPressed) {
+            return;
+        }
+        long revision = textRevision();
+        if (revision == tooltipRevision && charPos == tooltipPosition) {
+            return; // same spot, same text: the tooltip is up to date
+        }
+        tooltipRevision = revision;
+        tooltipPosition = charPos;
 
         // Analyze context at position
         String text = editorContext.getText();

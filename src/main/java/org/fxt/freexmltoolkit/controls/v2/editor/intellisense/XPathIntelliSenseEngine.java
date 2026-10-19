@@ -238,13 +238,46 @@ public class XPathIntelliSenseEngine {
      * Refreshes the element extractor with current XML content.
      */
     private void refreshElementExtractor() {
-        if (xmlContentSupplier != null) {
-            String xmlContent = xmlContentSupplier.get();
-            if (xmlContent != null && !xmlContent.isBlank()) {
-                elementExtractor.extractFromXml(xmlContent);
-            }
+        if (xmlContentSupplier == null) {
+            return;
         }
+        String xmlContent = xmlContentSupplier.get();
+        if (xmlContent == null || xmlContent.isBlank()) {
+            return;
+        }
+        // Hashing and SAX-parsing the target document ran on the FX thread for every completion after
+        // an edit (hundreds of ms on large documents). Parse into a fresh extractor in the background and
+        // adopt it on the FX thread; until then the names extracted last are offered.
+        long request = ++extractionRequest;
+        String knownHash = elementExtractor.getExtractedHash();
+        EXTRACTOR.execute(() -> {
+            if (String.valueOf(xmlContent.hashCode()).equals(knownHash)) {
+                return; // unchanged document
+            }
+            XmlDocumentElementExtractor fresh = new XmlDocumentElementExtractor();
+            fresh.extractFromXml(xmlContent);
+            Platform.runLater(() -> {
+                if (request != extractionRequest) {
+                    return; // a newer extraction follows
+                }
+                elementExtractor.adoptFrom(fresh);
+                if (popup.isShowing()) {
+                    showCompletions(); // offer the names that just arrived
+                }
+            });
+        });
     }
+
+    /** Bumped per extraction request (FX thread); an older result is dropped. */
+    private long extractionRequest;
+
+    /** Extracts document names off the FX thread; one daemon thread shared by all query editors. */
+    private static final java.util.concurrent.ExecutorService EXTRACTOR =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "XPathElementExtractor");
+                t.setDaemon(true);
+                return t;
+            });
 
     /**
      * Shows the popup near the caret position.

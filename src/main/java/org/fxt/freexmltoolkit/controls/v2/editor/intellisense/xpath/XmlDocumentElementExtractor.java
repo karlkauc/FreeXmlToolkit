@@ -362,6 +362,27 @@ public class XmlDocumentElementExtractor {
     }
 
     /**
+     * Replaces this extractor's names with those of {@code other} (an extractor filled on a background
+     * thread), so readers on the FX thread never see a half-filled one.
+     */
+    public void adoptFrom(XmlDocumentElementExtractor other) {
+        clear();
+        elementNames.addAll(other.elementNames);
+        attributeNames.addAll(other.attributeNames);
+        other.elementAttributes.forEach((k, v) -> elementAttributes.put(k, new LinkedHashSet<>(v)));
+        other.elementChildren.forEach((k, v) -> elementChildren.put(k, new LinkedHashSet<>(v)));
+        namespaces.putAll(other.namespaces);
+        rootElement = other.rootElement;
+        lastXmlHash = other.lastXmlHash;
+        cacheValid = other.cacheValid;
+    }
+
+    /** @return the hash of the XML the current names were extracted from, or null */
+    public String getExtractedHash() {
+        return cacheValid ? lastXmlHash : null;
+    }
+
+    /**
      * Invalidates the cache, forcing re-extraction on next call.
      */
     public void invalidateCache() {

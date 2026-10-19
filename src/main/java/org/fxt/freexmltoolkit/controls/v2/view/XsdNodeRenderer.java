@@ -976,6 +976,12 @@ public class XsdNodeRenderer {
 
             // Setup PropertyChangeListener for model updates (only for XsdNode objects)
             this.modelListener = evt -> {
+                // A descendant's change says nothing about this node's own label; structural changes
+                // rebuild the tree anyway (XsdGraphView). Reacting here made every edit refresh all
+                // ancestors of the edited node, in every copy of them.
+                if ("descendantChanged".equals(evt.getPropertyName())) {
+                    return;
+                }
                 // Auto-update this VisualNode from model when model changes
                 // Use Platform.runLater to ensure UI updates happen on JavaFX Application Thread
                 javafx.application.Platform.runLater(() -> {
@@ -1993,6 +1999,24 @@ public class XsdNodeRenderer {
 
         public void setDropTarget(boolean dropTarget) {
             this.dropTarget = dropTarget;
+        }
+
+        /**
+         * Detaches this node and its subtree from the model. The graph view calls it before it
+         * replaces the visual tree: the listeners otherwise stayed registered on the model nodes,
+         * so every rebuild added another full set and every later edit notified all of them.
+         */
+        public void dispose() {
+            java.util.ArrayDeque<VisualNode> pending = new java.util.ArrayDeque<>();
+            pending.push(this);
+            while (!pending.isEmpty()) {
+                VisualNode node = pending.pop();
+                if (node.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+                    xsdNode.removePropertyChangeListener(node.modelListener);
+                }
+                node.onModelChangeCallback = null;
+                node.children.forEach(pending::push);
+            }
         }
 
         /**

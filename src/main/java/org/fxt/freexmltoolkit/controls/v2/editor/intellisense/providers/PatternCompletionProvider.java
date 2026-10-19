@@ -41,10 +41,22 @@ public class PatternCompletionProvider implements CompletionProvider {
     // Pattern to extract attribute names: attribute="value"
     private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile("\\s+([a-zA-Z_][\\w:.-]*)\\s*=");
 
-    // Cache for parsed patterns
-    private String cachedText = null;
+    // Cache for parsed patterns: the names of one text revision (written on the FX thread)
+    private long cachedRevision = -1;
     private Map<String, Integer> cachedElements = null;
     private Map<String, Integer> cachedAttributes = null;
+    /** Counts text edits (FX thread), so a stale cache is detected without comparing whole texts. */
+    private long textRevision;
+    /** Revision a background re-parse is running for (-1 = none). */
+    private long refreshingRevision = -1;
+
+    /** Re-parses the names off the FX thread; one daemon thread shared by all editors. */
+    private static final java.util.concurrent.ExecutorService PARSER =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "PatternCompletions");
+                t.setDaemon(true);
+                return t;
+            });
 
     /**
      * Creates a pattern completion provider.
@@ -53,6 +65,9 @@ public class PatternCompletionProvider implements CompletionProvider {
      */
     public PatternCompletionProvider(EditorContext editorContext) {
         this.editorContext = Objects.requireNonNull(editorContext, "EditorContext cannot be null");
+        if (editorContext.getCodeArea() != null) {
+            editorContext.getCodeArea().plainTextChanges().subscribe(change -> textRevision++);
+        }
     }
 
     @Override
@@ -67,16 +82,18 @@ public class PatternCompletionProvider implements CompletionProvider {
     public List<CompletionItem> getCompletions(XmlContext context) {
         List<CompletionItem> items = new ArrayList<>();
 
-        // Get the full document text to analyze
-        String documentText = getDocumentText(context);
-        if (documentText == null || documentText.isEmpty()) {
-            return items;
-        }
-
-        // Parse patterns if needed
-        if (!documentText.equals(cachedText)) {
+        if (cachedElements == null) {
+            // First use: parse now, there is nothing to show yet
+            String documentText = getDocumentText(context);
+            if (documentText == null || documentText.isEmpty()) {
+                return items;
+            }
             parsePatterns(documentText);
-            cachedText = documentText;
+            cachedRevision = textRevision;
+        } else if (cachedRevision != textRevision) {
+            // The document changed: offer the names seen so far now and refresh them off the FX thread
+            // (two regex passes over the whole document cost tens of ms per typed '<' on large files)
+            refreshInBackground();
         }
 
         // Provide completions based on context type
@@ -98,12 +115,42 @@ public class PatternCompletionProvider implements CompletionProvider {
         return editorContext.getText();
     }
 
+    private void refreshInBackground() {
+        long revision = textRevision;
+        if (refreshingRevision == revision) {
+            return;
+        }
+        refreshingRevision = revision;
+        String text = editorContext.getText();
+        PARSER.execute(() -> {
+            Map<String, Integer> elements = new HashMap<>();
+            Map<String, Integer> attributes = new HashMap<>();
+            collectPatterns(text, elements, attributes);
+            javafx.application.Platform.runLater(() -> {
+                if (refreshingRevision == revision) {
+                    refreshingRevision = -1;
+                }
+                cachedElements = elements;
+                cachedAttributes = attributes;
+                cachedRevision = revision;
+            });
+        });
+    }
+
     /**
      * Parses patterns from document text.
      */
     private void parsePatterns(String text) {
         cachedElements = new HashMap<>();
         cachedAttributes = new HashMap<>();
+        collectPatterns(text, cachedElements, cachedAttributes);
+    }
+
+    private static void collectPatterns(String text, Map<String, Integer> cachedElements,
+                                        Map<String, Integer> cachedAttributes) {
+        if (text == null) {
+            return;
+        }
 
         // Extract element names
         Matcher elementMatcher = ELEMENT_PATTERN.matcher(text);
@@ -206,7 +253,7 @@ public class PatternCompletionProvider implements CompletionProvider {
      * Call this when document changes significantly.
      */
     public void invalidateCache() {
-        cachedText = null;
+        cachedRevision = -1;
         cachedElements = null;
         cachedAttributes = null;
         logger.debug("Pattern cache invalidated");

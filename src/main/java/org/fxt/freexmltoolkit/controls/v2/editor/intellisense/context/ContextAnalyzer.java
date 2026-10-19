@@ -180,21 +180,35 @@ public class ContextAnalyzer {
                 break;
             }
 
-            String tag = fullText.substring(nextOpen + 1, nextClose);
+            // Read the tag in place: a substring per tag allocated a string for every tag of the
+            // document up to the caret (hundreds of thousands on multi-MB files, per hover/completion).
+            int tagStart = nextOpen + 1;
 
             // Skip comments, CDATA, processing instructions
-            if (tag.startsWith("!--") || tag.startsWith("![CDATA[") || tag.startsWith("?")) {
+            if (startsWithin(fullText, tagStart, nextClose, "!--")
+                    || startsWithin(fullText, tagStart, nextClose, "![CDATA[")
+                    || startsWithin(fullText, tagStart, nextClose, "?")) {
                 pos = nextClose + 1;
                 continue;
             }
 
-            if (tag.startsWith("/")) {
-                String elementName = tag.substring(1).trim();
-                if (!elementStack.isEmpty() && elementStack.peek().equals(elementName)) {
-                    elementStack.pop();
+            if (startsWithin(fullText, tagStart, nextClose, "/")) {
+                int nameStart = tagStart + 1;
+                int nameEnd = nextClose;
+                while (nameStart < nameEnd && fullText.charAt(nameStart) <= ' ') {
+                    nameStart++; // trim(), as before
                 }
-            } else if (!tag.endsWith("/")) {
-                String elementName = extractElementName(tag);
+                while (nameEnd > nameStart && fullText.charAt(nameEnd - 1) <= ' ') {
+                    nameEnd--;
+                }
+                if (!elementStack.isEmpty()) {
+                    String top = elementStack.peek();
+                    if (top.length() == nameEnd - nameStart && fullText.startsWith(top, nameStart)) {
+                        elementStack.pop();
+                    }
+                }
+            } else if (!(nextClose > tagStart && fullText.charAt(nextClose - 1) == '/')) {
+                String elementName = extractElementName(fullText, tagStart, nextClose);
                 if (elementName != null) {
                     elementStack.push(elementName);
                 }
@@ -210,12 +224,22 @@ public class ContextAnalyzer {
      * Extracts the (possibly prefixed) element name from a tag string.
      */
     private static String extractElementName(String tag) {
+        return extractElementName(tag, 0, tag.length());
+    }
+
+    /** {@link #extractElementName(String)} for the tag {@code text[start, end)}, without copying it first. */
+    private static String extractElementName(String text, int start, int end) {
         // Extract name before whitespace or end of string
-        int end = 0;
-        while (end < tag.length() && !Character.isWhitespace(tag.charAt(end))) {
-            end++;
+        int nameEnd = start;
+        while (nameEnd < end && !Character.isWhitespace(text.charAt(nameEnd))) {
+            nameEnd++;
         }
-        return tag.substring(0, end).trim();
+        return text.substring(start, nameEnd).trim();
+    }
+
+    /** {@code text.substring(start, end).startsWith(prefix)} without the copy. */
+    private static boolean startsWithin(String text, int start, int end, String prefix) {
+        return end - start >= prefix.length() && text.startsWith(prefix, start);
     }
 
     /**

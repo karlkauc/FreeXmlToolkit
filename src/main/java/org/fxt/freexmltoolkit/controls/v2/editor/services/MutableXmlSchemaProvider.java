@@ -180,6 +180,40 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
         return xsdFile != null ? xsdFile.getAbsolutePath() : null;
     }
 
+    /** Keys of an element map by their last path segment, for {@link #findBestMatchingElement}. */
+    private record KeyIndex(XsdDocumentationData data, java.util.Map<String, java.util.List<String>> byLocalName) {
+    }
+
+    private volatile KeyIndex localNameIndex;
+
+    /** @return the keys of {@code data}'s element map grouped by last segment, in the map's iteration order */
+    private java.util.Map<String, java.util.List<String>> keysByLocalName(XsdDocumentationData data) {
+        KeyIndex index = localNameIndex;
+        if (index == null || index.data() != data) {
+            java.util.Map<String, java.util.List<String>> byLocalName = new java.util.HashMap<>();
+            for (String key : data.getExtendedXsdElementMap().keySet()) {
+                String last = key.substring(key.lastIndexOf('/') + 1);
+                byLocalName.computeIfAbsent(last, k -> new java.util.ArrayList<>()).add(key);
+            }
+            index = new KeyIndex(data, byLocalName);
+            localNameIndex = index;
+        }
+        return index.byLocalName();
+    }
+
+    /** {@code segment.replaceAll("\\[.*\\]", "")}: drops everything from the first '[' to the last ']'. */
+    private static String withoutPredicate(String segment) {
+        int open = segment.indexOf('[');
+        int close = segment.lastIndexOf(']');
+        if (open < 0 || close < open) {
+            return segment;
+        }
+        if (segment.indexOf('\n') >= 0 || segment.indexOf('\r') >= 0) {
+            return segment.replaceAll("\\[.*\\]", ""); // '.' stops at line breaks: keep the regex semantics
+        }
+        return segment.substring(0, open) + segment.substring(close + 1);
+    }
+
     @Override
     public XsdExtendedElement findBestMatchingElement(String xpath) {
         // Snapshot the volatile once: a concurrent re-load may swap the data object,
@@ -203,7 +237,7 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
         String[] inputSegments = xpath.split("/");
         java.util.List<String> cleanSegments = new java.util.ArrayList<>();
         for (String seg : inputSegments) {
-            String cleaned = seg.replaceAll("\\[.*\\]", "").trim(); // Remove predicates
+            String cleaned = withoutPredicate(seg).trim();     // Remove predicates
             int colon = cleaned.lastIndexOf(':');                 // Map keys use local names
             if (colon >= 0) {
                 cleaned = cleaned.substring(colon + 1);
@@ -220,14 +254,11 @@ public class MutableXmlSchemaProvider implements XmlSchemaProvider {
         // Get the target element name (last segment)
         String targetElement = cleanSegments.get(cleanSegments.size() - 1);
 
-        // Find all keys that end with the target element name
-        // XSD paths include compositor elements like SEQUENCE_X, CHOICE_X which we need to ignore
-        java.util.List<String> matchingKeys = new java.util.ArrayList<>();
-        for (String key : elementMap.keySet()) {
-            if (key.endsWith("/" + targetElement) || key.equals(targetElement)) {
-                matchingKeys.add(key);
-            }
-        }
+        // All keys that end with the target element name, from an index built once per loaded schema:
+        // scanning every key (tens of thousands for large schemas) ran on each hover, completion and
+        // inspector refresh. XSD paths include compositor elements like SEQUENCE_X, CHOICE_X which we
+        // need to ignore.
+        java.util.List<String> matchingKeys = keysByLocalName(data).getOrDefault(targetElement, java.util.List.of());
 
         if (matchingKeys.isEmpty()) {
             logger.debug("No matching keys found for element: {}", targetElement);

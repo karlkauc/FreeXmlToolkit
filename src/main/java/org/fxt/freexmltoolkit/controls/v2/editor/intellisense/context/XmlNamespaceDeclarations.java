@@ -37,16 +37,51 @@ public final class XmlNamespaceDeclarations {
         if (text == null || text.isEmpty()) {
             return new XmlNamespaceDeclarations(map);
         }
-        String cleaned = text.replaceAll("<!--[\\s\\S]*?(?:-->|$)", " ")
-                .replaceAll("<!\\[CDATA\\[[\\s\\S]*?(?:]]>|$)", " ")
-                .replaceAll("<\\?[\\s\\S]*?(?:\\?>|$)", " ");
-        Matcher m = XMLNS.matcher(cleaned);
-        while (m.find()) {
-            String prefix = m.group(1) == null ? "" : m.group(1);
-            String uri = m.group(2) != null ? m.group(2) : m.group(3);
-            map.put(prefix, uri);
+        // One pass over the text, matching only between comments/CDATA/PIs (an unterminated one runs to
+        // the end). The former three replaceAll passes plus a regex over the cleaned copy ran on the
+        // whole text before the caret for every completion.
+        Matcher m = XMLNS.matcher(text);
+        int i = 0;
+        int n = text.length();
+        while (i < n) {
+            int construct = nextNonMarkup(text, i);
+            m.region(i, construct < 0 ? n : construct);
+            while (m.find()) {
+                String prefix = m.group(1) == null ? "" : m.group(1);
+                String uri = m.group(2) != null ? m.group(2) : m.group(3);
+                map.put(prefix, uri);
+            }
+            if (construct < 0) {
+                break;
+            }
+            i = endOfNonMarkup(text, construct);
         }
         return new XmlNamespaceDeclarations(map);
+    }
+
+    /** @return the start of the next comment, CDATA section or processing instruction at or after {@code from}, or -1 */
+    private static int nextNonMarkup(String text, int from) {
+        int lt = text.indexOf('<', from);
+        while (lt >= 0) {
+            if (text.startsWith("<!--", lt) || text.startsWith("<![CDATA[", lt) || text.startsWith("<?", lt)) {
+                return lt;
+            }
+            lt = text.indexOf('<', lt + 1);
+        }
+        return -1;
+    }
+
+    /** @return the index after the construct starting at {@code start}, or the text length if unterminated */
+    private static int endOfNonMarkup(String text, int start) {
+        String opener = text.startsWith("<!--", start) ? "<!--" : text.startsWith("<![CDATA[", start) ? "<![CDATA[" : "<?";
+        String closer = "<!--".equals(opener) ? "-->" : "<?".equals(opener) ? "?>" : "]]>";
+        int close = text.indexOf(closer, start + opener.length());
+        return close < 0 ? text.length() : close + closer.length();
+    }
+
+    /** Test seam: prefix → URI as scanned (the default namespace under the empty string). */
+    Map<String, String> bindings() {
+        return java.util.Collections.unmodifiableMap(prefixToUri);
     }
 
     /**

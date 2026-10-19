@@ -55,6 +55,8 @@ public class SimpleTypesListView extends BorderPane {
     private static final Logger logger = LogManager.getLogger(SimpleTypesListView.class);
 
     private final XsdSchema schema;
+    /** Usage counts for one {@link #loadDataFromSchema()} pass (see there). */
+    private TypeUsageFinder usageFinder;
 
     // Callbacks for actions
     private Consumer<XsdSimpleType> onEditType;
@@ -474,6 +476,9 @@ public class SimpleTypesListView extends BorderPane {
      */
     private void loadDataFromSchema() {
         allData = FXCollections.observableArrayList();
+        // One reference graph for the whole list: a fresh finder per type rebuilt the graph for every
+        // simple type (seconds for large schemas when the tab opened or refreshed).
+        usageFinder = TypeUsageFinder.snapshot(schema);
 
         // Find all SimpleTypes in schema
         for (XsdNode child : schema.getChildren()) {
@@ -568,7 +573,7 @@ public class SimpleTypesListView extends BorderPane {
         if (simpleType == null || simpleType.getName() == null) {
             return 0;
         }
-        TypeUsageFinder finder = new TypeUsageFinder(schema);
+        TypeUsageFinder finder = usageFinder != null ? usageFinder : new TypeUsageFinder(schema);
         return finder.countUsages(simpleType.getName());
     }
 

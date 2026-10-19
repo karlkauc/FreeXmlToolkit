@@ -211,10 +211,17 @@ public class JsonCodeEditor extends VBox {
         codeArea.multiPlainChanges()
                 .successionEnds(Duration.ofMillis(100))
                 .subscribe(ignore -> {
-                    String text = codeArea.getText();
-                    Platform.runLater(() -> applySyntaxHighlighting(text));
+                    requestHighlighting();
                     dirty = true;
                 });
+
+        // In viewport mode, re-highlight the newly visible region when the user scrolls.
+        codeArea.estimatedScrollYProperty().addListener((obs, oldV, newV) -> {
+            if (codeArea.getLength() > VIEWPORT_THRESHOLD) {
+                viewportDebounce.playFromStart();
+            }
+        });
+        viewportDebounce.setOnFinished(e -> highlightVisibleRegion());
 
         // Caret position listener for status line
         codeArea.caretPositionProperty().addListener((obs, oldPos, newPos) -> {
@@ -271,7 +278,7 @@ public class JsonCodeEditor extends VBox {
                 var hitInfo = codeArea.hit(event.getX(), event.getY());
                 int charIndex = hitInfo.getCharacterIndex().orElse(-1);
 
-                if (charIndex >= 0 && charIndex < codeArea.getText().length()) {
+                if (charIndex >= 0 && charIndex < codeArea.getLength()) {
                     String text = codeArea.getText();
                     JsonPathCalculator.JsonHoverInfo hoverInfo = JsonPathCalculator.calculatePath(text, charIndex);
 
@@ -402,27 +409,92 @@ public class JsonCodeEditor extends VBox {
         this.onFileDropped = callback;
     }
 
+    /** Above this size only the visible paragraphs are highlighted (like the XML editor). */
+    private static final int VIEWPORT_THRESHOLD = 2 * 1024 * 1024;
+    private static final int VIEWPORT_BUFFER_PARAGRAPHS = 80;
+    private final javafx.animation.PauseTransition viewportDebounce =
+            new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
+    /** Bumped per highlight request (FX thread); a result for an older request is dropped. */
+    private long highlightRequest;
+
+    /** Highlights spans off the FX thread; one daemon thread shared by all JSON editors. */
+    private static final java.util.concurrent.ExecutorService HIGHLIGHTER =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "JsonHighlighter");
+                t.setDaemon(true);
+                return t;
+            });
+
     /**
-     * Applies syntax highlighting to the code area.
+     * Highlights the current text without blocking the FX thread: the spans (and the format) are
+     * computed on a background thread and applied if the text did not change meanwhile. Above
+     * {@link #VIEWPORT_THRESHOLD} only the visible paragraphs are styled: applying spans to a multi-MB
+     * document took hundreds of ms per typing pause. FX thread.
      */
-    private void applySyntaxHighlighting(String text) {
-        if (text == null || text.isEmpty()) {
+    private void requestHighlighting() {
+        if (codeArea.getLength() == 0) {
             return;
         }
-
-        try {
-            // Minified JSON: lines with thousands of spans freeze the editor's line layout.
-            StyleSpans<Collection<String>> highlighting = org.fxt.freexmltoolkit.controls.shared.DenseLineGuard
-                    .flattenDenseLines(text, JsonSyntaxHighlighter.computeHighlighting(text));
-            codeArea.setStyleSpans(0, highlighting);
-
-            // Detect format
-            detectedFormat = JsonSyntaxHighlighter.detectFormat(text);
-
-            logger.trace("Syntax highlighting applied, detected format: {}", detectedFormat);
-        } catch (Exception e) {
-            logger.error("Error applying syntax highlighting: {}", e.getMessage(), e);
+        if (codeArea.getLength() > VIEWPORT_THRESHOLD) {
+            highlightVisibleRegion();
+            return;
         }
+        long request = ++highlightRequest;
+        String text = codeArea.getText();
+        HIGHLIGHTER.execute(() -> {
+            StyleSpans<Collection<String>> highlighting;
+            String format;
+            try {
+                highlighting = computeHighlighting(text);
+                format = JsonSyntaxHighlighter.detectFormat(text);
+            } catch (RuntimeException e) {
+                logger.error("Error computing syntax highlighting: {}", e.getMessage(), e);
+                return;
+            }
+            Platform.runLater(() -> {
+                if (request != highlightRequest || codeArea.getLength() != text.length()) {
+                    return; // edited meanwhile: a newer request follows
+                }
+                try {
+                    codeArea.setStyleSpans(0, highlighting);
+                    detectedFormat = format;
+                    updateStatusBar();
+                } catch (Exception e) {
+                    logger.debug("Error applying syntax highlighting: {}", e.getMessage());
+                }
+            });
+        });
+    }
+
+    /** Highlights only the visible paragraphs (plus a buffer); viewport mode for very large documents. */
+    private void highlightVisibleRegion() {
+        try {
+            int paragraphs = codeArea.getParagraphs().size();
+            if (paragraphs == 0) {
+                return;
+            }
+            int first = 0;
+            int last = Math.min(paragraphs - 1, VIEWPORT_BUFFER_PARAGRAPHS * 2);
+            try {
+                first = Math.max(0, codeArea.firstVisibleParToAllParIndex() - VIEWPORT_BUFFER_PARAGRAPHS);
+                last = Math.min(paragraphs - 1, codeArea.lastVisibleParToAllParIndex() + VIEWPORT_BUFFER_PARAGRAPHS);
+            } catch (Exception notLaidOut) {
+                // viewport not laid out yet: highlight the top chunk
+            }
+            int start = codeArea.getAbsolutePosition(first, 0);
+            int end = codeArea.getAbsolutePosition(last, codeArea.getParagraphLength(last));
+            if (end > start) {
+                codeArea.setStyleSpans(start, computeHighlighting(codeArea.getText(start, end)));
+            }
+        } catch (Exception e) {
+            logger.debug("Viewport highlighting failed: {}", e.getMessage());
+        }
+    }
+
+    private static StyleSpans<Collection<String>> computeHighlighting(String text) {
+        // Minified JSON: lines with thousands of spans freeze the editor's line layout.
+        return org.fxt.freexmltoolkit.controls.shared.DenseLineGuard
+                .flattenDenseLines(text, JsonSyntaxHighlighter.computeHighlighting(text));
     }
 
     /**
@@ -432,7 +504,7 @@ public class JsonCodeEditor extends VBox {
         int line = codeArea.getCurrentParagraph() + 1;
         int column = codeArea.getCaretColumn() + 1;
         int totalLines = codeArea.getParagraphs().size();
-        int totalChars = codeArea.getText().length();
+        int totalChars = codeArea.getLength();
 
         String status = String.format("Line %d, Col %d | Lines: %d | Chars: %d | Format: %s",
                 line, column, totalLines, totalChars, detectedFormat.toUpperCase());
@@ -453,7 +525,7 @@ public class JsonCodeEditor extends VBox {
         codeArea.requestFollowCaret();
         if (text != null && !text.isEmpty()) {
             Platform.runLater(() -> {
-                applySyntaxHighlighting(text);
+                requestHighlighting();
                 updateStatusBar();
             });
         }
@@ -527,9 +599,8 @@ public class JsonCodeEditor extends VBox {
      * Refreshes syntax highlighting.
      */
     public void refreshHighlighting() {
-        String currentText = codeArea.getText();
-        if (currentText != null && !currentText.isEmpty()) {
-            Platform.runLater(() -> applySyntaxHighlighting(currentText));
+        if (codeArea.getLength() > 0) {
+            Platform.runLater(this::requestHighlighting);
         }
     }
 

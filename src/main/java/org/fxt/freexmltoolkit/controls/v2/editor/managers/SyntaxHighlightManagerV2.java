@@ -47,7 +47,7 @@ public class SyntaxHighlightManagerV2 {
 
     // Debouncing: pending scheduled task (cancelled on new input)
     private Future<?> pendingHighlight;
-    private boolean highlightingDisabled = false;
+    private volatile boolean highlightingDisabled = false;
     // Viewport mode: for very large files only the visible region is highlighted (kept fast).
     private volatile boolean viewportMode = false;
 
@@ -150,6 +150,72 @@ public class SyntaxHighlightManagerV2 {
                 effectiveDebounce,
                 TimeUnit.MILLISECONDS
         );
+    }
+
+    /**
+     * Debounced highlighting for typing: unlike {@link #applySyntaxHighlighting(String)} it takes no text,
+     * so a keystroke costs O(1) on the FX thread. The size thresholds use {@link CodeArea#getLength()};
+     * the text is read once when the debounce fires, and the long-line check and the spans run on the
+     * highlighter thread. A result whose text was edited meanwhile is dropped (a newer request follows).
+     * Call on the FX thread.
+     */
+    public void requestHighlighting() {
+        int length = codeArea.getLength();
+        if (length == 0) {
+            return;
+        }
+        if (length > VERY_LARGE_FILE_THRESHOLD) {
+            viewportMode = true;
+            scheduleViewportHighlight();
+            return;
+        }
+        if (pendingHighlight != null && !pendingHighlight.isDone()) {
+            pendingHighlight.cancel(false);
+        }
+        long effectiveDebounce = length > LARGE_FILE_THRESHOLD ? LARGE_FILE_DEBOUNCE_MS : debounceMillis;
+        long requested = ++highlightRequest;
+        pendingHighlight = scheduler.schedule(() -> Platform.runLater(() -> {
+            if (requested != highlightRequest) {
+                return; // a newer request is scheduled
+            }
+            String text = codeArea.getText();
+            scheduler.execute(() -> highlightInBackground(text, requested));
+        }), effectiveDebounce, TimeUnit.MILLISECONDS);
+    }
+
+    /** Bumped on the FX thread by every {@link #requestHighlighting()}; read there to drop stale results. */
+    private long highlightRequest;
+
+    private void highlightInBackground(String text, long requested) {
+        if (hasExtremelyLongLine(text)) {
+            if (!highlightingDisabled) {
+                highlightingDisabled = true;
+                logger.info("Syntax highlighting disabled - line exceeds {}KB", MAX_HIGHLIGHTABLE_LINE_LENGTH / 1024);
+            }
+            viewportMode = false;
+            return;
+        }
+        highlightingDisabled = false;
+        viewportMode = false;
+        try {
+            StyleSpans<Collection<String>> highlighting = computeHighlighting(text);
+            Platform.runLater(() -> {
+                if (requested != highlightRequest || codeArea.getLength() != text.length()) {
+                    return; // edited meanwhile: the newer request re-highlights
+                }
+                try {
+                    if (styleManager != null) {
+                        styleManager.setSyntaxStyles(highlighting);
+                    } else {
+                        codeArea.setStyleSpans(0, highlighting);
+                    }
+                } catch (Exception e) {
+                    logger.debug("Error applying syntax highlighting: {}", e.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            logger.error("Error computing syntax highlighting", e);
+        }
     }
 
     /** Schedules a debounced re-highlight of the visible region (viewport mode). */

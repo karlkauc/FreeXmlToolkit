@@ -177,12 +177,16 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         for (FlatRow row : rows) {
             if (row.getType() == FlatRow.RowType.JSON_ARRAY
                     && row.getModelNode() instanceof JsonArray array && isObjectTable(array)) {
-                List<JsonGridRecord> records = new ArrayList<>();
-                for (JsonNode item : array.getChildren()) {
-                    records.add(new JsonGridRecord((JsonObject) item));
-                }
-                row.setRepeatingTable(RepeatingElementsTable.ofRecords(
-                        row.getLabel(), records, row.getDepth(), onLayoutChanged));
+                String label = row.getLabel();
+                int depth = row.getDepth();
+                // Built when the array is first expanded or drawn (FlatRow#setRepeatingTableFactory)
+                row.setRepeatingTableFactory(() -> {
+                    List<JsonGridRecord> records = new ArrayList<>();
+                    for (JsonNode item : array.getChildren()) {
+                        records.add(new JsonGridRecord((JsonObject) item));
+                    }
+                    return RepeatingElementsTable.ofRecords(label, records, depth, onLayoutChanged);
+                });
             }
         }
     }

@@ -80,9 +80,11 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
             }
 
             if (sameNameSiblings.size() >= 2) {
-                RepeatingElementsTable table = new RepeatingElementsTable(
-                        row.getLabel(), sameNameSiblings, row.getDepth(), onLayoutChanged);
-                row.setRepeatingTable(table);
+                // Built when the group is first expanded or drawn (FlatRow#setRepeatingTableFactory)
+                String label = row.getLabel();
+                int depth = row.getDepth();
+                row.setRepeatingTableFactory(
+                        () -> new RepeatingElementsTable(label, sameNameSiblings, depth, onLayoutChanged));
             }
         }
     }

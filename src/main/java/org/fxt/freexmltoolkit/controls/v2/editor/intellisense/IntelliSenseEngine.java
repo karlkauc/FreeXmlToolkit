@@ -199,10 +199,10 @@ public class IntelliSenseEngine {
         String text = editorContext.getText();
         int caretPos = editorContext.getCaretPosition();
 
-        // Quick check if we're inside a tag
-        String textBeforeCaret = text.substring(0, caretPos);
-        int lastOpen = textBeforeCaret.lastIndexOf('<');
-        int lastClose = textBeforeCaret.lastIndexOf('>');
+        // Quick check if we're inside a tag (searching backwards from the caret, without copying the prefix)
+        int from = Math.min(caretPos, text.length()) - 1;
+        int lastOpen = text.lastIndexOf('<', from);
+        int lastClose = text.lastIndexOf('>', from);
 
         if (lastOpen > lastClose) {
             showCompletions();

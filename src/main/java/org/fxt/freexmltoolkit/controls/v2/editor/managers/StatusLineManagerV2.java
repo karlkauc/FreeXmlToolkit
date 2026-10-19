@@ -189,9 +189,8 @@ public class StatusLineManagerV2 {
         });
 
         // Listen to text changes for character count
-        codeArea.textProperty().addListener((obs, oldText, newText) -> {
-            updateCharCount();
-        });
+        // length only: a textProperty listener would build the whole text on every keystroke
+        codeArea.lengthProperty().addListener((obs, oldLength, newLength) -> updateCharCount());
 
         // Listen to dirty state changes
         editorContext.addPropertyChangeListener("dirty", evt -> {
@@ -231,7 +230,7 @@ public class StatusLineManagerV2 {
      * Updates the character count display.
      */
     private void updateCharCount() {
-        int charCount = codeArea.getText().length();
+        int charCount = codeArea.getLength();
 
         Platform.runLater(() -> {
             charCountLabel.setText(String.format("%,d chars", charCount));
