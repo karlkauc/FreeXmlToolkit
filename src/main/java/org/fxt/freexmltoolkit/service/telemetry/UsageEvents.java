@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -72,6 +73,31 @@ public final class UsageEvents {
     // ------------------------------------------------------------------ files / navigation
 
     /**
+     * Number of elements of an XML-family document for {@code element_count}: a linear scan
+     * of the text ({@link ElementCounter}), so call it off the FX thread. Skipped (-1) for
+     * JSON and other non-XML kinds, unknown kinds and while telemetry is inactive.
+     *
+     * @param kind    the document kind (nullable)
+     * @param content the document text (nullable)
+     * @return the element count, or {@code -1} when not counted
+     */
+    public static int elementCount(DocKind kind, CharSequence content) {
+        if (content == null || !countsElements(kind)) {
+            return -1;
+        }
+        try {
+            return Telemetry.get().isActive() ? ElementCounter.countStartTags(content) : -1;
+        } catch (Throwable t) {
+            return -1;
+        }
+    }
+
+    /** @return whether {@link #elementCount} counts documents of this kind (the XML family) */
+    public static boolean countsElements(DocKind kind) {
+        return kind == DocKind.XML || kind == DocKind.XSD || kind == DocKind.XSLT || kind == DocKind.SCHEMATRON;
+    }
+
+    /**
      * A document was opened. Generated documents (reports, generated XSD/samples) only
      * reach telemetry, not the local "files opened" counter.
      *
@@ -90,11 +116,24 @@ public final class UsageEvents {
      *                   the document is shown and editable ({@code 0} = not measured)
      */
     public static void fileOpened(DocKind kind, long inputBytes, String source, long startNanos) {
+        fileOpened(kind, inputBytes, source, startNanos, -1);
+    }
+
+    /**
+     * A document was opened.
+     *
+     * @param elementCount number of elements (see {@link #elementCount}), negative = unknown
+     */
+    public static void fileOpened(DocKind kind, long inputBytes, String source, long startNanos,
+                                  int elementCount) {
         sessionFilesOpened.incrementAndGet();
         action("file_open", b -> {
             b.docKind(kind).meta("source", source);
             if (inputBytes >= 0) {
                 b.inputBytes(inputBytes);
+            }
+            if (elementCount >= 0) {
+                b.elementCount(elementCount);
             }
             duration(b, startNanos);
         });
@@ -228,6 +267,25 @@ public final class UsageEvents {
      */
     public static void validated(String schema, DocKind kind, long inputChars, int errorCount, long startNanos,
                                  boolean failed, boolean live) {
+        validated(schema, kind, inputChars, null, errorCount, startNanos, failed, live);
+    }
+
+    /**
+     * A single document was validated; size and {@code element_count} are taken from its
+     * text. Call it off the FX thread: the element count scans the text (only when the event
+     * is actually recorded, and only for the XML family).
+     *
+     * @param content the validated text (nullable: size and element count unknown)
+     */
+    public static void validated(String schema, DocKind kind, CharSequence content, int errorCount,
+                                 long startNanos, boolean failed, boolean live) {
+        validated(schema, kind, content != null ? content.length() : -1,
+                content != null ? () -> elementCount(kind, content) : null,
+                errorCount, startNanos, failed, live);
+    }
+
+    private static void validated(String schema, DocKind kind, long inputChars, IntSupplier elementCount,
+                                  int errorCount, long startNanos, boolean failed, boolean live) {
         if (live && !liveRunDue("validate")) {
             return;
         }
@@ -235,6 +293,10 @@ public final class UsageEvents {
             b.docKind(kind).errorCount(errorCount).status(status(!failed)).meta("schema", schema);
             if (inputChars >= 0) {
                 b.inputBytes(inputChars);
+            }
+            int elements = elementCount != null ? elementCount.getAsInt() : -1;
+            if (elements >= 0) {
+                b.elementCount(elements);
             }
             duration(b, startNanos);
             if (live) {

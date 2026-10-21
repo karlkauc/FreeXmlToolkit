@@ -417,7 +417,7 @@ public class ValidationPanel extends VBox {
                     : ValidationRunner.runWithReport(content, schema, schematron, documentName);
             List<ValidationProblem> result = runResult.problems();
             UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
-                    docKind, content.length(), result.size(), t0, false, live);
+                    docKind, content, result.size(), t0, false, live);
             probe.phase("XSD", runResult.xsdMillis());
             probe.phase("Schematron", runResult.schematronMillis());
             long elapsedMs = probe.finish(content.length(), -1, result.isEmpty(),

@@ -120,7 +120,7 @@ public final class EditorActions {
                     : ValidationRunner.run(content, schema, schematron);
             boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
             UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
-                    docKind, content.length(), result.size(), t0, false, false);
+                    docKind, content, result.size(), t0, false, false);
             Platform.runLater(() -> {
                 String summary = result.isEmpty()
                         ? (hasSchema ? "Valid" : WELL_FORMED_NO_SCHEMA)

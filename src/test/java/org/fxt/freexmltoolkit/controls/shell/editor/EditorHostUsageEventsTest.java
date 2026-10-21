@@ -63,6 +63,7 @@ class EditorHostUsageEventsTest {
         TelemetryEvent e = telemetry.events("file_open").get(0);
         assertEquals(DocKind.XSD, e.docKind());
         assertEquals(Files.size(xsd), e.inputBytes());
+        assertEquals(1, e.elementCount(), "element count from the worker thread");
         assertEquals("file", e.meta().get("source"));
         assertFalse(e.toJson().toString().contains("confidential"), "file names must never be sent");
     }

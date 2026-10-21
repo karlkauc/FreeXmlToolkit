@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.service.DragDropService;
+import org.fxt.freexmltoolkit.service.telemetry.DocKind;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
@@ -1733,9 +1734,27 @@ public class EditorHost extends BorderPane {
         tab.attachDirtyTracking();
         tab.document.setDirty(true);
         // character count as a cheap size proxy (no encoding on the FX thread)
-        UsageEvents.fileOpened(type != null ? type.docKind() : null,
-                content != null ? content.length() : -1, usageSource);
+        reportGeneratedOpen(type != null ? type.docKind() : null, content, usageSource);
         return tab.document;
+    }
+
+    /**
+     * Records {@code file_open} for a generated/downloaded document. The element count scans
+     * the text, so XML-family documents are reported from the worker pool, never on the FX
+     * thread; everything else (and a pool that no longer accepts work) is reported right away.
+     */
+    private static void reportGeneratedOpen(DocKind kind, String content, String usageSource) {
+        long chars = content != null ? content.length() : -1;
+        if (content != null && UsageEvents.countsElements(kind)) {
+            try {
+                org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> UsageEvents.fileOpened(
+                        kind, chars, usageSource, 0, UsageEvents.elementCount(kind, content)));
+                return;
+            } catch (java.util.concurrent.RejectedExecutionException e) {
+                // shutting down: report without the element count
+            }
+        }
+        UsageEvents.fileOpened(kind, chars, usageSource);
     }
 
     /** The lazily created transform OUTPUT dock below the editor tabs, see {@link TransformOutputPanel}. */
@@ -3275,6 +3294,8 @@ public class EditorHost extends BorderPane {
             }
 
             long fileSize = sizeOrUnknown(path); // here, not in the FX pulse below: a stat can stall
+            // Also here: a linear scan of the text (XML family only, -1 otherwise)
+            int elementCount = UsageEvents.elementCount(tab.document.getFileType().docKind(), content);
             // Show the document as soon as it has been read. Schema detection below can take
             // seconds - a remote xsi:schemaLocation (or a namespace the Schema Library resolves
             // remotely) is downloaded - and the editor must not sit empty for that long. The
@@ -3292,7 +3313,7 @@ public class EditorHost extends BorderPane {
                 tab.loading = false;
                 tab.attachDirtyTracking();
                 UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
-                        UsageEvents.SOURCE_FILE, openStart);
+                        UsageEvents.SOURCE_FILE, openStart, elementCount);
                 documentLoadedHandler.accept(tab.document, content);
                 Runnable after = tab.afterLoad;
                 tab.afterLoad = null;

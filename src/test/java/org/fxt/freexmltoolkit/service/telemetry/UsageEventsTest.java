@@ -92,6 +92,56 @@ class UsageEventsTest {
     }
 
     @Test
+    void fileOpenCarriesElementCountInThePayload() {
+        UsageEvents.fileOpened(DocKind.XML, 100, UsageEvents.SOURCE_FILE, 0,
+                UsageEvents.elementCount(DocKind.XML, "<?xml version=\"1.0\"?><r><a/><!-- <x/> --><b>t</b></r>"));
+        TelemetryEvent e = single("file_open");
+        assertEquals(3, e.elementCount());
+        assertEquals(3, e.toJson().get("element_count").getAsInt());
+    }
+
+    @Test
+    void unknownElementCountIsNotSent() {
+        UsageEvents.fileOpened(DocKind.XML, 100, UsageEvents.SOURCE_FILE, 0, -1);
+        TelemetryEvent e = single("file_open");
+        assertNull(e.elementCount());
+        assertFalse(e.toJson().has("element_count"));
+    }
+
+    @Test
+    void elementsAreOnlyCountedForTheXmlFamily() {
+        assertEquals(1, UsageEvents.elementCount(DocKind.XSD, "<xs:schema/>"));
+        assertEquals(-1, UsageEvents.elementCount(DocKind.JSON, "{\"a\": \"<b/>\"}"));
+        assertEquals(-1, UsageEvents.elementCount(DocKind.OTHER, "<b/>"));
+        assertEquals(-1, UsageEvents.elementCount(null, "<b/>"));
+        assertEquals(-1, UsageEvents.elementCount(DocKind.XML, null));
+    }
+
+    @Test
+    void elementsAreNotCountedWhileTelemetryIsInactive() {
+        Telemetry.reset();
+        assertEquals(-1, UsageEvents.elementCount(DocKind.XML, "<b/>"));
+    }
+
+    @Test
+    void validationOfTextCarriesSizeAndElementCount() {
+        String xml = "<root><a/><b/></root>";
+        UsageEvents.validated("xsd", DocKind.XML, xml, 0, 0, false, false);
+        TelemetryEvent e = single("validate");
+        assertEquals((long) xml.length(), e.inputBytes());
+        assertEquals(3, e.elementCount());
+        assertEquals(3, e.toJson().get("element_count").getAsInt());
+    }
+
+    @Test
+    void jsonValidationHasNoElementCount() {
+        UsageEvents.validated("json", DocKind.JSON, "{\"a\": 1}", 0, 0, false, false);
+        TelemetryEvent e = single("validate");
+        assertEquals(8L, e.inputBytes());
+        assertNull(e.elementCount());
+    }
+
+    @Test
     void failedSchemaBindingReportsTriedSourceAndReason() {
         UsageEvents.schemaBound(DocKind.XML, "declared", false, "unresolved", 0);
         TelemetryEvent e = single("schema_bind");
