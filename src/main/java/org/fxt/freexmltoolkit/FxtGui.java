@@ -299,6 +299,7 @@ public class FxtGui extends Application {
 
         SplashScreen splash = new SplashScreen();
         splash.show();
+        org.fxt.freexmltoolkit.service.telemetry.StartupPhases.markSplash();
         splash.updateProgress(LoadingStep.INITIALIZING);
 
         loadFontsAsync();
@@ -314,6 +315,7 @@ public class FxtGui extends Application {
 
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
                 Parent root = loader.load();
+                org.fxt.freexmltoolkit.service.telemetry.StartupPhases.markFxml();
                 org.fxt.freexmltoolkit.controller.UnifiedShellController shellController =
                         loader.getController();
 
@@ -368,6 +370,7 @@ public class FxtGui extends Application {
                 readyPause.play();
 
                 startUsageTracking();
+                org.fxt.freexmltoolkit.service.telemetry.StartupPhases.markReady();
                 Telemetry.get().trackAppStart(
                         org.fxt.freexmltoolkit.service.telemetry.LaunchContext.appStart(getPropertiesService()));
                 org.fxt.freexmltoolkit.service.telemetry.FxStallWatchdog.startForCurrentFxThread();
@@ -638,6 +641,7 @@ public class FxtGui extends Application {
      * @param args command line arguments
      */
     public static void main(String[] args) {
+        org.fxt.freexmltoolkit.service.telemetry.StartupPhases.markMain();
         // Enable hardware acceleration for JavaFX rendering
         configureHardwareAcceleration();
 

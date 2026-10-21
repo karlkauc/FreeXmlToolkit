@@ -38,7 +38,8 @@ public final class LaunchContext {
     }
 
     /**
-     * Customizer for the {@code app_start} event of this process.
+     * Customizer for the {@code app_start} event of this process: startup time, package kind,
+     * install source, settings snapshot and the startup phases ({@link StartupPhases}).
      *
      * @param props the settings (nullable: no snapshot then)
      */
@@ -46,6 +47,7 @@ public final class LaunchContext {
         long startupMs = startupMillis();
         String pkg = currentPackageKind();
         String source = currentInstallSource(props);
+        Consumer<TelemetryEvent.Builder> phases = StartupPhases.meta();
         return b -> {
             if (startupMs > 0) {
                 b.durationMs(startupMs);
@@ -53,6 +55,8 @@ public final class LaunchContext {
             b.meta("package", pkg);
             b.meta("install_source", source);
             settingsSnapshot(props).forEach(b::meta);
+            // phase_*_ms (see StartupPhases): main from JVM start, the rest from main entry
+            phases.accept(b);
         };
     }
 
