@@ -237,6 +237,9 @@ tasks {
             // developing, pass e.g. -Dprism.order=sw explicitly on the command line.
             "-Dprism.verbose=false"        // Reduce graphics logging
         )
+        // Dev runs report meta.channel=dev even when they carry a real version number
+        // (TelemetryServiceImpl.channel), so they never count as release usage.
+        systemProperty("fxt.telemetry.channel", "dev")
         // Dev runs (gradlew run / demos) never send telemetry; opt in explicitly with
         // `./gradlew run -Dfxt.telemetry.force=true` to test against the real endpoint.
         if (System.getProperty("fxt.telemetry.force") == "true") {

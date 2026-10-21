@@ -327,6 +327,11 @@ public record TelemetryEvent(
             return this;
         }
 
+        /** @return the meta value set for {@code key} so far, or null */
+        public Object metaValue(String key) {
+            return key == null ? null : meta.get(key);
+        }
+
         /** @return the event type this builder was created with */
         public String eventType() {
             return eventType;

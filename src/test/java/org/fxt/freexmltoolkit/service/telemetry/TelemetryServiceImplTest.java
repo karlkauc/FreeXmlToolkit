@@ -290,6 +290,41 @@ class TelemetryServiceImplTest {
         assertEquals("dev", TelemetryServiceImpl.channel("0.0.0-dev"));
         assertEquals("dev", TelemetryServiceImpl.channel("2.4.0-rc1"));
         assertEquals("dev", TelemetryServiceImpl.channel(null));
+
+        // IDE / gradlew run: real version, but no native launcher
+        assertEquals("dev", TelemetryServiceImpl.channel("2.5.1", LaunchContext.PACKAGE_NONE, null));
+        assertEquals("release", TelemetryServiceImpl.channel("2.5.1", LaunchContext.PACKAGE_INSTALLER, null));
+        assertEquals("release", TelemetryServiceImpl.channel("2.5.1", LaunchContext.PACKAGE_PORTABLE, null));
+        assertEquals("release", TelemetryServiceImpl.channel("2.5.1", null, null));
+        // -Dfxt.telemetry.channel=dev
+        assertEquals("dev", TelemetryServiceImpl.channel("2.5.1", LaunchContext.PACKAGE_INSTALLER, "dev"));
+        assertEquals("dev", TelemetryServiceImpl.channel("2.5.1", LaunchContext.PACKAGE_PORTABLE, " DEV "));
+        assertEquals("release", TelemetryServiceImpl.channel("2.5.1", LaunchContext.PACKAGE_INSTALLER, "release"));
+        assertEquals("release", TelemetryServiceImpl.channel("2.5.1", LaunchContext.PACKAGE_INSTALLER, ""));
+    }
+
+    @Test
+    void appStartWithoutNativeLauncherReportsDevChannel() {
+        service.trackAppStart(b -> b.meta("package", LaunchContext.PACKAGE_NONE));
+        TelemetryEvent e = queued().getFirst();
+        assertEquals("dev", e.meta().get("channel"));
+        assertEquals("channel", e.meta().keySet().iterator().next(), "channel stays the first meta key");
+    }
+
+    @Test
+    void appStartHonorsChannelProperty() {
+        String previous = System.getProperty(TelemetryServiceImpl.PROP_CHANNEL);
+        System.setProperty(TelemetryServiceImpl.PROP_CHANNEL, "dev");
+        try {
+            service.trackAppStart(b -> b.meta("package", LaunchContext.PACKAGE_INSTALLER));
+            assertEquals("dev", queued().getFirst().meta().get("channel"));
+        } finally {
+            if (previous == null) {
+                System.clearProperty(TelemetryServiceImpl.PROP_CHANNEL);
+            } else {
+                System.setProperty(TelemetryServiceImpl.PROP_CHANNEL, previous);
+            }
+        }
     }
 
     @Test

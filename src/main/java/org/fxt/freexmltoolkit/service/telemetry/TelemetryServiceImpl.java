@@ -59,6 +59,8 @@ public class TelemetryServiceImpl implements TelemetryService {
     public static final String PROP_FORCE = "fxt.telemetry.force";
     /** System property: endpoint override. */
     public static final String PROP_ENDPOINT = "fxt.telemetry.endpoint";
+    /** System property: channel override ({@code dev} marks IDE / {@code gradlew run} launches). */
+    public static final String PROP_CHANNEL = "fxt.telemetry.channel";
     /** Version reported by development builds (see {@link VersionUtil}). */
     static final String DEV_VERSION = "0.0.0-dev";
 
@@ -225,19 +227,23 @@ public class TelemetryServiceImpl implements TelemetryService {
         }
         boolean first = firstRun;
         Long days = daysSinceInstall();
-        String channel = channel(environment.appVersion());
+        String version = environment.appVersion();
+        String channelOverride = System.getProperty(PROP_CHANNEL);
         track("app_start", TelemetryEvent.Category.LIFECYCLE, b -> {
-            b.firstRun(first).meta("channel", channel);
+            // Provisional value first: keeps meta.channel at the front (the meta size limit drops trailing keys)
+            b.firstRun(first).meta("channel", channel(version, null, channelOverride));
             if (days != null) {
                 b.meta("days_since_install", days);
             }
             if (context != null) {
                 context.accept(b);
             }
+            // Final value: the launch context supplies meta.package, which decides the channel too
+            Object pkg = b.metaValue("package");
+            b.meta("channel", channel(version, pkg == null ? null : pkg.toString(), channelOverride));
         });
         SessionMarker marker = sessionMarker;
         if (marker != null) {
-            String version = environment.appVersion();
             runInBackground(() -> {
                 for (SessionMarker.DeadSession dead : marker.begin(sessionId, version)) {
                     track("prev_session_crashed", TelemetryEvent.Category.LIFECYCLE, b -> b
@@ -282,6 +288,26 @@ public class TelemetryServiceImpl implements TelemetryService {
      * only send with {@code -Dfxt.telemetry.force=true}) and pre-releases, else {@code release}.
      */
     static String channel(String appVersion) {
+        return channel(appVersion, null, null);
+    }
+
+    /**
+     * {@code meta.channel} of {@code app_start}: {@code dev} for development versions,
+     * pre-releases, launches without a native launcher ({@code package == none}: IDE,
+     * {@code gradlew run}, plain jar) and when {@code -Dfxt.telemetry.channel=dev} is set;
+     * else {@code release}.
+     *
+     * @param appVersion the app version
+     * @param packageKind {@code meta.package} ({@code LaunchContext.PACKAGE_*}, nullable: unknown)
+     * @param override    value of {@link #PROP_CHANNEL} (nullable)
+     */
+    static String channel(String appVersion, String packageKind, String override) {
+        if (override != null && "dev".equalsIgnoreCase(override.strip())) {
+            return "dev";
+        }
+        if (LaunchContext.PACKAGE_NONE.equals(packageKind)) {
+            return "dev";
+        }
         return appVersion == null || appVersion.isBlank() || DEV_VERSION.equals(appVersion)
                 || appVersion.contains("-") ? "dev" : "release";
     }
