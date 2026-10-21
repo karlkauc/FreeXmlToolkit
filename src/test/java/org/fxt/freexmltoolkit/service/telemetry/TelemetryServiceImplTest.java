@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
@@ -434,5 +435,89 @@ class TelemetryServiceImplTest {
         JsonObject o = JsonParser.parseString(service.previewPayload()).getAsJsonObject();
         assertEquals(service.getInstallId(), o.get("install_id").getAsString());
         assertTrue(o.getAsJsonArray("events").size() > 0);
+    }
+
+    // ------------------------------------------------------------------ M5: out-of-memory context
+
+    @Test
+    void outOfMemoryErrorsCarryHeapAndActiveDocumentContext() {
+        UsageEvents.resetSession();
+        try {
+            UsageEvents.activeDocumentChanged(DocKind.XSD, "text", null, () -> 9_000_000L);
+            service.trackError(new OutOfMemoryError("Java heap space"), "editor.schema_load");
+            TelemetryEvent e = queued().getFirst();
+            assertEquals("error", e.eventType());
+            assertEquals("java.lang.OutOfMemoryError", e.errorCode());
+            assertTrue(((Number) e.meta().get("heap_max_mb")).longValue() >= 64);
+            assertTrue(((Number) e.meta().get("heap_used_mb")).longValue() >= 64);
+            assertEquals(DocKind.XSD, e.docKind());
+            assertEquals(9_000_000L, e.inputBytes());
+            assertEquals("editor.schema_load", e.meta().get("where"));
+        } finally {
+            UsageEvents.resetSession();
+        }
+    }
+
+    @Test
+    void wrappedOutOfMemoryErrorsAreRecognized() {
+        UsageEvents.resetSession();
+        service.trackError(new RuntimeException(new java.util.concurrent.ExecutionException(new OutOfMemoryError())),
+                "executor");
+        TelemetryEvent e = queued().getFirst();
+        assertTrue(e.meta().containsKey("heap_max_mb"));
+        assertNull(e.docKind(), "no active document known");
+        assertNull(e.inputBytes());
+    }
+
+    @Test
+    void otherErrorsCarryNoHeapContext() {
+        UsageEvents.activeDocumentChanged(DocKind.XML, "text", null, () -> 100L);
+        try {
+            service.trackError(new IllegalStateException(), "test");
+            TelemetryEvent e = queued().getFirst();
+            assertFalse(e.meta().containsKey("heap_max_mb"));
+            assertNull(e.inputBytes());
+        } finally {
+            UsageEvents.resetSession();
+        }
+    }
+
+    @Test
+    void outOfMemoryDetectionIsBoundedAndCycleSafe() {
+        assertTrue(TelemetryServiceImpl.isOutOfMemory(new OutOfMemoryError()));
+        assertFalse(TelemetryServiceImpl.isOutOfMemory(null));
+        assertFalse(TelemetryServiceImpl.isOutOfMemory(new StackOverflowError()));
+        Exception a = new Exception();
+        Exception b = new Exception(a);
+        a.initCause(b); // cycle
+        assertFalse(TelemetryServiceImpl.isOutOfMemory(b));
+    }
+
+    @Test
+    void aFailingDocumentProbeStillReportsTheError() {
+        UsageEvents.activeDocumentChanged(DocKind.XML, "text", null, () -> {
+            throw new IllegalStateException("gone");
+        });
+        try {
+            service.trackError(new OutOfMemoryError(), "test");
+            TelemetryEvent e = queued().getFirst();
+            assertEquals("java.lang.OutOfMemoryError", e.errorCode());
+            assertNull(e.inputBytes());
+        } finally {
+            UsageEvents.resetSession();
+        }
+    }
+
+    @Test
+    void activeDocumentLengthIsReadThroughTheSupplier() {
+        UsageEvents.resetSession();
+        assertEquals(-1, UsageEvents.activeDocChars());
+        UsageEvents.activeDocumentChanged(DocKind.XML, "text", null, () -> 42L);
+        assertEquals(42L, UsageEvents.activeDocChars());
+        UsageEvents.activeDocumentChanged(DocKind.XML, "text", null, () -> {
+            throw new IllegalStateException();
+        });
+        assertEquals(-1, UsageEvents.activeDocChars());
+        UsageEvents.resetSession();
     }
 }

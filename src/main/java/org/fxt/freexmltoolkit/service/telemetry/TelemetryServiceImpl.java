@@ -365,7 +365,8 @@ public class TelemetryServiceImpl implements TelemetryService {
                 return;
             }
             ErrorSignature sig = ErrorSignature.of(t);
-            recordError(sig.errorCode(), sig.detail(), sig.hash(), where);
+            recordError(sig.errorCode(), sig.detail(), sig.hash(), where,
+                    isOutOfMemory(t) ? TelemetryServiceImpl::outOfMemoryContext : null);
         } catch (Throwable ignored) {
             // never let telemetry throw, least of all from an error path
         } finally {
@@ -388,7 +389,7 @@ public class TelemetryServiceImpl implements TelemetryService {
                 code = "unknown";
             }
             String w = TelemetrySanitizer.where(where);
-            recordError(code, null, TelemetrySanitizer.hash16(code + "|" + w), where);
+            recordError(code, null, TelemetrySanitizer.hash16(code + "|" + w), where, null);
         } catch (Throwable ignored) {
             // never let telemetry throw
         } finally {
@@ -396,7 +397,48 @@ public class TelemetryServiceImpl implements TelemetryService {
         }
     }
 
-    private void recordError(String code, String detail, String hash, String where) {
+    /**
+     * @return whether {@code t} or one of its causes is an {@link OutOfMemoryError}
+     *         (bounded walk, safe against cause cycles)
+     */
+    static boolean isOutOfMemory(Throwable t) {
+        Throwable cur = t;
+        for (int depth = 0; cur != null && depth < 16; depth++) {
+            if (cur instanceof OutOfMemoryError) {
+                return true;
+            }
+            cur = cur.getCause() == cur ? null : cur.getCause();
+        }
+        return false;
+    }
+
+    /**
+     * Context of an {@link OutOfMemoryError} event: heap limit and use in MB (rounded to 64 MB,
+     * like {@code app_exit}) and the size ({@code input_bytes}, in characters) and kind of the
+     * active document, when known.
+     */
+    static void outOfMemoryContext(TelemetryEvent.Builder b) {
+        Runtime rt = Runtime.getRuntime();
+        long maxMb = UsageEvents.roundMb(rt.maxMemory());
+        long usedMb = UsageEvents.roundMb(rt.totalMemory() - rt.freeMemory());
+        if (maxMb > 0) {
+            b.meta("heap_max_mb", maxMb);
+        }
+        if (usedMb > 0) {
+            b.meta("heap_used_mb", usedMb);
+        }
+        DocKind kind = UsageEvents.activeDocKind();
+        if (kind != null) {
+            b.docKind(kind);
+        }
+        long chars = UsageEvents.activeDocChars();
+        if (chars >= 0) {
+            b.inputBytes(chars);
+        }
+    }
+
+    private void recordError(String code, String detail, String hash, String where,
+                             Consumer<TelemetryEvent.Builder> context) {
         AtomicInteger previous = errorRepeats.putIfAbsent(hash, new AtomicInteger());
         if (previous != null) {
             previous.incrementAndGet(); // attached as meta.repeat at the next flush
@@ -413,6 +455,13 @@ public class TelemetryServiceImpl implements TelemetryService {
         String w = TelemetrySanitizer.where(where);
         if (!w.isEmpty()) {
             b.meta("where", w);
+        }
+        if (context != null) {
+            try {
+                context.accept(b);
+            } catch (Throwable ignored) {
+                // the error itself is still reported, without the context
+            }
         }
         enqueue(b.build());
     }

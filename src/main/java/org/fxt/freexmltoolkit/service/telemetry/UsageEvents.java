@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -56,6 +57,8 @@ public final class UsageEvents {
     private static volatile DocKind currentDocKind;
     /** Measures the active text document (for {@code ui_stall}); null when none is open. */
     private static volatile Supplier<DocShape> currentDocShape;
+    /** Length of the active text document in characters, cheap and safe off the FX thread; null when none. */
+    private static volatile LongSupplier currentDocChars;
 
     /**
      * Size and line shape of the active text document — only counts, never content.
@@ -752,9 +755,35 @@ public final class UsageEvents {
      *              when a stall is reported (nullable: unknown / no text document)
      */
     public static void activeDocumentChanged(DocKind kind, String viewMode, Supplier<DocShape> shape) {
+        activeDocumentChanged(kind, viewMode, shape, null);
+    }
+
+    /**
+     * The active editor tab changed (UI context for {@code ui_stall} and out-of-memory errors;
+     * no event is sent).
+     *
+     * @param chars length of the active document in characters — called from any thread when an
+     *              {@link OutOfMemoryError} is reported, so it must be a cheap read (nullable)
+     */
+    public static void activeDocumentChanged(DocKind kind, String viewMode, Supplier<DocShape> shape,
+                                             LongSupplier chars) {
         currentDocKind = kind;
         currentViewMode = viewMode;
         currentDocShape = shape;
+        currentDocChars = chars;
+    }
+
+    /** @return the length of the active document in characters, or -1 when unknown */
+    static long activeDocChars() {
+        LongSupplier chars = currentDocChars;
+        if (chars == null) {
+            return -1;
+        }
+        try {
+            return chars.getAsLong();
+        } catch (Throwable t) {
+            return -1;
+        }
     }
 
     /** @return the shape of the active document, or null when unknown or not measurable */
@@ -868,5 +897,6 @@ public final class UsageEvents {
         currentViewMode = null;
         currentDocKind = null;
         currentDocShape = null;
+        currentDocChars = null;
     }
 }

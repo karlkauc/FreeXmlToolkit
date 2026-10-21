@@ -175,6 +175,9 @@ final class ExternalChangeMonitor {
                     diskText = Files.readString(w.path(), StandardCharsets.UTF_8);
                 } catch (IOException | RuntimeException | OutOfMemoryError e) {
                     // unreadable: reported as changed without text
+                    if (e instanceof OutOfMemoryError) {
+                        org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError(e, "editor.external_reload");
+                    }
                 }
             }
             changes.add(new Change(w.document(), w.path(), w.known(), current, diskText));

@@ -230,7 +230,7 @@ public class EditorHost extends BorderPane {
                 activeViewMode.set(et.viewMode);
                 UsageEvents.activeDocumentChanged(et.document.getFileType().docKind(),
                         et.viewMode != null ? et.viewMode.name().toLowerCase(java.util.Locale.ROOT) : null,
-                        docShapeOf(et.view.getCodeArea()));
+                        docShapeOf(et.view.getCodeArea()), docLengthOf(et.view.getCodeArea()));
             } else {
                 UsageEvents.activeDocumentChanged(null, null, null);
                 activeSchema.set(null);
@@ -1455,6 +1455,18 @@ public class EditorHost extends BorderPane {
                 maxLen = Math.max(maxLen, a.getParagraphLength(p));
             }
             return new UsageEvents.DocShape(a.getLength(), lines, maxLen);
+        };
+    }
+
+    /**
+     * Length of a code area in characters for out-of-memory telemetry: a single field read, safe
+     * from any thread. Holds the area only weakly; {@code -1} once it is gone.
+     */
+    static java.util.function.LongSupplier docLengthOf(org.fxmisc.richtext.CodeArea area) {
+        java.lang.ref.WeakReference<org.fxmisc.richtext.CodeArea> ref = new java.lang.ref.WeakReference<>(area);
+        return () -> {
+            org.fxmisc.richtext.CodeArea a = ref.get();
+            return a == null ? -1 : a.getLength();
         };
     }
 
@@ -2841,6 +2853,9 @@ public class EditorHost extends BorderPane {
             return tab.view.loadSchema(xsd);
         } catch (RuntimeException | StackOverflowError | OutOfMemoryError e) {
             logger.warn("Could not load schema {}: {}", xsd, e.toString());
+            if (e instanceof OutOfMemoryError) {
+                org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError(e, "editor.schema_load");
+            }
             return false;
         }
     }
