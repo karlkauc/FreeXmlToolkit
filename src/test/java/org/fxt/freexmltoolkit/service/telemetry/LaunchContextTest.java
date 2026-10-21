@@ -34,13 +34,13 @@ class LaunchContextTest {
     @Test
     void unixInstallerLocations() {
         assertEquals(LaunchContext.PACKAGE_INSTALLER,
-                LaunchContext.packageKind(true, "Linux", Path.of("/opt/freexmltoolkit/lib"), Map.of()));
+                LaunchContext.packageKind(true, "Linux", Path.of("/opt/freexmltoolkit"), Map.of()));
         assertEquals(LaunchContext.PACKAGE_PORTABLE,
-                LaunchContext.packageKind(true, "Linux", Path.of("/home/u/FreeXmlToolkit/lib"), Map.of()));
+                LaunchContext.packageKind(true, "Linux", Path.of("/home/u/FreeXmlToolkit"), Map.of()));
         assertEquals(LaunchContext.PACKAGE_INSTALLER, LaunchContext.packageKind(true, "Mac OS X",
-                Path.of("/Applications/FreeXmlToolkit.app/Contents/app"), Map.of()));
+                Path.of("/Applications/FreeXmlToolkit.app"), Map.of()));
         assertEquals(LaunchContext.PACKAGE_PORTABLE, LaunchContext.packageKind(true, "Mac OS X",
-                Path.of("/Users/u/Downloads/FreeXmlToolkit.app/Contents/app"), Map.of()));
+                Path.of("/Users/u/Downloads/FreeXmlToolkit.app"), Map.of()));
     }
 
     @Test
