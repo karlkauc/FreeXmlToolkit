@@ -18,13 +18,16 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class DebugPanelsTest {
 
+    /** Generous FX-thread timeout: the full suite runs one JVM per class and is often under load. */
+    private static final long FX_TIMEOUT_MS = 10_000;
+
     @Start
     void start(Stage stage) {
     }
 
     @Test
     void variablesViewShowsBindings() {
-        int rows = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+        int rows = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
             VariablesView view = new VariablesView();
             view.setVariables(List.of(
                     new VariableBinding("count", "2", "xs:integer", VariableScope.LOCAL)));
@@ -35,7 +38,7 @@ class DebugPanelsTest {
 
     @Test
     void callStackViewShowsFrames() {
-        int rows = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+        int rows = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
             CallStackView view = new CallStackView();
             view.setFrames(List.of(new DebugStackFrame("template match=/", "sheet.xslt", 4, List.of())));
             return view.getRowCount();
