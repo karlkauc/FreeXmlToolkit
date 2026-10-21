@@ -23,7 +23,13 @@ updater dispatch:
   `docs/superpowers/specs/2026-05-07-windows-auto-update-redesign.md`.
   **Updater fixes are never retroactive** — the N→N+1 update runs version
   N's Java code, so users with a broken updater need one manual install.
-- **Mac/Linux:** No separate helper — `AutoUpdateServiceImpl` performs
+- **macOS:** `service/update/MacBundleUpdater` — the update ZIP holds the signed
+  `FreeXmlToolkit.app` plus an extras folder `FreeXmlToolkit/`. Extracted with `ditto`
+  (ZipInputStream loses the runtime's symlinks), the new bundle is staged next to the
+  installed one and swapped in by two renames (old bundle restored if the second fails),
+  then started with `open -n`. Never copy files into the bundle — it breaks the code
+  signature. Before 2.5.2 the macOS self-update never worked (manual install needed once).
+- **Linux:** No separate helper — `AutoUpdateServiceImpl` performs
   in-process recursive copy then exec's the new launcher (POSIX inode
   semantics allow overwriting files of running processes).
 

@@ -47,6 +47,7 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.update.InstallSource;
 import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
+import org.fxt.freexmltoolkit.service.update.MacBundleUpdater;
 
 /**
  * Implementation of AutoUpdateService that downloads and applies updates from GitHub Releases.
@@ -54,8 +55,8 @@ import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
  * <p>This service downloads app-image ZIP files from GitHub Releases, extracts them,
  * and applies the update in a platform-specific way: on Windows it launches the
  * bundled native update helper (run from %TEMP%) which replaces the files after the
- * application exits; on Mac/Linux it copies the new files over the install directory
- * in-process and starts the new launcher.
+ * application exits; on macOS it swaps the whole signed .app bundle; on Linux it copies
+ * the new files over the install directory in-process and starts the new launcher.
  *
  * @since 1.0
  */
@@ -214,7 +215,12 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
                 Path extractedDir = tempDir.resolve("extracted");
                 Files.createDirectories(extractedDir);
-                extractZip(zipFile, extractedDir);
+                if (isMacOS()) {
+                    // ditto keeps the bundle's symlinks and signature intact
+                    macBundleUpdater(debugLog).extract(zipFile, extractedDir);
+                } else {
+                    extractZip(zipFile, extractedDir);
+                }
                 writeDebugLog(debugLog, "Extraction completed to: " + extractedDir);
 
                 // List extracted contents
@@ -498,9 +504,30 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
     private boolean launchUpdater(Path extractedDir, Path debugLog) {
         if (isWindows()) {
             return launchUpdaterWindowsRust(extractedDir, debugLog);
+        } else if (isMacOS()) {
+            return launchUpdaterMac(extractedDir, debugLog);
         } else {
             return launchUpdaterPosix(extractedDir, debugLog);
         }
+    }
+
+    /**
+     * macOS updater path: swaps the whole signed {@code .app} bundle (see {@link MacBundleUpdater});
+     * copying files into the bundle would break its code signature.
+     */
+    private boolean launchUpdaterMac(Path extractedDir, Path debugLog) {
+        try {
+            macBundleUpdater(debugLog).install(extractedDir, getApplicationDirectory());
+            return true;
+        } catch (IOException e) {
+            writeDebugLog(debugLog, "ERROR in launchUpdaterMac: " + e.getMessage());
+            logger.error("macOS updater failed", e);
+            return false;
+        }
+    }
+
+    private MacBundleUpdater macBundleUpdater(Path debugLog) {
+        return new MacBundleUpdater(MacBundleUpdater.systemRunner(), msg -> writeDebugLog(debugLog, msg));
     }
 
     /**
@@ -689,7 +716,7 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
     }
 
     /**
-     * Mac/Linux updater path: copies extracted update directly over the install
+     * Linux updater path: copies extracted update directly over the install
      * directory and starts the new launcher. Works because POSIX inode-replace
      * allows overwriting files of running processes.
      */
@@ -1026,6 +1053,10 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
      */
     private boolean isWindows() {
         return ApplicationLauncherLocator.isWindows();
+    }
+
+    private boolean isMacOS() {
+        return ApplicationLauncherLocator.isMacOS();
     }
 
     @Override
