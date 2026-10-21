@@ -453,4 +453,61 @@ class UsageEventsTest {
         assertDoesNotThrow(() -> UsageEvents.validated("xsd", DocKind.XML, 2, 0, false, false));
         assertEquals(1, telemetry.events("validate").size());
     }
+
+    // ------------------------------------------------------------------ M6: quick_fix_offered
+
+    @Test
+    void quickFixOfferedIsRecordedOncePerDocument() {
+        Object docA = new Object();
+        Object docB = new Object();
+        UsageEvents.quickFixOffered(docA, DocKind.XML, 3, UsageEvents.QUICK_FIX_VIA_GUTTER);
+        UsageEvents.quickFixOffered(docA, DocKind.XML, 5, UsageEvents.QUICK_FIX_VIA_MENU);
+        UsageEvents.quickFixOffered(docB, DocKind.XML, 1, UsageEvents.QUICK_FIX_VIA_MENU);
+
+        List<TelemetryEvent> events = telemetry.events("quick_fix_offered");
+        assertEquals(2, events.size());
+        TelemetryEvent first = events.get(0);
+        assertEquals(TelemetryEvent.Category.ACTION, first.category());
+        assertEquals(DocKind.XML, first.docKind());
+        assertEquals(3, ((Number) first.meta().get("count")).intValue());
+        assertEquals("gutter", first.meta().get("via"));
+        assertEquals("menu", events.get(1).meta().get("via"));
+        assertEquals(2, first.meta().size(), "only count and via, never fix ids or titles");
+    }
+
+    @Test
+    void quickFixOfferedUsesTheActiveDocument() {
+        Object doc = new Object();
+        UsageEvents.activeDocumentChanged(doc, DocKind.SCHEMATRON, "text", null, null);
+        UsageEvents.quickFixOffered(2, UsageEvents.QUICK_FIX_VIA_MENU);
+        UsageEvents.quickFixOffered(doc, DocKind.SCHEMATRON, 2, UsageEvents.QUICK_FIX_VIA_GUTTER);
+        assertEquals(DocKind.SCHEMATRON, single("quick_fix_offered").docKind());
+
+        UsageEvents.activeDocumentChanged(new Object(), DocKind.XML, "text", null, null);
+        UsageEvents.quickFixOffered(1, UsageEvents.QUICK_FIX_VIA_MENU);
+        assertEquals(2, telemetry.events("quick_fix_offered").size(), "another document is offered again");
+    }
+
+    @Test
+    void quickFixOfferedIgnoresEmptyOffersAndIsNoUserAction() {
+        UsageEvents.quickFixOffered(new Object(), DocKind.XML, 0, UsageEvents.QUICK_FIX_VIA_GUTTER);
+        assertTrue(telemetry.events("quick_fix_offered").isEmpty());
+
+        UsageEvents.quickFixOffered(null, null, 1, UsageEvents.QUICK_FIX_VIA_MENU);
+        UsageEvents.quickFixOffered(null, null, 1, UsageEvents.QUICK_FIX_VIA_MENU);
+        assertEquals(1, telemetry.events("quick_fix_offered").size(), "unknown documents share one slot");
+        java.util.function.Consumer<TelemetryEvent.Builder> summary = UsageEvents.sessionSummary();
+        TelemetryEvent.Builder b = TelemetryEvent.builder("app_exit", TelemetryEvent.Category.LIFECYCLE);
+        summary.accept(b);
+        assertEquals(0, ((Number) b.metaValue("actions")).intValue());
+    }
+
+    @Test
+    void quickFixOfferedThrottleResetsWithTheSession() {
+        Object doc = new Object();
+        UsageEvents.quickFixOffered(doc, DocKind.XML, 1, UsageEvents.QUICK_FIX_VIA_GUTTER);
+        UsageEvents.resetSession();
+        UsageEvents.quickFixOffered(doc, DocKind.XML, 1, UsageEvents.QUICK_FIX_VIA_GUTTER);
+        assertEquals(2, telemetry.events("quick_fix_offered").size());
+    }
 }

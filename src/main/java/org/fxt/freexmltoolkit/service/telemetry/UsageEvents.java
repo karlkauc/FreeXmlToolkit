@@ -59,6 +59,13 @@ public final class UsageEvents {
     private static volatile Supplier<DocShape> currentDocShape;
     /** Length of the active text document in characters, cheap and safe off the FX thread; null when none. */
     private static volatile LongSupplier currentDocChars;
+    /** The active document (identity only, held weakly); null when none / unknown. */
+    private static volatile java.lang.ref.WeakReference<Object> currentDocument;
+    /** Documents whose quick fixes were already reported as offered this session (weak keys). */
+    private static final Map<Object, Boolean> quickFixOfferedDocs =
+            java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    /** Throttle key when the document is unknown. */
+    private static final Object NO_DOCUMENT = new Object();
 
     /**
      * Size and line shape of the active text document — only counts, never content.
@@ -625,6 +632,41 @@ public final class UsageEvents {
         });
     }
 
+    /** {@code meta.via} of {@link #quickFixOffered}: lightbulbs appeared in the editor gutter. */
+    public static final String QUICK_FIX_VIA_GUTTER = "gutter";
+    /** {@code meta.via} of {@link #quickFixOffered}: the "Quick Fix" menu of a problem row was opened. */
+    public static final String QUICK_FIX_VIA_MENU = "menu";
+
+    /**
+     * Quick fixes were offered for the active document. Recorded at most once per document per
+     * session (the first offer wins), so {@code quick_fix} / {@code quick_fix_offered} reads as
+     * an acceptance rate. Not counted as a user action in the session summary.
+     *
+     * @param count number of offered fixes ({@code meta.count}); 0 or less is ignored
+     * @param via   one of the {@code QUICK_FIX_VIA_*} constants
+     */
+    public static void quickFixOffered(int count, String via) {
+        java.lang.ref.WeakReference<Object> ref = currentDocument;
+        quickFixOffered(ref != null ? ref.get() : null, currentDocKind, count, via);
+    }
+
+    /**
+     * Quick fixes were offered for {@code document} (see {@link #quickFixOffered(int, String)}).
+     *
+     * @param document the document (identity only; nullable: all unknown documents share one slot)
+     */
+    public static void quickFixOffered(Object document, DocKind kind, int count, String via) {
+        if (count <= 0) {
+            return;
+        }
+        Object key = document != null ? document : NO_DOCUMENT;
+        if (quickFixOfferedDocs.putIfAbsent(key, Boolean.TRUE) != null) {
+            return;
+        }
+        send("quick_fix_offered", TelemetryEvent.Category.ACTION,
+                b -> b.docKind(kind != null ? kind : DocKind.XML).meta("count", count).meta("via", via));
+    }
+
     /** A Schematron Quick Fix (SQF) was applied (counts as one corrected error locally). */
     public static void quickFixApplied() {
         action("quick_fix", b -> b.docKind(DocKind.XML));
@@ -767,6 +809,18 @@ public final class UsageEvents {
      */
     public static void activeDocumentChanged(DocKind kind, String viewMode, Supplier<DocShape> shape,
                                              LongSupplier chars) {
+        activeDocumentChanged(null, kind, viewMode, shape, chars);
+    }
+
+    /**
+     * The active editor tab changed (UI context; no event is sent).
+     *
+     * @param document the active document — only its identity is used (throttling
+     *                 {@code quick_fix_offered}), held weakly (nullable)
+     */
+    public static void activeDocumentChanged(Object document, DocKind kind, String viewMode,
+                                             Supplier<DocShape> shape, LongSupplier chars) {
+        currentDocument = document == null ? null : new java.lang.ref.WeakReference<>(document);
         currentDocKind = kind;
         currentViewMode = viewMode;
         currentDocShape = shape;
@@ -898,5 +952,7 @@ public final class UsageEvents {
         currentDocKind = null;
         currentDocShape = null;
         currentDocChars = null;
+        currentDocument = null;
+        quickFixOfferedDocs.clear();
     }
 }

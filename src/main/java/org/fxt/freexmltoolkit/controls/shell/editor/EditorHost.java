@@ -228,7 +228,7 @@ public class EditorHost extends BorderPane {
                 activeSchemaSource.set(et.schemaSource);
                 activeSchemaSourceDetail.set(et.schemaSourceDetail);
                 activeViewMode.set(et.viewMode);
-                UsageEvents.activeDocumentChanged(et.document.getFileType().docKind(),
+                UsageEvents.activeDocumentChanged(et.document, et.document.getFileType().docKind(),
                         et.viewMode != null ? et.viewMode.name().toLowerCase(java.util.Locale.ROOT) : null,
                         docShapeOf(et.view.getCodeArea()), docLengthOf(et.view.getCodeArea()));
             } else {
@@ -768,6 +768,15 @@ public class EditorHost extends BorderPane {
         if (fixableProblemsByLine.isEmpty()) {
             setGutterContributor(et, "quickfix", null);
         } else {
+            int offered = 0;
+            for (java.util.List<ValidationProblem> line : fixableProblemsByLine.values()) {
+                for (ValidationProblem problem : line) {
+                    offered += problem.fixes().size();
+                }
+            }
+            // once per document per session (throttled in UsageEvents)
+            UsageEvents.quickFixOffered(et.document, et.document.getFileType().docKind(), offered,
+                    UsageEvents.QUICK_FIX_VIA_GUTTER);
             setGutterContributor(et, "quickfix",
                     new org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixGutterFactory(
                             this::quickFixSuggestionsAt,

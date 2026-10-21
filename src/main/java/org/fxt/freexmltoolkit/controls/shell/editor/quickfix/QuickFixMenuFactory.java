@@ -7,6 +7,7 @@ import javafx.scene.control.MenuItem;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem;
 import org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
  * Builds the "Quick Fix" submenu offered on validation problem rows — shared by
@@ -32,6 +33,9 @@ public final class QuickFixMenuFactory {
             item.setOnAction(e -> onPick.accept(fix));
             menu.getItems().add(item);
         }
+        // The fixes apply to the active document; reported once per document per session
+        int count = problem.fixes().size();
+        menu.setOnShowing(e -> UsageEvents.quickFixOffered(count, UsageEvents.QUICK_FIX_VIA_MENU));
         return menu;
     }
 }
