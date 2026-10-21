@@ -47,6 +47,7 @@ import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.service.update.InstallSource;
 import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
+import org.fxt.freexmltoolkit.service.telemetry.UpdateFunnel;
 import org.fxt.freexmltoolkit.service.update.MacBundleUpdater;
 
 /**
@@ -141,9 +142,16 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
         cancelRequested.set(false);
 
+        String fromVersion = updateInfo.currentVersion() != null && !updateInfo.currentVersion().isBlank()
+                ? updateInfo.currentVersion() : org.fxt.freexmltoolkit.util.VersionUtil.getVersion();
+        String toVersion = updateInfo.latestVersion();
+
         return CompletableFuture.supplyAsync(() -> {
             Path tempDir;
             Path zipFile;
+            // update_download is reported exactly once: success, failure or cancel
+            boolean downloadReported = false;
+            long downloadStart = System.nanoTime();
 
             // Write debug log to user's home directory (always accessible)
             Path debugLog = Path.of(System.getProperty("user.home"), "fxt-update-debug.log");
@@ -162,6 +170,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 String downloadUrl = getDownloadUrl(updateInfo);
                 writeDebugLog(debugLog, "Download URL: " + downloadUrl);
                 if (downloadUrl == null || downloadUrl.isEmpty()) {
+                    downloadReported = true;
+                    UpdateFunnel.downloaded(fromVersion, toVersion, 0, -1, "no_asset", false);
                     return UpdateResult.failure("Could not determine download URL for this platform");
                 }
 
@@ -180,14 +190,20 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
 
                 if (cancelRequested.get()) {
                     writeDebugLog(debugLog, "CANCELLED: User cancelled before download");
+                    downloadReported = true;
+                    UpdateFunnel.downloaded(fromVersion, toVersion, 0, -1, (String) null, true);
                     return UpdateResult.failure("Update cancelled by user");
                 }
 
+                downloadStart = System.nanoTime();
                 downloadFile(downloadUrl, zipFile, progressCallback);
                 writeDebugLog(debugLog, "Download completed. File size: " + Files.size(zipFile) + " bytes");
 
                 if (cancelRequested.get()) {
                     writeDebugLog(debugLog, "CANCELLED: User cancelled after download");
+                    downloadReported = true;
+                    UpdateFunnel.downloaded(fromVersion, toVersion, downloadStart, Files.size(zipFile),
+                            (String) null, true);
                     return UpdateResult.failure("Update cancelled by user");
                 }
 
@@ -200,6 +216,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 try {
                     verifyDownloadIntegrity(zipFile, downloadUrl, updateInfo, debugLog);
                 } catch (SecurityException se) {
+                    downloadReported = true;
+                    UpdateFunnel.downloaded(fromVersion, toVersion, downloadStart, Files.size(zipFile), se, false);
                     writeDebugLog(debugLog, "SECURITY: integrity verification FAILED: " + se.getMessage());
                     logger.error("Update integrity verification failed: {}", se.getMessage());
                     Files.deleteIfExists(zipFile);
@@ -207,6 +225,10 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                             "Integrity check failed: " + se.getMessage());
                     return UpdateResult.failure("Integrity verification failed: " + se.getMessage());
                 }
+
+                downloadReported = true;
+                UpdateFunnel.downloaded(fromVersion, toVersion, downloadStart, Files.size(zipFile),
+                        (Throwable) null, false);
 
                 // Stage 3: Extracting
                 reportProgress(progressCallback, UpdateStage.EXTRACTING, 0, -1,
@@ -242,10 +264,16 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                         "Preparing to install update...");
                 writeDebugLog(debugLog, "=== LAUNCHING UPDATER ===");
 
+                // Persisted before the swap: the next start reports whether it worked (update_installed).
+                // On Linux the new version may start before this process exits.
+                PropertiesService pendingStore = pendingUpdateStore();
+                UpdateFunnel.markPending(pendingStore, fromVersion, toVersion, java.time.Clock.systemUTC());
                 boolean updaterLaunched = launchUpdater(extractedDir, debugLog);
                 writeDebugLog(debugLog, "Updater launch result: " + updaterLaunched);
+                UpdateFunnel.applied(fromVersion, toVersion, updaterLaunched);
 
                 if (!updaterLaunched) {
+                    UpdateFunnel.clearPending(pendingStore);
                     writeDebugLog(debugLog, "ERROR: Failed to launch updater script");
                     return UpdateResult.failure("Failed to launch updater script");
                 }
@@ -259,6 +287,9 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 return UpdateResult.success(extractedDir);
 
             } catch (IOException e) {
+                if (!downloadReported) {
+                    UpdateFunnel.downloaded(fromVersion, toVersion, downloadStart, -1, e, cancelRequested.get());
+                }
                 logger.error("Update failed", e);
                 writeDebugLog(debugLog, "ERROR (IOException): " + e.getMessage());
                 writeDebugLog(debugLog, "Stack trace: " + java.util.Arrays.toString(e.getStackTrace()));
@@ -266,6 +297,9 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                         "Update failed: " + e.getMessage());
                 return UpdateResult.failure("Download failed: " + e.getMessage());
             } catch (Exception e) {
+                if (!downloadReported) {
+                    UpdateFunnel.downloaded(fromVersion, toVersion, downloadStart, -1, e, cancelRequested.get());
+                }
                 logger.error("Unexpected error during update", e);
                 writeDebugLog(debugLog, "ERROR (Exception): " + e.getMessage());
                 writeDebugLog(debugLog, "Stack trace: " + java.util.Arrays.toString(e.getStackTrace()));
@@ -277,6 +311,15 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 currentConnection = null;
             }
         }, executorService);
+    }
+
+    /** @return the settings that hold the pending update for {@code update_installed}, or null */
+    private static PropertiesService pendingUpdateStore() {
+        try {
+            return ServiceRegistry.get(PropertiesService.class);
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     /**

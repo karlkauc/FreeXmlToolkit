@@ -92,6 +92,8 @@ public class TelemetryServiceImpl implements TelemetryService {
     private final AtomicBoolean flushPending = new AtomicBoolean();
     /** Crash detection via per-session marker files; null = off (tests, killed). */
     private volatile SessionMarker sessionMarker;
+    /** Settings holding a pending in-app update ({@link UpdateFunnel}); null = not reported (tests, killed). */
+    private volatile PropertiesService updateStore;
 
     /**
      * @param settings    persistent settings
@@ -138,6 +140,7 @@ public class TelemetryServiceImpl implements TelemetryService {
                 connection::postJson, TelemetryEnvironment.current(), Clock.systemUTC(), killed);
         if (!killed) {
             service.setSessionMarker(SessionMarker.createDefault());
+            service.setUpdateStore(props);
         }
         return service;
     }
@@ -242,6 +245,11 @@ public class TelemetryServiceImpl implements TelemetryService {
             Object pkg = b.metaValue("package");
             b.meta("channel", channel(version, pkg == null ? null : pkg.toString(), channelOverride));
         });
+        PropertiesService store = updateStore;
+        if (store != null) {
+            // Result of an update launched by the previous session (after app_start on purpose)
+            runInBackground(() -> UpdateFunnel.reportInstalled(store, version, this, clock));
+        }
         SessionMarker marker = sessionMarker;
         if (marker != null) {
             runInBackground(() -> {
@@ -253,6 +261,11 @@ public class TelemetryServiceImpl implements TelemetryService {
                 }
             });
         }
+    }
+
+    /** Enables the {@code update_installed} report of a pending update (production instance and tests). */
+    void setUpdateStore(PropertiesService props) {
+        this.updateStore = props;
     }
 
     /** Enables crash detection (the production instance and tests that cover it). */
