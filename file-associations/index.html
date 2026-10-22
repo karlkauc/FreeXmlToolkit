@@ -812,6 +812,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#opening-files-while-freexmltoolkit-is-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opening files while FreeXmlToolkit is running
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2088,6 +2099,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#opening-files-while-freexmltoolkit-is-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Opening files while FreeXmlToolkit is running
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2166,6 +2188,14 @@ entries from <code>mimeapps.list</code>.</p>
 <p>The native installers (MSI/EXE, DMG/PKG, DEB/RPM) additionally declare the file types at
 install time, so FreeXmlToolkit appears in "Open with" menus right after installation.
 This does <strong>not</strong> make it the default — use the Settings card for that.</p>
+<h2 id="opening-files-while-freexmltoolkit-is-running">Opening files while FreeXmlToolkit is running<a class="headerlink" href="#opening-files-while-freexmltoolkit-is-running" title="Permanent link">&para;</a></h2>
+<p>FreeXmlToolkit runs as a <strong>single instance</strong>: if it is already open, a file opened via
+"Open with", a double-click or the command line opens as a new tab in the running window,
+which comes to the front — no second window or splash screen. On macOS, dropping files on
+the Dock icon works the same way.</p>
+<p>To start an independent second instance anyway, set the Java option
+<code>-Dfxt.multiInstance=true</code> (for example via the environment variable
+<code>JAVA_TOOL_OPTIONS=-Dfxt.multiInstance=true</code>). Development runs (<code>./gradlew run</code>) are never single-instance.</p>
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Register also repairs:</strong> after moving or updating the installation, click
