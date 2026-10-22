@@ -1,7 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
 import java.beans.PropertyChangeEvent;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,32 +58,14 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     @Override
     public void attachTables(List<FlatRow> rows, Runnable onLayoutChanged) {
         for (FlatRow row : rows) {
-            if (row.getType() != FlatRow.RowType.ELEMENT) {
-                continue;
-            }
-            if (row.getParentRow() == null) {
-                continue;
-            }
-
-            Object parentModel = row.getParentRow().getModelNode();
-            if (!(parentModel instanceof XmlElement parentElement)) {
-                continue;
-            }
-
-            // Check if this element name appears multiple times under parent
-            List<XmlElement> sameNameSiblings = new ArrayList<>();
-            for (XmlNode sibling : parentElement.getChildren()) {
-                if (sibling instanceof XmlElement se && se.getName().equals(row.getLabel())) {
-                    sameNameSiblings.add(se);
-                }
-            }
-
-            if (sameNameSiblings.size() >= 2) {
+            // flatten() already grouped the siblings; rescanning them per row cost tens of ms
+            List<XmlElement> group = row.getRepeatingGroup();
+            if (group != null) {
                 // Built when the group is first expanded or drawn (FlatRow#setRepeatingTableFactory)
                 String label = row.getLabel();
                 int depth = row.getDepth();
                 row.setRepeatingTableFactory(
-                        () -> new RepeatingElementsTable(label, sameNameSiblings, depth, onLayoutChanged));
+                        () -> new RepeatingElementsTable(label, group, depth, onLayoutChanged));
             }
         }
     }

@@ -1,11 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment;
@@ -166,6 +164,8 @@ public class FlatRow {
     private RepeatingElementsTable repeatingTable = null;
     /** Builds {@link #repeatingTable} on first use (see {@link #setRepeatingTableFactory}). */
     private java.util.function.Supplier<RepeatingElementsTable> repeatingTableFactory;
+    /** The same-name siblings this row stands for (2+), set by {@link #flatten}; null otherwise. */
+    private List<XmlElement> repeatingGroup;
 
     /**
      * Index of this row's attribute within its parent element's attribute map.
@@ -379,6 +379,11 @@ public class FlatRow {
         this.repeatingTableFactory = factory;
     }
 
+    /** @return the same-name siblings this row represents as a table, or {@code null} for a plain row */
+    public List<XmlElement> getRepeatingGroup() {
+        return repeatingGroup;
+    }
+
     /** Runs {@code setup} on the table now if it exists, or as soon as it is built. */
     public void whenRepeatingTableReady(java.util.function.Consumer<RepeatingElementsTable> setup) {
         if (repeatingTable != null) {
@@ -556,14 +561,16 @@ public class FlatRow {
         // so pure-leaf text should NOT be counted (it's shown inline via extractTextContent).
         boolean hasElementChildren = element.hasElementChildren();
         int childCount = 0;
+        // Child elements by name, in document order: 2+ siblings with the same tag name form a
+        // repeating group (one table row). Counted in the same pass — a large document has tens of
+        // thousands of children here, and this runs on the FX thread.
+        Map<String, List<XmlElement>> elementsByName = new LinkedHashMap<>();
         for (XmlNode child : element.getChildren()) {
-            if (child instanceof XmlElement) {
+            if (child instanceof XmlElement ce) {
                 childCount++;
-            } else if (child instanceof XmlComment) {
-                childCount++;
-            } else if (child instanceof XmlProcessingInstruction) {
-                childCount++;
-            } else if (child instanceof XmlCData) {
+                elementsByName.computeIfAbsent(ce.getName(), k -> new ArrayList<>()).add(ce);
+            } else if (child instanceof XmlComment || child instanceof XmlProcessingInstruction
+                    || child instanceof XmlCData) {
                 childCount++;
             } else if (child instanceof XmlText text && !text.isWhitespace() && hasElementChildren) {
                 childCount++;
@@ -587,35 +594,19 @@ public class FlatRow {
             rows.add(attrRow);
         }
 
-        // Detect repeating element groups (2+ siblings with the same tag name)
-        Map<String, List<XmlElement>> elementsByName = new LinkedHashMap<>();
-        for (XmlNode child : element.getChildren()) {
-            if (child instanceof XmlElement ce) {
-                elementsByName.computeIfAbsent(ce.getName(), k -> new ArrayList<>()).add(ce);
-            }
-        }
-        Set<String> repeatingNames = new HashSet<>();
-        for (var entry : elementsByName.entrySet()) {
-            if (entry.getValue().size() >= 2) {
-                repeatingNames.add(entry.getKey());
-            }
-        }
-
         // Child nodes - recurse into elements, emit TEXT/COMMENT/CDATA/PI rows
-        Set<String> processedRepeating = new HashSet<>();
         for (XmlNode child : element.getChildren()) {
             if (child instanceof XmlElement childElement) {
-                if (repeatingNames.contains(childElement.getName())) {
-                    if (!processedRepeating.contains(childElement.getName())) {
-                        processedRepeating.add(childElement.getName());
-                        List<XmlElement> group = elementsByName.get(childElement.getName());
-                        // Create a single row representing the repeating group
+                List<XmlElement> group = elementsByName.get(childElement.getName());
+                if (group.size() >= 2) {
+                    // One row for the whole group, at its first element; the others are skipped
+                    if (group.get(0) == childElement) {
                         FlatRow tableRow = new FlatRow(RowType.ELEMENT, depth + 1, childElement,
                                 elementRow, childElement.getName(), null, group.size());
+                        tableRow.repeatingGroup = group;
                         tableRow.setExpanded(false); // Default to collapsed, like non-repeating children
                         rows.add(tableRow);
                     }
-                    // Skip individual elements that are part of a repeating group
                 } else {
                     flattenElement(childElement, depth + 1, elementRow, rows, false);
                 }
@@ -628,7 +619,7 @@ public class FlatRow {
             } else if (child instanceof XmlCData cdata) {
                 rows.add(new FlatRow(RowType.CDATA, depth + 1, cdata, elementRow,
                         null, cdata.getText(), 0));
-            } else if (child instanceof XmlText text && !text.isWhitespace() && element.hasElementChildren()) {
+            } else if (child instanceof XmlText text && !text.isWhitespace() && hasElementChildren) {
                 // Mixed content: emit a TEXT row only for non-whitespace text when the element
                 // also has child elements. (Pure-leaf text is captured via extractTextContent().)
                 rows.add(new FlatRow(RowType.TEXT, depth + 1, text, elementRow,

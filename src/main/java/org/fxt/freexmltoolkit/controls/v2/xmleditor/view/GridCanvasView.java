@@ -194,7 +194,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     // ==================== Context Menu ====================
 
-    private final GridContextMenu<N> contextMenu;
+    /** Built on first use (right-click / shortcut): it costs ~20 ms of FX time per view. */
+    private GridContextMenu<N> contextMenu;
 
     // ==================== Highlight State ====================
 
@@ -389,9 +390,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Model-specific one-off hooks (e.g. the XML mixed-content warning)
         adapter.installViewHooks(this);
-
-        // Create context menu
-        contextMenu = adapter.createContextMenu(this::refresh);
 
         // Initial rebuild
         rebuildTree();
@@ -2110,7 +2108,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         adapter.select(node);
 
         // Show context menu
-        contextMenu.show(canvas, event.getScreenX(), event.getScreenY(), node);
+        contextMenu().show(canvas, event.getScreenX(), event.getScreenY(), node);
+    }
+
+    private GridContextMenu<N> contextMenu() {
+        if (contextMenu == null) {
+            contextMenu = adapter.createContextMenu(this::refresh);
+        }
+        return contextMenu;
     }
 
     private void handleMouseMove(MouseEvent event) {
@@ -2275,8 +2280,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         N selected = getSelectedNode();
 
         // Context menu shortcuts (Delete, F2, Ctrl+C/X/V/D)
-        if (selected != null && contextMenu != null) {
-            contextMenu.handleKeyPress(event, selected);
+        if (selected != null) {
+            contextMenu().handleKeyPress(event, selected);
         }
 
         // Keyboard navigation
