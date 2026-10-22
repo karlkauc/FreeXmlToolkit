@@ -186,6 +186,8 @@ tasks {
     withType<JavaCompile> {
         options.compilerArgs.add("-Xlint:deprecation,unchecked,rawtypes,cast")
         options.compilerArgs.add("--enable-preview")
+        // MacOpenFilesHandler hooks Glass's open-files event (macOS "Open With").
+        options.compilerArgs.addAll(listOf("--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"))
     }
 
     withType<Test> {
@@ -232,6 +234,8 @@ tasks {
             "--enable-native-access=javafx.web",
             // Lets RenderingStatus read the active Prism pipeline (Settings > Rendering status).
             "--add-exports", "javafx.graphics/com.sun.prism=ALL-UNNAMED",
+            // MacOpenFilesHandler (macOS "Open With").
+            "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED",
             // No -Dprism.order here: FxtGui auto-detects HW vs. SW rendering at startup
             // (Settings > Rendering: Auto/Hardware/Software). To force a pipeline while
             // developing, pass e.g. -Dprism.order=sw explicitly on the command line.
@@ -798,7 +802,9 @@ FreeXmlToolkit""" + if (macSigningEnabled) """
 freexmltoolkit
 --linux-app-category
 Development
---linux-shortcut"""
+--linux-shortcut
+--resource-dir
+""" + project.projectDir.resolve("release/linux")
             else -> ""
         }
         
@@ -902,6 +908,8 @@ $faArgs
 --enable-native-access=ALL-UNNAMED,javafx.graphics,javafx.web
 --java-options
 --add-exports=javafx.graphics/com.sun.prism=ALL-UNNAMED
+--java-options
+--add-exports=javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
 --java-options
 -Xms512m
 --java-options

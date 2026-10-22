@@ -87,6 +87,9 @@ public class FxtGui extends Application {
 
     private static final Logger logger = LogManager.getLogger(FxtGui.class);
 
+    /** Primary-instance listener; {@code null} in development runs or when another instance owns it. */
+    private static volatile org.fxt.freexmltoolkit.app.SingleInstance singleInstance;
+
     static {
         configureLogging();
     }
@@ -177,8 +180,6 @@ public class FxtGui extends Application {
         // Register custom XSD type icons
         logger.info("Registering XSD type icons...");
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
-
-        registerOpenFileHandler();
     }
 
     /** Guards the uncaught-exception handler against re-entrance (e.g. a failing logger). */
@@ -212,34 +213,6 @@ public class FxtGui extends Application {
                 IN_UNCAUGHT_HANDLER.remove();
             }
         });
-    }
-
-    /**
-     * Registers the AWT open-file handler (macOS Apple events, delivered when the user
-     * double-clicks an associated document). Installed in {@code init()} so events that
-     * arrive before the UI is ready are queued by {@link StartupFileOpener}; the AWT
-     * runtime itself buffers events delivered before the handler is set (JDK 9+).
-     *
-     * <p>macOS only: on Windows/Linux the double-clicked file arrives as a plain program
-     * argument, and initializing the AWT toolkit before the JavaFX GTK toolkit is up
-     * can hang the application on Linux.
-     */
-    private void registerOpenFileHandler() {
-        if (!System.getProperty("os.name", "").toLowerCase().contains("mac")) {
-            return;
-        }
-        try {
-            if (java.awt.Desktop.isDesktopSupported()) {
-                java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
-                if (desktop.isSupported(java.awt.Desktop.Action.APP_OPEN_FILE)) {
-                    desktop.setOpenFileHandler(e -> StartupFileOpener.enqueue(
-                            e.getFiles().stream().map(File::toPath).toList()));
-                    logger.info("Open-file handler registered");
-                }
-            }
-        } catch (Throwable t) {
-            logger.warn("Could not register open-file handler", t);
-        }
     }
 
     /**
@@ -296,6 +269,17 @@ public class FxtGui extends Application {
     @Override
     public void start(Stage primaryStage) {
         startWatch.start();
+
+        // macOS delivers "Open With" / Dock drops as Apple events to Glass, not to AWT.
+        org.fxt.freexmltoolkit.app.MacOpenFilesHandler.install();
+        if (singleInstance != null) {
+            // A later launch forwarded its files (opened via StartupFileOpener): show this window.
+            singleInstance.setActivationHandler(() -> Platform.runLater(() -> {
+                primaryStage.setIconified(false);
+                primaryStage.toFront();
+                primaryStage.requestFocus();
+            }));
+        }
 
         SplashScreen splash = new SplashScreen();
         splash.show();
@@ -506,6 +490,9 @@ public class FxtGui extends Application {
     @Override
     public void stop() {
         logger.debug("stopping Application");
+        if (singleInstance != null) {
+            singleInstance.close();
+        }
         // The shutdown below waits for the executor and telemetry (up to a few seconds) on the FX
         // thread: hide the windows first, so the user does not look at a frozen application meanwhile.
         try {
@@ -642,6 +629,18 @@ public class FxtGui extends Application {
      */
     public static void main(String[] args) {
         org.fxt.freexmltoolkit.service.telemetry.StartupPhases.markMain();
+
+        // Already running: hand the files to that instance instead of starting a second one.
+        if (org.fxt.freexmltoolkit.app.SingleInstance.isEnabled()) {
+            var startup = org.fxt.freexmltoolkit.app.SingleInstance.start(
+                    java.nio.file.Path.of(System.getProperty("user.home"), ".freeXmlToolkit"),
+                    java.util.List.of(args), StartupFileOpener::enqueue);
+            if (startup.forwarded()) {
+                System.exit(0);
+                return;
+            }
+            singleInstance = startup.primary();
+        }
         // Enable hardware acceleration for JavaFX rendering
         configureHardwareAcceleration();
 

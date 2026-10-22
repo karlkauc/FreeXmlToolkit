@@ -779,10 +779,13 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             copyTreeReplaceExisting(source, appDir);
 
             writeDebugLog(debugLog, "Launching new app: " + launcher);
-            new ProcessBuilder(launcher.toString())
+            // This instance is still running: tell the new one to wait for it instead of
+            // forwarding to it as a single-instance secondary (and exiting).
+            ProcessBuilder relaunch = new ProcessBuilder(launcher.toString())
                 .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
-                .start();
+                .redirectError(ProcessBuilder.Redirect.DISCARD);
+            relaunch.environment().put(org.fxt.freexmltoolkit.app.SingleInstance.RELAUNCH_ENV, "1");
+            relaunch.start();
             return true;
 
         } catch (IOException e) {

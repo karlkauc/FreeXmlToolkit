@@ -1,0 +1,10 @@
+[Desktop Entry]
+# Overrides jpackage's template.desktop only to add %F: files opened via "Open with" reach the app.
+Name=APPLICATION_NAME
+Comment=APPLICATION_DESCRIPTION
+Exec=APPLICATION_LAUNCHER %F
+Icon=APPLICATION_ICON
+Terminal=false
+Type=Application
+Categories=Development;
+DESKTOP_MIMES

@@ -60,6 +60,17 @@ The native installers (MSI/EXE, DMG/PKG, DEB/RPM) additionally declare the file 
 install time, so FreeXmlToolkit appears in "Open with" menus right after installation.
 This does **not** make it the default — use the Settings card for that.
 
+## Opening files while FreeXmlToolkit is running
+
+FreeXmlToolkit runs as a **single instance**: if it is already open, a file opened via
+"Open with", a double-click or the command line opens as a new tab in the running window,
+which comes to the front — no second window or splash screen. On macOS, dropping files on
+the Dock icon works the same way.
+
+To start an independent second instance anyway, set the Java option
+`-Dfxt.multiInstance=true` (for example via the environment variable
+`JAVA_TOOL_OPTIONS=-Dfxt.multiInstance=true`). Development runs (`./gradlew run`) are never single-instance.
+
 ## Tips
 
 - **Register also repairs:** after moving or updating the installation, click
