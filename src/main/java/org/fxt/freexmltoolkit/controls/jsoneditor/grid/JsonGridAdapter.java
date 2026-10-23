@@ -298,7 +298,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         if (nameEdit) {
             return renameKey(node, newValue);
         }
-        return node instanceof JsonPrimitive p ? applyPrimitive(p, newValue) : true;
+        return !(node instanceof JsonPrimitive p) || applyPrimitive(p, newValue);
     }
 
     @Override
@@ -312,7 +312,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
             context.executeCommand(new AddPropertyCommand(object, columnName, new JsonPrimitive(newValue), -1));
             return true;
         }
-        return property instanceof JsonPrimitive p ? applyPrimitive(p, newValue) : true;
+        return !(property instanceof JsonPrimitive p) || applyPrimitive(p, newValue);
     }
 
     /**

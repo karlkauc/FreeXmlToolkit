@@ -2496,10 +2496,7 @@ public class EditorHost extends BorderPane {
     /** Renames the selected JSON object property (Inspector); rejects blank/duplicate keys. */
     public boolean renameActiveJsonKey(String newKey) {
         String key = newKey == null ? "" : newKey.trim();
-        if (key.isEmpty()) {
-            return false;
-        }
-        return editActiveJson(node -> node.getParent() instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject
+        return !key.isEmpty() && editActiveJson(node -> node.getParent() instanceof org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject
                 && !key.equals(node.getKey())
                 ? new org.fxt.freexmltoolkit.controls.jsoneditor.commands.RenameKeyCommand(node, key) : null);
     }
@@ -4986,12 +4983,8 @@ public class EditorHost extends BorderPane {
         private Runnable viewModeAppliedCallback = () -> { };
         /** Shared XML-instance model+command context across Text/Tree/Grid (mirrors {@link #editorContext}). */
         private org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext xmlEditorContext;
-        /** Editor text {@link #xmlEditorContext} was parsed from (avoid needless re-parse; detect external edits). */
-        private String lastParsedXmlText;
         /** Shared JSON model+command context across Text/Tree/Grid (mirrors {@link #xmlEditorContext}). */
         private org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext jsonEditorContext;
-        /** Editor text {@link #jsonEditorContext} was parsed from. */
-        private String lastParsedJsonText;
         /** Parser message of the last failed JSON parse (shown by the grid placeholder). */
         private String lastJsonParseError;
         /** Coalesces bursts of model-change events into a single round-trip (P1). */
@@ -5331,15 +5324,13 @@ public class EditorHost extends BorderPane {
             String text = view.getText();
             if (text == null || text.isBlank()) {
                 xmlEditorContext = null;
-                lastParsedXmlText = null;
                 lastParsedXmlRevision = -1;
                 return;
             }
             try {
-                installXmlModel(parseXmlDocument(text), text, textRevision);
+                installXmlModel(parseXmlDocument(text), textRevision);
             } catch (Exception e) {
                 xmlEditorContext = null;
-                lastParsedXmlText = null;
                 lastParsedXmlRevision = -1;
                 failedXmlParseRevision = textRevision; // the same text fails again: do not re-parse it
             }
@@ -5353,14 +5344,13 @@ public class EditorHost extends BorderPane {
 
         /** Makes {@code doc} the shared XML model (fresh context: schema provider and Go to Definition wired). */
         private void installXmlModel(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc,
-                                     String text, long revision) {
+                                     long revision) {
             var ctx = new org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext(doc);
             if (xmlSchemaProvider != null) {
                 ctx.setSchemaProvider(xmlSchemaProvider);
             }
             ctx.setGoToDefinitionHandler(goToDefinitionCallback);
             xmlEditorContext = ctx;
-            lastParsedXmlText = text;
             lastParsedXmlRevision = revision;
         }
 
@@ -5475,10 +5465,9 @@ public class EditorHost extends BorderPane {
                     }
                     if (!(xmlEditorContext != null && lastParsedXmlRevision == revision)) {
                         if (doc != null) {
-                            installXmlModel(doc, text, revision);
+                            installXmlModel(doc, revision);
                         } else {
                             xmlEditorContext = null;
-                            lastParsedXmlText = null;
                             lastParsedXmlRevision = -1;
                             failedXmlParseRevision = revision;
                         }
@@ -5498,12 +5487,10 @@ public class EditorHost extends BorderPane {
             String current = view.getText();
             int[] region = TextDiff.minimalReplaceRegion(current, xml);
             if (region[0] == region[1] && region[0] == region[2]) {
-                lastParsedXmlText = current; // already in sync
                 lastParsedXmlRevision = textRevision;
                 return;
             }
             view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
-            lastParsedXmlText = view.getText();
             lastParsedXmlRevision = textRevision;
             document.setDirty(true);
         }
@@ -5544,7 +5531,6 @@ public class EditorHost extends BorderPane {
                     }
                     if (!(jsonEditorContext != null && lastParsedJsonRevision == revision)) {
                         jsonEditorContext = parsed;
-                        lastParsedJsonText = parsed != null ? text : null;
                         lastParsedJsonRevision = parsed != null ? revision : -1;
                         lastJsonParseError = parseError;
                         if (parsed == null) {
@@ -5569,21 +5555,18 @@ public class EditorHost extends BorderPane {
             lastJsonParseError = null;
             if (text == null || text.isBlank()) {
                 jsonEditorContext = null;
-                lastParsedJsonText = null;
                 return;
             }
             try {
                 var ctx = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext();
                 ctx.loadDocumentFromString(text);
                 jsonEditorContext = ctx;
-                lastParsedJsonText = text;
                 lastParsedJsonRevision = textRevision;
             } catch (Exception e) {
                 // Invalid JSON while typing is expected; the views show a placeholder.
                 org.apache.logging.log4j.LogManager.getLogger(EditorHost.class)
                         .debug("JSON structured views: could not parse current text", e);
                 jsonEditorContext = null;
-                lastParsedJsonText = null;
                 lastParsedJsonRevision = -1;
                 failedJsonParseRevision = textRevision; // the same text fails again: do not re-parse it
                 lastJsonParseError = e.getMessage();
@@ -5599,12 +5582,10 @@ public class EditorHost extends BorderPane {
             String current = view.getText();
             int[] region = TextDiff.minimalReplaceRegion(current, json);
             if (region[0] == region[1] && region[0] == region[2]) {
-                lastParsedJsonText = current; // already in sync
                 lastParsedJsonRevision = textRevision;
                 return;
             }
             view.replaceTextRegion(region[0], region[1], json.substring(region[0], region[2]));
-            lastParsedJsonText = view.getText();
             lastParsedJsonRevision = textRevision;
             document.setDirty(true);
         }
@@ -5667,13 +5648,12 @@ public class EditorHost extends BorderPane {
                 return;
             }
             org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode resolved = null;
-            if (xmlEditorContext != null && xmlEditorContext.getDocument() != null) {
-                if (caretMapDoc != null && caretMapDoc.getRootElement() != null) {
-                    int line = view.getCodeArea().getCurrentParagraph() + 1;
-                    var target = findElementByLine(caretMapDoc.getRootElement(), line);
-                    java.util.List<Integer> path = indexPath(caretMapDoc.getRootElement(), target);
-                    resolved = navigate(xmlEditorContext.getDocument().getRootElement(), path);
-                }
+            if (xmlEditorContext != null && xmlEditorContext.getDocument() != null
+                    && caretMapDoc != null && caretMapDoc.getRootElement() != null) {
+                int line = view.getCodeArea().getCurrentParagraph() + 1;
+                var target = findElementByLine(caretMapDoc.getRootElement(), line);
+                java.util.List<Integer> path = indexPath(caretMapDoc.getRootElement(), target);
+                resolved = navigate(xmlEditorContext.getDocument().getRootElement(), path);
             }
             currentXmlSelection = resolved;
             selectionCallback.run();
@@ -5748,13 +5728,12 @@ public class EditorHost extends BorderPane {
                 return;
             }
             XsdNode resolved = null;
-            if (editorContext != null && editorContext.getSchema() != null) {
-                if (caretMapDoc != null && caretMapDoc.getRootElement() != null) {
-                    int line = view.getCodeArea().getCurrentParagraph() + 1;
-                    var target = findElementByLine(caretMapDoc.getRootElement(), line);
-                    java.util.List<Integer> path = xsdSourceIndexPath(caretMapDoc.getRootElement(), target);
-                    resolved = navigateXsd(editorContext.getSchema(), path);
-                }
+            if (editorContext != null && editorContext.getSchema() != null
+                    && caretMapDoc != null && caretMapDoc.getRootElement() != null) {
+                int line = view.getCodeArea().getCurrentParagraph() + 1;
+                var target = findElementByLine(caretMapDoc.getRootElement(), line);
+                java.util.List<Integer> path = xsdSourceIndexPath(caretMapDoc.getRootElement(), target);
+                resolved = navigateXsd(editorContext.getSchema(), path);
             }
             currentSelection = resolved;
             selectionCallback.run();
@@ -6690,8 +6669,6 @@ public class EditorHost extends BorderPane {
             view.getCodeArea().moveTo(Math.min(caret, view.getCodeArea().getLength()));
             view.getCodeArea().requestFollowCaret();
             lastParsedText = null;
-            lastParsedXmlText = null;
-            lastParsedJsonText = null;
             lastParsedRevision = -1;
             lastParsedXmlRevision = -1;
             lastParsedJsonRevision = -1;

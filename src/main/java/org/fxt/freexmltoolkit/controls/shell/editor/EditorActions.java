@@ -1,8 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
@@ -14,12 +12,10 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
-import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**

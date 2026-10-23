@@ -31,8 +31,6 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
 
@@ -60,7 +58,6 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFacto
  */
 public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
-    private static final Logger logger = LogManager.getLogger(GridCanvasView.class);
 
     // ==================== Model adapter ====================
 

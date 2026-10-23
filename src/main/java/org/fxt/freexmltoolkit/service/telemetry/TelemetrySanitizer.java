@@ -119,7 +119,7 @@ public final class TelemetrySanitizer {
             return HexFormat.of().formatHex(digest).substring(0, 16);
         } catch (NoSuchAlgorithmException e) {
             // SHA-256 is mandatory on every JRE; fall back to a stable non-crypto hash.
-            return String.format("%016x", (long) text.hashCode() & 0xffffffffL);
+            return String.format("%016x", text.hashCode() & 0xffffffffL);
         }
     }
 

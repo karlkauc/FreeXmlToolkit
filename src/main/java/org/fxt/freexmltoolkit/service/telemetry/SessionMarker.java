@@ -144,12 +144,10 @@ public final class SessionMarker {
         if (handle.isEmpty() || !handle.get().isAlive()) {
             return false;
         }
-        if (marker.processStartMillis() <= 0) {
-            return true;
-        }
-        return handle.get().info().startInstant()
-                .map(i -> Math.abs(i.toEpochMilli() - marker.processStartMillis()) < 2000)
-                .orElse(true);
+        return marker.processStartMillis() <= 0
+                || handle.get().info().startInstant()
+                        .map(i -> Math.abs(i.toEpochMilli() - marker.processStartMillis()) < 2000)
+                        .orElse(true);
     }
 
     private static String sanitize(String sessionId) {

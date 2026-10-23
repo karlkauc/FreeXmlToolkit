@@ -581,13 +581,9 @@ public class XsdSampleDataGenerator {
         // This is a common cause of exponential backtracking
         long alternationCount = pattern.chars().filter(c -> c == '|').count();
         boolean hasUnboundedRepetition = pattern.contains("+") || pattern.contains("*");
-        if (alternationCount > 10 && hasUnboundedRepetition) {
-            return true;
-        }
-
         // Very long patterns are often problematic too. (E-mail patterns such as .+@.+ are no longer excluded: the
         // bounded sampler handles them, the fallback wrote "@" for KML atomEmailAddress.)
-        return pattern.length() > 500;
+        return alternationCount > 10 && hasUnboundedRepetition || pattern.length() > 500;
     }
 
     /**
@@ -962,7 +958,7 @@ public class XsdSampleDataGenerator {
         }
         byte[] bytes = new byte[Math.clamp(octets, 0, 4096)];
         byte[] text = "Hello World".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
-        for (int i = 0; i < bytes.length; i++) {
+        for (int i = 0; i < bytes.length; i++) { // NOPMD - cyclic fill, not a plain array copy
             bytes[i] = text[i % text.length];
         }
         return base64 ? java.util.Base64.getEncoder().encodeToString(bytes)

@@ -535,11 +535,9 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
     }
 
     private static boolean matches(JsonNode node, String query) {
-        if (node.getKey() != null && node.getKey().toLowerCase().contains(query)) {
-            return true;
-        }
-        return node instanceof JsonPrimitive primitive
-                && primitive.getValueAsString().toLowerCase().contains(query);
+        return node.getKey() != null && node.getKey().toLowerCase().contains(query)
+                || node instanceof JsonPrimitive primitive
+                        && primitive.getValueAsString().toLowerCase().contains(query);
     }
 
     private void reveal(TreeItem<JsonNode> match) {

@@ -539,10 +539,8 @@ public class RepeatingElementsTable {
                 expandedCellRows.remove(columnName);
             } else {
                 expandedColumns.add(columnName);
-                if (!expandedCellRows.containsKey(columnName)) {
-                    if (complexChildren.containsKey(columnName)) {
-                        expandedCellRows.put(columnName, record.flattenComplexChild(columnName));
-                    }
+                if (!expandedCellRows.containsKey(columnName) && complexChildren.containsKey(columnName)) {
+                    expandedCellRows.put(columnName, record.flattenComplexChild(columnName));
                 }
             }
             invalidateLayout();

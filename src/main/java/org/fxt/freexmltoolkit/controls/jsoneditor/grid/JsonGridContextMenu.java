@@ -658,11 +658,10 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
                 Alert.AlertType.CONFIRMATION, "Delete Node", "Delete \"" + nodeName(selected) + "\"?",
                 "This action cannot be undone from this dialog.");
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            if (context.executeCommand(new DeleteNodeCommand(selected))) {
-                context.getSelectionModel().clearSelection();
-                refresh();
-            }
+        if (result.isPresent() && result.get() == ButtonType.OK
+                && context.executeCommand(new DeleteNodeCommand(selected))) {
+            context.getSelectionModel().clearSelection();
+            refresh();
         }
     }
 

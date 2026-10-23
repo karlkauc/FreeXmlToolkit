@@ -3285,10 +3285,8 @@ public class XsdDocumentationService {
      */
     static boolean idForEmittedReference(XsdExtendedElement attribute, List<XsdExtendedElement> attributes,
                                          XsdSampleDataGenerator identityValues) {
-        if (identityValues.identityKind(attribute) != XsdSampleDataGenerator.IdentityKind.ID) {
-            return false;
-        }
-        return attributes.stream().anyMatch(other -> other != attribute && other.isMandatory()
+        return identityValues.identityKind(attribute) == XsdSampleDataGenerator.IdentityKind.ID
+                && attributes.stream().anyMatch(other -> other != attribute && other.isMandatory()
                 && fixedOrDefaultValue(other) == null
                 && identityValues.identityKind(other) == XsdSampleDataGenerator.IdentityKind.IDREF);
     }
@@ -5630,20 +5628,6 @@ public class XsdDocumentationService {
         }
         String loc = location.toLowerCase();
         return loc.startsWith("http://") || loc.startsWith("https://") || loc.startsWith("ftp://");
-    }
-
-    private String getFileNameFromUrl(String urlString) {
-        try {
-            URI uri = new URI(urlString);
-            String path = uri.getPath();
-            if (path == null || path.isEmpty() || path.equals("/")) {
-                return "";
-            }
-            return new File(path).getName();
-        } catch (Exception e) {
-            logger.warn("Could not parse URL to get filename: {}", urlString, e);
-            return "";
-        }
     }
 
     /**

@@ -613,7 +613,7 @@ public class XsdExtendedElement implements Serializable {
      *
      * @return The cleaned sample data or an empty string if none are available.
      */
-    public String getSampleData() {
+    public synchronized String getSampleData() {
         String sampleData = materializedSampleData();
         if (sampleData == null || sampleData.isEmpty()) {
             return "";

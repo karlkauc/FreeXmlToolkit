@@ -409,10 +409,8 @@ public final class SchemaReferenceGraph {
         Set<ComponentKey> reached = new HashSet<>();
         for (Component component : components.values()) {
             ComponentKind kind = component.key().kind();
-            if (kind == ComponentKind.ELEMENT || kind == ComponentKind.ATTRIBUTE) {
-                if (reached.add(component.key())) {
-                    queue.add(component.key());
-                }
+            if ((kind == ComponentKind.ELEMENT || kind == ComponentKind.ATTRIBUTE) && reached.add(component.key())) {
+                queue.add(component.key());
             }
         }
         if (queue.isEmpty()) {
@@ -624,10 +622,8 @@ public final class SchemaReferenceGraph {
             // Unknown prefix: we cannot prove the name is local, so do not report it.
             return true;
         }
-        if ("http://www.w3.org/2001/XMLSchema".equals(uri)) {
-            return true;
-        }
-        return targetNamespace != null && !targetNamespace.equals(uri);
+        return "http://www.w3.org/2001/XMLSchema".equals(uri)
+                || targetNamespace != null && !targetNamespace.equals(uri);
     }
 
     private static boolean isBlank(String s) {

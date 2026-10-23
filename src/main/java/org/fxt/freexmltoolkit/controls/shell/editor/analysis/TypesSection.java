@@ -102,10 +102,8 @@ final class TypesSection extends VBox {
         table.setItems(sorted);
         table.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
             showDetails(n);
-            if (n != null && editorHost != null) {
-                if (!editorHost.revealSchemaNodeByXPath(n.xpath())) {
-                    editorHost.revealTypeByName(n.name());
-                }
+            if (n != null && editorHost != null && !editorHost.revealSchemaNodeByXPath(n.xpath())) {
+                editorHost.revealTypeByName(n.name());
             }
         });
 

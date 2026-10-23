@@ -43,7 +43,6 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
  */
 public class TypeDocumentationPanel extends BorderPane {
 
-    private final XsdEditorContext editorContext;
     private XsdNode currentNode;
 
     @FXML private TitledPane documentationPane;
@@ -62,7 +61,6 @@ public class TypeDocumentationPanel extends BorderPane {
      * @param editorContext the editor context for command execution
      */
     public TypeDocumentationPanel(XsdEditorContext editorContext) {
-        this.editorContext = editorContext;
         FxmlViews.load(this, "/pages/views/TypeDocumentationPanel.fxml");
 
         documentationEditor = new InlineDocumentationEditor(editorContext);

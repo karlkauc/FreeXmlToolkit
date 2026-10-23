@@ -423,7 +423,7 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             if (t.isEmpty()) t = lc.parsed().matchUri(systemId);
             if (t.isEmpty() && absolute != null) t = lc.parsed().matchUri(absoluteString);
             if (t.isPresent()) {
-                try { return Optional.of(URI.create(t.get())); } catch (IllegalArgumentException ignore) { }
+                try { return Optional.of(URI.create(t.get())); } catch (IllegalArgumentException ignored) { }
             }
         }
         return Optional.ofNullable(bundledHit);
@@ -435,7 +435,7 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             if (!lc.ref().enabled() || lc.parsed() == null) continue;
             Optional<String> t = lc.parsed().matchPublic(publicId);
             if (t.isPresent()) {
-                try { return Optional.of(URI.create(t.get())); } catch (IllegalArgumentException ignore) { }
+                try { return Optional.of(URI.create(t.get())); } catch (IllegalArgumentException ignored) { }
             }
         }
         return Optional.empty();

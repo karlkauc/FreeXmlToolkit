@@ -19,7 +19,6 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -30,13 +29,10 @@ import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
-import org.fxt.freexmltoolkit.controls.theme.ActionColor;
-import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
-import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * The Transform activity side panel, laid out after the Figma mockup
@@ -924,12 +920,6 @@ public class TransformPanel extends VBox {
         if (file != null) {
             setXsltFile(file);
         }
-    }
-
-    private static MenuItem menuItem(String text, Runnable action) {
-        MenuItem item = new MenuItem(text);
-        item.setOnAction(e -> action.run());
-        return item;
     }
 
     private static IconifyIcon icon(String literal, int size) {

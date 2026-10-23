@@ -434,11 +434,9 @@ public class ValidationPanel extends VBox {
                         + (showStats ? " · " + elapsedMs + " ms" : "");
                 if (result.isEmpty() && hasSchema) {
                     PanelStatus.success(status, summary);
-                } else if (result.isEmpty()) {
-                    // Only well-formedness was checked: neutral, and the SOURCES slot above
-                    // ("No XSD bound — choose or drop a file") is the next step.
-                    PanelStatus.info(status, summary);
                 } else {
+                    // Problems, or only well-formedness was checked: neutral (in the latter case the
+                    // SOURCES slot above — "No XSD bound — choose or drop a file" — is the next step).
                     PanelStatus.info(status, summary);
                 }
                 editorHost.setValidationStatus(

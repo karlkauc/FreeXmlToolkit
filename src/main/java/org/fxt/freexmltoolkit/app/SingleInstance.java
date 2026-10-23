@@ -94,12 +94,12 @@ public final class SingleInstance implements AutoCloseable {
      *         listener could not be started
      */
     public static SingleInstance claim(Path directory, Consumer<List<Path>> onFiles) {
-        FileChannel channel = null;
+        FileChannel channel = null; // NOPMD - held for the app's lifetime, closed in the catch below or by close()
         try {
             Files.createDirectories(directory);
             channel = FileChannel.open(directory.resolve(LOCK_FILE),
                     StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-            FileLock lock;
+            FileLock lock; // NOPMD - released with the channel
             try {
                 lock = channel.tryLock();
             } catch (OverlappingFileLockException e) {
@@ -109,8 +109,13 @@ public final class SingleInstance implements AutoCloseable {
                 channel.close();
                 return null;
             }
-            ServerSocket server = new ServerSocket();
-            server.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
+            ServerSocket server = new ServerSocket(); // NOPMD - owned by the returned instance
+            try {
+                server.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0));
+            } catch (IOException e) {
+                server.close();
+                throw e;
+            }
             byte[] random = new byte[16];
             new SecureRandom().nextBytes(random);
             String token = HexFormat.of().formatHex(random);
@@ -146,7 +151,7 @@ public final class SingleInstance implements AutoCloseable {
                 Thread.currentThread().interrupt();
                 return null;
             }
-            instance = claim(directory, onFiles);
+            instance = claim(directory, onFiles); // NOPMD - only reassigned while null
         }
         return instance;
     }
@@ -195,14 +200,14 @@ public final class SingleInstance implements AutoCloseable {
             int port = Integer.parseInt(endpoint[0]);
             socket.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), port), TIMEOUT_MILLIS);
             socket.setSoTimeout(TIMEOUT_MILLIS);
-            Writer out = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
+            Writer out = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8); // NOPMD - closed with the socket
             out.write(endpoint[1] + "\n");
             for (Path file : files) {
                 out.write(file.toAbsolutePath() + "\n");
             }
             out.write("\n");
             out.flush();
-            BufferedReader in = new BufferedReader(
+            BufferedReader in = new BufferedReader( // NOPMD - closed with the socket
                     new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
             boolean acknowledged = ACK.equals(in.readLine());
             logger.info("Forwarded {} file(s) to the running instance: {}", files.size(), acknowledged);
@@ -317,7 +322,7 @@ public final class SingleInstance implements AutoCloseable {
 
     private void handle(Socket socket) throws IOException {
         socket.setSoTimeout(TIMEOUT_MILLIS);
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8)); // NOPMD - closed with the socket by the caller
         String received = in.readLine();
         if (received == null || !MessageDigest.isEqual(
                 token.getBytes(StandardCharsets.UTF_8), received.getBytes(StandardCharsets.UTF_8))) {
@@ -333,7 +338,7 @@ public final class SingleInstance implements AutoCloseable {
                 logger.debug("Ignoring unparseable forwarded path: {}", line);
             }
         }
-        Writer out = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
+        Writer out = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8); // NOPMD - closed with the socket by the caller
         out.write(ACK + "\n");
         out.flush();
         logger.info("Another launch forwarded {} file(s)", files.size());

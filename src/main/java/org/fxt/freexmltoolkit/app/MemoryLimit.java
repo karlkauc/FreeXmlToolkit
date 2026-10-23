@@ -252,7 +252,9 @@ public final class MemoryLimit {
                 MacOpenFilesHandler.install();
                 installed.countDown();
             });
-            installed.await(2, TimeUnit.SECONDS);
+            if (!installed.await(2, TimeUnit.SECONDS)) {
+                logger.warn("JavaFX did not start within 2 s; files macOS opened the application with may be missing");
+            }
             Thread.sleep(MAC_OPEN_FILES_WAIT_MS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

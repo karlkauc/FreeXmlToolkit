@@ -267,6 +267,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         return SemanticIcon.paint(fontIcon, color);
     }
 
+    @Override
     public void show(Node anchor, double screenX, double screenY, XmlNode selectedNode) {
         // Clear table cell context for non-table nodes
         clickedTable = null;
@@ -277,6 +278,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         contextMenu.show(anchor, screenX, screenY);
     }
 
+    @Override
     public void show(Node anchor, double screenX, double screenY, XmlNode selectedNode,
                      RepeatingElementsTable table, int rowIndex, String columnName) {
         // Store table cell context
@@ -288,6 +290,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         contextMenu.show(anchor, screenX, screenY);
     }
 
+    @Override
     public void hide() {
         contextMenu.hide();
     }
@@ -1282,6 +1285,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         return event.isControlDown() && !event.isShiftDown() && !event.isAltDown();
     }
 
+    @Override
     public void handleKeyPress(javafx.scene.input.KeyEvent event, XmlNode selectedNode) {
         if (selectedNode == null) {
             return;
@@ -1339,6 +1343,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         }
     }
 
+    @Override
     public boolean hasClipboard() {
         return clipboardElement != null;
     }

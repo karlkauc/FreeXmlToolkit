@@ -19,7 +19,6 @@
 package org.fxt.freexmltoolkit;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -429,10 +428,7 @@ public class FxtGui extends Application {
                     java.nio.file.Path library = home.resolve(name);
                     if (java.nio.file.Files.isRegularFile(library)) {
                         try (var in = java.nio.file.Files.newInputStream(library)) {
-                            byte[] buffer = new byte[1 << 20];
-                            while (in.read(buffer) >= 0) {
-                                // reading is the point
-                            }
+                            in.transferTo(java.io.OutputStream.nullOutputStream()); // reading is the point
                         }
                         logger.debug("WebKit library warmed up: {}", library);
                     }

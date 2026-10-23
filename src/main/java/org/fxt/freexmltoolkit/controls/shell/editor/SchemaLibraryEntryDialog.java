@@ -5,15 +5,9 @@ import java.nio.file.Path;
 import java.util.UUID;
 
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
 
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.EntrySource;
 import org.fxt.freexmltoolkit.domain.SchemaKind;
