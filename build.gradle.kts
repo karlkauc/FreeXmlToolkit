@@ -27,9 +27,9 @@ plugins {
     jacoco
     pmd
     checkstyle
-    id("com.github.spotbugs") version "6.5.12"
+    id("com.github.spotbugs") version "6.5.13"
     id("com.diffplug.spotless") version "8.10.4"
-    id("io.github.ben-manes.versions") version "0.65.0"
+    id("io.github.ben-manes.versions") version "0.66.0"
 }
 
 version = "2.5.1"
@@ -99,7 +99,7 @@ dependencies {
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
 
     // Side-by-side diff/merge for XML & XSD text editors
-    implementation("io.github.java-diff-utils:java-diff-utils:4.17")
+    implementation("io.github.java-diff-utils:java-diff-utils:4.18")
 
     implementation("org.apache.logging.log4j:log4j-api:2.26.1")
     implementation("org.apache.logging.log4j:log4j-core:2.26.1")
@@ -108,18 +108,18 @@ dependencies {
     implementation("org.apache.santuario:xmlsec:4.0.4")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.86")
 
-    implementation("org.controlsfx:controlsfx:11.2.5")
+    implementation("org.controlsfx:controlsfx:11.2.6")
     // Native macOS application/window menu (only touched on macOS, see app/MacMenuIntegration)
     implementation("de.jangassen:nsmenufx:3.1.0") {
         // JavaFX comes from the Liberica Full JDK; keep the library's OpenJFX 11 jars off the classpath
         exclude(group = "org.openjfx")
     }
 
-    implementation("org.apache.xmlgraphics:fop:2.11")
+    implementation("org.apache.xmlgraphics:fop:2.12")
     implementation("org.apache.pdfbox:pdfbox:3.0.8")
-    implementation("org.apache.xmlgraphics:batik-svggen:1.19")
-    implementation("org.apache.xmlgraphics:batik-all:1.19")
-    implementation("org.apache.xmlgraphics:batik-transcoder:1.19")
+    implementation("org.apache.xmlgraphics:batik-svggen:1.20")
+    implementation("org.apache.xmlgraphics:batik-all:1.20")
+    implementation("org.apache.xmlgraphics:batik-transcoder:1.20")
 
     implementation("org.apache.poi:poi:5.5.1")
     implementation("org.apache.poi:poi-ooxml:5.5.1")
@@ -134,8 +134,8 @@ dependencies {
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
     implementation("jakarta.activation:jakarta.activation-api:2.1.4")
 
-    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.2")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.6.2")
+    implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.4")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.6.5")
 
     implementation("com.github.mifmif:generex:1.0.2")
     implementation("com.github.curious-odd-man:rgxgen:3.1")
@@ -507,7 +507,7 @@ tasks.register<Test>("sampleXmlAudit") {
 
 // JaCoCo Code Coverage Configuration
 jacoco {
-    toolVersion = "0.8.14"
+    toolVersion = "0.8.15"
 }
 
 tasks.jacocoTestReport {
@@ -1467,7 +1467,7 @@ pmd {
 }
 
 checkstyle {
-    toolVersion = "10.25.0"
+    toolVersion = "10.26.1"
     isIgnoreFailures = false
     configFile = file("config/checkstyle/checkstyle.xml")
     configProperties = mapOf("suppressionFile" to file("config/checkstyle/suppressions.xml").absolutePath)
