@@ -277,6 +277,9 @@ If the interface appears blurry or animations are slow, your system may be using
 |----------|--------|
 | `Ctrl+N` | New file |
 | `Ctrl+O` | Open file |
+| `Ctrl+W` | Close the active tab |
+| `Ctrl+Tab` / `Ctrl+Shift+Tab` | Next / previous tab |
+| `Ctrl+Q` | Quit (`Cmd+Q` on macOS) |
 | `Ctrl+S` / `Ctrl+Shift+S` | Save / Save As |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` (or `Ctrl+Shift+Z`) | Redo |

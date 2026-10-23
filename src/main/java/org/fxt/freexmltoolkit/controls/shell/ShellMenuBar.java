@@ -17,7 +17,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCombination;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
 
 import org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog;
 import org.fxt.freexmltoolkit.controls.shell.editor.AboutDialog;
@@ -68,6 +67,7 @@ public final class ShellMenuBar extends MenuBar {
     private static final Map<String, EditorAction> TYPE_ITEMS = Map.of(
             "menu-tools-validate", EditorAction.VALIDATE,
             "menu-tools-transform", EditorAction.TRANSFORM,
+            "menu-tools-debug-xslt", EditorAction.TRANSFORM,
             "menu-tools-generate-docs", EditorAction.GENERATE_DOCS,
             "menu-tools-generate-sample", EditorAction.TYPE_EDITOR,
             "menu-tools-type-editor", EditorAction.TYPE_EDITOR);
@@ -318,10 +318,7 @@ public final class ShellMenuBar extends MenuBar {
 
     /** Closes the window like its title-bar button, so the application's close handling applies. */
     @FXML public void onExit() {
-        Window window = window();
-        if (window != null) {
-            run("exit", () -> window.fireEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSE_REQUEST)));
-        }
+        run("exit", shell::requestExit);
     }
 
     @FXML public void onUndo() { run("undo", shell::onUndo); }
@@ -346,6 +343,7 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onValidate() { run("validate", shell::onValidate); }
     @FXML public void onRun() { run("run", shell::executeActive); }
     @FXML public void onTransform() { run("transform", shell::onTransform); }
+    @FXML public void onDebugXslt() { run("debug_xslt", shell::onDebugXslt); }
     @FXML public void onSetSchema() { run("set_schema", shell::onSetSchema); }
     @FXML public void onGenerateDocs() { run("generate_docs", shell::onGenerateDocs); }
     @FXML public void onTypeEditor() { run("type_editor", shell::onTypeEditor); }

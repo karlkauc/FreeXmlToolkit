@@ -38,7 +38,7 @@
                 <ShellMenuItem fx:id="settingsItem" id="menu-file-settings" text="Settings…" iconLiteral="bi-gear"
                                color="NEUTRAL" accelerator="Shortcut+Comma" onAction="#onSettings"/>
                 <ShellMenuItem fx:id="exitItem" id="menu-file-exit" text="Exit" iconLiteral="bi-box-arrow-right"
-                               color="NEUTRAL" onAction="#onExit"/>
+                               color="NEUTRAL" accelerator="Shortcut+Q" onAction="#onExit"/>
             </items>
         </Menu>
 
@@ -101,6 +101,8 @@
                                accelerator="F5" onAction="#onRun"/>
                 <ShellMenuItem id="menu-tools-transform" text="Transform with XSLT…" iconLiteral="bi-shuffle"
                                color="TOOL" onAction="#onTransform"/>
+                <ShellMenuItem id="menu-tools-debug-xslt" text="Debug with XSLT…" iconLiteral="bi-bug"
+                               color="TOOL" accelerator="Shift+F5" onAction="#onDebugXslt"/>
                 <SeparatorMenuItem/>
                 <ShellMenuItem id="menu-tools-set-schema" text="Set Schema…" iconLiteral="bi-link-45deg"
                                color="STRUCTURE" onAction="#onSetSchema"/>

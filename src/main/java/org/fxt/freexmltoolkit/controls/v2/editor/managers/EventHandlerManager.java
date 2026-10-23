@@ -88,8 +88,8 @@ public class EventHandlerManager {
      */
     private void setupKeyboardHandlers() {
         codeArea.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            // Font size keyboard shortcuts (Ctrl+Plus, Ctrl+Minus, Ctrl+0)
-            if (event.isControlDown()) {
+            // Font size keyboard shortcuts (Ctrl+Plus, Ctrl+Minus, Ctrl+0 — Cmd on macOS)
+            if (event.isShortcutDown()) {
                 switch (event.getCode()) {
                     case PLUS, ADD, EQUALS -> {
                         if (onIncreaseFontSize != null) {

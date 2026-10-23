@@ -96,7 +96,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.ToggleButton leftPanelToggle;
     @FXML private javafx.scene.control.ToggleButton inspectorToggle;
     @FXML private javafx.scene.control.Button actionValidate;
-    @FXML private javafx.scene.control.Button actionTransform;
+    @FXML private javafx.scene.control.SplitMenuButton actionTransform;
     @FXML private javafx.scene.control.SplitMenuButton actionRun;
     @FXML private javafx.scene.control.MenuItem actionGenerateDocs;
     @FXML private javafx.scene.control.MenuItem actionTypeEditor;
@@ -104,6 +104,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.MenuItem actionGenerateXsd;
     @FXML private javafx.scene.control.MenuItem actionRunQuery;
     @FXML private javafx.scene.control.MenuItem actionRunTransform;
+    @FXML private javafx.scene.control.MenuItem actionDebugTransform;
     @FXML private javafx.scene.control.MenuItem actionRunPipeline;
     /** Target dropdown for query/XSLT documents; visible only when one is active. */
     @FXML private javafx.scene.control.MenuButton queryTargetButton;
@@ -290,6 +291,9 @@ public class UnifiedShellView extends BorderPane {
 
         // File-operation keyboard shortcuts (scoped to the shell).
         addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, this::handleShortcutTracked);
+        // Window-level chords (Quit, tab cycling, Ctrl+F4) run as a filter: they must win over
+        // whatever control has the focus, and a focused editor would otherwise see them first.
+        addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
         // Welcome/Dashboard tool cards switch activities (and "open-folder" → Explorer).
         editorHost.setWelcomeActionHandler(this::handleWelcomeAction);
         // A FundsXML document while the extension is off: offer it once (UX plan 5.5).
@@ -573,6 +577,51 @@ public class UnifiedShellView extends BorderPane {
         revealSidePanel();
     }
 
+    /**
+     * Chords that belong to the window, not to a view: Ctrl/Cmd+Q quits (on macOS the native
+     * Quit item is the same action — the consumed key never reaches the system menu, so it does
+     * not run twice), Ctrl+Tab / Ctrl+Shift+Tab cycle the editor tabs, and Ctrl+F4 closes the
+     * active tab on Windows/Linux (the MDI convention; on macOS Cmd+W is the only close chord).
+     */
+    private void handleGlobalShortcut(javafx.scene.input.KeyEvent event) {
+        if (event.isAltDown()) {
+            return;
+        }
+        if (event.getCode() == javafx.scene.input.KeyCode.Q && event.isShortcutDown() && !event.isShiftDown()) {
+            runFromShortcut(event, "exit", this::requestExit);
+        } else if (event.getCode() == javafx.scene.input.KeyCode.TAB && event.isControlDown()) {
+            runFromShortcut(event, event.isShiftDown() ? "previous_tab" : "next_tab",
+                    () -> editorHost.selectAdjacentTab(event.isShiftDown() ? -1 : 1));
+        } else if (event.getCode() == javafx.scene.input.KeyCode.F4 && event.isShortcutDown()
+                && !event.isShiftDown() && !ShellMenuBar.MAC) {
+            runFromShortcut(event, "close_tab", editorHost::closeActiveTab);
+        }
+    }
+
+    private void runFromShortcut(javafx.scene.input.KeyEvent event, String command, Runnable action) {
+        event.consume();
+        boolean nested = dispatchingShortcut;
+        dispatchingShortcut = true;
+        try {
+            action.run();
+        } finally {
+            dispatchingShortcut = nested;
+        }
+        org.fxt.freexmltoolkit.service.telemetry.UsageEvents.command(command,
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.VIA_SHORTCUT);
+    }
+
+    /**
+     * Asks the window to close, exactly like its title-bar button: File → Exit, Ctrl/Cmd+Q and
+     * the macOS Quit item all end here, so the application's close handling applies once.
+     */
+    public void requestExit() {
+        javafx.stage.Window window = getScene() != null ? getScene().getWindow() : null;
+        if (window != null) {
+            window.fireEvent(new javafx.stage.WindowEvent(window, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
+        }
+    }
+
     private void handleShortcutTracked(javafx.scene.input.KeyEvent event) {
         dispatchingShortcut = true;
         try {
@@ -610,6 +659,18 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private void handleShortcut(javafx.scene.input.KeyEvent event) {
+        // While an XSLT debug session is paused, F5/F7/F8/Shift+F8 drive the debugger.
+        if (editorHost.handleDebugShortcut(event)) {
+            event.consume();
+            return;
+        }
+        // Shift+F5 starts the XSLT debugger (Debug with XSLT…).
+        if (event.getCode() == javafx.scene.input.KeyCode.F5 && event.isShiftDown()
+                && !event.isShortcutDown() && !event.isAltDown()) {
+            onDebugXslt();
+            event.consume();
+            return;
+        }
         // Function keys (no modifier) - all listed in the Keyboard Shortcuts dialog.
         switch (event.getCode()) {
             case F1 -> {
@@ -1319,6 +1380,46 @@ public class UnifiedShellView extends BorderPane {
             panel.transform();
         }
     }
+    /**
+     * Toolbar arrow / Tools → Debug with XSLT… / Shift+F5: the one way to start the XSLT
+     * debugger. With the PDF/FOP activity in front it debugs that panel's XSL-FO stylesheet;
+     * with an XSLT document active it debugs that document against the Run target; otherwise
+     * it opens the Transform panel on the active document (asking for a stylesheet if none is
+     * set) and starts the debugger there.
+     */
+    @FXML public void onDebugXslt() {
+        toolbar("debug_xslt");
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        if (selectionModel.getActive() == Activity.PDF_FOP
+                && sidePanels.get(Activity.PDF_FOP) instanceof org.fxt.freexmltoolkit.controls.shell.editor.FopPanel fop
+                && fop.hasStylesheet()) {
+            fop.startDebug();
+            return;
+        }
+        if (editorActions.activeFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSLT) {
+            editorActions.debugActiveTransform();
+            return;
+        }
+        var panel = (org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel) sidePanel(Activity.TRANSFORM);
+        selectionModel.select(Activity.TRANSFORM);
+        setLeftPanelVisible(true);
+        panel.setInputOverride(null); // the active document
+        if (!panel.hasStylesheet()) {
+            panel.onChooseXslt();
+        }
+        if (panel.hasStylesheet()) {
+            panel.startDebug();
+        }
+    }
+
+    /** Run menu → Debug Transform: debugs the active XSLT document against the Run target. */
+    @FXML public void onDebugTransform() {
+        toolbar("debug_transform");
+        editorActions.debugActiveTransform();
+    }
+
     @FXML public void onRunQuery() { editorActions.runActiveQuery(); }
     @FXML public void onRunTransform() { editorActions.runActiveTransform(); }
     @FXML public void onRunPipeline() { editorActions.runActivePipeline(); }
@@ -1593,6 +1694,7 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_QUERY));
         actionRunTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM));
+        actionDebugTransform.setDisable(actionRunTransform.isDisable());
         actionRunPipeline.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE));
 

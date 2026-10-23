@@ -324,10 +324,10 @@ schemas, **Save** needs an open document).
 
 | Menu | Contents |
 |------|----------|
-| **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit |
+| **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q) |
 | **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
 | **View** | The view modes (Text / Tree / Graphic / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), Toggle Light / Dark Theme, Full Screen |
-| **Tools** | Validate, Run, Transform with XSLT…, Set Schema…, Generate Documentation…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites |
+| **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Set Schema…, Generate Documentation…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites |
 | **Help** | Documentation, Keyboard Shortcuts, FundsXML Website and FundsXML Schema Docs (only while the [FundsXML extension](fundsxml-extensions.md) is enabled), Report a Problem… (when error reporting is enabled), GitHub Repository, Sponsor this Project, Check for Updates…, About FreeXmlToolkit - see [Help Menu & About](#help-menu-about) |
 
 ### macOS
@@ -1749,7 +1749,9 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+O | Open file |
 | Ctrl+S | Save current tab |
 | Ctrl+Shift+S | Save As (the Save ▾ menu also offers Save All) |
-| Ctrl+W | Close the active tab (asks to save unsaved changes) |
+| Ctrl+W (Windows/Linux also Ctrl+F4) | Close the active tab (asks to save unsaved changes) |
+| Ctrl+Tab / Ctrl+Shift+Tab | Next / previous tab |
+| Ctrl+Q | Quit FreeXmlToolkit (**Cmd+Q** on macOS; Alt+F4 on Windows works as usual) |
 | Ctrl+, | Open the Settings page |
 | Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) | Undo / Redo (works from the Text, Tree and Graphic views) |
 | Ctrl+F | Find (in the active document) |
@@ -1773,7 +1775,7 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+E | Spreadsheet Converter… (Excel / CSV ↔ XML) |
 | Ctrl+T | Insert Template… (needs an open document) |
 | Alt+Enter / Ctrl+. | Quick Fix - apply a [Schematron Quick Fix](schematron-quick-fixes.md) on the caret line |
-| Ctrl++ / Ctrl+- | Graphic view: zoom the grid in / out (10 % steps, 50-300 %) |
+| Ctrl++ / Ctrl+- | Zoom in / out (Text view: font size; Graphic view: the grid in 10 % steps, 50-300 %) |
 | Ctrl+0 | Reset the zoom to 100 % (Text view: font size, Graphic view: the grid) |
 | Ctrl+Alt+X | Graphic view: copy the XPath / JSONPath of the selected node |
 | Ctrl+Alt+C | Graphic view: copy the selected node as XML / JSON |

@@ -3567,6 +3567,21 @@ public class EditorHost extends BorderPane {
      * @return {@code true} if a tab was closed; {@code false} without a closable active tab or
      *         when the close was cancelled
      */
+    /**
+     * Selects the tab {@code delta} positions after the active one (negative = before), wrapping
+     * around at both ends — Ctrl+Tab / Ctrl+Shift+Tab. No-op with fewer than two tabs.
+     */
+    public void selectAdjacentTab(int delta) {
+        var tabs = tabPane.getTabs();
+        int count = tabs.size();
+        if (count < 2) {
+            return;
+        }
+        int current = tabPane.getSelectionModel().getSelectedIndex();
+        int next = Math.floorMod((current < 0 ? 0 : current) + delta, count);
+        tabPane.getSelectionModel().select(tabs.get(next));
+    }
+
     public boolean closeActiveTab() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
         if (tab == null || !tab.isClosable()) {

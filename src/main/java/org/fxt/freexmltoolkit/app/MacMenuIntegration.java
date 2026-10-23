@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BooleanSupplier;
 
-import javafx.application.Platform;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +24,12 @@ import de.jangassen.MenuToolkit;
  * <p>Only this class references NSMenuFX, and it is only loaded on macOS. The title of the
  * application menu is not set here: macOS takes it from {@code CFBundleName} of the app bundle
  * (the packaged application shows "FreeXmlToolkit", a plain {@code java} launch shows "java").
+ *
+ * <p><b>Accelerators:</b> NSMenuFX turns a JavaFX accelerator into a native key equivalent from
+ * its Shift/Alt/Meta/Control modifiers only — the platform-neutral {@code Shortcut} modifier is
+ * ignored, so {@code Shortcut+Q} became a bare "q" and Cmd+Q never reached the Quit item. Every
+ * item handed to NSMenuFX therefore gets its accelerator spelled with {@code Meta}
+ * ({@link #nativeAccelerator}).
  */
 public final class MacMenuIntegration {
 
@@ -82,11 +88,15 @@ public final class MacMenuIntegration {
 
         // About, Check for Updates…, Settings… — the same items the in-window bar would show.
         List<MenuItem> applicationItems = menuBar.detachApplicationItems();
-        // Native menus render no JavaFX icon nodes.
-        applicationItems.forEach(item -> item.setGraphic(null));
+        for (MenuItem item : applicationItems) {
+            item.setGraphic(null); // native menus render no JavaFX icon nodes
+            item.setAccelerator(nativeAccelerator(item.getAccelerator()));
+        }
+        // Quit goes the same way as File → Exit and the window's close button, so the
+        // application's close handling applies (and the shell's Cmd+Q filter does the same).
         MenuItem quit = new MenuItem("Quit " + APP_NAME);
-        quit.setAccelerator(KeyCombination.valueOf("Shortcut+Q"));
-        quit.setOnAction(e -> Platform.exit());
+        quit.setAccelerator(nativeAccelerator(KeyCombination.valueOf("Shortcut+Q")));
+        quit.setOnAction(e -> menuBar.onExit());
 
         applicationMenu.getItems().addAll(
                 applicationItems.get(0),
@@ -102,5 +112,18 @@ public final class MacMenuIntegration {
         menuBar.setUseSystemMenuBar(true);
         toolkit.setApplicationMenu(applicationMenu);
         toolkit.autoAddWindowMenuItems(windowMenu);
+    }
+
+    /**
+     * Spells a {@code Shortcut} accelerator with {@code Meta}, which is what NSMenuFX maps to the
+     * Command key; other combinations (and {@code null}) are returned unchanged.
+     */
+    static KeyCombination nativeAccelerator(KeyCombination accelerator) {
+        if (!(accelerator instanceof KeyCodeCombination combo)
+                || combo.getShortcut() != KeyCombination.ModifierValue.DOWN) {
+            return accelerator;
+        }
+        return new KeyCodeCombination(combo.getCode(), combo.getShift(), combo.getControl(), combo.getAlt(),
+                KeyCombination.ModifierValue.DOWN, KeyCombination.ModifierValue.UP);
     }
 }

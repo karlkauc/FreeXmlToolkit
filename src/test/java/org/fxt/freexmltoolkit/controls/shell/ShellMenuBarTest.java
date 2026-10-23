@@ -149,6 +149,46 @@ class ShellMenuBarTest {
     }
 
     @Test
+    void exitShowsCtrlQAndCtrlQAsksTheWindowToClose() {
+        assertEquals(javafx.scene.input.KeyCombination.valueOf("Shortcut+Q"), item("menu-file-exit").getAccelerator());
+        java.util.concurrent.atomic.AtomicInteger closeRequests = new java.util.concurrent.atomic.AtomicInteger();
+        onFx(() -> shell.getScene().getWindow().addEventHandler(javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST, e -> {
+            closeRequests.incrementAndGet();
+            e.consume(); // keep the test stage open
+        }));
+        // A focused editor must not swallow the chord: the filter runs before the text area.
+        onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XML));
+        fireShortcut(javafx.scene.input.KeyCode.Q);
+        assertEquals(1, closeRequests.get(), "Ctrl/Cmd+Q fires exactly one close request (menu accelerator does not run too)");
+        fire("menu-file-exit");
+        assertEquals(2, closeRequests.get(), "File → Exit takes the same path");
+    }
+
+    @Test
+    void ctrlTabCyclesTabsAndCtrlF4ClosesOne() {
+        onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XML));
+        onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XSD));
+        var host = shell.getEditorHost();
+        var second = host.getActiveDocument().orElseThrow();
+        fireKey(javafx.scene.input.KeyCode.TAB, false, true, false);
+        var first = host.getActiveDocument().orElseThrow();
+        assertNotSame(second, first, "Ctrl+Tab moves to the other tab (wrapping)");
+        fireKey(javafx.scene.input.KeyCode.TAB, true, true, false);
+        assertSame(second, host.getActiveDocument().orElseThrow(), "Ctrl+Shift+Tab goes back");
+        if (!ShellMenuBar.MAC) {
+            fireShortcut(javafx.scene.input.KeyCode.F4);
+            assertEquals(1, host.getOpenDocuments().size(), "Ctrl+F4 closes the active tab");
+        }
+    }
+
+    /** Fires a KEY_PRESSED with the given Shift / Control / Meta state on the shell. */
+    private void fireKey(javafx.scene.input.KeyCode code, boolean shift, boolean control, boolean meta) {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.fireEvent(new javafx.scene.input.KeyEvent(
+                javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", code, shift, control, false, meta)));
+        WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    @Test
     void shortcutHandledByTheShellDoesNotAlsoFireItsMenuAccelerator() {
         // Ctrl+Shift+X is both a shell shortcut and the Query Console item's accelerator:
         // run twice it would open and close the console again.
@@ -193,5 +233,16 @@ class ShellMenuBarTest {
     private static void onFx(Runnable action) {
         WaitForAsyncUtils.waitForAsyncFx(5000, action);
         WaitForAsyncUtils.waitForFxEvents();
+    }
+
+    @Test
+    void debugWithXsltFollowsTransform() {
+        var debug = item("menu-tools-debug-xslt");
+        assertNotNull(debug, "Tools has Debug with XSLT…");
+        assertTrue(debug.isDisable(), "disabled without a document");
+        assertNotNull(debug.getAccelerator(), "Shift+F5 is shown as its accelerator");
+        onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XML));
+        assertFalse(debug.isDisable(), "enabled for an XML document, like Transform with XSLT…");
+        assertFalse(item("menu-tools-transform").isDisable());
     }
 }
