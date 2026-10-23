@@ -1180,6 +1180,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#xslt-debugger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging a Stylesheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#queries-xpath-xquery-jsonpath" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3555,6 +3566,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#xslt-debugger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging a Stylesheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#queries-xpath-xquery-jsonpath" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4716,7 +4738,7 @@ schemas, <strong>Save</strong> needs an open document).</p>
 <tbody>
 <tr>
 <td><strong>File</strong></td>
-<td>New…, Open…, Open from URL…, <strong>Open Recent</strong> (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit</td>
+<td>New…, Open…, Open from URL…, <strong>Open Recent</strong> (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q)</td>
 </tr>
 <tr>
 <td><strong>Edit</strong></td>
@@ -4728,7 +4750,7 @@ schemas, <strong>Save</strong> needs an open document).</p>
 </tr>
 <tr>
 <td><strong>Tools</strong></td>
-<td>Validate, Run, Transform with XSLT…, Set Schema…, Generate Documentation…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites</td>
+<td>Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Set Schema…, Generate Documentation…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites</td>
 </tr>
 <tr>
 <td><strong>Help</strong></td>
@@ -4794,7 +4816,12 @@ with the closely related actions:</p>
 <tr>
 <td><strong>Run</strong></td>
 <td>Run the active document against the selected <strong>Input</strong> (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports</td>
-<td><strong>Run Query</strong> (XPath/XQuery) · <strong>Run Transform</strong> (XSLT) · <strong>Run Pipeline</strong> (XProc)</td>
+<td><strong>Run Query</strong> (XPath/XQuery) · <strong>Run Transform</strong> (XSLT) · <strong>Debug Transform</strong> (XSLT, Shift+F5 - the active stylesheet in the <a href="#xslt-debugger">debugger</a>) · <strong>Run Pipeline</strong> (XProc)</td>
+</tr>
+<tr>
+<td><strong>Transform</strong></td>
+<td><strong>Transform with XSLT…</strong> - opens the <a href="#transform-panel">Transform panel</a> on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel)</td>
+<td><strong>Transform with XSLT…</strong> · <strong>Debug with XSLT…</strong> (Shift+F5) - the same, but in the <a href="#xslt-debugger">debugger</a></td>
 </tr>
 <tr>
 <td><strong>Schema</strong></td>
@@ -4804,7 +4831,7 @@ with the closely related actions:</p>
 </tbody>
 </table>
 <ul>
-<li><strong>Transform</strong> (labelled button, tooltip <em>Transform with XSLT…</em>) - Opens the <a href="#transform-panel">Transform panel</a> on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel)</li>
+<li><strong>Transform</strong> is a split button, see above: the primary click transforms, the ▾ arrow offers <strong>Debug with XSLT…</strong></li>
 </ul>
 <h3 id="icon-only-buttons-hover-for-the-tooltip">Icon-only buttons (hover for the tooltip)<a class="headerlink" href="#icon-only-buttons-hover-for-the-tooltip" title="Permanent link">&para;</a></h3>
 <ul>
@@ -4961,8 +4988,12 @@ Run Query/Run Transform show a short guard message instead of failing.</p>
 <li><strong>Parameters</strong> - Define XSLT parameters (name = value rows)</li>
 <li><strong>Output method</strong> - Auto-detect or choose XML, HTML, XHTML, Text, or JSON output</li>
 <li><strong>Timing</strong> - The OUTPUT panel status shows execution time and output size</li>
-<li><strong>Profile / Trace</strong> and <strong>Debug XSLT…</strong> (OPTIONS &amp; TOOLS section) - Per-template timings,
-  template-match trace with <code>xsl:message</code> output, and the interactive debugger</li>
+<li><strong>Debug</strong> (next to <strong>Run Transform</strong>, also <strong>Tools → Debug with XSLT…</strong> / <strong>Shift+F5</strong>) - the
+  interactive debugger: breakpoints, stepping, variables, call stack, watches and live
+  <code>xsl:message</code> output in a <strong>DEBUG</strong> dock below the stylesheet - see
+  <a href="#xslt-debugger">Debugging a Stylesheet</a></li>
+<li><strong>Profile / Trace</strong> (OPTIONS &amp; TOOLS section) - Per-template timings and the
+  template-match trace with <code>xsl:message</code> output of a normal run</li>
 <li><strong>Open in browser</strong> - View HTML output in your default browser from the OUTPUT panel</li>
 </ul>
 <h2 id="xproc-pipelines">XProc Pipelines<a class="headerlink" href="#xproc-pipelines" title="Permanent link">&para;</a></h2>
@@ -5112,6 +5143,68 @@ automatic run that starts when you drop a stylesheet or input, pick one from you
 or browse with ◀ / ▶. Uncheck it to only set the file and run with <strong>Run Transform</strong> yourself.</p>
 <p>The result appears in the <strong>OUTPUT panel</strong> below the editor - see
 <a href="#the-output-panel-results">The OUTPUT Panel</a> below.</p>
+<h3 id="xslt-debugger">Debugging a Stylesheet<a class="headerlink" href="#xslt-debugger" title="Permanent link">&para;</a></h3>
+<p><strong>Debug</strong> (next to <strong>Run Transform</strong>) runs the same stylesheet over the same input as <strong>Run
+Transform</strong> (the INPUT file when one is set by dropping, a favorite or ◀ / ▶ browsing, otherwise
+the active document) in the interactive XSLT debugger. The other ways in are <strong>Tools → Debug with XSLT…</strong>, the
+<strong>Transform ▾ → Debug with XSLT…</strong> toolbar entry, <strong>Run ▾ → Debug Transform</strong> for an active
+XSLT document (against the toolbar's <strong>Input</strong> target), the <strong>PDF / FOP</strong> panel's
+<strong>Debug stylesheet…</strong>, and <strong>Shift+F5</strong> whenever a document is open.</p>
+<p>What happens:</p>
+<ol>
+<li>The stylesheet opens as a document (its saved file - the debugger reads it from disk so
+   relative <code>xsl:include</code> / <code>xsl:import</code> hrefs resolve). Every saved XSLT document already has
+   a <strong>breakpoint gutter</strong>: click the slot left of a line to toggle a red breakpoint, before or
+   during a session (the click does not move the caret). Breakpoints are <strong>remembered per
+   file</strong> across sessions and restarts, including those set in included modules.</li>
+<li>The <strong>DEBUG</strong> dock opens <em>below</em> the editor, so the stylesheet stays visible while you
+   step. The dock shares its space with <strong>OUTPUT</strong>; a small <strong>OUTPUT | DEBUG</strong> strip switches
+   between them, and a result that arrives while DEBUG is in front marks the OUTPUT toggle.</li>
+<li>The run starts and <strong>pauses at the first instruction</strong> when there are no breakpoints
+   (<strong>Pause on entry</strong>, a toggle in the dock's header), otherwise at the first breakpoint.
+   The paused line is tinted in the editor and marked with a green arrow in the gutter (a
+   yellow arrow on a breakpoint line). When Saxon pauses inside an included module, that
+   file opens, with its own breakpoints in its gutter.</li>
+</ol>
+<p>The dock's header holds the controls - <strong>Continue</strong> (F5), <strong>Step Into</strong> (F7), <strong>Step Over</strong>
+(F8), <strong>Step Out</strong> (Shift+F8), <strong>Restart</strong> (runs again from the start with the same
+breakpoints, re-reading the stylesheet), <strong>Stop</strong>, <strong>Pause on entry</strong>, <strong>Show in editor</strong>
+and <strong>✕</strong> (ends the session). Below it, five panels show the paused state:</p>
+<table>
+<thead>
+<tr>
+<th>Panel</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Variables</strong></td>
+<td>The context item (<code>.</code>), <code>position()</code> / <code>last()</code>, every local variable in scope and every global variable that has been evaluated so far - with real values and XDM types</td>
+</tr>
+<tr>
+<td><strong>Call Stack</strong></td>
+<td>Template and function frames (instructions nested inside them are dimmed), each with its module and line; double-click jumps there, also into an include</td>
+</tr>
+<tr>
+<td><strong>Watch</strong></td>
+<td>Your XPath expressions, evaluated <strong>against the paused context item</strong> with the variables in scope (<code>count(item)</code>, <code>$total</code>, <code>position()</code>); re-evaluated at every pause</td>
+</tr>
+<tr>
+<td><strong>Messages</strong></td>
+<td><code>xsl:message</code> output and Saxon warnings <strong>as they happen</strong>, with their stylesheet location; double-click jumps to the line</td>
+</tr>
+<tr>
+<td><strong>Breakpoints</strong></td>
+<td>All breakpoints of the session (file · line) with Remove / Clear all; double-click jumps to the line</td>
+</tr>
+</tbody>
+</table>
+<p>When the run ends, the status reads <em>Finished · N ms</em> and the <strong>result lands in the OUTPUT
+panel</strong> (the OUTPUT toggle lights up; DEBUG stays in front so the messages remain readable).
+A failed run shows the error with its location in <strong>Messages</strong>. The debugger runs on its own
+Saxon processor, so a normal <strong>Run Transform</strong> during a paused session is unaffected.
+Details and stylesheet tips: <a href="../xslt-developer/#interactive-live-debugger">XSLT Developer → Interactive Live Debugger</a>.</p>
 <h3 id="queries-xpath-xquery-jsonpath">Queries (XPath, XQuery, JSONPath)<a class="headerlink" href="#queries-xpath-xquery-jsonpath" title="Permanent link">&para;</a></h3>
 <p>The Transform panel no longer has its own XPATH and XQUERY sections. Below the run
 controls, a short hint and an <strong>Open Query Console</strong> button take you to the
@@ -5162,7 +5255,7 @@ default - click its header to expand it) holds everything secondary. First the r
 <tbody>
 <tr>
 <td><strong>Debug XSLT…</strong></td>
-<td>Opens the stylesheet as a document with a breakpoint gutter and a Debug tool tab (step into/over/out, continue, stop; variables, call stack, breakpoints, and XPath watches).</td>
+<td>Same as the <strong>Debug</strong> button next to <strong>Run Transform</strong>: opens the stylesheet (with the breakpoints set in its gutter) and the <strong>DEBUG</strong> dock below the editor - see <a href="#xslt-debugger">Debugging a Stylesheet</a>.</td>
 </tr>
 <tr>
 <td><strong>Batch Transform…</strong></td>
@@ -5890,9 +5983,19 @@ create a certificate. The highlight disappears as soon as you start typing in th
   Portrait/Landscape); a hint below it explains that the choice is passed as the
   <code>page-size</code> and <code>page-orientation</code> parameters and <strong>only applies if the stylesheet uses
   them</strong>.</li>
-<li><strong>Generate PDF</strong> asks for the output file, renders off the UI thread, and opens the
-  result in the in-app <strong>PDF preview</strong>; the <strong>RESULT</strong> rows <strong>Preview PDF</strong> and <strong>Open PDF</strong>
-  re-open it any time.</li>
+<li><strong>Generate PDF</strong> asks for the output file, renders off the UI thread (XSLT → XSL-FO →
+  PDF), and opens the result in the in-app <strong>PDF preview</strong>; the <strong>RESULT</strong> rows <strong>Preview
+  PDF</strong> and <strong>Open PDF</strong> re-open it any time. <strong>Show intermediate FO</strong> opens the XSL-FO the
+  stylesheet produced as an editor tab, and <strong>Messages &amp; events (n)</strong> lists the stylesheet's
+  <code>xsl:message</code> output and every event Apache FOP raised (substituted fonts, overflowing
+  content, unknown properties, …) in the OUTPUT panel - the status line counts the FOP
+  warnings. A failed generation puts the stylesheet error with its location, or FOP's
+  reason, into OUTPUT as well.</li>
+<li><strong>TOOLS → Debug stylesheet…</strong> runs the XSL-FO stylesheet in the
+  <a href="#xslt-debugger">XSLT debugger</a> (breakpoints, stepping, variables, live messages); the
+  page-size parameters are passed on. The FO a finished debug run produced lands in OUTPUT
+  and in the panel's result, so <strong>Show intermediate FO</strong> and <strong>Render PDF from FO…</strong> (renders
+  that FO to a PDF of your choice) work right after debugging.</li>
 </ul>
 <p>See <a href="../pdf-generator/">PDF Generator</a> for stylesheet guidance.</p>
 <h2 id="fundsxml-panel">FundsXML Panel<a class="headerlink" href="#fundsxml-panel" title="Permanent link">&para;</a></h2>
@@ -6380,8 +6483,16 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 <td>Save As (the Save ▾ menu also offers Save All)</td>
 </tr>
 <tr>
-<td>Ctrl+W</td>
+<td>Ctrl+W (Windows/Linux also Ctrl+F4)</td>
 <td>Close the active tab (asks to save unsaved changes)</td>
+</tr>
+<tr>
+<td>Ctrl+Tab / Ctrl+Shift+Tab</td>
+<td>Next / previous tab</td>
+</tr>
+<tr>
+<td>Ctrl+Q</td>
+<td>Quit FreeXmlToolkit (<strong>Cmd+Q</strong> on macOS; Alt+F4 on Windows works as usual)</td>
 </tr>
 <tr>
 <td>Ctrl+,</td>
@@ -6440,6 +6551,14 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 <td>Run the active XQuery / XPath / XSLT / XProc document (does nothing for other documents - use F8 to validate)</td>
 </tr>
 <tr>
+<td>Shift+F5</td>
+<td><strong>Debug with XSLT</strong> - the active XSLT document, the PDF / FOP panel's stylesheet, or the Transform panel's (asks for one if none is set) - see <a href="#xslt-debugger">Debugging a Stylesheet</a></td>
+</tr>
+<tr>
+<td>F5 / F7 / F8 / Shift+F8</td>
+<td>While the debugger is <strong>paused</strong>: Continue / Step Into / Step Over / Step Out (F5 and F8 keep their normal meaning otherwise)</td>
+</tr>
+<tr>
 <td>F1</td>
 <td>Show the Help menu (as a popup, like the header's <strong>?</strong> button)</td>
 </tr>
@@ -6469,7 +6588,7 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 </tr>
 <tr>
 <td>Ctrl++ / Ctrl+-</td>
-<td>Graphic view: zoom the grid in / out (10 % steps, 50-300 %)</td>
+<td>Zoom in / out (Text view: font size; Graphic view: the grid in 10 % steps, 50-300 %)</td>
 </tr>
 <tr>
 <td>Ctrl+0</td>

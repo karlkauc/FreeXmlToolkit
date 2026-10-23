@@ -1503,6 +1503,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#step-6-understand-what-fop-did" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Understand what FOP did
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debugging-the-stylesheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging the stylesheet
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2246,6 +2268,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#step-6-understand-what-fop-did" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Understand what FOP did
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debugging-the-stylesheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging the stylesheet
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2409,7 +2453,15 @@ bar. The panel is organized into three sections plus the primary action:</p>
 </tr>
 <tr>
 <td><strong>Generate PDF</strong></td>
-<td>Asks for the output file and renders off the UI thread</td>
+<td>Asks for the output file and renders off the UI thread (XSLT → XSL-FO → PDF)</td>
+</tr>
+<tr>
+<td><strong>RESULT</strong></td>
+<td><strong>Preview PDF</strong>, <strong>Open PDF</strong>, <strong>Show intermediate FO</strong> (the XSL-FO the stylesheet produced, as an editor tab) and <strong>Messages &amp; events (n)</strong> (the stylesheet's <code>xsl:message</code> output and every event Apache FOP raised, in the OUTPUT panel)</td>
+</tr>
+<tr>
+<td><strong>TOOLS</strong></td>
+<td><strong>Debug stylesheet…</strong> runs the XSL-FO stylesheet in the <a href="../xslt-developer/#interactive-live-debugger">XSLT debugger</a>; <strong>Render PDF from FO…</strong> renders the FO of the latest run (e.g. of a debug run) to a PDF</td>
 </tr>
 </tbody>
 </table>
@@ -2467,6 +2519,27 @@ rendered in the background - the application stays responsive throughout.</p>
 - Review the layout
 - Check formatting</p>
 <p>The <strong>Preview</strong> and <strong>Open PDF</strong> buttons re-open the last result at any time.</p>
+<h3 id="step-6-understand-what-fop-did">Step 6: Understand what FOP did<a class="headerlink" href="#step-6-understand-what-fop-did" title="Permanent link">&para;</a></h3>
+<p>Every generation keeps the <strong>intermediate XSL-FO</strong> and the messages of both stages:</p>
+<ul>
+<li><strong>Show intermediate FO</strong> opens the FO document the stylesheet produced as an editor tab -
+  the quickest way to see whether a layout problem comes from the stylesheet (wrong FO) or
+  from FOP (right FO, unexpected rendering).</li>
+<li><strong>Messages &amp; events (n)</strong> shows the stylesheet's <code>xsl:message</code> output and every event FOP
+  raised while rendering - a substituted font, content that overflows its area, an unknown
+  property - in the OUTPUT panel. The status line after a successful run counts the FOP
+  warnings, so a <em>Generated: report.pdf · 2 FOP warnings</em> is worth a look.</li>
+<li>A failed generation puts the stylesheet error (with its line in the <code>.xsl</code> file) or FOP's
+  reason into OUTPUT as well.</li>
+</ul>
+<h3 id="debugging-the-stylesheet">Debugging the stylesheet<a class="headerlink" href="#debugging-the-stylesheet" title="Permanent link">&para;</a></h3>
+<p><strong>TOOLS → Debug stylesheet…</strong> runs the XSL-FO stylesheet in the interactive
+<a href="../xslt-developer/#interactive-live-debugger">XSLT debugger</a>: set breakpoints in the
+stylesheet's gutter, step through templates, watch variables and the context node, read
+<code>xsl:message</code> output live. The page-size and orientation parameters are passed on. When the
+debug run finishes, its FO is in the OUTPUT panel and in the panel's result, so <strong>Show
+intermediate FO</strong> and <strong>Render PDF from FO…</strong> work right away - the latter renders exactly the
+FO you just debugged to a PDF of your choice.</p>
 <hr />
 <h2 id="favorites-integration">Favorites Integration<a class="headerlink" href="#favorites-integration" title="Permanent link">&para;</a></h2>
 <p>Save frequently used XML and XSL-FO files for quick access:</p>
@@ -2617,7 +2690,15 @@ rendered in the background - the application stays responsive throughout.</p>
 </tr>
 <tr>
 <td>Generation fails</td>
-<td>Check the error message for details</td>
+<td>The status shows a short reason; the OUTPUT panel has the stylesheet error with its line, or FOP's reason. <strong>Show intermediate FO</strong> tells you whether the FO itself is what you expect</td>
+</tr>
+<tr>
+<td>PDF looks wrong (fonts, overflow)</td>
+<td>Open <strong>Messages &amp; events</strong> - FOP reports substituted fonts and overflowing content there</td>
+</tr>
+<tr>
+<td>A template does not fire / wrong values</td>
+<td><strong>TOOLS → Debug stylesheet…</strong> and step through it - see <a href="#debugging-the-stylesheet">Debugging the stylesheet</a></td>
 </tr>
 </tbody>
 </table>
