@@ -121,8 +121,8 @@ dependencies {
     implementation("org.apache.xmlgraphics:batik-all:1.20")
     implementation("org.apache.xmlgraphics:batik-transcoder:1.20")
 
-    implementation("org.apache.poi:poi:5.5.1")
-    implementation("org.apache.poi:poi-ooxml:5.5.1")
+    implementation("org.apache.poi:poi:6.0.0")
+    implementation("org.apache.poi:poi-ooxml:6.0.0")
 
     implementation("org.apache.commons:commons-lang3:3.21.0")
     implementation("commons-io:commons-io:2.22.0")
