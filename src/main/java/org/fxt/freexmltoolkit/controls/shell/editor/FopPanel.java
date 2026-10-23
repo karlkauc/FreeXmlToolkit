@@ -66,7 +66,7 @@ public class FopPanel extends VBox {
 
         xmlFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XML,
-                "XML favorites", this::setXmlOverride);
+                "XML favorites", this::pickXmlFavorite);
         xmlRow.addExtras(xmlFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xmlRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::setXmlOverride);
@@ -75,7 +75,7 @@ public class FopPanel extends VBox {
 
         xslFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSLT,
-                "XSLT favorites", this::setXslFile);
+                "XSLT favorites", this::pickXslFavorite);
         xslRow.addExtras(xslFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xslRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setXslFile);
@@ -265,6 +265,21 @@ public class FopPanel extends VBox {
     public void setXslFile(File file) {
         this.xslFile = file;
         xslRow.showFile(file);
+    }
+
+    /** A favorite XML input: set it and show it in the editor (it is the input either way). */
+    void pickXmlFavorite(File file) {
+        setXmlOverride(file);
+        editorHost.openFile(file.toPath(), true);
+    }
+
+    /**
+     * A favorite stylesheet: set it and load it into the editor. Its tab only comes to the front
+     * while the XML input is a fixed file — otherwise the input follows the active document.
+     */
+    void pickXslFavorite(File file) {
+        editorHost.openFile(file.toPath(), xmlOverride != null);
+        setXslFile(file);
     }
 
     /** Fixes the XML input to a file, or {@code null} to follow the active editor again. */

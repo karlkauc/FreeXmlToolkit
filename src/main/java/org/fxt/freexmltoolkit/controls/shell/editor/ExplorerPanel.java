@@ -564,6 +564,7 @@ public class ExplorerPanel extends VBox {
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON, file -> {
                     useSchematron(file);
                     runValidationOnSelection();
+                    editorHost.openFile(file.toPath(), false); // loaded into the editor, behind the active tab
                 }));
         MenuItem choose = menuItem("Choose Schematron…", () -> {
             chooseSchematronFile();

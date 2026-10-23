@@ -113,6 +113,52 @@ class TransformPanelFavoritesBrowseTest {
     }
 
     @Test
+    void pickedFavoritesAreLoadedIntoTheEditor(@TempDir Path tmp) throws Exception {
+        Path xml = writeFile(tmp, "data.xml", "<root/>");
+        File a = writeFile(tmp, "a.xslt", XSLT).toFile();
+        File x1 = writeFile(tmp, "one.xml", "<a/>").toFile();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitForFxEvents();
+
+        // Stylesheet while the input follows the active document: opened, but behind.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.selectXslt(List.of(a), a); return null; });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(isOpen(a.toPath()), "the picked stylesheet is loaded into the editor");
+        assertEquals(xml, activePath(), "the active document (the implicit input) stays in front");
+
+        // Input: opened and brought to the front.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.selectInput(List.of(x1), x1); return null; });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(isOpen(x1.toPath()));
+        assertEquals(x1.toPath(), activePath(), "a picked input becomes the active tab");
+
+        // With a fixed input, a stylesheet step comes to the front as well.
+        File b = writeFile(tmp, "b.xslt", XSLT).toFile();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.selectXslt(List.of(a, b), b); return null; });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(b.toPath(), activePath());
+    }
+
+    @Test
+    void aStylesheetThatBecomesTheOnlyDocumentIsNotItsOwnInput(@TempDir Path tmp) throws Exception {
+        File a = writeFile(tmp, "lonely.xslt", XSLT).toFile();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.selectXslt(List.of(a), a); return null; });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(a.toPath(), activePath(), "the only tab is necessarily the active one");
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, panel::readyToAutoRun),
+                "the stylesheet must not be transformed with itself as input");
+    }
+
+    private boolean isOpen(Path path) {
+        return host.getOpenDocuments().stream().anyMatch(d -> path.equals(d.getPath()));
+    }
+
+    private Path activePath() {
+        return WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveDocument().map(OpenDocument::getPath).orElse(null));
+    }
+
+    @Test
     void inputBrowsingSetsTheOverrideFile(@TempDir Path tmp) throws Exception {
         File x1 = writeFile(tmp, "one.xml", "<a/>").toFile();
         File x2 = writeFile(tmp, "two.xml", "<b/>").toFile();

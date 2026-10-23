@@ -621,7 +621,8 @@ is clickable to collapse or expand that section.
 - The **clock icon** opens the **recent stylesheets** menu: reapply a recently used
   stylesheet in a single click, or choose **Clear recent** to empty the list.
 - The **star icon** opens your **XSLT favorites** - see
-  [Browsing favorites with ◀ / ▶](#browsing-favorites) below.
+  [Browsing favorites with ◀ / ▶](#browsing-favorites) below. A picked stylesheet is also
+  loaded into the editor.
 - **Drag & drop**: drop an `.xsl` / `.xslt` file from your file
   manager straight onto the STYLESHEET row - it becomes the current stylesheet, exactly
   as if you had picked it via **Change** or a favorite. While dragging, the row glows
@@ -642,7 +643,8 @@ there is none):
       which editor tab is active.
     - **Use active editor** - go back to following the active tab.
 - The **star icon** opens your **XML favorites** - see
-  [Browsing favorites with ◀ / ▶](#browsing-favorites) below.
+  [Browsing favorites with ◀ / ▶](#browsing-favorites) below. A picked input is also opened
+  in the editor and becomes the active tab.
 - **Drag & drop**: drop an `.xml` file from your file manager
   straight onto the INPUT row to transform that file - exactly like **Select XML file…**
   or picking a favorite. The same **green** (loadable) / **red** (rejected) drag-over
@@ -665,8 +667,12 @@ the label only appear once the browse list holds **at least two** entries.
 - The **star menu** lists the favorites of the matching type - **XSLT** favorites for
   STYLESHEET, **XML** favorites for INPUT - grouped by their folder (category). An
   **"All … favorites"** entry at the top selects the whole list at once.
-- **Picking a favorite** (or an "All"/folder entry) does two things: it sets the current
-  file, and it builds a **browse list** from that selection.
+- **Picking a favorite** (or an "All"/folder entry) does three things: it sets the current
+  file, it builds a **browse list** from that selection, and it **loads the file into the
+  editor**. An input comes to the front as the active tab. A stylesheet opens *behind* the
+  active tab while the input follows the active document (otherwise the stylesheet would become
+  its own input); with a fixed input file it comes to the front too. The same happens on every
+  ◀ / ▶ step.
 - The **◀ / ▶ buttons** then step backward and forward through that browse list. Browsing
   is **cyclic**: pressing ▶ on the last entry wraps to the first, and ◀ on the first wraps
   to the last. The **"i / n" label** shows your position (for example, *3 / 12*).

@@ -102,9 +102,13 @@ public class ValidationPanel extends VBox {
         xsdRow.addExtras(xsdFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdRow,
                 org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::useXsd);
+        // Schema favorites are bound to the active document, so the picked file opens behind it.
         schematronFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON,
-                "Schematron favorites", this::useSchematron);
+                "Schematron favorites", file -> {
+                    useSchematron(file);
+                    editorHost.openFile(file.toPath(), false);
+                });
         schematronRow.addExtras(schematronFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronRow,
                 org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::useSchematron);
@@ -112,7 +116,10 @@ public class ValidationPanel extends VBox {
         // schemas and data documents are indistinguishable there.
         jsonSchemaFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.JSON,
-                "JSON Schema favorites", this::useJsonSchema);
+                "JSON Schema favorites", file -> {
+                    useJsonSchema(file);
+                    editorHost.openFile(file.toPath(), false);
+                });
         jsonSchemaRow.addExtras(jsonSchemaFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(jsonSchemaRow,
                 org.fxt.freexmltoolkit.service.DragDropService.JSON_SCHEMA_EXTENSIONS, this::useJsonSchema);
@@ -673,7 +680,11 @@ public class ValidationPanel extends VBox {
             String name = favorite.getName() != null && !favorite.getName().isBlank()
                     ? favorite.getName() : new File(favorite.getFilePath()).getName();
             MenuItem item = new MenuItem(name);
-            item.setOnAction(e -> useXsd(new File(favorite.getFilePath())));
+            item.setOnAction(e -> {
+                File xsd = new File(favorite.getFilePath());
+                useXsd(xsd);
+                editorHost.openFile(xsd.toPath(), false); // behind the document it is bound to
+            });
             xsdFavoritesMenu.getItems().add(item);
         }
         xsdFavoritesMenu.setDisable(xsdFavoritesMenu.getItems().isEmpty());

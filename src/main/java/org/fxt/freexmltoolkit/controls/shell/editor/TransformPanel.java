@@ -536,14 +536,30 @@ public class TransformPanel extends VBox {
     public void selectXslt(List<File> group, File file) {
         xsltBrowse = group;
         xsltBrowseIdx = Math.max(0, group.indexOf(file));
-        applyXslt(file);
+        pickXslt(file);
     }
 
     /** Sets the input browse list to {@code group}, positions on {@code file}, and applies it (for tests/automation). */
     public void selectInput(List<File> group, File file) {
         inputBrowse = group;
         inputBrowseIdx = Math.max(0, group.indexOf(file));
+        pickInput(file);
+    }
+
+    /**
+     * A stylesheet picked from the favorites (star menu or ◀ / ▶) is loaded into the editor as
+     * well. Its tab only comes to the front while the input is a fixed file: with the input
+     * following the active document, a selected stylesheet tab would become the input.
+     */
+    private void pickXslt(File file) {
+        editorHost.openFile(file.toPath(), inputOverride != null);
+        applyXslt(file);
+    }
+
+    /** An input picked from the favorites is loaded into the editor and shown — it is the input either way. */
+    private void pickInput(File file) {
         applyInput(file);
+        editorHost.openFile(file.toPath(), true);
     }
 
     /** Steps the stylesheet cursor (cyclically) and applies the new file. */
@@ -556,7 +572,7 @@ public class TransformPanel extends VBox {
             return;
         }
         xsltBrowseIdx = Math.floorMod(xsltBrowseIdx + delta, xsltBrowse.size());
-        applyXslt(xsltBrowse.get(xsltBrowseIdx));
+        pickXslt(xsltBrowse.get(xsltBrowseIdx));
     }
 
     /** Steps the input cursor (cyclically) and applies the new file. */
@@ -569,7 +585,7 @@ public class TransformPanel extends VBox {
             return;
         }
         inputBrowseIdx = Math.floorMod(inputBrowseIdx + delta, inputBrowse.size());
-        applyInput(inputBrowse.get(inputBrowseIdx));
+        pickInput(inputBrowse.get(inputBrowseIdx));
     }
 
     private void applyXslt(File file) {
@@ -603,8 +619,15 @@ public class TransformPanel extends VBox {
      * input is available (override file or active editor document) — so auto-run won't error.
      */
     boolean readyToAutoRun() {
-        boolean hasInput = inputOverride != null || editorHost.getActiveDocument().isPresent();
+        boolean hasInput = inputOverride != null
+                || editorHost.getActiveDocument().filter(d -> !isTheStylesheet(d)).isPresent();
         return runAutomatically.isSelected() && xsltFile != null && hasInput;
+    }
+
+    /** @return whether {@code document} is the selected stylesheet itself (it cannot be its own input). */
+    private boolean isTheStylesheet(OpenDocument document) {
+        return xsltFile != null && document.getPath() != null
+                && document.getPath().toAbsolutePath().normalize().equals(xsltFile.toPath().toAbsolutePath().normalize());
     }
 
     /** Switches the automatic run on drop / favourite pick / browse on or off (the "Run automatically" box). */
@@ -748,6 +771,11 @@ public class TransformPanel extends VBox {
             OpenDocument active = editorHost.getActiveDocument().orElse(null);
             if (active == null) {
                 out.showError("No document open.");
+                return;
+            }
+            if (isTheStylesheet(active)) {
+                out.showError("The active document is the stylesheet itself — switch to the XML document "
+                        + "to transform, or pick an input file.");
                 return;
             }
             if (active == out.getResultDocument()) {

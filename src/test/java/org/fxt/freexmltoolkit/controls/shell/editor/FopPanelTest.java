@@ -55,6 +55,26 @@ class FopPanelTest {
     }
 
     @Test
+    void favoritePicksLoadTheFileIntoTheEditor(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tmp) throws Exception {
+        java.nio.file.Path xml = tmp.resolve("in.xml");
+        java.nio.file.Files.writeString(xml, "<root/>");
+        java.nio.file.Path xsl = tmp.resolve("sheet.xsl");
+        java.nio.file.Files.writeString(xsl, "<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" version=\"3.0\"/>");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.pickXmlFavorite(xml.toFile()); return null; });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(xml, host.getActiveDocument().map(OpenDocument::getPath).orElse(null),
+                "a favorite XML input opens as the active tab");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.pickXslFavorite(xsl.toFile()); return null; });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(host.getOpenDocuments().stream().anyMatch(d -> xsl.equals(d.getPath())),
+                "the stylesheet is loaded into the editor");
+        assertEquals(xsl, host.getActiveDocument().map(OpenDocument::getPath).orElse(null),
+                "with a fixed XML input the stylesheet comes to the front");
+    }
+
+    @Test
     void titleFollowsTheSharedSidePanelConvention() {
         WaitForAsyncUtils.waitForFxEvents();
         javafx.scene.control.Label title =

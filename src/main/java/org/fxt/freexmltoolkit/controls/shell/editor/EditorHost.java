@@ -1122,19 +1122,32 @@ public class EditorHost extends BorderPane {
 
     /** Opens {@code path} (or focuses it if already open) and loads its content asynchronously. */
     public void openFile(Path path) {
+        openFile(path, true);
+    }
+
+    /**
+     * Opens {@code path} and loads its content asynchronously. With {@code select = false} the
+     * tab opens behind the active one (an already open tab stays where it is), so a file a side
+     * panel picked from the favorites lands in the editor without changing the active document.
+     */
+    public void openFile(Path path, boolean select) {
         for (Tab tab : tabPane.getTabs()) {
             if (tab instanceof EditorTab et && path.equals(et.document.getPath())) {
-                tabPane.getSelectionModel().select(tab);
+                if (select) {
+                    tabPane.getSelectionModel().select(tab);
+                }
                 return;
             }
         }
         EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
                 this::openNamedTypeEditor, this::goToXmlDefinition);
-        addTab(tab);
+        addTab(tab, select);
         // HTML files open rendered; the preview fills once the async load lands.
         if (tab.document.getFileType() == EditorFileType.HTML) {
             tab.setViewMode(ViewMode.PREVIEW);
-            activeViewMode.set(tab.viewMode); // addTab just selected this tab
+            if (select) {
+                activeViewMode.set(tab.viewMode); // addTab just selected this tab
+            }
         }
         // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
         tab.view.setGoToDefinitionHandler(req ->
