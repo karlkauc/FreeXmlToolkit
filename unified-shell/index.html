@@ -1536,6 +1536,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory and large files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#rendering-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3900,6 +3911,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory and large files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#rendering-mode" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -6014,7 +6036,7 @@ page shows <em>"No settings match the search."</em>.</p>
 <tbody>
 <tr>
 <td><strong>Appearance</strong></td>
-<td><strong>Theme</strong> - switch between <strong>Light</strong> and <strong>Dark</strong>. <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below.</td>
+<td><strong>Theme</strong> - switch between <strong>Light</strong> and <strong>Dark</strong>. <strong>Layout</strong> - <strong>Show toolbar button labels</strong>; <strong>Show activity bar labels</strong>; <strong>Use small icons</strong>; toolbar icon size (<strong>Small</strong> / <strong>Large</strong>); <strong>Show left side panel</strong>; <strong>Show Properties (inspector) panel</strong>. <strong>Rendering</strong> - JavaFX graphics pipeline: <strong>Auto</strong> / <strong>Hardware</strong> / <strong>Software</strong> (takes effect after restart), with the active pipeline and GPU status; see <a href="#rendering-mode">Rendering mode (hardware vs. software)</a> below. <strong>Memory</strong> - <strong>Maximum memory</strong> for the application: <strong>Automatic</strong> (half of the installed memory) or a fixed limit (takes effect after restart); see <a href="#memory">Memory and large files</a> below.</td>
 </tr>
 <tr>
 <td><strong>Editor</strong></td>
@@ -6049,6 +6071,47 @@ including schemas fetched automatically for missing <code>xs:import</code> refer
 such schemas are simply re-downloaded the next time they are needed. A confirmation dialog is
 shown first, because the action cannot be undone. The cache folder itself is kept; only its
 contents are removed.</p>
+<h3 id="memory">Memory and large files<a class="headerlink" href="#memory" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>The <strong>MEMORY</strong> card sets how much memory the application may use, so that large files
+can be opened on machines with plenty of RAM.</p>
+</blockquote>
+<p>The editor keeps a whole document in memory several times over (text, line model,
+highlighting, structured views), roughly <strong>16 times the file size</strong>. The memory limit
+therefore decides how large a file can be:</p>
+<table>
+<thead>
+<tr>
+<th>Maximum memory</th>
+<th>Largest file that opens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4 GB</td>
+<td>about 256 MB</td>
+</tr>
+<tr>
+<td>8 GB</td>
+<td>about 512 MB</td>
+</tr>
+<tr>
+<td>16 GB</td>
+<td>about 1 GB</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Automatic</strong> <em>(default)</em> uses half of the installed memory.</li>
+<li>A fixed value (2 GB up to the installed memory) applies from the <strong>next start</strong>; the
+  application restarts itself once with that limit. The card shows the limit of the current
+  session and the installed memory.</li>
+<li>If the chosen limit cannot be used, the application falls back to <strong>Automatic</strong> on its own.</li>
+<li>In a development run (<code>./gradlew run</code>) the setting has no effect; the Gradle task sets the memory.</li>
+</ul>
+<p>Opening a file of <strong>50 MB or more</strong> asks for confirmation first, because editing it will be
+slow. A file that does not fit into the current memory limit is not opened; the message names
+the limit and points to this card.</p>
 <h3 id="rendering-mode">Rendering mode (hardware vs. software)<a class="headerlink" href="#rendering-mode" title="Permanent link">&para;</a></h3>
 <blockquote>
 <p>The <strong>RENDERING</strong> card lets you choose how JavaFX draws the UI,

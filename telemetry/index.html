@@ -2285,9 +2285,14 @@ processor's standard error code in <code>error_code</code> (e.g. <code>XTSE0010<
 <code>XPST0003</code> = XPath syntax error, <code>SXXP0003</code> = input XML not well-formed) and the failure phase in
 <code>meta.phase</code> (<code>compile</code>, <code>input</code> or <code>runtime</code>) — never the error message, which may contain file
 names. A stylesheet that does not compile or an input that is not well-formed is a problem with the
-user's files, not with the app: those runs have status <code>invalid_input</code>, only <code>runtime</code> failures have
-status <code>error</code>. The error dialog of a failed run is not reported a second time as an app error.
+user's files, not with the app: those runs have status <code>invalid_input</code>. So do runtime failures with a
+serialization error code (<code>SESU*</code>, <code>SEPM*</code>, <code>SERE*</code>, e.g. an <code>xsl:output</code> version the serializer does not
+support); only other <code>runtime</code> failures have status <code>error</code>. The error dialog of a failed run is not reported a second time as an app error.
 <code>input_bytes</code> is the size of the source document in characters.</p>
+<p>A failed <strong>XSD generation</strong> (<code>xsd_generate</code>) carries the exception class in <code>error_code</code>, or
+<code>not_well_formed</code> with status <code>invalid_input</code> when the sample XML is not well-formed. A failed
+<strong>update check</strong> (<code>update_check</code>) names a fixed reason in <code>meta.reason</code>: <code>network</code> (no response),
+<code>http_&lt;status&gt;</code> (e.g. <code>http_403</code>), <code>empty</code>, <code>parse</code>, <code>no_version</code> or <code>exception</code>.</p>
 <p>Identical errors are sent only once per session (with a repeat counter), and at most 30 error
 events are sent per session.</p>
 <h3 id="launch-session-and-performance-information">Launch, session and performance information<a class="headerlink" href="#launch-session-and-performance-information" title="Permanent link">&para;</a></h3>
@@ -2305,7 +2310,7 @@ events are sent per session.</p>
 </tr>
 <tr>
 <td><code>app_exit</code></td>
-<td>Session length, number of opened files, actions, side panels and the maximum number of open tabs, plus the peak and maximum Java heap rounded to 64 MB.</td>
+<td>Session length, number of opened files, actions, side panels and the maximum number of open tabs, plus the peak (sampled while the app runs) and maximum Java heap rounded to 64 MB.</td>
 </tr>
 <tr>
 <td><code>prev_session_crashed</code></td>
@@ -2313,11 +2318,11 @@ events are sent per session.</p>
 </tr>
 <tr>
 <td><code>file_open</code>, <code>view_mode</code>, <code>validate</code>, <code>schema_analysis</code>, <code>schema_bind</code></td>
-<td>How long opening a document, switching to the Text/Tree/Graphic view, validating or analyzing took, and the document size. <code>schema_bind</code> tells how a schema was found for an opened document (<code>declared</code>, <code>library</code>, <code>catalog</code>, <code>manual</code> or <code>none</code>); when a referenced schema could not be bound, it names the source that was tried and the reason in <code>meta.failure</code> (<code>unresolved</code> = the reference could not be resolved or reached, <code>unloadable</code> = the schema was found but could not be loaded) — never the location itself.</td>
+<td>How long opening a document, switching to the Text/Tree/Graphic view, validating or analyzing took, and the document size. <code>schema_bind</code> tells how a schema was found for an opened document (<code>declared</code>, <code>library</code>, <code>catalog</code>, <code>manual</code> or <code>none</code>); when a referenced schema could not be bound, it names the source that was tried and the reason in <code>meta.failure</code> (<code>unresolved</code> = the reference could not be resolved or reached, <code>unloadable</code> = the schema was found but could not be loaded) and the <em>form</em> of the reference in <code>meta.ref_kind</code> (<code>http</code>, <code>file</code>, <code>relative</code>, <code>urn</code> or <code>other</code>) — never the location itself. A file that is not opened because of its size is recorded as <code>file_open</code> with status <code>cancelled</code> (the user declined the large-file warning) or <code>unsupported</code> (it does not fit into the memory limit), its size, <code>meta.reason=too_large</code> and the memory limit (<code>meta.heap_max_mb</code>).</td>
 </tr>
 <tr>
 <td><code>ui_stall</code></td>
-<td>The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, a stack signature of the blocked code (code locations only, as for errors), and the shape of the active document: its size in characters (<code>input_bytes</code>), its number of lines (<code>meta.lines</code>) and the length class of its longest line (<code>meta.max_line_len</code>: <code>&lt;1k</code>, <code>&lt;10k</code>, <code>&lt;100k</code>, <code>&gt;=100k</code>) — never its content. At most 10 per session.</td>
+<td>The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, a stack signature of the blocked code (code locations only, as for errors), and the shape of the active document: its size in characters (<code>input_bytes</code>), its number of lines (<code>meta.lines</code>) and the length class of its longest line (<code>meta.max_line_len</code>: <code>&lt;1k</code>, <code>&lt;10k</code>, <code>&lt;100k</code>, <code>&gt;=100k</code>; <code>unknown</code> above 50,000 lines, which are not scanned) — never its content. Pauses of the whole application (system sleep) are not reported. At most 10 per session.</td>
 </tr>
 <tr>
 <td><code>ui_freeze</code></td>
