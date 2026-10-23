@@ -38,4 +38,15 @@ class UpdateActionRunnerTest {
         assertEquals("error", UpdateActionRunner.usageResult(null, null));
         assertEquals("error", UpdateActionRunner.usageResult(available, new RuntimeException("offline")));
     }
+
+    @Test
+    void namesWhyACheckFailed() {
+        UpdateInfo available = new UpdateInfo("1.2.0", "1.3.0", "Release 1.3.0", "notes",
+                "https://example/dl", "2026-05-31", true);
+        assertEquals(null, UpdateActionRunner.failureReason(available, null));
+        assertEquals("http_403", UpdateActionRunner.failureReason(UpdateInfo.errorDuringCheck("1.3.0", "http_403"), null));
+        assertEquals("no_version", UpdateActionRunner.failureReason(UpdateInfo.errorDuringCheck("1.3.0"), null));
+        assertEquals("no_result", UpdateActionRunner.failureReason(null, null));
+        assertEquals("exception", UpdateActionRunner.failureReason(available, new RuntimeException("offline")));
+    }
 }

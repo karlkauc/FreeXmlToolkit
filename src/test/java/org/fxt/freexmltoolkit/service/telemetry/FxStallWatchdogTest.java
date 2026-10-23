@@ -263,7 +263,6 @@ class FxStallWatchdogTest {
     void applicationAndRenderStallsStayReportable() {
         assertEquals(false, FxStallWatchdog.isNativeWait(stack));
         assertEquals(false, FxStallWatchdog.isNativeWait(null));
-        assertEquals(false, FxStallWatchdog.isNativeWait(new StackTraceElement[0]));
         // Telemetry hash e4d6d1573ad9696a: the FX thread waits for the render thread
         assertEquals(false, FxStallWatchdog.isNativeWait(new StackTraceElement[] {
                 frame("jdk.internal.misc.Unsafe", "park"),
@@ -280,9 +279,61 @@ class FxStallWatchdogTest {
         FxStallWatchdog idleWatchdog = new FxStallWatchdog(fxQueue::add, () -> idle, nanos::get,
                 (ms, s) -> stalls.add(ms));
         idleWatchdog.tick();
-        advanceMs(3000);
-        idleWatchdog.tick();
+        for (int i = 0; i < 6; i++) {
+            advanceMs(500);
+            idleWatchdog.tick();
+        }
         runFx();
         assertTrue(stalls.isEmpty());
+    }
+
+    @Test
+    void stackWithoutJavaFramesIsNotReported() {
+        // Telemetry (2.5.1, macOS): a ui_freeze whose stack had no frame at all - the main
+        // thread sat in the native run loop
+        assertTrue(FxStallWatchdog.isNativeWait(new StackTraceElement[0]));
+    }
+
+    @Test
+    void stackCapturedInThePongIsNotReported() {
+        // Telemetry (2.4.0/2.5.0): stacks whose top frame was FxStallWatchdog#pong - captured
+        // just as the FX thread answered the ping
+        assertTrue(FxStallWatchdog.isNativeWait(new StackTraceElement[] {
+                frame(FxStallWatchdog.class.getName(), "pong"),
+                frame(FxStallWatchdog.class.getName(), "lambda$tick$0")}));
+    }
+
+    @Test
+    void suspendedProcessIsNoStallAndNoFreeze() {
+        watchdog.tick();            // ping posted
+        advanceMs(500);
+        watchdog.tick();
+        advanceMs(60_000);          // system sleep: neither the watchdog nor the FX thread ran
+        watchdog.tick();            // the gap discards the pending measurement
+        runFx();
+        assertTrue(stalls.isEmpty(), "the pause was the whole process, not the FX thread");
+        assertTrue(freezes.isEmpty());
+
+        // detection keeps working after the wake-up
+        watchdog.tick();
+        for (int i = 0; i < 8; i++) {
+            advanceMs(500);
+            watchdog.tick();
+        }
+        runFx();
+        assertEquals(List.of(4000L), stalls);
+    }
+
+    @Test
+    void blockAfterWakeUpIsMeasuredFromTheWakeUp() {
+        watchdog.tick();            // ping posted before the sleep
+        advanceMs(30_000);          // sleep
+        watchdog.tick();            // wake-up: the ping is re-dated
+        for (int i = 0; i < 6; i++) {
+            advanceMs(500);
+            watchdog.tick();
+        }
+        runFx();                    // the FX thread was busy after the wake-up for 3 s
+        assertEquals(List.of(3000L), stalls);
     }
 }

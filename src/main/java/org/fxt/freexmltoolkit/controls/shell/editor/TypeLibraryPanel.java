@@ -202,23 +202,28 @@ public class TypeLibraryPanel extends VBox {
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
-            String result = SchemaActionRunner.generateXsdFromMultiple(files);
-            UsageEvents.xsdGenerated(files.size(), t0, !result.startsWith("ERROR:"));
-            javafx.application.Platform.runLater(() -> {
-                if (result.startsWith("ERROR:")) {
-                    alert(javafx.scene.control.Alert.AlertType.ERROR, "Generate XSD (Batch)", result);
-                } else {
-                    editorHost.openGeneratedDocument(result, EditorFileType.XSD, "Generated.xsd");
-                }
-            });
+            SchemaActionRunner.XsdGeneration generation = SchemaActionRunner.generateXsdBatch(files);
+            UsageEvents.xsdGenerated(files.size(), t0, generation.errorCode(), generation.invalidInput());
+            String result = generation.text();
+            javafx.application.Platform.runLater(() -> showResult(result, "Generate XSD (Batch)",
+                    EditorFileType.XSD, "Generated.xsd"));
         });
     }
 
     /** Infers an XSD from the active XML document and opens it as a new tab (async). */
     @FXML
     public void generateXsdFromActive() {
-        runAsync(SchemaActionRunner::generateXsdFromXml, EditorFileType.XSD, "Generated.xsd",
-                (t0, ok) -> UsageEvents.xsdGenerated(1, t0, ok));
+        if (editorHost.getActiveDocument().isEmpty()) {
+            return;
+        }
+        String content = editorHost.getActiveText().orElse("");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
+            SchemaActionRunner.XsdGeneration generation = SchemaActionRunner.generateXsd(content);
+            UsageEvents.xsdGenerated(1, t0, generation.errorCode(), generation.invalidInput());
+            javafx.application.Platform.runLater(() -> showResult(generation.text(), "Schema Tool",
+                    EditorFileType.XSD, "Generated.xsd"));
+        });
     }
 
     @FXML
@@ -429,34 +434,23 @@ public class TypeLibraryPanel extends VBox {
 
     private void runAsync(java.util.function.Function<String, String> action,
                           EditorFileType outputType, String outputName) {
-        runAsync(action, outputType, outputName, null);
-    }
-
-    /**
-     * @param usage optional usage-statistics callback receiving the {@link System#nanoTime()}
-     *              start and the success flag (called on the worker thread)
-     */
-    private void runAsync(java.util.function.Function<String, String> action,
-                          EditorFileType outputType, String outputName,
-                          java.util.function.BiConsumer<Long, Boolean> usage) {
         if (editorHost.getActiveDocument().isEmpty()) {
             return;
         }
         String content = editorHost.getActiveText().orElse("");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            long t0 = System.nanoTime();
             String result = action.apply(content);
-            if (usage != null) {
-                usage.accept(t0, !result.startsWith("ERROR:"));
-            }
-            javafx.application.Platform.runLater(() -> {
-                if (result.startsWith("ERROR:")) {
-                    alert(javafx.scene.control.Alert.AlertType.ERROR, "Schema Tool", result);
-                } else {
-                    editorHost.openGeneratedDocument(result, outputType, outputName);
-                }
-            });
+            javafx.application.Platform.runLater(() -> showResult(result, "Schema Tool", outputType, outputName));
         });
+    }
+
+    /** Opens a generated document as a new tab, or shows an {@code "ERROR: …"} result. */
+    private void showResult(String result, String title, EditorFileType outputType, String outputName) {
+        if (result.startsWith("ERROR:")) {
+            alert(javafx.scene.control.Alert.AlertType.ERROR, title, result);
+        } else {
+            editorHost.openGeneratedDocument(result, outputType, outputName);
+        }
     }
 
     /** Rebuilds the three group lists, honouring the filter text. */

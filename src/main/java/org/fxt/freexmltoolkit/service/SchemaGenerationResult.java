@@ -18,6 +18,8 @@ public class SchemaGenerationResult {
     // Generation status
     private boolean success;
     private String errorMessage;
+    /** Whether the failure is the user's input (a document that is not well-formed), not the engine. */
+    private boolean invalidInput;
     private List<String> warnings = new ArrayList<>();
     private List<String> informationalMessages = new ArrayList<>();
 
@@ -117,6 +119,32 @@ public class SchemaGenerationResult {
         SchemaGenerationResult result = new SchemaGenerationResult(false);
         result.errorMessage = errorMessage;
         return result;
+    }
+
+    /**
+     * Creates an error result for input that cannot be analyzed (no well-formed XML document).
+     *
+     * @param errorMessage the error message describing what went wrong
+     * @return a new SchemaGenerationResult instance indicating a failure caused by the input
+     */
+    public static SchemaGenerationResult invalidInput(String errorMessage) {
+        SchemaGenerationResult result = error(errorMessage);
+        result.invalidInput = true;
+        return result;
+    }
+
+    /** @return whether the failure was caused by the input rather than by the engine */
+    public boolean isInvalidInput() {
+        return invalidInput;
+    }
+
+    /**
+     * @return the class name of the exception behind a failure (see
+     *         {@link #error(String, Throwable)}), or null
+     */
+    public String getExceptionType() {
+        Object type = analysisMetadata == null ? null : analysisMetadata.get("exceptionType");
+        return type != null ? type.toString() : null;
     }
 
     /**

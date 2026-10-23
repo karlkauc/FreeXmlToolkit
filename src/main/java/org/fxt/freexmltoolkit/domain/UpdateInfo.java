@@ -28,6 +28,9 @@ package org.fxt.freexmltoolkit.domain;
  * @param downloadUrl     The URL to the GitHub release page for downloading
  * @param publishedDate   The date when the release was published
  * @param updateAvailable True if a newer version is available, false otherwise
+ * @param failureReason   why a failed check failed, a fixed identifier for usage statistics
+ *                        ({@code network}, {@code http_<status>}, {@code empty}, {@code parse});
+ *                        null for a successful check
  */
 public record UpdateInfo(
         String currentVersion,
@@ -36,8 +39,16 @@ public record UpdateInfo(
         String releaseNotes,
         String downloadUrl,
         String publishedDate,
-        boolean updateAvailable
+        boolean updateAvailable,
+        String failureReason
 ) {
+    /** An update info without a failure reason. */
+    public UpdateInfo(String currentVersion, String latestVersion, String releaseName, String releaseNotes,
+                      String downloadUrl, String publishedDate, boolean updateAvailable) {
+        this(currentVersion, latestVersion, releaseName, releaseNotes, downloadUrl, publishedDate,
+                updateAvailable, null);
+    }
+
     /**
      * Creates an UpdateInfo indicating no update is available.
      *
@@ -55,6 +66,17 @@ public record UpdateInfo(
      * @return UpdateInfo with updateAvailable set to false
      */
     public static UpdateInfo errorDuringCheck(String currentVersion) {
-        return new UpdateInfo(currentVersion, null, null, null, null, null, false);
+        return errorDuringCheck(currentVersion, null);
+    }
+
+    /**
+     * Creates an UpdateInfo indicating an error occurred during update check.
+     *
+     * @param currentVersion The current application version
+     * @param failureReason  fixed identifier of the failure (see {@link #failureReason()}); nullable
+     * @return UpdateInfo with updateAvailable set to false
+     */
+    public static UpdateInfo errorDuringCheck(String currentVersion, String failureReason) {
+        return new UpdateInfo(currentVersion, null, null, null, null, null, false, failureReason);
     }
 }

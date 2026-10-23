@@ -177,7 +177,7 @@ public class SchemaGenerationEngine {
             // Parse XML document
             Document document = parseXmlDocument(xmlContent);
             if (document == null) {
-                return SchemaGenerationResult.error("Failed to parse XML document");
+                return SchemaGenerationResult.invalidInput("Failed to parse XML document");
             }
 
             // Analyze XML structure
@@ -196,7 +196,7 @@ public class SchemaGenerationEngine {
 
         } catch (Exception e) {
             logger.error("Schema generation failed", e);
-            return SchemaGenerationResult.error("Schema generation failed: " + e.getMessage());
+            return SchemaGenerationResult.error("Schema generation failed: " + e.getMessage(), e);
         }
     }
 
@@ -237,7 +237,7 @@ public class SchemaGenerationEngine {
             }
 
             if (documents.isEmpty()) {
-                return SchemaGenerationResult.error("No valid XML documents found");
+                return SchemaGenerationResult.invalidInput("No valid XML documents found");
             }
 
             // Perform multi-document analysis
@@ -256,7 +256,7 @@ public class SchemaGenerationEngine {
 
         } catch (Exception e) {
             logger.error("Multi-document schema generation failed", e);
-            return SchemaGenerationResult.error("Multi-document schema generation failed: " + e.getMessage());
+            return SchemaGenerationResult.error("Multi-document schema generation failed: " + e.getMessage(), e);
         }
     }
 

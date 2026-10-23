@@ -967,4 +967,14 @@ class UpdateCheckServiceTest {
             return null; // Delegate to ProxySelector in tests
         }
     }
+
+    @org.junit.jupiter.api.Test
+    void failedRequestsAreClassifiedWithoutTheirMessage() {
+        URI uri = URI.create("https://api.github.com/x");
+        assertEquals("network", UpdateCheckServiceImpl.failureReason(null));
+        assertEquals("network", UpdateCheckServiceImpl.failureReason(
+                new org.fxt.freexmltoolkit.domain.ConnectionResult(uri, 0, 5L, new String[0], "Connection refused")));
+        assertEquals("http_403", UpdateCheckServiceImpl.failureReason(
+                new org.fxt.freexmltoolkit.domain.ConnectionResult(uri, 403, 5L, new String[0], "rate limit")));
+    }
 }

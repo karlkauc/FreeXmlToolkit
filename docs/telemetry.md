@@ -44,9 +44,15 @@ processor's standard error code in `error_code` (e.g. `XTSE0010` = invalid style
 `XPST0003` = XPath syntax error, `SXXP0003` = input XML not well-formed) and the failure phase in
 `meta.phase` (`compile`, `input` or `runtime`) — never the error message, which may contain file
 names. A stylesheet that does not compile or an input that is not well-formed is a problem with the
-user's files, not with the app: those runs have status `invalid_input`, only `runtime` failures have
-status `error`. The error dialog of a failed run is not reported a second time as an app error.
+user's files, not with the app: those runs have status `invalid_input`. So do runtime failures with a
+serialization error code (`SESU*`, `SEPM*`, `SERE*`, e.g. an `xsl:output` version the serializer does not
+support); only other `runtime` failures have status `error`. The error dialog of a failed run is not reported a second time as an app error.
 `input_bytes` is the size of the source document in characters.
+
+A failed **XSD generation** (`xsd_generate`) carries the exception class in `error_code`, or
+`not_well_formed` with status `invalid_input` when the sample XML is not well-formed. A failed
+**update check** (`update_check`) names a fixed reason in `meta.reason`: `network` (no response),
+`http_<status>` (e.g. `http_403`), `empty`, `parse`, `no_version` or `exception`.
 
 Identical errors are sent only once per session (with a repeat counter), and at most 30 error
 events are sent per session.
@@ -56,10 +62,10 @@ events are sent per session.
 | Event | What it contains |
 |-------|------------------|
 | `app_start` | Startup time in ms, `is_first_run`, `meta.channel` (`release` or `dev`), `meta.days_since_install` (whole days since the anonymous ID was created), `meta.package` (`installer`, `portable` or `none` — only the kind of installation, never its folder), `meta.install_source` (distribution channel: `standalone` for a direct download, `winget`, `scoop`, `homebrew` or `flatpak`; a winget install is recognised from the second start on) and a snapshot of a few UI settings (`meta.set_theme`, `set_toolbar_labels`, `set_toolbar_icons`, `set_activity_labels`, `set_rendering`, `set_update_check`, `set_xml_autoformat`, `set_xsd_autosave`, `set_schema_autobind` — on/off values and fixed options only). |
-| `app_exit` | Session length, number of opened files, actions, side panels and the maximum number of open tabs, plus the peak and maximum Java heap rounded to 64 MB. |
+| `app_exit` | Session length, number of opened files, actions, side panels and the maximum number of open tabs, plus the peak (sampled while the app runs) and maximum Java heap rounded to 64 MB. |
 | `prev_session_crashed` | Sent at the next start when the previous session ended without a clean exit (crash, forced close). Contains only that session's anonymous ID and app version. The detection uses small marker files in `~/.freeXmlToolkit/sessions/`. |
-| `file_open`, `view_mode`, `validate`, `schema_analysis`, `schema_bind` | How long opening a document, switching to the Text/Tree/Graphic view, validating or analyzing took, and the document size. `schema_bind` tells how a schema was found for an opened document (`declared`, `library`, `catalog`, `manual` or `none`); when a referenced schema could not be bound, it names the source that was tried and the reason in `meta.failure` (`unresolved` = the reference could not be resolved or reached, `unloadable` = the schema was found but could not be loaded) — never the location itself. |
-| `ui_stall` | The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, a stack signature of the blocked code (code locations only, as for errors), and the shape of the active document: its size in characters (`input_bytes`), its number of lines (`meta.lines`) and the length class of its longest line (`meta.max_line_len`: `<1k`, `<10k`, `<100k`, `>=100k`) — never its content. At most 10 per session. |
+| `file_open`, `view_mode`, `validate`, `schema_analysis`, `schema_bind` | How long opening a document, switching to the Text/Tree/Graphic view, validating or analyzing took, and the document size. `schema_bind` tells how a schema was found for an opened document (`declared`, `library`, `catalog`, `manual` or `none`); when a referenced schema could not be bound, it names the source that was tried and the reason in `meta.failure` (`unresolved` = the reference could not be resolved or reached, `unloadable` = the schema was found but could not be loaded) and the *form* of the reference in `meta.ref_kind` (`http`, `file`, `relative`, `urn` or `other`) — never the location itself. |
+| `ui_stall` | The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, a stack signature of the blocked code (code locations only, as for errors), and the shape of the active document: its size in characters (`input_bytes`), its number of lines (`meta.lines`) and the length class of its longest line (`meta.max_line_len`: `<1k`, `<10k`, `<100k`, `>=100k`; `unknown` above 50,000 lines, which are not scanned) — never its content. Pauses of the whole application (system sleep) are not reported. At most 10 per session. |
 | `ui_freeze` | The user interface has not responded for ten seconds and is still blocked. Sent right away, while the freeze lasts, so that a freeze ending in a forced close is not lost: the time blocked so far, the side panel, view mode and document type, and a stack signature of the blocked code (code locations only). The document shape is not included. If the interface recovers, the regular `ui_stall` follows. At most 3 per session. |
 | `ui_command`, `panel_action` | Which toolbar button, keyboard shortcut (e.g. `mod+s`), Welcome page card or side-panel action was used (fixed identifiers). |
 | `edit_summary` | Counts per session of editing commands in the structured editors (e.g. `add_element: 12`, `undo: 3`) and of IntelliSense suggestions shown/accepted — command names only, never element names, values or text. |

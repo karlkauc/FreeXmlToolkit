@@ -191,7 +191,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
                 if (connectionResult == null || connectionResult.httpStatus() != 200) {
                     logger.warn("Failed to fetch update info. HTTP Status: {}",
                             connectionResult != null ? connectionResult.httpStatus() : "null");
-                    cachedUpdateInfo = UpdateInfo.errorDuringCheck(currentVersion);
+                    cachedUpdateInfo = UpdateInfo.errorDuringCheck(currentVersion, failureReason(connectionResult));
                     updateCheckPerformed = true;
                     return cachedUpdateInfo;
                 }
@@ -199,7 +199,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
                 String responseBody = connectionResult.resultBody();
                 if (responseBody == null || responseBody.isBlank()) {
                     logger.warn("Empty response from GitHub API");
-                    cachedUpdateInfo = UpdateInfo.errorDuringCheck(currentVersion);
+                    cachedUpdateInfo = UpdateInfo.errorDuringCheck(currentVersion, "empty");
                     updateCheckPerformed = true;
                     return cachedUpdateInfo;
                 }
@@ -249,11 +249,23 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
 
             } catch (Exception e) {
                 logger.warn("Error checking for updates: {}", e.getMessage());
-                cachedUpdateInfo = UpdateInfo.errorDuringCheck(currentVersion);
+                cachedUpdateInfo = UpdateInfo.errorDuringCheck(currentVersion, "parse");
                 updateCheckPerformed = true;
                 return cachedUpdateInfo;
             }
         }, getExecutorService());
+    }
+
+    /**
+     * Fixed identifier of a failed release request for usage statistics: {@code network} when
+     * no HTTP response arrived (DNS, proxy, TLS, timeout - the connection service reports
+     * status 0), else {@code http_<status>} (e.g. {@code http_403} for GitHub's rate limit).
+     */
+    static String failureReason(org.fxt.freexmltoolkit.domain.ConnectionResult result) {
+        if (result == null || result.httpStatus() == null || result.httpStatus() <= 0) {
+            return "network";
+        }
+        return "http_" + result.httpStatus();
     }
 
     @Override

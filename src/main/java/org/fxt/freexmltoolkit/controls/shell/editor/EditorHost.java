@@ -123,7 +123,7 @@ public class EditorHost extends BorderPane {
      * detection keeps the source that was tried and why it failed (anonymous telemetry).
      */
     private record SchemaDetection(File schema, SchemaStatus status, SchemaSource source, String sourceDetail,
-                                   String failure) {
+                                   String failure, String refKind) {
         static final SchemaDetection NOT_FOUND = new SchemaDetection(null, SchemaStatus.NONE, SchemaSource.NONE, null);
         /** {@link #failure} value: the referenced schema could not be resolved / reached. */
         static final String UNRESOLVED = "unresolved";
@@ -131,11 +131,17 @@ public class EditorHost extends BorderPane {
         static final String UNLOADABLE = "unloadable";
 
         SchemaDetection(File schema, SchemaStatus status, SchemaSource source, String sourceDetail) {
-            this(schema, status, source, sourceDetail, null);
+            this(schema, status, source, sourceDetail, null, null);
         }
 
         static SchemaDetection failed(SchemaSource source, String failure) {
-            return new SchemaDetection(null, SchemaStatus.ERROR, source, null, failure);
+            return failed(source, failure, null);
+        }
+
+        /** @param location the declared location, reduced to its {@link UsageEvents#referenceKind kind} */
+        static SchemaDetection failed(SchemaSource source, String failure, String location) {
+            return new SchemaDetection(null, SchemaStatus.ERROR, source, null, failure,
+                    UsageEvents.referenceKind(location));
         }
     }
 
@@ -1447,8 +1453,16 @@ public class EditorHost extends BorderPane {
 
     /** Shows the welcome empty-state when no tab is open, the tab pane otherwise. */
     /**
+     * Above this many paragraphs the longest line is not measured: the shape is read on the FX
+     * thread right after a stall, and walking millions of paragraphs stalled it once more.
+     */
+    static final int DOC_SHAPE_MAX_SCANNED_LINES = 50_000;
+
+    /**
      * Measures a code area for {@code ui_stall} telemetry (size and line lengths, no content).
      * Holds the area only weakly so a closed tab is never kept alive by the telemetry context.
+     * The longest line is reported as -1 (unknown) for documents with more than
+     * {@value #DOC_SHAPE_MAX_SCANNED_LINES} lines.
      */
     static java.util.function.Supplier<UsageEvents.DocShape> docShapeOf(
             org.fxmisc.richtext.CodeArea area) {
@@ -1459,6 +1473,9 @@ public class EditorHost extends BorderPane {
                 return null;
             }
             int lines = a.getParagraphs().size();
+            if (lines > DOC_SHAPE_MAX_SCANNED_LINES) {
+                return new UsageEvents.DocShape(a.getLength(), lines, -1);
+            }
             int maxLen = 0;
             for (int p = 0; p < lines; p++) {
                 maxLen = Math.max(maxLen, a.getParagraphLength(p));
@@ -3389,7 +3406,8 @@ public class EditorHost extends BorderPane {
                 if (detection != null && tab.view.supportsSchema()) {
                     UsageEvents.schemaBound(tab.document.getFileType().docKind(),
                             detection.source().name().toLowerCase(java.util.Locale.ROOT),
-                            detection.status() != SchemaStatus.ERROR, detection.failure(), openStart);
+                            detection.status() != SchemaStatus.ERROR, detection.failure(), detection.refKind(),
+                            openStart);
                 }
             });
         });
@@ -3702,7 +3720,8 @@ public class EditorHost extends BorderPane {
                     LibraryHit fallback = schemaFromLibrary(content);
                     if (fallback == null) {
                         // referenced, but not resolvable
-                        return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED);
+                        return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED,
+                                declared.get());
                     }
                     xsd = fallback.file();
                     source = fallback.source();
@@ -3836,7 +3855,7 @@ public class EditorHost extends BorderPane {
             // expects schema validation but won't get it), not a silent "No Schema".
             File schema = service.resolveJsonSchemaLocation(declared.get(), baseDir);
             if (schema == null || !schema.exists()) {
-                return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED);
+                return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED, declared.get());
             }
             if (!tab.view.loadSchema(schema)) {
                 return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNLOADABLE);

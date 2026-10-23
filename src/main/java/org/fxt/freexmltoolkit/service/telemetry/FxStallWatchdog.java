@@ -32,6 +32,10 @@ import java.util.function.Supplier;
  * {@code ui_stall} follows, so a {@code ui_freeze} without a {@code ui_stall} of the same session
  * marks a freeze that never ended (usually followed by {@code prev_session_crashed}, see
  * {@link SessionMarker}). At most {@value #MAX_FREEZE_REPORTS_PER_SESSION} per session.
+ *
+ * <p>Not reported: a pause of the whole process (system sleep, App Nap - the watchdog's own
+ * ticks are more than {@value #SUSPEND_GAP_MS} ms apart, so the block is measured from the
+ * wake-up), and stacks without application work (see {@link #isNativeWait}).
  */
 public final class FxStallWatchdog {
 
@@ -41,6 +45,8 @@ public final class FxStallWatchdog {
     /** Block duration after which an ongoing freeze is reported before it ends. */
     static final long FREEZE_REPORT_MS = 10_000;
     static final int MAX_FREEZE_REPORTS_PER_SESSION = 3;
+    /** A gap between two watchdog ticks above this means the process was suspended. */
+    static final long SUSPEND_GAP_MS = 3 * PING_INTERVAL_MS;
 
     /** Receives a finished stall: duration and the FX stack captured while it was blocked. */
     interface StallSink {
@@ -61,9 +67,13 @@ public final class FxStallWatchdog {
     private final Object lock = new Object();
     private boolean pingOutstanding;
     private long pingPostedAt;
+    /** Start of the measured block: the ping's post time, or the end of a process suspension. */
+    private long measuredFrom;
     private StackTraceElement[] capturedStack;
     /** Whether the outstanding ping was already checked for an ongoing freeze. */
     private boolean freezeChecked;
+    /** Clock reading of the previous tick; 0 before the first one. */
+    private long lastTickAt;
     private ScheduledExecutorService scheduler;
 
     FxStallWatchdog(Consumer<Runnable> fxExecutor, Supplier<StackTraceElement[]> fxStack,
@@ -115,6 +125,7 @@ public final class FxStallWatchdog {
 
     private void tickSafely() {
         try {
+            UsageEvents.sampleHeap(); // heap_peak_mb of app_exit; cheap, piggybacks on the tick
             tick();
         } catch (Throwable ignored) {
             // the watchdog must never die or disturb the app
@@ -130,15 +141,26 @@ public final class FxStallWatchdog {
         StackTraceElement[] freezeStack = null;
         synchronized (lock) {
             long now = nanoClock.getAsLong();
+            long sinceLastTick = lastTickAt == 0 ? 0 : elapsedMs(lastTickAt, now);
+            lastTickAt = now;
+            if (pingOutstanding && sinceLastTick > SUSPEND_GAP_MS) {
+                // The watchdog itself did not run: the whole process was suspended (system
+                // sleep, App Nap). The pending ping measures that pause, not a blocked FX thread.
+                measuredFrom = now;
+                capturedStack = null;
+                freezeChecked = false;
+                return;
+            }
             if (!pingOutstanding) {
                 pingOutstanding = true;
                 pingPostedAt = now;
+                measuredFrom = now;
                 freezeChecked = false;
                 long postedAt = now;
                 fxExecutor.accept(() -> pong(postedAt));
                 return;
             }
-            long elapsed = elapsedMs(pingPostedAt, now);
+            long elapsed = elapsedMs(measuredFrom, now);
             if (capturedStack == null && elapsed >= STALL_THRESHOLD_MS) {
                 capturedStack = fxStack.get();
             } else if (!freezeChecked && elapsed >= FREEZE_REPORT_MS) {
@@ -163,7 +185,7 @@ public final class FxStallWatchdog {
             pingOutstanding = false;
             stack = capturedStack;
             capturedStack = null;
-            durationMs = elapsedMs(postedAt, nanoClock.getAsLong());
+            durationMs = elapsedMs(measuredFrom, nanoClock.getAsLong());
         }
         if (stack != null && durationMs >= STALL_THRESHOLD_MS && !isNativeWait(stack)) {
             sink.stalled(durationMs, stack);
@@ -173,15 +195,25 @@ public final class FxStallWatchdog {
     /**
      * Whether the FX thread sat in a native toolkit loop when the stack was captured: the
      * platform event loop itself (an OS modal loop such as dragging or resizing the window
-     * keeps it from running posted work) or a native file/folder dialog. No application
-     * code is stuck there, so these are not stalls worth reporting.
+     * keeps it from running posted work), a native file/folder dialog, a stack without any
+     * Java frame, or the watchdog's own pong (the block was over when the stack was taken).
+     * No application code is stuck there, so these are not stalls worth reporting.
      */
     static boolean isNativeWait(StackTraceElement[] stack) {
-        if (stack == null || stack.length == 0) {
+        if (stack == null) {
             return false;
+        }
+        if (stack.length == 0) {
+            // no Java frame at all: the thread sits in native code (the macOS main thread in
+            // its run loop) - nothing of the application to report
+            return true;
         }
         StackTraceElement top = stack[0];
         String cls = top.getClassName();
+        if (cls.equals(FxStallWatchdog.class.getName())) {
+            // captured just as the FX thread ran the pong itself: the block was already over
+            return true;
+        }
         String method = top.getMethodName();
         if (!cls.startsWith("com.sun.glass.ui.")) {
             return false;

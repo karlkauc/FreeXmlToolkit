@@ -35,6 +35,25 @@ public final class UpdateActionRunner {
         return info.updateAvailable() ? UsageEvents.UPDATE_AVAILABLE : UsageEvents.UPDATE_UP_TO_DATE;
     }
 
+    /**
+     * Why a check failed, for usage statistics: the service's fixed reason, {@code exception}
+     * for a failed future, {@code no_version} for a result without a version.
+     *
+     * @return the reason, or null when the check did not fail
+     */
+    public static String failureReason(UpdateInfo info, Throwable error) {
+        if (error != null) {
+            return "exception";
+        }
+        if (info == null) {
+            return "no_result";
+        }
+        if (info.failureReason() != null) {
+            return info.failureReason();
+        }
+        return info.latestVersion() == null ? "no_version" : null;
+    }
+
     /** @return a human-readable message describing the update status. */
     public static String describe(UpdateInfo info) {
         if (info == null) {

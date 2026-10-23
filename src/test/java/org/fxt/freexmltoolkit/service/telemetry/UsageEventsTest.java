@@ -422,6 +422,81 @@ class UsageEventsTest {
     }
 
     @Test
+    void updateCheckErrorCarriesItsReason() {
+        UsageEvents.updateCheck("startup", UsageEvents.UPDATE_ERROR, "http_403");
+        assertEquals("http_403", single("update_check").meta().get("reason"));
+    }
+
+    @Test
+    void successfulUpdateCheckHasNoReason() {
+        UsageEvents.updateCheck("manual", UsageEvents.UPDATE_UP_TO_DATE, "network");
+        assertFalse(single("update_check").meta().containsKey("reason"));
+    }
+
+    @Test
+    void failedXsdGenerationCarriesItsCode() {
+        UsageEvents.xsdGenerated(1, 0, "NullPointerException", false);
+        TelemetryEvent e = single("xsd_generate");
+        assertEquals(TelemetryEvent.Status.ERROR, e.status());
+        assertEquals("NullPointerException", e.errorCode());
+    }
+
+    @Test
+    void xsdGenerationFromMalformedXmlIsInvalidInput() {
+        UsageEvents.xsdGenerated(1, 0, "not_well_formed", true);
+        TelemetryEvent e = single("xsd_generate");
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, e.status());
+        assertEquals("not_well_formed", e.errorCode());
+    }
+
+    @Test
+    void serializationErrorsOfAStylesheetAreInvalidInput() {
+        // Telemetry 2.5.1: SESU0013 in phase runtime (an unsupported xsl:output version)
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, UsageEvents.xsltStatus(false, "runtime", "SESU0013"));
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, UsageEvents.xsltStatus(false, "runtime", "SEPM0009"));
+        assertEquals(TelemetryEvent.Status.ERROR, UsageEvents.xsltStatus(false, "runtime", "XTDE0640"));
+        assertEquals(TelemetryEvent.Status.ERROR, UsageEvents.xsltStatus(false, "runtime", null));
+
+        UsageEvents.xsltTransformed(1, 0, false, false, "SESU0013", "runtime");
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, single("xslt_transform").status());
+    }
+
+    @Test
+    void failedSchemaBindingReportsTheKindOfReference() {
+        UsageEvents.schemaBound(DocKind.XML, "declared", false, "unresolved", "http", 0);
+        assertEquals("http", single("schema_bind").meta().get("ref_kind"));
+    }
+
+    @Test
+    void referenceKindNeverCarriesTheLocation() {
+        assertEquals("http", UsageEvents.referenceKind("https://example.com/a.xsd"));
+        assertEquals("file", UsageEvents.referenceKind("file:///C:/x/a.xsd"));
+        assertEquals("file", UsageEvents.referenceKind("C:\\data\\a.xsd"));
+        assertEquals("file", UsageEvents.referenceKind("/home/user/a.xsd"));
+        assertEquals("file", UsageEvents.referenceKind("\\\\server\\share\\a.xsd"));
+        assertEquals("urn", UsageEvents.referenceKind("urn:example:schema"));
+        assertEquals("relative", UsageEvents.referenceKind("../schemas/a.xsd"));
+        assertEquals("relative", UsageEvents.referenceKind("a.xsd"));
+        assertEquals("other", UsageEvents.referenceKind("jar:file:/x.jar!/a.xsd"));
+        assertNull(UsageEvents.referenceKind(" "));
+    }
+
+    @Test
+    void heapPeakNeverExceedsTheMaximum() {
+        UsageEvents.sampleHeap();
+        telemetry.trackAppExit(java.time.Duration.ofSeconds(1), UsageEvents.sessionSummary());
+        TelemetryEvent e = single("app_exit");
+        long peak = ((Number) e.meta().get("heap_peak_mb")).longValue();
+        long max = ((Number) e.meta().get("heap_max_mb")).longValue();
+        assertTrue(peak >= 64 && peak <= max, "peak " + peak + " max " + max);
+    }
+
+    @Test
+    void unmeasuredLineLengthIsUnknown() {
+        assertEquals("unknown", UsageEvents.lineLengthBucket(-1));
+    }
+
+    @Test
     void nullLocalSinkIsTolerated() {
         UsageEvents.setLocalSink(() -> null);
 

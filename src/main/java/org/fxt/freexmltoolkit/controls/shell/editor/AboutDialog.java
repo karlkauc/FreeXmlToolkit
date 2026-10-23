@@ -202,7 +202,8 @@ public final class AboutDialog {
         service.checkForUpdates()
                 .whenComplete((updateInfo, ex) -> {
                     org.fxt.freexmltoolkit.service.telemetry.UsageEvents.updateCheck(
-                            "manual", UpdateActionRunner.usageResult(updateInfo, ex));
+                            "manual", UpdateActionRunner.usageResult(updateInfo, ex),
+                            UpdateActionRunner.failureReason(updateInfo, ex));
                     Platform.runLater(() -> {
                         trigger.setText(original);
                         trigger.setDisable(false);

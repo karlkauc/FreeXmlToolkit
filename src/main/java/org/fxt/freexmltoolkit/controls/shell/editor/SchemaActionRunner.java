@@ -21,18 +21,49 @@ public final class SchemaActionRunner {
     private SchemaActionRunner() {
     }
 
-    /** Infers an XSD from the given XML. @return the XSD content, or {@code "ERROR: …"}. */
-    public static String generateXsdFromXml(String xmlContent) {
-        try {
-            SchemaGenerationResult result = SchemaGenerationEngine.getInstance()
-                    .generateSchema(xmlContent, new SchemaGenerationOptions());
+    /**
+     * Outcome of an XSD inference.
+     *
+     * @param text         the XSD content, or {@code "ERROR: …"}
+     * @param errorCode    fixed identifier of a failure for usage statistics (exception class,
+     *                     or {@code not_well_formed}); null on success
+     * @param invalidInput whether the failure is the user's input (no well-formed XML)
+     */
+    public record XsdGeneration(String text, String errorCode, boolean invalidInput) {
+
+        /** @return whether an XSD was generated */
+        public boolean ok() {
+            return errorCode == null;
+        }
+
+        static XsdGeneration of(SchemaGenerationResult result) {
             if (!result.isSuccess()) {
-                return "ERROR: " + result.getErrorMessage();
+                String code = result.isInvalidInput() ? "not_well_formed"
+                        : result.getExceptionType() != null ? result.getExceptionType() : "generation_failed";
+                return new XsdGeneration("ERROR: " + result.getErrorMessage(), code, result.isInvalidInput());
             }
             String formatted = result.getFormattedXsdContent();
-            return (formatted != null && !formatted.isBlank()) ? formatted : result.getXsdContent();
+            return new XsdGeneration((formatted != null && !formatted.isBlank()) ? formatted : result.getXsdContent(),
+                    null, false);
+        }
+
+        static XsdGeneration failed(Exception e, boolean invalidInput) {
+            return new XsdGeneration("ERROR: " + e.getMessage(), e.getClass().getSimpleName(), invalidInput);
+        }
+    }
+
+    /** Infers an XSD from the given XML. @return the XSD content, or {@code "ERROR: …"}. */
+    public static String generateXsdFromXml(String xmlContent) {
+        return generateXsd(xmlContent).text();
+    }
+
+    /** Infers an XSD from the given XML, keeping the failure classification. */
+    public static XsdGeneration generateXsd(String xmlContent) {
+        try {
+            return XsdGeneration.of(SchemaGenerationEngine.getInstance()
+                    .generateSchema(xmlContent, new SchemaGenerationOptions()));
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return XsdGeneration.failed(e, false);
         }
     }
 
@@ -41,23 +72,27 @@ public final class SchemaActionRunner {
      * engine's multi-document analysis. @return the XSD content, or {@code "ERROR: …"}.
      */
     public static String generateXsdFromMultiple(java.util.List<java.io.File> xmlFiles) {
+        return generateXsdBatch(xmlFiles).text();
+    }
+
+    /** Batch variant of {@link #generateXsd(String)}; an unreadable file counts as invalid input. */
+    public static XsdGeneration generateXsdBatch(java.util.List<java.io.File> xmlFiles) {
         if (xmlFiles == null || xmlFiles.isEmpty()) {
-            return "ERROR: no XML files selected";
+            return new XsdGeneration("ERROR: no XML files selected", "no_input", true);
         }
+        java.util.List<String> documents = new java.util.ArrayList<>();
         try {
-            java.util.List<String> documents = new java.util.ArrayList<>();
             for (java.io.File file : xmlFiles) {
                 documents.add(java.nio.file.Files.readString(file.toPath()));
             }
-            SchemaGenerationResult result = SchemaGenerationEngine.getInstance()
-                    .generateSchemaFromMultipleDocuments(documents, new SchemaGenerationOptions());
-            if (!result.isSuccess()) {
-                return "ERROR: " + result.getErrorMessage();
-            }
-            String formatted = result.getFormattedXsdContent();
-            return (formatted != null && !formatted.isBlank()) ? formatted : result.getXsdContent();
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return XsdGeneration.failed(e, true);
+        }
+        try {
+            return XsdGeneration.of(SchemaGenerationEngine.getInstance()
+                    .generateSchemaFromMultipleDocuments(documents, new SchemaGenerationOptions()));
+        } catch (Exception e) {
+            return XsdGeneration.failed(e, false);
         }
     }
 

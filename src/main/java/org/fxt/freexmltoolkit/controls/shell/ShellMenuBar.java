@@ -370,7 +370,8 @@ public final class ShellMenuBar extends MenuBar {
     /** Checks for an application update in the background and reports the outcome in a dialog. */
     @FXML public void onCheckForUpdates() {
         run("check_updates", () -> UpdateActionRunner.check().whenComplete((info, error) -> {
-            UsageEvents.updateCheck("manual", UpdateActionRunner.usageResult(info, error));
+            UsageEvents.updateCheck("manual", UpdateActionRunner.usageResult(info, error),
+                    UpdateActionRunner.failureReason(info, error));
             Platform.runLater(() -> {
                 if (error != null || info == null) {
                     DialogHelper.showWarning("Check for Updates", "Could not check for updates",

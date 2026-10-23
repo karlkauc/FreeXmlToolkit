@@ -20,8 +20,12 @@ public record QueryFailure(String errorCode, TelemetryEvent.Status status, Error
     /** A failure about which nothing is known. */
     public static final QueryFailure UNKNOWN = new QueryFailure(null, TelemetryEvent.Status.ERROR, null);
 
-    /** Code prefixes of static / parse errors: the expression, stylesheet or document is broken. */
-    private static final String[] INPUT_CODE_PREFIXES = {"XPST", "XQST", "XTSE", "SXXP", "XS"};
+    /**
+     * Code prefixes of static / parse errors (the expression, stylesheet or document is broken)
+     * and of serialization errors (the stylesheet asks for parameters or output the serializer
+     * cannot produce).
+     */
+    private static final String[] INPUT_CODE_PREFIXES = {"XPST", "XQST", "XTSE", "SXXP", "XS", "SESU", "SEPM", "SERE"};
 
     /**
      * Classifies a thrown failure. A processor error code anywhere in the cause chain wins;

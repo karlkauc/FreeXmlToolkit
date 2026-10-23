@@ -80,7 +80,8 @@ public final class ShellBootstrap {
             }
             svc.checkForUpdates().whenComplete((info, err) ->
                     org.fxt.freexmltoolkit.service.telemetry.UsageEvents.updateCheck("startup",
-                            org.fxt.freexmltoolkit.controls.shell.editor.UpdateActionRunner.usageResult(info, err))
+                            org.fxt.freexmltoolkit.controls.shell.editor.UpdateActionRunner.usageResult(info, err),
+                            org.fxt.freexmltoolkit.controls.shell.editor.UpdateActionRunner.failureReason(info, err))
             ).thenAccept(info -> {
                 if (info != null && info.updateAvailable()) {
                     // Reuses the shared update-notification flow (boot → dialog dependency,

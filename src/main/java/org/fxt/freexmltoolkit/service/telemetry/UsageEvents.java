@@ -51,6 +51,8 @@ public final class UsageEvents {
     private static final AtomicInteger sessionFilesOpened = new AtomicInteger();
     private static final AtomicInteger sessionActions = new AtomicInteger();
     private static final AtomicInteger sessionMaxTabs = new AtomicInteger();
+    /** Highest sampled heap usage of the session in bytes ({@link #sampleHeap}). */
+    private static final java.util.concurrent.atomic.AtomicLong sessionHeapPeak = new java.util.concurrent.atomic.AtomicLong();
     /** Last UI context (for {@code ui_stall} events): current activity, view mode, doc kind. */
     private static volatile String currentActivity;
     private static volatile String currentViewMode;
@@ -400,7 +402,7 @@ public final class UsageEvents {
             return;
         }
         action("xslt_transform", b -> {
-            b.docKind(DocKind.XML).status(xsltStatus(ok, phase)).meta("engine", "saxon");
+            b.docKind(DocKind.XML).status(xsltStatus(ok, phase, errorCode)).meta("engine", "saxon");
             if (!ok) {
                 b.errorCode(errorCode).meta("phase", phase);
             }
@@ -603,8 +605,24 @@ public final class UsageEvents {
 
     /** XSD(s) were generated from XML instance(s). */
     public static void xsdGenerated(int fileCount, long startNanos, boolean ok) {
+        xsdGenerated(fileCount, startNanos, ok ? null : "", false);
+    }
+
+    /**
+     * XSD(s) were generated from XML instance(s).
+     *
+     * @param errorCode    fixed identifier of a failure (exception class or {@code not_well_formed});
+     *                     null on success, empty for a failure without a code
+     * @param invalidInput whether the failure is the user's input ({@code invalid_input})
+     */
+    public static void xsdGenerated(int fileCount, long startNanos, String errorCode, boolean invalidInput) {
+        boolean ok = errorCode == null;
         action("xsd_generate", b -> {
-            b.docKind(DocKind.XML).fileCount(fileCount).status(status(ok));
+            b.docKind(DocKind.XML).fileCount(fileCount).status(ok ? TelemetryEvent.Status.OK
+                    : invalidInput ? TelemetryEvent.Status.INVALID_INPUT : TelemetryEvent.Status.ERROR);
+            if (!ok && !errorCode.isEmpty()) {
+                b.errorCode(errorCode);
+            }
             duration(b, startNanos);
         });
         if (ok) {
@@ -691,13 +709,52 @@ public final class UsageEvents {
      *                reachable) or {@code unloadable} (schema missing or not parsable); null on success
      */
     public static void schemaBound(DocKind kind, String source, boolean ok, String failure, long startNanos) {
+        schemaBound(kind, source, ok, failure, null, startNanos);
+    }
+
+    /**
+     * Same as {@link #schemaBound(DocKind, String, boolean, String, long)} with the kind of the
+     * reference that failed.
+     *
+     * @param refKind {@link #referenceKind} of the declared location (nullable; only sent on failure)
+     */
+    public static void schemaBound(DocKind kind, String source, boolean ok, String failure, String refKind,
+                                   long startNanos) {
         action("schema_bind", b -> {
             b.docKind(kind).status(status(ok)).meta("source", source);
             if (!ok && failure != null) {
                 b.meta("failure", failure);
             }
+            if (!ok && refKind != null) {
+                b.meta("ref_kind", refKind);
+            }
             duration(b, startNanos);
         });
+    }
+
+    /**
+     * Classifies a schema reference by its form only - never by its value:
+     * {@code http} (http/https/ftp URL), {@code file} (file: URL or absolute path),
+     * {@code urn}, {@code relative} (a path relative to the document) or {@code other}.
+     *
+     * @param location the declared location (nullable)
+     * @return the kind, or null for a missing location
+     */
+    public static String referenceKind(String location) {
+        if (location == null || location.isBlank()) {
+            return null;
+        }
+        String l = location.strip().toLowerCase(java.util.Locale.ROOT);
+        if (l.startsWith("http://") || l.startsWith("https://") || l.startsWith("ftp://")) {
+            return "http";
+        }
+        if (l.startsWith("file:") || l.startsWith("/") || l.startsWith("\\\\") || l.matches("^[a-z]:[\\\\/].*")) {
+            return "file";
+        }
+        if (l.startsWith("urn:")) {
+            return "urn";
+        }
+        return l.matches("^[a-z][a-z0-9+.-]*:.*") ? "other" : "relative";
     }
 
     /**
@@ -707,8 +764,26 @@ public final class UsageEvents {
      * @param result  one of the {@code UPDATE_*} constants
      */
     public static void updateCheck(String trigger, String result) {
-        action("update_check", b -> b.meta("result", result).meta("trigger", trigger)
-                .status(UPDATE_ERROR.equals(result) ? TelemetryEvent.Status.ERROR : TelemetryEvent.Status.OK));
+        updateCheck(trigger, result, null);
+    }
+
+    /**
+     * An update check finished.
+     *
+     * @param trigger {@code startup | manual}
+     * @param result  one of the {@code UPDATE_*} constants
+     * @param reason  fixed identifier why a failed check failed (e.g. {@code network},
+     *                {@code http_403}); ignored unless {@code result} is {@link #UPDATE_ERROR}
+     */
+    public static void updateCheck(String trigger, String result, String reason) {
+        boolean failed = UPDATE_ERROR.equals(result);
+        action("update_check", b -> {
+            b.meta("result", result).meta("trigger", trigger)
+                    .status(failed ? TelemetryEvent.Status.ERROR : TelemetryEvent.Status.OK);
+            if (failed && reason != null) {
+                b.meta("reason", reason);
+            }
+        });
     }
 
     // ------------------------------------------------------------------ session summary
@@ -743,17 +818,21 @@ public final class UsageEvents {
     }
 
     private static long heapPeakMb() {
+        sampleHeap();
+        return roundMb(Math.min(sessionHeapPeak.get(), Runtime.getRuntime().maxMemory()));
+    }
+
+    /**
+     * Records the current heap usage for {@code heap_peak_mb}. Called periodically (stall
+     * watchdog tick) and at exit. Summing the pools' individual peaks overstated the peak
+     * (they peak at different times; reports showed a peak above the maximum heap).
+     */
+    static void sampleHeap() {
         try {
-            long peak = 0;
-            for (java.lang.management.MemoryPoolMXBean pool
-                    : java.lang.management.ManagementFactory.getMemoryPoolMXBeans()) {
-                if (pool.getType() == java.lang.management.MemoryType.HEAP && pool.getPeakUsage() != null) {
-                    peak += pool.getPeakUsage().getUsed();
-                }
-            }
-            return roundMb(peak);
-        } catch (Throwable t) {
-            return -1;
+            long used = java.lang.management.ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
+            sessionHeapPeak.accumulateAndGet(used, Math::max);
+        } catch (Throwable ignored) {
+            // best effort
         }
     }
 
@@ -855,6 +934,9 @@ public final class UsageEvents {
 
     /** Coarse size class of a line length ({@code <1k | <10k | <100k | >=100k}). */
     static String lineLengthBucket(int length) {
+        if (length < 0) {
+            return "unknown";
+        }
         if (length < 1_000) {
             return "<1k";
         }
@@ -877,11 +959,22 @@ public final class UsageEvents {
 
     /** Compile/input-phase XSLT failures are the user's input, not an app failure. */
     static TelemetryEvent.Status xsltStatus(boolean ok, String phase) {
+        return xsltStatus(ok, phase, null);
+    }
+
+    /**
+     * Like {@link #xsltStatus(boolean, String)}, but a runtime failure whose processor code marks
+     * the user's stylesheet or input (e.g. {@code SESU0013}, an unsupported serialization
+     * parameter) is {@code invalid_input} as well.
+     */
+    static TelemetryEvent.Status xsltStatus(boolean ok, String phase, String errorCode) {
         if (ok) {
             return TelemetryEvent.Status.OK;
         }
-        return XsltTransformationResult.PHASE_COMPILE.equals(phase) || XsltTransformationResult.PHASE_INPUT.equals(phase)
-                ? TelemetryEvent.Status.INVALID_INPUT : TelemetryEvent.Status.ERROR;
+        if (XsltTransformationResult.PHASE_COMPILE.equals(phase) || XsltTransformationResult.PHASE_INPUT.equals(phase)) {
+            return TelemetryEvent.Status.INVALID_INPUT;
+        }
+        return errorCode != null ? QueryFailure.ofCode(errorCode).status() : TelemetryEvent.Status.ERROR;
     }
 
     /** Sets status and, for a failed run, the error fields of a query-style action. */
@@ -945,6 +1038,7 @@ public final class UsageEvents {
         seenActivities.clear();
         lastLiveRun.clear();
         sessionFilesOpened.set(0);
+        sessionHeapPeak.set(0);
         sessionActions.set(0);
         sessionMaxTabs.set(0);
         currentActivity = null;
