@@ -324,7 +324,7 @@ schemas, **Save** needs an open document).
 
 | Menu | Contents |
 |------|----------|
-| **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q) |
+| **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first) |
 | **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
 | **View** | The view modes (Text / Tree / Graphic / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), Toggle Light / Dark Theme, Full Screen |
 | **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Set Schema…, Generate Documentation…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites |
@@ -1751,7 +1751,7 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+Shift+S | Save As (the Save ▾ menu also offers Save All) |
 | Ctrl+W (Windows/Linux also Ctrl+F4) | Close the active tab (asks to save unsaved changes) |
 | Ctrl+Tab / Ctrl+Shift+Tab | Next / previous tab |
-| Ctrl+Q | Quit FreeXmlToolkit (**Cmd+Q** on macOS; Alt+F4 on Windows works as usual) |
+| Ctrl+Q | Quit FreeXmlToolkit (**Cmd+Q** on macOS; Alt+F4 on Windows works as usual). With unsaved documents one dialog lists them and offers **Save All** / **Don't Save** / **Cancel** - the same when the window is closed |
 | Ctrl+, | Open the Settings page |
 | Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) | Undo / Redo (works from the Text, Tree and Graphic views) |
 | Ctrl+F | Find (in the active document) |

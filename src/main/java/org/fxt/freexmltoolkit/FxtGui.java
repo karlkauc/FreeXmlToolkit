@@ -318,7 +318,15 @@ public class FxtGui extends Application {
 
                 primaryStage.setScene(scene);
                 primaryStage.setMaximized(true);
-                primaryStage.setOnCloseRequest(t -> Platform.exit());
+                // Every way out (window button, File → Exit, Ctrl/Cmd+Q, macOS Quit) arrives here:
+                // unsaved documents are asked about first, Cancel keeps the application open.
+                primaryStage.setOnCloseRequest(t -> {
+                    if (shellController.getShellView().confirmExit()) {
+                        Platform.exit();
+                    } else {
+                        t.consume();
+                    }
+                });
 
                 // Show main window fully transparent, then fade in after splash dismissal
                 primaryStage.setOpacity(0);

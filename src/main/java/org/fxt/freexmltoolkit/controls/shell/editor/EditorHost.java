@@ -5174,6 +5174,76 @@ public class EditorHost extends BorderPane {
         });
     }
 
+    /** The user's answer to the exit prompt for unsaved documents. */
+    public enum ExitChoice { SAVE_ALL, DISCARD, CANCEL }
+
+    /**
+     * Asks about unsaved documents before the application closes (window button, File → Exit,
+     * Ctrl/Cmd+Q, macOS Quit): one dialog listing them with Save All / Don't Save / Cancel.
+     *
+     * @return whether the application may close now
+     */
+    public boolean confirmExit() {
+        return confirmExit(this::promptExit);
+    }
+
+    /**
+     * @param prompter asks the user about the given unsaved documents (shown only when there are any)
+     * @return whether the application may close now
+     */
+    boolean confirmExit(java.util.function.Function<java.util.List<OpenDocument>, ExitChoice> prompter) {
+        java.util.List<EditorTab> dirty = new java.util.ArrayList<>();
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document.isDirty()) {
+                dirty.add(et);
+            }
+        }
+        if (dirty.isEmpty()) {
+            return true;
+        }
+        tabPane.getSelectionModel().select(dirty.get(0));
+        ExitChoice choice = prompter.apply(dirty.stream().map(et -> et.document).toList());
+        if (choice == null || choice == ExitChoice.CANCEL) {
+            return false;
+        }
+        if (choice == ExitChoice.SAVE_ALL) {
+            for (EditorTab tab : dirty) {
+                tabPane.getSelectionModel().select(tab);
+                boolean ok = tab.document.isUntitled() ? saveTabAs(tab) : write(tab, tab.document.getPath());
+                if (!ok) {
+                    return false; // a cancelled Save As or a failed write keeps the application open
+                }
+            }
+        }
+        return true;
+    }
+
+    private ExitChoice promptExit(java.util.List<OpenDocument> documents) {
+        boolean one = documents.size() == 1;
+        String names = documents.stream().map(OpenDocument::getDisplayName)
+                .collect(java.util.stream.Collectors.joining("\n"));
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
+                one ? "Save changes to " + documents.get(0).getDisplayName() + " before quitting?"
+                        : "Save changes to " + documents.size() + " documents before quitting?",
+                (one ? "" : names + "\n\n") + "Your changes will be lost if you don't save them.");
+        javafx.scene.control.ButtonType save = new javafx.scene.control.ButtonType(
+                one ? "Save" : "Save All", javafx.scene.control.ButtonBar.ButtonData.YES);
+        javafx.scene.control.ButtonType discard =
+                new javafx.scene.control.ButtonType("Don't Save", javafx.scene.control.ButtonBar.ButtonData.NO);
+        javafx.scene.control.ButtonType cancel =
+                new javafx.scene.control.ButtonType("Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(save, discard, cancel);
+        if (getScene() != null && getScene().getWindow() != null) {
+            alert.initOwner(getScene().getWindow());
+        }
+        var choice = alert.showAndWait();
+        if (choice.isEmpty() || choice.get() == cancel) {
+            return ExitChoice.CANCEL;
+        }
+        return choice.get() == save ? ExitChoice.SAVE_ALL : ExitChoice.DISCARD;
+    }
+
     private void confirmCloseIfDirty(EditorTab tab, javafx.event.Event closeEvent) {
         if (!tab.document.isDirty()) {
             return;

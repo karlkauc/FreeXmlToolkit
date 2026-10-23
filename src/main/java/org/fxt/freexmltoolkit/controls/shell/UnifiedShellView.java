@@ -612,6 +612,14 @@ public class UnifiedShellView extends BorderPane {
     }
 
     /**
+     * Asks about unsaved documents before the application closes; called from the window's
+     * close-request handler. {@code false} means the user cancelled (or a save failed).
+     */
+    public boolean confirmExit() {
+        return editorHost.confirmExit();
+    }
+
+    /**
      * Asks the window to close, exactly like its title-bar button: File → Exit, Ctrl/Cmd+Q and
      * the macOS Quit item all end here, so the application's close handling applies once.
      */
