@@ -119,6 +119,19 @@
                                                        wrapText="true" styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
+                                        <SettingsCard title="MEMORY" iconLiteral="bi-memory" color="#198754">
+                                            <children>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Maximum memory:"/>
+                                                        <ComboBox fx:id="maxMemory" id="settings-max-memory"/>
+                                                    </children>
+                                                </HBox>
+                                                <Label fx:id="memoryStatus" id="settings-memory-status" wrapText="true"/>
+                                                <Label text="More memory lets you open and edit larger files. Automatic uses half of the installed memory. Takes effect after restart."
+                                                       wrapText="true" styleClass="fxt-placeholder-text"/>
+                                            </children>
+                                        </SettingsCard>
                                             </children>
                                         </FlowPane>
                                     </children>

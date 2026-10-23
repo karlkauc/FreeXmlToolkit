@@ -482,6 +482,19 @@ class UsageEventsTest {
     }
 
     @Test
+    void declinedLargeFileIsRecorded() {
+        UsageEvents.fileOpenDeclined(DocKind.XML, 300_000_000L, false);
+        TelemetryEvent e = single("file_open");
+        assertEquals(TelemetryEvent.Status.CANCELLED, e.status());
+        assertEquals(300_000_000L, e.inputBytes());
+        assertEquals("too_large", e.meta().get("reason"));
+        verifyNoInteractions(local);
+
+        UsageEvents.fileOpenDeclined(DocKind.XML, 300_000_000L, true);
+        assertEquals(TelemetryEvent.Status.UNSUPPORTED, telemetry.events("file_open").get(1).status());
+    }
+
+    @Test
     void heapPeakNeverExceedsTheMaximum() {
         UsageEvents.sampleHeap();
         telemetry.trackAppExit(java.time.Duration.ofSeconds(1), UsageEvents.sessionSummary());

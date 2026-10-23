@@ -27,6 +27,9 @@ public class ModeDetector {
         Pattern.DOTALL
     );
 
+    /** Characters examined at the start of a document (root element and its namespaces). */
+    static final int HEAD_CHARS = 64 * 1024;
+
     // Known namespace URIs
     private static final String XSLT_NS = "http://www.w3.org/1999/XSL/Transform";
     private static final String FO_NS = "http://www.w3.org/1999/XSL/Format";
@@ -45,8 +48,11 @@ public class ModeDetector {
             return hasXsd ? EditorMode.XML_WITH_XSD : EditorMode.XML_WITHOUT_XSD;
         }
 
-        // Remove XML declaration and comments for cleaner parsing
-        String cleaned = removeXmlDeclarationAndComments(xmlContent);
+        // Remove XML declaration and comments for cleaner parsing. Only the head is examined:
+        // the root element and its namespace declarations come first, and cleaning the whole
+        // text (regex over hundreds of MB) ran out of memory on very large files.
+        String head = xmlContent.length() > HEAD_CHARS ? xmlContent.substring(0, HEAD_CHARS) : xmlContent;
+        String cleaned = removeXmlDeclarationAndComments(head);
 
         // Extract root element name
         String rootElement = extractRootElement(cleaned);

@@ -458,4 +458,30 @@ class ModeDetectorTest {
             assertEquals(EditorMode.SCHEMATRON, mode);
         }
     }
+
+    @Nested
+    @DisplayName("Large Documents")
+    class LargeDocumentTests {
+
+        @Test
+        @DisplayName("Detects the mode from the head of a document far larger than the examined part")
+        void detectsModeFromHeadOfLargeDocument() {
+            StringBuilder xslt = new StringBuilder("<?xml version=\"1.0\"?>\n<!-- header -->\n"
+                    + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n");
+            String filler = "<!-- " + "x".repeat(1000) + " -->\n";
+            while (xslt.length() < 4 * ModeDetector.HEAD_CHARS) {
+                xslt.append(filler);
+            }
+            xslt.append("</xsl:stylesheet>");
+            assertEquals(EditorMode.XSLT, ModeDetector.detectMode(xslt.toString(), false));
+        }
+
+        @Test
+        @DisplayName("A root element beyond the examined head falls back to plain XML")
+        void rootBeyondHeadFallsBackToXml() {
+            String content = "<!-- " + "x".repeat(ModeDetector.HEAD_CHARS) + " -->"
+                    + "<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"/>";
+            assertEquals(EditorMode.XML_WITHOUT_XSD, ModeDetector.detectMode(content, false));
+        }
+    }
 }

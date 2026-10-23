@@ -91,6 +91,8 @@ public class SettingsPanel extends VBox {
     @FXML private ComboBox<String> renderingMode;
     @FXML private Label renderingActiveStatus;
     @FXML private Label renderingGpuStatus;
+    @FXML private ComboBox<String> maxMemory;
+    @FXML private Label memoryStatus;
 
     // Temp & cache
     @FXML private CheckBox useSystemTemp;
@@ -193,8 +195,11 @@ public class SettingsPanel extends VBox {
                 + org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared().getStorageFile());
         sponsorButton.setGraphic(ProjectLinks.sponsorIcon(14));
 
+        maxMemory.getItems().setAll(memoryChoices());
         loadSettings();
         refreshRenderingStatus();
+        refreshMemoryStatus();
+        maxMemory.valueProperty().addListener((obs, old, value) -> refreshMemoryStatus());
 
         trackChanges(groups);
         dirtyHint.visibleProperty().bind(dirty);
@@ -399,6 +404,7 @@ public class SettingsPanel extends VBox {
         showLeftPanel.setSelected(true);
         showInspector.setSelected(true);
         renderingMode.setValue("Auto");
+        maxMemory.setValue(memoryLabel(0));
         indentSpaces.getValueFactory().setValue(4);
         jsonIndent.getValueFactory().setValue(2);
         autoFormat.setSelected(false);
@@ -685,6 +691,8 @@ public class SettingsPanel extends VBox {
             parserType.setValue(props.getXmlParserType());
             xsltExtensions.setSelected(props.isXsltExtensionsAllowed());
             renderingMode.setValue(renderingModeLabel(props.getRenderingMode()));
+            maxMemory.setValue(memoryLabel(org.fxt.freexmltoolkit.app.MemoryLimit.configuredMb(
+                    props.get(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY))));
             useSystemTemp.setSelected(props.isUseSystemTempFolder());
             customTempDir.setText(orEmpty(props.getCustomTempFolder()));
             updateCheck.setSelected(props.isUpdateCheckEnabled());
@@ -765,6 +773,7 @@ public class SettingsPanel extends VBox {
             }
             props.setXsltExtensionsAllowed(xsltExtensions.isSelected());
             props.setRenderingMode(renderingModeValue(renderingMode.getValue()));
+            props.set(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY, String.valueOf(memoryValue(maxMemory.getValue())));
             props.setUseSystemTempFolder(useSystemTemp.isSelected());
             props.setCustomTempFolder(customTempDir.getText());
             props.setUpdateCheckEnabled(updateCheck.isSelected());
@@ -1050,6 +1059,65 @@ public class SettingsPanel extends VBox {
 
     private static String orEmpty(String s) {
         return s == null ? "" : s;
+    }
+
+    /** The labels of the Maximum memory choices: Automatic, then the fixed limits. */
+    private static java.util.List<String> memoryChoices() {
+        java.util.List<String> labels = new java.util.ArrayList<>();
+        labels.add(memoryLabel(0));
+        for (long mb : org.fxt.freexmltoolkit.app.MemoryLimit.choicesMb(
+                org.fxt.freexmltoolkit.app.MemoryLimit.physicalMemoryMb())) {
+            labels.add(memoryLabel(mb));
+        }
+        return labels;
+    }
+
+    /** @return the label of a limit in MB ({@code 0} = Automatic), e.g. {@code 8 GB} */
+    static String memoryLabel(long mb) {
+        if (mb <= 0) {
+            return "Automatic";
+        }
+        return mb % 1024 == 0 ? (mb / 1024) + " GB" : mb + " MB";
+    }
+
+    /** @return the limit in MB of a label from {@link #memoryLabel}, {@code 0} for Automatic */
+    static long memoryValue(String label) {
+        if (label == null) {
+            return 0;
+        }
+        String l = label.strip();
+        try {
+            if (l.endsWith(" GB")) {
+                return Long.parseLong(l.substring(0, l.length() - 3)) * 1024;
+            }
+            if (l.endsWith(" MB")) {
+                return Long.parseLong(l.substring(0, l.length() - 3));
+            }
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+        return 0;
+    }
+
+    /** Shows the limit this session runs with, the installed memory and whether a restart is due. */
+    private void refreshMemoryStatus() {
+        long currentMb = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+        long physicalMb = org.fxt.freexmltoolkit.app.MemoryLimit.physicalMemoryMb();
+        StringBuilder text = new StringBuilder("Current limit: ").append(formatMb(currentMb));
+        if (physicalMb > 0) {
+            text.append(" of ").append(formatMb(physicalMb)).append(" installed");
+        }
+        long chosen = memoryValue(maxMemory.getValue());
+        if (chosen > 0 && Math.abs(currentMb - chosen) > chosen / 10) {
+            text.append(System.getProperty("jpackage.app-path") != null
+                    ? ". Restart to apply " + memoryLabel(chosen) + "."
+                    : ". Applies to the installed application only (development run).");
+        }
+        memoryStatus.setText(text.toString());
+    }
+
+    private static String formatMb(long mb) {
+        return mb >= 1024 ? String.format(java.util.Locale.ROOT, "%.1f GB", mb / 1024.0) : mb + " MB";
     }
 
     /** Maps a stored rendering mode (AUTO/HARDWARE/SOFTWARE) to its display label. */

@@ -70,6 +70,19 @@ public final class StartupFileOpener {
         drain();
     }
 
+    /**
+     * Removes and returns the files queued so far without delivering them (used when this
+     * process hands over to a relaunched one before the shell exists).
+     */
+    public static java.util.List<Path> takePending() {
+        java.util.List<Path> files = new java.util.ArrayList<>();
+        Path file;
+        while ((file = pending.poll()) != null) {
+            files.add(file);
+        }
+        return files;
+    }
+
     private static void drain() {
         Consumer<Path> target = consumer;
         if (target == null) {

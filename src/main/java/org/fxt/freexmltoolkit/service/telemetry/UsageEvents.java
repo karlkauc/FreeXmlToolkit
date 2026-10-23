@@ -154,6 +154,21 @@ public final class UsageEvents {
         }
     }
 
+    /**
+     * A file was not opened because of its size: the user declined the large-file warning
+     * ({@code cancelled}) or it does not fit into the maximum heap ({@code unsupported}).
+     *
+     * @param refused true when the app refused it, false when the user cancelled
+     */
+    public static void fileOpenDeclined(DocKind kind, long inputBytes, boolean refused) {
+        action("file_open", b -> {
+            b.docKind(kind).meta("source", SOURCE_FILE).inputBytes(inputBytes)
+                    .status(refused ? TelemetryEvent.Status.UNSUPPORTED : TelemetryEvent.Status.CANCELLED)
+                    .meta("reason", "too_large")
+                    .meta("heap_max_mb", roundMb(Runtime.getRuntime().maxMemory()));
+        });
+    }
+
     /** Documents were saved ({@code fileCount} > 1 for "Save All"; 0 is ignored). */
     public static void fileSaved(DocKind kind, int fileCount) {
         if (fileCount <= 0) {

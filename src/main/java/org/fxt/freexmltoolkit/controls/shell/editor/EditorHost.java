@@ -3317,99 +3317,137 @@ public class EditorHost extends BorderPane {
             publishSchemaStatus(tab, SchemaStatus.LOADING);
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            // Stamp taken BEFORE the read: a change landing mid-read is then caught by the
-            // next external-change check instead of being silently missed.
-            DiskStamp stamp = DiskStamp.of(path);
-            String content;
-            try {
-                content = Files.readString(path, StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                Platform.runLater(() -> {
-                    tab.view.setText("Could not read " + path + ": " + e.getMessage());
-                    tab.endLoading();
-                    tab.document.setDiskStamp(stamp);
-                    tab.loading = false;
-                    publishSchemaStatus(tab, SchemaStatus.NONE);
+            long size = sizeOrUnknown(path); // a stat can stall: here, not on the FX thread
+            long maxHeap = Runtime.getRuntime().maxMemory();
+            switch (LargeFileGuard.check(size, maxHeap)) {
+                case OK -> readAndShow(tab, path, openStart);
+                case WARN -> Platform.runLater(() -> {
+                    if (isAbandoned(tab)) {
+                        return;
+                    }
+                    if (confirmLargeFile(path, size)) {
+                        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> readAndShow(tab, path, openStart));
+                    } else {
+                        UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, false);
+                        closeTabNow(tab);
+                    }
                 });
-                return;
+                case REFUSE -> Platform.runLater(() -> {
+                    UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, true);
+                    closeTabNow(tab);
+                    org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Open File", "File too large",
+                            path.getFileName() + " is " + LargeFileGuard.formatSize(size)
+                                    + ". With the current memory limit of " + LargeFileGuard.formatSize(maxHeap)
+                                    + ", files up to about " + LargeFileGuard.formatSize(LargeFileGuard.largestOpenable(maxHeap))
+                                    + " can be opened.\n\nRaise the limit under Settings > Memory and restart the application.");
+                });
             }
+        });
+    }
 
-            long fileSize = sizeOrUnknown(path); // here, not in the FX pulse below: a stat can stall
-            // Also here: a linear scan of the text (XML family only, -1 otherwise)
-            int elementCount = UsageEvents.elementCount(tab.document.getFileType().docKind(), content);
-            // Show the document as soon as it has been read. Schema detection below can take
-            // seconds - a remote xsi:schemaLocation (or a namespace the Schema Library resolves
-            // remotely) is downloaded - and the editor must not sit empty for that long. The
-            // schema has its own status, already published as LOADING above, so the pending
-            // binding stays visible to the user.
+    /** Asks before a large file is opened in the editor. Runs on the FX thread. */
+    private boolean confirmLargeFile(Path path, long size) {
+        return org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Open Large File",
+                path.getFileName() + " is " + LargeFileGuard.formatSize(size),
+                "Large files open slowly and make editing sluggish. Syntax highlighting, validation "
+                        + "and the structured views may take a long time.\n\nOpen it anyway?",
+                "Open Anyway", "Cancel");
+    }
+
+    /** Reads {@code path} on the calling worker thread and shows it in {@code tab}. */
+    private void readAndShow(EditorTab tab, Path path, long openStart) {
+        // Stamp taken BEFORE the read: a change landing mid-read is then caught by the
+        // next external-change check instead of being silently missed.
+        DiskStamp stamp = DiskStamp.of(path);
+        String content;
+        try {
+            content = Files.readString(path, StandardCharsets.UTF_8);
+        } catch (IOException e) {
             Platform.runLater(() -> {
-                if (isAbandoned(tab)) {
-                    return;
-                }
-                tab.view.setText(content);
-                tab.refreshPreviewIfActive();
+                tab.view.setText("Could not read " + path + ": " + e.getMessage());
                 tab.endLoading();
-                tab.document.setDirty(false);
                 tab.document.setDiskStamp(stamp);
                 tab.loading = false;
-                tab.attachDirtyTracking();
-                UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
-                        UsageEvents.SOURCE_FILE, openStart, elementCount);
-                documentLoadedHandler.accept(tab.document, content);
-                Runnable after = tab.afterLoad;
-                tab.afterLoad = null;
-                if (after != null) {
-                    after.run();
-                }
+                publishSchemaStatus(tab, SchemaStatus.NONE);
             });
+            return;
+        }
 
+        long fileSize = sizeOrUnknown(path); // here, not in the FX pulse below: a stat can stall
+        // Also here: a linear scan of the text (XML family only, -1 otherwise)
+        int elementCount = UsageEvents.elementCount(tab.document.getFileType().docKind(), content);
+        // Show the document as soon as it has been read. Schema detection below can take
+        // seconds - a remote xsi:schemaLocation (or a namespace the Schema Library resolves
+        // remotely) is downloaded - and the editor must not sit empty for that long. The
+        // schema has its own status, already published as LOADING above, so the pending
+        // binding stays visible to the user.
+        Platform.runLater(() -> {
             if (isAbandoned(tab)) {
-                return; // closed (or shutting down) while the file was being read
+                return;
             }
+            tab.view.setText(content);
+            tab.refreshPreviewIfActive();
+            tab.endLoading();
+            tab.document.setDirty(false);
+            tab.document.setDiskStamp(stamp);
+            tab.loading = false;
+            tab.attachDirtyTracking();
+            UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
+                    UsageEvents.SOURCE_FILE, openStart, elementCount);
+            documentLoadedHandler.accept(tab.document, content);
+            Runnable after = tab.afterLoad;
+            tab.afterLoad = null;
+            if (after != null) {
+                after.run();
+            }
+        });
 
-            SchemaDetection detected = null;
-            // Same per-tab guard as redetectSchemaForActiveDocument: never run two
-            // schema detections for one tab concurrently (Xerces DOM is not thread-safe).
-            if (tab.schemaDetecting.compareAndSet(false, true)) {
-                try {
-                    detected = detectSchemaFor(tab, content, path);
-                } finally {
-                    tab.schemaDetecting.set(false);
-                }
+        if (isAbandoned(tab)) {
+            return; // closed (or shutting down) while the file was being read
+        }
+
+        SchemaDetection detected = null;
+        // Same per-tab guard as redetectSchemaForActiveDocument: never run two
+        // schema detections for one tab concurrently (Xerces DOM is not thread-safe).
+        if (tab.schemaDetecting.compareAndSet(false, true)) {
+            try {
+                detected = detectSchemaFor(tab, content, path);
+            } finally {
+                tab.schemaDetecting.set(false);
             }
+        }
+        if (isAbandoned(tab)) {
+            return; // closed while detecting - binding it would parse a schema for nothing
+        }
+        SchemaDetection detection = detected;
+        Platform.runLater(() -> {
             if (isAbandoned(tab)) {
-                return; // closed while detecting - binding it would parse a schema for nothing
+                return; // closed between the check above and this pulse
             }
-            SchemaDetection detection = detected;
-            Platform.runLater(() -> {
-                if (isAbandoned(tab)) {
-                    return; // closed between the check above and this pulse
+            File autoXsd = detection != null ? detection.schema() : null;
+            if (autoXsd != null) {
+                tab.schemaFile = autoXsd;
+                tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
+                tab.view.invalidateIntelliSenseCache();
+                if (tab.isSelected()) {
+                    activeSchema.set(autoXsd);
                 }
-                File autoXsd = detection != null ? detection.schema() : null;
-                if (autoXsd != null) {
-                    tab.schemaFile = autoXsd;
-                    tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
-                    tab.view.invalidateIntelliSenseCache();
-                    if (tab.isSelected()) {
-                        activeSchema.set(autoXsd);
-                    }
-                    publishSchemaSource(tab, detection.source(), detection.sourceDetail());
-                    loadXmlSchemaProviderAsync(tab, autoXsd);
-                    schemaBindingsApplied.incrementAndGet();
-                }
-                // Always publish a terminal status so LOADING can never stick. When the
-                // CAS was lost (a concurrent detection ran), fall back to the tab's
-                // current binding.
-                publishSchemaStatus(tab, detection != null
-                        ? detection.status()
-                        : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
-                if (detection != null && tab.view.supportsSchema()) {
-                    UsageEvents.schemaBound(tab.document.getFileType().docKind(),
-                            detection.source().name().toLowerCase(java.util.Locale.ROOT),
-                            detection.status() != SchemaStatus.ERROR, detection.failure(), detection.refKind(),
-                            openStart);
-                }
-            });
+                publishSchemaSource(tab, detection.source(), detection.sourceDetail());
+                loadXmlSchemaProviderAsync(tab, autoXsd);
+                schemaBindingsApplied.incrementAndGet();
+            }
+            // Always publish a terminal status so LOADING can never stick. When the
+            // CAS was lost (a concurrent detection ran), fall back to the tab's
+            // current binding.
+            publishSchemaStatus(tab, detection != null
+                    ? detection.status()
+                    : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
+            if (detection != null && tab.view.supportsSchema()) {
+                UsageEvents.schemaBound(tab.document.getFileType().docKind(),
+                        detection.source().name().toLowerCase(java.util.Locale.ROOT),
+                        detection.status() != SchemaStatus.ERROR, detection.failure(), detection.refKind(),
+                        openStart);
+            }
         });
     }
 

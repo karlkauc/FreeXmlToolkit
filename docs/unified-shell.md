@@ -1457,7 +1457,7 @@ page shows *"No settings match the search."*.
 
 | Group | Cards and options |
 |-------|-------------------|
-| **Appearance** | **Theme** - switch between **Light** and **Dark**. **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. |
+| **Appearance** | **Theme** - switch between **Light** and **Dark**. **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. **Memory** - **Maximum memory** for the application: **Automatic** (half of the installed memory) or a fixed limit (takes effect after restart); see [Memory and large files](#memory) below. |
 | **Editor** | **Editor** - XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**. **Templates** - a configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates; see [Managing your templates](#managing-your-templates) below. **User Info** - **Name**, **Email** and **Company**, used for example when generating documentation or signing. |
 | **Schemas & Validation** | **XSD** - **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). **Schema Library** - **Use the Schema Library to bind schemas automatically**; shows the library file's location and a **Manage schema cache…** link; see [Schema Library](schema-library.md). **Parser** - **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
 | **Files & Cache** | **Temp & Cache** - **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. **File Associations** - make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights); see [File Associations](file-associations.md). |
@@ -1473,6 +1473,32 @@ including schemas fetched automatically for missing `xs:import` references. Clea
 such schemas are simply re-downloaded the next time they are needed. A confirmation dialog is
 shown first, because the action cannot be undone. The cache folder itself is kept; only its
 contents are removed.
+
+### Memory and large files {#memory}
+
+> The **MEMORY** card sets how much memory the application may use, so that large files
+> can be opened on machines with plenty of RAM.
+
+The editor keeps a whole document in memory several times over (text, line model,
+highlighting, structured views), roughly **16 times the file size**. The memory limit
+therefore decides how large a file can be:
+
+| Maximum memory | Largest file that opens |
+|----------------|-------------------------|
+| 4 GB | about 256 MB |
+| 8 GB | about 512 MB |
+| 16 GB | about 1 GB |
+
+- **Automatic** *(default)* uses half of the installed memory.
+- A fixed value (2 GB up to the installed memory) applies from the **next start**; the
+  application restarts itself once with that limit. The card shows the limit of the current
+  session and the installed memory.
+- If the chosen limit cannot be used, the application falls back to **Automatic** on its own.
+- In a development run (`./gradlew run`) the setting has no effect; the Gradle task sets the memory.
+
+Opening a file of **50 MB or more** asks for confirmation first, because editing it will be
+slow. A file that does not fit into the current memory limit is not opened; the message names
+the limit and points to this card.
 
 ### Rendering mode (hardware vs. software) {#rendering-mode}
 

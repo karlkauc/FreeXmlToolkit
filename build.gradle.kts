@@ -913,7 +913,7 @@ $faArgs
 --java-options
 -Xms512m
 --java-options
--Xmx4g
+-XX:MaxRAMPercentage=50
 --java-options
 -XX:+UseG1GC
 --java-options

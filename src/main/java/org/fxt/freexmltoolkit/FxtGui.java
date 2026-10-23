@@ -641,10 +641,33 @@ public class FxtGui extends Application {
             }
             singleInstance = startup.primary();
         }
+        // A maximum heap chosen in Settings > Memory takes a relaunch with that limit.
+        if (applyMemoryLimit(args)) {
+            System.exit(0);
+            return;
+        }
         // Enable hardware acceleration for JavaFX rendering
         configureHardwareAcceleration();
 
         launch(args);
+    }
+
+    /**
+     * Relaunches the packaged application when Settings &gt; Memory asks for a different
+     * maximum heap than this JVM has (see {@link org.fxt.freexmltoolkit.app.MemoryLimit}).
+     *
+     * @return {@code true} if a relaunched process took over and this one must exit
+     */
+    private static boolean applyMemoryLimit(String[] args) {
+        try {
+            return org.fxt.freexmltoolkit.app.MemoryLimit.relaunchIfNeeded(args, singleInstance,
+                    StartupFileOpener::takePending,
+                    () -> PropertiesServiceImpl.getInstance().get(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY),
+                    value -> PropertiesServiceImpl.getInstance().set(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY, value));
+        } catch (Throwable t) {
+            logger.warn("Could not apply the memory setting: {}", t.toString());
+            return false;
+        }
     }
 
     /**
