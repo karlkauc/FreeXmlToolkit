@@ -5057,7 +5057,8 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
 <li>The <strong>clock icon</strong> opens the <strong>recent stylesheets</strong> menu: reapply a recently used
   stylesheet in a single click, or choose <strong>Clear recent</strong> to empty the list.</li>
 <li>The <strong>star icon</strong> opens your <strong>XSLT favorites</strong> - see
-  <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below.</li>
+  <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below. A picked stylesheet is also
+  loaded into the editor.</li>
 <li><strong>Drag &amp; drop</strong>: drop an <code>.xsl</code> / <code>.xslt</code> file from your file
   manager straight onto the STYLESHEET row - it becomes the current stylesheet, exactly
   as if you had picked it via <strong>Change</strong> or a favorite. While dragging, the row glows
@@ -5079,7 +5080,8 @@ there is none):</p>
 </ul>
 </li>
 <li>The <strong>star icon</strong> opens your <strong>XML favorites</strong> - see
-  <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below.</li>
+  <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below. A picked input is also opened
+  in the editor and becomes the active tab.</li>
 <li><strong>Drag &amp; drop</strong>: drop an <code>.xml</code> file from your file manager
   straight onto the INPUT row to transform that file - exactly like <strong>Select XML file…</strong>
   or picking a favorite. The same <strong>green</strong> (loadable) / <strong>red</strong> (rejected) drag-over
@@ -5101,8 +5103,12 @@ the label only appear once the browse list holds <strong>at least two</strong> e
 <li>The <strong>star menu</strong> lists the favorites of the matching type - <strong>XSLT</strong> favorites for
   STYLESHEET, <strong>XML</strong> favorites for INPUT - grouped by their folder (category). An
   <strong>"All … favorites"</strong> entry at the top selects the whole list at once.</li>
-<li><strong>Picking a favorite</strong> (or an "All"/folder entry) does two things: it sets the current
-  file, and it builds a <strong>browse list</strong> from that selection.</li>
+<li><strong>Picking a favorite</strong> (or an "All"/folder entry) does three things: it sets the current
+  file, it builds a <strong>browse list</strong> from that selection, and it <strong>loads the file into the
+  editor</strong>. An input comes to the front as the active tab. A stylesheet opens <em>behind</em> the
+  active tab while the input follows the active document (otherwise the stylesheet would become
+  its own input); with a fixed input file it comes to the front too. The same happens on every
+  ◀ / ▶ step.</li>
 <li>The <strong>◀ / ▶ buttons</strong> then step backward and forward through that browse list. Browsing
   is <strong>cyclic</strong>: pressing ▶ on the last entry wraps to the first, and ◀ on the first wraps
   to the last. The <strong>"i / n" label</strong> shows your position (for example, <em>3 / 12</em>).</li>
