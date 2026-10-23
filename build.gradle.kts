@@ -1459,7 +1459,7 @@ tasks.register("generateLocReport") {
 // ===============================
 
 pmd {
-    toolVersion = "7.14.0"
+    toolVersion = "7.28.0"
     // Build-failing gate: the ruleset is tuned to a no-false-positive set and the codebase is clean.
     isIgnoreFailures = false
     ruleSetFiles = files("config/pmd/ruleset.xml")

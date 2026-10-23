@@ -372,7 +372,7 @@ public class SettingsPanel extends VBox {
                 case TextField field -> field.textProperty().addListener(mark);
                 case Spinner<?> spinner -> spinner.valueProperty().addListener(mark);
                 case ComboBox<?> combo -> combo.valueProperty().addListener(mark);
-                case javafx.scene.control.Control control -> { }
+                case javafx.scene.control.Control _ -> { } // other controls: do not descend into their skin
                 case javafx.scene.Parent parent -> trackChanges(parent);
                 default -> { }
             }
