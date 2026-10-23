@@ -289,6 +289,7 @@ If the interface appears blurry or animations are slow, your system may be using
 | `Ctrl+Shift+H` | Replace in Files |
 | `Shift+Alt+F` | Format (pretty-print) the document |
 | `F8` | Validate the current document |
+| `F9` | Toggle the breakpoint on the caret line (XSLT) |
 | `Ctrl+Enter` | Run the current transformation / query |
 | `F5` | Run the active XQuery / XPath / XSLT / XProc document |
 | `Shift+F5` | Debug with XSLT (the active XSLT document, or the Transform / PDF panel's stylesheet) |

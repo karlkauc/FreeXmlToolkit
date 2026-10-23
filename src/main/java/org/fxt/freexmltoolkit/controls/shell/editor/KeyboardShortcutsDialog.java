@@ -49,6 +49,7 @@ public final class KeyboardShortcutsDialog {
                 new String[]{"F5", "Run the active XQuery / XPath / XSLT / XProc document"},
                 new String[]{"Shift+F5", "Debug with XSLT (the active XSLT, or the Transform / PDF panel's stylesheet)"},
                 new String[]{"F8", "Validate the active document"},
+                new String[]{"F9", "Toggle the breakpoint on the caret line (saved XSLT document)"},
                 new String[]{"F5 / F7 / F8 / Shift+F8", "While paused in the debugger: Continue / Step Into / Step Over / Step Out"},
                 new String[]{mod("D"), "Add to Favorites"},
                 new String[]{mod("Shift+D"), "Toggle Favorites Panel"},

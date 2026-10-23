@@ -66,6 +66,23 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         this.currentExecutionLine = line1Based;
     }
 
+    /**
+     * Toggles the breakpoint on a 1-based line programmatically (F9 / Tools → Toggle
+     * Breakpoint) — the same as pressing the line's slot.
+     *
+     * @return the new state (true = set), or {@code false} without a target
+     */
+    public boolean toggle(int line1Based) {
+        if (session == null || line1Based < 1) {
+            return false;
+        }
+        boolean set = session.toggleBreakpoint(filePath, line1Based);
+        if (refreshCallback != null) {
+            refreshCallback.accept(null);
+        }
+        return set;
+    }
+
     @Override
     public Node apply(int lineIndex) {
         int line = lineIndex + 1;

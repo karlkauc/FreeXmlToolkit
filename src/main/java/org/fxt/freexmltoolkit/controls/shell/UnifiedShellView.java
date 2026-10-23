@@ -700,6 +700,13 @@ public class UnifiedShellView extends BorderPane {
                 event.consume();
                 return;
             }
+            case F9 -> {
+                // F9 toggles the breakpoint on the caret line of a saved XSLT document.
+                if (editorHost.toggleBreakpointAtCaret()) {
+                    event.consume();
+                }
+                return;
+            }
             case F11 -> {
                 toggleFullScreen();
                 event.consume();

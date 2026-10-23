@@ -354,8 +354,8 @@ there, otherwise the active document) - exactly as for **Run Transform**; starte
 ### Setting Breakpoints
 
 - Every **saved** XSLT document has a breakpoint gutter in the editor's left margin, whether or
-  not the debugger is running: click the slot next to a line to toggle a red breakpoint. The
-  click does not move the caret. Set your breakpoints first, then start the debugger - the run
+  not the debugger is running: click the slot next to a line to toggle a red breakpoint, or
+  press **F9** (**Tools → Toggle Breakpoint**) on the caret line. The click does not move the caret. Set your breakpoints first, then start the debugger - the run
   stops at the first one instead of pausing on entry. An unsaved stylesheet has no gutter
   (the debugger runs the saved file).
 - Breakpoints match the **file and line**, so a line in `lib/a.xsl` never triggers a breakpoint

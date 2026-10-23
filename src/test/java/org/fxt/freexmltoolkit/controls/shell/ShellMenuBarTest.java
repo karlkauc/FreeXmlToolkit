@@ -236,6 +236,17 @@ class ShellMenuBarTest {
     }
 
     @Test
+    void toggleBreakpointIsOnlyForSavedXsltDocuments() {
+        var toggle = item("menu-tools-toggle-breakpoint");
+        assertEquals(javafx.scene.input.KeyCombination.valueOf("F9"), toggle.getAccelerator());
+        assertTrue(toggle.isDisable(), "disabled without a document");
+        onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XSLT));
+        assertTrue(toggle.isDisable(), "an unsaved stylesheet has no breakpoint gutter");
+        onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XML));
+        assertTrue(toggle.isDisable(), "not for XML documents");
+    }
+
+    @Test
     void debugWithXsltFollowsTransform() {
         var debug = item("menu-tools-debug-xslt");
         assertNotNull(debug, "Tools has Debug with XSLT…");

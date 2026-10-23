@@ -54,6 +54,32 @@ class EditorHostGutterTest {
     }
 
     @Test
+    void f9TogglesTheBreakpointOnTheCaretLine(@TempDir Path tmp) throws Exception {
+        Path xsl = tmp.resolve("toggle.xsl");
+        Files.writeString(xsl, "<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" version=\"3.0\">\n"
+                + "  <xsl:template match=\"/\"/>\n</xsl:stylesheet>\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsl));
+        WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> breakpointSlot(0) != null);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, host::canToggleBreakpoint));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            codeArea().moveTo(1, 0); // caret into line 2
+            return host.toggleBreakpointAtCaret();
+        });
+        WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> hasBreakpointIcon(1));
+        assertFalse(hasBreakpointIcon(0), "only the caret line got the breakpoint");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, host::toggleBreakpointAtCaret);
+        WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> !hasBreakpointIcon(1));
+    }
+
+    private boolean hasBreakpointIcon(int paragraph) {
+        return Boolean.TRUE.equals(WaitForAsyncUtils.waitForAsyncFx(2000, () ->
+                breakpointSlot(paragraph) instanceof javafx.scene.Parent p && p.getChildrenUnmodifiable().stream()
+                        .anyMatch(n -> n instanceof org.fxt.freexmltoolkit.controls.icons.IconifyIcon)));
+    }
+
+    @Test
     void xmlDocumentHasNoBreakpointGutter(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("data.xml");
         Files.writeString(xml, "<root>\n  <item/>\n</root>\n");

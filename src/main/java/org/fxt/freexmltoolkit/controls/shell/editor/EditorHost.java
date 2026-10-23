@@ -3303,6 +3303,35 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /** @return whether F9 / Toggle Breakpoint applies: the active tab is a saved XSLT document. */
+    public boolean canToggleBreakpoint() {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && breakpointGutterOf(et) != null;
+    }
+
+    /**
+     * Toggles the breakpoint on the caret line of the active XSLT document (F9 / Tools → Toggle
+     * Breakpoint) — the standalone or the session gutter, whichever is installed.
+     *
+     * @return {@code true} if a breakpoint was set or removed
+     */
+    public boolean toggleBreakpointAtCaret() {
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)) {
+            return false;
+        }
+        var gutter = breakpointGutterOf(et);
+        if (gutter == null) {
+            return false;
+        }
+        gutter.toggle(et.view.getCodeArea().getCurrentParagraph() + 1);
+        return true;
+    }
+
+    private static org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory breakpointGutterOf(EditorTab et) {
+        return et.gutter.get("xslt-debugger") instanceof org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory g
+                ? g : null;
+    }
+
     /** @return the editor tab showing {@code document}, or {@code null}. */
     private EditorTab editorTabOf(OpenDocument document) {
         for (Tab tab : tabPane.getTabs()) {

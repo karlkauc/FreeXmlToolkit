@@ -103,6 +103,8 @@
                                color="TOOL" onAction="#onTransform"/>
                 <ShellMenuItem id="menu-tools-debug-xslt" text="Debug with XSLT…" iconLiteral="bi-bug"
                                color="TOOL" accelerator="Shift+F5" onAction="#onDebugXslt"/>
+                <ShellMenuItem id="menu-tools-toggle-breakpoint" text="Toggle Breakpoint" iconLiteral="bi-record-circle"
+                               color="TOOL" accelerator="F9" onAction="#onToggleBreakpoint"/>
                 <SeparatorMenuItem/>
                 <ShellMenuItem id="menu-tools-set-schema" text="Set Schema…" iconLiteral="bi-link-45deg"
                                color="STRUCTURE" onAction="#onSetSchema"/>

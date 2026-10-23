@@ -35,6 +35,11 @@ public final class CompositeGutterFactory implements IntFunction<Node> {
     }
 
     /** @return {@code true} when no contributor is registered (gutter slot can collapse) */
+    /** @return the contributor registered under {@code key}, or {@code null}. */
+    public synchronized IntFunction<Node> get(String key) {
+        return contributors.get(key);
+    }
+
     public synchronized boolean isEmpty() {
         return contributors.isEmpty();
     }
