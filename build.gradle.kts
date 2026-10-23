@@ -505,6 +505,21 @@ tasks.register<Test>("sampleXmlAudit") {
     doFirst { systemProperty("sample.audit.classpath", classpath.asPath) }
 }
 
+// Dependency update report: only offer stable versions (no alpha/beta/RC/milestone), unless the
+// dependency is already on a pre-release.
+fun isNonStable(version: String): Boolean {
+    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
+    val stablePattern = "^[0-9,.v-]+(-r)?$".toRegex()
+    return !stableKeyword && !stablePattern.matches(version)
+}
+
+tasks.named<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask>("dependencyUpdates") {
+    rejectVersionIf {
+        isNonStable(candidate.version) && !isNonStable(currentVersion)
+    }
+    gradleReleaseChannel = "current"
+}
+
 // JaCoCo Code Coverage Configuration
 jacoco {
     toolVersion = "0.8.15"
