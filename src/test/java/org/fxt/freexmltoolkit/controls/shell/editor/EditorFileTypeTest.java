@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -157,5 +158,28 @@ class EditorFileTypeTest {
         assertEquals(org.fxt.freexmltoolkit.service.telemetry.DocKind.XML, EditorFileType.XPROC.docKind());
         assertEquals(org.fxt.freexmltoolkit.service.telemetry.DocKind.XSD, EditorFileType.XSD.docKind());
         assertEquals(org.fxt.freexmltoolkit.service.telemetry.DocKind.OTHER, EditorFileType.XQUERY.docKind());
+    }
+
+    @Test
+    void withDefaultExtensionAppendsPrimaryExtensionOnlyWhenMissing() {
+        assertEquals("foo.xml", EditorFileType.XML.withDefaultExtension("foo"));
+        assertEquals("foo.xml", EditorFileType.XML.withDefaultExtension("foo."));
+        assertEquals("Untitled 3.xml", EditorFileType.XML.withDefaultExtension("Untitled 3"));
+        assertEquals("Untitled.xml", EditorFileType.XML.withDefaultExtension("Untitled.xml"));
+        assertEquals("service.wsdl", EditorFileType.XML.withDefaultExtension("service.wsdl"));
+        assertEquals("notes.txt", EditorFileType.XML.withDefaultExtension("notes.txt"));
+        assertEquals("data.json", EditorFileType.JSON.withDefaultExtension("data"));
+        assertEquals("rules.sch", EditorFileType.SCHEMATRON.withDefaultExtension("rules"));
+        assertEquals("plain", EditorFileType.OTHER.withDefaultExtension("plain"));
+        assertNull(EditorFileType.XML.withDefaultExtension((String) null));
+    }
+
+    @Test
+    void withDefaultExtensionOnPathIgnoresDotsInDirectories() {
+        Path dir = Path.of("some.dir");
+        assertEquals(dir.resolve("foo.xsd"), EditorFileType.XSD.withDefaultExtension(dir.resolve("foo")));
+        Path kept = dir.resolve("foo.xsd");
+        assertSame(kept, EditorFileType.XSD.withDefaultExtension(kept));
+        assertNull(EditorFileType.XSD.withDefaultExtension((Path) null));
     }
 }

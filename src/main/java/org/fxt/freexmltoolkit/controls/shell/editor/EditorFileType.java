@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -187,6 +188,62 @@ public enum EditorFileType {
         }
         filters.add(new FileChooser.ExtensionFilter("All files", "*.*"));
         return filters;
+    }
+
+    /**
+     * Appends this type's {@link #primaryExtension() primary extension} to {@code fileName}
+     * when it has none (no dot, or a trailing dot). A name that already carries an
+     * extension — even one of another type — is returned unchanged, so a deliberate
+     * choice like {@code .wsdl} or {@code .txt} is respected. {@link #OTHER} never appends.
+     *
+     * @param fileName the bare file name (may be {@code null})
+     * @return the file name with an extension, or {@code fileName} unchanged
+     */
+    public String withDefaultExtension(String fileName) {
+        if (fileName == null || fileName.isBlank() || this == OTHER) {
+            return fileName;
+        }
+        int dot = fileName.lastIndexOf('.');
+        if (dot == fileName.length() - 1) {
+            return fileName + primaryExtension();
+        }
+        return dot < 0 ? fileName + "." + primaryExtension() : fileName;
+    }
+
+    /**
+     * Path variant of {@link #withDefaultExtension(String)}: only the last path segment is
+     * inspected, so dots in directory names do not count as an extension.
+     *
+     * @param target the save target (may be {@code null})
+     * @return the target with an extension, or {@code target} unchanged
+     */
+    public Path withDefaultExtension(Path target) {
+        if (target == null || target.getFileName() == null) {
+            return target;
+        }
+        String name = target.getFileName().toString();
+        String fixed = withDefaultExtension(name);
+        return fixed.equals(name) ? target : target.resolveSibling(fixed);
+    }
+
+    /**
+     * Prepares a "Save As" {@link FileChooser} for a document of this type: a filter for
+     * the type's extensions (first, so it is preselected) plus "All files", and an initial
+     * file name derived from {@code baseName} with the type's extension appended.
+     *
+     * @param chooser  the chooser to configure
+     * @param baseName the document's current display name (may be {@code null})
+     */
+    public void configureSaveChooser(FileChooser chooser, String baseName) {
+        if (this != OTHER) {
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
+                    label + " (" + String.join(", ", globs()) + ")", globs()));
+        }
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All files", "*.*"));
+        String initial = withDefaultExtension(baseName);
+        if (initial != null && !initial.isBlank()) {
+            chooser.setInitialFileName(initial);
+        }
     }
 
     private List<String> globs() {

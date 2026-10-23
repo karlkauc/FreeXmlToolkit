@@ -126,7 +126,8 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         File schema = xmlNoTemplate ? schemaFile.get() : null;
         boolean mandatory = schema != null && generateMandatory.isSelected();
         String loc = saveLocation.getText();
-        File save = (loc == null || loc.isBlank()) ? null : new File(loc.trim());
+        File save = (loc == null || loc.isBlank()) ? null
+                : type.withDefaultExtension(new File(loc.trim()).toPath()).toFile();
         return new Result(type, template, schema, mandatory, save);
     }
 
@@ -188,7 +189,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         chooser.setInitialFileName("untitled." + ext);
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getOwnerWindow());
         if (file != null) {
-            saveLocation.setText(file.getAbsolutePath());
+            saveLocation.setText(type.withDefaultExtension(file.toPath()).toString());
         }
     }
 

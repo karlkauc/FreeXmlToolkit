@@ -1789,11 +1789,13 @@ public class UnifiedShellView extends BorderPane {
     }
 
     private void saveActiveAs() {
-        if (editorHost.getActiveDocument().isEmpty()) {
+        var doc = editorHost.getActiveDocument();
+        if (doc.isEmpty()) {
             return;
         }
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Save As");
+        doc.get().getFileType().configureSaveChooser(chooser, doc.get().getDisplayName());
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.saveActiveAs(file.toPath());

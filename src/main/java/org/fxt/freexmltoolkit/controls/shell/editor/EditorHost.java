@@ -1966,9 +1966,13 @@ public class EditorHost extends BorderPane {
         if (!(tab instanceof EditorTab et)) {
             return CompletableFuture.completedFuture(false);
         }
-        return writeAsync(et, relocateGeneratedSchemaReference(et, target)).thenApply(saved -> {
+        Path normalized = withTypeExtension(et, target);
+        if (normalized == null) {
+            return CompletableFuture.completedFuture(false);
+        }
+        return writeAsync(et, relocateGeneratedSchemaReference(et, normalized)).thenApply(saved -> {
             if (saved) {
-                et.document.setPath(target);
+                et.document.setPath(normalized);
                 et.refreshIcon();
                 UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
             }
@@ -4862,13 +4866,38 @@ public class EditorHost extends BorderPane {
     private boolean saveTabAs(EditorTab tab) {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Save As");
+        tab.document.getFileType().configureSaveChooser(chooser, tab.document.getDisplayName());
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
-        if (file != null && write(tab, relocateGeneratedSchemaReference(tab, file.toPath()))) {
-            tab.document.setPath(file.toPath());
+        Path target = file == null ? null : withTypeExtension(tab, file.toPath());
+        if (target != null && write(tab, relocateGeneratedSchemaReference(tab, target))) {
+            tab.document.setPath(target);
             tab.refreshIcon();
             return true;
         }
         return false;
+    }
+
+    /**
+     * Appends the document type's extension to a Save-As target that has none (a new XML
+     * document saved as {@code foo} becomes {@code foo.xml}). The native chooser only checked
+     * the bare name for an existing file, so an appended name that already exists is confirmed
+     * here.
+     *
+     * @return the target to write, or {@code null} if the user declined to replace a file
+     */
+    private Path withTypeExtension(EditorTab tab, Path target) {
+        Path normalized = tab.document.getFileType().withDefaultExtension(target);
+        if (normalized == null || normalized.equals(target) || !java.nio.file.Files.exists(normalized)) {
+            return normalized;
+        }
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Replace File",
+                normalized.getFileName() + " already exists.",
+                "Do you want to replace it?");
+        javafx.scene.control.ButtonType replace =
+                new javafx.scene.control.ButtonType("Replace", javafx.scene.control.ButtonBar.ButtonData.YES);
+        alert.getButtonTypes().setAll(replace, javafx.scene.control.ButtonType.CANCEL);
+        return alert.showAndWait().filter(replace::equals).isPresent() ? normalized : null;
     }
 
     /**
