@@ -98,6 +98,11 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public void setDebugCurrentLine(int line1Based) {
+        editor.setDebugCurrentLine(line1Based);
+    }
+
+    @Override
     public void setGoToDefinitionHandler(
             java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest> handler) {
         editor.getEditorContext().setGoToDefinitionHandler(handler);

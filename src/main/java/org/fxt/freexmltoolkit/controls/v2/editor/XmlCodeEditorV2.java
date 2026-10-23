@@ -225,14 +225,49 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      * re-styles the previous and new paragraphs.
      */
     private void updateCurrentLineStyle(int newIndex) {
-        int count = codeArea.getParagraphs().size();
-        if (currentLineIndex >= 0 && currentLineIndex < count && currentLineIndex != newIndex) {
-            codeArea.setParagraphStyle(currentLineIndex, java.util.Collections.emptyList());
-        }
-        if (newIndex >= 0 && newIndex < count) {
-            codeArea.setParagraphStyle(newIndex, java.util.Collections.singletonList("current-line"));
-        }
+        int oldIndex = currentLineIndex;
         currentLineIndex = newIndex;
+        if (oldIndex != newIndex) {
+            restyleParagraph(oldIndex);
+        }
+        restyleParagraph(newIndex);
+    }
+
+    /** The paragraph (0-based) tinted as the debugger's current execution line, or -1. */
+    private int debugLineIndex = -1;
+
+    /**
+     * Marks {@code line1Based} as the line the XSLT debugger is paused at (paragraph style
+     * {@code debug-current-line}); {@code -1} or {@link #clearDebugCurrentLine()} clears it.
+     * Composed with the caret's {@code current-line} style, so neither clobbers the other.
+     */
+    public void setDebugCurrentLine(int line1Based) {
+        int oldIndex = debugLineIndex;
+        debugLineIndex = line1Based > 0 ? line1Based - 1 : -1;
+        if (oldIndex != debugLineIndex) {
+            restyleParagraph(oldIndex);
+        }
+        restyleParagraph(debugLineIndex);
+    }
+
+    /** Removes the debugger's execution-line tint. */
+    public void clearDebugCurrentLine() {
+        setDebugCurrentLine(-1);
+    }
+
+    /** Re-applies the composed paragraph styles (caret line, debug line) to one paragraph. */
+    private void restyleParagraph(int index) {
+        if (index < 0 || index >= codeArea.getParagraphs().size()) {
+            return;
+        }
+        java.util.List<String> styles = new java.util.ArrayList<>(2);
+        if (index == currentLineIndex) {
+            styles.add("current-line");
+        }
+        if (index == debugLineIndex) {
+            styles.add("debug-current-line");
+        }
+        codeArea.setParagraphStyle(index, styles);
     }
 
     /**

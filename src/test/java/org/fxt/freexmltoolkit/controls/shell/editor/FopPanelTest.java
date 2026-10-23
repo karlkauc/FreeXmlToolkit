@@ -182,4 +182,62 @@ class FopPanelTest {
         org.mockito.Mockito.when(event.getDragboard()).thenReturn(dragboard);
         return event;
     }
+
+    @Test
+    void offersIntermediateFoMessagesAndDebugger(@TempDir Path tmp) throws Exception {
+        WaitForAsyncUtils.waitForFxEvents();
+        assertNotNull(panel.lookup("#fop-tool-debug"), "TOOLS offers Debug stylesheet…");
+        var showFo = panel.lookup("#fop-show-fo");
+        var messages = panel.lookup("#fop-messages");
+        var renderFo = panel.lookup("#fop-render-fo");
+        assertNotNull(showFo);
+        assertNotNull(messages);
+        assertNotNull(renderFo);
+        assertTrue(showFo.isDisabled() && messages.isDisabled() && renderFo.isDisabled(), "nothing generated yet");
+        assertFalse(panel.hasStylesheet());
+
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("to-fo.xslt");
+        Files.writeString(xsl, XSLT_FO);
+        Path pdf = tmp.resolve("out.pdf");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("doc")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setXslFile(xsl.toFile());
+            panel.generateTo(pdf.toFile());
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> panel.getStatusText().startsWith("Generated"));
+        assertTrue(panel.hasStylesheet());
+        assertNotNull(panel.getLastResult());
+        assertTrue(panel.getLastResult().foXml().contains("fo:root"), "the intermediate FO is kept");
+        assertFalse(showFo.isDisabled(), "Show intermediate FO is available after a run");
+        assertFalse(messages.isDisabled());
+        assertFalse(renderFo.isDisabled());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.onShowFo();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveDocument()
+                .map(d -> d.getDisplayName().endsWith(".fo")).orElse(false));
+        assertTrue(host.getActiveText().orElse("").contains("fo:root"), "the FO opened as an editor tab");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.onShowMessages();
+            return null;
+        });
+        assertTrue(host.transformOutputPanel().isShowing(), "messages & events go to OUTPUT");
+        assertTrue(host.transformOutputPanel().getOutputText().contains("FOP events")
+                || host.transformOutputPanel().getOutputText().contains("No messages"));
+
+        Path fromFo = tmp.resolve("from-fo.pdf");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.renderFoTo(fromFo.toFile());
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> Files.exists(fromFo) && fromFo.toFile().length() > 0);
+    }
 }

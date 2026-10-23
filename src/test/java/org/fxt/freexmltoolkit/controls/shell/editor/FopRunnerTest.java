@@ -115,4 +115,53 @@ class FopRunnerTest {
 
         assertTrue(FopRunner.generate(xml.toFile(), xsl.toFile(), pdf.toFile()).startsWith("ERROR:"));
     }
+
+    @Test
+    void structuredResultCarriesTheIntermediateFoMessagesAndEvents(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("to-fo.xslt");
+        // A message in the stylesheet and a font FOP has to substitute → one message, ≥ 1 FOP event.
+        Files.writeString(xsl, XSLT_FO
+                .replace("<xsl:template match=\"/\">", "<xsl:template match=\"/\"><xsl:message>rendering</xsl:message>")
+                .replace("<fo:block>", "<fo:block font-family=\"NoSuchFontFamily\">"));
+        Path pdf = tmp.resolve("out.pdf");
+
+        FopRunner.FopResult result = FopRunner.generateResult(xml.toFile(), xsl.toFile(), pdf.toFile(),
+                FopRunner.PdfOptions.none());
+
+        assertTrue(result.ok(), result.error());
+        assertTrue(Files.size(pdf) > 0);
+        assertNotNull(result.foXml(), "the intermediate FO is kept");
+        assertTrue(result.foXml().contains("fo:root"), result.foXml());
+        assertEquals(1, result.messages().size(), "xsl:message captured");
+        assertEquals("rendering", result.messages().get(0).getMessage());
+        assertTrue(result.events().stream().anyMatch(e -> e.id().contains("fontSubstituted")),
+                "FOP's font substitution is reported as an event: " + result.events());
+        assertTrue(result.warningCount() >= 1);
+        assertTrue(result.notesText().contains("fontSubstituted"));
+        assertEquals("OK: " + pdf.toFile().getAbsolutePath(), result.asText());
+    }
+
+    @Test
+    void stylesheetErrorKeepsTheLocationAndRenderFoWorksStandalone(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("bad.xslt");
+        Files.writeString(xsl, XSLT_FO.replace("select=\"/doc\"", "select=\"/doc)\""));
+        FopRunner.FopResult failed = FopRunner.generateResult(xml.toFile(), xsl.toFile(), tmp.resolve("x.pdf").toFile(),
+                FopRunner.PdfOptions.none());
+        assertFalse(failed.ok());
+        assertNull(failed.foXml(), "no FO when the XSLT stage fails");
+        assertTrue(failed.error().contains("Failed to transform"), failed.error());
+
+        Files.writeString(tmp.resolve("to-fo.xslt"), XSLT_FO);
+        String fo = FopRunner.generateResult(xml.toFile(), tmp.resolve("to-fo.xslt").toFile(),
+                tmp.resolve("y.pdf").toFile(), FopRunner.PdfOptions.none()).foXml();
+        assertNotNull(fo);
+        Path pdf = tmp.resolve("from-fo.pdf");
+        FopRunner.FopResult rendered = FopRunner.renderFo(fo, pdf.toFile(), FopRunner.PdfOptions.none());
+        assertTrue(rendered.ok(), rendered.error());
+        assertTrue(Files.size(pdf) > 0, "a PDF can be rendered from an FO document alone");
+    }
 }

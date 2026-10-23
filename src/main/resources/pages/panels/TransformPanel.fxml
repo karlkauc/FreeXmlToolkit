@@ -13,6 +13,7 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
@@ -100,12 +101,28 @@
 
                         <VBox fx:id="runBox" spacing="8" styleClass="fxt-vp-run-box">
                             <children>
-                                <Button fx:id="transformButton" id="transform-run" text="Run Transform"
-                                        maxWidth="Infinity" styleClass="fxt-primary-button" onAction="#onTransform">
-                                    <graphic>
-                                        <IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/>
-                                    </graphic>
-                                </Button>
+                                <!-- Run and Debug side by side: the debugger is a first-class way to run
+                                     a stylesheet, not a hidden tool (it also stays listed under TOOLS). -->
+                                <HBox spacing="6">
+                                    <children>
+                                        <Button fx:id="transformButton" id="transform-run" text="Run Transform"
+                                                maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-primary-button"
+                                                onAction="#onTransform">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/>
+                                            </graphic>
+                                        </Button>
+                                        <Button fx:id="debugButton" id="transform-debug" text="Debug"
+                                                styleClass="fxt-tool-button" onAction="#startDebug">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-bug" iconSize="14"/>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="Debug the stylesheet: breakpoints, stepping, variables (Shift+F5)"/>
+                                            </tooltip>
+                                        </Button>
+                                    </children>
+                                </HBox>
                                 <!-- Picking a stylesheet/input via drop, favourite or ◀ ▶ starts a run;
                                      visible here so the automatic behaviour can be switched off (UX plan 3.6). -->
                                 <CheckBox fx:id="runAutomatically" id="transform-auto-run" text="Run automatically"

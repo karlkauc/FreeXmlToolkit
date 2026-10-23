@@ -133,6 +133,28 @@
                                         <PanelActionButton fx:id="openButton" id="fop-open"
                                                            iconLiteral="bi-box-arrow-up-right" text="Open PDF"
                                                            color="NAVIGATE" disable="true" onAction="#onOpenPdf"/>
+                                        <PanelActionButton fx:id="showFoButton" id="fop-show-fo"
+                                                           iconLiteral="bi-filetype-xml" text="Show intermediate FO"
+                                                           color="NAVIGATE" disable="true" onAction="#onShowFo"/>
+                                        <PanelActionButton fx:id="messagesButton" id="fop-messages"
+                                                           iconLiteral="bi-chat-left-text" text="Messages &amp; events"
+                                                           color="NAVIGATE" disable="true" onAction="#onShowMessages"/>
+                                    </children>
+                                </PanelActionList>
+                            </children>
+                        </SidePanelSection>
+
+                        <!-- Debug the XSL-FO stylesheet with the XSLT debugger (breakpoints, stepping, variables);
+                             the FO it produces lands in the OUTPUT panel and can be rendered from there. -->
+                        <SidePanelSection title="TOOLS">
+                            <children>
+                                <PanelActionList>
+                                    <children>
+                                        <PanelActionButton id="fop-tool-debug" iconLiteral="bi-bug"
+                                                           text="Debug stylesheet…" color="TOOL" onAction="#onDebug"/>
+                                        <PanelActionButton fx:id="renderFoButton" id="fop-render-fo"
+                                                           iconLiteral="bi-file-earmark-pdf" text="Render PDF from FO…"
+                                                           color="TOOL" disable="true" onAction="#onRenderFo"/>
                                     </children>
                                 </PanelActionList>
                             </children>

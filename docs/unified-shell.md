@@ -375,10 +375,11 @@ with the closely related actions:
 |--------------|---------------|----------------|
 | **Save** | Save the current tab (Ctrl+S) | **Save As…** (Ctrl+Shift+S) - save under a new name (the file chooser is pre-set to the tab's file type) · **Save All** - save every open tab at once |
 | **Format** | Pretty-print the active document (Shift+Alt+F; note: **Ctrl+Shift+F** opens the [Search panel](#search-panel), not document search). XML is indented by two spaces per level and every start tag stays on one line, however many attributes it carries | **Minify** - remove all insignificant whitespace |
-| **Run** | Run the active document against the selected **Input** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Run Pipeline** (XProc) |
+| **Run** | Run the active document against the selected **Input** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Debug Transform** (XSLT, Shift+F5 - the active stylesheet in the [debugger](#xslt-debugger)) · **Run Pipeline** (XProc) |
+| **Transform** | **Transform with XSLT…** - opens the [Transform panel](#transform-panel) on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel) | **Transform with XSLT…** · **Debug with XSLT…** (Shift+F5) - the same, but in the [debugger](#xslt-debugger) |
 | **Schema** | **Set XSD Schema…** - bind an XSD to the active document for IntelliSense and validation | **Set XSD Schema…** · **Generate Documentation…** (HTML/PDF/Word for the active XSD) · **Type Editor…** (edit a named type of the active XSD) · **Generate XSD from XML** (infer a schema from the active XML document) · **Generate XSD from XML Files…** (infer one schema from several XML files) |
 
-- **Transform** (labelled button, tooltip *Transform with XSLT…*) - Opens the [Transform panel](#transform-panel) on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel)
+- **Transform** is a split button, see above: the primary click transforms, the ▾ arrow offers **Debug with XSLT…**
 
 ### Icon-only buttons (hover for the tooltip)
 
@@ -550,8 +551,12 @@ XSLT work happens in the [Transform Panel](#transform-panel) (Activity Bar → *
 - **Parameters** - Define XSLT parameters (name = value rows)
 - **Output method** - Auto-detect or choose XML, HTML, XHTML, Text, or JSON output
 - **Timing** - The OUTPUT panel status shows execution time and output size
-- **Profile / Trace** and **Debug XSLT…** (OPTIONS & TOOLS section) - Per-template timings,
-  template-match trace with `xsl:message` output, and the interactive debugger
+- **Debug** (next to **Run Transform**, also **Tools → Debug with XSLT…** / **Shift+F5**) - the
+  interactive debugger: breakpoints, stepping, variables, call stack, watches and live
+  `xsl:message` output in a **DEBUG** dock below the stylesheet - see
+  [Debugging a Stylesheet](#xslt-debugger)
+- **Profile / Trace** (OPTIONS & TOOLS section) - Per-template timings and the
+  template-match trace with `xsl:message` output of a normal run
 - **Open in browser** - View HTML output in your default browser from the OUTPUT panel
 
 ## XProc Pipelines
@@ -1342,9 +1347,19 @@ The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache
   Portrait/Landscape); a hint below it explains that the choice is passed as the
   `page-size` and `page-orientation` parameters and **only applies if the stylesheet uses
   them**.
-- **Generate PDF** asks for the output file, renders off the UI thread, and opens the
-  result in the in-app **PDF preview**; the **RESULT** rows **Preview PDF** and **Open PDF**
-  re-open it any time.
+- **Generate PDF** asks for the output file, renders off the UI thread (XSLT → XSL-FO →
+  PDF), and opens the result in the in-app **PDF preview**; the **RESULT** rows **Preview
+  PDF** and **Open PDF** re-open it any time. **Show intermediate FO** opens the XSL-FO the
+  stylesheet produced as an editor tab, and **Messages & events (n)** lists the stylesheet's
+  `xsl:message` output and every event Apache FOP raised (substituted fonts, overflowing
+  content, unknown properties, …) in the OUTPUT panel - the status line counts the FOP
+  warnings. A failed generation puts the stylesheet error with its location, or FOP's
+  reason, into OUTPUT as well.
+- **TOOLS → Debug stylesheet…** runs the XSL-FO stylesheet in the
+  [XSLT debugger](#xslt-debugger) (breakpoints, stepping, variables, live messages); the
+  page-size parameters are passed on. The FO a finished debug run produced lands in OUTPUT
+  and in the panel's result, so **Show intermediate FO** and **Render PDF from FO…** (renders
+  that FO to a PDF of your choice) work right after debugging.
 
 See [PDF Generator](pdf-generator.md) for stylesheet guidance.
 
@@ -1705,6 +1720,8 @@ The status bar at the bottom of the window includes (left to right):
 | Ctrl+K | Open the Query Console and focus its input (same as the header search pill) |
 | Ctrl+Enter | Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline) |
 | F5 | Run the active XQuery / XPath / XSLT / XProc document (does nothing for other documents - use F8 to validate) |
+| Shift+F5 | **Debug with XSLT** - the active XSLT document, the PDF / FOP panel's stylesheet, or the Transform panel's (asks for one if none is set) - see [Debugging a Stylesheet](#xslt-debugger) |
+| F5 / F7 / F8 / Shift+F8 | While the debugger is **paused**: Continue / Step Into / Step Over / Step Out (F5 and F8 keep their normal meaning otherwise) |
 | F1 | Show the Help menu (as a popup, like the header's **?** button) |
 | F11 | Toggle full screen (also **Ctrl+Cmd+F** on macOS) |
 | Ctrl+L | Show/hide the left side panel |

@@ -13,14 +13,14 @@
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <!--
-  OUTPUT panel docked below the editor tabs (Figma "Redesign · Unified — Transform (XSLT)",
-  node 47:3): a header (format badge, status, Preview/Text/Table toggle, result actions) above
+  OUTPUT panel in the editor's bottom dock (EditorBottomDock, which owns the height; Figma
+  "Redesign · Unified — Transform (XSLT)", node 47:3): a header (format badge, status, Preview/Text/Table toggle, result actions) above
   the result area. Loaded by TransformOutputPanel via the fx:root pattern (FxmlViews.load);
   TransformOutputPanel is root and controller. Built in code: the read-only CodeArea of the Text
   view (put first into the "content" stack), the table columns and the lazily created HTML
   preview. Preview and Table are only offered for matching results, so they start hidden.
 -->
-<fx:root type="javafx.scene.layout.VBox" prefHeight="260" minHeight="120" styleClass="fxt-output-panel"
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-output-panel"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <fx:define>
         <ToggleGroup fx:id="viewGroup"/>

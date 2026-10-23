@@ -155,4 +155,14 @@ class TransformPanelRedesignTest {
         });
         assertFalse(panel.readyToAutoRun(), "no automatic run while switched off");
     }
+
+    @Test
+    void debugButtonSitsNextToRun() {
+        WaitForAsyncUtils.waitForFxEvents();
+        var debug = panel.lookup("#transform-debug");
+        assertNotNull(debug, "the debugger is a visible button beside Run Transform, not only a collapsed tool");
+        assertTrue(debug.isVisible() && debug.isManaged());
+        assertSame(panel.lookup("#transform-run").getParent(), debug.getParent(), "Run and Debug share a row");
+        assertNotNull(panel.lookup("#transform-tool-debug"), "the TOOLS row stays as well");
+    }
 }

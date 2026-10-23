@@ -96,6 +96,13 @@ public interface EditorView {
     }
 
     /**
+     * Tints {@code line1Based} as the XSLT debugger's current execution line ({@code -1}
+     * clears the tint). No-op for editors without a text gutter.
+     */
+    default void setDebugCurrentLine(int line1Based) {
+    }
+
+    /**
      * Installs a handler invoked when the user triggers "Go to Definition" on an XML element
      * that has a bound XSD. No-op for editors without an XSD-navigation concept (e.g. JSON).
      */

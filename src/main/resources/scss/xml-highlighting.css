@@ -74,6 +74,12 @@
     -fx-background-color: #f2f6ff;
 }
 
+/* The XSLT debugger's execution line (XmlCodeEditorV2.setDebugCurrentLine); declared after
+   current-line so it wins when the caret sits on the paused line. */
+.debug-current-line {
+    -fx-background-color: #fff1b8;
+}
+
 /* ==================== V2 XML Syntax Highlighting ==================== */
 
 /* XML Tags (opening/closing) */

@@ -1530,11 +1530,56 @@
     -fx-font-size: 12px;
 }
 
-/* ----- Transform OUTPUT panel (docked below the editor, Figma node 47:3) ---- */
-.fxt-output-panel {
+/* ----- Editor bottom dock: OUTPUT panel + DEBUG pane (Figma node 47:3) ---- */
+.fxt-bottom-dock {
     -fx-background-color: -fxt-bg-surface;
     -fx-border-color: -fxt-border;
     -fx-border-width: 1 0 0 0;
+}
+
+/* Draggable top edge of the dock. */
+.fxt-dock-resizer {
+    -fx-background-color: transparent;
+    -fx-cursor: v-resize;
+}
+
+/* Toggle strip (OUTPUT | DEBUG) — only shown while more than one panel is registered. */
+.fxt-dock-strip {
+    -fx-padding: 3 8 3 8;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.fxt-dock-strip .fxt-seg {
+    -fx-padding: 2 12 2 12;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+/* A panel that received new content while another one is in front. */
+.fxt-dock-strip .fxt-seg.fxt-dock-updated {
+    -fx-text-fill: -fxt-primary;
+    -fx-border-color: -fxt-primary;
+    -fx-border-radius: 6;
+}
+
+.fxt-output-panel,
+.fxt-debug-pane {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+/* Nested instructions in the debugger's call stack. */
+.fxt-stack-instruction {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-debug-pane .list-cell.sev-error {
+    -fx-text-fill: -fxt-danger;
+}
+
+.fxt-debug-pane .list-cell.sev-warning {
+    -fx-text-fill: -fxt-tool-warning-fg;
 }
 
 .fxt-output-header {

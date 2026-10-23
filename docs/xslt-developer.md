@@ -5,9 +5,10 @@
 > **Note:** The standalone *XSLT Developer* tab has been retired. Its
 > capabilities now live in the **[Unified Shell](unified-shell.md)'s Transform panel**
 > (stylesheet, input, output method, parameters) together with the
-> run options and advanced tools in the panel's collapsed **OPTIONS & TOOLS** section —
-> **Debug XSLT…** (the interactive
-> debugger with breakpoints, step, variables, call stack, watch), **Batch Transform…**,
+> **Debug** button next to **Run Transform** (the interactive debugger with breakpoints,
+> stepping, variables, call stack, watches and live messages in a dock below the editor;
+> also **Tools → Debug with XSLT…** / **Shift+F5**), and the run options and advanced tools
+> in the panel's collapsed **OPTIONS & TOOLS** section — **Batch Transform…**,
 > **Profile run**, and **Trace run**. This page describes how to do XSLT and XQuery
 > development in the shell, plus a collection of ready-to-use XSLT and XQuery patterns.
 > XPath / XQuery queries against the open document run in the
@@ -48,7 +49,8 @@ XSLT/XQuery development in the Unified Shell provides:
 | **See the result** | The **OUTPUT panel** docked below the editor (Text / Preview / Table views, open-in-browser, save) |
 | **Parameters, output method** | The Transform panel's **PARAMETERS** and **OUTPUT METHOD** sections |
 | **XPath / XQuery queries** | The bottom [Query Console](unified-shell.md#query-console) (`Ctrl+Shift+X`, or the Transform panel's **Open Query Console** button) |
-| **Debugger, batch, profile, trace** | The Transform panel's **OPTIONS & TOOLS** section (below **Run Transform**, collapsed by default) |
+| **Debugger** | The **Debug** button next to **Run Transform** (also **Tools → Debug with XSLT…**, `Shift+F5`) - see [Interactive Live Debugger](#interactive-live-debugger) |
+| **Batch, profile, trace** | The Transform panel's **OPTIONS & TOOLS** section (below **Run Transform**, collapsed by default; it lists **Debug XSLT…** again) |
 
 ---
 
@@ -390,6 +392,9 @@ the stylesheet's `xsl:output` declaration; pick a concrete format to override th
 | Shortcut     | Action                 |
 |--------------|------------------------|
 | Ctrl+Enter   | Run the active XSLT / XQuery / XPath document against the selected Input |
+| F5           | Run the active XQuery / XPath / XSLT / XProc document |
+| Shift+F5     | Debug with XSLT - the active XSLT document, or the Transform / PDF panel's stylesheet |
+| F5 / F7 / F8 / Shift+F8 | While the debugger is paused: Continue / Step Into / Step Over / Step Out |
 | Ctrl+Shift+X | Toggle the bottom Query Console |
 | F8           | Validate the active document |
 | Shift+Alt+F  | Format (pretty-print) the active document |

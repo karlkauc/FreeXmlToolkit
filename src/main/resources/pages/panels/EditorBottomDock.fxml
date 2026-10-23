@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  The dock below the editor tabs that hosts the OUTPUT panel and, during an XSLT debug session,
+  the DEBUG pane: a draggable top edge (height persisted), a strip of segmented toggles (one per
+  registered panel, only shown when there is more than one) and the content stack. Loaded by
+  EditorBottomDock via the fx:root pattern (FxmlViews.load); EditorBottomDock is root and
+  controller. The toggles are data-driven (register) and built in code.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-bottom-dock"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <Region fx:id="resizer" id="bottom-dock-resizer" minHeight="5" prefHeight="5" maxHeight="5"
+                styleClass="fxt-dock-resizer"/>
+        <HBox fx:id="strip" id="bottom-dock-strip" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-dock-strip"
+              visible="false" managed="false">
+            <children>
+                <HBox fx:id="tabsBox" spacing="2" alignment="CENTER_LEFT" styleClass="fxt-seg-group"/>
+                <Region HBox.hgrow="ALWAYS"/>
+            </children>
+        </HBox>
+        <StackPane fx:id="content" id="bottom-dock-content" VBox.vgrow="ALWAYS"/>
+    </children>
+</fx:root>

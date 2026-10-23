@@ -60,6 +60,7 @@ public class TransformPanel extends VBox {
     @FXML private VBox paramsBox;
     @FXML private VBox paramRows;
     @FXML private VBox runBox;
+    @FXML private Button debugButton;
     private final MenuButton recentXsltMenu = new MenuButton();
     @FXML private PanelActionList tools;
     @FXML private javafx.scene.control.CheckBox runAutomatically;
@@ -142,8 +143,8 @@ public class TransformPanel extends VBox {
         addParam.setId("transform-add-parameter");
         paramsBox.getChildren().add(addParam);
 
-        // --- Run Transform ----------------------------------------------------
-        transformButton.prefWidthProperty().bind(runBox.widthProperty());
+        // --- Run Transform / Debug --------------------------------------------
+        // (Run grows to fill the row; Debug keeps its natural width — both declared in FXML.)
 
         // Live preview: re-run the XSLT transform shortly after the active document
         // changes (typing / tab switch), when enabled and a stylesheet is set.
@@ -328,11 +329,23 @@ public class TransformPanel extends VBox {
             out.showError("Select an XSLT stylesheet first.");
             return;
         }
-        if (editorHost.getActiveDocument().isEmpty()) {
-            out.showError("No document open.");
-            return;
+        // Same input as Run Transform: the INPUT override file when one is set (drop, favourite,
+        // ◀ / ▶ browsing), otherwise the active document.
+        String xml;
+        if (inputOverride != null) {
+            try {
+                xml = Files.readString(inputOverride.toPath(), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                out.showFailure("Could not read input file: " + e.getMessage());
+                return;
+            }
+        } else {
+            if (editorHost.getActiveDocument().isEmpty()) {
+                out.showError("No document open.");
+                return;
+            }
+            xml = editorHost.getActiveText().orElse("");
         }
-        String xml = editorHost.getActiveText().orElse("");
         OutputFormat format;
         try {
             format = resolveXsltFormat(Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8));

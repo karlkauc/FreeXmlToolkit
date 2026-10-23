@@ -14,6 +14,7 @@ import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * End-to-end integration test of the XSLT debugger: run a real Saxon
@@ -226,5 +227,140 @@ class XsltDebuggerIntegrationTest {
         assertNotNull(result.getErrorMessage());
         assertTrue(result.getErrorMessage().toLowerCase().contains("stream"),
                 "Error message should mention streaming: " + result.getErrorMessage());
+    }
+
+    @Test
+    void breakpointInAnIncludedModuleFiresOnlyThere(@TempDir java.nio.file.Path tmp) throws Exception {
+        // main.xsl line 4 and lib/helpers.xsl line 4 both hold instructions; the breakpoint is
+        // set on the include's line 4 — the main module's line 4 must not pause.
+        String main = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:include href=\"lib/helpers.xsl\"/>\n"                                               // 2
+                + "  <xsl:template match=\"/\">\n"                                                            // 3
+                + "    <out><xsl:call-template name=\"helper\"/></out>\n"                                     // 4
+                + "  </xsl:template>\n"                                                                        // 5
+                + "</xsl:stylesheet>\n";
+        String helpers = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template name=\"helper\">\n"                                                        // 2
+                + "    <xsl:variable name=\"greeting\" select=\"'hi'\"/>\n"                                 // 3
+                + "    <x><xsl:value-of select=\"$greeting\"/></x>\n"                                        // 4
+                + "  </xsl:template>\n"                                                                        // 5
+                + "</xsl:stylesheet>\n";
+        java.nio.file.Path mainFile = tmp.resolve("main.xsl");
+        java.nio.file.Path libFile = tmp.resolve("lib").resolve("helpers.xsl");
+        java.nio.file.Files.createDirectories(libFile.getParent());
+        java.nio.file.Files.writeString(mainFile, main);
+        java.nio.file.Files.writeString(libFile, helpers);
+
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint(libFile.toString(), 4, true));
+        java.util.List<PausedSnapshot> pauses = java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                pauses.add(session.getPausedSnapshot());
+                session.requestContinue();
+            }
+        });
+        java.util.List<String> live = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                "<root/>", main, mainFile.toUri().toString(), new HashMap<>(),
+                XsltTransformationEngine.OutputFormat.XML, session, m -> live.add(m.getMessage()));
+
+        assertTrue(result.isSuccess(), "includes resolve relative to the systemId: " + result.getErrorMessage());
+        assertTrue(result.getOutputContent().contains("hi"), result.getOutputContent());
+        assertFalse(pauses.isEmpty(), "the include breakpoint must fire");
+        for (PausedSnapshot snap : pauses) {
+            assertEquals(4, snap.lineNumber());
+            assertEquals(libFile.toAbsolutePath().normalize().toString(), snap.filePath(),
+                    "every pause is in the include, never in main.xsl line 4");
+        }
+        PausedSnapshot snap = pauses.get(0);
+        assertNotNull(snap.contextXdm(), "the context item is captured as an XdmItem");
+        net.sf.saxon.s9api.XdmValue greeting = snap.localVariables().get(new net.sf.saxon.s9api.QName("greeting"));
+        if (greeting != null) { // Saxon may inline a single-use variable; when it keeps the slot, the value is real
+            assertEquals("hi", greeting.toString().replace("\"", ""), "the local $greeting carries its value");
+        }
+        assertTrue(snap.callStack().stream().anyMatch(f -> f.description().contains("helper")),
+                "the named template is a call-stack frame: " + snap.callStack());
+        DebugStackFrame top = snap.callStack().get(0);
+        assertEquals(libFile.toAbsolutePath().normalize().toString(), top.filePath(),
+                "frames carry their own module, not the pause file's");
+        assertTrue(live.isEmpty(), "no xsl:message in this stylesheet");
+    }
+
+    @Test
+    void globalVariablesShowTheirValuesAndMessagesStreamLive() throws Exception {
+        String xml = "<order><item price=\"2\"/><item price=\"3\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:variable name=\"total\" select=\"sum(//item/@price)\"/>\n"                        // 2
+                + "  <xsl:template match=\"/\">\n"                                                            // 3
+                + "    <xsl:message>total is <xsl:value-of select=\"$total\"/></xsl:message>\n"              // 4
+                + "    <out><xsl:value-of select=\"$total\"/></out>\n"                                        // 5
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("", 5, true));
+        AtomicReference<PausedSnapshot> snapRef = new AtomicReference<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                snapRef.set(session.getPausedSnapshot());
+                session.requestContinue();
+            }
+        });
+        java.util.List<String> live = new java.util.concurrent.CopyOnWriteArrayList<>();
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session,
+                m -> live.add(m.getMessage()));
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertEquals(java.util.List.of("total is 5"), live, "xsl:message streamed while running");
+        assertEquals(1, result.getMessages().size(), "and collected into the result");
+        PausedSnapshot snap = snapRef.get();
+        assertNotNull(snap);
+        VariableBinding total = snap.variables().stream().filter(v -> v.name().equals("$total")).findFirst().orElse(null);
+        assertNotNull(total, "the evaluated global appears: " + snap.variables());
+        assertEquals("5", total.value(), "with its value, not its expression");
+        assertEquals(VariableScope.GLOBAL, total.scope());
+        assertEquals("5", snap.globalVariables().get(new net.sf.saxon.s9api.QName("total")).toString());
+    }
+
+    @Test
+    void normalTransformIsUnaffectedByAPausedDebugSession() throws Exception {
+        String xml = "<r><a/></r>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates/></out></xsl:template>\n"
+                + "  <xsl:template match=\"a\"><x/></xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("", 3, true));
+        CountDownLatch pausedLatch = new CountDownLatch(1);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) pausedLatch.countDown();
+        });
+        XsltTransformationEngine engine = XsltTransformationEngine.getInstance();
+        CountDownLatch doneLatch = new CountDownLatch(1);
+        bg.submit(() -> {
+            try {
+                engine.transformWithDebugSession(xml, xslt, new HashMap<>(),
+                        XsltTransformationEngine.OutputFormat.XML, session);
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+        assertTrue(pausedLatch.await(10, TimeUnit.SECONDS));
+
+        // While the debug run is paused, a normal transform must run to completion with no
+        // trace data attached — the debug run lives on its own processor.
+        XsltTransformationResult normal = engine.transform(xml, xslt, new HashMap<>(),
+                XsltTransformationEngine.OutputFormat.XML);
+        assertTrue(normal.isSuccess(), normal.getErrorMessage());
+        assertTrue(normal.getTemplateMatches() == null || normal.getTemplateMatches().isEmpty(),
+                "no trace listener on the normal run");
+
+        session.requestStop();
+        assertTrue(doneLatch.await(10, TimeUnit.SECONDS));
     }
 }

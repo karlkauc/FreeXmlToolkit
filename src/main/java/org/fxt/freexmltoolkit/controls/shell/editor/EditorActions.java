@@ -296,6 +296,40 @@ public final class EditorActions {
     }
 
     /**
+     * Starts the XSLT debugger for the active XSLT document against the resolved Run target
+     * (the same resolution as {@link #runActiveTransform()}). The stylesheet must be saved:
+     * the debugger reads it from disk so breakpoints map to the file's lines and relative
+     * includes resolve. No-op for non-XSLT documents.
+     */
+    public void debugActiveTransform() {
+        if (activeFileType() != EditorFileType.XSLT) {
+            return;
+        }
+        TransformOutputPanel out = editorHost.transformOutputPanel();
+        var doc = editorHost.getActiveDocument().orElseThrow();
+        if (doc.getPath() == null) {
+            out.showError("Save the stylesheet first — the debugger runs the saved file.");
+            return;
+        }
+        var resolved = editorHost.resolveQueryTarget(doc);
+        if (resolved.isEmpty()) {
+            out.showError("Open an XML document first, or pick one via the Target dropdown — "
+                    + "by default the debugger runs against the most recently active XML document.");
+            return;
+        }
+        String xml;
+        try {
+            xml = resolved.get().loadXml();
+        } catch (Exception e) {
+            out.showFailure("Cannot read target file: " + e.getMessage());
+            return;
+        }
+        String xslt = editorHost.getActiveText().orElse("");
+        editorHost.startXsltDebug(doc.getPath().toFile(), xml, Map.of(),
+                TransformRunner.detectXsltOutputFormat(xslt));
+    }
+
+    /**
      * Runs the active XProc pipeline via {@link XProcRunner}. The primary input is
      * the resolved target (same resolution as {@link #runActiveQuery()}), but unlike
      * XSLT a missing target is not an immediate error: self-contained pipelines

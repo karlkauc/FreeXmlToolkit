@@ -155,11 +155,20 @@
                                             <tooltip><Tooltip text="Query Console (XPath/XQuery) — Ctrl+Shift+X shows / hides it, Ctrl+K opens it and puts the cursor in the query"/></tooltip>
                                         </Button>
                                         <Separator orientation="VERTICAL"/>
-                                        <Button fx:id="actionTransform" id="doc-action-transform" text="Transform"
-                                                styleClass="fxt-tool-button, fxt-tool-transform" onAction="#onTransform">
+                                        <SplitMenuButton fx:id="actionTransform" id="doc-action-transform" text="Transform"
+                                                         styleClass="fxt-tool-button, fxt-tool-transform, fxt-tool-split"
+                                                         onAction="#onTransform">
                                             <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Transform with XSLT… (choose a stylesheet)"/></tooltip>
-                                        </Button>
+                                            <tooltip><Tooltip text="Transform with XSLT… (choose a stylesheet) — arrow: Debug with XSLT… (Shift+F5)"/></tooltip>
+                                            <items>
+                                                <MenuItem id="doc-action-transform-item" text="Transform with XSLT…" onAction="#onTransform">
+                                                    <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <MenuItem id="doc-action-debug-xslt" text="Debug with XSLT…  (Shift+F5)" onAction="#onDebugXslt">
+                                                    <graphic><IconifyIcon iconLiteral="bi-bug" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                            </items>
+                                        </SplitMenuButton>
                                         <MenuButton fx:id="queryTargetButton" id="doc-query-target" text="Input: Automatic"
                                                     styleClass="fxt-tool-button, fxt-tool-neutral">
                                             <graphic><IconifyIcon iconLiteral="bi-bullseye" iconSize="16"/></graphic>
@@ -178,6 +187,10 @@
                                                 <MenuItem fx:id="actionRunTransform" id="doc-action-run-transform"
                                                           text="Run Transform  (Ctrl+Enter)" onAction="#onRunTransform">
                                                     <graphic><IconifyIcon iconLiteral="bi-play-circle" iconSize="16"/></graphic>
+                                                </MenuItem>
+                                                <MenuItem fx:id="actionDebugTransform" id="doc-action-debug-transform"
+                                                          text="Debug Transform  (Shift+F5)" onAction="#onDebugTransform">
+                                                    <graphic><IconifyIcon iconLiteral="bi-bug" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem fx:id="actionRunPipeline" id="doc-action-run-pipeline"
                                                           text="Run Pipeline  (Ctrl+Enter)" onAction="#onRunPipeline">

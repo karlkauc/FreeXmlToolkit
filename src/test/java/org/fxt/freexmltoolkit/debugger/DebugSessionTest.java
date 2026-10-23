@@ -227,4 +227,36 @@ class DebugSessionTest {
     // ------------------------------------------------------------------
     // Test helpers — exercise StepOver setup without requiring a full pause cycle
     // ------------------------------------------------------------------
+
+    @Test
+    void startSessionWithStepIntoPausesAtTheFirstInstruction() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.startSession(DebugSession.StepMode.STEP_INTO);
+        assertEquals(DebugSession.StepMode.STEP_INTO, session.getStepMode());
+
+        CountDownLatch pausedLatch = new CountDownLatch(1);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) pausedLatch.countDown();
+        });
+        // No breakpoints at all — the very first traced instruction must still pause.
+        Thread saxon = new Thread(() -> session.checkAndPause("x.xsl", 1, 1, () -> emptySnapshot(1)));
+        saxon.start();
+        assertTrue(pausedLatch.await(AWAIT_MS, TimeUnit.MILLISECONDS), "pause on entry");
+        assertEquals(1, session.getPausedSnapshot().lineNumber());
+
+        session.requestContinue();
+        saxon.join(AWAIT_MS);
+        assertFalse(saxon.isAlive());
+    }
+
+    @Test
+    void restartingASessionKeepsItsBreakpoints() {
+        DebugSession session = new DebugSession();
+        session.toggleBreakpoint("x.xsl", 4);
+        session.startSession();
+        session.close();
+        session.startSession(DebugSession.StepMode.NONE);
+        assertEquals(DebugSession.State.RUNNING, session.getState());
+        assertTrue(session.hasBreakpoint("x.xsl", 4), "startSession() must not clear breakpoints");
+    }
 }

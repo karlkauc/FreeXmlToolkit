@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  The DEBUG pane of the editor's bottom dock: a header with the run controls (Continue, Step
+  Into/Over/Out, Restart, Stop, Pause on entry, Show in editor, ✕ = end session) and the status
+  line, above a horizontal split of the debugger panels (Variables · Call Stack · Watch ·
+  Messages · Breakpoints, added in code because one needs the session). Loaded by XsltDebugPane
+  via the fx:root pattern (FxmlViews.load); XsltDebugPane is root and controller.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-debug-pane"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox spacing="6" alignment="CENTER_LEFT" styleClass="fxt-output-header">
+            <children>
+                <Label text="DEBUG" styleClass="fxt-output-title"/>
+                <Label fx:id="status" id="debug-status" text="Ready." styleClass="fxt-output-status"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="continueButton" id="debug-continue" text="Continue"
+                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onContinue">
+                    <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Continue to the next breakpoint (F5)"/></tooltip>
+                </Button>
+                <Button fx:id="stepIntoButton" id="debug-step-into" text="Step Into"
+                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onStepInto">
+                    <graphic><IconifyIcon iconLiteral="bi-box-arrow-in-down-right" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Step into the current instruction (F7)"/></tooltip>
+                </Button>
+                <Button fx:id="stepOverButton" id="debug-step-over" text="Step Over"
+                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onStepOver">
+                    <graphic><IconifyIcon iconLiteral="bi-arrow-right-short" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Execute the current instruction without descending (F8)"/></tooltip>
+                </Button>
+                <Button fx:id="stepOutButton" id="debug-step-out" text="Step Out"
+                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onStepOut">
+                    <graphic><IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Run until the current template / function returns (Shift+F8)"/></tooltip>
+                </Button>
+                <Button fx:id="restartButton" id="debug-restart" text="Restart"
+                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onRestart">
+                    <graphic><IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Run again from the start, keeping the breakpoints (re-reads the stylesheet)"/></tooltip>
+                </Button>
+                <Button fx:id="stopButton" id="debug-stop" text="Stop"
+                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onStop">
+                    <graphic><IconifyIcon iconLiteral="bi-stop-fill" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Abort the running transformation"/></tooltip>
+                </Button>
+                <CheckBox fx:id="pauseOnEntry" id="debug-pause-on-entry" text="Pause on entry" onAction="#onPauseOnEntry">
+                    <tooltip><Tooltip text="Stop at the first instruction of the next run / restart"/></tooltip>
+                </CheckBox>
+                <Button fx:id="showButton" id="debug-show-in-editor" text="Show in editor"
+                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onShowInEditor">
+                    <graphic><IconifyIcon iconLiteral="bi-eye" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Jump the editor to the paused line"/></tooltip>
+                </Button>
+                <Button fx:id="closeButton" id="debug-close" styleClass="fxt-sp-action" onAction="#onClose">
+                    <graphic><IconifyIcon iconLiteral="bi-x" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="End the debug session and close this pane"/></tooltip>
+                </Button>
+            </children>
+        </HBox>
+        <SplitPane fx:id="panels" id="debug-panels" orientation="HORIZONTAL" VBox.vgrow="ALWAYS"/>
+    </children>
+</fx:root>

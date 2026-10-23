@@ -5,8 +5,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
@@ -16,17 +19,25 @@ import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.debugger.VariableBinding;
 import org.fxt.freexmltoolkit.debugger.VariableScope;
+import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
 
 import net.sf.saxon.Controller;
 import net.sf.saxon.expr.StackFrame;
 import net.sf.saxon.expr.XPathContext;
 import net.sf.saxon.expr.instruct.GlobalVariable;
+import net.sf.saxon.expr.instruct.NamedTemplate;
 import net.sf.saxon.expr.instruct.SlotManager;
 import net.sf.saxon.expr.instruct.TemplateRule;
+import net.sf.saxon.expr.instruct.UserFunction;
 import net.sf.saxon.lib.TraceListener;
+import net.sf.saxon.om.FocusIterator;
+import net.sf.saxon.om.GroundedValue;
 import net.sf.saxon.om.Item;
 import net.sf.saxon.om.Sequence;
 import net.sf.saxon.om.StructuredQName;
+import net.sf.saxon.s9api.Location;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.XdmItem;
 import net.sf.saxon.s9api.XdmValue;
 import net.sf.saxon.trace.Traceable;
 import net.sf.saxon.trans.Mode;
@@ -36,7 +47,9 @@ import net.sf.saxon.trans.Mode;
  * Captures template matches, variable values, and call stack during transformation.
  *
  * <p>This listener is attached to the Saxon transformer when debugging is enabled,
- * providing real-time insight into XSLT execution.</p>
+ * providing real-time insight into XSLT execution. With a {@link DebugSession} it also
+ * pauses the Saxon thread at breakpoints and builds the {@link PausedSnapshot} the
+ * debugger panels show.</p>
  */
 public class XsltDebugTraceListener implements TraceListener {
 
@@ -46,12 +59,14 @@ public class XsltDebugTraceListener implements TraceListener {
     private static final int MAX_TEMPLATE_MATCHES = 500;
     private static final int MAX_CALL_STACK_HISTORY = 1000;
     private static final int MAX_VARIABLES = 200;
+    /** Longest sequence kept per variable in a snapshot (items beyond are dropped). */
+    private static final int MAX_SNAPSHOT_ITEMS = 10_000;
 
     // Collected template match information
     private final List<XsltTransformationEngine.TemplateMatchInfo> templateMatches =
             Collections.synchronizedList(new ArrayList<>());
 
-    // Collected variable values
+    // Collected variable values (post-hoc API: name -> expression text / value text)
     private final Map<String, Object> variableValues = new ConcurrentHashMap<>();
 
     // Current call stack (live during transformation)
@@ -67,6 +82,9 @@ public class XsltDebugTraceListener implements TraceListener {
 
     // Template rule search tracking
     private long ruleSearchStartTime;
+
+    // Global variables whose evaluation has completed (safe to read from the Bindery at a pause)
+    private final Set<GlobalVariable> completedGlobals = Collections.synchronizedSet(new LinkedHashSet<>());
 
     // Optional interactive debug session — when non-null, enter() can pause execution.
     private final DebugSession debugSession;
@@ -93,9 +111,11 @@ public class XsltDebugTraceListener implements TraceListener {
         try {
             String description = getTraceableDescription(traceable);
             int lineNumber = getLineNumber(traceable);
+            String systemId = getSystemId(traceable);
 
             // Track call stack
-            CallStackEntry entry = new CallStackEntry(description, lineNumber, System.nanoTime());
+            CallStackEntry entry = new CallStackEntry(description, systemId, lineNumber,
+                    frameKind(traceable), traceable, System.nanoTime());
             callStack.push(entry);
 
             // Record in history with indentation
@@ -113,21 +133,17 @@ public class XsltDebugTraceListener implements TraceListener {
             }
 
             // Capture variable values
-            captureVariableValue(traceable, context);
+            captureVariableValue(traceable);
 
             // Interactive pause — always consult the session so step-modes
             // work even at instructions with no line info (lineNumber == -1).
             // Breakpoint matching itself requires a real line; that's handled
             // by Breakpoint.matches.
             if (debugSession != null) {
-                String systemId = traceable.getLocation() != null
-                        ? safeString(traceable.getLocation().getSystemId())
-                        : "";
                 int depth = callStack.size();
                 final XPathContext ctxRef = context;
-                final Traceable traceableRef = traceable;
                 boolean alive = debugSession.checkAndPause(systemId, lineNumber, depth,
-                        () -> buildPausedSnapshot(systemId, lineNumber, ctxRef, traceableRef));
+                        () -> buildPausedSnapshot(systemId, lineNumber, ctxRef));
                 if (!alive) {
                     throw new XsltDebugStopException();
                 }
@@ -159,6 +175,10 @@ public class XsltDebugTraceListener implements TraceListener {
                     long durationMs = (System.nanoTime() - entry.startTime) / 1_000_000;
                     callStackHistory.add(indent + "LEAVE: " + entry.description + " (" + durationMs + "ms)");
                 }
+            }
+
+            if (traceable instanceof GlobalVariable globalVariable) {
+                completedGlobals.add(globalVariable);
             }
 
             // Calculate template execution time
@@ -273,47 +293,24 @@ public class XsltDebugTraceListener implements TraceListener {
 
     // ========== Helper Methods ==========
 
-    private void captureVariableValue(Traceable traceable, XPathContext context) {
+    private void captureVariableValue(Traceable traceable) {
         try {
             if (variableValues.size() >= MAX_VARIABLES) {
                 return;
             }
-
-            String varName = null;
-            Object varValue = null;
-
+            // Only the declaration (expression) is known when the variable is entered — its
+            // value is being computed right now. Values are read at pause time instead.
             if (traceable instanceof GlobalVariable globalVar) {
-                varName = "$" + (globalVar.getVariableQName() != null
+                String varName = "$" + (globalVar.getVariableQName() != null
                         ? globalVar.getVariableQName().getLocalPart()
                         : "global-" + globalVar.hashCode());
-                try {
-                    varValue = evaluateVariableValue(globalVar, context);
-                } catch (Exception e) {
-                    varValue = "<evaluation error>";
-                }
+                String expression = globalVar.getBody() != null ? globalVar.getBody().toShortString()
+                        : "<computed value>";
+                variableValues.put(varName, expression);
+                logger.trace("Variable captured: {} = {}", varName, truncate(expression, 100));
             }
-            // Note: LocalVariable is not in the public API, we can track variables
-            // through GlobalVariable and parameter tracking
-
-            if (varName != null && varValue != null) {
-                variableValues.put(varName, varValue);
-                logger.trace("Variable captured: {} = {}", varName, truncate(String.valueOf(varValue), 100));
-            }
-
         } catch (Exception e) {
             logger.debug("Error capturing variable: {}", e.getMessage());
-        }
-    }
-
-    private Object evaluateVariableValue(GlobalVariable variable, XPathContext _context) {
-        try {
-            // Get the select expression if available
-            if (variable.getBody() != null) {
-                return variable.getBody().toShortString();
-            }
-            return "<computed value>";
-        } catch (Exception e) {
-            return "<evaluation error: " + e.getMessage() + ">";
         }
     }
 
@@ -329,6 +326,15 @@ public class XsltDebugTraceListener implements TraceListener {
                         : "*";
                 return "template match=\"" + pattern + "\"";
             }
+            if (traceable instanceof NamedTemplate named) {
+                return "template name=\"" + localName(named.getTemplateName()) + "\"";
+            }
+            if (traceable instanceof UserFunction function) {
+                return "function " + localName(function.getFunctionName()) + "()";
+            }
+            if (traceable instanceof GlobalVariable global) {
+                return "variable $" + localName(global.getVariableQName());
+            }
 
             // Return the class name as a fallback description
             return traceable.getClass().getSimpleName();
@@ -336,6 +342,20 @@ public class XsltDebugTraceListener implements TraceListener {
         } catch (Exception e) {
             return traceable.getClass().getSimpleName();
         }
+    }
+
+    private static String localName(StructuredQName name) {
+        return name == null ? "?" : name.getDisplayName();
+    }
+
+    private static DebugStackFrame.FrameKind frameKind(Traceable traceable) {
+        if (traceable instanceof TemplateRule || traceable instanceof NamedTemplate) {
+            return DebugStackFrame.FrameKind.TEMPLATE;
+        }
+        if (traceable instanceof UserFunction) {
+            return DebugStackFrame.FrameKind.FUNCTION;
+        }
+        return DebugStackFrame.FrameKind.INSTRUCTION;
     }
 
     private int getLineNumber(Traceable traceable) {
@@ -354,62 +374,58 @@ public class XsltDebugTraceListener implements TraceListener {
         }
     }
 
+    private static String getSystemId(Traceable traceable) {
+        try {
+            Location location = traceable == null ? null : traceable.getLocation();
+            return location == null ? "" : safeString(location.getSystemId());
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
     private static String safeString(String s) {
         return s == null ? "" : s;
     }
 
     /**
      * Snapshot the live execution state at a pause point. Must be called on
-     * the Saxon thread BEFORE blocking, because XPathContext is mutable.
+     * the Saxon thread BEFORE blocking, because XPathContext is mutable and
+     * lazily evaluated variable values are bound to the live context.
      */
-    private PausedSnapshot buildPausedSnapshot(String systemId, int line,
-                                                XPathContext context, Traceable traceable) {
-        List<VariableBinding> vars = captureVariableBindings(context);
-        List<DebugStackFrame> frames = buildStackFrameSnapshot(systemId, line);
+    private PausedSnapshot buildPausedSnapshot(String systemId, int line, XPathContext context) {
+        List<VariableBinding> vars = new ArrayList<>();
+        Map<QName, XdmValue> locals = new LinkedHashMap<>();
+        Map<QName, XdmValue> globals = new LinkedHashMap<>();
+        XdmItem contextXdm = null;
         String contextItem = "";
-        try {
-            Item ctxItem = context.getContextItem();
-            if (ctxItem != null) {
-                contextItem = truncate(ctxItem.toShortString(), 200);
-            }
-        } catch (Exception ignored) {
-            // Context item access is best-effort
-        }
-        return new PausedSnapshot(systemId, line, frames, vars, contextItem);
-    }
-
-    /**
-     * Captures variables visible at the pause point: context item, focus
-     * (position/last), local stack-frame slots, and accumulated globals.
-     */
-    private List<VariableBinding> captureVariableBindings(XPathContext context) {
-        List<VariableBinding> bindings = new ArrayList<>();
+        int position = -1;
+        int last = -1;
 
         // 1. Context item — always present in template execution
         try {
             Item ctxItem = context.getContextItem();
             if (ctxItem != null) {
-                String s = truncate(ctxItem.toShortString(), VariableBinding.MAX_VALUE_LENGTH);
-                bindings.add(new VariableBinding(".", s,
-                        ctxItem.getClass().getSimpleName(), VariableScope.LOCAL));
+                contextXdm = asItem(XdmValue.wrap(ctxItem));
+                contextItem = truncate(ctxItem.toShortString(), 200);
+                vars.add(new VariableBinding(".", truncate(ctxItem.toShortString(), VariableBinding.MAX_VALUE_LENGTH),
+                        contextXdm != null ? WatchEvaluator.describeType(contextXdm) : ctxItem.getClass().getSimpleName(),
+                        VariableScope.LOCAL));
             } else {
-                bindings.add(new VariableBinding(".", "<no context>", "", VariableScope.LOCAL));
+                vars.add(new VariableBinding(".", "<no context>", "", VariableScope.LOCAL));
             }
         } catch (Throwable ignored) { /* best-effort */ }
 
         // 2. Focus — position() and last()
         try {
-            var iter = context.getCurrentIterator(); // NOPMD - borrowed iterator owned by the Saxon context
+            FocusIterator iter = context.getCurrentIterator(); // NOPMD - borrowed iterator owned by the Saxon context
             if (iter != null) {
-                bindings.add(new VariableBinding("position()",
-                        String.valueOf(iter.position()),
-                        "xs:integer", VariableScope.LOCAL));
+                position = iter.position();
+                vars.add(new VariableBinding("position()", String.valueOf(position), "xs:integer", VariableScope.LOCAL));
             }
         } catch (Throwable ignored) { /* outside focus — skip */ }
         try {
-            bindings.add(new VariableBinding("last()",
-                    String.valueOf(context.getLast()),
-                    "xs:integer", VariableScope.LOCAL));
+            last = context.getLast();
+            vars.add(new VariableBinding("last()", String.valueOf(last), "xs:integer", VariableScope.LOCAL));
         } catch (Throwable ignored) { /* outside focus — skip */ }
 
         // 3. Local stack-frame slots — display all slots, including unbound
@@ -422,51 +438,84 @@ public class XsltDebugTraceListener implements TraceListener {
                 int slotCount = values == null ? 0 : values.length;
                 for (int i = 0; i < slotCount; i++) {
                     Sequence value = values[i];
-                    String name;
-                    if (names != null && i < names.size() && names.get(i) != null) {
-                        StructuredQName qname = names.get(i);
-                        name = "$" + qname.getLocalPart();
-                    } else {
-                        name = "$$slot" + i;
-                    }
+                    StructuredQName qname = names != null && i < names.size() ? names.get(i) : null;
+                    String name = qname != null ? "$" + qname.getDisplayName() : "$$slot" + i;
                     String stringValue;
                     String typeName = "";
                     if (value == null) {
                         stringValue = "<unbound>";
                     } else {
                         try {
-                            XdmValue xdm = XdmValue.wrap(value);
-                            stringValue = truncate(xdm.toString(), VariableBinding.MAX_VALUE_LENGTH);
-                            if (stringValue.isEmpty()) stringValue = "<empty sequence>";
-                            typeName = xdm.getUnderlyingValue().getClass().getSimpleName();
+                            XdmValue xdm = materialize(value);
+                            stringValue = WatchEvaluator.render(xdm, VariableBinding.MAX_VALUE_LENGTH);
+                            typeName = WatchEvaluator.describeType(xdm);
+                            if (qname != null) {
+                                locals.put(new QName(qname), xdm);
+                            }
                         } catch (Exception e) {
                             stringValue = "<unavailable>";
                         }
                     }
-                    bindings.add(new VariableBinding(name, stringValue, typeName, VariableScope.LOCAL));
+                    vars.add(new VariableBinding(name, stringValue, typeName, VariableScope.LOCAL));
                 }
             }
         } catch (Throwable t) {
             logger.debug("Failed to capture local variables: {}", t.getMessage());
         }
 
-        // 4. Globals — accumulated from earlier GlobalVariable trace events
-        for (Map.Entry<String, Object> entry : variableValues.entrySet()) {
-            String name = entry.getKey();
-            Object raw = entry.getValue();
-            String value = raw == null ? "" : truncate(String.valueOf(raw), VariableBinding.MAX_VALUE_LENGTH);
-            String type = raw == null ? "" : raw.getClass().getSimpleName();
-            bindings.add(new VariableBinding(name, value, type, VariableScope.GLOBAL));
+        // 4. Globals whose evaluation has completed — read from the Bindery cache. Globals
+        //    not yet evaluated are deliberately not forced here: that would change the
+        //    evaluation order (and run any xsl:message they contain) at the pause.
+        List<GlobalVariable> done;
+        synchronized (completedGlobals) {
+            done = new ArrayList<>(completedGlobals);
         }
-        return bindings;
+        for (GlobalVariable global : done) {
+            StructuredQName qname = global.getVariableQName();
+            String name = "$" + (qname != null ? qname.getDisplayName() : "global-" + global.hashCode());
+            try {
+                GroundedValue value = global.evaluateVariable(context);
+                XdmValue xdm = materialize(value);
+                vars.add(new VariableBinding(name, WatchEvaluator.render(xdm, VariableBinding.MAX_VALUE_LENGTH),
+                        WatchEvaluator.describeType(xdm), VariableScope.GLOBAL));
+                if (qname != null) {
+                    globals.put(new QName(qname), xdm);
+                }
+            } catch (Throwable t) {
+                Object expression = variableValues.get(name);
+                vars.add(new VariableBinding(name, expression == null ? "<unavailable>" : String.valueOf(expression),
+                        "", VariableScope.GLOBAL));
+            }
+        }
+
+        List<DebugStackFrame> frames = buildStackFrameSnapshot(systemId, line);
+        return new PausedSnapshot(systemId, line, frames, vars, contextItem, contextXdm, locals, globals,
+                position, last);
+    }
+
+    /** Grounds a (possibly lazy) sequence on the Saxon thread and caps very long sequences. */
+    private static XdmValue materialize(Sequence value) throws net.sf.saxon.trans.XPathException {
+        GroundedValue grounded = value.materialize();
+        if (grounded.getLength() > MAX_SNAPSHOT_ITEMS) {
+            grounded = grounded.subsequence(0, MAX_SNAPSHOT_ITEMS);
+        }
+        return XdmValue.wrap(grounded);
+    }
+
+    private static XdmItem asItem(XdmValue value) {
+        if (value instanceof XdmItem item) {
+            return item;
+        }
+        return value != null && value.size() == 1 ? value.itemAt(0) : null;
     }
 
     private List<DebugStackFrame> buildStackFrameSnapshot(String currentSystemId, int currentLine) {
         List<DebugStackFrame> frames = new ArrayList<>();
         // Top of stack first — matches typical debugger view ordering
         for (CallStackEntry entry : callStack) {
-            frames.add(new DebugStackFrame(entry.description(), currentSystemId,
-                    entry.lineNumber() > 0 ? entry.lineNumber() : currentLine, List.of()));
+            String frameSystemId = entry.systemId().isEmpty() ? currentSystemId : entry.systemId();
+            frames.add(new DebugStackFrame(entry.description(), frameSystemId,
+                    entry.lineNumber() > 0 ? entry.lineNumber() : currentLine, List.of(), entry.kind()));
         }
         return frames;
     }
@@ -489,6 +538,7 @@ public class XsltDebugTraceListener implements TraceListener {
         templateStartTimes.clear();
         templateExecutionTimes.clear();
         templateExecutionCounts.clear();
+        completedGlobals.clear();
     }
 
     private void buildFinalTemplateStats() {
@@ -545,5 +595,6 @@ public class XsltDebugTraceListener implements TraceListener {
     /**
      * Represents an entry in the call stack.
      */
-    private record CallStackEntry(String description, int lineNumber, long startTime) {}
+    private record CallStackEntry(String description, String systemId, int lineNumber,
+                                  DebugStackFrame.FrameKind kind, Traceable traceable, long startTime) {}
 }

@@ -38,6 +38,59 @@ public class XsltDebugMessageListener implements Consumer<Message> {
     private boolean terminatedByMessage = false;
     private String terminationMessage = null;
 
+    /** Optional live sink: receives every message as it is produced, on the Saxon thread. */
+    private volatile Consumer<XsltTransformationResult.TransformationMessage> sink;
+
+    /**
+     * Streams messages to {@code sink} as they arrive (in addition to collecting them).
+     * The sink is invoked on the Saxon thread; UI code must marshal to the FX thread.
+     *
+     * @param sink the live consumer, or {@code null} to collect only
+     */
+    public void setSink(Consumer<XsltTransformationResult.TransformationMessage> sink) {
+        this.sink = sink;
+    }
+
+    /**
+     * Records a Saxon warning or dynamic error (from an {@code ErrorReporter}) as a message,
+     * so that compile-time warnings and runtime errors show up next to the
+     * {@code xsl:message} output in the debugger.
+     */
+    public void reportError(net.sf.saxon.s9api.XmlProcessingError error) {
+        if (error == null) {
+            return;
+        }
+        try {
+            String level = error.isWarning() ? "WARNING" : "ERROR";
+            if (error.getErrorCode() != null) {
+                level = level + " [" + error.getErrorCode().getLocalName() + "]";
+            }
+            net.sf.saxon.s9api.Location loc = error.getLocation();
+            int line = loc != null ? loc.getLineNumber() : -1;
+            String location = extractLocation(loc);
+            publish(new XsltTransformationResult.TransformationMessage(level, error.getMessage(), line, location));
+            if (!error.isWarning()) {
+                warnings.add(level + " at " + location + ": " + error.getMessage());
+            }
+        } catch (Exception e) {
+            logger.debug("Error processing Saxon error report: {}", e.getMessage());
+        }
+    }
+
+    private void publish(XsltTransformationResult.TransformationMessage msg) {
+        if (messages.size() < MAX_MESSAGES) {
+            messages.add(msg);
+        }
+        Consumer<XsltTransformationResult.TransformationMessage> s = sink;
+        if (s != null) {
+            try {
+                s.accept(msg);
+            } catch (RuntimeException e) {
+                logger.debug("Live message sink failed: {}", e.getMessage());
+            }
+        }
+    }
+
     /**
      * Called when an xsl:message instruction is executed.
      *
@@ -63,12 +116,8 @@ public class XsltDebugMessageListener implements Consumer<Message> {
                 level = "ERROR [" + message.getErrorCode().getLocalName() + "]";
             }
 
-            // Create and store message
-            if (messages.size() < MAX_MESSAGES) {
-                XsltTransformationResult.TransformationMessage msg =
-                        new XsltTransformationResult.TransformationMessage(level, messageText, lineNumber, location);
-                messages.add(msg);
-            }
+            // Create, store and stream the message
+            publish(new XsltTransformationResult.TransformationMessage(level, messageText, lineNumber, location));
 
             // Track warnings (terminate messages)
             if (terminate) {

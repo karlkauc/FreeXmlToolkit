@@ -46,11 +46,18 @@ public class FopPanel extends VBox {
     @FXML private Button generateButton;
     @FXML private Button openButton;
     @FXML private Button previewButton;
+    @FXML private Button showFoButton;
+    @FXML private Button messagesButton;
+    @FXML private Button renderFoButton;
     private final javafx.scene.control.MenuButton xmlFavoritesMenu;
     private final javafx.scene.control.MenuButton xslFavoritesMenu;
     private File xmlOverride;
     private File xslFile;
     private File lastPdf;
+    /** Outcome of the latest generation (intermediate FO, messages, FOP events). */
+    private FopRunner.FopResult lastResult;
+    /** The editor tab showing the latest intermediate FO, if still open. */
+    private OpenDocument foDocument;
 
     /** Loads the layout from {@code /pages/panels/FopPanel.fxml} and wires the data-driven parts. */
     public FopPanel(EditorHost editorHost) {
@@ -112,6 +119,148 @@ public class FopPanel extends VBox {
         openPdf();
     }
 
+    /** Opens the intermediate XSL-FO of the latest generation as an editor tab. */
+    @FXML
+    public void onShowFo() {
+        showIntermediateFo();
+    }
+
+    /** Shows the stylesheet's messages and FOP's events of the latest generation in OUTPUT. */
+    @FXML
+    public void onShowMessages() {
+        showMessages();
+    }
+
+    /** Starts the XSLT debugger on the XSL-FO stylesheet (the FO result lands in OUTPUT). */
+    @FXML
+    public void onDebug() {
+        startDebug();
+    }
+
+    /** @return {@code true} once an XSL-FO stylesheet is selected. */
+    public boolean hasStylesheet() {
+        return xslFile != null;
+    }
+
+    /**
+     * Debugs the XSL-FO stylesheet against the XML input with the shared XSLT debugger:
+     * breakpoints, stepping and variables in the stylesheet; the produced FO is shown in the
+     * OUTPUT panel when the run ends. The page-size / orientation parameters are passed on.
+     */
+    public void startDebug() {
+        if (xslFile == null) {
+            PanelStatus.precondition(status, "Select an XSL-FO stylesheet first.");
+            return;
+        }
+        File xmlFile = inputXmlFile();
+        if (xmlFile == null) {
+            PanelStatus.precondition(status, "No document open.");
+            return;
+        }
+        String xml;
+        try {
+            xml = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            PanelStatus.failure(status, "Could not read XML", "Could not read the XML input: " + e.getMessage());
+            return;
+        }
+        java.util.Map<String, Object> parameters = new java.util.HashMap<>(currentOptions().stylesheetParameters());
+        editorHost.startXsltDebug(xslFile, xml, parameters,
+                org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML, this::onDebugRunFinished);
+    }
+
+    /** A debugged run produced its FO: keep it for "Show intermediate FO" / "Render PDF from FO…". */
+    private void onDebugRunFinished(org.fxt.freexmltoolkit.service.XsltTransformationResult result) {
+        if (result == null || !result.isSuccess()) {
+            return;
+        }
+        lastResult = new FopRunner.FopResult(false, null, result.getOutputContent(), result.getMessages(),
+                java.util.List.of(), null);
+        showFoButton.setDisable(false);
+        messagesButton.setDisable(false);
+        messagesButton.setText(lastResult.hasNotes()
+                ? "Messages & events (" + lastResult.messages().size() + ")" : "Messages & events");
+        renderFoButton.setDisable(false);
+        PanelStatus.info(status, "Debug run finished · FO in OUTPUT · " + result.getExecutionTime() + " ms");
+    }
+
+    /** Renders the FO of the latest (debug) run to a PDF chosen by the user. */
+    @FXML
+    public void onRenderFo() {
+        if (lastResult == null || lastResult.foXml() == null) {
+            return;
+        }
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Save PDF");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            renderFoTo(file);
+        }
+    }
+
+    /** Renders the FO of the latest run into {@code pdfOutput} (async); also used by tests. */
+    public void renderFoTo(File pdfOutput) {
+        if (lastResult == null || lastResult.foXml() == null) {
+            PanelStatus.precondition(status, "Debug or generate first — there is no FO to render yet.");
+            return;
+        }
+        String fo = lastResult.foXml();
+        FopRunner.PdfOptions options = currentOptions();
+        PanelStatus.info(status, "Rendering…");
+        FxtGui.executorService.submit(() -> {
+            FopRunner.FopResult outcome = FopRunner.renderFo(fo, pdfOutput, options);
+            Platform.runLater(() -> {
+                lastResult = new FopRunner.FopResult(outcome.ok(), outcome.pdf(), fo,
+                        lastResult != null ? lastResult.messages() : java.util.List.of(), outcome.events(), outcome.error());
+                messagesButton.setDisable(false);
+                if (outcome.ok()) {
+                    PanelStatus.success(status, "Generated: " + pdfOutput.getName());
+                    lastPdf = pdfOutput;
+                    openButton.setDisable(false);
+                    previewButton.setDisable(false);
+                    previewPdf();
+                } else {
+                    PanelStatus.failure(status, "PDF generation failed", "PDF generation failed.",
+                            "FOP rejected the FO document.", PanelStatus.strip(outcome.asText()));
+                    editorHost.transformOutputPanel().showMessages("PDF / FOP · rendering failed",
+                            PanelStatus.strip(outcome.asText()) + "\n\n" + lastResult.notesText());
+                }
+            });
+        });
+    }
+
+    private void showIntermediateFo() {
+        if (lastResult == null || lastResult.foXml() == null) {
+            return;
+        }
+        String name = (xslFile != null ? stripExtension(xslFile.getName()) : "document") + ".fo";
+        boolean sameTab = foDocument != null && name.equals(foDocument.getDisplayName());
+        if (!sameTab || !editorHost.updateGeneratedDocument(foDocument, lastResult.foXml())) {
+            foDocument = editorHost.openGeneratedDocument(lastResult.foXml(), EditorFileType.XML, name);
+        }
+    }
+
+    private void showMessages() {
+        if (lastResult == null) {
+            return;
+        }
+        String title = "PDF / FOP · " + lastResult.messages().size() + " message"
+                + (lastResult.messages().size() == 1 ? "" : "s") + " · " + lastResult.events().size()
+                + " FOP event" + (lastResult.events().size() == 1 ? "" : "s");
+        editorHost.transformOutputPanel().showMessages(title, lastResult.notesText());
+    }
+
+    private static String stripExtension(String name) {
+        int dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
+    }
+
+    /** @return the outcome of the latest generation (for tests/observers), or {@code null}. */
+    public FopRunner.FopResult getLastResult() {
+        return lastResult;
+    }
+
     /** Sets the XSL(-FO) stylesheet (also from the file chooser). */
     public void setXslFile(File file) {
         this.xslFile = file;
@@ -157,8 +306,9 @@ public class FopPanel extends VBox {
             long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                     org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.FOP_PDF, pdfOutput.getName());
-            String result = FopRunner.generate(xmlFile, xsl, pdfOutput, options);
-            boolean generated = result.startsWith("OK:");
+            FopRunner.FopResult outcome = FopRunner.generateResult(xmlFile, xsl, pdfOutput, options);
+            String result = outcome.asText();
+            boolean generated = outcome.ok();
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.pdfGenerated(t0, generated);
             long elapsedMs = probe.finish(xmlFile.length(), generated ? pdfOutput.length() : -1, generated,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
@@ -169,10 +319,18 @@ public class FopPanel extends VBox {
                 }
                 progress.finish();
                 generateButton.setDisable(false);
-                boolean ok = result.startsWith("OK:");
-                if (ok) {
+                lastResult = outcome;
+                showFoButton.setDisable(outcome.foXml() == null);
+                renderFoButton.setDisable(outcome.foXml() == null);
+                messagesButton.setDisable(false);
+                messagesButton.setText(outcome.hasNotes()
+                        ? "Messages & events (" + (outcome.messages().size() + outcome.events().size()) + ")"
+                        : "Messages & events");
+                if (outcome.ok()) {
+                    long warnings = outcome.warningCount();
                     PanelStatus.success(status, "Generated: " + pdfOutput.getName()
-                            + (showStats ? " · " + elapsedMs + " ms" : ""));
+                            + (showStats ? " · " + elapsedMs + " ms" : "")
+                            + (warnings > 0 ? " · " + warnings + " FOP warning" + (warnings == 1 ? "" : "s") : ""));
                     lastPdf = pdfOutput;
                     openButton.setDisable(false);
                     previewButton.setDisable(false);
@@ -182,6 +340,9 @@ public class FopPanel extends VBox {
                             "PDF generation failed.",
                             "Check that the XML and the XSL-FO stylesheet are valid and the target file is writable, then try again.",
                             PanelStatus.strip(result));
+                    // The details (stylesheet error with its location, FOP's reason) go to OUTPUT.
+                    editorHost.transformOutputPanel().showMessages("PDF / FOP · generation failed",
+                            PanelStatus.strip(result) + "\n\n" + outcome.notesText());
                 }
             });
         });

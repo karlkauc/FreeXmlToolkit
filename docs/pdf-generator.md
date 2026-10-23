@@ -35,7 +35,9 @@ bar. The panel is organized into three sections plus the primary action:
 | **INPUT** | The **XML** (follows the active editor; *Change* fixes it to a file) and the **XSL-FO stylesheet**. Each slot shows the file name on its own line (full path as tooltip); an empty slot shows a hint such as *"No stylesheet — choose or drop a file"* and works like *Change* when clicked |
 | **METADATA** | PDF **Title**, **Author** (pre-filled from your user name), **Subject** |
 | **OPTIONS** | **PDF/A-1b compliant** toggle and the **Page size** dropdown (A4/Letter · Portrait/Landscape) |
-| **Generate PDF** | Asks for the output file and renders off the UI thread |
+| **Generate PDF** | Asks for the output file and renders off the UI thread (XSLT → XSL-FO → PDF) |
+| **RESULT** | **Preview PDF**, **Open PDF**, **Show intermediate FO** (the XSL-FO the stylesheet produced, as an editor tab) and **Messages & events (n)** (the stylesheet's `xsl:message` output and every event Apache FOP raised, in the OUTPUT panel) |
+| **TOOLS** | **Debug stylesheet…** runs the XSL-FO stylesheet in the [XSLT debugger](xslt-developer.md#interactive-live-debugger); **Render PDF from FO…** renders the FO of the latest run (e.g. of a debug run) to a PDF |
 
 ---
 
@@ -84,6 +86,30 @@ The generated PDF opens in the built-in **PDF preview**. You can:
 - Check formatting
 
 The **Preview** and **Open PDF** buttons re-open the last result at any time.
+
+### Step 6: Understand what FOP did
+
+Every generation keeps the **intermediate XSL-FO** and the messages of both stages:
+
+- **Show intermediate FO** opens the FO document the stylesheet produced as an editor tab -
+  the quickest way to see whether a layout problem comes from the stylesheet (wrong FO) or
+  from FOP (right FO, unexpected rendering).
+- **Messages & events (n)** shows the stylesheet's `xsl:message` output and every event FOP
+  raised while rendering - a substituted font, content that overflows its area, an unknown
+  property - in the OUTPUT panel. The status line after a successful run counts the FOP
+  warnings, so a *Generated: report.pdf · 2 FOP warnings* is worth a look.
+- A failed generation puts the stylesheet error (with its line in the `.xsl` file) or FOP's
+  reason into OUTPUT as well.
+
+### Debugging the stylesheet
+
+**TOOLS → Debug stylesheet…** runs the XSL-FO stylesheet in the interactive
+[XSLT debugger](xslt-developer.md#interactive-live-debugger): set breakpoints in the
+stylesheet's gutter, step through templates, watch variables and the context node, read
+`xsl:message` output live. The page-size and orientation parameters are passed on. When the
+debug run finishes, its FO is in the OUTPUT panel and in the panel's result, so **Show
+intermediate FO** and **Render PDF from FO…** work right away - the latter renders exactly the
+FO you just debugged to a PDF of your choice.
 
 ---
 
@@ -183,7 +209,9 @@ XSL-FO (Extensible Stylesheet Language Formatting Objects) defines how your XML 
 | No output | Check the INPUT section shows both the XML and the XSL-FO stylesheet |
 | Font issues (PDF/A) | Use embeddable system fonts in the stylesheet - see the PDF/A-1b note above |
 | Image not showing | Check image path is correct and accessible |
-| Generation fails | Check the error message for details |
+| Generation fails | The status shows a short reason; the OUTPUT panel has the stylesheet error with its line, or FOP's reason. **Show intermediate FO** tells you whether the FO itself is what you expect |
+| PDF looks wrong (fonts, overflow) | Open **Messages & events** - FOP reports substituted fonts and overflowing content there |
+| A template does not fire / wrong values | **TOOLS → Debug stylesheet…** and step through it - see [Debugging the stylesheet](#debugging-the-stylesheet) |
 
 ---
 

@@ -61,6 +61,13 @@ public class XsltTransformationEngine {
     // Saxon processor for XSLT 3.0 support
     private final Processor saxonProcessor;
     private final XsltCompiler xsltCompiler;
+    /**
+     * Separate processor for interactive debug runs: line numbering is permanently on and
+     * stylesheets are compiled with tracing, per run and uncached. Keeping it apart from
+     * {@link #saxonProcessor} means a paused debug session never changes how a concurrent
+     * normal transformation compiles or runs.
+     */
+    private volatile Processor debugProcessor;
     // Transformation settings
     private boolean enableProfiling = true;
     private boolean enableDebugging = false;
@@ -109,7 +116,7 @@ public class XsltTransformationEngine {
         saxonProcessor = new Processor(true); // Enable Saxon-EE features if available
 
         // Apply security configuration to Saxon processor
-        configureSecuritySettings();
+        configureSecuritySettings(saxonProcessor.getUnderlyingConfiguration());
 
         xsltCompiler = saxonProcessor.newXsltCompiler();
 
@@ -137,9 +144,7 @@ public class XsltTransformationEngine {
      * <p><b>Security Warning:</b> Enabling extensions allows XSLT stylesheets to execute
      * arbitrary Java code, which is a significant security risk.
      */
-    private void configureSecuritySettings() {
-        Configuration config = saxonProcessor.getUnderlyingConfiguration();
-
+    private void configureSecuritySettings(Configuration config) {
         // Check if extensions are allowed via application settings
         boolean allowExtensions = false;
         try {
@@ -293,6 +298,31 @@ public class XsltTransformationEngine {
         return saxonProcessor;
     }
 
+    /**
+     * The processor used for interactive debug runs (see {@link #debugProcessor}). Watch
+     * expressions must be compiled with this processor: Saxon rejects a context node that was
+     * built by another {@code Configuration}.
+     */
+    public Processor getDebugProcessor() {
+        Processor p = debugProcessor;
+        if (p == null) {
+            synchronized (this) {
+                p = debugProcessor;
+                if (p == null) {
+                    p = new Processor(false);
+                    configureSecuritySettings(p.getUnderlyingConfiguration());
+                    // Saxon HE does not retain source line numbers unless line numbering is
+                    // explicitly enabled on the Configuration. Without this, every
+                    // traceable.getLocation().getLineNumber() returns -1 and breakpoints
+                    // can never match.
+                    p.getUnderlyingConfiguration().setLineNumbering(true);
+                    debugProcessor = p;
+                }
+            }
+        }
+        return p;
+    }
+
     private void configureXsltCompiler() {
         try {
             // Enable XSLT 3.0 features
@@ -315,6 +345,19 @@ public class XsltTransformationEngine {
      */
     public XsltTransformationResult transform(String xmlContent, String xsltContent,
                                               Map<String, Object> parameters, OutputFormat outputFormat) {
+        return transform(xmlContent, xsltContent, null, null, parameters, outputFormat);
+    }
+
+    /**
+     * Like {@link #transform(String, String, Map, OutputFormat)} for content that came from
+     * files: {@code xsltSystemId} (the stylesheet's {@code file:} URI) lets relative
+     * {@code xsl:include}/{@code xsl:import}/{@code document()} hrefs resolve and gives error
+     * locations a file name; {@code xmlBaseUri} does the same for the source document.
+     * Either may be {@code null}.
+     */
+    public XsltTransformationResult transform(String xmlContent, String xsltContent,
+                                              String xsltSystemId, String xmlBaseUri,
+                                              Map<String, Object> parameters, OutputFormat outputFormat) {
         long startTime = System.currentTimeMillis();
 
         // Debug listeners (created only when debugging is enabled)
@@ -326,7 +369,7 @@ public class XsltTransformationEngine {
 
             // Create transformation context
             TransformationContext context = new TransformationContext(xmlContent, xsltContent,
-                    parameters, outputFormat);
+                    parameters, outputFormat, xsltSystemId, xmlBaseUri);
 
             // Start profiling before compilation so the compile phase and the memory
             // baseline are captured (a stylesheet-cache hit reports 0 ms compilation).
@@ -348,19 +391,20 @@ public class XsltTransformationEngine {
             XsltTransformer transformer = executable.load();
             configureTransformer(transformer, parameters, outputFormat);
 
-            // Attach debug listeners when debugging is enabled
+            // xsl:message output is always collected into the result (callers such as the
+            // PDF/FOP panel show it); the trace listener only when debugging is enabled.
+            messageListener = new XsltDebugMessageListener();
+            transformer.setMessageHandler(messageListener);
             if (enableDebugging) {
                 traceListener = new XsltDebugTraceListener();
-                messageListener = new XsltDebugMessageListener();
                 transformer.setTraceListener(traceListener);
-                transformer.setMessageHandler(messageListener);
                 logger.debug("Debug listeners attached to transformer");
             }
 
             // Set up input source
             XdmNode sourceDoc;
             try {
-                sourceDoc = parseXmlDocument(xmlContent);
+                sourceDoc = parseXmlDocument(saxonProcessor, xmlContent, xmlBaseUri);
             } catch (SaxonApiException e) {
                 return inputFailure(e);
             }
@@ -415,7 +459,7 @@ public class XsltTransformationEngine {
             }
 
             // Collect messages from message listener
-            if (enableDebugging && messageListener != null) {
+            if (messageListener != null) {
                 result.setMessages(messageListener.getMessages());
                 if (!messageListener.getWarnings().isEmpty()) {
                     result.addAllWarnings(messageListener.getWarnings());
@@ -461,6 +505,29 @@ public class XsltTransformationEngine {
             String xmlContent, String xsltContent,
             Map<String, Object> parameters, OutputFormat outputFormat,
             DebugSession session) {
+        return transformWithDebugSession(xmlContent, xsltContent, null, parameters, outputFormat,
+                session, null);
+    }
+
+    /**
+     * Runs a transformation under an interactive {@link DebugSession} on the dedicated
+     * {@linkplain #getDebugProcessor() debug processor}: the stylesheet is compiled with
+     * tracing and line numbers (uncached), the session's trace listener can pause the run
+     * at breakpoints, and {@code xsl:message} output is both collected into the result and
+     * streamed to {@code liveMessages} as it happens (on the Saxon thread).
+     *
+     * @param xsltSystemId the stylesheet's location (a {@code file:} URI), or {@code null} for
+     *                     an in-memory stylesheet. With a systemId Saxon resolves relative
+     *                     {@code xsl:include}/{@code xsl:import} hrefs and reports a per-module
+     *                     systemId for every traced instruction, so breakpoints can be matched
+     *                     per file.
+     * @param liveMessages optional sink for {@code xsl:message} output as it is produced
+     */
+    public XsltTransformationResult transformWithDebugSession(
+            String xmlContent, String xsltContent, String xsltSystemId,
+            Map<String, Object> parameters, OutputFormat outputFormat,
+            DebugSession session,
+            java.util.function.Consumer<XsltTransformationResult.TransformationMessage> liveMessages) {
 
         if (session == null) {
             return transform(xmlContent, xsltContent, parameters, outputFormat);
@@ -478,44 +545,36 @@ public class XsltTransformationEngine {
         long startTime = System.currentTimeMillis();
         XsltDebugTraceListener traceListener = new XsltDebugTraceListener(session);
         XsltDebugMessageListener messageListener = new XsltDebugMessageListener();
+        messageListener.setSink(liveMessages);
+        Processor processor = getDebugProcessor();
 
-        boolean priorDebug = this.enableDebugging;
-        this.enableDebugging = true;
-        // Saxon HE does not retain source line numbers unless line numbering
-        // is explicitly enabled on the Configuration. Without this, every
-        // traceable.getLocation().getLineNumber() returns -1 and breakpoints
-        // can never match.
-        net.sf.saxon.Configuration cfg = saxonProcessor.getUnderlyingConfiguration();
-        boolean priorLineNumbering = cfg.isLineNumbering();
-        cfg.setLineNumbering(true);
-        // Bust any cached executable that was compiled without line info
-        compiledStylesheets.clear();
         try {
             TransformationContext context = new TransformationContext(xmlContent, xsltContent,
                     parameters, outputFormat);
 
             XsltExecutable executable;
             try {
-                executable = compileStylesheet(xsltContent, context);
+                executable = compileForDebug(processor, xsltContent, xsltSystemId, messageListener);
             } catch (StylesheetCompileException e) {
                 return e.toResult();
             }
 
             XsltTransformer transformer = executable.load();
-            configureTransformer(transformer, parameters, outputFormat);
+            configureTransformer(transformer, parameters, outputFormat, true);
             transformer.setTraceListener(traceListener);
             transformer.setMessageHandler(messageListener);
+            transformer.setErrorReporter(messageListener::reportError);
 
             XdmNode sourceDoc;
             try {
-                sourceDoc = parseXmlDocument(xmlContent);
+                sourceDoc = parseXmlDocument(processor, xmlContent);
             } catch (SaxonApiException e) {
                 return inputFailure(e);
             }
             transformer.setInitialContextNode(sourceDoc);
 
             StringWriter outputWriter = new StringWriter();
-            transformer.setDestination(saxonProcessor.newSerializer(outputWriter));
+            transformer.setDestination(processor.newSerializer(outputWriter));
             configureSerializer(transformer.getDestination(), outputFormat);
 
             TransformationProfile profile = new TransformationProfile();
@@ -564,13 +623,58 @@ public class XsltTransformationEngine {
             logger.error("Unexpected error during debug XSLT transformation", e);
             return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
         } finally {
-            this.enableDebugging = priorDebug;
-            cfg.setLineNumbering(priorLineNumbering);
             // Mark session done so the UI re-enables Run-Debug
             if (session.getState() != DebugSession.State.STOPPED) {
                 session.close();
             }
         }
+    }
+
+    /**
+     * Compiles a stylesheet for an interactive debug run: tracing on, line numbers on (the
+     * debug processor's configuration), systemId set so includes resolve and every module
+     * reports its own location. Never cached — each debug run reflects the file as it is now.
+     */
+    private XsltExecutable compileForDebug(Processor processor, String xsltContent, String xsltSystemId,
+                                           XsltDebugMessageListener messageListener)
+            throws StylesheetCompileException {
+        XsltCompiler compiler = processor.newXsltCompiler();
+        compiler.setXsltLanguageVersion("3.0");
+        List<XmlProcessingError> staticErrors = new ArrayList<>();
+        compiler.setErrorReporter(collectStaticErrors(staticErrors, messageListener));
+        compiler.setCompileWithTracing(true);
+
+        StreamSource source = new StreamSource(new StringReader(xsltContent));
+        if (xsltSystemId != null && !xsltSystemId.isBlank()) {
+            source.setSystemId(xsltSystemId);
+        }
+        try {
+            return compiler.compile(source);
+        } catch (SaxonApiException e) {
+            StylesheetCompileException failure = compileFailure(staticErrors, e);
+            logger.warn("Failed to compile XSLT stylesheet for debugging: {}", failure.getMessage());
+            throw failure;
+        }
+    }
+
+    /**
+     * An error reporter that collects the static errors (de-duplicated by location, code and
+     * message — Saxon may report the same error more than once) and optionally forwards
+     * compile-time warnings to a message listener.
+     */
+    private static net.sf.saxon.lib.ErrorReporter collectStaticErrors(List<XmlProcessingError> staticErrors,
+                                                                      XsltDebugMessageListener warnings) {
+        java.util.Set<String> seenErrors = new java.util.HashSet<>();
+        return error -> {
+            if (error.isWarning()) {
+                if (warnings != null) {
+                    warnings.reportError(error);
+                }
+            } else if (seenErrors.add(at(error) + bracket(localCode(error.getErrorCode()))
+                    + error.getMessage())) {
+                staticErrors.add(error);
+            }
+        };
     }
 
     /**
@@ -984,16 +1088,9 @@ public class XsltTransformationEngine {
         compiler.setXsltLanguageVersion("3.0");
         // Collect the static errors: the SaxonApiException thrown by compile() only says
         // "Errors were reported during stylesheet compilation" — the reasons and locations
-        // are delivered to the error reporter. Saxon may report the same error more than
-        // once, so de-duplicate by location, code and message.
+        // are delivered to the error reporter.
         List<XmlProcessingError> staticErrors = new ArrayList<>();
-        java.util.Set<String> seenErrors = new java.util.HashSet<>();
-        compiler.setErrorReporter(error -> {
-            if (!error.isWarning() && seenErrors.add(at(error) + bracket(localCode(error.getErrorCode()))
-                    + error.getMessage())) {
-                staticErrors.add(error);
-            }
-        });
+        compiler.setErrorReporter(collectStaticErrors(staticErrors, null));
 
         // CRITICAL: Enable tracing when debugging is enabled
         // This is required for TraceListener to receive events
@@ -1003,6 +1100,9 @@ public class XsltTransformationEngine {
         }
 
         StreamSource source = new StreamSource(new StringReader(xsltContent));
+        if (context.getXsltSystemId() != null && !context.getXsltSystemId().isBlank()) {
+            source.setSystemId(context.getXsltSystemId());
+        }
         XsltExecutable executable;
         try {
             executable = compiler.compile(source);
@@ -1104,8 +1204,20 @@ public class XsltTransformationEngine {
     }
 
     private XdmNode parseXmlDocument(String xmlContent) throws SaxonApiException {
-        DocumentBuilder builder = saxonProcessor.newDocumentBuilder();
+        return parseXmlDocument(saxonProcessor, xmlContent);
+    }
+
+    private static XdmNode parseXmlDocument(Processor processor, String xmlContent) throws SaxonApiException {
+        return parseXmlDocument(processor, xmlContent, null);
+    }
+
+    private static XdmNode parseXmlDocument(Processor processor, String xmlContent, String baseUri)
+            throws SaxonApiException {
+        DocumentBuilder builder = processor.newDocumentBuilder();
         StreamSource source = new StreamSource(new StringReader(sanitizeXmlPrologue(xmlContent)));
+        if (baseUri != null && !baseUri.isBlank()) {
+            source.setSystemId(baseUri);
+        }
         return builder.build(source);
     }
 
@@ -1144,6 +1256,11 @@ public class XsltTransformationEngine {
 
     private void configureTransformer(XsltTransformer transformer, Map<String, Object> parameters,
                                       OutputFormat outputFormat) throws SaxonApiException {
+        configureTransformer(transformer, parameters, outputFormat, enableDebugging);
+    }
+
+    private void configureTransformer(XsltTransformer transformer, Map<String, Object> parameters,
+                                      OutputFormat outputFormat, boolean debug) throws SaxonApiException {
 
         // Set parameters
         if (parameters != null && !parameters.isEmpty()) {
@@ -1158,7 +1275,7 @@ public class XsltTransformationEngine {
         transformer.setParameter(new QName("method"), new XdmAtomicValue(outputFormat.getSaxonMethod()));
 
         // Configure for debugging if enabled
-        if (enableDebugging) {
+        if (debug) {
             // Add debugging configuration
             transformer.setParameter(new QName("debug-mode"), new XdmAtomicValue(true));
         }
@@ -1334,14 +1451,26 @@ public class XsltTransformationEngine {
         private final Map<String, Object> parameters;
         private final OutputFormat outputFormat;
         private final LocalDateTime createdAt;
+        /** The stylesheet's location (file URI) for include resolution, or {@code null}. */
+        private final String xsltSystemId;
+        /** The source document's base URI for relative {@code document()} calls, or {@code null}. */
+        private final String xmlBaseUri;
 
         public TransformationContext(String xmlContent, String xsltContent,
                                      Map<String, Object> parameters, OutputFormat outputFormat) {
+            this(xmlContent, xsltContent, parameters, outputFormat, null, null);
+        }
+
+        public TransformationContext(String xmlContent, String xsltContent,
+                                     Map<String, Object> parameters, OutputFormat outputFormat,
+                                     String xsltSystemId, String xmlBaseUri) {
             this.xmlContent = xmlContent;
             this.xsltContent = xsltContent;
             this.parameters = parameters != null ? new HashMap<>(parameters) : new HashMap<>();
             this.outputFormat = outputFormat;
             this.createdAt = LocalDateTime.now();
+            this.xsltSystemId = xsltSystemId;
+            this.xmlBaseUri = xmlBaseUri;
         }
 
         public String getCacheKey() {
@@ -1350,7 +1479,17 @@ public class XsltTransformationEngine {
         }
 
         public String getStylesheetCacheKey() {
-            return "stylesheet_" + xsltContent.hashCode();
+            // Same text at another location resolves includes differently — keep them apart.
+            return "stylesheet_" + xsltContent.hashCode()
+                    + (xsltSystemId == null ? "" : "_" + xsltSystemId.hashCode());
+        }
+
+        public String getXsltSystemId() {
+            return xsltSystemId;
+        }
+
+        public String getXmlBaseUri() {
+            return xmlBaseUri;
         }
 
         // Getters

@@ -91,37 +91,102 @@ public class FOPService {
      */
     public File createPdfFile(File xmlFile, File xslFile, File pdfOutput, PDFSettings pdfSettings,
                               String subject, boolean pdfACompliant) throws FOPServiceException {
+        XsltTransformationResult fo = transformToFo(xmlFile, xslFile, pdfSettings.customParameter());
+        if (!fo.isSuccess()) {
+            throw new FOPServiceException("Failed to transform XML using XSL stylesheet: " + fo.getErrorMessage(),
+                    new javax.xml.transform.TransformerException(fo.getErrorMessage()));
+        }
+        renderFo(fo.getOutputContent(), pdfOutput, pdfSettings, subject, pdfACompliant, null);
+        return pdfOutput;
+    }
 
+    /**
+     * Stage 1 of PDF generation: runs the XSL(-FO) stylesheet over the XML with Saxon and
+     * returns the intermediate XSL-FO document together with every {@code xsl:message} and
+     * warning the run produced. A failed transformation is reported in the result (not
+     * thrown), so callers can show the error with its stylesheet location.
+     *
+     * @param customParameters stylesheet parameters in addition to the defaults
+     *                         ({@code currentDate}, {@code author}); may be {@code null}
+     * @throws FOPServiceException if either input file does not exist or cannot be read
+     */
+    public XsltTransformationResult transformToFo(File xmlFile, File xslFile, Map<String, String> customParameters)
+            throws FOPServiceException {
         if (!xmlFile.exists()) {
             throw new FOPServiceException("XML file does not exist: " + xmlFile.getAbsolutePath());
         }
         if (!xslFile.exists()) {
             throw new FOPServiceException("XSL file does not exist: " + xslFile.getAbsolutePath());
         }
-
         setDefaultParameter();
+        Map<String, Object> parameters = new HashMap<>(defaultParameter);
+        if (customParameters != null) {
+            parameters.putAll(customParameters);
+        }
+        String xml;
+        String xsl;
         try {
-            logger.debug("XML Input: {}", xmlFile);
-            logger.debug("Stylesheet: {}", xslFile);
-            logger.debug("PDF Output: {}", pdfOutput);
-            logger.debug("Transforming...");
+            xml = Files.readString(xmlFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+            xsl = Files.readString(xslFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new FOPServiceException("I/O error while reading the inputs: " + e.getMessage(), e);
+        }
+        logger.debug("Transforming {} with {} to XSL-FO", xmlFile, xslFile);
+        return XsltTransformationEngine.getInstance().transform(xml, xsl,
+                xslFile.toURI().toString(), xmlFile.toURI().toString(),
+                parameters, XsltTransformationEngine.OutputFormat.XML);
+    }
 
+    /**
+     * Stage 2 of PDF generation: renders an XSL-FO document to {@code pdfOutput} with Apache
+     * FOP. FOP's events (substituted fonts, overflowing content, unknown properties, …) are
+     * passed to {@code events} as they occur and returned.
+     *
+     * @param foXml         the XSL-FO document
+     * @param pdfSettings   PDF metadata (producer, author, creator, title, keywords)
+     * @param subject       the PDF subject metadata, or {@code null}/empty to skip
+     * @param pdfACompliant render in PDF/A-1b mode (requires embeddable fonts)
+     * @param events        optional live sink for FOP events, may be {@code null}
+     * @return every event FOP raised while rendering
+     * @throws FOPServiceException if the FO is malformed, FOP rejects it, or the file cannot be written
+     */
+    public java.util.List<FopEvent> renderFo(String foXml, File pdfOutput, PDFSettings pdfSettings,
+                                             String subject, boolean pdfACompliant,
+                                             java.util.function.Consumer<FopEvent> events) throws FOPServiceException {
+        java.util.List<FopEvent> collected = java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+        try {
             final FopFactory fopFactory = createSecureFopFactory(new File(".").toURI(), pdfACompliant);
             FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-            if (!pdfSettings.producer().isEmpty()) {
-                foUserAgent.setProducer(pdfSettings.producer());
-            }
-            if (!pdfSettings.author().isEmpty()) {
-                foUserAgent.setAuthor(pdfSettings.author());
-            }
-            if (!pdfSettings.creator().isEmpty()) {
-                foUserAgent.setCreator(pdfSettings.creator());
-            }
-            if (!pdfSettings.title().isEmpty()) {
-                foUserAgent.setTitle(pdfSettings.title());
-            }
-            if (!pdfSettings.keywords().isEmpty()) {
-                foUserAgent.setKeywords(pdfSettings.keywords());
+            foUserAgent.getEventBroadcaster().addEventListener(event -> {
+                FopEvent fopEvent = new FopEvent(
+                        event.getSeverity() == null ? "INFO" : event.getSeverity().getName(),
+                        event.getEventID(),
+                        org.apache.fop.events.EventFormatter.format(event));
+                collected.add(fopEvent);
+                if (events != null) {
+                    try {
+                        events.accept(fopEvent);
+                    } catch (RuntimeException e) {
+                        logger.debug("FOP event sink failed: {}", e.getMessage());
+                    }
+                }
+            });
+            if (pdfSettings != null) {
+                if (!pdfSettings.producer().isEmpty()) {
+                    foUserAgent.setProducer(pdfSettings.producer());
+                }
+                if (!pdfSettings.author().isEmpty()) {
+                    foUserAgent.setAuthor(pdfSettings.author());
+                }
+                if (!pdfSettings.creator().isEmpty()) {
+                    foUserAgent.setCreator(pdfSettings.creator());
+                }
+                if (!pdfSettings.title().isEmpty()) {
+                    foUserAgent.setTitle(pdfSettings.title());
+                }
+                if (!pdfSettings.keywords().isEmpty()) {
+                    foUserAgent.setKeywords(pdfSettings.keywords());
+                }
             }
             if (subject != null && !subject.isEmpty()) {
                 foUserAgent.setSubject(subject);
@@ -132,33 +197,23 @@ public class FOPService {
                 rendererOptions.put("pdf-a-mode", "PDF/A-1b");
             }
 
-            Files.createDirectories(pdfOutput.toPath().getParent());
+            Files.createDirectories(pdfOutput.toPath().toAbsolutePath().getParent());
 
             // Use try-with-resources to ensure OutputStream is always closed
             try (OutputStream out = new BufferedOutputStream(new FileOutputStream(pdfOutput))) {
                 Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
-
+                // Feed the FO document to FOP's SAX handler through an identity transformation.
                 TransformerFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureTransformerFactory();
-                Transformer transformer = factory.newTransformer(new StreamSource(xslFile));
-
-                for (Map.Entry<String, String> entry : defaultParameter.entrySet()) {
-                    logger.debug("Set default parameter: '{}' - '{}'", entry.getKey(), entry.getValue());
-                    transformer.setParameter(entry.getKey(), entry.getValue());
-                }
-
-                for (Map.Entry<String, String> entry : pdfSettings.customParameter().entrySet()) {
-                    logger.debug("Set individual parameter: '{}' - '{}'", entry.getKey(), entry.getValue());
-                    transformer.setParameter(entry.getKey(), entry.getValue());
-                }
-                Source src = new StreamSource(xmlFile);
+                Transformer identity = factory.newTransformer();
+                Source src = new StreamSource(new java.io.StringReader(foXml == null ? "" : foXml));
                 Result res = new SAXResult(fop.getDefaultHandler());
-                transformer.transform(src, res);
+                identity.transform(src, res);
             } // OutputStream is automatically closed here, even if exception occurs
 
             logger.debug("PDF generation completed successfully: {}", pdfOutput);
         } catch (javax.xml.transform.TransformerException e) {
-            logger.error("XSLT transformation failed", e);
-            throw new FOPServiceException("Failed to transform XML using XSL stylesheet: " + e.getMessage(), e);
+            logger.error("FO processing failed", e);
+            throw new FOPServiceException("FOP processing error: " + rootMessage(e), e);
         } catch (org.apache.fop.apps.FOPException e) {
             logger.error("FOP processing failed", e);
             throw new FOPServiceException("FOP processing error: " + e.getMessage(), e);
@@ -169,7 +224,20 @@ public class FOPService {
             logger.error("Unexpected error during PDF generation", e);
             throw new FOPServiceException("Unexpected error during PDF generation: " + e.getMessage(), e);
         }
-        return pdfOutput;
+        return new java.util.ArrayList<>(collected);
+    }
+
+    /** FOP wraps its own exceptions into the SAX/Transformer failure; prefer the innermost text. */
+    private static String rootMessage(Throwable t) {
+        Throwable cause = t;
+        String message = t.getMessage();
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+            if (cause.getMessage() != null && !cause.getMessage().isBlank()) {
+                message = cause.getMessage();
+            }
+        }
+        return message;
     }
 
     /**

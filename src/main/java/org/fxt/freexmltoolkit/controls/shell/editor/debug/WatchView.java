@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -11,10 +12,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
+import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
 
-/** Add/remove XPath watch expressions, evaluated against the active XML on each pause. */
+/**
+ * Add/remove XPath watch expressions. On each pause they are evaluated against the paused
+ * context item and the variables in scope (via {@link WatchEvaluator}); while the run is not
+ * paused they read {@code <not paused>}.
+ */
 public class WatchView extends VBox {
 
     /** One watch row: the expression and its last evaluated value/error. */
@@ -32,7 +37,10 @@ public class WatchView extends VBox {
 
     private final TableView<WatchRow> table = new TableView<>();
     private final TextField input = new TextField();
-    private Supplier<String> xmlSupplier = () -> "";
+    private WatchEvaluator evaluator;
+    private PausedSnapshot lastSnapshot;
+    /** Bumped per evaluation so a slow earlier pass cannot overwrite a newer one. */
+    private int generation;
 
     public WatchView() {
         setSpacing(6);
@@ -47,7 +55,7 @@ public class WatchView extends VBox {
         table.setPlaceholder(new Label("No watches."));
         VBox.setVgrow(table, Priority.ALWAYS);
 
-        input.setPromptText("XPath to watch, e.g. count(//item)");
+        input.setPromptText("XPath against the paused context, e.g. count(item) or $total");
         HBox.setHgrow(input, Priority.ALWAYS);
         input.setOnAction(e -> addWatch());
         Button add = new Button("Add");
@@ -65,43 +73,73 @@ public class WatchView extends VBox {
         getChildren().addAll(title, table, new HBox(6, input, add, remove));
     }
 
-    /** Supplies the XML text watches are evaluated against (the active document). */
-    public void setXmlSupplier(Supplier<String> supplier) {
-        this.xmlSupplier = supplier == null ? () -> "" : supplier;
+    /** The evaluator bound to the debugged run's processor (set per session/launch). */
+    public void setEvaluator(WatchEvaluator evaluator) {
+        this.evaluator = evaluator;
+    }
+
+    /** Adds a watch programmatically (also used by tests). */
+    public void addWatch(String expression) {
+        if (expression == null || expression.isBlank()) {
+            return;
+        }
+        table.getItems().add(new WatchRow(expression.trim()));
+        evaluateAll(lastSnapshot);
     }
 
     private void addWatch() {
         String expr = input.getText();
-        if (expr == null || expr.isBlank()) {
-            return;
-        }
-        table.getItems().add(new WatchRow(expr.trim()));
         input.clear();
-        evaluateAll();
+        addWatch(expr);
     }
 
     /**
-     * Re-evaluates every watch against the current XML (call on each pause). The XPath
-     * evaluation runs off the FX thread; results are applied back on the FX thread.
+     * Re-evaluates every watch against {@code snapshot} (call on each pause; {@code null}
+     * marks the watches as not paused). The XPath evaluation runs off the FX thread;
+     * results are applied back on the FX thread.
      */
-    public void evaluateAll() {
-        final String xml = xmlSupplier.get();
-        final java.util.List<WatchRow> rows = new java.util.ArrayList<>(table.getItems());
+    public void evaluateAll(PausedSnapshot snapshot) {
+        this.lastSnapshot = snapshot;
+        final List<WatchRow> rows = new ArrayList<>(table.getItems());
+        if (rows.isEmpty()) {
+            return;
+        }
+        final WatchEvaluator eval = evaluator;
+        final int gen = ++generation;
+        if (snapshot == null || eval == null) {
+            for (WatchRow row : rows) {
+                row.value = "<not paused>";
+            }
+            table.refresh();
+            return;
+        }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            List<String> values = new ArrayList<>(rows.size());
             for (WatchRow row : rows) {
                 try {
-                    String result = ServiceRegistry.get(XmlService.class)
-                            .getXmlFromXpath(xml, row.expression);
-                    row.value = result == null ? "" : result;
+                    values.add(eval.evaluate(row.expression, snapshot));
                 } catch (Throwable t) {
-                    row.value = "ERROR: " + t.getMessage();
+                    values.add("ERROR: " + t.getMessage());
                 }
             }
-            javafx.application.Platform.runLater(table::refresh);
+            javafx.application.Platform.runLater(() -> {
+                if (gen != generation) {
+                    return;
+                }
+                for (int i = 0; i < rows.size(); i++) {
+                    rows.get(i).value = values.get(i);
+                }
+                table.refresh();
+            });
         });
     }
 
     public int getRowCount() {
         return table.getItems().size();
+    }
+
+    /** @return the current value text of the watch at {@code index} (for tests/observers). */
+    public String getValueAt(int index) {
+        return table.getItems().get(index).getValue();
     }
 }

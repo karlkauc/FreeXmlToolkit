@@ -813,6 +813,10 @@
     -fx-background-color: rgba(0, 123, 255, 0.05);
 }
 
+.xml-code-area .paragraph-text.debug-current-line {
+    -fx-background-color: rgba(255, 193, 7, 0.28);
+}
+
 /* Enhanced Auto-Completion Styles */
 .snippet-completion {
     -fx-text-fill: #6f42c1;

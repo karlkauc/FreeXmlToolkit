@@ -284,6 +284,12 @@
   -fx-background-color: -fxt-code-curline;
 }
 
+/* The XSLT debugger's paused line (declared after current-line so it wins on the caret line). */
+.root.fxt-theme-dark .code-area .debug-current-line,
+.root.fxt-theme-dark .code-area .paragraph-text.debug-current-line {
+  -fx-background-color: #4a3d12;
+}
+
 /* Plain text without a syntax class (element content such as <xs:documentation> text)
    would otherwise keep RichTextFX's default black fill. Declared BEFORE the syntax palette
    below so the equally specific syntax rules still win their ties. */

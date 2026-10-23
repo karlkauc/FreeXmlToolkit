@@ -21,6 +21,7 @@ public class BreakpointsView extends VBox {
     private final ListView<Breakpoint> list = new ListView<>();
     private final DebugSession session;
     private IntConsumer onJumpToLine = line -> { };
+    private java.util.function.Consumer<Breakpoint> onJumpToBreakpoint = bp -> { };
     private Runnable onChanged = () -> { };
 
     public BreakpointsView(DebugSession session) {
@@ -45,6 +46,7 @@ public class BreakpointsView extends VBox {
                 Breakpoint bp = list.getSelectionModel().getSelectedItem();
                 if (bp != null) {
                     onJumpToLine.accept(bp.lineNumber());
+                    onJumpToBreakpoint.accept(bp);
                 }
             }
         });
@@ -75,7 +77,8 @@ public class BreakpointsView extends VBox {
     /** Re-reads the breakpoints from the session into the list. */
     public final void refresh() {
         List<Breakpoint> sorted = new ArrayList<>(session.getBreakpoints());
-        sorted.sort(java.util.Comparator.comparingInt(Breakpoint::lineNumber));
+        sorted.sort(java.util.Comparator.comparing(Breakpoint::filePath)
+                .thenComparingInt(Breakpoint::lineNumber));
         list.getItems().setAll(sorted);
     }
 
@@ -85,6 +88,11 @@ public class BreakpointsView extends VBox {
 
     public void setOnJumpToLine(IntConsumer handler) {
         this.onJumpToLine = handler == null ? line -> { } : handler;
+    }
+
+    /** Breakpoint jump handler: receives the breakpoint so its own module can be opened. */
+    public void setOnJumpToBreakpoint(java.util.function.Consumer<Breakpoint> handler) {
+        this.onJumpToBreakpoint = handler == null ? bp -> { } : handler;
     }
 
     /** Invoked after the user removes/clears breakpoints (so the gutter can refresh). */

@@ -143,6 +143,7 @@ Convert XML into other formats:
 | **Live Preview** | See results as you work |
 | **Rendered HTML Results** | Open an HTML result as an editor tab showing the rendered page (Preview view) |
 | **Modern XSLT Support** | Uses the latest XSLT 3.0 standard |
+| **Interactive Debugger** | Breakpoints, stepping, variables, call stack and watches in a DEBUG dock below the stylesheet |
 | **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
 | **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
 
@@ -287,6 +288,8 @@ If the interface appears blurry or animations are slow, your system may be using
 | `F8` | Validate the current document |
 | `Ctrl+Enter` | Run the current transformation / query |
 | `F5` | Run the active XQuery / XPath / XSLT / XProc document |
+| `Shift+F5` | Debug with XSLT (the active XSLT document, or the Transform / PDF panel's stylesheet) |
+| `F5` / `F7` / `F8` / `Shift+F8` | While the XSLT debugger is paused: Continue / Step Into / Step Over / Step Out |
 | `F1` | Show the Help menu |
 | `F11` | Toggle full screen |
 | `Ctrl+T` | Insert a template |

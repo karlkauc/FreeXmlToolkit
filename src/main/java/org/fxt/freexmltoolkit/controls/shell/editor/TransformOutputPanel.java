@@ -144,6 +144,26 @@ public class TransformOutputPanel extends VBox {
                 "Transform failed", PanelStatus.strip(message), reportError);
     }
 
+    /**
+     * Shows a plain-text report (e.g. the messages and FOP events of a PDF generation)
+     * under {@code title} — neither a result nor an error, so no badge and no dialog.
+     */
+    public void showMessages(String title, String text) {
+        reveal();
+        statsText = "";
+        statusIcon.setIconLiteral("bi-info-circle");
+        statusIcon.getStyleClass().removeAll("sev-ok", "sev-error");
+        statusIcon.setVisible(true);
+        statusLabel.setText(title);
+        badge.setVisible(false);
+        lastResultFormat = OutputFormat.TEXT;
+        setToggleAvailable(previewToggle, false);
+        setToggleAvailable(tableToggle, false);
+        textToggle.setSelected(true);
+        updateContentView();
+        setOutputText(text, OutputFormat.TEXT);
+    }
+
     /** Shows an error or guard message (e.g. "No document open."). */
     public void showError(String message) {
         reveal();
@@ -390,22 +410,23 @@ public class TransformOutputPanel extends VBox {
 
     // ----- visibility ---------------------------------------------------------
 
-    /** Un-hides the panel (every run re-shows it after a ✕). */
+    /** Key of this panel in the editor's bottom dock. */
+    public static final String DOCK_KEY = "output";
+
+    /** Un-hides the panel (every run re-shows it after a ✕) and brings it to the front of the dock. */
     private void reveal() {
-        setVisible(true);
-        setManaged(true);
+        editorHost.bottomDock().show(DOCK_KEY);
     }
 
-    /** Hides the panel (the ✕ header action); the next run re-shows it. */
+    /** Hides the dock (the ✕ header action); the next run re-shows it. */
     @FXML
     public void hide() {
-        setVisible(false);
-        setManaged(false);
+        editorHost.bottomDock().hide();
     }
 
-    /** @return {@code true} while the panel is docked visible below the editor. */
+    /** @return {@code true} while the panel is docked visible below the editor (and in front). */
     public boolean isShowing() {
-        return isVisible();
+        return editorHost.bottomDock().isShowing(DOCK_KEY);
     }
 
     // ----- accessors (TransformPanel delegates / tests) -----------------------

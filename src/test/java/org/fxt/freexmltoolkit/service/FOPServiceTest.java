@@ -748,4 +748,68 @@ class FOPServiceTest {
                         exception.getMessage().contains("Intentional transformation error"),
                 "Exception message should indicate transformation error: " + exception.getMessage());
     }
+
+    @Test
+    @DisplayName("transformToFo and renderFo are the two stages of createPdfFile")
+    void testTwoStageGeneration() throws Exception {
+        Path xmlFile = tempDir.resolve("stage.xml");
+        Path xslFile = tempDir.resolve("stage.xsl");
+        Files.writeString(xmlFile, "<document><title>Stage</title></document>");
+        Files.writeString(xslFile, """
+                <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                                xmlns:fo="http://www.w3.org/1999/XSL/Format">
+                  <xsl:param name="page-size" select="'A4'"/>
+                  <xsl:template match="/">
+                    <xsl:message>size=<xsl:value-of select="$page-size"/></xsl:message>
+                    <fo:root>
+                      <fo:layout-master-set>
+                        <fo:simple-page-master master-name="p" page-height="297mm" page-width="210mm">
+                          <fo:region-body/>
+                        </fo:simple-page-master>
+                      </fo:layout-master-set>
+                      <fo:page-sequence master-reference="p">
+                        <fo:flow flow-name="xsl-region-body"><fo:block><xsl:value-of select="document/title"/></fo:block></fo:flow>
+                      </fo:page-sequence>
+                    </fo:root>
+                  </xsl:template>
+                </xsl:stylesheet>
+                """);
+        HashMap<String, String> params = new HashMap<>();
+        params.put("page-size", "Letter");
+
+        XsltTransformationResult fo = fopService.transformToFo(xmlFile.toFile(), xslFile.toFile(), params);
+        assertTrue(fo.isSuccess(), fo.getErrorMessage());
+        assertTrue(fo.getOutputContent().contains("Stage"));
+        assertEquals(1, fo.getMessages().size());
+        assertEquals("size=Letter", fo.getMessages().get(0).getMessage(), "custom parameters reach the stylesheet");
+
+        File pdf = tempDir.resolve("stage.pdf").toFile();
+        java.util.List<FopEvent> events = fopService.renderFo(fo.getOutputContent(), pdf,
+                new PDFSettings(new HashMap<>(), "", "", "", "", "Stage", ""), null, false, null);
+        assertTrue(pdf.exists() && pdf.length() > 0);
+        assertNotNull(events);
+
+        FOPServiceException bad = assertThrows(FOPServiceException.class,
+                () -> fopService.renderFo("<not-fo/>", tempDir.resolve("bad.pdf").toFile(),
+                        new PDFSettings(new HashMap<>(), "", "", "", "", "", ""), null, false, null));
+        assertTrue(bad.getMessage().contains("FOP processing error"), bad.getMessage());
+    }
+
+    @Test
+    @DisplayName("A stylesheet error is reported in the FO result with its location, not thrown")
+    void testTransformToFoReportsStylesheetErrors() throws Exception {
+        Path xmlFile = tempDir.resolve("e.xml");
+        Path xslFile = tempDir.resolve("e.xsl");
+        Files.writeString(xmlFile, "<d/>");
+        Files.writeString(xslFile, """
+                <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/"><x><xsl:value-of select="1 +"/></x></xsl:template>
+                </xsl:stylesheet>
+                """);
+        XsltTransformationResult fo = fopService.transformToFo(xmlFile.toFile(), xslFile.toFile(), null);
+        assertFalse(fo.isSuccess());
+        assertNotNull(fo.getErrorMessage());
+        assertTrue(fo.getErrorMessage().contains("e.xsl") || fo.getErrorMessage().contains("line"),
+                "the error names the stylesheet location: " + fo.getErrorMessage());
+    }
 }
