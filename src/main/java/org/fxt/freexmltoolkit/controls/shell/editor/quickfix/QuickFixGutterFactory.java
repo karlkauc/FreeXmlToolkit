@@ -7,6 +7,8 @@ import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 
 import org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion;
@@ -15,6 +17,10 @@ import org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion;
  * Renders a clickable lightbulb in the editor gutter on every line that has at
  * least one validation problem with quick fixes. Clicking it opens the
  * {@link QuickFixPopup} anchored at the icon.
+ *
+ * <p>Reacts on {@code MOUSE_PRESSED} and consumes it: a press that reached the
+ * {@code CodeArea} would move the caret, re-style the line and rebuild its gutter cell
+ * before the release, so a {@code MOUSE_CLICKED} handler would never fire.</p>
  */
 public final class QuickFixGutterFactory implements IntFunction<Node> {
 
@@ -55,7 +61,10 @@ public final class QuickFixGutterFactory implements IntFunction<Node> {
         Tooltip.install(pane, new Tooltip(fixes.size() == 1
                 ? "Quick fix: " + fixes.get(0).title()
                 : fixes.size() + " quick fixes available"));
-        pane.setOnMouseClicked(event -> {
+        pane.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
+            if (event.getButton() != MouseButton.PRIMARY) {
+                return;
+            }
             Bounds bounds = pane.localToScreen(pane.getBoundsInLocal());
             if (bounds != null && clickHandler != null) {
                 clickHandler.onLightbulbClicked(line, fixes, bounds.getMinX(), bounds.getMaxY());

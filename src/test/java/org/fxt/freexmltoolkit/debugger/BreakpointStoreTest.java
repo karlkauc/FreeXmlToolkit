@@ -1,0 +1,70 @@
+package org.fxt.freexmltoolkit.debugger;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
+/** Round-trips the persisted breakpoint format and keys stylesheets apart. */
+class BreakpointStoreTest {
+
+    @Test
+    void formatAndParseRoundTrip() {
+        List<Breakpoint> breakpoints = List.of(
+                new Breakpoint("/tmp/a.xsl", 4, true),
+                new Breakpoint("/tmp/lib/b.xsl", 12, false),
+                new Breakpoint("", 7, true));
+        String stored = BreakpointStore.format(breakpoints);
+        Set<Breakpoint> parsed = BreakpointStore.parse(stored);
+        assertEquals(Set.copyOf(breakpoints), parsed);
+    }
+
+    @Test
+    void emptyAndMalformedInputYieldNoBreakpoints() {
+        assertTrue(BreakpointStore.parse(null).isEmpty());
+        assertTrue(BreakpointStore.parse("").isEmpty());
+        assertEquals("", BreakpointStore.format(List.of()));
+        assertTrue(BreakpointStore.parse("garbage").isEmpty(), "an entry without a line is skipped");
+        assertEquals(1, BreakpointStore.parse("garbage\n/tmp/a.xsl\t3\ttrue").size(), "valid entries survive");
+    }
+
+    @Test
+    void keysDependOnTheNormalizedStylesheetPath() {
+        String a = BreakpointStore.key("/tmp/a.xsl");
+        assertEquals(a, BreakpointStore.key("file:/tmp/a.xsl"), "URI and path spellings share a key");
+        assertNotEquals(a, BreakpointStore.key("/tmp/b.xsl"));
+        assertTrue(a.startsWith(BreakpointStore.KEY_PREFIX));
+    }
+
+    @Test
+    void groupByFileSplitsAFilesBreakpointsUnderItsOwnKey() {
+        List<Breakpoint> all = List.of(
+                new Breakpoint("/tmp/main.xsl", 4, true),
+                new Breakpoint("/tmp/lib/b.xsl", 12, false),
+                new Breakpoint("/tmp/main.xsl", 9, true),
+                new Breakpoint("", 7, true));
+        var grouped = BreakpointStore.groupByFile(all, List.of("file:/tmp/main.xsl", "/tmp/lib/c.xsl"));
+
+        assertEquals(Set.of("/tmp/main.xsl", "/tmp/lib/b.xsl", "/tmp/lib/c.xsl"), grouped.keySet(),
+                "every file with a breakpoint plus every known file; the in-memory entry is dropped");
+        assertEquals(Set.of(all.get(0), all.get(2)), grouped.get("/tmp/main.xsl"));
+        assertEquals(Set.of(all.get(1)), grouped.get("/tmp/lib/b.xsl"));
+        assertTrue(grouped.get("/tmp/lib/c.xsl").isEmpty(), "a known file without breakpoints is cleared");
+    }
+
+    @Test
+    void saveByFileWithoutPropertiesServiceIsNotAnError() {
+        assertDoesNotThrow(() -> BreakpointStore.saveByFile(
+                List.of(new Breakpoint("/tmp/never-debugged.xsl", 2, true)), List.of("/tmp/never-debugged.xsl")));
+    }
+
+    @Test
+    void loadWithoutPropertiesServiceIsEmptyNotAnError() {
+        // The ServiceRegistry may or may not be initialised in a unit-test JVM; either way
+        // loading must not throw and saving must be a no-op or succeed silently.
+        assertDoesNotThrow(() -> BreakpointStore.save("/tmp/never-debugged.xsl", List.of()));
+        assertNotNull(BreakpointStore.load("/tmp/never-debugged.xsl"));
+    }
+}

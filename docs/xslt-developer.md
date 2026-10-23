@@ -336,43 +336,83 @@ shows the sequence of **template matches** and all `xsl:message` output:
 
 ## Interactive Live Debugger
 
-**Debug XSLT…** (Transform panel, **OPTIONS & TOOLS** section) starts a full interactive debugger that lets
-you pause a transformation, step through your stylesheet, and inspect state - similar to
-debugging in an IDE. It opens the stylesheet as a document with a **breakpoint gutter** and
-a **Debug** tool tab.
+**Debug** (Transform panel, next to **Run Transform**), **Tools → Debug with XSLT…**, the
+**Transform ▾** toolbar menu, **Run ▾ → Debug Transform** (active XSLT document) or **Shift+F5**
+start a full interactive debugger that lets you pause a transformation, step through your
+stylesheet, and inspect state - similar to debugging in an IDE. It opens the stylesheet as a
+document (every saved stylesheet already shows its **breakpoint gutter**, see below) and the
+**DEBUG** dock *below* the editor, so the stylesheet stays visible while you step. The dock shares its space with the OUTPUT panel
+(**OUTPUT | DEBUG** strip).
+
+The debugger runs the **saved** stylesheet file - a new, unsaved stylesheet must be saved first
+(relative `xsl:include` / `xsl:import` hrefs resolve, every module reports its own location). It
+uses a Saxon processor of its own, so a normal transformation started during a paused session is
+not affected. Started from the Transform panel, the input is the panel's **INPUT** (the file set
+there, otherwise the active document) - exactly as for **Run Transform**; started with
+**Run ▾ → Debug Transform** on an XSLT document, it is the toolbar's **Input** target.
 
 ### Setting Breakpoints
 
-- Click the slot in the editor's left margin (gutter) next to a line to toggle a red breakpoint.
-- The **Breakpoints** panel lists every breakpoint with an enable/disable checkbox and a delete
-  button. Double-click an entry to jump to that line.
+- Every **saved** XSLT document has a breakpoint gutter in the editor's left margin, whether or
+  not the debugger is running: click the slot next to a line to toggle a red breakpoint. The
+  click does not move the caret. Set your breakpoints first, then start the debugger - the run
+  stops at the first one instead of pausing on entry. An unsaved stylesheet has no gutter
+  (the debugger runs the saved file).
+- Breakpoints match the **file and line**, so a line in `lib/a.xsl` never triggers a breakpoint
+  set in another `a.xsl`.
+- Breakpoints are **persisted per file**: they are back when you reopen or debug the same file,
+  they survive **Restart**, and they stay in the gutter after the session ends.
+- Breakpoints in **included modules** count too: open `lib/a.xsl`, set a breakpoint, debug the
+  main stylesheet - the run pauses there. The debugger scans the main stylesheet's
+  `xsl:include` / `xsl:import` hrefs at start to pick them up; a module it could not find that
+  way joins as soon as it is opened during the session (pause, jump, or opening it yourself).
+- The **Breakpoints** panel lists every breakpoint of the session (file · line) with **Remove**
+  and **Clear all**. Double-click an entry to jump to that line.
+- Breakpoints are anchored to line numbers: inserting or deleting lines above one does not move it.
 
-### Step Controls
+### Starting and Stepping
 
-The Debug tab provides standard execution controls:
+Without breakpoints the run **pauses at the first instruction** (**Pause on entry**, a toggle in
+the header - switch it off to run straight to the first breakpoint). The header controls:
 
-| Control | Description |
-|---------|-------------|
-| **Continue** | Resume until the next breakpoint |
-| **Step Into** | Step into the current instruction |
-| **Step Over** | Execute the current instruction without descending |
-| **Step Out** | Run until the current template/function returns |
-| **Stop** | Terminate the debug session |
-| **Show in editor** | Jump the editor to the currently paused line |
+| Control | Key | Description |
+|---------|-----|-------------|
+| **Continue** | F5 | Resume until the next breakpoint |
+| **Step Into** | F7 | Step into the current instruction |
+| **Step Over** | F8 | Execute the current instruction without descending |
+| **Step Out** | Shift+F8 | Run until the current template/function returns |
+| **Restart** | | Run again from the start with the same breakpoints; the stylesheet is re-read from disk, so edits you saved meanwhile are picked up |
+| **Stop** | | Abort the running transformation |
+| **Show in editor** | | Jump the editor to the currently paused line |
+| **✕** | | End the session and close the DEBUG dock (OUTPUT stays) |
 
-A green arrow in the gutter marks the line currently executing; a hit breakpoint shows a yellow
-arrow over the red circle.
+The keys only act while the debugger is paused; otherwise F5 and F8 keep their usual meaning.
+The paused line is **tinted** in the editor and a green arrow marks it in the gutter; a hit
+breakpoint shows a yellow arrow over the red circle.
 
 ### Inspecting State
 
-When execution is paused, four panels show the live state of the transformation:
+When execution is paused, five panels show the live state of the transformation:
 
 | Panel | Shows |
 |-------|-------|
-| **Variables** | Name, value, type, and scope (global/local) of every visible variable, plus the context item |
-| **Call Stack** | Active template/function frames with file name and line; double-click a frame to jump to it |
-| **Watch Expressions** | Custom XPath expressions you add to monitor specific values |
-| **Breakpoints** | All breakpoints, persisted across sessions |
+| **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order) |
+| **Call Stack** | Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module |
+| **Watch** | Your XPath expressions, evaluated **against the paused context item** with all variables in scope: `count(item)`, `$total`, `string(@id)`, `position()`; the stylesheet's namespace prefixes are available. Re-evaluated at every pause; errors are shown in the row |
+| **Messages** | `xsl:message` output and Saxon warnings **live, as they happen**, with their location; double-click jumps to the line. A failed run shows its error here too |
+| **Breakpoints** | All breakpoints of the session, see above |
+
+### The Result
+
+When the run ends the status reads *Finished · N ms · M chars → OUTPUT* and the result is shown
+in the **OUTPUT** panel. DEBUG stays in front so Messages remain readable - the OUTPUT toggle
+lights up to show it has new content. A stopped run shows *Stopped*, a failed one *Error: …*.
+
+### Debugging XSL-FO stylesheets
+
+The **PDF / FOP** panel's **TOOLS → Debug stylesheet…** runs an XSL-FO stylesheet in the same
+debugger (the page-size parameters are passed on). The FO it produces lands in OUTPUT and can be
+rendered with the panel's **Render PDF from FO…** - see [PDF Generator](pdf-generator.md).
 
 ---
 

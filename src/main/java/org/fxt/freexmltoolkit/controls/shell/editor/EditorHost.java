@@ -1795,19 +1795,31 @@ public class EditorHost extends BorderPane {
         UsageEvents.fileOpened(kind, chars, usageSource);
     }
 
-    /** The lazily created transform OUTPUT dock below the editor tabs, see {@link TransformOutputPanel}. */
+    /** The lazily created transform OUTPUT panel in the bottom dock, see {@link TransformOutputPanel}. */
     private TransformOutputPanel transformOutput;
+    /** The lazily created dock below the editor tabs hosting OUTPUT and the DEBUG pane. */
+    private EditorBottomDock bottomDock;
 
     /**
-     * The transform OUTPUT panel docked below the editor tabs (spans the editor
-     * column only — the inspector stays full height). Created lazily on first
-     * access and kept across activity switches so results survive them.
+     * The dock below the editor tabs (spans the editor column only — the inspector stays
+     * full height). Created lazily, hidden until a panel is shown.
+     */
+    public EditorBottomDock bottomDock() {
+        if (bottomDock == null) {
+            bottomDock = new EditorBottomDock();
+            setBottom(bottomDock);
+        }
+        return bottomDock;
+    }
+
+    /**
+     * The transform OUTPUT panel in the bottom dock. Created lazily on first access and
+     * kept across activity switches so results survive them.
      */
     public TransformOutputPanel transformOutputPanel() {
         if (transformOutput == null) {
             transformOutput = new TransformOutputPanel(this);
-            transformOutput.hide();
-            setBottom(transformOutput);
+            bottomDock().register(TransformOutputPanel.DOCK_KEY, transformOutput, "OUTPUT");
         }
         return transformOutput;
     }
@@ -1974,6 +1986,7 @@ public class EditorHost extends BorderPane {
             if (saved) {
                 et.document.setPath(normalized);
                 et.refreshIcon();
+                installBreakpointGutter(et);
                 UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
             }
             return saved;
@@ -3023,6 +3036,16 @@ public class EditorHost extends BorderPane {
         return et.view.setExtraGutterFactory(et.gutter.isEmpty() ? null : et.gutter);
     }
 
+    /** Tints the debugger's current execution line on a document's editor tab ({@code -1} clears). */
+    public void setDebugLineFor(OpenDocument document, int line) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document == document) {
+                et.view.setDebugCurrentLine(line);
+                return;
+            }
+        }
+    }
+
     /** Re-renders the gutter on a specific open document's editor tab (if open). */
     public void refreshGutterFor(OpenDocument document) {
         for (Tab tab : tabPane.getTabs()) {
@@ -3054,20 +3077,81 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    // ----- XSLT debugger ----------------------------------------------------
+
+    /** Key of the DEBUG pane in the bottom dock. */
+    public static final String DEBUG_DOCK_KEY = "debug";
+
+    /** A stylesheet module opened during a debug session, with its breakpoint gutter. */
+    private record DebugModule(OpenDocument document, org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory gutter) { }
+
+    /** Everything belonging to the one active debug session. */
+    private static final class XsltDebugSession {
+        final org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController controller;
+        final org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane pane;
+        final File mainFile;
+        final String mainPath;
+        /** Modules by normalised file path, the main stylesheet first. */
+        final java.util.Map<String, DebugModule> modules = new java.util.LinkedHashMap<>();
+        /** Normalised paths of the modules the main stylesheet includes/imports (static scan). */
+        final java.util.Set<String> resolvedModules;
+
+        XsltDebugSession(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController controller,
+                         org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane pane, File mainFile,
+                         java.util.Set<String> resolvedModules) {
+            this.controller = controller;
+            this.pane = pane;
+            this.mainFile = mainFile;
+            this.mainPath = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(mainFile.getAbsolutePath());
+            this.resolvedModules = java.util.Set.copyOf(resolvedModules);
+        }
+    }
+
+    private XsltDebugSession activeDebug;
+
+    /** @return {@code true} while an XSLT debug session is alive (its pane is in the dock). */
+    public boolean isDebugSessionActive() {
+        return activeDebug != null;
+    }
+
+    /** @return the DEBUG pane of the active session, or {@code null}. */
+    public org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane activeDebugPane() {
+        return activeDebug == null ? null : activeDebug.pane;
+    }
+
+    /**
+     * Routes the debugger keys (F5/F7/F8/Shift+F8 while paused) to the active session.
+     *
+     * @return {@code true} if the key was consumed by the debugger
+     */
+    public boolean handleDebugShortcut(javafx.scene.input.KeyEvent event) {
+        return activeDebug != null && activeDebug.pane.handleShortcut(event);
+    }
+
     /**
      * Launches an interactive XSLT debug session: opens the stylesheet as an editor
-     * document, attaches a breakpoint gutter, and opens the Debug tool tab.
+     * document with a breakpoint gutter, shows the DEBUG pane in the bottom dock (the
+     * stylesheet stays visible above it) and starts the run — paused at the first
+     * instruction unless breakpoints exist. Only one session at a time: starting another
+     * ends the current one first.
      */
     public void startXsltDebug(java.io.File xsltFile, String xml,
             java.util.Map<String, Object> parameters,
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format) {
-        // A Debug session mutates the singleton transformation-engine state; only one at a time.
-        // If a Debug tab is already open, bring it to the front instead of starting a second.
-        for (Tab t : tabPane.getTabs()) {
-            if (t.getContent() instanceof org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugView) {
-                tabPane.getSelectionModel().select(t);
-                return;
-            }
+        startXsltDebug(xsltFile, xml, parameters, format, null);
+    }
+
+    /**
+     * Like {@link #startXsltDebug(File, String, java.util.Map, org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat)},
+     * additionally handing every finished run's result to {@code onFinished} (FX thread) —
+     * the PDF/FOP panel uses it to pick up the XSL-FO a debugged stylesheet produced.
+     */
+    public void startXsltDebug(java.io.File xsltFile, String xml,
+            java.util.Map<String, Object> parameters,
+            org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format,
+            java.util.function.Consumer<org.fxt.freexmltoolkit.service.XsltTransformationResult> onFinished) {
+        if (activeDebug != null) {
+            endXsltDebug();
         }
 
         // 1. Open (or focus) the stylesheet as an editor document.
@@ -3079,10 +3163,8 @@ public class EditorHost extends BorderPane {
 
         // Read the stylesheet up front: if it cannot be read, surface a clear error and abort
         // rather than silently running Saxon on an empty stylesheet.
-        final String xsltContent;
         try {
-            xsltContent = java.nio.file.Files.readString(
-                    xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+            java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
         } catch (Exception e) {
             javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
                     javafx.scene.control.Alert.AlertType.ERROR, "XSLT Debug",
@@ -3094,53 +3176,298 @@ public class EditorHost extends BorderPane {
             return;
         }
 
-        // 2. Build the debug controller + gutter and attach the gutter to the XSLT tab.
+        // 2. Controller + session: restore the persisted breakpoints — the main stylesheet's
+        //    (plus any legacy aggregate stored under it) and those set in the editor on the
+        //    modules it includes — attach the gutter to the main module and to every module
+        //    already open, and pause on entry when there is nothing to stop at.
         var controller = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController();
+        var session = controller.getSession();
+        for (org.fxt.freexmltoolkit.debugger.Breakpoint bp
+                : org.fxt.freexmltoolkit.debugger.BreakpointStore.load(xsltFile.getAbsolutePath())) {
+            session.addBreakpoint(bp);
+        }
+        java.util.Set<String> resolvedModules =
+                org.fxt.freexmltoolkit.debugger.StylesheetModules.resolve(xsltFile.toPath());
+        for (String module : resolvedModules) {
+            mergeStoredBreakpoints(session, module);
+        }
+        controller.setPauseOnEntry(session.getBreakpoints().isEmpty());
+
+        var pane = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane(controller);
+        XsltDebugSession debug = new XsltDebugSession(controller, pane, xsltFile, resolvedModules);
+        activeDebug = debug;
+        attachDebugModule(debug, xsltDoc, debug.mainPath);
+        for (Tab tab : new java.util.ArrayList<>(tabPane.getTabs())) {
+            if (tab instanceof EditorTab et && et.document.getPath() != null) {
+                String path = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(et.document.getPath().toString());
+                if (resolvedModules.contains(path) && !debug.modules.containsKey(path)) {
+                    attachDebugModule(debug, et.document, path);
+                }
+            }
+        }
+
+        // 3. Wire the pane back to this host.
+        pane.setOnPaused(this::onDebugPaused);
+        pane.setOnShowInEditor(() -> {
+            var snap = session.getPausedSnapshot();
+            if (snap != null) {
+                jumpToDebugLocation(snap.filePath(), snap.lineNumber());
+            } else {
+                selectDocument(xsltDoc);
+            }
+        });
+        pane.setOnJumpToBreakpoint(bp -> jumpToDebugLocation(bp.filePath(), bp.lineNumber()));
+        pane.setOnJumpToFrame(frame -> jumpToDebugLocation(frame.filePath(), frame.lineNumber()));
+        pane.setOnJumpToMessage(msg -> {
+            if (msg.getLineNumber() > 0) {
+                jumpToDebugLocation(moduleForMessage(debug, msg.getLocation()), msg.getLineNumber());
+            }
+        });
+        pane.setOnBreakpointsChanged(() -> {
+            debug.modules.values().forEach(m -> refreshGutterFor(m.document()));
+            persistDebugBreakpoints(debug);
+        });
+        pane.setOnResult(result -> {
+            showDebugResult(debug, result);
+            if (onFinished != null && result != null) {
+                onFinished.accept(result);
+            }
+        });
+        pane.setOnClose(this::endXsltDebug);
+
+        bottomDock().register(DEBUG_DOCK_KEY, pane, "DEBUG");
+        bottomDock().show(DEBUG_DOCK_KEY);
+        selectDocument(xsltDoc);
+
+        // 4. Start the run: the stylesheet is re-read from disk on every (re)start.
+        controller.start(xml, () -> {
+            try {
+                return java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        }, xsltFile.toURI().toString(), parameters, format);
+    }
+
+    /** Ends the active debug session: stops the run, detaches gutters/highlights, removes the pane. */
+    public void endXsltDebug() {
+        XsltDebugSession debug = activeDebug;
+        if (debug == null) {
+            return;
+        }
+        activeDebug = null;
+        persistDebugBreakpoints(debug);
+        debug.controller.stop();
+        debug.controller.close();
+        debug.pane.dispose();
+        for (DebugModule module : debug.modules.values()) {
+            setDebugLineFor(module.document(), -1);
+            EditorTab tab = editorTabOf(module.document());
+            if (tab != null) {
+                // The session gutter goes; the file's own (persisted) gutter takes over again.
+                setGutterContributor(tab, "xslt-debugger", null);
+                installBreakpointGutter(tab);
+                tab.view.refreshGutter();
+            }
+        }
+        bottomDock().remove(DEBUG_DOCK_KEY);
+    }
+
+    /**
+     * Gives a saved XSLT document the standalone breakpoint gutter, backed by the file's
+     * persisted breakpoints ({@link org.fxt.freexmltoolkit.debugger.FileBreakpoints}), so
+     * breakpoints can be set before the debugger starts. No-op for other file types, unsaved
+     * documents, and modules a running debug session already owns; a module of the running
+     * session that is opened now joins the session instead (its gutter talks to the run).
+     */
+    private void installBreakpointGutter(EditorTab et) {
+        if (et.document.getFileType() != EditorFileType.XSLT || et.document.getPath() == null) {
+            return;
+        }
+        String path = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(et.document.getPath().toString());
+        if (activeDebug != null) {
+            if (activeDebug.modules.containsKey(path)) {
+                return;
+            }
+            if (activeDebug.resolvedModules.contains(path)) {
+                attachDebugModule(activeDebug, et.document, path);
+                return;
+            }
+        }
         var gutter = new org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory(
-                controller.getSession(), v -> refreshGutterFor(xsltDoc));
-        gutter.setFilePath(xsltFile.getAbsolutePath());
-        setGutterFactoryFor(xsltDoc, gutter);
+                org.fxt.freexmltoolkit.debugger.FileBreakpoints.persistent(et.document.getPath()),
+                v -> et.view.refreshGutter());
+        gutter.setFilePath(path);
+        if (setGutterContributor(et, "xslt-debugger", gutter)) {
+            et.view.refreshGutter();
+        }
+    }
 
-        // 3. Open the Debug tool tab; wire current-line + show-in-editor back to this host.
-        var debugView = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugView(
-                controller,
-                xsltFile.getAbsolutePath(),
-                () -> getActiveText().orElse(xml),
-                line -> { gutter.setCurrentExecutionLine(line); refreshGutterFor(xsltDoc); },
-                () -> {
-                    selectDocument(xsltDoc);
-                    int line = controller.getSession().getPausedSnapshot() != null
-                            ? controller.getSession().getPausedSnapshot().lineNumber() : 1;
-                    if (line > 0) {
-                        goToLine(line);
-                    }
+    /** @return the editor tab showing {@code document}, or {@code null}. */
+    private EditorTab editorTabOf(OpenDocument document) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document == document) {
+                return et;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Adds the breakpoints stored for {@code path} (set in the editor before the session, or in
+     * an earlier session) to {@code session}; a line the session already has is left alone.
+     */
+    private static void mergeStoredBreakpoints(org.fxt.freexmltoolkit.debugger.DebugSession session, String path) {
+        java.util.Set<org.fxt.freexmltoolkit.debugger.Breakpoint> present = session.getBreakpoints();
+        for (org.fxt.freexmltoolkit.debugger.Breakpoint bp
+                : org.fxt.freexmltoolkit.debugger.BreakpointStore.load(path)) {
+            if (!bp.filePath().equals(path)) {
+                continue; // a legacy aggregate from when this module was debugged as main
+            }
+            boolean known = present.stream().anyMatch(
+                    b -> b.filePath().equals(path) && b.lineNumber() == bp.lineNumber());
+            if (!known) {
+                session.addBreakpoint(bp);
+            }
+        }
+    }
+
+    /** Attaches a breakpoint gutter for {@code path} to {@code document} and records the module. */
+    private void attachDebugModule(XsltDebugSession debug, OpenDocument document, String path) {
+        if (!path.equals(debug.mainPath)) {
+            // An include opened during the session: pick up the breakpoints set on it in the editor.
+            mergeStoredBreakpoints(debug.controller.getSession(), path);
+        }
+        var gutter = new org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory(
+                debug.controller.getSession(), v -> {
+                    refreshGutterFor(document);
+                    debug.pane.getBreakpointsView().refresh();
+                    persistDebugBreakpoints(debug);
                 });
-        // Call-stack / breakpoint double-click must jump to the selected frame's own line,
-        // not the current pause line.
-        debugView.getCallStackView().setOnJumpToLine(line -> {
-            selectDocument(xsltDoc);
-            if (line > 0) {
-                goToLine(line);
-            }
-        });
-        debugView.getBreakpointsView().setOnJumpToLine(line -> {
-            selectDocument(xsltDoc);
-            if (line > 0) {
-                goToLine(line);
-            }
-        });
-        Tab debugTab = openToolTab("Debug", "bi-bug", debugView);
-        // Closing the Debug tab stops the session, detaches the listener and the gutter.
-        debugTab.setOnClosed(e -> {
-            controller.stop();
-            controller.close();
-            debugView.dispose();
-            setGutterFactoryFor(xsltDoc, null);
-            refreshGutterFor(xsltDoc);
-        });
+        gutter.setFilePath(path);
+        setGutterFactoryFor(document, gutter);
+        debug.modules.put(path, new DebugModule(document, gutter));
+    }
 
-        // 4. Start the run (any breakpoints set via the gutter are already on the session).
-        controller.start(xml, xsltContent, parameters, format);
+    /** Writes the session's breakpoints back, each file under its own key (modules without any are cleared). */
+    private void persistDebugBreakpoints(XsltDebugSession debug) {
+        java.util.Set<String> files = new java.util.LinkedHashSet<>();
+        files.add(debug.mainPath);
+        files.addAll(debug.resolvedModules);
+        files.addAll(debug.modules.keySet());
+        org.fxt.freexmltoolkit.debugger.BreakpointStore.saveByFile(
+                debug.controller.getSession().getBreakpoints(), files);
+    }
+
+    /**
+     * Marks the paused location in the editor: the module's tab is selected (opened first
+     * when Saxon paused inside an {@code xsl:include}/{@code xsl:import}), the line gets the
+     * gutter arrow and the execution-line tint. {@code null} clears the markers (run moved on).
+     */
+    private void onDebugPaused(org.fxt.freexmltoolkit.debugger.PausedSnapshot snapshot) {
+        XsltDebugSession debug = activeDebug;
+        if (debug == null) {
+            return;
+        }
+        String path = snapshot == null ? null : debugModulePath(debug, snapshot.filePath());
+        for (java.util.Map.Entry<String, DebugModule> entry : debug.modules.entrySet()) {
+            boolean here = snapshot != null && entry.getKey().equals(path);
+            entry.getValue().gutter().setCurrentExecutionLine(here ? snapshot.lineNumber() : -1);
+            setDebugLineFor(entry.getValue().document(), here ? snapshot.lineNumber() : -1);
+            refreshGutterFor(entry.getValue().document());
+        }
+        if (snapshot != null) {
+            jumpToDebugLocation(path, snapshot.lineNumber());
+        }
+    }
+
+    /** @return the module path for a pause/jump location — the main stylesheet when it is unknown. */
+    private static String debugModulePath(XsltDebugSession debug, String filePath) {
+        return filePath == null || filePath.isEmpty() ? debug.mainPath : filePath;
+    }
+
+    /** @return the module whose file name appears in a message's "file:line" location, else the main one. */
+    private static String moduleForMessage(XsltDebugSession debug, String location) {
+        if (location != null) {
+            for (String path : debug.modules.keySet()) {
+                String name = org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(path);
+                if (!name.isEmpty() && location.startsWith(name)) {
+                    return path;
+                }
+            }
+        }
+        return debug.mainPath;
+    }
+
+    /**
+     * Selects (opening it if needed) the module at {@code filePath} and moves the caret to
+     * {@code line}. A module opened for the first time loads asynchronously, so the jump is
+     * retried briefly until its text is in.
+     */
+    private void jumpToDebugLocation(String filePath, int line) {
+        XsltDebugSession debug = activeDebug;
+        if (debug == null) {
+            return;
+        }
+        String path = debugModulePath(debug, filePath);
+        DebugModule module = debug.modules.get(path);
+        if (module == null) {
+            File file = new File(path);
+            if (!file.isFile()) {
+                return;
+            }
+            openFile(file);
+            OpenDocument doc = getActiveDocument().orElse(null);
+            if (doc == null) {
+                return;
+            }
+            attachDebugModule(debug, doc, path);
+            module = debug.modules.get(path);
+            // A freshly opened include carries the current-line marker as well.
+            var snap = debug.controller.getSession().getPausedSnapshot();
+            if (snap != null && path.equals(debugModulePath(debug, snap.filePath()))) {
+                module.gutter().setCurrentExecutionLine(snap.lineNumber());
+                setDebugLineFor(doc, snap.lineNumber());
+            }
+        }
+        selectDocument(module.document());
+        if (line > 0) {
+            jumpWhenLoaded(module.document(), line, 10);
+        }
+    }
+
+    private void jumpWhenLoaded(OpenDocument document, int line, int attemptsLeft) {
+        boolean loaded = getActiveText().map(t -> !t.isEmpty()).orElse(false);
+        if (loaded || attemptsLeft <= 0) {
+            if (getActiveDocument().orElse(null) == document) {
+                goToLine(line);
+                refreshGutterFor(document);
+            }
+            return;
+        }
+        var retry = new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
+        retry.setOnFinished(e -> jumpWhenLoaded(document, line, attemptsLeft - 1));
+        retry.play();
+    }
+
+    /** Shows a debug run's result in OUTPUT without taking the DEBUG pane out of the front. */
+    private void showDebugResult(XsltDebugSession debug, org.fxt.freexmltoolkit.service.XsltTransformationResult result) {
+        if (activeDebug != debug || result == null) {
+            return;
+        }
+        boolean stopped = !result.isSuccess() && result.getErrorMessage() != null
+                && result.getErrorMessage().contains("stopped");
+        if (stopped) {
+            return;
+        }
+        TransformOutputPanel out = transformOutputPanel();
+        if (result.isSuccess()) {
+            out.showTransformResult(result.getOutputContent(), result.getOutputFormat(), result.getExecutionTime());
+        } else {
+            out.showError("ERROR: " + result.getErrorMessage());
+        }
+        bottomDock().select(DEBUG_DOCK_KEY);
+        bottomDock().markUpdated(TransformOutputPanel.DOCK_KEY);
     }
 
     // ----- internals -------------------------------------------------------
@@ -3170,6 +3497,7 @@ public class EditorHost extends BorderPane {
             }
         };
         tabPane.getTabs().add(tab);
+        installBreakpointGutter(tab);
         if (select) {
             tabPane.getSelectionModel().select(tab);
         }
@@ -4869,6 +5197,7 @@ public class EditorHost extends BorderPane {
         if (target != null && write(tab, relocateGeneratedSchemaReference(tab, target))) {
             tab.document.setPath(target);
             tab.refreshIcon();
+            installBreakpointGutter(tab);
             return true;
         }
         return false;

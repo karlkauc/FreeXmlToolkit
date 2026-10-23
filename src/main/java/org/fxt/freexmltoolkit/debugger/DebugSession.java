@@ -26,7 +26,7 @@ import org.apache.logging.log4j.Logger;
  * this thread-blocking pattern. Pauses can only happen at instruction
  * boundaries.</p>
  */
-public class DebugSession {
+public class DebugSession implements BreakpointTarget {
 
     private static final Logger logger = LogManager.getLogger(DebugSession.class);
 
@@ -60,13 +60,14 @@ public class DebugSession {
     }
 
     public void removeBreakpoint(String filePath, int line) {
-        breakpoints.removeIf(b -> b.lineNumber() == line
-                && (b.filePath() == null ? "" : b.filePath()).equals(filePath == null ? "" : filePath));
+        String fp = SourceLocations.normalize(filePath);
+        breakpoints.removeIf(b -> b.lineNumber() == line && b.filePath().equals(fp));
     }
 
     /** Toggle the breakpoint at {@code filePath:line}. Returns the new state (true = added). */
+    @Override
     public boolean toggleBreakpoint(String filePath, int line) {
-        String fp = filePath == null ? "" : filePath;
+        String fp = SourceLocations.normalize(filePath);
         synchronized (breakpoints) {
             Breakpoint existing = null;
             for (Breakpoint b : breakpoints) {
@@ -84,8 +85,9 @@ public class DebugSession {
         }
     }
 
+    @Override
     public boolean hasBreakpoint(String filePath, int line) {
-        String fp = filePath == null ? "" : filePath;
+        String fp = SourceLocations.normalize(filePath);
         synchronized (breakpoints) {
             for (Breakpoint b : breakpoints) {
                 if (b.lineNumber() == line && (b.filePath() == null ? "" : b.filePath()).equals(fp)) {
@@ -111,7 +113,16 @@ public class DebugSession {
     // ------------------------------------------------------------------
 
     public void startSession() {
-        stepMode = StepMode.NONE;
+        startSession(StepMode.NONE);
+    }
+
+    /**
+     * Starts (or restarts) the session with an initial step mode. {@link StepMode#STEP_INTO}
+     * makes the run pause at the very first traced instruction ("pause on entry").
+     * Breakpoints are kept across restarts.
+     */
+    public void startSession(StepMode initialMode) {
+        stepMode = initialMode == null ? StepMode.NONE : initialMode;
         stepTargetDepth = -1;
         pausedSnapshot = null;
         setState(State.RUNNING);
@@ -188,11 +199,12 @@ public class DebugSession {
             default -> pause = false;
         }
 
-        if (!pause) {
-            // Check breakpoints
+        if (!pause && line > 0 && !breakpoints.isEmpty()) {
+            // Check breakpoints — normalise the location once, not once per breakpoint
+            String normalized = normalizedLocation(systemId);
             synchronized (breakpoints) {
                 for (Breakpoint bp : breakpoints) {
-                    if (bp.enabled() && bp.matches(systemId, line)) {
+                    if (bp.enabled() && bp.matchesNormalized(normalized, line)) {
                         pause = true;
                         break;
                     }
@@ -227,6 +239,23 @@ public class DebugSession {
             pauseLock.unlock();
         }
         return state != State.STOPPED;
+    }
+
+    /** Bounded cache: Saxon reports the same handful of module systemIds for every instruction. */
+    private final java.util.Map<String, String> normalizedLocations = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private String normalizedLocation(String systemId) {
+        if (systemId == null || systemId.isEmpty()) {
+            return "";
+        }
+        String cached = normalizedLocations.get(systemId);
+        if (cached == null) {
+            cached = SourceLocations.normalize(systemId);
+            if (normalizedLocations.size() < 256) {
+                normalizedLocations.put(systemId, cached);
+            }
+        }
+        return cached;
     }
 
     public void notifyLeave(int depthAfterPop) {

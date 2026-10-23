@@ -81,6 +81,7 @@ dropdown to override the detection.
 |-------------------------------|------------------------------------------------------------------------------|
 | **Run Transform**             | Runs the transformation with the current stylesheet and input                |
 | **Run automatically**         | (Checkbox next to Run Transform, on by default) Runs as soon as a stylesheet or input is dropped, picked from favorites or browsed with ◀ / ▶ |
+| **Debug**                     | (Next to Run Transform, also `Shift+F5`) Runs the stylesheet in the interactive debugger - breakpoints (toggle them in the saved stylesheet's gutter at any time, before or during a session; they are remembered per file), stepping, variables - in a DEBUG dock below the editor; see [XSLT Developer](xslt-developer.md#interactive-live-debugger) |
 | **Transform with XSLT…**      | (Editor toolbar / Tools menu, XML documents) Opens this panel on the active document, asks for a stylesheet if none is set, and runs it |
 | **Open result as editor tab** | (OUTPUT panel) Opens the result as an editable, savable document. HTML/XHTML results open as an HTML document rendered in the editor's read-only [Preview view](unified-shell.md#html-preview); re-running the transform updates the open tab |
 | **Open in browser**           | (OUTPUT panel) Opens the result in your default web browser                  |

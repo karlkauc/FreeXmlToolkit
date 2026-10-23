@@ -713,6 +713,50 @@ or browse with ◀ / ▶. Uncheck it to only set the file and run with **Run Tra
 The result appears in the **OUTPUT panel** below the editor - see
 [The OUTPUT Panel](#the-output-panel-results) below.
 
+### Debugging a Stylesheet {#xslt-debugger}
+
+**Debug** (next to **Run Transform**) runs the same stylesheet over the same input as **Run
+Transform** (the INPUT file when one is set by dropping, a favorite or ◀ / ▶ browsing, otherwise
+the active document) in the interactive XSLT debugger. The other ways in are **Tools → Debug with XSLT…**, the
+**Transform ▾ → Debug with XSLT…** toolbar entry, **Run ▾ → Debug Transform** for an active
+XSLT document (against the toolbar's **Input** target), the **PDF / FOP** panel's
+**Debug stylesheet…**, and **Shift+F5** whenever a document is open.
+
+What happens:
+
+1. The stylesheet opens as a document (its saved file - the debugger reads it from disk so
+   relative `xsl:include` / `xsl:import` hrefs resolve). Every saved XSLT document already has
+   a **breakpoint gutter**: click the slot left of a line to toggle a red breakpoint, before or
+   during a session (the click does not move the caret). Breakpoints are **remembered per
+   file** across sessions and restarts, including those set in included modules.
+2. The **DEBUG** dock opens *below* the editor, so the stylesheet stays visible while you
+   step. The dock shares its space with **OUTPUT**; a small **OUTPUT | DEBUG** strip switches
+   between them, and a result that arrives while DEBUG is in front marks the OUTPUT toggle.
+3. The run starts and **pauses at the first instruction** when there are no breakpoints
+   (**Pause on entry**, a toggle in the dock's header), otherwise at the first breakpoint.
+   The paused line is tinted in the editor and marked with a green arrow in the gutter (a
+   yellow arrow on a breakpoint line). When Saxon pauses inside an included module, that
+   file opens, with its own breakpoints in its gutter.
+
+The dock's header holds the controls - **Continue** (F5), **Step Into** (F7), **Step Over**
+(F8), **Step Out** (Shift+F8), **Restart** (runs again from the start with the same
+breakpoints, re-reading the stylesheet), **Stop**, **Pause on entry**, **Show in editor**
+and **✕** (ends the session). Below it, five panels show the paused state:
+
+| Panel | Shows |
+|-------|-------|
+| **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope and every global variable that has been evaluated so far - with real values and XDM types |
+| **Call Stack** | Template and function frames (instructions nested inside them are dimmed), each with its module and line; double-click jumps there, also into an include |
+| **Watch** | Your XPath expressions, evaluated **against the paused context item** with the variables in scope (`count(item)`, `$total`, `position()`); re-evaluated at every pause |
+| **Messages** | `xsl:message` output and Saxon warnings **as they happen**, with their stylesheet location; double-click jumps to the line |
+| **Breakpoints** | All breakpoints of the session (file · line) with Remove / Clear all; double-click jumps to the line |
+
+When the run ends, the status reads *Finished · N ms* and the **result lands in the OUTPUT
+panel** (the OUTPUT toggle lights up; DEBUG stays in front so the messages remain readable).
+A failed run shows the error with its location in **Messages**. The debugger runs on its own
+Saxon processor, so a normal **Run Transform** during a paused session is unaffected.
+Details and stylesheet tips: [XSLT Developer → Interactive Live Debugger](xslt-developer.md#interactive-live-debugger).
+
 ### Queries (XPath, XQuery, JSONPath)
 
 The Transform panel no longer has its own XPATH and XQUERY sections. Below the run
@@ -738,7 +782,7 @@ Below the options, the advanced **tools** are labelled rows (icon + name):
 
 | Row | What it does |
 |-----|--------------|
-| **Debug XSLT…** | Opens the stylesheet as a document with a breakpoint gutter and a Debug tool tab (step into/over/out, continue, stop; variables, call stack, breakpoints, and XPath watches). |
+| **Debug XSLT…** | Same as the **Debug** button next to **Run Transform**: opens the stylesheet (with the breakpoints set in its gutter) and the **DEBUG** dock below the editor - see [Debugging a Stylesheet](#xslt-debugger). |
 | **Batch Transform…** | Runs the chosen stylesheet - or, when no stylesheet is set, the active XQuery document - over many XML files, with per-file results and "Save All". |
 | **Execution Statistics** | Opens the **Execution Statistics** tool tab (duration, CPU and memory per XSLT/XQuery/validation run). Runs are only recorded while **Record execution statistics** is enabled in the Settings page's **DEVELOPER** card. |
 
