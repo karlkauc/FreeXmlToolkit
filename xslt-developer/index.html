@@ -1699,6 +1699,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#break-when-an-input-node-is-processed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Break When an Input Node Is Processed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#break-on-errors-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2858,6 +2869,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#break-when-an-input-node-is-processed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Break When an Input Node Is Processed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#break-on-errors-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3603,6 +3625,16 @@ suggests the names declared in the stylesheet and its modules):</p>
 below the line breakpoints (checkbox to disable, <strong>Delete</strong> to remove), are saved with the main
 stylesheet, pause even when the template has no line breakpoint, and are silenced by <strong>Mute</strong>.
 The status names what was entered (<em>· template match="item"</em>).</p>
+<h4 id="break-when-an-input-node-is-processed">Break When an Input Node Is Processed<a class="headerlink" href="#break-when-an-input-node-is-processed" title="Permanent link">&para;</a></h4>
+<p>To stop when the stylesheet reaches a particular node of the input, open the input XML,
+put the caret on the element and right-click → <strong>Break When Processed</strong> (shown while a debug
+session runs). The run pauses whenever that element <strong>becomes the context node</strong> - a template
+rule matched it or a loop reached it - once per visit, not at every instruction that runs while
+it stays the context. The status reads <em>· input node /order/item[2] (orders.xml:3)</em>.</p>
+<p>The breakpoint is listed under <em>Templates &amp; functions</em> in the Breakpoints panel (checkbox,
+<strong>Delete</strong>), saved with the main stylesheet and silenced by <strong>Mute</strong>; right-click the element
+again → <strong>Remove Break When Processed</strong> to drop it. The node is identified by its position in
+the file, so editing the input above it moves it out of reach.</p>
 <h4 id="break-on-errors-and-messages">Break on Errors and Messages<a class="headerlink" href="#break-on-errors-and-messages" title="Permanent link">&para;</a></h4>
 <p>The Breakpoints panel's <strong>Break on ▾</strong> menu pauses the run independent of line breakpoints:</p>
 <table>
