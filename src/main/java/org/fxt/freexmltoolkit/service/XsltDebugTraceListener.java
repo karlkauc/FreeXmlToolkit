@@ -112,6 +112,9 @@ public class XsltDebugTraceListener implements TraceListener {
     public void enter(Traceable traceable, Map<String, Object> properties, XPathContext context) {
         try {
             String description = getTraceableDescription(traceable);
+            if (traceable instanceof TemplateRule) {
+                description = description + modeSuffix(context); // the call stack names the mode
+            }
             int lineNumber = getLineNumber(traceable);
             String systemId = getSystemId(traceable);
 
@@ -431,6 +434,20 @@ public class XsltDebugTraceListener implements TraceListener {
         }
     }
 
+    /** {@code  mode="x"} for a template running in a named mode, else {@code ""}. */
+    private static String modeSuffix(XPathContext context) {
+        try {
+            var mode = context == null ? null : context.getCurrentMode();
+            if (mode != null && mode.getActor() != null && !mode.getActor().isUnnamedMode()
+                    && mode.getActor().getModeName() != null) {
+                return " mode=\"" + mode.getActor().getModeName().getDisplayName() + "\"";
+            }
+        } catch (RuntimeException ignored) {
+            // no mode to name
+        }
+        return "";
+    }
+
     private static String localName(StructuredQName name) {
         return name == null ? "?" : name.getDisplayName();
     }
@@ -515,7 +532,11 @@ public class XsltDebugTraceListener implements TraceListener {
             vars.add(new VariableBinding("last()", String.valueOf(last), "xs:integer", VariableScope.LOCAL));
         } catch (Throwable ignored) { /* outside focus — skip */ }
 
-        // 3. Local stack-frame slots — display all slots, including unbound
+        // 3. XSLT context: mode, grouping, regex groups, tunnel parameters, accumulators
+        Map<String, XdmValue> contextValues = new LinkedHashMap<>();
+        vars.addAll(captureXsltContext(context, contextValues));
+
+        // 4. Local stack-frame slots — display all slots, including unbound
         FrameLocals topLocals = captureLocals(context);
         vars.addAll(topLocals.bindings());
         locals.putAll(topLocals.values());
@@ -547,7 +568,7 @@ public class XsltDebugTraceListener implements TraceListener {
 
         List<DebugStackFrame> frames = buildStackFrameSnapshot(systemId, line, context, topLocals);
         return new PausedSnapshot(systemId, line, frames, vars, contextItem, contextXdm, locals, globals,
-                position, last);
+                position, last, contextValues);
     }
 
     /** Grounds a (possibly lazy) sequence on the Saxon thread and caps very long sequences. */
@@ -564,6 +585,107 @@ public class XsltDebugTraceListener implements TraceListener {
             return item;
         }
         return value != null && value.size() == 1 ? value.itemAt(0) : null;
+    }
+
+    /**
+     * The XSLT-specific context of {@code context} as Variables rows (scope XSLT / PARAMETER):
+     * the current mode, {@code current-group()} and {@code current-grouping-key()} inside
+     * {@code xsl:for-each-group}, {@code regex-group(n)} inside {@code xsl:matching-substring},
+     * the tunnel parameters passed down, and the accumulator values ({@code accumulator-before})
+     * at the context node. Values go to {@code values} under the row name. Saxon thread only;
+     * every part is best-effort.
+     */
+    private static List<VariableBinding> captureXsltContext(XPathContext context, Map<String, XdmValue> values) {
+        List<VariableBinding> rows = new ArrayList<>();
+        if (context == null) {
+            return rows;
+        }
+        try {
+            var mode = context.getCurrentMode();
+            if (mode != null && mode.getActor() != null) {
+                String name = mode.getActor().isUnnamedMode() || mode.getActor().getModeName() == null
+                        ? "#unnamed" : mode.getActor().getModeName().getDisplayName();
+                rows.add(new VariableBinding("mode", name, "mode", VariableScope.XSLT));
+            }
+        } catch (RuntimeException e) {
+            logger.debug("No current mode: {}", e.getMessage());
+        }
+        try {
+            var group = context.getCurrentGroupIterator(); // NOPMD - borrowed iterator owned by the Saxon context
+            if (group != null) {
+                addContextRow(rows, values, "current-grouping-key()", XdmValue.wrap(group.getCurrentGroupingKey()));
+                addContextRow(rows, values, "current-group()", materialize(group.currentGroup()));
+            }
+        } catch (Exception e) {
+            logger.debug("No current group: {}", e.getMessage());
+        }
+        try {
+            var regex = context.getCurrentRegexIterator(); // NOPMD - borrowed iterator owned by the Saxon context
+            if (regex != null) {
+                for (int i = 0; i <= regex.getNumberOfGroups(); i++) {
+                    var group = regex.getRegexGroup(i);
+                    addContextRow(rows, values, "regex-group(" + i + ")",
+                            new net.sf.saxon.s9api.XdmAtomicValue(group == null ? "" : group.toString()));
+                }
+            }
+        } catch (RuntimeException e) {
+            logger.debug("No regex groups: {}", e.getMessage());
+        }
+        try {
+            var tunnel = context.getTunnelParameters();
+            if (tunnel != null) {
+                var names = tunnel.getParameterNames();
+                for (int i = 0; i < tunnel.size() && i < names.length; i++) {
+                    XdmValue v = materialize(tunnel.getValue(i));
+                    String row = "$" + names[i].getDisplayName() + " (tunnel)";
+                    rows.add(new VariableBinding(row, WatchEvaluator.render(v, VariableBinding.MAX_VALUE_LENGTH),
+                            WatchEvaluator.describeType(v), VariableScope.PARAMETER));
+                    values.put(row, v);
+                }
+            }
+        } catch (Exception e) {
+            logger.debug("No tunnel parameters: {}", e.getMessage());
+        }
+        rows.addAll(captureAccumulators(context, values));
+        return rows;
+    }
+
+    private static void addContextRow(List<VariableBinding> rows, Map<String, XdmValue> values, String name, XdmValue v) {
+        rows.add(new VariableBinding(name, WatchEvaluator.render(v, VariableBinding.MAX_VALUE_LENGTH),
+                WatchEvaluator.describeType(v), VariableScope.XSLT));
+        values.put(name, v);
+    }
+
+    /** {@code accumulator-before} of every accumulator that applies to the context node's document. */
+    private static List<VariableBinding> captureAccumulators(XPathContext context, Map<String, XdmValue> values) {
+        List<VariableBinding> rows = new ArrayList<>();
+        try {
+            if (!(context.getContextItem() instanceof net.sf.saxon.om.NodeInfo node)
+                    || !(context.getController() instanceof net.sf.saxon.trans.XsltController controller)) {
+                return rows;
+            }
+            var registry = controller.getExecutable().getTopLevelPackage().getAccumulatorRegistry();
+            var manager = controller.getAccumulatorManager();
+            if (registry == null || manager == null) {
+                return rows;
+            }
+            for (var accumulator : registry.getAllAccumulators()) {
+                try {
+                    if (!manager.isApplicable(node.getTreeInfo(), accumulator)) {
+                        continue;
+                    }
+                    var data = manager.getAccumulatorData(node.getTreeInfo(), accumulator, context);
+                    XdmValue v = materialize(data.getValue(node, false));
+                    addContextRow(rows, values, "accumulator-before('"
+                            + accumulator.getAccumulatorName().getDisplayName() + "')", v);
+                } catch (Exception e) {
+                    logger.debug("Accumulator {} not available: {}", accumulator.getAccumulatorName(), e.getMessage());
+                }
+            }
+        } catch (RuntimeException e) {
+            logger.debug("No accumulators: {}", e.getMessage());
+        }
+        return rows;
     }
 
     /**
@@ -642,6 +764,10 @@ public class XsltDebugTraceListener implements TraceListener {
                     if (stackFrame != null) {
                         frameLocals = byStackFrame.computeIfAbsent(stackFrame, f -> captureLocals(ctx));
                     }
+                    // The frame's XSLT context (its mode, group, regex groups) before its locals.
+                    List<VariableBinding> rows = new ArrayList<>(captureXsltContext(ctx, new LinkedHashMap<>()));
+                    rows.addAll(frameLocals.bindings());
+                    frameLocals = new FrameLocals(rows, frameLocals.values());
                 } catch (Throwable t) {
                     logger.debug("Failed to capture frame state: {}", t.getMessage());
                 }

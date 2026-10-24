@@ -6,5 +6,7 @@ package org.fxt.freexmltoolkit.debugger;
 public enum VariableScope {
     GLOBAL,
     LOCAL,
-    PARAMETER
+    PARAMETER,
+    /** XSLT context: the mode, current-group(), regex groups, accumulator values. */
+    XSLT
 }

@@ -704,4 +704,62 @@ class XsltDebuggerIntegrationTest {
         assertEquals(java.util.List.of(),
                 symbolPauses(new SymbolBreakpoint(SymbolBreakpoint.Kind.TEMPLATE_MATCH, "item", false)), "disabled");
     }
+
+    @Test
+    void xsltContextShowsModeGroupsRegexTunnelAndAccumulators() throws Exception {
+        String xml = "<order><item type=\"a\" code=\"12-34\"/><item type=\"b\" code=\"5-6\"/><item type=\"a\" code=\"7-8\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"      // 1
+                + "  <xsl:mode use-accumulators=\"#all\"/><xsl:accumulator name=\"seen\" initial-value=\"0\">\n" // 2
+                + "    <xsl:accumulator-rule match=\"item\" select=\"$value + 1\"/>\n"                          // 3
+                + "  </xsl:accumulator>\n"                                                                         // 4
+                + "  <xsl:template match=\"/\"><out>\n"                                                           // 5
+                + "    <xsl:for-each-group select=\"//item\" group-by=\"@type\">\n"                             // 6
+                + "      <g key=\"{current-grouping-key()}\" n=\"{count(current-group())}\"/>\n"                // 7
+                + "    </xsl:for-each-group>\n"                                                                    // 8
+                + "    <xsl:analyze-string select=\"string(//item[1]/@code)\" regex=\"(\\d+)-(\\d+)\">\n"    // 9
+                + "      <xsl:matching-substring><m a=\"{regex-group(1)}\" b=\"{regex-group(2)}\"/></xsl:matching-substring>\n" // 10
+                + "    </xsl:analyze-string>\n"                                                                    // 11
+                + "    <xsl:apply-templates select=\"//item[2]\" mode=\"list\"><xsl:with-param name=\"t\" select=\"'tun'\" tunnel=\"yes\"/></xsl:apply-templates>\n" // 12
+                + "  </out></xsl:template>\n"                                                                      // 13
+                + "  <xsl:template match=\"item\" mode=\"list\">\n"                                              // 14
+                + "    <i seen=\"{accumulator-before('seen')}\"/>\n"                                              // 15
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.toggleBreakpoint("", 7);
+        session.toggleBreakpoint("", 10);
+        session.toggleBreakpoint("", 15);
+        java.util.Map<Integer, PausedSnapshot> byLine = new java.util.concurrent.ConcurrentHashMap<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                PausedSnapshot s = session.getPausedSnapshot();
+                byLine.putIfAbsent(s.lineNumber(), s);
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+
+        PausedSnapshot group = byLine.get(7);
+        assertNotNull(group, "paused in for-each-group: " + byLine.keySet());
+        assertEquals("a", group.contextValues().get("current-grouping-key()").toString().replace("\"", ""));
+        assertEquals(2, group.contextValues().get("current-group()").size(), "two items of type a");
+
+        PausedSnapshot regex = byLine.get(10);
+        assertNotNull(regex, "paused in matching-substring");
+        assertEquals("12", regex.contextValues().get("regex-group(1)").toString().replace("\"", ""));
+        assertEquals("34", regex.contextValues().get("regex-group(2)").toString().replace("\"", ""));
+
+        PausedSnapshot moded = byLine.get(15);
+        assertNotNull(moded, "paused in the moded template");
+        assertTrue(moded.variables().stream().anyMatch(v -> v.name().equals("mode") && v.value().equals("list")),
+                "the mode: " + moded.variables());
+        assertEquals("tun", moded.contextValues().get("$t (tunnel)").toString().replace("\"", ""), "the tunnel parameter");
+        assertEquals("2", moded.contextValues().get("accumulator-before('seen')").toString(), "item 2 is the 2nd item seen");
+        assertTrue(moded.callStack().get(0).description().contains("mode=\"list\"")
+                || moded.callStack().stream().anyMatch(f -> f.description().contains("mode=\"list\"")),
+                "the call stack names the mode: " + moded.callStack());
+    }
 }

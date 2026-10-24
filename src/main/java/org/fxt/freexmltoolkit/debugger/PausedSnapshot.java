@@ -27,6 +27,8 @@ import net.sf.saxon.s9api.XdmValue;
  * @param globalVariables global variables already evaluated, by name
  * @param position        {@code position()} of the focus, or -1 outside a focus
  * @param last            {@code last()} of the focus, or -1 outside a focus
+ * @param contextValues   XSLT context values by their Variables row name ({@code current-group()},
+ *                        {@code regex-group(1)}, {@code $p (tunnel)}, {@code accumulator-before('a')})
  */
 public record PausedSnapshot(String systemId,
                              int lineNumber,
@@ -37,7 +39,8 @@ public record PausedSnapshot(String systemId,
                              Map<QName, XdmValue> localVariables,
                              Map<QName, XdmValue> globalVariables,
                              int position,
-                             int last) {
+                             int last,
+                             Map<String, XdmValue> contextValues) {
 
     public PausedSnapshot {
         if (systemId == null) systemId = "";
@@ -48,6 +51,17 @@ public record PausedSnapshot(String systemId,
                 : java.util.Collections.unmodifiableMap(new LinkedHashMap<>(localVariables));
         globalVariables = globalVariables == null ? Map.of()
                 : java.util.Collections.unmodifiableMap(new LinkedHashMap<>(globalVariables));
+        contextValues = contextValues == null ? Map.of()
+                : java.util.Collections.unmodifiableMap(new LinkedHashMap<>(contextValues));
+    }
+
+    /** A snapshot without XSLT context values. */
+    public PausedSnapshot(String systemId, int lineNumber, List<DebugStackFrame> callStack,
+                          List<VariableBinding> variables, String contextItem, XdmItem contextXdm,
+                          Map<QName, XdmValue> localVariables, Map<QName, XdmValue> globalVariables,
+                          int position, int last) {
+        this(systemId, lineNumber, callStack, variables, contextItem, contextXdm, localVariables,
+                globalVariables, position, last, Map.of());
     }
 
     /** Display-only snapshot (no live values), as used by the session's fallback and tests. */

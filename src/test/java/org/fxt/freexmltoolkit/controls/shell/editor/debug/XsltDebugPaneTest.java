@@ -571,4 +571,16 @@ class XsltDebugPaneTest {
         WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, pane::dispose);
         controller.stop();
     }
+
+    @Test
+    void xsltContextRowsOpenTheirFullValues() {
+        net.sf.saxon.s9api.XdmValue group = new net.sf.saxon.s9api.XdmValue(List.of(
+                new net.sf.saxon.s9api.XdmAtomicValue("x"), new net.sf.saxon.s9api.XdmAtomicValue("y")));
+        PausedSnapshot snap = new PausedSnapshot("file:/a.xsl", 3, List.of(), List.of(), "", null, Map.of(), Map.of(),
+                1, 1, Map.of("current-group()", group));
+        ValueSource source = XsltDebugPane.resolveVariable(new org.fxt.freexmltoolkit.debugger.VariableBinding(
+                "current-group()", "x, y", "2 items", org.fxt.freexmltoolkit.debugger.VariableScope.XSLT), snap);
+        assertSame(group, source.value());
+        assertEquals("XSLT", source.scope());
+    }
 }

@@ -462,6 +462,8 @@ public final class XsltDebugPane extends VBox {
             String name = binding.name();
             if (".".equals(name)) {
                 value = snap.contextXdm();
+            } else if (name != null && snap.contextValues().containsKey(name)) {
+                value = snap.contextValues().get(name); // mode, current-group(), regex groups, tunnel, accumulators
             } else if (name != null && name.startsWith("$")) {
                 String display = name.substring(1);
                 boolean global = binding.scope() == VariableScope.GLOBAL;
