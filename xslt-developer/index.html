@@ -3646,22 +3646,23 @@ every item, <code>$total &gt; 1000</code>, or <code>position() = last()</code>.<
 <tr>
 <td>Condition that is never true</td>
 <td>97 ms</td>
-<td>77 ms</td>
+<td>66 ms</td>
 </tr>
 <tr>
 <td>Logpoint that never pauses</td>
 <td>95 ms</td>
-<td>72 ms</td>
+<td>64 ms</td>
 </tr>
 <tr>
 <td>Condition, 12-level call stack per item (1,000 items)</td>
 <td>46 ms</td>
-<td>34 ms</td>
+<td>28 ms</td>
 </tr>
 </tbody>
 </table>
 <p>The remainder is the XPath evaluation itself, roughly 4 µs per pass - a condition in a loop
-  of a million items adds about four seconds.</p>
+  of a million items adds about four seconds. A debug run without any breakpoint takes 29 ms
+  for the same loop.</p>
 <h4 id="hit-counts">Hit Counts<a class="headerlink" href="#hit-counts" title="Permanent link">&para;</a></h4>
 <p>Every breakpoint <strong>counts its hits</strong> during a run - a hit is a pass of its line where its
 condition (if any) held. The count is shown in the <strong>Breakpoints</strong> panel (<em>· 5 hits</em>) and in the
@@ -3781,6 +3782,43 @@ F8 keep their usual meaning. A single long evaluation (one huge XPath expression
 interrupted - Pause takes effect at the next instruction.
 The paused line is <strong>tinted</strong> in the editor and a green arrow marks it in the gutter; a hit
 breakpoint shows a yellow arrow over the red circle.</p>
+<p><strong>How much slower is a debug run?</strong> The debugger watches every instruction, so a debug run
+takes about <strong>1.5 to 2 times</strong> as long as a normal transformation, with or without breakpoints.
+Saxon's own trace instrumentation is almost free; the time goes into following the call stack.
+Breakpoints on lines that never run cost nothing extra. Measured with <code>DebuggerPerfBenchmark</code>
+(median of 15 runs, stylesheet compiled in each run):</p>
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th>Normal run</th>
+<th>Debug run</th>
+<th>Factor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10,000 items, one template</td>
+<td>20 ms</td>
+<td>29 ms</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>100,000 items, one template</td>
+<td>150 ms</td>
+<td>246 ms</td>
+<td>1.6</td>
+</tr>
+<tr>
+<td>1,000 items, 12-level recursion each</td>
+<td>14 ms</td>
+<td>23 ms</td>
+<td>1.6</td>
+</tr>
+</tbody>
+</table>
+<p>Variables, the call stack and the XSLT context are only collected when the run pauses, so
+stepping and hitting breakpoints do not slow the run between pauses.</p>
 <h3 id="inspecting-state">Inspecting State<a class="headerlink" href="#inspecting-state" title="Permanent link">&para;</a></h3>
 <p><strong>The context node in the input.</strong> At every pause the line of the current context node
 (<code>.</code>) is tinted <strong>blue</strong> in the input XML document - the stylesheet's paused line stays yellow
