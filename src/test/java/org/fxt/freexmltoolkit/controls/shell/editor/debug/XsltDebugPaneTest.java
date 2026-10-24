@@ -19,6 +19,8 @@ import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -53,6 +55,22 @@ class XsltDebugPaneTest {
 
     private XsltDebugController controller;
     private Stage stage;
+
+    /**
+     * The pane remembers the tabs the user picks in the shared test preferences; every test
+     * here starts from (and leaves) the defaults: Variables and Call Stack.
+     */
+    @BeforeEach
+    @AfterEach
+    void resetRememberedTabs() {
+        try {
+            var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+            props.set(XsltDebugPane.LEFT_TAB_KEY, "debug-tab-variables");
+            props.set(XsltDebugPane.RIGHT_TAB_KEY, "debug-tab-call-stack");
+        } catch (Throwable ignored) {
+            // no properties service — nothing remembered either
+        }
+    }
 
     @Start
     void start(Stage stage) {
@@ -450,5 +468,38 @@ class XsltDebugPaneTest {
         assertEquals(List.of("$total"), pane.getWatchView().getExpressions());
         assertEquals(List.of("$total"), saved, "persisted through the host callback");
         assertEquals(1, pane.getLeftTabs().getSelectionModel().getSelectedIndex(), "Watch comes to the front");
+    }
+
+    @Test
+    void theUsersTabChoiceIsRememberedButNotThePanesOwnSwitches() {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        try {
+            XsltDebugPane first = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+                XsltDebugPane p = new XsltDebugPane(controller);
+                p.getLeftTabs().getSelectionModel().select(1);              // user: Watch
+                p.getRightTabs().getSelectionModel().select(p.getBreakpointsTab()); // user: Breakpoints
+                return p;
+            });
+            assertEquals("debug-tab-watch", props.get(XsltDebugPane.LEFT_TAB_KEY));
+            assertEquals("debug-tab-breakpoints", props.get(XsltDebugPane.RIGHT_TAB_KEY));
+
+            XsltDebugPane second = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> new XsltDebugPane(controller));
+            assertEquals(1, second.getLeftTabs().getSelectionModel().getSelectedIndex(), "Watch restored");
+            assertSame(second.getBreakpointsTab(), second.getRightTabs().getSelectionModel().getSelectedItem());
+
+            // The pane's own switch (Add to Watches) does not overwrite the user's choice.
+            WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+                second.getLeftTabs().getSelectionModel().select(0);          // user: Variables
+                second.getVariablesView().setVariables(List.of(new org.fxt.freexmltoolkit.debugger.VariableBinding(
+                        "$x", "1", "xs:integer", org.fxt.freexmltoolkit.debugger.VariableScope.LOCAL)));
+                second.getVariablesView().fireAddToWatches(0);               // pane: Watch
+            });
+            assertEquals(1, second.getLeftTabs().getSelectionModel().getSelectedIndex(), "Watch shown");
+            assertEquals("debug-tab-variables", props.get(XsltDebugPane.LEFT_TAB_KEY), "Variables stays the choice");
+            assertNotNull(first);
+        } finally {
+            resetRememberedTabs();
+        }
     }
 }

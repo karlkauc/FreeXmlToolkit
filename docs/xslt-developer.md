@@ -460,7 +460,9 @@ breakpoint shows a yellow arrow over the red circle.
 Below the header, the paused state is shown in **two tab groups** side by side: **Variables |
 Watch** on the left (the state at the pause point), **Call Stack | Messages | Breakpoints** on
 the right (navigation and log). Drag the divider between the groups to give one side more room -
-the position is remembered. **Messages** and **Breakpoints** show a **count badge** on their tab;
+the position is remembered, and so is the tab you last chose in each group (a tab the debugger
+brings forward by itself, like Messages after a failed run, does not change that choice).
+**Messages** and **Breakpoints** show a **count badge** on their tab;
 Messages is highlighted when output arrives while another tab of its group is in front, and a
 **failed run brings Messages to the front** so the error is readable at once. In Watch and
 Breakpoints the **Delete** key removes the selected row.

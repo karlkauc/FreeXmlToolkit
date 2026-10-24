@@ -64,6 +64,9 @@ public final class XsltDebugPane extends VBox {
     static final double MAX_DIVIDER = 0.8;
     /** Same marker the dock strip uses for a panel that received content while hidden. */
     static final String UPDATED_CLASS = "fxt-dock-updated";
+    /** Preference keys of the tab last chosen by the user in each group. */
+    static final String LEFT_TAB_KEY = "editor.debugPane.leftTab";
+    static final String RIGHT_TAB_KEY = "editor.debugPane.rightTab";
     /** Status style while paused because a breakpoint condition failed to evaluate. */
     static final String CONDITION_ERROR_CLASS = "fxt-debug-condition-error";
 
@@ -97,6 +100,8 @@ public final class XsltDebugPane extends VBox {
 
     private final Label messagesBadge = badge();
     private final Label breakpointsBadge = badge();
+    /** Set while the pane itself switches a tab (failed run, Add to Watches): not a user choice. */
+    private boolean selectingTab;
     /** The divider ratio as last restored or saved; a drag that ends elsewhere is persisted. */
     private double knownDivider = DEFAULT_DIVIDER;
     /**
@@ -143,12 +148,18 @@ public final class XsltDebugPane extends VBox {
             }
         });
         installDividerPersistence();
+        restoreTab(leftTabs, LEFT_TAB_KEY);
+        restoreTab(rightTabs, RIGHT_TAB_KEY);
+        leftTabs.getSelectionModel().selectedItemProperty().addListener(
+                (obs, old, tab) -> saveTab(tab, LEFT_TAB_KEY));
+        rightTabs.getSelectionModel().selectedItemProperty().addListener(
+                (obs, old, tab) -> saveTab(tab, RIGHT_TAB_KEY));
         variablesView.setOnOpenValue(b -> openViewer(resolveVariable(b, currentScope())));
         variablesView.setOnCopyValue(b -> copyValue(resolveVariable(b, currentScope())));
         callStackView.setOnFrameSelected(this::showFrame);
         variablesView.setOnAddToWatches(b -> {
             watchView.addWatch(b.name());
-            leftTabs.getSelectionModel().select(watchTab);
+            selectTab(leftTabs, watchTab);
         });
         callStackView.setOnOpenValue(f -> openViewer(resolveFrame(f, controller.getSession().getPausedSnapshot())));
         callStackView.setOnCopyValue(f -> copyValue(resolveFrame(f, controller.getSession().getPausedSnapshot())));
@@ -373,7 +384,7 @@ public final class XsltDebugPane extends VBox {
         } else {
             status.setText("Error: " + (result.getErrorMessage() == null ? "transformation failed"
                     : result.getErrorMessage()));
-            rightTabs.getSelectionModel().select(messagesTab);
+            selectTab(rightTabs, messagesTab);
         }
         applyButtonState(controller.getSession().getState());
         controller.getSession().markRunEnded(result.isSuccess());
@@ -662,6 +673,50 @@ public final class XsltDebugPane extends VBox {
             }
             applyDivider(storedDividerOrDefault());
         });
+    }
+
+    /** Selects {@code tab} on the pane's own initiative — not remembered as the user's choice. */
+    private void selectTab(TabPane group, Tab tab) {
+        selectingTab = true;
+        try {
+            group.getSelectionModel().select(tab);
+        } finally {
+            selectingTab = false;
+        }
+    }
+
+    /** Selects the tab whose id is stored under {@code key} (ids like {@code debug-tab-watch}). */
+    private void restoreTab(TabPane group, String key) {
+        String id = readPreference(key);
+        if (id == null) {
+            return;
+        }
+        for (Tab tab : group.getTabs()) {
+            if (id.equals(tab.getId())) {
+                selectTab(group, tab);
+                return;
+            }
+        }
+    }
+
+    private void saveTab(Tab tab, String key) {
+        if (selectingTab || tab == null || tab.getId() == null) {
+            return;
+        }
+        try {
+            ServiceRegistry.get(PropertiesService.class).set(key, tab.getId());
+        } catch (Throwable ignored) {
+            // properties service unavailable — nothing to persist
+        }
+    }
+
+    private static String readPreference(String key) {
+        try {
+            String value = ServiceRegistry.get(PropertiesService.class).get(key);
+            return value == null || value.isBlank() ? null : value.strip();
+        } catch (Throwable ignored) {
+            return null;
+        }
     }
 
     /** Positions the divider at {@code ratio} (clamped) without triggering a save. */
