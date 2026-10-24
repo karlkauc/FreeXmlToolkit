@@ -3532,8 +3532,8 @@ open document whose text was transformed; a node from a document loaded with <co
 <code>document()</code> is shown in that file, which opens behind the stylesheet. Attributes and text
 nodes point at their element's line, the document node at the root element.</p>
 <p>Below the header, the paused state is shown in <strong>two tab groups</strong> side by side: <strong>Variables |
-Watch</strong> on the left (the state at the pause point), <strong>Call Stack | Messages | Breakpoints</strong> on
-the right (navigation and log). Drag the divider between the groups to give one side more room -
+Watch</strong> on the left (the state at the pause point), <strong>Call Stack | Messages | Breakpoints |
+Output</strong> on the right (navigation, log and the output so far). Drag the divider between the groups to give one side more room -
 the position is remembered, and so is the tab you last chose in each group (a tab the debugger
 brings forward by itself, like Messages after a failed run, does not change that choice).
 <strong>Messages</strong> and <strong>Breakpoints</strong> show a <strong>count badge</strong> on their tab;
@@ -3607,6 +3607,10 @@ right-click → <strong>Open Value…</strong> - to open it in its own <strong>v
 <tr>
 <td><strong>Breakpoints</strong></td>
 <td>All breakpoints of the session with <strong>Remove</strong> / <strong>Clear all</strong> above the list, see above</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>What the transformation has <strong>written so far</strong>, refreshed at every pause - see where in the result you are. When the run finishes it shows the complete result (also in OUTPUT). The serializer may hold back a just-opened start tag until it knows whether the element stays empty, so the text can lag by one tag. <strong>Copy</strong> copies it</td>
 </tr>
 </tbody>
 </table>

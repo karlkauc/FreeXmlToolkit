@@ -5176,9 +5176,9 @@ XSLT document (against the toolbar's <strong>Input</strong> target), the <strong
 (F8), <strong>Step Out</strong> (Shift+F8), <strong>Restart</strong> (runs again from the start with the same
 breakpoints, re-reading the stylesheet), <strong>Stop</strong>, <strong>Pause on entry</strong>, <strong>Mute</strong> (all breakpoints off, steps still work), <strong>Show in editor</strong>, <strong>Show input</strong> (the paused context node in the input XML, which is tinted blue there)
 and <strong>✕</strong> (ends the session). Below it, two tab groups show the paused state - <strong>Variables |
-Watch</strong> on the left, <strong>Call Stack | Messages | Breakpoints</strong> on the right, with a draggable
+Watch</strong> on the left, <strong>Call Stack | Messages | Breakpoints | Output</strong> on the right, with a draggable
 divider whose position is remembered. Messages and Breakpoints carry a count badge; a failed
-run brings Messages to the front. The five panels:</p>
+run brings Messages to the front. The panels:</p>
 <table>
 <thead>
 <tr>
@@ -5206,6 +5206,10 @@ run brings Messages to the front. The five panels:</p>
 <tr>
 <td><strong>Breakpoints</strong></td>
 <td>All breakpoints of the session (checkbox = enabled · file · line · condition · hit rule · hits of this run; after a completed run, breakpoints it never reached are flagged and drawn amber in the gutter) with <strong>Remove</strong> / <strong>Edit…</strong> / <strong>Clear all</strong> above the list (Delete removes the selected one); double-click jumps to the line. Right-click a gutter slot for a <strong>conditional breakpoint</strong> (XPath, pauses only when true) or a <strong>hit count</strong> rule (exactly / from / every N-th hit) - <a href="../xslt-developer/#conditional-breakpoints">details</a></td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td>The output written so far, refreshed at every pause; the complete result once the run finishes</td>
 </tr>
 </tbody>
 </table>
