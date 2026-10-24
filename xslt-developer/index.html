@@ -3620,14 +3620,48 @@ every item, <code>$total &gt; 1000</code>, or <code>position() = last()</code>.<
   gutter; its tooltip names the rules and the hits of the current run.</li>
 <li>The condition is evaluated <strong>like <code>xsl:if test</code></strong> (effective boolean value): the context item
   and every variable in scope at that line are available, plus the stylesheet's namespace
-  prefixes. A non-empty node sequence is true, an empty one false.</li>
+  prefixes. A non-empty node sequence is true, an empty one false. <code>position()</code> and <code>last()</code>
+  refer to the item being processed (<em>the 2nd of 5</em>), the same as in watches; inside a predicate
+  (<code>item[position() = 1]</code>) or a path step they keep their usual meaning.</li>
 <li>When the run pauses because of a condition, the status says so (<em>· condition: @id = '4711'</em>).
   If the condition <strong>cannot be evaluated</strong> (a typo, an undeclared variable), the run <strong>pauses
   anyway</strong> and the status shows the error in red - a broken condition never silently skips the
   breakpoint.</li>
 <li>The condition is checked every time the line runs, so a breakpoint inside a large loop costs
   time on each pass. Conditions are saved with the breakpoint (per file, like all breakpoints).</li>
+<li><strong>Cost.</strong> A pass that does not pause only collects what the condition can see (the context
+  item, the focus and the variable values); the Variables table, the XSLT context and the call
+  stack are built only when the run actually pauses. Logpoints work the same way. Measured
+  over a loop of 10,000 items (median of 15 runs, <code>DebuggerPerfBenchmark</code>):</li>
 </ul>
+<table>
+<thead>
+<tr>
+<th>Scenario (10,000 passes)</th>
+<th>Before</th>
+<th>Now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Condition that is never true</td>
+<td>97 ms</td>
+<td>77 ms</td>
+</tr>
+<tr>
+<td>Logpoint that never pauses</td>
+<td>95 ms</td>
+<td>72 ms</td>
+</tr>
+<tr>
+<td>Condition, 12-level call stack per item (1,000 items)</td>
+<td>46 ms</td>
+<td>34 ms</td>
+</tr>
+</tbody>
+</table>
+<p>The remainder is the XPath evaluation itself, roughly 4 µs per pass - a condition in a loop
+  of a million items adds about four seconds.</p>
 <h4 id="hit-counts">Hit Counts<a class="headerlink" href="#hit-counts" title="Permanent link">&para;</a></h4>
 <p>Every breakpoint <strong>counts its hits</strong> during a run - a hit is a pass of its line where its
 condition (if any) held. The count is shown in the <strong>Breakpoints</strong> panel (<em>· 5 hits</em>) and in the
