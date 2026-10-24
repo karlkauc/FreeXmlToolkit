@@ -1652,6 +1652,30 @@
     -fx-padding: 3 5 3 5;
 }
 
+/* Value popup over the stylesheet while paused (DebugHover). Its box carries .root so the
+   design tokens resolve inside the popup window. */
+.fxt-debug-hover {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 6 10 6 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 10, 0, 0, 2);
+}
+
+.fxt-debug-hover .fxt-debug-hover-title {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-debug-hover .fxt-debug-hover-value {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
 /* DEBUG status while paused because a breakpoint condition failed to evaluate. */
 .fxt-output-status.fxt-debug-condition-error {
     -fx-text-fill: -fxt-danger;

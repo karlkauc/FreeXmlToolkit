@@ -477,6 +477,15 @@ Messages is highlighted when output arrives while another tab of its group is in
 **failed run brings Messages to the front** so the error is readable at once. In Watch and
 Breakpoints the **Delete** key removes the selected row.
 
+#### Values Under the Mouse
+
+While the run is paused, **rest the mouse on a variable reference** (`$total`, `$f:rate`, also
+inside `{$x}` value templates) in the stylesheet: after half a second a small popup shows its
+value and type, evaluated in the **selected call stack frame**. **Select an XPath expression**
+(e.g. `count($items) * 2`) and rest the mouse inside the selection to evaluate the whole
+expression. **Open in value viewer** in the popup opens the full value. Errors (an undeclared
+variable, a typo) are shown in the popup; nothing happens while the run is not paused.
+
 #### Inspecting an Outer Frame
 
 At every pause the innermost frame is selected in **Call Stack**, and **Variables** shows the

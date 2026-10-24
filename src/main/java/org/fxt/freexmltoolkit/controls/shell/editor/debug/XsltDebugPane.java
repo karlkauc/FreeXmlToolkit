@@ -528,8 +528,14 @@ public final class XsltDebugPane extends VBox {
         watchView.evaluateAll(frameScope);
     }
 
-    /** The scope for opening values: the selected frame's, or the pause's. */
-    private PausedSnapshot currentScope() {
+    /**
+     * The scope for opening and evaluating values: the selected frame's, or the pause's;
+     * {@code null} while the run is not paused.
+     */
+    public PausedSnapshot currentScope() {
+        if (controller.getSession().getState() != DebugSession.State.PAUSED) {
+            return null;
+        }
         return scope != null ? scope : controller.getSession().getPausedSnapshot();
     }
 
@@ -575,7 +581,7 @@ public final class XsltDebugPane extends VBox {
     }
 
     /** Opens a viewer for {@code source}, or brings an open one for the same row and pause to front. */
-    void openViewer(ValueSource source) {
+    public void openViewer(ValueSource source) {
         for (ValueViewerWindow open : viewers) {
             if (open.getSource().title().equals(source.title())
                     && open.getSource().snapshot() == source.snapshot()) {

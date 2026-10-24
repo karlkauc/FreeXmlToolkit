@@ -3108,6 +3108,9 @@ public class EditorHost extends BorderPane {
         final java.util.Map<String, DebugModule> modules = new java.util.LinkedHashMap<>();
         /** Normalised paths of the modules the main stylesheet includes/imports (static scan). */
         final java.util.Set<String> resolvedModules;
+        /** Value popups installed on the module editors for this session. */
+        final java.util.Map<OpenDocument, org.fxt.freexmltoolkit.controls.shell.editor.debug.DebugHover> hovers =
+                new java.util.HashMap<>();
         /** The run's input: its file (when it came from one) and/or its open document. */
         Path inputFile;
         OpenDocument inputDocument;
@@ -3405,6 +3408,8 @@ public class EditorHost extends BorderPane {
             return;
         }
         activeDebug = null;
+        debug.hovers.values().forEach(org.fxt.freexmltoolkit.controls.shell.editor.debug.DebugHover::uninstall);
+        debug.hovers.clear();
         if (debug.markedInput != null) {
             setDebugInputLineFor(debug.markedInput, -1);
         }
@@ -3598,6 +3603,12 @@ public class EditorHost extends BorderPane {
         gutter.setFilePath(path);
         setGutterFactoryFor(document, gutter);
         debug.modules.put(path, new DebugModule(document, gutter));
+        EditorTab tab = editorTabOf(document);
+        if (tab != null && !debug.hovers.containsKey(document)) {
+            debug.hovers.put(document, new org.fxt.freexmltoolkit.controls.shell.editor.debug.DebugHover(
+                    tab.view.getCodeArea(), debug.pane::currentScope, debug.controller::getWatchEvaluator,
+                    debug.pane::openViewer).install());
+        }
     }
 
     /** Writes the session's breakpoints back, each file under its own key (modules without any are cleared). */
