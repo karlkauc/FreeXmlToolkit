@@ -64,9 +64,6 @@ public class TransformOutputPanel extends VBox {
     /** The (re-used) editor tab holding the latest opened result, if still open. */
     private OpenDocument resultDocument;
 
-    /** Results above this size are shown without highlighting to keep the FX thread responsive. */
-    private static final int HIGHLIGHT_LIMIT_CHARS = 512 * 1024;
-
     /** Loads the layout from {@code /pages/panels/TransformOutputPanel.fxml} and adds the Text view. */
     public TransformOutputPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -233,7 +230,7 @@ public class TransformOutputPanel extends VBox {
         output.replaceText(value);
         output.moveTo(0);
         output.requestFollowCaret();
-        if (value.isEmpty() || value.length() > HIGHLIGHT_LIMIT_CHARS) {
+        if (value.isEmpty() || value.length() > ResultHighlighter.HIGHLIGHT_LIMIT_CHARS) {
             return;
         }
         boolean xml;

@@ -1637,6 +1637,57 @@
     -fx-alignment: center-left;
 }
 
+/* Variables / Watch: a value cell opens the full value in the value viewer on click. */
+.fxt-debug-panel .table-cell.fxt-debug-value-cell {
+    -fx-cursor: hand;
+}
+
+.fxt-debug-panel .table-row-cell:hover .table-cell.fxt-debug-value-cell {
+    -fx-text-fill: -fxt-primary;
+    -fx-underline: true;
+}
+
+/* Value viewer window (XSLT debugger): full value + XPath on it. */
+.fxt-value-viewer {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+.fxt-value-viewer > .split-pane {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-padding: 0;
+}
+
+.fxt-value-viewer-name {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-value-viewer .text-field.fxt-xpath-field {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.fxt-value-viewer .text-field.fxt-xpath-field:focused {
+    -fx-border-color: -fxt-primary;
+}
+
+/* Pretty print / Wrap read as switched on. */
+.fxt-value-viewer .toggle-button.fxt-sp-action:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-value-viewer .toggle-button.fxt-sp-action:selected .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+.fxt-value-viewer .fxt-output-status.fxt-value-viewer-error {
+    -fx-text-fill: -fxt-danger;
+}
+
 /* Nested instructions in the debugger's call stack (the second selector outranks the
    .fxt-debug-panel .list-cell text colour). */
 .fxt-stack-instruction,

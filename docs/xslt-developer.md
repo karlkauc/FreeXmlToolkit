@@ -398,14 +398,33 @@ Watch** on the left (the state at the pause point), **Call Stack | Messages | Br
 the right (navigation and log). Drag the divider between the groups to give one side more room -
 the position is remembered. **Messages** and **Breakpoints** show a **count badge** on their tab;
 Messages is highlighted when output arrives while another tab of its group is in front, and a
-**failed run brings Messages to the front** so the error is readable at once. Long values in
-Variables and Watch show in full as a tooltip; in Watch and Breakpoints the **Delete** key
-removes the selected row.
+**failed run brings Messages to the front** so the error is readable at once. In Watch and
+Breakpoints the **Delete** key removes the selected row.
+
+#### Viewing a Value in Full
+
+The Value column of **Variables** and **Watch** shows only the start of a value (a node can be
+thousands of characters long). **Click a value** - or select the row and press **Enter**, or
+right-click → **Open Value…** - to open it in its own **value window**:
+
+- The **complete value**, pretty-printed (toggle **Pretty print**), with XML **syntax
+  highlighting** and line numbers; **Wrap** wraps long lines, **Copy** copies the whole value.
+  A sequence shows one item per line and its item count.
+- An **XPath** field below that runs **against this value**: a single node is the context item
+  (`item[1]/price`, `count(//item)`), `$value` is the whole value (`$value[2]` for a sequence),
+  and every variable of the pause stays in scope. **Run** (or Enter) shows the result with its
+  item count and time; **Copy result** copies it.
+- Value windows are separate, resizable windows - keep several open next to the editor. They
+  show the pause they were opened at (*paused at file:line*), stay open while you step, and
+  close when the debug session ends. Clicking the same value of the same pause again brings
+  its window to the front.
+- Right-click → **Copy Value** copies the full value without opening a window.
+- A Watch value is re-evaluated in full for the window (the table keeps a shortened version).
 
 | Panel | Shows |
 |-------|-------|
-| **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order) |
-| **Watch** | Your XPath expressions, evaluated **against the paused context item** with all variables in scope: `count(item)`, `$total`, `string(@id)`, `position()`; the stylesheet's namespace prefixes are available. Type an expression into the field above the table and press **Add**; **Remove** (or the Delete key) drops the selected one. Re-evaluated at every pause; errors are shown in the row |
+| **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full |
+| **Watch** | Your XPath expressions, evaluated **against the paused context item** with all variables in scope: `count(item)`, `$total`, `string(@id)`, `position()`; the stylesheet's namespace prefixes are available. Type an expression into the field above the table and press **Add**; **Remove** (or the Delete key) drops the selected one. Re-evaluated at every pause; errors are shown in the row. Click a value to open it in full |
 | **Call Stack** | Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module |
 | **Messages** | `xsl:message` output and Saxon warnings **live, as they happen**, with their location; double-click jumps to the line. A failed run shows its error here too |
 | **Breakpoints** | All breakpoints of the session with **Remove** / **Clear all** above the list, see above |

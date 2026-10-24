@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.Serializer;
 import net.sf.saxon.s9api.XPathCompiler;
 import net.sf.saxon.s9api.XPathSelector;
 import net.sf.saxon.s9api.XdmAtomicValue;
@@ -29,6 +30,12 @@ public final class WatchEvaluator {
 
     /** Longest rendered watch value. */
     public static final int MAX_RENDERED_LENGTH = 2000;
+
+    /** Safety limit of a value shown in the value viewer (serialized characters). */
+    public static final int MAX_VIEWER_CHARS = 5 * 1024 * 1024;
+
+    /** Variable bound to the viewed value in {@link #evaluateValue}. */
+    public static final QName VALUE_VARIABLE = new QName("value");
 
     private static final Pattern XMLNS = Pattern.compile("xmlns:([A-Za-z_][\\w.-]*)\\s*=\\s*([\"'])(.*?)\\2");
 
@@ -80,35 +87,117 @@ public final class WatchEvaluator {
             return snapshot.last() >= 0 ? String.valueOf(snapshot.last()) : "<no focus>";
         }
         try {
-            XPathCompiler compiler = processor.newXPathCompiler();
-            compiler.setLanguageVersion("3.1");
-            compiler.declareNamespace("xsl", "http://www.w3.org/1999/XSL/Transform");
-            compiler.declareNamespace("xs", "http://www.w3.org/2001/XMLSchema");
-            compiler.declareNamespace("fn", "http://www.w3.org/2005/xpath-functions");
-            compiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
-            compiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
-            compiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");
-            for (Map.Entry<String, String> ns : namespaces.entrySet()) {
-                compiler.declareNamespace(ns.getKey(), ns.getValue());
-            }
-            // Locals shadow globals of the same name.
-            Map<QName, XdmValue> variables = new LinkedHashMap<>(snapshot.globalVariables());
-            variables.putAll(snapshot.localVariables());
-            for (QName name : variables.keySet()) {
-                compiler.declareVariable(name);
-            }
-            XPathSelector selector = compiler.compile(expr).load();
-            if (snapshot.contextXdm() != null) {
-                selector.setContextItem(snapshot.contextXdm());
-            }
-            for (Map.Entry<QName, XdmValue> v : variables.entrySet()) {
-                selector.setVariable(v.getKey(), v.getValue());
-            }
-            return render(selector.evaluate(), MAX_RENDERED_LENGTH);
+            return render(prepare(expr, snapshot, null).evaluate(), MAX_RENDERED_LENGTH);
         } catch (SaxonApiException e) {
             return "ERROR: " + e.getMessage();
         } catch (RuntimeException e) {
             return "ERROR: " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+        }
+    }
+
+    /**
+     * Evaluates {@code expression} to its full value (no rendering, no length cap) — for the
+     * value viewer. With a {@code focus} the expression runs against that value: a single item
+     * is the context item, and the whole value is bound as {@code $value} (unless the stylesheet
+     * has a variable of that name in scope, which wins). Without a focus it behaves like a watch
+     * (context = the paused context item). Every snapshot variable is in scope either way.
+     *
+     * @throws SaxonApiException on a static or dynamic XPath error
+     */
+    public XdmValue evaluateValue(String expression, PausedSnapshot snapshot, XdmValue focus)
+            throws SaxonApiException {
+        if (expression == null || expression.isBlank()) {
+            return net.sf.saxon.s9api.XdmEmptySequence.getInstance();
+        }
+        return prepare(expression.trim(), snapshot, focus).evaluate();
+    }
+
+    /**
+     * Compiles {@code expr} with the stylesheet's namespaces and every snapshot variable
+     * (locals shadow globals), and loads it with its context item and variable values.
+     */
+    private XPathSelector prepare(String expr, PausedSnapshot snapshot, XdmValue focus)
+            throws SaxonApiException {
+        XPathCompiler compiler = processor.newXPathCompiler();
+        compiler.setLanguageVersion("3.1");
+        compiler.declareNamespace("xsl", "http://www.w3.org/1999/XSL/Transform");
+        compiler.declareNamespace("xs", "http://www.w3.org/2001/XMLSchema");
+        compiler.declareNamespace("fn", "http://www.w3.org/2005/xpath-functions");
+        compiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
+        compiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
+        compiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");
+        for (Map.Entry<String, String> ns : namespaces.entrySet()) {
+            compiler.declareNamespace(ns.getKey(), ns.getValue());
+        }
+        // Locals shadow globals of the same name.
+        Map<QName, XdmValue> variables = new LinkedHashMap<>();
+        if (snapshot != null) {
+            variables.putAll(snapshot.globalVariables());
+            variables.putAll(snapshot.localVariables());
+        }
+        if (focus != null && !variables.containsKey(VALUE_VARIABLE)) {
+            variables.put(VALUE_VARIABLE, focus);
+        }
+        for (QName name : variables.keySet()) {
+            compiler.declareVariable(name);
+        }
+        XPathSelector selector = compiler.compile(expr).load();
+        if (focus != null) {
+            if (focus.size() == 1) {
+                selector.setContextItem(focus.itemAt(0));
+            }
+        } else if (snapshot != null && snapshot.contextXdm() != null) {
+            selector.setContextItem(snapshot.contextXdm());
+        }
+        for (Map.Entry<QName, XdmValue> v : variables.entrySet()) {
+            selector.setVariable(v.getKey(), v.getValue());
+        }
+        return selector;
+    }
+
+    /**
+     * Serializes a value completely, one item per line: nodes as XML (indented when
+     * {@code indent}, never with an XML declaration), atomic values as their string value,
+     * other items (maps, arrays, functions) via {@code toString()}. Cut at
+     * {@value #MAX_VIEWER_CHARS} characters with a closing note.
+     */
+    public String serialize(XdmValue value, boolean indent) {
+        if (value == null || value.size() == 0) {
+            return "<empty sequence>";
+        }
+        StringBuilder sb = new StringBuilder();
+        int n = value.size();
+        for (int i = 0; i < n && sb.length() <= MAX_VIEWER_CHARS; i++) {
+            if (i > 0) {
+                sb.append('\n');
+            }
+            XdmItem item = value.itemAt(i);
+            if (item instanceof XdmNode node) {
+                sb.append(serializeNode(node, indent));
+            } else if (item instanceof XdmAtomicValue atomic) {
+                sb.append(atomic.getStringValue());
+            } else {
+                sb.append(item.toString());
+            }
+        }
+        if (sb.length() > MAX_VIEWER_CHARS) {
+            sb.setLength(MAX_VIEWER_CHARS);
+            sb.append("\n… (truncated at ").append(MAX_VIEWER_CHARS / (1024 * 1024)).append(" MB)");
+        }
+        return sb.toString();
+    }
+
+    private String serializeNode(XdmNode node, boolean indent) {
+        try {
+            java.io.StringWriter out = new java.io.StringWriter();
+            Serializer serializer = processor.newSerializer(out);
+            serializer.setOutputProperty(Serializer.Property.METHOD, "xml");
+            serializer.setOutputProperty(Serializer.Property.INDENT, indent ? "yes" : "no");
+            serializer.setOutputProperty(Serializer.Property.OMIT_XML_DECLARATION, "yes");
+            serializer.serializeNode(node);
+            return out.toString().strip();
+        } catch (SaxonApiException | RuntimeException e) {
+            return node.toString().strip();
         }
     }
 

@@ -754,8 +754,8 @@ run brings Messages to the front. The five panels:
 
 | Panel | Shows |
 |-------|-------|
-| **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope and every global variable that has been evaluated so far - with real values and XDM types (long values in full as a tooltip) |
-| **Watch** | Your XPath expressions, evaluated **against the paused context item** with the variables in scope (`count(item)`, `$total`, `position()`); re-evaluated at every pause. **Add** / **Remove** sit above the table; Delete removes the selected expression |
+| **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope and every global variable that has been evaluated so far - with real values and XDM types. **Click a value** to open it in a window with the full, highlighted value, Copy, and an XPath field that runs against it ([details](xslt-developer.md#viewing-a-value-in-full)) |
+| **Watch** | Your XPath expressions, evaluated **against the paused context item** with the variables in scope (`count(item)`, `$total`, `position()`); re-evaluated at every pause. **Add** / **Remove** sit above the table; Delete removes the selected expression; click a value to open the full result |
 | **Call Stack** | Template and function frames (instructions nested inside them are dimmed), each with its module and line; double-click jumps there, also into an include |
 | **Messages** | `xsl:message` output and Saxon warnings **as they happen**, with their stylesheet location; double-click jumps to the line |
 | **Breakpoints** | All breakpoints of the session (file · line) with **Remove** / **Clear all** above the list (Delete removes the selected one); double-click jumps to the line |

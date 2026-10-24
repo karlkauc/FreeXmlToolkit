@@ -206,6 +206,21 @@ class XsltDebugPaneTest {
         assertFalse(pane.lookup("#debug-continue").isDisabled(), "Continue is enabled while paused");
         assertTrue(pane.getVariablesView().getRowCount() > 0, "variables are filled on pause");
         assertTrue(pane.getCallStackView().getRowCount() > 0, "call stack is filled on pause");
+
+        // The value viewer resolves rows to their full values from the pause.
+        PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+        ValueSource ctx = XsltDebugPane.resolveVariable(
+                new org.fxt.freexmltoolkit.debugger.VariableBinding(".", "<out/>", "element(out)",
+                        org.fxt.freexmltoolkit.debugger.VariableScope.LOCAL), snap);
+        assertTrue(ctx.hasValue(), "the context item has its full value");
+        ValueSource pos = XsltDebugPane.resolveVariable(
+                new org.fxt.freexmltoolkit.debugger.VariableBinding("position()", "1", "xs:integer",
+                        org.fxt.freexmltoolkit.debugger.VariableScope.LOCAL), snap);
+        assertFalse(pos.hasValue(), "position() falls back to the row text");
+        assertEquals("1", pos.fallbackText());
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.openViewer(ctx));
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.openViewer(ctx));
+        assertEquals(1, pane.openViewers().size(), "the same row of the same pause opens one window");
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "2".equals(pane.getWatchView().getValueAt(0)));
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getMessagesView().getRowCount() == 1);
 
@@ -218,8 +233,29 @@ class XsltDebugPaneTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getStatusText().startsWith("Finished"));
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> clears.get() >= 1);
         assertTrue(clears.get() >= 1, "after the run the host is told the pause is over");
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, pane::dispose);
+        assertTrue(pane.openViewers().isEmpty(), "ending the session closes the value windows");
         boolean idleKey = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.handleShortcut(
                 new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F8, false, false, false, false)));
         assertFalse(idleKey, "F8 is not consumed when the debugger is not paused (it validates)");
+    }
+
+    @Test
+    void resolveVariableFindsLocalsAndGlobalsByDisplayName() {
+        net.sf.saxon.s9api.XdmAtomicValue local = new net.sf.saxon.s9api.XdmAtomicValue("local");
+        net.sf.saxon.s9api.XdmAtomicValue global = new net.sf.saxon.s9api.XdmAtomicValue("global");
+        net.sf.saxon.s9api.XdmAtomicValue prefixed = new net.sf.saxon.s9api.XdmAtomicValue("p");
+        PausedSnapshot snap = new PausedSnapshot("file:/a.xsl", 3, List.of(), List.of(), "", null,
+                Map.of(new net.sf.saxon.s9api.QName("x"), local),
+                Map.of(new net.sf.saxon.s9api.QName("x"), global,
+                        new net.sf.saxon.s9api.QName("f", "urn:f", "cfg"), prefixed), 1, 1);
+        assertSame(local, XsltDebugPane.resolveVariable(new org.fxt.freexmltoolkit.debugger.VariableBinding(
+                "$x", "local", "xs:string", org.fxt.freexmltoolkit.debugger.VariableScope.LOCAL), snap).value());
+        assertSame(global, XsltDebugPane.resolveVariable(new org.fxt.freexmltoolkit.debugger.VariableBinding(
+                "$x", "global", "xs:string", org.fxt.freexmltoolkit.debugger.VariableScope.GLOBAL), snap).value());
+        assertSame(prefixed, XsltDebugPane.resolveVariable(new org.fxt.freexmltoolkit.debugger.VariableBinding(
+                "$f:cfg", "p", "xs:string", org.fxt.freexmltoolkit.debugger.VariableScope.GLOBAL), snap).value());
+        assertFalse(XsltDebugPane.resolveVariable(new org.fxt.freexmltoolkit.debugger.VariableBinding(
+                "$missing", "?", "", org.fxt.freexmltoolkit.debugger.VariableScope.LOCAL), snap).hasValue());
     }
 }

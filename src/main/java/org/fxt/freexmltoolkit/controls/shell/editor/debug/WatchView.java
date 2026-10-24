@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -44,20 +45,32 @@ public class WatchView extends VBox {
     private PausedSnapshot lastSnapshot;
     /** Bumped per evaluation so a slow earlier pass cannot overwrite a newer one. */
     private int generation;
+    private Consumer<WatchRow> onOpenValue = r -> { };
+    private Consumer<WatchRow> onCopyValue = r -> { };
 
     public WatchView() {
         getStyleClass().add("fxt-debug-panel");
 
         table.getColumns().add(DebugTableColumns.col("Expression", WatchRow::getExpression, 160));
-        table.getColumns().add(DebugTableColumns.colWithTooltip("Value", WatchRow::getValue, -1));
+        table.getColumns().add(DebugTableColumns.valueColumn("Value", WatchRow::getValue, -1,
+                r -> onOpenValue.accept(r)));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("No watches."));
         table.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.DELETE) {
                 removeSelected();
                 e.consume();
+            } else if (e.getCode() == KeyCode.ENTER) {
+                WatchRow r = table.getSelectionModel().getSelectedItem();
+                if (r != null) {
+                    onOpenValue.accept(r);
+                    e.consume();
+                }
             }
         });
+        table.setContextMenu(DebugValueMenu.create(
+                () -> table.getSelectionModel().getSelectedItem(), r -> onOpenValue.accept(r),
+                r -> onCopyValue.accept(r)));
         VBox.setVgrow(table, Priority.ALWAYS);
 
         input.setPromptText("XPath against the paused context, e.g. count(item) or $total");
@@ -155,6 +168,21 @@ public class WatchView extends VBox {
     /** @return the current value text of the watch at {@code index} (for tests/observers). */
     public String getValueAt(int index) {
         return table.getItems().get(index).getValue();
+    }
+
+    /** Invoked with the watch whose full result should be opened (click on a value, Enter, menu). */
+    public void setOnOpenValue(Consumer<WatchRow> handler) {
+        this.onOpenValue = handler == null ? r -> { } : handler;
+    }
+
+    /** Invoked with the watch whose full result should be copied (context menu). */
+    public void setOnCopyValue(Consumer<WatchRow> handler) {
+        this.onCopyValue = handler == null ? r -> { } : handler;
+    }
+
+    /** Opens the value of watch {@code index} as a click would (tests). */
+    void fireOpen(int index) {
+        onOpenValue.accept(table.getItems().get(index));
     }
 
     /** The table, for tests that drive it with key events. */

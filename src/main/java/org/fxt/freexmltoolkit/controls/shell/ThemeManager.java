@@ -35,6 +35,11 @@ public final class ThemeManager {
         }
     }
 
+    /** Removes a listener registered with {@link #addThemeChangeListener}. */
+    public static void removeThemeChangeListener(Consumer<DesignTokens.Theme> listener) {
+        LISTENERS.remove(listener);
+    }
+
     /** @return the current {@link DesignTokens.Theme} (from the persisted preference). */
     public static DesignTokens.Theme currentTheme() {
         return currentIsDark() ? DesignTokens.Theme.DARK : DesignTokens.Theme.LIGHT;
@@ -54,20 +59,7 @@ public final class ThemeManager {
         if (scene == null) {
             return;
         }
-        scene.getStylesheets().removeIf(s -> s.endsWith("light-theme.css") || s.endsWith("dark-theme.css"));
-        String css = dark ? "/css/dark-theme.css" : "/css/light-theme.css";
-        var url = ThemeManager.class.getResource(css);
-        String themeSheet = url != null ? url.toExternalForm() : null;
-        var root = scene.getRoot();
-        boolean inserted = root != null && insertThemeSheet(root, themeSheet);
-        if (themeSheet != null && !inserted) {
-            // No parent declares the shell sheets (e.g. bare test scenes) — scene level is fine.
-            scene.getStylesheets().add(themeSheet);
-        }
-        if (root != null) {
-            root.getStyleClass().removeAll("fxt-theme-dark", "fxt-theme-light");
-            root.getStyleClass().add(dark ? "fxt-theme-dark" : "fxt-theme-light");
-        }
+        applyTo(scene, dark);
         try {
             ServiceRegistry.get(PropertiesService.class).set("ui.theme", dark ? "dark" : "light");
         } catch (Throwable ignored) {
@@ -81,6 +73,32 @@ public final class ThemeManager {
             } catch (Throwable t) {
                 // a misbehaving listener must not break the theme switch
             }
+        }
+    }
+
+    /**
+     * The visual half of {@link #apply}: swaps the theme stylesheet and the
+     * {@code fxt-theme-dark/light} root class of {@code scene}, without persisting the choice
+     * or notifying listeners. For secondary windows (e.g. the debugger's value viewer) that
+     * follow the main window's theme.
+     */
+    public static void applyTo(Scene scene, boolean dark) {
+        if (scene == null) {
+            return;
+        }
+        scene.getStylesheets().removeIf(s -> s.endsWith("light-theme.css") || s.endsWith("dark-theme.css"));
+        String css = dark ? "/css/dark-theme.css" : "/css/light-theme.css";
+        var url = ThemeManager.class.getResource(css);
+        String themeSheet = url != null ? url.toExternalForm() : null;
+        var root = scene.getRoot();
+        boolean inserted = root != null && insertThemeSheet(root, themeSheet);
+        if (themeSheet != null && !inserted) {
+            // No parent declares the shell sheets (e.g. bare test scenes) — scene level is fine.
+            scene.getStylesheets().add(themeSheet);
+        }
+        if (root != null) {
+            root.getStyleClass().removeAll("fxt-theme-dark", "fxt-theme-light");
+            root.getStyleClass().add(dark ? "fxt-theme-dark" : "fxt-theme-light");
         }
     }
 

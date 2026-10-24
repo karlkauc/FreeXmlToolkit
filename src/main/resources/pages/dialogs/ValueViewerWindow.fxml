@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Content of the XSLT debugger's value viewer window: header (name, type · scope, the pause it
+  shows), toolbar (Copy, Pretty print, Wrap, size) and a vertical split of the full value above
+  an XPath field with its result. The two code areas (read-only, line numbers, highlighting)
+  are added in code into valueBox / resultBox. Loaded by ValueViewerWindow
+  (FxmlViews.loadContent); ValueViewerWindow is the controller.
+-->
+<VBox styleClass="fxt-value-viewer" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-output-header">
+            <children>
+                <Label fx:id="nameLabel" id="value-viewer-name" styleClass="fxt-value-viewer-name"/>
+                <Label fx:id="typeLabel" id="value-viewer-type" styleClass="fxt-output-status"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="pauseLabel" id="value-viewer-pause" styleClass="fxt-output-status"/>
+            </children>
+        </HBox>
+        <SplitPane fx:id="split" id="value-viewer-split" orientation="VERTICAL" dividerPositions="0.65"
+                   VBox.vgrow="ALWAYS">
+            <items>
+                <VBox fx:id="valueBox" styleClass="fxt-debug-panel">
+                    <children>
+                        <HBox styleClass="fxt-debug-toolbar">
+                            <children>
+                                <Button fx:id="copyButton" id="value-viewer-copy" text="Copy"
+                                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onCopy">
+                                    <graphic><IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/></graphic>
+                                    <tooltip><Tooltip text="Copy the whole value to the clipboard"/></tooltip>
+                                </Button>
+                                <ToggleButton fx:id="prettyToggle" id="value-viewer-pretty" text="Pretty print"
+                                              selected="true" styleClass="fxt-sp-action, fxt-output-action"
+                                              onAction="#onPrettyPrint">
+                                    <graphic><IconifyIcon iconLiteral="bi-text-indent-left" iconSize="14"/></graphic>
+                                    <tooltip><Tooltip text="Indent XML nodes"/></tooltip>
+                                </ToggleButton>
+                                <ToggleButton fx:id="wrapToggle" id="value-viewer-wrap" text="Wrap"
+                                              styleClass="fxt-sp-action, fxt-output-action" onAction="#onWrap">
+                                    <graphic><IconifyIcon iconLiteral="bi-text-wrap" iconSize="14"/></graphic>
+                                    <tooltip><Tooltip text="Wrap long lines"/></tooltip>
+                                </ToggleButton>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="sizeLabel" id="value-viewer-size" styleClass="fxt-output-status"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+                <VBox fx:id="resultBox" styleClass="fxt-debug-panel">
+                    <children>
+                        <HBox styleClass="fxt-debug-toolbar">
+                            <children>
+                                <Label text="XPath" styleClass="fxt-output-title"/>
+                                <TextField fx:id="xpathField" id="value-viewer-xpath" HBox.hgrow="ALWAYS"
+                                           styleClass="fxt-xpath-field" onAction="#onRunXPath"
+                                           promptText="XPath on this value, e.g. item[1]/price, count(//item) or $value[2]"/>
+                                <Button fx:id="runButton" id="value-viewer-run" text="Run"
+                                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onRunXPath">
+                                    <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/></graphic>
+                                    <tooltip><Tooltip text="Evaluate the XPath (Enter). Context: this value; $value is the whole value; every variable of the pause is in scope."/></tooltip>
+                                </Button>
+                                <Button fx:id="copyResultButton" id="value-viewer-copy-result" text="Copy result"
+                                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onCopyResult">
+                                    <graphic><IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/></graphic>
+                                    <tooltip><Tooltip text="Copy the XPath result to the clipboard"/></tooltip>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <Label fx:id="resultStatus" id="value-viewer-result-status" styleClass="fxt-output-status"/>
+                    </children>
+                </VBox>
+            </items>
+        </SplitPane>
+    </children>
+</VBox>

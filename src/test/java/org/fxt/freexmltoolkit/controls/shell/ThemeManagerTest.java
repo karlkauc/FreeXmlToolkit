@@ -116,4 +116,31 @@ class ThemeManagerTest {
         }
         return -1;
     }
+
+    /** Secondary windows follow the theme without persisting it or notifying listeners. */
+    @Test
+    void applyToSwitchesVisuallyWithoutPersistingOrNotifying() {
+        var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ThemeManager.apply(scene, false);
+            return null;
+        });
+        java.util.concurrent.atomic.AtomicInteger notified = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.function.Consumer<org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme> listener =
+                t -> notified.incrementAndGet();
+        ThemeManager.addThemeChangeListener(listener);
+        try {
+            Scene other = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                Scene s = new Scene(new StackPane(), 100, 100);
+                ThemeManager.applyTo(s, true);
+                return s;
+            });
+            assertTrue(other.getRoot().getStyleClass().contains("fxt-theme-dark"), "dark root class");
+            assertTrue(other.getStylesheets().stream().anyMatch(s -> s.contains("dark-theme.css")), "dark css");
+            assertEquals("light", props.get("ui.theme"), "the preference is untouched");
+            assertEquals(0, notified.get(), "no theme-change notification");
+        } finally {
+            ThemeManager.removeThemeChangeListener(listener);
+        }
+    }
 }

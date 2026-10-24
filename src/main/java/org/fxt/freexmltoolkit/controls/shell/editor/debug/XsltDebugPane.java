@@ -1,7 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import javafx.application.Platform;
@@ -16,15 +19,25 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XdmValue;
+
+import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.debugger.Breakpoint;
 import org.fxt.freexmltoolkit.debugger.DebugSession;
 import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
+import org.fxt.freexmltoolkit.debugger.VariableBinding;
+import org.fxt.freexmltoolkit.debugger.VariableScope;
+import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
@@ -81,6 +94,8 @@ public final class XsltDebugPane extends VBox {
     private final Label breakpointsBadge = badge();
     /** The divider ratio as last restored or saved; a drag that ends elsewhere is persisted. */
     private double knownDivider = DEFAULT_DIVIDER;
+    /** Open value viewer windows; closed when the pane is disposed (session end). */
+    private final List<ValueViewerWindow> viewers = new ArrayList<>();
 
     private Consumer<PausedSnapshot> onPaused = snapshot -> { };
     private Runnable onShowInEditor = () -> { };
@@ -116,6 +131,10 @@ public final class XsltDebugPane extends VBox {
             }
         });
         installDividerPersistence();
+        variablesView.setOnOpenValue(b -> openViewer(resolveVariable(b, controller.getSession().getPausedSnapshot())));
+        variablesView.setOnCopyValue(b -> copyValue(resolveVariable(b, controller.getSession().getPausedSnapshot())));
+        watchView.setOnOpenValue(row -> resolveWatch(row, this::openViewer));
+        watchView.setOnCopyValue(row -> resolveWatch(row, this::copyValue));
 
         pauseOnEntry.setSelected(controller.isPauseOnEntry());
         breakpointsView.setOnJumpToBreakpoint(bp -> onJumpToBreakpoint.accept(bp));
@@ -138,6 +157,7 @@ public final class XsltDebugPane extends VBox {
 
     /** Detaches every listener; call when the pane leaves the dock. */
     public void dispose() {
+        closeViewers();
         controller.getSession().removePropertyChangeListener(stateListener);
         controller.removeMessageListener(messageListener);
         controller.removeCompletionListener(completionListener);
@@ -299,6 +319,126 @@ public final class XsltDebugPane extends VBox {
         }
         applyButtonState(controller.getSession().getState());
         onResult.accept(result);
+    }
+
+    // ----- value viewer ------------------------------------------------------------------------
+
+    /**
+     * Maps a Variables row to its full value in {@code snap}: {@code .} is the context item,
+     * {@code $name} / {@code $p:name} the variable of that display name (locals first, globals
+     * first for a GLOBAL row). Rows without a value of their own ({@code position()},
+     * {@code <unbound>}, display-only snapshots) fall back to the row text.
+     */
+    static ValueSource resolveVariable(VariableBinding binding, PausedSnapshot snap) {
+        String scope = binding.scope() == null ? "" : binding.scope().name();
+        XdmValue value = null;
+        if (snap != null) {
+            String name = binding.name();
+            if (".".equals(name)) {
+                value = snap.contextXdm();
+            } else if (name != null && name.startsWith("$")) {
+                String display = name.substring(1);
+                boolean global = binding.scope() == VariableScope.GLOBAL;
+                value = byDisplayName(global ? snap.globalVariables() : snap.localVariables(), display);
+                if (value == null) {
+                    value = byDisplayName(global ? snap.localVariables() : snap.globalVariables(), display);
+                }
+            }
+        }
+        return new ValueSource(binding.name(), binding.type(), scope, value, binding.value(), snap);
+    }
+
+    private static XdmValue byDisplayName(Map<QName, XdmValue> variables, String display) {
+        if (variables == null) {
+            return null;
+        }
+        for (Map.Entry<QName, XdmValue> e : variables.entrySet()) {
+            QName q = e.getKey();
+            String shown = q.getPrefix() == null || q.getPrefix().isEmpty()
+                    ? q.getLocalName() : q.getPrefix() + ":" + q.getLocalName();
+            if (shown.equals(display)) {
+                return e.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Re-evaluates a watch to its full value (the table keeps only the rendered, capped text)
+     * off the FX thread and hands the result to {@code then} on the FX thread.
+     */
+    private void resolveWatch(WatchView.WatchRow row, Consumer<ValueSource> then) {
+        PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+        WatchEvaluator evaluator = snap == null ? null : controller.getWatchEvaluator();
+        if (evaluator == null) {
+            then.accept(new ValueSource(row.getExpression(), "", "WATCH", null, row.getValue(), snap));
+            return;
+        }
+        FxtGui.executorService.submit(() -> {
+            ValueSource source;
+            try {
+                XdmValue value = evaluator.evaluateValue(row.getExpression(), snap, null);
+                source = new ValueSource(row.getExpression(), WatchEvaluator.describeType(value), "WATCH",
+                        value, null, snap);
+            } catch (SaxonApiException | RuntimeException e) {
+                source = new ValueSource(row.getExpression(), "", "WATCH", null,
+                        "ERROR: " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()), snap);
+            }
+            final ValueSource resolved = source;
+            Platform.runLater(() -> then.accept(resolved));
+        });
+    }
+
+    /** Opens a viewer for {@code source}, or brings an open one for the same row and pause to front. */
+    void openViewer(ValueSource source) {
+        for (ValueViewerWindow open : viewers) {
+            if (open.getSource().title().equals(source.title())
+                    && open.getSource().snapshot() == source.snapshot()) {
+                open.toFront();
+                open.requestFocus();
+                return;
+            }
+        }
+        WatchEvaluator evaluator = source.snapshot() == null ? null : controller.getWatchEvaluator();
+        ValueViewerWindow window = new ValueViewerWindow(
+                getScene() == null ? null : getScene().getWindow(), source, evaluator);
+        viewers.add(window);
+        window.addEventHandler(javafx.stage.WindowEvent.WINDOW_HIDDEN, e -> viewers.remove(window));
+        window.show();
+    }
+
+    /** Copies the full value (pretty-printed) of {@code source} to the clipboard. */
+    private void copyValue(ValueSource source) {
+        WatchEvaluator evaluator = source.snapshot() == null ? null : controller.getWatchEvaluator();
+        if (!source.hasValue() || evaluator == null) {
+            putOnClipboard(source.hasValue()
+                    ? WatchEvaluator.render(source.value(), WatchEvaluator.MAX_VIEWER_CHARS)
+                    : source.fallbackText());
+            return;
+        }
+        FxtGui.executorService.submit(() -> {
+            String text = evaluator.serialize(source.value(), true);
+            Platform.runLater(() -> putOnClipboard(text));
+        });
+    }
+
+    private static void putOnClipboard(String text) {
+        ClipboardContent content = new ClipboardContent();
+        content.putString(text == null ? "" : text);
+        Clipboard.getSystemClipboard().setContent(content);
+    }
+
+    /** Closes every open value viewer. */
+    void closeViewers() {
+        for (ValueViewerWindow window : new ArrayList<>(viewers)) {
+            window.close();
+        }
+        viewers.clear();
+    }
+
+    /** The open value viewers (tests). */
+    List<ValueViewerWindow> openViewers() {
+        return List.copyOf(viewers);
     }
 
     // ----- tab groups: badges, attention, divider -------------------------------------------

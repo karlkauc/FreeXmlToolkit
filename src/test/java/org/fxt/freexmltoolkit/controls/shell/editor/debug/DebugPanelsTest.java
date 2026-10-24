@@ -86,4 +86,23 @@ class DebugPanelsTest {
         });
         assertEquals(1, rows);
     }
+
+    @Test
+    void openValueHandlersReceiveTheRow() {
+        java.util.concurrent.atomic.AtomicReference<VariableBinding> opened = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.atomic.AtomicReference<WatchView.WatchRow> openedWatch = new java.util.concurrent.atomic.AtomicReference<>();
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            VariablesView variables = new VariablesView();
+            variables.setVariables(List.of(new VariableBinding("$order", "<order/>", "element(order)", VariableScope.LOCAL)));
+            variables.setOnOpenValue(opened::set);
+            variables.fireOpen(0);
+            WatchView watch = new WatchView();
+            watch.addWatch("count(item)");
+            watch.setOnOpenValue(openedWatch::set);
+            watch.fireOpen(0);
+            return null;
+        });
+        assertEquals("$order", opened.get().name());
+        assertEquals("count(item)", openedWatch.get().getExpression());
+    }
 }

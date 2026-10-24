@@ -13,9 +13,13 @@ import org.fxt.freexmltoolkit.controls.shared.XmlSyntaxHighlighter;
 /**
  * Highlights a result area (transform output, query results) off the FX thread: computing the spans of
  * a result up to the highlight limit took up to hundreds of ms per run, and live preview re-runs on every
- * typing pause. The spans are applied only if the area still shows that text.
+ * typing pause. The spans are applied only if the area still shows that text. Also used by the XSLT
+ * debugger's value viewer.
  */
-final class ResultHighlighter {
+public final class ResultHighlighter {
+
+    /** Results longer than this are shown unhighlighted (keeps span computation and styling cheap). */
+    public static final int HIGHLIGHT_LIMIT_CHARS = 512 * 1024;
 
     /** Per-area request counter (in the area's properties): an older result is dropped. */
     private static final String REQUEST_KEY = ResultHighlighter.class.getName() + ".request";
@@ -29,7 +33,7 @@ final class ResultHighlighter {
      * @param xml  whether to use the XML highlighter
      * @param json whether to use the JSON highlighter (ignored when {@code xml} is set)
      */
-    static void highlight(CodeArea area, String text, boolean xml, boolean json) {
+    public static void highlight(CodeArea area, String text, boolean xml, boolean json) {
         long request = nextRequest(area);
         if (!xml && !json) {
             return;

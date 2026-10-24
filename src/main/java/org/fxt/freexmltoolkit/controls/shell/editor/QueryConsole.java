@@ -80,9 +80,6 @@ public class QueryConsole extends Region {
     /** Per-run statistics ("42 ms · 1234 chars"), shown only when execution statistics are enabled. */
     @FXML private Label statsLabel;
 
-    /** Results above this size are shown without highlighting to keep the FX thread responsive. */
-    private static final int HIGHLIGHT_LIMIT_CHARS = 512 * 1024;
-
     // XPath/XQuery autocompletion engines, one per input (created in buildInput()).
     private XPathIntelliSenseEngine xpathIntelliSense;
     private XPathIntelliSenseEngine xqueryIntelliSense;
@@ -461,7 +458,7 @@ public class QueryConsole extends Region {
     private void setResultsText(String text) {
         String value = text == null ? "" : text;
         resultsArea.replaceText(value);
-        if (value.isEmpty() || value.length() > HIGHLIGHT_LIMIT_CHARS) {
+        if (value.isEmpty() || value.length() > ResultHighlighter.HIGHLIGHT_LIMIT_CHARS) {
             return;
         }
         String trimmed = value.stripLeading();
