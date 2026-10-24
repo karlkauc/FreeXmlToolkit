@@ -124,7 +124,8 @@ class ValueViewerWindowTest {
     void sequenceShowsItsItemCount() throws Exception {
         XdmValue seq = new XdmValue(List.of(new XdmAtomicValue(1), new XdmAtomicValue(2), new XdmAtomicValue(3)));
         ValueViewerWindow w = open(new ValueSource("$ids", "3 items", "LOCAL", seq, null, null));
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "1\n2\n3".equals(w.getValueText()));
-        assertTrue(w.getSizeText().startsWith("3 items"), w.getSizeText());
+        // Text and size label are set in the same FX pulse; poll both on the FX thread.
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
+                () -> "1\n2\n3".equals(w.getValueText()) && w.getSizeText().startsWith("3 items")));
     }
 }

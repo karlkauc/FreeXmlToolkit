@@ -1337,6 +1337,13 @@
     -fx-background-radius: 8;
 }
 
+/* RichTextFX line numbers (LineNumberFactory: OUTPUT, Query Console, value viewer) pad with
+   spaces and assume a monospace font; the global `.label { -fx-font-family: Inter }` rule would
+   make " 9" narrower than "10", so the text jumped right at line 10. */
+.code-area .label.lineno {
+    -fx-font-family: "JetBrains Mono", monospace;
+}
+
 /* ----- Transform panel ------------------------------------------------- */
 .fxt-transform-output {
     -fx-font-family: "JetBrains Mono", monospace;
