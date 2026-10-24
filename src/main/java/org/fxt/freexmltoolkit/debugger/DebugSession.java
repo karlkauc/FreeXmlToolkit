@@ -46,6 +46,13 @@ public class DebugSession implements BreakpointTarget {
     private final Set<Breakpoint> breakpoints =
             Collections.synchronizedSet(new LinkedHashSet<>());
 
+    /**
+     * Lock-free copy of the enabled breakpoints and their sorted line numbers, read by the
+     * Saxon thread for every instruction; rebuilt by {@link #rearm()} after each change.
+     */
+    private volatile Breakpoint[] armed = new Breakpoint[0];
+    private volatile int[] armedLines = new int[0];
+
     private volatile State state = State.IDLE;
     private volatile StepMode stepMode = StepMode.NONE;
     private volatile int stepTargetDepth = -1;
@@ -68,6 +75,8 @@ public class DebugSession implements BreakpointTarget {
 
     /** Template / function / mode breakpoints (any location); silenced by Mute. */
     private final Set<SymbolBreakpoint> symbolBreakpoints = Collections.synchronizedSet(new LinkedHashSet<>());
+    /** Whether {@link #symbolBreakpoints} is non-empty, readable without its lock. */
+    private volatile boolean hasSymbols;
 
     /** "Break on" options, independent of line breakpoints (but silenced by Mute). */
     private volatile boolean breakOnErrors;
@@ -117,11 +126,23 @@ public class DebugSession implements BreakpointTarget {
         breakpoints.removeIf(existing -> existing.filePath().equals(bp.filePath())
                 && existing.lineNumber() == bp.lineNumber());
         breakpoints.add(bp);
+        rearm();
+    }
+
+    /** Rebuilds the lock-free copy of the enabled breakpoints. */
+    private void rearm() {
+        synchronized (breakpoints) {
+            Breakpoint[] enabled = breakpoints.stream().filter(Breakpoint::enabled).toArray(Breakpoint[]::new);
+            int[] lines = java.util.Arrays.stream(enabled).mapToInt(Breakpoint::lineNumber).distinct().sorted().toArray();
+            armed = enabled;
+            armedLines = lines;
+        }
     }
 
     public void removeBreakpoint(String filePath, int line) {
         String fp = SourceLocations.normalize(filePath);
         breakpoints.removeIf(b -> b.lineNumber() == line && b.filePath().equals(fp));
+        rearm();
     }
 
     /** Toggle the breakpoint at {@code filePath:line}. Returns the new state (true = added). */
@@ -138,9 +159,11 @@ public class DebugSession implements BreakpointTarget {
             }
             if (existing != null) {
                 breakpoints.remove(existing);
+                rearm();
                 return false;
             }
             breakpoints.add(new Breakpoint(fp, line, true));
+            rearm();
             return true;
         }
     }
@@ -189,6 +212,7 @@ public class DebugSession implements BreakpointTarget {
                 breakpoints.remove(existing);
             }
             breakpoints.add(change.apply(existing != null ? existing : new Breakpoint(fp, line, true)));
+            rearm();
             return true;
         }
     }
@@ -222,6 +246,7 @@ public class DebugSession implements BreakpointTarget {
             if (changed) {
                 breakpoints.clear();
                 breakpoints.addAll(updated);
+                rearm();
             }
         }
         return changed;
@@ -322,12 +347,14 @@ public class DebugSession implements BreakpointTarget {
         synchronized (symbolBreakpoints) {
             symbolBreakpoints.removeIf(s -> s.kind() == symbol.kind() && s.name().equals(symbol.name()));
             symbolBreakpoints.add(symbol);
+            hasSymbols = true;
         }
     }
 
     public void removeSymbolBreakpoint(SymbolBreakpoint symbol) {
         synchronized (symbolBreakpoints) {
             symbolBreakpoints.removeIf(s -> s.kind() == symbol.kind() && s.name().equals(symbol.name()));
+            hasSymbols = !symbolBreakpoints.isEmpty();
         }
     }
 
@@ -338,12 +365,17 @@ public class DebugSession implements BreakpointTarget {
         }
     }
 
+    /** @return whether any template / function / mode breakpoint is set (and not muted); lock-free. */
+    public boolean hasActiveSymbolBreakpoints() {
+        return !muted && hasSymbols;
+    }
+
     /**
      * Saxon thread, on entering a template or function: the pause note when a symbol breakpoint
      * names it, otherwise {@code null} (also while muted).
      */
     public String symbolBreak(String match, String template, String function, String mode) {
-        if (muted || symbolBreakpoints.isEmpty()) {
+        if (muted || !hasSymbols) {
             return null;
         }
         synchronized (symbolBreakpoints) {
@@ -456,6 +488,7 @@ public class DebugSession implements BreakpointTarget {
 
     public void clearBreakpoints() {
         breakpoints.clear();
+        rearm();
     }
 
     // ------------------------------------------------------------------
@@ -602,15 +635,13 @@ public class DebugSession implements BreakpointTarget {
                 note = "run to cursor";
             }
         }
-        if (line > 0 && !muted && !breakpoints.isEmpty()) {
+        if (line > 0 && !muted && java.util.Arrays.binarySearch(armedLines, line) >= 0) {
             // Check breakpoints — normalise the location once, not once per breakpoint
             String normalized = normalizedLocation(systemId);
             java.util.List<Breakpoint> matching = new java.util.ArrayList<>(1);
-            synchronized (breakpoints) {
-                for (Breakpoint bp : breakpoints) {
-                    if (bp.enabled() && bp.matchesNormalized(normalized, line)) {
-                        matching.add(bp);
-                    }
+            for (Breakpoint bp : armed) {
+                if (bp.matchesNormalized(normalized, line)) {
+                    matching.add(bp);
                 }
             }
             if (!matching.isEmpty() && continuesFiredLine(normalized, line, depth)) {

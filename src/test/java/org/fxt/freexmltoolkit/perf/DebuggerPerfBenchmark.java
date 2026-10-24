@@ -76,7 +76,23 @@ class DebuggerPerfBenchmark {
             s.setLogHandler(evaluator::formatLog, e -> { });
             return debug(engine, input, s);
         }));
+        lines.add(line("debug run, breakpoint never reached", () -> {
+            DebugSession s = new DebugSession();
+            s.addBreakpoint(new Breakpoint("", 99, true));
+            return debug(engine, input, s);
+        }));
+        StringBuilder big = new StringBuilder("<order>");
+        for (int i = 1; i <= 100_000; i++) {
+            big.append("<item n=\"").append(i).append("\"/>");
+        }
+        String bigInput = big.append("</order>").toString();
+        lines.add(line("100k items: normal run", () -> engine.transform(bigInput, XSLT, new HashMap<>(),
+                XsltTransformationEngine.OutputFormat.XML)));
+        lines.add(line("100k items: debug, no breakpoints", () -> debug(engine, bigInput, new DebugSession())));
+        lines.add(line("100k items: Saxon tracing, no-op listener", () -> noopTrace(engine, bigInput)));
         String deepInput = input.replace("</order>", "").substring(0, input.indexOf("<item n=\"1001\"")) + "</order>";
+        lines.add(line("deep stacks: normal run", () -> engine.transform(deepInput, DEEP_XSLT, new HashMap<>(),
+                XsltTransformationEngine.OutputFormat.XML)));
         lines.add(line("deep stacks: debug, no breakpoints", () -> debugDeep(engine, deepInput, new DebugSession())));
         lines.add(line("deep stacks: condition never true", () -> {
             DebugSession s = new DebugSession();
@@ -94,6 +110,34 @@ class DebuggerPerfBenchmark {
                 XsltTransformationEngine.OutputFormat.XML, session, m -> { });
     }
 
+    /** Compiled with tracing and run with a listener that does nothing: Saxon's own share. */
+    private static XsltTransformationResult noopTrace(XsltTransformationEngine engine, String input) {
+        try {
+            net.sf.saxon.s9api.Processor processor = engine.getDebugProcessor();
+            net.sf.saxon.s9api.XsltCompiler compiler = processor.newXsltCompiler();
+            compiler.setCompileWithTracing(true);
+            net.sf.saxon.s9api.XsltTransformer t = compiler.compile(
+                    new javax.xml.transform.stream.StreamSource(new java.io.StringReader(XSLT))).load();
+            t.setTraceListener(new net.sf.saxon.lib.TraceListener() {
+                @Override public void setOutputDestination(net.sf.saxon.lib.Logger stream) { }
+                @Override public void open(net.sf.saxon.Controller controller) { }
+                @Override public void close() { }
+                @Override public void enter(net.sf.saxon.trace.Traceable instruction,
+                        java.util.Map<String, Object> properties, net.sf.saxon.expr.XPathContext context) { }
+                @Override public void leave(net.sf.saxon.trace.Traceable instruction) { }
+                @Override public void startCurrentItem(net.sf.saxon.om.Item currentItem) { }
+                @Override public void endCurrentItem(net.sf.saxon.om.Item currentItem) { }
+            });
+            t.setSource(new javax.xml.transform.stream.StreamSource(new java.io.StringReader(input)));
+            java.io.StringWriter out = new java.io.StringWriter();
+            t.setDestination(processor.newSerializer(out));
+            t.transform();
+            return null;
+        } catch (net.sf.saxon.s9api.SaxonApiException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     private static XsltTransformationResult debugDeep(XsltTransformationEngine engine, String input, DebugSession session) {
         return engine.transformWithDebugSession(input, DEEP_XSLT, null, new HashMap<>(),
                 XsltTransformationEngine.OutputFormat.XML, session, m -> { });
@@ -108,11 +152,11 @@ class DebuggerPerfBenchmark {
             long t0 = System.nanoTime();
             XsltTransformationResult r = run.get();
             times.add((System.nanoTime() - t0) / 1_000_000);
-            if (!r.isSuccess()) {
+            if (r != null && !r.isSuccess()) {
                 return label + ": FAILED " + r.getErrorMessage();
             }
         }
         Collections.sort(times);
-        return String.format("%-36s %6d ms (median of %d)", label, times.get(RUNS / 2), RUNS);
+        return String.format("%-42s %6d ms (median of %d)", label, times.get(RUNS / 2), RUNS);
     }
 }

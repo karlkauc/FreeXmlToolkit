@@ -493,12 +493,13 @@ every item, `$total > 1000`, or `position() = last()`.
 
 | Scenario (10,000 passes) | Before | Now |
 |--------------------------|--------|-----|
-| Condition that is never true | 97 ms | 77 ms |
-| Logpoint that never pauses | 95 ms | 72 ms |
-| Condition, 12-level call stack per item (1,000 items) | 46 ms | 34 ms |
+| Condition that is never true | 97 ms | 66 ms |
+| Logpoint that never pauses | 95 ms | 64 ms |
+| Condition, 12-level call stack per item (1,000 items) | 46 ms | 28 ms |
 
   The remainder is the XPath evaluation itself, roughly 4 µs per pass - a condition in a loop
-  of a million items adds about four seconds.
+  of a million items adds about four seconds. A debug run without any breakpoint takes 29 ms
+  for the same loop.
 
 #### Hit Counts
 
@@ -546,6 +547,21 @@ F8 keep their usual meaning. A single long evaluation (one huge XPath expression
 interrupted - Pause takes effect at the next instruction.
 The paused line is **tinted** in the editor and a green arrow marks it in the gutter; a hit
 breakpoint shows a yellow arrow over the red circle.
+
+**How much slower is a debug run?** The debugger watches every instruction, so a debug run
+takes about **1.5 to 2 times** as long as a normal transformation, with or without breakpoints.
+Saxon's own trace instrumentation is almost free; the time goes into following the call stack.
+Breakpoints on lines that never run cost nothing extra. Measured with `DebuggerPerfBenchmark`
+(median of 15 runs, stylesheet compiled in each run):
+
+| Workload | Normal run | Debug run | Factor |
+|----------|------------|-----------|--------|
+| 10,000 items, one template | 20 ms | 29 ms | 1.5 |
+| 100,000 items, one template | 150 ms | 246 ms | 1.6 |
+| 1,000 items, 12-level recursion each | 14 ms | 23 ms | 1.6 |
+
+Variables, the call stack and the XSLT context are only collected when the run pauses, so
+stepping and hitting breakpoints do not slow the run between pauses.
 
 ### Inspecting State
 

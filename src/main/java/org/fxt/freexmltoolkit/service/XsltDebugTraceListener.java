@@ -76,9 +76,15 @@ public class XsltDebugTraceListener implements TraceListener {
 
     // Call stack history (for result)
     private final List<String> callStackHistory = Collections.synchronizedList(new ArrayList<>());
+    /** Entries in {@link #callStackHistory}; Saxon thread only (avoids a lock per instruction). */
+    private int historyCount;
 
     // Template execution timing
-    private final Map<String, Long> templateStartTimes = new ConcurrentHashMap<>();
+    /**
+     * Printed match patterns per template rule (identity keys; one entry per rule of the
+     * stylesheet). Saxon thread only: Saxon HE runs a transformation on one thread.
+     */
+    private final Map<TemplateRule, String> matchPatterns = new java.util.IdentityHashMap<>();
     private final Map<String, Long> templateExecutionTimes = new ConcurrentHashMap<>();
     private final Map<String, Integer> templateExecutionCounts = new ConcurrentHashMap<>();
 
@@ -124,18 +130,13 @@ public class XsltDebugTraceListener implements TraceListener {
             callStack.push(entry);
 
             // Record in history with indentation
-            if (callStackHistory.size() < MAX_CALL_STACK_HISTORY) {
+            if (historyCount < MAX_CALL_STACK_HISTORY) {
+                historyCount++;
                 String indent = "  ".repeat(Math.min(callStack.size() - 1, 20));
                 callStackHistory.add(indent + "ENTER: " + description + " at line " + lineNumber);
             }
 
             // Track template execution start time
-            if (traceable instanceof TemplateRule templateRule) {
-                String pattern = templateRule.getMatchPattern() != null
-                        ? templateRule.getMatchPattern().toShortString()
-                        : "unnamed-template";
-                templateStartTimes.put(pattern + "_" + System.identityHashCode(templateRule), System.nanoTime());
-            }
 
             // Capture variable values
             captureVariableValue(traceable);
@@ -199,11 +200,14 @@ public class XsltDebugTraceListener implements TraceListener {
      *         being entered, otherwise {@code null}
      */
     private String symbolBreak(Traceable traceable, XPathContext context) {
+        if (!debugSession.hasActiveSymbolBreakpoints()) {
+            return null;
+        }
         String match = null;
         String template = null;
         String function = null;
         if (traceable instanceof TemplateRule rule) {
-            match = rule.getMatchPattern() == null ? "*" : rule.getMatchPattern().toShortString();
+            match = patternOf(rule, "*");
         } else if (traceable instanceof NamedTemplate named) {
             template = localName(named.getTemplateName());
         } else if (traceable instanceof UserFunction fn) {
@@ -254,14 +258,17 @@ public class XsltDebugTraceListener implements TraceListener {
     @Override
     public void leave(Traceable traceable) {
         try {
+            CallStackEntry left = null;
             if (!callStack.isEmpty()) {
                 if (debugSession != null) {
                     debugSession.notifyLeave(callStack.size() - 1);
                 }
                 CallStackEntry entry = callStack.pop();
+                left = entry;
 
                 // Record leave in history
-                if (callStackHistory.size() < MAX_CALL_STACK_HISTORY) {
+                if (historyCount < MAX_CALL_STACK_HISTORY) {
+                    historyCount++;
                     String indent = "  ".repeat(Math.min(callStack.size(), 20));
                     long durationMs = (System.nanoTime() - entry.startTime) / 1_000_000;
                     callStackHistory.add(indent + "LEAVE: " + entry.description + " (" + durationMs + "ms)");
@@ -272,19 +279,12 @@ public class XsltDebugTraceListener implements TraceListener {
                 completedGlobals.add(globalVariable);
             }
 
-            // Calculate template execution time
-            if (traceable instanceof TemplateRule templateRule) {
-                String pattern = templateRule.getMatchPattern() != null
-                        ? templateRule.getMatchPattern().toShortString()
-                        : "unnamed-template";
-                String key = pattern + "_" + System.identityHashCode(templateRule);
-
-                Long startTime = templateStartTimes.remove(key);
-                if (startTime != null) {
-                    long duration = System.nanoTime() - startTime;
-                    templateExecutionTimes.merge(pattern, duration, Long::sum);
-                    templateExecutionCounts.merge(pattern, 1, Integer::sum);
-                }
+            // Template execution time: the start time is in the call-stack entry being left
+            if (traceable instanceof TemplateRule templateRule && left != null && left.traceable() == traceable) {
+                String pattern = patternOf(templateRule, "unnamed-template");
+                long duration = System.nanoTime() - left.startTime();
+                templateExecutionTimes.merge(pattern, duration, Long::sum);
+                templateExecutionCounts.merge(pattern, 1, Integer::sum);
             }
 
         } catch (Exception e) {
@@ -405,6 +405,20 @@ public class XsltDebugTraceListener implements TraceListener {
         }
     }
 
+    /**
+     * The match pattern of {@code rule} as text, or {@code fallback}. Cached per rule: the
+     * pattern is printed for every template call (call stack, timing), which dominated the
+     * trace overhead of template-heavy stylesheets.
+     */
+    private String patternOf(TemplateRule rule, String fallback) {
+        String pattern = matchPatterns.get(rule);
+        if (pattern == null) {
+            pattern = rule.getMatchPattern() != null ? rule.getMatchPattern().toShortString() : "";
+            matchPatterns.put(rule, pattern);
+        }
+        return pattern.isEmpty() ? fallback : pattern;
+    }
+
     private String getTraceableDescription(Traceable traceable) {
         if (traceable == null) {
             return "unknown";
@@ -412,10 +426,7 @@ public class XsltDebugTraceListener implements TraceListener {
 
         try {
             if (traceable instanceof TemplateRule templateRule) {
-                String pattern = templateRule.getMatchPattern() != null
-                        ? templateRule.getMatchPattern().toShortString()
-                        : "*";
-                return "template match=\"" + pattern + "\"";
+                return "template match=\"" + patternOf(templateRule, "*") + "\"";
             }
             if (traceable instanceof NamedTemplate named) {
                 return "template name=\"" + localName(named.getTemplateName()) + "\"";
@@ -860,10 +871,11 @@ public class XsltDebugTraceListener implements TraceListener {
         variableValues.clear();
         callStack.clear();
         callStackHistory.clear();
-        templateStartTimes.clear();
+        historyCount = 0;
         templateExecutionTimes.clear();
         templateExecutionCounts.clear();
         completedGlobals.clear();
+        matchPatterns.clear();
     }
 
     private void buildFinalTemplateStats() {

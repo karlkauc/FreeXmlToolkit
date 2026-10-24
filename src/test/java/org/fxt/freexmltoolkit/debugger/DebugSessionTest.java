@@ -674,4 +674,26 @@ class DebugSessionTest {
         assertTrue(seen.stream().allMatch(snap -> snap == light), "conditions and logs see the light snapshot");
         assertEquals(10, seen.size());
     }
+
+    @Test
+    void theInstructionPathFollowsEveryBreakpointChange() {
+        DebugSession session = new DebugSession();
+        java.util.List<Integer> logged = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.setLogHandler((template, snap) -> template, event -> logged.add(event.line()));
+        session.updateBreakpoint("m.xsl", 3, bp -> bp.withLog("x", false));
+        java.util.function.IntConsumer pass = line -> assertTrue(
+                session.checkAndPause("m.xsl", line, 1, () -> emptySnapshot(line)));
+
+        pass.accept(3);
+        session.shiftLines("m.xsl", new LineShift(1, 0, 0, 2)); // two lines inserted above
+        pass.accept(3);
+        pass.accept(5);
+        session.setEnabled("m.xsl", 5, false);
+        pass.accept(5);
+        session.setEnabled("m.xsl", 5, true);
+        pass.accept(5);
+        session.removeBreakpoint("m.xsl", 5);
+        pass.accept(5);
+        assertEquals(List.of(3, 5, 5), logged, "moved, disabled, re-enabled and removed breakpoints are honoured");
+    }
 }
