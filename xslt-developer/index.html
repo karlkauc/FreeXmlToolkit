@@ -1666,6 +1666,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#break-on-errors-and-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Break on Errors and Messages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#conditional-breakpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2759,6 +2770,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#break-on-errors-and-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Break on Errors and Messages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#conditional-breakpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3387,6 +3409,36 @@ there, otherwise the active document) - exactly as for <strong>Run Transform</st
   on the same line (e.g. <code>&lt;x&gt;&lt;xsl:value-of select="@n"/&gt;&lt;/x&gt;</code>) does not stop the run a second
   time. Stepping (Step Into) still visits every instruction.</li>
 </ul>
+<h4 id="break-on-errors-and-messages">Break on Errors and Messages<a class="headerlink" href="#break-on-errors-and-messages" title="Permanent link">&para;</a></h4>
+<p>The Breakpoints panel's <strong>Break on ▾</strong> menu pauses the run independent of line breakpoints:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Pauses</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Dynamic errors</strong></td>
+<td>when an instruction fails at run time (division by zero, a failed cast, <code>error()</code>) - <strong>at the failing instruction, with its context item and variables intact</strong>, so you can see why. The status reads <em>error FOAR0001: …</em> in red; <strong>Continue</strong> lets the error end the run as usual</td>
+<td>on</td>
+</tr>
+<tr>
+<td><strong>xsl:message terminate="yes"</strong></td>
+<td>before a terminating message is emitted (also when <code>terminate</code> is computed, e.g. <code>{if (…) then 'yes' else 'no'}</code>)</td>
+<td>on</td>
+</tr>
+<tr>
+<td><strong>Every xsl:message</strong></td>
+<td>before every <code>xsl:message</code></td>
+<td>off</td>
+</tr>
+</tbody>
+</table>
+<p>The choices are saved. <strong>Mute</strong> silences these as well. Static errors (the stylesheet does not
+compile) are not run, so there is nothing to pause at - they appear in Messages.</p>
 <h4 id="conditional-breakpoints">Conditional Breakpoints<a class="headerlink" href="#conditional-breakpoints" title="Permanent link">&para;</a></h4>
 <p>A breakpoint can carry an <strong>XPath condition</strong>: the run pauses at that line only when the
 condition is true at that moment - for example <code>@id = '4711'</code> inside a template that runs for
