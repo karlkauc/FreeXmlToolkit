@@ -120,20 +120,24 @@ class DebugPanelsTest {
     }
 
     @Test
-    void breakpointsPanelShowsAndEditsConditions() {
+    void breakpointsPanelEditsConditionAndHitRuleAndShowsHits() {
         DebugSession session = new DebugSession();
         session.addBreakpoint(new Breakpoint("a.xsl", 3, true));
         AtomicInteger changed = new AtomicInteger();
-        String condition = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+        org.fxt.freexmltoolkit.debugger.HitCondition every2 = new org.fxt.freexmltoolkit.debugger.HitCondition(
+                org.fxt.freexmltoolkit.debugger.HitCondition.Mode.MULTIPLE_OF, 2);
+        String row = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
             BreakpointsView view = new BreakpointsView(session);
             view.setOnChanged(changed::incrementAndGet);
-            view.setConditionPrompt((owner, where, current) -> java.util.Optional.of("$i = 10"));
+            view.setPropertiesPrompt((owner, where, current, hits) -> java.util.Optional.of(
+                    new org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.Settings("$i = 10", every2)));
             view.select(0);
-            view.editConditionOfSelected();
-            return view.getConditionAt(0);
+            view.editSelected();
+            return view.getRowText(0);
         });
-        assertEquals("$i = 10", condition, "the list shows the new condition");
-        assertEquals("$i = 10", session.conditionAt("a.xsl", 3), "and the session uses it");
+        assertEquals("$i = 10|%2|0", row, "the list shows condition and hit rule");
+        assertEquals("$i = 10", session.conditionAt("a.xsl", 3), "and the session uses them");
+        assertEquals(every2, session.breakpointAt("a.xsl", 3).hit());
         assertEquals(1, changed.get(), "the host persists and refreshes the gutter");
     }
 }

@@ -29,8 +29,8 @@ public class BreakpointsView extends VBox {
     private java.util.function.Consumer<Breakpoint> onJumpToBreakpoint = bp -> { };
     private Runnable onChanged = () -> { };
     private Runnable onCountChanged = () -> { };
-    private org.fxt.freexmltoolkit.debugger.ui.BreakpointConditionDialog.Prompt conditionPrompt =
-            org.fxt.freexmltoolkit.debugger.ui.BreakpointConditionDialog.DEFAULT;
+    private org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.Prompt propertiesPrompt =
+            org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.DEFAULT;
 
     public BreakpointsView(DebugSession session) {
         this.session = session;
@@ -40,9 +40,16 @@ public class BreakpointsView extends VBox {
             @Override
             protected void updateItem(Breakpoint bp, boolean empty) {
                 super.updateItem(bp, empty);
-                setText(empty || bp == null ? null : "line " + bp.lineNumber()
+                if (empty || bp == null) {
+                    setText(null);
+                    return;
+                }
+                int hits = session.hitCount(bp);
+                setText("line " + bp.lineNumber()
                         + (bp.filePath().isEmpty() ? "" : "  " + shortName(bp.filePath()))
-                        + (bp.hasCondition() ? "   if  " + bp.condition() : ""));
+                        + (bp.hasCondition() ? "   if  " + bp.condition() : "")
+                        + (bp.hit().isSet() ? "   ·  " + bp.hit().describe() : "")
+                        + (hits > 0 ? "   ·  " + hits + (hits == 1 ? " hit" : " hits") : ""));
             }
         });
         list.setPlaceholder(new Label("No breakpoints."));
@@ -65,9 +72,9 @@ public class BreakpointsView extends VBox {
         Button remove = DebugToolbar.action("Remove", "bi-dash-lg",
                 "Remove the selected breakpoint (Delete)");
         remove.setOnAction(e -> removeSelected());
-        Button condition = DebugToolbar.action("Condition…", "bi-funnel",
-                "Pause at the selected breakpoint only when an XPath condition holds");
-        condition.setOnAction(e -> editConditionOfSelected());
+        Button condition = DebugToolbar.action("Edit…", "bi-sliders",
+                "Condition and hit count of the selected breakpoint");
+        condition.setOnAction(e -> editSelected());
         Button clear = DebugToolbar.action("Clear all", "bi-trash",
                 "Remove every breakpoint of the session");
         clear.setOnAction(e -> {
@@ -84,12 +91,27 @@ public class BreakpointsView extends VBox {
         refresh();
     }
 
-    /** Re-reads the breakpoints from the session into the list. */
+    /**
+     * Re-reads the breakpoints (and their hit counts) from the session into the list, keeping
+     * the selected file:line selected.
+     */
     public final void refresh() {
+        Breakpoint selected = list.getSelectionModel().getSelectedItem();
         List<Breakpoint> sorted = new ArrayList<>(session.getBreakpoints());
         sorted.sort(java.util.Comparator.comparing(Breakpoint::filePath)
                 .thenComparingInt(Breakpoint::lineNumber));
+        list.getSelectionModel().clearSelection();
         list.getItems().setAll(sorted);
+        if (selected != null) {
+            for (int i = 0; i < sorted.size(); i++) {
+                Breakpoint bp = sorted.get(i);
+                if (bp.filePath().equals(selected.filePath()) && bp.lineNumber() == selected.lineNumber()) {
+                    list.getSelectionModel().select(i);
+                    break;
+                }
+            }
+        }
+        list.refresh(); // hit counts changed although the breakpoints are equal
         onCountChanged.run();
     }
 
@@ -103,25 +125,35 @@ public class BreakpointsView extends VBox {
         }
     }
 
-    /** Replaces the condition prompt (tests). */
-    public void setConditionPrompt(org.fxt.freexmltoolkit.debugger.ui.BreakpointConditionDialog.Prompt prompt) {
-        this.conditionPrompt = prompt == null
-                ? org.fxt.freexmltoolkit.debugger.ui.BreakpointConditionDialog.DEFAULT : prompt;
+    /** Replaces the properties prompt (tests). */
+    public void setPropertiesPrompt(org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.Prompt prompt) {
+        this.propertiesPrompt = prompt == null
+                ? org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.DEFAULT : prompt;
     }
 
-    /** Asks for the condition of the selected breakpoint and applies it (toolbar Condition…). */
-    public void editConditionOfSelected() {
+    /** Edits condition and hit count of the selected breakpoint (toolbar Edit…). */
+    public void editSelected() {
         Breakpoint bp = list.getSelectionModel().getSelectedItem();
         if (bp == null) {
             return;
         }
         String where = (bp.filePath().isEmpty() ? "" : shortName(bp.filePath()) + ", ") + "line " + bp.lineNumber();
-        conditionPrompt.ask(getScene() == null ? null : getScene().getWindow(), where, bp.condition())
-                .ifPresent(c -> {
-                    session.setCondition(bp.filePath(), bp.lineNumber(), c);
+        propertiesPrompt.ask(getScene() == null ? null : getScene().getWindow(), where,
+                        new org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.Settings(bp.condition(), bp.hit()),
+                        session.getState() == DebugSession.State.IDLE ? -1 : session.hitCount(bp))
+                .ifPresent(settings -> {
+                    session.updateBreakpoint(bp.filePath(), bp.lineNumber(),
+                            b -> b.withCondition(settings.condition()).withHit(settings.hit()));
                     refresh();
                     onChanged.run();
                 });
+    }
+
+    /** @return the row text at {@code index} as shown (tests). */
+    public String getRowText(int index) {
+        Breakpoint bp = list.getItems().get(index);
+        int hits = session.hitCount(bp);
+        return bp.condition() + "|" + bp.hit().format() + "|" + hits;
     }
 
     /** @return the condition of the row at {@code index} (tests). */

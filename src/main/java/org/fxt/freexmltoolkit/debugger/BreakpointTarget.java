@@ -15,11 +15,30 @@ public interface BreakpointTarget {
     /** Toggles the breakpoint at {@code filePath:line}; returns the new state (true = set). */
     boolean toggleBreakpoint(String filePath, int line);
 
+    /** @return the breakpoint at {@code filePath:line}, or {@code null} (also when unsupported). */
+    default Breakpoint breakpointAt(String filePath, int line) {
+        return null;
+    }
+
+    /**
+     * Replaces the breakpoint at {@code filePath:line} with {@code change} applied to it,
+     * creating an enabled, unconditional one first when the line has none.
+     *
+     * @return {@code true} when the target supports editing breakpoints and applied it
+     */
+    default boolean updateBreakpoint(String filePath, int line, java.util.function.UnaryOperator<Breakpoint> change) {
+        return false;
+    }
+
     /**
      * @return the condition of the breakpoint at {@code filePath:line}, {@code ""} for an
      *         unconditional one, or {@code null} when there is no breakpoint
      */
     default String conditionAt(String filePath, int line) {
+        Breakpoint bp = breakpointAt(filePath, line);
+        if (bp != null) {
+            return bp.condition();
+        }
         return hasBreakpoint(filePath, line) ? "" : null;
     }
 
@@ -30,6 +49,16 @@ public interface BreakpointTarget {
      * @return {@code true} when the target supports conditions and applied it
      */
     default boolean setCondition(String filePath, int line, String condition) {
-        return false;
+        return updateBreakpoint(filePath, line, bp -> bp.withCondition(condition));
+    }
+
+    /** Sets the hit rule of the breakpoint at {@code filePath:line} (creating it if needed). */
+    default boolean setHitCondition(String filePath, int line, HitCondition hit) {
+        return updateBreakpoint(filePath, line, bp -> bp.withHit(hit));
+    }
+
+    /** @return how often the breakpoint at {@code filePath:line} was hit in the current run, or -1. */
+    default int hitCount(String filePath, int line) {
+        return -1;
     }
 }

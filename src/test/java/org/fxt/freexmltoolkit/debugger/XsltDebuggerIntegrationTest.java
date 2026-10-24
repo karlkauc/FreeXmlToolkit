@@ -403,8 +403,37 @@ class XsltDebuggerIntegrationTest {
                 xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
         assertTrue(result.isSuccess(), result.getErrorMessage());
         assertFalse(pausedAt.isEmpty(), "the condition held once");
-        assertTrue(pausedAt.stream().allMatch("2"::equals), "paused only on item 2: " + pausedAt);
+        assertEquals(java.util.List.of("2"), pausedAt, "paused once, only on item 2");
         assertEquals("condition: @n = '2'", notes.get(0));
+    }
+
+    @Test
+    void hitCountRulePausesAtTheThirdItemAndCountsAllPasses() throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/><item n=\"4\"/><item n=\"5\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"item\">\n"                                                         // 3
+                + "    <x><xsl:value-of select=\"@n\"/></x>\n"                                               // 4
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("", 4, true, "", new HitCondition(HitCondition.Mode.EQUAL, 3)));
+        java.util.List<String> pausedAt = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                pausedAt.add(((net.sf.saxon.s9api.XdmNode) session.getPausedSnapshot().contextXdm())
+                        .getAttributeValue(new net.sf.saxon.s9api.QName("n")));
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertFalse(pausedAt.isEmpty(), "the third hit pauses");
+        assertEquals(java.util.List.of("3"), pausedAt, "exactly once, at the third item");
+        assertEquals(5, session.hitCount("", 4),
+                "one hit per item, although <x> and its xsl:value-of are both on line 4");
     }
 
     @Test

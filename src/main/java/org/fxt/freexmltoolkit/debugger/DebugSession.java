@@ -5,6 +5,8 @@ import java.beans.PropertyChangeSupport;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -48,6 +50,15 @@ public class DebugSession implements BreakpointTarget {
     private volatile int stepTargetDepth = -1;
     private volatile PausedSnapshot pausedSnapshot;
     private volatile ConditionEvaluator conditionEvaluator;
+    /**
+     * Lines whose breakpoints fired, with the call depth of the instruction that fired them
+     * (innermost last). A traced instruction nested inside one on the same line (e.g. an
+     * {@code xsl:value-of} inside a literal element on that line) is part of the same line
+     * execution: it neither counts a hit nor pauses again. Saxon thread; reset per run.
+     */
+    private final java.util.ArrayDeque<Object[]> firedLines = new java.util.ArrayDeque<>();
+    /** Hits per breakpoint (file + line) in the current run; reset by {@link #startSession}. */
+    private final java.util.Map<String, AtomicInteger> hitCounts = new ConcurrentHashMap<>();
     /** Why the current pause happened, when it is worth telling (a condition, a condition error). */
     private volatile String pauseNote = "";
 
@@ -112,12 +123,12 @@ public class DebugSession implements BreakpointTarget {
     }
 
     @Override
-    public String conditionAt(String filePath, int line) {
+    public Breakpoint breakpointAt(String filePath, int line) {
         String fp = SourceLocations.normalize(filePath);
         synchronized (breakpoints) {
             for (Breakpoint b : breakpoints) {
                 if (b.lineNumber() == line && b.filePath().equals(fp)) {
-                    return b.condition();
+                    return b;
                 }
             }
             return null;
@@ -125,7 +136,7 @@ public class DebugSession implements BreakpointTarget {
     }
 
     @Override
-    public boolean setCondition(String filePath, int line, String condition) {
+    public boolean updateBreakpoint(String filePath, int line, java.util.function.UnaryOperator<Breakpoint> change) {
         if (line < 1) {
             return false;
         }
@@ -140,12 +151,26 @@ public class DebugSession implements BreakpointTarget {
             }
             if (existing != null) {
                 breakpoints.remove(existing);
-                breakpoints.add(existing.withCondition(condition));
-            } else {
-                breakpoints.add(new Breakpoint(fp, line, true, condition));
             }
+            breakpoints.add(change.apply(existing != null ? existing : new Breakpoint(fp, line, true)));
             return true;
         }
+    }
+
+    @Override
+    public int hitCount(String filePath, int line) {
+        AtomicInteger count = hitCounts.get(hitKey(SourceLocations.normalize(filePath), line));
+        return count == null ? 0 : count.get();
+    }
+
+    /** @return how often {@code bp} was hit in the current run. */
+    public int hitCount(Breakpoint bp) {
+        AtomicInteger count = hitCounts.get(hitKey(bp.filePath(), bp.lineNumber()));
+        return count == null ? 0 : count.get();
+    }
+
+    private static String hitKey(String normalizedPath, int line) {
+        return normalizedPath + "\u0000" + line;
     }
 
     /** Sets how breakpoint conditions are evaluated ({@code null}: conditional breakpoints always pause). */
@@ -188,6 +213,10 @@ public class DebugSession implements BreakpointTarget {
         stepMode = initialMode == null ? StepMode.NONE : initialMode;
         stepTargetDepth = -1;
         pausedSnapshot = null;
+        hitCounts.clear();
+        synchronized (firedLines) {
+            firedLines.clear();
+        }
         setState(State.RUNNING);
     }
 
@@ -264,43 +293,66 @@ public class DebugSession implements BreakpointTarget {
 
         String note = "";
         PausedSnapshot snapshot = null;
-        if (!pause && line > 0 && !breakpoints.isEmpty()) {
+        if (line > 0 && !breakpoints.isEmpty()) {
             // Check breakpoints — normalise the location once, not once per breakpoint
             String normalized = normalizedLocation(systemId);
-            java.util.List<String> conditions = new java.util.ArrayList<>(1);
+            java.util.List<Breakpoint> matching = new java.util.ArrayList<>(1);
             synchronized (breakpoints) {
                 for (Breakpoint bp : breakpoints) {
                     if (bp.enabled() && bp.matchesNormalized(normalized, line)) {
-                        if (!bp.hasCondition()) {
-                            pause = true;
-                            break;
-                        }
-                        conditions.add(bp.condition());
+                        matching.add(bp);
                     }
                 }
             }
-            if (!pause && !conditions.isEmpty()) {
-                // Only conditional breakpoints here: capture the state once, test each condition.
-                snapshot = captureSnapshot(snapshotSupplier, systemId, line);
-                ConditionEvaluator evaluator = conditionEvaluator;
-                for (String condition : conditions) {
+            if (!matching.isEmpty() && continuesFiredLine(normalized, line, depth)) {
+                matching.clear(); // nested in an instruction of the same line execution
+            }
+            // Every matching breakpoint counts its hit (also when a step pauses here anyway):
+            // a hit is a pass whose condition held.
+            for (Breakpoint bp : matching) {
+                boolean hit = true;
+                String failure = null;
+                if (bp.hasCondition()) {
+                    if (snapshot == null) {
+                        snapshot = captureSnapshot(snapshotSupplier, systemId, line);
+                    }
+                    ConditionEvaluator evaluator = conditionEvaluator;
                     if (evaluator == null) {
-                        pause = true;
-                        note = "condition not evaluated: " + condition;
-                        break;
-                    }
-                    try {
-                        if (evaluator.test(condition, snapshot)) {
-                            pause = true;
-                            note = "condition: " + condition;
-                            break;
+                        failure = "condition not evaluated: " + bp.condition();
+                    } else {
+                        try {
+                            hit = evaluator.test(bp.condition(), snapshot);
+                        } catch (Exception e) {
+                            failure = "condition failed (" + bp.condition() + "): "
+                                    + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
                         }
-                    } catch (Exception e) {
-                        pause = true;
-                        note = "condition failed (" + condition + "): "
-                                + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
-                        break;
                     }
+                }
+                if (failure != null) {
+                    if (!pause) {
+                        pause = true;
+                        note = failure;
+                    }
+                    continue;
+                }
+                if (!hit) {
+                    continue;
+                }
+                int hits = hitCounts.computeIfAbsent(hitKey(bp.filePath(), bp.lineNumber()),
+                        k -> new AtomicInteger()).incrementAndGet();
+                if (!pause && bp.hit().matches(hits)) {
+                    pause = true;
+                    StringBuilder why = new StringBuilder();
+                    if (bp.hasCondition()) {
+                        why.append("condition: ").append(bp.condition());
+                    }
+                    if (bp.hit().isSet()) {
+                        if (why.length() > 0) {
+                            why.append("  ·  ");
+                        }
+                        why.append("hit ").append(hits).append(" (").append(bp.hit().describe()).append(")");
+                    }
+                    note = why.toString();
                 }
             }
         }
@@ -329,6 +381,30 @@ public class DebugSession implements BreakpointTarget {
             pauseLock.unlock();
         }
         return state != State.STOPPED;
+    }
+
+    /**
+     * Records that breakpoints of {@code normalized:line} are being checked at {@code depth},
+     * after dropping the lines whose instructions have finished (recorded at this depth or
+     * deeper: entering an instruction at {@code depth} means those were left).
+     *
+     * @return {@code true} when an enclosing instruction of the same line already fired, so this
+     *         event belongs to that line execution
+     */
+    private boolean continuesFiredLine(String normalized, int line, int depth) {
+        synchronized (firedLines) {
+            while (!firedLines.isEmpty() && (int) firedLines.peekLast()[2] >= depth) {
+                firedLines.pollLast();
+            }
+            Object[] top = firedLines.peekLast();
+            if (top != null && (int) top[1] == line && top[0].equals(normalized)) {
+                return true;
+            }
+            if (firedLines.size() < 512) {
+                firedLines.addLast(new Object[]{normalized, line, depth});
+            }
+            return false;
+        }
     }
 
     private static PausedSnapshot captureSnapshot(Supplier<PausedSnapshot> supplier, String systemId, int line) {

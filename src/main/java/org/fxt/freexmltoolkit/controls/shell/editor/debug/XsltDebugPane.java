@@ -285,6 +285,7 @@ public final class XsltDebugPane extends VBox {
                     }
                     String file = snap.hasFile() ? org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(snap.systemId()) + ":" : "line ";
                     String ctx = snap.contextItem().isEmpty() ? "" : "  ·  " + snap.contextItem();
+                    breakpointsView.refresh(); // hit counts of this run
                     String note = controller.getSession().getPauseNote();
                     status.setText("Paused at " + file + snap.lineNumber() + ctx
                             + (note == null || note.isEmpty() ? "" : "  ·  " + note));
@@ -345,6 +346,7 @@ public final class XsltDebugPane extends VBox {
             rightTabs.getSelectionModel().select(messagesTab);
         }
         applyButtonState(controller.getSession().getState());
+        breakpointsView.refresh(); // final hit counts of the run
         onResult.accept(result);
     }
 

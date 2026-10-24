@@ -366,11 +366,14 @@ there, otherwise the active document) - exactly as for **Run Transform**; starte
   main stylesheet - the run pauses there. The debugger scans the main stylesheet's
   `xsl:include` / `xsl:import` hrefs at start to pick them up; a module it could not find that
   way joins as soon as it is opened during the session (pause, jump, or opening it yourself).
-- The **Breakpoints** panel lists every breakpoint of the session (file · line, and its
-  condition); **Remove**, **Condition…** and **Clear all** sit in a small toolbar above the
-  list, and the **Delete** key removes the selected entry. Double-click an entry to jump to
-  that line.
+- The **Breakpoints** panel lists every breakpoint of the session (file · line, its condition,
+  its hit-count rule and how often it was hit in this run); **Remove**, **Edit…** and **Clear
+  all** sit in a small toolbar above the list, and the **Delete** key removes the selected
+  entry. Double-click an entry to jump to that line.
 - Breakpoints are anchored to line numbers: inserting or deleting lines above one does not move it.
+- A breakpoint stops **once per execution of its line**: an instruction nested inside another one
+  on the same line (e.g. `<x><xsl:value-of select="@n"/></x>`) does not stop the run a second
+  time. Stepping (Step Into) still visits every instruction.
 
 #### Conditional Breakpoints
 
@@ -379,11 +382,12 @@ condition is true at that moment - for example `@id = '4711'` inside a template 
 every item, `$total > 1000`, or `position() = last()`.
 
 - **Right-click the gutter slot** of a line → **Add Conditional Breakpoint…** (a line without a
-  breakpoint), **Add Condition…** / **Edit Condition…** (a line with one), **Remove Condition**,
-  **Remove Breakpoint**. In the **Breakpoints** panel select an entry and press **Condition…**.
+  breakpoint) or **Breakpoint Properties…** (a line with one), **Remove Condition**, **Remove Hit
+  Count Rule**, **Remove Breakpoint**. In the **Breakpoints** panel select an entry and press
+  **Edit…**. Both open the *Breakpoint Properties* dialog with the condition and the hit count.
 - An empty condition makes the breakpoint unconditional again.
-- A conditional breakpoint shows a **question-mark marker** in the gutter; its tooltip names the
-  condition.
+- A breakpoint with a condition or a hit-count rule shows a **question-mark marker** in the
+  gutter; its tooltip names the rules and the hits of the current run.
 - The condition is evaluated **like `xsl:if test`** (effective boolean value): the context item
   and every variable in scope at that line are available, plus the stylesheet's namespace
   prefixes. A non-empty node sequence is true, an empty one false.
@@ -393,6 +397,25 @@ every item, `$total > 1000`, or `position() = last()`.
   breakpoint.
 - The condition is checked every time the line runs, so a breakpoint inside a large loop costs
   time on each pass. Conditions are saved with the breakpoint (per file, like all breakpoints).
+
+#### Hit Counts
+
+Every breakpoint **counts its hits** during a run - a hit is a pass of its line where its
+condition (if any) held. The count is shown in the **Breakpoints** panel (*· 5 hits*) and in the
+gutter tooltip, and starts over with every run and **Restart**.
+
+In *Breakpoint Properties* → **Pause on** you can restrict pausing by the count:
+
+| Pause on | Pauses at hit |
+|----------|---------------|
+| **every hit** | 1, 2, 3, … (default) |
+| **exactly the N-th hit** | N only - e.g. the 500th item of a loop |
+| **the N-th hit and later** | N, N+1, … |
+| **every N-th hit** | N, 2N, 3N, … |
+
+Condition and hit count combine: *condition `@type = 'B'`, exactly the 3rd hit* pauses at the
+third item of type B. When a hit-count rule makes the run pause, the status says so
+(*· hit 3 (hit = 3)*). Hit-count rules are saved with the breakpoint, the counts are not.
 
 ### Starting and Stepping
 

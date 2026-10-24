@@ -83,4 +83,25 @@ class BreakpointStoreTest {
         assertEquals(2, parsed.size());
         assertTrue(parsed.stream().noneMatch(Breakpoint::hasCondition));
     }
+
+    @Test
+    void hitRulesRoundTripWithAndWithoutCondition() {
+        Breakpoint onlyHit = new Breakpoint("/tmp/a.xsl", 3, true, "", new HitCondition(HitCondition.Mode.AT_LEAST, 4));
+        Breakpoint both = new Breakpoint("/tmp/a.xsl", 5, true, "@n = 1", new HitCondition(HitCondition.Mode.MULTIPLE_OF, 10));
+        Breakpoint plain = new Breakpoint("/tmp/a.xsl", 7, false);
+        assertEquals(Set.of(onlyHit, both, plain),
+                BreakpointStore.parse(BreakpointStore.format(List.of(onlyHit, both, plain))));
+    }
+
+    @Test
+    void hitConditionFormatsAndParses() {
+        for (HitCondition h : List.of(HitCondition.ALWAYS, new HitCondition(HitCondition.Mode.EQUAL, 3),
+                new HitCondition(HitCondition.Mode.AT_LEAST, 12), new HitCondition(HitCondition.Mode.MULTIPLE_OF, 2))) {
+            assertEquals(h, HitCondition.parse(h.format()));
+        }
+        assertEquals(HitCondition.ALWAYS, HitCondition.parse("=x"), "unreadable = every hit");
+        assertEquals("every 3rd hit", new HitCondition(HitCondition.Mode.MULTIPLE_OF, 3).describe());
+        assertEquals("every 11th hit", new HitCondition(HitCondition.Mode.MULTIPLE_OF, 11).describe());
+        assertEquals("hit ≥ 2", new HitCondition(HitCondition.Mode.AT_LEAST, 2).describe());
+    }
 }

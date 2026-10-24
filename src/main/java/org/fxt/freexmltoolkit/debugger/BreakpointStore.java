@@ -99,8 +99,11 @@ public final class BreakpointStore {
             sb.append(bp.filePath()).append(FIELD_SEPARATOR)
                     .append(bp.lineNumber()).append(FIELD_SEPARATOR)
                     .append(bp.enabled());
-            if (bp.hasCondition()) {
+            if (bp.hasCondition() || bp.hit().isSet()) {
                 sb.append(FIELD_SEPARATOR).append(escape(bp.condition()));
+            }
+            if (bp.hit().isSet()) {
+                sb.append(FIELD_SEPARATOR).append(bp.hit().format());
             }
         }
         return sb.toString();
@@ -120,7 +123,8 @@ public final class BreakpointStore {
                 int line = Integer.parseInt(fields[1].trim());
                 boolean enabled = fields.length < 3 || Boolean.parseBoolean(fields[2].trim());
                 String condition = fields.length < 4 ? "" : unescape(fields[3]);
-                result.add(new Breakpoint(fields[0], line, enabled, condition));
+                HitCondition hit = fields.length < 5 ? HitCondition.ALWAYS : HitCondition.parse(fields[4]);
+                result.add(new Breakpoint(fields[0], line, enabled, condition, hit));
             } catch (RuntimeException e) {
                 logger.debug("Skipping malformed breakpoint entry '{}': {}", entry, e.getMessage());
             }

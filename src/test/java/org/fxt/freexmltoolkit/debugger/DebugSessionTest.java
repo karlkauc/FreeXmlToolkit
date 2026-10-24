@@ -314,13 +314,13 @@ class DebugSessionTest {
     }
 
     @Test
-    void unconditionalBreakpointWinsWithoutEvaluating() throws InterruptedException {
+    void unconditionalBreakpointPausesEvenWhenAnotherConditionIsFalse() throws InterruptedException {
         DebugSession session = new DebugSession();
         session.toggleBreakpoint("", 4);
         session.setCondition("c.xsl", 4, "false()");
-        session.setConditionEvaluator((condition, snap) -> {
-            throw new AssertionError("no condition needed: an unconditional breakpoint matches");
-        });
+        // Both breakpoints of the line are evaluated (hit counts), the false one does not stop
+        // the unconditional one from pausing.
+        session.setConditionEvaluator((condition, snap) -> false);
         session.startSession();
         CountDownLatch paused = new CountDownLatch(1);
         session.addPropertyChangeListener(evt -> {
@@ -344,5 +344,89 @@ class DebugSessionTest {
         session.setCondition("c.xsl", 4, "");
         assertEquals("", session.conditionAt("c.xsl", 4), "blank = unconditional, breakpoint kept");
         assertEquals(1, session.getBreakpoints().size());
+    }
+
+    // ----- hit counts --------------------------------------------------------------------
+
+    private static java.util.List<Integer> passesThatPause(DebugSession session, int passes) throws InterruptedException {
+        java.util.List<Integer> paused = new java.util.concurrent.CopyOnWriteArrayList<>();
+        java.util.concurrent.atomic.AtomicInteger pass = new java.util.concurrent.atomic.AtomicInteger();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                paused.add(pass.get());
+                session.requestContinue();
+            }
+        });
+        session.startSession();
+        Thread saxon = new Thread(() -> {
+            for (int i = 1; i <= passes; i++) {
+                pass.set(i);
+                session.checkAndPause("h.xsl", 7, 1, () -> emptySnapshot(7));
+            }
+        }, "test-saxon");
+        saxon.start();
+        saxon.join(5 * AWAIT_MS);
+        assertFalse(saxon.isAlive());
+        return paused;
+    }
+
+    @Test
+    void hitRulesDecideWhichPassPauses() throws InterruptedException {
+        DebugSession equal = new DebugSession();
+        equal.setHitCondition("h.xsl", 7, new HitCondition(HitCondition.Mode.EQUAL, 3));
+        assertEquals(List.of(3), passesThatPause(equal, 6));
+        assertEquals(6, equal.hitCount("h.xsl", 7), "every pass is counted");
+
+        DebugSession atLeast = new DebugSession();
+        atLeast.setHitCondition("h.xsl", 7, new HitCondition(HitCondition.Mode.AT_LEAST, 5));
+        assertEquals(List.of(5, 6), passesThatPause(atLeast, 6));
+
+        DebugSession every = new DebugSession();
+        every.setHitCondition("h.xsl", 7, new HitCondition(HitCondition.Mode.MULTIPLE_OF, 2));
+        assertEquals(List.of(2, 4, 6), passesThatPause(every, 6));
+        assertTrue(every.getPauseNote().startsWith("hit 6 (every 2nd hit)"), every.getPauseNote());
+    }
+
+    @Test
+    void onlyPassesWithATrueConditionCountAsHits() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.updateBreakpoint("h.xsl", 7, bp -> bp.withCondition("odd")
+                .withHit(new HitCondition(HitCondition.Mode.EQUAL, 2)));
+        java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+        session.setConditionEvaluator((condition, snap) -> calls.incrementAndGet() % 2 == 1); // passes 1, 3, 5
+        assertEquals(List.of(3), passesThatPause(session, 6), "the 2nd true pass is pass 3");
+        assertEquals(3, session.hitCount("h.xsl", 7));
+    }
+
+    @Test
+    void hitCountsStartOverWithEveryRun() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.toggleBreakpoint("h.xsl", 7);
+        session.setHitCondition("h.xsl", 7, new HitCondition(HitCondition.Mode.EQUAL, 99));
+        passesThatPause(session, 4);
+        assertEquals(4, session.hitCount("h.xsl", 7));
+        session.startSession();
+        assertEquals(0, session.hitCount("h.xsl", 7), "a new run (or Restart) resets the counts");
+    }
+
+    @Test
+    void nestedInstructionsOfTheSameLineAreOneHit() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.setHitCondition("n.xsl", 4, new HitCondition(HitCondition.Mode.EQUAL, 99));
+        session.startSession();
+        // Three loop passes over line 4: the literal element (depth 3) and the value-of nested
+        // in it (depth 4) are one line execution; the next pass re-enters at depth 3.
+        for (int pass = 0; pass < 3; pass++) {
+            session.checkAndPause("n.xsl", 3, 2, () -> emptySnapshot(3));
+            session.checkAndPause("n.xsl", 4, 3, () -> emptySnapshot(4));
+            session.checkAndPause("n.xsl", 4, 4, () -> emptySnapshot(4));
+        }
+        assertEquals(3, session.hitCount("n.xsl", 4), "one hit per execution of the line");
+        // A loop body that is only line 4 (no other traced line in between) still counts each pass.
+        session.startSession();
+        for (int pass = 0; pass < 4; pass++) {
+            session.checkAndPause("n.xsl", 4, 3, () -> emptySnapshot(4));
+        }
+        assertEquals(4, session.hitCount("n.xsl", 4));
     }
 }

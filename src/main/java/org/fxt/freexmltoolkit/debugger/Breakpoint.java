@@ -11,8 +11,11 @@ package org.fxt.freexmltoolkit.debugger;
  * <p>A non-empty {@code condition} is an XPath expression: the run pauses at the line only
  * when its effective boolean value is true at that moment (evaluated against the context item
  * with every variable in scope, see {@link DebugSession#setConditionEvaluator}).</p>
+ *
+ * <p>{@code hit} restricts pausing by the hit count of the current run (see
+ * {@link HitCondition}); the counts themselves live in the {@link DebugSession}.</p>
  */
-public record Breakpoint(String filePath, int lineNumber, boolean enabled, String condition) {
+public record Breakpoint(String filePath, int lineNumber, boolean enabled, String condition, HitCondition hit) {
 
     public Breakpoint {
         filePath = SourceLocations.normalize(filePath);
@@ -20,6 +23,12 @@ public record Breakpoint(String filePath, int lineNumber, boolean enabled, Strin
             throw new IllegalArgumentException("Line number must be >= 1, was " + lineNumber);
         }
         condition = condition == null ? "" : condition.strip();
+        hit = hit == null ? HitCondition.ALWAYS : hit;
+    }
+
+    /** A breakpoint with a condition that pauses on every hit. */
+    public Breakpoint(String filePath, int lineNumber, boolean enabled, String condition) {
+        this(filePath, lineNumber, enabled, condition, HitCondition.ALWAYS);
     }
 
     /** An unconditional breakpoint. */
@@ -29,12 +38,22 @@ public record Breakpoint(String filePath, int lineNumber, boolean enabled, Strin
 
     /** Returns a copy with the enabled flag flipped. */
     public Breakpoint withEnabled(boolean enabled) {
-        return new Breakpoint(filePath, lineNumber, enabled, condition);
+        return new Breakpoint(filePath, lineNumber, enabled, condition, hit);
     }
 
     /** Returns a copy with {@code condition} ({@code null} / blank = unconditional). */
     public Breakpoint withCondition(String condition) {
-        return new Breakpoint(filePath, lineNumber, enabled, condition);
+        return new Breakpoint(filePath, lineNumber, enabled, condition, hit);
+    }
+
+    /** Returns a copy with the hit rule {@code hit} ({@code null} = every hit). */
+    public Breakpoint withHit(HitCondition hit) {
+        return new Breakpoint(filePath, lineNumber, enabled, condition, hit);
+    }
+
+    /** @return whether a condition or a hit rule restricts when this breakpoint pauses. */
+    public boolean hasRules() {
+        return hasCondition() || hit.isSet();
     }
 
     /** @return whether the breakpoint only pauses when its condition holds. */

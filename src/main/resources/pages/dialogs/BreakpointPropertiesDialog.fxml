@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+
+<!--
+  Content of the XSLT debugger's "Breakpoint Properties" dialog: the XPath condition and the
+  hit-count rule (always / exactly at / from / every N-th hit) with the hits of the current run.
+  Loaded by BreakpointPropertiesDialog (FxmlViews.loadContent), which is the controller and adds
+  title, header and buttons.
+-->
+<GridPane hgap="10" vgap="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <columnConstraints>
+        <ColumnConstraints minWidth="90"/>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="360"/>
+    </columnConstraints>
+    <children>
+        <Label text="Condition" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="conditionField" id="breakpoint-condition" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                   promptText="XPath, e.g. @id = '42' or $count &gt; 3 (empty = always)"/>
+        <Label text="Pause on" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <children>
+                <ComboBox fx:id="hitMode" id="breakpoint-hit-mode"/>
+                <Spinner fx:id="hitTarget" id="breakpoint-hit-target" editable="true" prefWidth="110"/>
+            </children>
+        </HBox>
+        <Label fx:id="hitsLabel" id="breakpoint-hits" opacity="0.75" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label wrapText="true" opacity="0.7" maxWidth="460" GridPane.rowIndex="3" GridPane.columnIndex="0"
+               GridPane.columnSpan="2"
+               text="The condition is evaluated like xsl:if test each time the line runs, with the context item and every variable in scope; a failing condition pauses and shows the error. A hit is a pass of the line whose condition held; hits are counted per run and start over with every run or Restart."/>
+    </children>
+</GridPane>

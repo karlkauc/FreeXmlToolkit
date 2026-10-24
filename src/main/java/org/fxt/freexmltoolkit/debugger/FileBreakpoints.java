@@ -89,14 +89,14 @@ public final class FileBreakpoints implements BreakpointTarget {
     }
 
     @Override
-    public String conditionAt(String filePath, int line) {
+    public Breakpoint breakpointAt(String filePath, int line) {
         if (!isOwn(filePath)) {
             return null;
         }
         synchronized (all) {
             for (Breakpoint bp : all) {
                 if (bp.lineNumber() == line && bp.filePath().equals(path)) {
-                    return bp.condition();
+                    return bp;
                 }
             }
             return null;
@@ -104,7 +104,7 @@ public final class FileBreakpoints implements BreakpointTarget {
     }
 
     @Override
-    public boolean setCondition(String filePath, int line, String condition) {
+    public boolean updateBreakpoint(String filePath, int line, java.util.function.UnaryOperator<Breakpoint> change) {
         if (!isOwn(filePath) || line < 1) {
             return false;
         }
@@ -119,10 +119,8 @@ public final class FileBreakpoints implements BreakpointTarget {
             }
             if (existing != null) {
                 all.remove(existing);
-                all.add(existing.withCondition(condition));
-            } else {
-                all.add(new Breakpoint(path, line, true, condition));
             }
+            all.add(change.apply(existing != null ? existing : new Breakpoint(path, line, true)));
             snapshot = new LinkedHashSet<>(all);
         }
         saver.accept(snapshot);

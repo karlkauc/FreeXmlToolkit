@@ -181,32 +181,39 @@ class BreakpointGutterFactoryTest {
     }
 
     @Test
-    void conditionCanBeAddedFromTheGutterAndIsMarked() throws Exception {
+    void conditionAndHitRuleCanBeSetFromTheGutterAndAreMarked() throws Exception {
         org.fxt.freexmltoolkit.debugger.DebugSession session = new org.fxt.freexmltoolkit.debugger.DebugSession();
         AtomicInteger refreshed = new AtomicInteger();
         BreakpointGutterFactory factory = new BreakpointGutterFactory(session, v -> refreshed.incrementAndGet());
         factory.setFilePath(FILE);
         java.util.concurrent.atomic.AtomicReference<String> asked = new java.util.concurrent.atomic.AtomicReference<>();
-        factory.setConditionPrompt((owner, location, current) -> {
-            asked.set(location + "|" + current);
-            return java.util.Optional.of("@n = 2");
+        org.fxt.freexmltoolkit.debugger.HitCondition third =
+                new org.fxt.freexmltoolkit.debugger.HitCondition(org.fxt.freexmltoolkit.debugger.HitCondition.Mode.EQUAL, 3);
+        factory.setPropertiesPrompt((owner, location, current, hits) -> {
+            asked.set(location + "|" + current.condition() + "|" + current.hit().format() + "|" + hits);
+            return java.util.Optional.of(new BreakpointPropertiesDialog.Settings("@n = 2", third));
         });
 
-        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.editCondition(5, null)));
-        assertEquals("sheet.xsl, line 5|", asked.get(), "asked for line 5 without a current condition");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.editBreakpoint(5, null)));
+        assertEquals("sheet.xsl, line 5|||0", asked.get(), "asked for line 5 without rules and without hits");
         assertEquals("@n = 2", session.conditionAt(FILE, 5), "the line gets a conditional breakpoint");
+        assertEquals(third, session.breakpointAt(FILE, 5).hit(), "with the hit rule");
         assertEquals(1, refreshed.get(), "the gutter is re-rendered");
         Node slot = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(4));
         assertTrue(slot.getStyleClass().contains(BreakpointGutterFactory.CONDITIONAL_STYLE_CLASS),
-                "a conditional breakpoint has its own marker");
+                "a breakpoint with rules has its own marker");
 
         java.util.List<String> labels = WaitForAsyncUtils.waitForAsyncFx(2000,
-                () -> factory.menuFor(5, true, true).getItems().stream()
+                () -> factory.menuFor(5).getItems().stream()
                         .map(javafx.scene.control.MenuItem::getText).filter(java.util.Objects::nonNull).toList());
-        assertEquals(java.util.List.of("Edit Condition…", "Remove Condition", "Remove Breakpoint"), labels);
+        assertEquals(java.util.List.of("Breakpoint Properties…", "Remove Condition", "Remove Hit Count Rule",
+                "Remove Breakpoint"), labels);
+        java.util.List<String> empty = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> factory.menuFor(9).getItems().stream().map(javafx.scene.control.MenuItem::getText).toList());
+        assertEquals(java.util.List.of("Add Conditional Breakpoint…"), empty);
 
-        factory.setConditionPrompt((owner, location, current) -> java.util.Optional.empty());
-        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.editCondition(5, null)), "cancel changes nothing");
+        factory.setPropertiesPrompt((owner, location, current, hits) -> java.util.Optional.empty());
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.editBreakpoint(5, null)), "cancel changes nothing");
         assertEquals("@n = 2", session.conditionAt(FILE, 5));
     }
 }

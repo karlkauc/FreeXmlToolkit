@@ -26,8 +26,8 @@ import org.fxt.freexmltoolkit.debugger.BreakpointTarget;
  *
  * <p>Each line gets a fixed-width slot containing either an icon or an
  * invisible spacer so that line widths remain aligned. Pressing the slot
- * toggles a breakpoint at that line; a right-click opens a menu to add, edit or remove a
- * condition (a conditional breakpoint shows a question-mark marker).</p>
+ * toggles a breakpoint at that line; a right-click opens a menu for its properties (XPath
+ * condition, hit-count rule). A breakpoint with such rules shows a question-mark marker.</p>
  *
  * <p>The toggle happens on {@code MOUSE_PRESSED}, not on {@code MOUSE_CLICKED}: a press
  * that reached the {@code CodeArea} would move the caret to that line, the editor would
@@ -39,7 +39,7 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
 
     /** Style class of every slot (tests and CSS look the slot up by it). */
     public static final String SLOT_STYLE_CLASS = "breakpoint-gutter-slot";
-    /** Added to the slot of a breakpoint that has a condition. */
+    /** Added to the slot of a breakpoint that has a condition or a hit-count rule. */
     public static final String CONDITIONAL_STYLE_CLASS = "breakpoint-conditional";
 
     private static final double SLOT_SIZE = 14;
@@ -48,7 +48,7 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
     private final Consumer<Void> refreshCallback;
     private volatile String filePath = "";
     private volatile int currentExecutionLine = -1;
-    private BreakpointConditionDialog.Prompt conditionPrompt = BreakpointConditionDialog.DEFAULT;
+    private BreakpointPropertiesDialog.Prompt propertiesPrompt = BreakpointPropertiesDialog.DEFAULT;
 
     /**
      * @param session         where breakpoints live: the running {@code DebugSession}, or a
@@ -68,30 +68,35 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         return filePath;
     }
 
-    /** Replaces the condition prompt (tests). */
-    public void setConditionPrompt(BreakpointConditionDialog.Prompt prompt) {
-        this.conditionPrompt = prompt == null ? BreakpointConditionDialog.DEFAULT : prompt;
+    /** Replaces the properties prompt (tests). */
+    public void setPropertiesPrompt(BreakpointPropertiesDialog.Prompt prompt) {
+        this.propertiesPrompt = prompt == null ? BreakpointPropertiesDialog.DEFAULT : prompt;
     }
 
     /**
-     * Asks for the condition of the breakpoint on a 1-based line (creating the breakpoint if
-     * the line has none) and applies it — the gutter's "Add Conditional Breakpoint…" /
-     * "Edit Condition…".
+     * Asks for the condition and hit-count rule of the breakpoint on a 1-based line (creating
+     * the breakpoint if the line has none) and applies them — the gutter's "Add Conditional
+     * Breakpoint…" / "Breakpoint Properties…".
      *
-     * @return whether a condition was applied
+     * @return whether new settings were applied
      */
-    public boolean editCondition(int line1Based, javafx.stage.Window owner) {
+    public boolean editBreakpoint(int line1Based, javafx.stage.Window owner) {
         if (session == null || line1Based < 1) {
             return false;
         }
-        String current = session.conditionAt(filePath, line1Based);
+        org.fxt.freexmltoolkit.debugger.Breakpoint bp = session.breakpointAt(filePath, line1Based);
+        BreakpointPropertiesDialog.Settings current = bp == null
+                ? new BreakpointPropertiesDialog.Settings("", null)
+                : new BreakpointPropertiesDialog.Settings(bp.condition(), bp.hit());
         String file = filePath.isEmpty() ? "" : org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(filePath) + ", ";
-        java.util.Optional<String> answer = conditionPrompt.ask(owner, file + "line " + line1Based,
-                current == null ? "" : current);
+        java.util.Optional<BreakpointPropertiesDialog.Settings> answer = propertiesPrompt.ask(owner,
+                file + "line " + line1Based, current, session.hitCount(filePath, line1Based));
         if (answer.isEmpty()) {
             return false;
         }
-        boolean applied = session.setCondition(filePath, line1Based, answer.get());
+        BreakpointPropertiesDialog.Settings settings = answer.get();
+        boolean applied = session.updateBreakpoint(filePath, line1Based,
+                b -> b.withCondition(settings.condition()).withHit(settings.hit()));
         if (applied && refreshCallback != null) {
             refreshCallback.accept(null);
         }
@@ -132,8 +137,8 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         box.setCursor(Cursor.HAND);
 
         boolean hasBp = session != null && session.hasBreakpoint(filePath, line);
-        String condition = hasBp ? session.conditionAt(filePath, line) : null;
-        boolean conditional = condition != null && !condition.isEmpty();
+        org.fxt.freexmltoolkit.debugger.Breakpoint bp = hasBp ? session.breakpointAt(filePath, line) : null;
+        boolean conditional = bp != null && bp.hasRules();
         if (conditional) {
             box.getStyleClass().add(CONDITIONAL_STYLE_CLASS);
         }
@@ -155,14 +160,16 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             IconifyIcon fi = new IconifyIcon("bi-question-circle-fill");
             fi.setIconSize(11);
             SemanticIcon.paint(fi, DesignTokens.ColorToken.DANGER);
-            Tooltip.install(fi, new Tooltip("Condition: " + condition
-                    + "\nClick to remove the breakpoint, right-click to edit the condition"));
+            Tooltip.install(fi, new Tooltip(describe(bp, line)
+                    + "\nClick to remove the breakpoint, right-click to edit it"));
             icon = fi;
         } else if (hasBp) {
             IconifyIcon fi = new IconifyIcon("bi-circle-fill");
             fi.setIconSize(10);
             SemanticIcon.paint(fi, DesignTokens.ColorToken.DANGER);
-            Tooltip.install(fi, new Tooltip("Click to remove breakpoint, right-click to add a condition"));
+            int hits = session.hitCount(filePath, line);
+            Tooltip.install(fi, new Tooltip((hits > 0 ? "Hits in this run: " + hits + "\n" : "")
+                    + "Click to remove breakpoint, right-click for a condition or hit count"));
             icon = fi;
         } else {
             Region spacer = new Region();
@@ -184,7 +191,7 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             } else if (evt.getButton() == MouseButton.SECONDARY && session != null) {
                 // Consumed like the primary press: the editor's own context menu stays closed.
                 if (box.getScene() != null && box.getScene().getWindow() != null) {
-                    menuFor(line, hasBp, conditional).show(box, evt.getScreenX(), evt.getScreenY());
+                    menuFor(line).show(box, evt.getScreenX(), evt.getScreenY());
                 }
                 evt.consume();
             }
@@ -194,20 +201,49 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         return box;
     }
 
-    /** The slot's context menu: add/edit/remove the condition, remove the breakpoint. */
-    ContextMenu menuFor(int line, boolean hasBp, boolean conditional) {
+    /** Tooltip text of a breakpoint with rules: condition, hit rule and the hits of this run. */
+    private String describe(org.fxt.freexmltoolkit.debugger.Breakpoint bp, int line) {
+        StringBuilder sb = new StringBuilder();
+        if (bp.hasCondition()) {
+            sb.append("Condition: ").append(bp.condition());
+        }
+        if (bp.hit().isSet()) {
+            if (sb.length() > 0) {
+                sb.append('\n');
+            }
+            sb.append("Pause on ").append(bp.hit().describe());
+        }
+        int hits = session.hitCount(filePath, line);
+        if (hits > 0) {
+            sb.append("\nHits in this run: ").append(hits);
+        }
+        return sb.toString();
+    }
+
+    /** The slot's context menu: properties (condition, hit count), remove rules, remove the breakpoint. */
+    ContextMenu menuFor(int line) {
+        org.fxt.freexmltoolkit.debugger.Breakpoint bp = session.breakpointAt(filePath, line);
+        boolean hasBp = bp != null || session.hasBreakpoint(filePath, line);
         ContextMenu menu = new ContextMenu();
-        MenuItem edit = new MenuItem(hasBp ? (conditional ? "Edit Condition…" : "Add Condition…")
-                : "Add Conditional Breakpoint…", menuIcon("bi-funnel", DesignTokens.ColorToken.PRIMARY));
-        edit.setOnAction(e -> editCondition(line, menu.getOwnerWindow()));
+        MenuItem edit = new MenuItem(hasBp ? "Breakpoint Properties…" : "Add Conditional Breakpoint…",
+                menuIcon("bi-sliders", DesignTokens.ColorToken.PRIMARY));
+        edit.setOnAction(e -> editBreakpoint(line, menu.getOwnerWindow()));
         menu.getItems().add(edit);
-        if (conditional) {
+        if (bp != null && bp.hasCondition()) {
             MenuItem clear = new MenuItem("Remove Condition", menuIcon("bi-x-circle", DesignTokens.ColorToken.NEUTRAL));
             clear.setOnAction(e -> {
                 session.setCondition(filePath, line, "");
                 if (refreshCallback != null) refreshCallback.accept(null);
             });
             menu.getItems().add(clear);
+        }
+        if (bp != null && bp.hit().isSet()) {
+            MenuItem clearHit = new MenuItem("Remove Hit Count Rule", menuIcon("bi-hash", DesignTokens.ColorToken.NEUTRAL));
+            clearHit.setOnAction(e -> {
+                session.setHitCondition(filePath, line, null);
+                if (refreshCallback != null) refreshCallback.accept(null);
+            });
+            menu.getItems().add(clearHit);
         }
         if (hasBp) {
             MenuItem remove = new MenuItem("Remove Breakpoint", menuIcon("bi-trash", DesignTokens.ColorToken.DANGER));
