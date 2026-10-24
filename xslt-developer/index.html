@@ -1771,6 +1771,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#values-in-the-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Values in the Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#values-under-the-mouse" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2919,6 +2930,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#values-in-the-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Values in the Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#values-under-the-mouse" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3825,7 +3847,7 @@ Breakpoints on lines that never run cost nothing extra. Measured with <code>Debu
 <p>Variables, the call stack and the XSLT context are only collected when the run pauses, so
 stepping and hitting breakpoints do not slow the run between pauses.</p>
 <h3 id="inspecting-state">Inspecting State<a class="headerlink" href="#inspecting-state" title="Permanent link">&para;</a></h3>
-<p><img alt="The DEBUG dock paused at a conditional breakpoint: Variables with position() and last(), the call stack, Messages and Breakpoints" src="../img/xslt-debugger-paused.png" /></p>
+<p><img alt="The DEBUG dock paused at a conditional breakpoint: values next to the declarations, Variables with position() and last(), the call stack, Messages and Breakpoints" src="../img/xslt-debugger-paused.png" /></p>
 <p><strong>The context node in the input.</strong> At every pause the line of the current context node
 (<code>.</code>) is tinted <strong>blue</strong> in the input XML document - the stylesheet's paused line stays yellow
 and in front. <strong>Show input</strong> in the header switches to the input document at that line. The
@@ -3850,6 +3872,19 @@ expand them, at most 500 children per row. Every row knows the XPath that reache
 variable, e.g. <code>$order/item[2]/@sku</code>: <strong>Open Value…</strong> opens that node in the value window, <strong>Add
 to Watches</strong> adds the path as a watch, a click on its value opens it. Values are shown on one
 line; the tooltip and the value window show them in full.</p>
+<h4 id="values-in-the-code">Values in the Code<a class="headerlink" href="#values-in-the-code" title="Permanent link">&para;</a></h4>
+<p>While the run is paused, the stylesheet shows the <strong>current values next to the declarations</strong>:
+<code>$fundName = DEMO FUND 01</code> appears in a yellow tag at the end of the <code>xsl:variable</code> /
+<code>xsl:param</code> line, as in the screenshot above.</p>
+<ul>
+<li>Shown are the locals of the template or function the run is paused in, declared up to the
+  paused line, and the global variables and parameters that have been evaluated so far (Saxon
+  evaluates a global on first use).</li>
+<li>A declaration over several lines shows its value on the line where the start tag ends.</li>
+<li>Long values are cut at 80 characters - click the value in <strong>Variables</strong> to see it whole.</li>
+<li>The values disappear when the run continues and as soon as you edit the stylesheet (they
+  would no longer match their lines).</li>
+</ul>
 <h4 id="values-under-the-mouse">Values Under the Mouse<a class="headerlink" href="#values-under-the-mouse" title="Permanent link">&para;</a></h4>
 <p>While the run is paused, <strong>rest the mouse on a variable reference</strong> (<code>$total</code>, <code>$f:rate</code>, also
 inside <code>{$x}</code> value templates) in the stylesheet: after half a second a small popup shows its
