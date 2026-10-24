@@ -131,7 +131,7 @@ Learn more: [Favorites System](favorites-system.md)
 
 | Feature | Description |
 |---------|-------------|
-| **Drag & Drop** | Drop an `.xml` file onto the XML row or an `.xsl` / `.xslt` file onto the stylesheet row |
+| **Drag & Drop** | Drop an `.xml` file onto the XML row or an `.xsl` / `.xslt` file onto the stylesheet row; like a favorite pick, the file is also loaded into the editor |
 | **Built-in Viewer** | Preview PDFs without leaving the app |
 | **PDF Metadata** | Add title, author, and subject |
 | **PDF/A-1b** | Optional archival-grade output |

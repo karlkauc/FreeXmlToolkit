@@ -66,19 +66,19 @@ public class FopPanel extends VBox {
 
         xmlFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XML,
-                "XML favorites", this::pickXmlFavorite);
+                "XML favorites", this::pickXml);
         xmlRow.addExtras(xmlFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xmlRow,
-                org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::setXmlOverride);
+                org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::pickXml);
         refreshXmlName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshXmlName());
 
         xslFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.XSLT,
-                "XSLT favorites", this::pickXslFavorite);
+                "XSLT favorites", this::pickXsl);
         xslRow.addExtras(xslFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xslRow,
-                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::setXslFile);
+                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::pickXsl);
 
         prefillAuthor();
         pageSize.getSelectionModel().selectFirst();
@@ -267,17 +267,18 @@ public class FopPanel extends VBox {
         xslRow.showFile(file);
     }
 
-    /** A favorite XML input: set it and show it in the editor (it is the input either way). */
-    void pickXmlFavorite(File file) {
+    /** An XML input picked from the favorites or dropped on the row: set it and show it in the editor (it is the input either way). */
+    void pickXml(File file) {
         setXmlOverride(file);
         editorHost.openFile(file.toPath(), true);
     }
 
     /**
-     * A favorite stylesheet: set it and load it into the editor. Its tab only comes to the front
-     * while the XML input is a fixed file — otherwise the input follows the active document.
+     * A stylesheet picked from the favorites or dropped on the row: set it and load it into the
+     * editor. Its tab only comes to the front while the XML input is a fixed file — otherwise the
+     * input follows the active document.
      */
-    void pickXslFavorite(File file) {
+    void pickXsl(File file) {
         editorHost.openFile(file.toPath(), xmlOverride != null);
         setXslFile(file);
     }

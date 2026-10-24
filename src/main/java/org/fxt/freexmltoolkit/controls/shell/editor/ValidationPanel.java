@@ -101,28 +101,23 @@ public class ValidationPanel extends VBox {
         xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
         xsdRow.addExtras(xsdFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdRow,
-                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::useXsd);
-        // Schema favorites are bound to the active document, so the picked file opens behind it.
+                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::pickXsd);
+        // Schemas picked from the favorites or dropped are bound to the active document and
+        // loaded into the editor behind it (pick*).
         schematronFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON,
-                "Schematron favorites", file -> {
-                    useSchematron(file);
-                    editorHost.openFile(file.toPath(), false);
-                });
+                "Schematron favorites", this::pickSchematron);
         schematronRow.addExtras(schematronFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(schematronRow,
-                org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::useSchematron);
+                org.fxt.freexmltoolkit.service.DragDropService.SCHEMATRON_EXTENSIONS, this::pickSchematron);
         // Favorites are typed by extension, so this lists all favorited .json files —
         // schemas and data documents are indistinguishable there.
         jsonSchemaFavoritesMenu = FavoritesMenu.create(
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.JSON,
-                "JSON Schema favorites", file -> {
-                    useJsonSchema(file);
-                    editorHost.openFile(file.toPath(), false);
-                });
+                "JSON Schema favorites", this::pickJsonSchema);
         jsonSchemaRow.addExtras(jsonSchemaFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(jsonSchemaRow,
-                org.fxt.freexmltoolkit.service.DragDropService.JSON_SCHEMA_EXTENSIONS, this::useJsonSchema);
+                org.fxt.freexmltoolkit.service.DragDropService.JSON_SCHEMA_EXTENSIONS, this::pickJsonSchema);
         // One click on a bound source opens it in the editor for direct editing.
         makeSourceNameOpenable(xsdName, () -> editorHost.activeSchemaProperty().get());
         makeSourceNameOpenable(schematronName, editorHost::getActiveSchematron);
@@ -680,11 +675,7 @@ public class ValidationPanel extends VBox {
             String name = favorite.getName() != null && !favorite.getName().isBlank()
                     ? favorite.getName() : new File(favorite.getFilePath()).getName();
             MenuItem item = new MenuItem(name);
-            item.setOnAction(e -> {
-                File xsd = new File(favorite.getFilePath());
-                useXsd(xsd);
-                editorHost.openFile(xsd.toPath(), false); // behind the document it is bound to
-            });
+            item.setOnAction(e -> pickXsd(new File(favorite.getFilePath())));
             xsdFavoritesMenu.getItems().add(item);
         }
         xsdFavoritesMenu.setDisable(xsdFavoritesMenu.getItems().isEmpty());
@@ -701,6 +692,22 @@ public class ValidationPanel extends VBox {
      *
      * @param xsd the schema file to validate against
      */
+    /** A schema picked from the favorites or dropped: bound to the active document and opened behind it. */
+    void pickXsd(File xsd) {
+        useXsd(xsd);
+        editorHost.openFile(xsd.toPath(), false);
+    }
+
+    void pickSchematron(File schematron) {
+        useSchematron(schematron);
+        editorHost.openFile(schematron.toPath(), false);
+    }
+
+    void pickJsonSchema(File schema) {
+        useJsonSchema(schema);
+        editorHost.openFile(schema.toPath(), false);
+    }
+
     public void useXsd(File xsd) {
         // The schema is parsed off the FX thread; the future completes back on it.
         editorHost.setSchemaForActiveDocument(xsd).thenAccept(bound -> {
@@ -769,7 +776,7 @@ public class ValidationPanel extends VBox {
     /** @return the favorite-Schematron names currently in the quick-select menu (for tests). */
     public java.util.List<String> schematronFavoriteNames() {
         FavoritesMenu.populate(schematronFavoritesMenu,
-                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON, this::useSchematron);
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON, this::pickSchematron);
         return FavoritesMenu.leafNames(schematronFavoritesMenu);
     }
 

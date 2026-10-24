@@ -61,12 +61,12 @@ class FopPanelTest {
         java.nio.file.Path xsl = tmp.resolve("sheet.xsl");
         java.nio.file.Files.writeString(xsl, "<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" version=\"3.0\"/>");
 
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.pickXmlFavorite(xml.toFile()); return null; });
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.pickXml(xml.toFile()); return null; });
         WaitForAsyncUtils.waitForFxEvents();
         assertEquals(xml, host.getActiveDocument().map(OpenDocument::getPath).orElse(null),
                 "a favorite XML input opens as the active tab");
 
-        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.pickXslFavorite(xsl.toFile()); return null; });
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> { panel.pickXsl(xsl.toFile()); return null; });
         WaitForAsyncUtils.waitForFxEvents();
         assertTrue(host.getOpenDocuments().stream().anyMatch(d -> xsl.equals(d.getPath())),
                 "the stylesheet is loaded into the editor");
@@ -191,6 +191,10 @@ class FopPanelTest {
         javafx.scene.control.Label xslName = (javafx.scene.control.Label) panel.lookup("#fop-xsl-name");
         assertEquals("input.xml", xmlName.getText(), "the dropped XML must become the input override");
         assertEquals("layout.xsl", xslName.getText(), "the dropped XSL must become the stylesheet");
+        assertTrue(host.getOpenDocuments().stream().anyMatch(d -> xml.equals(d.getPath())),
+                "the dropped XML is loaded into the editor");
+        assertTrue(host.getOpenDocuments().stream().anyMatch(d -> xsl.equals(d.getPath())),
+                "the dropped stylesheet is loaded into the editor");
     }
 
     /** Mocks a DRAG_DROPPED event carrying OS files (TestFX cannot simulate real file drags). */

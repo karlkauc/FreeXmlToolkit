@@ -117,9 +117,10 @@ public class TransformPanel extends VBox {
         xsltPos.getStyleClass().add("fxt-vp-browse-pos");
         xsltPos.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE); // "2 / 5" never shrinks to "…"
         xsltRow.addExtras(recentXsltMenu, xsltFavMenu, prevXsltBtn, xsltPos, nextXsltBtn);
-        // Drops behave like picking a favorite: record access, sync the browse position, auto-run.
+        // Drops behave like picking a favorite: record access, sync the browse position, load the
+        // file into the editor, auto-run.
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsltRow,
-                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::applyXslt);
+                org.fxt.freexmltoolkit.service.DragDropService.XSLT_EXTENSIONS, this::pickXslt);
         updateXsltPos();
 
         // --- INPUT ------------------------------------------------------------
@@ -130,7 +131,7 @@ public class TransformPanel extends VBox {
         inputPos.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE); // "2 / 5" never shrinks to "…"
         inputRow.addExtras(inputFavMenu, prevInputBtn, inputPos, nextInputBtn);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(inputRow,
-                org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::applyInput);
+                org.fxt.freexmltoolkit.service.DragDropService.XML_EXTENSIONS, this::pickInput);
         updateInputPos();
         refreshInputName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshInputName());
@@ -547,16 +548,16 @@ public class TransformPanel extends VBox {
     }
 
     /**
-     * A stylesheet picked from the favorites (star menu or ◀ / ▶) is loaded into the editor as
-     * well. Its tab only comes to the front while the input is a fixed file: with the input
-     * following the active document, a selected stylesheet tab would become the input.
+     * A stylesheet picked from the favorites (star menu or ◀ / ▶) or dropped on the row is loaded
+     * into the editor as well. Its tab only comes to the front while the input is a fixed file:
+     * with the input following the active document, a selected stylesheet tab would become the input.
      */
     private void pickXslt(File file) {
         editorHost.openFile(file.toPath(), inputOverride != null);
         applyXslt(file);
     }
 
-    /** An input picked from the favorites is loaded into the editor and shown — it is the input either way. */
+    /** An input picked from the favorites or dropped on the row is loaded into the editor and shown — it is the input either way. */
     private void pickInput(File file) {
         applyInput(file);
         editorHost.openFile(file.toPath(), true);

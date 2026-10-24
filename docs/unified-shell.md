@@ -624,8 +624,8 @@ is clickable to collapse or expand that section.
   [Browsing favorites with ◀ / ▶](#browsing-favorites) below. A picked stylesheet is also
   loaded into the editor.
 - **Drag & drop**: drop an `.xsl` / `.xslt` file from your file
-  manager straight onto the STYLESHEET row - it becomes the current stylesheet, exactly
-  as if you had picked it via **Change** or a favorite. While dragging, the row glows
+  manager straight onto the STYLESHEET row - it becomes the current stylesheet and is loaded
+  into the editor, exactly as if you had picked it from a favorite. While dragging, the row glows
   **green** when the file can be loaded and **red** when it has the wrong extension (a
   red drop is rejected). As with favorites, the transform **runs automatically** as soon
   as both a stylesheet and an input are ready (while **Run automatically** is checked).
@@ -646,8 +646,8 @@ there is none):
   [Browsing favorites with ◀ / ▶](#browsing-favorites) below. A picked input is also opened
   in the editor and becomes the active tab.
 - **Drag & drop**: drop an `.xml` file from your file manager
-  straight onto the INPUT row to transform that file - exactly like **Select XML file…**
-  or picking a favorite. The same **green** (loadable) / **red** (rejected) drag-over
+  straight onto the INPUT row to transform that file - exactly like picking a favorite: it
+  becomes the input and opens as the active editor tab. The same **green** (loadable) / **red** (rejected) drag-over
   feedback applies, and the transform **runs automatically** as soon as both a stylesheet
   and an input are ready (while **Run automatically** is checked).
 
@@ -1387,8 +1387,9 @@ The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache
   [Favorites](favorites-system.md)). Both rows are also **drop
   targets**: drop an `.xml` file onto the XML row or an `.xsl` / `.xslt` file onto the
   stylesheet row - the row glows **green** while a loadable file hovers over it and
-  **red** for a wrong file type (which is rejected), and the drop behaves exactly like
-  **Change** or a favorite.
+  **red** for a wrong file type (which is rejected), and the drop behaves exactly like a
+  favorite: the file is also loaded into the editor (the XML as the active tab, the
+  stylesheet behind it unless the XML input is fixed).
 - **METADATA** - PDF document **Title**, **Author** (pre-filled from your configured user
   name) and **Subject**, embedded into the generated PDF.
 - **OPTIONS** - **PDF/A-1b compliant** renders an archival-grade PDF (requires the
@@ -2209,11 +2210,13 @@ targets too**:
   to make it the current stylesheet.
 - Drop an `.xml` file onto the Transform panel's **[INPUT](#input)** row to make it the
   transform's input file. On both Transform panel rows a drop behaves like picking a
-  favorite: the transform **runs automatically** once both a stylesheet and an input are
-  ready (while **Run automatically** is checked).
+  favorite: the file is loaded into the editor and the transform **runs automatically** once
+  both a stylesheet and an input are ready (while **Run automatically** is checked).
 - Drop a `.sch` / `.schematron` file onto the Validation panel's
   **[SCHEMATRON source row](#sources)** to make it the current
-  Schematron (and bind it to the active document).
+  Schematron (and bind it to the active document). Like every schema, stylesheet or input
+  dropped on a panel row, it is also loaded into the editor - schemas behind the document
+  they are bound to, inputs as the active tab.
 - Drop an `.xsd` file onto the Validation panel's **[XSD source row](#sources)** or onto
   the **[schema indicator in the status bar](#status-bar)** (shown for XML-family documents)
   to bind that schema to the active document.

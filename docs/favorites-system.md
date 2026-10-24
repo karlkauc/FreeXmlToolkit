@@ -75,7 +75,7 @@ The menu is rebuilt each time you open it, so newly added favorites appear immed
 When you use more than one favorites folder, the entries are grouped by folder as
 submenus. While you have no matching favorites, the star button is grayed out.
 
-Picking a favorite from a star menu also **loads the file into the editor**: a Transform or
+Picking a favorite from a star menu (or dropping a file on the same row) also **loads the file into the editor**: a Transform or
 PDF/FOP input becomes the active tab; a stylesheet, schema or Schematron opens *behind* the
 active tab, because those panels work on the active document and must not lose it.
 

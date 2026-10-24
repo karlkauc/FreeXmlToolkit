@@ -416,6 +416,11 @@ class ValidationPanelTest {
         assertEquals(sch.toFile(), host.getActiveSchematron(),
                 "dropping must bind the Schematron like choosing it");
         org.mockito.Mockito.verify(event).setDropCompleted(true);
+        assertTrue(host.getOpenDocuments().stream().anyMatch(d -> sch.equals(d.getPath())),
+                "the dropped Schematron is loaded into the editor");
+        assertEquals(xml, WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveDocument().map(OpenDocument::getPath).orElse(null)),
+                "…behind the document it is bound to, which stays active");
     }
 
     @Test

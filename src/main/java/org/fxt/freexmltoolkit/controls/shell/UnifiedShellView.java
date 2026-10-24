@@ -2273,6 +2273,7 @@ public class UnifiedShellView extends BorderPane {
             boolean jsonSchema = file.getName().toLowerCase().endsWith(".json");
             if (jsonDoc == jsonSchema) {
                 editorHost.setSchemaForActiveDocument(file);
+                editorHost.openFile(file.toPath(), false); // loaded into the editor, behind the document
             }
         });
     }

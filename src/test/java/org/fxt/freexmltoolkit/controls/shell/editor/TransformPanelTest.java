@@ -220,6 +220,8 @@ class TransformPanelTest {
         javafx.scene.control.Label name = (javafx.scene.control.Label) row.lookup(".fxt-vp-source-name");
         assertEquals("dropped.xsl", name.getText(), "the dropped stylesheet must be loaded");
         org.mockito.Mockito.verify(event).setDropCompleted(true);
+        assertTrue(host.getOpenDocuments().stream().anyMatch(d -> xslt.equals(d.getPath())),
+                "the dropped stylesheet is loaded into the editor");
     }
 
     @Test
@@ -244,6 +246,10 @@ class TransformPanelTest {
         javafx.scene.control.Label name = (javafx.scene.control.Label) row.lookup(".fxt-vp-source-name");
         assertEquals("override.xml", name.getText(), "the dropped XML must become the input override");
         org.mockito.Mockito.verify(event).setDropCompleted(true);
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(xml, WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveDocument().map(OpenDocument::getPath).orElse(null)),
+                "the dropped input opens as the active editor tab");
     }
 
     private void openGreeting(Path tmp) throws Exception {
