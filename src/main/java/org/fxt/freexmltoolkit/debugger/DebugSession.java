@@ -290,6 +290,27 @@ public class DebugSession implements BreakpointTarget {
         rearm();
     }
 
+    /** The main stylesheet's normalized path of the current launch ({@code ""} for an in-memory one). */
+    private volatile String mainSourcePath = "";
+
+    public void setMainSourcePath(String path) {
+        this.mainSourcePath = path == null ? "" : path;
+    }
+
+    public String getMainSourcePath() {
+        return mainSourcePath;
+    }
+
+    /** @return the text of a module (normalized path; {@code ""} = the main stylesheet) as the run used it, or {@code null}. */
+    public String sourceText(String path) {
+        java.util.function.Function<String, String> texts = sourceTexts;
+        try {
+            return texts == null ? null : texts.apply(path == null ? "" : path);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
     /** @return the line the debugger watches for a breakpoint at {@code filePath:line}. */
     public int effectiveLine(String filePath, int line) {
         java.util.function.Function<String, String> texts = sourceTexts;

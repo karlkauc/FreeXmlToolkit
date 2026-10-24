@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  Content of the XSLT debugger's "Explain Match" dialog: the template rules of the frame's mode
+  tested against its context node - the rule XSLT picks first, the other matching ones and why
+  they lose, then the rules that do not match. Loaded by MatchExplanationDialog
+  (FxmlViews.loadContent), which is the controller and adds title, header and buttons.
+-->
+<VBox spacing="8" prefWidth="720" prefHeight="420" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="12"/>
+    </padding>
+    <children>
+        <Label fx:id="summaryLabel" id="explain-summary" wrapText="true"/>
+        <ListView fx:id="ruleList" id="explain-rules" VBox.vgrow="ALWAYS"/>
+        <Label wrapText="true" opacity="0.7"
+               text="XSLT picks the matching rule with the highest import precedence, then the highest priority, then the last one in the stylesheet. Patterns are tested as XPath against this node; double-click a rule to open it."/>
+    </children>
+</VBox>

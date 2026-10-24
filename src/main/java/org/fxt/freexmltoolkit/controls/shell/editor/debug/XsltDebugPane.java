@@ -172,6 +172,7 @@ public final class XsltDebugPane extends VBox {
         variablesView.setOnOpenValue(b -> openViewer(resolveVariable(b, currentScope())));
         variablesView.setOnCopyValue(b -> copyValue(resolveVariable(b, currentScope())));
         callStackView.setOnFrameSelected(this::showFrame);
+        callStackView.setOnExplainMatch(this::onExplainMatch);
         variablesView.setOnAddToWatches(expr -> {
             watchView.addWatch(expr);
             selectTab(leftTabs, watchTab);
@@ -724,6 +725,67 @@ public final class XsltDebugPane extends VBox {
             }
         }
         return "@top";
+    }
+
+    /** The last "Explain Match" dialog shown (tests). */
+    MatchExplanationDialog lastExplanation;
+
+    /** "Explain Match…" on a template-rule frame: computed off the FX thread, then shown. */
+    public void onExplainMatch(DebugStackFrame frame) {
+        PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+        if (snap == null || frame == null) {
+            return;
+        }
+        PausedSnapshot scopeSnap = frameScope(frame, snap);
+        if (scopeSnap == null || !(scopeSnap.contextXdm() instanceof net.sf.saxon.s9api.XdmNode node)) {
+            status.setText("Explain Match: this frame has no context node captured.");
+            return;
+        }
+        String mode = modeOf(frame);
+        FxtGui.executorService.submit(() -> {
+            List<org.fxt.freexmltoolkit.debugger.MatchExplanation.Line> lines = explainMatch(scopeSnap, node, mode);
+            Platform.runLater(() -> {
+                String label = node.getNodeKind() == net.sf.saxon.s9api.XdmNodeKind.ELEMENT
+                        ? "<" + node.getNodeName() + ">" : node.getNodeKind().toString().toLowerCase(Locale.ROOT);
+                MatchExplanationDialog dialog = new MatchExplanationDialog(label
+                        + org.fxt.freexmltoolkit.debugger.InputLocation.of(node).map(l -> " (input line " + l.line() + ")").orElse(""),
+                        mode, lines, line -> onJumpToFrame.accept(new DebugStackFrame(line.candidate().alternative(),
+                                line.candidate().rule().path(), line.candidate().rule().line(), List.of())));
+                if (getScene() != null && getScene().getWindow() != null) {
+                    dialog.initOwner(getScene().getWindow());
+                }
+                dialog.initModality(javafx.stage.Modality.NONE);
+                lastExplanation = dialog;
+                dialog.show();
+            });
+        });
+    }
+
+    /** The template rules of {@code mode} tested against {@code node} (any thread; Saxon evaluation). */
+    List<org.fxt.freexmltoolkit.debugger.MatchExplanation.Line> explainMatch(PausedSnapshot scopeSnap,
+            net.sf.saxon.s9api.XdmNode node, String mode) {
+        DebugSession session = controller.getSession();
+        WatchEvaluator evaluator = controller.getWatchEvaluator();
+        List<org.fxt.freexmltoolkit.debugger.TemplateRules.Rule> rules =
+                org.fxt.freexmltoolkit.debugger.TemplateRules.collect(session.getMainSourcePath(), session::sourceText);
+        return org.fxt.freexmltoolkit.debugger.MatchExplanation.explain(
+                org.fxt.freexmltoolkit.debugger.TemplateRules.candidates(rules, mode), c -> {
+                    try {
+                        XdmValue v = evaluator.evaluateValue(
+                                org.fxt.freexmltoolkit.debugger.TemplateRules.testExpression(c.alternative()), scopeSnap, node);
+                        boolean yes = v.size() == 1 && v.itemAt(0) instanceof net.sf.saxon.s9api.XdmAtomicValue a
+                                && a.getBooleanValue();
+                        return org.fxt.freexmltoolkit.debugger.MatchExplanation.Result.of(yes);
+                    } catch (SaxonApiException | RuntimeException e) {
+                        return org.fxt.freexmltoolkit.debugger.MatchExplanation.Result.failed(e.getMessage());
+                    }
+                });
+    }
+
+    /** The mode a template-rule frame runs in: its {@code mode="…"} suffix, else the unnamed mode. */
+    static String modeOf(DebugStackFrame frame) {
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile(" mode=\"([^\"]+)\"").matcher(frame.description());
+        return m.find() ? m.group(1) : "#default";
     }
 
     /** A nested value from the Variables tree, evaluated (XPath) in the current scope. */

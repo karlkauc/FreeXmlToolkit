@@ -692,4 +692,42 @@ class XsltDebugPaneTest {
             });
         }
     }
+
+    @Test
+    void explainMatchTestsTheRulesOfTheModeAgainstTheContextNode() throws Exception {
+        String xslt = """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/"><out><xsl:apply-templates select="//item"/></out></xsl:template>
+                  <xsl:template match="item"><plain/></xsl:template>
+                  <xsl:template match="item[. = 'b']">
+                    <special/>
+                  </xsl:template>
+                  <xsl:template match="*"><any/></xsl:template>
+                  <xsl:template match="item" mode="other"><o/></xsl:template>
+                </xsl:stylesheet>
+                """;
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            XsltDebugPane p = new XsltDebugPane(controller);
+            stage.setScene(new Scene(p, 900, 400));
+            stage.show();
+            return p;
+        });
+        controller.getSession().addBreakpoint(new Breakpoint("", 5, true)); // <special/> - only item "b"
+        controller.setPauseOnEntry(false);
+        controller.start(XML, () -> xslt, "file:/tmp/explain-match.xsl", Map.of(), OutputFormat.XML);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> controller.getSession().getState() == DebugSession.State.PAUSED);
+
+        PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+        DebugStackFrame rule = snap.callStack().stream().filter(CallStackView::isTemplateRule).findFirst().orElseThrow();
+        assertEquals("#default", XsltDebugPane.modeOf(rule));
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.onExplainMatch(rule));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> pane.lastExplanation != null);
+        var lines = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.lastExplanation.lines());
+        assertEquals(List.of("✓ wins", "matches, loses (lower priority)", "matches, loses (lower priority)", "no match"),
+                lines.stream().map(l -> l.text().substring(0, l.text().indexOf(':'))).toList(),
+                "item[. = 'b'] (0.5) beats item (0) and * (-0.5); \"/\" does not match; mode=other is not listed");
+        assertTrue(lines.get(0).text().contains("match=\"item[. = 'b']\""), lines.get(0).text());
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.lastExplanation.close());
+        controller.stop();
+    }
 }

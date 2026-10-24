@@ -73,10 +73,39 @@ public class CallStackView extends VBox {
                 }
             }
         });
-        list.setContextMenu(DebugValueMenu.create(() -> list.getSelectionModel().getSelectedItem(),
-                f -> onOpenValue.accept(f), f -> onCopyValue.accept(f)));
+        javafx.scene.control.ContextMenu menu = DebugValueMenu.create(() -> list.getSelectionModel().getSelectedItem(),
+                f -> onOpenValue.accept(f), f -> onCopyValue.accept(f));
+        javafx.scene.control.MenuItem explain = new javafx.scene.control.MenuItem("Explain Match…");
+        explain.setId("debug-explain-match");
+        explain.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
+                new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-diagram-3"),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.NAVIGATE));
+        explain.setOnAction(e -> {
+            DebugStackFrame f = list.getSelectionModel().getSelectedItem();
+            if (isTemplateRule(f)) {
+                onExplainMatch.accept(f);
+            }
+        });
+        menu.getItems().add(new javafx.scene.control.SeparatorMenuItem());
+        menu.getItems().add(explain);
+        menu.addEventHandler(javafx.stage.WindowEvent.WINDOW_SHOWING,
+                e -> explain.setDisable(!isTemplateRule(list.getSelectionModel().getSelectedItem())));
+        list.setContextMenu(menu);
         VBox.setVgrow(list, Priority.ALWAYS);
         getChildren().add(list);
+    }
+
+    private Consumer<DebugStackFrame> onExplainMatch = frame -> { };
+
+    /** Invoked with a template-rule frame for "Explain Match…" (context menu). */
+    public void setOnExplainMatch(Consumer<DebugStackFrame> handler) {
+        this.onExplainMatch = handler == null ? frame -> { } : handler;
+    }
+
+    /** @return whether {@code frame} is a template rule (a frame "Explain Match" works on). */
+    static boolean isTemplateRule(DebugStackFrame frame) {
+        return frame != null && frame.kind() == DebugStackFrame.FrameKind.TEMPLATE
+                && frame.description().startsWith("template match=");
     }
 
     /** Invoked with the frame whose context item / variables should be opened (Enter, menu). */

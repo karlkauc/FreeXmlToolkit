@@ -625,6 +625,23 @@ Messages is highlighted when output arrives while another tab of its group is in
 **failed run brings Messages to the front** so the error is readable at once. In Watch and
 Breakpoints the **Delete** key removes the selected row.
 
+#### Why Did This Template Match?
+
+Right-click a **template rule** in Call Stack → **Explain Match…** to see which rules of the
+frame's mode could process its context node. Every rule pattern is tested against the node
+and listed:
+
+- **✓ wins** - the rule XSLT picks: highest import precedence, then highest priority, then
+  the last one in the stylesheet;
+- **matches, loses** - with the reason (*lower priority*, *lower import precedence*, *earlier
+  in the stylesheet*);
+- **no match** - the remaining rules of the mode.
+
+Each line shows the pattern, its priority (*default* when computed from the pattern, e.g.
+`item` 0, `*` -0.5, `item[@n]` 0.5) and its module and line; double-click opens the rule.
+Imports and includes are followed; rules in other modes are left out. When no rule matches,
+the built-in rule applies.
+
 #### Changed Values
 
 Values that changed since the **previous pause in the same template or function** are shown in

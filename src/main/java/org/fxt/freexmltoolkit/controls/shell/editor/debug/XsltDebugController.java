@@ -197,6 +197,7 @@ public final class XsltDebugController {
         // Breakpoints on any line of a multi-line start tag match the line Saxon reports (its end).
         final String mainPath = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(args.xsltSystemId());
         final String mainText = lastXslt;
+        session.setMainSourcePath(mainPath);
         session.setSourceTexts(path -> {
             String text = moduleSnapshot.get(path);
             if (text == null && (path.isEmpty() || path.equals(mainPath))) {
