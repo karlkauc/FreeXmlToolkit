@@ -602,10 +602,11 @@ public class XsltDebugTraceListener implements TraceListener {
         }
         try {
             var mode = context.getCurrentMode();
-            if (mode != null && mode.getActor() != null) {
-                String name = mode.getActor().isUnnamedMode() || mode.getActor().getModeName() == null
-                        ? "#unnamed" : mode.getActor().getModeName().getDisplayName();
-                rows.add(new VariableBinding("mode", name, "mode", VariableScope.XSLT));
+            // Only a named mode is worth a row; the unnamed default mode would show at every pause.
+            if (mode != null && mode.getActor() != null && !mode.getActor().isUnnamedMode()
+                    && mode.getActor().getModeName() != null) {
+                rows.add(new VariableBinding("mode", mode.getActor().getModeName().getDisplayName(), "mode",
+                        VariableScope.XSLT));
             }
         } catch (RuntimeException e) {
             logger.debug("No current mode: {}", e.getMessage());

@@ -165,10 +165,12 @@ public final class XsltDebugPane extends VBox {
         variablesView.setOnOpenValue(b -> openViewer(resolveVariable(b, currentScope())));
         variablesView.setOnCopyValue(b -> copyValue(resolveVariable(b, currentScope())));
         callStackView.setOnFrameSelected(this::showFrame);
-        variablesView.setOnAddToWatches(b -> {
-            watchView.addWatch(b.name());
+        variablesView.setOnAddToWatches(expr -> {
+            watchView.addWatch(expr);
             selectTab(leftTabs, watchTab);
         });
+        variablesView.setOnOpenNested(src -> openViewer(withScope(src)));
+        variablesView.setOnCopyNested(src -> copyValue(withScope(src)));
         callStackView.setOnOpenValue(f -> openViewer(resolveFrame(f, controller.getSession().getPausedSnapshot())));
         callStackView.setOnCopyValue(f -> copyValue(resolveFrame(f, controller.getSession().getPausedSnapshot())));
         watchView.setOnOpenValue(row -> resolveWatch(row, this::openViewer));
@@ -370,7 +372,7 @@ public final class XsltDebugPane extends VBox {
                     outputView.showSoFar(controller.getSession().outputSoFar());
                     // Selecting the innermost frame (setFrames) fills Variables and the watches.
                     watchView.setEvaluator(controller.getWatchEvaluator());
-                    variablesView.setVariables(snap.variables());
+                    variablesView.setVariables(snap.variables(), b -> resolveVariable(b, snap).value());
                     callStackView.setFrames(snap.callStack());
                     if (snap.callStack().isEmpty()) {
                         watchView.evaluateAll(snap);
@@ -548,7 +550,7 @@ public final class XsltDebugPane extends VBox {
         if (frameScope == snap) {
             scope = snap;
             variablesView.setFrameInfo(null);
-            variablesView.setVariables(snap.variables());
+            variablesView.setVariables(snap.variables(), b -> resolveVariable(b, snap).value());
             watchView.evaluateAll(snap);
             return;
         }
@@ -564,8 +566,13 @@ public final class XsltDebugPane extends VBox {
             return;
         }
         scope = frameScope;
-        variablesView.setVariables(frameScope.variables());
+        variablesView.setVariables(frameScope.variables(), b -> resolveVariable(b, frameScope).value());
         watchView.evaluateAll(frameScope);
+    }
+
+    /** A nested value from the Variables tree, evaluated (XPath) in the current scope. */
+    private ValueSource withScope(ValueSource src) {
+        return new ValueSource(src.title(), src.type(), src.scope(), src.value(), src.fallbackText(), currentScope());
     }
 
     /**

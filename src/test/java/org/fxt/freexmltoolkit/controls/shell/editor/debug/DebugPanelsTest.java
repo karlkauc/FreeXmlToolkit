@@ -326,4 +326,34 @@ class DebugPanelsTest {
         assertEquals(1, fresh.getSymbolBreakpoints().size());
         assertEquals(false, fresh.breakpointAt("/tmp/a.xsl", 8).enabled());
     }
+
+    @Test
+    void variablesUnfoldAndNestedRowsOpenAndWatch() throws Exception {
+        net.sf.saxon.s9api.Processor p = new net.sf.saxon.s9api.Processor(false);
+        net.sf.saxon.s9api.XdmNode doc = p.newDocumentBuilder().build(new javax.xml.transform.stream.StreamSource(
+                new java.io.StringReader("<order><item n='1'/><item n='2'/></order>")));
+        net.sf.saxon.s9api.XdmNode order = (net.sf.saxon.s9api.XdmNode) p.newXPathCompiler().evaluateSingle("/order", doc);
+        java.util.List<String> watched = new java.util.ArrayList<>();
+        java.util.concurrent.atomic.AtomicReference<ValueSource> opened = new java.util.concurrent.atomic.AtomicReference<>();
+        int children = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            VariablesView view = new VariablesView();
+            view.setOnAddToWatches(watched::add);
+            view.setOnOpenNested(opened::set);
+            view.setVariables(List.of(new VariableBinding("$order", "<order>…", "element(order)", VariableScope.LOCAL)),
+                    b -> order);
+            var rootRow = view.tree().getRoot().getChildren().get(0);
+            rootRow.setExpanded(true);
+            var second = rootRow.getChildren().get(1);
+            view.tree().getSelectionModel().select(second);
+            view.tree().getContextMenu().getItems().stream()
+                    .filter(i -> "Add to Watches".equals(i.getText())).findFirst().orElseThrow().fire();
+            view.tree().getContextMenu().getItems().stream()
+                    .filter(i -> "Open Value…".equals(i.getText())).findFirst().orElseThrow().fire();
+            view.fireAddToWatches(0);
+            return rootRow.getChildren().size();
+        });
+        assertEquals(2, children, "the element unfolds into its two items");
+        assertEquals(List.of("$order/item[2]", "$order"), watched);
+        assertEquals("$order/item[2]", opened.get().title(), "a nested row opens with its path");
+    }
 }

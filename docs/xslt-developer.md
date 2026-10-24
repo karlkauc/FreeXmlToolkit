@@ -549,6 +549,16 @@ Messages is highlighted when output arrives while another tab of its group is in
 **failed run brings Messages to the front** so the error is readable at once. In Watch and
 Breakpoints the **Delete** key removes the selected row.
 
+#### Exploring Structured Values
+
+Variables is a **tree**: a node value unfolds into its **attributes and child nodes** (element →
+`@id`, `<item>`, `text()`, …; indentation whitespace is skipped), a sequence into its **items**
+`[1]`, `[2]`, …, a map into its **entries** and an array into its **members** - built as you
+expand them, at most 500 children per row. Every row knows the XPath that reaches it from its
+variable, e.g. `$order/item[2]/@sku`: **Open Value…** opens that node in the value window, **Add
+to Watches** adds the path as a watch, a click on its value opens it. Values are shown on one
+line; the tooltip and the value window show them in full.
+
 #### Values Under the Mouse
 
 While the run is paused, **rest the mouse on a variable reference** (`$total`, `$f:rate`, also
@@ -596,7 +606,7 @@ right-click → **Open Value…** - to open it in its own **value window**:
 
 | Panel | Shows |
 |-------|-------|
-| **Variables** | The context item (`.`), `position()` / `last()`, the **XSLT context** (scope XSLT: the current `mode`; inside `xsl:for-each-group` `current-grouping-key()` and `current-group()`; inside `xsl:matching-substring` `regex-group(0…n)`; the **tunnel parameters** passed down, marked *(tunnel)*; `accumulator-before('…')` of every accumulator that applies to the context node's document), every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full |
+| **Variables** | The context item (`.`), `position()` / `last()`, the **XSLT context** (scope XSLT: the current `mode` when it is a named mode; inside `xsl:for-each-group` `current-grouping-key()` and `current-group()`; inside `xsl:matching-substring` `regex-group(0…n)`; the **tunnel parameters** passed down, marked *(tunnel)*; `accumulator-before('…')` of every accumulator that applies to the context node's document), every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full |
 | **Watch** | Your XPath expressions, evaluated **against the paused context item** with all variables in scope: `count(item)`, `$total`, `string(@id)`, `position()`; the stylesheet's namespace prefixes are available. Type an expression into the field above the table and press **Add**, or right-click a variable → **Add to Watches**; **Remove** (or the Delete key) drops the selected one, a double-click or **F2** edits an expression in place. Watches are **saved per stylesheet** and come back with its next debug session. Re-evaluated at every pause; errors are shown in the row. Click a value to open it in full |
 | **Call Stack** | Template and function frames, innermost first (a template rule running in a named mode shows `mode="…"`), each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. **Selecting a frame switches Variables and Watch to that frame** (see below). **Enter** or **Open Value…** opens the frame's context item and variables |
 | **Messages** | `xsl:message` output and Saxon warnings **live, as they happen**, with their location; double-click jumps to the line. A failed run shows its error here too. The toolbar filters by level (**Messages** / **Warnings** / **Errors** - `terminate="yes"` counts as an error) and by text, **Copy** copies the selected messages (or all shown ones), **Clear** empties the list. The tab badge always counts all messages |
