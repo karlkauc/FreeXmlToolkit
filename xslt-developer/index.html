@@ -1756,6 +1756,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Starting and Stepping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coverage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2937,6 +2954,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Starting and Stepping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coverage
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -3847,6 +3881,11 @@ icons - hover one for its name and key:</p>
 <td>Toggle: the run does not stop at any breakpoint (steps still pause)</td>
 </tr>
 <tr>
+<td><strong>Coverage</strong></td>
+<td></td>
+<td>Toggle (remembered): from the next run on, record which lines run - see <a href="#coverage">Coverage</a></td>
+</tr>
+<tr>
 <td><strong>Show in editor</strong></td>
 <td></td>
 <td>Jump the editor to the currently paused line</td>
@@ -3913,6 +3952,14 @@ Breakpoints on lines that never run cost nothing extra. Measured with <code>Debu
 </table>
 <p>Variables, the call stack and the XSLT context are only collected when the run pauses, so
 stepping and hitting breakpoints do not slow the run between pauses.</p>
+<h4 id="coverage">Coverage<a class="headerlink" href="#coverage" title="Permanent link">&para;</a></h4>
+<p>With <strong>Coverage</strong> on in the DEBUG header, every run records which stylesheet lines ran. After
+the run, the breakpoint gutter shows a <strong>green bar</strong> next to each line that ran (the tooltip says
+how often) and a <strong>red bar</strong> on the lines of every template or function that <strong>never ran</strong> for
+this input - dead code, or a hint that the test input lacks a case. <strong>Messages</strong> lists those
+templates and functions (<em>Never ran: template match="…"</em>); double-click one to jump to it.
+The markers stay until the next run. Recording costs next to nothing (a 100,000-item run: 254
+ms without, 256 ms with coverage).</p>
 <h3 id="inspecting-state">Inspecting State<a class="headerlink" href="#inspecting-state" title="Permanent link">&para;</a></h3>
 <p><img alt="The DEBUG dock paused at a conditional breakpoint: values next to the declarations, Variables with position() and last(), the call stack, Messages and Breakpoints" src="../img/xslt-debugger-paused.png" /></p>
 <p><strong>The context node in the input.</strong> At every pause the line of the current context node
