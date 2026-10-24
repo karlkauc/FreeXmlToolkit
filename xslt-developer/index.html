@@ -3423,7 +3423,8 @@ third item of type B. When a hit-count rule makes the run pause, the status says
 (<em>· hit 3 (hit = 3)</em>). Hit-count rules are saved with the breakpoint, the counts are not.</p>
 <h3 id="starting-and-stepping">Starting and Stepping<a class="headerlink" href="#starting-and-stepping" title="Permanent link">&para;</a></h3>
 <p>Without breakpoints the run <strong>pauses at the first instruction</strong> (<strong>Pause on entry</strong>, a toggle in
-the header - switch it off to run straight to the first breakpoint). The header controls:</p>
+the header - switch it off to run straight to the first breakpoint). The header controls are
+icons - hover one for its name and key:</p>
 <table>
 <thead>
 <tr>
@@ -3484,6 +3485,11 @@ the header - switch it off to run straight to the first breakpoint). The header 
 <td>Jump the editor to the currently paused line</td>
 </tr>
 <tr>
+<td><strong>Show input</strong></td>
+<td></td>
+<td>Select the input document at the paused <strong>context node</strong> (see below)</td>
+</tr>
+<tr>
 <td><strong>✕</strong></td>
 <td></td>
 <td>End the session and close the DEBUG dock (OUTPUT stays)</td>
@@ -3496,6 +3502,13 @@ interrupted - Pause takes effect at the next instruction.
 The paused line is <strong>tinted</strong> in the editor and a green arrow marks it in the gutter; a hit
 breakpoint shows a yellow arrow over the red circle.</p>
 <h3 id="inspecting-state">Inspecting State<a class="headerlink" href="#inspecting-state" title="Permanent link">&para;</a></h3>
+<p><strong>The context node in the input.</strong> At every pause the line of the current context node
+(<code>.</code>) is tinted <strong>blue</strong> in the input XML document - the stylesheet's paused line stays yellow
+and in front. <strong>Show input</strong> in the header switches to the input document at that line. The
+input is the file the run read (Transform panel INPUT, FOP XML input, the Run target), or the
+open document whose text was transformed; a node from a document loaded with <code>doc()</code> /
+<code>document()</code> is shown in that file, which opens behind the stylesheet. Attributes and text
+nodes point at their element's line, the document node at the root element.</p>
 <p>Below the header, the paused state is shown in <strong>two tab groups</strong> side by side: <strong>Variables |
 Watch</strong> on the left (the state at the pause point), <strong>Call Stack | Messages | Breakpoints</strong> on
 the right (navigation and log). Drag the divider between the groups to give one side more room -
