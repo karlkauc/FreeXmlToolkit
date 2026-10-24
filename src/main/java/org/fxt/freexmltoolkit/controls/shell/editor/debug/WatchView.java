@@ -3,11 +3,12 @@ package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -18,7 +19,9 @@ import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
 /**
  * Add/remove XPath watch expressions. On each pause they are evaluated against the paused
  * context item and the variables in scope (via {@link WatchEvaluator}); while the run is not
- * paused they read {@code <not paused>}.
+ * paused they read {@code <not paused>}. Shown as the "Watch" tab of the DEBUG pane: a compact
+ * toolbar (expression field, Add, Remove) above the table; {@code Delete} removes the selected
+ * watch.
  */
 public class WatchView extends VBox {
 
@@ -43,34 +46,32 @@ public class WatchView extends VBox {
     private int generation;
 
     public WatchView() {
-        setSpacing(6);
-        setPadding(new Insets(8));
-        getStyleClass().add("fxt-side-panel-content");
-        Label title = new Label("WATCH");
-        title.getStyleClass().add("fxt-side-panel-title");
+        getStyleClass().add("fxt-debug-panel");
 
-        table.getColumns().add(DebugTableColumns.col("Expression", WatchRow::getExpression, 180));
-        table.getColumns().add(DebugTableColumns.col("Value", WatchRow::getValue, -1));
+        table.getColumns().add(DebugTableColumns.col("Expression", WatchRow::getExpression, 160));
+        table.getColumns().add(DebugTableColumns.colWithTooltip("Value", WatchRow::getValue, -1));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("No watches."));
+        table.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.DELETE) {
+                removeSelected();
+                e.consume();
+            }
+        });
         VBox.setVgrow(table, Priority.ALWAYS);
 
         input.setPromptText("XPath against the paused context, e.g. count(item) or $total");
         HBox.setHgrow(input, Priority.ALWAYS);
         input.setOnAction(e -> addWatch());
-        Button add = new Button("Add");
-        add.getStyleClass().add("fxt-tool-button");
+        Button add = DebugToolbar.action("Add", "bi-plus-lg", "Add the expression as a watch (Enter)");
         add.setOnAction(e -> addWatch());
-        Button remove = new Button("Remove");
-        remove.getStyleClass().add("fxt-tool-button");
-        remove.setOnAction(e -> {
-            WatchRow r = table.getSelectionModel().getSelectedItem();
-            if (r != null) {
-                table.getItems().remove(r);
-            }
-        });
+        Button remove = DebugToolbar.action("Remove", "bi-dash-lg", "Remove the selected watch (Delete)");
+        remove.setOnAction(e -> removeSelected());
 
-        getChildren().addAll(title, table, new HBox(6, input, add, remove));
+        HBox toolbar = new HBox(input, add, remove);
+        toolbar.getStyleClass().add("fxt-debug-toolbar");
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+        getChildren().addAll(toolbar, table);
     }
 
     /** The evaluator bound to the debugged run's processor (set per session/launch). */
@@ -91,6 +92,19 @@ public class WatchView extends VBox {
         String expr = input.getText();
         input.clear();
         addWatch(expr);
+    }
+
+    /** Removes the selected watch, if any (Remove button, Delete key). */
+    public void removeSelected() {
+        WatchRow r = table.getSelectionModel().getSelectedItem();
+        if (r != null) {
+            table.getItems().remove(r);
+        }
+    }
+
+    /** Selects the watch at {@code index} (tests, keyboard flows). */
+    public void select(int index) {
+        table.getSelectionModel().clearAndSelect(index);
     }
 
     /**
@@ -141,5 +155,10 @@ public class WatchView extends VBox {
     /** @return the current value text of the watch at {@code index} (for tests/observers). */
     public String getValueAt(int index) {
         return table.getItems().get(index).getValue();
+    }
+
+    /** The table, for tests that drive it with key events. */
+    TableView<WatchRow> table() {
+        return table;
     }
 }

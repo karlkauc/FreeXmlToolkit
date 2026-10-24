@@ -1569,8 +1569,78 @@
     -fx-background-color: -fxt-bg-surface;
 }
 
-/* Nested instructions in the debugger's call stack. */
-.fxt-stack-instruction {
+/* DEBUG pane: two tab groups in a split (Variables | Watch ‖ Call Stack | Messages | Breakpoints).
+   .fxt-analysis-tabs gives the token-based tab look; .fxt-debug-tabs only compacts it. */
+.fxt-debug-pane > .split-pane {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-padding: 0;
+}
+
+.fxt-debug-pane > .split-pane > .split-pane-divider {
+    -fx-background-color: -fxt-border;
+    -fx-padding: 0 1 0 1;
+}
+
+.fxt-debug-tabs > .tab-header-area > .headers-region > .tab {
+    -fx-padding: 4 10 4 10;
+}
+
+.fxt-debug-tabs > .tab-content-area {
+    -fx-padding: 0;
+}
+
+/* Messages received output while another tab of its group was in front. */
+.fxt-debug-tabs > .tab-header-area > .headers-region > .tab.fxt-dock-updated .tab-label {
+    -fx-text-fill: -fxt-primary;
+}
+
+.fxt-debug-tabs .fxt-output-badge {
+    -fx-background-color: -fxt-primary;
+    -fx-text-fill: -fxt-on-primary;
+}
+
+/* Body of one debug tab: the table/list, optionally a compact toolbar above it. */
+.fxt-debug-panel {
+    -fx-padding: 6;
+    -fx-spacing: 4;
+}
+
+.fxt-debug-panel .table-view,
+.fxt-debug-panel .list-view {
+    -fx-background-insets: 0;
+}
+
+/* Token-based list look (the theme sheets style .table-view but not .list-view, which
+   would stay white in Dark mode). */
+.fxt-debug-panel .list-view {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
+}
+
+.fxt-debug-panel .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-padding: 4 8 4 8;
+}
+
+.fxt-debug-panel .list-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-debug-panel .list-view .placeholder .label {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-debug-toolbar {
+    -fx-spacing: 4;
+    -fx-alignment: center-left;
+}
+
+/* Nested instructions in the debugger's call stack (the second selector outranks the
+   .fxt-debug-panel .list-cell text colour). */
+.fxt-stack-instruction,
+.fxt-debug-panel .list-cell.fxt-stack-instruction {
     -fx-text-fill: -fxt-text-muted;
 }
 

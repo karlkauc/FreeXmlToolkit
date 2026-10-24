@@ -1,16 +1,23 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
 import java.beans.PropertyChangeListener;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
@@ -18,17 +25,31 @@ import org.fxt.freexmltoolkit.debugger.Breakpoint;
 import org.fxt.freexmltoolkit.debugger.DebugSession;
 import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage;
 
 /**
  * The DEBUG pane of the editor's bottom dock: run controls and status in the header, the
- * debugger panels (Variables · Call Stack · Watch · Messages · Breakpoints) underneath.
+ * debugger panels underneath as two tab groups in a split — Variables | Watch on the left
+ * (the state you read on every pause), Call Stack | Messages | Breakpoints on the right
+ * (navigation and log). The divider is persisted ({@value #DIVIDER_KEY}); Messages and
+ * Breakpoints carry a count badge, Messages is marked when it receives output while another
+ * tab is in front and comes to the front when the run fails.
  * Subscribes to the session state (pauses), the controller's live messages and the run's
  * completion; the {@code EditorHost} supplies the callbacks that touch the editor
  * (execution-line marker, jumps, result display, ending the session).
  */
 public final class XsltDebugPane extends VBox {
+
+    /** Preference key of the split divider (ratio of the left group, {@value #MIN_DIVIDER}–{@value #MAX_DIVIDER}). */
+    static final String DIVIDER_KEY = "editor.debugPane.divider";
+    static final double DEFAULT_DIVIDER = 0.5;
+    static final double MIN_DIVIDER = 0.2;
+    static final double MAX_DIVIDER = 0.8;
+    /** Same marker the dock strip uses for a panel that received content while hidden. */
+    static final String UPDATED_CLASS = "fxt-dock-updated";
 
     private final XsltDebugController controller;
     private final BreakpointsView breakpointsView;
@@ -48,6 +69,18 @@ public final class XsltDebugPane extends VBox {
     @FXML private Button closeButton;
     @FXML private CheckBox pauseOnEntry;
     @FXML private SplitPane panels;
+    @FXML private TabPane leftTabs;
+    @FXML private TabPane rightTabs;
+    @FXML private Tab variablesTab;
+    @FXML private Tab watchTab;
+    @FXML private Tab callStackTab;
+    @FXML private Tab messagesTab;
+    @FXML private Tab breakpointsTab;
+
+    private final Label messagesBadge = badge();
+    private final Label breakpointsBadge = badge();
+    /** The divider ratio as last restored or saved; a drag that ends elsewhere is persisted. */
+    private double knownDivider = DEFAULT_DIVIDER;
 
     private Consumer<PausedSnapshot> onPaused = snapshot -> { };
     private Runnable onShowInEditor = () -> { };
@@ -67,8 +100,22 @@ public final class XsltDebugPane extends VBox {
         this.breakpointsView = new BreakpointsView(controller.getSession());
         FxmlViews.load(this, "/pages/panels/XsltDebugPane.fxml");
 
-        panels.getItems().addAll(variablesView, callStackView, watchView, messagesView, breakpointsView);
-        panels.setDividerPositions(0.24, 0.44, 0.62, 0.84);
+        variablesTab.setContent(variablesView);
+        watchTab.setContent(watchView);
+        callStackTab.setContent(callStackView);
+        messagesTab.setContent(messagesView);
+        breakpointsTab.setContent(breakpointsView);
+        decorateWithBadge(messagesTab, messagesBadge);
+        decorateWithBadge(breakpointsTab, breakpointsBadge);
+        messagesView.setOnCountChanged(this::onMessageCountChanged);
+        breakpointsView.setOnCountChanged(() -> updateBadge(breakpointsBadge, breakpointsView.getRowCount()));
+        updateBadge(breakpointsBadge, breakpointsView.getRowCount());
+        rightTabs.getSelectionModel().selectedItemProperty().addListener((obs, old, tab) -> {
+            if (tab == messagesTab) {
+                messagesTab.getStyleClass().remove(UPDATED_CLASS);
+            }
+        });
+        installDividerPersistence();
 
         pauseOnEntry.setSelected(controller.isPauseOnEntry());
         breakpointsView.setOnJumpToBreakpoint(bp -> onJumpToBreakpoint.accept(bp));
@@ -248,9 +295,120 @@ public final class XsltDebugPane extends VBox {
         } else {
             status.setText("Error: " + (result.getErrorMessage() == null ? "transformation failed"
                     : result.getErrorMessage()));
+            rightTabs.getSelectionModel().select(messagesTab);
         }
         applyButtonState(controller.getSession().getState());
         onResult.accept(result);
+    }
+
+    // ----- tab groups: badges, attention, divider -------------------------------------------
+
+    private static Label badge() {
+        Label label = new Label();
+        label.getStyleClass().add("fxt-output-badge");
+        label.setVisible(false);
+        label.setManaged(false);
+        return label;
+    }
+
+    /** Wraps the tab's FXML icon together with its count badge into one graphic. */
+    private static void decorateWithBadge(Tab tab, Label badge) {
+        Node icon = tab.getGraphic();
+        HBox graphic = icon == null ? new HBox(badge) : new HBox(icon, badge);
+        graphic.setSpacing(4);
+        graphic.setAlignment(Pos.CENTER_LEFT);
+        tab.setGraphic(graphic);
+    }
+
+    private static void updateBadge(Label badge, int count) {
+        badge.setText(Integer.toString(count));
+        badge.setVisible(count > 0);
+        badge.setManaged(count > 0);
+    }
+
+    private void onMessageCountChanged() {
+        int count = messagesView.getRowCount();
+        updateBadge(messagesBadge, count);
+        boolean inFront = rightTabs.getSelectionModel().getSelectedItem() == messagesTab;
+        if (count > 0 && !inFront) {
+            if (!messagesTab.getStyleClass().contains(UPDATED_CLASS)) {
+                messagesTab.getStyleClass().add(UPDATED_CLASS);
+            }
+        } else {
+            messagesTab.getStyleClass().remove(UPDATED_CLASS);
+        }
+    }
+
+    /**
+     * Restores the persisted divider once the split has a width (positions set before the
+     * skin has laid out are clamped away) and saves it after a drag — on mouse release, so
+     * the clamps the layout applies on its own (minimum widths, resizes) never write.
+     */
+    private void installDividerPersistence() {
+        panels.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> saveDividerIfMoved());
+        restoreDivider();
+    }
+
+    private void restoreDivider() {
+        Platform.runLater(() -> {
+            if (panels.getWidth() <= 0) {
+                panels.widthProperty().addListener(new javafx.beans.value.ChangeListener<Number>() {
+                    @Override
+                    public void changed(javafx.beans.value.ObservableValue<? extends Number> obs,
+                                        Number oldValue, Number newValue) {
+                        panels.widthProperty().removeListener(this);
+                        restoreDivider();
+                    }
+                });
+                return;
+            }
+            applyDivider(storedDividerOrDefault());
+        });
+    }
+
+    /** Positions the divider at {@code ratio} (clamped) without triggering a save. */
+    void applyDivider(double ratio) {
+        knownDivider = clampDivider(ratio);
+        panels.setDividerPositions(knownDivider);
+    }
+
+    /** @return {@code ratio} within [{@value #MIN_DIVIDER}, {@value #MAX_DIVIDER}]; the default for NaN. */
+    static double clampDivider(double ratio) {
+        if (Double.isNaN(ratio)) {
+            return DEFAULT_DIVIDER;
+        }
+        return Math.max(MIN_DIVIDER, Math.min(MAX_DIVIDER, ratio));
+    }
+
+    /** @return the persisted divider ratio (clamped), or the default when none / unreadable. */
+    static double storedDividerOrDefault() {
+        try {
+            String value = ServiceRegistry.get(PropertiesService.class).get(DIVIDER_KEY);
+            if (value != null && !value.isBlank()) {
+                return clampDivider(Double.parseDouble(value.trim()));
+            }
+        } catch (Throwable ignored) {
+            // properties service unavailable or value unreadable — use the default
+        }
+        return DEFAULT_DIVIDER;
+    }
+
+    private void saveDividerIfMoved() {
+        double[] positions = panels.getDividerPositions();
+        if (positions.length == 0 || panels.getWidth() <= 0) {
+            return;
+        }
+        double ratio = clampDivider(positions[0]);
+        if (Math.abs(ratio - knownDivider) < 0.005) {
+            return;
+        }
+        knownDivider = ratio;
+        try {
+            ServiceRegistry.get(PropertiesService.class)
+                    .set(DIVIDER_KEY, String.format(Locale.ROOT, "%.3f", ratio));
+        } catch (Throwable ignored) {
+            // properties service unavailable — nothing to persist
+        }
     }
 
     private void applyButtonState(DebugSession.State state) {
@@ -272,6 +430,18 @@ public final class XsltDebugPane extends VBox {
     public CallStackView getCallStackView() { return callStackView; }
     public WatchView getWatchView() { return watchView; }
     public MessagesView getMessagesView() { return messagesView; }
+    /** Left tab group: Variables | Watch. */
+    public TabPane getLeftTabs() { return leftTabs; }
+    /** Right tab group: Call Stack | Messages | Breakpoints. */
+    public TabPane getRightTabs() { return rightTabs; }
+    public Tab getMessagesTab() { return messagesTab; }
+    public Tab getBreakpointsTab() { return breakpointsTab; }
+    /** The split holding the two tab groups. */
+    public SplitPane getPanels() { return panels; }
+    /** @return the text of the Messages tab's count badge, or {@code null} while it is hidden. */
+    public String getMessagesBadgeText() { return messagesBadge.isVisible() ? messagesBadge.getText() : null; }
+    /** @return the text of the Breakpoints tab's count badge, or {@code null} while it is hidden. */
+    public String getBreakpointsBadgeText() { return breakpointsBadge.isVisible() ? breakpointsBadge.getText() : null; }
     public String getStatusText() { return status.getText(); }
     public boolean isPauseOnEntrySelected() { return pauseOnEntry.isSelected(); }
 }

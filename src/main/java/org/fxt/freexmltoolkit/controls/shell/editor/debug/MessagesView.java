@@ -3,7 +3,6 @@ package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 import java.util.List;
 import java.util.function.Consumer;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -14,7 +13,8 @@ import org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMes
 
 /**
  * Live {@code xsl:message} output (plus Saxon warnings and errors) of the debugged run,
- * appended as it happens. Double-clicking a message jumps to its stylesheet line.
+ * appended as it happens. Double-clicking a message jumps to its stylesheet line. Shown as
+ * the "Messages" tab of the DEBUG pane; {@link #setOnCountChanged} feeds the tab's badge.
  */
 public class MessagesView extends VBox {
 
@@ -23,13 +23,10 @@ public class MessagesView extends VBox {
 
     private final ListView<TransformationMessage> list = new ListView<>();
     private Consumer<TransformationMessage> onJumpTo = m -> { };
+    private Runnable onCountChanged = () -> { };
 
     public MessagesView() {
-        setSpacing(6);
-        setPadding(new Insets(8));
-        getStyleClass().add("fxt-side-panel-content");
-        Label title = new Label("MESSAGES");
-        title.getStyleClass().add("fxt-side-panel-title");
+        getStyleClass().add("fxt-debug-panel");
 
         list.setCellFactory(v -> new ListCell<>() {
             @Override
@@ -50,7 +47,7 @@ public class MessagesView extends VBox {
                 }
             }
         });
-        list.setPlaceholder(new Label("No messages yet — xsl:message output appears here while the run executes."));
+        list.setPlaceholder(new Label("No messages yet — xsl:message output appears here."));
         list.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
                 TransformationMessage msg = list.getSelectionModel().getSelectedItem();
@@ -60,7 +57,7 @@ public class MessagesView extends VBox {
             }
         });
         VBox.setVgrow(list, Priority.ALWAYS);
-        getChildren().addAll(title, list);
+        getChildren().add(list);
     }
 
     /** Appends a message (FX thread) and scrolls to it. */
@@ -73,14 +70,17 @@ public class MessagesView extends VBox {
         }
         list.getItems().add(message);
         list.scrollTo(list.getItems().size() - 1);
+        onCountChanged.run();
     }
 
     public void setAll(List<TransformationMessage> messages) {
         list.getItems().setAll(messages == null ? List.of() : messages);
+        onCountChanged.run();
     }
 
     public void clear() {
         list.getItems().clear();
+        onCountChanged.run();
     }
 
     public int getRowCount() {
@@ -90,5 +90,10 @@ public class MessagesView extends VBox {
     /** Invoked on double-click with the message to jump to. */
     public void setOnJumpTo(Consumer<TransformationMessage> handler) {
         this.onJumpTo = handler == null ? m -> { } : handler;
+    }
+
+    /** Invoked after every change of the row count (tab badge). */
+    public void setOnCountChanged(Runnable handler) {
+        this.onCountChanged = handler == null ? () -> { } : handler;
     }
 }

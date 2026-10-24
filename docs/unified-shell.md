@@ -747,15 +747,18 @@ What happens:
 The dock's header holds the controls - **Continue** (F5), **Step Into** (F7), **Step Over**
 (F8), **Step Out** (Shift+F8), **Restart** (runs again from the start with the same
 breakpoints, re-reading the stylesheet), **Stop**, **Pause on entry**, **Show in editor**
-and **✕** (ends the session). Below it, five panels show the paused state:
+and **✕** (ends the session). Below it, two tab groups show the paused state - **Variables |
+Watch** on the left, **Call Stack | Messages | Breakpoints** on the right, with a draggable
+divider whose position is remembered. Messages and Breakpoints carry a count badge; a failed
+run brings Messages to the front. The five panels:
 
 | Panel | Shows |
 |-------|-------|
-| **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope and every global variable that has been evaluated so far - with real values and XDM types |
+| **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope and every global variable that has been evaluated so far - with real values and XDM types (long values in full as a tooltip) |
+| **Watch** | Your XPath expressions, evaluated **against the paused context item** with the variables in scope (`count(item)`, `$total`, `position()`); re-evaluated at every pause. **Add** / **Remove** sit above the table; Delete removes the selected expression |
 | **Call Stack** | Template and function frames (instructions nested inside them are dimmed), each with its module and line; double-click jumps there, also into an include |
-| **Watch** | Your XPath expressions, evaluated **against the paused context item** with the variables in scope (`count(item)`, `$total`, `position()`); re-evaluated at every pause |
 | **Messages** | `xsl:message` output and Saxon warnings **as they happen**, with their stylesheet location; double-click jumps to the line |
-| **Breakpoints** | All breakpoints of the session (file · line) with Remove / Clear all; double-click jumps to the line |
+| **Breakpoints** | All breakpoints of the session (file · line) with **Remove** / **Clear all** above the list (Delete removes the selected one); double-click jumps to the line |
 
 When the run ends, the status reads *Finished · N ms* and the **result lands in the OUTPUT
 panel** (the OUTPUT toggle lights up; DEBUG stays in front so the messages remain readable).

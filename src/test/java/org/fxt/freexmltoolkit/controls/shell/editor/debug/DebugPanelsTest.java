@@ -3,9 +3,15 @@ package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import javafx.event.Event;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
+import org.fxt.freexmltoolkit.debugger.Breakpoint;
+import org.fxt.freexmltoolkit.debugger.DebugSession;
 import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
 import org.fxt.freexmltoolkit.debugger.VariableBinding;
 import org.fxt.freexmltoolkit.debugger.VariableScope;
@@ -34,6 +40,41 @@ class DebugPanelsTest {
             return view.getRowCount();
         });
         assertEquals(1, rows);
+    }
+
+    @Test
+    void deleteKeyRemovesTheSelectedWatch() {
+        int rows = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            WatchView view = new WatchView();
+            view.addWatch("count(item)");
+            view.addWatch("$total");
+            view.select(0);
+            Event.fireEvent(view.table(), deleteKey());
+            return view.getRowCount();
+        });
+        assertEquals(1, rows, "Delete removes the selected watch");
+    }
+
+    @Test
+    void deleteKeyRemovesTheSelectedBreakpoint() {
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("a.xsl", 3, true));
+        session.addBreakpoint(new Breakpoint("a.xsl", 7, true));
+        AtomicInteger changed = new AtomicInteger();
+        int rows = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            BreakpointsView view = new BreakpointsView(session);
+            view.setOnChanged(changed::incrementAndGet);
+            view.select(0);
+            Event.fireEvent(view.list(), deleteKey());
+            return view.getRowCount();
+        });
+        assertEquals(1, rows, "Delete removes the selected breakpoint from the list");
+        assertEquals(1, session.getBreakpoints().size(), "… and from the session");
+        assertEquals(1, changed.get(), "the host is told (gutter refresh)");
+    }
+
+    private static KeyEvent deleteKey() {
+        return new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.DELETE, false, false, false, false);
     }
 
     @Test

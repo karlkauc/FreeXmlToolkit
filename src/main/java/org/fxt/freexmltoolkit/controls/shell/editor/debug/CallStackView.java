@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Priority;
@@ -15,7 +14,7 @@ import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
 /**
  * Read-only call stack list (innermost frame first). Template and function frames are
  * shown in full; the instructions nested inside them are dimmed. Double-clicking a frame
- * jumps the editor to its module and line.
+ * jumps the editor to its module and line. Shown as the "Call Stack" tab of the DEBUG pane.
  */
 public class CallStackView extends VBox {
 
@@ -24,11 +23,7 @@ public class CallStackView extends VBox {
     private Consumer<DebugStackFrame> onJumpToFrame = frame -> { };
 
     public CallStackView() {
-        setSpacing(6);
-        setPadding(new Insets(8));
-        getStyleClass().add("fxt-side-panel-content");
-        Label title = new Label("CALL STACK");
-        title.getStyleClass().add("fxt-side-panel-title");
+        getStyleClass().add("fxt-debug-panel");
 
         list.setCellFactory(v -> new javafx.scene.control.ListCell<>() {
             @Override
@@ -58,7 +53,7 @@ public class CallStackView extends VBox {
             }
         });
         VBox.setVgrow(list, Priority.ALWAYS);
-        getChildren().addAll(title, list);
+        getChildren().add(list);
     }
 
     public void setFrames(List<DebugStackFrame> frames) {

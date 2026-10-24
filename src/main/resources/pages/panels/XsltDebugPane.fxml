@@ -4,6 +4,8 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -13,9 +15,11 @@
 <!--
   The DEBUG pane of the editor's bottom dock: a header with the run controls (Continue, Step
   Into/Over/Out, Restart, Stop, Pause on entry, Show in editor, ✕ = end session) and the status
-  line, above a horizontal split of the debugger panels (Variables · Call Stack · Watch ·
-  Messages · Breakpoints, added in code because one needs the session). Loaded by XsltDebugPane
-  via the fx:root pattern (FxmlViews.load); XsltDebugPane is root and controller.
+  line, above a two-way split of two tab groups: Variables | Watch on the left (the state you
+  read on every pause), Call Stack | Messages | Breakpoints on the right (navigation and log).
+  The tab contents are set in code because the Breakpoints view needs the session; the divider
+  position is persisted (editor.debugPane.divider). Loaded by XsltDebugPane via the fx:root
+  pattern (FxmlViews.load); XsltDebugPane is root and controller.
 -->
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-debug-pane"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
@@ -69,6 +73,35 @@
                 </Button>
             </children>
         </HBox>
-        <SplitPane fx:id="panels" id="debug-panels" orientation="HORIZONTAL" VBox.vgrow="ALWAYS"/>
+        <SplitPane fx:id="panels" id="debug-panels" orientation="HORIZONTAL" VBox.vgrow="ALWAYS"
+                   dividerPositions="0.5">
+            <items>
+                <TabPane fx:id="leftTabs" id="debug-left-tabs" styleClass="fxt-analysis-tabs, fxt-debug-tabs"
+                         tabClosingPolicy="UNAVAILABLE" minWidth="260">
+                    <tabs>
+                        <Tab fx:id="variablesTab" id="debug-tab-variables" text="Variables" closable="false">
+                            <graphic><IconifyIcon iconLiteral="bi-braces" iconSize="14"/></graphic>
+                        </Tab>
+                        <Tab fx:id="watchTab" id="debug-tab-watch" text="Watch" closable="false">
+                            <graphic><IconifyIcon iconLiteral="bi-eye" iconSize="14"/></graphic>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+                <TabPane fx:id="rightTabs" id="debug-right-tabs" styleClass="fxt-analysis-tabs, fxt-debug-tabs"
+                         tabClosingPolicy="UNAVAILABLE" minWidth="340">
+                    <tabs>
+                        <Tab fx:id="callStackTab" id="debug-tab-call-stack" text="Call Stack" closable="false">
+                            <graphic><IconifyIcon iconLiteral="bi-list-nested" iconSize="14"/></graphic>
+                        </Tab>
+                        <Tab fx:id="messagesTab" id="debug-tab-messages" text="Messages" closable="false">
+                            <graphic><IconifyIcon iconLiteral="bi-chat-left-text" iconSize="14"/></graphic>
+                        </Tab>
+                        <Tab fx:id="breakpointsTab" id="debug-tab-breakpoints" text="Breakpoints" closable="false">
+                            <graphic><IconifyIcon iconLiteral="bi-record-circle" iconSize="14"/></graphic>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+            </items>
+        </SplitPane>
     </children>
 </fx:root>

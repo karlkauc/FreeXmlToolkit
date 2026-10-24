@@ -366,8 +366,9 @@ there, otherwise the active document) - exactly as for **Run Transform**; starte
   main stylesheet - the run pauses there. The debugger scans the main stylesheet's
   `xsl:include` / `xsl:import` hrefs at start to pick them up; a module it could not find that
   way joins as soon as it is opened during the session (pause, jump, or opening it yourself).
-- The **Breakpoints** panel lists every breakpoint of the session (file · line) with **Remove**
-  and **Clear all**. Double-click an entry to jump to that line.
+- The **Breakpoints** panel lists every breakpoint of the session (file · line); **Remove** and
+  **Clear all** sit in a small toolbar above the list, and the **Delete** key removes the
+  selected entry. Double-click an entry to jump to that line.
 - Breakpoints are anchored to line numbers: inserting or deleting lines above one does not move it.
 
 ### Starting and Stepping
@@ -392,15 +393,22 @@ breakpoint shows a yellow arrow over the red circle.
 
 ### Inspecting State
 
-When execution is paused, five panels show the live state of the transformation:
+Below the header, the paused state is shown in **two tab groups** side by side: **Variables |
+Watch** on the left (the state at the pause point), **Call Stack | Messages | Breakpoints** on
+the right (navigation and log). Drag the divider between the groups to give one side more room -
+the position is remembered. **Messages** and **Breakpoints** show a **count badge** on their tab;
+Messages is highlighted when output arrives while another tab of its group is in front, and a
+**failed run brings Messages to the front** so the error is readable at once. Long values in
+Variables and Watch show in full as a tooltip; in Watch and Breakpoints the **Delete** key
+removes the selected row.
 
 | Panel | Shows |
 |-------|-------|
 | **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order) |
+| **Watch** | Your XPath expressions, evaluated **against the paused context item** with all variables in scope: `count(item)`, `$total`, `string(@id)`, `position()`; the stylesheet's namespace prefixes are available. Type an expression into the field above the table and press **Add**; **Remove** (or the Delete key) drops the selected one. Re-evaluated at every pause; errors are shown in the row |
 | **Call Stack** | Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module |
-| **Watch** | Your XPath expressions, evaluated **against the paused context item** with all variables in scope: `count(item)`, `$total`, `string(@id)`, `position()`; the stylesheet's namespace prefixes are available. Re-evaluated at every pause; errors are shown in the row |
 | **Messages** | `xsl:message` output and Saxon warnings **live, as they happen**, with their location; double-click jumps to the line. A failed run shows its error here too |
-| **Breakpoints** | All breakpoints of the session, see above |
+| **Breakpoints** | All breakpoints of the session with **Remove** / **Clear all** above the list, see above |
 
 ### The Result
 
