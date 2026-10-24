@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -293,5 +294,36 @@ class DebugPanelsTest {
         assertEquals(1, ((List<?>) r[2]).size());
         assertEquals(1, session.getSymbolBreakpoints().size());
         assertEquals(1, changed.get(), "persisted through the host");
+    }
+
+    @Test
+    void perFileActionsAndExportImport() {
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("/tmp/a.xsl", 3, true));
+        session.addBreakpoint(new Breakpoint("/tmp/a.xsl", 8, true));
+        session.addBreakpoint(new Breakpoint("/tmp/b.xsl", 2, true));
+        session.addSymbolBreakpoint(new org.fxt.freexmltoolkit.debugger.SymbolBreakpoint(
+                org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind.TEMPLATE_MATCH, "item", true));
+        AtomicInteger changed = new AtomicInteger();
+        String exported = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            BreakpointsView view = new BreakpointsView(session);
+            view.setOnChanged(changed::incrementAndGet);
+            view.select(0); // a.xsl line 3 (sorted by file, then line)
+            view.setEnabledInFile(false);
+            String text = view.exportText();
+            view.select(0);
+            view.removeAllInFile();
+            return text;
+        });
+        assertEquals(1, session.getBreakpoints().size(), "only b.xsl is left");
+        assertEquals(2, changed.get());
+        assertTrue(exported.contains("/tmp/a.xsl\t3\tfalse"), "a.xsl was disabled before the export");
+
+        DebugSession fresh = new DebugSession();
+        int imported = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> new BreakpointsView(fresh).importText(exported));
+        assertEquals(4, imported, "three line breakpoints and one template breakpoint");
+        assertEquals(3, fresh.getBreakpoints().size());
+        assertEquals(1, fresh.getSymbolBreakpoints().size());
+        assertEquals(false, fresh.breakpointAt("/tmp/a.xsl", 8).enabled());
     }
 }

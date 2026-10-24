@@ -1682,13 +1682,26 @@
 }
 
 /* Breakpoints panel: a breakpoint the last completed run never reached. */
-.fxt-debug-panel .list-cell.fxt-bp-unreached {
+.fxt-debug-panel .list-cell.fxt-bp-unreached,
+.fxt-debug-panel .list-cell .label.fxt-bp-unreached {
     -fx-text-fill: -fxt-tool-warning-fg;
 }
 
 /* Breakpoints panel: a disabled breakpoint reads muted. */
-.fxt-debug-panel .list-cell.fxt-bp-disabled {
+.fxt-debug-panel .list-cell.fxt-bp-disabled,
+.fxt-debug-panel .list-cell .label.fxt-bp-disabled {
     -fx-text-fill: -fxt-text-muted;
+}
+
+/* Breakpoints panel: the file header above each file's breakpoints. */
+.fxt-debug-panel .list-cell .label.fxt-bp-file {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-debug-panel .list-cell .label {
+    -fx-text-fill: -fxt-text-primary;
 }
 
 /* DEBUG header toggles (Mute) read as switched on. */

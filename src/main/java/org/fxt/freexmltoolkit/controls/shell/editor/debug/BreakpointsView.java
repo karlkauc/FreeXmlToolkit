@@ -44,8 +44,13 @@ public class BreakpointsView extends VBox {
 
         list.setCellFactory(v -> new javafx.scene.control.ListCell<>() {
             private final javafx.scene.control.CheckBox enabled = new javafx.scene.control.CheckBox();
+            /** File header above the first breakpoint of each file (the list is sorted by file). */
+            private final Label header = new Label();
+            private final Label text = new Label();
+            private final VBox box = new VBox(2, header, new HBox(6, enabled, text));
 
             {
+                header.getStyleClass().add("fxt-bp-file");
                 enabled.setTooltip(new javafx.scene.control.Tooltip("Enabled — untick to keep the breakpoint without pausing"));
                 enabled.setOnAction(e -> {
                     Breakpoint bp = getItem();
@@ -58,24 +63,30 @@ public class BreakpointsView extends VBox {
             @Override
             protected void updateItem(Breakpoint bp, boolean empty) {
                 super.updateItem(bp, empty);
+                setText(null);
+                text.getStyleClass().removeAll("fxt-bp-disabled", "fxt-bp-unreached");
                 getStyleClass().removeAll("fxt-bp-disabled", "fxt-bp-unreached");
                 if (empty || bp == null) {
-                    setText(null);
                     setGraphic(null);
+                    setTooltip(null);
                     return;
                 }
+                int index = getIndex();
+                boolean firstOfFile = index == 0 || index >= getListView().getItems().size()
+                        || !getListView().getItems().get(index - 1).filePath().equals(bp.filePath());
+                header.setText(fileHeader(bp.filePath()));
+                header.setVisible(firstOfFile);
+                header.setManaged(firstOfFile);
                 enabled.setSelected(bp.enabled());
-                setGraphic(enabled);
                 if (!bp.enabled()) {
-                    getStyleClass().add("fxt-bp-disabled");
+                    text.getStyleClass().add("fxt-bp-disabled");
                 }
                 int hits = session.hitCount(bp);
                 boolean unreached = session.notReachedInLastRun(bp.filePath(), bp.lineNumber());
                 if (unreached) {
-                    getStyleClass().add("fxt-bp-unreached");
+                    text.getStyleClass().add("fxt-bp-unreached");
                 }
-                setText((unreached ? "⚠ " : "") + "line " + bp.lineNumber()
-                        + (bp.filePath().isEmpty() ? "" : "  " + shortName(bp.filePath()))
+                text.setText((unreached ? "⚠ " : "") + "line " + bp.lineNumber()
                         + (bp.hasCondition() ? "   if  " + bp.condition() : "")
                         + (bp.hit().isSet() ? "   ·  " + bp.hit().describe() : "")
                         + (bp.isLogpoint() ? "   ·  log \"" + bp.logMessage() + "\"" + (bp.suspend() ? "" : " (no pause)") : "")
@@ -84,8 +95,10 @@ public class BreakpointsView extends VBox {
                 setTooltip(unreached ? new javafx.scene.control.Tooltip(
                         "The last run never reached this line: it has no instruction Saxon traces "
                                 + "(e.g. a closing tag or a comment), or the code there did not run.") : null);
+                setGraphic(box);
             }
         });
+        list.setContextMenu(listMenu());
         list.setPlaceholder(new Label("No breakpoints."));
         list.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
@@ -295,6 +308,147 @@ public class BreakpointsView extends VBox {
         symbolList.setVisible(symbols);
         symbolList.setManaged(symbols);
         onCountChanged.run();
+    }
+
+    /** @return the file header: the file name and how many breakpoints it has. */
+    private String fileHeader(String filePath) {
+        long count = list.getItems().stream().filter(b -> b.filePath().equals(filePath)).count();
+        return (filePath.isEmpty() ? "(this stylesheet)" : shortName(filePath)) + "  (" + count + ")";
+    }
+
+    /** Row menu: per-file enable / disable / remove, and Export / Import of all breakpoints. */
+    private javafx.scene.control.ContextMenu listMenu() {
+        javafx.scene.control.MenuItem enableFile = menuItem("Enable All in File", "bi-check2-square",
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.CREATE, () -> setEnabledInFile(true));
+        javafx.scene.control.MenuItem disableFile = menuItem("Disable All in File", "bi-slash-circle",
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.NEUTRAL, () -> setEnabledInFile(false));
+        javafx.scene.control.MenuItem removeFile = menuItem("Remove All in File", "bi-trash",
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.DELETE, this::removeAllInFile);
+        javafx.scene.control.MenuItem export = menuItem("Export Breakpoints…", "bi-box-arrow-up",
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL, this::exportWithChooser);
+        javafx.scene.control.MenuItem importItem = menuItem("Import Breakpoints…", "bi-box-arrow-in-down",
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL, this::importWithChooser);
+        javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu(enableFile, disableFile, removeFile,
+                new javafx.scene.control.SeparatorMenuItem(), export, importItem);
+        menu.setOnShowing(e -> {
+            Breakpoint bp = list.getSelectionModel().getSelectedItem();
+            boolean none = bp == null;
+            String file = none ? "" : (bp.filePath().isEmpty() ? "this stylesheet" : shortName(bp.filePath()));
+            enableFile.setText(none ? "Enable All in File" : "Enable All in " + file);
+            disableFile.setText(none ? "Disable All in File" : "Disable All in " + file);
+            removeFile.setText(none ? "Remove All in File" : "Remove All in " + file);
+            enableFile.setDisable(none);
+            disableFile.setDisable(none);
+            removeFile.setDisable(none);
+            export.setDisable(session.getBreakpoints().isEmpty() && session.getSymbolBreakpoints().isEmpty());
+        });
+        return menu;
+    }
+
+    private static javafx.scene.control.MenuItem menuItem(String text, String icon,
+            org.fxt.freexmltoolkit.controls.theme.ActionColor color, Runnable action) {
+        org.fxt.freexmltoolkit.controls.icons.IconifyIcon graphic = new org.fxt.freexmltoolkit.controls.icons.IconifyIcon(icon);
+        graphic.setIconSize(16);
+        javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem(text,
+                org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(graphic, color));
+        item.setOnAction(e -> action.run());
+        return item;
+    }
+
+    /** Enables or disables every breakpoint of the selected row's file. */
+    public void setEnabledInFile(boolean on) {
+        Breakpoint selected = list.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        for (Breakpoint bp : session.getBreakpoints()) {
+            if (bp.filePath().equals(selected.filePath())) {
+                session.setEnabled(bp.filePath(), bp.lineNumber(), on);
+            }
+        }
+        refresh();
+        onChanged.run();
+    }
+
+    /** Removes every breakpoint of the selected row's file. */
+    public void removeAllInFile() {
+        Breakpoint selected = list.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            return;
+        }
+        for (Breakpoint bp : session.getBreakpoints()) {
+            if (bp.filePath().equals(selected.filePath())) {
+                session.removeBreakpoint(bp.filePath(), bp.lineNumber());
+            }
+        }
+        refresh();
+        onChanged.run();
+    }
+
+    /** @return all line and template / function / mode breakpoints in the export format. */
+    public String exportText() {
+        return org.fxt.freexmltoolkit.debugger.BreakpointExport.write(session.getBreakpoints(),
+                session.getSymbolBreakpoints());
+    }
+
+    /**
+     * Adds the breakpoints of an export to the session (same file and line: replaced).
+     *
+     * @return how many breakpoints were imported
+     * @throws IllegalArgumentException when the text is no breakpoint export
+     */
+    public int importText(String text) {
+        var content = org.fxt.freexmltoolkit.debugger.BreakpointExport.read(text);
+        content.breakpoints().forEach(session::addBreakpoint);
+        content.symbols().forEach(session::addSymbolBreakpoint);
+        refresh();
+        onChanged.run();
+        return content.breakpoints().size() + content.symbols().size();
+    }
+
+    private void exportWithChooser() {
+        javafx.stage.FileChooser chooser = breakpointFileChooser("Export Breakpoints");
+        chooser.setInitialFileName("breakpoints.txt");
+        java.io.File file = chooser.showSaveDialog(getScene() == null ? null : getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+        try {
+            java.nio.file.Files.writeString(file.toPath(), exportText(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (java.io.IOException e) {
+            showError("Could not export the breakpoints: " + e.getMessage());
+        }
+    }
+
+    private void importWithChooser() {
+        java.io.File file = breakpointFileChooser("Import Breakpoints")
+                .showOpenDialog(getScene() == null ? null : getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+        try {
+            importText(java.nio.file.Files.readString(file.toPath(), java.nio.charset.StandardCharsets.UTF_8));
+        } catch (java.io.IOException | IllegalArgumentException e) {
+            showError("Could not import the breakpoints: " + e.getMessage());
+        }
+    }
+
+    private static javafx.stage.FileChooser breakpointFileChooser(String title) {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle(title);
+        chooser.getExtensionFilters().addAll(
+                new javafx.stage.FileChooser.ExtensionFilter("Breakpoint files (*.txt)", "*.txt"),
+                new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+        return chooser;
+    }
+
+    private void showError(String message) {
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                javafx.scene.control.Alert.AlertType.ERROR, "Breakpoints", "Breakpoints", message);
+        if (getScene() != null) {
+            alert.initOwner(getScene().getWindow());
+        }
+        alert.showAndWait();
     }
 
     /** Enables or disables {@code bp} (row checkbox) and tells the host (gutter, persistence). */

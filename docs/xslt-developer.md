@@ -366,10 +366,15 @@ there, otherwise the active document) - exactly as for **Run Transform**; starte
   main stylesheet - the run pauses there. The debugger scans the main stylesheet's
   `xsl:include` / `xsl:import` hrefs at start to pick them up; a module it could not find that
   way joins as soon as it is opened during the session (pause, jump, or opening it yourself).
-- The **Breakpoints** panel lists every breakpoint of the session (file · line, its condition,
-  its hit-count rule and how often it was hit in this run); **Remove**, **Edit…** and **Clear
-  all** sit in a small toolbar above the list, and the **Delete** key removes the selected
-  entry. Double-click an entry to jump to that line.
+- The **Breakpoints** panel lists every breakpoint of the session **grouped by file** (a
+  header with the file name and count, then line, condition, hit-count rule, log message and
+  how often it was hit in this run); **Remove**, **Edit…**, **Template…**, **Clear all** and
+  **Break on ▾** sit in a small toolbar above the list, and the **Delete** key removes the
+  selected entry. Double-click an entry to jump to that line.
+- Right-click an entry for **Enable / Disable / Remove All in <file>** and for **Export
+  Breakpoints…** / **Import Breakpoints…**: all line, template and function breakpoints with
+  their settings go to a text file (absolute paths) and can be loaded into another session -
+  an imported breakpoint replaces one on the same file and line.
 - Breakpoints **follow your edits**: inserting or deleting lines above a breakpoint moves it
   with its code (also during a debug session), and deleting a breakpoint's line removes it.
   Replacing the whole text - reloading the file after an outside change, reformatting the
