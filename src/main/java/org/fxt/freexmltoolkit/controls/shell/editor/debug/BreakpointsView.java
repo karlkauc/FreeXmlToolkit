@@ -29,6 +29,8 @@ public class BreakpointsView extends VBox {
     private java.util.function.Consumer<Breakpoint> onJumpToBreakpoint = bp -> { };
     private Runnable onChanged = () -> { };
     private Runnable onCountChanged = () -> { };
+    private org.fxt.freexmltoolkit.debugger.ui.BreakpointConditionDialog.Prompt conditionPrompt =
+            org.fxt.freexmltoolkit.debugger.ui.BreakpointConditionDialog.DEFAULT;
 
     public BreakpointsView(DebugSession session) {
         this.session = session;
@@ -39,7 +41,8 @@ public class BreakpointsView extends VBox {
             protected void updateItem(Breakpoint bp, boolean empty) {
                 super.updateItem(bp, empty);
                 setText(empty || bp == null ? null : "line " + bp.lineNumber()
-                        + (bp.filePath().isEmpty() ? "" : "  " + shortName(bp.filePath())));
+                        + (bp.filePath().isEmpty() ? "" : "  " + shortName(bp.filePath()))
+                        + (bp.hasCondition() ? "   if  " + bp.condition() : ""));
             }
         });
         list.setPlaceholder(new Label("No breakpoints."));
@@ -62,6 +65,9 @@ public class BreakpointsView extends VBox {
         Button remove = DebugToolbar.action("Remove", "bi-dash-lg",
                 "Remove the selected breakpoint (Delete)");
         remove.setOnAction(e -> removeSelected());
+        Button condition = DebugToolbar.action("Condition…", "bi-funnel",
+                "Pause at the selected breakpoint only when an XPath condition holds");
+        condition.setOnAction(e -> editConditionOfSelected());
         Button clear = DebugToolbar.action("Clear all", "bi-trash",
                 "Remove every breakpoint of the session");
         clear.setOnAction(e -> {
@@ -70,7 +76,7 @@ public class BreakpointsView extends VBox {
             onChanged.run();
         });
 
-        HBox toolbar = new HBox(remove, clear);
+        HBox toolbar = new HBox(remove, condition, clear);
         toolbar.getStyleClass().add("fxt-debug-toolbar");
         toolbar.setAlignment(Pos.CENTER_LEFT);
         VBox.setVgrow(list, Priority.ALWAYS);
@@ -95,6 +101,32 @@ public class BreakpointsView extends VBox {
             refresh();
             onChanged.run();
         }
+    }
+
+    /** Replaces the condition prompt (tests). */
+    public void setConditionPrompt(org.fxt.freexmltoolkit.debugger.ui.BreakpointConditionDialog.Prompt prompt) {
+        this.conditionPrompt = prompt == null
+                ? org.fxt.freexmltoolkit.debugger.ui.BreakpointConditionDialog.DEFAULT : prompt;
+    }
+
+    /** Asks for the condition of the selected breakpoint and applies it (toolbar Condition…). */
+    public void editConditionOfSelected() {
+        Breakpoint bp = list.getSelectionModel().getSelectedItem();
+        if (bp == null) {
+            return;
+        }
+        String where = (bp.filePath().isEmpty() ? "" : shortName(bp.filePath()) + ", ") + "line " + bp.lineNumber();
+        conditionPrompt.ask(getScene() == null ? null : getScene().getWindow(), where, bp.condition())
+                .ifPresent(c -> {
+                    session.setCondition(bp.filePath(), bp.lineNumber(), c);
+                    refresh();
+                    onChanged.run();
+                });
+    }
+
+    /** @return the condition of the row at {@code index} (tests). */
+    public String getConditionAt(int index) {
+        return list.getItems().get(index).condition();
     }
 
     /** Selects the breakpoint at {@code index} (tests, keyboard flows). */

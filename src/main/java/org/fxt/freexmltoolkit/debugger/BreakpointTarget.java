@@ -14,4 +14,22 @@ public interface BreakpointTarget {
 
     /** Toggles the breakpoint at {@code filePath:line}; returns the new state (true = set). */
     boolean toggleBreakpoint(String filePath, int line);
+
+    /**
+     * @return the condition of the breakpoint at {@code filePath:line}, {@code ""} for an
+     *         unconditional one, or {@code null} when there is no breakpoint
+     */
+    default String conditionAt(String filePath, int line) {
+        return hasBreakpoint(filePath, line) ? "" : null;
+    }
+
+    /**
+     * Sets the condition of the breakpoint at {@code filePath:line}, creating the breakpoint if
+     * the line has none ({@code null} / blank = unconditional).
+     *
+     * @return {@code true} when the target supports conditions and applied it
+     */
+    default boolean setCondition(String filePath, int line, String condition) {
+        return false;
+    }
 }

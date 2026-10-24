@@ -366,10 +366,33 @@ there, otherwise the active document) - exactly as for **Run Transform**; starte
   main stylesheet - the run pauses there. The debugger scans the main stylesheet's
   `xsl:include` / `xsl:import` hrefs at start to pick them up; a module it could not find that
   way joins as soon as it is opened during the session (pause, jump, or opening it yourself).
-- The **Breakpoints** panel lists every breakpoint of the session (file · line); **Remove** and
-  **Clear all** sit in a small toolbar above the list, and the **Delete** key removes the
-  selected entry. Double-click an entry to jump to that line.
+- The **Breakpoints** panel lists every breakpoint of the session (file · line, and its
+  condition); **Remove**, **Condition…** and **Clear all** sit in a small toolbar above the
+  list, and the **Delete** key removes the selected entry. Double-click an entry to jump to
+  that line.
 - Breakpoints are anchored to line numbers: inserting or deleting lines above one does not move it.
+
+#### Conditional Breakpoints
+
+A breakpoint can carry an **XPath condition**: the run pauses at that line only when the
+condition is true at that moment - for example `@id = '4711'` inside a template that runs for
+every item, `$total > 1000`, or `position() = last()`.
+
+- **Right-click the gutter slot** of a line → **Add Conditional Breakpoint…** (a line without a
+  breakpoint), **Add Condition…** / **Edit Condition…** (a line with one), **Remove Condition**,
+  **Remove Breakpoint**. In the **Breakpoints** panel select an entry and press **Condition…**.
+- An empty condition makes the breakpoint unconditional again.
+- A conditional breakpoint shows a **question-mark marker** in the gutter; its tooltip names the
+  condition.
+- The condition is evaluated **like `xsl:if test`** (effective boolean value): the context item
+  and every variable in scope at that line are available, plus the stylesheet's namespace
+  prefixes. A non-empty node sequence is true, an empty one false.
+- When the run pauses because of a condition, the status says so (*· condition: @id = '4711'*).
+  If the condition **cannot be evaluated** (a typo, an undeclared variable), the run **pauses
+  anyway** and the status shows the error in red - a broken condition never silently skips the
+  breakpoint.
+- The condition is checked every time the line runs, so a breakpoint inside a large loop costs
+  time on each pass. Conditions are saved with the breakpoint (per file, like all breakpoints).
 
 ### Starting and Stepping
 

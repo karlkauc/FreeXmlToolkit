@@ -159,4 +159,19 @@ class WatchEvaluatorTest {
         assertThrows(net.sf.saxon.s9api.SaxonApiException.class,
                 () -> eval.evaluateValue("item[", snapshot(), null));
     }
+
+    @Test
+    void conditionsUseEffectiveBooleanValue() throws Exception {
+        WatchEvaluator eval = new WatchEvaluator(PROCESSOR, Map.of());
+        assertTrue(eval.test("count(item) = 3", snapshot()));
+        assertFalse(eval.test("$count > 5", snapshot()));
+        assertTrue(eval.test("item[@n = '2']", snapshot()), "a non-empty node sequence is true");
+        assertFalse(eval.test("item[@n = '9']", snapshot()), "an empty sequence is false");
+        assertTrue(eval.test("  ", snapshot()), "no condition = always");
+        assertThrows(net.sf.saxon.s9api.SaxonApiException.class, () -> eval.test("$nope", snapshot()));
+        // The compiled expression is cached, the values are not: a second snapshot answers anew.
+        PausedSnapshot other = new PausedSnapshot("file:/tmp/a.xsl", 5, List.of(), List.of(), "", null,
+                Map.of(new QName("count"), new XdmAtomicValue(9)), Map.of(), 1, 1);
+        assertTrue(eval.test("$count > 5", other));
+    }
 }

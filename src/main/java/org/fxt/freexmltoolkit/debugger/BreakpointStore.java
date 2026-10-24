@@ -99,6 +99,9 @@ public final class BreakpointStore {
             sb.append(bp.filePath()).append(FIELD_SEPARATOR)
                     .append(bp.lineNumber()).append(FIELD_SEPARATOR)
                     .append(bp.enabled());
+            if (bp.hasCondition()) {
+                sb.append(FIELD_SEPARATOR).append(escape(bp.condition()));
+            }
         }
         return sb.toString();
     }
@@ -116,12 +119,48 @@ public final class BreakpointStore {
             try {
                 int line = Integer.parseInt(fields[1].trim());
                 boolean enabled = fields.length < 3 || Boolean.parseBoolean(fields[2].trim());
-                result.add(new Breakpoint(fields[0], line, enabled));
+                String condition = fields.length < 4 ? "" : unescape(fields[3]);
+                result.add(new Breakpoint(fields[0], line, enabled, condition));
             } catch (RuntimeException e) {
                 logger.debug("Skipping malformed breakpoint entry '{}': {}", entry, e.getMessage());
             }
         }
         return result;
+    }
+
+    /** Escapes the separators of the entry format (a condition may contain tabs or newlines). */
+    static String escape(String text) {
+        StringBuilder sb = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            switch (c) {
+                case '\\' -> sb.append("\\\\");
+                case '\t' -> sb.append("\\t");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                default -> sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    static String unescape(String text) {
+        StringBuilder sb = new StringBuilder(text.length());
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '\\' && i + 1 < text.length()) {
+                char next = text.charAt(++i);
+                switch (next) {
+                    case 't' -> sb.append('\t');
+                    case 'n' -> sb.append('\n');
+                    case 'r' -> sb.append('\r');
+                    default -> sb.append(next);
+                }
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 
     static String key(String stylesheetPath) {

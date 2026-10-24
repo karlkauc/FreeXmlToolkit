@@ -67,4 +67,20 @@ class BreakpointStoreTest {
         assertDoesNotThrow(() -> BreakpointStore.save("/tmp/never-debugged.xsl", List.of()));
         assertNotNull(BreakpointStore.load("/tmp/never-debugged.xsl"));
     }
+
+    @Test
+    void conditionsRoundTripIncludingSeparators() {
+        Breakpoint plain = new Breakpoint("/tmp/a.xsl", 3, true);
+        Breakpoint conditional = new Breakpoint("/tmp/a.xsl", 7, true, "@id = 'a\tb' and\n contains(., '\\')");
+        Set<Breakpoint> parsed = BreakpointStore.parse(BreakpointStore.format(List.of(plain, conditional)));
+        assertEquals(Set.of(plain, conditional), parsed);
+        assertFalse(BreakpointStore.format(List.of(plain)).contains("\t\t"), "no empty condition field");
+    }
+
+    @Test
+    void entriesWrittenBeforeConditionsStillLoad() {
+        Set<Breakpoint> parsed = BreakpointStore.parse("/tmp/a.xsl\t3\ttrue\n/tmp/a.xsl\t4");
+        assertEquals(2, parsed.size());
+        assertTrue(parsed.stream().noneMatch(Breakpoint::hasCondition));
+    }
 }

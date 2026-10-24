@@ -259,4 +259,90 @@ class DebugSessionTest {
         assertEquals(DebugSession.State.RUNNING, session.getState());
         assertTrue(session.hasBreakpoint("x.xsl", 4), "startSession() must not clear breakpoints");
     }
+
+    // ----- conditional breakpoints -------------------------------------------------------
+
+    @Test
+    void falseConditionDoesNotPauseAndTrueOnePausesWithANote() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.setCondition("c.xsl", 4, "$n = 2");
+        java.util.concurrent.atomic.AtomicInteger evaluations = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger hit = new java.util.concurrent.atomic.AtomicInteger(0);
+        session.setConditionEvaluator((condition, snap) -> {
+            evaluations.incrementAndGet();
+            return hit.get() == 2;
+        });
+        session.startSession();
+        CountDownLatch paused = new CountDownLatch(1);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) paused.countDown();
+        });
+        Thread saxon = new Thread(() -> {
+            for (int i = 1; i <= 3; i++) {
+                hit.set(i);
+                session.checkAndPause("c.xsl", 4, 1, () -> emptySnapshot(4));
+            }
+        }, "test-saxon");
+        saxon.start();
+        assertTrue(paused.await(AWAIT_MS, TimeUnit.MILLISECONDS), "the true condition pauses");
+        assertEquals(2, hit.get(), "not on the first pass, where the condition was false");
+        assertEquals("condition: $n = 2", session.getPauseNote());
+        session.requestContinue();
+        saxon.join(AWAIT_MS);
+        assertFalse(saxon.isAlive());
+        assertEquals(3, evaluations.get(), "evaluated on every pass of the line");
+    }
+
+    @Test
+    void failingConditionPausesAndReportsTheError() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.setCondition("c.xsl", 4, "$missing");
+        session.setConditionEvaluator((condition, snap) -> {
+            throw new IllegalStateException("Variable $missing has not been declared");
+        });
+        session.startSession();
+        CountDownLatch paused = new CountDownLatch(1);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) paused.countDown();
+        });
+        Thread saxon = new Thread(() -> session.checkAndPause("c.xsl", 4, 1, () -> emptySnapshot(4)), "test-saxon");
+        saxon.start();
+        assertTrue(paused.await(AWAIT_MS, TimeUnit.MILLISECONDS), "an error must not silently skip the breakpoint");
+        assertTrue(session.getPauseNote().startsWith("condition failed ($missing): "), session.getPauseNote());
+        session.requestStop();
+        saxon.join(AWAIT_MS);
+    }
+
+    @Test
+    void unconditionalBreakpointWinsWithoutEvaluating() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.toggleBreakpoint("", 4);
+        session.setCondition("c.xsl", 4, "false()");
+        session.setConditionEvaluator((condition, snap) -> {
+            throw new AssertionError("no condition needed: an unconditional breakpoint matches");
+        });
+        session.startSession();
+        CountDownLatch paused = new CountDownLatch(1);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) paused.countDown();
+        });
+        Thread saxon = new Thread(() -> session.checkAndPause("c.xsl", 4, 1, () -> emptySnapshot(4)), "test-saxon");
+        saxon.start();
+        assertTrue(paused.await(AWAIT_MS, TimeUnit.MILLISECONDS));
+        assertEquals("", session.getPauseNote());
+        session.requestStop();
+        saxon.join(AWAIT_MS);
+    }
+
+    @Test
+    void setConditionCreatesUpdatesAndClears() {
+        DebugSession session = new DebugSession();
+        assertNull(session.conditionAt("c.xsl", 4));
+        assertTrue(session.setCondition("c.xsl", 4, " @id = 1 "));
+        assertEquals("@id = 1", session.conditionAt("c.xsl", 4), "creates the breakpoint, trimmed");
+        assertTrue(session.hasBreakpoint("c.xsl", 4));
+        session.setCondition("c.xsl", 4, "");
+        assertEquals("", session.conditionAt("c.xsl", 4), "blank = unconditional, breakpoint kept");
+        assertEquals(1, session.getBreakpoints().size());
+    }
 }

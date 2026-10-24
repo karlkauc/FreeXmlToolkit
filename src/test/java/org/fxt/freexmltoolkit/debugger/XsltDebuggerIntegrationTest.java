@@ -374,6 +374,40 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void conditionalBreakpointPausesOnlyWhereTheConditionHolds() throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"item\">\n"                                                         // 3
+                + "    <x><xsl:value-of select=\"@n\"/></x>\n"                                               // 4
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("", 4, true, "@n = '2'"));
+        org.fxt.freexmltoolkit.service.XsltTransformationEngine engine = XsltTransformationEngine.getInstance();
+        WatchEvaluator evaluator = new WatchEvaluator(engine.getDebugProcessor(), java.util.Map.of());
+        session.setConditionEvaluator(evaluator::test);
+        java.util.List<String> pausedAt = new java.util.concurrent.CopyOnWriteArrayList<>();
+        java.util.List<String> notes = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                PausedSnapshot snap = session.getPausedSnapshot();
+                pausedAt.add(((net.sf.saxon.s9api.XdmNode) snap.contextXdm()).getAttributeValue(
+                        new net.sf.saxon.s9api.QName("n")));
+                notes.add(session.getPauseNote());
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = engine.transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertFalse(pausedAt.isEmpty(), "the condition held once");
+        assertTrue(pausedAt.stream().allMatch("2"::equals), "paused only on item 2: " + pausedAt);
+        assertEquals("condition: @n = '2'", notes.get(0));
+    }
+
+    @Test
     void normalTransformIsUnaffectedByAPausedDebugSession() throws Exception {
         String xml = "<r><a/></r>";
         String xslt = ""

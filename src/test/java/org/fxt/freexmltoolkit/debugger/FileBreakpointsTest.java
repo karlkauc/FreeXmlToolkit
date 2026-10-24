@@ -65,4 +65,16 @@ class FileBreakpointsTest {
         assertDoesNotThrow(() -> bps.toggleBreakpoint(OWN, 1));
         assertDoesNotThrow(() -> bps.toggleBreakpoint(OWN, 1));
     }
+
+    @Test
+    void conditionsAreSetAndPersisted() {
+        List<Set<Breakpoint>> saved = new ArrayList<>();
+        FileBreakpoints fb = new FileBreakpoints("/tmp/c.xsl", List.of(), saved::add);
+        assertNull(fb.conditionAt("/tmp/c.xsl", 9));
+        assertTrue(fb.setCondition("/tmp/c.xsl", 9, "$i > 3"));
+        assertEquals("$i > 3", fb.conditionAt("/tmp/c.xsl", 9));
+        assertTrue(fb.hasBreakpoint("/tmp/c.xsl", 9), "setting a condition creates the breakpoint");
+        assertEquals("$i > 3", saved.get(saved.size() - 1).iterator().next().condition(), "and persists it");
+        assertFalse(fb.setCondition("/tmp/other.xsl", 9, "true()"), "only its own file");
+    }
 }

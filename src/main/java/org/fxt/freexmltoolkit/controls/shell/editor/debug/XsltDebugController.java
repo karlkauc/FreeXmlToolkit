@@ -56,6 +56,8 @@ public final class XsltDebugController {
     /** Test/seam constructor with an injectable executor. */
     public XsltDebugController(Executor executor) {
         this.executor = executor;
+        // Conditional breakpoints: XPath with xsl:if semantics against the paused state.
+        session.setConditionEvaluator((condition, snapshot) -> getWatchEvaluator().test(condition, snapshot));
     }
 
     public DebugSession getSession() {

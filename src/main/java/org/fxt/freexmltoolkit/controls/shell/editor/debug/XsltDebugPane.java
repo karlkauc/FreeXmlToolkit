@@ -63,6 +63,8 @@ public final class XsltDebugPane extends VBox {
     static final double MAX_DIVIDER = 0.8;
     /** Same marker the dock strip uses for a panel that received content while hidden. */
     static final String UPDATED_CLASS = "fxt-dock-updated";
+    /** Status style while paused because a breakpoint condition failed to evaluate. */
+    static final String CONDITION_ERROR_CLASS = "fxt-debug-condition-error";
 
     private final XsltDebugController controller;
     private final BreakpointsView breakpointsView;
@@ -283,12 +285,19 @@ public final class XsltDebugPane extends VBox {
                     }
                     String file = snap.hasFile() ? org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(snap.systemId()) + ":" : "line ";
                     String ctx = snap.contextItem().isEmpty() ? "" : "  ·  " + snap.contextItem();
-                    status.setText("Paused at " + file + snap.lineNumber() + ctx);
+                    String note = controller.getSession().getPauseNote();
+                    status.setText("Paused at " + file + snap.lineNumber() + ctx
+                            + (note == null || note.isEmpty() ? "" : "  ·  " + note));
+                    status.getStyleClass().remove(CONDITION_ERROR_CLASS);
+                    if (note != null && note.startsWith("condition failed")) {
+                        status.getStyleClass().add(CONDITION_ERROR_CLASS);
+                    }
                     onPaused.accept(snap);
                 }
             }
             case RUNNING -> {
                 scope = null;
+                status.getStyleClass().remove(CONDITION_ERROR_CLASS);
                 variablesView.clear();
                 callStackView.clear();
                 watchView.evaluateAll(null);

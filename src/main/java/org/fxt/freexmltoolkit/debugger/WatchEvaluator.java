@@ -10,6 +10,7 @@ import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.Serializer;
 import net.sf.saxon.s9api.XPathCompiler;
+import net.sf.saxon.s9api.XPathExecutable;
 import net.sf.saxon.s9api.XPathSelector;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmItem;
@@ -41,6 +42,13 @@ public final class WatchEvaluator {
 
     private final Processor processor;
     private final Map<String, String> namespaces;
+    /**
+     * Compiled expressions by expression text and declared variable names — breakpoint
+     * conditions are evaluated every time their line runs (loops), so they must not be
+     * recompiled each time. {@link XPathExecutable} is immutable and thread-safe.
+     */
+    private final Map<String, XPathExecutable> compiled = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int MAX_COMPILED = 256;
 
     public WatchEvaluator(Processor processor, Map<String, String> namespaces) {
         this.processor = processor;
@@ -113,22 +121,27 @@ public final class WatchEvaluator {
     }
 
     /**
+     * Tests a breakpoint condition: the effective boolean value of {@code condition} at the
+     * pause point (context item and every variable of {@code snapshot} in scope) — the same
+     * rules as an {@code xsl:if test}.
+     *
+     * @throws SaxonApiException on a static or dynamic error (e.g. an undeclared variable, or a
+     *                           sequence of several atomic values)
+     */
+    public boolean test(String condition, PausedSnapshot snapshot) throws SaxonApiException {
+        if (condition == null || condition.isBlank()) {
+            return true;
+        }
+        XdmValue result = prepare("boolean((" + condition.strip() + "))", snapshot, null).evaluate();
+        return result.size() == 1 && result.itemAt(0) instanceof XdmAtomicValue atomic && atomic.getBooleanValue();
+    }
+
+    /**
      * Compiles {@code expr} with the stylesheet's namespaces and every snapshot variable
      * (locals shadow globals), and loads it with its context item and variable values.
      */
     private XPathSelector prepare(String expr, PausedSnapshot snapshot, XdmValue focus)
             throws SaxonApiException {
-        XPathCompiler compiler = processor.newXPathCompiler();
-        compiler.setLanguageVersion("3.1");
-        compiler.declareNamespace("xsl", "http://www.w3.org/1999/XSL/Transform");
-        compiler.declareNamespace("xs", "http://www.w3.org/2001/XMLSchema");
-        compiler.declareNamespace("fn", "http://www.w3.org/2005/xpath-functions");
-        compiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
-        compiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
-        compiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");
-        for (Map.Entry<String, String> ns : namespaces.entrySet()) {
-            compiler.declareNamespace(ns.getKey(), ns.getValue());
-        }
         // Locals shadow globals of the same name.
         Map<QName, XdmValue> variables = new LinkedHashMap<>();
         if (snapshot != null) {
@@ -138,10 +151,17 @@ public final class WatchEvaluator {
         if (focus != null && !variables.containsKey(VALUE_VARIABLE)) {
             variables.put(VALUE_VARIABLE, focus);
         }
-        for (QName name : variables.keySet()) {
-            compiler.declareVariable(name);
+        StringBuilder key = new StringBuilder(expr).append('\u0000');
+        variables.keySet().stream().map(QName::getClarkName).sorted().forEach(n -> key.append(n).append(' '));
+        XPathExecutable executable = compiled.get(key.toString());
+        if (executable == null) {
+            executable = compile(expr, variables.keySet());
+            if (compiled.size() >= MAX_COMPILED) {
+                compiled.clear();
+            }
+            compiled.put(key.toString(), executable);
         }
-        XPathSelector selector = compiler.compile(expr).load();
+        XPathSelector selector = executable.load();
         if (focus != null) {
             if (focus.size() == 1) {
                 selector.setContextItem(focus.itemAt(0));
@@ -153,6 +173,24 @@ public final class WatchEvaluator {
             selector.setVariable(v.getKey(), v.getValue());
         }
         return selector;
+    }
+
+    private XPathExecutable compile(String expr, java.util.Set<QName> variableNames) throws SaxonApiException {
+        XPathCompiler compiler = processor.newXPathCompiler();
+        compiler.setLanguageVersion("3.1");
+        compiler.declareNamespace("xsl", "http://www.w3.org/1999/XSL/Transform");
+        compiler.declareNamespace("xs", "http://www.w3.org/2001/XMLSchema");
+        compiler.declareNamespace("fn", "http://www.w3.org/2005/xpath-functions");
+        compiler.declareNamespace("map", "http://www.w3.org/2005/xpath-functions/map");
+        compiler.declareNamespace("array", "http://www.w3.org/2005/xpath-functions/array");
+        compiler.declareNamespace("math", "http://www.w3.org/2005/xpath-functions/math");
+        for (Map.Entry<String, String> ns : namespaces.entrySet()) {
+            compiler.declareNamespace(ns.getKey(), ns.getValue());
+        }
+        for (QName name : variableNames) {
+            compiler.declareVariable(name);
+        }
+        return compiler.compile(expr);
     }
 
     /**

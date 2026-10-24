@@ -47,6 +47,19 @@ public class DebugSession implements BreakpointTarget {
     private volatile StepMode stepMode = StepMode.NONE;
     private volatile int stepTargetDepth = -1;
     private volatile PausedSnapshot pausedSnapshot;
+    private volatile ConditionEvaluator conditionEvaluator;
+    /** Why the current pause happened, when it is worth telling (a condition, a condition error). */
+    private volatile String pauseNote = "";
+
+    /**
+     * Decides whether a conditional breakpoint fires: evaluates {@code condition} (XPath) at the
+     * pause point described by {@code snapshot} and returns its effective boolean value.
+     * Called on the Saxon thread; an exception makes the run pause and report the error.
+     */
+    @FunctionalInterface
+    public interface ConditionEvaluator {
+        boolean test(String condition, PausedSnapshot snapshot) throws Exception;
+    }
 
     // ------------------------------------------------------------------
     // Breakpoint management
@@ -96,6 +109,56 @@ public class DebugSession implements BreakpointTarget {
             }
             return false;
         }
+    }
+
+    @Override
+    public String conditionAt(String filePath, int line) {
+        String fp = SourceLocations.normalize(filePath);
+        synchronized (breakpoints) {
+            for (Breakpoint b : breakpoints) {
+                if (b.lineNumber() == line && b.filePath().equals(fp)) {
+                    return b.condition();
+                }
+            }
+            return null;
+        }
+    }
+
+    @Override
+    public boolean setCondition(String filePath, int line, String condition) {
+        if (line < 1) {
+            return false;
+        }
+        String fp = SourceLocations.normalize(filePath);
+        synchronized (breakpoints) {
+            Breakpoint existing = null;
+            for (Breakpoint b : breakpoints) {
+                if (b.lineNumber() == line && b.filePath().equals(fp)) {
+                    existing = b;
+                    break;
+                }
+            }
+            if (existing != null) {
+                breakpoints.remove(existing);
+                breakpoints.add(existing.withCondition(condition));
+            } else {
+                breakpoints.add(new Breakpoint(fp, line, true, condition));
+            }
+            return true;
+        }
+    }
+
+    /** Sets how breakpoint conditions are evaluated ({@code null}: conditional breakpoints always pause). */
+    public void setConditionEvaluator(ConditionEvaluator evaluator) {
+        this.conditionEvaluator = evaluator;
+    }
+
+    /**
+     * @return why the run is paused when that is worth showing — the condition that held, or a
+     *         condition that failed to evaluate; {@code ""} otherwise
+     */
+    public String getPauseNote() {
+        return pauseNote;
     }
 
     public Set<Breakpoint> getBreakpoints() {
@@ -199,13 +262,43 @@ public class DebugSession implements BreakpointTarget {
             default -> pause = false;
         }
 
+        String note = "";
+        PausedSnapshot snapshot = null;
         if (!pause && line > 0 && !breakpoints.isEmpty()) {
             // Check breakpoints — normalise the location once, not once per breakpoint
             String normalized = normalizedLocation(systemId);
+            java.util.List<String> conditions = new java.util.ArrayList<>(1);
             synchronized (breakpoints) {
                 for (Breakpoint bp : breakpoints) {
                     if (bp.enabled() && bp.matchesNormalized(normalized, line)) {
+                        if (!bp.hasCondition()) {
+                            pause = true;
+                            break;
+                        }
+                        conditions.add(bp.condition());
+                    }
+                }
+            }
+            if (!pause && !conditions.isEmpty()) {
+                // Only conditional breakpoints here: capture the state once, test each condition.
+                snapshot = captureSnapshot(snapshotSupplier, systemId, line);
+                ConditionEvaluator evaluator = conditionEvaluator;
+                for (String condition : conditions) {
+                    if (evaluator == null) {
                         pause = true;
+                        note = "condition not evaluated: " + condition;
+                        break;
+                    }
+                    try {
+                        if (evaluator.test(condition, snapshot)) {
+                            pause = true;
+                            note = "condition: " + condition;
+                            break;
+                        }
+                    } catch (Exception e) {
+                        pause = true;
+                        note = "condition failed (" + condition + "): "
+                                + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
                         break;
                     }
                 }
@@ -214,14 +307,11 @@ public class DebugSession implements BreakpointTarget {
 
         if (!pause) return true;
 
-        PausedSnapshot snapshot;
-        try {
-            snapshot = snapshotSupplier.get();
-        } catch (Exception e) {
-            logger.warn("Failed to capture paused snapshot: {}", e.getMessage());
-            snapshot = new PausedSnapshot(systemId, line, java.util.List.of(), java.util.List.of(), "");
+        if (snapshot == null) {
+            snapshot = captureSnapshot(snapshotSupplier, systemId, line);
         }
         this.pausedSnapshot = snapshot;
+        this.pauseNote = note;
 
         pauseLock.lock();
         try {
@@ -239,6 +329,15 @@ public class DebugSession implements BreakpointTarget {
             pauseLock.unlock();
         }
         return state != State.STOPPED;
+    }
+
+    private static PausedSnapshot captureSnapshot(Supplier<PausedSnapshot> supplier, String systemId, int line) {
+        try {
+            return supplier.get();
+        } catch (Exception e) {
+            logger.warn("Failed to capture paused snapshot: {}", e.getMessage());
+            return new PausedSnapshot(systemId, line, java.util.List.of(), java.util.List.of(), "");
+        }
     }
 
     /** Bounded cache: Saxon reports the same handful of module systemIds for every instruction. */

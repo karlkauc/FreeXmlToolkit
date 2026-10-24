@@ -1644,6 +1644,11 @@
     -fx-alignment: center-left;
 }
 
+/* DEBUG status while paused because a breakpoint condition failed to evaluate. */
+.fxt-output-status.fxt-debug-condition-error {
+    -fx-text-fill: -fxt-danger;
+}
+
 /* Variables: banner naming the selected outer call stack frame. */
 .fxt-debug-frame-info {
     -fx-padding: 3 8 3 8;

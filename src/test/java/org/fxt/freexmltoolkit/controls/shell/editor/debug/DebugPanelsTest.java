@@ -118,4 +118,22 @@ class DebugPanelsTest {
         });
         assertEquals(7, opened.get().lineNumber());
     }
+
+    @Test
+    void breakpointsPanelShowsAndEditsConditions() {
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("a.xsl", 3, true));
+        AtomicInteger changed = new AtomicInteger();
+        String condition = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            BreakpointsView view = new BreakpointsView(session);
+            view.setOnChanged(changed::incrementAndGet);
+            view.setConditionPrompt((owner, where, current) -> java.util.Optional.of("$i = 10"));
+            view.select(0);
+            view.editConditionOfSelected();
+            return view.getConditionAt(0);
+        });
+        assertEquals("$i = 10", condition, "the list shows the new condition");
+        assertEquals("$i = 10", session.conditionAt("a.xsl", 3), "and the session uses it");
+        assertEquals(1, changed.get(), "the host persists and refreshes the gutter");
+    }
 }

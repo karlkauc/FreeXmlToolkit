@@ -99,14 +99,15 @@ class BreakpointGutterFactoryTest {
         });
         assertTrue(target.hasBreakpoint(FILE, 5));
 
-        // Secondary button is ignored.
+        // The secondary button opens the gutter's breakpoint menu (conditions) instead of the
+        // editor's context menu: it toggles nothing and does not reach the editor.
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             Event.fireEvent(slot, mouse(MouseEvent.MOUSE_PRESSED, MouseButton.SECONDARY));
             return null;
         });
         assertTrue(target.hasBreakpoint(FILE, 5));
         assertEquals(1, refreshed.get());
-        assertEquals(1, bubbled.get(), "a secondary press is left to the editor (context menu)");
+        assertEquals(0, bubbled.get(), "a secondary press is consumed by the gutter (breakpoint menu)");
 
         // Pressing again removes it.
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
@@ -177,5 +178,35 @@ class BreakpointGutterFactoryTest {
                 false, false, false, false,
                 button == MouseButton.PRIMARY, false, button == MouseButton.SECONDARY,
                 false, false, false, null);
+    }
+
+    @Test
+    void conditionCanBeAddedFromTheGutterAndIsMarked() throws Exception {
+        org.fxt.freexmltoolkit.debugger.DebugSession session = new org.fxt.freexmltoolkit.debugger.DebugSession();
+        AtomicInteger refreshed = new AtomicInteger();
+        BreakpointGutterFactory factory = new BreakpointGutterFactory(session, v -> refreshed.incrementAndGet());
+        factory.setFilePath(FILE);
+        java.util.concurrent.atomic.AtomicReference<String> asked = new java.util.concurrent.atomic.AtomicReference<>();
+        factory.setConditionPrompt((owner, location, current) -> {
+            asked.set(location + "|" + current);
+            return java.util.Optional.of("@n = 2");
+        });
+
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.editCondition(5, null)));
+        assertEquals("sheet.xsl, line 5|", asked.get(), "asked for line 5 without a current condition");
+        assertEquals("@n = 2", session.conditionAt(FILE, 5), "the line gets a conditional breakpoint");
+        assertEquals(1, refreshed.get(), "the gutter is re-rendered");
+        Node slot = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(4));
+        assertTrue(slot.getStyleClass().contains(BreakpointGutterFactory.CONDITIONAL_STYLE_CLASS),
+                "a conditional breakpoint has its own marker");
+
+        java.util.List<String> labels = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> factory.menuFor(5, true, true).getItems().stream()
+                        .map(javafx.scene.control.MenuItem::getText).filter(java.util.Objects::nonNull).toList());
+        assertEquals(java.util.List.of("Edit Condition…", "Remove Condition", "Remove Breakpoint"), labels);
+
+        factory.setConditionPrompt((owner, location, current) -> java.util.Optional.empty());
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.editCondition(5, null)), "cancel changes nothing");
+        assertEquals("@n = 2", session.conditionAt(FILE, 5));
     }
 }
