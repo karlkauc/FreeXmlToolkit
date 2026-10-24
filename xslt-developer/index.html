@@ -1684,6 +1684,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Inspecting State">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#viewing-a-value-in-full" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Viewing a Value in Full
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2710,6 +2727,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Inspecting State">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#viewing-a-value-in-full" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Viewing a Value in Full
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -3299,9 +3333,27 @@ Watch</strong> on the left (the state at the pause point), <strong>Call Stack | 
 the right (navigation and log). Drag the divider between the groups to give one side more room -
 the position is remembered. <strong>Messages</strong> and <strong>Breakpoints</strong> show a <strong>count badge</strong> on their tab;
 Messages is highlighted when output arrives while another tab of its group is in front, and a
-<strong>failed run brings Messages to the front</strong> so the error is readable at once. Long values in
-Variables and Watch show in full as a tooltip; in Watch and Breakpoints the <strong>Delete</strong> key
-removes the selected row.</p>
+<strong>failed run brings Messages to the front</strong> so the error is readable at once. In Watch and
+Breakpoints the <strong>Delete</strong> key removes the selected row.</p>
+<h4 id="viewing-a-value-in-full">Viewing a Value in Full<a class="headerlink" href="#viewing-a-value-in-full" title="Permanent link">&para;</a></h4>
+<p>The Value column of <strong>Variables</strong> and <strong>Watch</strong> shows only the start of a value (a node can be
+thousands of characters long). <strong>Click a value</strong> - or select the row and press <strong>Enter</strong>, or
+right-click → <strong>Open Value…</strong> - to open it in its own <strong>value window</strong>:</p>
+<ul>
+<li>The <strong>complete value</strong>, pretty-printed (toggle <strong>Pretty print</strong>), with XML <strong>syntax
+  highlighting</strong> and line numbers; <strong>Wrap</strong> wraps long lines, <strong>Copy</strong> copies the whole value.
+  A sequence shows one item per line and its item count.</li>
+<li>An <strong>XPath</strong> field below that runs <strong>against this value</strong>: a single node is the context item
+  (<code>item[1]/price</code>, <code>count(//item)</code>), <code>$value</code> is the whole value (<code>$value[2]</code> for a sequence),
+  and every variable of the pause stays in scope. <strong>Run</strong> (or Enter) shows the result with its
+  item count and time; <strong>Copy result</strong> copies it.</li>
+<li>Value windows are separate, resizable windows - keep several open next to the editor. They
+  show the pause they were opened at (<em>paused at file:line</em>), stay open while you step, and
+  close when the debug session ends. Clicking the same value of the same pause again brings
+  its window to the front.</li>
+<li>Right-click → <strong>Copy Value</strong> copies the full value without opening a window.</li>
+<li>A Watch value is re-evaluated in full for the window (the table keeps a shortened version).</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -3312,11 +3364,11 @@ removes the selected row.</p>
 <tbody>
 <tr>
 <td><strong>Variables</strong></td>
-<td>The context item (<code>.</code>), <code>position()</code> / <code>last()</code>, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order)</td>
+<td>The context item (<code>.</code>), <code>position()</code> / <code>last()</code>, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full</td>
 </tr>
 <tr>
 <td><strong>Watch</strong></td>
-<td>Your XPath expressions, evaluated <strong>against the paused context item</strong> with all variables in scope: <code>count(item)</code>, <code>$total</code>, <code>string(@id)</code>, <code>position()</code>; the stylesheet's namespace prefixes are available. Type an expression into the field above the table and press <strong>Add</strong>; <strong>Remove</strong> (or the Delete key) drops the selected one. Re-evaluated at every pause; errors are shown in the row</td>
+<td>Your XPath expressions, evaluated <strong>against the paused context item</strong> with all variables in scope: <code>count(item)</code>, <code>$total</code>, <code>string(@id)</code>, <code>position()</code>; the stylesheet's namespace prefixes are available. Type an expression into the field above the table and press <strong>Add</strong>; <strong>Remove</strong> (or the Delete key) drops the selected one. Re-evaluated at every pause; errors are shown in the row. Click a value to open it in full</td>
 </tr>
 <tr>
 <td><strong>Call Stack</strong></td>
