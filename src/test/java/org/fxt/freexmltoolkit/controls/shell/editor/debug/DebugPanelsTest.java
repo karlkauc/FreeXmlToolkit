@@ -234,4 +234,36 @@ class DebugPanelsTest {
         assertEquals(0, r[6]);
         assertEquals(4, counted.get(), "three appends and the clear");
     }
+
+    @Test
+    void breakOnMenuAppliesAndRemembersTheOptions() {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        var props = org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class);
+        try {
+            props.set(BreakpointsView.BREAK_ON_ERRORS_KEY, "");
+            props.set(BreakpointsView.BREAK_ON_TERMINATE_KEY, "");
+            props.set(BreakpointsView.BREAK_ON_MESSAGES_KEY, "");
+            DebugSession session = new DebugSession();
+            boolean[] state = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+                BreakpointsView view = new BreakpointsView(session);
+                boolean[] defaults = {session.isBreakOnErrors(), session.isBreakOnTerminate(), session.isBreakOnMessages()};
+                view.breakOnItems().get(0).setSelected(false); // errors off
+                view.breakOnItems().get(2).setSelected(true);  // every message on
+                return new boolean[]{defaults[0], defaults[1], defaults[2], session.isBreakOnErrors(), session.isBreakOnMessages()};
+            });
+            assertEquals(true, state[0], "errors on by default");
+            assertEquals(true, state[1], "terminate on by default");
+            assertEquals(false, state[2], "every message off by default");
+            assertEquals(false, state[3]);
+            assertEquals(true, state[4]);
+            DebugSession next = new DebugSession();
+            WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> new BreakpointsView(next));
+            assertEquals(false, next.isBreakOnErrors(), "remembered for the next session");
+            assertEquals(true, next.isBreakOnMessages());
+        } finally {
+            props.set(BreakpointsView.BREAK_ON_ERRORS_KEY, "");
+            props.set(BreakpointsView.BREAK_ON_TERMINATE_KEY, "");
+            props.set(BreakpointsView.BREAK_ON_MESSAGES_KEY, "");
+        }
+    }
 }

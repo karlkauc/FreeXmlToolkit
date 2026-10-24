@@ -388,6 +388,19 @@ there, otherwise the active document) - exactly as for **Run Transform**; starte
   on the same line (e.g. `<x><xsl:value-of select="@n"/></x>`) does not stop the run a second
   time. Stepping (Step Into) still visits every instruction.
 
+#### Break on Errors and Messages
+
+The Breakpoints panel's **Break on ▾** menu pauses the run independent of line breakpoints:
+
+| Option | Pauses | Default |
+|--------|--------|---------|
+| **Dynamic errors** | when an instruction fails at run time (division by zero, a failed cast, `error()`) - **at the failing instruction, with its context item and variables intact**, so you can see why. The status reads *error FOAR0001: …* in red; **Continue** lets the error end the run as usual | on |
+| **xsl:message terminate="yes"** | before a terminating message is emitted (also when `terminate` is computed, e.g. `{if (…) then 'yes' else 'no'}`) | on |
+| **Every xsl:message** | before every `xsl:message` | off |
+
+The choices are saved. **Mute** silences these as well. Static errors (the stylesheet does not
+compile) are not run, so there is nothing to pause at - they appear in Messages.
+
 #### Conditional Breakpoints
 
 A breakpoint can carry an **XPath condition**: the run pauses at that line only when the

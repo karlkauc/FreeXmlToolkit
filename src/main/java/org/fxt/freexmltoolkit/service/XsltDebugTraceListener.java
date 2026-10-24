@@ -144,8 +144,12 @@ public class XsltDebugTraceListener implements TraceListener {
             if (debugSession != null) {
                 int depth = callStack.size();
                 final XPathContext ctxRef = context;
-                boolean alive = debugSession.checkAndPause(systemId, lineNumber, depth,
-                        () -> buildPausedSnapshot(systemId, lineNumber, ctxRef));
+                String messageBreak = messageBreak(traceable, context);
+                boolean alive = messageBreak != null
+                        ? debugSession.pauseAt(systemId, lineNumber, messageBreak,
+                                () -> buildPausedSnapshot(systemId, lineNumber, ctxRef))
+                        : debugSession.checkAndPause(systemId, lineNumber, depth,
+                                () -> buildPausedSnapshot(systemId, lineNumber, ctxRef));
                 if (!alive) {
                     throw new XsltDebugStopException();
                 }
@@ -156,6 +160,55 @@ public class XsltDebugTraceListener implements TraceListener {
         } catch (Exception e) {
             logger.debug("Error in trace enter: {}", e.getMessage());
         }
+    }
+
+    /**
+     * @return the pause note when the session breaks on this {@code xsl:message} (every message,
+     *         or one with {@code terminate="yes"}), otherwise {@code null}
+     */
+    private String messageBreak(Traceable traceable, XPathContext context) {
+        if (!(traceable instanceof net.sf.saxon.expr.instruct.MessageInstr message)
+                || !(debugSession.isBreakOnMessages() || debugSession.isBreakOnTerminate())) {
+            return null;
+        }
+        boolean terminate = false;
+        try {
+            net.sf.saxon.expr.Expression t = message.getTerminate();
+            if (t != null) {
+                String value = t.evaluateAsString(context).toString().strip();
+                terminate = "yes".equals(value) || "true".equals(value) || "1".equals(value);
+            }
+        } catch (Exception e) {
+            logger.debug("Could not evaluate xsl:message/@terminate: {}", e.getMessage());
+        }
+        if (terminate && (debugSession.isBreakOnTerminate() || debugSession.isBreakOnMessages())) {
+            return "xsl:message terminate=\"yes\"";
+        }
+        return debugSession.isBreakOnMessages() ? "xsl:message" : null;
+    }
+
+    /**
+     * Called by the engine's error reporter for every error of the run (Saxon thread, before the
+     * error unwinds the transformation). With "break on errors" a dynamic error pauses here,
+     * with the state of the innermost instruction still on the trace stack — its context and
+     * variables are intact, so the failing spot can be inspected before the run ends.
+     */
+    public void onError(net.sf.saxon.s9api.XmlProcessingError error) {
+        if (error == null || error.isWarning() || debugSession == null || !debugSession.isBreakOnErrors()
+                || error.isAlreadyReported()) {
+            return;
+        }
+        CallStackEntry top = callStack.peek();
+        if (top == null) {
+            return; // a static error (compile time) — nothing executing to inspect
+        }
+        net.sf.saxon.s9api.Location loc = error.getLocation();
+        String systemId = loc != null && loc.getSystemId() != null ? loc.getSystemId() : top.systemId();
+        int line = loc != null && loc.getLineNumber() > 0 ? loc.getLineNumber() : top.lineNumber();
+        String code = error.getErrorCode() == null ? "" : error.getErrorCode().getLocalName() + ": ";
+        XPathContext ctx = top.context();
+        debugSession.pauseAt(systemId, line, "error " + code + error.getMessage(),
+                () -> buildPausedSnapshot(systemId, line, ctx));
     }
 
     /**

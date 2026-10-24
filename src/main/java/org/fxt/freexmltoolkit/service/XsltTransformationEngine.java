@@ -579,7 +579,10 @@ public class XsltTransformationEngine {
             configureTransformer(transformer, parameters, outputFormat, true);
             transformer.setTraceListener(traceListener);
             transformer.setMessageHandler(messageListener);
-            transformer.setErrorReporter(messageListener::reportError);
+            transformer.setErrorReporter(error -> {
+                messageListener.reportError(error);
+                traceListener.onError(error); // "break on errors": pause with the failing state
+            });
 
             XdmNode sourceDoc;
             try {

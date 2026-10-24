@@ -560,4 +560,77 @@ class XsltDebuggerIntegrationTest {
         assertFalse(soFar.get().contains("<x>4</x>"), "item 4 is not written yet");
         assertNull(session.outputSoFar(), "no probe after the run");
     }
+
+    @Test
+    void breakOnErrorsPausesWithTheStateAtTheFailingInstruction() throws Exception {
+        String xml = "<order><item n=\"1\" q=\"2\"/><item n=\"2\" q=\"0\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"item\">\n"                                                         // 3
+                + "    <xsl:variable name=\"q\" select=\"xs:integer(@q)\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"/>\n" // 4
+                + "    <x><xsl:value-of select=\"10 idiv $q\"/></x>\n"                                       // 5
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.setBreakOnErrors(true);
+        AtomicReference<PausedSnapshot> atError = new AtomicReference<>();
+        AtomicReference<String> note = new AtomicReference<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                atError.set(session.getPausedSnapshot());
+                note.set(session.getPauseNote());
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertFalse(result.isSuccess(), "the run still fails after Continue");
+        assertNotNull(atError.get(), "the error paused the run");
+        assertTrue(note.get().startsWith("error FOAR0001"), note.get());
+        assertEquals(5, atError.get().lineNumber(), "at the failing instruction");
+        assertEquals("2", ((net.sf.saxon.s9api.XdmNode) atError.get().contextXdm())
+                .getAttributeValue(new net.sf.saxon.s9api.QName("n")), "the failing item is the context");
+        assertEquals("0", atError.get().localVariables().get(new net.sf.saxon.s9api.QName("q")).toString(),
+                "its variables are intact");
+    }
+
+    @Test
+    void breakOnTerminatePausesBeforeTheMessage() throws Exception {
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\">\n"                                                            // 2
+                + "    <xsl:message>just info</xsl:message>\n"                                                  // 3
+                + "    <xsl:message terminate=\"{if (true()) then 'yes' else 'no'}\">stop here</xsl:message>\n" // 4
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.setBreakOnTerminate(true);
+        java.util.List<String> pauses = new java.util.concurrent.CopyOnWriteArrayList<>();
+        java.util.List<String> live = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                pauses.add(session.getPausedSnapshot().lineNumber() + ":" + session.getPauseNote() + ":" + live.size());
+                session.requestContinue();
+            }
+        });
+        XsltTransformationEngine.getInstance().transformWithDebugSession(
+                "<root/>", xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session,
+                m -> live.add(m.getMessage()));
+        assertEquals(java.util.List.of("4:xsl:message terminate=\"yes\":1"), pauses,
+                "only the terminating message (a dynamic terminate value), before it is emitted");
+
+        DebugSession all = new DebugSession();
+        all.setBreakOnMessages(true);
+        java.util.List<Integer> lines = new java.util.concurrent.CopyOnWriteArrayList<>();
+        all.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                lines.add(all.getPausedSnapshot().lineNumber());
+                all.requestContinue();
+            }
+        });
+        XsltTransformationEngine.getInstance().transformWithDebugSession(
+                "<root/>", xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, all, m -> { });
+        assertEquals(java.util.List.of(3, 4), lines, "every message");
+    }
 }

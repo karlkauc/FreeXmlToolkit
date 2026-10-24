@@ -511,4 +511,36 @@ class XsltDebugPaneTest {
             resetRememberedTabs();
         }
     }
+
+    @Test
+    void aRuntimeErrorPausesAtTheFailingLineWithARedStatus() throws Exception {
+        String xslt = """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/">
+                    <xsl:variable name="zero" select="count(//nothing)"/>
+                    <out><xsl:value-of select="10 idiv $zero"/></out>
+                  </xsl:template>
+                </xsl:stylesheet>
+                """;
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            XsltDebugPane p = new XsltDebugPane(controller); // "Break on: Dynamic errors" is on by default
+            stage.setScene(new Scene(p, 900, 400));
+            stage.show();
+            return p;
+        });
+        controller.getSession().setBreakOnErrors(true);
+        controller.setPauseOnEntry(false);
+        controller.start(XML, xslt, Map.of(), OutputFormat.XML);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> controller.getSession().getState() == DebugSession.State.PAUSED);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getStatusText().contains("error FOAR0001"));
+        assertEquals(4, controller.getSession().getPausedSnapshot().lineNumber());
+        assertTrue(pane.lookup("#debug-status").getStyleClass().contains(XsltDebugPane.CONDITION_ERROR_CLASS), "red");
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getVariablesView().getRowCount() > 0);
+
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, pane::onContinue);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> pane.getStatusText().startsWith("Error"));
+        assertSame(pane.getMessagesTab(), pane.getRightTabs().getSelectionModel().getSelectedItem(),
+                "after Continue the run fails as before");
+    }
 }

@@ -25,6 +25,7 @@ public class BreakpointsView extends VBox {
 
     private final ListView<Breakpoint> list = new ListView<>();
     private final DebugSession session;
+    private java.util.List<javafx.scene.control.CheckMenuItem> breakOnItems = java.util.List.of();
     private IntConsumer onJumpToLine = line -> { };
     private java.util.function.Consumer<Breakpoint> onJumpToBreakpoint = bp -> { };
     private Runnable onChanged = () -> { };
@@ -110,12 +111,75 @@ public class BreakpointsView extends VBox {
             onChanged.run();
         });
 
-        HBox toolbar = new HBox(remove, condition, clear);
+        javafx.scene.control.MenuButton breakOn = breakOnMenu();
+        HBox toolbar = new HBox(remove, condition, clear, breakOn);
         toolbar.getStyleClass().add("fxt-debug-toolbar");
         toolbar.setAlignment(Pos.CENTER_LEFT);
         VBox.setVgrow(list, Priority.ALWAYS);
         getChildren().addAll(toolbar, list);
         refresh();
+    }
+
+    /** Preference keys of the "Break on" options (defaults: errors and terminate on). */
+    static final String BREAK_ON_ERRORS_KEY = "debug.breakOn.errors";
+    static final String BREAK_ON_TERMINATE_KEY = "debug.breakOn.terminate";
+    static final String BREAK_ON_MESSAGES_KEY = "debug.breakOn.messages";
+
+    /**
+     * The toolbar's "Break on" menu: pause on dynamic errors (with the state at the failing
+     * instruction), before {@code xsl:message terminate="yes"}, or before every
+     * {@code xsl:message}. The choices are saved and applied to every session.
+     */
+    private javafx.scene.control.MenuButton breakOnMenu() {
+        javafx.scene.control.CheckMenuItem errors = breakOnItem("Dynamic errors", BREAK_ON_ERRORS_KEY, true,
+                session::setBreakOnErrors);
+        javafx.scene.control.CheckMenuItem terminate = breakOnItem("xsl:message terminate=\"yes\"",
+                BREAK_ON_TERMINATE_KEY, true, session::setBreakOnTerminate);
+        javafx.scene.control.CheckMenuItem messages = breakOnItem("Every xsl:message", BREAK_ON_MESSAGES_KEY, false,
+                session::setBreakOnMessages);
+        org.fxt.freexmltoolkit.controls.icons.IconifyIcon icon =
+                new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-exclamation-octagon");
+        icon.setIconSize(14);
+        javafx.scene.control.MenuButton menu = new javafx.scene.control.MenuButton("Break on", icon,
+                errors, terminate, messages);
+        menu.getStyleClass().addAll("fxt-sp-action", "fxt-output-action");
+        menu.setTooltip(new javafx.scene.control.Tooltip(
+                "Pause on errors or xsl:message, independent of line breakpoints (Mute silences these too)"));
+        breakOnItems = java.util.List.of(errors, terminate, messages);
+        return menu;
+    }
+
+    private static javafx.scene.control.CheckMenuItem breakOnItem(String text, String key, boolean defaultOn,
+                                                                    java.util.function.Consumer<Boolean> apply) {
+        boolean on = readFlag(key, defaultOn);
+        apply.accept(on);
+        javafx.scene.control.CheckMenuItem item = new javafx.scene.control.CheckMenuItem(text);
+        item.setSelected(on);
+        item.selectedProperty().addListener((obs, old, value) -> {
+            apply.accept(value);
+            try {
+                org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                        .set(key, Boolean.toString(value));
+            } catch (Throwable ignored) {
+                // properties service unavailable — the choice holds for this session
+            }
+        });
+        return item;
+    }
+
+    private static boolean readFlag(String key, boolean defaultValue) {
+        try {
+            String value = org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).get(key);
+            return value == null || value.isBlank() ? defaultValue : Boolean.parseBoolean(value.strip());
+        } catch (Throwable e) {
+            return defaultValue;
+        }
+    }
+
+    /** The "Break on" items in menu order: errors, terminate, every message (tests). */
+    java.util.List<javafx.scene.control.CheckMenuItem> breakOnItems() {
+        return breakOnItems;
     }
 
     /**

@@ -53,6 +53,10 @@ public class DebugSession implements BreakpointTarget {
     /** One-shot "Run to Cursor" target (normalised path, 1-based line); line 0 = none. */
     private volatile String runToPath = "";
     private volatile int runToLine;
+    /** "Break on" options, independent of line breakpoints (but silenced by Mute). */
+    private volatile boolean breakOnErrors;
+    private volatile boolean breakOnTerminate;
+    private volatile boolean breakOnMessages;
     /** Reads the output the running transformation has serialized so far (set by the engine per run). */
     private volatile Supplier<String> outputProbe;
     /** The last run ran to its end (not stopped, not failed): zero hits then mean "never reached". */
@@ -253,6 +257,33 @@ public class DebugSession implements BreakpointTarget {
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    /** Pause when a dynamic error occurs, with the state at the failing instruction. */
+    public void setBreakOnErrors(boolean on) { this.breakOnErrors = on; }
+    public boolean isBreakOnErrors() { return breakOnErrors; }
+
+    /** Pause before an {@code xsl:message} with {@code terminate="yes"} runs. */
+    public void setBreakOnTerminate(boolean on) { this.breakOnTerminate = on; }
+    public boolean isBreakOnTerminate() { return breakOnTerminate; }
+
+    /** Pause before every {@code xsl:message}. */
+    public void setBreakOnMessages(boolean on) { this.breakOnMessages = on; }
+    public boolean isBreakOnMessages() { return breakOnMessages; }
+
+    /**
+     * Pauses unconditionally at {@code systemId:line} for a "break on" event (an error, a
+     * message) — unless muted or stopped. Saxon thread; blocks like a breakpoint.
+     *
+     * @param note the reason shown in the status ("error FOAR0001: …", "xsl:message terminate")
+     * @return {@code true} if the transformation should continue, {@code false} when stopped
+     */
+    public boolean pauseAt(String systemId, int line, String note, Supplier<PausedSnapshot> snapshotSupplier) {
+        if (state == State.STOPPED) {
+            return false;
+        }
+        // Muted: the run goes on without pausing.
+        return muted || block(captureSnapshot(snapshotSupplier, systemId, line), note == null ? "" : note);
     }
 
     /** Mutes / unmutes all breakpoints: while muted they neither pause nor count hits. */
@@ -484,13 +515,19 @@ public class DebugSession implements BreakpointTarget {
         if (snapshot == null) {
             snapshot = captureSnapshot(snapshotSupplier, systemId, line);
         }
-        runToLine = 0; // a one-shot target ends at any pause
         if (pauseRequested) {
             pauseRequested = false;
             if (note.isEmpty()) {
                 note = "paused by request";
             }
         }
+        return block(snapshot, note);
+    }
+
+    /** Publishes the pause and blocks the Saxon thread until the UI resumes or stops the run. */
+    private boolean block(PausedSnapshot snapshot, String note) {
+        runToLine = 0; // a one-shot target ends at any pause
+        pauseRequested = false;
         this.pausedSnapshot = snapshot;
         this.pauseNote = note;
 

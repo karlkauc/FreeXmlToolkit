@@ -67,7 +67,7 @@ public final class XsltDebugPane extends VBox {
     /** Preference keys of the tab last chosen by the user in each group. */
     static final String LEFT_TAB_KEY = "editor.debugPane.leftTab";
     static final String RIGHT_TAB_KEY = "editor.debugPane.rightTab";
-    /** Status style while paused because a breakpoint condition failed to evaluate. */
+    /** Status style while paused at an error or because a breakpoint condition failed to evaluate. */
     static final String CONDITION_ERROR_CLASS = "fxt-debug-condition-error";
 
     private final XsltDebugController controller;
@@ -352,7 +352,7 @@ public final class XsltDebugPane extends VBox {
                     status.setText("Paused at " + file + snap.lineNumber() + ctx
                             + (note == null || note.isEmpty() ? "" : "  ·  " + note));
                     status.getStyleClass().remove(CONDITION_ERROR_CLASS);
-                    if (note != null && note.startsWith("condition failed")) {
+                    if (note != null && (note.startsWith("condition failed") || note.startsWith("error "))) {
                         status.getStyleClass().add(CONDITION_ERROR_CLASS);
                     }
                     onPaused.accept(snap);
