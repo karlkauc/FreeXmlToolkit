@@ -3704,6 +3704,10 @@ every item, <code>$total &gt; 1000</code>, or <code>position() = last()</code>.<
   prefixes. A non-empty node sequence is true, an empty one false. <code>position()</code> and <code>last()</code>
   refer to the item being processed (<em>the 2nd of 5</em>), the same as in watches; inside a predicate
   (<code>item[position() = 1]</code>) or a path step they keep their usual meaning.</li>
+<li>The dialog <strong>checks the condition and the log message while you type</strong>: a syntax error
+  (<code>$total &gt;</code>, an unclosed <code>{</code> in a log message) appears in red below the fields and <strong>OK</strong>
+  stays closed until it is fixed. Variables, the stylesheet's namespace prefixes and its own
+  functions are not checked there - they are only known at the line during the run.</li>
 <li>When the run pauses because of a condition, the status says so (<em>· condition: @id = '4711'</em>).
   If the condition <strong>cannot be evaluated</strong> (a typo, an undeclared variable), the run <strong>pauses
   anyway</strong> and the status shows the error in red - a broken condition never silently skips the
