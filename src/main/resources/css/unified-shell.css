@@ -1644,6 +1644,15 @@
     -fx-alignment: center-left;
 }
 
+/* Variables: banner naming the selected outer call stack frame. */
+.fxt-debug-frame-info {
+    -fx-padding: 3 8 3 8;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-primary;
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-radius: 4;
+}
+
 /* Variables / Watch: a value cell opens the full value in the value viewer on click. */
 .fxt-debug-panel .table-cell.fxt-debug-value-cell {
     -fx-cursor: hand;

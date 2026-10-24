@@ -94,6 +94,11 @@ public final class XsltDebugPane extends VBox {
     private final Label breakpointsBadge = badge();
     /** The divider ratio as last restored or saved; a drag that ends elsewhere is persisted. */
     private double knownDivider = DEFAULT_DIVIDER;
+    /**
+     * The scope the Variables table and the watches show: the pause itself (innermost frame) or a
+     * snapshot derived for the selected outer frame; {@code null} while not paused.
+     */
+    private PausedSnapshot scope;
     /** XPath scopes derived per call stack frame of the current pause (identity of the frame). */
     private final Map<DebugStackFrame, PausedSnapshot> frameSnapshots = new java.util.IdentityHashMap<>();
     /** Open value viewer windows; closed when the pane is disposed (session end). */
@@ -133,8 +138,9 @@ public final class XsltDebugPane extends VBox {
             }
         });
         installDividerPersistence();
-        variablesView.setOnOpenValue(b -> openViewer(resolveVariable(b, controller.getSession().getPausedSnapshot())));
-        variablesView.setOnCopyValue(b -> copyValue(resolveVariable(b, controller.getSession().getPausedSnapshot())));
+        variablesView.setOnOpenValue(b -> openViewer(resolveVariable(b, currentScope())));
+        variablesView.setOnCopyValue(b -> copyValue(resolveVariable(b, currentScope())));
+        callStackView.setOnFrameSelected(this::showFrame);
         callStackView.setOnOpenValue(f -> openViewer(resolveFrame(f, controller.getSession().getPausedSnapshot())));
         callStackView.setOnCopyValue(f -> copyValue(resolveFrame(f, controller.getSession().getPausedSnapshot())));
         watchView.setOnOpenValue(row -> resolveWatch(row, this::openViewer));
@@ -266,11 +272,15 @@ public final class XsltDebugPane extends VBox {
             case PAUSED -> {
                 frameSnapshots.clear();
                 PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+                scope = snap;
                 if (snap != null) {
+                    // Selecting the innermost frame (setFrames) fills Variables and the watches.
+                    watchView.setEvaluator(controller.getWatchEvaluator());
                     variablesView.setVariables(snap.variables());
                     callStackView.setFrames(snap.callStack());
-                    watchView.setEvaluator(controller.getWatchEvaluator());
-                    watchView.evaluateAll(snap);
+                    if (snap.callStack().isEmpty()) {
+                        watchView.evaluateAll(snap);
+                    }
                     String file = snap.hasFile() ? org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(snap.systemId()) + ":" : "line ";
                     String ctx = snap.contextItem().isEmpty() ? "" : "  ·  " + snap.contextItem();
                     status.setText("Paused at " + file + snap.lineNumber() + ctx);
@@ -278,6 +288,7 @@ public final class XsltDebugPane extends VBox {
                 }
             }
             case RUNNING -> {
+                scope = null;
                 variablesView.clear();
                 callStackView.clear();
                 watchView.evaluateAll(null);
@@ -288,6 +299,7 @@ public final class XsltDebugPane extends VBox {
                 onPaused.accept(null);
             }
             case STOPPED -> {
+                scope = null;
                 variablesView.clear();
                 callStackView.clear();
                 watchView.evaluateAll(null);
@@ -295,6 +307,7 @@ public final class XsltDebugPane extends VBox {
                 onPaused.accept(null);
             }
             case IDLE -> {
+                scope = null;
                 variablesView.clear();
                 callStackView.clear();
                 watchView.evaluateAll(null);
@@ -361,21 +374,93 @@ public final class XsltDebugPane extends VBox {
      * their description and location as text, without XPath.
      */
     ValueSource resolveFrame(DebugStackFrame frame, PausedSnapshot snap) {
-        String where = (frame.fileName().isEmpty() ? "line " : frame.fileName() + ":") + frame.lineNumber();
-        if (snap == null || !frame.hasValues()) {
+        String where = where(frame);
+        PausedSnapshot frameScope = frameScope(frame, snap);
+        if (frameScope == null) {
             return new ValueSource(frame.description(), frame.kind().name(), "FRAME", null,
                     frame.description() + "\n" + where + "\n\n(No context item or variables were captured for this frame.)",
                     null, "frame at " + where);
         }
-        PausedSnapshot scope = frameSnapshots.computeIfAbsent(frame, f -> new PausedSnapshot(
-                f.systemId(), f.lineNumber(), snap.callStack(), f.variables(), "",
-                f.contextXdm(), f.localVariables(), snap.globalVariables(), -1, -1));
         int vars = frame.localVariables().size();
         String type = frame.contextXdm() == null ? "no context item" : WatchEvaluator.describeType(frame.contextXdm());
         return new ValueSource(frame.description(), type,
                 "FRAME · " + vars + (vars == 1 ? " variable" : " variables"),
-                frame.contextXdm(), frame.contextXdm() == null ? "<no context item>" : null, scope,
+                frame.contextXdm(), frame.contextXdm() == null ? "<no context item>" : null, frameScope,
                 "frame at " + where);
+    }
+
+    private static String where(DebugStackFrame frame) {
+        return (frame.fileName().isEmpty() ? "line " : frame.fileName() + ":") + frame.lineNumber();
+    }
+
+    /**
+     * The scope of {@code frame} at pause {@code snap}: the pause itself for the innermost
+     * frame, otherwise a snapshot with the frame's context item and locals plus the pause's
+     * globals, whose rows are {@code .}, the frame's locals and the globals (memoized per frame).
+     *
+     * @return {@code null} when the frame carries no captured values
+     */
+    PausedSnapshot frameScope(DebugStackFrame frame, PausedSnapshot snap) {
+        if (snap == null) {
+            return null;
+        }
+        if (!snap.callStack().isEmpty() && snap.callStack().get(0) == frame) {
+            return snap;
+        }
+        if (!frame.hasValues()) {
+            return null;
+        }
+        return frameSnapshots.computeIfAbsent(frame, f -> {
+            List<VariableBinding> rows = new ArrayList<>();
+            if (f.contextXdm() != null) {
+                rows.add(new VariableBinding(".", WatchEvaluator.render(f.contextXdm(), VariableBinding.MAX_VALUE_LENGTH),
+                        WatchEvaluator.describeType(f.contextXdm()), VariableScope.LOCAL));
+            }
+            rows.addAll(f.variables());
+            snap.variables().stream().filter(v -> v.scope() == VariableScope.GLOBAL).forEach(rows::add);
+            return new PausedSnapshot(f.systemId(), f.lineNumber(), snap.callStack(), rows, "",
+                    f.contextXdm(), f.localVariables(), snap.globalVariables(), -1, -1);
+        });
+    }
+
+    /**
+     * Switches the Variables table and the watches to {@code frame} of the current pause:
+     * the innermost frame shows the pause as before; an outer frame shows its context item,
+     * its own locals and the globals under a banner naming the frame.
+     */
+    private void showFrame(DebugStackFrame frame) {
+        PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+        if (snap == null || frame == null) {
+            return;
+        }
+        PausedSnapshot frameScope = frameScope(frame, snap);
+        int index = snap.callStack().indexOf(frame);
+        if (frameScope == snap) {
+            scope = snap;
+            variablesView.setFrameInfo(null);
+            variablesView.setVariables(snap.variables());
+            watchView.evaluateAll(snap);
+            return;
+        }
+        String banner = "Frame " + (index + 1) + " of " + snap.callStack().size() + ":  "
+                + frame.description() + "  ·  " + where(frame);
+        variablesView.setFrameInfo(banner);
+        if (frameScope == null) {
+            scope = null;
+            variablesView.setVariables(List.of());
+            variablesView.setPlaceholderText("No variables were captured for this frame "
+                    + "(only the innermost frames carry values).");
+            watchView.markUnavailable("<no values for this frame>");
+            return;
+        }
+        scope = frameScope;
+        variablesView.setVariables(frameScope.variables());
+        watchView.evaluateAll(frameScope);
+    }
+
+    /** The scope for opening values: the selected frame's, or the pause's. */
+    private PausedSnapshot currentScope() {
+        return scope != null ? scope : controller.getSession().getPausedSnapshot();
     }
 
     private static XdmValue byDisplayName(Map<QName, XdmValue> variables, String display) {
@@ -398,7 +483,7 @@ public final class XsltDebugPane extends VBox {
      * off the FX thread and hands the result to {@code then} on the FX thread.
      */
     private void resolveWatch(WatchView.WatchRow row, Consumer<ValueSource> then) {
-        PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+        PausedSnapshot snap = currentScope();
         WatchEvaluator evaluator = snap == null ? null : controller.getWatchEvaluator();
         if (evaluator == null) {
             then.accept(new ValueSource(row.getExpression(), "", "WATCH", null, row.getValue(), snap));

@@ -298,4 +298,73 @@ class XsltDebugPaneTest {
         assertFalse(none.hasValue(), "a frame without captured values falls back to text");
         assertTrue(none.fallbackText().startsWith("apply-templates"), none.fallbackText());
     }
+
+    @Test
+    void variablesFollowTheSelectedFrame() throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\">\n"                                                            // 2
+                + "    <xsl:variable name=\"outer\" select=\"count(//item) * 10\"/>\n"                       // 3
+                + "    <out total=\"{$outer}\"><xsl:apply-templates select=\"//item\"/>"
+                + "<xsl:value-of select=\"$outer + 1\"/></out>\n"                                            // 4
+                + "  </xsl:template>\n"                                                                        // 5
+                + "  <xsl:template match=\"item\">\n"                                                         // 6
+                + "    <xsl:variable name=\"inner\" select=\"concat('item-', @n)\"/>\n"                    // 7
+                + "    <x><xsl:value-of select=\"$inner\"/><xsl:value-of select=\"$inner\"/></x>\n"       // 8
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> new XsltDebugPane(controller));
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.getWatchView().addWatch("$outer"));
+        controller.getSession().addBreakpoint(new Breakpoint("", 8, true));
+        controller.setPauseOnEntry(false);
+        controller.start(xml, xslt, Map.of(), OutputFormat.XML);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> controller.getSession().getState() == DebugSession.State.PAUSED);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getVariablesView().getRowCount() > 0);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        java.util.List<String> topNames = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> names(pane));
+        assertTrue(topNames.contains("$inner"), "the innermost frame shows its locals: " + topNames);
+        assertFalse(topNames.contains("$outer"), topNames.toString());
+        assertNull(pane.getVariablesView().getFrameInfo(), "no banner for the innermost frame");
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getWatchView().getValueAt(0).startsWith("ERROR"));
+
+        PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+        int outerIndex = -1;
+        for (int i = 0; i < snap.callStack().size(); i++) {
+            if (snap.callStack().get(i).localVariables().containsKey(new net.sf.saxon.s9api.QName("outer"))) {
+                outerIndex = i;
+                break;
+            }
+        }
+        assertTrue(outerIndex > 0, "an outer frame carries $outer: " + snap.callStack());
+        final int idx = outerIndex;
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.getCallStackView().selectFrame(idx));
+        java.util.List<String> outerNames = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> names(pane));
+        assertTrue(outerNames.contains("$outer"), "the selected frame's locals: " + outerNames);
+        assertFalse(outerNames.contains("$inner"), outerNames.toString());
+        assertEquals(".", outerNames.get(0), "its context item comes first");
+        assertTrue(pane.getVariablesView().getFrameInfo().startsWith("Frame " + (idx + 1) + " of "),
+                pane.getVariablesView().getFrameInfo());
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "20".equals(pane.getWatchView().getValueAt(0)));
+
+        ValueSource outerVar = XsltDebugPane.resolveVariable(new org.fxt.freexmltoolkit.debugger.VariableBinding(
+                "$outer", "20", "xs:integer", org.fxt.freexmltoolkit.debugger.VariableScope.LOCAL),
+                pane.frameScope(snap.callStack().get(idx), snap));
+        assertEquals("20", outerVar.value().toString(), "values open in the selected frame's scope");
+
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.getCallStackView().selectFrame(0));
+        assertNull(pane.getVariablesView().getFrameInfo(), "back on the innermost frame");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> names(pane)).contains("$inner"));
+        controller.stop();
+    }
+
+    private static java.util.List<String> names(XsltDebugPane pane) {
+        java.util.List<String> names = new java.util.ArrayList<>();
+        for (int i = 0; i < pane.getVariablesView().getRowCount(); i++) {
+            names.add(pane.getVariablesView().getNameAt(i));
+        }
+        return names;
+    }
 }

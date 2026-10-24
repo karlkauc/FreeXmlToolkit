@@ -401,6 +401,17 @@ Messages is highlighted when output arrives while another tab of its group is in
 **failed run brings Messages to the front** so the error is readable at once. In Watch and
 Breakpoints the **Delete** key removes the selected row.
 
+#### Inspecting an Outer Frame
+
+At every pause the innermost frame is selected in **Call Stack**, and **Variables** shows the
+pause as described above. **Select another frame** to see the state of a calling template or
+function: Variables then lists **that frame's context item (`.`), its own local variables and
+the globals**, under a banner such as *Frame 3 of 5: template match="/" · main.xsl:4*, and the
+**Watch** expressions are re-evaluated in that frame (its context item and variables). Opening a
+value, Copy Value and the value window's XPath use the selected frame as well. Select the top
+frame to return to the pause. `position()` / `last()` are shown for the innermost frame only.
+The 32 innermost frames carry values; a deeper frame shows an empty table with a note.
+
 #### Viewing a Value in Full
 
 The Value column of **Variables** and **Watch** shows only the start of a value (a node can be
@@ -430,7 +441,7 @@ right-click → **Open Value…** - to open it in its own **value window**:
 |-------|-------|
 | **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full |
 | **Watch** | Your XPath expressions, evaluated **against the paused context item** with all variables in scope: `count(item)`, `$total`, `string(@id)`, `position()`; the stylesheet's namespace prefixes are available. Type an expression into the field above the table and press **Add**; **Remove** (or the Delete key) drops the selected one. Re-evaluated at every pause; errors are shown in the row. Click a value to open it in full |
-| **Call Stack** | Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. **Enter** or **Open Value…** opens the frame's context item and variables |
+| **Call Stack** | Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. **Selecting a frame switches Variables and Watch to that frame** (see below). **Enter** or **Open Value…** opens the frame's context item and variables |
 | **Messages** | `xsl:message` output and Saxon warnings **live, as they happen**, with their location; double-click jumps to the line. A failed run shows its error here too |
 | **Breakpoints** | All breakpoints of the session with **Remove** / **Clear all** above the list, see above |
 

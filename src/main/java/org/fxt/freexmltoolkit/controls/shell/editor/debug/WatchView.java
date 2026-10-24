@@ -161,6 +161,16 @@ public class WatchView extends VBox {
         });
     }
 
+    /** Marks every watch with {@code text} (e.g. a selected frame without captured values). */
+    public void markUnavailable(String text) {
+        this.lastSnapshot = null;
+        ++generation;
+        for (WatchRow row : table.getItems()) {
+            row.value = text;
+        }
+        table.refresh();
+    }
+
     public int getRowCount() {
         return table.getItems().size();
     }

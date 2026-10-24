@@ -17,7 +17,8 @@ import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
  * shown in full; the instructions nested inside them are dimmed. Double-clicking a frame
  * jumps the editor to its module and line; Enter or the context menu's Open Value… asks the host
  * to open the frame's context item and variables in the value viewer ({@link #setOnOpenValue}).
- * Shown as the "Call Stack" tab of the DEBUG pane.
+ * Selecting a frame switches the Variables table and the watches to that frame
+ * ({@link #setOnFrameSelected}). Shown as the "Call Stack" tab of the DEBUG pane.
  */
 public class CallStackView extends VBox {
 
@@ -26,6 +27,7 @@ public class CallStackView extends VBox {
     private Consumer<DebugStackFrame> onJumpToFrame = frame -> { };
     private Consumer<DebugStackFrame> onOpenValue = frame -> { };
     private Consumer<DebugStackFrame> onCopyValue = frame -> { };
+    private Consumer<DebugStackFrame> onFrameSelected = frame -> { };
 
     public CallStackView() {
         getStyleClass().add("fxt-debug-panel");
@@ -55,6 +57,11 @@ public class CallStackView extends VBox {
                     onJumpToLine.accept(f.lineNumber());
                     onJumpToFrame.accept(f);
                 }
+            }
+        });
+        list.getSelectionModel().selectedItemProperty().addListener((obs, old, frame) -> {
+            if (frame != null) {
+                onFrameSelected.accept(frame);
             }
         });
         list.setOnKeyPressed(e -> {
@@ -87,12 +94,28 @@ public class CallStackView extends VBox {
         onOpenValue.accept(list.getItems().get(index));
     }
 
+    /** Shows the frames of a pause and selects the innermost one (which fires the selection handler). */
     public void setFrames(List<DebugStackFrame> frames) {
+        list.getSelectionModel().clearSelection();
         list.getItems().setAll(frames == null ? List.of() : frames);
+        if (!list.getItems().isEmpty()) {
+            list.getSelectionModel().select(0);
+        }
     }
 
     public void clear() {
+        list.getSelectionModel().clearSelection();
         list.getItems().clear();
+    }
+
+    /** Invoked whenever a frame is selected (the Variables table follows the selected frame). */
+    public void setOnFrameSelected(Consumer<DebugStackFrame> handler) {
+        this.onFrameSelected = handler == null ? frame -> { } : handler;
+    }
+
+    /** Selects frame {@code index} (tests, keyboard flows). */
+    public void selectFrame(int index) {
+        list.getSelectionModel().select(index);
     }
 
     public int getRowCount() {

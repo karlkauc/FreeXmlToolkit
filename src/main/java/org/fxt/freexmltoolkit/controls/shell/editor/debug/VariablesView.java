@@ -21,6 +21,9 @@ import org.fxt.freexmltoolkit.debugger.VariableBinding;
 public class VariablesView extends VBox {
 
     private final TableView<VariableBinding> table = new TableView<>();
+    /** Names the selected outer call stack frame; hidden while the innermost frame is shown. */
+    private final Label frameInfo = new Label();
+    private final Label placeholder = new Label("Not paused.");
     private Consumer<VariableBinding> onOpenValue = b -> { };
     private Consumer<VariableBinding> onCopyValue = b -> { };
 
@@ -33,7 +36,11 @@ public class VariablesView extends VBox {
         table.getColumns().add(DebugTableColumns.col("Type", b -> b.type(), 100));
         table.getColumns().add(DebugTableColumns.col("Scope", b -> b.scope().name(), 70));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(new Label("Not paused."));
+        table.setPlaceholder(placeholder);
+        frameInfo.getStyleClass().add("fxt-debug-frame-info");
+        frameInfo.setMaxWidth(Double.MAX_VALUE);
+        frameInfo.setVisible(false);
+        frameInfo.setManaged(false);
         table.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 VariableBinding b = table.getSelectionModel().getSelectedItem();
@@ -48,7 +55,7 @@ public class VariablesView extends VBox {
                 b -> onCopyValue.accept(b));
         table.setContextMenu(menu);
         VBox.setVgrow(table, Priority.ALWAYS);
-        getChildren().add(table);
+        getChildren().addAll(frameInfo, table);
     }
 
     public void setVariables(List<VariableBinding> variables) {
@@ -57,6 +64,34 @@ public class VariablesView extends VBox {
 
     public void clear() {
         table.getItems().clear();
+        placeholder.setText("Not paused.");
+        setFrameInfo(null);
+    }
+
+    /**
+     * Names the call stack frame whose variables are shown; {@code null} hides the banner
+     * (the innermost frame, i.e. the pause itself).
+     */
+    public void setFrameInfo(String text) {
+        boolean show = text != null && !text.isBlank();
+        frameInfo.setText(show ? text : "");
+        frameInfo.setVisible(show);
+        frameInfo.setManaged(show);
+    }
+
+    /** @return the frame banner text, or {@code null} while hidden. */
+    public String getFrameInfo() {
+        return frameInfo.isVisible() ? frameInfo.getText() : null;
+    }
+
+    /** Text shown when the table has no rows. */
+    public void setPlaceholderText(String text) {
+        placeholder.setText(text);
+    }
+
+    /** @return the name of the row at {@code index} (tests). */
+    public String getNameAt(int index) {
+        return table.getItems().get(index).name();
     }
 
     public int getRowCount() {
