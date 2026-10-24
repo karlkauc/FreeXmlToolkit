@@ -402,6 +402,24 @@ in *Breakpoint Properties*:
 - Condition and hit count apply: the message is written at the hits that pass both.
 - In the gutter a logpoint is a **diamond** - blue when it only logs, red when it also pauses.
 
+#### Template, Function and Mode Breakpoints
+
+To stop whenever a component runs - wherever it is defined, also in included modules - use
+**Template…** in the Breakpoints panel. Choose what to break on and its name (the dialog
+suggests the names declared in the stylesheet and its modules):
+
+| Break on | Pauses when | Example |
+|----------|-------------|---------|
+| **Template rule (match)** | a template with that match pattern is entered | `item`, `order/line[@qty]` |
+| **Named template** | the named template is called | `footer` |
+| **Function** | the function is called | `f:total` or just `total` (any prefix) |
+| **Any template in mode** | a template runs in that mode | `summary` |
+
+Patterns compare without spaces. These breakpoints are listed under *Templates & functions*
+below the line breakpoints (checkbox to disable, **Delete** to remove), are saved with the main
+stylesheet, pause even when the template has no line breakpoint, and are silenced by **Mute**.
+The status names what was entered (*· template match="item"*).
+
 #### Break on Errors and Messages
 
 The Breakpoints panel's **Break on ▾** menu pauses the run independent of line breakpoints:

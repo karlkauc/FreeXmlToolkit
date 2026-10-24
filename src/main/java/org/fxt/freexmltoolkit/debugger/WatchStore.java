@@ -71,4 +71,55 @@ public final class WatchStore {
         }
         return result;
     }
+
+    // ----- symbol breakpoints (stored the same way, per main stylesheet) ----------------------
+
+    static final String SYMBOL_KEY_PREFIX = "debug.symbolBreakpoints.";
+
+    /** @return the template / function / mode breakpoints stored for {@code stylesheetPath}. */
+    public static List<SymbolBreakpoint> loadSymbols(String stylesheetPath) {
+        PropertiesService service = BreakpointStore.properties();
+        return service == null ? List.of() : parseSymbols(service.get(SYMBOL_KEY_PREFIX
+                + BreakpointStore.pathHash(stylesheetPath)));
+    }
+
+    /** Stores the template / function / mode breakpoints for {@code stylesheetPath}. */
+    public static void saveSymbols(String stylesheetPath, Collection<SymbolBreakpoint> symbols) {
+        PropertiesService service = BreakpointStore.properties();
+        if (service == null) {
+            return;
+        }
+        try {
+            service.set(SYMBOL_KEY_PREFIX + BreakpointStore.pathHash(stylesheetPath), formatSymbols(symbols));
+        } catch (RuntimeException ignored) {
+            // not persisting is not worth an error
+        }
+    }
+
+    static String formatSymbols(Collection<SymbolBreakpoint> symbols) {
+        StringBuilder sb = new StringBuilder();
+        if (symbols != null) {
+            for (SymbolBreakpoint s : symbols) {
+                if (sb.length() > 0) {
+                    sb.append('\n');
+                }
+                sb.append(s.format());
+            }
+        }
+        return sb.toString();
+    }
+
+    static List<SymbolBreakpoint> parseSymbols(String stored) {
+        List<SymbolBreakpoint> result = new ArrayList<>();
+        if (stored == null || stored.isBlank()) {
+            return result;
+        }
+        for (String line : stored.split("\n")) {
+            SymbolBreakpoint s = SymbolBreakpoint.parse(line);
+            if (s != null && !s.name().isEmpty()) {
+                result.add(s);
+            }
+        }
+        return result;
+    }
 }

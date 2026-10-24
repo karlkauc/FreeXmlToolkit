@@ -145,6 +145,9 @@ public class XsltDebugTraceListener implements TraceListener {
                 int depth = callStack.size();
                 final XPathContext ctxRef = context;
                 String messageBreak = messageBreak(traceable, context);
+                if (messageBreak == null) {
+                    messageBreak = symbolBreak(traceable, context);
+                }
                 boolean alive = messageBreak != null
                         ? debugSession.pauseAt(systemId, lineNumber, messageBreak,
                                 () -> buildPausedSnapshot(systemId, lineNumber, ctxRef))
@@ -185,6 +188,35 @@ public class XsltDebugTraceListener implements TraceListener {
             return "xsl:message terminate=\"yes\"";
         }
         return debugSession.isBreakOnMessages() ? "xsl:message" : null;
+    }
+
+    /**
+     * @return the pause note when a template / function / mode breakpoint names the component
+     *         being entered, otherwise {@code null}
+     */
+    private String symbolBreak(Traceable traceable, XPathContext context) {
+        String match = null;
+        String template = null;
+        String function = null;
+        if (traceable instanceof TemplateRule rule) {
+            match = rule.getMatchPattern() == null ? "*" : rule.getMatchPattern().toShortString();
+        } else if (traceable instanceof NamedTemplate named) {
+            template = localName(named.getTemplateName());
+        } else if (traceable instanceof UserFunction fn) {
+            function = localName(fn.getFunctionName());
+        } else {
+            return null;
+        }
+        String mode = null;
+        try {
+            var current = context == null ? null : context.getCurrentMode();
+            if (current != null && current.getActor() != null && current.getActor().getModeName() != null) {
+                mode = current.getActor().getModeName().getDisplayName();
+            }
+        } catch (RuntimeException e) {
+            logger.debug("Could not read the current mode: {}", e.getMessage());
+        }
+        return debugSession.symbolBreak(match, template, function, mode);
     }
 
     /**

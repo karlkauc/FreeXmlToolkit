@@ -266,4 +266,32 @@ class DebugPanelsTest {
             props.set(BreakpointsView.BREAK_ON_MESSAGES_KEY, "");
         }
     }
+
+    @Test
+    void templateBreakpointsAreAddedListedDisabledAndDeleted() {
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("a.xsl", 3, true));
+        AtomicInteger changed = new AtomicInteger();
+        Object[] r = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            BreakpointsView view = new BreakpointsView(session);
+            view.setOnChanged(changed::incrementAndGet);
+            view.setStylesheetSupplier(() -> "<xsl:template match='item'/>");
+            java.util.concurrent.atomic.AtomicReference<java.util.Map<org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind, List<String>>> offered =
+                    new java.util.concurrent.atomic.AtomicReference<>();
+            view.setSymbolPrompt((owner, suggestions) -> {
+                offered.set(suggestions);
+                return java.util.Optional.of(new org.fxt.freexmltoolkit.debugger.SymbolBreakpoint(
+                        org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind.TEMPLATE_MATCH, "item", true));
+            });
+            view.addSymbolBreakpoint();
+            int total = view.getTotalCount();
+            List<org.fxt.freexmltoolkit.debugger.SymbolBreakpoint> listed = view.getSymbolItems();
+            return new Object[]{offered.get().get(org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind.TEMPLATE_MATCH), total, listed};
+        });
+        assertEquals(List.of("item"), r[0], "suggested from the stylesheet");
+        assertEquals(2, r[1], "the badge counts both kinds");
+        assertEquals(1, ((List<?>) r[2]).size());
+        assertEquals(1, session.getSymbolBreakpoints().size());
+        assertEquals(1, changed.get(), "persisted through the host");
+    }
 }

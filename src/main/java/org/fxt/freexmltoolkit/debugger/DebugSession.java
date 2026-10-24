@@ -66,6 +66,9 @@ public class DebugSession implements BreakpointTarget {
     private volatile LogFormatter logFormatter;
     private volatile Consumer<LogEvent> logSink;
 
+    /** Template / function / mode breakpoints (any location); silenced by Mute. */
+    private final Set<SymbolBreakpoint> symbolBreakpoints = Collections.synchronizedSet(new LinkedHashSet<>());
+
     /** "Break on" options, independent of line breakpoints (but silenced by Mute). */
     private volatile boolean breakOnErrors;
     private volatile boolean breakOnTerminate;
@@ -270,6 +273,48 @@ public class DebugSession implements BreakpointTarget {
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    /** Adds (or replaces the one with the same kind and name) a template / function / mode breakpoint. */
+    public void addSymbolBreakpoint(SymbolBreakpoint symbol) {
+        if (symbol == null || symbol.name().isEmpty()) {
+            return;
+        }
+        synchronized (symbolBreakpoints) {
+            symbolBreakpoints.removeIf(s -> s.kind() == symbol.kind() && s.name().equals(symbol.name()));
+            symbolBreakpoints.add(symbol);
+        }
+    }
+
+    public void removeSymbolBreakpoint(SymbolBreakpoint symbol) {
+        synchronized (symbolBreakpoints) {
+            symbolBreakpoints.removeIf(s -> s.kind() == symbol.kind() && s.name().equals(symbol.name()));
+        }
+    }
+
+    /** @return the template / function / mode breakpoints, in the order they were added. */
+    public java.util.List<SymbolBreakpoint> getSymbolBreakpoints() {
+        synchronized (symbolBreakpoints) {
+            return java.util.List.copyOf(symbolBreakpoints);
+        }
+    }
+
+    /**
+     * Saxon thread, on entering a template or function: the pause note when a symbol breakpoint
+     * names it, otherwise {@code null} (also while muted).
+     */
+    public String symbolBreak(String match, String template, String function, String mode) {
+        if (muted || symbolBreakpoints.isEmpty()) {
+            return null;
+        }
+        synchronized (symbolBreakpoints) {
+            for (SymbolBreakpoint s : symbolBreakpoints) {
+                if (s.matches(match, template, function, mode)) {
+                    return s.describe();
+                }
+            }
+        }
+        return null;
     }
 
     /** Sets how logpoint messages are expanded and where they go (the debugger's Messages). */

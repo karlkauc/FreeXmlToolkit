@@ -148,8 +148,8 @@ public final class XsltDebugPane extends VBox {
         decorateWithBadge(messagesTab, messagesBadge);
         decorateWithBadge(breakpointsTab, breakpointsBadge);
         messagesView.setOnCountChanged(this::onMessageCountChanged);
-        breakpointsView.setOnCountChanged(() -> updateBadge(breakpointsBadge, breakpointsView.getRowCount()));
-        updateBadge(breakpointsBadge, breakpointsView.getRowCount());
+        breakpointsView.setOnCountChanged(() -> updateBadge(breakpointsBadge, breakpointsView.getTotalCount()));
+        updateBadge(breakpointsBadge, breakpointsView.getTotalCount());
         rightTabs.getSelectionModel().selectedItemProperty().addListener((obs, old, tab) -> {
             if (tab == messagesTab) {
                 messagesTab.getStyleClass().remove(UPDATED_CLASS);

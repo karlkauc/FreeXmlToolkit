@@ -662,4 +662,46 @@ class XsltDebuggerIntegrationTest {
         assertEquals(java.util.List.of("item 1 of 3", "item 2 of 3", "item 3 of 3"), logged);
         assertEquals(0, pauses.get(), "a logpoint without Pause never stops the run");
     }
+
+    private static java.util.List<String> symbolPauses(SymbolBreakpoint symbol) throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"\n"
+                + "    xmlns:f=\"urn:f\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">\n"
+                + "  <xsl:function name=\"f:twice\" as=\"xs:integer\"><xsl:param name=\"v\"/><xsl:sequence select=\"$v * 2\"/></xsl:function>\n"
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\" mode=\"list\"/>"
+                + "<xsl:call-template name=\"footer\"/></out></xsl:template>\n"
+                + "  <xsl:template match=\"item\" mode=\"list\"><x><xsl:value-of select=\"f:twice(xs:integer(@n))\"/></x></xsl:template>\n"
+                + "  <xsl:template name=\"footer\"><end/></xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addSymbolBreakpoint(symbol);
+        java.util.List<String> notes = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                notes.add(session.getPauseNote());
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        return notes;
+    }
+
+    @Test
+    void symbolBreakpointsPauseOnTemplatesFunctionsAndModes() throws Exception {
+        assertEquals(java.util.List.of("template match=\"item\"", "template match=\"item\""),
+                symbolPauses(new SymbolBreakpoint(SymbolBreakpoint.Kind.TEMPLATE_MATCH, "item", true)),
+                "every entry of the template rule");
+        assertEquals(java.util.List.of("template name=\"footer\""),
+                symbolPauses(new SymbolBreakpoint(SymbolBreakpoint.Kind.TEMPLATE_NAME, "footer", true)));
+        assertEquals(2, symbolPauses(new SymbolBreakpoint(SymbolBreakpoint.Kind.FUNCTION, "twice", true)).size(),
+                "a function name without its prefix");
+        assertEquals(2, symbolPauses(new SymbolBreakpoint(SymbolBreakpoint.Kind.FUNCTION, "f:twice", true)).size());
+        assertEquals(java.util.List.of("mode list", "mode list"),
+                symbolPauses(new SymbolBreakpoint(SymbolBreakpoint.Kind.MODE, "list", true)));
+        assertEquals(java.util.List.of(),
+                symbolPauses(new SymbolBreakpoint(SymbolBreakpoint.Kind.TEMPLATE_MATCH, "item", false)), "disabled");
+    }
 }

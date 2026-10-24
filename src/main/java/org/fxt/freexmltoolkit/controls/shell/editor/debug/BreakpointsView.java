@@ -30,6 +30,11 @@ public class BreakpointsView extends VBox {
     private java.util.function.Consumer<Breakpoint> onJumpToBreakpoint = bp -> { };
     private Runnable onChanged = () -> { };
     private Runnable onCountChanged = () -> { };
+    private final ListView<org.fxt.freexmltoolkit.debugger.SymbolBreakpoint> symbolList = new ListView<>();
+    private final Label symbolTitle = new Label("Templates & functions");
+    private java.util.function.Supplier<String> stylesheetText = () -> "";
+    private org.fxt.freexmltoolkit.debugger.ui.SymbolBreakpointDialog.Prompt symbolPrompt =
+            org.fxt.freexmltoolkit.debugger.ui.SymbolBreakpointDialog.DEFAULT;
     private org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.Prompt propertiesPrompt =
             org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.DEFAULT;
 
@@ -113,12 +118,91 @@ public class BreakpointsView extends VBox {
         });
 
         javafx.scene.control.MenuButton breakOn = breakOnMenu();
-        HBox toolbar = new HBox(remove, condition, clear, breakOn);
+        Button symbol = DebugToolbar.action("Template…", "bi-braces-asterisk",
+                "Pause whenever a template rule, named template, function or mode is entered — at any line");
+        symbol.setOnAction(e -> addSymbolBreakpoint());
+        HBox toolbar = new HBox(remove, condition, symbol, clear, breakOn);
         toolbar.getStyleClass().add("fxt-debug-toolbar");
         toolbar.setAlignment(Pos.CENTER_LEFT);
         VBox.setVgrow(list, Priority.ALWAYS);
-        getChildren().addAll(toolbar, list);
+        symbolTitle.getStyleClass().add("fxt-output-status");
+        symbolList.setPrefHeight(90);
+        symbolList.setMinHeight(60);
+        symbolList.setCellFactory(v -> new javafx.scene.control.ListCell<>() {
+            private final javafx.scene.control.CheckBox enabled = new javafx.scene.control.CheckBox();
+
+            {
+                enabled.setOnAction(e -> {
+                    org.fxt.freexmltoolkit.debugger.SymbolBreakpoint s = getItem();
+                    if (s != null) {
+                        session.addSymbolBreakpoint(s.withEnabled(enabled.isSelected()));
+                        refresh();
+                        onChanged.run();
+                    }
+                });
+            }
+
+            @Override
+            protected void updateItem(org.fxt.freexmltoolkit.debugger.SymbolBreakpoint s, boolean empty) {
+                super.updateItem(s, empty);
+                getStyleClass().remove("fxt-bp-disabled");
+                if (empty || s == null) {
+                    setText(null);
+                    setGraphic(null);
+                    return;
+                }
+                enabled.setSelected(s.enabled());
+                setGraphic(enabled);
+                setText(s.describe());
+                if (!s.enabled()) {
+                    getStyleClass().add("fxt-bp-disabled");
+                }
+            }
+        });
+        symbolList.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.DELETE) {
+                org.fxt.freexmltoolkit.debugger.SymbolBreakpoint s = symbolList.getSelectionModel().getSelectedItem();
+                if (s != null) {
+                    session.removeSymbolBreakpoint(s);
+                    refresh();
+                    onChanged.run();
+                }
+                e.consume();
+            }
+        });
+        getChildren().addAll(toolbar, list, symbolTitle, symbolList);
         refresh();
+    }
+
+    /** Asks for a template / function / mode breakpoint and adds it (toolbar Template…). */
+    public void addSymbolBreakpoint() {
+        java.util.Map<org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind, List<String>> suggestions =
+                org.fxt.freexmltoolkit.debugger.StylesheetSymbols.scan(stylesheetText.get());
+        symbolPrompt.ask(getScene() == null ? null : getScene().getWindow(), suggestions).ifPresent(s -> {
+            session.addSymbolBreakpoint(s);
+            refresh();
+            onChanged.run();
+        });
+    }
+
+    /** Supplies the stylesheet text(s) the Template… dialog suggests names from. */
+    public void setStylesheetSupplier(java.util.function.Supplier<String> supplier) {
+        this.stylesheetText = supplier == null ? () -> "" : supplier;
+    }
+
+    /** Replaces the Template… prompt (tests). */
+    public void setSymbolPrompt(org.fxt.freexmltoolkit.debugger.ui.SymbolBreakpointDialog.Prompt prompt) {
+        this.symbolPrompt = prompt == null ? org.fxt.freexmltoolkit.debugger.ui.SymbolBreakpointDialog.DEFAULT : prompt;
+    }
+
+    /** @return the number of line and template / function / mode breakpoints (tab badge). */
+    public int getTotalCount() {
+        return list.getItems().size() + symbolList.getItems().size();
+    }
+
+    /** @return the symbol breakpoints as listed (tests). */
+    public List<org.fxt.freexmltoolkit.debugger.SymbolBreakpoint> getSymbolItems() {
+        return List.copyOf(symbolList.getItems());
     }
 
     /** Preference keys of the "Break on" options (defaults: errors and terminate on). */
@@ -204,6 +288,12 @@ public class BreakpointsView extends VBox {
             }
         }
         list.refresh(); // hit counts changed although the breakpoints are equal
+        symbolList.getItems().setAll(session.getSymbolBreakpoints());
+        boolean symbols = !symbolList.getItems().isEmpty();
+        symbolTitle.setVisible(symbols);
+        symbolTitle.setManaged(symbols);
+        symbolList.setVisible(symbols);
+        symbolList.setManaged(symbols);
         onCountChanged.run();
     }
 

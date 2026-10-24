@@ -3213,7 +3213,9 @@ public class EditorHost extends BorderPane {
         for (String module : resolvedModules) {
             mergeStoredBreakpoints(session, module);
         }
-        controller.setPauseOnEntry(session.getBreakpoints().isEmpty());
+        org.fxt.freexmltoolkit.debugger.WatchStore.loadSymbols(xsltFile.getAbsolutePath())
+                .forEach(session::addSymbolBreakpoint);
+        controller.setPauseOnEntry(session.getBreakpoints().isEmpty() && session.getSymbolBreakpoints().isEmpty());
         if (debugRunToLine > 0) {
             controller.setRunToOnStart(debugRunToPath, debugRunToLine);
             debugRunToLine = 0;
@@ -3222,6 +3224,8 @@ public class EditorHost extends BorderPane {
         Path inputFile = debugInputFile;
         debugInputFile = null;
         var pane = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane(controller);
+        // The Template… dialog suggests the names declared in the stylesheet and its modules.
+        pane.getBreakpointsView().setStylesheetSupplier(() -> stylesheetTexts(xsltFile, resolvedModules));
         // Watches belong to the main stylesheet and come back with its next session.
         String watchKey = xsltFile.getAbsolutePath();
         pane.getWatchView().setWatches(org.fxt.freexmltoolkit.debugger.WatchStore.load(watchKey));
@@ -3619,6 +3623,24 @@ public class EditorHost extends BorderPane {
         files.addAll(debug.modules.keySet());
         org.fxt.freexmltoolkit.debugger.BreakpointStore.saveByFile(
                 debug.controller.getSession().getBreakpoints(), files);
+        org.fxt.freexmltoolkit.debugger.WatchStore.saveSymbols(debug.mainPath,
+                debug.controller.getSession().getSymbolBreakpoints());
+    }
+
+    /** The text of the main stylesheet and its included / imported modules (unreadable ones skipped). */
+    private static String stylesheetTexts(File main, java.util.Set<String> modules) {
+        StringBuilder sb = new StringBuilder();
+        java.util.List<Path> files = new java.util.ArrayList<>();
+        files.add(main.toPath());
+        modules.forEach(m -> files.add(Path.of(m)));
+        for (Path file : files) {
+            try {
+                sb.append(java.nio.file.Files.readString(file, java.nio.charset.StandardCharsets.UTF_8)).append('\n');
+            } catch (IOException | RuntimeException ignored) {
+                // a module that cannot be read contributes no suggestions
+            }
+        }
+        return sb.toString();
     }
 
     /**
