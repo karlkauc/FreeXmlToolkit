@@ -266,4 +266,14 @@ class ShellMenuBarTest {
         onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XSLT));
         assertTrue(runTo.isDisable(), "an unsaved stylesheet cannot be debugged");
     }
+
+    @Test
+    void debugConfigurationAndReRunItems() {
+        var config = item("menu-tools-debug-config");
+        var rerun = item("menu-tools-rerun-debug");
+        assertNotNull(config, "Tools has Debug Configuration…");
+        assertEquals(javafx.scene.input.KeyCombination.valueOf("Shortcut+Shift+F5"), rerun.getAccelerator());
+        assertTrue(config.isDisable(), "only for a saved stylesheet");
+        assertTrue(rerun.isDisable(), "nothing to repeat yet");
+    }
 }

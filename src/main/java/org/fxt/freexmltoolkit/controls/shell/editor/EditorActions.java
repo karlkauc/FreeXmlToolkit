@@ -311,6 +311,15 @@ public final class EditorActions {
             out.showError("Save the stylesheet first — the debugger runs the saved file.");
             return;
         }
+        // A saved debug configuration of this stylesheet decides input, parameters and format.
+        var config = org.fxt.freexmltoolkit.debugger.DebugLaunchConfig.load(doc.getPath().toAbsolutePath().toString());
+        if (config.isPresent()) {
+            String error = editorHost.debugWithConfig(doc.getPath().toFile(), config.get());
+            if (error != null) {
+                out.showError(error);
+            }
+            return;
+        }
         var resolved = editorHost.resolveQueryTarget(doc);
         if (resolved.isEmpty()) {
             out.showError("Open an XML document first, or pick one via the Target dropdown — "

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  Content of the "Debug Configuration" dialog: how the active stylesheet is debugged - input
+  (the Run target or a file), parameters (name=value lines), output format and pause on entry.
+  Remembered per stylesheet. Loaded by DebugConfigurationDialog (FxmlViews.loadContent).
+-->
+<GridPane hgap="10" vgap="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <columnConstraints>
+        <ColumnConstraints minWidth="100"/>
+        <ColumnConstraints hgrow="ALWAYS" minWidth="380"/>
+    </columnConstraints>
+    <fx:define>
+        <ToggleGroup fx:id="inputGroup"/>
+    </fx:define>
+    <children>
+        <Label text="Input" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
+        <VBox spacing="6" GridPane.rowIndex="0" GridPane.columnIndex="1">
+            <children>
+                <RadioButton fx:id="runTargetRadio" id="debug-config-run-target" toggleGroup="$inputGroup" selected="true"
+                             text="Run target (the XML document the Run button uses)"/>
+                <HBox spacing="6">
+                    <children>
+                        <RadioButton fx:id="fileRadio" id="debug-config-file-radio" toggleGroup="$inputGroup" text="File"/>
+                        <TextField fx:id="fileField" id="debug-config-file" HBox.hgrow="ALWAYS" promptText="input XML file"/>
+                        <Button fx:id="browseButton" id="debug-config-browse" text="Browse…" onAction="#onBrowse"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+        <Label text="Parameters" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
+        <TextArea fx:id="paramsArea" id="debug-config-params" prefRowCount="4" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                  promptText="one per line: name=value"/>
+        <Label text="Output" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <ChoiceBox fx:id="formatChoice" id="debug-config-format" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <CheckBox fx:id="pauseBox" id="debug-config-pause" text="Pause on entry, even with breakpoints"
+                  GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Label wrapText="true" opacity="0.7" maxWidth="480" GridPane.rowIndex="4" GridPane.columnIndex="0"
+               GridPane.columnSpan="2"
+               text="Saved per stylesheet: Debug with XSLT (Shift+F5) and Run ▸ Debug Transform on this stylesheet use it. Re-run Last Debug (Ctrl+Shift+F5) repeats the last debug run with the same input, read again."/>
+    </children>
+</GridPane>

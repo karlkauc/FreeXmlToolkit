@@ -351,6 +351,23 @@ not affected. Started from the Transform panel, the input is the panel's **INPUT
 there, otherwise the active document) - exactly as for **Run Transform**; started with
 **Run ▾ → Debug Transform** on an XSLT document, it is the toolbar's **Input** target.
 
+### Debug Configuration
+
+**Tools → Debug Configuration…** (on a saved stylesheet) sets how it is debugged, saved per
+stylesheet:
+
+- **Input** - the *Run target* (the XML document the Run button uses) or a **file**.
+- **Parameters** - one `name=value` per line, passed as stylesheet parameters.
+- **Output** - automatic (from `xsl:output`) or XML / HTML / XHTML / TEXT / JSON.
+- **Pause on entry, even with breakpoints** - stop at the first instruction although
+  breakpoints are set (without breakpoints the run pauses on entry anyway).
+
+**Debug** saves and starts the debugger, **Save** only saves. With a saved configuration,
+**Debug with XSLT** (Shift+F5) and **Run ▾ → Debug Transform** on that stylesheet use it.
+**Tools → Re-run Last Debug** (**Ctrl+Shift+F5**, ⌘⇧F5) repeats the last debug run with the same
+stylesheet, parameters and format, reading its input again (the file, or the open document it
+came from).
+
 ### Setting Breakpoints
 
 - Every **saved** XSLT document has a breakpoint gutter in the editor's left margin, whether or

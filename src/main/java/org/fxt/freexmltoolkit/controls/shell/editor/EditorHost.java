@@ -3215,7 +3215,9 @@ public class EditorHost extends BorderPane {
         }
         org.fxt.freexmltoolkit.debugger.WatchStore.loadSymbols(xsltFile.getAbsolutePath())
                 .forEach(session::addSymbolBreakpoint);
-        controller.setPauseOnEntry(session.getBreakpoints().isEmpty() && session.getSymbolBreakpoints().isEmpty());
+        controller.setPauseOnEntry(debugForcePauseOnEntry
+                || session.getBreakpoints().isEmpty() && session.getSymbolBreakpoints().isEmpty());
+        debugForcePauseOnEntry = false;
         if (debugRunToLine > 0) {
             controller.setRunToOnStart(debugRunToPath, debugRunToLine);
             debugRunToLine = 0;
@@ -3234,6 +3236,8 @@ public class EditorHost extends BorderPane {
         XsltDebugSession debug = new XsltDebugSession(controller, pane, xsltFile, resolvedModules);
         debug.inputFile = inputFile;
         debug.inputDocument = inputFile != null ? documentAt(inputFile) : documentWithText(xml, xsltDoc);
+        lastLaunch = new LastLaunch(xsltFile, inputFile, debug.inputDocument,
+                parameters == null ? java.util.Map.of() : new java.util.LinkedHashMap<>(parameters), format, onFinished);
         activeDebug = debug;
         attachDebugModule(debug, xsltDoc, debug.mainPath);
         for (Tab tab : new java.util.ArrayList<>(tabPane.getTabs())) {
@@ -3579,6 +3583,98 @@ public class EditorHost extends BorderPane {
     public int activeCaretLine() {
         return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
                 ? et.view.getCodeArea().getCurrentParagraph() + 1 : 0;
+    }
+
+    /** How the last debug run was started — for Re-run Last Debug (Ctrl+Shift+F5). */
+    private record LastLaunch(File xsltFile, Path inputFile, OpenDocument inputDocument,
+                              java.util.Map<String, Object> parameters,
+                              org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format,
+                              java.util.function.Consumer<org.fxt.freexmltoolkit.service.XsltTransformationResult> onFinished) { }
+
+    private LastLaunch lastLaunch;
+    /** "Pause on entry" forced by a debug configuration for the next {@link #startXsltDebug}. */
+    private boolean debugForcePauseOnEntry;
+
+    /** @return whether a debug run was started in this app run (Re-run Last Debug applies). */
+    public boolean canRerunLastDebug() {
+        return lastLaunch != null;
+    }
+
+    /**
+     * Re-runs the last debug run: same stylesheet, parameters and format, the input read again
+     * (its file, or the open document it came from).
+     *
+     * @return an error message, or {@code null} when the debugger started
+     */
+    public String rerunLastDebug() {
+        LastLaunch last = lastLaunch;
+        if (last == null) {
+            return "No debug run to repeat yet.";
+        }
+        String xml;
+        if (last.inputFile() != null) {
+            try {
+                xml = java.nio.file.Files.readString(last.inputFile(), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                return "Could not read the input " + last.inputFile() + ": " + e.getMessage();
+            }
+            setDebugInputFile(last.inputFile());
+        } else if (last.inputDocument() != null && getOpenDocuments().contains(last.inputDocument())) {
+            xml = getDocumentText(last.inputDocument()).orElse("");
+        } else {
+            return "The input document of the last debug run is no longer open.";
+        }
+        startXsltDebug(last.xsltFile(), xml, last.parameters(), last.format(), last.onFinished());
+        return null;
+    }
+
+    /**
+     * Starts the debugger for {@code xsltFile} with a debug configuration: its input file — or
+     * the stylesheet's Run target —, parameters, output format (detected from {@code xsl:output}
+     * when automatic) and pause on entry.
+     *
+     * @return an error message, or {@code null} when the debugger started
+     */
+    public String debugWithConfig(File xsltFile, org.fxt.freexmltoolkit.debugger.DebugLaunchConfig config) {
+        String xslt;
+        try {
+            xslt = java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            return "Could not read the stylesheet: " + e.getMessage();
+        }
+        String xml;
+        Path input = null;
+        if (!config.inputPath().isEmpty()) {
+            input = Path.of(config.inputPath());
+            try {
+                xml = java.nio.file.Files.readString(input, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                return "Could not read the input " + input + ": " + e.getMessage();
+            }
+        } else {
+            OpenDocument xsltDoc = documentAt(xsltFile.toPath());
+            var target = xsltDoc == null ? Optional.<ResolvedQueryTarget>empty() : resolveQueryTarget(xsltDoc);
+            if (target.isEmpty()) {
+                return "Open an XML document first, or set an input file in the debug configuration.";
+            }
+            try {
+                xml = target.get().loadXml();
+            } catch (IOException e) {
+                return "Could not read the input: " + e.getMessage();
+            }
+            if (target.get().file() != null) {
+                input = target.get().file().toPath();
+            }
+        }
+        var format = config.outputFormat().isEmpty()
+                ? TransformRunner.detectXsltOutputFormat(xslt)
+                : org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.valueOf(config.outputFormat());
+        if (input != null) {
+            setDebugInputFile(input);
+        }
+        debugForcePauseOnEntry = config.pauseOnEntry();
+        startXsltDebug(xsltFile, xml, new java.util.LinkedHashMap<>(config.parameters()), format);
+        return null;
     }
 
     /** The input file of the next {@link #startXsltDebug} (set by callers whose input is a file). */

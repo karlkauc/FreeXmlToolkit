@@ -103,6 +103,10 @@
                                color="TOOL" onAction="#onTransform"/>
                 <ShellMenuItem id="menu-tools-debug-xslt" text="Debug with XSLT…" iconLiteral="bi-bug"
                                color="TOOL" accelerator="Shift+F5" onAction="#onDebugXslt"/>
+                <ShellMenuItem id="menu-tools-debug-config" text="Debug Configuration…" iconLiteral="bi-sliders2"
+                               color="TOOL" onAction="#onDebugConfiguration"/>
+                <ShellMenuItem id="menu-tools-rerun-debug" text="Re-run Last Debug" iconLiteral="bi-arrow-repeat"
+                               color="TOOL" accelerator="Shortcut+Shift+F5" onAction="#onRerunDebug"/>
                 <ShellMenuItem id="menu-tools-toggle-breakpoint" text="Toggle Breakpoint" iconLiteral="bi-record-circle"
                                color="TOOL" accelerator="F9" onAction="#onToggleBreakpoint"/>
                 <ShellMenuItem id="menu-tools-run-to-cursor" text="Run to Cursor" iconLiteral="bi-skip-forward-fill"

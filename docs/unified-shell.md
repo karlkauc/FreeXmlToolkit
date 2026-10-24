@@ -765,6 +765,7 @@ When the run ends, the status reads *Finished · N ms* and the **result lands in
 panel** (the OUTPUT toggle lights up; DEBUG stays in front so the messages remain readable).
 A failed run shows the error with its location in **Messages**. The debugger runs on its own
 Saxon processor, so a normal **Run Transform** during a paused session is unaffected.
+**Tools → Debug Configuration…** saves per stylesheet the input (Run target or a file), parameters, output format and pause on entry; **Re-run Last Debug** (Ctrl+Shift+F5) repeats the last debug run with its input read again.
 Details and stylesheet tips: [XSLT Developer → Interactive Live Debugger](xslt-developer.md#interactive-live-debugger).
 
 ### Queries (XPath, XQuery, JSONPath)

@@ -95,4 +95,44 @@ class EditorHostDebugInputTest {
         }
         return null;
     }
+
+    @Test
+    void aConfigurationSetsInputParametersAndPauseAndReRunReadsTheInputAgain(@TempDir Path tmp) throws Exception {
+        Path xsl = tmp.resolve("params.xsl");
+        Path in = tmp.resolve("data.xml");
+        Files.writeString(xsl, "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                + "  <xsl:param name=\"who\" select=\"'nobody'\"/>\n"
+                + "  <xsl:template match=\"/\"><out who=\"{$who}\" n=\"{count(//item)}\"/></xsl:template>\n"
+                + "</xsl:stylesheet>\n");
+        Files.writeString(in, "<order><item/></order>");
+        org.fxt.freexmltoolkit.debugger.DebugLaunchConfig config = new org.fxt.freexmltoolkit.debugger.DebugLaunchConfig(
+                in.toString(), Map.of("who", "Karl"), "", false);
+        // Without breakpoints the run pauses on entry as usual; Continue lets it finish.
+        String error = WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.debugWithConfig(xsl.toFile(), config));
+        assertNull(error);
+        pausedSession();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeDebugPane().onContinue());
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS, () -> host.activeDebugPane() != null
+                && host.activeDebugPane().getOutputView().getText().contains("who=\"Karl\""));
+        assertTrue(host.activeDebugPane().getOutputView().getText().contains("n=\"1\""), "the configured input");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, host::canRerunLastDebug));
+
+        // The input changes on disk; Re-run reads it again.
+        Files.writeString(in, "<order><item/><item/><item/></order>");
+        assertNull(WaitForAsyncUtils.waitForAsyncFx(5000, host::rerunLastDebug));
+        pausedSession();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeDebugPane().onContinue());
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS, () -> host.activeDebugPane() != null
+                && host.activeDebugPane().getOutputView().getText().contains("n=\"3\""));
+
+        // "Pause on entry" in the configuration pauses even when a breakpoint is set.
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.endXsltDebug()); // writes the session's breakpoints back first
+        org.fxt.freexmltoolkit.debugger.FileBreakpoints.persistent(xsl).toggleBreakpoint(xsl.toString(), 3);
+        String paused = WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.debugWithConfig(xsl.toFile(),
+                new org.fxt.freexmltoolkit.debugger.DebugLaunchConfig(in.toString(), Map.of(), "", true)));
+        assertNull(paused);
+        DebugSession session = pausedSession();
+        assertEquals(1, session.getBreakpoints().size(), "the breakpoint is there");
+        assertTrue(host.activeDebugPane().isPauseOnEntrySelected(), "and pause on entry is forced on");
+    }
 }

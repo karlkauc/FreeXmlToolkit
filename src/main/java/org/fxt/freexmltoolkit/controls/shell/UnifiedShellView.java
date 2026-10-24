@@ -672,6 +672,13 @@ public class UnifiedShellView extends BorderPane {
             event.consume();
             return;
         }
+        // Ctrl/Cmd+Shift+F5 repeats the last debug run.
+        if (event.getCode() == javafx.scene.input.KeyCode.F5 && event.isShiftDown()
+                && event.isShortcutDown() && !event.isAltDown()) {
+            rerunLastDebug();
+            event.consume();
+            return;
+        }
         // Shift+F5 starts the XSLT debugger (Debug with XSLT…).
         if (event.getCode() == javafx.scene.input.KeyCode.F5 && event.isShiftDown()
                 && !event.isShortcutDown() && !event.isAltDown()) {
@@ -1428,6 +1435,44 @@ public class UnifiedShellView extends BorderPane {
                 editorHost.setDebugRunToOnStart(null, 0);
             }
         }
+    }
+
+    /** Re-run Last Debug (Ctrl/Cmd+Shift+F5): the last debug run again, its input read anew. */
+    public void rerunLastDebug() {
+        String error = editorHost.rerunLastDebug();
+        if (error != null) {
+            editorHost.transformOutputPanel().showError(error);
+        }
+    }
+
+    /**
+     * Tools → Debug Configuration…: edits how the active (saved) stylesheet is debugged —
+     * input, parameters, output format, pause on entry — saves it per stylesheet and, on
+     * Debug, starts the debugger with it.
+     */
+    public void editDebugConfiguration() {
+        var doc = editorHost.getActiveDocument().orElse(null);
+        if (doc == null || doc.getPath() == null
+                || doc.getFileType() != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSLT) {
+            return;
+        }
+        String key = doc.getPath().toAbsolutePath().toString();
+        var config = org.fxt.freexmltoolkit.debugger.DebugLaunchConfig.load(key)
+                .orElse(org.fxt.freexmltoolkit.debugger.DebugLaunchConfig.defaults());
+        var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.debug.DebugConfigurationDialog(
+                doc.getDisplayName(), config);
+        if (getScene() != null) {
+            dialog.initOwner(getScene().getWindow());
+        }
+        dialog.ask().ifPresent(result -> {
+            result.config().save(key);
+            if (result.debug()) {
+                String error = editorHost.debugWithConfig(doc.getPath().toFile(), result.config());
+                if (error != null) {
+                    editorHost.transformOutputPanel().showError(error);
+                }
+            }
+        });
     }
 
     @FXML public void onDebugXslt() {

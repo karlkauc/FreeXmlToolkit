@@ -54,6 +54,7 @@ public final class KeyboardShortcutsDialog {
                 new String[]{"F6", "While the debugger runs: Pause (break at the next instruction)"},
                 new String[]{"Alt+F8", "While paused in the debugger: Evaluate an XPath in the selected frame"},
                 new String[]{mod("F10"), "Run to Cursor (starts the debugger to the caret line when none runs)"},
+                new String[]{mod("Shift+F5"), "Re-run the last XSLT debug run"},
                 new String[]{mod("D"), "Add to Favorites"},
                 new String[]{mod("Shift+D"), "Toggle Favorites Panel"},
                 new String[]{mod("L"), "Toggle Side Panel"},

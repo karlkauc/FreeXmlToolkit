@@ -214,8 +214,10 @@ public final class ShellMenuBar extends MenuBar {
                 item.setDisable(document.map(OpenDocument::getPath).isEmpty());
             } else if ("menu-tools-toggle-breakpoint".equals(id)) {
                 item.setDisable(!editorHost.canToggleBreakpoint()); // a saved XSLT document
-            } else if ("menu-tools-run-to-cursor".equals(id)) {
-                item.setDisable(!editorHost.canRunToCursor());
+            } else if ("menu-tools-run-to-cursor".equals(id) || "menu-tools-debug-config".equals(id)) {
+                item.setDisable(!editorHost.canRunToCursor()); // a saved XSLT document
+            } else if ("menu-tools-rerun-debug".equals(id)) {
+                item.setDisable(!editorHost.canRerunLastDebug());
             }
         }
         // Run only for runnable documents, exactly like the toolbar's Run button.
@@ -350,6 +352,8 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onDebugXslt() { run("debug_xslt", shell::onDebugXslt); }
     @FXML public void onToggleBreakpoint() { run("toggle_breakpoint", editorHost::toggleBreakpointAtCaret); }
     @FXML public void onRunToCursor() { run("run_to_cursor", shell::runToCursor); }
+    @FXML public void onDebugConfiguration() { run("debug_configuration", shell::editDebugConfiguration); }
+    @FXML public void onRerunDebug() { run("rerun_debug", shell::rerunLastDebug); }
     @FXML public void onSetSchema() { run("set_schema", shell::onSetSchema); }
     @FXML public void onGenerateDocs() { run("generate_docs", shell::onGenerateDocs); }
     @FXML public void onTypeEditor() { run("type_editor", shell::onTypeEditor); }
