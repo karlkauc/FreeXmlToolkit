@@ -498,6 +498,10 @@ every item, `$total > 1000`, or `position() = last()`.
   prefixes. A non-empty node sequence is true, an empty one false. `position()` and `last()`
   refer to the item being processed (*the 2nd of 5*), the same as in watches; inside a predicate
   (`item[position() = 1]`) or a path step they keep their usual meaning.
+- The dialog **checks the condition and the log message while you type**: a syntax error
+  (`$total >`, an unclosed `{` in a log message) appears in red below the fields and **OK**
+  stays closed until it is fixed. Variables, the stylesheet's namespace prefixes and its own
+  functions are not checked there - they are only known at the line during the run.
 - When the run pauses because of a condition, the status says so (*· condition: @id = '4711'*).
   If the condition **cannot be evaluated** (a typo, an undeclared variable), the run **pauses
   anyway** and the status shows the error in red - a broken condition never silently skips the

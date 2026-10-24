@@ -67,4 +67,30 @@ class BreakpointPropertiesDialogTest {
         assertTrue(applied.isLogpoint());
         assertFalse(applied.suspend());
     }
+
+    @Test
+    void aBrokenConditionOrMessageIsShownAndKeepsTheDialogOpen() {
+        String[] out = org.testfx.util.WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            BreakpointPropertiesDialog dialog = new BreakpointPropertiesDialog("a.xsl, line 3",
+                    new BreakpointPropertiesDialog.Settings("", null), -1);
+            String clean = dialog.errorText();
+            dialog.setControls("$x =", org.fxt.freexmltoolkit.debugger.HitCondition.Mode.ALWAYS, 1);
+            String condition = dialog.errorText();
+            javafx.event.ActionEvent click = new javafx.event.ActionEvent();
+            var ok = (javafx.scene.control.Button) dialog.getDialogPane().lookupButton(javafx.scene.control.ButtonType.OK);
+            boolean[] passed = {false};
+            ok.addEventHandler(javafx.event.ActionEvent.ACTION, e -> passed[0] = true);
+            ok.fireEvent(click);
+            dialog.setControls("@n = 1", org.fxt.freexmltoolkit.debugger.HitCondition.Mode.ALWAYS, 1);
+            dialog.setLog("item {@n", true);
+            String log = dialog.errorText();
+            dialog.setLog("item {@n}", true);
+            return new String[]{clean, condition, Boolean.toString(passed[0]), log, dialog.errorText()};
+        });
+        assertEquals("", out[0]);
+        assertTrue(out[1].startsWith("Condition: XPST0003"), out[1]);
+        assertEquals("false", out[2], "OK is blocked while the condition does not compile");
+        assertTrue(out[3].startsWith("Log message:"), out[3]);
+        assertEquals("", out[4], "fixed: the message goes away");
+    }
 }

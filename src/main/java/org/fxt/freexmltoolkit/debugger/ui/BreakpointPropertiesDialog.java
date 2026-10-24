@@ -80,6 +80,7 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
     @FXML private Label hitsLabel;
     @FXML private TextField logField;
     @FXML private javafx.scene.control.CheckBox suspendBox;
+    @FXML private Label errorLabel;
 
     /**
      * @param location e.g. "main.xsl, line 12"
@@ -115,7 +116,44 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
         hitsLabel.setText(hits < 0 ? "Hits are counted while a debug run is active."
                 : "Hits in the current run: " + hits);
 
+        // Static check while typing; OK stays closed while the condition or message cannot compile.
+        conditionField.textProperty().addListener((obs, o, n) -> validate());
+        logField.textProperty().addListener((obs, o, n) -> validate());
+        validate();
+        javafx.scene.Node ok = getDialogPane().lookupButton(ButtonType.OK);
+        ok.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {
+            if (validate() != null) {
+                e.consume();
+            }
+        });
+
         setResultConverter(button -> button == ButtonType.OK ? currentSettings() : null);
+    }
+
+    /**
+     * Checks the condition and the log message and shows the first problem below the fields.
+     *
+     * @return the problem, or {@code null} when both compile
+     */
+    String validate() {
+        String error = org.fxt.freexmltoolkit.debugger.ExpressionCheck.checkXPath(conditionField.getText());
+        if (error != null) {
+            error = "Condition: " + error;
+        } else {
+            error = org.fxt.freexmltoolkit.debugger.ExpressionCheck.checkLogMessage(logField.getText());
+            if (error != null) {
+                error = "Log message: " + error;
+            }
+        }
+        errorLabel.setText(error == null ? "" : error);
+        errorLabel.setVisible(error != null);
+        errorLabel.setManaged(error != null);
+        return error;
+    }
+
+    /** The shown error text (tests). */
+    String errorText() {
+        return errorLabel.isVisible() ? errorLabel.getText() : "";
     }
 
     /** @return the settings reflecting the current control state. */
