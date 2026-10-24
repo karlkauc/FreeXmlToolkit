@@ -1864,6 +1864,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#from-the-output-to-the-stylesheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From the Output to the Stylesheet
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3073,6 +3084,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#from-the-output-to-the-stylesheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From the Output to the Stylesheet
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3944,7 +3966,8 @@ The paused line is <strong>tinted</strong> in the editor and a green arrow marks
 breakpoint shows a yellow arrow over the red circle.</p>
 <p><strong>How much slower is a debug run?</strong> The debugger watches every instruction, so a debug run
 takes about <strong>1.5 to 2 times</strong> as long as a normal transformation, with or without breakpoints.
-Saxon's own trace instrumentation is almost free; the time goes into following the call stack.
+Saxon's own trace instrumentation is almost free; the time goes into following the call stack
+and recording which instruction wrote which output.
 Breakpoints on lines that never run cost nothing extra. Measured with <code>DebuggerPerfBenchmark</code>
 (median of 15 runs, stylesheet compiled in each run):</p>
 <table>
@@ -3965,9 +3988,9 @@ Breakpoints on lines that never run cost nothing extra. Measured with <code>Debu
 </tr>
 <tr>
 <td>100,000 items, one template</td>
-<td>150 ms</td>
-<td>246 ms</td>
-<td>1.6</td>
+<td>153 ms</td>
+<td>278 ms</td>
+<td>1.8</td>
 </tr>
 <tr>
 <td>1,000 items, 12-level recursion each</td>
@@ -3985,8 +4008,8 @@ the run, the breakpoint gutter shows a <strong>green bar</strong> next to each l
 how often) and a <strong>red bar</strong> on the lines of every template or function that <strong>never ran</strong> for
 this input - dead code, or a hint that the test input lacks a case. <strong>Messages</strong> lists those
 templates and functions (<em>Never ran: template match="…"</em>); double-click one to jump to it.
-The markers stay until the next run. Recording costs next to nothing (a 100,000-item run: 254
-ms without, 256 ms with coverage).</p>
+The markers stay until the next run. Recording costs next to nothing (a 100,000-item run: 278
+ms without, 282 ms with coverage).</p>
 <h3 id="inspecting-state">Inspecting State<a class="headerlink" href="#inspecting-state" title="Permanent link">&para;</a></h3>
 <p><img alt="The DEBUG dock paused at a conditional breakpoint: values next to the declarations, Variables with position() and last(), the call stack, Messages and Breakpoints" src="../img/xslt-debugger-paused.png" /></p>
 <p><strong>The context node in the input.</strong> At every pause the line of the current context node
@@ -4122,6 +4145,13 @@ right-click → <strong>Open Value…</strong> - to open it in its own <strong>v
 </tr>
 </tbody>
 </table>
+<h4 id="from-the-output-to-the-stylesheet">From the Output to the Stylesheet<a class="headerlink" href="#from-the-output-to-the-stylesheet" title="Permanent link">&para;</a></h4>
+<p><strong>Double-click</strong> a line in the DEBUG dock's <strong>Output</strong> tab - while paused or after the run -
+to open the instruction that wrote it: the <code>xsl:value-of</code>, <code>xsl:text</code>, literal element or
+copy that produced that text. The jump uses the debugged run's own record of who wrote what,
+so it works for the principal output; secondary <code>xsl:result-document</code> outputs are not
+mapped. The serializer writes an element's start tag only together with the next thing it
+writes, so a click on a start tag can land on the first instruction inside that element.</p>
 <h3 id="the-result">The Result<a class="headerlink" href="#the-result" title="Permanent link">&para;</a></h3>
 <p>When the run ends the status reads <em>Finished · N ms · M chars → OUTPUT</em> and the result is shown
 in the <strong>OUTPUT</strong> panel. DEBUG stays in front so Messages remain readable - the OUTPUT toggle
