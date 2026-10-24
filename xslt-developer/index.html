@@ -3789,7 +3789,7 @@ right-click → <strong>Open Value…</strong> - to open it in its own <strong>v
 <tbody>
 <tr>
 <td><strong>Variables</strong></td>
-<td>The context item (<code>.</code>), <code>position()</code> / <code>last()</code>, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full</td>
+<td>The context item (<code>.</code>), <code>position()</code> / <code>last()</code>, the <strong>XSLT context</strong> (scope XSLT: the current <code>mode</code>; inside <code>xsl:for-each-group</code> <code>current-grouping-key()</code> and <code>current-group()</code>; inside <code>xsl:matching-substring</code> <code>regex-group(0…n)</code>; the <strong>tunnel parameters</strong> passed down, marked <em>(tunnel)</em>; <code>accumulator-before('…')</code> of every accumulator that applies to the context node's document), every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full</td>
 </tr>
 <tr>
 <td><strong>Watch</strong></td>
@@ -3797,7 +3797,7 @@ right-click → <strong>Open Value…</strong> - to open it in its own <strong>v
 </tr>
 <tr>
 <td><strong>Call Stack</strong></td>
-<td>Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. <strong>Selecting a frame switches Variables and Watch to that frame</strong> (see below). <strong>Enter</strong> or <strong>Open Value…</strong> opens the frame's context item and variables</td>
+<td>Template and function frames, innermost first (a template rule running in a named mode shows <code>mode="…"</code>), each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. <strong>Selecting a frame switches Variables and Watch to that frame</strong> (see below). <strong>Enter</strong> or <strong>Open Value…</strong> opens the frame's context item and variables</td>
 </tr>
 <tr>
 <td><strong>Messages</strong></td>
