@@ -42,7 +42,7 @@
                 <Button fx:id="stepIntoButton" id="debug-step-into" text="Step Into"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStepInto">
                     <graphic><IconifyIcon iconLiteral="bi-box-arrow-in-down-right" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Step into the current instruction (F7)"/></tooltip>
+                    <tooltip><Tooltip text="Step into the current line (F7). Right-click or Shift+F7: choose the call to step into"/></tooltip>
                 </Button>
                 <Button fx:id="stepOverButton" id="debug-step-over" text="Step Over"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStepOver">

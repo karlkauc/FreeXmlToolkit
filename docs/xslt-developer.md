@@ -539,6 +539,7 @@ icons - hover one for its name and key:
 | **Run to Cursor** | Ctrl+F10 (⌘F10) | Run to the caret line of the stylesheet (Tools → Run to Cursor, or right-click a gutter slot → **Run to Here**). A one-shot stop: breakpoints on the way still pause and cancel it; it works while breakpoints are muted. Without a running session it **starts the debugger** (like Run ▾ → Debug Transform) and runs to that line instead of pausing on entry |
 | **Pause** | F6 | While the run is going: break in at the next instruction - e.g. to look into a long loop or an endless recursion without a breakpoint (the status reads *paused by request*) |
 | **Step Into** | F7 | Step into the current instruction - the next stop is the next **line** that runs (inside a called template or function too) |
+| **Smart Step Into** | Shift+F7 | When the paused line calls several things (`f:a(1) + f:b(2)`, an `xsl:call-template` next to an `xsl:apply-templates`), a menu at **Step Into** lists them - pick the one to stop in. Also a right-click on **Step Into**. One call steps straight into it; none is a plain Step Into. The run stops when that function / template is entered, even while breakpoints are muted |
 | **Step Over** | F8 | Execute the current instruction without descending |
 | **Step Out** | Shift+F8 | Run until the current template/function returns |
 | **Restart** | | Run again from the start with the same breakpoints; the stylesheet is read again from the editor, so your edits (saved or not) are picked up |
@@ -709,6 +710,7 @@ the stylesheet's `xsl:output` declaration; pick a concrete format to override th
 | F5           | Run the active XQuery / XPath / XSLT / XProc document |
 | Shift+F5     | Debug with XSLT - the active XSLT document, or the Transform / PDF panel's stylesheet |
 | F5 / F7 / F8 / Shift+F8 | While the debugger is paused: Continue / Step Into / Step Over / Step Out |
+| Shift+F7 | While the debugger is paused: Smart Step Into - choose which call on the line to step into |
 | Ctrl+Shift+X | Toggle the bottom Query Console |
 | F8           | Validate the active document |
 | Shift+Alt+F  | Format (pretty-print) the active document |

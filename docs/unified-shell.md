@@ -1801,6 +1801,7 @@ The status bar at the bottom of the window includes (left to right):
 | F5 | Run the active XQuery / XPath / XSLT / XProc document (does nothing for other documents - use F8 to validate) |
 | Shift+F5 | **Debug with XSLT** - the active XSLT document, the PDF / FOP panel's stylesheet, or the Transform panel's (asks for one if none is set) - see [Debugging a Stylesheet](#xslt-debugger) |
 | F5 / F7 / F8 / Shift+F8 | While the debugger is **paused**: Continue / Step Into / Step Over / Step Out (F5 and F8 keep their normal meaning otherwise) |
+| Shift+F7 | While the debugger is paused: Smart Step Into - choose which call on the line to step into |
 | F1 | Show the Help menu (as a popup, like the header's **?** button) |
 | F11 | Toggle full screen (also **Ctrl+Cmd+F** on macOS) |
 | Ctrl+L | Show/hide the left side panel |

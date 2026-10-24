@@ -413,9 +413,38 @@ public class DebugSession implements BreakpointTarget {
         }
     }
 
-    /** @return whether any template / function / mode breakpoint is set (and not muted); lock-free. */
+    /**
+     * @return whether entering a template / function must be reported to {@link #symbolBreak}:
+     *         a template / function / mode breakpoint is set (and not muted) or a Smart Step
+     *         Into target is pending; lock-free
+     */
     public boolean hasActiveSymbolBreakpoints() {
-        return !muted && hasSymbols;
+        return stepTarget != null || !muted && hasSymbols;
+    }
+
+    /** The pending Smart Step Into target (one-shot, dropped at any pause), or {@code null}. */
+    private volatile StepTarget stepTarget;
+    /** Set when {@link #symbolBreak} reached the step target: that pause happens even while muted. */
+    private volatile boolean stepTargetReached;
+
+    /**
+     * Smart Step Into: continues the paused run until {@code target} is entered (or any other
+     * pause comes first, which drops the target).
+     *
+     * @return {@code false} when the run is not paused
+     */
+    public boolean stepIntoTarget(StepTarget target) {
+        if (target == null || state != State.PAUSED) {
+            return false;
+        }
+        stepTarget = target;
+        requestContinue();
+        return true;
+    }
+
+    /** @return the pending Smart Step Into target, or {@code null} (tests). */
+    public StepTarget getStepTarget() {
+        return stepTarget;
     }
 
     /**
@@ -423,6 +452,12 @@ public class DebugSession implements BreakpointTarget {
      * names it, otherwise {@code null} (also while muted).
      */
     public String symbolBreak(String match, String template, String function, String mode) {
+        StepTarget target = stepTarget;
+        if (target != null && target.matches(match, template, function, mode)) {
+            stepTarget = null;
+            stepTargetReached = true;
+            return "step into " + target.label();
+        }
         if (muted || !hasSymbols) {
             return null;
         }
@@ -466,7 +501,9 @@ public class DebugSession implements BreakpointTarget {
             return false;
         }
         // Muted: the run goes on without pausing.
-        if (muted) {
+        boolean reached = stepTargetReached;
+        stepTargetReached = false;
+        if (muted && !reached) {
             return true;
         }
         rememberPause(systemId, line, Integer.MAX_VALUE); // depth unknown: nothing counts as nested
@@ -560,6 +597,8 @@ public class DebugSession implements BreakpointTarget {
         stepMode = initialMode == null ? StepMode.NONE : initialMode;
         stepTargetDepth = -1;
         lastPauseLine = 0;
+        stepTarget = null;
+        stepTargetReached = false;
         pausedSnapshot = null;
         resultDocuments.clear();
         loadedDocuments.clear();
@@ -796,6 +835,7 @@ public class DebugSession implements BreakpointTarget {
     /** Publishes the pause and blocks the Saxon thread until the UI resumes or stops the run. */
     private boolean block(PausedSnapshot snapshot, String note) {
         runToLine = 0; // a one-shot target ends at any pause
+        stepTarget = null;
         pauseRequested = false;
         this.pausedSnapshot = snapshot;
         this.pauseNote = note;

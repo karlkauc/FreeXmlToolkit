@@ -3244,6 +3244,8 @@ public class EditorHost extends BorderPane {
         var pane = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane(controller);
         // The Template… dialog suggests the names declared in the stylesheet and its modules.
         pane.getBreakpointsView().setStylesheetSupplier(() -> stylesheetTexts(xsltFile, resolvedModules));
+        // Smart Step Into: the calls on the paused line, from the editor text of the paused module.
+        pane.setStepTargetSource(snap -> debugStepTargets(xsltFile, resolvedModules, snap));
         // Watches belong to the main stylesheet and come back with its next session.
         String watchKey = xsltFile.getAbsolutePath();
         pane.getWatchView().setWatches(org.fxt.freexmltoolkit.debugger.WatchStore.load(watchKey));
@@ -3882,6 +3884,29 @@ public class EditorHost extends BorderPane {
     }
 
     /** The text of the main stylesheet and its included / imported modules (unreadable ones skipped). */
+    /** The Smart Step Into targets of the paused line (FX thread: reads the editor text). */
+    private java.util.List<org.fxt.freexmltoolkit.debugger.StepTarget> debugStepTargets(File main,
+            java.util.Set<String> modules, org.fxt.freexmltoolkit.debugger.PausedSnapshot snap) {
+        String path = snap.filePath() == null || snap.filePath().isEmpty()
+                ? main.getAbsolutePath() : snap.filePath();
+        String text = null;
+        OpenDocument doc = documentAt(Path.of(path));
+        if (doc != null) {
+            text = getDocumentText(doc).orElse(null);
+        }
+        if (text == null) {
+            try {
+                text = java.nio.file.Files.readString(Path.of(path), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (IOException | RuntimeException e) {
+                return java.util.List.of();
+            }
+        }
+        java.util.List<String> functions = org.fxt.freexmltoolkit.debugger.StylesheetSymbols
+                .scan(stylesheetTexts(main, modules) + "\n" + text)
+                .getOrDefault(org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind.FUNCTION, java.util.List.of());
+        return org.fxt.freexmltoolkit.debugger.StepTargets.find(text, snap.lineNumber(), functions);
+    }
+
     private static String stylesheetTexts(File main, java.util.Set<String> modules) {
         StringBuilder sb = new StringBuilder();
         java.util.List<Path> files = new java.util.ArrayList<>();

@@ -119,6 +119,9 @@ public final class XsltDebugPane extends VBox {
     private final List<ValueViewerWindow> viewers = new ArrayList<>();
 
     private Consumer<PausedSnapshot> onPaused = snapshot -> { };
+    /** The Smart Step Into targets of the paused line (supplied by the editor, which has the text). */
+    private java.util.function.Function<PausedSnapshot, List<org.fxt.freexmltoolkit.debugger.StepTarget>> stepTargetSource =
+            snapshot -> List.of();
     private Runnable onShowInEditor = () -> { };
     private Runnable onShowInput = () -> { };
     /** Whether the host could map the paused context node to an input document line. */
@@ -176,6 +179,12 @@ public final class XsltDebugPane extends VBox {
         watchView.setOnOpenValue(row -> resolveWatch(row, this::openViewer));
         watchView.setOnCopyValue(row -> resolveWatch(row, this::copyValue));
 
+        // Right-click on Step Into = Smart Step Into (choose the call to step into).
+        stepIntoButton.setOnContextMenuRequested(e -> {
+            onSmartStepInto();
+            e.consume();
+        });
+
         pauseOnEntry.setSelected(controller.isPauseOnEntry());
         muteToggle.setSelected(controller.getSession().isMuted());
         breakpointsView.setOnJumpToBreakpoint(bp -> onJumpToBreakpoint.accept(bp));
@@ -207,6 +216,64 @@ public final class XsltDebugPane extends VBox {
     // ----- callbacks wired by the EditorHost ---------------------------------------
 
     /** Receives the snapshot on every pause, and {@code null} whenever the run moves on. */
+    /** Supplies the Smart Step Into targets of a paused line ({@code null} = none). */
+    public void setStepTargetSource(
+            java.util.function.Function<PausedSnapshot, List<org.fxt.freexmltoolkit.debugger.StepTarget>> source) {
+        this.stepTargetSource = source == null ? snapshot -> List.of() : source;
+    }
+
+    /** @return the Smart Step Into targets of the current pause (empty when not paused). */
+    public List<org.fxt.freexmltoolkit.debugger.StepTarget> stepTargets() {
+        PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+        if (snap == null || controller.getSession().getState() != DebugSession.State.PAUSED) {
+            return List.of();
+        }
+        try {
+            List<org.fxt.freexmltoolkit.debugger.StepTarget> targets = stepTargetSource.apply(snap);
+            return targets == null ? List.of() : targets;
+        } catch (RuntimeException e) {
+            return List.of();
+        }
+    }
+
+    /**
+     * Smart Step Into (Shift+F7, right-click on Step Into): with several calls on the paused
+     * line, a menu at the Step Into button lets the user pick the one to step into; with one it
+     * steps into that; with none it is a plain Step Into.
+     */
+    public void onSmartStepInto() {
+        List<org.fxt.freexmltoolkit.debugger.StepTarget> targets = stepTargets();
+        if (targets.isEmpty()) {
+            controller.stepInto();
+            return;
+        }
+        if (targets.size() == 1) {
+            stepInto(targets.getFirst());
+            return;
+        }
+        javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
+        for (org.fxt.freexmltoolkit.debugger.StepTarget target : targets) {
+            javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem(target.label());
+            item.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
+                    new org.fxt.freexmltoolkit.controls.icons.IconifyIcon(target.symbol() == null
+                            ? "bi-diagram-2" : "bi-box-arrow-in-right"),
+                    org.fxt.freexmltoolkit.controls.theme.ActionColor.NAVIGATE));
+            item.setOnAction(e -> stepInto(target));
+            menu.getItems().add(item);
+        }
+        smartStepMenu = menu;
+        menu.show(stepIntoButton, javafx.geometry.Side.BOTTOM, 0, 0);
+    }
+
+    /** The last Smart Step Into menu shown (tests). */
+    javafx.scene.control.ContextMenu smartStepMenu;
+
+    private void stepInto(org.fxt.freexmltoolkit.debugger.StepTarget target) {
+        if (!controller.getSession().stepIntoTarget(target)) {
+            controller.stepInto();
+        }
+    }
+
     public void setOnPaused(Consumer<PausedSnapshot> handler) {
         this.onPaused = handler == null ? snapshot -> { } : handler;
     }
@@ -349,8 +416,12 @@ public final class XsltDebugPane extends VBox {
             controller.continueRun();
             return true;
         }
-        if (code == KeyCode.F7 && !event.isShiftDown()) {
-            controller.stepInto();
+        if (code == KeyCode.F7) {
+            if (event.isShiftDown()) {
+                onSmartStepInto();
+            } else {
+                controller.stepInto();
+            }
             return true;
         }
         if (code == KeyCode.F8) {

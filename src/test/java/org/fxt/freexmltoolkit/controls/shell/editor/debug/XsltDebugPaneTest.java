@@ -583,4 +583,39 @@ class XsltDebugPaneTest {
         assertSame(group, source.value());
         assertEquals("XSLT", source.scope());
     }
+
+    @Test
+    void shiftF7OffersTheCallsOfThePausedLine() throws Exception {
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            XsltDebugPane p = new XsltDebugPane(controller);
+            stage.setScene(new Scene(p, 900, 400));
+            stage.show();
+            return p;
+        });
+        var two = java.util.List.of(
+                new org.fxt.freexmltoolkit.debugger.StepTarget("function f:a()", new org.fxt.freexmltoolkit.debugger.SymbolBreakpoint(
+                        org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind.FUNCTION, "f:a", true)),
+                new org.fxt.freexmltoolkit.debugger.StepTarget("next template rule (apply-templates)", null));
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.setStepTargetSource(snap -> two));
+        controller.setPauseOnEntry(true);
+        controller.start(XML, XSLT, Map.of(), OutputFormat.XML);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> controller.getSession().getState() == DebugSession.State.PAUSED);
+
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.handleShortcut(new javafx.scene.input.KeyEvent(
+                javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", javafx.scene.input.KeyCode.F7, true, false, false, false)));
+        var items = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.smartStepMenu.getItems());
+        assertEquals(java.util.List.of("function f:a()", "next template rule (apply-templates)"),
+                items.stream().map(javafx.scene.control.MenuItem::getText).toList());
+        assertTrue(items.stream().allMatch(i -> i.getGraphic() != null), "menu items carry icons");
+
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            pane.smartStepMenu.hide();
+            items.getFirst().fire();
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> controller.getSession().getState() != DebugSession.State.PAUSED
+                        || controller.getSession().getStepTarget() != null);
+        controller.stop();
+    }
 }

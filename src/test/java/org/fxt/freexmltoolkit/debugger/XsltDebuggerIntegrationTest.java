@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.debugger;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -463,6 +464,46 @@ class XsltDebuggerIntegrationTest {
         assertTrue(lines.stream().allMatch(l -> l > 0), "never paused without a line: " + lines);
         assertEquals(2, lines.stream().filter(l -> l == 4).count(),
                 "line 4 (x, y and value-of nested on it) is one stop per item: " + lines);
+    }
+
+    @Test
+    void smartStepIntoRunsToTheChosenCallEvenWhileMuted() throws Exception {
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"\n"   // 1
+                + "    xmlns:f=\"urn:f\" exclude-result-prefixes=\"f\">\n"                                   // 2
+                + "  <xsl:function name=\"f:a\"><xsl:param name=\"x\"/>\n"                                  // 3
+                + "    <xsl:sequence select=\"$x + 1\"/></xsl:function>\n"                                    // 4
+                + "  <xsl:function name=\"f:b\"><xsl:param name=\"x\"/>\n"                                  // 5
+                + "    <xsl:sequence select=\"$x * 2\"/></xsl:function>\n"                                    // 6
+                + "  <xsl:template match=\"/\">\n"                                                             // 7
+                + "    <out><xsl:value-of select=\"f:a(1) + f:b(2)\"/></out>\n"                                // 8
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("", 8, true));
+        session.setMuted(true);
+        session.startSession(DebugSession.StepMode.STEP_INTO); // pause on entry, then pick f:b
+        List<StepTarget> targets = StepTargets.find(xslt, 8, List.of("f:a", "f:b"));
+        assertEquals(List.of("function f:a()", "function f:b()"), targets.stream().map(StepTarget::label).toList());
+        java.util.List<String> pauses = new java.util.concurrent.CopyOnWriteArrayList<>();
+        java.util.concurrent.atomic.AtomicBoolean stepped = new java.util.concurrent.atomic.AtomicBoolean();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                pauses.add(session.getPausedSnapshot().lineNumber() + " " + session.getPauseNote());
+                if (stepped.compareAndSet(false, true)) {
+                    assertTrue(session.stepIntoTarget(targets.get(1)));
+                } else {
+                    session.requestContinue();
+                }
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                "<r/>", xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertEquals(2, pauses.size(), "entry, then the function f:b (f:a and the muted breakpoint pass): " + pauses);
+        assertTrue(pauses.get(1).contains("step into function f:b()"), pauses.toString());
+        assertTrue(pauses.get(1).startsWith("5 ") || pauses.get(1).startsWith("6 "), "inside f:b: " + pauses);
+        assertNull(session.getStepTarget(), "the target is one-shot");
     }
 
     @Test
