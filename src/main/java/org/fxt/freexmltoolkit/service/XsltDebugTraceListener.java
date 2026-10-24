@@ -282,7 +282,11 @@ public class XsltDebugTraceListener implements TraceListener {
         net.sf.saxon.s9api.Location loc = error.getLocation();
         String systemId = loc != null && loc.getSystemId() != null ? loc.getSystemId() : top.systemId();
         int line = loc != null && loc.getLineNumber() > 0 ? loc.getLineNumber() : top.lineNumber();
-        String code = error.getErrorCode() == null ? "" : error.getErrorCode().getLocalName() + ": ";
+        String localCode = error.getErrorCode() == null ? null : error.getErrorCode().getLocalName();
+        if (!debugSession.breaksOnError(localCode)) {
+            return; // filtered out by "Only error codes"
+        }
+        String code = localCode == null ? "" : localCode + ": ";
         XPathContext ctx = top.context();
         debugSession.pauseAt(systemId, line, "error " + code + error.getMessage(),
                 () -> buildPausedSnapshot(systemId, line, ctx));

@@ -624,6 +624,46 @@ public class DebugSession implements BreakpointTarget {
     public void setBreakOnErrors(boolean on) { this.breakOnErrors = on; }
     public boolean isBreakOnErrors() { return breakOnErrors; }
 
+    /** Error codes "break on errors" is limited to (local names, {@code XTDE*} prefixes); empty = every error. */
+    private volatile java.util.List<String> breakOnErrorCodes = java.util.List.of();
+
+    /** Limits "break on errors" to these codes ({@code null} / empty = every dynamic error). */
+    public void setBreakOnErrorCodes(java.util.Collection<String> codes) {
+        this.breakOnErrorCodes = codes == null ? java.util.List.of()
+                : codes.stream().map(String::strip).filter(c -> !c.isEmpty())
+                        .map(c -> c.toUpperCase(java.util.Locale.ROOT)).distinct().toList();
+    }
+
+    public java.util.List<String> getBreakOnErrorCodes() {
+        return breakOnErrorCodes;
+    }
+
+    /** @return whether an error with {@code code} (e.g. {@code XTDE0640}, may be {@code null}) pauses. */
+    public boolean breaksOnError(String code) {
+        if (!breakOnErrors) {
+            return false;
+        }
+        java.util.List<String> codes = breakOnErrorCodes;
+        if (codes.isEmpty()) {
+            return true;
+        }
+        String c = code == null ? "" : code.strip().toUpperCase(java.util.Locale.ROOT);
+        for (String wanted : codes) {
+            if (wanted.endsWith("*") ? c.startsWith(wanted.substring(0, wanted.length() - 1)) : c.equals(wanted)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Parses a code list as typed ({@code "XTDE0640, FOAR*"}: commas or spaces). */
+    public static java.util.List<String> parseErrorCodes(String text) {
+        if (text == null || text.isBlank()) {
+            return java.util.List.of();
+        }
+        return java.util.Arrays.stream(text.split("[,;\\s]+")).filter(s -> !s.isBlank()).toList();
+    }
+
     /** Pause before an {@code xsl:message} with {@code terminate="yes"} runs. */
     public void setBreakOnTerminate(boolean on) { this.breakOnTerminate = on; }
     public boolean isBreakOnTerminate() { return breakOnTerminate; }

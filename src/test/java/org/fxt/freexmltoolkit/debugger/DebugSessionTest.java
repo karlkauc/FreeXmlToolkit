@@ -758,4 +758,20 @@ class DebugSessionTest {
         int[][] events = {{8, 2}, {8, 3}, {7, 2}, {8, 3}};
         assertEquals(List.of("8@2", "7@2", "8@3"), stepIntoThrough(events));
     }
+
+    @Test
+    void errorCodeFiltersMatchCodesAndPrefixes() {
+        DebugSession session = new DebugSession();
+        session.setBreakOnErrors(true);
+        assertTrue(session.breaksOnError("XTDE0640"), "no list: every error");
+        assertTrue(session.breaksOnError(null));
+        session.setBreakOnErrorCodes(DebugSession.parseErrorCodes(" xtde0640; FOAR*  "));
+        assertEquals(List.of("XTDE0640", "FOAR*"), session.getBreakOnErrorCodes());
+        assertTrue(session.breaksOnError("XTDE0640"));
+        assertTrue(session.breaksOnError("FOAR0002"));
+        assertFalse(session.breaksOnError("XPTY0004"));
+        assertFalse(session.breaksOnError(null));
+        session.setBreakOnErrors(false);
+        assertFalse(session.breaksOnError("XTDE0640"), "off is off");
+    }
 }

@@ -800,6 +800,32 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void breakOnErrorsCanBeLimitedToErrorCodes() throws Exception {
+        String xml = "<order><item q=\"0\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                + "  <xsl:template match=\"item\"><x><xsl:value-of select=\"10 idiv xs:integer(@q)\""
+                + " xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"/></x></xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        for (String codes : new String[]{"XTDE*", "FOAR*", "foar0001, XTDE0640"}) {
+            DebugSession session = new DebugSession();
+            session.setBreakOnErrors(true);
+            session.setBreakOnErrorCodes(DebugSession.parseErrorCodes(codes));
+            java.util.concurrent.atomic.AtomicBoolean paused = new java.util.concurrent.atomic.AtomicBoolean();
+            session.addPropertyChangeListener(evt -> {
+                if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                    paused.set(true);
+                    session.requestContinue();
+                }
+            });
+            XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                    xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+            assertFalse(result.isSuccess());
+            assertEquals(!codes.equals("XTDE*"), paused.get(), "codes " + codes + " and the error FOAR0001");
+        }
+    }
+
+    @Test
     void breakOnTerminatePausesBeforeTheMessage() throws Exception {
         String xslt = ""
                 + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1

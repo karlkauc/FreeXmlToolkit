@@ -386,4 +386,21 @@ class DebugPanelsTest {
     private static VariableBinding var(String name, String value) {
         return new VariableBinding(name, value, "xs:string", VariableScope.LOCAL);
     }
+
+    @Test
+    void onlyErrorCodesEditsTheSessionListAndTheMenuText() {
+        org.fxt.freexmltoolkit.debugger.DebugSession session = new org.fxt.freexmltoolkit.debugger.DebugSession();
+        String[] out = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            BreakpointsView view = new BreakpointsView(session);
+            view.setErrorCodesPrompt(current -> java.util.Optional.of("XTDE0640, FOAR*"));
+            view.editErrorCodes();
+            String set = view.errorCodesItem().getText();
+            view.setErrorCodesPrompt(current -> java.util.Optional.of(""));
+            view.editErrorCodes();
+            return new String[]{set, view.errorCodesItem().getText()};
+        });
+        assertEquals("Only error codes: XTDE0640, FOAR*", out[0]);
+        assertEquals("Only error codes… (all)", out[1]);
+        assertTrue(session.getBreakOnErrorCodes().isEmpty());
+    }
 }

@@ -474,6 +474,7 @@ The Breakpoints panel's **Break on ▾** menu pauses the run independent of line
 | Option | Pauses | Default |
 |--------|--------|---------|
 | **Dynamic errors** | when an instruction fails at run time (division by zero, a failed cast, `error()`) - **at the failing instruction, with its context item and variables intact**, so you can see why. The status reads *error FOAR0001: …* in red; **Continue** lets the error end the run as usual | on |
+| **Only error codes…** | limits *Dynamic errors* to the codes you list, comma-separated, e.g. `FOAR0001, XTDE0640`; `XTDE*` stands for every code starting with `XTDE`. Empty = every error. The menu shows the current list | every error |
 | **xsl:message terminate="yes"** | before a terminating message is emitted (also when `terminate` is computed, e.g. `{if (…) then 'yes' else 'no'}`) | on |
 | **Every xsl:message** | before every `xsl:message` | off |
 

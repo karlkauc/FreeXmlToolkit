@@ -222,6 +222,55 @@ public class BreakpointsView extends VBox {
     static final String BREAK_ON_ERRORS_KEY = "debug.breakOn.errors";
     static final String BREAK_ON_TERMINATE_KEY = "debug.breakOn.terminate";
     static final String BREAK_ON_MESSAGES_KEY = "debug.breakOn.messages";
+    static final String BREAK_ON_ERROR_CODES_KEY = "debug.breakOn.errorCodes";
+
+    /** Asks for the error-code list (current text → new text, empty = all); replaceable for tests. */
+    private java.util.function.Function<String, java.util.Optional<String>> errorCodesPrompt = current -> {
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(current);
+        dialog.setTitle("Break on Error Codes");
+        dialog.setHeaderText("Pause only on these dynamic errors");
+        dialog.setContentText("Error codes (comma-separated, XTDE* for a prefix; empty = every error):");
+        if (getScene() != null && getScene().getWindow() != null) {
+            dialog.initOwner(getScene().getWindow());
+        }
+        try {
+            dialog.getDialogPane().getStylesheets().addAll(org.fxt.freexmltoolkit.util.DialogHelper.getThemeStylesheets());
+        } catch (RuntimeException ignored) {
+            // unthemed is fine
+        }
+        return dialog.showAndWait();
+    };
+    private javafx.scene.control.MenuItem errorCodesItem;
+
+    /** Replaces the error-code prompt (tests). */
+    void setErrorCodesPrompt(java.util.function.Function<String, java.util.Optional<String>> prompt) {
+        this.errorCodesPrompt = prompt;
+    }
+
+    /** "Only error codes…": edits the list, applies it to the session and remembers it. */
+    void editErrorCodes() {
+        String current = String.join(", ", session.getBreakOnErrorCodes());
+        errorCodesPrompt.apply(current).ifPresent(text -> {
+            session.setBreakOnErrorCodes(org.fxt.freexmltoolkit.debugger.DebugSession.parseErrorCodes(text));
+            try {
+                org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                        .set(BREAK_ON_ERROR_CODES_KEY, String.join(",", session.getBreakOnErrorCodes()));
+            } catch (Throwable ignored) {
+                // the choice holds for this session
+            }
+            updateErrorCodesText();
+        });
+    }
+
+    private void updateErrorCodesText() {
+        java.util.List<String> codes = session.getBreakOnErrorCodes();
+        errorCodesItem.setText(codes.isEmpty() ? "Only error codes… (all)" : "Only error codes: " + String.join(", ", codes));
+    }
+
+    /** The "Only error codes" menu item (tests). */
+    javafx.scene.control.MenuItem errorCodesItem() {
+        return errorCodesItem;
+    }
 
     /**
      * The toolbar's "Break on" menu: pause on dynamic errors (with the state at the failing
@@ -238,8 +287,23 @@ public class BreakpointsView extends VBox {
         org.fxt.freexmltoolkit.controls.icons.IconifyIcon icon =
                 new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-exclamation-octagon");
         icon.setIconSize(14);
+        try {
+            session.setBreakOnErrorCodes(org.fxt.freexmltoolkit.debugger.DebugSession.parseErrorCodes(
+                    org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                            .get(BREAK_ON_ERROR_CODES_KEY)));
+        } catch (Throwable ignored) {
+            // no stored list: every error
+        }
+        errorCodesItem = new javafx.scene.control.MenuItem();
+        errorCodesItem.setId("debug-break-error-codes");
+        errorCodesItem.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
+                new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-funnel"),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.NEUTRAL));
+        errorCodesItem.setOnAction(e -> editErrorCodes());
+        errorCodesItem.disableProperty().bind(errors.selectedProperty().not());
+        updateErrorCodesText();
         javafx.scene.control.MenuButton menu = new javafx.scene.control.MenuButton("Break on", icon,
-                errors, terminate, messages);
+                errors, errorCodesItem, terminate, messages);
         menu.getStyleClass().addAll("fxt-sp-action", "fxt-output-action");
         menu.setTooltip(new javafx.scene.control.Tooltip(
                 "Pause on errors or xsl:message, independent of line breakpoints (Mute silences these too)"));
