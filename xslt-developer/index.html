@@ -1688,6 +1688,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#inspecting-an-outer-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspecting an Outer Frame
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#viewing-a-value-in-full" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2731,6 +2742,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#inspecting-an-outer-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspecting an Outer Frame
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#viewing-a-value-in-full" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3335,6 +3357,15 @@ the position is remembered. <strong>Messages</strong> and <strong>Breakpoints</s
 Messages is highlighted when output arrives while another tab of its group is in front, and a
 <strong>failed run brings Messages to the front</strong> so the error is readable at once. In Watch and
 Breakpoints the <strong>Delete</strong> key removes the selected row.</p>
+<h4 id="inspecting-an-outer-frame">Inspecting an Outer Frame<a class="headerlink" href="#inspecting-an-outer-frame" title="Permanent link">&para;</a></h4>
+<p>At every pause the innermost frame is selected in <strong>Call Stack</strong>, and <strong>Variables</strong> shows the
+pause as described above. <strong>Select another frame</strong> to see the state of a calling template or
+function: Variables then lists <strong>that frame's context item (<code>.</code>), its own local variables and
+the globals</strong>, under a banner such as <em>Frame 3 of 5: template match="/" · main.xsl:4</em>, and the
+<strong>Watch</strong> expressions are re-evaluated in that frame (its context item and variables). Opening a
+value, Copy Value and the value window's XPath use the selected frame as well. Select the top
+frame to return to the pause. <code>position()</code> / <code>last()</code> are shown for the innermost frame only.
+The 32 innermost frames carry values; a deeper frame shows an empty table with a note.</p>
 <h4 id="viewing-a-value-in-full">Viewing a Value in Full<a class="headerlink" href="#viewing-a-value-in-full" title="Permanent link">&para;</a></h4>
 <p>The Value column of <strong>Variables</strong> and <strong>Watch</strong> shows only the start of a value (a node can be
 thousands of characters long). <strong>Click a value</strong> - or select the row and press <strong>Enter</strong>, or
@@ -3377,7 +3408,7 @@ right-click → <strong>Open Value…</strong> - to open it in its own <strong>v
 </tr>
 <tr>
 <td><strong>Call Stack</strong></td>
-<td>Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. <strong>Enter</strong> or <strong>Open Value…</strong> opens the frame's context item and variables</td>
+<td>Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. <strong>Selecting a frame switches Variables and Watch to that frame</strong> (see below). <strong>Enter</strong> or <strong>Open Value…</strong> opens the frame's context item and variables</td>
 </tr>
 <tr>
 <td><strong>Messages</strong></td>
