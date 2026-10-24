@@ -439,6 +439,33 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void stepIntoStopsOncePerLineExecutionAndOnlyAtRealLines() throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"item\">\n"                                                         // 3
+                + "    <x><y><xsl:value-of select=\"@n\"/></y></x>\n"                                         // 4
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.startSession(DebugSession.StepMode.STEP_INTO);
+        java.util.List<Integer> lines = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                lines.add(session.getPausedSnapshot().lineNumber());
+                session.requestStepInto();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertTrue(lines.stream().allMatch(l -> l > 0), "never paused without a line: " + lines);
+        assertEquals(2, lines.stream().filter(l -> l == 4).count(),
+                "line 4 (x, y and value-of nested on it) is one stop per item: " + lines);
+    }
+
+    @Test
     void hitCountRulePausesAtTheThirdItemAndCountsAllPasses() throws Exception {
         String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/><item n=\"4\"/><item n=\"5\"/></order>";
         String xslt = ""

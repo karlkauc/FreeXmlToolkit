@@ -538,7 +538,7 @@ icons - hover one for its name and key:
 | **Continue** | F5 | Resume until the next breakpoint |
 | **Run to Cursor** | Ctrl+F10 (⌘F10) | Run to the caret line of the stylesheet (Tools → Run to Cursor, or right-click a gutter slot → **Run to Here**). A one-shot stop: breakpoints on the way still pause and cancel it; it works while breakpoints are muted. Without a running session it **starts the debugger** (like Run ▾ → Debug Transform) and runs to that line instead of pausing on entry |
 | **Pause** | F6 | While the run is going: break in at the next instruction - e.g. to look into a long loop or an endless recursion without a breakpoint (the status reads *paused by request*) |
-| **Step Into** | F7 | Step into the current instruction |
+| **Step Into** | F7 | Step into the current instruction - the next stop is the next **line** that runs (inside a called template or function too) |
 | **Step Over** | F8 | Execute the current instruction without descending |
 | **Step Out** | Shift+F8 | Run until the current template/function returns |
 | **Restart** | | Run again from the start with the same breakpoints; the stylesheet is read again from the editor, so your edits (saved or not) are picked up |
@@ -548,6 +548,10 @@ icons - hover one for its name and key:
 | **Show input** | | Select the input document at the paused **context node** (see below) |
 | **Evaluate** | Alt+F8 | Open the value window on the selected frame's context item with the XPath field ready - evaluate any expression in that frame (its variables in scope); **Up** / **Down** in the field recall earlier expressions |
 | **✕** | | End the session and close the DEBUG dock (OUTPUT stays) |
+
+Steps move **line by line**: instructions nested on the paused line (a literal element with
+its `xsl:value-of` inside) do not stop again, and instructions without a source line are
+skipped. A line that runs again later (the next loop iteration, a recursive call) is a new stop.
 
 The step keys only act while the debugger is paused and F6 only while it runs; otherwise F5 and
 F8 keep their usual meaning. A single long evaluation (one huge XPath expression) is not

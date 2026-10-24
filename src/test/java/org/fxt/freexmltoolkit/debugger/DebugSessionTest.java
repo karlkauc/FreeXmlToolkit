@@ -129,7 +129,7 @@ class DebugSessionTest {
     }
 
     @Test
-    void stepIntoPausesOnAnyEnter() throws InterruptedException {
+    void stepIntoPausesOnAnyEnterWithALine() throws InterruptedException {
         DebugSession session = new DebugSession();
         session.startSession();
         // Manually arm step-into without prior pause
@@ -715,5 +715,47 @@ class DebugSessionTest {
         pass.accept(4);
         assertEquals(List.of(4), logged, "Saxon reports the tag at line 4 - the breakpoint on line 2 fires there");
         assertEquals(1, session.hitCount("t.xsl", 2), "hits count for the breakpoint's own line");
+    }
+
+    /**
+     * Drives {@code events} (line, depth) through the session with Step Into after every pause
+     * and returns the events (as "line@depth") that paused.
+     */
+    private static java.util.List<String> stepIntoThrough(int[][] events) throws InterruptedException {
+        DebugSession session = new DebugSession();
+        java.util.List<String> paused = new java.util.concurrent.CopyOnWriteArrayList<>();
+        java.util.concurrent.atomic.AtomicReference<String> current = new java.util.concurrent.atomic.AtomicReference<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                paused.add(current.get());
+                session.requestStepInto();
+            }
+        });
+        session.startSession(DebugSession.StepMode.STEP_INTO);
+        Thread saxon = new Thread(() -> {
+            for (int[] e : events) {
+                current.set(e[0] + "@" + e[1]);
+                session.checkAndPause("s.xsl", e[0], e[1], () -> emptySnapshot(e[0]));
+            }
+        }, "test-saxon");
+        saxon.start();
+        saxon.join(5 * AWAIT_MS);
+        assertFalse(saxon.isAlive());
+        return paused;
+    }
+
+    @Test
+    void stepIntoMovesLineByLine() throws InterruptedException {
+        // -1: no line (skipped); 4@2 nests in 3@1's line? no - another line; 5@3 and 5@4 are one
+        // line execution (the nested part is skipped); 5@3 again later is a new execution.
+        int[][] events = {{-1, 1}, {3, 1}, {4, 2}, {5, 3}, {5, 4}, {5, 4}, {-1, 4}, {6, 3}, {5, 3}, {5, 4}};
+        assertEquals(List.of("3@1", "4@2", "5@3", "6@3", "5@3"), stepIntoThrough(events));
+    }
+
+    @Test
+    void aRecursionOnTheSameLineIsANewStepOnceTheLineWasLeft() throws InterruptedException {
+        // 8@2 pauses; 8@3 is nested (skipped); 7@2 leaves the line; 8@3 then runs the line anew.
+        int[][] events = {{8, 2}, {8, 3}, {7, 2}, {8, 3}};
+        assertEquals(List.of("8@2", "7@2", "8@3"), stepIntoThrough(events));
     }
 }

@@ -66,6 +66,14 @@ public class DebugSession implements BreakpointTarget {
     private volatile State state = State.IDLE;
     private volatile StepMode stepMode = StepMode.NONE;
     private volatile int stepTargetDepth = -1;
+
+    /**
+     * Where the run last paused (normalized path, line, call depth): a step does not stop again
+     * at instructions nested in that line's execution, so F7 moves line by line.
+     */
+    private volatile String lastPausePath = "";
+    private volatile int lastPauseLine;
+    private volatile int lastPauseDepth = Integer.MAX_VALUE;
     private volatile PausedSnapshot pausedSnapshot;
     private volatile ConditionEvaluator conditionEvaluator;
     /** One-shot "Run to Cursor" target (normalised path, 1-based line); line 0 = none. */
@@ -458,7 +466,11 @@ public class DebugSession implements BreakpointTarget {
             return false;
         }
         // Muted: the run goes on without pausing.
-        return muted || block(captureSnapshot(snapshotSupplier, systemId, line), note == null ? "" : note);
+        if (muted) {
+            return true;
+        }
+        rememberPause(systemId, line, Integer.MAX_VALUE); // depth unknown: nothing counts as nested
+        return block(captureSnapshot(snapshotSupplier, systemId, line), note == null ? "" : note);
     }
 
     /** Records an {@code xsl:result-document} of the run and how to read what it wrote so far. */
@@ -547,6 +559,7 @@ public class DebugSession implements BreakpointTarget {
     public void startSession(StepMode initialMode) {
         stepMode = initialMode == null ? StepMode.NONE : initialMode;
         stepTargetDepth = -1;
+        lastPauseLine = 0;
         pausedSnapshot = null;
         resultDocuments.clear();
         loadedDocuments.clear();
@@ -663,6 +676,14 @@ public class DebugSession implements BreakpointTarget {
             case NONE -> pause = false;
             default -> pause = false;
         }
+        if (lastPauseLine != 0 && depth <= lastPauseDepth) {
+            lastPauseLine = 0; // the paused line's execution is over: a later run of it is new
+        }
+        // Steps move line by line: never stop at an instruction without a line (nothing to show)
+        // or at one nested in the execution of the line the run just paused at.
+        if (pause && (line < 1 || continuesPausedLine(systemId, line, depth))) {
+            pause = false;
+        }
 
         String note = "";
         PausedSnapshot conditionSnapshot = null;
@@ -757,7 +778,19 @@ public class DebugSession implements BreakpointTarget {
                 note = "paused by request";
             }
         }
+        rememberPause(systemId, line, depth);
         return block(snapshot, note);
+    }
+
+    private void rememberPause(String systemId, int line, int depth) {
+        lastPausePath = normalizedLocation(systemId);
+        lastPauseLine = line;
+        lastPauseDepth = depth;
+    }
+
+    /** @return whether {@code line} at {@code depth} is nested in the line execution the run last paused at. */
+    private boolean continuesPausedLine(String systemId, int line, int depth) {
+        return line == lastPauseLine && depth > lastPauseDepth && lastPausePath.equals(normalizedLocation(systemId));
     }
 
     /** Publishes the pause and blocks the Saxon thread until the UI resumes or stops the run. */
