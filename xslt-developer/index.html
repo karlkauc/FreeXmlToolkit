@@ -3454,8 +3454,11 @@ stylesheet, and inspect state - similar to debugging in an IDE. It opens the sty
 document (every saved stylesheet already shows its <strong>breakpoint gutter</strong>, see below) and the
 <strong>DEBUG</strong> dock <em>below</em> the editor, so the stylesheet stays visible while you step. The dock shares its space with the OUTPUT panel
 (<strong>OUTPUT | DEBUG</strong> strip).</p>
-<p>The debugger runs the <strong>saved</strong> stylesheet file - a new, unsaved stylesheet must be saved first
-(relative <code>xsl:include</code> / <code>xsl:import</code> hrefs resolve, every module reports its own location). It
+<p>The debugger runs <strong>what the editor shows</strong>: the stylesheet's text in the editor - unsaved changes
+included (Messages then notes <em>Debugging the editor text of … (unsaved changes included)</em>) -
+and, for included or imported modules that are open, their editor text too; modules that are not
+open are read from disk. The stylesheet needs a file once (a new one must be saved first), so
+relative <code>xsl:include</code> / <code>xsl:import</code> hrefs resolve and every module reports its own location. It
 uses a Saxon processor of its own, so a normal transformation started during a paused session is
 not affected. Started from the Transform panel, the input is the panel's <strong>INPUT</strong> (the file set
 there, otherwise the active document) - exactly as for <strong>Run Transform</strong>; started with
@@ -3480,8 +3483,8 @@ came from).</p>
 <li>Every <strong>saved</strong> XSLT document has a breakpoint gutter in the editor's left margin, whether or
   not the debugger is running: click the slot next to a line to toggle a red breakpoint, or
   press <strong>F9</strong> (<strong>Tools → Toggle Breakpoint</strong>) on the caret line. The click does not move the caret. Set your breakpoints first, then start the debugger - the run
-  stops at the first one instead of pausing on entry. An unsaved stylesheet has no gutter
-  (the debugger runs the saved file).</li>
+  stops at the first one instead of pausing on entry. A stylesheet that was never saved has no gutter
+  (save it once - its file location anchors the breakpoints).</li>
 <li>Breakpoints match the <strong>file and line</strong>, so a line in <code>lib/a.xsl</code> never triggers a breakpoint
   set in another <code>a.xsl</code>.</li>
 <li>Breakpoints are <strong>persisted per file</strong>: they are back when you reopen or debug the same file,
@@ -3502,8 +3505,8 @@ came from).</p>
 <li>Breakpoints <strong>follow your edits</strong>: inserting or deleting lines above a breakpoint moves it
   with its code (also during a debug session), and deleting a breakpoint's line removes it.
   Replacing the whole text - reloading the file after an outside change, reformatting the
-  document - leaves the breakpoints on their line numbers. The debugger runs the <strong>saved</strong>
-  file, so save after moving code before you (re)start.</li>
+  document - leaves the breakpoints on their line numbers. The debugger runs the editor's
+  text, so breakpoints and the run agree also before you save.</li>
 <li><strong>Disable</strong> a breakpoint to keep it (with its condition and hit rule) without it stopping the
   run: untick its checkbox in the <strong>Breakpoints</strong> panel, or right-click its gutter slot →
   <strong>Disable Breakpoint</strong> / <strong>Enable Breakpoint</strong>. A disabled breakpoint shows a <strong>hollow
@@ -3705,7 +3708,7 @@ icons - hover one for its name and key:</p>
 <tr>
 <td><strong>Restart</strong></td>
 <td></td>
-<td>Run again from the start with the same breakpoints; the stylesheet is re-read from disk, so edits you saved meanwhile are picked up</td>
+<td>Run again from the start with the same breakpoints; the stylesheet is read again from the editor, so your edits (saved or not) are picked up</td>
 </tr>
 <tr>
 <td><strong>Stop</strong></td>

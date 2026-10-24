@@ -5158,8 +5158,9 @@ XSLT document (against the toolbar's <strong>Input</strong> target), the <strong
 <strong>Debug stylesheet…</strong>, and <strong>Shift+F5</strong> whenever a document is open.</p>
 <p>What happens:</p>
 <ol>
-<li>The stylesheet opens as a document (its saved file - the debugger reads it from disk so
-   relative <code>xsl:include</code> / <code>xsl:import</code> hrefs resolve). Every saved XSLT document already has
+<li>The stylesheet opens as a document. The debugger runs its <strong>editor text</strong> - unsaved changes
+   included, also of open included modules - under the file's location, so relative
+   <code>xsl:include</code> / <code>xsl:import</code> hrefs resolve (a new stylesheet must be saved once). Every saved XSLT document already has
    a <strong>breakpoint gutter</strong>: click the slot left of a line to toggle a red breakpoint, before or
    during a session (the click does not move the caret). Breakpoints are <strong>remembered per
    file</strong> across sessions and restarts, including those set in included modules.</li>
@@ -5174,7 +5175,7 @@ XSLT document (against the toolbar's <strong>Input</strong> target), the <strong
 </ol>
 <p>The dock's header holds the controls - <strong>Continue</strong> (F5), <strong>Pause</strong> (F6, breaks into a running transformation), <strong>Run to Cursor</strong> (Ctrl+F10; also gutter right-click → Run to Here, and it starts the debugger when none runs), <strong>Step Into</strong> (F7), <strong>Step Over</strong>
 (F8), <strong>Step Out</strong> (Shift+F8), <strong>Restart</strong> (runs again from the start with the same
-breakpoints, re-reading the stylesheet), <strong>Stop</strong>, <strong>Pause on entry</strong>, <strong>Mute</strong> (all breakpoints off, steps still work), <strong>Show in editor</strong>, <strong>Show input</strong> (the paused context node in the input XML, which is tinted blue there), <strong>Evaluate</strong> (Alt+F8: any XPath in the selected frame, with a history on Up/Down)
+breakpoints, reading the stylesheet again from the editor), <strong>Stop</strong>, <strong>Pause on entry</strong>, <strong>Mute</strong> (all breakpoints off, steps still work), <strong>Show in editor</strong>, <strong>Show input</strong> (the paused context node in the input XML, which is tinted blue there), <strong>Evaluate</strong> (Alt+F8: any XPath in the selected frame, with a history on Up/Down)
 and <strong>✕</strong> (ends the session). Below it, two tab groups show the paused state - <strong>Variables |
 Watch</strong> on the left, <strong>Call Stack | Messages | Breakpoints | Output</strong> on the right, with a draggable
 divider whose position is remembered. Messages and Breakpoints carry a count badge; a failed
