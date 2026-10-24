@@ -1788,6 +1788,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#why-did-this-template-match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Did This Template Match?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#changed-values" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2986,6 +2997,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#why-did-this-template-match" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Did This Template Match?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#changed-values" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3978,6 +4000,21 @@ brings forward by itself, like Messages after a failed run, does not change that
 Messages is highlighted when output arrives while another tab of its group is in front, and a
 <strong>failed run brings Messages to the front</strong> so the error is readable at once. In Watch and
 Breakpoints the <strong>Delete</strong> key removes the selected row.</p>
+<h4 id="why-did-this-template-match">Why Did This Template Match?<a class="headerlink" href="#why-did-this-template-match" title="Permanent link">&para;</a></h4>
+<p>Right-click a <strong>template rule</strong> in Call Stack → <strong>Explain Match…</strong> to see which rules of the
+frame's mode could process its context node. Every rule pattern is tested against the node
+and listed:</p>
+<ul>
+<li><strong>✓ wins</strong> - the rule XSLT picks: highest import precedence, then highest priority, then
+  the last one in the stylesheet;</li>
+<li><strong>matches, loses</strong> - with the reason (<em>lower priority</em>, <em>lower import precedence</em>, <em>earlier
+  in the stylesheet</em>);</li>
+<li><strong>no match</strong> - the remaining rules of the mode.</li>
+</ul>
+<p>Each line shows the pattern, its priority (<em>default</em> when computed from the pattern, e.g.
+<code>item</code> 0, <code>*</code> -0.5, <code>item[@n]</code> 0.5) and its module and line; double-click opens the rule.
+Imports and includes are followed; rules in other modes are left out. When no rule matches,
+the built-in rule applies.</p>
 <h4 id="changed-values">Changed Values<a class="headerlink" href="#changed-values" title="Permanent link">&para;</a></h4>
 <p>Values that changed since the <strong>previous pause in the same template or function</strong> are shown in
 <strong>bold blue</strong> - in Variables (including variables that are new there) and in Watch. Pausing in
