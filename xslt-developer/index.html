@@ -1666,6 +1666,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#logpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#break-on-errors-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2770,6 +2781,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#logpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#break-on-errors-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3408,6 +3430,19 @@ there, otherwise the active document) - exactly as for <strong>Run Transform</st
 <li>A breakpoint stops <strong>once per execution of its line</strong>: an instruction nested inside another one
   on the same line (e.g. <code>&lt;x&gt;&lt;xsl:value-of select="@n"/&gt;&lt;/x&gt;</code>) does not stop the run a second
   time. Stepping (Step Into) still visits every instruction.</li>
+</ul>
+<h4 id="logpoints">Logpoints<a class="headerlink" href="#logpoints" title="Permanent link">&para;</a></h4>
+<p>A <strong>logpoint</strong> writes a message instead of (or before) pausing - printf debugging without
+editing the stylesheet. Right-click a gutter slot → <strong>Add Logpoint…</strong>, or set a <strong>Log message</strong>
+in <em>Breakpoint Properties</em>:</p>
+<ul>
+<li>The message may contain <strong><code>{xpath}</code></strong> parts, evaluated at that moment like an attribute value
+  template: <code>item {@id}: {count(line)} lines, total {$total}</code>. <code>{{</code> and <code>}}</code> are literal braces;
+  a failing part reads <code>{ERROR: …}</code> and the rest is still logged.</li>
+<li>Each message appears in <strong>Messages</strong> as level <strong>LOG</strong> with the logpoint's file and line.</li>
+<li><strong>Pause when hit</strong> (off for a new logpoint) decides whether the run also stops there.</li>
+<li>Condition and hit count apply: the message is written at the hits that pass both.</li>
+<li>In the gutter a logpoint is a <strong>diamond</strong> - blue when it only logs, red when it also pauses.</li>
 </ul>
 <h4 id="break-on-errors-and-messages">Break on Errors and Messages<a class="headerlink" href="#break-on-errors-and-messages" title="Permanent link">&para;</a></h4>
 <p>The Breakpoints panel's <strong>Break on ▾</strong> menu pauses the run independent of line breakpoints:</p>
