@@ -53,6 +53,8 @@ public class DebugSession implements BreakpointTarget {
     /** One-shot "Run to Cursor" target (normalised path, 1-based line); line 0 = none. */
     private volatile String runToPath = "";
     private volatile int runToLine;
+    /** The last run ran to its end (not stopped, not failed): zero hits then mean "never reached". */
+    private volatile boolean lastRunCompleted;
     /** Set by {@link #requestPause}; the next pause names it as its reason. */
     private volatile boolean pauseRequested;
     /** All breakpoints muted (steps and pause requests still work); kept across restarts. */
@@ -170,6 +172,28 @@ public class DebugSession implements BreakpointTarget {
         return count == null ? 0 : count.get();
     }
 
+    /**
+     * Records that the run just ended; {@code completed} = it ran to its end (successfully,
+     * without Stop), so breakpoints still at zero hits were never reached.
+     */
+    public void markRunEnded(boolean completed) {
+        this.lastRunCompleted = completed;
+    }
+
+    /** @return whether the last run ran to its end (see {@link #markRunEnded}). */
+    public boolean isLastRunCompleted() {
+        return lastRunCompleted;
+    }
+
+    @Override
+    public boolean notReachedInLastRun(String filePath, int line) {
+        if (!lastRunCompleted || muted) {
+            return false;
+        }
+        Breakpoint bp = breakpointAt(filePath, line);
+        return bp != null && bp.enabled() && hitCount(bp) == 0;
+    }
+
     /** @return how often {@code bp} was hit in the current run. */
     public int hitCount(Breakpoint bp) {
         AtomicInteger count = hitCounts.get(hitKey(bp.filePath(), bp.lineNumber()));
@@ -259,6 +283,7 @@ public class DebugSession implements BreakpointTarget {
         pausedSnapshot = null;
         pauseRequested = false;
         runToLine = 0;
+        lastRunCompleted = false;
         hitCounts.clear();
         synchronized (firedLines) {
             firedLines.clear();

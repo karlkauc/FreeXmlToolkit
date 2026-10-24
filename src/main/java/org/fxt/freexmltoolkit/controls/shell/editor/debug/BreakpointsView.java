@@ -52,7 +52,7 @@ public class BreakpointsView extends VBox {
             @Override
             protected void updateItem(Breakpoint bp, boolean empty) {
                 super.updateItem(bp, empty);
-                getStyleClass().remove("fxt-bp-disabled");
+                getStyleClass().removeAll("fxt-bp-disabled", "fxt-bp-unreached");
                 if (empty || bp == null) {
                     setText(null);
                     setGraphic(null);
@@ -64,11 +64,19 @@ public class BreakpointsView extends VBox {
                     getStyleClass().add("fxt-bp-disabled");
                 }
                 int hits = session.hitCount(bp);
-                setText("line " + bp.lineNumber()
+                boolean unreached = session.notReachedInLastRun(bp.filePath(), bp.lineNumber());
+                if (unreached) {
+                    getStyleClass().add("fxt-bp-unreached");
+                }
+                setText((unreached ? "⚠ " : "") + "line " + bp.lineNumber()
                         + (bp.filePath().isEmpty() ? "" : "  " + shortName(bp.filePath()))
                         + (bp.hasCondition() ? "   if  " + bp.condition() : "")
                         + (bp.hit().isSet() ? "   ·  " + bp.hit().describe() : "")
-                        + (hits > 0 ? "   ·  " + hits + (hits == 1 ? " hit" : " hits") : ""));
+                        + (hits > 0 ? "   ·  " + hits + (hits == 1 ? " hit" : " hits") : "")
+                        + (unreached ? "   ·  not reached in the last run" : ""));
+                setTooltip(unreached ? new javafx.scene.control.Tooltip(
+                        "The last run never reached this line: it has no instruction Saxon traces "
+                                + "(e.g. a closing tag or a comment), or the code there did not run.") : null);
             }
         });
         list.setPlaceholder(new Label("No breakpoints."));
@@ -178,6 +186,12 @@ public class BreakpointsView extends VBox {
                     refresh();
                     onChanged.run();
                 });
+    }
+
+    /** @return whether the row at {@code index} is marked "not reached in the last run" (tests). */
+    public boolean isUnreachedAt(int index) {
+        Breakpoint bp = list.getItems().get(index);
+        return session.notReachedInLastRun(bp.filePath(), bp.lineNumber());
     }
 
     /** @return the row text at {@code index} as shown (tests). */

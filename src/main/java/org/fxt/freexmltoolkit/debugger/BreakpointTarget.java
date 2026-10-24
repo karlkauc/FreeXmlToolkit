@@ -91,6 +91,14 @@ public interface BreakpointTarget {
         return false;
     }
 
+    /**
+     * @return whether the last run completed without ever reaching the (enabled) breakpoint at
+     *         {@code filePath:line} — a line without an instruction, or code that did not run
+     */
+    default boolean notReachedInLastRun(String filePath, int line) {
+        return false;
+    }
+
     /** @return how often the breakpoint at {@code filePath:line} was hit in the current run, or -1. */
     default int hitCount(String filePath, int line) {
         return -1;

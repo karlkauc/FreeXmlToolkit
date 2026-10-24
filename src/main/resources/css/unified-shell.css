@@ -1649,6 +1649,11 @@
     -fx-text-fill: -fxt-danger;
 }
 
+/* Breakpoints panel: a breakpoint the last completed run never reached. */
+.fxt-debug-panel .list-cell.fxt-bp-unreached {
+    -fx-text-fill: -fxt-tool-warning-fg;
+}
+
 /* Breakpoints panel: a disabled breakpoint reads muted. */
 .fxt-debug-panel .list-cell.fxt-bp-disabled {
     -fx-text-fill: -fxt-text-muted;

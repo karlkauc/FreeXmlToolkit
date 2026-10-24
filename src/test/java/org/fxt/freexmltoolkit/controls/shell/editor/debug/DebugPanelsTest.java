@@ -187,4 +187,19 @@ class DebugPanelsTest {
         assertEquals(true, VariablesView.isWatchable(new VariableBinding("position()", "1", "", VariableScope.LOCAL)));
         assertEquals(false, VariablesView.isWatchable(new VariableBinding("$$slot3", "x", "", VariableScope.LOCAL)));
     }
+
+    @Test
+    void breakpointsPanelMarksUnreachedOnesAfterACompletedRun() {
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("a.xsl", 3, true));
+        boolean[] marks = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            BreakpointsView view = new BreakpointsView(session);
+            boolean before = view.isUnreachedAt(0);
+            session.markRunEnded(true);
+            view.refresh();
+            return new boolean[]{before, view.isUnreachedAt(0)};
+        });
+        assertEquals(false, marks[0]);
+        assertEquals(true, marks[1], "zero hits after a completed run");
+    }
 }

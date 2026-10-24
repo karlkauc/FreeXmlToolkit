@@ -376,7 +376,9 @@ public final class XsltDebugPane extends VBox {
             rightTabs.getSelectionModel().select(messagesTab);
         }
         applyButtonState(controller.getSession().getState());
-        breakpointsView.refresh(); // final hit counts of the run
+        controller.getSession().markRunEnded(result.isSuccess());
+        breakpointsView.refresh(); // final hit counts of the run, "not reached" marks
+        onBreakpointsChanged.run(); // gutters show which breakpoints the run never reached
         onResult.accept(result);
     }
 

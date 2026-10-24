@@ -580,4 +580,42 @@ class DebugSessionTest {
         session.startSession();
         assertEquals(0, session.getRunToLine(), "a new run drops a pending target");
     }
+
+    // ----- not reached in the last run ---------------------------------------------------
+
+    @Test
+    void zeroHitsAfterACompletedRunMeanNotReached() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.toggleBreakpoint("u.xsl", 3);  // reached
+        session.toggleBreakpoint("u.xsl", 9);  // never reached
+        session.toggleBreakpoint("u.xsl", 10);
+        session.setEnabled("u.xsl", 10, false); // disabled: not judged
+        assertEquals(List.of(3), runLines(session, 3), "line 3 runs, line 9 never");
+        assertFalse(session.notReachedInLastRun("u.xsl", 9), "not before the run ended");
+        session.markRunEnded(true);
+        assertTrue(session.notReachedInLastRun("u.xsl", 9));
+        assertFalse(session.notReachedInLastRun("u.xsl", 3));
+        assertFalse(session.notReachedInLastRun("u.xsl", 10), "disabled ones are not judged");
+        session.markRunEnded(false);
+        assertFalse(session.notReachedInLastRun("u.xsl", 9), "a stopped or failed run proves nothing");
+        session.markRunEnded(true);
+        session.startSession();
+        assertFalse(session.notReachedInLastRun("u.xsl", 9), "a new run starts over");
+    }
+
+    /** Runs line {@code line} once through the session, continuing every pause; returns the paused lines. */
+    private static List<Integer> runLines(DebugSession session, int line) throws InterruptedException {
+        List<Integer> paused = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                paused.add(session.getPausedSnapshot().lineNumber());
+                session.requestContinue();
+            }
+        });
+        session.startSession();
+        Thread saxon = new Thread(() -> session.checkAndPause("u.xsl", line, 1, () -> emptySnapshot(line)), "test-saxon");
+        saxon.start();
+        saxon.join(AWAIT_MS);
+        return paused;
+    }
 }

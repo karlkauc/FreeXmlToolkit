@@ -41,6 +41,10 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
     public static final String SLOT_STYLE_CLASS = "breakpoint-gutter-slot";
     /** Added to the slot of a breakpoint that has a condition or a hit-count rule. */
     public static final String CONDITIONAL_STYLE_CLASS = "breakpoint-conditional";
+    /** Added to the slot of a breakpoint the last completed run never reached. */
+    public static final String UNREACHED_STYLE_CLASS = "breakpoint-unreached";
+    private static final String NOT_REACHED =
+            "Not reached in the last run (no traced instruction on this line, or the code did not run)";
     /** Added to the slot of a disabled breakpoint, or of any breakpoint while all are muted. */
     public static final String INACTIVE_STYLE_CLASS = "breakpoint-inactive";
 
@@ -182,9 +186,15 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         } else if (hasBp) {
             IconifyIcon fi = new IconifyIcon("bi-circle-fill");
             fi.setIconSize(10);
-            SemanticIcon.paint(fi, DesignTokens.ColorToken.DANGER);
             int hits = session.hitCount(filePath, line);
-            Tooltip.install(fi, new Tooltip((hits > 0 ? "Hits in this run: " + hits + "\n" : "")
+            boolean unreached = session.notReachedInLastRun(filePath, line);
+            // A breakpoint the last run never reached reads amber instead of red.
+            SemanticIcon.paint(fi, unreached ? DesignTokens.ColorToken.WARNING : DesignTokens.ColorToken.DANGER);
+            if (unreached) {
+                box.getStyleClass().add(UNREACHED_STYLE_CLASS);
+            }
+            Tooltip.install(fi, new Tooltip((unreached ? NOT_REACHED + "\n" : "")
+                    + (hits > 0 ? "Hits in this run: " + hits + "\n" : "")
                     + "Click to remove breakpoint, right-click for a condition or hit count"));
             icon = fi;
         } else {
@@ -232,6 +242,9 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         int hits = session.hitCount(filePath, line);
         if (hits > 0) {
             sb.append("\nHits in this run: ").append(hits);
+        }
+        if (session.notReachedInLastRun(filePath, line)) {
+            sb.append('\n').append(NOT_REACHED);
         }
         return sb.toString();
     }

@@ -265,4 +265,18 @@ class BreakpointGutterFactoryTest {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> runTo.fire());
         assertEquals(7, session.getRunToLine());
     }
+
+    @Test
+    void breakpointsTheLastRunNeverReachedAreMarked() {
+        org.fxt.freexmltoolkit.debugger.DebugSession session = new org.fxt.freexmltoolkit.debugger.DebugSession();
+        BreakpointGutterFactory factory = new BreakpointGutterFactory(session, v -> { });
+        factory.setFilePath(FILE);
+        session.toggleBreakpoint(FILE, 4);
+        session.startSession();
+        Node during = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(3));
+        assertFalse(during.getStyleClass().contains(BreakpointGutterFactory.UNREACHED_STYLE_CLASS), "not while running");
+        session.markRunEnded(true);
+        Node after = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(3));
+        assertTrue(after.getStyleClass().contains(BreakpointGutterFactory.UNREACHED_STYLE_CLASS));
+    }
 }

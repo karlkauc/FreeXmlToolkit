@@ -473,4 +473,30 @@ class XsltDebuggerIntegrationTest {
         session.requestStop();
         assertTrue(doneLatch.await(10, TimeUnit.SECONDS));
     }
+
+    @Test
+    void aBreakpointOnALineWithoutInstructionIsNeverHit() throws Exception {
+        String xml = "<order><item n=\"1\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\">\n"                                                            // 2
+                + "    <out><xsl:value-of select=\"count(//item)\"/></out>\n"                                  // 3
+                + "    <!-- just a comment -->\n"                                                               // 4
+                + "  </xsl:template>\n"                                                                         // 5
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.toggleBreakpoint("", 3);
+        session.toggleBreakpoint("", 4);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        session.markRunEnded(result.isSuccess());
+        assertFalse(session.notReachedInLastRun("", 3), "the value-of line is hit");
+        assertTrue(session.notReachedInLastRun("", 4), "the comment line has nothing to trace");
+    }
 }
