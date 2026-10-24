@@ -730,8 +730,9 @@ XSLT document (against the toolbar's **Input** target), the **PDF / FOP** panel'
 
 What happens:
 
-1. The stylesheet opens as a document (its saved file - the debugger reads it from disk so
-   relative `xsl:include` / `xsl:import` hrefs resolve). Every saved XSLT document already has
+1. The stylesheet opens as a document. The debugger runs its **editor text** - unsaved changes
+   included, also of open included modules - under the file's location, so relative
+   `xsl:include` / `xsl:import` hrefs resolve (a new stylesheet must be saved once). Every saved XSLT document already has
    a **breakpoint gutter**: click the slot left of a line to toggle a red breakpoint, before or
    during a session (the click does not move the caret). Breakpoints are **remembered per
    file** across sessions and restarts, including those set in included modules.
@@ -746,7 +747,7 @@ What happens:
 
 The dock's header holds the controls - **Continue** (F5), **Pause** (F6, breaks into a running transformation), **Run to Cursor** (Ctrl+F10; also gutter right-click → Run to Here, and it starts the debugger when none runs), **Step Into** (F7), **Step Over**
 (F8), **Step Out** (Shift+F8), **Restart** (runs again from the start with the same
-breakpoints, re-reading the stylesheet), **Stop**, **Pause on entry**, **Mute** (all breakpoints off, steps still work), **Show in editor**, **Show input** (the paused context node in the input XML, which is tinted blue there), **Evaluate** (Alt+F8: any XPath in the selected frame, with a history on Up/Down)
+breakpoints, reading the stylesheet again from the editor), **Stop**, **Pause on entry**, **Mute** (all breakpoints off, steps still work), **Show in editor**, **Show input** (the paused context node in the input XML, which is tinted blue there), **Evaluate** (Alt+F8: any XPath in the selected frame, with a history on Up/Down)
 and **✕** (ends the session). Below it, two tab groups show the paused state - **Variables |
 Watch** on the left, **Call Stack | Messages | Breakpoints | Output** on the right, with a draggable
 divider whose position is remembered. Messages and Breakpoints carry a count badge; a failed

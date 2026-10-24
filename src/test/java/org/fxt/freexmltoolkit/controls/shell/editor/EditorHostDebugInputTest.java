@@ -135,4 +135,25 @@ class EditorHostDebugInputTest {
         assertEquals(1, session.getBreakpoints().size(), "the breakpoint is there");
         assertTrue(host.activeDebugPane().isPauseOnEntrySelected(), "and pause on entry is forced on");
     }
+
+    @Test
+    void theUnsavedEditorTextIsDebugged(@TempDir Path tmp) throws Exception {
+        Path xsl = tmp.resolve("dirty.xsl");
+        Files.writeString(xsl, "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                + "  <xsl:template match=\"/\"><out>saved</out></xsl:template>\n</xsl:stylesheet>\n");
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.openFile(xsl));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveText().map(t -> t.contains("saved")).orElse(false)));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            var area = host.getActiveCodeArea();
+            int at = area.getText().indexOf("saved");
+            area.replaceText(at, at + "saved".length(), "edited");
+        });
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.startXsltDebug(xsl.toFile(), XML, Map.of(), OutputFormat.XML));
+        pausedSession();
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeDebugPane().getMessagesView().getRowCount() == 1);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeDebugPane().onContinue());
+        WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS, () -> host.activeDebugPane().getOutputView().getText().contains("edited"));
+        assertTrue(Files.readString(xsl).contains("saved"), "the file itself is untouched");
+    }
 }

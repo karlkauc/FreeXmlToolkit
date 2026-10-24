@@ -47,6 +47,11 @@ public final class XsltDebugController {
     private volatile boolean pauseOnEntry;
     private volatile boolean restartPending;
     private volatile WatchEvaluator watchEvaluator;
+    /**
+     * Supplies, at every launch, the texts of open stylesheet modules by normalised path (the
+     * editor's possibly unsaved text); read on the launching thread, used while compiling.
+     */
+    private volatile Supplier<Map<String, String>> moduleTexts = Map::of;
     /** "Debug to cursor": a Run to Cursor target applied when the next run starts. */
     private volatile String runToOnStartPath;
     private volatile int runToOnStartLine;
@@ -182,6 +187,13 @@ public final class XsltDebugController {
             return;
         }
         lastXslt = xslt == null ? "" : xslt;
+        Map<String, String> modules;
+        try {
+            modules = Map.copyOf(moduleTexts.get());
+        } catch (RuntimeException e) {
+            modules = Map.of();
+        }
+        final Map<String, String> moduleSnapshot = modules;
         watchEvaluator = null;
         restartPending = false;
         running.set(true);
@@ -191,12 +203,13 @@ public final class XsltDebugController {
             session.runTo(runToOnStartPath, runToOnStartLine);
             runToOnStartLine = 0;
         }
+        publishPendingNotes();
         executor.execute(() -> {
             XsltTransformationResult result;
             try {
                 result = XsltTransformationEngine.getInstance().transformWithDebugSession(
                         args.xml(), args.inputSystemId(), lastXslt, args.xsltSystemId(), args.parameters(),
-                        args.format(), session, this::publishMessage);
+                        args.format(), session, this::publishMessage, moduleSnapshot::get);
             } catch (RuntimeException e) {
                 logger.warn("Debug run failed unexpectedly", e);
                 result = XsltTransformationResult.error("Debug run failed: " + e.getMessage());
@@ -217,6 +230,25 @@ public final class XsltDebugController {
                 launch();
             }
         });
+    }
+
+    /** Notes collected while a run is being launched; shown once the run has started. */
+    private final List<String> pendingNotes = new CopyOnWriteArrayList<>();
+
+    /**
+     * Shows an informational note in the debugger's Messages (e.g. "unsaved changes included").
+     * Called while launching (from the stylesheet supplier), it is shown once the run has
+     * started — starting a run clears Messages.
+     */
+    public void note(String text) {
+        pendingNotes.add(text);
+    }
+
+    private void publishPendingNotes() {
+        for (String text : pendingNotes) {
+            publishMessage(new TransformationMessage("INFO", text, -1, ""));
+        }
+        pendingNotes.clear();
     }
 
     private void publishMessage(TransformationMessage message) {
@@ -241,6 +273,11 @@ public final class XsltDebugController {
     public void setRunToOnStart(String filePath, int line) {
         this.runToOnStartPath = filePath == null ? "" : filePath;
         this.runToOnStartLine = Math.max(0, line);
+    }
+
+    /** Sets where included / imported modules come from when they are open in the editor. */
+    public void setModuleTexts(Supplier<Map<String, String>> supplier) {
+        this.moduleTexts = supplier == null ? Map::of : supplier;
     }
 
     /** Breaks into a running transformation at its next instruction. */

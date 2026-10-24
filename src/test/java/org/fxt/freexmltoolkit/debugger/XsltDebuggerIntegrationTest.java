@@ -762,4 +762,29 @@ class XsltDebuggerIntegrationTest {
                 || moded.callStack().stream().anyMatch(f -> f.description().contains("mode=\"list\"")),
                 "the call stack names the mode: " + moded.callStack());
     }
+
+    @Test
+    void openModuleTextsReplaceTheFilesOnDisk(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws Exception {
+        java.nio.file.Path lib = dir.resolve("lib.xsl");
+        java.nio.file.Files.writeString(lib, "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
+                + "<xsl:template name=\"greet\"><g>from disk</g></xsl:template></xsl:stylesheet>");
+        java.nio.file.Path main = dir.resolve("main.xsl");
+        String mainText = "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
+                + "<xsl:include href=\"lib.xsl\"/><xsl:template match=\"/\"><out><xsl:call-template name=\"greet\"/></out></xsl:template></xsl:stylesheet>";
+        java.nio.file.Files.writeString(main, mainText);
+        String editorLib = "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
+                + "<xsl:template name=\"greet\"><g>from the editor</g></xsl:template></xsl:stylesheet>";
+        java.util.Map<String, String> open = java.util.Map.of(SourceLocations.normalize(lib.toString()), editorLib);
+
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                "<root/>", null, mainText, main.toUri().toString(), new HashMap<>(),
+                XsltTransformationEngine.OutputFormat.XML, new DebugSession(), m -> { }, open::get);
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertTrue(result.getOutputContent().contains("from the editor"), result.getOutputContent());
+
+        XsltTransformationResult disk = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                "<root/>", null, mainText, main.toUri().toString(), new HashMap<>(),
+                XsltTransformationEngine.OutputFormat.XML, new DebugSession(), m -> { }, p -> null);
+        assertTrue(disk.getOutputContent().contains("from disk"), "modules not open come from the file");
+    }
 }

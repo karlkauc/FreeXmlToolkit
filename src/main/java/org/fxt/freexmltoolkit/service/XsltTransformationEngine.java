@@ -544,6 +544,22 @@ public class XsltTransformationEngine {
             Map<String, Object> parameters, OutputFormat outputFormat,
             DebugSession session,
             java.util.function.Consumer<XsltTransformationResult.TransformationMessage> liveMessages) {
+        return transformWithDebugSession(xmlContent, inputSystemId, xsltContent, xsltSystemId, parameters,
+                outputFormat, session, liveMessages, null);
+    }
+
+    /**
+     * Like {@link #transformWithDebugSession(String, String, String, String, Map, OutputFormat,
+     * DebugSession, java.util.function.Consumer)}; {@code moduleTexts} supplies the text of an
+     * included / imported module by its normalised file path ({@code null} = read the file), so
+     * the debugger can run the editor's unsaved text of open modules.
+     */
+    public XsltTransformationResult transformWithDebugSession(
+            String xmlContent, String inputSystemId, String xsltContent, String xsltSystemId,
+            Map<String, Object> parameters, OutputFormat outputFormat,
+            DebugSession session,
+            java.util.function.Consumer<XsltTransformationResult.TransformationMessage> liveMessages,
+            java.util.function.Function<String, String> moduleTexts) {
 
         if (session == null) {
             return transform(xmlContent, xsltContent, parameters, outputFormat);
@@ -570,7 +586,7 @@ public class XsltTransformationEngine {
 
             XsltExecutable executable;
             try {
-                executable = compileForDebug(processor, xsltContent, xsltSystemId, messageListener);
+                executable = compileForDebug(processor, xsltContent, xsltSystemId, messageListener, moduleTexts);
             } catch (StylesheetCompileException e) {
                 return e.toResult();
             }
@@ -658,10 +674,25 @@ public class XsltTransformationEngine {
      * reports its own location. Never cached — each debug run reflects the file as it is now.
      */
     private XsltExecutable compileForDebug(Processor processor, String xsltContent, String xsltSystemId,
-                                           XsltDebugMessageListener messageListener)
+                                           XsltDebugMessageListener messageListener,
+                                           java.util.function.Function<String, String> moduleTexts)
             throws StylesheetCompileException {
         XsltCompiler compiler = processor.newXsltCompiler();
         compiler.setXsltLanguageVersion("3.0");
+        if (moduleTexts != null) {
+            // xsl:include / xsl:import of a module that is open in the editor: its (unsaved) text.
+            net.sf.saxon.lib.ResourceResolver fallback = compiler.getResourceResolver();
+            compiler.setResourceResolver(request -> {
+                String text = request.uri == null ? null
+                        : moduleTexts.apply(org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(request.uri));
+                if (text != null) {
+                    StreamSource module = new StreamSource(new StringReader(text));
+                    module.setSystemId(request.uri);
+                    return module;
+                }
+                return fallback == null ? null : fallback.resolve(request);
+            });
+        }
         List<XmlProcessingError> staticErrors = new ArrayList<>();
         compiler.setErrorReporter(collectStaticErrors(staticErrors, messageListener));
         compiler.setCompileWithTracing(true);

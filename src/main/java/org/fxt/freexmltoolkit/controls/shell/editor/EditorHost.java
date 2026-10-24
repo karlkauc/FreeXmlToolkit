@@ -3284,13 +3284,75 @@ public class EditorHost extends BorderPane {
         selectDocument(xsltDoc);
 
         // 4. Start the run: the stylesheet is re-read from disk on every (re)start.
-        controller.start(xml, inputFile == null ? null : inputFile.toUri().toString(), () -> {
-            try {
-                return java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new java.io.UncheckedIOException(e);
+        // The debugger runs what the editor shows: the open stylesheet's (and open modules')
+        // text, saved or not — read on the FX thread at every (re)start. Breakpoints follow the
+        // editor's lines, so they match.
+        controller.setModuleTexts(() -> onFxThread(this::openStylesheetTexts));
+        controller.start(xml, inputFile == null ? null : inputFile.toUri().toString(),
+                () -> onFxThread(() -> stylesheetText(xsltFile, controller)),
+                xsltFile.toURI().toString(), parameters, format);
+    }
+
+    /**
+     * The text the debugger runs for the main stylesheet: the editor's when it is open (a note
+     * goes to Messages when it has unsaved changes), else the file.
+     */
+    private String stylesheetText(File xsltFile,
+                                  org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController controller) {
+        OpenDocument doc = documentAt(xsltFile.toPath());
+        if (doc != null) {
+            var text = getDocumentText(doc);
+            if (text.isPresent() && !text.get().isEmpty()) {
+                if (doc.isDirty()) {
+                    controller.note("Debugging the editor text of " + doc.getDisplayName()
+                            + " (unsaved changes included)");
+                }
+                return text.get();
             }
-        }, xsltFile.toURI().toString(), parameters, format);
+        }
+        try {
+            return java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
+    /** The editor text of every open, saved XSLT document, by normalised path (FX thread). */
+    private java.util.Map<String, String> openStylesheetTexts() {
+        java.util.Map<String, String> texts = new java.util.HashMap<>();
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document.getPath() != null
+                    && et.document.getFileType() == EditorFileType.XSLT) {
+                getDocumentText(et.document).filter(t -> !t.isEmpty()).ifPresent(t -> texts.put(
+                        org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(et.document.getPath().toString()), t));
+            }
+        }
+        return texts;
+    }
+
+    /** Runs {@code work} on the FX thread and waits for it (directly when already there). */
+    private static <T> T onFxThread(java.util.concurrent.Callable<T> work) {
+        if (javafx.application.Platform.isFxApplicationThread()) {
+            try {
+                return work.call();
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        java.util.concurrent.FutureTask<T> task = new java.util.concurrent.FutureTask<>(work);
+        javafx.application.Platform.runLater(task);
+        try {
+            return task.get(10, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(e);
+        } catch (java.util.concurrent.ExecutionException e) {
+            throw new IllegalStateException(e.getCause() == null ? e.getMessage() : e.getCause().getMessage(), e);
+        } catch (java.util.concurrent.TimeoutException e) {
+            throw new IllegalStateException("The editor did not answer in time", e);
+        }
     }
 
     /** @return the open document of {@code file}, or {@code null}. */
