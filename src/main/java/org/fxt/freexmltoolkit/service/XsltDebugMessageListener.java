@@ -96,6 +96,21 @@ public class XsltDebugMessageListener implements Consumer<Message> {
      *
      * @param message the Message object containing content, error code, terminate flag, and location
      */
+    /** Saxon's default error code of {@code xsl:message} (no {@code error-code} attribute). */
+    static final String DEFAULT_MESSAGE_CODE = "XTMM9000";
+
+    /**
+     * @return {@code INFO} for a plain message, {@code TERMINATE} for {@code terminate="yes"},
+     *         each followed by {@code [code]} when the stylesheet set its own error code
+     */
+    static String levelOf(boolean terminate, String errorCode) {
+        String level = terminate ? "TERMINATE" : "INFO";
+        if (errorCode != null && !errorCode.isEmpty() && !DEFAULT_MESSAGE_CODE.equals(errorCode)) {
+            level = level + " [" + errorCode + "]";
+        }
+        return level;
+    }
+
     @Override
     public void accept(Message message) {
         try {
@@ -107,14 +122,12 @@ public class XsltDebugMessageListener implements Consumer<Message> {
             String location = extractLocation(locator);
             int lineNumber = locator != null ? locator.getLineNumber() : -1;
 
-            // Determine level
+            // Determine level. Saxon gives every xsl:message an error code — XTMM9000 unless the
+            // stylesheet sets error-code — so the code alone does not make a message an error:
+            // only terminate="yes" does. A custom code is kept for both kinds.
             boolean terminate = message.isTerminate();
-            String level = terminate ? "TERMINATE" : "INFO";
-
-            // Get error code if present
-            if (message.getErrorCode() != null) {
-                level = "ERROR [" + message.getErrorCode().getLocalName() + "]";
-            }
+            String level = levelOf(terminate, message.getErrorCode() == null
+                    ? null : message.getErrorCode().getLocalName());
 
             // Create, store and stream the message
             publish(new XsltTransformationResult.TransformationMessage(level, messageText, lineNumber, location));

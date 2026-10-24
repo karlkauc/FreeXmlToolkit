@@ -202,4 +202,36 @@ class DebugPanelsTest {
         assertEquals(false, marks[0]);
         assertEquals(true, marks[1], "zero hits after a completed run");
     }
+
+    @Test
+    void messagesFilterByLevelAndTextCopyAndClear() {
+        java.util.concurrent.atomic.AtomicInteger counted = new java.util.concurrent.atomic.AtomicInteger();
+        Object[] r = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            MessagesView view = new MessagesView();
+            view.setOnCountChanged(counted::incrementAndGet);
+            view.append(new org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage("INFO", "starting order 7", 3, "a.xsl:3"));
+            view.append(new org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage("WARNING", "deprecated", 4, "a.xsl:4"));
+            view.append(new org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage("TERMINATE", "bad order", 9, "a.xsl:9"));
+            view.setFilter(MessagesView.LevelFilter.ERRORS, "");
+            int errors = view.getVisibleCount();
+            view.setFilter(MessagesView.LevelFilter.MESSAGES, "");
+            int infos = view.getVisibleCount();
+            view.setFilter(MessagesView.LevelFilter.ALL, "ORDER");
+            int text = view.getVisibleCount();
+            String copiedShown = view.copyToClipboard();
+            view.select(1);
+            String copiedSelected = view.copyToClipboard();
+            int total = view.getRowCount();
+            view.clear();
+            return new Object[]{errors, infos, text, copiedShown, copiedSelected, total, view.getRowCount()};
+        });
+        assertEquals(1, r[0], "TERMINATE counts as an error");
+        assertEquals(1, r[1], "plain messages only");
+        assertEquals(2, r[2], "text filter is case-insensitive over level, location and text");
+        assertEquals("INFO  @ a.xsl:3\nstarting order 7\nTERMINATE  @ a.xsl:9\nbad order", r[3]);
+        assertEquals("TERMINATE  @ a.xsl:9\nbad order", r[4], "only the selection");
+        assertEquals(3, r[5], "the count (badge) ignores the filter");
+        assertEquals(0, r[6]);
+        assertEquals(4, counted.get(), "three appends and the clear");
+    }
 }
