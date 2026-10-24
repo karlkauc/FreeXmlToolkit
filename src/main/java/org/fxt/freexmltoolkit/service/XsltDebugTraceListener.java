@@ -825,7 +825,11 @@ public class XsltDebugTraceListener implements TraceListener {
         } catch (Throwable ignored) { /* best-effort */ }
         int index = 0;
         // Top of stack first — matches typical debugger view ordering
-        for (CallStackEntry entry : callStack) {
+        List<CallStackEntry> entries = new ArrayList<>(callStack);
+        for (int i = 0; i < entries.size(); i++) {
+            CallStackEntry entry = entries.get(i);
+            // A loop frame names the iteration its body runs in, from the focus the body was entered with.
+            String description = entry.description() + loopPosition(entry, i > 0 ? entries.get(i - 1) : null);
             String frameSystemId = entry.systemId().isEmpty() ? currentSystemId : entry.systemId();
             int frameLine = entry.lineNumber() > 0 ? entry.lineNumber() : currentLine;
             XPathContext ctx = entry.context();
@@ -846,14 +850,48 @@ public class XsltDebugTraceListener implements TraceListener {
                 } catch (Throwable t) {
                     logger.debug("Failed to capture frame state: {}", t.getMessage());
                 }
-                frames.add(new DebugStackFrame(entry.description(), frameSystemId, frameLine,
+                frames.add(new DebugStackFrame(description, frameSystemId, frameLine,
                         frameLocals.bindings(), entry.kind(), ctxItem, frameLocals.values()));
             } else {
-                frames.add(new DebugStackFrame(entry.description(), frameSystemId, frameLine,
+                frames.add(new DebugStackFrame(description, frameSystemId, frameLine,
                         List.of(), entry.kind()));
             }
         }
         return frames;
+    }
+
+    /**
+     * {@code " (3 of 222)"} for a loop frame ({@code xsl:for-each}, {@code xsl:for-each-group},
+     * {@code xsl:iterate}, {@code xsl:apply-templates}) whose body is running: the position and
+     * size of the focus the inner frame was entered with; {@code " (iteration 3)"} when the size
+     * is not available. Empty for other frames and for a loop that has not started its body.
+     */
+    static String loopPosition(CallStackEntry loop, CallStackEntry inner) {
+        Traceable t = loop.traceable();
+        boolean isLoop = t instanceof net.sf.saxon.expr.instruct.ForEach
+                || t instanceof net.sf.saxon.expr.instruct.ForEachGroup
+                || t instanceof net.sf.saxon.expr.instruct.IterateInstr
+                || t instanceof net.sf.saxon.expr.instruct.ApplyTemplates;
+        if (!isLoop || inner == null || inner.context() == null) {
+            return "";
+        }
+        try {
+            FocusIterator focus = inner.context().getCurrentIterator(); // NOPMD - borrowed iterator owned by the Saxon context
+            if (focus == null || focus.position() < 1) {
+                return "";
+            }
+            int position = focus.position();
+            if (t instanceof net.sf.saxon.expr.instruct.IterateInstr) {
+                return " (iteration " + position + ")";
+            }
+            try {
+                return " (" + position + " of " + inner.context().getLast() + ")";
+            } catch (RuntimeException e) { // XPathException is unchecked in Saxon 12
+                return " (iteration " + position + ")";
+            }
+        } catch (RuntimeException e) {
+            return "";
+        }
     }
 
     private String truncate(String text, int maxLength) {

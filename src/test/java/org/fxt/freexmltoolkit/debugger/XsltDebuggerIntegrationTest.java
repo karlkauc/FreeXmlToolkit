@@ -507,6 +507,41 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void loopFramesShowTheIterationTheirBodyRunsIn() throws Exception {
+        String xml = "<r><g><i/><i/><i/></g><g><i/><i/><i/></g></r>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"r/g\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"g\">\n"                                                           // 3
+                + "    <xsl:for-each select=\"i\">\n"                                                        // 4
+                + "      <xsl:iterate select=\"1 to 4\">\n"                                                  // 5
+                + "        <n><xsl:value-of select=\".\"/></n>\n"                                            // 6
+                + "      </xsl:iterate>\n"
+                + "    </xsl:for-each>\n"
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        // the 2nd group, its 3rd item, the iterate's 4th round
+        session.updateBreakpoint("", 6, bp -> bp.withHit(new HitCondition(HitCondition.Mode.EQUAL, 3 * 4 + 2 * 4 + 4)));
+        AtomicReference<java.util.List<String>> frames = new AtomicReference<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                frames.set(session.getPausedSnapshot().callStack().stream().map(DebugStackFrame::description).toList());
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        java.util.List<String> labels = frames.get();
+        assertNotNull(labels, "paused once");
+        assertTrue(labels.stream().anyMatch(l -> l.endsWith("(iteration 4)")), "xsl:iterate round: " + labels);
+        assertTrue(labels.stream().anyMatch(l -> l.startsWith("ForEach") && l.endsWith("(3 of 3)")), "for-each item: " + labels);
+        assertTrue(labels.stream().anyMatch(l -> l.startsWith("ApplyTemplates") && l.endsWith("(2 of 2)")),
+                "apply-templates node: " + labels);
+    }
+
+    @Test
     void hitCountRulePausesAtTheThirdItemAndCountsAllPasses() throws Exception {
         String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/><item n=\"4\"/><item n=\"5\"/></order>";
         String xslt = ""
