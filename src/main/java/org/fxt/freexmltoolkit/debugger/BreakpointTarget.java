@@ -71,6 +71,21 @@ public interface BreakpointTarget {
                 && updateBreakpoint(filePath, line, bp -> bp.withEnabled(enabled));
     }
 
+    /** @return whether {@link #runTo} is available (a running or paused debug session). */
+    default boolean canRunTo() {
+        return false;
+    }
+
+    /**
+     * Runs until {@code filePath:line} is reached ("Run to Cursor"): a one-shot stop that is
+     * dropped when reached, at any other pause and when the run ends.
+     *
+     * @return {@code false} when unsupported (no session)
+     */
+    default boolean runTo(String filePath, int line) {
+        return false;
+    }
+
     /** @return whether all breakpoints are temporarily muted (a debug session's toggle). */
     default boolean isMuted() {
         return false;

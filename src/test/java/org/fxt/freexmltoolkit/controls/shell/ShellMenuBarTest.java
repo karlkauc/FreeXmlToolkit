@@ -256,4 +256,14 @@ class ShellMenuBarTest {
         assertFalse(debug.isDisable(), "enabled for an XML document, like Transform with XSLT…");
         assertFalse(item("menu-tools-transform").isDisable());
     }
+
+    @Test
+    void runToCursorIsOnlyForSavedXsltDocuments() {
+        var runTo = item("menu-tools-run-to-cursor");
+        assertNotNull(runTo, "Tools has Run to Cursor");
+        assertEquals(javafx.scene.input.KeyCombination.valueOf("Shortcut+F10"), runTo.getAccelerator());
+        assertTrue(runTo.isDisable(), "disabled without a document");
+        onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XSLT));
+        assertTrue(runTo.isDisable(), "an unsaved stylesheet cannot be debugged");
+    }
 }

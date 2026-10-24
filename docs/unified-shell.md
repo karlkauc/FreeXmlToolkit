@@ -744,7 +744,7 @@ What happens:
    yellow arrow on a breakpoint line). When Saxon pauses inside an included module, that
    file opens, with its own breakpoints in its gutter.
 
-The dock's header holds the controls - **Continue** (F5), **Pause** (F6, breaks into a running transformation), **Step Into** (F7), **Step Over**
+The dock's header holds the controls - **Continue** (F5), **Pause** (F6, breaks into a running transformation), **Run to Cursor** (Ctrl+F10; also gutter right-click → Run to Here, and it starts the debugger when none runs), **Step Into** (F7), **Step Over**
 (F8), **Step Out** (Shift+F8), **Restart** (runs again from the start with the same
 breakpoints, re-reading the stylesheet), **Stop**, **Pause on entry**, **Mute** (all breakpoints off, steps still work), **Show in editor**
 and **✕** (ends the session). Below it, two tab groups show the paused state - **Variables |

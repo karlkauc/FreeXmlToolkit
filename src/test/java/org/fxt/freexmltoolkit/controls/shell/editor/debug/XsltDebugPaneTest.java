@@ -421,4 +421,19 @@ class XsltDebugPaneTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getCallStackView().getRowCount() > 0);
         controller.stop();
     }
+
+    @Test
+    void debugToCursorRunsToTheLineWithoutPausingOnEntry() throws Exception {
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> new XsltDebugPane(controller));
+        controller.setPauseOnEntry(true); // would stop at the first instruction …
+        controller.setRunToOnStart("", 5); // … but Debug to Cursor runs to the value-of line
+        controller.start(XML, XSLT, Map.of(), OutputFormat.XML);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> controller.getSession().getState() == DebugSession.State.PAUSED);
+        PausedSnapshot snap = controller.getSession().getPausedSnapshot();
+        assertEquals(5, snap.lineNumber(), "first stop is the cursor line");
+        assertEquals("run to cursor", controller.getSession().getPauseNote());
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getStatusText().contains("run to cursor"));
+        controller.stop();
+    }
 }

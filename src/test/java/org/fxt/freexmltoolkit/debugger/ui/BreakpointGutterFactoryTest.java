@@ -248,4 +248,21 @@ class BreakpointGutterFactoryTest {
         assertTrue(muted.getStyleClass().contains(BreakpointGutterFactory.INACTIVE_STYLE_CLASS),
                 "while muted every breakpoint is shown inactive");
     }
+
+    @Test
+    void runToHereIsOfferedOnlyWhileASessionRuns() {
+        org.fxt.freexmltoolkit.debugger.DebugSession session = new org.fxt.freexmltoolkit.debugger.DebugSession();
+        BreakpointGutterFactory factory = new BreakpointGutterFactory(session, v -> { });
+        factory.setFilePath(FILE);
+        java.util.function.Supplier<java.util.List<String>> labels = () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> factory.menuFor(7).getItems().stream().map(javafx.scene.control.MenuItem::getText)
+                        .filter(java.util.Objects::nonNull).toList());
+        assertFalse(labels.get().contains("Run to Here"), "no session running");
+        session.startSession();
+        assertEquals("Run to Here", labels.get().get(0));
+        javafx.scene.control.MenuItem runTo = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> factory.menuFor(7).getItems().get(0));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> runTo.fire());
+        assertEquals(7, session.getRunToLine());
+    }
 }

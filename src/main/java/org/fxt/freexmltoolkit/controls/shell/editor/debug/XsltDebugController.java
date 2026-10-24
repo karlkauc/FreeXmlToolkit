@@ -47,6 +47,9 @@ public final class XsltDebugController {
     private volatile boolean pauseOnEntry;
     private volatile boolean restartPending;
     private volatile WatchEvaluator watchEvaluator;
+    /** "Debug to cursor": a Run to Cursor target applied when the next run starts. */
+    private volatile String runToOnStartPath;
+    private volatile int runToOnStartLine;
 
     /** Uses the shared application executor. */
     public XsltDebugController() {
@@ -167,7 +170,12 @@ public final class XsltDebugController {
         watchEvaluator = null;
         restartPending = false;
         running.set(true);
-        session.startSession(pauseOnEntry ? DebugSession.StepMode.STEP_INTO : DebugSession.StepMode.NONE);
+        boolean toCursor = runToOnStartLine > 0;
+        session.startSession(pauseOnEntry && !toCursor ? DebugSession.StepMode.STEP_INTO : DebugSession.StepMode.NONE);
+        if (toCursor) {
+            session.runTo(runToOnStartPath, runToOnStartLine);
+            runToOnStartLine = 0;
+        }
         executor.execute(() -> {
             XsltTransformationResult result;
             try {
@@ -211,6 +219,15 @@ public final class XsltDebugController {
     public void stepOver()    { session.requestStepOver(); }
     public void stepOut()     { session.requestStepOut(); }
     public void stop()        { restartPending = false; session.requestStop(); }
+    /**
+     * Makes the next run start as "Run to Cursor": no pause on entry, it runs to
+     * {@code filePath:line} (breakpoints on the way still pause).
+     */
+    public void setRunToOnStart(String filePath, int line) {
+        this.runToOnStartPath = filePath == null ? "" : filePath;
+        this.runToOnStartLine = Math.max(0, line);
+    }
+
     /** Breaks into a running transformation at its next instruction. */
     public void pause()       { session.requestPause(); }
 

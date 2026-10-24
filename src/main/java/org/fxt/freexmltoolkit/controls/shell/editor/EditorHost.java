@@ -3205,6 +3205,10 @@ public class EditorHost extends BorderPane {
             mergeStoredBreakpoints(session, module);
         }
         controller.setPauseOnEntry(session.getBreakpoints().isEmpty());
+        if (debugRunToLine > 0) {
+            controller.setRunToOnStart(debugRunToPath, debugRunToLine);
+            debugRunToLine = 0;
+        }
 
         var pane = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane(controller);
         XsltDebugSession debug = new XsltDebugSession(controller, pane, xsltFile, resolvedModules);
@@ -3338,6 +3342,64 @@ public class EditorHost extends BorderPane {
         }
         gutter.toggle(et.view.getCodeArea().getCurrentParagraph() + 1);
         return true;
+    }
+
+    /**
+     * Run to Cursor (Ctrl+F10 / Tools → Run to Cursor) in the active XSLT document: while a
+     * debug session runs or is paused in one of its modules, runs to the caret line.
+     *
+     * @return {@code false} when there is no session to run (the caller may start one with
+     *         {@link #setDebugRunToOnStart})
+     */
+    public boolean runToCursor() {
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)) {
+            return false;
+        }
+        var gutter = breakpointGutterOf(et);
+        if (gutter == null || activeDebug == null) {
+            return false;
+        }
+        var session = activeDebug.controller.getSession();
+        return session.runTo(gutter.getFilePath(), et.view.getCodeArea().getCurrentParagraph() + 1);
+    }
+
+    /** @return whether Run to Cursor applies: the active tab is a saved XSLT document. */
+    public boolean canRunToCursor() {
+        return canToggleBreakpoint();
+    }
+
+    /** @return the caret line (1-based) of the active XSLT document, or 0. */
+    public int activeCaretLine() {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                ? et.view.getCodeArea().getCurrentParagraph() + 1 : 0;
+    }
+
+    /** Pending "debug to cursor" target for the next {@link #startXsltDebug} (path, line). */
+    private String debugRunToPath;
+    private int debugRunToLine;
+
+    /**
+     * Arms the next {@link #startXsltDebug} to run to the caret line of the active XSLT
+     * document ("Debug to Cursor"). Cleared with {@code setDebugRunToOnStart(null, 0)}.
+     *
+     * @return {@code false} when the active tab is no saved XSLT document
+     */
+    public boolean prepareDebugToCursor() {
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)) {
+            return false;
+        }
+        var gutter = breakpointGutterOf(et);
+        if (gutter == null) {
+            return false;
+        }
+        setDebugRunToOnStart(gutter.getFilePath(), et.view.getCodeArea().getCurrentParagraph() + 1);
+        return true;
+    }
+
+    /** Makes the next debug start run to {@code path:line} instead of pausing on entry. */
+    public void setDebugRunToOnStart(String path, int line) {
+        this.debugRunToPath = path;
+        this.debugRunToLine = line;
     }
 
     private static org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory breakpointGutterOf(EditorTab et) {

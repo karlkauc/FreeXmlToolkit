@@ -679,6 +679,15 @@ public class UnifiedShellView extends BorderPane {
             event.consume();
             return;
         }
+        // Ctrl/Cmd+F10: Run to Cursor (starts the debugger to the caret line when none runs).
+        if (event.getCode() == javafx.scene.input.KeyCode.F10 && event.isShortcutDown()
+                && !event.isShiftDown() && !event.isAltDown()) {
+            if (editorHost.canRunToCursor()) {
+                runToCursor();
+                event.consume();
+            }
+            return;
+        }
         // Function keys (no modifier) - all listed in the Keyboard Shortcuts dialog.
         switch (event.getCode()) {
             case F1 -> {
@@ -1402,6 +1411,25 @@ public class UnifiedShellView extends BorderPane {
      * it opens the Transform panel on the active document (asking for a stylesheet if none is
      * set) and starts the debugger there.
      */
+    /**
+     * Run to Cursor: in a running or paused debug session, runs to the caret line of the active
+     * stylesheet; otherwise starts the debugger for it (like Run ▾ → Debug Transform) and runs
+     * to the caret line instead of pausing on entry.
+     */
+    public void runToCursor() {
+        if (editorHost.runToCursor()) {
+            return;
+        }
+        if (editorActions.activeFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSLT
+                && editorHost.prepareDebugToCursor()) {
+            try {
+                editorActions.debugActiveTransform();
+            } finally {
+                editorHost.setDebugRunToOnStart(null, 0);
+            }
+        }
+    }
+
     @FXML public void onDebugXslt() {
         toolbar("debug_xslt");
         if (editorHost.getActiveDocument().isEmpty()) {

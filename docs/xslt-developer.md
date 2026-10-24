@@ -433,6 +433,7 @@ the header - switch it off to run straight to the first breakpoint). The header 
 | Control | Key | Description |
 |---------|-----|-------------|
 | **Continue** | F5 | Resume until the next breakpoint |
+| **Run to Cursor** | Ctrl+F10 (⌘F10) | Run to the caret line of the stylesheet (Tools → Run to Cursor, or right-click a gutter slot → **Run to Here**). A one-shot stop: breakpoints on the way still pause and cancel it; it works while breakpoints are muted. Without a running session it **starts the debugger** (like Run ▾ → Debug Transform) and runs to that line instead of pausing on entry |
 | **Pause** | F6 | While the run is going: break in at the next instruction - e.g. to look into a long loop or an endless recursion without a breakpoint (the status reads *paused by request*) |
 | **Step Into** | F7 | Step into the current instruction |
 | **Step Over** | F8 | Execute the current instruction without descending |

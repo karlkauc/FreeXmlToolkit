@@ -50,6 +50,9 @@ public class DebugSession implements BreakpointTarget {
     private volatile int stepTargetDepth = -1;
     private volatile PausedSnapshot pausedSnapshot;
     private volatile ConditionEvaluator conditionEvaluator;
+    /** One-shot "Run to Cursor" target (normalised path, 1-based line); line 0 = none. */
+    private volatile String runToPath = "";
+    private volatile int runToLine;
     /** Set by {@link #requestPause}; the next pause names it as its reason. */
     private volatile boolean pauseRequested;
     /** All breakpoints muted (steps and pause requests still work); kept across restarts. */
@@ -177,6 +180,33 @@ public class DebugSession implements BreakpointTarget {
         return normalizedPath + "\u0000" + line;
     }
 
+    @Override
+    public boolean canRunTo() {
+        return state == State.RUNNING || state == State.PAUSED;
+    }
+
+    /**
+     * Runs to {@code filePath:line}: sets a one-shot stop there and, when paused, continues.
+     * Breakpoints on the way still pause (and drop the target). Works while muted.
+     */
+    @Override
+    public boolean runTo(String filePath, int line) {
+        if (line < 1 || !canRunTo()) {
+            return false;
+        }
+        runToPath = SourceLocations.normalize(filePath);
+        runToLine = line;
+        if (state == State.PAUSED) {
+            requestContinue();
+        }
+        return true;
+    }
+
+    /** @return the pending Run to Cursor line, or 0 (tests). */
+    public int getRunToLine() {
+        return runToLine;
+    }
+
     /** Mutes / unmutes all breakpoints: while muted they neither pause nor count hits. */
     public void setMuted(boolean muted) {
         this.muted = muted;
@@ -228,6 +258,7 @@ public class DebugSession implements BreakpointTarget {
         stepTargetDepth = -1;
         pausedSnapshot = null;
         pauseRequested = false;
+        runToLine = 0;
         hitCounts.clear();
         synchronized (firedLines) {
             firedLines.clear();
@@ -326,6 +357,15 @@ public class DebugSession implements BreakpointTarget {
 
         String note = "";
         PausedSnapshot snapshot = null;
+        int target = runToLine;
+        if (!pause && target > 0 && line == target) {
+            String targetPath = runToPath;
+            String here = normalizedLocation(systemId);
+            if (targetPath.isEmpty() || here.isEmpty() || targetPath.equals(here)) {
+                pause = true;
+                note = "run to cursor";
+            }
+        }
         if (line > 0 && !muted && !breakpoints.isEmpty()) {
             // Check breakpoints — normalise the location once, not once per breakpoint
             String normalized = normalizedLocation(systemId);
@@ -395,6 +435,7 @@ public class DebugSession implements BreakpointTarget {
         if (snapshot == null) {
             snapshot = captureSnapshot(snapshotSupplier, systemId, line);
         }
+        runToLine = 0; // a one-shot target ends at any pause
         if (pauseRequested) {
             pauseRequested = false;
             if (note.isEmpty()) {

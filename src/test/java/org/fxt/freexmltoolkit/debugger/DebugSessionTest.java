@@ -516,4 +516,68 @@ class DebugSessionTest {
         assertEquals(DebugSession.State.IDLE, session.getState());
         assertEquals(DebugSession.StepMode.NONE, session.getStepMode(), "no step armed while idle");
     }
+
+    // ----- run to cursor -----------------------------------------------------------------
+
+    @Test
+    void runToCursorContinuesAndStopsOnceAtTheTarget() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        assertFalse(session.runTo("r.xsl", 5), "no session to run");
+        session.toggleBreakpoint("r.xsl", 2);
+        java.util.List<String> pauses = new java.util.concurrent.CopyOnWriteArrayList<>();
+        CountDownLatch first = new CountDownLatch(1);
+        CountDownLatch second = new CountDownLatch(1);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                pauses.add(session.getPausedSnapshot().lineNumber() + ":" + session.getPauseNote());
+                if (first.getCount() > 0) first.countDown(); else second.countDown();
+            }
+        });
+        session.startSession();
+        Thread saxon = new Thread(() -> {
+            for (int line : new int[]{1, 2, 3, 4, 5, 6, 5}) {
+                if (!session.checkAndPause("r.xsl", line, 1, () -> emptySnapshot(line))) return;
+            }
+        }, "test-saxon");
+        saxon.start();
+        assertTrue(first.await(AWAIT_MS, TimeUnit.MILLISECONDS), "the breakpoint on line 2");
+        assertTrue(session.canRunTo());
+        assertTrue(session.runTo("r.xsl", 5), "Run to Cursor from the pause continues");
+        assertTrue(second.await(AWAIT_MS, TimeUnit.MILLISECONDS), "and stops at line 5");
+        assertEquals(List.of("2:", "5:run to cursor"), pauses);
+        assertEquals(0, session.getRunToLine(), "one-shot: gone once reached");
+        session.requestContinue();
+        saxon.join(AWAIT_MS);
+        assertFalse(saxon.isAlive());
+        assertEquals(2, pauses.size(), "the second pass over line 5 runs through");
+    }
+
+    @Test
+    void runToCursorIsDroppedByAnEarlierPauseAndIgnoresMute() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.toggleBreakpoint("r.xsl", 3);
+        session.setMuted(true);
+        java.util.List<Integer> pauses = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                pauses.add(session.getPausedSnapshot().lineNumber());
+                session.requestContinue();
+            }
+        });
+        session.startSession();
+        assertTrue(session.runTo("r.xsl", 4));
+        Thread saxon = new Thread(() -> {
+            for (int line : new int[]{3, 4, 4}) {
+                session.checkAndPause("r.xsl", line, 1, () -> emptySnapshot(line));
+            }
+        }, "test-saxon");
+        saxon.start();
+        saxon.join(AWAIT_MS);
+        assertEquals(List.of(4), pauses, "muted breakpoint on 3 skipped, the cursor target still stops, once");
+
+        session.startSession();
+        assertTrue(session.runTo("r.xsl", 9));
+        session.startSession();
+        assertEquals(0, session.getRunToLine(), "a new run drops a pending target");
+    }
 }

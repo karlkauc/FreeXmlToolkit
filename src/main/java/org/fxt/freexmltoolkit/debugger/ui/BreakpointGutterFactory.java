@@ -241,6 +241,11 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         org.fxt.freexmltoolkit.debugger.Breakpoint bp = session.breakpointAt(filePath, line);
         boolean hasBp = bp != null || session.hasBreakpoint(filePath, line);
         ContextMenu menu = new ContextMenu();
+        if (session.canRunTo()) {
+            MenuItem runTo = new MenuItem("Run to Here", menuIcon("bi-skip-forward-fill", DesignTokens.ColorToken.SUCCESS));
+            runTo.setOnAction(e -> session.runTo(filePath, line));
+            menu.getItems().addAll(runTo, new SeparatorMenuItem());
+        }
         MenuItem edit = new MenuItem(hasBp ? "Breakpoint Properties…" : "Add Conditional Breakpoint…",
                 menuIcon("bi-sliders", DesignTokens.ColorToken.PRIMARY));
         edit.setOnAction(e -> editBreakpoint(line, menu.getOwnerWindow()));
