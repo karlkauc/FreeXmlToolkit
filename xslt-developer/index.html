@@ -3842,7 +3842,7 @@ right-click → <strong>Open Value…</strong> - to open it in its own <strong>v
 </tr>
 <tr>
 <td><strong>Output</strong></td>
-<td>What the transformation has <strong>written so far</strong>, refreshed at every pause - see where in the result you are. When the run finishes it shows the complete result (also in OUTPUT). The serializer may hold back a just-opened start tag until it knows whether the element stays empty, so the text can lag by one tag. <strong>Copy</strong> copies it</td>
+<td>What the transformation has <strong>written so far</strong>, refreshed at every pause - see where in the result you are; when the run finishes, the complete results (the principal one also in OUTPUT). The serializer may hold back a just-opened start tag until it knows whether the element stays empty, so the text can lag by one tag. With <code>xsl:result-document</code> a selector switches between the principal and each secondary result (kept in memory - a debug run writes nothing to disk; <code>xsl:result-document</code> itself needs <strong>Settings → Allow XSLT extension functions</strong>, off by default). <strong>Documents (n)</strong> lists what the run loaded with <code>doc()</code>, <code>document()</code> or <code>collection()</code>; click a file to open it. <strong>Copy</strong> copies the shown text</td>
 </tr>
 </tbody>
 </table>
