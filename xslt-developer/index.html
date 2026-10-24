@@ -1771,6 +1771,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#changed-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed Values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#exploring-structured-values" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2941,6 +2952,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#changed-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed Values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#exploring-structured-values" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3905,6 +3927,12 @@ brings forward by itself, like Messages after a failed run, does not change that
 Messages is highlighted when output arrives while another tab of its group is in front, and a
 <strong>failed run brings Messages to the front</strong> so the error is readable at once. In Watch and
 Breakpoints the <strong>Delete</strong> key removes the selected row.</p>
+<h4 id="changed-values">Changed Values<a class="headerlink" href="#changed-values" title="Permanent link">&para;</a></h4>
+<p>Values that changed since the <strong>previous pause in the same template or function</strong> are shown in
+<strong>bold blue</strong> - in Variables (including variables that are new there) and in Watch. Pausing in
+the <code>item</code> template for the second item marks <code>$label</code> and <code>position()</code>, but not a global that
+stayed the same. The comparison is per frame: selecting an outer frame in Call Stack compares
+with that frame's previous pause. A new run starts without markers.</p>
 <h4 id="exploring-structured-values">Exploring Structured Values<a class="headerlink" href="#exploring-structured-values" title="Permanent link">&para;</a></h4>
 <p>Variables is a <strong>tree</strong>: a node value unfolds into its <strong>attributes and child nodes</strong> (element →
 <code>@id</code>, <code>&lt;item&gt;</code>, <code>text()</code>, …; indentation whitespace is skipped), a sequence into its <strong>items</strong>
