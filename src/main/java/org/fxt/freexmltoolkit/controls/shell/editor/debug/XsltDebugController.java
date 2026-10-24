@@ -194,6 +194,23 @@ public final class XsltDebugController {
             modules = Map.of();
         }
         final Map<String, String> moduleSnapshot = modules;
+        // Breakpoints on any line of a multi-line start tag match the line Saxon reports (its end).
+        final String mainPath = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(args.xsltSystemId());
+        final String mainText = lastXslt;
+        session.setSourceTexts(path -> {
+            String text = moduleSnapshot.get(path);
+            if (text == null && (path.isEmpty() || path.equals(mainPath))) {
+                text = mainText;
+            }
+            if (text == null && !path.isEmpty()) {
+                try {
+                    text = java.nio.file.Files.readString(java.nio.file.Path.of(path));
+                } catch (java.io.IOException | RuntimeException e) {
+                    text = null;
+                }
+            }
+            return text;
+        });
         watchEvaluator = null;
         restartPending = false;
         running.set(true);

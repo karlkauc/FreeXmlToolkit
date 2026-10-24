@@ -696,4 +696,24 @@ class DebugSessionTest {
         pass.accept(5);
         assertEquals(List.of(3, 5, 5), logged, "moved, disabled, re-enabled and removed breakpoints are honoured");
     }
+
+    @Test
+    void aBreakpointInsideAMultiLineStartTagMatchesTheTagsLastLine() {
+        DebugSession session = new DebugSession();
+        java.util.List<Integer> logged = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.setLogHandler((template, snap) -> template, event -> logged.add(event.line()));
+        session.updateBreakpoint("t.xsl", 2, bp -> bp.withLog("x", false));
+        String text = "<a>\n<b c=\"1\"\n   d=\"2\"\n/>\n</a>\n"; // <b …/> spans lines 2-4
+        java.util.function.IntConsumer pass = line -> assertTrue(
+                session.checkAndPause("t.xsl", line, 1, () -> emptySnapshot(line)));
+
+        pass.accept(4);
+        assertEquals(List.of(), logged, "without the text, line 2 is matched literally");
+        session.setSourceTexts(path -> path.endsWith("t.xsl") ? text : null);
+        assertEquals(4, session.effectiveLine("t.xsl", 2));
+        pass.accept(2);
+        pass.accept(4);
+        assertEquals(List.of(4), logged, "Saxon reports the tag at line 4 - the breakpoint on line 2 fires there");
+        assertEquals(1, session.hitCount("t.xsl", 2), "hits count for the breakpoint's own line");
+    }
 }

@@ -137,4 +137,35 @@ class XsltDebugControllerTest {
             executor.shutdownNow();
         }
     }
+
+    @Test
+    @Timeout(20)
+    void aBreakpointOnTheFirstLineOfAMultiLineInstructionPauses() throws Exception {
+        String xslt = """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/">
+                    <out>
+                      <xsl:value-of
+                          select="count(//item)"/>
+                    </out>
+                  </xsl:template>
+                </xsl:stylesheet>
+                """;
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            XsltDebugController controller = new XsltDebugController(executor);
+            DebugSession session = controller.getSession();
+            // Line 4 opens <xsl:value-of; Saxon reports the instruction at line 5, where the tag ends.
+            session.addBreakpoint(new Breakpoint("", 4, true));
+            controller.start(XML, xslt, Map.of(), OutputFormat.XML);
+            waitForState(session, DebugSession.State.PAUSED);
+            assertEquals(5, session.getPausedSnapshot().lineNumber(), "paused at the line Saxon reports");
+            assertEquals(1, session.hitCount("", 4), "the hit counts for the breakpoint the user set");
+            controller.continueRun();
+            waitForState(session, DebugSession.State.IDLE);
+            assertTrue(controller.getLastResult().isSuccess());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
 }

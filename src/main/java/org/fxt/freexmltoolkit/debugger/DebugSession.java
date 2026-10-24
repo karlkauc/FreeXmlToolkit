@@ -50,8 +50,18 @@ public class DebugSession implements BreakpointTarget {
      * Lock-free copy of the enabled breakpoints and their sorted line numbers, read by the
      * Saxon thread for every instruction; rebuilt by {@link #rearm()} after each change.
      */
-    private volatile Breakpoint[] armed = new Breakpoint[0];
-    private volatile int[] armedLines = new int[0];
+    private volatile Armed armed = new Armed(new Breakpoint[0], new int[0], new int[0]);
+
+    /**
+     * The enabled breakpoints with the line each one is matched against ({@code lines}, parallel
+     * to {@code breakpoints}: the end line of a multi-line start tag, see {@link StartTagLines})
+     * and those lines sorted and distinct for a quick reject.
+     */
+    private record Armed(Breakpoint[] breakpoints, int[] lines, int[] sortedLines) { }
+
+    /** Source text per normalized module path, for {@link StartTagLines}; {@code null} = none. */
+    private volatile java.util.function.Function<String, String> sourceTexts;
+    private final java.util.Map<String, int[]> tagLineMaps = new java.util.concurrent.ConcurrentHashMap<>();
 
     private volatile State state = State.IDLE;
     private volatile StepMode stepMode = StepMode.NONE;
@@ -133,10 +143,40 @@ public class DebugSession implements BreakpointTarget {
     private void rearm() {
         synchronized (breakpoints) {
             Breakpoint[] enabled = breakpoints.stream().filter(Breakpoint::enabled).toArray(Breakpoint[]::new);
-            int[] lines = java.util.Arrays.stream(enabled).mapToInt(Breakpoint::lineNumber).distinct().sorted().toArray();
-            armed = enabled;
-            armedLines = lines;
+            int[] lines = new int[enabled.length];
+            for (int i = 0; i < enabled.length; i++) {
+                lines[i] = effectiveLine(enabled[i].filePath(), enabled[i].lineNumber());
+            }
+            armed = new Armed(enabled, lines, java.util.Arrays.stream(lines).distinct().sorted().toArray());
         }
+    }
+
+    /**
+     * Supplies the source text of a module by its normalized path, so a breakpoint (or Run to
+     * Cursor) on any line of a multi-line start tag matches the line Saxon reports for it - the
+     * tag's last line. Replaces earlier texts (the controller sets it at every launch).
+     */
+    public void setSourceTexts(java.util.function.Function<String, String> texts) {
+        this.sourceTexts = texts;
+        tagLineMaps.clear();
+        rearm();
+    }
+
+    /** @return the line the debugger watches for a breakpoint at {@code filePath:line}. */
+    public int effectiveLine(String filePath, int line) {
+        java.util.function.Function<String, String> texts = sourceTexts;
+        String path = filePath == null ? "" : filePath;
+        if (texts == null || line < 1) { // an empty path stands for the main stylesheet
+            return line;
+        }
+        int[] map = tagLineMaps.computeIfAbsent(path, p -> {
+            try {
+                return StartTagLines.map(texts.apply(p));
+            } catch (RuntimeException e) {
+                return new int[0];
+            }
+        });
+        return StartTagLines.resolve(map, line);
     }
 
     public void removeBreakpoint(String filePath, int line) {
@@ -305,7 +345,7 @@ public class DebugSession implements BreakpointTarget {
             return false;
         }
         runToPath = SourceLocations.normalize(filePath);
-        runToLine = line;
+        runToLine = effectiveLine(runToPath, line);
         if (state == State.PAUSED) {
             requestContinue();
         }
@@ -635,13 +675,15 @@ public class DebugSession implements BreakpointTarget {
                 note = "run to cursor";
             }
         }
-        if (line > 0 && !muted && java.util.Arrays.binarySearch(armedLines, line) >= 0) {
+        Armed arm = armed;
+        if (line > 0 && !muted && java.util.Arrays.binarySearch(arm.sortedLines(), line) >= 0) {
             // Check breakpoints — normalise the location once, not once per breakpoint
             String normalized = normalizedLocation(systemId);
             java.util.List<Breakpoint> matching = new java.util.ArrayList<>(1);
-            for (Breakpoint bp : armed) {
-                if (bp.matchesNormalized(normalized, line)) {
-                    matching.add(bp);
+            Breakpoint[] bps = arm.breakpoints();
+            for (int i = 0; i < bps.length; i++) {
+                if (arm.lines()[i] == line && bps[i].matchesNormalized(normalized, bps[i].lineNumber())) {
+                    matching.add(bps[i]);
                 }
             }
             if (!matching.isEmpty() && continuesFiredLine(normalized, line, depth)) {

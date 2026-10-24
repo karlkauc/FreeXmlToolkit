@@ -380,10 +380,11 @@ came from).
   (save it once - its file location anchors the breakpoints).
 - Breakpoints match the **file and line**, so a line in `lib/a.xsl` never triggers a breakpoint
   set in another `a.xsl`.
-- An instruction whose start tag spans **several lines** runs at the line where the start tag
-  **ends** (Saxon reports that line): for a multi-line `<xsl:value-of select="…"/>` set the
-  breakpoint on its last line. A breakpoint on an earlier line of the tag is never reached and
-  turns amber after the run.
+- An instruction whose start tag spans **several lines** can carry its breakpoint on **any**
+  of those lines - e.g. on the `<xsl:value-of` line of a multi-line `select`. Saxon reports
+  the instruction at the line where the start tag ends, so the run pauses (and the arrow
+  shows) there; the breakpoint itself stays where you set it and counts the hits. **Run to
+  Cursor** works the same way.
 - Breakpoints are **persisted per file**: they are back when you reopen or debug the same file,
   they survive **Restart**, and they stay in the gutter after the session ends.
 - Breakpoints in **included modules** count too: open `lib/a.xsl`, set a breakpoint, debug the
