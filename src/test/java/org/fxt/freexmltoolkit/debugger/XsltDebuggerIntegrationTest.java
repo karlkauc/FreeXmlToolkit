@@ -408,6 +408,37 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void positionAndLastInAConditionReferToThePausedFocus() throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"item\">\n"                                                         // 3
+                + "    <x><xsl:value-of select=\"@n\"/></x>\n"                                                // 4
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("", 4, true, "position() = last()"));
+        XsltTransformationEngine engine = XsltTransformationEngine.getInstance();
+        session.setConditionEvaluator(new WatchEvaluator(engine.getDebugProcessor(), java.util.Map.of())::test);
+        java.util.List<String> pausedAt = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                PausedSnapshot snap = session.getPausedSnapshot();
+                pausedAt.add(((net.sf.saxon.s9api.XdmNode) snap.contextXdm())
+                        .getAttributeValue(new net.sf.saxon.s9api.QName("n"))
+                        + (snap.variables().isEmpty() ? " (light)" : ""));
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = engine.transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertEquals(java.util.List.of("3"), pausedAt,
+                "only the last item satisfies position() = last(), and the pause carries the full snapshot");
+    }
+
+    @Test
     void hitCountRulePausesAtTheThirdItemAndCountsAllPasses() throws Exception {
         String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/><item n=\"4\"/><item n=\"5\"/></order>";
         String xslt = ""
@@ -422,8 +453,10 @@ class XsltDebuggerIntegrationTest {
         java.util.List<String> pausedAt = new java.util.concurrent.CopyOnWriteArrayList<>();
         session.addPropertyChangeListener(evt -> {
             if (evt.getNewValue() == DebugSession.State.PAUSED) {
-                pausedAt.add(((net.sf.saxon.s9api.XdmNode) session.getPausedSnapshot().contextXdm())
-                        .getAttributeValue(new net.sf.saxon.s9api.QName("n")));
+                PausedSnapshot snap = session.getPausedSnapshot();
+                pausedAt.add(((net.sf.saxon.s9api.XdmNode) snap.contextXdm())
+                        .getAttributeValue(new net.sf.saxon.s9api.QName("n"))
+                        + (snap.variables().isEmpty() ? " (light)" : ""));
                 session.requestContinue();
             }
         });

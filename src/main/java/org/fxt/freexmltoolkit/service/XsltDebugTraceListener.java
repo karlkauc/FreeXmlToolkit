@@ -155,6 +155,7 @@ public class XsltDebugTraceListener implements TraceListener {
                         ? debugSession.pauseAt(systemId, lineNumber, messageBreak,
                                 () -> buildPausedSnapshot(systemId, lineNumber, ctxRef))
                         : debugSession.checkAndPause(systemId, lineNumber, depth,
+                                () -> buildConditionSnapshot(systemId, lineNumber, ctxRef),
                                 () -> buildPausedSnapshot(systemId, lineNumber, ctxRef));
                 if (!alive) {
                     throw new XsltDebugStopException();
@@ -569,6 +570,68 @@ public class XsltDebugTraceListener implements TraceListener {
         List<DebugStackFrame> frames = buildStackFrameSnapshot(systemId, line, context, topLocals);
         return new PausedSnapshot(systemId, line, frames, vars, contextItem, contextXdm, locals, globals,
                 position, last, contextValues);
+    }
+
+    /**
+     * The part of a snapshot a breakpoint condition or logpoint message can see: the context
+     * item, {@code position()}/{@code last()}, the named local values and the completed globals,
+     * without table rows, XSLT context or call stack. Evaluated for every pass over a
+     * conditional breakpoint or logpoint, so it must stay cheap (Saxon thread only).
+     */
+    private PausedSnapshot buildConditionSnapshot(String systemId, int line, XPathContext context) {
+        XdmItem contextXdm = null;
+        int position = -1;
+        int last = -1;
+        try {
+            Item ctxItem = context.getContextItem();
+            if (ctxItem != null) {
+                contextXdm = asItem(XdmValue.wrap(ctxItem));
+            }
+        } catch (Throwable ignored) { /* best-effort */ }
+        try {
+            FocusIterator iter = context.getCurrentIterator(); // NOPMD - borrowed iterator owned by the Saxon context
+            if (iter != null) {
+                position = iter.position();
+                last = context.getLast();
+            }
+        } catch (Throwable ignored) { /* outside focus */ }
+        Map<QName, XdmValue> locals = new LinkedHashMap<>();
+        try {
+            StackFrame frame = context.getStackFrame();
+            if (frame != null && frame.getStackFrameMap() != null) {
+                Sequence[] values = frame.getStackFrameValues();
+                List<StructuredQName> names = frame.getStackFrameMap().getVariableMap();
+                for (int i = 0; values != null && names != null && i < values.length && i < names.size(); i++) {
+                    if (values[i] != null && names.get(i) != null) {
+                        try {
+                            locals.put(new QName(names.get(i)), materialize(values[i]));
+                        } catch (Exception e) {
+                            logger.debug("Local {} unavailable: {}", names.get(i), e.getMessage());
+                        }
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            logger.debug("Failed to capture local values: {}", t.getMessage());
+        }
+        Map<QName, XdmValue> globals = new LinkedHashMap<>();
+        List<GlobalVariable> done;
+        synchronized (completedGlobals) {
+            done = new ArrayList<>(completedGlobals);
+        }
+        for (GlobalVariable global : done) {
+            StructuredQName qname = global.getVariableQName();
+            if (qname == null) {
+                continue;
+            }
+            try {
+                globals.put(new QName(qname), materialize(global.evaluateVariable(context)));
+            } catch (Throwable t) {
+                logger.debug("Global {} unavailable: {}", qname, t.getMessage());
+            }
+        }
+        return new PausedSnapshot(systemId, line, List.of(), List.of(), "", contextXdm, locals, globals,
+                position, last);
     }
 
     /** Grounds a (possibly lazy) sequence on the Saxon thread and caps very long sequences. */

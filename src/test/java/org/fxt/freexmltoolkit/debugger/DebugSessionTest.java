@@ -644,4 +644,34 @@ class DebugSessionTest {
         assertEquals(List.of(2, 4), passesThatPause(session, 4), "pauses where the hit rule matches");
         assertEquals(List.of("hit", "hit"), logged, "and logs exactly there");
     }
+
+    @Test
+    void conditionsAndLogpointsUseTheConditionSnapshotOnly() {
+        DebugSession session = new DebugSession();
+        session.updateBreakpoint("c.xsl", 3, bp -> bp.withCondition("$never"));
+        session.updateBreakpoint("c.xsl", 5, bp -> bp.withLog("log", false));
+        PausedSnapshot light = emptySnapshot(3);
+        java.util.concurrent.atomic.AtomicInteger lightCalls = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger fullCalls = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.List<PausedSnapshot> seen = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.setConditionEvaluator((condition, snap) -> {
+            seen.add(snap);
+            return false;
+        });
+        session.setLogHandler((template, snap) -> {
+            seen.add(snap);
+            return template;
+        }, event -> { });
+        for (int pass = 0; pass < 5; pass++) {
+            for (int line : new int[]{3, 5}) {
+                assertTrue(session.checkAndPause("c.xsl", line, 1,
+                        () -> { lightCalls.incrementAndGet(); return light; },
+                        () -> { fullCalls.incrementAndGet(); return emptySnapshot(line); }));
+            }
+        }
+        assertEquals(10, lightCalls.get(), "one condition snapshot per pass over a breakpoint");
+        assertEquals(0, fullCalls.get(), "no full snapshot without a pause");
+        assertTrue(seen.stream().allMatch(snap -> snap == light), "conditions and logs see the light snapshot");
+        assertEquals(10, seen.size());
+    }
 }

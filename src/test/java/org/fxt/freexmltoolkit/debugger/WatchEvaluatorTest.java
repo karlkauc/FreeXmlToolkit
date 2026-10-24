@@ -184,4 +184,34 @@ class WatchEvaluatorTest {
         assertTrue(failed.startsWith("a {ERROR: ") && failed.endsWith("} b"), "the rest still logs: " + failed);
         assertEquals("open { end", eval.formatLog("open { end", snapshot()), "an unclosed brace stays text");
     }
+
+    @Test
+    void conditionsSeeThePausedFocus() throws Exception {
+        WatchEvaluator eval = new WatchEvaluator(PROCESSOR, Map.of());
+        PausedSnapshot second = snapshot(); // position 2 of 4
+        PausedSnapshot base = snapshot();
+        PausedSnapshot fourth = new PausedSnapshot(base.systemId(), base.lineNumber(), List.of(), List.of(), "",
+                base.contextXdm(), base.localVariables(), base.globalVariables(), 4, 4);
+        assertFalse(eval.test("position() = last()", second));
+        assertTrue(eval.test("position() = last()", fourth));
+        assertTrue(eval.test("position() mod 2 = 0 and $count = 3", second));
+        assertEquals("item 2 of 4", eval.evaluate("concat('item ', position(), ' of ', last())", second));
+        assertEquals("3", eval.evaluate("string(item[position() = last()]/@n)", second),
+                "a predicate keeps its own focus");
+    }
+
+    @Test
+    void bindFocusOnlyRewritesCallsOnThePausedFocus() {
+        String pos = "$Q{http://freexmltoolkit.org/ns/debug-focus}position";
+        String last = "$Q{http://freexmltoolkit.org/ns/debug-focus}last";
+        assertEquals(pos + " = " + last, WatchEvaluator.bindFocus("position() = last()", true));
+        assertEquals(pos + " = last()", WatchEvaluator.bindFocus("position() = last()", false));
+        assertEquals("item[position() = 1]", WatchEvaluator.bindFocus("item[position() = 1]", true));
+        assertEquals("item/position()", WatchEvaluator.bindFocus("item/position()", true));
+        assertEquals("item ! last()", WatchEvaluator.bindFocus("item ! last()", true));
+        assertEquals("'position()' || \"last()\"", WatchEvaluator.bindFocus("'position()' || \"last()\"", true));
+        assertEquals("(: position() :) " + pos, WatchEvaluator.bindFocus("(: position() :) position ( )", true));
+        assertEquals("$position + my-last()", WatchEvaluator.bindFocus("$position + my-last()", true));
+        assertEquals(pos + " != " + last, WatchEvaluator.bindFocus("position() != last()", true));
+    }
 }

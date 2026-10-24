@@ -561,6 +561,21 @@ public class DebugSession implements BreakpointTarget {
                                   int line,
                                   int depth,
                                   Supplier<PausedSnapshot> snapshotSupplier) {
+        return checkAndPause(systemId, line, depth, snapshotSupplier, snapshotSupplier);
+    }
+
+    /**
+     * Like {@link #checkAndPause(String, int, int, Supplier)}, but breakpoint conditions and
+     * logpoint messages are evaluated against {@code conditionSupplier}'s snapshot (captured at
+     * most once per call) and only an actual pause captures the full {@code snapshotSupplier}
+     * one. The condition snapshot only needs what an XPath expression can see: the context item,
+     * {@code position()}/{@code last()} and the variable values, no table rows or call stack.
+     */
+    public boolean checkAndPause(String systemId,
+                                  int line,
+                                  int depth,
+                                  Supplier<PausedSnapshot> conditionSupplier,
+                                  Supplier<PausedSnapshot> snapshotSupplier) {
         State currentState = state;
         if (currentState == State.STOPPED) {
             return false;
@@ -577,7 +592,7 @@ public class DebugSession implements BreakpointTarget {
         }
 
         String note = "";
-        PausedSnapshot snapshot = null;
+        PausedSnapshot conditionSnapshot = null;
         int target = runToLine;
         if (!pause && target > 0 && line == target) {
             String targetPath = runToPath;
@@ -607,15 +622,15 @@ public class DebugSession implements BreakpointTarget {
                 boolean hit = true;
                 String failure = null;
                 if (bp.hasCondition()) {
-                    if (snapshot == null) {
-                        snapshot = captureSnapshot(snapshotSupplier, systemId, line);
+                    if (conditionSnapshot == null) {
+                        conditionSnapshot = captureSnapshot(conditionSupplier, systemId, line);
                     }
                     ConditionEvaluator evaluator = conditionEvaluator;
                     if (evaluator == null) {
                         failure = "condition not evaluated: " + bp.condition();
                     } else {
                         try {
-                            hit = evaluator.test(bp.condition(), snapshot);
+                            hit = evaluator.test(bp.condition(), conditionSnapshot);
                         } catch (Exception e) {
                             failure = "condition failed (" + bp.condition() + "): "
                                     + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
@@ -635,10 +650,10 @@ public class DebugSession implements BreakpointTarget {
                 int hits = hitCounts.computeIfAbsent(hitKey(bp.filePath(), bp.lineNumber()),
                         k -> new AtomicInteger()).incrementAndGet();
                 if (bp.isLogpoint() && bp.hit().matches(hits)) {
-                    if (snapshot == null) {
-                        snapshot = captureSnapshot(snapshotSupplier, systemId, line);
+                    if (conditionSnapshot == null) {
+                        conditionSnapshot = captureSnapshot(conditionSupplier, systemId, line);
                     }
-                    log(bp, line, snapshot);
+                    log(bp, line, conditionSnapshot);
                     if (!bp.suspend()) {
                         continue; // a logpoint that runs on
                     }
@@ -662,9 +677,7 @@ public class DebugSession implements BreakpointTarget {
 
         if (!pause) return true;
 
-        if (snapshot == null) {
-            snapshot = captureSnapshot(snapshotSupplier, systemId, line);
-        }
+        PausedSnapshot snapshot = captureSnapshot(snapshotSupplier, systemId, line);
         if (pauseRequested) {
             pauseRequested = false;
             if (note.isEmpty()) {

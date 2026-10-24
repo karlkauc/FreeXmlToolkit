@@ -477,13 +477,28 @@ every item, `$total > 1000`, or `position() = last()`.
   gutter; its tooltip names the rules and the hits of the current run.
 - The condition is evaluated **like `xsl:if test`** (effective boolean value): the context item
   and every variable in scope at that line are available, plus the stylesheet's namespace
-  prefixes. A non-empty node sequence is true, an empty one false.
+  prefixes. A non-empty node sequence is true, an empty one false. `position()` and `last()`
+  refer to the item being processed (*the 2nd of 5*), the same as in watches; inside a predicate
+  (`item[position() = 1]`) or a path step they keep their usual meaning.
 - When the run pauses because of a condition, the status says so (*· condition: @id = '4711'*).
   If the condition **cannot be evaluated** (a typo, an undeclared variable), the run **pauses
   anyway** and the status shows the error in red - a broken condition never silently skips the
   breakpoint.
 - The condition is checked every time the line runs, so a breakpoint inside a large loop costs
   time on each pass. Conditions are saved with the breakpoint (per file, like all breakpoints).
+- **Cost.** A pass that does not pause only collects what the condition can see (the context
+  item, the focus and the variable values); the Variables table, the XSLT context and the call
+  stack are built only when the run actually pauses. Logpoints work the same way. Measured
+  over a loop of 10,000 items (median of 15 runs, `DebuggerPerfBenchmark`):
+
+| Scenario (10,000 passes) | Before | Now |
+|--------------------------|--------|-----|
+| Condition that is never true | 97 ms | 77 ms |
+| Logpoint that never pauses | 95 ms | 72 ms |
+| Condition, 12-level call stack per item (1,000 items) | 46 ms | 34 ms |
+
+  The remainder is the XPath evaluation itself, roughly 4 µs per pass - a condition in a loop
+  of a million items adds about four seconds.
 
 #### Hit Counts
 

@@ -24,8 +24,9 @@ import net.sf.saxon.s9api.XdmValue;
  *
  * <p>Must be created with the processor that ran the debugged transformation (Saxon rejects
  * context nodes built by another {@code Configuration}). {@code position()} and
- * {@code last()} cannot be injected into an {@code XPathSelector}; the two literal
- * expressions are answered from the snapshot's focus instead.</p>
+ * {@code last()} cannot be injected into an {@code XPathSelector}; calls of them on the
+ * paused focus (outside predicates and path steps) are rewritten to variables holding the
+ * snapshot's focus, so {@code position() = last()} works in watches and conditions.</p>
  */
 public final class WatchEvaluator {
 
@@ -37,6 +38,10 @@ public final class WatchEvaluator {
 
     /** Variable bound to the viewed value in {@link #evaluateValue}. */
     public static final QName VALUE_VARIABLE = new QName("value");
+
+    private static final String FOCUS_NS = "http://freexmltoolkit.org/ns/debug-focus";
+    private static final QName FOCUS_POSITION = new QName(FOCUS_NS, "position");
+    private static final QName FOCUS_LAST = new QName(FOCUS_NS, "last");
 
     private static final Pattern XMLNS = Pattern.compile("xmlns:([A-Za-z_][\\w.-]*)\\s*=\\s*([\"'])(.*?)\\2");
 
@@ -213,6 +218,16 @@ public final class WatchEvaluator {
         if (focus != null && !variables.containsKey(VALUE_VARIABLE)) {
             variables.put(VALUE_VARIABLE, focus);
         }
+        if (focus == null && snapshot != null && snapshot.position() >= 0) {
+            String rewritten = bindFocus(expr, snapshot.last() >= 0);
+            if (!rewritten.equals(expr)) {
+                expr = rewritten;
+                variables.put(FOCUS_POSITION, new XdmAtomicValue(snapshot.position()));
+                if (snapshot.last() >= 0) {
+                    variables.put(FOCUS_LAST, new XdmAtomicValue(snapshot.last()));
+                }
+            }
+        }
         StringBuilder key = new StringBuilder(expr).append('\u0000');
         variables.keySet().stream().map(QName::getClarkName).sorted().forEach(n -> key.append(n).append(' '));
         XPathExecutable executable = compiled.get(key.toString());
@@ -235,6 +250,90 @@ public final class WatchEvaluator {
             selector.setVariable(v.getKey(), v.getValue());
         }
         return selector;
+    }
+
+    /**
+     * Replaces the calls {@code position()} (and {@code last()} when {@code withLast}) that
+     * refer to the paused focus by references to the focus variables: calls outside string
+     * literals, comments and predicates, and not the step of a path ({@code a/position()}) or a
+     * simple map ({@code a ! last()}), whose focus is a different one.
+     */
+    static String bindFocus(String expr, boolean withLast) {
+        StringBuilder out = new StringBuilder(expr.length() + 32);
+        int depth = 0;
+        int i = 0;
+        int n = expr.length();
+        while (i < n) {
+            char c = expr.charAt(i);
+            if (c == '"' || c == '\'') {
+                int end = i + 1;
+                while (end < n && !(expr.charAt(end) == c && (end + 1 >= n || expr.charAt(end + 1) != c))) {
+                    end += expr.charAt(end) == c ? 2 : 1;
+                }
+                end = Math.min(end + 1, n);
+                out.append(expr, i, end);
+                i = end;
+                continue;
+            }
+            if (c == '(' && i + 1 < n && expr.charAt(i + 1) == ':') {
+                int end = expr.indexOf(":)", i + 2);
+                end = end < 0 ? n : end + 2;
+                out.append(expr, i, end);
+                i = end;
+                continue;
+            }
+            if (c == '[') {
+                depth++;
+            } else if (c == ']') {
+                depth = Math.max(0, depth - 1);
+            }
+            if (depth == 0 && Character.isLetter(c) && (i == 0 || !isNameChar(expr.charAt(i - 1)))) {
+                int end = i;
+                while (end < n && isNameChar(expr.charAt(end))) {
+                    end++;
+                }
+                String name = expr.substring(i, end);
+                int call = end;
+                while (call < n && Character.isWhitespace(expr.charAt(call))) {
+                    call++;
+                }
+                int close = call + 1;
+                while (close < n && Character.isWhitespace(expr.charAt(close))) {
+                    close++;
+                }
+                boolean emptyCall = call < n && expr.charAt(call) == '(' && close < n && expr.charAt(close) == ')';
+                QName target = "position".equals(name) ? FOCUS_POSITION
+                        : withLast && "last".equals(name) ? FOCUS_LAST : null;
+                if (target != null && emptyCall && !afterStep(expr, i)) {
+                    out.append("$Q{").append(FOCUS_NS).append('}').append(target.getLocalName());
+                    i = close + 1;
+                    continue;
+                }
+                out.append(name);
+                i = end;
+                continue;
+            }
+            out.append(c);
+            i++;
+        }
+        return out.toString();
+    }
+
+    private static boolean isNameChar(char c) {
+        return Character.isLetterOrDigit(c) || c == '-' || c == '_' || c == '.' || c == ':' || c == '$' || c == '}';
+    }
+
+    /** Whether the token at {@code index} follows {@code /} or {@code !} (a path step or map operand). */
+    private static boolean afterStep(String expr, int index) {
+        int j = index - 1;
+        while (j >= 0 && Character.isWhitespace(expr.charAt(j))) {
+            j--;
+        }
+        if (j < 0) {
+            return false;
+        }
+        char p = expr.charAt(j);
+        return p == '/' || (p == '!' && !(j + 1 < expr.length() && expr.charAt(j + 1) == '='));
     }
 
     private XPathExecutable compile(String expr, java.util.Set<QName> variableNames) throws SaxonApiException {
