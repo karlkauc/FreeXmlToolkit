@@ -543,4 +543,32 @@ class XsltDebugPaneTest {
         assertSame(pane.getMessagesTab(), pane.getRightTabs().getSelectionModel().getSelectedItem(),
                 "after Continue the run fails as before");
     }
+
+    @Test
+    void evaluateOpensTheViewerOnTheFrameContext() throws Exception {
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            XsltDebugPane p = new XsltDebugPane(controller);
+            stage.setScene(new Scene(p, 900, 400));
+            stage.show();
+            return p;
+        });
+        assertTrue(pane.lookup("#debug-evaluate").isDisabled(), "only while paused");
+        controller.getSession().addBreakpoint(new Breakpoint("", 5, true));
+        controller.setPauseOnEntry(false);
+        controller.start(XML, XSLT, Map.of(), OutputFormat.XML);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> controller.getSession().getState() == DebugSession.State.PAUSED);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !pane.lookup("#debug-evaluate").isDisabled());
+        boolean handled = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.handleShortcut(
+                new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F8, false, false, true, false)));
+        assertTrue(handled, "Alt+F8 is Evaluate while paused");
+        ValueViewerWindow window = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.openViewers().get(0));
+        assertEquals("Evaluate", window.getSource().title());
+        assertSame(controller.getSession().getPausedSnapshot().contextXdm(), window.getSource().value(),
+                "the frame's context item");
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> window.runXPath("count(//item)"));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "2".equals(window.getResultText()));
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, pane::dispose);
+        controller.stop();
+    }
 }

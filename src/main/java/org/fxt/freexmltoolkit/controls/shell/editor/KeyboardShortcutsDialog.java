@@ -52,6 +52,7 @@ public final class KeyboardShortcutsDialog {
                 new String[]{"F9", "Toggle the breakpoint on the caret line (saved XSLT document)"},
                 new String[]{"F5 / F7 / F8 / Shift+F8", "While paused in the debugger: Continue / Step Into / Step Over / Step Out"},
                 new String[]{"F6", "While the debugger runs: Pause (break at the next instruction)"},
+                new String[]{"Alt+F8", "While paused in the debugger: Evaluate an XPath in the selected frame"},
                 new String[]{mod("F10"), "Run to Cursor (starts the debugger to the caret line when none runs)"},
                 new String[]{mod("D"), "Add to Favorites"},
                 new String[]{mod("Shift+D"), "Toggle Favorites Panel"},

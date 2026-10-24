@@ -462,6 +462,7 @@ icons - hover one for its name and key:
 | **Mute** | | Toggle: the run does not stop at any breakpoint (steps still pause) |
 | **Show in editor** | | Jump the editor to the currently paused line |
 | **Show input** | | Select the input document at the paused **context node** (see below) |
+| **Evaluate** | Alt+F8 | Open the value window on the selected frame's context item with the XPath field ready - evaluate any expression in that frame (its variables in scope); **Up** / **Down** in the field recall earlier expressions |
 | **✕** | | End the session and close the DEBUG dock (OUTPUT stays) |
 
 The step keys only act while the debugger is paused and F6 only while it runs; otherwise F5 and

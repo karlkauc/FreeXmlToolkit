@@ -88,6 +88,7 @@ public final class XsltDebugPane extends VBox {
     @FXML private Button stopButton;
     @FXML private Button showButton;
     @FXML private Button showInputButton;
+    @FXML private Button evaluateButton;
     @FXML private Button closeButton;
     @FXML private CheckBox pauseOnEntry;
     @FXML private ToggleButton muteToggle;
@@ -260,6 +261,30 @@ public final class XsltDebugPane extends VBox {
     @FXML public void onStop() { controller.stop(); }
     @FXML public void onShowInEditor() { onShowInEditor.run(); }
     @FXML public void onShowInput() { onShowInput.run(); }
+
+    /**
+     * Evaluate… (Alt+F8): opens the value window on the selected frame's context item with the
+     * XPath field focused — ad-hoc expressions in that frame's scope, with a history (Up/Down).
+     */
+    @FXML
+    public void onEvaluate() {
+        PausedSnapshot frame = currentScope();
+        if (frame == null) {
+            return;
+        }
+        String where = frame.hasFile()
+                ? org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(frame.systemId()) + ":" + frame.lineNumber()
+                : "line " + frame.lineNumber();
+        ValueSource source = new ValueSource("Evaluate", frame.contextXdm() == null ? ""
+                : WatchEvaluator.describeType(frame.contextXdm()), "CONTEXT ITEM", frame.contextXdm(),
+                frame.contextXdm() == null ? "<no context item>" : null, frame, "evaluate at " + where);
+        openViewer(source);
+        for (ValueViewerWindow window : viewers) {
+            if (window.getSource().snapshot() == frame && "Evaluate".equals(window.getSource().title())) {
+                window.focusXPath();
+            }
+        }
+    }
     @FXML public void onClose() { onClose.run(); }
 
     @FXML
@@ -289,14 +314,19 @@ public final class XsltDebugPane extends VBox {
 
     /**
      * Debugger keys while a session is alive: F5 Continue, F6 Pause (while running), F7 Step
-     * Into, F8 Step Over, Shift+F8 Step Out (the step keys only while paused, so F8 keeps
-     * validating otherwise).
+     * Into, F8 Step Over, Shift+F8 Step Out, Alt+F8 Evaluate (the step keys only while paused,
+     * so F8 keeps validating otherwise).
      *
      * @return {@code true} if the key was handled
      */
     public boolean handleShortcut(KeyEvent event) {
         DebugSession.State state = controller.getSession().getState();
         boolean paused = state == DebugSession.State.PAUSED;
+        if (paused && event.getCode() == KeyCode.F8 && event.isAltDown() && !event.isShortcutDown()
+                && !event.isShiftDown()) {
+            onEvaluate();
+            return true;
+        }
         if (event.isShortcutDown() || event.isAltDown()) {
             return false;
         }
@@ -805,6 +835,7 @@ public final class XsltDebugPane extends VBox {
         stopButton.setDisable(!(paused || running));
         showButton.setDisable(!paused);
         showInputButton.setDisable(!paused || !inputLocationAvailable);
+        evaluateButton.setDisable(!paused);
     }
 
     // ----- accessors (EditorHost / tests) -------------------------------------------------

@@ -51,6 +51,11 @@ public final class ValueViewerWindow extends Stage {
     private static final String[] SHELL_SHEETS = {
             "/css/design-tokens.css", "/css/app-theme.css", "/css/fxt-theme.css", "/css/unified-shell.css"};
     private static final String ERROR_CLASS = "fxt-value-viewer-error";
+    /** XPath history shared by all value windows of this application run (newest last). */
+    private static final java.util.List<String> HISTORY = new java.util.ArrayList<>();
+    private static final int MAX_HISTORY = 30;
+    /** Position while browsing the history with Up/Down; {@code HISTORY.size()} = the typed text. */
+    private int historyIndex;
 
     private final ValueSource source;
     private final WatchEvaluator evaluator;
@@ -113,6 +118,16 @@ public final class ValueViewerWindow extends Stage {
 
         boolean canQuery = evaluator != null && source.snapshot() != null;
         xpathField.setDisable(!canQuery);
+        historyIndex = HISTORY.size();
+        xpathField.setOnKeyPressed(e -> {
+            if (e.getCode() == javafx.scene.input.KeyCode.UP) {
+                browseHistory(-1);
+                e.consume();
+            } else if (e.getCode() == javafx.scene.input.KeyCode.DOWN) {
+                browseHistory(1);
+                e.consume();
+            }
+        });
         runButton.setDisable(!canQuery);
         if (!canQuery) {
             resultStatus.setText("XPath is available while the debugger has a paused state.");
@@ -216,6 +231,7 @@ public final class ValueViewerWindow extends Stage {
         if (evaluator == null || source.snapshot() == null || expression == null || expression.isBlank()) {
             return;
         }
+        remember(expression.strip());
         final boolean pretty = prettyToggle.isSelected();
         final int gen = ++xpathGeneration;
         resultStatus.getStyleClass().remove(ERROR_CLASS);
@@ -253,6 +269,43 @@ public final class ValueViewerWindow extends Stage {
                 }
             });
         });
+    }
+
+    /** Adds {@code expression} to the shared history (moved to the end when already there). */
+    private void remember(String expression) {
+        synchronized (HISTORY) {
+            HISTORY.remove(expression);
+            HISTORY.add(expression);
+            while (HISTORY.size() > MAX_HISTORY) {
+                HISTORY.remove(0);
+            }
+            historyIndex = HISTORY.size();
+        }
+    }
+
+    /** Up / Down in the XPath field walk through earlier expressions. */
+    void browseHistory(int delta) {
+        synchronized (HISTORY) {
+            if (HISTORY.isEmpty()) {
+                return;
+            }
+            historyIndex = Math.max(0, Math.min(HISTORY.size(), historyIndex + delta));
+            xpathField.setText(historyIndex < HISTORY.size() ? HISTORY.get(historyIndex) : "");
+            xpathField.end();
+        }
+    }
+
+    /** Puts the caret into the XPath field (Evaluate… opens the window ready to type). */
+    public void focusXPath() {
+        javafx.application.Platform.runLater(() -> {
+            requestFocus();
+            xpathField.requestFocus();
+        });
+    }
+
+    /** The XPath field's text (tests). */
+    String xpathText() {
+        return xpathField.getText();
     }
 
     @FXML

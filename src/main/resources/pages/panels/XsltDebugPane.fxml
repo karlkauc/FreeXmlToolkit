@@ -77,6 +77,12 @@
                     <graphic><IconifyIcon iconLiteral="bi-eye" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Jump the editor to the paused line"/></tooltip>
                 </Button>
+                <Button fx:id="evaluateButton" id="debug-evaluate" text="Evaluate"
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity"
+                        onAction="#onEvaluate">
+                    <graphic><IconifyIcon iconLiteral="bi-calculator" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Evaluate an XPath in the selected frame (Alt+F8)"/></tooltip>
+                </Button>
                 <Button fx:id="showInputButton" id="debug-show-input" text="Show input"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onShowInput">
                     <graphic><IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="14"/></graphic>

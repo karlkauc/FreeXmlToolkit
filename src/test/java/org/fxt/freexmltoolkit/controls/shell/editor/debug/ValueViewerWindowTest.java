@@ -128,4 +128,31 @@ class ValueViewerWindowTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
                 () -> "1\n2\n3".equals(w.getValueText()) && w.getSizeText().startsWith("3 items")));
     }
+
+    @Test
+    void upAndDownWalkThroughEarlierExpressions() throws Exception {
+        XdmNode order = order();
+        ValueViewerWindow w = open(new ValueSource("$order", "element(order)", "LOCAL", order, null, snapshot(order)));
+        String first = "count(item) (: h1 " + System.nanoTime() + " :)";
+        String second = "item[1]/price (: h2 " + System.nanoTime() + " :)";
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            w.runXPath(first);
+            w.runXPath(second);
+        });
+        String[] walk = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            w.browseHistory(-1);
+            String a = w.xpathText();
+            w.browseHistory(-1);
+            String b = w.xpathText();
+            w.browseHistory(1);
+            String c = w.xpathText();
+            w.browseHistory(1);
+            String d = w.xpathText();
+            return new String[]{a, b, c, d};
+        });
+        assertEquals(second, walk[0], "Up: the newest first");
+        assertEquals(first, walk[1]);
+        assertEquals(second, walk[2], "Down: back");
+        assertEquals("", walk[3], "past the newest: an empty field");
+    }
 }
