@@ -1913,6 +1913,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#debugging-a-schematron" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging a Schematron
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3144,6 +3155,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#debugging-a-schematron" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging a Schematron
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4196,6 +4218,31 @@ on</strong> errors, Coverage and the Output tab. <code>fn:trace()</code> output 
 What Saxon traces in a query is coarser than in a stylesheet: a stop is a <code>let</code> clause, a
 constructed element or attribute, or a function call - a <code>for</code> or <code>where</code> clause has no stop
 of its own. Explain Match is for template rules and does not apply.</p>
+<h3 id="debugging-a-schematron">Debugging a Schematron<a class="headerlink" href="#debugging-a-schematron" title="Permanent link">&para;</a></h3>
+<p>A Schematron can be debugged too. Open a saved <code>.sch</code> file and press <strong>Shift+F5</strong> (or
+<strong>Run ▾ → Debug Schematron</strong>, or the <strong>Run</strong> button): the debugger checks the <strong>Input</strong> - the
+most recently active XML document, or the one picked in the Input selector shown for
+Schematron tabs. Behind the scenes SchXslt compiles the Schematron to XSLT (the same compiler
+validation uses) and the debugger runs that XSLT, but everything you see is the <code>.sch</code>:</p>
+<ul>
+<li><strong>Breakpoints</strong> go into the <code>.sch</code> gutter, including included files (<code>sch:include</code>). A
+  breakpoint on an <code>sch:assert</code> or <code>sch:report</code> stops once for every node its rule fires on,
+  before the test is evaluated - add a condition (for example <code>$n gt 5</code>) to stop only for some.
+  A breakpoint on an <code>sch:rule</code> stops when the rule fires.</li>
+<li><strong>Stepping</strong> goes from rule to <code>sch:let</code> to assert to report; SchXslt's own driver code is
+  skipped. Functions written in the Schematron (<code>xsl:function</code>) can be stepped into.</li>
+<li><strong>Variables</strong> show the <code>sch:let</code> values of the rule (and the global ones); Watch and hover
+  evaluate XPath with the Schematron's <code>sch:ns</code> prefixes.</li>
+<li>When the run ends, <strong>Messages</strong> lists every failed assert (warning) and successful report
+  with its text and the location of the node; a double-click jumps to the <code>.sch</code> line. The
+  Output tab shows the SVRL report.</li>
+</ul>
+<p>The <code>.sch</code> file is compiled as saved - unsaved changes are not included (a note in Messages
+says so). The mapping follows the structure SchXslt produces (one template per rule, one test
+per assert and report, matched by their text). Rules of abstract patterns (<code>is-a</code>), whose
+context and tests are rewritten by the compiler, have no <code>.sch</code> lines to stop at; abstract
+rules used through <code>sch:extends</code> work, they stop at the abstract rule's asserts. Quick-fix
+code (SQF) is not part of the run.</p>
 <h2 id="output-format">Output Format<a class="headerlink" href="#output-format" title="Permanent link">&para;</a></h2>
 <p>The Transform panel's <strong>OUTPUT METHOD</strong> section is a single dropdown with
 <strong>Auto, XML, HTML, XHTML, Text, JSON</strong>. <strong>Auto</strong> (the default) detects the format from
@@ -4224,7 +4271,7 @@ the version from the stylesheet's <code>version</code> attribute.</p>
 </tr>
 <tr>
 <td>Shift+F5</td>
-<td>Debug with XSLT - the active XSLT document, or the Transform / PDF panel's stylesheet</td>
+<td>Debug with XSLT - the active XSLT / XQuery / Schematron document, or the Transform / PDF panel's stylesheet</td>
 </tr>
 <tr>
 <td>F5 / F7 / F8 / Shift+F8</td>
