@@ -327,6 +327,53 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void outerFramesKeepTheirOwnContextItemAndVariables() throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\">\n"                                                            // 2
+                + "    <xsl:variable name=\"outer\" select=\"count(//item) * 10\"/>\n"                       // 3
+                + "    <out total=\"{$outer}\"><xsl:apply-templates select=\"//item\"/>"
+                + "<xsl:value-of select=\"$outer + 1\"/></out>\n"                                            // 4
+                + "  </xsl:template>\n"                                                                        // 5
+                + "  <xsl:template match=\"item\">\n"                                                         // 6
+                + "    <xsl:variable name=\"inner\" select=\"concat('item-', @n)\"/>\n"                    // 7
+                + "    <x><xsl:value-of select=\"$inner\"/><xsl:value-of select=\"$inner\"/></x>\n"       // 8
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("", 8, true));
+        AtomicReference<PausedSnapshot> snapRef = new AtomicReference<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                snapRef.compareAndSet(null, session.getPausedSnapshot());
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        PausedSnapshot snap = snapRef.get();
+        assertNotNull(snap, "the breakpoint in the item template fired");
+
+        DebugStackFrame top = snap.callStack().get(0);
+        assertTrue(top.hasValues(), "the innermost frame carries values: " + top);
+        assertEquals("item", ((net.sf.saxon.s9api.XdmNode) top.contextXdm()).getNodeName().getLocalName(),
+                "the innermost frame's context is the matched item");
+
+        DebugStackFrame outer = snap.callStack().stream()
+                .filter(f -> f.contextXdm() instanceof net.sf.saxon.s9api.XdmNode n
+                        && n.getNodeKind() == net.sf.saxon.s9api.XdmNodeKind.DOCUMENT)
+                .findFirst().orElse(null);
+        assertNotNull(outer, "a caller frame keeps the document node as its context: " + snap.callStack());
+        net.sf.saxon.s9api.XdmValue outerVar = outer.localVariables().get(new net.sf.saxon.s9api.QName("outer"));
+        assertNotNull(outerVar, "the caller's $outer is captured (used twice, so Saxon keeps its slot)");
+        assertEquals("20", outerVar.toString(), "the caller's $outer, not visible in the inner frame");
+        assertFalse(top.localVariables().containsKey(new net.sf.saxon.s9api.QName("outer")),
+                "the inner frame does not see the caller's locals");
+    }
+
+    @Test
     void normalTransformIsUnaffectedByAPausedDebugSession() throws Exception {
         String xml = "<r><a/></r>";
         String xslt = ""

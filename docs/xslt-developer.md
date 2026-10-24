@@ -420,12 +420,17 @@ right-click → **Open Value…** - to open it in its own **value window**:
   its window to the front.
 - Right-click → **Copy Value** copies the full value without opening a window.
 - A Watch value is re-evaluated in full for the window (the table keeps a shortened version).
+- **Call Stack frames** open the same way (select a frame and press **Enter**, or right-click →
+  **Open Value…**; double-click still jumps to the line): the window shows **that frame's context
+  item**, and its XPath field sees **that frame's own local variables** plus the globals - so
+  you can inspect the state of a calling template, not just the innermost one. The 32 innermost
+  frames carry these values; deeper frames show only their name and location.
 
 | Panel | Shows |
 |-------|-------|
 | **Variables** | The context item (`.`), `position()` / `last()`, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full |
 | **Watch** | Your XPath expressions, evaluated **against the paused context item** with all variables in scope: `count(item)`, `$total`, `string(@id)`, `position()`; the stylesheet's namespace prefixes are available. Type an expression into the field above the table and press **Add**; **Remove** (or the Delete key) drops the selected one. Re-evaluated at every pause; errors are shown in the row. Click a value to open it in full |
-| **Call Stack** | Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module |
+| **Call Stack** | Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. **Enter** or **Open Value…** opens the frame's context item and variables |
 | **Messages** | `xsl:message` output and Saxon warnings **live, as they happen**, with their location; double-click jumps to the line. A failed run shows its error here too |
 | **Breakpoints** | All breakpoints of the session with **Remove** / **Clear all** above the list, see above |
 

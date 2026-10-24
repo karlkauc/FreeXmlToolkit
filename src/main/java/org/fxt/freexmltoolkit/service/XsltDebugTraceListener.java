@@ -61,6 +61,8 @@ public class XsltDebugTraceListener implements TraceListener {
     private static final int MAX_VARIABLES = 200;
     /** Longest sequence kept per variable in a snapshot (items beyond are dropped). */
     private static final int MAX_SNAPSHOT_ITEMS = 10_000;
+    /** Innermost call stack frames whose context item and variables are captured at a pause. */
+    private static final int MAX_FRAMES_WITH_VALUES = 32;
 
     // Collected template match information
     private final List<XsltTransformationEngine.TemplateMatchInfo> templateMatches =
@@ -115,7 +117,7 @@ public class XsltDebugTraceListener implements TraceListener {
 
             // Track call stack
             CallStackEntry entry = new CallStackEntry(description, systemId, lineNumber,
-                    frameKind(traceable), traceable, System.nanoTime());
+                    frameKind(traceable), traceable, System.nanoTime(), context);
             callStack.push(entry);
 
             // Record in history with indentation
@@ -429,8 +431,66 @@ public class XsltDebugTraceListener implements TraceListener {
         } catch (Throwable ignored) { /* outside focus — skip */ }
 
         // 3. Local stack-frame slots — display all slots, including unbound
+        FrameLocals topLocals = captureLocals(context);
+        vars.addAll(topLocals.bindings());
+        locals.putAll(topLocals.values());
+
+        // 4. Globals whose evaluation has completed — read from the Bindery cache. Globals
+        //    not yet evaluated are deliberately not forced here: that would change the
+        //    evaluation order (and run any xsl:message they contain) at the pause.
+        List<GlobalVariable> done;
+        synchronized (completedGlobals) {
+            done = new ArrayList<>(completedGlobals);
+        }
+        for (GlobalVariable global : done) {
+            StructuredQName qname = global.getVariableQName();
+            String name = "$" + (qname != null ? qname.getDisplayName() : "global-" + global.hashCode());
+            try {
+                GroundedValue value = global.evaluateVariable(context);
+                XdmValue xdm = materialize(value);
+                vars.add(new VariableBinding(name, WatchEvaluator.render(xdm, VariableBinding.MAX_VALUE_LENGTH),
+                        WatchEvaluator.describeType(xdm), VariableScope.GLOBAL));
+                if (qname != null) {
+                    globals.put(new QName(qname), xdm);
+                }
+            } catch (Throwable t) {
+                Object expression = variableValues.get(name);
+                vars.add(new VariableBinding(name, expression == null ? "<unavailable>" : String.valueOf(expression),
+                        "", VariableScope.GLOBAL));
+            }
+        }
+
+        List<DebugStackFrame> frames = buildStackFrameSnapshot(systemId, line, context, topLocals);
+        return new PausedSnapshot(systemId, line, frames, vars, contextItem, contextXdm, locals, globals,
+                position, last);
+    }
+
+    /** Grounds a (possibly lazy) sequence on the Saxon thread and caps very long sequences. */
+    private static XdmValue materialize(Sequence value) throws net.sf.saxon.trans.XPathException {
+        GroundedValue grounded = value.materialize();
+        if (grounded.getLength() > MAX_SNAPSHOT_ITEMS) {
+            grounded = grounded.subsequence(0, MAX_SNAPSHOT_ITEMS);
+        }
+        return XdmValue.wrap(grounded);
+    }
+
+    private static XdmItem asItem(XdmValue value) {
+        if (value instanceof XdmItem item) {
+            return item;
+        }
+        return value != null && value.size() == 1 ? value.itemAt(0) : null;
+    }
+
+    /**
+     * Captures the slots of {@code context}'s stack frame (the locals of the template or
+     * function it runs in): table rows for every slot (including unbound ones) and the grounded
+     * values of the named ones. Saxon thread only.
+     */
+    private static FrameLocals captureLocals(XPathContext context) {
+        List<VariableBinding> vars = new ArrayList<>();
+        Map<QName, XdmValue> locals = new LinkedHashMap<>();
         try {
-            StackFrame frame = context.getStackFrame();
+            StackFrame frame = context == null ? null : context.getStackFrame();
             if (frame != null) {
                 SlotManager slotManager = frame.getStackFrameMap();
                 Sequence[] values = frame.getStackFrameValues();
@@ -462,60 +522,50 @@ public class XsltDebugTraceListener implements TraceListener {
         } catch (Throwable t) {
             logger.debug("Failed to capture local variables: {}", t.getMessage());
         }
-
-        // 4. Globals whose evaluation has completed — read from the Bindery cache. Globals
-        //    not yet evaluated are deliberately not forced here: that would change the
-        //    evaluation order (and run any xsl:message they contain) at the pause.
-        List<GlobalVariable> done;
-        synchronized (completedGlobals) {
-            done = new ArrayList<>(completedGlobals);
-        }
-        for (GlobalVariable global : done) {
-            StructuredQName qname = global.getVariableQName();
-            String name = "$" + (qname != null ? qname.getDisplayName() : "global-" + global.hashCode());
-            try {
-                GroundedValue value = global.evaluateVariable(context);
-                XdmValue xdm = materialize(value);
-                vars.add(new VariableBinding(name, WatchEvaluator.render(xdm, VariableBinding.MAX_VALUE_LENGTH),
-                        WatchEvaluator.describeType(xdm), VariableScope.GLOBAL));
-                if (qname != null) {
-                    globals.put(new QName(qname), xdm);
-                }
-            } catch (Throwable t) {
-                Object expression = variableValues.get(name);
-                vars.add(new VariableBinding(name, expression == null ? "<unavailable>" : String.valueOf(expression),
-                        "", VariableScope.GLOBAL));
-            }
-        }
-
-        List<DebugStackFrame> frames = buildStackFrameSnapshot(systemId, line);
-        return new PausedSnapshot(systemId, line, frames, vars, contextItem, contextXdm, locals, globals,
-                position, last);
+        return new FrameLocals(vars, locals);
     }
 
-    /** Grounds a (possibly lazy) sequence on the Saxon thread and caps very long sequences. */
-    private static XdmValue materialize(Sequence value) throws net.sf.saxon.trans.XPathException {
-        GroundedValue grounded = value.materialize();
-        if (grounded.getLength() > MAX_SNAPSHOT_ITEMS) {
-            grounded = grounded.subsequence(0, MAX_SNAPSHOT_ITEMS);
-        }
-        return XdmValue.wrap(grounded);
-    }
-
-    private static XdmItem asItem(XdmValue value) {
-        if (value instanceof XdmItem item) {
-            return item;
-        }
-        return value != null && value.size() == 1 ? value.itemAt(0) : null;
-    }
-
-    private List<DebugStackFrame> buildStackFrameSnapshot(String currentSystemId, int currentLine) {
+    /**
+     * Builds the call stack (innermost first). The {@value #MAX_FRAMES_WITH_VALUES} innermost
+     * frames also carry their context item and the locals of their Saxon stack frame, read from
+     * the context saved when the frame was entered: outer contexts are not touched while an
+     * inner instruction runs, so they still hold the caller's state. Instructions of the same
+     * template share one stack frame, whose locals are captured once.
+     */
+    private List<DebugStackFrame> buildStackFrameSnapshot(String currentSystemId, int currentLine,
+                                                          XPathContext current, FrameLocals currentLocals) {
         List<DebugStackFrame> frames = new ArrayList<>();
+        Map<StackFrame, FrameLocals> byStackFrame = new java.util.IdentityHashMap<>();
+        try {
+            if (current != null && current.getStackFrame() != null) {
+                byStackFrame.put(current.getStackFrame(), currentLocals);
+            }
+        } catch (Throwable ignored) { /* best-effort */ }
+        int index = 0;
         // Top of stack first — matches typical debugger view ordering
         for (CallStackEntry entry : callStack) {
             String frameSystemId = entry.systemId().isEmpty() ? currentSystemId : entry.systemId();
-            frames.add(new DebugStackFrame(entry.description(), frameSystemId,
-                    entry.lineNumber() > 0 ? entry.lineNumber() : currentLine, List.of(), entry.kind()));
+            int frameLine = entry.lineNumber() > 0 ? entry.lineNumber() : currentLine;
+            XPathContext ctx = entry.context();
+            if (index++ < MAX_FRAMES_WITH_VALUES && ctx != null) {
+                XdmItem ctxItem = null;
+                FrameLocals frameLocals = new FrameLocals(List.of(), Map.of());
+                try {
+                    Item item = ctx.getContextItem();
+                    ctxItem = item == null ? null : asItem(XdmValue.wrap(item));
+                    StackFrame stackFrame = ctx.getStackFrame();
+                    if (stackFrame != null) {
+                        frameLocals = byStackFrame.computeIfAbsent(stackFrame, f -> captureLocals(ctx));
+                    }
+                } catch (Throwable t) {
+                    logger.debug("Failed to capture frame state: {}", t.getMessage());
+                }
+                frames.add(new DebugStackFrame(entry.description(), frameSystemId, frameLine,
+                        frameLocals.bindings(), entry.kind(), ctxItem, frameLocals.values()));
+            } else {
+                frames.add(new DebugStackFrame(entry.description(), frameSystemId, frameLine,
+                        List.of(), entry.kind()));
+            }
         }
         return frames;
     }
@@ -596,5 +646,9 @@ public class XsltDebugTraceListener implements TraceListener {
      * Represents an entry in the call stack.
      */
     private record CallStackEntry(String description, String systemId, int lineNumber,
-                                  DebugStackFrame.FrameKind kind, Traceable traceable, long startTime) {}
+                                  DebugStackFrame.FrameKind kind, Traceable traceable, long startTime,
+                                  XPathContext context) {}
+
+    /** The captured state of one Saxon stack frame (shared by the instructions of a template). */
+    private record FrameLocals(List<VariableBinding> bindings, Map<QName, XdmValue> values) {}
 }

@@ -105,4 +105,17 @@ class DebugPanelsTest {
         assertEquals("$order", opened.get().name());
         assertEquals("count(item)", openedWatch.get().getExpression());
     }
+
+    @Test
+    void callStackOpenHandlerReceivesTheFrame() {
+        java.util.concurrent.atomic.AtomicReference<DebugStackFrame> opened = new java.util.concurrent.atomic.AtomicReference<>();
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            CallStackView view = new CallStackView();
+            view.setFrames(List.of(new DebugStackFrame("template match=item", "sheet.xslt", 7, List.of())));
+            view.setOnOpenValue(opened::set);
+            view.fireOpen(0);
+            return null;
+        });
+        assertEquals(7, opened.get().lineNumber());
+    }
 }

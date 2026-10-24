@@ -15,9 +15,17 @@ import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
  * @param value        the full value, or {@code null} for the text fallback
  * @param fallbackText text shown when {@code value} is {@code null}
  * @param snapshot     the pause the value belongs to (XPath scope; may be {@code null})
+ * @param location     header text naming where the value comes from; {@code null} = "paused at
+ *                     file:line" of the snapshot
  */
 public record ValueSource(String title, String type, String scope, XdmValue value,
-                          String fallbackText, PausedSnapshot snapshot) {
+                          String fallbackText, PausedSnapshot snapshot, String location) {
+
+    /** A value of the pause itself (header: "paused at file:line"). */
+    public ValueSource(String title, String type, String scope, XdmValue value,
+                       String fallbackText, PausedSnapshot snapshot) {
+        this(title, type, scope, value, fallbackText, snapshot, null);
+    }
 
     /** @return whether the full value is available (not just the row text). */
     public boolean hasValue() {

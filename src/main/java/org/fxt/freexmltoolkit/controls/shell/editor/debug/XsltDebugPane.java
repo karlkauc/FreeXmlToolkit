@@ -94,6 +94,8 @@ public final class XsltDebugPane extends VBox {
     private final Label breakpointsBadge = badge();
     /** The divider ratio as last restored or saved; a drag that ends elsewhere is persisted. */
     private double knownDivider = DEFAULT_DIVIDER;
+    /** XPath scopes derived per call stack frame of the current pause (identity of the frame). */
+    private final Map<DebugStackFrame, PausedSnapshot> frameSnapshots = new java.util.IdentityHashMap<>();
     /** Open value viewer windows; closed when the pane is disposed (session end). */
     private final List<ValueViewerWindow> viewers = new ArrayList<>();
 
@@ -133,6 +135,8 @@ public final class XsltDebugPane extends VBox {
         installDividerPersistence();
         variablesView.setOnOpenValue(b -> openViewer(resolveVariable(b, controller.getSession().getPausedSnapshot())));
         variablesView.setOnCopyValue(b -> copyValue(resolveVariable(b, controller.getSession().getPausedSnapshot())));
+        callStackView.setOnOpenValue(f -> openViewer(resolveFrame(f, controller.getSession().getPausedSnapshot())));
+        callStackView.setOnCopyValue(f -> copyValue(resolveFrame(f, controller.getSession().getPausedSnapshot())));
         watchView.setOnOpenValue(row -> resolveWatch(row, this::openViewer));
         watchView.setOnCopyValue(row -> resolveWatch(row, this::copyValue));
 
@@ -260,6 +264,7 @@ public final class XsltDebugPane extends VBox {
         applyButtonState(state);
         switch (state) {
             case PAUSED -> {
+                frameSnapshots.clear();
                 PausedSnapshot snap = controller.getSession().getPausedSnapshot();
                 if (snap != null) {
                     variablesView.setVariables(snap.variables());
@@ -346,6 +351,31 @@ public final class XsltDebugPane extends VBox {
             }
         }
         return new ValueSource(binding.name(), binding.type(), scope, value, binding.value(), snap);
+    }
+
+    /**
+     * Maps a call stack frame to the viewer: its context item is the value, and XPath runs in
+     * the frame's scope — its own locals plus the globals of the pause — through a snapshot
+     * derived from {@code snap} (memoized per frame so a second open reuses the window).
+     * Frames without captured values (beyond the capture limit, display-only snapshots) show
+     * their description and location as text, without XPath.
+     */
+    ValueSource resolveFrame(DebugStackFrame frame, PausedSnapshot snap) {
+        String where = (frame.fileName().isEmpty() ? "line " : frame.fileName() + ":") + frame.lineNumber();
+        if (snap == null || !frame.hasValues()) {
+            return new ValueSource(frame.description(), frame.kind().name(), "FRAME", null,
+                    frame.description() + "\n" + where + "\n\n(No context item or variables were captured for this frame.)",
+                    null, "frame at " + where);
+        }
+        PausedSnapshot scope = frameSnapshots.computeIfAbsent(frame, f -> new PausedSnapshot(
+                f.systemId(), f.lineNumber(), snap.callStack(), f.variables(), "",
+                f.contextXdm(), f.localVariables(), snap.globalVariables(), -1, -1));
+        int vars = frame.localVariables().size();
+        String type = frame.contextXdm() == null ? "no context item" : WatchEvaluator.describeType(frame.contextXdm());
+        return new ValueSource(frame.description(), type,
+                "FRAME · " + vars + (vars == 1 ? " variable" : " variables"),
+                frame.contextXdm(), frame.contextXdm() == null ? "<no context item>" : null, scope,
+                "frame at " + where);
     }
 
     private static XdmValue byDisplayName(Map<QName, XdmValue> variables, String display) {

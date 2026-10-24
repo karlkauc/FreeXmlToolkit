@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.debugger.Breakpoint;
 import org.fxt.freexmltoolkit.debugger.DebugSession;
+import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage;
@@ -257,5 +258,44 @@ class XsltDebugPaneTest {
                 "$f:cfg", "p", "xs:string", org.fxt.freexmltoolkit.debugger.VariableScope.GLOBAL), snap).value());
         assertFalse(XsltDebugPane.resolveVariable(new org.fxt.freexmltoolkit.debugger.VariableBinding(
                 "$missing", "?", "", org.fxt.freexmltoolkit.debugger.VariableScope.LOCAL), snap).hasValue());
+    }
+
+    @Test
+    void resolveFrameScopesXPathToTheFrame() throws Exception {
+        net.sf.saxon.s9api.Processor processor = new net.sf.saxon.s9api.Processor(false);
+        net.sf.saxon.s9api.XdmNode doc = processor.newDocumentBuilder().build(
+                new javax.xml.transform.stream.StreamSource(new java.io.StringReader("<order><item n='1'/></order>")));
+        net.sf.saxon.s9api.XdmNode item = (net.sf.saxon.s9api.XdmNode) processor.newXPathCompiler()
+                .evaluateSingle("//item", doc);
+        DebugStackFrame inner = new DebugStackFrame("template match=item", "file:/a.xsl", 8, List.of(),
+                DebugStackFrame.FrameKind.TEMPLATE, item,
+                Map.of(new net.sf.saxon.s9api.QName("inner"), new net.sf.saxon.s9api.XdmAtomicValue("item-1")));
+        DebugStackFrame outer = new DebugStackFrame("template match=/", "file:/a.xsl", 4, List.of(),
+                DebugStackFrame.FrameKind.TEMPLATE, doc,
+                Map.of(new net.sf.saxon.s9api.QName("outer"), new net.sf.saxon.s9api.XdmAtomicValue(20)));
+        DebugStackFrame bare = new DebugStackFrame("apply-templates", "file:/a.xsl", 4, List.of());
+        PausedSnapshot snap = new PausedSnapshot("file:/a.xsl", 8, List.of(inner, outer, bare), List.of(), "",
+                item, inner.localVariables(),
+                Map.of(new net.sf.saxon.s9api.QName("g"), new net.sf.saxon.s9api.XdmAtomicValue("global")), 1, 1);
+
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> new XsltDebugPane(controller));
+        ValueSource source = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.resolveFrame(outer, snap));
+        assertSame(doc, source.value(), "the frame's context item is the value");
+        assertEquals("frame at a.xsl:4", source.location());
+        org.fxt.freexmltoolkit.debugger.WatchEvaluator eval =
+                new org.fxt.freexmltoolkit.debugger.WatchEvaluator(processor, Map.of());
+        assertEquals("21", eval.evaluateValue("$outer + 1", source.snapshot(), source.value()).toString(),
+                "XPath sees the frame's own locals");
+        assertEquals("global", eval.evaluateValue("$g", source.snapshot(), source.value()).toString(),
+                "and the globals of the pause");
+        assertThrows(net.sf.saxon.s9api.SaxonApiException.class,
+                () -> eval.evaluateValue("$inner", source.snapshot(), source.value()),
+                "but not the inner frame's locals");
+        assertSame(source.snapshot(), WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
+                () -> pane.resolveFrame(outer, snap)).snapshot(), "the frame scope is reused (one window per frame)");
+
+        ValueSource none = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.resolveFrame(bare, snap));
+        assertFalse(none.hasValue(), "a frame without captured values falls back to text");
+        assertTrue(none.fallbackText().startsWith("apply-templates"), none.fallbackText());
     }
 }

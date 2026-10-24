@@ -139,7 +139,9 @@ public final class ValueViewerWindow extends Stage {
         String scope = source.scope() == null ? "" : source.scope();
         typeLabel.setText(type.isEmpty() ? scope : scope.isEmpty() ? type : type + "  ·  " + scope);
         PausedSnapshot snap = source.snapshot();
-        if (snap != null) {
+        if (source.location() != null) {
+            pauseLabel.setText(source.location());
+        } else if (snap != null) {
             String where = snap.hasFile() ? SourceLocations.fileName(snap.systemId()) + ":" : "line ";
             pauseLabel.setText("paused at " + where + snap.lineNumber());
         }

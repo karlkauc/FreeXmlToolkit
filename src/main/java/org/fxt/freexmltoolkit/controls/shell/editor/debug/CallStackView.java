@@ -6,6 +6,7 @@ import java.util.function.IntConsumer;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -14,13 +15,17 @@ import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
 /**
  * Read-only call stack list (innermost frame first). Template and function frames are
  * shown in full; the instructions nested inside them are dimmed. Double-clicking a frame
- * jumps the editor to its module and line. Shown as the "Call Stack" tab of the DEBUG pane.
+ * jumps the editor to its module and line; Enter or the context menu's Open Value… asks the host
+ * to open the frame's context item and variables in the value viewer ({@link #setOnOpenValue}).
+ * Shown as the "Call Stack" tab of the DEBUG pane.
  */
 public class CallStackView extends VBox {
 
     private final ListView<DebugStackFrame> list = new ListView<>();
     private IntConsumer onJumpToLine = line -> { };
     private Consumer<DebugStackFrame> onJumpToFrame = frame -> { };
+    private Consumer<DebugStackFrame> onOpenValue = frame -> { };
+    private Consumer<DebugStackFrame> onCopyValue = frame -> { };
 
     public CallStackView() {
         getStyleClass().add("fxt-debug-panel");
@@ -52,8 +57,34 @@ public class CallStackView extends VBox {
                 }
             }
         });
+        list.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                DebugStackFrame f = list.getSelectionModel().getSelectedItem();
+                if (f != null) {
+                    onOpenValue.accept(f);
+                    e.consume();
+                }
+            }
+        });
+        list.setContextMenu(DebugValueMenu.create(() -> list.getSelectionModel().getSelectedItem(),
+                f -> onOpenValue.accept(f), f -> onCopyValue.accept(f)));
         VBox.setVgrow(list, Priority.ALWAYS);
         getChildren().add(list);
+    }
+
+    /** Invoked with the frame whose context item / variables should be opened (Enter, menu). */
+    public void setOnOpenValue(Consumer<DebugStackFrame> handler) {
+        this.onOpenValue = handler == null ? frame -> { } : handler;
+    }
+
+    /** Invoked with the frame whose context item should be copied (context menu). */
+    public void setOnCopyValue(Consumer<DebugStackFrame> handler) {
+        this.onCopyValue = handler == null ? frame -> { } : handler;
+    }
+
+    /** Opens frame {@code index} as Enter would (tests). */
+    void fireOpen(int index) {
+        onOpenValue.accept(list.getItems().get(index));
     }
 
     public void setFrames(List<DebugStackFrame> frames) {
