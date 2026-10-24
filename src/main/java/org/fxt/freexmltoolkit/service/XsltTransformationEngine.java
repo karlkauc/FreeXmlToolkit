@@ -599,6 +599,7 @@ public class XsltTransformationEngine {
                 messageListener.reportError(error);
                 traceListener.onError(error); // "break on errors": pause with the failing state
             });
+            recordDebugArtifacts(processor, transformer, session, xsltSystemId, inputSystemId);
 
             XdmNode sourceDoc;
             try {
@@ -665,6 +666,46 @@ public class XsltTransformationEngine {
             if (session.getState() != DebugSession.State.STOPPED) {
                 session.close();
             }
+        }
+    }
+
+    /**
+     * Lets the debugger show a run's secondary results and loaded documents: every
+     * {@code xsl:result-document} is written to its own buffer (nothing goes to disk during a
+     * debug run) and registered with the session; every document loaded through
+     * {@code doc()} / {@code document()} and every {@code collection()} is recorded.
+     */
+    private static void recordDebugArtifacts(Processor processor, XsltTransformer transformer, DebugSession session,
+                                             String xsltSystemId, String inputSystemId) {
+        String currentBase = transformer.getUnderlyingController().getBaseOutputURI();
+        if (currentBase == null || currentBase.isEmpty()) {
+            // Relative result-document hrefs resolve against the input (or the stylesheet).
+            transformer.setBaseOutputURI(inputSystemId != null && !inputSystemId.isBlank() ? inputSystemId
+                    : xsltSystemId != null && !xsltSystemId.isBlank() ? xsltSystemId : "file:///debug-output/");
+        }
+        transformer.setResultDocumentHandler(uri -> {
+            StringWriter writer = new StringWriter();
+            session.addResultDocument(uri.toString(), writer::toString);
+            return processor.newSerializer(writer);
+        });
+        // Delegate to the secured resolver (remote references stay blocked, see configureResourceAccess).
+        net.sf.saxon.lib.ResourceResolver controllerResolver = transformer.getUnderlyingController().getResourceResolver();
+        net.sf.saxon.lib.ResourceResolver resolver = controllerResolver != null ? controllerResolver
+                : processor.getUnderlyingConfiguration().getResourceResolver();
+        String stylesheet = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(xsltSystemId);
+        transformer.setResourceResolver(request -> {
+            if (request.uri != null && !org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(request.uri).equals(stylesheet)) {
+                session.recordLoadedDocument(request.uri);
+            }
+            return resolver == null ? null : resolver.resolve(request);
+        });
+        var controller = transformer.getUnderlyingController();
+        net.sf.saxon.lib.CollectionFinder finder = controller.getCollectionFinder();
+        if (finder != null) {
+            controller.setCollectionFinder((context, uri) -> {
+                session.recordLoadedDocument("collection(" + (uri == null ? "" : uri) + ")");
+                return finder.findCollection(context, uri);
+            });
         }
     }
 

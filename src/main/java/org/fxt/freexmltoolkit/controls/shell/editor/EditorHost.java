@@ -3252,6 +3252,16 @@ public class EditorHost extends BorderPane {
         // 3. Wire the pane back to this host.
         pane.setOnPaused(this::onDebugPaused);
         pane.setOnShowInput(() -> showDebugInput(debug));
+        pane.setOnOpenDocument(uri -> {
+            try {
+                Path file = Path.of(java.net.URI.create(uri));
+                if (java.nio.file.Files.isRegularFile(file)) {
+                    openFile(file, true);
+                }
+            } catch (RuntimeException ignored) {
+                // not a local file
+            }
+        });
         pane.setOnShowInEditor(() -> {
             var snap = session.getPausedSnapshot();
             if (snap != null) {

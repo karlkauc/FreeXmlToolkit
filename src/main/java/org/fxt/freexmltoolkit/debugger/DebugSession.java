@@ -73,6 +73,11 @@ public class DebugSession implements BreakpointTarget {
     private volatile boolean breakOnErrors;
     private volatile boolean breakOnTerminate;
     private volatile boolean breakOnMessages;
+    /** Secondary results of the run ({@code xsl:result-document}): URI → text written so far. */
+    private final java.util.Map<String, Supplier<String>> resultDocuments =
+            java.util.Collections.synchronizedMap(new java.util.LinkedHashMap<>());
+    /** Documents the run loaded with doc() / document() / collection(), in load order. */
+    private final Set<String> loadedDocuments = Collections.synchronizedSet(new LinkedHashSet<>());
     /** Reads the output the running transformation has serialized so far (set by the engine per run). */
     private volatile Supplier<String> outputProbe;
     /** The last run ran to its end (not stopped, not failed): zero hits then mean "never reached". */
@@ -384,6 +389,42 @@ public class DebugSession implements BreakpointTarget {
         return muted || block(captureSnapshot(snapshotSupplier, systemId, line), note == null ? "" : note);
     }
 
+    /** Records an {@code xsl:result-document} of the run and how to read what it wrote so far. */
+    public void addResultDocument(String uri, Supplier<String> text) {
+        if (uri != null && text != null) {
+            resultDocuments.put(uri, text);
+        }
+    }
+
+    /** @return the secondary results of the run: URI → text written so far, in creation order. */
+    public java.util.Map<String, String> resultDocuments() {
+        java.util.Map<String, String> texts = new java.util.LinkedHashMap<>();
+        synchronized (resultDocuments) {
+            resultDocuments.forEach((uri, text) -> {
+                try {
+                    texts.put(uri, text.get());
+                } catch (RuntimeException e) {
+                    texts.put(uri, "");
+                }
+            });
+        }
+        return texts;
+    }
+
+    /** Records a document the run loaded ({@code doc()}, {@code document()}, {@code collection()}). */
+    public void recordLoadedDocument(String uri) {
+        if (uri != null && !uri.isBlank()) {
+            loadedDocuments.add(uri);
+        }
+    }
+
+    /** @return the documents the run loaded so far, in load order. */
+    public java.util.List<String> loadedDocuments() {
+        synchronized (loadedDocuments) {
+            return java.util.List.copyOf(loadedDocuments);
+        }
+    }
+
     /** Mutes / unmutes all breakpoints: while muted they neither pause nor count hits. */
     public void setMuted(boolean muted) {
         this.muted = muted;
@@ -434,6 +475,8 @@ public class DebugSession implements BreakpointTarget {
         stepMode = initialMode == null ? StepMode.NONE : initialMode;
         stepTargetDepth = -1;
         pausedSnapshot = null;
+        resultDocuments.clear();
+        loadedDocuments.clear();
         pauseRequested = false;
         runToLine = 0;
         lastRunCompleted = false;

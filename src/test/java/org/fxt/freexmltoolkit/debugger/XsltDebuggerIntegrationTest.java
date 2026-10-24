@@ -787,4 +787,56 @@ class XsltDebuggerIntegrationTest {
                 XsltTransformationEngine.OutputFormat.XML, new DebugSession(), m -> { }, p -> null);
         assertTrue(disk.getOutputContent().contains("from disk"), "modules not open come from the file");
     }
+
+    @Test
+    void resultDocumentsAndLoadedDocumentsAreRecorded(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws Exception {
+        java.nio.file.Path other = dir.resolve("prices.xml");
+        java.nio.file.Files.writeString(other, "<prices><p>9</p></prices>");
+        java.nio.file.Path data = java.nio.file.Files.createDirectory(dir.resolve("data"));
+        java.nio.file.Files.writeString(data.resolve("a.xml"), "<a/>");
+        java.nio.file.Path in = dir.resolve("in.xml");
+        java.nio.file.Files.writeString(in, "<root/>");
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                + "  <xsl:template match=\"/\">\n"
+                + "    <xsl:result-document href=\"part1.xml\"><part><xsl:value-of select=\"doc('prices.xml')//p\"/></part></xsl:result-document>\n"
+                + "    <main n=\"{count(collection('data/?select=*.xml'))}\"/>\n"
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        // xsl:result-document needs "Allow XSLT extensions" (off by default, a security setting).
+        var config = XsltTransformationEngine.getInstance().getDebugProcessor().getUnderlyingConfiguration();
+        XsltTransformationResult result;
+        try {
+            config.setConfigurationProperty(net.sf.saxon.lib.Feature.ALLOW_EXTERNAL_FUNCTIONS, true);
+            result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                    "<root/>", in.toUri().toString(), xslt, dir.resolve("main.xsl").toUri().toString(), new HashMap<>(),
+                    XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        } finally {
+            config.setConfigurationProperty(net.sf.saxon.lib.Feature.ALLOW_EXTERNAL_FUNCTIONS, false);
+        }
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertTrue(result.getOutputContent().contains("<main n=\"1\""), result.getOutputContent());
+        java.util.Map<String, String> parts = session.resultDocuments();
+        assertEquals(1, parts.size(), "one result-document: " + parts.keySet());
+        String uri = parts.keySet().iterator().next();
+        assertTrue(uri.endsWith("part1.xml"), uri);
+        assertTrue(parts.get(uri).contains("<part>9</part>"), parts.get(uri));
+        assertFalse(java.nio.file.Files.exists(dir.resolve("part1.xml")), "nothing is written to disk while debugging");
+        java.util.List<String> loaded = session.loadedDocuments();
+        assertTrue(loaded.stream().anyMatch(u -> u.endsWith("prices.xml")), "doc(): " + loaded);
+        assertTrue(loaded.stream().anyMatch(u -> u.startsWith("collection(") && u.contains("data")), "collection(): " + loaded);
+    }
+
+    @Test
+    void recordingLoadedDocumentsKeepsRemoteReferencesBlocked() {
+        String xslt = "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
+                + "<xsl:template match=\"/\"><out><xsl:value-of select=\"doc('http://127.0.0.1:9/x.xml')\"/></out></xsl:template>"
+                + "</xsl:stylesheet>";
+        DebugSession session = new DebugSession();
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                "<root/>", xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertFalse(result.isSuccess());
+        assertTrue(String.valueOf(result.getErrorMessage()).contains("Blocked remote resource"), result.getErrorMessage());
+    }
 }

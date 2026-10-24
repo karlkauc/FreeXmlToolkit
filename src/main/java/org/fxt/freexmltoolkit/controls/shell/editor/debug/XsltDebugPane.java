@@ -211,6 +211,11 @@ public final class XsltDebugPane extends VBox {
         this.onPaused = handler == null ? snapshot -> { } : handler;
     }
 
+    /** Invoked with the {@code file:} URI of a document the run loaded (Output tab → Documents). */
+    public void setOnOpenDocument(Consumer<String> handler) {
+        outputView.setOnOpenDocument(handler);
+    }
+
     /** Invoked by Show input — selects the input document at the paused context node. */
     public void setOnShowInput(Runnable handler) {
         this.onShowInput = handler == null ? () -> { } : handler;
@@ -369,7 +374,8 @@ public final class XsltDebugPane extends VBox {
                 PausedSnapshot snap = controller.getSession().getPausedSnapshot();
                 scope = snap;
                 if (snap != null) {
-                    outputView.showSoFar(controller.getSession().outputSoFar());
+                    outputView.showSoFar(controller.getSession().outputSoFar(),
+                            controller.getSession().resultDocuments(), controller.getSession().loadedDocuments());
                     // Selecting the innermost frame (setFrames) fills Variables and the watches.
                     watchView.setEvaluator(controller.getWatchEvaluator());
                     variablesView.setVariables(snap.variables(), b -> resolveVariable(b, snap).value());
@@ -442,7 +448,8 @@ public final class XsltDebugPane extends VBox {
         applyButtonState(controller.getSession().getState());
         controller.getSession().markRunEnded(result.isSuccess());
         if (result.isSuccess()) {
-            outputView.showFinal(result.getOutputContent());
+            outputView.showFinal(result.getOutputContent(), controller.getSession().resultDocuments(),
+                    controller.getSession().loadedDocuments());
         }
         breakpointsView.refresh(); // final hit counts of the run, "not reached" marks
         onBreakpointsChanged.run(); // gutters show which breakpoints the run never reached
