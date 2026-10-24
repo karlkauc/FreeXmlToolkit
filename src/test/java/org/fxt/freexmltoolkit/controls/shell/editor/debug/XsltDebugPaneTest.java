@@ -436,4 +436,19 @@ class XsltDebugPaneTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getStatusText().contains("run to cursor"));
         controller.stop();
     }
+
+    @Test
+    void addToWatchesFromVariablesShowsTheWatchTab() {
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> new XsltDebugPane(controller));
+        java.util.List<String> saved = new java.util.ArrayList<>();
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            pane.getWatchView().setOnWatchesChanged(saved::addAll);
+            pane.getVariablesView().setVariables(List.of(new org.fxt.freexmltoolkit.debugger.VariableBinding(
+                    "$total", "5", "xs:integer", org.fxt.freexmltoolkit.debugger.VariableScope.GLOBAL)));
+            pane.getVariablesView().fireAddToWatches(0);
+        });
+        assertEquals(List.of("$total"), pane.getWatchView().getExpressions());
+        assertEquals(List.of("$total"), saved, "persisted through the host callback");
+        assertEquals(1, pane.getLeftTabs().getSelectionModel().getSelectedIndex(), "Watch comes to the front");
+    }
 }

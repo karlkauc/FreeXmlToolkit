@@ -26,6 +26,7 @@ public class VariablesView extends VBox {
     private final Label placeholder = new Label("Not paused.");
     private Consumer<VariableBinding> onOpenValue = b -> { };
     private Consumer<VariableBinding> onCopyValue = b -> { };
+    private Consumer<VariableBinding> onAddToWatches = b -> { };
 
     public VariablesView() {
         getStyleClass().add("fxt-debug-panel");
@@ -52,7 +53,7 @@ public class VariablesView extends VBox {
         });
         ContextMenu menu = DebugValueMenu.create(
                 () -> table.getSelectionModel().getSelectedItem(), b -> onOpenValue.accept(b),
-                b -> onCopyValue.accept(b));
+                b -> onCopyValue.accept(b), b -> onAddToWatches.accept(b), VariablesView::isWatchable);
         table.setContextMenu(menu);
         VBox.setVgrow(table, Priority.ALWAYS);
         getChildren().addAll(frameInfo, table);
@@ -106,6 +107,26 @@ public class VariablesView extends VBox {
     /** Invoked with the row whose full value should be copied (context menu). */
     public void setOnCopyValue(Consumer<VariableBinding> handler) {
         this.onCopyValue = handler == null ? b -> { } : handler;
+    }
+
+    /** Invoked with the row to add as a watch expression (context menu "Add to Watches"). */
+    public void setOnAddToWatches(Consumer<VariableBinding> handler) {
+        this.onAddToWatches = handler == null ? b -> { } : handler;
+    }
+
+    /**
+     * @return whether the row's name is a valid watch expression: {@code .}, {@code $name},
+     *         {@code position()}, {@code last()} — not an unnamed slot ({@code $$slot3})
+     */
+    static boolean isWatchable(VariableBinding b) {
+        String n = b == null ? null : b.name();
+        return n != null && (n.equals(".") || n.equals("position()") || n.equals("last()")
+                || (n.startsWith("$") && !n.startsWith("$$") && n.length() > 1));
+    }
+
+    /** Adds row {@code index} as a watch, as the context menu would (tests). */
+    void fireAddToWatches(int index) {
+        onAddToWatches.accept(table.getItems().get(index));
     }
 
     /** Opens the value of row {@code index} as a click would (tests). */

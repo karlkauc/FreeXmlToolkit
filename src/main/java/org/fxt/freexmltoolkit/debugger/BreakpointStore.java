@@ -168,7 +168,12 @@ public final class BreakpointStore {
     }
 
     static String key(String stylesheetPath) {
-        String normalized = SourceLocations.normalize(stylesheetPath);
+        return KEY_PREFIX + pathHash(stylesheetPath);
+    }
+
+    /** A short, stable hash of the normalised path (preference keys must not contain paths). */
+    static String pathHash(String path) {
+        String normalized = SourceLocations.normalize(path);
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(normalized.getBytes(StandardCharsets.UTF_8));
@@ -176,13 +181,13 @@ public final class BreakpointStore {
             for (int i = 0; i < 12; i++) {
                 hex.append(String.format("%02x", hash[i]));
             }
-            return KEY_PREFIX + hex;
+            return hex.toString();
         } catch (java.security.NoSuchAlgorithmException e) {
-            return KEY_PREFIX + Integer.toHexString(normalized.hashCode());
+            return Integer.toHexString(normalized.hashCode());
         }
     }
 
-    private static PropertiesService properties() {
+    static PropertiesService properties() {
         try {
             return ServiceRegistry.get(PropertiesService.class);
         } catch (RuntimeException e) {

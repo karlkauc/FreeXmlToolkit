@@ -3211,6 +3211,11 @@ public class EditorHost extends BorderPane {
         }
 
         var pane = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane(controller);
+        // Watches belong to the main stylesheet and come back with its next session.
+        String watchKey = xsltFile.getAbsolutePath();
+        pane.getWatchView().setWatches(org.fxt.freexmltoolkit.debugger.WatchStore.load(watchKey));
+        pane.getWatchView().setOnWatchesChanged(
+                list -> org.fxt.freexmltoolkit.debugger.WatchStore.save(watchKey, list));
         XsltDebugSession debug = new XsltDebugSession(controller, pane, xsltFile, resolvedModules);
         activeDebug = debug;
         attachDebugModule(debug, xsltDoc, debug.mainPath);

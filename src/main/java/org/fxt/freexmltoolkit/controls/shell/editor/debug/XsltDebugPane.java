@@ -146,6 +146,10 @@ public final class XsltDebugPane extends VBox {
         variablesView.setOnOpenValue(b -> openViewer(resolveVariable(b, currentScope())));
         variablesView.setOnCopyValue(b -> copyValue(resolveVariable(b, currentScope())));
         callStackView.setOnFrameSelected(this::showFrame);
+        variablesView.setOnAddToWatches(b -> {
+            watchView.addWatch(b.name());
+            leftTabs.getSelectionModel().select(watchTab);
+        });
         callStackView.setOnOpenValue(f -> openViewer(resolveFrame(f, controller.getSession().getPausedSnapshot())));
         callStackView.setOnCopyValue(f -> copyValue(resolveFrame(f, controller.getSession().getPausedSnapshot())));
         watchView.setOnOpenValue(row -> resolveWatch(row, this::openViewer));

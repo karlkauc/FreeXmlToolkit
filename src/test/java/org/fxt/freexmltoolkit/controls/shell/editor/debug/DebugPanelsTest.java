@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -156,5 +157,34 @@ class DebugPanelsTest {
         assertEquals(false, session.hasBreakpoint("a.xsl", 3));
         assertEquals(1, session.getBreakpoints().size(), "kept, not removed");
         assertEquals(1, changed.get(), "gutter refresh + persistence");
+    }
+
+    @Test
+    void watchesAreEditedInPlaceAndReportChanges() {
+        java.util.List<java.util.List<String>> changes = new java.util.concurrent.CopyOnWriteArrayList<>();
+        java.util.List<String> result = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            WatchView view = new WatchView();
+            view.setWatches(List.of("$a", "count(item)"));
+            view.setOnWatchesChanged(changes::add);
+            view.replaceWatch(1, "count(item) * 2");
+            view.addWatch("$b");
+            view.replaceWatch(0, "  ");          // blank = remove
+            view.select(1);
+            Event.fireEvent(view.table(), new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F2, false, false, false, false));
+            assertNotNull(view.table().getEditingCell(), "F2 starts editing the expression");
+            view.table().edit(-1, null);
+            return view.getExpressions();
+        });
+        assertEquals(List.of("count(item) * 2", "$b"), result);
+        assertEquals(3, changes.size(), "edit, add, remove — setWatches itself is no change");
+        assertEquals(result, changes.get(2));
+    }
+
+    @Test
+    void onlyNamedVariablesCanBecomeWatches() {
+        assertEquals(true, VariablesView.isWatchable(new VariableBinding("$total", "5", "", VariableScope.GLOBAL)));
+        assertEquals(true, VariablesView.isWatchable(new VariableBinding(".", "<a/>", "", VariableScope.LOCAL)));
+        assertEquals(true, VariablesView.isWatchable(new VariableBinding("position()", "1", "", VariableScope.LOCAL)));
+        assertEquals(false, VariablesView.isWatchable(new VariableBinding("$$slot3", "x", "", VariableScope.LOCAL)));
     }
 }

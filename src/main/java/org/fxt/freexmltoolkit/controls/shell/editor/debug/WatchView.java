@@ -22,7 +22,8 @@ import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
  * context item and the variables in scope (via {@link WatchEvaluator}); while the run is not
  * paused they read {@code <not paused>}. Shown as the "Watch" tab of the DEBUG pane: a compact
  * toolbar (expression field, Add, Remove) above the table; {@code Delete} removes the selected
- * watch.
+ * watch, a double-click or {@code F2} edits its expression in place. The host persists the
+ * expressions per stylesheet ({@link #setOnWatchesChanged}).
  */
 public class WatchView extends VBox {
 
@@ -47,20 +48,35 @@ public class WatchView extends VBox {
     private int generation;
     private Consumer<WatchRow> onOpenValue = r -> { };
     private Consumer<WatchRow> onCopyValue = r -> { };
+    private Consumer<List<String>> onWatchesChanged = list -> { };
 
     public WatchView() {
         getStyleClass().add("fxt-debug-panel");
 
-        table.getColumns().add(DebugTableColumns.col("Expression", WatchRow::getExpression, 160));
-        table.getColumns().add(DebugTableColumns.valueColumn("Value", WatchRow::getValue, -1,
-                r -> onOpenValue.accept(r)));
+        // The expression is edited in place (double-click or F2); Enter commits, Esc cancels.
+        javafx.scene.control.TableColumn<WatchRow, String> expression =
+                DebugTableColumns.col("Expression", WatchRow::getExpression, 160);
+        expression.setCellFactory(javafx.scene.control.cell.TextFieldTableCell.forTableColumn());
+        expression.setOnEditCommit(e -> replaceWatch(e.getTablePosition().getRow(), e.getNewValue()));
+        table.getColumns().add(expression);
+        table.setEditable(true);
+        javafx.scene.control.TableColumn<WatchRow, String> value = DebugTableColumns.valueColumn("Value",
+                WatchRow::getValue, -1, r -> onOpenValue.accept(r));
+        value.setEditable(false);
+        table.getColumns().add(value);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("No watches."));
         table.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.DELETE) {
                 removeSelected();
                 e.consume();
-            } else if (e.getCode() == KeyCode.ENTER) {
+            } else if (e.getCode() == KeyCode.F2) {
+                int row = table.getSelectionModel().getSelectedIndex();
+                if (row >= 0) {
+                    table.edit(row, table.getColumns().get(0));
+                    e.consume();
+                }
+            } else if (e.getCode() == KeyCode.ENTER && table.getEditingCell() == null) {
                 WatchRow r = table.getSelectionModel().getSelectedItem();
                 if (r != null) {
                     onOpenValue.accept(r);
@@ -99,6 +115,57 @@ public class WatchView extends VBox {
         }
         table.getItems().add(new WatchRow(expression.trim()));
         evaluateAll(lastSnapshot);
+        fireChanged();
+    }
+
+    /** Replaces the watch list (stored watches of the stylesheet); does not report a change. */
+    public void setWatches(List<String> expressions) {
+        table.getItems().clear();
+        if (expressions != null) {
+            for (String e : expressions) {
+                if (e != null && !e.isBlank()) {
+                    table.getItems().add(new WatchRow(e.strip()));
+                }
+            }
+        }
+        evaluateAll(lastSnapshot);
+    }
+
+    /** @return the watch expressions in order. */
+    public List<String> getExpressions() {
+        List<String> list = new ArrayList<>();
+        for (WatchRow r : table.getItems()) {
+            list.add(r.getExpression());
+        }
+        return list;
+    }
+
+    /** Invoked with the expressions after every add, edit or remove (persistence). */
+    public void setOnWatchesChanged(Consumer<List<String>> handler) {
+        this.onWatchesChanged = handler == null ? list -> { } : handler;
+    }
+
+    /**
+     * Replaces the expression of watch {@code index} (in-place edit); a blank text removes the
+     * watch. The row is re-evaluated against the current pause.
+     */
+    public void replaceWatch(int index, String expression) {
+        if (index < 0 || index >= table.getItems().size()) {
+            return;
+        }
+        if (expression == null || expression.isBlank()) {
+            table.getItems().remove(index);
+        } else if (!expression.strip().equals(table.getItems().get(index).getExpression())) {
+            table.getItems().set(index, new WatchRow(expression.strip()));
+            evaluateAll(lastSnapshot);
+        } else {
+            return;
+        }
+        fireChanged();
+    }
+
+    private void fireChanged() {
+        onWatchesChanged.accept(getExpressions());
     }
 
     private void addWatch() {
@@ -112,6 +179,7 @@ public class WatchView extends VBox {
         WatchRow r = table.getSelectionModel().getSelectedItem();
         if (r != null) {
             table.getItems().remove(r);
+            fireChanged();
         }
     }
 
