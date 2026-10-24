@@ -137,6 +137,68 @@ public final class WatchEvaluator {
     }
 
     /**
+     * Expands a logpoint message: every {@code {xpath}} part is evaluated at the pause point
+     * (context item and variables of {@code snapshot}) and inserted as text, like an attribute
+     * value template (string values, space-separated); {@code {{} and
+     * {@code }}} are literal braces. A failing part reads {@code {ERROR: …}}; the rest still logs.
+     */
+    public String formatLog(String template, PausedSnapshot snapshot) {
+        if (template == null || template.isEmpty()) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder();
+        int i = 0;
+        int n = template.length();
+        while (i < n) {
+            char c = template.charAt(i);
+            if (c == '{' && i + 1 < n && template.charAt(i + 1) == '{') {
+                out.append('{');
+                i += 2;
+            } else if (c == '}' && i + 1 < n && template.charAt(i + 1) == '}') {
+                out.append('}');
+                i += 2;
+            } else if (c == '{') {
+                int end = template.indexOf('}', i + 1);
+                if (end < 0) {
+                    out.append(template, i, n);
+                    break;
+                }
+                String expr = template.substring(i + 1, end).strip();
+                try {
+                    out.append(stringValue(evaluateValue(expr, snapshot, null)));
+                } catch (SaxonApiException | RuntimeException e) {
+                    out.append("{ERROR: ").append(e.getMessage()).append('}');
+                }
+                i = end + 1;
+            } else {
+                out.append(c);
+                i++;
+            }
+        }
+        return out.toString();
+    }
+
+    /**
+     * The value as text, like an attribute value template: string values of the items
+     * (nodes atomized), separated by a space; capped at {@value #MAX_RENDERED_LENGTH} characters.
+     */
+    static String stringValue(XdmValue value) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < value.size() && sb.length() <= MAX_RENDERED_LENGTH; i++) {
+            if (i > 0) {
+                sb.append(' ');
+            }
+            XdmItem item = value.itemAt(i);
+            sb.append(item instanceof XdmNode || item instanceof XdmAtomicValue ? item.getStringValue() : item.toString());
+        }
+        if (sb.length() > MAX_RENDERED_LENGTH) {
+            sb.setLength(MAX_RENDERED_LENGTH);
+            sb.append('…');
+        }
+        return sb.toString();
+    }
+
+    /**
      * Compiles {@code expr} with the stylesheet's namespaces and every snapshot variable
      * (locals shadow globals), and loads it with its context item and variable values.
      */

@@ -174,4 +174,14 @@ class WatchEvaluatorTest {
                 Map.of(new QName("count"), new XdmAtomicValue(9)), Map.of(), 1, 1);
         assertTrue(eval.test("$count > 5", other));
     }
+
+    @Test
+    void logTemplatesExpandXPathPartsAndKeepLiteralBraces() throws Exception {
+        WatchEvaluator eval = new WatchEvaluator(PROCESSOR, Map.of());
+        assertEquals("3 items of Order #7 {x}", eval.formatLog("{$count} items of {$title} {{x}}", snapshot()));
+        assertEquals("n=2", eval.formatLog("n={item[2]/@n/string()}", snapshot()));
+        String failed = eval.formatLog("a {$nope} b", snapshot());
+        assertTrue(failed.startsWith("a {ERROR: ") && failed.endsWith("} b"), "the rest still logs: " + failed);
+        assertEquals("open { end", eval.formatLog("open { end", snapshot()), "an unclosed brace stays text");
+    }
 }

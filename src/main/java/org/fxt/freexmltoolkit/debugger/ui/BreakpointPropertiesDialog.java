@@ -25,11 +25,34 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
  */
 public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertiesDialog.Settings> {
 
-    /** The edited properties: {@code condition} {@code ""} = unconditional. */
-    public record Settings(String condition, HitCondition hit) {
+    /**
+     * The edited properties: {@code condition} {@code ""} = unconditional; {@code logMessage}
+     * {@code ""} = no logging; {@code suspend} = pause at a hit (always true without a log message).
+     */
+    public record Settings(String condition, HitCondition hit, String logMessage, boolean suspend) {
         public Settings {
             condition = condition == null ? "" : condition.strip();
             hit = hit == null ? HitCondition.ALWAYS : hit;
+            logMessage = logMessage == null ? "" : logMessage.strip();
+            if (logMessage.isEmpty()) {
+                suspend = true;
+            }
+        }
+
+        /** Condition and hit rule of a pausing breakpoint without logging. */
+        public Settings(String condition, HitCondition hit) {
+            this(condition, hit, "", true);
+        }
+
+        /** The settings of {@code bp}. */
+        public static Settings of(org.fxt.freexmltoolkit.debugger.Breakpoint bp) {
+            return bp == null ? new Settings("", null)
+                    : new Settings(bp.condition(), bp.hit(), bp.logMessage(), bp.suspend());
+        }
+
+        /** @return {@code bp} with these settings applied. */
+        public org.fxt.freexmltoolkit.debugger.Breakpoint applyTo(org.fxt.freexmltoolkit.debugger.Breakpoint bp) {
+            return bp.withCondition(condition).withHit(hit).withLog(logMessage, suspend);
         }
     }
 
@@ -55,6 +78,8 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
     @FXML private ComboBox<String> hitMode;
     @FXML private Spinner<Integer> hitTarget;
     @FXML private Label hitsLabel;
+    @FXML private TextField logField;
+    @FXML private javafx.scene.control.CheckBox suspendBox;
 
     /**
      * @param location e.g. "main.xsl, line 12"
@@ -83,6 +108,10 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
         hitMode.getSelectionModel().select(settings.hit().mode().ordinal());
         hitTarget.getValueFactory().setValue(settings.hit().target());
         hitTarget.setDisable(!settings.hit().isSet());
+        logField.setText(settings.logMessage());
+        suspendBox.setSelected(settings.suspend());
+        // Only a logpoint can run on without pausing.
+        suspendBox.disableProperty().bind(logField.textProperty().isEmpty());
         hitsLabel.setText(hits < 0 ? "Hits are counted while a debug run is active."
                 : "Hits in the current run: " + hits);
 
@@ -99,7 +128,8 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
         }
         int mode = Math.max(0, hitMode.getSelectionModel().getSelectedIndex());
         HitCondition hit = new HitCondition(HitCondition.Mode.values()[mode], hitTarget.getValue());
-        return new Settings(conditionField.getText(), hit.isSet() ? hit : HitCondition.ALWAYS);
+        return new Settings(conditionField.getText(), hit.isSet() ? hit : HitCondition.ALWAYS,
+                logField.getText(), suspendBox.isSelected());
     }
 
     /** Sets the control state (tests). */
@@ -108,6 +138,12 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
         hitMode.getSelectionModel().select(mode.ordinal());
         hitTarget.getValueFactory().setValue(target);
         hitTarget.getEditor().setText(Integer.toString(target));
+    }
+
+    /** Sets the logpoint controls (tests). */
+    void setLog(String message, boolean suspend) {
+        logField.setText(message);
+        suspendBox.setSelected(suspend);
     }
 
     /** The hit-count hint text (tests). */

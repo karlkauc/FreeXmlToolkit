@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
@@ -53,6 +54,18 @@ public class DebugSession implements BreakpointTarget {
     /** One-shot "Run to Cursor" target (normalised path, 1-based line); line 0 = none. */
     private volatile String runToPath = "";
     private volatile int runToLine;
+    /** A logpoint's message, ready to show (file and line of the logpoint, the expanded text). */
+    public record LogEvent(String filePath, int line, String text) { }
+
+    /** Expands logpoint messages (XPath parts) and receives them; {@code null} = logpoints only pause. */
+    @FunctionalInterface
+    public interface LogFormatter {
+        String format(String template, PausedSnapshot snapshot) throws Exception;
+    }
+
+    private volatile LogFormatter logFormatter;
+    private volatile Consumer<LogEvent> logSink;
+
     /** "Break on" options, independent of line breakpoints (but silenced by Mute). */
     private volatile boolean breakOnErrors;
     private volatile boolean breakOnTerminate;
@@ -257,6 +270,12 @@ public class DebugSession implements BreakpointTarget {
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    /** Sets how logpoint messages are expanded and where they go (the debugger's Messages). */
+    public void setLogHandler(LogFormatter formatter, Consumer<LogEvent> sink) {
+        this.logFormatter = formatter;
+        this.logSink = sink;
     }
 
     /** Pause when a dynamic error occurs, with the state at the failing instruction. */
@@ -493,6 +512,15 @@ public class DebugSession implements BreakpointTarget {
                 }
                 int hits = hitCounts.computeIfAbsent(hitKey(bp.filePath(), bp.lineNumber()),
                         k -> new AtomicInteger()).incrementAndGet();
+                if (bp.isLogpoint() && bp.hit().matches(hits)) {
+                    if (snapshot == null) {
+                        snapshot = captureSnapshot(snapshotSupplier, systemId, line);
+                    }
+                    log(bp, line, snapshot);
+                    if (!bp.suspend()) {
+                        continue; // a logpoint that runs on
+                    }
+                }
                 if (!pause && bp.hit().matches(hits)) {
                     pause = true;
                     StringBuilder why = new StringBuilder();
@@ -570,6 +598,26 @@ public class DebugSession implements BreakpointTarget {
                 firedLines.addLast(new Object[]{normalized, line, depth});
             }
             return false;
+        }
+    }
+
+    /** Expands and publishes a logpoint's message (Saxon thread). */
+    private void log(Breakpoint bp, int line, PausedSnapshot snapshot) {
+        Consumer<LogEvent> sink = logSink;
+        if (sink == null) {
+            return;
+        }
+        String text;
+        LogFormatter formatter = logFormatter;
+        try {
+            text = formatter == null ? bp.logMessage() : formatter.format(bp.logMessage(), snapshot);
+        } catch (Exception e) {
+            text = bp.logMessage() + "  {ERROR: " + e.getMessage() + "}";
+        }
+        try {
+            sink.accept(new LogEvent(bp.filePath(), line, text));
+        } catch (RuntimeException e) {
+            logger.debug("Logpoint sink failed: {}", e.getMessage());
         }
     }
 

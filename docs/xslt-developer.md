@@ -388,6 +388,20 @@ there, otherwise the active document) - exactly as for **Run Transform**; starte
   on the same line (e.g. `<x><xsl:value-of select="@n"/></x>`) does not stop the run a second
   time. Stepping (Step Into) still visits every instruction.
 
+#### Logpoints
+
+A **logpoint** writes a message instead of (or before) pausing - printf debugging without
+editing the stylesheet. Right-click a gutter slot → **Add Logpoint…**, or set a **Log message**
+in *Breakpoint Properties*:
+
+- The message may contain **`{xpath}`** parts, evaluated at that moment like an attribute value
+  template: `item {@id}: {count(line)} lines, total {$total}`. `{{` and `}}` are literal braces;
+  a failing part reads `{ERROR: …}` and the rest is still logged.
+- Each message appears in **Messages** as level **LOG** with the logpoint's file and line.
+- **Pause when hit** (off for a new logpoint) decides whether the run also stops there.
+- Condition and hit count apply: the message is written at the hits that pass both.
+- In the gutter a logpoint is a **diamond** - blue when it only logs, red when it also pauses.
+
 #### Break on Errors and Messages
 
 The Breakpoints panel's **Break on ▾** menu pauses the run independent of line breakpoints:

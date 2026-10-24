@@ -61,6 +61,11 @@ public final class XsltDebugController {
         this.executor = executor;
         // Conditional breakpoints: XPath with xsl:if semantics against the paused state.
         session.setConditionEvaluator((condition, snapshot) -> getWatchEvaluator().test(condition, snapshot));
+        // Logpoints: expanded with the run's evaluator, shown in Messages as level LOG.
+        session.setLogHandler((template, snapshot) -> getWatchEvaluator().formatLog(template, snapshot),
+                event -> publishMessage(new TransformationMessage("LOG", event.text(), event.line(),
+                        (event.filePath().isEmpty() ? "" : org.fxt.freexmltoolkit.debugger.SourceLocations
+                                .fileName(event.filePath()) + ":") + event.line())));
     }
 
     public DebugSession getSession() {

@@ -633,4 +633,33 @@ class XsltDebuggerIntegrationTest {
                 "<root/>", xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, all, m -> { });
         assertEquals(java.util.List.of(3, 4), lines, "every message");
     }
+
+    @Test
+    void logpointsWriteEvaluatedMessagesWithoutStopping() throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"item\">\n"                                                         // 3
+                + "    <x><xsl:value-of select=\"@n\"/></x>\n"                                               // 4
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.updateBreakpoint("", 4, bp -> bp.withLog("item {@n} of {count(../item)}", false));
+        WatchEvaluator evaluator = new WatchEvaluator(XsltTransformationEngine.getInstance().getDebugProcessor(), java.util.Map.of());
+        java.util.List<String> logged = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.setLogHandler(evaluator::formatLog, event -> logged.add(event.text()));
+        java.util.concurrent.atomic.AtomicInteger pauses = new java.util.concurrent.atomic.AtomicInteger();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                pauses.incrementAndGet();
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertEquals(java.util.List.of("item 1 of 3", "item 2 of 3", "item 3 of 3"), logged);
+        assertEquals(0, pauses.get(), "a logpoint without Pause never stops the run");
+    }
 }

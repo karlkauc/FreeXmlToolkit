@@ -48,4 +48,23 @@ class BreakpointPropertiesDialogTest {
         assertEquals(HitCondition.ALWAYS, result.hit());
         assertEquals("", result.condition());
     }
+
+    @Test
+    void aLogMessageMakesALogpointThatMayRunOn() {
+        BreakpointPropertiesDialog.Settings[] r = WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            BreakpointPropertiesDialog dialog = new BreakpointPropertiesDialog("a.xsl, line 3",
+                    new BreakpointPropertiesDialog.Settings("", null), -1);
+            dialog.setLog("", false);
+            BreakpointPropertiesDialog.Settings plain = dialog.currentSettings();
+            dialog.setLog("item {@n}", false);
+            return new BreakpointPropertiesDialog.Settings[]{plain, dialog.currentSettings()};
+        });
+        assertTrue(r[0].suspend(), "without a message it always pauses");
+        assertEquals("item {@n}", r[1].logMessage());
+        assertFalse(r[1].suspend(), "a logpoint may run on");
+        org.fxt.freexmltoolkit.debugger.Breakpoint applied = r[1].applyTo(
+                new org.fxt.freexmltoolkit.debugger.Breakpoint("/tmp/a.xsl", 3, true));
+        assertTrue(applied.isLogpoint());
+        assertFalse(applied.suspend());
+    }
 }

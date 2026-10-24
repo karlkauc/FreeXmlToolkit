@@ -210,7 +210,7 @@ class BreakpointGutterFactoryTest {
                 "Disable Breakpoint", "Remove Breakpoint"), labels);
         java.util.List<String> empty = WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> factory.menuFor(9).getItems().stream().map(javafx.scene.control.MenuItem::getText).toList());
-        assertEquals(java.util.List.of("Add Conditional Breakpoint…"), empty);
+        assertEquals(java.util.List.of("Add Conditional Breakpoint…", "Add Logpoint…"), empty);
 
         factory.setPropertiesPrompt((owner, location, current, hits) -> java.util.Optional.empty());
         assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.editBreakpoint(5, null)), "cancel changes nothing");
@@ -278,5 +278,26 @@ class BreakpointGutterFactoryTest {
         session.markRunEnded(true);
         Node after = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(3));
         assertTrue(after.getStyleClass().contains(BreakpointGutterFactory.UNREACHED_STYLE_CLASS));
+    }
+
+    @Test
+    void addLogpointStartsAsANonPausingLogpoint() throws Exception {
+        org.fxt.freexmltoolkit.debugger.DebugSession session = new org.fxt.freexmltoolkit.debugger.DebugSession();
+        BreakpointGutterFactory factory = new BreakpointGutterFactory(session, v -> { });
+        factory.setFilePath(FILE);
+        java.util.concurrent.atomic.AtomicReference<BreakpointPropertiesDialog.Settings> offered =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        factory.setPropertiesPrompt((owner, location, current, hits) -> {
+            offered.set(current);
+            return java.util.Optional.of(current);
+        });
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.editBreakpoint(6, null, true)));
+        assertFalse(offered.get().suspend(), "offered without pausing");
+        assertEquals("line 6 reached", offered.get().logMessage());
+        var bp = session.breakpointAt(FILE, 6);
+        assertTrue(bp.isLogpoint());
+        assertFalse(bp.suspend());
+        Node slot = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(5));
+        assertTrue(slot.getStyleClass().contains(BreakpointGutterFactory.CONDITIONAL_STYLE_CLASS), "a marked slot");
     }
 }

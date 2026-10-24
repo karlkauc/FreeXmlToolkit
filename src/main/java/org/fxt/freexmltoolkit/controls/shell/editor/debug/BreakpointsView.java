@@ -73,6 +73,7 @@ public class BreakpointsView extends VBox {
                         + (bp.filePath().isEmpty() ? "" : "  " + shortName(bp.filePath()))
                         + (bp.hasCondition() ? "   if  " + bp.condition() : "")
                         + (bp.hit().isSet() ? "   ·  " + bp.hit().describe() : "")
+                        + (bp.isLogpoint() ? "   ·  log \"" + bp.logMessage() + "\"" + (bp.suspend() ? "" : " (no pause)") : "")
                         + (hits > 0 ? "   ·  " + hits + (hits == 1 ? " hit" : " hits") : "")
                         + (unreached ? "   ·  not reached in the last run" : ""));
                 setTooltip(unreached ? new javafx.scene.control.Tooltip(
@@ -242,11 +243,10 @@ public class BreakpointsView extends VBox {
         }
         String where = (bp.filePath().isEmpty() ? "" : shortName(bp.filePath()) + ", ") + "line " + bp.lineNumber();
         propertiesPrompt.ask(getScene() == null ? null : getScene().getWindow(), where,
-                        new org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.Settings(bp.condition(), bp.hit()),
+                        org.fxt.freexmltoolkit.debugger.ui.BreakpointPropertiesDialog.Settings.of(bp),
                         session.getState() == DebugSession.State.IDLE ? -1 : session.hitCount(bp))
                 .ifPresent(settings -> {
-                    session.updateBreakpoint(bp.filePath(), bp.lineNumber(),
-                            b -> b.withCondition(settings.condition()).withHit(settings.hit()));
+                    session.updateBreakpoint(bp.filePath(), bp.lineNumber(), settings::applyTo);
                     refresh();
                     onChanged.run();
                 });

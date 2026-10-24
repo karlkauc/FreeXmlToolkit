@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Spinner?>
@@ -35,8 +36,13 @@
             </children>
         </HBox>
         <Label fx:id="hitsLabel" id="breakpoint-hits" opacity="0.75" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <Label wrapText="true" opacity="0.7" maxWidth="460" GridPane.rowIndex="3" GridPane.columnIndex="0"
+        <Label text="Log message" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="logField" id="breakpoint-log" GridPane.rowIndex="3" GridPane.columnIndex="1"
+                   promptText="e.g. item {@n}: total {$total} (empty = no logging)"/>
+        <CheckBox fx:id="suspendBox" id="breakpoint-suspend" text="Pause when hit" selected="true"
+                  GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <Label wrapText="true" opacity="0.7" maxWidth="460" GridPane.rowIndex="5" GridPane.columnIndex="0"
                GridPane.columnSpan="2"
-               text="The condition is evaluated like xsl:if test each time the line runs, with the context item and every variable in scope; a failing condition pauses and shows the error. A hit is a pass of the line whose condition held; hits are counted per run and start over with every run or Restart."/>
+               text="The condition is evaluated like xsl:if test each time the line runs, with the context item and every variable in scope; a failing condition pauses and shows the error. A hit is a pass of the line whose condition held; hits are counted per run and start over with every run or Restart. A log message turns the breakpoint into a logpoint: at every hit the message goes to Messages, {xpath} parts evaluated; untick Pause when hit to log without stopping."/>
     </children>
 </GridPane>

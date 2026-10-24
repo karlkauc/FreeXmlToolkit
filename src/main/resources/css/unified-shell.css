@@ -1771,6 +1771,11 @@
     -fx-text-fill: -fxt-danger;
 }
 
+/* Logpoint messages (level LOG). */
+.fxt-debug-pane .list-cell.sev-log {
+    -fx-text-fill: -fxt-primary;
+}
+
 .fxt-debug-pane .list-cell.sev-warning {
     -fx-text-fill: -fxt-tool-warning-fg;
 }

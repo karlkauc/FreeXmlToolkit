@@ -87,13 +87,21 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
      * @return whether new settings were applied
      */
     public boolean editBreakpoint(int line1Based, javafx.stage.Window owner) {
+        return editBreakpoint(line1Based, owner, false);
+    }
+
+    /**
+     * Like {@link #editBreakpoint(int, javafx.stage.Window)}; {@code asLogpoint} starts a line
+     * without a breakpoint as a logpoint that does not pause ("Add Logpoint…").
+     */
+    public boolean editBreakpoint(int line1Based, javafx.stage.Window owner, boolean asLogpoint) {
         if (session == null || line1Based < 1) {
             return false;
         }
         org.fxt.freexmltoolkit.debugger.Breakpoint bp = session.breakpointAt(filePath, line1Based);
-        BreakpointPropertiesDialog.Settings current = bp == null
-                ? new BreakpointPropertiesDialog.Settings("", null)
-                : new BreakpointPropertiesDialog.Settings(bp.condition(), bp.hit());
+        BreakpointPropertiesDialog.Settings current = bp == null && asLogpoint
+                ? new BreakpointPropertiesDialog.Settings("", null, "line " + line1Based + " reached", false)
+                : BreakpointPropertiesDialog.Settings.of(bp);
         String file = filePath.isEmpty() ? "" : org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(filePath) + ", ";
         java.util.Optional<BreakpointPropertiesDialog.Settings> answer = propertiesPrompt.ask(owner,
                 file + "line " + line1Based, current, session.hitCount(filePath, line1Based));
@@ -101,8 +109,7 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             return false;
         }
         BreakpointPropertiesDialog.Settings settings = answer.get();
-        boolean applied = session.updateBreakpoint(filePath, line1Based,
-                b -> b.withCondition(settings.condition()).withHit(settings.hit()));
+        boolean applied = session.updateBreakpoint(filePath, line1Based, settings::applyTo);
         if (applied && refreshCallback != null) {
             refreshCallback.accept(null);
         }
@@ -176,6 +183,14 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             Tooltip.install(fi, new Tooltip(why + (conditional ? "\n" + describe(bp, line) : "")
                     + "\nClick to remove, right-click to enable or edit"));
             icon = fi;
+        } else if (bp != null && bp.isLogpoint()) {
+            // Logpoint: a diamond — red when it also pauses, blue when it only logs.
+            IconifyIcon fi = new IconifyIcon("bi-diamond-fill");
+            fi.setIconSize(10);
+            SemanticIcon.paint(fi, bp.suspend() ? DesignTokens.ColorToken.DANGER : DesignTokens.ColorToken.INFO);
+            Tooltip.install(fi, new Tooltip(describe(bp, line)
+                    + "\nClick to remove the logpoint, right-click to edit it"));
+            icon = fi;
         } else if (conditional) {
             IconifyIcon fi = new IconifyIcon("bi-question-circle-fill");
             fi.setIconSize(11);
@@ -237,7 +252,13 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             if (sb.length() > 0) {
                 sb.append('\n');
             }
-            sb.append("Pause on ").append(bp.hit().describe());
+            sb.append(bp.isLogpoint() ? "On " : "Pause on ").append(bp.hit().describe());
+        }
+        if (bp.isLogpoint()) {
+            if (sb.length() > 0) {
+                sb.append('\n');
+            }
+            sb.append("Log: ").append(bp.logMessage()).append(bp.suspend() ? "  (and pause)" : "  (no pause)");
         }
         int hits = session.hitCount(filePath, line);
         if (hits > 0) {
@@ -263,6 +284,11 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
                 menuIcon("bi-sliders", DesignTokens.ColorToken.PRIMARY));
         edit.setOnAction(e -> editBreakpoint(line, menu.getOwnerWindow()));
         menu.getItems().add(edit);
+        if (!hasBp) {
+            MenuItem logpoint = new MenuItem("Add Logpoint…", menuIcon("bi-diamond-fill", DesignTokens.ColorToken.INFO));
+            logpoint.setOnAction(e -> editBreakpoint(line, menu.getOwnerWindow(), true));
+            menu.getItems().add(logpoint);
+        }
         if (bp != null && bp.hasCondition()) {
             MenuItem clear = new MenuItem("Remove Condition", menuIcon("bi-x-circle", DesignTokens.ColorToken.NEUTRAL));
             clear.setOnAction(e -> {

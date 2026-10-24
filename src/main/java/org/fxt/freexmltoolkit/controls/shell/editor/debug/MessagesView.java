@@ -67,7 +67,7 @@ public class MessagesView extends VBox {
             @Override
             protected void updateItem(TransformationMessage msg, boolean empty) {
                 super.updateItem(msg, empty);
-                getStyleClass().removeAll("sev-error", "sev-warning");
+                getStyleClass().removeAll("sev-error", "sev-warning", "sev-log");
                 if (empty || msg == null) {
                     setText(null);
                     return;
@@ -77,6 +77,8 @@ public class MessagesView extends VBox {
                     getStyleClass().add("sev-error");
                 } else if (isWarning(msg)) {
                     getStyleClass().add("sev-warning");
+                } else if ("LOG".equals(msg.getLevel())) {
+                    getStyleClass().add("sev-log"); // a logpoint's message
                 }
             }
         });

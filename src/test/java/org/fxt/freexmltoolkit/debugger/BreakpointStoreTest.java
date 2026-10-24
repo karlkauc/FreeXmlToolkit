@@ -104,4 +104,15 @@ class BreakpointStoreTest {
         assertEquals("every 11th hit", new HitCondition(HitCondition.Mode.MULTIPLE_OF, 11).describe());
         assertEquals("hit ≥ 2", new HitCondition(HitCondition.Mode.AT_LEAST, 2).describe());
     }
+
+    @Test
+    void logpointsRoundTrip() {
+        Breakpoint logOnly = new Breakpoint("/tmp/a.xsl", 3, true, "", null, "item {@n}\tdone", false);
+        Breakpoint logAndPause = new Breakpoint("/tmp/a.xsl", 5, true, "@n = 2",
+                new HitCondition(HitCondition.Mode.AT_LEAST, 2), "total {$t}", true);
+        assertEquals(Set.of(logOnly, logAndPause),
+                BreakpointStore.parse(BreakpointStore.format(List.of(logOnly, logAndPause))));
+        assertTrue(new Breakpoint("/tmp/a.xsl", 7, true, "", null, "", false).suspend(),
+                "without a log message a breakpoint always pauses");
+    }
 }

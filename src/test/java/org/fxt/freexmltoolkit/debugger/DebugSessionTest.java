@@ -618,4 +618,30 @@ class DebugSessionTest {
         saxon.join(AWAIT_MS);
         return paused;
     }
+
+    // ----- logpoints -----------------------------------------------------------------------
+
+    @Test
+    void aLogpointLogsEveryHitWithoutPausing() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.updateBreakpoint("h.xsl", 7, bp -> bp.withLog("pass {n}", false));
+        java.util.List<String> logged = new java.util.concurrent.CopyOnWriteArrayList<>();
+        java.util.concurrent.atomic.AtomicInteger n = new java.util.concurrent.atomic.AtomicInteger();
+        session.setLogHandler((template, snap) -> template.replace("{n}", Integer.toString(n.incrementAndGet())),
+                event -> logged.add(event.line() + ":" + event.text()));
+        assertEquals(List.of(), passesThatPause(session, 3), "never pauses");
+        assertEquals(List.of("7:pass 1", "7:pass 2", "7:pass 3"), logged);
+        assertEquals(3, session.hitCount("h.xsl", 7));
+    }
+
+    @Test
+    void aSuspendingLogpointLogsThenPausesAndHitRulesApply() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.updateBreakpoint("h.xsl", 7, bp -> bp.withLog("hit", true)
+                .withHit(new HitCondition(HitCondition.Mode.MULTIPLE_OF, 2)));
+        java.util.List<String> logged = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.setLogHandler((template, snap) -> template, event -> logged.add(event.text()));
+        assertEquals(List.of(2, 4), passesThatPause(session, 4), "pauses where the hit rule matches");
+        assertEquals(List.of("hit", "hit"), logged, "and logs exactly there");
+    }
 }
