@@ -275,6 +275,18 @@ public class ExplorerPanel extends VBox {
     // ----- one-click XSLT transform --------------------------------------------
 
     /** Sets the active stylesheet and records it as the most recent one. */
+    /** A stylesheet picked here (recent, dialog) becomes the current one and is loaded into the editor, behind the active tab. */
+    void pickStylesheet(File file) {
+        setCurrentXslt(file);
+        editorHost.openFile(file.toPath(), false);
+    }
+
+    /** A Schematron picked here (recent, favorite, dialog) becomes the current one and is loaded behind the active tab. */
+    void pickSchematron(File file) {
+        useSchematron(file);
+        editorHost.openFile(file.toPath(), false);
+    }
+
     private void setCurrentXslt(File file) {
         currentXslt = file;
         if (file != null && propertiesService != null) {
@@ -290,7 +302,7 @@ public class ExplorerPanel extends VBox {
                 new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            setCurrentXslt(file);
+            pickStylesheet(file);
         }
     }
 
@@ -405,7 +417,7 @@ public class ExplorerPanel extends VBox {
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
                 getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            useSchematron(file);
+            pickSchematron(file);
         }
     }
 
@@ -507,7 +519,7 @@ public class ExplorerPanel extends VBox {
         otherXslt.setGraphic(icon("bi-file-earmark-code", 16));
         for (File file : recentXsltFiles()) {
             MenuItem recent = menuItem(file.getName(), () -> {
-                setCurrentXslt(file);
+                pickStylesheet(file);
                 runTransformOnSelection();
             });
             recent.setGraphic(icon("bi-file-earmark-code", 16));
@@ -551,7 +563,7 @@ public class ExplorerPanel extends VBox {
         menu.setGraphic(icon("bi-ui-checks-grid", 16));
         for (File file : recentSchematronFiles()) {
             MenuItem recent = menuItem(file.getName(), () -> {
-                useSchematron(file);
+                pickSchematron(file);
                 runValidationOnSelection();
             });
             recent.setGraphic(icon("bi-ui-checks-grid", 16));
@@ -562,9 +574,8 @@ public class ExplorerPanel extends VBox {
         }
         menu.getItems().add(FavoritesMenu.submenu("Favorites",
                 org.fxt.freexmltoolkit.domain.FileFavorite.FileType.SCHEMATRON, file -> {
-                    useSchematron(file);
+                    pickSchematron(file);
                     runValidationOnSelection();
-                    editorHost.openFile(file.toPath(), false); // loaded into the editor, behind the active tab
                 }));
         MenuItem choose = menuItem("Choose Schematron…", () -> {
             chooseSchematronFile();

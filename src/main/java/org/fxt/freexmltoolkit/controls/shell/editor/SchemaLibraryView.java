@@ -452,7 +452,12 @@ public class SchemaLibraryView extends VBox {
         fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML catalogs", "*.xml"),
                 new FileChooser.ExtensionFilter("All files", "*.*"));
         File f = fc.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
-        if (f != null) addCatalogFile(f.toPath());
+        if (f != null) {
+            addCatalogFile(f.toPath());
+            if (editorHost != null) {
+                editorHost.openFile(f.toPath(), false); // loaded into the editor, behind the page
+            }
+        }
     }
 
     /** Registers {@code catalog} (also used by tests, no chooser). */

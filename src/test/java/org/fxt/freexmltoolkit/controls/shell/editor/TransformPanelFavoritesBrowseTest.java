@@ -201,4 +201,19 @@ class TransformPanelFavoritesBrowseTest {
         Files.writeString(p, content);
         return p;
     }
+
+    @Test
+    void aRecentStylesheetIsLoadedIntoTheEditorToo(@TempDir Path tmp) throws Exception {
+        Path xml = writeFile(tmp, "data.xml", "<root/>");
+        File recent = writeFile(tmp, "recent-one.xslt", XSLT).toFile();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.setXsltFile(recent)); // now in the recent list
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(isOpen(recent.toPath()), "setting the field alone does not open it");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.fireRecentXslt("recent-one.xslt"));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertTrue(isOpen(recent.toPath()), "a stylesheet picked from Recent is loaded into the editor");
+        assertEquals(xml, activePath(), "behind the active document, which stays the input");
+    }
 }

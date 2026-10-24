@@ -123,4 +123,26 @@ class ExplorerPanelSchematronTest {
         return panel.fileContextMenuItems().stream().map(MenuItem::getText)
                 .filter(java.util.Objects::nonNull).toList();
     }
+
+    @Test
+    void stylesheetsAndSchematronsPickedHereAreLoadedBehindTheActiveTab(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("active.xml");
+        Files.writeString(xml, "<root/>");
+        Path xsl = tmp.resolve("picked.xsl");
+        Files.writeString(xsl, "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"/>");
+        Path sch = tmp.resolve("picked.sch");
+        Files.writeString(sch, "<x/>");
+        openActive(xml);
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.pickStylesheet(xsl.toFile());
+            panel.pickSchematron(sch.toFile());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        List<Path> open = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getOpenDocuments().stream().map(OpenDocument::getPath).toList());
+        assertTrue(open.contains(xsl) && open.contains(sch), "both are loaded into the editor: " + open);
+        assertEquals(xml, WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveDocument().map(OpenDocument::getPath).orElse(null)), "the XML stays active");
+    }
 }

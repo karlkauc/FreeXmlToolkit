@@ -292,4 +292,13 @@ class SignatureViewTest {
         return event;
     }
 
+
+    @Test
+    void aChosenDocumentIsLoadedIntoTheEditor(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("chosen.xml");
+        Files.writeString(xml, "<root/>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> panel.pickDocument(xml.toFile()));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getOpenDocuments().stream().anyMatch(d -> xml.equals(d.getPath()))));
+    }
 }

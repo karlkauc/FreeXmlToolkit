@@ -243,7 +243,7 @@ public class TransformPanel extends VBox {
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            setInputOverride(file);
+            pickInput(file);
         }
     }
 
@@ -437,7 +437,7 @@ public class TransformPanel extends VBox {
         }
         for (File file : recent) {
             MenuItem item = new MenuItem(file.getName());
-            item.setOnAction(e -> setXsltFile(file));
+            item.setOnAction(e -> pickXslt(file));
             recentXsltMenu.getItems().add(item);
         }
         recentXsltMenu.setDisable(recentXsltMenu.getItems().isEmpty());
@@ -458,6 +458,13 @@ public class TransformPanel extends VBox {
     }
 
     /** @return the recent-XSLT file names currently in the menu (for tests/observers). */
+    /** Fires the Recent XSLT entry named {@code name}, as a click on it would (tests). */
+    void fireRecentXslt(String name) {
+        refreshRecentXsltMenu();
+        recentXsltMenu.getItems().stream().filter(i -> name.equals(i.getText())).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("no recent stylesheet " + name)).fire();
+    }
+
     public java.util.List<String> recentXsltNames() {
         return recentXsltMenu.getItems().stream()
                 .filter(i -> !(i instanceof SeparatorMenuItem))
@@ -963,7 +970,7 @@ public class TransformPanel extends VBox {
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            setXsltFile(file);
+            pickXslt(file);
         }
     }
 

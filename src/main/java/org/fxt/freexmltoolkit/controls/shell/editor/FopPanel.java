@@ -439,7 +439,7 @@ public class FopPanel extends VBox {
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSL", "*.xsl", "*.xslt"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            setXslFile(file);
+            pickXsl(file);
         }
     }
 
@@ -449,7 +449,7 @@ public class FopPanel extends VBox {
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            setXmlOverride(file);
+            pickXml(file);
         }
     }
 

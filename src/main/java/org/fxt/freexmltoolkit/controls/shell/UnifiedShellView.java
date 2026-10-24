@@ -1902,6 +1902,7 @@ public class UnifiedShellView extends BorderPane {
                     new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
             var file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
             if (file != null) {
+                editorHost.openFile(file.toPath(), false); // loaded into the editor, behind the query
                 editorHost.setQueryTarget(queryDoc,
                         new org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.FsFile(file));
                 refreshQueryTargetButton();
@@ -2272,6 +2273,7 @@ public class UnifiedShellView extends BorderPane {
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.setSchemaForActiveDocument(file);
+            editorHost.openFile(file.toPath(), false); // loaded into the editor, behind the document
         }
     }
 

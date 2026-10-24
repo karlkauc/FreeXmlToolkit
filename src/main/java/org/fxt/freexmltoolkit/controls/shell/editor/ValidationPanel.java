@@ -655,7 +655,7 @@ public class ValidationPanel extends VBox {
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            useXsd(file);
+            pickXsd(file);
         }
     }
 
@@ -763,7 +763,7 @@ public class ValidationPanel extends VBox {
                 new FileChooser.ExtensionFilter("Schematron", "*.sch", "*.schematron"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            useSchematron(file);
+            pickSchematron(file);
         }
     }
 
@@ -783,7 +783,7 @@ public class ValidationPanel extends VBox {
     /** @return the favorite-JSON names currently in the JSON Schema quick-select menu (for tests). */
     public java.util.List<String> jsonSchemaFavoriteNames() {
         FavoritesMenu.populate(jsonSchemaFavoritesMenu,
-                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.JSON, this::useJsonSchema);
+                org.fxt.freexmltoolkit.domain.FileFavorite.FileType.JSON, this::pickJsonSchema);
         return FavoritesMenu.leafNames(jsonSchemaFavoritesMenu);
     }
 
@@ -794,7 +794,7 @@ public class ValidationPanel extends VBox {
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Schema", "*.json"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
-            useJsonSchema(file);
+            pickJsonSchema(file);
         }
     }
 

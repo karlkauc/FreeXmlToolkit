@@ -278,6 +278,24 @@ would show it:
       the rendered page.
     - The Preview is **read-only** - all editing happens in the Text view.
 
+## Every Picked File Opens in the Editor {#picked-files}
+
+Whichever way you pick a file, it is loaded into the editor as a tab (an open tab is reused):
+**File → Open…** and **Open Recent**, the Welcome page's recent list, the Explorer and Favorites
+panels, drag & drop onto the window or onto a panel row, and on every page the **Change** /
+**Choose…** dialogs, the **recent** menus (Transform clock icon, Explorer *Transform with Other
+Stylesheet* / *Validate with Other Schematron*) and the favorites star menus.
+
+- An **input** (Transform or PDF/FOP XML input) becomes the active tab.
+- A **stylesheet** opens behind the active tab while the input follows the active document,
+  and in front when the input is a fixed file.
+- A **schema, Schematron, JSON Schema, catalog or query target** opens behind the active
+  tab, so the document it applies to stays in front.
+- On a page in the main area (Signature, Schema Library) the file opens behind the page.
+
+Not loaded: keystores and trust stores (binary files), and spreadsheets for import (the
+converted XML opens instead).
+
 ## Files Changed Outside the Editor {#external-changes}
 
 The shell watches the files of all open tabs. When another program changes or deletes one
@@ -617,9 +635,10 @@ is clickable to collapse or expand that section.
   favorites/browse controls and **Change** (long names are shortened in the middle; hover
   for the full path). While no stylesheet is set, the row reads *"No stylesheet — choose or
   drop a file"* - clicking it works like **Change**.
-- **Change** - pick an `.xsl` / `.xslt` file from disk.
+- **Change** - pick an `.xsl` / `.xslt` file from disk (it is also loaded into the editor).
 - The **clock icon** opens the **recent stylesheets** menu: reapply a recently used
-  stylesheet in a single click, or choose **Clear recent** to empty the list.
+  stylesheet in a single click (it is also loaded into the editor), or choose **Clear recent**
+  to empty the list.
 - The **star icon** opens your **XSLT favorites** - see
   [Browsing favorites with ◀ / ▶](#browsing-favorites) below. A picked stylesheet is also
   loaded into the editor.

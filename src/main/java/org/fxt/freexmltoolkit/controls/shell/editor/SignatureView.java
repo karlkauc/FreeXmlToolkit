@@ -238,8 +238,14 @@ public class SignatureView extends ScrollPane {
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
         if (file != null) {
-            setDocument(file);
+            pickDocument(file);
         }
+    }
+
+    /** A document chosen on the page: it becomes the document and is loaded into the editor, behind the page. */
+    void pickDocument(File file) {
+        setDocument(file);
+        editorHost.openFile(file.toPath(), false);
     }
 
     // ----- keystore -----------------------------------------------------------------
