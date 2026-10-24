@@ -1760,6 +1760,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#exploring-structured-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exploring Structured Values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#values-under-the-mouse" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2897,6 +2908,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#exploring-structured-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exploring Structured Values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#values-under-the-mouse" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3739,6 +3761,14 @@ brings forward by itself, like Messages after a failed run, does not change that
 Messages is highlighted when output arrives while another tab of its group is in front, and a
 <strong>failed run brings Messages to the front</strong> so the error is readable at once. In Watch and
 Breakpoints the <strong>Delete</strong> key removes the selected row.</p>
+<h4 id="exploring-structured-values">Exploring Structured Values<a class="headerlink" href="#exploring-structured-values" title="Permanent link">&para;</a></h4>
+<p>Variables is a <strong>tree</strong>: a node value unfolds into its <strong>attributes and child nodes</strong> (element →
+<code>@id</code>, <code>&lt;item&gt;</code>, <code>text()</code>, …; indentation whitespace is skipped), a sequence into its <strong>items</strong>
+<code>[1]</code>, <code>[2]</code>, …, a map into its <strong>entries</strong> and an array into its <strong>members</strong> - built as you
+expand them, at most 500 children per row. Every row knows the XPath that reaches it from its
+variable, e.g. <code>$order/item[2]/@sku</code>: <strong>Open Value…</strong> opens that node in the value window, <strong>Add
+to Watches</strong> adds the path as a watch, a click on its value opens it. Values are shown on one
+line; the tooltip and the value window show them in full.</p>
 <h4 id="values-under-the-mouse">Values Under the Mouse<a class="headerlink" href="#values-under-the-mouse" title="Permanent link">&para;</a></h4>
 <p>While the run is paused, <strong>rest the mouse on a variable reference</strong> (<code>$total</code>, <code>$f:rate</code>, also
 inside <code>{$x}</code> value templates) in the stylesheet: after half a second a small popup shows its
@@ -3789,7 +3819,7 @@ right-click → <strong>Open Value…</strong> - to open it in its own <strong>v
 <tbody>
 <tr>
 <td><strong>Variables</strong></td>
-<td>The context item (<code>.</code>), <code>position()</code> / <code>last()</code>, the <strong>XSLT context</strong> (scope XSLT: the current <code>mode</code>; inside <code>xsl:for-each-group</code> <code>current-grouping-key()</code> and <code>current-group()</code>; inside <code>xsl:matching-substring</code> <code>regex-group(0…n)</code>; the <strong>tunnel parameters</strong> passed down, marked <em>(tunnel)</em>; <code>accumulator-before('…')</code> of every accumulator that applies to the context node's document), every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full</td>
+<td>The context item (<code>.</code>), <code>position()</code> / <code>last()</code>, the <strong>XSLT context</strong> (scope XSLT: the current <code>mode</code> when it is a named mode; inside <code>xsl:for-each-group</code> <code>current-grouping-key()</code> and <code>current-group()</code>; inside <code>xsl:matching-substring</code> <code>regex-group(0…n)</code>; the <strong>tunnel parameters</strong> passed down, marked <em>(tunnel)</em>; <code>accumulator-before('…')</code> of every accumulator that applies to the context node's document), every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order). Click a value to open it in full</td>
 </tr>
 <tr>
 <td><strong>Watch</strong></td>
