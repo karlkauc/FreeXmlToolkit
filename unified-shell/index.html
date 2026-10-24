@@ -869,6 +869,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#picked-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Every Picked File Opens in the Editor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#external-changes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3255,6 +3266,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#picked-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Every Picked File Opens in the Editor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#external-changes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4619,6 +4641,22 @@ would show it:</p>
 <li>The Preview is <strong>read-only</strong> - all editing happens in the Text view.</li>
 </ul>
 </div>
+<h2 id="picked-files">Every Picked File Opens in the Editor<a class="headerlink" href="#picked-files" title="Permanent link">&para;</a></h2>
+<p>Whichever way you pick a file, it is loaded into the editor as a tab (an open tab is reused):
+<strong>File → Open…</strong> and <strong>Open Recent</strong>, the Welcome page's recent list, the Explorer and Favorites
+panels, drag &amp; drop onto the window or onto a panel row, and on every page the <strong>Change</strong> /
+<strong>Choose…</strong> dialogs, the <strong>recent</strong> menus (Transform clock icon, Explorer <em>Transform with Other
+Stylesheet</em> / <em>Validate with Other Schematron</em>) and the favorites star menus.</p>
+<ul>
+<li>An <strong>input</strong> (Transform or PDF/FOP XML input) becomes the active tab.</li>
+<li>A <strong>stylesheet</strong> opens behind the active tab while the input follows the active document,
+  and in front when the input is a fixed file.</li>
+<li>A <strong>schema, Schematron, JSON Schema, catalog or query target</strong> opens behind the active
+  tab, so the document it applies to stays in front.</li>
+<li>On a page in the main area (Signature, Schema Library) the file opens behind the page.</li>
+</ul>
+<p>Not loaded: keystores and trust stores (binary files), and spreadsheets for import (the
+converted XML opens instead).</p>
 <h2 id="external-changes">Files Changed Outside the Editor<a class="headerlink" href="#external-changes" title="Permanent link">&para;</a></h2>
 <p>The shell watches the files of all open tabs. When another program changes or deletes one
 of them, a dialog asks what to do - checked every two seconds while the FreeXmlToolkit
@@ -5053,9 +5091,10 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
   favorites/browse controls and <strong>Change</strong> (long names are shortened in the middle; hover
   for the full path). While no stylesheet is set, the row reads <em>"No stylesheet — choose or
   drop a file"</em> - clicking it works like <strong>Change</strong>.</li>
-<li><strong>Change</strong> - pick an <code>.xsl</code> / <code>.xslt</code> file from disk.</li>
+<li><strong>Change</strong> - pick an <code>.xsl</code> / <code>.xslt</code> file from disk (it is also loaded into the editor).</li>
 <li>The <strong>clock icon</strong> opens the <strong>recent stylesheets</strong> menu: reapply a recently used
-  stylesheet in a single click, or choose <strong>Clear recent</strong> to empty the list.</li>
+  stylesheet in a single click (it is also loaded into the editor), or choose <strong>Clear recent</strong>
+  to empty the list.</li>
 <li>The <strong>star icon</strong> opens your <strong>XSLT favorites</strong> - see
   <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below. A picked stylesheet is also
   loaded into the editor.</li>
