@@ -3353,6 +3353,11 @@ right-click → <strong>Open Value…</strong> - to open it in its own <strong>v
   its window to the front.</li>
 <li>Right-click → <strong>Copy Value</strong> copies the full value without opening a window.</li>
 <li>A Watch value is re-evaluated in full for the window (the table keeps a shortened version).</li>
+<li><strong>Call Stack frames</strong> open the same way (select a frame and press <strong>Enter</strong>, or right-click →
+  <strong>Open Value…</strong>; double-click still jumps to the line): the window shows <strong>that frame's context
+  item</strong>, and its XPath field sees <strong>that frame's own local variables</strong> plus the globals - so
+  you can inspect the state of a calling template, not just the innermost one. The 32 innermost
+  frames carry these values; deeper frames show only their name and location.</li>
 </ul>
 <table>
 <thead>
@@ -3372,7 +3377,7 @@ right-click → <strong>Open Value…</strong> - to open it in its own <strong>v
 </tr>
 <tr>
 <td><strong>Call Stack</strong></td>
-<td>Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module</td>
+<td>Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. <strong>Enter</strong> or <strong>Open Value…</strong> opens the frame's context item and variables</td>
 </tr>
 <tr>
 <td><strong>Messages</strong></td>
