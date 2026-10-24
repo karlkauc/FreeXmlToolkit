@@ -1732,6 +1732,19 @@
     -fx-underline: true;
 }
 
+/* XSLT debugger: values after variable declarations in the paused stylesheet (InlineValueLayer). */
+.fxt-debug-inline-layer .label.fxt-debug-inline-value {
+    -fx-text-fill: #7a5c00;
+    -fx-background-color: rgba(255, 193, 7, 0.16);
+    -fx-background-radius: 3;
+    -fx-padding: 0 6 0 6;
+}
+
+.root.fxt-theme-dark .fxt-debug-inline-layer .label.fxt-debug-inline-value {
+    -fx-text-fill: #e3c76a;
+    -fx-background-color: rgba(255, 193, 7, 0.13);
+}
+
 /* Value viewer window (XSLT debugger): full value + XPath on it. */
 .fxt-value-viewer {
     -fx-background-color: -fxt-bg-surface;

@@ -571,7 +571,7 @@ stepping and hitting breakpoints do not slow the run between pauses.
 
 ### Inspecting State
 
-![The DEBUG dock paused at a conditional breakpoint: Variables with position() and last(), the call stack, Messages and Breakpoints](img/xslt-debugger-paused.png)
+![The DEBUG dock paused at a conditional breakpoint: values next to the declarations, Variables with position() and last(), the call stack, Messages and Breakpoints](img/xslt-debugger-paused.png)
 
 **The context node in the input.** At every pause the line of the current context node
 (`.`) is tinted **blue** in the input XML document - the stylesheet's paused line stays yellow
@@ -600,6 +600,20 @@ expand them, at most 500 children per row. Every row knows the XPath that reache
 variable, e.g. `$order/item[2]/@sku`: **Open Value…** opens that node in the value window, **Add
 to Watches** adds the path as a watch, a click on its value opens it. Values are shown on one
 line; the tooltip and the value window show them in full.
+
+#### Values in the Code
+
+While the run is paused, the stylesheet shows the **current values next to the declarations**:
+`$fundName = DEMO FUND 01` appears in a yellow tag at the end of the `xsl:variable` /
+`xsl:param` line, as in the screenshot above.
+
+- Shown are the locals of the template or function the run is paused in, declared up to the
+  paused line, and the global variables and parameters that have been evaluated so far (Saxon
+  evaluates a global on first use).
+- A declaration over several lines shows its value on the line where the start tag ends.
+- Long values are cut at 80 characters - click the value in **Variables** to see it whole.
+- The values disappear when the run continues and as soon as you edit the stylesheet (they
+  would no longer match their lines).
 
 #### Values Under the Mouse
 

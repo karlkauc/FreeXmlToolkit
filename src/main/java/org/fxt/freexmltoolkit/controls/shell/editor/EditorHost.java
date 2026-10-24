@@ -3059,6 +3059,22 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /**
+     * Shows the paused values after their declaration lines on a stylesheet's editor tab
+     * ({@code null} clears): see {@link org.fxt.freexmltoolkit.debugger.InlineValues}.
+     */
+    private void setDebugInlineValuesFor(OpenDocument document,
+            org.fxt.freexmltoolkit.debugger.PausedSnapshot snapshot) {
+        EditorTab tab = editorTabOf(document);
+        if (tab == null) {
+            return;
+        }
+        java.util.Map<Integer, String> values = snapshot == null ? java.util.Map.of()
+                : org.fxt.freexmltoolkit.debugger.InlineValues.compute(
+                        getDocumentText(document).orElse(""), snapshot.lineNumber(), snapshot);
+        tab.view.setDebugInlineValues(values);
+    }
+
     /** Re-renders the gutter on a specific open document's editor tab (if open). */
     public void refreshGutterFor(OpenDocument document) {
         for (Tab tab : tabPane.getTabs()) {
@@ -3476,6 +3492,12 @@ public class EditorHost extends BorderPane {
     }
 
     /** @return the 1-based line marked as the paused context node in {@code document}, or 0 (tests). */
+    /** @return the inline values shown on a document's editor tab (tests). */
+    java.util.Map<Integer, String> debugInlineValuesOf(OpenDocument document) {
+        EditorTab tab = editorTabOf(document);
+        return tab == null ? java.util.Map.of() : tab.view.getDebugInlineValues();
+    }
+
     int debugInputLineOf(OpenDocument document) {
         XsltDebugSession debug = activeDebug;
         return debug != null && debug.markedInput == document ? debug.markedInputLine : 0;
@@ -3499,6 +3521,7 @@ public class EditorHost extends BorderPane {
         debug.pane.dispose();
         for (DebugModule module : debug.modules.values()) {
             setDebugLineFor(module.document(), -1);
+            setDebugInlineValuesFor(module.document(), null);
             EditorTab tab = editorTabOf(module.document());
             if (tab != null) {
                 // The session gutter goes; the file's own (persisted) gutter takes over again.
@@ -3889,6 +3912,7 @@ public class EditorHost extends BorderPane {
             boolean here = snapshot != null && entry.getKey().equals(path);
             entry.getValue().gutter().setCurrentExecutionLine(here ? snapshot.lineNumber() : -1);
             setDebugLineFor(entry.getValue().document(), here ? snapshot.lineNumber() : -1);
+            setDebugInlineValuesFor(entry.getValue().document(), here ? snapshot : null);
             refreshGutterFor(entry.getValue().document());
         }
         if (snapshot != null) {
@@ -3944,6 +3968,7 @@ public class EditorHost extends BorderPane {
             if (snap != null && path.equals(debugModulePath(debug, snap.filePath()))) {
                 module.gutter().setCurrentExecutionLine(snap.lineNumber());
                 setDebugLineFor(doc, snap.lineNumber());
+                setDebugInlineValuesFor(doc, snap);
             }
         }
         selectDocument(module.document());

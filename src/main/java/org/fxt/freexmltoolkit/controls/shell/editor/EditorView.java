@@ -99,6 +99,15 @@ public interface EditorView {
     default void setDebugInputLine(int line1Based) {
     }
 
+    /** Shows the XSLT debugger's inline values (1-based line → text; empty clears). No-op by default. */
+    default void setDebugInlineValues(java.util.Map<Integer, String> lineValues) {
+    }
+
+    /** @return the XSLT debugger's inline values shown (1-based line → text). */
+    default java.util.Map<Integer, String> getDebugInlineValues() {
+        return java.util.Map.of();
+    }
+
     /**
      * Tints {@code line1Based} as the XSLT debugger's current execution line ({@code -1}
      * clears the tint). No-op for editors without a text gutter.

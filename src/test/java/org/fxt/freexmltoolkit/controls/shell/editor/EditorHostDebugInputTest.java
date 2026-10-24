@@ -156,4 +156,31 @@ class EditorHostDebugInputTest {
         WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS, () -> host.activeDebugPane().getOutputView().getText().contains("edited"));
         assertTrue(Files.readString(xsl).contains("saved"), "the file itself is untouched");
     }
+
+    @Test
+    void pausedValuesShowAfterTheirDeclarationsAndGoWhenTheRunResumes(@TempDir Path tmp) throws Exception {
+        Path xsl = tmp.resolve("values.xsl");
+        Files.writeString(xsl, "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:variable name=\"title\" select=\"concat('Order of ', count(//item))\"/>\n"                                        // 2
+                + "  <xsl:template match=\"item\">\n"                                                             // 3
+                + "    <xsl:variable name=\"n\" select=\"string(@n)\"/>\n"                                     // 4
+                + "    <x><xsl:value-of select=\"$title, $n\"/></x>\n"                                            // 5
+                + "  </xsl:template>\n"
+                + "  <!-- the global is evaluated on first use: here, before the item template runs (a constant would be inlined) -->\n"
+                + "  <xsl:template match=\"/\"><out t=\"{$title}\"><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n"
+                + "</xsl:stylesheet>\n");
+        org.fxt.freexmltoolkit.debugger.BreakpointStore.save(xsl.toString(),
+                java.util.List.of(new org.fxt.freexmltoolkit.debugger.Breakpoint(xsl.toString(), 5, true)));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.startXsltDebug(xsl.toFile(), XML, Map.of(), OutputFormat.XML));
+        pausedSession();
+        OpenDocument sheet = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveDocument().orElseThrow());
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.debugInlineValuesOf(sheet).size() == 2));
+        assertEquals(Map.of(2, "$title = Order of 1", 4, "$n = 1"),
+                WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.debugInlineValuesOf(sheet)));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeDebugPane().onContinue());
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.debugInlineValuesOf(sheet).isEmpty()));
+    }
 }

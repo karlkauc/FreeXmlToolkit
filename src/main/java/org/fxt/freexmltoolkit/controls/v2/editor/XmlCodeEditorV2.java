@@ -151,9 +151,11 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
 
         ignoreFlowlessHitRace(codeArea);
 
-        // Layout: scrollpane + status line
-        VBox.setVgrow(scrollPane, Priority.ALWAYS);
-        getChildren().addAll(scrollPane, statusLineManager.getStatusLine());
+        // Layout: scrollpane (with the debugger's inline-value layer on top) + status line
+        inlineValues = new InlineValueLayer(codeArea);
+        javafx.scene.layout.StackPane editorStack = new javafx.scene.layout.StackPane(scrollPane, inlineValues);
+        VBox.setVgrow(editorStack, Priority.ALWAYS);
+        getChildren().addAll(editorStack, statusLineManager.getStatusLine());
 
         logger.debug("UI initialized");
     }
@@ -231,6 +233,22 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             restyleParagraph(oldIndex);
         }
         restyleParagraph(newIndex);
+    }
+
+    /** The XSLT debugger's inline variable values (shown while paused). */
+    private InlineValueLayer inlineValues;
+
+    /**
+     * Shows the debugger's values after the end of their declaration lines (1-based line →
+     * text); an empty map or {@code null} removes them. Editing the text removes them too.
+     */
+    public void setDebugInlineValues(java.util.Map<Integer, String> lineValues) {
+        inlineValues.setValues(lineValues);
+    }
+
+    /** @return the inline values currently shown (1-based line → text). */
+    public java.util.Map<Integer, String> getDebugInlineValues() {
+        return inlineValues.getValues();
     }
 
     /** The paragraph (0-based) tinted as the debugger's current execution line, or -1. */

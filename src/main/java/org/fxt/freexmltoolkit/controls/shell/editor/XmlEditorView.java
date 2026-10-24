@@ -103,6 +103,16 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public void setDebugInlineValues(java.util.Map<Integer, String> lineValues) {
+        editor.setDebugInlineValues(lineValues);
+    }
+
+    @Override
+    public java.util.Map<Integer, String> getDebugInlineValues() {
+        return editor.getDebugInlineValues();
+    }
+
+    @Override
     public void setDebugCurrentLine(int line1Based) {
         editor.setDebugCurrentLine(line1Based);
     }
