@@ -581,14 +581,15 @@ breakpoint shows a yellow arrow over the red circle.
 
 **How much slower is a debug run?** The debugger watches every instruction, so a debug run
 takes about **1.5 to 2 times** as long as a normal transformation, with or without breakpoints.
-Saxon's own trace instrumentation is almost free; the time goes into following the call stack.
+Saxon's own trace instrumentation is almost free; the time goes into following the call stack
+and recording which instruction wrote which output.
 Breakpoints on lines that never run cost nothing extra. Measured with `DebuggerPerfBenchmark`
 (median of 15 runs, stylesheet compiled in each run):
 
 | Workload | Normal run | Debug run | Factor |
 |----------|------------|-----------|--------|
 | 10,000 items, one template | 20 ms | 29 ms | 1.5 |
-| 100,000 items, one template | 150 ms | 246 ms | 1.6 |
+| 100,000 items, one template | 153 ms | 278 ms | 1.8 |
 | 1,000 items, 12-level recursion each | 14 ms | 23 ms | 1.6 |
 
 Variables, the call stack and the XSLT context are only collected when the run pauses, so
@@ -601,8 +602,8 @@ the run, the breakpoint gutter shows a **green bar** next to each line that ran 
 how often) and a **red bar** on the lines of every template or function that **never ran** for
 this input - dead code, or a hint that the test input lacks a case. **Messages** lists those
 templates and functions (*Never ran: template match="…"*); double-click one to jump to it.
-The markers stay until the next run. Recording costs next to nothing (a 100,000-item run: 254
-ms without, 256 ms with coverage).
+The markers stay until the next run. Recording costs next to nothing (a 100,000-item run: 278
+ms without, 282 ms with coverage).
 
 ### Inspecting State
 
@@ -730,6 +731,15 @@ right-click → **Open Value…** - to open it in its own **value window**:
 | **Messages** | `xsl:message` output and Saxon warnings **live, as they happen**, with their location; double-click jumps to the line. A failed run shows its error here too. The toolbar filters by level (**Messages** / **Warnings** / **Errors** - `terminate="yes"` counts as an error) and by text, **Copy** copies the selected messages (or all shown ones), **Clear** empties the list. The tab badge always counts all messages |
 | **Breakpoints** | All breakpoints of the session with **Remove** / **Clear all** above the list, see above |
 | **Output** | What the transformation has **written so far**, refreshed at every pause - see where in the result you are; when the run finishes, the complete results (the principal one also in OUTPUT). The serializer may hold back a just-opened start tag until it knows whether the element stays empty, so the text can lag by one tag. With `xsl:result-document` a selector switches between the principal and each secondary result (kept in memory - a debug run writes nothing to disk; `xsl:result-document` itself needs **Settings → Allow XSLT extension functions**, off by default). **Documents (n)** lists what the run loaded with `doc()`, `document()` or `collection()`; click a file to open it. **Copy** copies the shown text |
+
+#### From the Output to the Stylesheet
+
+**Double-click** a line in the DEBUG dock's **Output** tab - while paused or after the run -
+to open the instruction that wrote it: the `xsl:value-of`, `xsl:text`, literal element or
+copy that produced that text. The jump uses the debugged run's own record of who wrote what,
+so it works for the principal output; secondary `xsl:result-document` outputs are not
+mapped. The serializer writes an element's start tag only together with the next thing it
+writes, so a click on a start tag can land on the first instruction inside that element.
 
 ### The Result
 

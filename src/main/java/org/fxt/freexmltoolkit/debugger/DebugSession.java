@@ -290,6 +290,30 @@ public class DebugSession implements BreakpointTarget {
         rearm();
     }
 
+    /** The length of the principal output written so far, or {@code null} outside a run. */
+    private volatile java.util.function.IntSupplier outputLength;
+    private final OutputSourceMap outputSources = new OutputSourceMap();
+
+    /** Set by the engine for a run: how much principal output has been written. */
+    public void setOutputLength(java.util.function.IntSupplier length) {
+        this.outputLength = length;
+    }
+
+    /** @return the principal output's length so far, or -1 outside a run. */
+    public int outputLength() {
+        java.util.function.IntSupplier length = outputLength;
+        try {
+            return length == null ? -1 : length.getAsInt();
+        } catch (RuntimeException e) {
+            return -1;
+        }
+    }
+
+    /** @return which instruction wrote which part of the principal output of the current / last run. */
+    public OutputSourceMap outputSources() {
+        return outputSources;
+    }
+
     /** The main stylesheet's normalized path of the current launch ({@code ""} for an in-memory one). */
     private volatile String mainSourcePath = "";
 
@@ -783,6 +807,7 @@ public class DebugSession implements BreakpointTarget {
         stepTarget = null;
         stepTargetReached = false;
         coverage = null;
+        outputSources.clear();
         pausedSnapshot = null;
         resultDocuments.clear();
         loadedDocuments.clear();

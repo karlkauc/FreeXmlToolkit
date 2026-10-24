@@ -614,6 +614,7 @@ public class XsltTransformationEngine {
             configureSerializer(transformer.getDestination(), outputFormat);
             // While paused the debugger can show what has been written so far.
             session.setOutputProbe(outputWriter::toString);
+            session.setOutputLength(() -> outputWriter.getBuffer().length());
 
             TransformationProfile profile = new TransformationProfile();
             profile.startTransformation();
@@ -662,6 +663,7 @@ public class XsltTransformationEngine {
             return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
         } finally {
             session.setOutputProbe(null);
+            session.setOutputLength(null);
             // Mark session done so the UI re-enables Run-Debug
             if (session.getState() != DebugSession.State.STOPPED) {
                 session.close();

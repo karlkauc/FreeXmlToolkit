@@ -730,4 +730,34 @@ class XsltDebugPaneTest {
         WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.lastExplanation.close());
         controller.stop();
     }
+
+    @Test
+    void doubleClickingTheOutputGoesToTheInstructionThatWroteIt() throws Exception {
+        String xslt = """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/"><out><xsl:apply-templates select="//item"/></out></xsl:template>
+                  <xsl:template match="item">
+                    <xsl:value-of select="concat('value-', .)"/>
+                  </xsl:template>
+                </xsl:stylesheet>
+                """;
+        AtomicReference<DebugStackFrame> jumped = new AtomicReference<>();
+        AtomicReference<org.fxt.freexmltoolkit.service.XsltTransformationResult> result = new AtomicReference<>();
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            XsltDebugPane p = new XsltDebugPane(controller);
+            stage.setScene(new Scene(p, 900, 400));
+            stage.show();
+            p.setOnJumpToFrame(jumped::set);
+            p.setOnResult(result::set);
+            return p;
+        });
+        controller.setPauseOnEntry(false);
+        controller.start(XML, xslt, Map.of(), OutputFormat.XML);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> result.get() != null);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getOutputView().getText().contains("value-b"));
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () ->
+                pane.getOutputView().locateAt(pane.getOutputView().getText().indexOf("value-b")));
+        assertNotNull(jumped.get(), "a double-click jumps");
+        assertEquals(4, jumped.get().lineNumber(), "to the xsl:value-of");
+    }
 }

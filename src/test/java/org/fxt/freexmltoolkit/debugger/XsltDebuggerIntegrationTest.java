@@ -610,6 +610,39 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void outputIsMappedToTheInstructionThatWroteIt() throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\">\n"                                                          // 2
+                + "    <out>\n"                                                                               // 3
+                + "      <xsl:apply-templates select=\"//item\"/>\n"                                         // 4
+                + "      <total><xsl:value-of select=\"count(//item)\"/></total>\n"                          // 5
+                + "    </out>\n"
+                + "  </xsl:template>\n"
+                + "  <xsl:template match=\"item\">\n"                                                        // 8
+                + "    <x>\n"                                                                                 // 9
+                + "      <xsl:value-of select=\"concat('item-', @n)\"/>\n"                                   // 10
+                + "    </x>\n"
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        String out = result.getOutputContent();
+        OutputSourceMap map = session.outputSources();
+        java.util.function.ToIntFunction<String> lineOf = text -> map.locate(out.indexOf(text))
+                .map(OutputSourceMap.Source::line).orElse(-1);
+        assertEquals(10, lineOf.applyAsInt("item-2"), "the value-of wrote it: " + out);
+        assertEquals(5, lineOf.applyAsInt("2</total>"), "the count: " + out);
+        // The serializer writes a start tag only with the next event, so a start tag may point to
+        // the first instruction inside its element (here <x> to line 9 or 10, never outside).
+        assertTrue(java.util.List.of(9, 10).contains(lineOf.applyAsInt("<x>")), "an x element: " + lineOf.applyAsInt("<x>"));
+        assertEquals(-1, map.locate(-1).map(OutputSourceMap.Source::line).orElse(-1));
+    }
+
+    @Test
     void hitCountRulePausesAtTheThirdItemAndCountsAllPasses() throws Exception {
         String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/><item n=\"4\"/><item n=\"5\"/></order>";
         String xslt = ""

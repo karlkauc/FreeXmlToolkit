@@ -126,6 +126,13 @@ public class XsltDebugTraceListener implements TraceListener {
             if (debugSession != null && lineNumber > 0 && debugSession.isCoverageEnabled()) {
                 countLine(systemId, lineNumber);
             }
+            if (debugSession != null) {
+                attributeOutput(); // what was written so far came from the instruction active until now
+                if (lineNumber > 0) {
+                    outputSystemId = systemId;
+                    outputLine = lineNumber;
+                }
+            }
 
             // Track call stack
             CallStackEntry entry = new CallStackEntry(description, systemId, lineNumber,
@@ -306,6 +313,14 @@ public class XsltDebugTraceListener implements TraceListener {
                 }
                 CallStackEntry entry = callStack.pop();
                 left = entry;
+                attributeOutput(); // the leaving instruction's last output (end tags)
+                for (CallStackEntry outer : callStack) {
+                    if (outer.lineNumber() > 0) {
+                        outputSystemId = outer.systemId();
+                        outputLine = outer.lineNumber();
+                        break;
+                    }
+                }
 
                 // Record leave in history
                 if (historyCount < MAX_CALL_STACK_HISTORY) {
@@ -951,6 +966,20 @@ public class XsltDebugTraceListener implements TraceListener {
         return text.substring(0, maxLength - 3) + "...";
     }
 
+    /** The instruction that writes the output now, and the output length already attributed. */
+    private String outputSystemId;
+    private int outputLine;
+    private int attributedLength;
+
+    /** Records which instruction wrote the output since the last call (Saxon thread). */
+    private void attributeOutput() {
+        int length = debugSession.outputLength();
+        if (length > attributedLength) {
+            debugSession.outputSources().add(attributedLength, outputSystemId, outputLine);
+            attributedLength = length;
+        }
+    }
+
     /** Executions per module systemId and line while coverage is on (Saxon thread only). */
     private final Map<String, int[]> coverageCounts = new java.util.HashMap<>();
     private String lastCoverageId;
@@ -985,6 +1014,9 @@ public class XsltDebugTraceListener implements TraceListener {
         coverageCounts.clear();
         lastCoverageId = null;
         lastCoverageCounts = null;
+        outputSystemId = null;
+        outputLine = 0;
+        attributedLength = 0;
     }
 
     private void buildFinalTemplateStats() {

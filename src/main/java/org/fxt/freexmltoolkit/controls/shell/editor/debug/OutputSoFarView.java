@@ -78,6 +78,12 @@ public class OutputSoFarView extends VBox {
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
         area.setEditable(false);
+        // Double-click: go to the instruction that wrote this part of the principal output.
+        area.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_CLICKED, e -> {
+            if (e.getButton() == javafx.scene.input.MouseButton.PRIMARY && e.getClickCount() == 2) {
+                locateAt(area.getCaretPosition());
+            }
+        });
         area.getStyleClass().addAll("fxt-transform-output", "fxt-query-results");
         area.setParagraphGraphicFactory(LineNumberFactory.get(area));
         CodeAreaFontZoom.install(area);
@@ -109,6 +115,21 @@ public class OutputSoFarView extends VBox {
     public void showFinal(String principal, java.util.Map<String, String> resultDocuments, java.util.List<String> loaded) {
         finalResult = true;
         update(principal == null ? "" : principal, resultDocuments, loaded);
+    }
+
+    private java.util.function.IntConsumer onLocate = offset -> { };
+
+    /** Invoked with an offset of the principal output the user double-clicked. */
+    public void setOnLocate(java.util.function.IntConsumer handler) {
+        this.onLocate = handler == null ? offset -> { } : handler;
+    }
+
+    /** Asks for the instruction that wrote the principal output at {@code offset} (also tests). */
+    void locateAt(int offset) {
+        String key = resultChoice.getValue() == null ? "" : resultChoice.getValue();
+        if (key.isEmpty() && offset >= 0 && offset < area.getLength()) {
+            onLocate.accept(offset);
+        }
     }
 
     /** Clears the tab (a new run starts). */
@@ -151,10 +172,11 @@ public class OutputSoFarView extends VBox {
             show("", key.isEmpty() && !finalResult ? "No output to show." : "");
         } else if (finalResult) {
             show(text, what + String.format(Locale.ROOT, key.isEmpty()
-                    ? "Complete result: %,d chars (also in OUTPUT)" : "%,d chars", text.length()));
+                    ? "Complete result: %,d chars (also in OUTPUT) · double-click to go to the instruction that wrote it"
+                    : "%,d chars", text.length()));
         } else {
-            show(text, what + String.format(Locale.ROOT,
-                    "Written so far: %,d chars — the rest follows when the run continues", text.length()));
+            show(text, what + String.format(Locale.ROOT, "Written so far: %,d chars — the rest follows when the run continues"
+                    + (key.isEmpty() ? " · double-click to go to the instruction that wrote it" : ""), text.length()));
         }
     }
 

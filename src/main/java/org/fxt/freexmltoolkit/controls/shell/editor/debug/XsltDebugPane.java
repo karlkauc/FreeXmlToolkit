@@ -173,6 +173,7 @@ public final class XsltDebugPane extends VBox {
         variablesView.setOnCopyValue(b -> copyValue(resolveVariable(b, currentScope())));
         callStackView.setOnFrameSelected(this::showFrame);
         callStackView.setOnExplainMatch(this::onExplainMatch);
+        outputView.setOnLocate(this::jumpToOutputSource);
         variablesView.setOnAddToWatches(expr -> {
             watchView.addWatch(expr);
             selectTab(leftTabs, watchTab);
@@ -725,6 +726,13 @@ public final class XsltDebugPane extends VBox {
             }
         }
         return "@top";
+    }
+
+    /** Opens the instruction that wrote the principal output at {@code offset}. */
+    void jumpToOutputSource(int offset) {
+        controller.getSession().outputSources().locate(offset).ifPresentOrElse(
+                src -> onJumpToFrame.accept(new DebugStackFrame("output", src.systemId(), src.line(), List.of())),
+                () -> status.setText("No instruction is known for this part of the output."));
     }
 
     /** The last "Explain Match" dialog shown (tests). */
