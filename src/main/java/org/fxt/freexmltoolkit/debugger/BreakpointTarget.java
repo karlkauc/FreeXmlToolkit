@@ -9,7 +9,10 @@ package org.fxt.freexmltoolkit.debugger;
  */
 public interface BreakpointTarget {
 
-    /** @return {@code true} when an enabled breakpoint exists at {@code filePath:line}. */
+    /**
+     * @return {@code true} when an <em>enabled</em> breakpoint exists at {@code filePath:line}
+     *         (use {@link #breakpointAt} to see disabled ones too)
+     */
     boolean hasBreakpoint(String filePath, int line);
 
     /** Toggles the breakpoint at {@code filePath:line}; returns the new state (true = set). */
@@ -55,6 +58,22 @@ public interface BreakpointTarget {
     /** Sets the hit rule of the breakpoint at {@code filePath:line} (creating it if needed). */
     default boolean setHitCondition(String filePath, int line, HitCondition hit) {
         return updateBreakpoint(filePath, line, bp -> bp.withHit(hit));
+    }
+
+    /**
+     * Enables or disables the existing breakpoint at {@code filePath:line} (keeping its
+     * condition and hit rule).
+     *
+     * @return {@code false} when the line has no breakpoint or editing is unsupported
+     */
+    default boolean setEnabled(String filePath, int line, boolean enabled) {
+        return breakpointAt(filePath, line) != null
+                && updateBreakpoint(filePath, line, bp -> bp.withEnabled(enabled));
+    }
+
+    /** @return whether all breakpoints are temporarily muted (a debug session's toggle). */
+    default boolean isMuted() {
+        return false;
     }
 
     /** @return how often the breakpoint at {@code filePath:line} was hit in the current run, or -1. */

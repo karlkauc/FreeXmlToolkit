@@ -140,4 +140,21 @@ class DebugPanelsTest {
         assertEquals(every2, session.breakpointAt("a.xsl", 3).hit());
         assertEquals(1, changed.get(), "the host persists and refreshes the gutter");
     }
+
+    @Test
+    void breakpointsPanelCheckboxDisablesAndEnables() {
+        DebugSession session = new DebugSession();
+        session.addBreakpoint(new Breakpoint("a.xsl", 3, true));
+        AtomicInteger changed = new AtomicInteger();
+        boolean enabledAfter = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            BreakpointsView view = new BreakpointsView(session);
+            view.setOnChanged(changed::incrementAndGet);
+            view.setEnabled(session.breakpointAt("a.xsl", 3), false);
+            return view.isEnabledAt(0);
+        });
+        assertEquals(false, enabledAfter, "the row shows it disabled");
+        assertEquals(false, session.hasBreakpoint("a.xsl", 3));
+        assertEquals(1, session.getBreakpoints().size(), "kept, not removed");
+        assertEquals(1, changed.get(), "gutter refresh + persistence");
+    }
 }

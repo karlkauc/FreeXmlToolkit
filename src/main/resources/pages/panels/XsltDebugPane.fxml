@@ -6,6 +6,7 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -62,6 +63,11 @@
                 <CheckBox fx:id="pauseOnEntry" id="debug-pause-on-entry" text="Pause on entry" onAction="#onPauseOnEntry">
                     <tooltip><Tooltip text="Stop at the first instruction of the next run / restart"/></tooltip>
                 </CheckBox>
+                <ToggleButton fx:id="muteToggle" id="debug-mute" text="Mute"
+                              styleClass="fxt-sp-action, fxt-output-action" onAction="#onMute">
+                    <graphic><IconifyIcon iconLiteral="bi-slash-circle" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Mute all breakpoints: the run does not stop at them (steps and Pause still work)"/></tooltip>
+                </ToggleButton>
                 <Button fx:id="showButton" id="debug-show-in-editor" text="Show in editor"
                         styleClass="fxt-sp-action, fxt-output-action" onAction="#onShowInEditor">
                     <graphic><IconifyIcon iconLiteral="bi-eye" iconSize="14"/></graphic>

@@ -77,4 +77,16 @@ class FileBreakpointsTest {
         assertEquals("$i > 3", saved.get(saved.size() - 1).iterator().next().condition(), "and persists it");
         assertFalse(fb.setCondition("/tmp/other.xsl", 9, "true()"), "only its own file");
     }
+
+    @Test
+    void disablingIsPersistedAndKeepsTheBreakpoint() {
+        List<Set<Breakpoint>> saved = new ArrayList<>();
+        FileBreakpoints fb = new FileBreakpoints("/tmp/d.xsl", List.of(new Breakpoint("/tmp/d.xsl", 4, true)), saved::add);
+        assertTrue(fb.setEnabled("/tmp/d.xsl", 4, false));
+        assertFalse(fb.hasBreakpoint("/tmp/d.xsl", 4));
+        assertNotNull(fb.breakpointAt("/tmp/d.xsl", 4), "still there, disabled");
+        assertFalse(saved.get(saved.size() - 1).iterator().next().enabled(), "persisted disabled");
+        assertFalse(fb.toggleBreakpoint("/tmp/d.xsl", 4), "a click on a disabled one removes it");
+        assertNull(fb.breakpointAt("/tmp/d.xsl", 4));
+    }
 }

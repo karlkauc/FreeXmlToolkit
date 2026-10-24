@@ -69,7 +69,8 @@ class XsltDebugPaneTest {
         assertNotNull(pane.getWatchView());
         assertNotNull(pane.getMessagesView());
         for (String id : new String[]{"#debug-continue", "#debug-step-into", "#debug-step-over", "#debug-step-out",
-                "#debug-restart", "#debug-stop", "#debug-pause-on-entry", "#debug-show-in-editor", "#debug-close"}) {
+                "#debug-restart", "#debug-stop", "#debug-pause-on-entry", "#debug-mute", "#debug-show-in-editor",
+                "#debug-close"}) {
             assertNotNull(pane.lookup(id), id + " must be in the header");
         }
         assertEquals("Ready.", pane.getStatusText());
@@ -366,5 +367,21 @@ class XsltDebugPaneTest {
             names.add(pane.getVariablesView().getNameAt(i));
         }
         return names;
+    }
+
+    @Test
+    void muteToggleMutesTheSessionAndRefreshesGutters() {
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> new XsltDebugPane(controller));
+        java.util.concurrent.atomic.AtomicInteger changed = new java.util.concurrent.atomic.AtomicInteger();
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            pane.setOnBreakpointsChanged(changed::incrementAndGet);
+            ((javafx.scene.control.ToggleButton) pane.lookup("#debug-mute")).fire();
+        });
+        assertTrue(controller.getSession().isMuted());
+        assertTrue(pane.isMuted());
+        assertEquals(1, changed.get(), "gutters re-render (hollow markers)");
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
+                () -> ((javafx.scene.control.ToggleButton) pane.lookup("#debug-mute")).fire());
+        assertFalse(controller.getSession().isMuted());
     }
 }

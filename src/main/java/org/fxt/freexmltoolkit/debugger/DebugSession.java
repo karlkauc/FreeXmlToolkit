@@ -50,6 +50,8 @@ public class DebugSession implements BreakpointTarget {
     private volatile int stepTargetDepth = -1;
     private volatile PausedSnapshot pausedSnapshot;
     private volatile ConditionEvaluator conditionEvaluator;
+    /** All breakpoints muted (steps and pause requests still work); kept across restarts. */
+    private volatile boolean muted;
     /**
      * Lines whose breakpoints fired, with the call depth of the instruction that fired them
      * (innermost last). A traced instruction nested inside one on the same line (e.g. an
@@ -173,6 +175,16 @@ public class DebugSession implements BreakpointTarget {
         return normalizedPath + "\u0000" + line;
     }
 
+    /** Mutes / unmutes all breakpoints: while muted they neither pause nor count hits. */
+    public void setMuted(boolean muted) {
+        this.muted = muted;
+    }
+
+    @Override
+    public boolean isMuted() {
+        return muted;
+    }
+
     /** Sets how breakpoint conditions are evaluated ({@code null}: conditional breakpoints always pause). */
     public void setConditionEvaluator(ConditionEvaluator evaluator) {
         this.conditionEvaluator = evaluator;
@@ -293,7 +305,7 @@ public class DebugSession implements BreakpointTarget {
 
         String note = "";
         PausedSnapshot snapshot = null;
-        if (line > 0 && !breakpoints.isEmpty()) {
+        if (line > 0 && !muted && !breakpoints.isEmpty()) {
             // Check breakpoints — normalise the location once, not once per breakpoint
             String normalized = normalizedLocation(systemId);
             java.util.List<Breakpoint> matching = new java.util.ArrayList<>(1);

@@ -207,7 +207,7 @@ class BreakpointGutterFactoryTest {
                 () -> factory.menuFor(5).getItems().stream()
                         .map(javafx.scene.control.MenuItem::getText).filter(java.util.Objects::nonNull).toList());
         assertEquals(java.util.List.of("Breakpoint Properties…", "Remove Condition", "Remove Hit Count Rule",
-                "Remove Breakpoint"), labels);
+                "Disable Breakpoint", "Remove Breakpoint"), labels);
         java.util.List<String> empty = WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> factory.menuFor(9).getItems().stream().map(javafx.scene.control.MenuItem::getText).toList());
         assertEquals(java.util.List.of("Add Conditional Breakpoint…"), empty);
@@ -215,5 +215,37 @@ class BreakpointGutterFactoryTest {
         factory.setPropertiesPrompt((owner, location, current, hits) -> java.util.Optional.empty());
         assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.editBreakpoint(5, null)), "cancel changes nothing");
         assertEquals("@n = 2", session.conditionAt(FILE, 5));
+    }
+
+    @Test
+    void disabledAndMutedBreakpointsShowAnInactiveMarker() throws Exception {
+        org.fxt.freexmltoolkit.debugger.DebugSession session = new org.fxt.freexmltoolkit.debugger.DebugSession();
+        AtomicInteger refreshed = new AtomicInteger();
+        BreakpointGutterFactory factory = new BreakpointGutterFactory(session, v -> refreshed.incrementAndGet());
+        factory.setFilePath(FILE);
+        session.toggleBreakpoint(FILE, 2);
+        session.toggleBreakpoint(FILE, 3);
+        session.setEnabled(FILE, 3, false);
+
+        Node active = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(1));
+        Node disabled = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(2));
+        assertFalse(active.getStyleClass().contains(BreakpointGutterFactory.INACTIVE_STYLE_CLASS));
+        assertTrue(disabled.getStyleClass().contains(BreakpointGutterFactory.INACTIVE_STYLE_CLASS),
+                "a disabled breakpoint stays visible, hollow");
+
+        java.util.List<String> labels = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> factory.menuFor(3).getItems().stream().map(javafx.scene.control.MenuItem::getText)
+                        .filter(java.util.Objects::nonNull).toList());
+        assertTrue(labels.contains("Enable Breakpoint"), labels.toString());
+        javafx.scene.control.MenuItem enable = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> factory.menuFor(3).getItems().stream().filter(i -> "Enable Breakpoint".equals(i.getText()))
+                        .findFirst().orElseThrow());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> enable.fire());
+        assertTrue(session.hasBreakpoint(FILE, 3), "re-enabled from the gutter menu");
+
+        session.setMuted(true);
+        Node muted = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(1));
+        assertTrue(muted.getStyleClass().contains(BreakpointGutterFactory.INACTIVE_STYLE_CLASS),
+                "while muted every breakpoint is shown inactive");
     }
 }

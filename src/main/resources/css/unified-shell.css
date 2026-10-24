@@ -1649,6 +1649,20 @@
     -fx-text-fill: -fxt-danger;
 }
 
+/* Breakpoints panel: a disabled breakpoint reads muted. */
+.fxt-debug-panel .list-cell.fxt-bp-disabled {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+/* DEBUG header toggles (Mute) read as switched on. */
+.fxt-output-header .toggle-button.fxt-sp-action:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-output-header .toggle-button.fxt-sp-action:selected .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
 /* Variables: banner naming the selected outer call stack frame. */
 .fxt-debug-frame-info {
     -fx-padding: 3 8 3 8;

@@ -17,6 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.Clipboard;
@@ -83,6 +84,7 @@ public final class XsltDebugPane extends VBox {
     @FXML private Button showButton;
     @FXML private Button closeButton;
     @FXML private CheckBox pauseOnEntry;
+    @FXML private ToggleButton muteToggle;
     @FXML private SplitPane panels;
     @FXML private TabPane leftTabs;
     @FXML private TabPane rightTabs;
@@ -149,6 +151,7 @@ public final class XsltDebugPane extends VBox {
         watchView.setOnCopyValue(row -> resolveWatch(row, this::copyValue));
 
         pauseOnEntry.setSelected(controller.isPauseOnEntry());
+        muteToggle.setSelected(controller.getSession().isMuted());
         breakpointsView.setOnJumpToBreakpoint(bp -> onJumpToBreakpoint.accept(bp));
         breakpointsView.setOnChanged(() -> onBreakpointsChanged.run());
         callStackView.setOnJumpToFrame(frame -> onJumpToFrame.accept(frame));
@@ -228,6 +231,18 @@ public final class XsltDebugPane extends VBox {
         messagesView.clear();
         status.setText("Restarting…");
         controller.restart();
+    }
+
+    /** Mutes / unmutes all breakpoints; the gutters show them hollow while muted. */
+    @FXML
+    public void onMute() {
+        controller.getSession().setMuted(muteToggle.isSelected());
+        onBreakpointsChanged.run();
+    }
+
+    /** @return whether breakpoints are muted (tests). */
+    public boolean isMuted() {
+        return muteToggle.isSelected();
     }
 
     @FXML

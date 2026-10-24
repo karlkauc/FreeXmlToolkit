@@ -429,4 +429,43 @@ class DebugSessionTest {
         }
         assertEquals(4, session.hitCount("n.xsl", 4));
     }
+
+    // ----- enable / disable / mute -------------------------------------------------------
+
+    @Test
+    void disabledBreakpointKeepsItsSettingsButNeverPauses() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.updateBreakpoint("h.xsl", 7, bp -> bp.withCondition("true()"));
+        assertTrue(session.setEnabled("h.xsl", 7, false));
+        assertFalse(session.hasBreakpoint("h.xsl", 7), "hasBreakpoint only reports enabled ones");
+        assertEquals("true()", session.breakpointAt("h.xsl", 7).condition(), "settings kept");
+        session.setConditionEvaluator((c, s) -> true);
+        assertEquals(List.of(), passesThatPause(session, 3));
+        assertEquals(0, session.hitCount("h.xsl", 7), "a disabled breakpoint counts no hits");
+        assertFalse(session.setEnabled("h.xsl", 99, true), "no breakpoint on that line");
+    }
+
+    @Test
+    void mutedBreakpointsDoNotPauseButStepsDo() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.toggleBreakpoint("h.xsl", 7);
+        session.setMuted(true);
+        assertTrue(session.isMuted());
+        assertEquals(List.of(), passesThatPause(session, 3), "muted: the breakpoint does not stop the run");
+        assertEquals(0, session.hitCount("h.xsl", 7));
+
+        session.startSession(DebugSession.StepMode.STEP_INTO);
+        CountDownLatch paused = new CountDownLatch(1);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) paused.countDown();
+        });
+        Thread saxon = new Thread(() -> session.checkAndPause("h.xsl", 2, 1, () -> emptySnapshot(2)), "test-saxon");
+        saxon.start();
+        assertTrue(paused.await(AWAIT_MS, TimeUnit.MILLISECONDS), "stepping still pauses while muted");
+        session.requestStop();
+        saxon.join(AWAIT_MS);
+
+        session.setMuted(false);
+        assertEquals(List.of(1, 2), passesThatPause(session, 2), "unmuted: back to normal");
+    }
 }

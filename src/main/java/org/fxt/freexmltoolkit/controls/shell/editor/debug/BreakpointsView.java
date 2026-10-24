@@ -37,12 +37,31 @@ public class BreakpointsView extends VBox {
         getStyleClass().add("fxt-debug-panel");
 
         list.setCellFactory(v -> new javafx.scene.control.ListCell<>() {
+            private final javafx.scene.control.CheckBox enabled = new javafx.scene.control.CheckBox();
+
+            {
+                enabled.setTooltip(new javafx.scene.control.Tooltip("Enabled — untick to keep the breakpoint without pausing"));
+                enabled.setOnAction(e -> {
+                    Breakpoint bp = getItem();
+                    if (bp != null) {
+                        setEnabled(bp, enabled.isSelected());
+                    }
+                });
+            }
+
             @Override
             protected void updateItem(Breakpoint bp, boolean empty) {
                 super.updateItem(bp, empty);
+                getStyleClass().remove("fxt-bp-disabled");
                 if (empty || bp == null) {
                     setText(null);
+                    setGraphic(null);
                     return;
+                }
+                enabled.setSelected(bp.enabled());
+                setGraphic(enabled);
+                if (!bp.enabled()) {
+                    getStyleClass().add("fxt-bp-disabled");
                 }
                 int hits = session.hitCount(bp);
                 setText("line " + bp.lineNumber()
@@ -113,6 +132,18 @@ public class BreakpointsView extends VBox {
         }
         list.refresh(); // hit counts changed although the breakpoints are equal
         onCountChanged.run();
+    }
+
+    /** Enables or disables {@code bp} (row checkbox) and tells the host (gutter, persistence). */
+    public void setEnabled(Breakpoint bp, boolean enabled) {
+        session.setEnabled(bp.filePath(), bp.lineNumber(), enabled);
+        refresh();
+        onChanged.run();
+    }
+
+    /** @return whether the row at {@code index} is enabled (tests). */
+    public boolean isEnabledAt(int index) {
+        return list.getItems().get(index).enabled();
     }
 
     /** Removes the selected breakpoint from the session, if any (Remove button, Delete key). */

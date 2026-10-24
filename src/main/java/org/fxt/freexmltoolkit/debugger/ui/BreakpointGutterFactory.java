@@ -41,6 +41,8 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
     public static final String SLOT_STYLE_CLASS = "breakpoint-gutter-slot";
     /** Added to the slot of a breakpoint that has a condition or a hit-count rule. */
     public static final String CONDITIONAL_STYLE_CLASS = "breakpoint-conditional";
+    /** Added to the slot of a disabled breakpoint, or of any breakpoint while all are muted. */
+    public static final String INACTIVE_STYLE_CLASS = "breakpoint-inactive";
 
     private static final double SLOT_SIZE = 14;
 
@@ -136,11 +138,15 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         box.setMaxWidth(SLOT_SIZE);
         box.setCursor(Cursor.HAND);
 
-        boolean hasBp = session != null && session.hasBreakpoint(filePath, line);
-        org.fxt.freexmltoolkit.debugger.Breakpoint bp = hasBp ? session.breakpointAt(filePath, line) : null;
+        org.fxt.freexmltoolkit.debugger.Breakpoint bp = session == null ? null : session.breakpointAt(filePath, line);
+        boolean hasBp = bp != null || (session != null && session.hasBreakpoint(filePath, line));
         boolean conditional = bp != null && bp.hasRules();
+        boolean inactive = hasBp && ((bp != null && !bp.enabled()) || session.isMuted());
         if (conditional) {
             box.getStyleClass().add(CONDITIONAL_STYLE_CLASS);
+        }
+        if (inactive) {
+            box.getStyleClass().add(INACTIVE_STYLE_CLASS);
         }
         boolean isCurrent = line == currentExecutionLine;
 
@@ -155,6 +161,16 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             IconifyIcon fi = new IconifyIcon("bi-arrow-right-circle-fill");
             fi.setIconSize(12);
             SemanticIcon.paint(fi, DesignTokens.ColorToken.SUCCESS);
+            icon = fi;
+        } else if (inactive) {
+            // Hollow marker: kept with its settings, but it does not pause.
+            IconifyIcon fi = new IconifyIcon(conditional ? "bi-question-circle" : "bi-circle");
+            fi.setIconSize(conditional ? 11 : 10);
+            SemanticIcon.paint(fi, DesignTokens.ColorToken.DANGER);
+            String why = session.isMuted() && (bp == null || bp.enabled())
+                    ? "All breakpoints are muted" : "Breakpoint disabled";
+            Tooltip.install(fi, new Tooltip(why + (conditional ? "\n" + describe(bp, line) : "")
+                    + "\nClick to remove, right-click to enable or edit"));
             icon = fi;
         } else if (conditional) {
             IconifyIcon fi = new IconifyIcon("bi-question-circle-fill");
@@ -244,6 +260,16 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
                 if (refreshCallback != null) refreshCallback.accept(null);
             });
             menu.getItems().add(clearHit);
+        }
+        if (bp != null) {
+            MenuItem toggle = new MenuItem(bp.enabled() ? "Disable Breakpoint" : "Enable Breakpoint",
+                    menuIcon(bp.enabled() ? "bi-slash-circle" : "bi-circle-fill",
+                            bp.enabled() ? DesignTokens.ColorToken.NEUTRAL : DesignTokens.ColorToken.DANGER));
+            toggle.setOnAction(e -> {
+                session.setEnabled(filePath, line, !bp.enabled());
+                if (refreshCallback != null) refreshCallback.accept(null);
+            });
+            menu.getItems().add(toggle);
         }
         if (hasBp) {
             MenuItem remove = new MenuItem("Remove Breakpoint", menuIcon("bi-trash", DesignTokens.ColorToken.DANGER));

@@ -371,6 +371,14 @@ there, otherwise the active document) - exactly as for **Run Transform**; starte
   all** sit in a small toolbar above the list, and the **Delete** key removes the selected
   entry. Double-click an entry to jump to that line.
 - Breakpoints are anchored to line numbers: inserting or deleting lines above one does not move it.
+- **Disable** a breakpoint to keep it (with its condition and hit rule) without it stopping the
+  run: untick its checkbox in the **Breakpoints** panel, or right-click its gutter slot →
+  **Disable Breakpoint** / **Enable Breakpoint**. A disabled breakpoint shows a **hollow
+  marker** in the gutter and a greyed row; it counts no hits. Clicking a hollow marker removes
+  the breakpoint, as for any other.
+- **Mute** in the DEBUG header switches all breakpoints off at once for the session (they are
+  drawn hollow); stepping and pausing still work. Muting is not saved - the breakpoints'
+  enabled state is.
 - A breakpoint stops **once per execution of its line**: an instruction nested inside another one
   on the same line (e.g. `<x><xsl:value-of select="@n"/></x>`) does not stop the run a second
   time. Stepping (Step Into) still visits every instruction.
@@ -430,6 +438,7 @@ the header - switch it off to run straight to the first breakpoint). The header 
 | **Step Out** | Shift+F8 | Run until the current template/function returns |
 | **Restart** | | Run again from the start with the same breakpoints; the stylesheet is re-read from disk, so edits you saved meanwhile are picked up |
 | **Stop** | | Abort the running transformation |
+| **Mute** | | Toggle: the run does not stop at any breakpoint (steps still pause) |
 | **Show in editor** | | Jump the editor to the currently paused line |
 | **✕** | | End the session and close the DEBUG dock (OUTPUT stays) |
 
