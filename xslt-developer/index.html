@@ -3759,6 +3759,11 @@ icons - hover one for its name and key:</p>
 <td>Step into the current instruction - the next stop is the next <strong>line</strong> that runs (inside a called template or function too)</td>
 </tr>
 <tr>
+<td><strong>Smart Step Into</strong></td>
+<td>Shift+F7</td>
+<td>When the paused line calls several things (<code>f:a(1) + f:b(2)</code>, an <code>xsl:call-template</code> next to an <code>xsl:apply-templates</code>), a menu at <strong>Step Into</strong> lists them - pick the one to stop in. Also a right-click on <strong>Step Into</strong>. One call steps straight into it; none is a plain Step Into. The run stops when that function / template is entered, even while breakpoints are muted</td>
+</tr>
+<tr>
 <td><strong>Step Over</strong></td>
 <td>F8</td>
 <td>Execute the current instruction without descending</td>
@@ -4006,6 +4011,10 @@ the version from the stylesheet's <code>version</code> attribute.</p>
 <tr>
 <td>F5 / F7 / F8 / Shift+F8</td>
 <td>While the debugger is paused: Continue / Step Into / Step Over / Step Out</td>
+</tr>
+<tr>
+<td>Shift+F7</td>
+<td>While the debugger is paused: Smart Step Into - choose which call on the line to step into</td>
 </tr>
 <tr>
 <td>Ctrl+Shift+X</td>
