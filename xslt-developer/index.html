@@ -1902,6 +1902,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#debugging-xquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging XQuery
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3122,6 +3133,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#debugging-xquery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging XQuery
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4161,6 +4183,19 @@ lights up to show it has new content. A stopped run shows <em>Stopped</em>, a fa
 debugger (the page-size parameters are passed on). The FO it produces lands in OUTPUT and can be
 rendered with the panel's <strong>Render PDF from FO…</strong> - see <a href="../pdf-generator/">PDF Generator</a>.</p>
 <hr />
+<h3 id="debugging-xquery">Debugging XQuery<a class="headerlink" href="#debugging-xquery" title="Permanent link">&para;</a></h3>
+<p>The debugger runs XQuery too. Open a saved <code>.xq</code> / <code>.xquery</code> file and press <strong>Shift+F5</strong> (or
+<strong>Run ▾ → Debug Query</strong>): the query runs against the same <strong>Input</strong> as <strong>Run Query</strong> (the most
+recently active XML document, or the one picked in the Input selector); a query without an
+input runs without a context item.</p>
+<p>Everything above works the same way: breakpoints in the query's gutter (click, <strong>F9</strong>,
+conditions, hit counts, logpoints), stepping, Variables (the <code>let</code> and <code>for</code> variables of the
+FLWOR expression, function parameters), Watch, the Call Stack with function frames, <strong>Break
+on</strong> errors, Coverage and the Output tab. <code>fn:trace()</code> output appears in Messages
+(<em>label: value</em>). Smart Step Into offers the functions declared with <code>declare function</code>.
+What Saxon traces in a query is coarser than in a stylesheet: a stop is a <code>let</code> clause, a
+constructed element or attribute, or a function call - a <code>for</code> or <code>where</code> clause has no stop
+of its own. Explain Match is for template rules and does not apply.</p>
 <h2 id="output-format">Output Format<a class="headerlink" href="#output-format" title="Permanent link">&para;</a></h2>
 <p>The Transform panel's <strong>OUTPUT METHOD</strong> section is a single dropdown with
 <strong>Auto, XML, HTML, XHTML, Text, JSON</strong>. <strong>Auto</strong> (the default) detects the format from
