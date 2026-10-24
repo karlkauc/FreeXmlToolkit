@@ -43,6 +43,10 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
     public static final String CONDITIONAL_STYLE_CLASS = "breakpoint-conditional";
     /** Added to the slot of a breakpoint the last completed run never reached. */
     public static final String UNREACHED_STYLE_CLASS = "breakpoint-unreached";
+    /** Coverage: the line ran in the last run (green bar). */
+    public static final String COVERAGE_EXECUTED_STYLE_CLASS = "coverage-executed";
+    /** Coverage: the line is in a template / function the last run never entered (red bar). */
+    public static final String COVERAGE_DEAD_STYLE_CLASS = "coverage-dead";
     private static final String NOT_REACHED =
             "Not reached in the last run (no traced instruction on this line, or the code did not run)";
     /** Added to the slot of a disabled breakpoint, or of any breakpoint while all are muted. */
@@ -165,6 +169,17 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             box.getStyleClass().add(INACTIVE_STYLE_CLASS);
         }
         boolean isCurrent = line == currentExecutionLine;
+        String coverageTip = null;
+        if (session != null) {
+            int runs = session.coverageCount(filePath, line);
+            if (runs > 0) {
+                box.getStyleClass().add(COVERAGE_EXECUTED_STYLE_CLASS);
+                coverageTip = "Ran " + runs + (runs == 1 ? " time" : " times") + " in the last run";
+            } else if (session.coverageDead(filePath, line)) {
+                box.getStyleClass().add(COVERAGE_DEAD_STYLE_CLASS);
+                coverageTip = "Never ran in the last run: its template / function was not entered";
+            }
+        }
 
         Node icon;
         if (isCurrent && hasBp) {
@@ -223,7 +238,8 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
             spacer.setMinSize(SLOT_SIZE, SLOT_SIZE);
             spacer.setMaxSize(SLOT_SIZE, SLOT_SIZE);
             if (session != null) {
-                Tooltip.install(box, new Tooltip("Click to set a breakpoint"));
+                Tooltip.install(box, new Tooltip((coverageTip == null ? "" : coverageTip + "\n")
+                        + "Click to set a breakpoint"));
             }
             icon = spacer;
         }

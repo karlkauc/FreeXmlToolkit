@@ -98,6 +98,100 @@ public class DebugSession implements BreakpointTarget {
     /** Whether an input-node breakpoint is set, readable without the lock. */
     private volatile boolean hasInputNodes;
 
+    // ----- coverage --------------------------------------------------------------------
+
+    private volatile boolean coverageEnabled;
+    /** Executions per normalized module path, indexed by 1-based line; {@code null} = no data. */
+    private volatile java.util.Map<String, int[]> coverage;
+    private final java.util.Map<String, java.util.List<ComponentRanges.Range>> componentRanges =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Counts which lines run (from the next run on); off by default because it costs time. */
+    public void setCoverageEnabled(boolean on) { this.coverageEnabled = on; }
+    public boolean isCoverageEnabled() { return coverageEnabled; }
+
+    /** Saxon thread, at the end of a run: the executions per module (normalized path) and line. */
+    public void publishCoverage(java.util.Map<String, int[]> counts) {
+        this.coverage = counts == null ? null : java.util.Map.copyOf(counts);
+        componentRanges.clear();
+        pcs.firePropertyChange(PROP_COVERAGE, null, this.coverage);
+    }
+
+    /** Property fired when a run's coverage is available. */
+    public static final String PROP_COVERAGE = "coverage";
+
+    /** @return whether the last run recorded coverage. */
+    public boolean hasCoverage() {
+        return coverage != null;
+    }
+
+    @Override
+    public int coverageCount(String filePath, int line) {
+        java.util.Map<String, int[]> cov = coverage;
+        if (cov == null || line < 1) {
+            return -1;
+        }
+        int[] counts = cov.get(SourceLocations.normalize(filePath));
+        if (counts == null) {
+            return -1;
+        }
+        return line < counts.length ? counts[line] : 0;
+    }
+
+    @Override
+    public boolean coverageDead(String filePath, int line) {
+        String path = SourceLocations.normalize(filePath);
+        if (coverageCount(path, line) != 0) {
+            return false;
+        }
+        for (ComponentRanges.Range range : ranges(path)) {
+            if (range.contains(line)) {
+                return !ran(path, range);
+            }
+        }
+        return false;
+    }
+
+    /** @return the templates / functions of the covered modules none of whose lines ran, as "label (file:line)". */
+    public java.util.List<String> deadComponents() {
+        java.util.Map<String, int[]> cov = coverage;
+        java.util.List<String> dead = new java.util.ArrayList<>();
+        if (cov == null) {
+            return dead;
+        }
+        for (String path : new java.util.TreeSet<>(cov.keySet())) {
+            for (ComponentRanges.Range range : ranges(path)) {
+                if (!ran(path, range)) {
+                    dead.add(range.label() + " (" + SourceLocations.fileName(path) + ":" + range.startLine() + ")");
+                }
+            }
+        }
+        return dead;
+    }
+
+    private boolean ran(String path, ComponentRanges.Range range) {
+        for (int l = range.startLine(); l <= range.endLine(); l++) {
+            if (coverageCount(path, l) > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private java.util.List<ComponentRanges.Range> ranges(String path) {
+        java.util.function.Function<String, String> texts = sourceTexts;
+        if (texts == null || path.isEmpty()) {
+            return java.util.List.of();
+        }
+        return componentRanges.computeIfAbsent(path, p -> {
+            try {
+                return ComponentRanges.scan(texts.apply(p));
+            } catch (RuntimeException e) {
+                return java.util.List.of();
+            }
+        });
+    }
+
     /** @return whether an (unmuted) input-node breakpoint asks for the context node to be checked; lock-free. */
     public boolean hasActiveInputNodeBreakpoints() {
         return !muted && hasInputNodes;
@@ -627,6 +721,7 @@ public class DebugSession implements BreakpointTarget {
         lastPauseLine = 0;
         stepTarget = null;
         stepTargetReached = false;
+        coverage = null;
         pausedSnapshot = null;
         resultDocuments.clear();
         loadedDocuments.clear();

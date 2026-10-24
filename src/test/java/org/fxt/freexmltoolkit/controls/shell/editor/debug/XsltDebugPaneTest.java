@@ -656,4 +656,40 @@ class XsltDebugPaneTest {
         assertFalse(rows.get(1).isChanged(), "count(//item) did not");
         controller.stop();
     }
+
+    @Test
+    void theCoverageSwitchIsRememberedAndTheRunReportsWhatNeverRan() throws Exception {
+        String xslt = """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/"><out><xsl:apply-templates select="//item"/></out></xsl:template>
+                  <xsl:template match="item"><x/></xsl:template>
+                  <xsl:template match="unused"><y/></xsl:template>
+                </xsl:stylesheet>
+                """;
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            XsltDebugPane p = new XsltDebugPane(controller);
+            stage.setScene(new Scene(p, 900, 400));
+            stage.show();
+            ((javafx.scene.control.ToggleButton) p.lookup("#debug-coverage")).setSelected(true);
+            p.onCoverage();
+            return p;
+        });
+        try {
+            assertTrue(controller.getSession().isCoverageEnabled());
+            controller.setPauseOnEntry(false);
+            controller.start(XML, () -> xslt, "file:/tmp/pane-coverage.xsl", Map.of(), OutputFormat.XML);
+            WaitForAsyncUtils.waitFor(15, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
+                    () -> pane.getMessagesView().messageTexts().stream().anyMatch(t -> t.startsWith("Coverage:"))));
+            java.util.List<String> texts = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.getMessagesView().messageTexts());
+            assertTrue(texts.contains("Never ran: template match=\"unused\""), texts.toString());
+            XsltDebugPane again = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> new XsltDebugPane(
+                    new XsltDebugController(org.fxt.freexmltoolkit.FxtGui.executorService)));
+            assertTrue(again.getController().getSession().isCoverageEnabled(), "the switch is remembered");
+        } finally {
+            WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+                ((javafx.scene.control.ToggleButton) pane.lookup("#debug-coverage")).setSelected(false);
+                pane.onCoverage();
+            });
+        }
+    }
 }

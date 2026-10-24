@@ -109,6 +109,16 @@ public interface BreakpointTarget {
         return false;
     }
 
+    /** @return how often {@code filePath:line} ran in the last run with coverage, or -1 without data. */
+    default int coverageCount(String filePath, int line) {
+        return -1;
+    }
+
+    /** @return whether {@code filePath:line} lies in a template / function the last covered run never entered. */
+    default boolean coverageDead(String filePath, int line) {
+        return false;
+    }
+
     /** @return how often the breakpoint at {@code filePath:line} was hit in the current run, or -1. */
     default int hitCount(String filePath, int line) {
         return -1;

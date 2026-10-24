@@ -90,6 +90,11 @@ class DebuggerPerfBenchmark {
                 XsltTransformationEngine.OutputFormat.XML)));
         lines.add(line("100k items: debug, no breakpoints", () -> debug(engine, bigInput, new DebugSession())));
         lines.add(line("100k items: Saxon tracing, no-op listener", () -> noopTrace(engine, bigInput)));
+        lines.add(line("100k items: debug with coverage", () -> {
+            DebugSession s = new DebugSession();
+            s.setCoverageEnabled(true);
+            return debug(engine, bigInput, s);
+        }));
         String deepInput = input.replace("</order>", "").substring(0, input.indexOf("<item n=\"1001\"")) + "</order>";
         lines.add(line("deep stacks: normal run", () -> engine.transform(deepInput, DEEP_XSLT, new HashMap<>(),
                 XsltTransformationEngine.OutputFormat.XML)));

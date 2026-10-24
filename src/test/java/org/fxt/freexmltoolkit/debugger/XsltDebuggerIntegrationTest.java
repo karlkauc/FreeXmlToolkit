@@ -575,6 +575,41 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void coverageCountsTheLinesThatRanAndFindsTemplatesThatNeverRan() throws Exception {
+        String xml = "<order><item n=\"1\"/><item n=\"2\"/></order>";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"item\">\n"                                                         // 3
+                + "    <x><xsl:value-of select=\"@n\"/></x>\n"                                                // 4
+                + "  </xsl:template>\n"                                                                          // 5
+                + "  <xsl:template match=\"missing\">\n"                                                       // 6
+                + "    <never/>\n"                                                                               // 7
+                + "  </xsl:template>\n"                                                                          // 8
+                + "</xsl:stylesheet>\n";
+        String systemId = "file:/tmp/coverage-test.xsl";
+        String path = SourceLocations.normalize(systemId);
+        DebugSession session = new DebugSession();
+        session.setCoverageEnabled(true);
+        session.setSourceTexts(p -> p.equals(path) ? xslt : null);
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, systemId, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertTrue(session.hasCoverage());
+        assertTrue(session.coverageCount(path, 4) >= 2, "line 4 ran for both items: " + session.coverageCount(path, 4));
+        assertEquals(0, session.coverageCount(path, 7));
+        assertTrue(session.coverageDead(path, 7), "inside a template that never ran");
+        assertFalse(session.coverageDead(path, 5), "the item template ran");
+        assertEquals(List.of("template match=\"missing\" (coverage-test.xsl:6)"), session.deadComponents());
+
+        DebugSession off = new DebugSession();
+        XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, systemId, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, off, m -> { });
+        assertFalse(off.hasCoverage(), "off by default");
+        assertEquals(-1, off.coverageCount(path, 4));
+    }
+
+    @Test
     void hitCountRulePausesAtTheThirdItemAndCountsAllPasses() throws Exception {
         String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/><item n=\"4\"/><item n=\"5\"/></order>";
         String xslt = ""

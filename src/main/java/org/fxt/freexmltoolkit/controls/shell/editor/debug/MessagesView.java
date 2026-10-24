@@ -136,6 +136,11 @@ public class MessagesView extends VBox {
     }
 
     /** @return the number of messages (all of them, regardless of the filter). */
+    /** @return the texts of all messages (tests). */
+    List<String> messageTexts() {
+        return all.stream().map(TransformationMessage::getMessage).toList();
+    }
+
     public int getRowCount() {
         return all.size();
     }

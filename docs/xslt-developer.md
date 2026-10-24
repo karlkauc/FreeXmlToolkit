@@ -562,6 +562,7 @@ icons - hover one for its name and key:
 | **Restart** | | Run again from the start with the same breakpoints; the stylesheet is read again from the editor, so your edits (saved or not) are picked up |
 | **Stop** | | Abort the running transformation |
 | **Mute** | | Toggle: the run does not stop at any breakpoint (steps still pause) |
+| **Coverage** | | Toggle (remembered): from the next run on, record which lines run - see [Coverage](#coverage) |
 | **Show in editor** | | Jump the editor to the currently paused line |
 | **Show input** | | Select the input document at the paused **context node** (see below) |
 | **Evaluate** | Alt+F8 | Open the value window on the selected frame's context item with the XPath field ready - evaluate any expression in that frame (its variables in scope); **Up** / **Down** in the field recall earlier expressions |
@@ -591,6 +592,16 @@ Breakpoints on lines that never run cost nothing extra. Measured with `DebuggerP
 
 Variables, the call stack and the XSLT context are only collected when the run pauses, so
 stepping and hitting breakpoints do not slow the run between pauses.
+
+#### Coverage {#coverage}
+
+With **Coverage** on in the DEBUG header, every run records which stylesheet lines ran. After
+the run, the breakpoint gutter shows a **green bar** next to each line that ran (the tooltip says
+how often) and a **red bar** on the lines of every template or function that **never ran** for
+this input - dead code, or a hint that the test input lacks a case. **Messages** lists those
+templates and functions (*Never ran: template match="…"*); double-click one to jump to it.
+The markers stay until the next run. Recording costs next to nothing (a 100,000-item run: 254
+ms without, 256 ms with coverage).
 
 ### Inspecting State
 

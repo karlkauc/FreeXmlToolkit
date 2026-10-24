@@ -300,4 +300,24 @@ class BreakpointGutterFactoryTest {
         Node slot = WaitForAsyncUtils.waitForAsyncFx(2000, () -> factory.apply(5));
         assertTrue(slot.getStyleClass().contains(BreakpointGutterFactory.CONDITIONAL_STYLE_CLASS), "a marked slot");
     }
+
+    @Test
+    void coverageMarksLinesThatRanAndDeadCode() {
+        BreakpointTarget covered = new BreakpointTarget() {
+            @Override public boolean hasBreakpoint(String filePath, int line) { return false; }
+            @Override public boolean toggleBreakpoint(String filePath, int line) { return false; }
+            @Override public int coverageCount(String filePath, int line) { return line == 2 ? 3 : 0; }
+            @Override public boolean coverageDead(String filePath, int line) { return line == 5; }
+        };
+        BreakpointGutterFactory factory = new BreakpointGutterFactory(covered, v -> { });
+        factory.setFilePath(FILE);
+        java.util.List<java.util.List<String>> classes = WaitForAsyncUtils.waitForAsyncFx(2000, () -> java.util.List.of(
+                java.util.List.copyOf(factory.apply(1).getStyleClass()),
+                java.util.List.copyOf(factory.apply(4).getStyleClass()),
+                java.util.List.copyOf(factory.apply(6).getStyleClass())));
+        assertTrue(classes.get(0).contains(BreakpointGutterFactory.COVERAGE_EXECUTED_STYLE_CLASS));
+        assertTrue(classes.get(1).contains(BreakpointGutterFactory.COVERAGE_DEAD_STYLE_CLASS));
+        assertFalse(classes.get(2).contains(BreakpointGutterFactory.COVERAGE_EXECUTED_STYLE_CLASS)
+                || classes.get(2).contains(BreakpointGutterFactory.COVERAGE_DEAD_STYLE_CLASS), "no data for line 7");
+    }
 }

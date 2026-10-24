@@ -92,6 +92,10 @@ public final class XsltDebugPane extends VBox {
     @FXML private Button closeButton;
     @FXML private CheckBox pauseOnEntry;
     @FXML private ToggleButton muteToggle;
+    @FXML private ToggleButton coverageToggle;
+
+    /** Preference: coverage recording on/off (kept across sessions). */
+    static final String COVERAGE_KEY = "debug.coverage";
     @FXML private SplitPane panels;
     @FXML private TabPane leftTabs;
     @FXML private TabPane rightTabs;
@@ -184,6 +188,10 @@ public final class XsltDebugPane extends VBox {
             onSmartStepInto();
             e.consume();
         });
+
+        boolean coverage = "true".equals(preference(COVERAGE_KEY));
+        coverageToggle.setSelected(coverage);
+        controller.getSession().setCoverageEnabled(coverage);
 
         pauseOnEntry.setSelected(controller.isPauseOnEntry());
         muteToggle.setSelected(controller.getSession().isMuted());
@@ -369,6 +377,29 @@ public final class XsltDebugPane extends VBox {
         controller.restart();
     }
 
+    /** Coverage on / off for the next runs (remembered). */
+    @FXML
+    public void onCoverage() {
+        controller.getSession().setCoverageEnabled(coverageToggle.isSelected());
+        savePreference(COVERAGE_KEY, Boolean.toString(coverageToggle.isSelected()));
+    }
+
+    private static String preference(String key) {
+        try {
+            return ServiceRegistry.get(PropertiesService.class).get(key);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private static void savePreference(String key, String value) {
+        try {
+            ServiceRegistry.get(PropertiesService.class).set(key, value);
+        } catch (RuntimeException ignored) {
+            // not remembering the switch is acceptable
+        }
+    }
+
     /** Mutes / unmutes all breakpoints; the gutters show them hollow while muted. */
     @FXML
     public void onMute() {
@@ -527,8 +558,34 @@ public final class XsltDebugPane extends VBox {
                     controller.getSession().loadedDocuments());
         }
         breakpointsView.refresh(); // final hit counts of the run, "not reached" marks
+        reportCoverage();
         onBreakpointsChanged.run(); // gutters show which breakpoints the run never reached
         onResult.accept(result);
+    }
+
+    /** After a run with coverage: one Messages line for the summary, one per template / function that never ran. */
+    private void reportCoverage() {
+        DebugSession session = controller.getSession();
+        if (!session.hasCoverage()) {
+            return;
+        }
+        List<String> dead = session.deadComponents();
+        messagesView.append(new TransformationMessage("INFO", dead.isEmpty()
+                ? "Coverage: every template and function ran"
+                : "Coverage: " + dead.size() + (dead.size() == 1 ? " template or function" : " templates or functions")
+                        + " never ran for this input (red in the gutter)", 0, ""));
+        for (String component : dead) {
+            int open = component.lastIndexOf(" (");
+            String location = open < 0 ? "" : component.substring(open + 2, component.length() - 1);
+            int line = 0;
+            try {
+                line = Integer.parseInt(location.substring(location.lastIndexOf(':') + 1));
+            } catch (RuntimeException ignored) {
+                // no line - the row does not jump
+            }
+            messagesView.append(new TransformationMessage("INFO", "Never ran: "
+                    + (open < 0 ? component : component.substring(0, open)), line, location));
+        }
     }
 
     // ----- value viewer ------------------------------------------------------------------------

@@ -123,6 +123,9 @@ public class XsltDebugTraceListener implements TraceListener {
             }
             int lineNumber = getLineNumber(traceable);
             String systemId = getSystemId(traceable);
+            if (debugSession != null && lineNumber > 0 && debugSession.isCoverageEnabled()) {
+                countLine(systemId, lineNumber);
+            }
 
             // Track call stack
             CallStackEntry entry = new CallStackEntry(description, systemId, lineNumber,
@@ -414,6 +417,12 @@ public class XsltDebugTraceListener implements TraceListener {
 
         // Build final template match info with accumulated execution times
         buildFinalTemplateStats();
+        if (debugSession != null && debugSession.isCoverageEnabled()) {
+            Map<String, int[]> byPath = new java.util.HashMap<>();
+            coverageCounts.forEach((id, counts) -> byPath.merge(
+                    org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(id), counts, (a, b) -> a));
+            debugSession.publishCoverage(byPath);
+        }
     }
 
     // ========== Helper Methods ==========
@@ -938,6 +947,27 @@ public class XsltDebugTraceListener implements TraceListener {
         return text.substring(0, maxLength - 3) + "...";
     }
 
+    /** Executions per module systemId and line while coverage is on (Saxon thread only). */
+    private final Map<String, int[]> coverageCounts = new java.util.HashMap<>();
+    private String lastCoverageId;
+    private int[] lastCoverageCounts;
+
+    private void countLine(String systemId, int line) {
+        String id = systemId == null ? "" : systemId;
+        int[] counts = id.equals(lastCoverageId) ? lastCoverageCounts : coverageCounts.get(id);
+        if (counts == null || line >= counts.length) {
+            int[] grown = new int[Math.max(line + 64, counts == null ? 256 : counts.length * 2)];
+            if (counts != null) {
+                System.arraycopy(counts, 0, grown, 0, counts.length);
+            }
+            counts = grown;
+            coverageCounts.put(id, counts);
+        }
+        counts[line]++;
+        lastCoverageId = id;
+        lastCoverageCounts = counts;
+    }
+
     private void clearCollections() {
         templateMatches.clear();
         variableValues.clear();
@@ -948,6 +978,9 @@ public class XsltDebugTraceListener implements TraceListener {
         templateExecutionCounts.clear();
         completedGlobals.clear();
         matchPatterns.clear();
+        coverageCounts.clear();
+        lastCoverageId = null;
+        lastCoverageCounts = null;
     }
 
     private void buildFinalTemplateStats() {

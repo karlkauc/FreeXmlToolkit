@@ -1752,6 +1752,17 @@
     -fx-font-weight: bold;
 }
 
+/* XSLT debugger coverage in the breakpoint gutter: a bar at the slot's left edge. */
+.breakpoint-gutter-slot.coverage-executed {
+    -fx-border-color: transparent transparent transparent #2f9e44;
+    -fx-border-width: 0 0 0 3;
+}
+
+.breakpoint-gutter-slot.coverage-dead {
+    -fx-border-color: transparent transparent transparent #e03131;
+    -fx-border-width: 0 0 0 3;
+}
+
 /* Value viewer window (XSLT debugger): full value + XPath on it. */
 .fxt-value-viewer {
     -fx-background-color: -fxt-bg-surface;

@@ -72,6 +72,11 @@
                     <graphic><IconifyIcon iconLiteral="bi-slash-circle" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Mute all breakpoints: the run does not stop at them (steps and Pause still work)"/></tooltip>
                 </ToggleButton>
+                <ToggleButton fx:id="coverageToggle" id="debug-coverage" text="Coverage"
+                              styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onCoverage">
+                    <graphic><IconifyIcon iconLiteral="bi-bar-chart-steps" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Coverage: from the next run on, mark the lines that ran (green) and the templates / functions that never ran (red); slows the run a little"/></tooltip>
+                </ToggleButton>
                 <Button fx:id="showButton" id="debug-show-in-editor" text="Show in editor"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onShowInEditor">
                     <graphic><IconifyIcon iconLiteral="bi-eye" iconSize="14"/></graphic>
