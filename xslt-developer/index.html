@@ -3509,10 +3509,11 @@ came from).</p>
   (save it once - its file location anchors the breakpoints).</li>
 <li>Breakpoints match the <strong>file and line</strong>, so a line in <code>lib/a.xsl</code> never triggers a breakpoint
   set in another <code>a.xsl</code>.</li>
-<li>An instruction whose start tag spans <strong>several lines</strong> runs at the line where the start tag
-  <strong>ends</strong> (Saxon reports that line): for a multi-line <code>&lt;xsl:value-of select="…"/&gt;</code> set the
-  breakpoint on its last line. A breakpoint on an earlier line of the tag is never reached and
-  turns amber after the run.</li>
+<li>An instruction whose start tag spans <strong>several lines</strong> can carry its breakpoint on <strong>any</strong>
+  of those lines - e.g. on the <code>&lt;xsl:value-of</code> line of a multi-line <code>select</code>. Saxon reports
+  the instruction at the line where the start tag ends, so the run pauses (and the arrow
+  shows) there; the breakpoint itself stays where you set it and counts the hits. <strong>Run to
+  Cursor</strong> works the same way.</li>
 <li>Breakpoints are <strong>persisted per file</strong>: they are back when you reopen or debug the same file,
   they survive <strong>Restart</strong>, and they stay in the gutter after the session ends.</li>
 <li>Breakpoints in <strong>included modules</strong> count too: open <code>lib/a.xsl</code>, set a breakpoint, debug the
