@@ -105,6 +105,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.MenuItem actionRunQuery;
     @FXML private javafx.scene.control.MenuItem actionRunTransform;
     @FXML private javafx.scene.control.MenuItem actionDebugTransform;
+    @FXML private javafx.scene.control.MenuItem actionDebugQuery;
     @FXML private javafx.scene.control.MenuItem actionRunPipeline;
     /** Target dropdown for query/XSLT documents; visible only when one is active. */
     @FXML private javafx.scene.control.MenuButton queryTargetButton;
@@ -1486,8 +1487,9 @@ public class UnifiedShellView extends BorderPane {
             fop.startDebug();
             return;
         }
-        if (editorActions.activeFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSLT) {
-            editorActions.debugActiveTransform();
+        if (editorActions.activeFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSLT
+                || editorActions.activeFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY) {
+            editorActions.debugActiveTransform(); // XQuery → debugActiveQuery
             return;
         }
         var panel = (org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel) sidePanel(Activity.TRANSFORM);
@@ -1506,6 +1508,12 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onDebugTransform() {
         toolbar("debug_transform");
         editorActions.debugActiveTransform();
+    }
+
+    /** Run menu → Debug Query: debugs the active XQuery against the Run target. */
+    @FXML public void onDebugQuery() {
+        toolbar("debug_query");
+        editorActions.debugActiveQuery();
     }
 
     @FXML public void onRunQuery() { editorActions.runActiveQuery(); }
@@ -1783,6 +1791,7 @@ public class UnifiedShellView extends BorderPane {
         actionRunTransform.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM));
         actionDebugTransform.setDisable(actionRunTransform.isDisable());
+        actionDebugQuery.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY);
         actionRunPipeline.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE));
 

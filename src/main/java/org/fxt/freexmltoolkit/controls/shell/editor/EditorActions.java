@@ -302,6 +302,10 @@ public final class EditorActions {
      * includes resolve. No-op for non-XSLT documents.
      */
     public void debugActiveTransform() {
+        if (activeFileType() == EditorFileType.XQUERY) {
+            debugActiveQuery();
+            return;
+        }
         if (activeFileType() != EditorFileType.XSLT) {
             return;
         }
@@ -339,6 +343,37 @@ public final class EditorActions {
         }
         editorHost.startXsltDebug(doc.getPath().toFile(), xml, Map.of(),
                 TransformRunner.detectXsltOutputFormat(xslt));
+    }
+
+    /**
+     * Debugs the active (saved) XQuery against the Run target - the same target as Run Query; a
+     * query without a target runs without a context item.
+     */
+    public void debugActiveQuery() {
+        if (activeFileType() != EditorFileType.XQUERY) {
+            return;
+        }
+        TransformOutputPanel out = editorHost.transformOutputPanel();
+        var doc = editorHost.getActiveDocument().orElseThrow();
+        if (doc.getPath() == null) {
+            out.showError("Save the query first - breakpoints belong to its file.");
+            return;
+        }
+        String xml = "";
+        var resolved = editorHost.resolveQueryTarget(doc);
+        if (resolved.isPresent()) {
+            try {
+                xml = resolved.get().loadXml();
+            } catch (Exception e) {
+                out.showFailure("Cannot read target file: " + e.getMessage());
+                return;
+            }
+            if (resolved.get().file() != null) {
+                editorHost.setDebugInputFile(resolved.get().file().toPath());
+            }
+        }
+        editorHost.startXsltDebug(doc.getPath().toFile(), xml, Map.of(),
+                org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML);
     }
 
     /**

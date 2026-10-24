@@ -114,8 +114,26 @@ public class XsltDebugTraceListener implements TraceListener {
      * Called when a traceable instruction is entered.
      * Used to track template calls, variable assignments, and call stack.
      */
+    /** Receives fn:trace() output (label, value, line) while a TraceListener is attached. */
+    private volatile java.util.function.Consumer<XsltTransformationResult.TransformationMessage> traceSink;
+
+    /** With a TraceListener attached, Saxon reports fn:trace() to it instead of its trace output. */
+    public void setTraceSink(java.util.function.Consumer<XsltTransformationResult.TransformationMessage> sink) {
+        this.traceSink = sink;
+    }
+
     @Override
     public void enter(Traceable traceable, Map<String, Object> properties, XPathContext context) {
+        if (properties != null && properties.containsKey("label") && properties.containsKey("value")
+                && "Trace".equals(traceable.getClass().getSimpleName())) {
+            var sink = traceSink;
+            if (sink != null) {
+                int line = getLineNumber(traceable);
+                sink.accept(new XsltTransformationResult.TransformationMessage("INFO",
+                        properties.get("label") + ": " + properties.get("value"), line,
+                        "trace()" + (line > 0 ? " line " + line : "")));
+            }
+        }
         try {
             String description = getTraceableDescription(traceable);
             if (traceable instanceof TemplateRule) {

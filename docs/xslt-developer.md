@@ -755,6 +755,22 @@ rendered with the panel's **Render PDF from FO…** - see [PDF Generator](pdf-ge
 
 ---
 
+### Debugging XQuery
+
+The debugger runs XQuery too. Open a saved `.xq` / `.xquery` file and press **Shift+F5** (or
+**Run ▾ → Debug Query**): the query runs against the same **Input** as **Run Query** (the most
+recently active XML document, or the one picked in the Input selector); a query without an
+input runs without a context item.
+
+Everything above works the same way: breakpoints in the query's gutter (click, **F9**,
+conditions, hit counts, logpoints), stepping, Variables (the `let` and `for` variables of the
+FLWOR expression, function parameters), Watch, the Call Stack with function frames, **Break
+on** errors, Coverage and the Output tab. `fn:trace()` output appears in Messages
+(*label: value*). Smart Step Into offers the functions declared with `declare function`.
+What Saxon traces in a query is coarser than in a stylesheet: a stop is a `let` clause, a
+constructed element or attribute, or a function call - a `for` or `where` clause has no stop
+of its own. Explain Match is for template rules and does not apply.
+
 ## Output Format
 
 The Transform panel's **OUTPUT METHOD** section is a single dropdown with

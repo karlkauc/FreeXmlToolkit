@@ -3220,6 +3220,10 @@ public class EditorHost extends BorderPane {
         //    modules it includes — attach the gutter to the main module and to every module
         //    already open, and pause on entry when there is nothing to stop at.
         var controller = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController();
+        // An .xq file is debugged as XQuery (same session, dock, gutter and watches).
+        if (EditorFileType.fromFileName(xsltFile.getName()) == EditorFileType.XQUERY) {
+            controller.setLanguage(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.XQUERY);
+        }
         var session = controller.getSession();
         for (org.fxt.freexmltoolkit.debugger.Breakpoint bp
                 : org.fxt.freexmltoolkit.debugger.BreakpointStore.load(xsltFile.getAbsolutePath())) {
@@ -3544,7 +3548,8 @@ public class EditorHost extends BorderPane {
      * session that is opened now joins the session instead (its gutter talks to the run).
      */
     private void installBreakpointGutter(EditorTab et) {
-        if (et.document.getFileType() != EditorFileType.XSLT || et.document.getPath() == null) {
+        EditorFileType type = et.document.getFileType();
+        if ((type != EditorFileType.XSLT && type != EditorFileType.XQUERY) || et.document.getPath() == null) {
             return;
         }
         followEditsWithBreakpoints(et); // whichever gutter the tab carries, its breakpoints follow edits

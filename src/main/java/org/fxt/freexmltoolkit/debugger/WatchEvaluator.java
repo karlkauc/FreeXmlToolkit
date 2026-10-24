@@ -43,6 +43,8 @@ public final class WatchEvaluator {
     private static final QName FOCUS_POSITION = new QName(FOCUS_NS, "position");
     private static final QName FOCUS_LAST = new QName(FOCUS_NS, "last");
 
+    private static final Pattern XQUERY_NAMESPACE = Pattern.compile(
+            "declare\\s+namespace\\s+([A-Za-z_][\\w.-]*)\\s*=\\s*([\"'])(.*?)\\2");
     private static final Pattern XMLNS = Pattern.compile("xmlns:([A-Za-z_][\\w.-]*)\\s*=\\s*([\"'])(.*?)\\2");
 
     private final Processor processor;
@@ -67,6 +69,17 @@ public final class WatchEvaluator {
     public static Map<String, String> namespacesOf(String xsltText) {
         Map<String, String> result = new LinkedHashMap<>();
         if (xsltText == null) {
+            return result;
+        }
+        // An XQuery declares its prefixes in the prolog.
+        Matcher declared = XQUERY_NAMESPACE.matcher(xsltText);
+        boolean xquery = false;
+        while (declared.find()) {
+            result.put(declared.group(1), declared.group(3));
+            xquery = true;
+        }
+        if (xquery || xsltText.stripLeading().startsWith("xquery") || !xsltText.stripLeading().startsWith("<")) {
+            result.putIfAbsent("local", "http://www.w3.org/2005/xquery-local-functions");
             return result;
         }
         int start = xsltText.indexOf("<xsl:stylesheet");

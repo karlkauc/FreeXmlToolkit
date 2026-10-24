@@ -335,8 +335,20 @@ public class DebugSession implements BreakpointTarget {
         }
     }
 
+    /** Whether multi-line XML start tags are mapped to their last line (XSLT yes, XQuery no). */
+    private volatile boolean tagLineMapping = true;
+
+    public void setTagLineMapping(boolean on) {
+        this.tagLineMapping = on;
+        tagLineMaps.clear();
+        rearm();
+    }
+
     /** @return the line the debugger watches for a breakpoint at {@code filePath:line}. */
     public int effectiveLine(String filePath, int line) {
+        if (!tagLineMapping) {
+            return line;
+        }
         java.util.function.Function<String, String> texts = sourceTexts;
         String path = filePath == null ? "" : filePath;
         if (texts == null || line < 1) { // an empty path stands for the main stylesheet

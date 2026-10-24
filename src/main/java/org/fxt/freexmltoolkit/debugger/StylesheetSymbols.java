@@ -15,6 +15,8 @@ public final class StylesheetSymbols {
 
     private static final Pattern TEMPLATE = Pattern.compile("<\\s*(?:[\\w.-]+:)?template\\b([^>]*)>");
     private static final Pattern FUNCTION = Pattern.compile("<\\s*(?:[\\w.-]+:)?function\\b([^>]*)>");
+    private static final Pattern XQUERY_FUNCTION = Pattern.compile(
+            "declare\\s+(?:%[\\w:.-]+\\s+)*function\\s+([\\w.-]+(?::[\\w.-]+)?)\\s*\\(");
     private static final Pattern MODE_DECL = Pattern.compile("<\\s*(?:[\\w.-]+:)?mode\\b([^>]*)>");
     private static final Pattern ATTR = Pattern.compile("\\b(match|name|mode)\\s*=\\s*([\"'])(.*?)\\2", Pattern.DOTALL);
 
@@ -45,6 +47,10 @@ public final class StylesheetSymbols {
             Matcher f = FUNCTION.matcher(text);
             while (f.find()) {
                 add(found, SymbolBreakpoint.Kind.FUNCTION, attributes(f.group(1)).get("name"));
+            }
+            Matcher q = XQUERY_FUNCTION.matcher(text); // an XQuery: declare function local:f(…)
+            while (q.find()) {
+                add(found, SymbolBreakpoint.Kind.FUNCTION, q.group(1));
             }
             Matcher m = MODE_DECL.matcher(text);
             while (m.find()) {

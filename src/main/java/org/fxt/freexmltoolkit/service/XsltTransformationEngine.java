@@ -594,6 +594,7 @@ public class XsltTransformationEngine {
             XsltTransformer transformer = executable.load();
             configureTransformer(transformer, parameters, outputFormat, true);
             transformer.setTraceListener(traceListener);
+            traceListener.setTraceSink(liveMessages);
             transformer.setMessageHandler(messageListener);
             transformer.setErrorReporter(error -> {
                 messageListener.reportError(error);
@@ -665,6 +666,123 @@ public class XsltTransformationEngine {
             session.setOutputProbe(null);
             session.setOutputLength(null);
             // Mark session done so the UI re-enables Run-Debug
+            if (session.getState() != DebugSession.State.STOPPED) {
+                session.close();
+            }
+        }
+    }
+
+    /**
+     * Runs an XQuery under the interactive debugger: the query is compiled with tracing on the
+     * debug processor (line numbers on), {@code session} gets every traced expression (FLWOR
+     * {@code let} clauses, constructors, function calls) through an
+     * {@link XsltDebugTraceListener}, so breakpoints, steps, variables, watches and "break on
+     * errors" work as for XSLT. {@code fn:trace()} output goes to the messages.
+     *
+     * @param xmlContent    the context document, or {@code null} / blank for a query without one
+     * @param inputSystemId the context document's {@code file:} URI, or {@code null}
+     * @param querySystemId the query file's {@code file:} URI (breakpoints match it), or {@code null}
+     */
+    public XsltTransformationResult transformXQueryWithDebugSession(
+            String xmlContent, String inputSystemId, String xqueryContent, String querySystemId,
+            Map<String, Object> externalVariables, OutputFormat outputFormat, DebugSession session,
+            java.util.function.Consumer<XsltTransformationResult.TransformationMessage> liveMessages) {
+        long startTime = System.currentTimeMillis();
+        XsltDebugTraceListener traceListener = new XsltDebugTraceListener(session);
+        XsltDebugMessageListener messageListener = new XsltDebugMessageListener();
+        messageListener.setSink(liveMessages);
+        Processor processor = getDebugProcessor();
+        try {
+            XQueryCompiler compiler = processor.newXQueryCompiler();
+            compiler.setCompileWithTracing(true);
+            if (querySystemId != null && !querySystemId.isBlank()) {
+                compiler.setBaseURI(java.net.URI.create(querySystemId));
+            }
+            List<XmlProcessingError> staticErrors = new ArrayList<>();
+            compiler.setErrorReporter(error -> {
+                if (!error.isWarning()) {
+                    staticErrors.add(error);
+                }
+                messageListener.reportError(error);
+            });
+            XQueryExecutable executable;
+            try {
+                executable = compiler.compile(xqueryContent == null ? "" : xqueryContent);
+            } catch (SaxonApiException e) {
+                XmlProcessingError first = staticErrors.isEmpty() ? null : staticErrors.get(0);
+                String where = first == null ? at(e.getLineNumber(), -1) : at(first);
+                String code = first != null && first.getErrorCode() != null
+                        ? first.getErrorCode().getLocalName() : localCode(e.getErrorCode());
+                XsltTransformationResult failure = XsltTransformationResult.error("XQuery compilation failed" + where
+                        + bracket(code) + ": " + (first != null ? first.getMessage() : e.getMessage()), code, null);
+                failure.setMessages(messageListener.getMessages());
+                return failure;
+            }
+            XQueryEvaluator evaluator = executable.load();
+            if (externalVariables != null) {
+                for (Map.Entry<String, Object> entry : externalVariables.entrySet()) {
+                    evaluator.setExternalVariable(new QName(entry.getKey()), convertToXdmValue(entry.getValue()));
+                }
+            }
+            if (xmlContent != null && !xmlContent.isBlank()) {
+                try {
+                    evaluator.setContextItem(parseXmlDocument(processor, xmlContent, inputSystemId));
+                } catch (SaxonApiException e) {
+                    return inputFailure(e);
+                }
+            }
+            evaluator.setTraceListener(traceListener);
+            traceListener.setTraceSink(liveMessages);
+            evaluator.setErrorReporter(error -> {
+                messageListener.reportError(error);
+                traceListener.onError(error); // "break on errors": pause with the failing state
+            });
+            evaluator.setTraceFunctionDestination(new net.sf.saxon.lib.Logger() {
+                @Override
+                public void println(String message, int severity) {
+                    if (liveMessages != null) {
+                        liveMessages.accept(new XsltTransformationResult.TransformationMessage("INFO", message, -1, "trace()"));
+                    }
+                }
+            });
+
+            OutputFormat format = detectXQueryOutputFormat(xqueryContent, outputFormat);
+            StringWriter outputWriter = new StringWriter();
+            Serializer serializer = processor.newSerializer(outputWriter);
+            configureSerializer(serializer, format);
+            session.setOutputProbe(outputWriter::toString);
+            session.setOutputLength(() -> outputWriter.getBuffer().length());
+
+            TransformationProfile profile = new TransformationProfile();
+            profile.startTransformation();
+            try {
+                evaluator.run(serializer);
+            } catch (XsltDebugStopException stop) {
+                return XsltTransformationResult.error("Debug session stopped");
+            } catch (SaxonApiException e) {
+                if (e.getCause() instanceof XsltDebugStopException) {
+                    return XsltTransformationResult.error("Debug session stopped");
+                }
+                XsltTransformationResult failure = runtimeFailure(e);
+                failure.setMessages(messageListener.getMessages());
+                return failure;
+            }
+            profile.endTransformation();
+            profile.setOutputSize(outputWriter.toString().length());
+            XsltTransformationResult result = XsltTransformationResult.success(outputWriter.toString(), format, profile);
+            result.setExecutionTime(System.currentTimeMillis() - startTime);
+            result.setCallStack(traceListener.getCallStack());
+            result.setMessages(messageListener.getMessages());
+            return result;
+        } catch (RuntimeException e) {
+            if (e instanceof XsltDebugStopException || e.getCause() instanceof XsltDebugStopException) {
+                return XsltTransformationResult.error("Debug session stopped");
+            }
+            logger.error("Unexpected error during debug XQuery run", e);
+            return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
+        } finally {
+            session.setOutputProbe(null);
+            session.setOutputLength(null);
             if (session.getState() != DebugSession.State.STOPPED) {
                 session.close();
             }

@@ -56,6 +56,20 @@ public final class XsltDebugController {
     private volatile String runToOnStartPath;
     private volatile int runToOnStartLine;
 
+    /** What a run debugs. */
+    public enum Language { XSLT, XQUERY }
+
+    private volatile Language language = Language.XSLT;
+
+    /** Debugs the next runs as XSLT (default) or XQuery. */
+    public void setLanguage(Language language) {
+        this.language = language == null ? Language.XSLT : language;
+    }
+
+    public Language getLanguage() {
+        return language;
+    }
+
     /** Uses the shared application executor. */
     public XsltDebugController() {
         this(org.fxt.freexmltoolkit.FxtGui.executorService);
@@ -198,6 +212,8 @@ public final class XsltDebugController {
         final String mainPath = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(args.xsltSystemId());
         final String mainText = lastXslt;
         session.setMainSourcePath(mainPath);
+        final Language runLanguage = language;
+        session.setTagLineMapping(runLanguage == Language.XSLT);
         session.setSourceTexts(path -> {
             String text = moduleSnapshot.get(path);
             if (text == null && (path.isEmpty() || path.equals(mainPath))) {
@@ -225,9 +241,13 @@ public final class XsltDebugController {
         executor.execute(() -> {
             XsltTransformationResult result;
             try {
-                result = XsltTransformationEngine.getInstance().transformWithDebugSession(
-                        args.xml(), args.inputSystemId(), lastXslt, args.xsltSystemId(), args.parameters(),
-                        args.format(), session, this::publishMessage, moduleSnapshot::get);
+                result = runLanguage == Language.XQUERY
+                        ? XsltTransformationEngine.getInstance().transformXQueryWithDebugSession(
+                                args.xml(), args.inputSystemId(), lastXslt, args.xsltSystemId(), args.parameters(),
+                                args.format(), session, this::publishMessage)
+                        : XsltTransformationEngine.getInstance().transformWithDebugSession(
+                                args.xml(), args.inputSystemId(), lastXslt, args.xsltSystemId(), args.parameters(),
+                                args.format(), session, this::publishMessage, moduleSnapshot::get);
             } catch (RuntimeException e) {
                 logger.warn("Debug run failed unexpectedly", e);
                 result = XsltTransformationResult.error("Debug run failed: " + e.getMessage());

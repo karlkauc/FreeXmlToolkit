@@ -217,4 +217,25 @@ class EditorHostDebugInputTest {
                 () -> host.toggleInputNodeBreakpoint(inputDocument(in), xml, caret)), "the second toggle removes it");
         assertTrue(session.getSymbolBreakpoints().isEmpty());
     }
+
+    @Test
+    void anXQueryFileIsDebuggedAsXQuery(@TempDir Path tmp) throws Exception {
+        Path xq = tmp.resolve("count.xq");
+        Files.writeString(xq, "let $items := //item\n"   // 1
+                + "for $i in $items\n"                    // 2
+                + "return\n"                              // 3
+                + "  <n>{ string($i/@n) }</n>\n");        // 4
+        org.fxt.freexmltoolkit.debugger.BreakpointStore.save(xq.toString(),
+                java.util.List.of(new org.fxt.freexmltoolkit.debugger.Breakpoint(xq.toString(), 4, true)));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.startXsltDebug(xq.toFile(), XML, Map.of(), OutputFormat.XML));
+        DebugSession session = pausedSession();
+        assertEquals(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.XQUERY,
+                host.activeDebugPane().getController().getLanguage());
+        assertEquals(4, session.getPausedSnapshot().lineNumber());
+        assertTrue(session.getPausedSnapshot().localVariables().keySet().stream()
+                .anyMatch(q -> q.getLocalName().equals("i")), "the for variable is shown");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeDebugPane().onContinue());
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> host.activeDebugPane().getOutputView().getText().contains("<n>1</n>"));
+    }
 }
