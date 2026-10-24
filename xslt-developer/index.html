@@ -1677,6 +1677,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#template-function-and-mode-breakpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template, Function and Mode Breakpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#break-on-errors-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2792,6 +2803,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#template-function-and-mode-breakpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template, Function and Mode Breakpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#break-on-errors-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3444,6 +3466,45 @@ in <em>Breakpoint Properties</em>:</p>
 <li>Condition and hit count apply: the message is written at the hits that pass both.</li>
 <li>In the gutter a logpoint is a <strong>diamond</strong> - blue when it only logs, red when it also pauses.</li>
 </ul>
+<h4 id="template-function-and-mode-breakpoints">Template, Function and Mode Breakpoints<a class="headerlink" href="#template-function-and-mode-breakpoints" title="Permanent link">&para;</a></h4>
+<p>To stop whenever a component runs - wherever it is defined, also in included modules - use
+<strong>Template…</strong> in the Breakpoints panel. Choose what to break on and its name (the dialog
+suggests the names declared in the stylesheet and its modules):</p>
+<table>
+<thead>
+<tr>
+<th>Break on</th>
+<th>Pauses when</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Template rule (match)</strong></td>
+<td>a template with that match pattern is entered</td>
+<td><code>item</code>, <code>order/line[@qty]</code></td>
+</tr>
+<tr>
+<td><strong>Named template</strong></td>
+<td>the named template is called</td>
+<td><code>footer</code></td>
+</tr>
+<tr>
+<td><strong>Function</strong></td>
+<td>the function is called</td>
+<td><code>f:total</code> or just <code>total</code> (any prefix)</td>
+</tr>
+<tr>
+<td><strong>Any template in mode</strong></td>
+<td>a template runs in that mode</td>
+<td><code>summary</code></td>
+</tr>
+</tbody>
+</table>
+<p>Patterns compare without spaces. These breakpoints are listed under <em>Templates &amp; functions</em>
+below the line breakpoints (checkbox to disable, <strong>Delete</strong> to remove), are saved with the main
+stylesheet, pause even when the template has no line breakpoint, and are silenced by <strong>Mute</strong>.
+The status names what was entered (<em>· template match="item"</em>).</p>
 <h4 id="break-on-errors-and-messages">Break on Errors and Messages<a class="headerlink" href="#break-on-errors-and-messages" title="Permanent link">&para;</a></h4>
 <p>The Breakpoints panel's <strong>Break on ▾</strong> menu pauses the run independent of line breakpoints:</p>
 <table>
