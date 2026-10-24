@@ -3231,8 +3231,9 @@ there, otherwise the active document) - exactly as for <strong>Run Transform</st
   main stylesheet - the run pauses there. The debugger scans the main stylesheet's
   <code>xsl:include</code> / <code>xsl:import</code> hrefs at start to pick them up; a module it could not find that
   way joins as soon as it is opened during the session (pause, jump, or opening it yourself).</li>
-<li>The <strong>Breakpoints</strong> panel lists every breakpoint of the session (file · line) with <strong>Remove</strong>
-  and <strong>Clear all</strong>. Double-click an entry to jump to that line.</li>
+<li>The <strong>Breakpoints</strong> panel lists every breakpoint of the session (file · line); <strong>Remove</strong> and
+  <strong>Clear all</strong> sit in a small toolbar above the list, and the <strong>Delete</strong> key removes the
+  selected entry. Double-click an entry to jump to that line.</li>
 <li>Breakpoints are anchored to line numbers: inserting or deleting lines above one does not move it.</li>
 </ul>
 <h3 id="starting-and-stepping">Starting and Stepping<a class="headerlink" href="#starting-and-stepping" title="Permanent link">&para;</a></h3>
@@ -3293,7 +3294,14 @@ the header - switch it off to run straight to the first breakpoint). The header 
 The paused line is <strong>tinted</strong> in the editor and a green arrow marks it in the gutter; a hit
 breakpoint shows a yellow arrow over the red circle.</p>
 <h3 id="inspecting-state">Inspecting State<a class="headerlink" href="#inspecting-state" title="Permanent link">&para;</a></h3>
-<p>When execution is paused, five panels show the live state of the transformation:</p>
+<p>Below the header, the paused state is shown in <strong>two tab groups</strong> side by side: <strong>Variables |
+Watch</strong> on the left (the state at the pause point), <strong>Call Stack | Messages | Breakpoints</strong> on
+the right (navigation and log). Drag the divider between the groups to give one side more room -
+the position is remembered. <strong>Messages</strong> and <strong>Breakpoints</strong> show a <strong>count badge</strong> on their tab;
+Messages is highlighted when output arrives while another tab of its group is in front, and a
+<strong>failed run brings Messages to the front</strong> so the error is readable at once. Long values in
+Variables and Watch show in full as a tooltip; in Watch and Breakpoints the <strong>Delete</strong> key
+removes the selected row.</p>
 <table>
 <thead>
 <tr>
@@ -3307,12 +3315,12 @@ breakpoint shows a yellow arrow over the red circle.</p>
 <td>The context item (<code>.</code>), <code>position()</code> / <code>last()</code>, every local variable in scope, and every global variable evaluated so far - with their real values and XDM types (globals not yet evaluated are not forced, that would change the evaluation order)</td>
 </tr>
 <tr>
-<td><strong>Call Stack</strong></td>
-<td>Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module</td>
+<td><strong>Watch</strong></td>
+<td>Your XPath expressions, evaluated <strong>against the paused context item</strong> with all variables in scope: <code>count(item)</code>, <code>$total</code>, <code>string(@id)</code>, <code>position()</code>; the stylesheet's namespace prefixes are available. Type an expression into the field above the table and press <strong>Add</strong>; <strong>Remove</strong> (or the Delete key) drops the selected one. Re-evaluated at every pause; errors are shown in the row</td>
 </tr>
 <tr>
-<td><strong>Watch</strong></td>
-<td>Your XPath expressions, evaluated <strong>against the paused context item</strong> with all variables in scope: <code>count(item)</code>, <code>$total</code>, <code>string(@id)</code>, <code>position()</code>; the stylesheet's namespace prefixes are available. Re-evaluated at every pause; errors are shown in the row</td>
+<td><strong>Call Stack</strong></td>
+<td>Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module</td>
 </tr>
 <tr>
 <td><strong>Messages</strong></td>
@@ -3320,7 +3328,7 @@ breakpoint shows a yellow arrow over the red circle.</p>
 </tr>
 <tr>
 <td><strong>Breakpoints</strong></td>
-<td>All breakpoints of the session, see above</td>
+<td>All breakpoints of the session with <strong>Remove</strong> / <strong>Clear all</strong> above the list, see above</td>
 </tr>
 </tbody>
 </table>
