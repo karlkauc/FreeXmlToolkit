@@ -3356,6 +3356,11 @@ there, otherwise the active document) - exactly as for <strong>Run Transform</st
 <li><strong>Mute</strong> in the DEBUG header switches all breakpoints off at once for the session (they are
   drawn hollow); stepping and pausing still work. Muting is not saved - the breakpoints'
   enabled state is.</li>
+<li>When a run <strong>completes</strong>, breakpoints it <strong>never reached</strong> are flagged: their gutter dot turns
+  <strong>amber</strong> and the Breakpoints panel marks the row <em>⚠ … not reached in the last run</em>. Usually
+  the line has no instruction Saxon traces (a closing tag, a comment, an attribute on its own
+  line) - move the breakpoint to the instruction's first line - or the code there did not run
+  for this input. A stopped or failed run flags nothing; the next run clears the flags.</li>
 <li>A breakpoint stops <strong>once per execution of its line</strong>: an instruction nested inside another one
   on the same line (e.g. <code>&lt;x&gt;&lt;xsl:value-of select="@n"/&gt;&lt;/x&gt;</code>) does not stop the run a second
   time. Stepping (Step Into) still visits every instruction.</li>
