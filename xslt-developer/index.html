@@ -3348,6 +3348,14 @@ there, otherwise the active document) - exactly as for <strong>Run Transform</st
   all</strong> sit in a small toolbar above the list, and the <strong>Delete</strong> key removes the selected
   entry. Double-click an entry to jump to that line.</li>
 <li>Breakpoints are anchored to line numbers: inserting or deleting lines above one does not move it.</li>
+<li><strong>Disable</strong> a breakpoint to keep it (with its condition and hit rule) without it stopping the
+  run: untick its checkbox in the <strong>Breakpoints</strong> panel, or right-click its gutter slot →
+  <strong>Disable Breakpoint</strong> / <strong>Enable Breakpoint</strong>. A disabled breakpoint shows a <strong>hollow
+  marker</strong> in the gutter and a greyed row; it counts no hits. Clicking a hollow marker removes
+  the breakpoint, as for any other.</li>
+<li><strong>Mute</strong> in the DEBUG header switches all breakpoints off at once for the session (they are
+  drawn hollow); stepping and pausing still work. Muting is not saved - the breakpoints'
+  enabled state is.</li>
 <li>A breakpoint stops <strong>once per execution of its line</strong>: an instruction nested inside another one
   on the same line (e.g. <code>&lt;x&gt;&lt;xsl:value-of select="@n"/&gt;&lt;/x&gt;</code>) does not stop the run a second
   time. Stepping (Step Into) still visits every instruction.</li>
@@ -3426,6 +3434,11 @@ the header - switch it off to run straight to the first breakpoint). The header 
 <td>Resume until the next breakpoint</td>
 </tr>
 <tr>
+<td><strong>Pause</strong></td>
+<td>F6</td>
+<td>While the run is going: break in at the next instruction - e.g. to look into a long loop or an endless recursion without a breakpoint (the status reads <em>paused by request</em>)</td>
+</tr>
+<tr>
 <td><strong>Step Into</strong></td>
 <td>F7</td>
 <td>Step into the current instruction</td>
@@ -3451,6 +3464,11 @@ the header - switch it off to run straight to the first breakpoint). The header 
 <td>Abort the running transformation</td>
 </tr>
 <tr>
+<td><strong>Mute</strong></td>
+<td></td>
+<td>Toggle: the run does not stop at any breakpoint (steps still pause)</td>
+</tr>
+<tr>
 <td><strong>Show in editor</strong></td>
 <td></td>
 <td>Jump the editor to the currently paused line</td>
@@ -3462,7 +3480,9 @@ the header - switch it off to run straight to the first breakpoint). The header 
 </tr>
 </tbody>
 </table>
-<p>The keys only act while the debugger is paused; otherwise F5 and F8 keep their usual meaning.
+<p>The step keys only act while the debugger is paused and F6 only while it runs; otherwise F5 and
+F8 keep their usual meaning. A single long evaluation (one huge XPath expression) is not
+interrupted - Pause takes effect at the next instruction.
 The paused line is <strong>tinted</strong> in the editor and a green arrow marks it in the gutter; a hit
 breakpoint shows a yellow arrow over the red circle.</p>
 <h3 id="inspecting-state">Inspecting State<a class="headerlink" href="#inspecting-state" title="Permanent link">&para;</a></h3>

@@ -5172,9 +5172,9 @@ XSLT document (against the toolbar's <strong>Input</strong> target), the <strong
    yellow arrow on a breakpoint line). When Saxon pauses inside an included module, that
    file opens, with its own breakpoints in its gutter.</li>
 </ol>
-<p>The dock's header holds the controls - <strong>Continue</strong> (F5), <strong>Step Into</strong> (F7), <strong>Step Over</strong>
+<p>The dock's header holds the controls - <strong>Continue</strong> (F5), <strong>Pause</strong> (F6, breaks into a running transformation), <strong>Step Into</strong> (F7), <strong>Step Over</strong>
 (F8), <strong>Step Out</strong> (Shift+F8), <strong>Restart</strong> (runs again from the start with the same
-breakpoints, re-reading the stylesheet), <strong>Stop</strong>, <strong>Pause on entry</strong>, <strong>Show in editor</strong>
+breakpoints, re-reading the stylesheet), <strong>Stop</strong>, <strong>Pause on entry</strong>, <strong>Mute</strong> (all breakpoints off, steps still work), <strong>Show in editor</strong>
 and <strong>✕</strong> (ends the session). Below it, two tab groups show the paused state - <strong>Variables |
 Watch</strong> on the left, <strong>Call Stack | Messages | Breakpoints</strong> on the right, with a draggable
 divider whose position is remembered. Messages and Breakpoints carry a count badge; a failed
@@ -5205,7 +5205,7 @@ run brings Messages to the front. The five panels:</p>
 </tr>
 <tr>
 <td><strong>Breakpoints</strong></td>
-<td>All breakpoints of the session (file · line · condition · hit rule · hits of this run) with <strong>Remove</strong> / <strong>Edit…</strong> / <strong>Clear all</strong> above the list (Delete removes the selected one); double-click jumps to the line. Right-click a gutter slot for a <strong>conditional breakpoint</strong> (XPath, pauses only when true) or a <strong>hit count</strong> rule (exactly / from / every N-th hit) - <a href="../xslt-developer/#conditional-breakpoints">details</a></td>
+<td>All breakpoints of the session (checkbox = enabled · file · line · condition · hit rule · hits of this run) with <strong>Remove</strong> / <strong>Edit…</strong> / <strong>Clear all</strong> above the list (Delete removes the selected one); double-click jumps to the line. Right-click a gutter slot for a <strong>conditional breakpoint</strong> (XPath, pauses only when true) or a <strong>hit count</strong> rule (exactly / from / every N-th hit) - <a href="../xslt-developer/#conditional-breakpoints">details</a></td>
 </tr>
 </tbody>
 </table>
