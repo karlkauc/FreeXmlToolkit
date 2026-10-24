@@ -1662,6 +1662,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Setting Breakpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conditional-breakpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional Breakpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -2716,6 +2733,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Setting Breakpoints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#conditional-breakpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conditional Breakpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -3287,10 +3321,32 @@ there, otherwise the active document) - exactly as for <strong>Run Transform</st
   main stylesheet - the run pauses there. The debugger scans the main stylesheet's
   <code>xsl:include</code> / <code>xsl:import</code> hrefs at start to pick them up; a module it could not find that
   way joins as soon as it is opened during the session (pause, jump, or opening it yourself).</li>
-<li>The <strong>Breakpoints</strong> panel lists every breakpoint of the session (file · line); <strong>Remove</strong> and
-  <strong>Clear all</strong> sit in a small toolbar above the list, and the <strong>Delete</strong> key removes the
-  selected entry. Double-click an entry to jump to that line.</li>
+<li>The <strong>Breakpoints</strong> panel lists every breakpoint of the session (file · line, and its
+  condition); <strong>Remove</strong>, <strong>Condition…</strong> and <strong>Clear all</strong> sit in a small toolbar above the
+  list, and the <strong>Delete</strong> key removes the selected entry. Double-click an entry to jump to
+  that line.</li>
 <li>Breakpoints are anchored to line numbers: inserting or deleting lines above one does not move it.</li>
+</ul>
+<h4 id="conditional-breakpoints">Conditional Breakpoints<a class="headerlink" href="#conditional-breakpoints" title="Permanent link">&para;</a></h4>
+<p>A breakpoint can carry an <strong>XPath condition</strong>: the run pauses at that line only when the
+condition is true at that moment - for example <code>@id = '4711'</code> inside a template that runs for
+every item, <code>$total &gt; 1000</code>, or <code>position() = last()</code>.</p>
+<ul>
+<li><strong>Right-click the gutter slot</strong> of a line → <strong>Add Conditional Breakpoint…</strong> (a line without a
+  breakpoint), <strong>Add Condition…</strong> / <strong>Edit Condition…</strong> (a line with one), <strong>Remove Condition</strong>,
+  <strong>Remove Breakpoint</strong>. In the <strong>Breakpoints</strong> panel select an entry and press <strong>Condition…</strong>.</li>
+<li>An empty condition makes the breakpoint unconditional again.</li>
+<li>A conditional breakpoint shows a <strong>question-mark marker</strong> in the gutter; its tooltip names the
+  condition.</li>
+<li>The condition is evaluated <strong>like <code>xsl:if test</code></strong> (effective boolean value): the context item
+  and every variable in scope at that line are available, plus the stylesheet's namespace
+  prefixes. A non-empty node sequence is true, an empty one false.</li>
+<li>When the run pauses because of a condition, the status says so (<em>· condition: @id = '4711'</em>).
+  If the condition <strong>cannot be evaluated</strong> (a typo, an undeclared variable), the run <strong>pauses
+  anyway</strong> and the status shows the error in red - a broken condition never silently skips the
+  breakpoint.</li>
+<li>The condition is checked every time the line runs, so a breakpoint inside a large loop costs
+  time on each pass. Conditions are saved with the breakpoint (per file, like all breakpoints).</li>
 </ul>
 <h3 id="starting-and-stepping">Starting and Stepping<a class="headerlink" href="#starting-and-stepping" title="Permanent link">&para;</a></h3>
 <p>Without breakpoints the run <strong>pauses at the first instruction</strong> (<strong>Pause on entry</strong>, a toggle in
