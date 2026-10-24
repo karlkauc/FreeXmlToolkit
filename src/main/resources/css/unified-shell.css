@@ -1745,6 +1745,13 @@
     -fx-background-color: rgba(255, 193, 7, 0.13);
 }
 
+/* Variables / Watch: a value that changed since the previous pause in the same frame. */
+.fxt-debug-panel .table-cell.fxt-debug-changed,
+.fxt-debug-panel .tree-table-cell.fxt-debug-changed {
+    -fx-text-fill: -fxt-primary;
+    -fx-font-weight: bold;
+}
+
 /* Value viewer window (XSLT debugger): full value + XPath on it. */
 .fxt-value-viewer {
     -fx-background-color: -fxt-bg-surface;

@@ -610,6 +610,14 @@ Messages is highlighted when output arrives while another tab of its group is in
 **failed run brings Messages to the front** so the error is readable at once. In Watch and
 Breakpoints the **Delete** key removes the selected row.
 
+#### Changed Values
+
+Values that changed since the **previous pause in the same template or function** are shown in
+**bold blue** - in Variables (including variables that are new there) and in Watch. Pausing in
+the `item` template for the second item marks `$label` and `position()`, but not a global that
+stayed the same. The comparison is per frame: selecting an outer frame in Call Stack compares
+with that frame's previous pause. A new run starts without markers.
+
 #### Exploring Structured Values
 
 Variables is a **tree**: a node value unfolds into its **attributes and child nodes** (element →

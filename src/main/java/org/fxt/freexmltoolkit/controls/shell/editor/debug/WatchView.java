@@ -31,6 +31,10 @@ public class WatchView extends VBox {
     public static final class WatchRow {
         private final String expression;
         private String value = "<not evaluated>";
+        /** Whether the value differs from the previous pause in the same scope. */
+        private boolean changed;
+
+        public boolean isChanged() { return changed; }
 
         public WatchRow(String expression) {
             this.expression = expression;
@@ -61,7 +65,7 @@ public class WatchView extends VBox {
         table.getColumns().add(expression);
         table.setEditable(true);
         javafx.scene.control.TableColumn<WatchRow, String> value = DebugTableColumns.valueColumn("Value",
-                WatchRow::getValue, -1, r -> onOpenValue.accept(r));
+                WatchRow::getValue, -1, r -> onOpenValue.accept(r), WatchRow::isChanged);
         value.setEditable(false);
         table.getColumns().add(value);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -194,6 +198,22 @@ public class WatchView extends VBox {
      * results are applied back on the FX thread.
      */
     public void evaluateAll(PausedSnapshot snapshot) {
+        evaluateAll(snapshot, null);
+    }
+
+    /** Per scope key: expression → value at the previous pause (bounded). */
+    private final java.util.Map<String, ChangeTracker.History> previousByScope = ChangeTracker.newStore();
+
+    /** Forgets the values of earlier pauses (a new run). */
+    public void resetHistory() {
+        previousByScope.clear();
+    }
+
+    /**
+     * Like {@link #evaluateAll(PausedSnapshot)}; values that differ from the previous pause in the
+     * same {@code scopeKey} (the frame) are marked as changed ({@code null}: no marking).
+     */
+    public void evaluateAll(PausedSnapshot snapshot, String scopeKey) {
         this.lastSnapshot = snapshot;
         final List<WatchRow> rows = new ArrayList<>(table.getItems());
         if (rows.isEmpty()) {
@@ -204,6 +224,7 @@ public class WatchView extends VBox {
         if (snapshot == null || eval == null) {
             for (WatchRow row : rows) {
                 row.value = "<not paused>";
+                row.changed = false;
             }
             table.refresh();
             return;
@@ -221,8 +242,15 @@ public class WatchView extends VBox {
                 if (gen != generation) {
                     return;
                 }
+                java.util.Map<String, String> now = new java.util.HashMap<>();
                 for (int i = 0; i < rows.size(); i++) {
                     rows.get(i).value = values.get(i);
+                    now.put(rows.get(i).expression, rows.get(i).value);
+                }
+                java.util.Set<String> changedNow = scopeKey == null ? java.util.Set.of()
+                        : ChangeTracker.record(previousByScope, scopeKey, now, false);
+                for (WatchRow row : rows) {
+                    row.changed = changedNow.contains(row.expression);
                 }
                 table.refresh();
             });
@@ -235,6 +263,7 @@ public class WatchView extends VBox {
         ++generation;
         for (WatchRow row : table.getItems()) {
             row.value = text;
+            row.changed = false;
         }
         table.refresh();
     }

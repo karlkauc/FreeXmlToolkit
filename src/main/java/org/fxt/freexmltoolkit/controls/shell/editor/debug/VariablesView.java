@@ -106,7 +106,11 @@ public class VariablesView extends VBox {
         @Override
         protected void updateItem(String item, boolean empty) {
             super.updateItem(item, empty);
-            getStyleClass().remove("fxt-debug-value-cell");
+            getStyleClass().removeAll("fxt-debug-value-cell", CHANGED_CLASS);
+            VariableTree.Node node = empty || getTableRow() == null ? null : getTableRow().getItem();
+            if (node != null && node.binding() != null && changed.contains(node.name())) {
+                getStyleClass().add(CHANGED_CLASS);
+            }
             if (empty || item == null || item.isBlank()) {
                 setText(empty ? null : item);
                 setTooltip(null);
@@ -214,6 +218,30 @@ public class VariablesView extends VBox {
      * and array values unfold.
      */
     public void setVariables(List<VariableBinding> variables, Function<VariableBinding, XdmValue> valueOf) {
+        setVariables(variables, valueOf, null);
+    }
+
+    /** Style class of a value that changed since the previous pause in the same frame. */
+    public static final String CHANGED_CLASS = "fxt-debug-changed";
+
+    /** Per frame scope: the variable values shown at the previous pause (bounded). */
+    private final java.util.Map<String, ChangeTracker.History> previousByScope = ChangeTracker.newStore();
+    /** Names of the top-level rows whose value differs from the previous pause in this scope. */
+    private final java.util.Set<String> changed = new java.util.HashSet<>();
+
+    /**
+     * Shows the variables and marks the ones that changed since the previous pause in the same
+     * {@code scopeKey} (the template / function frame they belong to; {@code null}: no marking).
+     * A variable that is new in that scope counts as changed.
+     */
+    public void setVariables(List<VariableBinding> variables, Function<VariableBinding, XdmValue> valueOf,
+                             String scopeKey) {
+        changed.clear();
+        if (scopeKey != null && variables != null) {
+            java.util.Map<String, String> now = new java.util.LinkedHashMap<>();
+            variables.forEach(b -> now.put(b.name(), b.value()));
+            changed.addAll(ChangeTracker.record(previousByScope, scopeKey, now, true));
+        }
         root.getChildren().clear();
         if (variables != null) {
             for (VariableBinding b : variables) {
@@ -226,6 +254,17 @@ public class VariablesView extends VBox {
                 root.getChildren().add(new LazyItem(VariableTree.Node.of(b, value)));
             }
         }
+    }
+
+    /** @return the names of the rows marked as changed (tests). */
+    public java.util.Set<String> getChangedNames() {
+        return java.util.Set.copyOf(changed);
+    }
+
+    /** Forgets the values of earlier pauses (a new run). */
+    public void resetHistory() {
+        previousByScope.clear();
+        changed.clear();
     }
 
     public void clear() {

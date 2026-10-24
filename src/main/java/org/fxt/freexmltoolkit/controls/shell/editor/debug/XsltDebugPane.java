@@ -449,10 +449,11 @@ public final class XsltDebugPane extends VBox {
                             controller.getSession().resultDocuments(), controller.getSession().loadedDocuments());
                     // Selecting the innermost frame (setFrames) fills Variables and the watches.
                     watchView.setEvaluator(controller.getWatchEvaluator());
-                    variablesView.setVariables(snap.variables(), b -> resolveVariable(b, snap).value());
+                    variablesView.setVariables(snap.variables(), b -> resolveVariable(b, snap).value(),
+                            scopeKey(snap.callStack(), 0));
                     callStackView.setFrames(snap.callStack());
                     if (snap.callStack().isEmpty()) {
-                        watchView.evaluateAll(snap);
+                        watchView.evaluateAll(snap, scopeKey(snap.callStack(), 0));
                     }
                     String file = snap.hasFile() ? org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(snap.systemId()) + ":" : "line ";
                     String ctx = snap.contextItem().isEmpty() ? "" : "  ·  " + snap.contextItem();
@@ -502,6 +503,9 @@ public final class XsltDebugPane extends VBox {
     }
 
     private void onFinished(XsltTransformationResult result) {
+        // A new run starts without "changed" markers from this one.
+        variablesView.resetHistory();
+        watchView.resetHistory();
         if (result == null) {
             return;
         }
@@ -628,8 +632,9 @@ public final class XsltDebugPane extends VBox {
         if (frameScope == snap) {
             scope = snap;
             variablesView.setFrameInfo(null);
-            variablesView.setVariables(snap.variables(), b -> resolveVariable(b, snap).value());
-            watchView.evaluateAll(snap);
+            variablesView.setVariables(snap.variables(), b -> resolveVariable(b, snap).value(),
+                    scopeKey(snap.callStack(), 0));
+            watchView.evaluateAll(snap, scopeKey(snap.callStack(), 0));
             return;
         }
         String banner = "Frame " + (index + 1) + " of " + snap.callStack().size() + ":  "
@@ -644,8 +649,24 @@ public final class XsltDebugPane extends VBox {
             return;
         }
         scope = frameScope;
-        variablesView.setVariables(frameScope.variables(), b -> resolveVariable(b, frameScope).value());
-        watchView.evaluateAll(frameScope);
+        variablesView.setVariables(frameScope.variables(), b -> resolveVariable(b, frameScope).value(),
+                scopeKey(snap.callStack(), Math.max(0, index)));
+        watchView.evaluateAll(frameScope, scopeKey(snap.callStack(), Math.max(0, index)));
+    }
+
+    /**
+     * The key under which values of the frame at {@code from} are compared between pauses: the
+     * template or function frame it belongs to (its description and location), so a changed
+     * value means "changed in this template", not "differs from another template's variable".
+     */
+    static String scopeKey(List<DebugStackFrame> frames, int from) {
+        for (int i = Math.max(0, from); i < frames.size(); i++) {
+            DebugStackFrame f = frames.get(i);
+            if (f.kind() != DebugStackFrame.FrameKind.INSTRUCTION) {
+                return f.description() + "@" + f.filePath() + ":" + f.lineNumber();
+            }
+        }
+        return "@top";
     }
 
     /** A nested value from the Variables tree, evaluated (XPath) in the current scope. */

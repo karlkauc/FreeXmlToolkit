@@ -618,4 +618,42 @@ class XsltDebugPaneTest {
                         || controller.getSession().getStepTarget() != null);
         controller.stop();
     }
+
+    @Test
+    void valuesThatChangedSinceThePreviousPauseAreMarked() throws Exception {
+        String xslt = """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/"><out><xsl:apply-templates select="//item"/></out></xsl:template>
+                  <xsl:template match="item">
+                    <xsl:variable name="label" select="concat('#', .)"/>
+                    <x><xsl:value-of select="$label"/></x>
+                  </xsl:template>
+                </xsl:stylesheet>
+                """;
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            XsltDebugPane p = new XsltDebugPane(controller);
+            stage.setScene(new Scene(p, 900, 400));
+            stage.show();
+            p.getWatchView().addWatch("string(.)");
+            p.getWatchView().addWatch("count(//item)");
+            return p;
+        });
+        controller.getSession().addBreakpoint(new Breakpoint("", 5, true));
+        controller.setPauseOnEntry(false);
+        controller.start(XML, xslt, Map.of(), OutputFormat.XML); // two items: a, b
+
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> controller.getSession().getState() == DebugSession.State.PAUSED);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getWatchView().table().getItems().get(0).getValue().equals("a"));
+        assertEquals(java.util.Set.of(), pane.getVariablesView().getChangedNames(), "first pause: nothing to compare");
+
+        WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.onContinue());
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> controller.getSession().getState() == DebugSession.State.PAUSED
+                && pane.getWatchView().table().getItems().get(0).getValue().equals("b"));
+        // "." reads <item/> both times (its short text), so it is not marked.
+        assertEquals(java.util.Set.of("position()", "$label"), pane.getVariablesView().getChangedNames());
+        var rows = pane.getWatchView().table().getItems();
+        assertTrue(rows.get(0).isChanged(), "string(.) changed");
+        assertFalse(rows.get(1).isChanged(), "count(//item) did not");
+        controller.stop();
+    }
 }

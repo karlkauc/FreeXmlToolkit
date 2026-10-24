@@ -356,4 +356,34 @@ class DebugPanelsTest {
         assertEquals(List.of("$order/item[2]", "$order"), watched);
         assertEquals("$order/item[2]", opened.get().title(), "a nested row opens with its path");
     }
+
+    @Test
+    void variablesThatChangedSinceTheLastPauseInTheSameFrameAreMarked() {
+        java.util.List<java.util.Set<String>> marks = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            VariablesView view = new VariablesView();
+            java.util.List<java.util.Set<String>> out = new java.util.ArrayList<>();
+            view.setVariables(List.of(var("$n", "1"), var("$total", "10")), b -> null, "template item@a.xsl:3");
+            out.add(view.getChangedNames()); // first pause in this frame: nothing to compare
+            view.setVariables(List.of(var("$n", "2"), var("$total", "10"), var("$new", "x")), b -> null,
+                    "template item@a.xsl:3");
+            out.add(view.getChangedNames());
+            view.setVariables(List.of(var("$n", "9")), b -> null, "template other@a.xsl:9");
+            out.add(view.getChangedNames()); // another frame: compared with its own history only
+            view.setVariables(List.of(var("$n", "3")), b -> null, null);
+            out.add(view.getChangedNames()); // no scope: no marking
+            view.resetHistory();
+            view.setVariables(List.of(var("$n", "5")), b -> null, "template item@a.xsl:3");
+            out.add(view.getChangedNames()); // after a run: starts over
+            return out;
+        });
+        assertEquals(java.util.Set.of(), marks.get(0));
+        assertEquals(java.util.Set.of("$n", "$new"), marks.get(1), "changed and new values");
+        assertEquals(java.util.Set.of(), marks.get(2));
+        assertEquals(java.util.Set.of(), marks.get(3));
+        assertEquals(java.util.Set.of(), marks.get(4));
+    }
+
+    private static VariableBinding var(String name, String value) {
+        return new VariableBinding(name, value, "xs:string", VariableScope.LOCAL);
+    }
 }

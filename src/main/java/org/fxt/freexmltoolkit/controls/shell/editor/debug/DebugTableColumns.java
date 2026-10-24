@@ -62,6 +62,12 @@ public final class DebugTableColumns {
      */
     public static <T> TableColumn<T, String> valueColumn(String title,
             Function<T, String> value, double prefWidth, Consumer<T> onOpen) {
+        return valueColumn(title, value, prefWidth, onOpen, row -> false);
+    }
+
+    /** Like {@link #valueColumn(String, Function, double, Consumer)}; rows {@code changed} accepts get {@code fxt-debug-changed}. */
+    public static <T> TableColumn<T, String> valueColumn(String title,
+            Function<T, String> value, double prefWidth, Consumer<T> onOpen, java.util.function.Predicate<T> changed) {
         TableColumn<T, String> column = col(title, value, prefWidth);
         column.setCellFactory(c -> new TableCell<>() {
             private final Tooltip tip = new Tooltip();
@@ -79,7 +85,11 @@ public final class DebugTableColumns {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                getStyleClass().remove("fxt-debug-value-cell");
+                getStyleClass().removeAll("fxt-debug-value-cell", "fxt-debug-changed");
+                T row = empty || getTableRow() == null ? null : getTableRow().getItem();
+                if (row != null && changed.test(row)) {
+                    getStyleClass().add("fxt-debug-changed");
+                }
                 if (empty || item == null || item.isBlank()) {
                     setText(empty ? null : item);
                     setTooltip(null);
