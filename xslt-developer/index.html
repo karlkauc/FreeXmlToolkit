@@ -3756,7 +3756,7 @@ icons - hover one for its name and key:</p>
 <tr>
 <td><strong>Step Into</strong></td>
 <td>F7</td>
-<td>Step into the current instruction</td>
+<td>Step into the current instruction - the next stop is the next <strong>line</strong> that runs (inside a called template or function too)</td>
 </tr>
 <tr>
 <td><strong>Step Over</strong></td>
@@ -3805,6 +3805,9 @@ icons - hover one for its name and key:</p>
 </tr>
 </tbody>
 </table>
+<p>Steps move <strong>line by line</strong>: instructions nested on the paused line (a literal element with
+its <code>xsl:value-of</code> inside) do not stop again, and instructions without a source line are
+skipped. A line that runs again later (the next loop iteration, a recursive call) is a new stop.</p>
 <p>The step keys only act while the debugger is paused and F6 only while it runs; otherwise F5 and
 F8 keep their usual meaning. A single long evaluation (one huge XPath expression) is not
 interrupted - Pause takes effect at the next instruction.
