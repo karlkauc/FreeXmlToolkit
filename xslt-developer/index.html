@@ -3487,6 +3487,10 @@ came from).</p>
   (save it once - its file location anchors the breakpoints).</li>
 <li>Breakpoints match the <strong>file and line</strong>, so a line in <code>lib/a.xsl</code> never triggers a breakpoint
   set in another <code>a.xsl</code>.</li>
+<li>An instruction whose start tag spans <strong>several lines</strong> runs at the line where the start tag
+  <strong>ends</strong> (Saxon reports that line): for a multi-line <code>&lt;xsl:value-of select="…"/&gt;</code> set the
+  breakpoint on its last line. A breakpoint on an earlier line of the tag is never reached and
+  turns amber after the run.</li>
 <li>Breakpoints are <strong>persisted per file</strong>: they are back when you reopen or debug the same file,
   they survive <strong>Restart</strong>, and they stay in the gutter after the session ends.</li>
 <li>Breakpoints in <strong>included modules</strong> count too: open <code>lib/a.xsl</code>, set a breakpoint, debug the
@@ -3663,6 +3667,7 @@ every item, <code>$total &gt; 1000</code>, or <code>position() = last()</code>.<
 <p>The remainder is the XPath evaluation itself, roughly 4 µs per pass - a condition in a loop
   of a million items adds about four seconds. A debug run without any breakpoint takes 29 ms
   for the same loop.</p>
+<p><img alt="Breakpoint Properties: condition, hit count rule and log message" src="../img/xslt-debugger-breakpoint-properties.png" /></p>
 <h4 id="hit-counts">Hit Counts<a class="headerlink" href="#hit-counts" title="Permanent link">&para;</a></h4>
 <p>Every breakpoint <strong>counts its hits</strong> during a run - a hit is a pass of its line where its
 condition (if any) held. The count is shown in the <strong>Breakpoints</strong> panel (<em>· 5 hits</em>) and in the
@@ -3820,6 +3825,7 @@ Breakpoints on lines that never run cost nothing extra. Measured with <code>Debu
 <p>Variables, the call stack and the XSLT context are only collected when the run pauses, so
 stepping and hitting breakpoints do not slow the run between pauses.</p>
 <h3 id="inspecting-state">Inspecting State<a class="headerlink" href="#inspecting-state" title="Permanent link">&para;</a></h3>
+<p><img alt="The DEBUG dock paused at a conditional breakpoint: Variables with position() and last(), the call stack, Messages and Breakpoints" src="../img/xslt-debugger-paused.png" /></p>
 <p><strong>The context node in the input.</strong> At every pause the line of the current context node
 (<code>.</code>) is tinted <strong>blue</strong> in the input XML document - the stylesheet's paused line stays yellow
 and in front. <strong>Show input</strong> in the header switches to the input document at that line. The
@@ -3861,6 +3867,7 @@ value, Copy Value and the value window's XPath use the selected frame as well. S
 frame to return to the pause. <code>position()</code> / <code>last()</code> are shown for the innermost frame only.
 The 32 innermost frames carry values; a deeper frame shows an empty table with a note.</p>
 <h4 id="viewing-a-value-in-full">Viewing a Value in Full<a class="headerlink" href="#viewing-a-value-in-full" title="Permanent link">&para;</a></h4>
+<p><img alt="The value window: the paused context node pretty-printed, with an XPath result below" src="../img/xslt-debugger-value-viewer.png" /></p>
 <p>The Value column of <strong>Variables</strong> and <strong>Watch</strong> shows only the start of a value (a node can be
 thousands of characters long). <strong>Click a value</strong> - or select the row and press <strong>Enter</strong>, or
 right-click → <strong>Open Value…</strong> - to open it in its own <strong>value window</strong>:</p>
