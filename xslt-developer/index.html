@@ -1654,6 +1654,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#debug-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#setting-breakpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2780,6 +2791,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#debug-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#setting-breakpoints" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3416,6 +3438,21 @@ uses a Saxon processor of its own, so a normal transformation started during a p
 not affected. Started from the Transform panel, the input is the panel's <strong>INPUT</strong> (the file set
 there, otherwise the active document) - exactly as for <strong>Run Transform</strong>; started with
 <strong>Run ▾ → Debug Transform</strong> on an XSLT document, it is the toolbar's <strong>Input</strong> target.</p>
+<h3 id="debug-configuration">Debug Configuration<a class="headerlink" href="#debug-configuration" title="Permanent link">&para;</a></h3>
+<p><strong>Tools → Debug Configuration…</strong> (on a saved stylesheet) sets how it is debugged, saved per
+stylesheet:</p>
+<ul>
+<li><strong>Input</strong> - the <em>Run target</em> (the XML document the Run button uses) or a <strong>file</strong>.</li>
+<li><strong>Parameters</strong> - one <code>name=value</code> per line, passed as stylesheet parameters.</li>
+<li><strong>Output</strong> - automatic (from <code>xsl:output</code>) or XML / HTML / XHTML / TEXT / JSON.</li>
+<li><strong>Pause on entry, even with breakpoints</strong> - stop at the first instruction although
+  breakpoints are set (without breakpoints the run pauses on entry anyway).</li>
+</ul>
+<p><strong>Debug</strong> saves and starts the debugger, <strong>Save</strong> only saves. With a saved configuration,
+<strong>Debug with XSLT</strong> (Shift+F5) and <strong>Run ▾ → Debug Transform</strong> on that stylesheet use it.
+<strong>Tools → Re-run Last Debug</strong> (<strong>Ctrl+Shift+F5</strong>, ⌘⇧F5) repeats the last debug run with the same
+stylesheet, parameters and format, reading its input again (the file, or the open document it
+came from).</p>
 <h3 id="setting-breakpoints">Setting Breakpoints<a class="headerlink" href="#setting-breakpoints" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Every <strong>saved</strong> XSLT document has a breakpoint gutter in the editor's left margin, whether or
