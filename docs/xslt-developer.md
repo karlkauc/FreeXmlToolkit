@@ -433,6 +433,7 @@ the header - switch it off to run straight to the first breakpoint). The header 
 | Control | Key | Description |
 |---------|-----|-------------|
 | **Continue** | F5 | Resume until the next breakpoint |
+| **Pause** | F6 | While the run is going: break in at the next instruction - e.g. to look into a long loop or an endless recursion without a breakpoint (the status reads *paused by request*) |
 | **Step Into** | F7 | Step into the current instruction |
 | **Step Over** | F8 | Execute the current instruction without descending |
 | **Step Out** | Shift+F8 | Run until the current template/function returns |
@@ -442,7 +443,9 @@ the header - switch it off to run straight to the first breakpoint). The header 
 | **Show in editor** | | Jump the editor to the currently paused line |
 | **✕** | | End the session and close the DEBUG dock (OUTPUT stays) |
 
-The keys only act while the debugger is paused; otherwise F5 and F8 keep their usual meaning.
+The step keys only act while the debugger is paused and F6 only while it runs; otherwise F5 and
+F8 keep their usual meaning. A single long evaluation (one huge XPath expression) is not
+interrupted - Pause takes effect at the next instruction.
 The paused line is **tinted** in the editor and a green arrow marks it in the gutter; a hit
 breakpoint shows a yellow arrow over the red circle.
 

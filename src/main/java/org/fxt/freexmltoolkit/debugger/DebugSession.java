@@ -50,6 +50,8 @@ public class DebugSession implements BreakpointTarget {
     private volatile int stepTargetDepth = -1;
     private volatile PausedSnapshot pausedSnapshot;
     private volatile ConditionEvaluator conditionEvaluator;
+    /** Set by {@link #requestPause}; the next pause names it as its reason. */
+    private volatile boolean pauseRequested;
     /** All breakpoints muted (steps and pause requests still work); kept across restarts. */
     private volatile boolean muted;
     /**
@@ -225,6 +227,7 @@ public class DebugSession implements BreakpointTarget {
         stepMode = initialMode == null ? StepMode.NONE : initialMode;
         stepTargetDepth = -1;
         pausedSnapshot = null;
+        pauseRequested = false;
         hitCounts.clear();
         synchronized (firedLines) {
             firedLines.clear();
@@ -248,6 +251,24 @@ public class DebugSession implements BreakpointTarget {
     public void requestStepOut() {
         int currentDepth = pausedSnapshot != null ? pausedSnapshot.callStack().size() : 0;
         signalResume(StepMode.STEP_OUT, currentDepth - 1, State.RUNNING);
+    }
+
+    /**
+     * Pauses a running transformation at the next traced instruction ("Break"). Has no effect
+     * unless the run is {@link State#RUNNING}. A long single evaluation (one huge XPath) pauses
+     * only once it returns to the next instruction.
+     */
+    public void requestPause() {
+        pauseLock.lock();
+        try {
+            if (state == State.RUNNING) {
+                pauseRequested = true;
+                stepMode = StepMode.STEP_INTO;
+                stepTargetDepth = -1;
+            }
+        } finally {
+            pauseLock.unlock();
+        }
     }
 
     public void requestStop() {
@@ -373,6 +394,12 @@ public class DebugSession implements BreakpointTarget {
 
         if (snapshot == null) {
             snapshot = captureSnapshot(snapshotSupplier, systemId, line);
+        }
+        if (pauseRequested) {
+            pauseRequested = false;
+            if (note.isEmpty()) {
+                note = "paused by request";
+            }
         }
         this.pausedSnapshot = snapshot;
         this.pauseNote = note;

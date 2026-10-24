@@ -76,6 +76,7 @@ public final class XsltDebugPane extends VBox {
 
     @FXML private Label status;
     @FXML private Button continueButton;
+    @FXML private Button pauseButton;
     @FXML private Button stepIntoButton;
     @FXML private Button stepOverButton;
     @FXML private Button stepOutButton;
@@ -219,6 +220,7 @@ public final class XsltDebugPane extends VBox {
     // ----- header actions ---------------------------------------------------------------
 
     @FXML public void onContinue() { controller.continueRun(); }
+    @FXML public void onPause() { controller.pause(); }
     @FXML public void onStepInto() { controller.stepInto(); }
     @FXML public void onStepOver() { controller.stepOver(); }
     @FXML public void onStepOut() { controller.stepOut(); }
@@ -251,17 +253,26 @@ public final class XsltDebugPane extends VBox {
     }
 
     /**
-     * Debugger keys while a session is alive: F5 Continue, F7 Step Into, F8 Step Over,
-     * Shift+F8 Step Out (the step keys only while paused, so F8 keeps validating otherwise).
+     * Debugger keys while a session is alive: F5 Continue, F6 Pause (while running), F7 Step
+     * Into, F8 Step Over, Shift+F8 Step Out (the step keys only while paused, so F8 keeps
+     * validating otherwise).
      *
      * @return {@code true} if the key was handled
      */
     public boolean handleShortcut(KeyEvent event) {
-        boolean paused = controller.getSession().getState() == DebugSession.State.PAUSED;
-        if (!paused || event.isShortcutDown() || event.isAltDown()) {
+        DebugSession.State state = controller.getSession().getState();
+        boolean paused = state == DebugSession.State.PAUSED;
+        if (event.isShortcutDown() || event.isAltDown()) {
             return false;
         }
         KeyCode code = event.getCode();
+        if (code == KeyCode.F6 && !event.isShiftDown() && state == DebugSession.State.RUNNING) {
+            controller.pause();
+            return true;
+        }
+        if (!paused) {
+            return false;
+        }
         if (code == KeyCode.F5 && !event.isShiftDown()) {
             controller.continueRun();
             return true;
@@ -696,6 +707,7 @@ public final class XsltDebugPane extends VBox {
         boolean paused = state == DebugSession.State.PAUSED;
         boolean running = state == DebugSession.State.RUNNING;
         continueButton.setDisable(!paused);
+        pauseButton.setDisable(!running);
         stepIntoButton.setDisable(!paused);
         stepOverButton.setDisable(!paused);
         stepOutButton.setDisable(!paused);

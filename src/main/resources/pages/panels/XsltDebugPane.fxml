@@ -14,7 +14,7 @@
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <!--
-  The DEBUG pane of the editor's bottom dock: a header with the run controls (Continue, Step
+  The DEBUG pane of the editor's bottom dock: a header with the run controls (Continue, Pause, Step
   Into/Over/Out, Restart, Stop, Pause on entry, Show in editor, ✕ = end session) and the status
   line, above a two-way split of two tab groups: Variables | Watch on the left (the state you
   read on every pause), Call Stack | Messages | Breakpoints on the right (navigation and log).
@@ -34,6 +34,11 @@
                         styleClass="fxt-sp-action, fxt-output-action" onAction="#onContinue">
                     <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Continue to the next breakpoint (F5)"/></tooltip>
+                </Button>
+                <Button fx:id="pauseButton" id="debug-pause" text="Pause"
+                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onPause">
+                    <graphic><IconifyIcon iconLiteral="bi-pause-fill" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Break into the running transformation at its next instruction (F6)"/></tooltip>
                 </Button>
                 <Button fx:id="stepIntoButton" id="debug-step-into" text="Step Into"
                         styleClass="fxt-sp-action, fxt-output-action" onAction="#onStepInto">

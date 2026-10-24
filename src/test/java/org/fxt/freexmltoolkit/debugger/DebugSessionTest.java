@@ -468,4 +468,52 @@ class DebugSessionTest {
         session.setMuted(false);
         assertEquals(List.of(1, 2), passesThatPause(session, 2), "unmuted: back to normal");
     }
+
+    // ----- pause (break) -----------------------------------------------------------------
+
+    @Test
+    void pauseRequestBreaksIntoARunningLoop() throws InterruptedException {
+        DebugSession session = new DebugSession();
+        session.startSession();
+        java.util.concurrent.atomic.AtomicBoolean keepRunning = new java.util.concurrent.atomic.AtomicBoolean(true);
+        java.util.concurrent.atomic.AtomicInteger instructions = new java.util.concurrent.atomic.AtomicInteger();
+        CountDownLatch paused = new CountDownLatch(1);
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) paused.countDown();
+        });
+        Thread saxon = new Thread(() -> {
+            while (keepRunning.get()) { // an endless recursion / loop without breakpoints
+                int line = 10 + instructions.incrementAndGet() % 3;
+                if (!session.checkAndPause("loop.xsl", line, 5, () -> emptySnapshot(line))) {
+                    return;
+                }
+            }
+        }, "test-saxon");
+        saxon.start();
+        Thread.sleep(50);
+        assertEquals(DebugSession.State.RUNNING, session.getState(), "no breakpoint: it just runs");
+        session.requestPause();
+        assertTrue(paused.await(AWAIT_MS, TimeUnit.MILLISECONDS), "Pause breaks in at the next instruction");
+        assertEquals("paused by request", session.getPauseNote());
+        assertNotNull(session.getPausedSnapshot());
+
+        // Continue runs on without pausing again.
+        int before = instructions.get();
+        session.requestContinue();
+        Thread.sleep(50);
+        assertEquals(DebugSession.State.RUNNING, session.getState());
+        assertTrue(instructions.get() > before + 1, "running again");
+        keepRunning.set(false);
+        session.requestStop();
+        saxon.join(AWAIT_MS);
+        assertFalse(saxon.isAlive());
+    }
+
+    @Test
+    void pauseRequestIsIgnoredWhenNotRunning() {
+        DebugSession session = new DebugSession();
+        session.requestPause();
+        assertEquals(DebugSession.State.IDLE, session.getState());
+        assertEquals(DebugSession.StepMode.NONE, session.getStepMode(), "no step armed while idle");
+    }
 }

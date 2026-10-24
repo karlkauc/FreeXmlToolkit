@@ -211,6 +211,8 @@ public final class XsltDebugController {
     public void stepOver()    { session.requestStepOver(); }
     public void stepOut()     { session.requestStepOut(); }
     public void stop()        { restartPending = false; session.requestStop(); }
+    /** Breaks into a running transformation at its next instruction. */
+    public void pause()       { session.requestPause(); }
 
     /** Aborts any in-flight run and resets the session. */
     public void close() {

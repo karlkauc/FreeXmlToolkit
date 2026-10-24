@@ -68,7 +68,7 @@ class XsltDebugPaneTest {
         assertNotNull(pane.getCallStackView());
         assertNotNull(pane.getWatchView());
         assertNotNull(pane.getMessagesView());
-        for (String id : new String[]{"#debug-continue", "#debug-step-into", "#debug-step-over", "#debug-step-out",
+        for (String id : new String[]{"#debug-continue", "#debug-pause", "#debug-step-into", "#debug-step-over", "#debug-step-out",
                 "#debug-restart", "#debug-stop", "#debug-pause-on-entry", "#debug-mute", "#debug-show-in-editor",
                 "#debug-close"}) {
             assertNotNull(pane.lookup(id), id + " must be in the header");
@@ -383,5 +383,42 @@ class XsltDebugPaneTest {
         WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
                 () -> ((javafx.scene.control.ToggleButton) pane.lookup("#debug-mute")).fire());
         assertFalse(controller.getSession().isMuted());
+    }
+
+    @Test
+    void f6PausesALongRunningLoop() throws Exception {
+        // A long loop without breakpoints (no recursion: that would end in a stack overflow).
+        String xslt = """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/">
+                    <out>
+                      <xsl:for-each select="1 to 100000000">
+                        <xsl:if test=". = 0"><x/></xsl:if>
+                      </xsl:for-each>
+                    </out>
+                  </xsl:template>
+                </xsl:stylesheet>
+                """;
+        XsltDebugPane pane = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> {
+            XsltDebugPane p = new XsltDebugPane(controller);
+            stage.setScene(new Scene(p, 900, 400));
+            stage.show();
+            return p;
+        });
+        controller.setPauseOnEntry(false);
+        controller.start(XML, xslt, Map.of(), OutputFormat.XML);
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> controller.getSession().getState() == DebugSession.State.RUNNING);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> !pane.lookup("#debug-pause").isDisabled());
+        boolean handled = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.handleShortcut(
+                new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F6, false, false, false, false)));
+        assertTrue(handled, "F6 is Pause while running");
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> controller.getSession().getState() == DebugSession.State.PAUSED);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getStatusText().contains("paused by request"));
+        assertTrue(pane.lookup("#debug-pause").isDisabled(), "Pause is off while paused");
+        assertFalse(pane.lookup("#debug-continue").isDisabled());
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getCallStackView().getRowCount() > 0);
+        controller.stop();
     }
 }
