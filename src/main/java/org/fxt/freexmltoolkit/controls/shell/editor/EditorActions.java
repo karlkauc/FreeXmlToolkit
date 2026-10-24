@@ -325,6 +325,9 @@ public final class EditorActions {
             return;
         }
         String xslt = editorHost.getActiveText().orElse("");
+        if (resolved.get().file() != null) {
+            editorHost.setDebugInputFile(resolved.get().file().toPath());
+        }
         editorHost.startXsltDebug(doc.getPath().toFile(), xml, Map.of(),
                 TransformRunner.detectXsltOutputFormat(xslt));
     }

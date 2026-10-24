@@ -353,6 +353,9 @@ public class TransformPanel extends VBox {
         } catch (Exception e) {
             format = chosenFormat(OutputFormat.XML);
         }
+        if (inputOverride != null) {
+            editorHost.setDebugInputFile(inputOverride.toPath()); // else: matched to the active document
+        }
         editorHost.startXsltDebug(xsltFile, xml, collectParameters(), format);
     }
 

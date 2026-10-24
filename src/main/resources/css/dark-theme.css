@@ -290,6 +290,12 @@
   -fx-background-color: #4a3d12;
 }
 
+/* The XSLT debugger's context node in an input document. */
+.root.fxt-theme-dark .code-area .debug-input-line,
+.root.fxt-theme-dark .code-area .paragraph-text.debug-input-line {
+  -fx-background-color: #13304f;
+}
+
 /* Plain text without a syntax class (element content such as <xs:documentation> text)
    would otherwise keep RichTextFX's default black fill. Declared BEFORE the syntax palette
    below so the equally specific syntax rules still win their ties. */

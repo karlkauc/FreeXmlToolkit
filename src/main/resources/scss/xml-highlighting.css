@@ -80,6 +80,12 @@
     -fx-background-color: #fff1b8;
 }
 
+/* The XSLT debugger's current context node in an input document (blue, distinct from the
+   stylesheet's yellow execution line). */
+.debug-input-line {
+    -fx-background-color: #d6e9ff;
+}
+
 /* ==================== V2 XML Syntax Highlighting ==================== */
 
 /* XML Tags (opening/closing) */

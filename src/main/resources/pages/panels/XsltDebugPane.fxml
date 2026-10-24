@@ -9,7 +9,6 @@
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
@@ -27,56 +26,61 @@
     <children>
         <HBox spacing="6" alignment="CENTER_LEFT" styleClass="fxt-output-header">
             <children>
-                <Label text="DEBUG" styleClass="fxt-output-title"/>
-                <Label fx:id="status" id="debug-status" text="Ready." styleClass="fxt-output-status"/>
-                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="DEBUG" styleClass="fxt-output-title" minWidth="-Infinity"/>
+                <Label fx:id="status" id="debug-status" text="Ready." styleClass="fxt-output-status"
+                       HBox.hgrow="ALWAYS" maxWidth="Infinity" minWidth="60"/>
                 <Button fx:id="continueButton" id="debug-continue" text="Continue"
-                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onContinue">
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onContinue">
                     <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Continue to the next breakpoint (F5)"/></tooltip>
                 </Button>
                 <Button fx:id="pauseButton" id="debug-pause" text="Pause"
-                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onPause">
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onPause">
                     <graphic><IconifyIcon iconLiteral="bi-pause-fill" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Break into the running transformation at its next instruction (F6)"/></tooltip>
                 </Button>
                 <Button fx:id="stepIntoButton" id="debug-step-into" text="Step Into"
-                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onStepInto">
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStepInto">
                     <graphic><IconifyIcon iconLiteral="bi-box-arrow-in-down-right" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Step into the current instruction (F7)"/></tooltip>
                 </Button>
                 <Button fx:id="stepOverButton" id="debug-step-over" text="Step Over"
-                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onStepOver">
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStepOver">
                     <graphic><IconifyIcon iconLiteral="bi-arrow-right-short" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Execute the current instruction without descending (F8)"/></tooltip>
                 </Button>
                 <Button fx:id="stepOutButton" id="debug-step-out" text="Step Out"
-                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onStepOut">
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStepOut">
                     <graphic><IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Run until the current template / function returns (Shift+F8)"/></tooltip>
                 </Button>
                 <Button fx:id="restartButton" id="debug-restart" text="Restart"
-                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onRestart">
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onRestart">
                     <graphic><IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Run again from the start, keeping the breakpoints (re-reads the stylesheet)"/></tooltip>
                 </Button>
                 <Button fx:id="stopButton" id="debug-stop" text="Stop"
-                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onStop">
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStop">
                     <graphic><IconifyIcon iconLiteral="bi-stop-fill" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Abort the running transformation"/></tooltip>
                 </Button>
-                <CheckBox fx:id="pauseOnEntry" id="debug-pause-on-entry" text="Pause on entry" onAction="#onPauseOnEntry">
+                <CheckBox fx:id="pauseOnEntry" id="debug-pause-on-entry" text="Pause on entry" minWidth="-Infinity" onAction="#onPauseOnEntry">
                     <tooltip><Tooltip text="Stop at the first instruction of the next run / restart"/></tooltip>
                 </CheckBox>
                 <ToggleButton fx:id="muteToggle" id="debug-mute" text="Mute"
-                              styleClass="fxt-sp-action, fxt-output-action" onAction="#onMute">
+                              styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onMute">
                     <graphic><IconifyIcon iconLiteral="bi-slash-circle" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Mute all breakpoints: the run does not stop at them (steps and Pause still work)"/></tooltip>
                 </ToggleButton>
                 <Button fx:id="showButton" id="debug-show-in-editor" text="Show in editor"
-                        styleClass="fxt-sp-action, fxt-output-action" onAction="#onShowInEditor">
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onShowInEditor">
                     <graphic><IconifyIcon iconLiteral="bi-eye" iconSize="14"/></graphic>
                     <tooltip><Tooltip text="Jump the editor to the paused line"/></tooltip>
+                </Button>
+                <Button fx:id="showInputButton" id="debug-show-input" text="Show input"
+                        styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onShowInput">
+                    <graphic><IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="14"/></graphic>
+                    <tooltip><Tooltip text="Show the paused context node in the input document (marked blue there)"/></tooltip>
                 </Button>
                 <Button fx:id="closeButton" id="debug-close" styleClass="fxt-sp-action" onAction="#onClose">
                     <graphic><IconifyIcon iconLiteral="bi-x" iconSize="14"/></graphic>

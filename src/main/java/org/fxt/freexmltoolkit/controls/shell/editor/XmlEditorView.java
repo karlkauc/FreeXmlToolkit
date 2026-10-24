@@ -98,6 +98,11 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public void setDebugInputLine(int line1Based) {
+        editor.setDebugInputLine(line1Based);
+    }
+
+    @Override
     public void setDebugCurrentLine(int line1Based) {
         editor.setDebugCurrentLine(line1Based);
     }

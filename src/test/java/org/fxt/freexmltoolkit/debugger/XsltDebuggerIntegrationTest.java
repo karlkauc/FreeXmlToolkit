@@ -499,4 +499,31 @@ class XsltDebuggerIntegrationTest {
         assertFalse(session.notReachedInLastRun("", 3), "the value-of line is hit");
         assertTrue(session.notReachedInLastRun("", 4), "the comment line has nothing to trace");
     }
+
+    @Test
+    void inputNodesReportTheInputFileAndLine() throws Exception {
+        String xml = "<order>\n  <item n=\"1\"/>\n  <item n=\"2\"/>\n</order>\n";
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"item\">\n"                                                         // 3
+                + "    <x><xsl:value-of select=\"@n\"/></x>\n"                                               // 4
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.toggleBreakpoint("", 4);
+        java.util.List<InputLocation> locations = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                InputLocation.of(session.getPausedSnapshot().contextXdm()).ifPresent(locations::add);
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, "file:/tmp/debug-input.xml", xslt, null, new HashMap<>(),
+                XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertEquals(java.util.List.of(new InputLocation("file:/tmp/debug-input.xml", 2),
+                new InputLocation("file:/tmp/debug-input.xml", 3)), locations);
+    }
 }

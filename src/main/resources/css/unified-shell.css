@@ -1644,6 +1644,14 @@
     -fx-alignment: center-left;
 }
 
+/* DEBUG header: run controls are icons only (the tooltips name them and their keys), so
+   the status line keeps the room even in a narrow window. */
+.fxt-output-header .button.fxt-debug-icon-action,
+.fxt-output-header .toggle-button.fxt-debug-icon-action {
+    -fx-content-display: graphic-only;
+    -fx-padding: 3 5 3 5;
+}
+
 /* DEBUG status while paused because a breakpoint condition failed to evaluate. */
 .fxt-output-status.fxt-debug-condition-error {
     -fx-text-fill: -fxt-danger;

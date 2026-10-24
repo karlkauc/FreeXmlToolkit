@@ -3108,6 +3108,12 @@ public class EditorHost extends BorderPane {
         final java.util.Map<String, DebugModule> modules = new java.util.LinkedHashMap<>();
         /** Normalised paths of the modules the main stylesheet includes/imports (static scan). */
         final java.util.Set<String> resolvedModules;
+        /** The run's input: its file (when it came from one) and/or its open document. */
+        Path inputFile;
+        OpenDocument inputDocument;
+        /** The input document whose context-node line is marked, and that line. */
+        OpenDocument markedInput;
+        int markedInputLine;
 
         XsltDebugSession(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController controller,
                          org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane pane, File mainFile,
@@ -3210,6 +3216,8 @@ public class EditorHost extends BorderPane {
             debugRunToLine = 0;
         }
 
+        Path inputFile = debugInputFile;
+        debugInputFile = null;
         var pane = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane(controller);
         // Watches belong to the main stylesheet and come back with its next session.
         String watchKey = xsltFile.getAbsolutePath();
@@ -3217,6 +3225,8 @@ public class EditorHost extends BorderPane {
         pane.getWatchView().setOnWatchesChanged(
                 list -> org.fxt.freexmltoolkit.debugger.WatchStore.save(watchKey, list));
         XsltDebugSession debug = new XsltDebugSession(controller, pane, xsltFile, resolvedModules);
+        debug.inputFile = inputFile;
+        debug.inputDocument = inputFile != null ? documentAt(inputFile) : documentWithText(xml, xsltDoc);
         activeDebug = debug;
         attachDebugModule(debug, xsltDoc, debug.mainPath);
         for (Tab tab : new java.util.ArrayList<>(tabPane.getTabs())) {
@@ -3230,6 +3240,7 @@ public class EditorHost extends BorderPane {
 
         // 3. Wire the pane back to this host.
         pane.setOnPaused(this::onDebugPaused);
+        pane.setOnShowInput(() -> showDebugInput(debug));
         pane.setOnShowInEditor(() -> {
             var snap = session.getPausedSnapshot();
             if (snap != null) {
@@ -3262,13 +3273,129 @@ public class EditorHost extends BorderPane {
         selectDocument(xsltDoc);
 
         // 4. Start the run: the stylesheet is re-read from disk on every (re)start.
-        controller.start(xml, () -> {
+        controller.start(xml, inputFile == null ? null : inputFile.toUri().toString(), () -> {
             try {
                 return java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
             } catch (IOException e) {
                 throw new java.io.UncheckedIOException(e);
             }
         }, xsltFile.toURI().toString(), parameters, format);
+    }
+
+    /** @return the open document of {@code file}, or {@code null}. */
+    private OpenDocument documentAt(Path file) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document.getPath() != null
+                    && et.document.getPath().toAbsolutePath().normalize().equals(file.toAbsolutePath().normalize())) {
+                return et.document;
+            }
+        }
+        return null;
+    }
+
+    /** @return the open document (other than {@code except}) whose current text is {@code text}. */
+    private OpenDocument documentWithText(String text, OpenDocument except) {
+        if (text == null) {
+            return null;
+        }
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document != except
+                    && getDocumentText(et.document).map(text::equals).orElse(false)) {
+                return et.document;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Marks the paused context node's line in its input document (blue tint) without switching
+     * tabs, and enables the pane's Show input. In-memory input maps to the open document the
+     * text came from; a file input — or a document loaded with {@code doc()} — is opened behind
+     * the stylesheet when it is not open yet.
+     */
+    private void markDebugInput(XsltDebugSession debug, org.fxt.freexmltoolkit.debugger.PausedSnapshot snapshot) {
+        if (debug.markedInput != null) {
+            setDebugInputLineFor(debug.markedInput, -1);
+            debug.markedInput = null;
+            debug.markedInputLine = 0;
+        }
+        debug.pane.setInputLocationAvailable(false);
+        if (snapshot == null) {
+            return;
+        }
+        var location = org.fxt.freexmltoolkit.debugger.InputLocation.of(snapshot.contextXdm()).orElse(null);
+        if (location == null) {
+            return;
+        }
+        OpenDocument doc = inputDocumentFor(debug, location.systemId());
+        if (doc == null) {
+            return;
+        }
+        debug.markedInput = doc;
+        debug.markedInputLine = location.line();
+        whenDocumentLoaded(doc, () -> {
+            if (debug.markedInput == doc) {
+                setDebugInputLineFor(doc, location.line());
+            }
+        }, 15);
+        debug.pane.setInputLocationAvailable(true);
+    }
+
+    /** @return the open document for an input node's system id, opening a file behind if needed. */
+    private OpenDocument inputDocumentFor(XsltDebugSession debug, String systemId) {
+        String path = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(systemId);
+        if (path.isEmpty()) {
+            return debug.inputDocument;
+        }
+        if (debug.modules.containsKey(path) || path.equals(debug.mainPath)) {
+            return null; // a node of the stylesheet itself (document('')) — not an input
+        }
+        Path file = Path.of(path);
+        OpenDocument doc = documentAt(file);
+        if (doc == null && java.nio.file.Files.isRegularFile(file)) {
+            openFile(file, false);
+            doc = documentAt(file);
+        }
+        if (doc != null && debug.inputFile != null
+                && file.toAbsolutePath().normalize().equals(debug.inputFile.toAbsolutePath().normalize())) {
+            debug.inputDocument = doc;
+        }
+        return doc;
+    }
+
+    private void setDebugInputLineFor(OpenDocument document, int line) {
+        EditorTab tab = editorTabOf(document);
+        if (tab != null) {
+            tab.view.setDebugInputLine(line);
+        }
+    }
+
+    /** Runs {@code action} once {@code document}'s text is loaded (a just-opened file loads async). */
+    private void whenDocumentLoaded(OpenDocument document, Runnable action, int attemptsLeft) {
+        boolean loaded = getDocumentText(document).map(t -> !t.isEmpty()).orElse(false);
+        if (loaded || attemptsLeft <= 0) {
+            action.run();
+            return;
+        }
+        var retry = new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
+        retry.setOnFinished(e -> whenDocumentLoaded(document, action, attemptsLeft - 1));
+        retry.play();
+    }
+
+    /** Shows the paused context node: selects its input document and moves the caret there. */
+    private void showDebugInput(XsltDebugSession debug) {
+        if (debug.markedInput == null) {
+            return;
+        }
+        selectDocument(debug.markedInput);
+        jumpWhenLoaded(debug.markedInput, debug.markedInputLine, 10);
+        setDebugInputLineFor(debug.markedInput, debug.markedInputLine);
+    }
+
+    /** @return the 1-based line marked as the paused context node in {@code document}, or 0 (tests). */
+    int debugInputLineOf(OpenDocument document) {
+        XsltDebugSession debug = activeDebug;
+        return debug != null && debug.markedInput == document ? debug.markedInputLine : 0;
     }
 
     /** Ends the active debug session: stops the run, detaches gutters/highlights, removes the pane. */
@@ -3278,6 +3405,9 @@ public class EditorHost extends BorderPane {
             return;
         }
         activeDebug = null;
+        if (debug.markedInput != null) {
+            setDebugInputLineFor(debug.markedInput, -1);
+        }
         persistDebugBreakpoints(debug);
         debug.controller.stop();
         debug.controller.close();
@@ -3377,6 +3507,18 @@ public class EditorHost extends BorderPane {
     public int activeCaretLine() {
         return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
                 ? et.view.getCodeArea().getCurrentParagraph() + 1 : 0;
+    }
+
+    /** The input file of the next {@link #startXsltDebug} (set by callers whose input is a file). */
+    private Path debugInputFile;
+
+    /**
+     * Tells the next {@link #startXsltDebug} that its XML text was read from {@code file}, so the
+     * paused context node can be shown in that file. Without it the input is matched to the open
+     * document with the same text.
+     */
+    public void setDebugInputFile(Path file) {
+        this.debugInputFile = file;
     }
 
     /** Pending "debug to cursor" target for the next {@link #startXsltDebug} (path, line). */
@@ -3488,6 +3630,7 @@ public class EditorHost extends BorderPane {
         if (snapshot != null) {
             jumpToDebugLocation(path, snapshot.lineNumber());
         }
+        markDebugInput(debug, snapshot);
     }
 
     /** @return the module path for a pause/jump location — the main stylesheet when it is unknown. */

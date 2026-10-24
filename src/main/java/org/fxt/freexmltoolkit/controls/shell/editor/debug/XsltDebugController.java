@@ -32,7 +32,7 @@ public final class XsltDebugController {
     private static final Logger logger = LogManager.getLogger(XsltDebugController.class);
 
     /** Everything needed to (re)launch a run; the stylesheet is re-read on every launch. */
-    private record RunArgs(String xml, Supplier<String> xsltSource, String xsltSystemId,
+    private record RunArgs(String xml, String inputSystemId, Supplier<String> xsltSource, String xsltSystemId,
                            Map<String, Object> parameters, OutputFormat format) { }
 
     private final DebugSession session = new DebugSession();
@@ -129,7 +129,17 @@ public final class XsltDebugController {
      */
     public void start(String xml, Supplier<String> xsltSource, String xsltSystemId,
                       Map<String, Object> parameters, OutputFormat format) {
-        lastArgs = new RunArgs(xml, xsltSource, xsltSystemId, parameters == null ? Map.of() : parameters, format);
+        start(xml, null, xsltSource, xsltSystemId, parameters, format);
+    }
+
+    /**
+     * Like {@link #start(String, Supplier, String, Map, OutputFormat)} with the input's
+     * {@code file:} URI ({@code null} for in-memory text), so input nodes report their file.
+     */
+    public void start(String xml, String inputSystemId, Supplier<String> xsltSource, String xsltSystemId,
+                      Map<String, Object> parameters, OutputFormat format) {
+        lastArgs = new RunArgs(xml, inputSystemId, xsltSource, xsltSystemId,
+                parameters == null ? Map.of() : parameters, format);
         launch();
     }
 
@@ -180,8 +190,8 @@ public final class XsltDebugController {
             XsltTransformationResult result;
             try {
                 result = XsltTransformationEngine.getInstance().transformWithDebugSession(
-                        args.xml(), lastXslt, args.xsltSystemId(), args.parameters(), args.format(),
-                        session, this::publishMessage);
+                        args.xml(), args.inputSystemId(), lastXslt, args.xsltSystemId(), args.parameters(),
+                        args.format(), session, this::publishMessage);
             } catch (RuntimeException e) {
                 logger.warn("Debug run failed unexpectedly", e);
                 result = XsltTransformationResult.error("Debug run failed: " + e.getMessage());

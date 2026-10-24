@@ -165,6 +165,7 @@ public class FopPanel extends VBox {
             return;
         }
         java.util.Map<String, Object> parameters = new java.util.HashMap<>(currentOptions().stylesheetParameters());
+        editorHost.setDebugInputFile(xmlFile.toPath()); // the paused context node is shown in it
         editorHost.startXsltDebug(xslFile, xml, parameters,
                 org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML, this::onDebugRunFinished);
     }

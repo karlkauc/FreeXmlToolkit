@@ -235,6 +235,8 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
 
     /** The paragraph (0-based) tinted as the debugger's current execution line, or -1. */
     private int debugLineIndex = -1;
+    /** 0-based line of the debugger's context node when this document is the input, or -1. */
+    private int debugInputLineIndex = -1;
 
     /**
      * Marks {@code line1Based} as the line the XSLT debugger is paused at (paragraph style
@@ -248,6 +250,24 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
             restyleParagraph(oldIndex);
         }
         restyleParagraph(debugLineIndex);
+    }
+
+    /**
+     * Marks the line of the debugger's current context node in an input document (a second,
+     * blue tint — distinct from the stylesheet's execution line); {@code <= 0} clears it.
+     */
+    public void setDebugInputLine(int line1Based) {
+        int oldIndex = debugInputLineIndex;
+        debugInputLineIndex = line1Based > 0 ? line1Based - 1 : -1;
+        if (oldIndex != debugInputLineIndex) {
+            restyleParagraph(oldIndex);
+        }
+        restyleParagraph(debugInputLineIndex);
+    }
+
+    /** @return the 1-based input-node line, or 0 (tests). */
+    public int getDebugInputLine() {
+        return debugInputLineIndex + 1;
     }
 
     /** Removes the debugger's execution-line tint. */
@@ -266,6 +286,9 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         }
         if (index == debugLineIndex) {
             styles.add("debug-current-line");
+        }
+        if (index == debugInputLineIndex) {
+            styles.add("debug-input-line");
         }
         codeArea.setParagraphStyle(index, styles);
     }

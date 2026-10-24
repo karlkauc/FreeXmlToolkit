@@ -433,7 +433,8 @@ third item of type B. When a hit-count rule makes the run pause, the status says
 ### Starting and Stepping
 
 Without breakpoints the run **pauses at the first instruction** (**Pause on entry**, a toggle in
-the header - switch it off to run straight to the first breakpoint). The header controls:
+the header - switch it off to run straight to the first breakpoint). The header controls are
+icons - hover one for its name and key:
 
 | Control | Key | Description |
 |---------|-----|-------------|
@@ -447,6 +448,7 @@ the header - switch it off to run straight to the first breakpoint). The header 
 | **Stop** | | Abort the running transformation |
 | **Mute** | | Toggle: the run does not stop at any breakpoint (steps still pause) |
 | **Show in editor** | | Jump the editor to the currently paused line |
+| **Show input** | | Select the input document at the paused **context node** (see below) |
 | **✕** | | End the session and close the DEBUG dock (OUTPUT stays) |
 
 The step keys only act while the debugger is paused and F6 only while it runs; otherwise F5 and
@@ -456,6 +458,14 @@ The paused line is **tinted** in the editor and a green arrow marks it in the gu
 breakpoint shows a yellow arrow over the red circle.
 
 ### Inspecting State
+
+**The context node in the input.** At every pause the line of the current context node
+(`.`) is tinted **blue** in the input XML document - the stylesheet's paused line stays yellow
+and in front. **Show input** in the header switches to the input document at that line. The
+input is the file the run read (Transform panel INPUT, FOP XML input, the Run target), or the
+open document whose text was transformed; a node from a document loaded with `doc()` /
+`document()` is shown in that file, which opens behind the stylesheet. Attributes and text
+nodes point at their element's line, the document node at the root element.
 
 Below the header, the paused state is shown in **two tab groups** side by side: **Variables |
 Watch** on the left (the state at the pause point), **Call Stack | Messages | Breakpoints** on

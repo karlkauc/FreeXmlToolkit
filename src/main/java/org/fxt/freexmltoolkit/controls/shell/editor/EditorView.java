@@ -95,6 +95,10 @@ public interface EditorView {
     default void refreshGutter() {
     }
 
+    /** Marks the debugger's current input node line (XML views only); {@code <= 0} clears it. */
+    default void setDebugInputLine(int line1Based) {
+    }
+
     /**
      * Tints {@code line1Based} as the XSLT debugger's current execution line ({@code -1}
      * clears the tint). No-op for editors without a text gutter.

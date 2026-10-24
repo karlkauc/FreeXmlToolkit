@@ -86,6 +86,7 @@ public final class XsltDebugPane extends VBox {
     @FXML private Button restartButton;
     @FXML private Button stopButton;
     @FXML private Button showButton;
+    @FXML private Button showInputButton;
     @FXML private Button closeButton;
     @FXML private CheckBox pauseOnEntry;
     @FXML private ToggleButton muteToggle;
@@ -116,6 +117,9 @@ public final class XsltDebugPane extends VBox {
 
     private Consumer<PausedSnapshot> onPaused = snapshot -> { };
     private Runnable onShowInEditor = () -> { };
+    private Runnable onShowInput = () -> { };
+    /** Whether the host could map the paused context node to an input document line. */
+    private boolean inputLocationAvailable;
     private Runnable onClose = () -> { };
     private Consumer<XsltTransformationResult> onResult = result -> { };
     private Consumer<Breakpoint> onJumpToBreakpoint = bp -> { };
@@ -201,6 +205,17 @@ public final class XsltDebugPane extends VBox {
         this.onPaused = handler == null ? snapshot -> { } : handler;
     }
 
+    /** Invoked by Show input — selects the input document at the paused context node. */
+    public void setOnShowInput(Runnable handler) {
+        this.onShowInput = handler == null ? () -> { } : handler;
+    }
+
+    /** Enables Show input while the paused context node has a line in an open input document. */
+    public void setInputLocationAvailable(boolean available) {
+        this.inputLocationAvailable = available;
+        applyButtonState(controller.getSession().getState());
+    }
+
     public void setOnShowInEditor(Runnable handler) {
         this.onShowInEditor = handler == null ? () -> { } : handler;
     }
@@ -241,6 +256,7 @@ public final class XsltDebugPane extends VBox {
     @FXML public void onStepOut() { controller.stepOut(); }
     @FXML public void onStop() { controller.stop(); }
     @FXML public void onShowInEditor() { onShowInEditor.run(); }
+    @FXML public void onShowInput() { onShowInput.run(); }
     @FXML public void onClose() { onClose.run(); }
 
     @FXML
@@ -774,6 +790,7 @@ public final class XsltDebugPane extends VBox {
         stepOutButton.setDisable(!paused);
         stopButton.setDisable(!(paused || running));
         showButton.setDisable(!paused);
+        showInputButton.setDisable(!paused || !inputLocationAvailable);
     }
 
     // ----- accessors (EditorHost / tests) -------------------------------------------------

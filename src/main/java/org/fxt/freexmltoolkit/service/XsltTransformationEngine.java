@@ -528,6 +528,22 @@ public class XsltTransformationEngine {
             Map<String, Object> parameters, OutputFormat outputFormat,
             DebugSession session,
             java.util.function.Consumer<XsltTransformationResult.TransformationMessage> liveMessages) {
+        return transformWithDebugSession(xmlContent, null, xsltContent, xsltSystemId, parameters, outputFormat,
+                session, liveMessages);
+    }
+
+    /**
+     * Like {@link #transformWithDebugSession(String, String, String, Map, OutputFormat, DebugSession,
+     * java.util.function.Consumer)}, with the input's {@code inputSystemId} (its {@code file:} URI,
+     * or {@code null} for in-memory text): input nodes then report that document, so the debugger
+     * can show the paused context node in the input file; relative {@code doc()} URIs resolve
+     * against it.
+     */
+    public XsltTransformationResult transformWithDebugSession(
+            String xmlContent, String inputSystemId, String xsltContent, String xsltSystemId,
+            Map<String, Object> parameters, OutputFormat outputFormat,
+            DebugSession session,
+            java.util.function.Consumer<XsltTransformationResult.TransformationMessage> liveMessages) {
 
         if (session == null) {
             return transform(xmlContent, xsltContent, parameters, outputFormat);
@@ -567,7 +583,7 @@ public class XsltTransformationEngine {
 
             XdmNode sourceDoc;
             try {
-                sourceDoc = parseXmlDocument(processor, xmlContent);
+                sourceDoc = parseXmlDocument(processor, xmlContent, inputSystemId);
             } catch (SaxonApiException e) {
                 return inputFailure(e);
             }
