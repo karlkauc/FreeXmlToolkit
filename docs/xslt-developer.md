@@ -380,6 +380,10 @@ came from).
   (save it once - its file location anchors the breakpoints).
 - Breakpoints match the **file and line**, so a line in `lib/a.xsl` never triggers a breakpoint
   set in another `a.xsl`.
+- An instruction whose start tag spans **several lines** runs at the line where the start tag
+  **ends** (Saxon reports that line): for a multi-line `<xsl:value-of select="…"/>` set the
+  breakpoint on its last line. A breakpoint on an earlier line of the tag is never reached and
+  turns amber after the run.
 - Breakpoints are **persisted per file**: they are back when you reopen or debug the same file,
   they survive **Restart**, and they stay in the gutter after the session ends.
 - Breakpoints in **included modules** count too: open `lib/a.xsl`, set a breakpoint, debug the
@@ -501,6 +505,8 @@ every item, `$total > 1000`, or `position() = last()`.
   of a million items adds about four seconds. A debug run without any breakpoint takes 29 ms
   for the same loop.
 
+![Breakpoint Properties: condition, hit count rule and log message](img/xslt-debugger-breakpoint-properties.png)
+
 #### Hit Counts
 
 Every breakpoint **counts its hits** during a run - a hit is a pass of its line where its
@@ -565,6 +571,8 @@ stepping and hitting breakpoints do not slow the run between pauses.
 
 ### Inspecting State
 
+![The DEBUG dock paused at a conditional breakpoint: Variables with position() and last(), the call stack, Messages and Breakpoints](img/xslt-debugger-paused.png)
+
 **The context node in the input.** At every pause the line of the current context node
 (`.`) is tinted **blue** in the input XML document - the stylesheet's paused line stays yellow
 and in front. **Show input** in the header switches to the input document at that line. The
@@ -614,6 +622,8 @@ frame to return to the pause. `position()` / `last()` are shown for the innermos
 The 32 innermost frames carry values; a deeper frame shows an empty table with a note.
 
 #### Viewing a Value in Full
+
+![The value window: the paused context node pretty-printed, with an XPath result below](img/xslt-debugger-value-viewer.png)
 
 The Value column of **Variables** and **Watch** shows only the start of a value (a node can be
 thousands of characters long). **Click a value** - or select the row and press **Enter**, or

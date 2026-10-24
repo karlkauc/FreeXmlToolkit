@@ -193,4 +193,4 @@ class MyUITest {
 | Facets Panel | `controls/v2/editor/panels/FacetsPanel.java` |
 | Shell CSS / tokens | `css/unified-shell.css`, `css/design-tokens.css` |
 | Style Guide | `STYLE_GUIDE.jsonc` |
-| Doc screenshots | `xvfb-run ./gradlew docScreenshots` → `docs/img/` |
+| Doc screenshots | `xvfb-run ./gradlew docScreenshots` → `docs/img/` (every `*DocScreenshotGenerator` in `src/test/.../screenshots/`; the XSLT debugger images come from `XsltDebuggerDocScreenshotGenerator`) |
