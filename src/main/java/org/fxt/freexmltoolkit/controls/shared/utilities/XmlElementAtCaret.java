@@ -27,8 +27,15 @@ public final class XmlElementAtCaret {
     private XmlElementAtCaret() {
     }
 
-    /** The element at the caret: its verbatim XML and its positional XPath. */
-    public record Result(String xml, String xpath) {
+    /**
+     * The element at the caret: its verbatim XML, its positional XPath, and the offset of the
+     * {@code >} that closes its start tag ({@code -1} when unknown).
+     */
+    public record Result(String xml, String xpath, int startTagEnd) {
+
+        public Result(String xml, String xpath) {
+            this(xml, xpath, -1);
+        }
     }
 
     /**
@@ -56,7 +63,7 @@ public final class XmlElementAtCaret {
         if (best == null) {
             return Optional.empty();
         }
-        return Optional.of(new Result(xml.substring(best.start, best.end), xpathOf(best)));
+        return Optional.of(new Result(xml.substring(best.start, best.end), xpathOf(best), best.startTagEnd));
     }
 
     // ---- scanning -----------------------------------------------------------
@@ -65,6 +72,7 @@ public final class XmlElementAtCaret {
         final String name;          // local name (prefix stripped), for XPath steps
         final int start;            // offset of '<'
         int end;                    // offset just past the element's last '>'
+        int startTagEnd = -1;       // offset of the '>' closing the start tag
         El parent;
         final List<El> children = new ArrayList<>();
 
@@ -113,6 +121,7 @@ public final class XmlElementAtCaret {
                 }
                 boolean selfClose = gt > lt + 1 && text.charAt(gt - 1) == '/';
                 El el = new El(localName(text, lt + 1), lt);
+                el.startTagEnd = gt;
                 el.parent = open.peek();
                 if (el.parent != null) {
                     el.parent.children.add(el);

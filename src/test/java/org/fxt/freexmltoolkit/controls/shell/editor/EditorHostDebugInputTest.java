@@ -183,4 +183,38 @@ class EditorHostDebugInputTest {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> host.debugInlineValuesOf(sheet).isEmpty()));
     }
+
+    @Test
+    void breakWhenProcessedPausesAtTheChosenInputElement(@TempDir Path tmp) throws Exception {
+        Path xsl = tmp.resolve("nodes.xsl");
+        Path in = tmp.resolve("nodes.xml");
+        Files.writeString(xsl, "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n"
+                + "  <xsl:template match=\"item\"><x><xsl:value-of select=\"@n\"/></x></xsl:template>\n"
+                + "</xsl:stylesheet>\n");
+        String xml = "<order>\n  <item n=\"1\"/>\n  <item n=\"2\"/>\n</order>\n";
+        Files.writeString(in, xml);
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.openFile(in));
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> inputDocument(in) != null
+                && WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getDocumentText(inputDocument(in)).orElse("")).contains("item"));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            host.setDebugInputFile(in);
+            host.startXsltDebug(xsl.toFile(), xml, Map.of(), OutputFormat.XML); // pauses on entry
+        });
+        DebugSession session = pausedSession();
+        int caret = xml.indexOf("n=\"2\"");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.toggleInputNodeBreakpoint(inputDocument(in), xml, caret)), "added");
+        assertEquals(1, session.getSymbolBreakpoints().size());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeDebugPane().onContinue());
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> session.getState() == DebugSession.State.PAUSED
+                && session.getPauseNote().startsWith("input node"));
+        assertEquals("2", ((net.sf.saxon.s9api.XdmNode) session.getPausedSnapshot().contextXdm())
+                .getAttributeValue(new net.sf.saxon.s9api.QName("n")));
+
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.toggleInputNodeBreakpoint(inputDocument(in), xml, caret)), "the second toggle removes it");
+        assertTrue(session.getSymbolBreakpoints().isEmpty());
+    }
 }

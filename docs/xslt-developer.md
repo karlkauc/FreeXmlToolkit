@@ -454,6 +454,19 @@ below the line breakpoints (checkbox to disable, **Delete** to remove), are save
 stylesheet, pause even when the template has no line breakpoint, and are silenced by **Mute**.
 The status names what was entered (*· template match="item"*).
 
+#### Break When an Input Node Is Processed
+
+To stop when the stylesheet reaches a particular node of the input, open the input XML,
+put the caret on the element and right-click → **Break When Processed** (shown while a debug
+session runs). The run pauses whenever that element **becomes the context node** - a template
+rule matched it or a loop reached it - once per visit, not at every instruction that runs while
+it stays the context. The status reads *· input node /order/item[2] (orders.xml:3)*.
+
+The breakpoint is listed under *Templates & functions* in the Breakpoints panel (checkbox,
+**Delete**), saved with the main stylesheet and silenced by **Mute**; right-click the element
+again → **Remove Break When Processed** to drop it. The node is identified by its position in
+the file, so editing the input above it moves it out of reach.
+
 #### Break on Errors and Messages
 
 The Breakpoints panel's **Break on ▾** menu pauses the run independent of line breakpoints:

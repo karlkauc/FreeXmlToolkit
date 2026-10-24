@@ -103,6 +103,11 @@ public interface EditorView {
     default void setDebugInlineValues(java.util.Map<Integer, String> lineValues) {
     }
 
+    /** @return the text editor's context menu (to add document actions), or {@code null}. */
+    default javafx.scene.control.ContextMenu getEditorContextMenu() {
+        return null;
+    }
+
     /** @return the XSLT debugger's inline values shown (1-based line → text). */
     default java.util.Map<Integer, String> getDebugInlineValues() {
         return java.util.Map.of();

@@ -95,6 +95,32 @@ public class DebugSession implements BreakpointTarget {
     private final Set<SymbolBreakpoint> symbolBreakpoints = Collections.synchronizedSet(new LinkedHashSet<>());
     /** Whether {@link #symbolBreakpoints} is non-empty, readable without its lock. */
     private volatile boolean hasSymbols;
+    /** Whether an input-node breakpoint is set, readable without the lock. */
+    private volatile boolean hasInputNodes;
+
+    /** @return whether an (unmuted) input-node breakpoint asks for the context node to be checked; lock-free. */
+    public boolean hasActiveInputNodeBreakpoints() {
+        return !muted && hasInputNodes;
+    }
+
+    /**
+     * Saxon thread, when an instruction runs with a new context node: the pause note when an
+     * enabled input-node breakpoint names the node at {@code systemId:line:column}, else {@code null}.
+     */
+    public String inputNodeBreak(String systemId, int line, int column) {
+        if (muted || !hasInputNodes || line < 1) {
+            return null;
+        }
+        String path = normalizedLocation(systemId);
+        synchronized (symbolBreakpoints) {
+            for (SymbolBreakpoint s : symbolBreakpoints) {
+                if (s.matchesInputNode(path, line, column)) {
+                    return s.describe();
+                }
+            }
+        }
+        return null;
+    }
 
     /** "Break on" options, independent of line breakpoints (but silenced by Mute). */
     private volatile boolean breakOnErrors;
@@ -396,6 +422,7 @@ public class DebugSession implements BreakpointTarget {
             symbolBreakpoints.removeIf(s -> s.kind() == symbol.kind() && s.name().equals(symbol.name()));
             symbolBreakpoints.add(symbol);
             hasSymbols = true;
+            hasInputNodes = symbolBreakpoints.stream().anyMatch(s -> s.kind() == SymbolBreakpoint.Kind.INPUT_NODE);
         }
     }
 
@@ -403,6 +430,7 @@ public class DebugSession implements BreakpointTarget {
         synchronized (symbolBreakpoints) {
             symbolBreakpoints.removeIf(s -> s.kind() == symbol.kind() && s.name().equals(symbol.name()));
             hasSymbols = !symbolBreakpoints.isEmpty();
+            hasInputNodes = symbolBreakpoints.stream().anyMatch(s -> s.kind() == SymbolBreakpoint.Kind.INPUT_NODE);
         }
     }
 

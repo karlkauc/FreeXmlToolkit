@@ -108,6 +108,11 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public javafx.scene.control.ContextMenu getEditorContextMenu() {
+        return editor.getContextMenuManager().getContextMenu();
+    }
+
+    @Override
     public java.util.Map<Integer, String> getDebugInlineValues() {
         return editor.getDebugInlineValues();
     }

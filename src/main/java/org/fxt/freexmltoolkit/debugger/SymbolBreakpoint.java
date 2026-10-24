@@ -20,7 +20,9 @@ public record SymbolBreakpoint(Kind kind, String name, boolean enabled) {
         TEMPLATE_MATCH("Template rule (match)"),
         TEMPLATE_NAME("Named template"),
         FUNCTION("Function"),
-        MODE("Any template in mode");
+        MODE("Any template in mode"),
+        /** A node of the input document (see {@link #inputNode}); not offered in the Template… dialog. */
+        INPUT_NODE("Input node");
 
         private final String label;
 
@@ -41,6 +43,57 @@ public record SymbolBreakpoint(Kind kind, String name, boolean enabled) {
         name = name == null ? "" : name.strip();
     }
 
+    /**
+     * A breakpoint on a node of the input document: the run pauses when that node becomes the
+     * context item (a template rule matched it, a loop reached it). The node is identified the way
+     * Saxon locates it: its file and the line / column just after its start tag's {@code >}.
+     *
+     * @param path   the input file's normalized path ({@code ""}: any input)
+     * @param line   1-based line of the start tag's end
+     * @param column 1-based column just after that {@code >}
+     * @param label  how the node is shown, e.g. {@code <item>}
+     */
+    public static SymbolBreakpoint inputNode(String path, int line, int column, String label) {
+        return new SymbolBreakpoint(Kind.INPUT_NODE,
+                (label == null ? "" : label.replace('|', ' ')) + "|" + line + "|" + column + "|"
+                        + (path == null ? "" : path), true);
+    }
+
+    private String inputPart(int index) {
+        String[] parts = name.split("\\|", 4);
+        return index < parts.length ? parts[index] : "";
+    }
+
+    /** @return the input node's label (kind {@link Kind#INPUT_NODE}). */
+    public String inputLabel() { return inputPart(0); }
+
+    /** @return the input node's line, or 0. */
+    public int inputLine() { return parseInt(inputPart(1)); }
+
+    /** @return the input node's column, or 0. */
+    public int inputColumn() { return parseInt(inputPart(2)); }
+
+    /** @return the input file's normalized path, {@code ""} for any. */
+    public String inputPath() { return inputPart(3); }
+
+    private static int parseInt(String s) {
+        try {
+            return Integer.parseInt(s.strip());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** @return whether this (enabled) input-node breakpoint names the node at {@code path:line:column}. */
+    public boolean matchesInputNode(String path, int line, int column) {
+        if (!enabled || kind != Kind.INPUT_NODE || line != inputLine() || column != inputColumn()) {
+            return false;
+        }
+        String wanted = inputPath();
+        String here = path == null ? "" : path;
+        return wanted.isEmpty() || here.isEmpty() || wanted.equals(here);
+    }
+
     /** Returns a copy with the enabled flag set. */
     public SymbolBreakpoint withEnabled(boolean on) {
         return new SymbolBreakpoint(kind, name, on);
@@ -53,6 +106,8 @@ public record SymbolBreakpoint(Kind kind, String name, boolean enabled) {
             case TEMPLATE_NAME -> "template name=\"" + name + "\"";
             case FUNCTION -> "function " + name + "()";
             case MODE -> "mode " + name;
+            case INPUT_NODE -> "input node " + inputLabel() + " ("
+                    + (inputPath().isEmpty() ? "" : SourceLocations.fileName(inputPath()) + ":") + inputLine() + ")";
         };
     }
 
@@ -72,6 +127,7 @@ public record SymbolBreakpoint(Kind kind, String name, boolean enabled) {
             case TEMPLATE_NAME -> template != null && sameName(template, name);
             case FUNCTION -> function != null && sameName(function, name);
             case MODE -> mode != null && (match != null || template != null) && sameName(mode, name);
+            case INPUT_NODE -> false; // checked by matchesInputNode on every focus change
         };
     }
 

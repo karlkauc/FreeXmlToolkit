@@ -1149,6 +1149,7 @@ public class EditorHost extends BorderPane {
                 activeViewMode.set(tab.viewMode); // addTab just selected this tab
             }
         }
+        installInputNodeBreakpointMenu(tab);
         // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
         tab.view.setGoToDefinitionHandler(req ->
                 openXsdAndReveal(req.xsdFile().toPath(), req.elementName()));
@@ -3869,6 +3870,109 @@ public class EditorHost extends BorderPane {
                     tab.view.getCodeArea(), debug.pane::currentScope, debug.controller::getWatchEvaluator,
                     debug.pane::openViewer).install());
         }
+    }
+
+    /**
+     * Adds "Break When Processed" to an XML-family editor's context menu: shown while an XSLT
+     * debug session runs (not on the session's stylesheets), it toggles an input-node
+     * breakpoint on the element at the caret.
+     */
+    private void installInputNodeBreakpointMenu(EditorTab tab) {
+        javafx.scene.control.ContextMenu menu = tab.view.getEditorContextMenu();
+        if (menu == null) {
+            return;
+        }
+        javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem("Break When Processed");
+        item.setId("editor-ctx-break-when-processed");
+        item.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
+                new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-record-circle"),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.DELETE));
+        item.setOnAction(e -> toggleInputNodeBreakpoint(tab.document,
+                tab.view.getCodeArea().getText(), tab.view.getCodeArea().getCaretPosition()));
+        menu.getItems().add(0, item);
+        javafx.scene.control.SeparatorMenuItem separator = new javafx.scene.control.SeparatorMenuItem();
+        menu.getItems().add(1, separator);
+        menu.addEventHandler(javafx.stage.WindowEvent.WINDOW_SHOWING, e -> {
+            XsltDebugSession debug = activeDebug;
+            boolean show = debug != null && !isDebugModule(debug, tab.document);
+            item.setVisible(show);
+            separator.setVisible(show);
+            if (show) {
+                item.setText(inputNodeBreakpointAt(debug, tab.document, tab.view.getCodeArea().getText(),
+                        tab.view.getCodeArea().getCaretPosition()) != null
+                        ? "Remove Break When Processed" : "Break When Processed");
+            }
+        });
+        item.setVisible(false);
+        separator.setVisible(false);
+    }
+
+    private static boolean isDebugModule(XsltDebugSession debug, OpenDocument document) {
+        return debug.modules.values().stream().anyMatch(m -> m.document() == document);
+    }
+
+    /** The input-node breakpoint for the element at {@code caret}, as it is or would be stored. */
+    private static org.fxt.freexmltoolkit.debugger.SymbolBreakpoint inputNodeAt(OpenDocument document,
+            String text, int caret) {
+        var element = org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret.at(text, caret).orElse(null);
+        if (element == null || element.startTagEnd() < 0) {
+            return null;
+        }
+        int gt = element.startTagEnd();
+        int line = 1;
+        int lineStart = 0;
+        for (int i = 0; i < gt; i++) {
+            if (text.charAt(i) == '\n') {
+                line++;
+                lineStart = i + 1;
+            }
+        }
+        int column = gt - lineStart + 2; // Saxon: the 1-based column just after the '>'
+        String path = document.getPath() == null ? ""
+                : org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(document.getPath().toString());
+        return org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.inputNode(path, line, column, element.xpath());
+    }
+
+    private static org.fxt.freexmltoolkit.debugger.SymbolBreakpoint inputNodeBreakpointAt(XsltDebugSession debug,
+            OpenDocument document, String text, int caret) {
+        var wanted = inputNodeAt(document, text, caret);
+        if (wanted == null) {
+            return null;
+        }
+        return debug.controller.getSession().getSymbolBreakpoints().stream()
+                .filter(s -> s.kind() == org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind.INPUT_NODE
+                        && s.inputLine() == wanted.inputLine() && s.inputColumn() == wanted.inputColumn()
+                        && s.inputPath().equals(wanted.inputPath()))
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * Toggles the input-node breakpoint on the element at {@code caret} of {@code document} in
+     * the running debug session.
+     *
+     * @return {@code true} when one was added, {@code false} when removed or no session / element
+     */
+    boolean toggleInputNodeBreakpoint(OpenDocument document, String text, int caret) {
+        XsltDebugSession debug = activeDebug;
+        if (debug == null || document == null || text == null) {
+            return false;
+        }
+        var session = debug.controller.getSession();
+        var existing = inputNodeBreakpointAt(debug, document, text, caret);
+        boolean added = false;
+        if (existing != null) {
+            session.removeSymbolBreakpoint(existing);
+        } else {
+            var created = inputNodeAt(document, text, caret);
+            if (created == null) {
+                return false;
+            }
+            session.addSymbolBreakpoint(created);
+            added = true;
+        }
+        debug.pane.getBreakpointsView().refresh();
+        persistDebugBreakpoints(debug);
+        return added;
     }
 
     /** Writes the session's breakpoints back, each file under its own key (modules without any are cleared). */

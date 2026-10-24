@@ -542,6 +542,39 @@ class XsltDebuggerIntegrationTest {
     }
 
     @Test
+    void anInputNodeBreakpointPausesOncePerVisitOfThatNode() throws Exception {
+        String xml = "<order>\n  <item n=\"1\"/>\n  <item n=\"2\"/>\n  <item n=\"3\"/>\n</order>";
+        // item 2's start tag "  <item n=\"2\"/>" ends at column 15: Saxon reports column 16.
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\">\n"                                                         // 2
+                + "    <out>\n"                                                                              // 3
+                + "      <xsl:apply-templates select=\"//item\"/>\n"                                        // 4
+                + "      <xsl:for-each select=\"//item\"><a/><b><xsl:value-of select=\"@n\"/></b></xsl:for-each>\n" // 5
+                + "    </out>\n"
+                + "  </xsl:template>\n"
+                + "  <xsl:template match=\"item\"><i><xsl:value-of select=\"@n\"/></i><j/></xsl:template>\n" // 8
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.addSymbolBreakpoint(SymbolBreakpoint.inputNode("", 3, 16, "/order[1]/item[2]"));
+        java.util.List<String> pauses = new java.util.concurrent.CopyOnWriteArrayList<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                PausedSnapshot snap = session.getPausedSnapshot();
+                pauses.add(snap.lineNumber() + ":" + ((net.sf.saxon.s9api.XdmNode) snap.contextXdm())
+                        .getAttributeValue(new net.sf.saxon.s9api.QName("n")) + " " + session.getPauseNote());
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml, xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertEquals(2, pauses.size(), "the template rule and the for-each each reach item 2 once: " + pauses);
+        assertTrue(pauses.get(0).startsWith("8:2 input node /order[1]/item[2]"), pauses.toString());
+        assertTrue(pauses.get(1).startsWith("5:2 "), pauses.toString());
+    }
+
+    @Test
     void hitCountRulePausesAtTheThirdItemAndCountsAllPasses() throws Exception {
         String xml = "<order><item n=\"1\"/><item n=\"2\"/><item n=\"3\"/><item n=\"4\"/><item n=\"5\"/></order>";
         String xslt = ""

@@ -152,6 +152,9 @@ public class XsltDebugTraceListener implements TraceListener {
                 if (messageBreak == null) {
                     messageBreak = symbolBreak(traceable, context);
                 }
+                if (messageBreak == null) {
+                    messageBreak = inputNodeBreak(context);
+                }
                 boolean alive = messageBreak != null
                         ? debugSession.pauseAt(systemId, lineNumber, messageBreak,
                                 () -> buildPausedSnapshot(systemId, lineNumber, ctxRef))
@@ -225,6 +228,37 @@ public class XsltDebugTraceListener implements TraceListener {
             logger.debug("Could not read the current mode: {}", e.getMessage());
         }
         return debugSession.symbolBreak(match, template, function, mode);
+    }
+
+    /**
+     * @return the pause note when an input-node breakpoint names the context node and this
+     *         instruction is where that node <em>became</em> the context (its enclosing frame
+     *         had another context: a template rule matched it, a loop reached it) - not every
+     *         instruction run while it stays the context; otherwise {@code null}
+     */
+    private String inputNodeBreak(XPathContext context) {
+        if (!debugSession.hasActiveInputNodeBreakpoints() || context == null) {
+            return null;
+        }
+        try {
+            if (!(context.getContextItem() instanceof net.sf.saxon.om.NodeInfo node) || node.getLineNumber() < 1) {
+                return null;
+            }
+            java.util.Iterator<CallStackEntry> frames = callStack.iterator();
+            if (frames.hasNext()) {
+                frames.next(); // this instruction
+            }
+            if (frames.hasNext()) {
+                XPathContext outer = frames.next().context();
+                Item outerItem = outer == null ? null : outer.getContextItem();
+                if (outerItem instanceof net.sf.saxon.om.NodeInfo o && o.equals(node)) {
+                    return null; // still the same node: not a new visit
+                }
+            }
+            return debugSession.inputNodeBreak(node.getSystemId(), node.getLineNumber(), node.getColumnNumber());
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     /**

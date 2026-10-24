@@ -55,7 +55,8 @@ public final class SymbolBreakpointDialog extends Dialog<SymbolBreakpoint> {
             // unthemed is fine
         }
         Map<SymbolBreakpoint.Kind, List<String>> names = suggestions == null ? Map.of() : suggestions;
-        kindChoice.getItems().setAll(SymbolBreakpoint.Kind.values());
+        kindChoice.getItems().setAll(java.util.Arrays.stream(SymbolBreakpoint.Kind.values())
+                .filter(k -> k != SymbolBreakpoint.Kind.INPUT_NODE).toList()); // set from the input XML instead
         kindChoice.valueProperty().addListener((obs, old, kind) ->
                 nameCombo.getItems().setAll(names.getOrDefault(kind, List.of())));
         kindChoice.setValue(SymbolBreakpoint.Kind.TEMPLATE_MATCH);
