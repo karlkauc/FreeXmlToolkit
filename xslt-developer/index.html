@@ -1716,6 +1716,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#values-under-the-mouse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Values Under the Mouse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#inspecting-an-outer-frame" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2798,6 +2809,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#values-under-the-mouse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Values Under the Mouse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#inspecting-an-outer-frame" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3518,6 +3540,13 @@ brings forward by itself, like Messages after a failed run, does not change that
 Messages is highlighted when output arrives while another tab of its group is in front, and a
 <strong>failed run brings Messages to the front</strong> so the error is readable at once. In Watch and
 Breakpoints the <strong>Delete</strong> key removes the selected row.</p>
+<h4 id="values-under-the-mouse">Values Under the Mouse<a class="headerlink" href="#values-under-the-mouse" title="Permanent link">&para;</a></h4>
+<p>While the run is paused, <strong>rest the mouse on a variable reference</strong> (<code>$total</code>, <code>$f:rate</code>, also
+inside <code>{$x}</code> value templates) in the stylesheet: after half a second a small popup shows its
+value and type, evaluated in the <strong>selected call stack frame</strong>. <strong>Select an XPath expression</strong>
+(e.g. <code>count($items) * 2</code>) and rest the mouse inside the selection to evaluate the whole
+expression. <strong>Open in value viewer</strong> in the popup opens the full value. Errors (an undeclared
+variable, a typo) are shown in the popup; nothing happens while the run is not paused.</p>
 <h4 id="inspecting-an-outer-frame">Inspecting an Outer Frame<a class="headerlink" href="#inspecting-an-outer-frame" title="Permanent link">&para;</a></h4>
 <p>At every pause the innermost frame is selected in <strong>Call Stack</strong>, and <strong>Variables</strong> shows the
 pause as described above. <strong>Select another frame</strong> to see the state of a calling template or
