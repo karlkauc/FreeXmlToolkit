@@ -121,4 +121,39 @@ class EditorHostGutterTest {
                 () -> host.setActiveEditorGutterFactory(line -> (Node) new Region()));
         assertFalse(applied, "JSON editor has no gutter support");
     }
+
+    @Test
+    void breakpointsFollowInsertedAndDeletedLines(@TempDir Path tmp) throws Exception {
+        Path xsl = tmp.resolve("follow.xsl");
+        Files.writeString(xsl, "<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" version=\"3.0\">\n"
+                + "  <xsl:template match=\"/\">\n    <out/>\n  </xsl:template>\n</xsl:stylesheet>\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsl));
+        WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> breakpointSlot(0) != null);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            codeArea().moveTo(2, 0); // line 3: <out/>
+            return host.toggleBreakpointAtCaret();
+        });
+        WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> hasBreakpointIcon(2));
+        assertTrue(storedLines(xsl).contains(3), "loading did not move it: " + storedLines(xsl));
+
+        // Two new lines after line 1 push the breakpoint from line 3 to line 5.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> codeArea().insertText(0, codeArea().getParagraph(0).length(), "\n\n"));
+        WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> storedLines(xsl).equals(java.util.Set.of(5)));
+        WaitForAsyncUtils.waitFor(10, java.util.concurrent.TimeUnit.SECONDS, () -> hasBreakpointIcon(4));
+
+        // Deleting the breakpoint's line removes the breakpoint.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            int start = codeArea().getAbsolutePosition(3, codeArea().getParagraph(3).length());
+            int end = codeArea().getAbsolutePosition(4, codeArea().getParagraph(4).length());
+            codeArea().deleteText(start, end);
+        });
+        WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> storedLines(xsl).isEmpty());
+    }
+
+    private static java.util.Set<Integer> storedLines(Path file) {
+        java.util.Set<Integer> lines = new java.util.HashSet<>();
+        org.fxt.freexmltoolkit.debugger.FileBreakpoints.persistent(file).ownBreakpoints()
+                .forEach(bp -> lines.add(bp.lineNumber()));
+        return lines;
+    }
 }

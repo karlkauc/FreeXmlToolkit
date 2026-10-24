@@ -370,7 +370,11 @@ there, otherwise the active document) - exactly as for **Run Transform**; starte
   its hit-count rule and how often it was hit in this run); **Remove**, **Edit…** and **Clear
   all** sit in a small toolbar above the list, and the **Delete** key removes the selected
   entry. Double-click an entry to jump to that line.
-- Breakpoints are anchored to line numbers: inserting or deleting lines above one does not move it.
+- Breakpoints **follow your edits**: inserting or deleting lines above a breakpoint moves it
+  with its code (also during a debug session), and deleting a breakpoint's line removes it.
+  Replacing the whole text - reloading the file after an outside change, reformatting the
+  document - leaves the breakpoints on their line numbers. The debugger runs the **saved**
+  file, so save after moving code before you (re)start.
 - **Disable** a breakpoint to keep it (with its condition and hit rule) without it stopping the
   run: untick its checkbox in the **Breakpoints** panel, or right-click its gutter slot →
   **Disable Breakpoint** / **Enable Breakpoint**. A disabled breakpoint shows a **hollow

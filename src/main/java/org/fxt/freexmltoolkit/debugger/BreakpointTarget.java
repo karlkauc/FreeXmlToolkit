@@ -71,6 +71,16 @@ public interface BreakpointTarget {
                 && updateBreakpoint(filePath, line, bp -> bp.withEnabled(enabled));
     }
 
+    /**
+     * Moves the breakpoints of {@code filePath} after an edit of that file (see {@link LineShift});
+     * breakpoints on deleted lines are removed.
+     *
+     * @return whether any breakpoint moved or was removed
+     */
+    default boolean shiftLines(String filePath, LineShift shift) {
+        return false;
+    }
+
     /** @return whether {@link #runTo} is available (a running or paused debug session). */
     default boolean canRunTo() {
         return false;

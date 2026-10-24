@@ -127,6 +127,47 @@ public final class FileBreakpoints implements BreakpointTarget {
         return true;
     }
 
+    @Override
+    public boolean shiftLines(String filePath, LineShift shift) {
+        if (shift == null || shift.isNeutral()) {
+            return false;
+        }
+        String fp = SourceLocations.normalize(filePath);
+        boolean changed = false;
+        synchronized (all) {
+            java.util.List<Breakpoint> updated = new java.util.ArrayList<>(all.size());
+            java.util.Set<Integer> taken = new java.util.HashSet<>();
+            for (Breakpoint bp : all) {
+                if (!bp.filePath().equals(fp)) {
+                    updated.add(bp);
+                    continue;
+                }
+                int line = shift.apply(bp.lineNumber());
+                if (line != bp.lineNumber()) {
+                    changed = true;
+                }
+                if (line >= 1 && taken.add(line)) {
+                    updated.add(line == bp.lineNumber() ? bp : new Breakpoint(bp.filePath(), line, bp.enabled(),
+                            bp.condition(), bp.hit(), bp.logMessage(), bp.suspend()));
+                } else if (line >= 1) {
+                    changed = true; // two breakpoints landed on one line: keep the first
+                }
+            }
+            if (changed) {
+                all.clear();
+                all.addAll(updated);
+            }
+        }
+        if (changed) {
+            Set<Breakpoint> snapshot;
+            synchronized (all) {
+                snapshot = new LinkedHashSet<>(all);
+            }
+            saver.accept(snapshot);
+        }
+        return changed;
+    }
+
     /** @return the breakpoints of this file only (foreign entries left out), in insertion order. */
     public Set<Breakpoint> ownBreakpoints() {
         Set<Breakpoint> own = new LinkedHashSet<>();

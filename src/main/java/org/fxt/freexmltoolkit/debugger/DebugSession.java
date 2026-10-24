@@ -189,6 +189,40 @@ public class DebugSession implements BreakpointTarget {
     }
 
     @Override
+    public boolean shiftLines(String filePath, LineShift shift) {
+        if (shift == null || shift.isNeutral()) {
+            return false;
+        }
+        String fp = SourceLocations.normalize(filePath);
+        boolean changed = false;
+        synchronized (breakpoints) {
+            java.util.List<Breakpoint> updated = new java.util.ArrayList<>(breakpoints.size());
+            java.util.Set<Integer> taken = new java.util.HashSet<>();
+            for (Breakpoint bp : breakpoints) {
+                if (!bp.filePath().equals(fp)) {
+                    updated.add(bp);
+                    continue;
+                }
+                int line = shift.apply(bp.lineNumber());
+                if (line != bp.lineNumber()) {
+                    changed = true;
+                }
+                if (line >= 1 && taken.add(line)) {
+                    updated.add(line == bp.lineNumber() ? bp : new Breakpoint(bp.filePath(), line, bp.enabled(),
+                            bp.condition(), bp.hit(), bp.logMessage(), bp.suspend()));
+                } else if (line >= 1) {
+                    changed = true; // two breakpoints landed on one line: keep the first
+                }
+            }
+            if (changed) {
+                breakpoints.clear();
+                breakpoints.addAll(updated);
+            }
+        }
+        return changed;
+    }
+
+    @Override
     public int hitCount(String filePath, int line) {
         AtomicInteger count = hitCounts.get(hitKey(SourceLocations.normalize(filePath), line));
         return count == null ? 0 : count.get();

@@ -3445,6 +3445,7 @@ public class EditorHost extends BorderPane {
         if (et.document.getFileType() != EditorFileType.XSLT || et.document.getPath() == null) {
             return;
         }
+        followEditsWithBreakpoints(et); // whichever gutter the tab carries, its breakpoints follow edits
         String path = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(et.document.getPath().toString());
         if (activeDebug != null) {
             if (activeDebug.modules.containsKey(path)) {
@@ -3462,6 +3463,68 @@ public class EditorHost extends BorderPane {
         if (setGutterContributor(et, "xslt-debugger", gutter)) {
             et.view.refreshGutter();
         }
+    }
+
+    private static final String BREAKPOINT_SHIFT_KEY = "fxt.breakpointShift";
+
+    /**
+     * Lets the breakpoints of an XSLT tab follow its edits: inserted or deleted lines move the
+     * breakpoints below them, a deleted breakpoint line removes its breakpoint — in the file's
+     * own store or, during a session, in the session. Whole-text replacements (loading,
+     * reloading, reformatting) are ignored. Installed once per tab.
+     */
+    private void followEditsWithBreakpoints(EditorTab et) {
+        var area = et.view.getCodeArea();
+        if (area == null || area.getProperties().containsKey(BREAKPOINT_SHIFT_KEY)) {
+            return;
+        }
+        area.getProperties().put(BREAKPOINT_SHIFT_KEY, Boolean.TRUE);
+        area.plainTextChanges().subscribe(change -> {
+            var gutter = breakpointGutterOf(et);
+            if (gutter == null || gutter.getTarget() == null) {
+                return;
+            }
+            String removed = change.getRemoved();
+            String inserted = change.getInserted();
+            int lengthBefore = area.getLength() - inserted.length() + removed.length();
+            if (removed.length() == lengthBefore) {
+                return; // the whole text was replaced (load, reload, format): no edit to follow
+            }
+            var shift = new org.fxt.freexmltoolkit.debugger.LineShift(
+                    lineOf(area.getText(), change.getPosition()), columnOf(area.getText(), change.getPosition()),
+                    org.fxt.freexmltoolkit.debugger.LineShift.newlines(removed),
+                    org.fxt.freexmltoolkit.debugger.LineShift.newlines(inserted));
+            if (shift.isNeutral() || !gutter.getTarget().shiftLines(gutter.getFilePath(), shift)) {
+                return;
+            }
+            et.view.refreshGutter();
+            XsltDebugSession debug = activeDebug;
+            if (debug != null && gutter.getTarget() == debug.controller.getSession()) {
+                debug.pane.getBreakpointsView().refresh();
+                persistDebugBreakpoints(debug);
+            }
+        });
+    }
+
+    /** 1-based line of {@code offset} in {@code text}. */
+    static int lineOf(String text, int offset) {
+        int line = 1;
+        for (int i = 0; i < Math.min(offset, text.length()); i++) {
+            if (text.charAt(i) == '\n') {
+                line++;
+            }
+        }
+        return line;
+    }
+
+    /** 0-based column of {@code offset} in {@code text}. */
+    static int columnOf(String text, int offset) {
+        int end = Math.min(offset, text.length());
+        if (end <= 0) {
+            return 0;
+        }
+        int start = text.lastIndexOf('\n', end - 1);
+        return end - (start + 1);
     }
 
     /** @return whether F9 / Toggle Breakpoint applies: the active tab is a saved XSLT document. */

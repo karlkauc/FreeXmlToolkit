@@ -74,6 +74,11 @@ public class BreakpointGutterFactory implements IntFunction<Node> {
         return filePath;
     }
 
+    /** @return where this gutter's breakpoints live (a debug session or the file's own store). */
+    public BreakpointTarget getTarget() {
+        return session;
+    }
+
     /** Replaces the properties prompt (tests). */
     public void setPropertiesPrompt(BreakpointPropertiesDialog.Prompt prompt) {
         this.propertiesPrompt = prompt == null ? BreakpointPropertiesDialog.DEFAULT : prompt;
