@@ -5060,8 +5060,8 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
   <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below. A picked stylesheet is also
   loaded into the editor.</li>
 <li><strong>Drag &amp; drop</strong>: drop an <code>.xsl</code> / <code>.xslt</code> file from your file
-  manager straight onto the STYLESHEET row - it becomes the current stylesheet, exactly
-  as if you had picked it via <strong>Change</strong> or a favorite. While dragging, the row glows
+  manager straight onto the STYLESHEET row - it becomes the current stylesheet and is loaded
+  into the editor, exactly as if you had picked it from a favorite. While dragging, the row glows
   <strong>green</strong> when the file can be loaded and <strong>red</strong> when it has the wrong extension (a
   red drop is rejected). As with favorites, the transform <strong>runs automatically</strong> as soon
   as both a stylesheet and an input are ready (while <strong>Run automatically</strong> is checked).</li>
@@ -5083,8 +5083,8 @@ there is none):</p>
   <a href="#browsing-favorites">Browsing favorites with ◀ / ▶</a> below. A picked input is also opened
   in the editor and becomes the active tab.</li>
 <li><strong>Drag &amp; drop</strong>: drop an <code>.xml</code> file from your file manager
-  straight onto the INPUT row to transform that file - exactly like <strong>Select XML file…</strong>
-  or picking a favorite. The same <strong>green</strong> (loadable) / <strong>red</strong> (rejected) drag-over
+  straight onto the INPUT row to transform that file - exactly like picking a favorite: it
+  becomes the input and opens as the active editor tab. The same <strong>green</strong> (loadable) / <strong>red</strong> (rejected) drag-over
   feedback applies, and the transform <strong>runs automatically</strong> as soon as both a stylesheet
   and an input are ready (while <strong>Run automatically</strong> is checked).</li>
 </ul>
@@ -5979,8 +5979,9 @@ create a certificate. The highlight disappears as soon as you start typing in th
   <a href="../favorites-system/">Favorites</a>). Both rows are also <strong>drop
   targets</strong>: drop an <code>.xml</code> file onto the XML row or an <code>.xsl</code> / <code>.xslt</code> file onto the
   stylesheet row - the row glows <strong>green</strong> while a loadable file hovers over it and
-  <strong>red</strong> for a wrong file type (which is rejected), and the drop behaves exactly like
-  <strong>Change</strong> or a favorite.</li>
+  <strong>red</strong> for a wrong file type (which is rejected), and the drop behaves exactly like a
+  favorite: the file is also loaded into the editor (the XML as the active tab, the
+  stylesheet behind it unless the XML input is fixed).</li>
 <li><strong>METADATA</strong> - PDF document <strong>Title</strong>, <strong>Author</strong> (pre-filled from your configured user
   name) and <strong>Subject</strong>, embedded into the generated PDF.</li>
 <li><strong>OPTIONS</strong> - <strong>PDF/A-1b compliant</strong> renders an archival-grade PDF (requires the
@@ -7103,11 +7104,13 @@ targets too</strong>:</p>
   to make it the current stylesheet.</li>
 <li>Drop an <code>.xml</code> file onto the Transform panel's <strong><a href="#input">INPUT</a></strong> row to make it the
   transform's input file. On both Transform panel rows a drop behaves like picking a
-  favorite: the transform <strong>runs automatically</strong> once both a stylesheet and an input are
-  ready (while <strong>Run automatically</strong> is checked).</li>
+  favorite: the file is loaded into the editor and the transform <strong>runs automatically</strong> once
+  both a stylesheet and an input are ready (while <strong>Run automatically</strong> is checked).</li>
 <li>Drop a <code>.sch</code> / <code>.schematron</code> file onto the Validation panel's
   <strong><a href="#sources">SCHEMATRON source row</a></strong> to make it the current
-  Schematron (and bind it to the active document).</li>
+  Schematron (and bind it to the active document). Like every schema, stylesheet or input
+  dropped on a panel row, it is also loaded into the editor - schemas behind the document
+  they are bound to, inputs as the active tab.</li>
 <li>Drop an <code>.xsd</code> file onto the Validation panel's <strong><a href="#sources">XSD source row</a></strong> or onto
   the <strong><a href="#status-bar">schema indicator in the status bar</a></strong> (shown for XML-family documents)
   to bind that schema to the active document.</li>
