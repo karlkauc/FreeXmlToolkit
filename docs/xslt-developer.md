@@ -468,8 +468,8 @@ open document whose text was transformed; a node from a document loaded with `do
 nodes point at their element's line, the document node at the root element.
 
 Below the header, the paused state is shown in **two tab groups** side by side: **Variables |
-Watch** on the left (the state at the pause point), **Call Stack | Messages | Breakpoints** on
-the right (navigation and log). Drag the divider between the groups to give one side more room -
+Watch** on the left (the state at the pause point), **Call Stack | Messages | Breakpoints |
+Output** on the right (navigation, log and the output so far). Drag the divider between the groups to give one side more room -
 the position is remembered, and so is the tab you last chose in each group (a tab the debugger
 brings forward by itself, like Messages after a failed run, does not change that choice).
 **Messages** and **Breakpoints** show a **count badge** on their tab;
@@ -529,6 +529,7 @@ right-click → **Open Value…** - to open it in its own **value window**:
 | **Call Stack** | Template and function frames, innermost first, each with its module and line (the instructions nested inside them are dimmed); double-click a frame to jump to it - also into an included module. **Selecting a frame switches Variables and Watch to that frame** (see below). **Enter** or **Open Value…** opens the frame's context item and variables |
 | **Messages** | `xsl:message` output and Saxon warnings **live, as they happen**, with their location; double-click jumps to the line. A failed run shows its error here too. The toolbar filters by level (**Messages** / **Warnings** / **Errors** - `terminate="yes"` counts as an error) and by text, **Copy** copies the selected messages (or all shown ones), **Clear** empties the list. The tab badge always counts all messages |
 | **Breakpoints** | All breakpoints of the session with **Remove** / **Clear all** above the list, see above |
+| **Output** | What the transformation has **written so far**, refreshed at every pause - see where in the result you are. When the run finishes it shows the complete result (also in OUTPUT). The serializer may hold back a just-opened start tag until it knows whether the element stays empty, so the text can lag by one tag. **Copy** copies it |
 
 ### The Result
 

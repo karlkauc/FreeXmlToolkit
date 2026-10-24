@@ -76,6 +76,7 @@ public final class XsltDebugPane extends VBox {
     private final CallStackView callStackView = new CallStackView();
     private final WatchView watchView = new WatchView();
     private final MessagesView messagesView = new MessagesView();
+    private final OutputSoFarView outputView = new OutputSoFarView();
 
     @FXML private Label status;
     @FXML private Button continueButton;
@@ -98,6 +99,7 @@ public final class XsltDebugPane extends VBox {
     @FXML private Tab callStackTab;
     @FXML private Tab messagesTab;
     @FXML private Tab breakpointsTab;
+    @FXML private Tab outputTab;
 
     private final Label messagesBadge = badge();
     private final Label breakpointsBadge = badge();
@@ -141,6 +143,7 @@ public final class XsltDebugPane extends VBox {
         callStackTab.setContent(callStackView);
         messagesTab.setContent(messagesView);
         breakpointsTab.setContent(breakpointsView);
+        outputTab.setContent(outputView);
         decorateWithBadge(messagesTab, messagesBadge);
         decorateWithBadge(breakpointsTab, breakpointsBadge);
         messagesView.setOnCountChanged(this::onMessageCountChanged);
@@ -262,6 +265,7 @@ public final class XsltDebugPane extends VBox {
     @FXML
     public void onRestart() {
         messagesView.clear();
+        outputView.clear();
         status.setText("Restarting…");
         controller.restart();
     }
@@ -333,6 +337,7 @@ public final class XsltDebugPane extends VBox {
                 PausedSnapshot snap = controller.getSession().getPausedSnapshot();
                 scope = snap;
                 if (snap != null) {
+                    outputView.showSoFar(controller.getSession().outputSoFar());
                     // Selecting the innermost frame (setFrames) fills Variables and the watches.
                     watchView.setEvaluator(controller.getWatchEvaluator());
                     variablesView.setVariables(snap.variables());
@@ -404,6 +409,9 @@ public final class XsltDebugPane extends VBox {
         }
         applyButtonState(controller.getSession().getState());
         controller.getSession().markRunEnded(result.isSuccess());
+        if (result.isSuccess()) {
+            outputView.showFinal(result.getOutputContent());
+        }
         breakpointsView.refresh(); // final hit counts of the run, "not reached" marks
         onBreakpointsChanged.run(); // gutters show which breakpoints the run never reached
         onResult.accept(result);
@@ -807,6 +815,7 @@ public final class XsltDebugPane extends VBox {
     public CallStackView getCallStackView() { return callStackView; }
     public WatchView getWatchView() { return watchView; }
     public MessagesView getMessagesView() { return messagesView; }
+    public OutputSoFarView getOutputView() { return outputView; }
     /** Left tab group: Variables | Watch. */
     public TabPane getLeftTabs() { return leftTabs; }
     /** Right tab group: Call Stack | Messages | Breakpoints. */

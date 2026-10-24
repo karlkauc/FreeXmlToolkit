@@ -53,6 +53,8 @@ public class DebugSession implements BreakpointTarget {
     /** One-shot "Run to Cursor" target (normalised path, 1-based line); line 0 = none. */
     private volatile String runToPath = "";
     private volatile int runToLine;
+    /** Reads the output the running transformation has serialized so far (set by the engine per run). */
+    private volatile Supplier<String> outputProbe;
     /** The last run ran to its end (not stopped, not failed): zero hits then mean "never reached". */
     private volatile boolean lastRunCompleted;
     /** Set by {@link #requestPause}; the next pause names it as its reason. */
@@ -229,6 +231,28 @@ public class DebugSession implements BreakpointTarget {
     /** @return the pending Run to Cursor line, or 0 (tests). */
     public int getRunToLine() {
         return runToLine;
+    }
+
+    /**
+     * Lets the engine expose the output written so far; {@code null} when no run writes. Read
+     * it while paused: the Saxon thread is blocked then, so the text does not change under the
+     * reader.
+     */
+    public void setOutputProbe(Supplier<String> probe) {
+        this.outputProbe = probe;
+    }
+
+    /**
+     * @return the output the run has serialized so far (may lag behind the instructions by the
+     *         serializer's buffer), or {@code null} when no run is writing
+     */
+    public String outputSoFar() {
+        Supplier<String> probe = outputProbe;
+        try {
+            return probe == null ? null : probe.get();
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     /** Mutes / unmutes all breakpoints: while muted they neither pause nor count hits. */

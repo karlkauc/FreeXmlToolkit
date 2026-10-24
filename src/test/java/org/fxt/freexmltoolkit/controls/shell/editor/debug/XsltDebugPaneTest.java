@@ -102,9 +102,10 @@ class XsltDebugPaneTest {
         assertEquals(List.of(pane.getVariablesView(), pane.getWatchView()),
                 pane.getLeftTabs().getTabs().stream().map(Tab::getContent).toList(),
                 "left group: Variables | Watch");
-        assertEquals(List.of(pane.getCallStackView(), pane.getMessagesView(), pane.getBreakpointsView()),
+        assertEquals(List.of(pane.getCallStackView(), pane.getMessagesView(), pane.getBreakpointsView(),
+                        pane.getOutputView()),
                 pane.getRightTabs().getTabs().stream().map(Tab::getContent).toList(),
-                "right group: Call Stack | Messages | Breakpoints");
+                "right group: Call Stack | Messages | Breakpoints | Output");
         assertEquals("Variables", pane.getLeftTabs().getTabs().get(0).getText());
         assertEquals("Breakpoints", pane.getBreakpointsTab().getText());
         assertTrue(pane.lookupAll(".fxt-side-panel-title").isEmpty(), "the tab header is the only title");
@@ -243,6 +244,11 @@ class XsltDebugPaneTest {
         assertEquals(1, pane.openViewers().size(), "the same row of the same pause opens one window");
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "2".equals(pane.getWatchView().getValueAt(0)));
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getMessagesView().getRowCount() == 1);
+        // What is written so far (the serializer holds back a just-opened start tag until it
+        // knows whether the element stays empty, so here it may still be empty).
+        String soFar = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.getOutputView().getText());
+        assertFalse(soFar.contains("</out>"), "not the rest of the output: " + soFar);
+        assertTrue(pane.getOutputView().getInfo().startsWith("Written so far"), pane.getOutputView().getInfo());
 
         // F5 while paused continues the run.
         boolean handled = WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> pane.handleShortcut(
@@ -251,6 +257,9 @@ class XsltDebugPaneTest {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> result.get() != null);
         assertTrue(result.get().isSuccess(), "the finished run's result reaches the host");
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getStatusText().startsWith("Finished"));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getOutputView().getText().contains("</out>"));
+        assertTrue(pane.getOutputView().getText().startsWith(soFar), "the paused output is a prefix of the result");
+        assertTrue(pane.getOutputView().getInfo().startsWith("Complete result"), "the finished run's full result");
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> clears.get() >= 1);
         assertTrue(clears.get() >= 1, "after the run the host is told the pause is over");
         WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, pane::dispose);

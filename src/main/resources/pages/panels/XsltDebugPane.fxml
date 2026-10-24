@@ -16,7 +16,7 @@
   The DEBUG pane of the editor's bottom dock: a header with the run controls (Continue, Pause, Step
   Into/Over/Out, Restart, Stop, Pause on entry, Show in editor, ✕ = end session) and the status
   line, above a two-way split of two tab groups: Variables | Watch on the left (the state you
-  read on every pause), Call Stack | Messages | Breakpoints on the right (navigation and log).
+  read on every pause), Call Stack | Messages | Breakpoints | Output on the right (navigation, log, output so far).
   The tab contents are set in code because the Breakpoints view needs the session; the divider
   position is persisted (editor.debugPane.divider). Loaded by XsltDebugPane via the fx:root
   pattern (FxmlViews.load); XsltDebugPane is root and controller.
@@ -113,6 +113,9 @@
                         </Tab>
                         <Tab fx:id="breakpointsTab" id="debug-tab-breakpoints" text="Breakpoints" closable="false">
                             <graphic><IconifyIcon iconLiteral="bi-record-circle" iconSize="14"/></graphic>
+                        </Tab>
+                        <Tab fx:id="outputTab" id="debug-tab-output" text="Output" closable="false">
+                            <graphic><IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="14"/></graphic>
                         </Tab>
                     </tabs>
                 </TabPane>

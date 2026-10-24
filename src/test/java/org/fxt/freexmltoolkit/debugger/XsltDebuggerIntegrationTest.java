@@ -526,4 +526,38 @@ class XsltDebuggerIntegrationTest {
         assertEquals(java.util.List.of(new InputLocation("file:/tmp/debug-input.xml", 2),
                 new InputLocation("file:/tmp/debug-input.xml", 3)), locations);
     }
+
+    @Test
+    void outputSoFarIsReadableWhilePaused() throws Exception {
+        StringBuilder xml = new StringBuilder("<order>");
+        for (int i = 1; i <= 5; i++) {
+            xml.append("<item n=\"").append(i).append("\"/>");
+        }
+        xml.append("</order>");
+        String xslt = ""
+                + "<xsl:stylesheet version=\"3.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n" // 1
+                + "  <xsl:template match=\"/\"><out><xsl:apply-templates select=\"//item\"/></out></xsl:template>\n" // 2
+                + "  <xsl:template match=\"item\">\n"                                                         // 3
+                + "    <x><xsl:value-of select=\"@n\"/></x>\n"                                               // 4
+                + "  </xsl:template>\n"
+                + "</xsl:stylesheet>\n";
+        DebugSession session = new DebugSession();
+        session.updateBreakpoint("", 4, bp -> bp.withCondition("@n = '4'"));
+        WatchEvaluator evaluator = new WatchEvaluator(XsltTransformationEngine.getInstance().getDebugProcessor(), java.util.Map.of());
+        session.setConditionEvaluator(evaluator::test);
+        AtomicReference<String> soFar = new AtomicReference<>();
+        session.addPropertyChangeListener(evt -> {
+            if (evt.getNewValue() == DebugSession.State.PAUSED) {
+                soFar.set(session.outputSoFar());
+                session.requestContinue();
+            }
+        });
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                xml.toString(), xslt, null, new HashMap<>(), XsltTransformationEngine.OutputFormat.XML, session, m -> { });
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertNotNull(soFar.get(), "the probe is set during the run");
+        assertTrue(soFar.get().contains("<x>3</x>"), "items 1-3 are written when item 4 pauses: " + soFar.get());
+        assertFalse(soFar.get().contains("<x>4</x>"), "item 4 is not written yet");
+        assertNull(session.outputSoFar(), "no probe after the run");
+    }
 }

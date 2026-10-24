@@ -748,9 +748,9 @@ The dock's header holds the controls - **Continue** (F5), **Pause** (F6, breaks 
 (F8), **Step Out** (Shift+F8), **Restart** (runs again from the start with the same
 breakpoints, re-reading the stylesheet), **Stop**, **Pause on entry**, **Mute** (all breakpoints off, steps still work), **Show in editor**, **Show input** (the paused context node in the input XML, which is tinted blue there)
 and **✕** (ends the session). Below it, two tab groups show the paused state - **Variables |
-Watch** on the left, **Call Stack | Messages | Breakpoints** on the right, with a draggable
+Watch** on the left, **Call Stack | Messages | Breakpoints | Output** on the right, with a draggable
 divider whose position is remembered. Messages and Breakpoints carry a count badge; a failed
-run brings Messages to the front. The five panels:
+run brings Messages to the front. The panels:
 
 | Panel | Shows |
 |-------|-------|
@@ -759,6 +759,7 @@ run brings Messages to the front. The five panels:
 | **Call Stack** | Template and function frames (instructions nested inside them are dimmed), each with its module and line; double-click jumps there, also into an include. **Selecting a frame switches Variables and Watch to that frame** (its context item, own locals and the globals). **Enter** / **Open Value…** opens the frame's context item, with XPath over that frame's own variables |
 | **Messages** | `xsl:message` output and Saxon warnings **as they happen**, with their stylesheet location; double-click jumps to the line. Filter by level and text, **Copy**, **Clear** |
 | **Breakpoints** | All breakpoints of the session (checkbox = enabled · file · line · condition · hit rule · hits of this run; after a completed run, breakpoints it never reached are flagged and drawn amber in the gutter) with **Remove** / **Edit…** / **Clear all** above the list (Delete removes the selected one); double-click jumps to the line. Right-click a gutter slot for a **conditional breakpoint** (XPath, pauses only when true) or a **hit count** rule (exactly / from / every N-th hit) - [details](xslt-developer.md#conditional-breakpoints) |
+| **Output** | The output written so far, refreshed at every pause; the complete result once the run finishes |
 
 When the run ends, the status reads *Finished · N ms* and the **result lands in the OUTPUT
 panel** (the OUTPUT toggle lights up; DEBUG stays in front so the messages remain readable).
