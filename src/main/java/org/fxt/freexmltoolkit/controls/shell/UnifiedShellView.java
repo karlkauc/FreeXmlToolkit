@@ -106,6 +106,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.MenuItem actionRunTransform;
     @FXML private javafx.scene.control.MenuItem actionDebugTransform;
     @FXML private javafx.scene.control.MenuItem actionDebugQuery;
+    @FXML private javafx.scene.control.MenuItem actionDebugSchematron;
     @FXML private javafx.scene.control.MenuItem actionRunPipeline;
     /** Target dropdown for query/XSLT documents; visible only when one is active. */
     @FXML private javafx.scene.control.MenuButton queryTargetButton;
@@ -1488,8 +1489,9 @@ public class UnifiedShellView extends BorderPane {
             return;
         }
         if (editorActions.activeFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XSLT
-                || editorActions.activeFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY) {
-            editorActions.debugActiveTransform(); // XQuery → debugActiveQuery
+                || editorActions.activeFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY
+                || editorActions.activeFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.SCHEMATRON) {
+            editorActions.debugActiveTransform(); // XQuery → debugActiveQuery, Schematron → debugActiveSchematron
             return;
         }
         var panel = (org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel) sidePanel(Activity.TRANSFORM);
@@ -1516,6 +1518,12 @@ public class UnifiedShellView extends BorderPane {
         editorActions.debugActiveQuery();
     }
 
+    /** Run menu → Debug Schematron: debugs the active Schematron (compiled to XSLT) against the Run target. */
+    @FXML public void onDebugSchematron() {
+        toolbar("debug_schematron");
+        editorActions.debugActiveSchematron();
+    }
+
     @FXML public void onRunQuery() { editorActions.runActiveQuery(); }
     @FXML public void onRunTransform() { editorActions.runActiveTransform(); }
     @FXML public void onRunPipeline() { editorActions.runActivePipeline(); }
@@ -1537,6 +1545,8 @@ public class UnifiedShellView extends BorderPane {
         } else if (org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.applicableFor(
                 type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE)) {
             onRunPipeline();
+        } else if (type == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.SCHEMATRON) {
+            onDebugSchematron(); // a Schematron's only run here: debugging it against the target
         }
     }
     @FXML public void onSetSchema() { toolbar("set_schema"); setSchema(); }
@@ -1792,6 +1802,8 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM));
         actionDebugTransform.setDisable(actionRunTransform.isDisable());
         actionDebugQuery.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY);
+        boolean schematron = type == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.SCHEMATRON;
+        actionDebugSchematron.setDisable(!schematron);
         actionRunPipeline.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE));
 
@@ -1802,7 +1814,8 @@ public class UnifiedShellView extends BorderPane {
                 || org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM)
                 || org.fxt.freexmltoolkit.controls.shell.editor.EditorActions
-                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE);
+                .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_PIPELINE)
+                || schematron; // the XML a Schematron is debugged against
         queryTargetButton.setVisible(targetable);
         queryTargetButton.setManaged(targetable);
         refreshQueryTargetButton();

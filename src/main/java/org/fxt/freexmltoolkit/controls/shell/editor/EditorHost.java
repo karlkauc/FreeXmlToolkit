@@ -3220,9 +3220,13 @@ public class EditorHost extends BorderPane {
         //    modules it includes — attach the gutter to the main module and to every module
         //    already open, and pause on entry when there is nothing to stop at.
         var controller = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController();
-        // An .xq file is debugged as XQuery (same session, dock, gutter and watches).
-        if (EditorFileType.fromFileName(xsltFile.getName()) == EditorFileType.XQUERY) {
+        // An .xq file is debugged as XQuery, a Schematron through its compiled XSLT (same
+        // session, dock, gutter and watches).
+        EditorFileType debugType = EditorFileType.fromFileName(xsltFile.getName());
+        if (debugType == EditorFileType.XQUERY) {
             controller.setLanguage(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.XQUERY);
+        } else if (debugType == EditorFileType.SCHEMATRON) {
+            controller.setLanguage(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.SCHEMATRON);
         }
         var session = controller.getSession();
         for (org.fxt.freexmltoolkit.debugger.Breakpoint bp
@@ -3333,6 +3337,15 @@ public class EditorHost extends BorderPane {
     private String stylesheetText(File xsltFile,
                                   org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController controller) {
         OpenDocument doc = documentAt(xsltFile.toPath());
+        if (doc != null && controller.getLanguage()
+                == org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.SCHEMATRON) {
+            // SchXslt compiles the file (and its includes) from disk
+            if (doc.isDirty()) {
+                controller.note("Debugging the saved file of " + doc.getDisplayName()
+                        + " - save it to include the unsaved changes");
+            }
+            doc = null;
+        }
         if (doc != null) {
             var text = getDocumentText(doc);
             if (text.isPresent() && !text.get().isEmpty()) {
@@ -3549,7 +3562,8 @@ public class EditorHost extends BorderPane {
      */
     private void installBreakpointGutter(EditorTab et) {
         EditorFileType type = et.document.getFileType();
-        if ((type != EditorFileType.XSLT && type != EditorFileType.XQUERY) || et.document.getPath() == null) {
+        if ((type != EditorFileType.XSLT && type != EditorFileType.XQUERY && type != EditorFileType.SCHEMATRON)
+                || et.document.getPath() == null) {
             return;
         }
         followEditsWithBreakpoints(et); // whichever gutter the tab carries, its breakpoints follow edits
@@ -4063,7 +4077,10 @@ public class EditorHost extends BorderPane {
     /** @return the module whose file name appears in a message's "file:line" location, else the main one. */
     private static String moduleForMessage(XsltDebugSession debug, String location) {
         if (location != null) {
-            for (String path : debug.modules.keySet()) {
+            // open modules first, then included ones not open yet (e.g. a finding in an sch:include)
+            java.util.Set<String> candidates = new java.util.LinkedHashSet<>(debug.modules.keySet());
+            candidates.addAll(debug.resolvedModules);
+            for (String path : candidates) {
                 String name = org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(path);
                 if (!name.isEmpty() && location.startsWith(name)) {
                     return path;

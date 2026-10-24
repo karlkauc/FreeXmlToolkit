@@ -335,6 +335,18 @@ public class DebugSession implements BreakpointTarget {
         }
     }
 
+    /** Maps the run stylesheet's locations to the edited source ({@code null}: they are the source). */
+    private volatile SourceMapping sourceMapping;
+
+    /** Sets (or with {@code null} clears) how reported locations map to the source; set per launch. */
+    public void setSourceMapping(SourceMapping mapping) {
+        this.sourceMapping = mapping;
+    }
+
+    public SourceMapping getSourceMapping() {
+        return sourceMapping;
+    }
+
     /** Whether multi-line XML start tags are mapped to their last line (XSLT yes, XQuery no). */
     private volatile boolean tagLineMapping = true;
 

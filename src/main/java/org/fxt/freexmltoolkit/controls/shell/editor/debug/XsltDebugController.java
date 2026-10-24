@@ -56,12 +56,15 @@ public final class XsltDebugController {
     private volatile String runToOnStartPath;
     private volatile int runToOnStartLine;
 
-    /** What a run debugs. */
-    public enum Language { XSLT, XQUERY }
+    /**
+     * What a run debugs. A Schematron is compiled to XSLT by SchXslt at every launch and run as
+     * that; its locations are mapped back to the {@code .sch} ({@code SchematronSourceMap}).
+     */
+    public enum Language { XSLT, XQUERY, SCHEMATRON }
 
     private volatile Language language = Language.XSLT;
 
-    /** Debugs the next runs as XSLT (default) or XQuery. */
+    /** Debugs the next runs as XSLT (default), XQuery or Schematron. */
     public void setLanguage(Language language) {
         this.language = language == null ? Language.XSLT : language;
     }
@@ -213,7 +216,8 @@ public final class XsltDebugController {
         final String mainText = lastXslt;
         session.setMainSourcePath(mainPath);
         final Language runLanguage = language;
-        session.setTagLineMapping(runLanguage == Language.XSLT);
+        session.setTagLineMapping(runLanguage != Language.XQUERY);
+        session.setSourceMapping(null); // a Schematron's is set once it has been compiled
         session.setSourceTexts(path -> {
             String text = moduleSnapshot.get(path);
             if (text == null && (path.isEmpty() || path.equals(mainPath))) {
@@ -241,7 +245,8 @@ public final class XsltDebugController {
         executor.execute(() -> {
             XsltTransformationResult result;
             try {
-                result = runLanguage == Language.XQUERY
+                result = runLanguage == Language.SCHEMATRON ? runSchematron(args)
+                        : runLanguage == Language.XQUERY
                         ? XsltTransformationEngine.getInstance().transformXQueryWithDebugSession(
                                 args.xml(), args.inputSystemId(), lastXslt, args.xsltSystemId(), args.parameters(),
                                 args.format(), session, this::publishMessage)
@@ -268,6 +273,34 @@ public final class XsltDebugController {
                 launch();
             }
         });
+    }
+
+    /**
+     * Compiles the saved Schematron, maps the compiled lines back to it and runs the compiled
+     * XSLT under the Schematron's URI; afterwards every failed assert and successful report of
+     * the SVRL goes to Messages at its {@code .sch} line.
+     */
+    private XsltTransformationResult runSchematron(RunArgs args) {
+        org.fxt.freexmltoolkit.service.SchematronDebugCompiler.Compiled compiled;
+        try {
+            compiled = org.fxt.freexmltoolkit.service.SchematronDebugCompiler.compile(
+                    new java.io.File(java.net.URI.create(args.xsltSystemId())));
+        } catch (RuntimeException e) {
+            if (session.getState() != DebugSession.State.IDLE) {
+                session.close();
+            }
+            return XsltTransformationResult.error(e.getMessage());
+        }
+        session.setSourceMapping(compiled.sourceMap());
+        lastXslt = compiled.xslt(); // its namespaces serve watches and conditions
+        XsltTransformationResult result = XsltTransformationEngine.getInstance().transformWithDebugSession(
+                args.xml(), args.inputSystemId(), compiled.xslt(), compiled.systemId(), args.parameters(),
+                OutputFormat.XML, session, this::publishMessage, path -> null);
+        if (result != null && result.isSuccess()) {
+            org.fxt.freexmltoolkit.service.SchematronDebugCompiler
+                    .findings(result.getOutputContent(), compiled.sourceMap()).forEach(this::publishMessage);
+        }
+        return result;
     }
 
     /** Notes collected while a run is being launched; shown once the run has started. */

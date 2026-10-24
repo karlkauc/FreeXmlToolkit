@@ -196,6 +196,10 @@
                                                           text="Debug Query  (Shift+F5)" onAction="#onDebugQuery">
                                                     <graphic><IconifyIcon iconLiteral="bi-bug" iconSize="16"/></graphic>
                                                 </MenuItem>
+                                                <MenuItem fx:id="actionDebugSchematron" id="doc-action-debug-schematron"
+                                                          text="Debug Schematron  (Shift+F5)" onAction="#onDebugSchematron">
+                                                    <graphic><IconifyIcon iconLiteral="bi-bug" iconSize="16"/></graphic>
+                                                </MenuItem>
                                                 <MenuItem fx:id="actionRunPipeline" id="doc-action-run-pipeline"
                                                           text="Run Pipeline  (Ctrl+Enter)" onAction="#onRunPipeline">
                                                     <graphic><IconifyIcon iconLiteral="bi-play-btn" iconSize="16"/></graphic>

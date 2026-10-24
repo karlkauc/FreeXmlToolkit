@@ -306,6 +306,10 @@ public final class EditorActions {
             debugActiveQuery();
             return;
         }
+        if (activeFileType() == EditorFileType.SCHEMATRON) {
+            debugActiveSchematron();
+            return;
+        }
         if (activeFileType() != EditorFileType.XSLT) {
             return;
         }
@@ -371,6 +375,40 @@ public final class EditorActions {
             if (resolved.get().file() != null) {
                 editorHost.setDebugInputFile(resolved.get().file().toPath());
             }
+        }
+        editorHost.startXsltDebug(doc.getPath().toFile(), xml, Map.of(),
+                org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML);
+    }
+
+    /**
+     * Debugs the active (saved) Schematron against the Run target: SchXslt compiles it to XSLT,
+     * the debugger runs that and shows every stop at its {@code .sch} line. Needs an XML target.
+     */
+    public void debugActiveSchematron() {
+        if (activeFileType() != EditorFileType.SCHEMATRON) {
+            return;
+        }
+        TransformOutputPanel out = editorHost.transformOutputPanel();
+        var doc = editorHost.getActiveDocument().orElseThrow();
+        if (doc.getPath() == null) {
+            out.showError("Save the Schematron first - it is compiled from its file.");
+            return;
+        }
+        var resolved = editorHost.resolveQueryTarget(doc);
+        if (resolved.isEmpty()) {
+            out.showError("Open an XML document first, or pick one via the Target dropdown - "
+                    + "the Schematron is debugged against the most recently active XML document.");
+            return;
+        }
+        String xml;
+        try {
+            xml = resolved.get().loadXml();
+        } catch (Exception e) {
+            out.showFailure("Cannot read target file: " + e.getMessage());
+            return;
+        }
+        if (resolved.get().file() != null) {
+            editorHost.setDebugInputFile(resolved.get().file().toPath());
         }
         editorHost.startXsltDebug(doc.getPath().toFile(), xml, Map.of(),
                 org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML);

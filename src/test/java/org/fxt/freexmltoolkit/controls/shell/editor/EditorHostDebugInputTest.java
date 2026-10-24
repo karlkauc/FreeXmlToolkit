@@ -238,4 +238,33 @@ class EditorHostDebugInputTest {
         WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
                 () -> host.activeDebugPane().getOutputView().getText().contains("<n>1</n>"));
     }
+
+    @Test
+    void aSchematronIsDebuggedThroughItsCompiledXsltAtItsOwnLines(@TempDir Path tmp) throws Exception {
+        Path sch = tmp.resolve("rules.sch");
+        Files.writeString(sch, "<sch:schema xmlns:sch=\"http://purl.oclc.org/dsdl/schematron\" queryBinding=\"xslt2\">\n" // 1
+                + "  <sch:pattern>\n"                                                                          // 2
+                + "    <sch:rule context=\"item\">\n"                                                         // 3
+                + "      <sch:let name=\"n\" value=\"number(@n)\"/>\n"                                       // 4
+                + "      <sch:assert test=\"$n gt 1\">Too small</sch:assert>\n"                                // 5
+                + "    </sch:rule>\n"
+                + "  </sch:pattern>\n"
+                + "</sch:schema>\n");
+        org.fxt.freexmltoolkit.debugger.BreakpointStore.save(sch.toString(),
+                java.util.List.of(new org.fxt.freexmltoolkit.debugger.Breakpoint(sch.toString(), 5, true)));
+        WaitForAsyncUtils.waitForAsyncFx(5000, () -> host.startXsltDebug(sch.toFile(), XML, Map.of(), OutputFormat.XML));
+        DebugSession session = pausedSession();
+        assertEquals(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.SCHEMATRON,
+                host.activeDebugPane().getController().getLanguage());
+        assertEquals(5, session.getPausedSnapshot().lineNumber());
+        assertTrue(org.fxt.freexmltoolkit.debugger.SourceLocations.sameFile(sch.toString(),
+                session.getPausedSnapshot().systemId()), session.getPausedSnapshot().systemId());
+        assertTrue(session.getPausedSnapshot().localVariables().keySet().stream()
+                .anyMatch(q -> q.getLocalName().equals("n")), "the sch:let is shown");
+        assertEquals("rules.sch", WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveDocument().orElseThrow().getDisplayName()), "the .sch is shown, not the XSLT");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeDebugPane().onContinue());
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS,
+                () -> host.activeDebugPane().getOutputView().getText().contains("failed-assert"));
+    }
 }

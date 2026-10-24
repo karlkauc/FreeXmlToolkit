@@ -771,6 +771,33 @@ What Saxon traces in a query is coarser than in a stylesheet: a stop is a `let` 
 constructed element or attribute, or a function call - a `for` or `where` clause has no stop
 of its own. Explain Match is for template rules and does not apply.
 
+### Debugging a Schematron
+
+A Schematron can be debugged too. Open a saved `.sch` file and press **Shift+F5** (or
+**Run ▾ → Debug Schematron**, or the **Run** button): the debugger checks the **Input** - the
+most recently active XML document, or the one picked in the Input selector shown for
+Schematron tabs. Behind the scenes SchXslt compiles the Schematron to XSLT (the same compiler
+validation uses) and the debugger runs that XSLT, but everything you see is the `.sch`:
+
+- **Breakpoints** go into the `.sch` gutter, including included files (`sch:include`). A
+  breakpoint on an `sch:assert` or `sch:report` stops once for every node its rule fires on,
+  before the test is evaluated - add a condition (for example `$n gt 5`) to stop only for some.
+  A breakpoint on an `sch:rule` stops when the rule fires.
+- **Stepping** goes from rule to `sch:let` to assert to report; SchXslt's own driver code is
+  skipped. Functions written in the Schematron (`xsl:function`) can be stepped into.
+- **Variables** show the `sch:let` values of the rule (and the global ones); Watch and hover
+  evaluate XPath with the Schematron's `sch:ns` prefixes.
+- When the run ends, **Messages** lists every failed assert (warning) and successful report
+  with its text and the location of the node; a double-click jumps to the `.sch` line. The
+  Output tab shows the SVRL report.
+
+The `.sch` file is compiled as saved - unsaved changes are not included (a note in Messages
+says so). The mapping follows the structure SchXslt produces (one template per rule, one test
+per assert and report, matched by their text). Rules of abstract patterns (`is-a`), whose
+context and tests are rewritten by the compiler, have no `.sch` lines to stop at; abstract
+rules used through `sch:extends` work, they stop at the abstract rule's asserts. Quick-fix
+code (SQF) is not part of the run.
+
 ## Output Format
 
 The Transform panel's **OUTPUT METHOD** section is a single dropdown with
@@ -788,7 +815,7 @@ the stylesheet's `xsl:output` declaration; pick a concrete format to override th
 |--------------|------------------------|
 | Ctrl+Enter   | Run the active XSLT / XQuery / XPath document against the selected Input |
 | F5           | Run the active XQuery / XPath / XSLT / XProc document |
-| Shift+F5     | Debug with XSLT - the active XSLT document, or the Transform / PDF panel's stylesheet |
+| Shift+F5     | Debug with XSLT - the active XSLT / XQuery / Schematron document, or the Transform / PDF panel's stylesheet |
 | F5 / F7 / F8 / Shift+F8 | While the debugger is paused: Continue / Step Into / Step Over / Step Out |
 | Shift+F7 | While the debugger is paused: Smart Step Into - choose which call on the line to step into |
 | Ctrl+Shift+X | Toggle the bottom Query Console |

@@ -128,7 +128,7 @@ public class XsltDebugTraceListener implements TraceListener {
                 && "Trace".equals(traceable.getClass().getSimpleName())) {
             var sink = traceSink;
             if (sink != null) {
-                int line = getLineNumber(traceable);
+                int line = sourceLocation(traceable).line();
                 sink.accept(new XsltTransformationResult.TransformationMessage("INFO",
                         properties.get("label") + ": " + properties.get("value"), line,
                         "trace()" + (line > 0 ? " line " + line : "")));
@@ -139,8 +139,9 @@ public class XsltDebugTraceListener implements TraceListener {
             if (traceable instanceof TemplateRule) {
                 description = description + modeSuffix(context); // the call stack names the mode
             }
-            int lineNumber = getLineNumber(traceable);
-            String systemId = getSystemId(traceable);
+            org.fxt.freexmltoolkit.debugger.SourceMapping.Mapped at = sourceLocation(traceable);
+            int lineNumber = at.line();
+            String systemId = at.systemId();
             if (debugSession != null && lineNumber > 0 && debugSession.isCoverageEnabled()) {
                 countLine(systemId, lineNumber);
             }
@@ -305,16 +306,26 @@ public class XsltDebugTraceListener implements TraceListener {
             return; // a static error (compile time) — nothing executing to inspect
         }
         net.sf.saxon.s9api.Location loc = error.getLocation();
-        String systemId = loc != null && loc.getSystemId() != null ? loc.getSystemId() : top.systemId();
-        int line = loc != null && loc.getLineNumber() > 0 ? loc.getLineNumber() : top.lineNumber();
+        String systemId = top.systemId();
+        int line = top.lineNumber();
+        if (loc != null && loc.getLineNumber() > 0) {
+            org.fxt.freexmltoolkit.debugger.SourceMapping.Mapped at = map(
+                    loc.getSystemId() != null ? loc.getSystemId() : top.systemId(), loc.getLineNumber());
+            if (at.line() > 0) {
+                systemId = at.systemId();
+                line = at.line();
+            }
+        }
         String localCode = error.getErrorCode() == null ? null : error.getErrorCode().getLocalName();
         if (!debugSession.breaksOnError(localCode)) {
             return; // filtered out by "Only error codes"
         }
         String code = localCode == null ? "" : localCode + ": ";
         XPathContext ctx = top.context();
-        debugSession.pauseAt(systemId, line, "error " + code + error.getMessage(),
-                () -> buildPausedSnapshot(systemId, line, ctx));
+        final String atSystemId = systemId;
+        final int atLine = line;
+        debugSession.pauseAt(atSystemId, atLine, "error " + code + error.getMessage(),
+                () -> buildPausedSnapshot(atSystemId, atLine, ctx));
     }
 
     /**
@@ -552,6 +563,24 @@ public class XsltDebugTraceListener implements TraceListener {
             return DebugStackFrame.FrameKind.FUNCTION;
         }
         return DebugStackFrame.FrameKind.INSTRUCTION;
+    }
+
+    /** The traceable's location in the edited source (through the session's {@code SourceMapping}). */
+    private org.fxt.freexmltoolkit.debugger.SourceMapping.Mapped sourceLocation(Traceable traceable) {
+        return map(getSystemId(traceable), getLineNumber(traceable));
+    }
+
+    private org.fxt.freexmltoolkit.debugger.SourceMapping.Mapped map(String systemId, int line) {
+        org.fxt.freexmltoolkit.debugger.SourceMapping mapping =
+                debugSession == null ? null : debugSession.getSourceMapping();
+        if (mapping == null) {
+            return new org.fxt.freexmltoolkit.debugger.SourceMapping.Mapped(systemId, line);
+        }
+        try {
+            return mapping.map(systemId, line);
+        } catch (RuntimeException e) {
+            return new org.fxt.freexmltoolkit.debugger.SourceMapping.Mapped(systemId, -1);
+        }
     }
 
     private int getLineNumber(Traceable traceable) {
