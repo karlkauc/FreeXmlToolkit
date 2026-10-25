@@ -2293,6 +2293,11 @@ support); only other <code>runtime</code> failures have status <code>error</code
 <code>not_well_formed</code> with status <code>invalid_input</code> when the sample XML is not well-formed. A failed
 <strong>update check</strong> (<code>update_check</code>) names a fixed reason in <code>meta.reason</code>: <code>network</code> (no response),
 <code>http_&lt;status&gt;</code> (e.g. <code>http_403</code>), <code>empty</code>, <code>parse</code>, <code>no_version</code> or <code>exception</code>.</p>
+<p>The <strong>spreadsheet converter</strong> (<code>spreadsheet_convert</code>) records the direction in <code>meta.direction</code>
+(<code>to_spreadsheet</code> or <code>to_xml</code>), the format in <code>meta.format</code> (<code>xlsx</code>, <code>xls</code> or <code>csv</code>), the duration,
+the size of the exported document in characters (<code>input_bytes</code>) and, for a failure, the exception
+class in <code>error_code</code>. A document that is not well-formed has status <code>invalid_input</code>; one with more
+rows than a sheet holds, or too large for the memory limit, has status <code>unsupported</code>.</p>
 <p>Identical errors are sent only once per session (with a repeat counter), and at most 30 error
 events are sent per session.</p>
 <h3 id="launch-session-and-performance-information">Launch, session and performance information<a class="headerlink" href="#launch-session-and-performance-information" title="Permanent link">&para;</a></h3>
@@ -2322,11 +2327,11 @@ events are sent per session.</p>
 </tr>
 <tr>
 <td><code>ui_stall</code></td>
-<td>The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, a stack signature of the blocked code (code locations only, as for errors), and the shape of the active document: its size in characters (<code>input_bytes</code>), its number of lines (<code>meta.lines</code>) and the length class of its longest line (<code>meta.max_line_len</code>: <code>&lt;1k</code>, <code>&lt;10k</code>, <code>&lt;100k</code>, <code>&gt;=100k</code>; <code>unknown</code> above 50,000 lines, which are not scanned) — never its content. Pauses of the whole application (system sleep) are not reported. At most 10 per session.</td>
+<td>The user interface did not respond for at least two seconds: the duration, the side panel and view mode that were active, a stack signature of the blocked code (code locations only, as for errors), and the shape of the active document: its size in characters (<code>input_bytes</code>), its number of lines (<code>meta.lines</code>) and the length class of its longest line (<code>meta.max_line_len</code>: <code>&lt;1k</code>, <code>&lt;10k</code>, <code>&lt;100k</code>, <code>&gt;=100k</code>; <code>unknown</code> above 50,000 lines, which are not scanned) — never its content. Also the garbage-collection time during the block in ms (<code>meta.gc_ms</code>), the heap usage at its end in percent of the memory limit (<code>meta.heap_pct</code>) and <code>meta.cause=gc</code> when collections took at least half of the block (the memory was nearly full). Pauses of the whole application (system sleep) and waits in the operating system's own loops (window dragging or live resizing, native file dialogs) are not reported. At most 10 per session.</td>
 </tr>
 <tr>
 <td><code>ui_freeze</code></td>
-<td>The user interface has not responded for ten seconds and is still blocked. Sent right away, while the freeze lasts, so that a freeze ending in a forced close is not lost: the time blocked so far, the side panel, view mode and document type, and a stack signature of the blocked code (code locations only). The document shape is not included. If the interface recovers, the regular <code>ui_stall</code> follows. At most 3 per session.</td>
+<td>The user interface has not responded for ten seconds and is still blocked. Sent right away, while the freeze lasts, so that a freeze ending in a forced close is not lost: the time blocked so far, the side panel, view mode and document type, a stack signature of the blocked code (code locations only), and the memory load (<code>meta.gc_ms</code>, <code>meta.heap_pct</code>, <code>meta.cause=gc</code>) as for <code>ui_stall</code>. The document shape is not included. If the interface recovers, the regular <code>ui_stall</code> follows. At most 3 per session.</td>
 </tr>
 <tr>
 <td><code>ui_command</code>, <code>panel_action</code></td>
