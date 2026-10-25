@@ -60,6 +60,9 @@ public class PropertiesServiceImpl implements PropertiesService {
     /** Last-modified time and size of the file as last read or written: unchanged means no re-read. */
     private long fileStampModified = -1;
     private long fileStampSize = -1;
+    private static final String RECENT_FILES_LIMIT_KEY = "recentFiles.limit";
+    private static final int DEFAULT_RECENT_FILES_LIMIT = 20;
+    private static final int MAX_RECENT_FILES_LIMIT = 100;
     /** Whether recent files exist, as last checked (refreshed in the background). */
     private final java.util.Map<String, Boolean> recentFileExists = new java.util.concurrent.ConcurrentHashMap<>();
     private volatile long recentCheckStarted;
@@ -274,24 +277,27 @@ public class PropertiesServiceImpl implements PropertiesService {
      */
     @Override
     public List<File> getLastOpenFiles() {
-        Properties p = loadProperties();
         List<File> files = new LinkedList<>();
-        List<File> listed = new java.util.ArrayList<>();
-        // Load only the 5 most recent entries
-        for (int i = 0; i < 5; i++) {
-            String filePath = p.getProperty("LastOpenFile." + i);
-            if (filePath != null) {
-                File f = new File(filePath);
-                listed.add(f);
-                if (exists(f)) {
-                    files.add(f);
-                }
-            } else {
-                break;
+        List<File> listed = storedRecentFiles(loadProperties());
+        for (File f : listed) {
+            if (exists(f)) {
+                files.add(f);
             }
         }
         refreshRecentFileExistence(listed); // all of them: a missing file may come back
         return files;
+    }
+
+    /** The stored recent files up to the limit, missing ones included; gaps in the numbering are skipped. */
+    private List<File> storedRecentFiles(Properties p) {
+        List<File> listed = new java.util.ArrayList<>();
+        for (int i = 0; i < MAX_RECENT_FILES_LIMIT && listed.size() < getRecentFilesLimit(); i++) {
+            String filePath = p.getProperty("LastOpenFile." + i);
+            if (filePath != null && !filePath.isBlank()) {
+                listed.add(new File(filePath));
+            }
+        }
+        return listed;
     }
 
     /**
@@ -315,13 +321,18 @@ public class PropertiesServiceImpl implements PropertiesService {
 
     /**
      * Adds a file to the list of recently opened files.
-     * The list is capped at 5 entries with the most recent file first.
+     * The list is capped at {@link #getRecentFilesLimit()} entries with the most recent file first.
      *
      * @param file the file to add
      */
     @Override
     public void addLastOpenFile(File file) {
-        List<File> recentFiles = getLastOpenFiles();
+        if (file == null) {
+            return;
+        }
+        // From the stored paths, not getLastOpenFiles(): that drops files which are currently
+        // unreachable (e.g. a disconnected network drive), and rewriting from it would lose them.
+        List<File> recentFiles = new LinkedList<>(storedRecentFiles(properties));
 
         // Remove the file if it is already in the list, to avoid duplicates
         // and move it to the top.
@@ -330,9 +341,10 @@ public class PropertiesServiceImpl implements PropertiesService {
         // Add the new file at the head of the list
         recentFiles.addFirst(file);
 
-        // Trim the list to the maximum size of 5
-        if (recentFiles.size() > 5) {
-            recentFiles = new LinkedList<>(recentFiles.subList(0, 5));
+        // Trim the list to the configured maximum size
+        int limit = getRecentFilesLimit();
+        if (recentFiles.size() > limit) {
+            recentFiles = new LinkedList<>(recentFiles.subList(0, limit));
         }
 
         // Remove all old "LastOpenFile" entries from the properties
@@ -349,6 +361,26 @@ public class PropertiesServiceImpl implements PropertiesService {
         // Persist the updated properties
         saveProperties(properties);
         logger.debug("Updated last open files list: {}", recentFiles);
+    }
+
+    @Override
+    public int getRecentFilesLimit() {
+        try {
+            return clampRecentFilesLimit(Integer.parseInt(properties.getProperty(
+                    RECENT_FILES_LIMIT_KEY, String.valueOf(DEFAULT_RECENT_FILES_LIMIT)).trim()));
+        } catch (NumberFormatException e) {
+            return DEFAULT_RECENT_FILES_LIMIT;
+        }
+    }
+
+    @Override
+    public void setRecentFilesLimit(int limit) {
+        properties.setProperty(RECENT_FILES_LIMIT_KEY, String.valueOf(clampRecentFilesLimit(limit)));
+        saveProperties(properties);
+    }
+
+    private static int clampRecentFilesLimit(int limit) {
+        return Math.clamp(limit, 1, MAX_RECENT_FILES_LIMIT);
     }
 
     @Override

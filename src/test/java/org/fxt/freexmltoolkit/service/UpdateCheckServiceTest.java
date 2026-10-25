@@ -613,6 +613,15 @@ class UpdateCheckServiceTest {
         }
 
         @Override
+        public int getRecentFilesLimit() {
+            return 20;
+        }
+
+        @Override
+        public void setRecentFilesLimit(int limit) {
+        }
+
+        @Override
         public void clearLastOpenFiles() {
         }
 

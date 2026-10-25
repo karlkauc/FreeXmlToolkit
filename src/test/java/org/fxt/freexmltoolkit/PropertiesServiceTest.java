@@ -19,12 +19,18 @@
 package org.fxt.freexmltoolkit;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class PropertiesServiceTest {
 
@@ -79,5 +85,100 @@ public class PropertiesServiceTest {
         service.setSchemaLibraryAutoBindEnabled(false);
         Assertions.assertFalse(service.isSchemaLibraryAutoBindEnabled());
         service.setSchemaLibraryAutoBindEnabled(true);
+    }
+
+    @Test
+    void recentFilesKeepTwentyByDefaultNewestFirst(@TempDir Path tmp) throws IOException {
+        PropertiesService service = PropertiesServiceImpl.getInstance();
+        int previousLimit = service.getRecentFilesLimit();
+        try {
+            service.clearLastOpenFiles();
+            service.setRecentFilesLimit(20);
+            List<File> files = createFiles(tmp, 25);
+            files.forEach(service::addLastOpenFile);
+
+            List<File> recent = service.getLastOpenFiles();
+            Assertions.assertEquals(20, recent.size());
+            Assertions.assertEquals(files.get(24).getAbsolutePath(), recent.getFirst().getAbsolutePath());
+            Assertions.assertEquals(files.get(5).getAbsolutePath(), recent.getLast().getAbsolutePath());
+        } finally {
+            service.clearLastOpenFiles();
+            service.setRecentFilesLimit(previousLimit);
+        }
+    }
+
+    @Test
+    void reopeningARecentFileMovesItToTheTopWithoutDuplicate(@TempDir Path tmp) throws IOException {
+        PropertiesService service = PropertiesServiceImpl.getInstance();
+        try {
+            service.clearLastOpenFiles();
+            List<File> files = createFiles(tmp, 3);
+            files.forEach(service::addLastOpenFile);
+            service.addLastOpenFile(files.getFirst());
+
+            List<String> recent = service.getLastOpenFiles().stream().map(File::getAbsolutePath).toList();
+            Assertions.assertEquals(List.of(files.get(0).getAbsolutePath(), files.get(2).getAbsolutePath(),
+                    files.get(1).getAbsolutePath()), recent);
+        } finally {
+            service.clearLastOpenFiles();
+        }
+    }
+
+    @Test
+    void lowerLimitTrimsOnTheNextAdd(@TempDir Path tmp) throws IOException {
+        PropertiesService service = PropertiesServiceImpl.getInstance();
+        int previousLimit = service.getRecentFilesLimit();
+        try {
+            service.clearLastOpenFiles();
+            service.setRecentFilesLimit(20);
+            List<File> files = createFiles(tmp, 6);
+            files.subList(0, 5).forEach(service::addLastOpenFile);
+            service.setRecentFilesLimit(3);
+            service.addLastOpenFile(files.get(5));
+
+            Assertions.assertEquals(3, service.getLastOpenFiles().size());
+            Assertions.assertNull(service.loadProperties().getProperty("LastOpenFile.3"));
+        } finally {
+            service.clearLastOpenFiles();
+            service.setRecentFilesLimit(previousLimit);
+        }
+    }
+
+    @Test
+    void recentFilesLimitIsClamped() {
+        PropertiesService service = PropertiesServiceImpl.getInstance();
+        int previousLimit = service.getRecentFilesLimit();
+        try {
+            service.setRecentFilesLimit(0);
+            Assertions.assertEquals(1, service.getRecentFilesLimit());
+            service.setRecentFilesLimit(1000);
+            Assertions.assertEquals(100, service.getRecentFilesLimit());
+        } finally {
+            service.setRecentFilesLimit(previousLimit);
+        }
+    }
+
+    @Test
+    void unreachableRecentFileSurvivesAnotherAdd(@TempDir Path tmp) throws IOException {
+        PropertiesService service = PropertiesServiceImpl.getInstance();
+        try {
+            service.clearLastOpenFiles();
+            File missing = tmp.resolve("offline-share/missing.xml").toFile();
+            service.addLastOpenFile(missing);
+            service.addLastOpenFile(createFiles(tmp, 1).getFirst());
+
+            Assertions.assertEquals(missing.getAbsolutePath(),
+                    service.loadProperties().getProperty("LastOpenFile.1"));
+        } finally {
+            service.clearLastOpenFiles();
+        }
+    }
+
+    private static List<File> createFiles(Path dir, int count) throws IOException {
+        List<File> files = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            files.add(Files.writeString(dir.resolve("recent-" + i + ".xml"), "<r/>").toFile());
+        }
+        return files;
     }
 }

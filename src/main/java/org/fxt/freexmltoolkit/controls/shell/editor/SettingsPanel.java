@@ -74,6 +74,7 @@ public class SettingsPanel extends VBox {
     @FXML private CheckBox autoFormat;
     @FXML private CheckBox xsdPrettyPrint;
     @FXML private CheckBox schematronPretty;
+    @FXML private Spinner<Integer> recentFilesLimit;
 
     // XSD
     @FXML private CheckBox xsdAutoSave;
@@ -410,6 +411,7 @@ public class SettingsPanel extends VBox {
         autoFormat.setSelected(false);
         xsdPrettyPrint.setSelected(true);
         schematronPretty.setSelected(false);
+        recentFilesLimit.getValueFactory().setValue(20);
         xsdAutoSave.setSelected(false);
         xsdAutoSaveInterval.getValueFactory().setValue(5);
         xsdBackup.setSelected(true);
@@ -682,6 +684,7 @@ public class SettingsPanel extends VBox {
             autoFormat.setSelected(props.isXmlAutoFormatAfterLoading());
             xsdPrettyPrint.setSelected(props.isXsdPrettyPrintOnSave());
             schematronPretty.setSelected(props.isSchematronPrettyPrintOnLoad());
+            recentFilesLimit.getValueFactory().setValue(props.getRecentFilesLimit());
             xsdAutoSave.setSelected(props.isXsdAutoSaveEnabled());
             xsdAutoSaveInterval.getValueFactory().setValue(props.getXsdAutoSaveInterval());
             xsdBackup.setSelected(props.isXsdBackupEnabled());
@@ -762,6 +765,7 @@ public class SettingsPanel extends VBox {
             props.setXmlAutoFormatAfterLoading(autoFormat.isSelected());
             props.setXsdPrettyPrintOnSave(xsdPrettyPrint.isSelected());
             props.setSchematronPrettyPrintOnLoad(schematronPretty.isSelected());
+            props.setRecentFilesLimit(recentFilesLimit.getValue());
             props.setXsdAutoSaveEnabled(xsdAutoSave.isSelected());
             props.setXsdAutoSaveInterval(xsdAutoSaveInterval.getValue());
             props.setXsdBackupEnabled(xsdBackup.isSelected());

@@ -74,7 +74,7 @@ public interface PropertiesService {
      * Gets the list of recently opened files.
      *
      * <p>The list is ordered by most recently opened first and is limited
-     * to a maximum number of entries (typically 10).
+     * to {@link #getRecentFilesLimit()} entries.
      *
      * @return a list of recently opened files, may be empty but never null
      */
@@ -89,6 +89,21 @@ public interface PropertiesService {
      * @param file the file to add to the recent files list
      */
     void addLastOpenFile(File file);
+
+    /**
+     * Gets how many recently opened files are remembered.
+     *
+     * @return the maximum number of recent files (default: 20)
+     */
+    int getRecentFilesLimit();
+
+    /**
+     * Sets how many recently opened files are remembered; clamped to 1..100.
+     * A smaller value trims the stored list the next time a file is added.
+     *
+     * @param limit the maximum number of recent files
+     */
+    void setRecentFilesLimit(int limit);
 
     /**
      * Clears the entire recently opened files list.

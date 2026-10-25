@@ -110,7 +110,7 @@ public class ExplorerPanel extends VBox {
         favRecentPane.setPrefHeight(clampFavRecentHeight(loadFavRecentHeight()));
         installResizeGrip(favRecentGrip, favRecentPane);
 
-        // Track recent files as documents open and keep OPEN EDITORS in sync (rebuilds the rows;
+        // Refresh RECENT as documents open and keep OPEN EDITORS in sync (rebuilds the rows;
         // also re-styles the active row when the active tab changes).
         refreshRecent();
         editorHost.getOpenDocuments().addListener((javafx.collections.ListChangeListener<OpenDocument>) c -> {
@@ -121,7 +121,10 @@ public class ExplorerPanel extends VBox {
                 }
             }
             syncOpenEditors();
-            added.forEach(this::rememberRecent);
+            // EditorHost records opened files; this list only shows them.
+            if (added.stream().anyMatch(doc -> doc.getPath() != null)) {
+                refreshRecent();
+            }
         });
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> syncOpenEditors());
         syncOpenEditors();
@@ -676,14 +679,6 @@ public class ExplorerPanel extends VBox {
         if (propertiesService != null) {
             propertiesService.clearLastOpenFiles();
         }
-        refreshRecent();
-    }
-
-    private void rememberRecent(OpenDocument doc) {
-        if (propertiesService == null || doc.getPath() == null) {
-            return;
-        }
-        propertiesService.addLastOpenFile(doc.getPath().toFile());
         refreshRecent();
     }
 

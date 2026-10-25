@@ -1139,6 +1139,7 @@ public class EditorHost extends BorderPane {
                 return;
             }
         }
+        rememberRecentFile(path); // before addTab: open-document listeners read the list
         EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
                 this::openNamedTypeEditor, this::goToXmlDefinition);
         addTab(tab, select);
@@ -1153,13 +1154,6 @@ public class EditorHost extends BorderPane {
         // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
         tab.view.setGoToDefinitionHandler(req ->
                 openXsdAndReveal(req.xsdFile().toPath(), req.elementName()));
-        try {
-            org.fxt.freexmltoolkit.di.ServiceRegistry
-                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
-                    .addLastOpenFile(path.toFile());
-        } catch (Throwable ignored) {
-            // properties service unavailable — no recent-files persistence
-        }
         loadAsync(tab, path);
     }
 
@@ -1933,6 +1927,17 @@ public class EditorHost extends BorderPane {
         view.run();
     }
 
+    /** Records {@code path} in the recent-files list (File → Recent, Explorer, Welcome; best-effort). */
+    private static void rememberRecentFile(Path path) {
+        try {
+            org.fxt.freexmltoolkit.di.ServiceRegistry
+                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
+                    .addLastOpenFile(path.toFile());
+        } catch (Throwable ignored) {
+            // properties service unavailable — no recent-files persistence
+        }
+    }
+
     /** Records {@code xsltFile} in the shared recent-stylesheet store (best-effort). */
     private static void rememberRecentXslt(File xsltFile) {
         try {
@@ -2001,6 +2006,7 @@ public class EditorHost extends BorderPane {
                 et.document.setPath(normalized);
                 et.refreshIcon();
                 installBreakpointGutter(et);
+                rememberRecentFile(normalized);
                 UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
             }
             return saved;
@@ -5499,6 +5505,7 @@ public class EditorHost extends BorderPane {
             }
             return;
         }
+        rememberRecentFile(path);
         EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
                 this::openNamedTypeEditor, this::goToXmlDefinition);
         addTab(tab, false);
@@ -5975,6 +5982,7 @@ public class EditorHost extends BorderPane {
             tab.document.setPath(target);
             tab.refreshIcon();
             installBreakpointGutter(tab);
+            rememberRecentFile(target);
             return true;
         }
         return false;

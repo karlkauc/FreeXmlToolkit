@@ -166,6 +166,16 @@
                                                 <CheckBox fx:id="autoFormat" text="Auto-format after loading"/>
                                                 <CheckBox fx:id="xsdPrettyPrint" text="Pretty-print XSD on save"/>
                                                 <CheckBox fx:id="schematronPretty" text="Pretty-print Schematron on load"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Recent files to remember:"/>
+                                                        <Spinner fx:id="recentFilesLimit" id="settings-recent-files-limit" editable="true">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="100" initialValue="20"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                    </children>
+                                                </HBox>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="TEMPLATES" iconLiteral="bi-file-earmark-plus" color="#0d6efd">
