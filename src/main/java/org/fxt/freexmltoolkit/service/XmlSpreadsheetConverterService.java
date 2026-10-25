@@ -39,6 +39,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.SpreadsheetVersion;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
@@ -49,7 +50,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -63,6 +64,43 @@ import org.w3c.dom.NodeList;
  */
 public class XmlSpreadsheetConverterService {
     private static final Logger logger = LogManager.getLogger(XmlSpreadsheetConverterService.class);
+
+    /** Rows an {@link SXSSFWorkbook} keeps in memory; older rows are flushed to a temp file. */
+    private static final int STREAMING_WINDOW_ROWS = 100;
+    /** Rows sampled for the column widths (auto-sizing every row of a large sheet took minutes). */
+    private static final int WIDTH_SAMPLE_ROWS = 1000;
+    /** Excel's maximum column width in characters. */
+    private static final int MAX_COLUMN_CHARS = 255;
+
+    /** Maximum rows of an .xlsx sheet; package-private and mutable so tests can use a small limit. */
+    static int maxXlsxRows = SpreadsheetVersion.EXCEL2007.getMaxRows();
+    /** Maximum rows of an .xls sheet; package-private and mutable so tests can use a small limit. */
+    static int maxXlsRows = SpreadsheetVersion.EXCEL97.getMaxRows();
+
+    /**
+     * Thrown when the document yields more rows than one sheet of the target format holds.
+     * This is a property of the input, not a failure of the converter: CSV has no such limit.
+     */
+    public static final class RowLimitExceededException extends Exception {
+        private final int rows;
+        private final int maxRows;
+
+        public RowLimitExceededException(int rows, int maxRows) {
+            super(String.format("%,d rows exceed the limit of %,d rows per sheet", rows, maxRows));
+            this.rows = rows;
+            this.maxRows = maxRows;
+        }
+
+        /** @return the rows the export would need (including the header row) */
+        public int getRows() {
+            return rows;
+        }
+
+        /** @return the maximum rows of one sheet in the target format */
+        public int getMaxRows() {
+            return maxRows;
+        }
+    }
 
     /**
      * Represents a row in the spreadsheet with XPath, Value, and Type information
@@ -187,24 +225,30 @@ public class XmlSpreadsheetConverterService {
         List<RowData> rows = extractRowsFromXml(doc, config);
 
         boolean isXlsx = outputFile.getName().toLowerCase().endsWith(".xlsx");
-        try (Workbook workbook = isXlsx ? new XSSFWorkbook() : new HSSFWorkbook()) {
-            // Set document metadata for XLSX files
-            if (isXlsx && workbook instanceof XSSFWorkbook xssfWorkbook) { // NOPMD - same workbook, closed by the enclosing try-with-resources
+        int maxRows = isXlsx ? maxXlsxRows : maxXlsRows;
+        if (rows.size() + 1 > maxRows) { // + header row
+            throw new RowLimitExceededException(rows.size() + 1, maxRows);
+        }
+        // .xlsx streams its rows to a temp file: an in-memory XSSFWorkbook needs about 1 KB per
+        // cell, so a large document (telemetry: 56 MB XML) filled a 4 GB heap and froze the UI.
+        SXSSFWorkbook streaming = isXlsx ? new SXSSFWorkbook(STREAMING_WINDOW_ROWS) : null;
+        try (Workbook workbook = isXlsx ? streaming : new HSSFWorkbook()) {
+            if (streaming != null) {
                 ExportMetadataService metadataService = ServiceRegistry.get(ExportMetadataService.class);
-                metadataService.setExcelMetadata(xssfWorkbook, "XML to Excel Conversion");
+                metadataService.setExcelMetadata(streaming.getXSSFWorkbook(), "XML to Excel Conversion");
             }
 
             Sheet sheet = workbook.createSheet("XML Structure");
             createExcelHeader(sheet, config);
             populateExcelSheet(sheet, rows, config);
-            formatExcelSheet(sheet, config);
+            formatExcelSheet(sheet, rows, config);
 
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                 workbook.write(fos);
             }
 
             logger.info("Successfully converted XML to Excel with {} rows", rows.size());
-        }
+        } // closing an SXSSFWorkbook also deletes the temp file of its flushed rows
     }
 
     /**
@@ -263,22 +307,25 @@ public class XmlSpreadsheetConverterService {
         java.util.concurrent.atomic.AtomicInteger indexCounter = new java.util.concurrent.atomic.AtomicInteger(0);
 
         if (doc.getDocumentElement() != null) {
-            traverseNode(doc.getDocumentElement(), "", rows, config, indexCounter);
+            Element root = doc.getDocumentElement();
+            traverseNode(root, buildXPath(root, ""), rows, config, indexCounter);
         }
 
         return rows;
     }
 
     /**
-     * Recursively traverses XML nodes and extracts data
+     * Recursively traverses XML nodes and extracts data.
+     *
+     * @param xpath the node's own XPath, computed by the caller: the parent knows each child's
+     *              position from one pass over its children (counting the preceding siblings per
+     *              child made wide parents quadratic - an export of 600,000 sibling elements never finished)
      */
-    private void traverseNode(Node node, String parentXPath, List<RowData> rows, ConversionConfig config,
+    private void traverseNode(Node node, String xpath, List<RowData> rows, ConversionConfig config,
                               java.util.concurrent.atomic.AtomicInteger indexCounter) {
         if (node == null) {
             return;
         }
-
-        String xpath = buildXPath(node, parentXPath);
 
         switch (node.getNodeType()) {
             case Node.ELEMENT_NODE -> {
@@ -307,30 +354,25 @@ public class XmlSpreadsheetConverterService {
 
                 // Traverse child nodes if not a simple text element
                 if (!hasOnlyTextChild) {
-                    NodeList children = element.getChildNodes();
                     Map<String, Integer> elementCounts = new HashMap<>();
 
-                    for (int i = 0; i < children.getLength(); i++) {
-                        Node child = children.item(i);
-
+                    for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
                         if (child.getNodeType() == Node.ELEMENT_NODE) {
-                            String childName = child.getNodeName();
-                            elementCounts.put(childName, elementCounts.getOrDefault(childName, 0) + 1);
+                            elementCounts.merge(child.getNodeName(), 1, Integer::sum);
                         }
                     }
 
                     Map<String, Integer> currentCounts = new HashMap<>();
 
-                    for (int i = 0; i < children.getLength(); i++) {
-                        Node child = children.item(i);
-
+                    for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
                         switch (child.getNodeType()) {
                             case Node.ELEMENT_NODE -> {
                                 String childName = child.getNodeName();
-                                int currentCount = currentCounts.getOrDefault(childName, 0) + 1;
-                                currentCounts.put(childName, currentCount);
+                                int currentCount = currentCounts.merge(childName, 1, Integer::sum);
+                                String childXPath = xpath + "/" + childName
+                                        + (elementCounts.get(childName) > 1 ? "[" + currentCount + "]" : "");
 
-                                traverseNode(child, xpath, rows, config, indexCounter);
+                                traverseNode(child, childXPath, rows, config, indexCounter);
                             }
                             case Node.TEXT_NODE -> {
                                 String textContent = child.getNodeValue();
@@ -478,11 +520,19 @@ public class XmlSpreadsheetConverterService {
      * Populates Excel sheet with row data
      */
     private void populateExcelSheet(Sheet sheet, List<RowData> rows, ConversionConfig config) {
+        // XPath column as text; set while the row is written - a streaming sheet has flushed
+        // its earlier rows, so they cannot be styled in a second pass
+        CellStyle textStyle = sheet.getWorkbook().createCellStyle();
+        DataFormat format = sheet.getWorkbook().createDataFormat();
+        textStyle.setDataFormat(format.getFormat("@"));
+
         for (int i = 0; i < rows.size(); i++) {
             Row row = sheet.createRow(i + 1);
             RowData rowData = rows.get(i);
 
-            row.createCell(0).setCellValue(rowData.getXpath());
+            Cell xpathCell = row.createCell(0);
+            xpathCell.setCellValue(rowData.getXpath());
+            xpathCell.setCellStyle(textStyle);
             row.createCell(1).setCellValue(rowData.getValue());
 
             if (config.isIncludeTypeColumn()) {
@@ -494,38 +544,38 @@ public class XmlSpreadsheetConverterService {
     /**
      * Formats Excel sheet
      */
-    private void formatExcelSheet(Sheet sheet, ConversionConfig config) {
-        // Auto-size columns. This relies on AWT font metrics, which can be
-        // unavailable in some headless environments; column sizing is cosmetic,
-        // so a failure here must not abort an otherwise valid export.
-        try {
-            sheet.autoSizeColumn(0);
-            sheet.autoSizeColumn(1);
-            if (config.isIncludeTypeColumn()) {
-                sheet.autoSizeColumn(2);
-            }
-        } catch (Throwable t) {
-            logger.warn("Skipping Excel column auto-size (font metrics unavailable): {}", t.toString());
+    private void formatExcelSheet(Sheet sheet, List<RowData> rows, ConversionConfig config) {
+        // Column widths from a sample of the rows instead of autoSizeColumn: that measures every
+        // cell with AWT font metrics (minutes for a large sheet, impossible once a streaming sheet
+        // has flushed its rows, and unavailable in some headless environments).
+        int sample = Math.min(rows.size(), WIDTH_SAMPLE_ROWS);
+        int xpathChars = "XPath".length();
+        int valueChars = "Value".length();
+        int typeChars = "Type".length();
+        for (int i = 0; i < sample; i++) {
+            RowData row = rows.get(i);
+            xpathChars = Math.max(xpathChars, length(row.getXpath()));
+            valueChars = Math.max(valueChars, length(row.getValue()));
+            typeChars = Math.max(typeChars, length(row.getNodeType()));
         }
-
-        // Set XPath column as text format
-        CellStyle textStyle = sheet.getWorkbook().createCellStyle();
-        DataFormat format = sheet.getWorkbook().createDataFormat();
-        textStyle.setDataFormat(format.getFormat("@"));
-
-        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-            Row row = sheet.getRow(i);
-            if (row != null) {
-                Cell xpathCell = row.getCell(0);
-                if (xpathCell != null) {
-                    xpathCell.setCellStyle(textStyle);
-                }
-            }
+        sheet.setColumnWidth(0, columnWidth(xpathChars));
+        sheet.setColumnWidth(1, columnWidth(valueChars));
+        if (config.isIncludeTypeColumn()) {
+            sheet.setColumnWidth(2, columnWidth(typeChars));
         }
 
         // Enable autofilter
         sheet.setAutoFilter(new org.apache.poi.ss.util.CellRangeAddress(
-                0, sheet.getLastRowNum(), 0, config.isIncludeTypeColumn() ? 2 : 1));
+                0, rows.size(), 0, config.isIncludeTypeColumn() ? 2 : 1));
+    }
+
+    private static int length(String s) {
+        return s == null ? 0 : s.length();
+    }
+
+    /** @return the POI column width (1/256 of a character) for a column of the given characters */
+    private static int columnWidth(int chars) {
+        return Math.min(chars + 2, MAX_COLUMN_CHARS) * 256;
     }
 
     /**

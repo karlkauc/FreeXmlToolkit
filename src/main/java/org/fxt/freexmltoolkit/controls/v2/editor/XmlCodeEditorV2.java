@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.editor;
 
+import java.util.Collection;
 import java.util.Objects;
 
 import javafx.application.Platform;
@@ -10,6 +11,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.model.ReadOnlyStyledDocument;
+import org.fxmisc.richtext.model.StyledDocument;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorEventBus;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
@@ -453,7 +456,45 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      */
     public void setText(String text) {
         codeArea.replaceText(text);
+        afterSetText(text);
+    }
 
+    /** From this length on, {@link #prepareText} builds the document off the FX thread. */
+    public static final int PREPARE_THRESHOLD_CHARS = 2 * 1024 * 1024;
+
+    /**
+     * A document built off the FX thread for {@link #setText(PreparedText)}.
+     *
+     * @param text     the text
+     * @param document the RichTextFX document of {@code text}
+     */
+    public record PreparedText(String text, StyledDocument<Collection<String>, String, Collection<String>> document) {
+    }
+
+    /**
+     * Builds the RichTextFX document of a large text: splitting it into paragraphs and building
+     * the paragraph tree took seconds on the FX thread for files of tens of MB (telemetry:
+     * {@code FingerTree.mkTree} and the line-split regex under {@link #setText(String)}).
+     * Safe to call on any thread: it reads only the area's immutable initial styles and
+     * segment operations.
+     *
+     * @return the prepared document, or null when the text is short enough for {@link #setText(String)}
+     */
+    public PreparedText prepareText(String text) {
+        if (text == null || text.length() < PREPARE_THRESHOLD_CHARS) {
+            return null;
+        }
+        return new PreparedText(text, ReadOnlyStyledDocument.fromString(text,
+                codeArea.getInitialParagraphStyle(), codeArea.getInitialTextStyle(), codeArea.getSegOps()));
+    }
+
+    /** Same as {@link #setText(String)} with a document built by {@link #prepareText}. */
+    public void setText(PreparedText prepared) {
+        codeArea.replace(0, codeArea.getLength(), prepared.document());
+        afterSetText(prepared.text());
+    }
+
+    private void afterSetText(String text) {
         // Move cursor to the beginning and scroll to top
         codeArea.moveTo(0);
         codeArea.requestFollowCaret();

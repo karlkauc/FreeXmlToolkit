@@ -645,6 +645,30 @@ public final class UsageEvents {
         }
     }
 
+    /**
+     * The spreadsheet converter ran (XML to Excel/CSV or back).
+     *
+     * @param direction  {@code to_spreadsheet} or {@code to_xml}
+     * @param format     {@code xlsx}, {@code xls} or {@code csv}
+     * @param status     {@code ok}, {@code invalid_input} (not well-formed), {@code unsupported}
+     *                   (too many rows for the format, or too large for the heap) or {@code error}
+     * @param inputBytes length of the converted XML in characters; negative when unknown (import)
+     * @param errorCode  exception class of a failure; null on success
+     */
+    public static void spreadsheetConverted(String direction, String format, TelemetryEvent.Status status,
+                                            long startNanos, long inputBytes, String errorCode) {
+        action("spreadsheet_convert", b -> {
+            b.status(status).meta("direction", direction).meta("format", format);
+            if (inputBytes >= 0) {
+                b.inputBytes(inputBytes);
+            }
+            if (errorCode != null) {
+                b.errorCode(errorCode);
+            }
+            duration(b, startNanos);
+        });
+    }
+
     /** The active document was pretty-printed. */
     public static void formatted(DocKind kind, boolean ok) {
         action("format", b -> b.docKind(kind).status(status(ok)));

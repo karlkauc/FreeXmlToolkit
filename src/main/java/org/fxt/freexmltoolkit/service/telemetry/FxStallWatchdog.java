@@ -33,6 +33,12 @@ import java.util.function.Supplier;
  * marks a freeze that never ended (usually followed by {@code prev_session_crashed}, see
  * {@link SessionMarker}). At most {@value #MAX_FREEZE_REPORTS_PER_SESSION} per session.
  *
+ * <p>Each report also carries the garbage-collection time during the block ({@code meta.gc_ms}),
+ * the heap usage at its end ({@code meta.heap_pct}) and {@code meta.cause=gc} when collections
+ * took at least half of it: on a nearly full heap the FX thread stalls wherever it happens to
+ * be, so without these the stack points at innocent code (telemetry: one GC-bound session
+ * produced eight stalls with eight different CSS/highlighting stacks).
+ *
  * <p>Not reported: a pause of the whole process (system sleep, App Nap - the watchdog's own
  * ticks are more than {@value #SUSPEND_GAP_MS} ms apart, so the block is measured from the
  * wake-up), and stacks without application work (see {@link #isNativeWait}).
@@ -52,9 +58,73 @@ public final class FxStallWatchdog {
     interface StallSink {
         void stalled(long durationMs, StackTraceElement[] stack);
 
+        /** Same as {@link #stalled(long, StackTraceElement[])} with the memory load during the block. */
+        default void stalled(long durationMs, StackTraceElement[] stack, MemoryLoad load) {
+            stalled(durationMs, stack);
+        }
+
         /** The FX thread has been blocked for {@code blockedMs} so far and still is. */
         default void freezing(long blockedMs, StackTraceElement[] stack) {
         }
+
+        /** Same as {@link #freezing(long, StackTraceElement[])} with the memory load so far. */
+        default void freezing(long blockedMs, StackTraceElement[] stack, MemoryLoad load) {
+            freezing(blockedMs, stack);
+        }
+    }
+
+    /**
+     * Memory load of a block.
+     *
+     * @param gcMs    garbage-collection time during the block in ms; negative when unknown
+     * @param heapPct heap usage in percent of the maximum at the end of the block; negative when unknown
+     */
+    record MemoryLoad(long gcMs, int heapPct) {
+        static final MemoryLoad UNKNOWN = new MemoryLoad(-1, -1);
+
+        /** @return whether collections took at least half of a block of {@code durationMs} */
+        boolean gcBound(long durationMs) {
+            return gcMs >= 0 && durationMs > 0 && gcMs * 2 >= durationMs;
+        }
+
+        void addTo(TelemetryEvent.Builder b, long durationMs) {
+            if (gcMs >= 0) {
+                b.meta("gc_ms", gcMs);
+            }
+            if (heapPct >= 0) {
+                b.meta("heap_pct", heapPct);
+            }
+            if (gcBound(durationMs)) {
+                b.meta("cause", "gc");
+            }
+        }
+    }
+
+    /**
+     * Total time the collectors spent so far, in ms. Concurrent cycles (G1 "Concurrent GC", ZGC
+     * "Cycles") run beside the application and do not block the FX thread, so only the pausing
+     * collectors count.
+     */
+    static long totalGcPauseMs() {
+        long total = 0;
+        for (var gc : java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()) {
+            String name = gc.getName();
+            if (name.contains("Concurrent") || name.contains("Cycles")) {
+                continue;
+            }
+            long t = gc.getCollectionTime();
+            if (t > 0) {
+                total += t;
+            }
+        }
+        return total;
+    }
+
+    /** @return heap usage in percent of the maximum heap, or -1 when the maximum is undefined */
+    static int heapUsedPercent() {
+        var heap = java.lang.management.ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+        long max = heap.getMax() > 0 ? heap.getMax() : Runtime.getRuntime().maxMemory();
+        return max <= 0 || max == Long.MAX_VALUE ? -1 : (int) Math.min(100, heap.getUsed() * 100 / max);
     }
 
     private static volatile FxStallWatchdog running;
@@ -62,6 +132,8 @@ public final class FxStallWatchdog {
     private final Consumer<Runnable> fxExecutor;
     private final Supplier<StackTraceElement[]> fxStack;
     private final LongSupplier nanoClock;
+    private final LongSupplier gcClock;
+    private final java.util.function.IntSupplier heapPercent;
     private final StallSink sink;
 
     private final Object lock = new Object();
@@ -69,6 +141,8 @@ public final class FxStallWatchdog {
     private long pingPostedAt;
     /** Start of the measured block: the ping's post time, or the end of a process suspension. */
     private long measuredFrom;
+    /** {@link #gcClock} reading at {@link #measuredFrom}. */
+    private long gcAtMeasuredFrom;
     private StackTraceElement[] capturedStack;
     /** Whether the outstanding ping was already checked for an ongoing freeze. */
     private boolean freezeChecked;
@@ -78,10 +152,35 @@ public final class FxStallWatchdog {
 
     FxStallWatchdog(Consumer<Runnable> fxExecutor, Supplier<StackTraceElement[]> fxStack,
                     LongSupplier nanoClock, StallSink sink) {
+        this(fxExecutor, fxStack, nanoClock, FxStallWatchdog::totalGcPauseMs, FxStallWatchdog::heapUsedPercent, sink);
+    }
+
+    FxStallWatchdog(Consumer<Runnable> fxExecutor, Supplier<StackTraceElement[]> fxStack,
+                    LongSupplier nanoClock, LongSupplier gcClock, java.util.function.IntSupplier heapPercent,
+                    StallSink sink) {
         this.fxExecutor = fxExecutor;
         this.fxStack = fxStack;
         this.nanoClock = nanoClock;
+        this.gcClock = gcClock;
+        this.heapPercent = heapPercent;
         this.sink = sink;
+    }
+
+    /** @return the memory load since {@link #measuredFrom}; never throws */
+    private MemoryLoad memoryLoadSince(long gcAtStart) {
+        try {
+            return new MemoryLoad(Math.max(0, gcClock.getAsLong() - gcAtStart), heapPercent.getAsInt());
+        } catch (RuntimeException e) {
+            return MemoryLoad.UNKNOWN;
+        }
+    }
+
+    private long gcNow() {
+        try {
+            return gcClock.getAsLong();
+        } catch (RuntimeException e) {
+            return 0;
+        }
     }
 
     /**
@@ -139,6 +238,7 @@ public final class FxStallWatchdog {
     void tick() {
         long freezeMs = -1;
         StackTraceElement[] freezeStack = null;
+        long freezeGcFrom = 0;
         synchronized (lock) {
             long now = nanoClock.getAsLong();
             long sinceLastTick = lastTickAt == 0 ? 0 : elapsedMs(lastTickAt, now);
@@ -147,6 +247,7 @@ public final class FxStallWatchdog {
                 // The watchdog itself did not run: the whole process was suspended (system
                 // sleep, App Nap). The pending ping measures that pause, not a blocked FX thread.
                 measuredFrom = now;
+                gcAtMeasuredFrom = gcNow();
                 capturedStack = null;
                 freezeChecked = false;
                 return;
@@ -155,6 +256,7 @@ public final class FxStallWatchdog {
                 pingOutstanding = true;
                 pingPostedAt = now;
                 measuredFrom = now;
+                gcAtMeasuredFrom = gcNow();
                 freezeChecked = false;
                 long postedAt = now;
                 fxExecutor.accept(() -> pong(postedAt));
@@ -168,16 +270,19 @@ public final class FxStallWatchdog {
                 // fresh stack: after 10 s it shows where the thread is stuck, not where it was at 2 s
                 freezeStack = fxStack.get();
                 freezeMs = elapsed;
+                freezeGcFrom = gcAtMeasuredFrom;
             }
         }
         if (freezeStack != null && !isNativeWait(freezeStack)) {
-            sink.freezing(freezeMs, freezeStack); // outside the lock: the sink enqueues and flushes
+            // outside the lock: the sink enqueues and flushes
+            sink.freezing(freezeMs, freezeStack, memoryLoadSince(freezeGcFrom));
         }
     }
 
     private void pong(long postedAt) {
         StackTraceElement[] stack;
         long durationMs;
+        long gcFrom;
         synchronized (lock) {
             if (!pingOutstanding || postedAt != pingPostedAt) {
                 return;
@@ -186,9 +291,10 @@ public final class FxStallWatchdog {
             stack = capturedStack;
             capturedStack = null;
             durationMs = elapsedMs(measuredFrom, nanoClock.getAsLong());
+            gcFrom = gcAtMeasuredFrom;
         }
         if (stack != null && durationMs >= STALL_THRESHOLD_MS && !isNativeWait(stack)) {
-            sink.stalled(durationMs, stack);
+            sink.stalled(durationMs, stack, memoryLoadSince(gcFrom));
         }
     }
 
@@ -214,6 +320,9 @@ public final class FxStallWatchdog {
             // captured just as the FX thread ran the pong itself: the block was already over
             return true;
         }
+        if (isLiveResizeRepaint(stack)) {
+            return true;
+        }
         String method = top.getMethodName();
         if (!cls.startsWith("com.sun.glass.ui.")) {
             return false;
@@ -221,6 +330,29 @@ public final class FxStallWatchdog {
         return method.startsWith("_runLoop")
                 || method.startsWith("_enterNestedEventLoop")
                 || (cls.endsWith("CommonDialogs") && method.startsWith("_show"));
+    }
+
+    /**
+     * The FX thread waits for the render thread to paint a frame during a live window resize
+     * (macOS: {@code View.notifyResize} → {@code PaintCollector.liveRepaintRenderJob}). The OS
+     * drives that modal resize loop; no application frame is on the stack.
+     */
+    static boolean isLiveResizeRepaint(StackTraceElement[] stack) {
+        boolean repaint = false;
+        boolean resize = false;
+        for (StackTraceElement frame : stack) {
+            String cls = frame.getClassName();
+            if (cls.startsWith("org.fxt.")) {
+                return false;
+            }
+            if (cls.equals("com.sun.javafx.tk.quantum.PaintCollector")
+                    && frame.getMethodName().contains("liveRepaintRenderJob")) {
+                repaint = true;
+            } else if (cls.equals("com.sun.glass.ui.View") && frame.getMethodName().equals("notifyResize")) {
+                resize = true;
+            }
+        }
+        return repaint && resize;
     }
 
     private static long elapsedMs(long fromNanos, long toNanos) {
@@ -261,6 +393,11 @@ public final class FxStallWatchdog {
 
         @Override
         public void stalled(long durationMs, StackTraceElement[] stack) {
+            stalled(durationMs, stack, MemoryLoad.UNKNOWN);
+        }
+
+        @Override
+        public void stalled(long durationMs, StackTraceElement[] stack, MemoryLoad load) {
             if (reports.get() >= MAX_REPORTS_PER_SESSION) {
                 return;
             }
@@ -269,14 +406,14 @@ public final class FxStallWatchdog {
             UsageEvents.DocShape shape = UsageEvents.activeDocShape();
             DocKind docKind = UsageEvents.activeDocKind();
             try {
-                reporter.execute(() -> report(durationMs, stack, context, shape, docKind));
+                reporter.execute(() -> report(durationMs, stack, load, context, shape, docKind));
             } catch (java.util.concurrent.RejectedExecutionException ignored) {
                 // shutting down: the stall goes unreported
             }
         }
 
-        private void report(long durationMs, StackTraceElement[] stack, Map<String, String> context,
-                            UsageEvents.DocShape shape, DocKind docKind) {
+        private void report(long durationMs, StackTraceElement[] stack, MemoryLoad load,
+                            Map<String, String> context, UsageEvents.DocShape shape, DocKind docKind) {
             ErrorSignature sig = signature(stack);
             if (!seenHashes.add(sig.hash()) || reports.incrementAndGet() > MAX_REPORTS_PER_SESSION) {
                 return;
@@ -285,6 +422,7 @@ public final class FxStallWatchdog {
                 b.status(TelemetryEvent.Status.TIMEOUT).durationMs(durationMs)
                         .errorDetail(sig.detail()).errorHash(sig.hash());
                 context.forEach(b::meta);
+                load.addTo(b, durationMs);
                 b.docKind(docKind);
                 if (shape != null) {
                     b.inputBytes(shape.chars()).meta("lines", shape.lines())
@@ -299,6 +437,11 @@ public final class FxStallWatchdog {
          */
         @Override
         public void freezing(long blockedMs, StackTraceElement[] stack) {
+            freezing(blockedMs, stack, MemoryLoad.UNKNOWN);
+        }
+
+        @Override
+        public void freezing(long blockedMs, StackTraceElement[] stack, MemoryLoad load) {
             ErrorSignature sig = signature(stack);
             if (!seenFreezeHashes.add(sig.hash())
                     || freezeReports.incrementAndGet() > MAX_FREEZE_REPORTS_PER_SESSION) {
@@ -310,6 +453,7 @@ public final class FxStallWatchdog {
                 b.status(TelemetryEvent.Status.TIMEOUT).durationMs(blockedMs)
                         .errorDetail(sig.detail()).errorHash(sig.hash());
                 context.forEach(b::meta);
+                load.addTo(b, blockedMs);
                 b.docKind(UsageEvents.activeDocKind());
             });
             // the app may be killed any moment now — send it instead of waiting for the next flush

@@ -92,4 +92,28 @@ class SpreadsheetActionRunnerTest {
         var result = SpreadsheetActionRunner.exportToCsv(xxe, tmp.resolve("x.csv").toFile());
         assertTrue(result.isError(), "DOCTYPE must be rejected (XXE hardening): " + result.text());
     }
+
+    @Test
+    void telemetryStatusSeparatesInputAndLimitsFromFailures(@TempDir Path tmp) {
+        var ok = SpreadsheetActionRunner.exportToCsv("<a>1</a>", tmp.resolve("ok.csv").toFile());
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.OK, ok.telemetryStatus());
+
+        var malformed = SpreadsheetActionRunner.exportToCsv("<a>", tmp.resolve("bad.csv").toFile());
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.INVALID_INPUT,
+                malformed.telemetryStatus());
+
+        var tooManyRows = new SpreadsheetActionRunner.Result("ERROR",
+                new org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.RowLimitExceededException(2_000_000, 1_048_576));
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.UNSUPPORTED,
+                tooManyRows.telemetryStatus());
+
+        var outOfMemory = new SpreadsheetActionRunner.Result("ERROR",
+                new SpreadsheetActionRunner.InsufficientMemoryException(4L << 30, new OutOfMemoryError()));
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.UNSUPPORTED,
+                outOfMemory.telemetryStatus());
+        assertTrue(outOfMemory.error().getMessage().contains("4.0 GB"), outOfMemory.error().getMessage());
+
+        var unwritable = new SpreadsheetActionRunner.Result("ERROR", new java.io.IOException("locked"));
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.ERROR, unwritable.telemetryStatus());
+    }
 }

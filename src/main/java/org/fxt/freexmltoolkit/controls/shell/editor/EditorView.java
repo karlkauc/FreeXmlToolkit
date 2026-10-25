@@ -5,6 +5,7 @@ import java.io.File;
 import javafx.scene.layout.Region;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
 
 /**
  * Abstraction over the concrete text editors the Unified host can embed, so the
@@ -21,6 +22,21 @@ public interface EditorView {
 
     /** Sets the editor text (clears the dirty/undo baseline as the widget sees fit). */
     void setText(String text);
+
+    /**
+     * Prepares a large text for {@link #setText(XmlCodeEditorV2.PreparedText)} off the FX thread.
+     * Thread-safe.
+     *
+     * @return the prepared text, or null when this editor has nothing to prepare (use {@link #setText(String)})
+     */
+    default XmlCodeEditorV2.PreparedText prepareText(String text) {
+        return null;
+    }
+
+    /** Sets a text prepared by {@link #prepareText}. */
+    default void setText(XmlCodeEditorV2.PreparedText prepared) {
+        setText(prepared.text());
+    }
 
     /** @return the current editor text. */
     String getText();

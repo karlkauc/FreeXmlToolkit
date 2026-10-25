@@ -2147,7 +2147,15 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
+    /** A spreadsheet conversion is running in the background (FX thread only). */
+    private boolean spreadsheetConversionRunning;
+
     private void convertSpreadsheet() {
+        if (spreadsheetConversionRunning) {
+            org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Spreadsheet Converter",
+                    "A conversion is still running", "Wait until it has finished, then start the next one.");
+            return;
+        }
         var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog();
         if (getScene() != null) {
             dialog.initOwner(getScene().getWindow());
@@ -2175,13 +2183,21 @@ public class UnifiedShellView extends BorderPane {
             if (out == null) {
                 return;
             }
+            String format = excel ? (out.getName().toLowerCase().endsWith(".xls") ? "xls" : "xlsx") : "csv";
+            Runnable done = beginSpreadsheetConversion("Exporting spreadsheet…");
+            long start = System.nanoTime();
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 var result = excel
                         ? org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .exportToExcel(xml, out, settings.config())
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .exportToCsv(xml, out, settings.delimiter().config(), settings.config());
-                javafx.application.Platform.runLater(() -> reportConversion(result, out, false));
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.spreadsheetConverted("to_spreadsheet", format,
+                        result.telemetryStatus(), start, xml.length(), errorCodeOf(result));
+                javafx.application.Platform.runLater(() -> {
+                    done.run();
+                    reportConversion(result, out, false);
+                });
             });
         } else {
             javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
@@ -2194,13 +2210,18 @@ public class UnifiedShellView extends BorderPane {
             }
             // Infer the actual format from the chosen file's extension.
             boolean isExcel = in.getName().toLowerCase().endsWith(".xlsx");
+            Runnable done = beginSpreadsheetConversion("Importing spreadsheet…");
+            long start = System.nanoTime();
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 var result = isExcel
                         ? org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .excelToXml(in, settings.config())
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .csvToXml(in, settings.delimiter().config(), settings.config());
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.spreadsheetConverted("to_xml",
+                        isExcel ? "xlsx" : "csv", result.telemetryStatus(), start, -1, errorCodeOf(result));
                 javafx.application.Platform.runLater(() -> {
+                    done.run();
                     if (result.isError()) {
                         reportConversion(result, in, true);
                     } else {
@@ -2212,11 +2233,49 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
+    /**
+     * Marks a conversion as running: blocks a second one and shows a progress chip in the status
+     * bar (a large document takes a while, and nothing else told the user it was still working).
+     *
+     * @return restores the status bar and releases the block; call on the FX thread
+     */
+    private Runnable beginSpreadsheetConversion(String label) {
+        spreadsheetConversionRunning = true;
+        String previousText = statusLastRun.getText();
+        javafx.scene.Node previousGraphic = statusLastRun.getGraphic();
+        var progress = new javafx.scene.control.ProgressIndicator();
+        progress.setPrefSize(12, 12);
+        progress.setMaxSize(12, 12);
+        statusLastRun.setGraphic(progress);
+        statusLastRun.setText(label);
+        return () -> {
+            spreadsheetConversionRunning = false;
+            if (statusLastRun.getGraphic() == progress) { // not replaced by a run badge meanwhile
+                statusLastRun.setGraphic(previousGraphic);
+                statusLastRun.setText(previousText);
+            }
+        };
+    }
+
+    private static String errorCodeOf(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result) {
+        return result.isError() ? result.error().getClass().getSimpleName() : null;
+    }
+
     private void reportConversion(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result,
                                   java.io.File file, boolean imported) {
         if (!result.isError()) {
             org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Spreadsheet Converter",
                     "Conversion finished", "Done: " + file.getAbsolutePath());
+        } else if (result.error() instanceof org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.RowLimitExceededException limit) {
+            org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Spreadsheet Converter",
+                    "The document has too many rows for one spreadsheet sheet.",
+                    String.format("The export needs %,d rows, but a sheet holds at most %,d."
+                            + "%n%nExport as CSV instead - it has no row limit.", limit.getRows(), limit.getMaxRows()));
+        } else if (result.error() instanceof org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.InsufficientMemoryException) {
+            org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Spreadsheet Converter",
+                    "The document is too large to convert with the available memory.",
+                    result.error().getMessage() + "."
+                            + "\n\nRaise \"Maximum memory\" in Settings > Memory, close other large documents, or export as CSV.");
         } else if (!imported && result.error() instanceof org.xml.sax.SAXParseException parse) {
             // A malformed document is an input problem, not a failure of the converter: say where
             // it is instead of raising an error dialog (and an error report) with a stack trace.

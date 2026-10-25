@@ -8,8 +8,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.fxt.freexmltoolkit.service.CsvHandler;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.ConversionConfig;
+import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.RowLimitExceededException;
+import org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXParseException;
 
 /**
  * UI-free XML &harr; spreadsheet conversion for the shell, reusing
@@ -40,6 +43,42 @@ public final class SpreadsheetActionRunner {
         public boolean isError() {
             return error != null;
         }
+
+        /**
+         * @return the telemetry status: a malformed document is the user's input, a document
+         *         beyond the format's row limit or the heap is unsupported, anything else an error
+         */
+        public TelemetryEvent.Status telemetryStatus() {
+            if (error == null) {
+                return TelemetryEvent.Status.OK;
+            }
+            if (error instanceof SAXParseException) {
+                return TelemetryEvent.Status.INVALID_INPUT;
+            }
+            if (error instanceof RowLimitExceededException || error instanceof InsufficientMemoryException) {
+                return TelemetryEvent.Status.UNSUPPORTED;
+            }
+            return TelemetryEvent.Status.ERROR;
+        }
+    }
+
+    /**
+     * The document is too large to convert with the available heap. Raised in place of the
+     * {@link OutOfMemoryError} so the user gets an explanation instead of an error report.
+     */
+    public static final class InsufficientMemoryException extends Exception {
+        private final long maxHeap;
+
+        InsufficientMemoryException(long maxHeap, OutOfMemoryError cause) {
+            super("Not enough memory to convert the document (maximum heap "
+                    + LargeFileGuard.formatSize(maxHeap) + ")", cause);
+            this.maxHeap = maxHeap;
+        }
+
+        /** @return the maximum heap in bytes */
+        public long getMaxHeap() {
+            return maxHeap;
+        }
     }
 
     private SpreadsheetActionRunner() {
@@ -61,6 +100,8 @@ public final class SpreadsheetActionRunner {
             return Result.ok("OK: " + output.getAbsolutePath());
         } catch (Exception e) {
             return Result.failed(e);
+        } catch (OutOfMemoryError e) {
+            return outOfMemory(e);
         }
     }
 
@@ -77,6 +118,8 @@ public final class SpreadsheetActionRunner {
             return Result.ok("OK: " + output.getAbsolutePath());
         } catch (Exception e) {
             return Result.failed(e);
+        } catch (OutOfMemoryError e) {
+            return outOfMemory(e);
         }
     }
 
@@ -113,6 +156,14 @@ public final class SpreadsheetActionRunner {
     }
 
     // ----- helpers ---------------------------------------------------------
+
+    /**
+     * The DOM and the rows were local to the failed call and are unreachable by now, so the
+     * heap is free again; a half-written output file is removed by the caller's next attempt.
+     */
+    private static Result outOfMemory(OutOfMemoryError e) {
+        return Result.failed(new InsufficientMemoryException(Runtime.getRuntime().maxMemory(), e));
+    }
 
     /** Parses XML with an XXE-hardened factory (no DOCTYPE / external entities / external DTD / XInclude). */
     private static Document parseXml(String xmlContent) throws Exception {

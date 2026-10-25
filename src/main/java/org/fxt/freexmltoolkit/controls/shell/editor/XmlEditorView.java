@@ -34,6 +34,16 @@ final class XmlEditorView implements EditorView {
     }
 
     @Override
+    public XmlCodeEditorV2.PreparedText prepareText(String text) {
+        return editor.prepareText(text);
+    }
+
+    @Override
+    public void setText(XmlCodeEditorV2.PreparedText prepared) {
+        editor.setText(prepared);
+    }
+
+    @Override
     public String getText() {
         return editor.getText();
     }

@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.service.telemetry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -335,5 +336,100 @@ class FxStallWatchdogTest {
         }
         runFx();                    // the FX thread was busy after the wake-up for 3 s
         assertEquals(List.of(3000L), stalls);
+    }
+
+    // ----- memory load (gc_ms / heap_pct / cause=gc) -------------------------------------------
+
+    @Test
+    void stallAndFreezeCarryTheGcTimeOfTheBlock() {
+        AtomicLong gcMs = new AtomicLong(1_000);
+        List<FxStallWatchdog.MemoryLoad> stallLoads = new ArrayList<>();
+        List<FxStallWatchdog.MemoryLoad> freezeLoads = new ArrayList<>();
+        FxStallWatchdog gcWatchdog = new FxStallWatchdog(fxQueue::add, () -> stack, nanos::get, gcMs::get,
+                () -> 97, new FxStallWatchdog.StallSink() {
+                    @Override
+                    public void stalled(long durationMs, StackTraceElement[] s) {
+                    }
+
+                    @Override
+                    public void stalled(long durationMs, StackTraceElement[] s, FxStallWatchdog.MemoryLoad load) {
+                        stallLoads.add(load);
+                    }
+
+                    @Override
+                    public void freezing(long blockedMs, StackTraceElement[] s, FxStallWatchdog.MemoryLoad load) {
+                        freezeLoads.add(load);
+                    }
+                });
+
+        gcWatchdog.tick();          // ping posted, GC clock at 1000
+        for (int i = 0; i < 24; i++) {
+            advanceMs(500);
+            gcMs.addAndGet(400);    // collections take 80 % of the time
+            gcWatchdog.tick();
+        }
+        runFx();
+
+        assertEquals(1, freezeLoads.size());
+        assertEquals(8_000L, freezeLoads.getFirst().gcMs(), "GC time of the first 10 s");
+        assertEquals(1, stallLoads.size());
+        FxStallWatchdog.MemoryLoad load = stallLoads.getFirst();
+        assertEquals(9_600L, load.gcMs());
+        assertEquals(97, load.heapPct());
+        assertTrue(load.gcBound(12_000));
+    }
+
+    @Test
+    void memoryLoadIsWrittenToTheEvent() {
+        RecordingTelemetryService telemetry = new RecordingTelemetryService();
+        Telemetry.install(telemetry);
+
+        new FxStallWatchdog.TelemetrySink().stalled(10_000, stack, new FxStallWatchdog.MemoryLoad(7_000, 98));
+        TelemetryEvent gcBound = telemetry.events("ui_stall").getFirst();
+        assertEquals(7_000L, ((Number) gcBound.meta().get("gc_ms")).longValue());
+        assertEquals(98, ((Number) gcBound.meta().get("heap_pct")).intValue());
+        assertEquals("gc", gcBound.meta().get("cause"));
+
+        StackTraceElement[] other = {
+                new StackTraceElement("org.fxt.freexmltoolkit.controls.shell.editor.EditorHost", "load", "EditorHost.java", 7)};
+        new FxStallWatchdog.TelemetrySink().stalled(10_000, other, new FxStallWatchdog.MemoryLoad(100, 40));
+        TelemetryEvent cpuBound = telemetry.events("ui_stall").get(1);
+        assertNull(cpuBound.meta().get("cause"));
+
+        StackTraceElement[] third = {
+                new StackTraceElement("org.fxt.freexmltoolkit.controls.shell.editor.EditorHost", "save", "EditorHost.java", 9)};
+        new FxStallWatchdog.TelemetrySink().stalled(3_000, third);
+        TelemetryEvent unknown = telemetry.events("ui_stall").get(2);
+        var meta = unknown.meta() == null ? java.util.Map.<String, Object>of() : unknown.meta();
+        assertNull(meta.get("gc_ms"), "no memory load known");
+        assertNull(meta.get("heap_pct"));
+    }
+
+    @Test
+    void realGcAndHeapReadersWork() {
+        assertTrue(FxStallWatchdog.totalGcPauseMs() >= 0);
+        int pct = FxStallWatchdog.heapUsedPercent();
+        assertTrue(pct >= -1 && pct <= 100, String.valueOf(pct));
+    }
+
+    // ----- live resize on macOS ------------------------------------------------------------------
+
+    @Test
+    void liveResizeRepaintWaitIsNotAStall() {
+        StackTraceElement[] resize = {
+                new StackTraceElement("jdk.internal.misc.Unsafe", "park", null, -1),
+                new StackTraceElement("java.util.concurrent.CountDownLatch", "await", null, -1),
+                new StackTraceElement("com.sun.javafx.tk.quantum.PaintCollector", "lambda$liveRepaintRenderJob$0", null, -1),
+                new StackTraceElement("com.sun.javafx.tk.quantum.PaintCollector", "liveRepaintRenderJob", null, -1),
+                new StackTraceElement("com.sun.glass.ui.View", "handleViewEvent", null, -1),
+                new StackTraceElement("com.sun.glass.ui.View", "notifyResize", null, -1),
+                new StackTraceElement("com.sun.glass.ui.mac.MacView", "notifyResize", null, -1)};
+        assertTrue(FxStallWatchdog.isNativeWait(resize));
+
+        StackTraceElement[] appWork = {
+                new StackTraceElement("com.sun.javafx.tk.quantum.PaintCollector", "liveRepaintRenderJob", null, -1),
+                new StackTraceElement("org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView", "layoutChildren", null, 10),
+                new StackTraceElement("com.sun.glass.ui.View", "notifyResize", null, -1)};
+        assertFalse(FxStallWatchdog.isNativeWait(appWork), "application code in the resize is a real stall");
     }
 }

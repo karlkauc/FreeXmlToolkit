@@ -4418,6 +4418,8 @@ public class EditorHost extends BorderPane {
         long fileSize = sizeOrUnknown(path); // here, not in the FX pulse below: a stat can stall
         // Also here: a linear scan of the text (XML family only, -1 otherwise)
         int elementCount = UsageEvents.elementCount(tab.document.getFileType().docKind(), content);
+        // And the editor document of a large file (paragraph split + tree), seconds on the FX thread
+        var prepared = tab.view.prepareText(content);
         // Show the document as soon as it has been read. Schema detection below can take
         // seconds - a remote xsi:schemaLocation (or a namespace the Schema Library resolves
         // remotely) is downloaded - and the editor must not sit empty for that long. The
@@ -4427,7 +4429,11 @@ public class EditorHost extends BorderPane {
             if (isAbandoned(tab)) {
                 return;
             }
-            tab.view.setText(content);
+            if (prepared != null) {
+                tab.view.setText(prepared);
+            } else {
+                tab.view.setText(content);
+            }
             tab.refreshPreviewIfActive();
             tab.endLoading();
             tab.document.setDirty(false);
@@ -7125,6 +7131,19 @@ public class EditorHost extends BorderPane {
 
         boolean changeConstraints(XsdNode node, boolean nillable, boolean abstractFlag, String fixed) {
             if (editorContext == null || node == null) {
+                return false;
+            }
+            if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
+                // The Inspector shows "fixed" for attributes too; nillable/abstract do not apply there.
+                // Leaving the field unchanged must not add an undo step.
+                if (java.util.Objects.equals(attribute.getFixed(),
+                        org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFixedValueCommand.normalize(fixed))) {
+                    return true;
+                }
+                return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFixedValueCommand(
+                        editorContext, node, fixed));
+            }
+            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement)) {
                 return false;
             }
             return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeConstraintsCommand(
