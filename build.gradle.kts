@@ -32,7 +32,7 @@ plugins {
     id("io.github.ben-manes.versions") version "0.66.0"
 }
 
-version = "2.5.1"
+version = "2.6.0"
 
 // MSI UpgradeCode. Pinned to the value jpackage derived from vendor + name up to 2.4.0, so
 // existing installations keep upgrading in place and winget can match the package.
