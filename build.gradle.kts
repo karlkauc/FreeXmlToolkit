@@ -239,7 +239,10 @@ tasks {
             // No -Dprism.order here: FxtGui auto-detects HW vs. SW rendering at startup
             // (Settings > Rendering: Auto/Hardware/Software). To force a pipeline while
             // developing, pass e.g. -Dprism.order=sw explicitly on the command line.
-            "-Dprism.verbose=false"        // Reduce graphics logging
+            "-Dprism.verbose=false",       // Reduce graphics logging
+            // Keep stack traces of exceptions the JIT would otherwise throw pre-allocated
+            // (a hot NullPointerException is logged without any trace otherwise).
+            "-XX:-OmitStackTraceInFastThrow"
         )
         // Dev runs report meta.channel=dev even when they carry a real version number
         // (TelemetryServiceImpl.channel), so they never count as release usage.

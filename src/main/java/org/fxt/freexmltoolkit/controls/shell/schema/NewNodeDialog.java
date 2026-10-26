@@ -109,6 +109,12 @@ public class NewNodeDialog extends Dialog<ButtonType> {
         abstractCheck.setManaged(global);
         show(!attribute && global, substitutionLabel, substitutionField);
         maxSpinner.disableProperty().bind(unboundedCheck.selectedProperty());
+        // The window keeps its size on its own: grow/shrink it with "More" so the buttons stay visible.
+        moreSection.expandedProperty().addListener((o, was, now) -> Platform.runLater(() -> {
+            if (getDialogPane().getScene() != null && getDialogPane().getScene().getWindow() != null) {
+                getDialogPane().getScene().getWindow().sizeToScene();
+            }
+        }));
 
         Runnable revalidate = this::validate;
         nameField.textProperty().addListener((o, ov, nv) -> revalidate.run());
