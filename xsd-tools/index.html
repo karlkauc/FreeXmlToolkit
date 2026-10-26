@@ -3104,6 +3104,7 @@ document, and use XSD files effectively.</p>
 <li><strong>Visual Tree</strong>: See your XSD as an interactive, hierarchical tree</li>
 <li><strong>Easy Navigation</strong>: Click on elements to explore their structure</li>
 <li><strong>Edit Documentation</strong>: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)</li>
+<li><strong>Type Picker</strong>: Choose an element's or attribute's type from a list of the schema's own types and all XSD built-in datatypes, each explained in a side pane</li>
 <li><strong>Add Examples</strong>: Include example values for elements</li>
 <li><strong>Reorder and Duplicate</strong>: Move nodes up and down, copy, cut, paste and duplicate them from the context menu</li>
 <li><strong>Full Undo/Redo</strong>: Go back and forward through your changes</li>
@@ -3124,7 +3125,7 @@ available in the <strong>Text</strong> view as well as the Graphic and Tree view
 </blockquote>
 <h3 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Right-click</strong> for a context menu with common actions (<strong>Rename…</strong>, <strong>Change Type…</strong>, <strong>Change Cardinality…</strong>, add/move/delete)</li>
+<li><strong>Right-click</strong> for a context menu with common actions (<strong>Rename…</strong>, <strong>Change Type…</strong>, <strong>Change Cardinality…</strong>, add/move/delete). <strong>Change Type…</strong> opens a small dialog with the <a href="../unified-shell/#type-picker">type picker</a>, pre-filled with the current type - the same dialog as in the Tree view</li>
 <li>Edit the name and every other property in the Properties pane on the right</li>
 <li><strong>Ctrl+Z</strong> to undo, <strong>Ctrl+Y</strong> to redo</li>
 <li><strong>Ctrl+S</strong> to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)</li>
@@ -3349,7 +3350,12 @@ when you switch between Text, Tree, and Graphic.</p>
 <h3 id="what-you-can-edit-in-the-properties-pane">What You Can Edit in the Properties Pane<a class="headerlink" href="#what-you-can-edit-in-the-properties-pane" title="Permanent link">&para;</a></h3>
 <p>For the selected schema node you can edit:</p>
 <ul>
-<li><strong>Name, type, cardinality/occurrence, use, form</strong> - The core properties of the node.
+<li><strong>Name, type, cardinality/occurrence, use, form</strong> - The core properties of the node. The
+  <strong>Type</strong> field is a picker: it lists the schema's own simple and complex types (including
+  included and imported ones, with their namespace prefix) and every XSD built-in datatype,
+  filters as you type and explains the highlighted type in a side pane; free text is still
+  accepted for references it does not know. See <a href="../unified-shell/#type-picker">Choosing a type with the type
+  picker</a> for the keyboard shortcuts and what the side pane shows.
   Compositors (<code>xs:sequence</code>, <code>xs:choice</code>, <code>xs:all</code>), group references and <code>xs:any</code> also show
   editable minOccurs/maxOccurs and their Order in <strong>CARDINALITY &amp; USE</strong>.</li>
 <li><strong>Facets</strong> - Add, edit, and remove facets such as patterns, enumerations, and length limits.
