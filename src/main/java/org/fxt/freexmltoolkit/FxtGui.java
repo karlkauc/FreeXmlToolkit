@@ -328,8 +328,7 @@ public class FxtGui extends Application {
                 // unsaved documents are asked about first, Cancel keeps the application open.
                 primaryStage.setOnCloseRequest(t -> {
                     if (shellController.getShellView().confirmExit()) {
-                        // Hide while the toolkit is fully alive: hiding them only in stop(), after
-                        // Platform.exit(), made Glass/GTK report NullPointerExceptions without a trace.
+                        // Hide while the toolkit is still fully alive, before it starts shutting down.
                         hideAllWindows();
                         Platform.exit();
                     } else {
