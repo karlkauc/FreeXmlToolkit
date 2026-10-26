@@ -1197,6 +1197,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#only-valid-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Only Valid Changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#automatic-resolution-of-imported-schemas" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2530,6 +2541,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#only-valid-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Only Valid Changes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#automatic-resolution-of-imported-schemas" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3127,10 +3149,37 @@ available in the <strong>Text</strong> view as well as the Graphic and Tree view
 <ul>
 <li><strong>Right-click</strong> for a context menu with common actions (<strong>Rename…</strong>, <strong>Change Type…</strong>, <strong>Change Cardinality…</strong>, add/move/delete). <strong>Change Type…</strong> opens a small dialog with the <a href="../unified-shell/#type-picker">type picker</a>, pre-filled with the current type - the same dialog as in the Tree view</li>
 <li>Edit the name and every other property in the Properties pane on the right</li>
+<li>Only edits that keep the schema valid are possible; see <a href="#only-valid-changes">Only Valid Changes</a></li>
 <li><strong>Ctrl+Z</strong> to undo, <strong>Ctrl+Y</strong> to redo</li>
 <li><strong>Ctrl+S</strong> to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)</li>
 <li>The toolbar's <strong>Save ▾</strong> split button saves the schema; its arrow menu offers <strong>Save As…</strong> (Ctrl+Shift+S, save under a new name) and <strong>Save All</strong> (saves every open tab)</li>
 </ul>
+<h3 id="only-valid-changes">Only Valid Changes<a class="headerlink" href="#only-valid-changes" title="Permanent link">&para;</a></h3>
+<p>The graphical editor only lets you make changes that keep the schema valid XML Schema. This
+applies to the Properties pane, the right-click menus of the Graphic and Tree views, Paste and
+drag &amp; drop alike.</p>
+<ul>
+<li><strong>Menu entries that cannot apply are disabled.</strong> An element with a simple type such as
+  <code>xs:int</code> cannot contain child elements or attributes, so <strong>Add Element…</strong>, <strong>Add Container
+  Element…</strong> and <strong>Add Attribute…</strong> are greyed out for it. An element reference (<code>ref="…"</code>) takes
+  its type and content from the referenced element, so its <strong>Type</strong> field and <strong>Change Type…</strong> are
+  locked. Child elements need a <strong>Sequence</strong>, <strong>Choice</strong> or <strong>All</strong> first.</li>
+<li><strong>A change that would replace existing content asks first.</strong> Setting a type on an element that
+  defines its own content (an inline complex type, for example a sequence with child elements)
+  would leave both in the schema. Instead a dialog explains what would be lost and offers
+  <strong>Replace with xs:int</strong>. Confirming removes the inline content and sets the type. <strong>Cancel</strong>
+  keeps the schema unchanged. Adding a Sequence, Choice or All to an element that has a type works
+  the same way: the dialog offers <strong>Remove type and add sequence</strong>.</li>
+<li><strong>Everything is one undo step.</strong> <strong>Ctrl+Z</strong> brings back the inline content or the type you
+  replaced.</li>
+<li><strong>Switching a compositor keeps its children.</strong> Changing a Sequence into a Choice or All moves the
+  child elements over. An <strong>All</strong> is refused when it would hold a nested Sequence or Choice, or, in
+  an XSD 1.0 schema, an element with <code>maxOccurs</code> greater than 1.</li>
+<li><strong>Attributes land in the right place.</strong> For an element whose type is a named complex type, a new
+  attribute is added to that type. For a complex type with simple content it goes into the
+  <code>xs:extension</code>.</li>
+</ul>
+<p>When an edit is not possible, a short message says why.</p>
 <h3 id="automatic-resolution-of-imported-schemas">Automatic Resolution of Imported Schemas<a class="headerlink" href="#automatic-resolution-of-imported-schemas" title="Permanent link">&para;</a></h3>
 <p>Some schemas import other schemas that are not shipped alongside them.
 For example, many financial schemas contain:</p>
