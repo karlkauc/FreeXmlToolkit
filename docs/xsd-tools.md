@@ -193,9 +193,14 @@ For SimpleTypes, you get a 5-panel form editor:
 |-----------------|---------------------------|
 | **General**     | Name and Final attribute  |
 | **Restriction** | Base type and facets      |
-| **List**        | ItemType selection        |
-| **Union**       | MemberTypes management    |
+| **List**        | Item type (enabled for list types and types without derivation yet) |
+| **Union**       | Member types (enabled for union types and types without derivation yet) |
 | **Annotation**  | Documentation and AppInfo |
+
+The **Base type**, **Item type** and **Add Member Type…** fields are the same
+[type picker](unified-shell.md#type-picker) as in the inspector, limited to what a simple type may
+derive from: the schema's other simple types and the built-in datatypes (complex types,
+`xs:anyType` and the type itself are left out).
 
 ### How to Use
 

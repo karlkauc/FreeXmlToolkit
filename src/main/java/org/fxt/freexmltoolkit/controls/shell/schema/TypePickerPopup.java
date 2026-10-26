@@ -447,12 +447,12 @@ public final class TypePickerPopup {
     }
 
     /** @return the title shown in the detail pane (tests). */
-    String detailTitleText() {
+    public String detailTitleText() {
         return detailTitle.isVisible() ? detailTitle.getText() : "";
     }
 
     /** @return the documentation shown in the detail pane (tests). */
-    String detailDocText() {
+    public String detailDocText() {
         return detailDoc.isVisible() ? detailDoc.getText() : "";
     }
 

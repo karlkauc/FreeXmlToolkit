@@ -1,12 +1,13 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
 
+import java.util.List;
+import java.util.function.Predicate;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Separator;
@@ -25,6 +26,10 @@ import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypeChoice;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypeChoices;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerDialog;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerField;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.FacetsPanel;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.TypeDocumentationPanel;
@@ -63,7 +68,7 @@ public class SimpleTypeEditorView extends BorderPane {
     private Button findUsageBtn;
 
     // Restriction Panel Components
-    private ComboBox<String> baseTypeCombo;
+    private TypePickerField baseTypePicker;
     private FacetsPanel facetsPanel;
 
     // Enumerations, Patterns, Assertions Lists
@@ -275,13 +280,17 @@ public class SimpleTypeEditorView extends BorderPane {
         // Tab 2: Restriction
         Tab restrictionTab = new Tab("Restriction", createRestrictionPanel());
 
-        // Tab 3: List
-        Tab listTab = new Tab("List", createListPanel());
-        listTab.setDisable(true); // DUMMY: Enabled if type is list
+        // Tabs 3 + 4: List / Union follow the type's variety - a type that already restricts
+        // cannot also be a list or a union, a list type cannot also be a union and vice versa.
+        boolean hasRestriction = findRestrictionInSimpleType() != null;
+        boolean hasList = findListInSimpleType() != null;
+        boolean hasUnion = findUnionInSimpleType() != null;
 
-        // Tab 4: Union
+        Tab listTab = new Tab("List", createListPanel());
+        listTab.setDisable(hasRestriction || hasUnion);
+
         Tab unionTab = new Tab("Union", createUnionPanel());
-        unionTab.setDisable(true); // DUMMY: Enabled if type is union
+        unionTab.setDisable(hasRestriction || hasList);
 
         // Tab 5: Annotation
         Tab annotationTab = new Tab("Annotation", createAnnotationPanel());
@@ -399,37 +408,18 @@ public class SimpleTypeEditorView extends BorderPane {
         HBox baseTypeBox = new HBox(10);
         baseTypeBox.setAlignment(Pos.CENTER_LEFT);
         Label baseLabel = new Label("Base Type:");
-        baseTypeCombo = new ComboBox<>();
-        baseTypeCombo.setPrefWidth(200);
-
-        // Populate with common XSD built-in types
-        baseTypeCombo.getItems().addAll(
-                "xs:string", "xs:normalizedString", "xs:token",
-                "xs:int", "xs:integer", "xs:long", "xs:short", "xs:byte",
-                "xs:decimal", "xs:float", "xs:double",
-                "xs:boolean",
-                "xs:date", "xs:time", "xs:dateTime",
-                "xs:duration", "xs:gYear", "xs:gYearMonth", "xs:gMonth", "xs:gMonthDay", "xs:gDay",
-                "xs:hexBinary", "xs:base64Binary",
-                "xs:anyURI", "xs:QName",
-                "xs:positiveInteger", "xs:nonNegativeInteger", "xs:negativeInteger", "xs:nonPositiveInteger",
-                "xs:unsignedLong", "xs:unsignedInt", "xs:unsignedShort", "xs:unsignedByte"
-        );
+        baseTypePicker = newSimpleTypePicker("simple-type-base-type");
 
         // Find existing restriction to get base type
         XsdRestriction currentRestriction = findRestrictionInSimpleType();
         if (currentRestriction != null && currentRestriction.getBase() != null) {
-            baseTypeCombo.setValue(currentRestriction.getBase());
+            baseTypePicker.setValue(currentRestriction.getBase());
         } else {
-            baseTypeCombo.setValue("xs:string"); // Default
+            baseTypePicker.setValue("xs:string"); // Default
         }
+        baseTypePicker.setOnCommit(this::handleBaseTypeChange);
 
-        // Listen to base type changes
-        baseTypeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
-            handleBaseTypeChange(newVal);
-        });
-
-        baseTypeBox.getChildren().addAll(baseLabel, baseTypeCombo);
+        baseTypeBox.getChildren().addAll(baseLabel, baseTypePicker);
 
         // Create TabPane for Facets, Enumerations, Patterns, Assertions
         TabPane restrictionTabPane = new TabPane();
@@ -1035,7 +1025,7 @@ public class SimpleTypeEditorView extends BorderPane {
         XsdRestriction restriction = findRestrictionInSimpleType();
         if (restriction == null) {
             // Create new restriction with current base type
-            String baseType = baseTypeCombo.getValue();
+            String baseType = baseTypePicker.getValue();
             if (baseType == null || baseType.isEmpty()) {
                 baseType = "xs:string";
             }
@@ -1044,6 +1034,37 @@ public class SimpleTypeEditorView extends BorderPane {
             logger.info("Created new restriction with base '{}'", baseType);
         }
         return restriction;
+    }
+
+    /**
+     * Creates a type picker offering the schema's simple types and the built-in datatypes
+     * (complex types, {@code xs:anyType} and this simple type itself cannot be a base, item or
+     * member type of a simple type).
+     *
+     * @param id the node id for tests
+     * @return the configured picker, without a value and commit handler
+     */
+    private TypePickerField newSimpleTypePicker(String id) {
+        TypePickerField picker = new TypePickerField();
+        picker.setId(id);
+        picker.setPrefWidth(320);
+        picker.setChoices(this::simpleTypeChoices);
+        picker.setChoiceFilter(simpleTypeFilter());
+        return picker;
+    }
+
+    private List<TypeChoice> simpleTypeChoices() {
+        return TypeChoices.of(editorContext == null ? null : editorContext.getSchema());
+    }
+
+    private Predicate<TypeChoice> simpleTypeFilter() {
+        return choice -> choice.kind() != TypeChoice.Kind.COMPLEX
+                && choice.node() != simpleType
+                && !(choice.kind() == TypeChoice.Kind.BUILTIN && "anyType".equals(localName(choice.qualifiedName())));
+    }
+
+    private static String localName(String qualifiedName) {
+        return qualifiedName.substring(qualifiedName.indexOf(':') + 1);
     }
 
     /**
@@ -1107,31 +1128,17 @@ public class SimpleTypeEditorView extends BorderPane {
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
         Label itemTypeLabel = new Label("Item Type:");
-        ComboBox<String> itemTypeCombo = new ComboBox<>();
-
-        // Populate with XSD built-in types
-        itemTypeCombo.getItems().addAll(
-                "xs:string", "xs:normalizedString", "xs:token",
-                "xs:int", "xs:integer", "xs:long", "xs:short", "xs:byte",
-                "xs:decimal", "xs:float", "xs:double",
-                "xs:boolean",
-                "xs:date", "xs:time", "xs:dateTime",
-                "xs:hexBinary", "xs:base64Binary",
-                "xs:anyURI", "xs:QName"
-        );
+        TypePickerField itemTypePicker = newSimpleTypePicker("simple-type-item-type");
+        itemTypePicker.setMaxWidth(320);
 
         // Find existing list to get itemType
         XsdList currentList = findListInSimpleType();
         if (currentList != null && currentList.getItemType() != null) {
-            itemTypeCombo.setValue(currentList.getItemType());
+            itemTypePicker.setValue(currentList.getItemType());
         } else {
-            itemTypeCombo.setValue("xs:string"); // Default
+            itemTypePicker.setValue("xs:string"); // Default
         }
-
-        // Listen to changes
-        itemTypeCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
-            handleItemTypeChange(newVal);
-        });
+        itemTypePicker.setOnCommit(this::handleItemTypeChange);
 
         Label description = new Label(
                 "A list creates space-separated values of the specified item type.\n" +
@@ -1144,7 +1151,7 @@ public class SimpleTypeEditorView extends BorderPane {
         panel.getChildren().addAll(
                 title,
                 new Label(""),
-                itemTypeLabel, itemTypeCombo,
+                itemTypeLabel, itemTypePicker,
                 new Label(""),
                 description
         );
@@ -1280,21 +1287,13 @@ public class SimpleTypeEditorView extends BorderPane {
      * @param memberTypesList the member types list view
      */
     private void handleAddMemberType(ListView<String> memberTypesList) {
-        // Show dialog to select type
-        ChoiceDialog<String> dialog = new ChoiceDialog<>("xs:string",
-                "xs:string", "xs:normalizedString", "xs:token",
-                "xs:int", "xs:integer", "xs:long", "xs:short", "xs:byte",
-                "xs:decimal", "xs:float", "xs:double",
-                "xs:boolean",
-                "xs:date", "xs:time", "xs:dateTime",
-                "xs:hexBinary", "xs:base64Binary",
-                "xs:anyURI", "xs:QName"
-        );
-        dialog.setTitle("Add Member Type");
-        dialog.setHeaderText("Select a type to add to the union");
-        dialog.setContentText("Type:");
-
-        dialog.showAndWait().ifPresent(selectedType -> {
+        TypePickerDialog.show(getScene() == null ? null : getScene().getWindow(),
+                "Add Member Type", "Select a type to add to the union", "xs:string",
+                () -> simpleTypeChoices().stream().filter(simpleTypeFilter()).toList()
+        ).ifPresent(selectedType -> {
+            if (selectedType.isBlank() || memberTypesList.getItems().contains(selectedType)) {
+                return;
+            }
             logger.info("Adding member type: {}", selectedType);
 
             XsdUnion union = findUnionInSimpleType();

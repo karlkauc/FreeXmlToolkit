@@ -2050,7 +2050,9 @@ lets you edit it from whichever view you are in. XSD files have the same three v
 The **Type** row of an element or attribute is a text field with a chevron button that opens a
 list of every type you can reference - in the Text, Tree and Graphic view alike. The same field
 sits in the small dialog behind **Change Type…** in the right-click menu of the Graphic view (the
-schema diagram) and of the Tree view, pre-filled with the current type.
+schema diagram) and of the Tree view, pre-filled with the current type, and in the
+[SimpleType Editor](xsd-tools.md#simpletype-editor) for the base type, the list item type and new
+union member types - there it offers simple types only.
 
 The list is grouped under section headers:
 
