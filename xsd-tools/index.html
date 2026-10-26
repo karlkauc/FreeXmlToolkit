@@ -3291,11 +3291,11 @@ it to open that schema as a document.</p>
 </tr>
 <tr>
 <td><strong>List</strong></td>
-<td>ItemType selection</td>
+<td>Item type (enabled for list types and types without derivation yet)</td>
 </tr>
 <tr>
 <td><strong>Union</strong></td>
-<td>MemberTypes management</td>
+<td>Member types (enabled for union types and types without derivation yet)</td>
 </tr>
 <tr>
 <td><strong>Annotation</strong></td>
@@ -3303,6 +3303,10 @@ it to open that schema as a document.</p>
 </tr>
 </tbody>
 </table>
+<p>The <strong>Base type</strong>, <strong>Item type</strong> and <strong>Add Member Type…</strong> fields are the same
+<a href="../unified-shell/#type-picker">type picker</a> as in the inspector, limited to what a simple type may
+derive from: the schema's other simple types and the built-in datatypes (complex types,
+<code>xs:anyType</code> and the type itself are left out).</p>
 <h3 id="how-to-use_2">How to Use<a class="headerlink" href="#how-to-use_2" title="Permanent link">&para;</a></h3>
 <ol>
 <li>In the Schema panel's Type Library, find the type (use the filter field for large schemas)</li>
