@@ -1308,6 +1308,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#creating-a-new-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a New Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#how-to-use_2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2652,6 +2663,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#creating-a-new-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a New Type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#how-to-use_2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3261,6 +3283,10 @@ top-level declarations so you can browse, find, and open every type in the schem
 <td>Right-click a type to find the places where it is used</td>
 </tr>
 <tr>
+<td><strong>New type</strong></td>
+<td>The <strong>+</strong> button in the COMPLEX TYPES / SIMPLE TYPES header (or right-click → <strong>New Complex Type…</strong> / <strong>New Simple Type…</strong>) declares a new top-level type - see <a href="#creating-a-new-type">Creating a New Type</a></td>
+</tr>
+<tr>
 <td><strong>Schema tools</strong></td>
 <td>Labelled rows in the <strong>TOOLS</strong> section below the type lists (collapsed by default): Generate Sample XML…, Sample XML with Options…, Flatten Schema…, Schema Analysis, and Generate Documentation…</td>
 </tr>
@@ -3356,6 +3382,40 @@ it to open that schema as a document.</p>
 <a href="../unified-shell/#type-picker">type picker</a> as in the inspector, limited to what a simple type may
 derive from: the schema's other simple types and the built-in datatypes (complex types,
 <code>xs:anyType</code> and the type itself are left out).</p>
+<h3 id="creating-a-new-type">Creating a New Type<a class="headerlink" href="#creating-a-new-type" title="Permanent link">&para;</a></h3>
+<p>New top-level types can be declared from three places:</p>
+<ul>
+<li><strong>Graphic view:</strong> right-click the schema node or an empty area of the diagram →
+  <strong>Add Complex Type…</strong> / <strong>Add Simple Type…</strong></li>
+<li><strong>Tree view:</strong> right-click the schema (root) node → <strong>New Complex Type…</strong> / <strong>New Simple Type…</strong></li>
+<li><strong>Schema panel:</strong> the <strong>+</strong> button in the <strong>COMPLEX TYPES</strong> or <strong>SIMPLE TYPES</strong> section header</li>
+</ul>
+<p>A small dialog asks for the kind and the name. A free name is suggested (<code>NewComplexType</code>,
+<code>NewComplexType2</code>, …); the name is checked while you type - it must be a valid XML name
+(no spaces or <code>:</code>) and must not be used by another simple or complex type of the schema, so
+<strong>OK</strong> stays disabled until it is.</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Starts as</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Complex type</strong></td>
+<td>An empty <code>xs:sequence</code> - add child elements and attributes right away</td>
+</tr>
+<tr>
+<td><strong>Simple type</strong></td>
+<td>A restriction of <code>xs:string</code> - pick another base type and add facets</td>
+</tr>
+</tbody>
+</table>
+<p>The new type is added next to the schema's other types of the same kind, appears in the
+Type Library and opens in its own Type Editor tab. The diagram itself shows global elements
+only; assign the new type to an element with the <a href="../unified-shell/#type-picker">type picker</a>.
+One <strong>Undo</strong> removes the type again.</p>
 <h3 id="how-to-use_2">How to Use<a class="headerlink" href="#how-to-use_2" title="Permanent link">&para;</a></h3>
 <ol>
 <li>In the Schema panel's Type Library, find the type (use the filter field for large schemas)</li>
