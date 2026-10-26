@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
@@ -19,6 +20,10 @@ public interface NodeEditActions {
     void addContainerElement(XsdNode parent, String name);
 
     void addAttribute(XsdNode parent, String name);
+
+    /** Asks for and declares a new top-level type of the schema ({@code kind} preselected). */
+    default void newType(AddGlobalTypeCommand.Kind kind) {
+    }
 
     void addSequence(XsdNode element);
 

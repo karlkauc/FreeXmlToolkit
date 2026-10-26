@@ -135,12 +135,44 @@ class TypeLibraryPanelTest {
     }
 
     @Test
+    void plusButtonDeclaresANewComplexTypeAndOpensItsEditor(@TempDir Path tmp) throws Exception {
+        org.fxt.freexmltoolkit.controls.shell.schema.NewTypeDialog.setResponder(kind -> java.util.Optional.of(
+                new org.fxt.freexmltoolkit.controls.shell.schema.NewTypeDialog.NewType(kind, "AddressType")));
+        try {
+            openSchema(tmp);
+            WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                    () -> list("schema-complex-list").getItems().size() == 2);
+            javafx.scene.control.Button plus = (javafx.scene.control.Button) panel.lookup("#schema-new-complex-type");
+            assertNotNull(plus);
+            assertFalse(plus.isDisabled(), "enabled for an XSD document");
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                plus.fire();
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("<xs:complexType name=\"AddressType\">"))
+                            .orElse(false)
+                            || ((javafx.scene.control.TabPane) host.lookup(".tab-pane")).getTabs().stream()
+                            .anyMatch(t -> t.getText() != null && t.getText().contains("AddressType")));
+            WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                    () -> list("schema-complex-list").getItems().stream()
+                            .anyMatch(n -> "AddressType".equals(n.getName())));
+            WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                    () -> ((javafx.scene.control.TabPane) host.lookup(".tab-pane")).getTabs().stream()
+                            .anyMatch(t -> t.getText() != null && t.getText().contains("AddressType")));
+        } finally {
+            org.fxt.freexmltoolkit.controls.shell.schema.NewTypeDialog.setResponder(null);
+        }
+    }
+
+    @Test
     void typeContextMenuOffersEditorAndFindUsage() {
         WaitForAsyncUtils.waitForFxEvents();
         var items = panel.typeContextMenuItemTexts();
         assertTrue(items.contains("Reveal in Tree"), items.toString());
         assertTrue(items.contains("Open Type Editor"), items.toString());
         assertTrue(items.contains("Find Usage"), items.toString());
+        assertTrue(items.contains("New Complex Type…"), items.toString());
     }
 
     @Test

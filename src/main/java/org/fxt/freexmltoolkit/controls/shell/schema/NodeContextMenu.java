@@ -12,6 +12,7 @@ import javafx.scene.control.TextInputDialog;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
@@ -19,8 +20,8 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
- * Builds the shared XSD node-editing context menu (Add Element/Attribute/
- * Sequence/Choice, Rename, Change Type, Change Cardinality, Delete) used by the
+ * Builds the shared XSD node-editing context menu (New Complex/Simple Type on the schema,
+ * Add Element/Attribute/Sequence/Choice, Rename, Change Type, Change Cardinality, Delete) used by the
  * {@link XsdTreeView}. The menu acts on the node supplied by {@code currentNode}
  * (the selected tree item).
  */
@@ -54,7 +55,16 @@ public final class NodeContextMenu {
         MenuItem addAll = item("Add All", "bi-list-check", ActionColor.CREATE, currentNode, actions::addAll);
         MenuItem changeType = item("Change Type…", "bi-type", ActionColor.STRUCTURE, currentNode,
                 node -> promptChangeType(actions, node, schema));
+        // Top-level types are declared on the schema node only.
+        MenuItem newComplexType = item("New Complex Type…", "bi-diagram-3", ActionColor.CREATE, currentNode,
+                node -> actions.newType(AddGlobalTypeCommand.Kind.COMPLEX));
+        MenuItem newSimpleType = item("New Simple Type…", "bi-type", ActionColor.CREATE, currentNode,
+                node -> actions.newType(AddGlobalTypeCommand.Kind.SIMPLE));
+        SeparatorMenuItem typeSeparator = new SeparatorMenuItem();
         menu.getItems().addAll(
+                newComplexType,
+                newSimpleType,
+                typeSeparator,
                 addElement,
                 addContainer,
                 addAttribute,
@@ -81,6 +91,10 @@ public final class NodeContextMenu {
         // replace conflicting content stay enabled and ask first (EditorTab).
         menu.setOnShowing(e -> {
             XsdNode node = currentNode.get();
+            boolean schemaNode = node instanceof XsdSchema;
+            newComplexType.setVisible(schemaNode);
+            newSimpleType.setVisible(schemaNode);
+            typeSeparator.setVisible(schemaNode);
             paste.setDisable(node == null || !actions.canPasteInto(node));
             boolean noElement = node == null || XsdEditRules.addElement(node).isBlocked();
             addElement.setDisable(noElement);

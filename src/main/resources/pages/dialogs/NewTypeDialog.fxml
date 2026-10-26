@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+
+<!--
+  Content of the "New Type" dialog: kind (complex / simple) and name of a new top-level type.
+  Loaded by NewTypeDialog (FxmlViews.loadContent), which is the controller and adds title,
+  header, buttons and the live name check.
+-->
+<GridPane hgap="10" vgap="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <fx:define>
+        <ToggleGroup fx:id="kindGroup"/>
+    </fx:define>
+    <children>
+        <Label text="Kind" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <HBox spacing="16" GridPane.rowIndex="0" GridPane.columnIndex="1">
+            <children>
+                <RadioButton fx:id="complexKind" id="new-type-complex" text="Complex type (elements, attributes)"
+                             toggleGroup="$kindGroup"/>
+                <RadioButton fx:id="simpleKind" id="new-type-simple" text="Simple type (text value)"
+                             toggleGroup="$kindGroup"/>
+            </children>
+        </HBox>
+        <Label text="Name" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField" id="new-type-name" prefColumnCount="28"
+                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label fx:id="errorLabel" id="new-type-error" wrapText="true" maxWidth="460" visible="false" managed="false"
+               style="-fx-text-fill: #e03131;" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+        <Label fx:id="hintLabel" wrapText="true" opacity="0.7" maxWidth="460"
+               GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+    </children>
+</GridPane>

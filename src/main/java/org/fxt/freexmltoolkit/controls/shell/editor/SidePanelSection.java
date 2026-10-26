@@ -6,8 +6,12 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
@@ -49,6 +53,32 @@ public final class SidePanelSection extends VBox {
                 node.setManaged(expanded);
             }
         }
+    }
+
+    /**
+     * Adds a small icon button at the right end of the header (e.g. "+" to create an entry).
+     * Clicking it runs {@code action} without collapsing the section.
+     *
+     * @return the button (for ids and tests)
+     */
+    public Button addHeaderAction(String iconLiteral, String tooltip, Runnable action) {
+        if (header.getChildren().stream().noneMatch(n -> n instanceof Region r && "spacer".equals(r.getId()))) {
+            Region spacer = new Region();
+            spacer.setId("spacer");
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            header.getChildren().add(spacer);
+        }
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
+        icon.setIconSize(13);
+        Button button = new Button(null, icon);
+        button.getStyleClass().add("fxt-sp-section-action");
+        button.setTooltip(new Tooltip(tooltip));
+        button.setFocusTraversable(false);
+        button.setOnAction(e -> action.run());
+        // The header toggles on click; a click on the button must not reach it.
+        button.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_CLICKED, javafx.event.Event::consume);
+        header.getChildren().add(button);
+        return button;
     }
 
     /** The section title, shown as given (upper case by convention). */

@@ -3924,6 +3924,22 @@
     -fx-icon-color: -fxt-text-muted;
 }
 
+/* Small icon action at the right end of a section header (SidePanelSection.addHeaderAction). */
+.fxt-sp-section-action {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-padding: 2 4 2 4;
+    -fx-cursor: hand;
+}
+
+.fxt-sp-section-action:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-sp-section-action:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
 /* ----- Panel action lists (PanelActionList / PanelAction) ---------------------------
    Follow-on actions of a side panel: full-width rows with icon + label under a section
    header. Rows have a FIXED height and every state rule restates the base geometry, so a

@@ -17,12 +17,14 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.schema.TypeChoices;
 import org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs;
+import org.fxt.freexmltoolkit.controls.shell.schema.NewTypeDialog;
 import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerDialog;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCommentCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand;
@@ -129,13 +131,17 @@ public class XsdContextMenuFactory {
     private ContextMenu createEmptyCanvasMenu() {
         ContextMenu menu = new ContextMenu();
 
-        menu.getItems().add(
+        menu.getItems().addAll(
                 createMenuItem("Add Root Element", "bi-plus-circle", ActionColor.CREATE, () -> {
                     org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = editorContext.getSchema();
                     if (schema != null) {
                         handleAddRootElement(schema);
                     }
-                })
+                }),
+                createMenuItem("Add Complex Type…", "bi-diagram-3", ActionColor.CREATE,
+                        () -> handleNewType(AddGlobalTypeCommand.Kind.COMPLEX)),
+                createMenuItem("Add Simple Type…", "bi-type", ActionColor.CREATE,
+                        () -> handleNewType(AddGlobalTypeCommand.Kind.SIMPLE))
         );
         return menu;
     }
@@ -399,12 +405,41 @@ public class XsdContextMenuFactory {
                         handleAddRootElement(parentNode);
                     }
                 }),
+                createMenuItem("Add Complex Type…", "bi-diagram-3", ActionColor.CREATE,
+                        () -> handleNewType(AddGlobalTypeCommand.Kind.COMPLEX)),
+                createMenuItem("Add Simple Type…", "bi-type", ActionColor.CREATE,
+                        () -> handleNewType(AddGlobalTypeCommand.Kind.SIMPLE)),
                 createMenuItem("Add Comment", "bi-chat-left-quote", ActionColor.CREATE, () -> handleAddComment(node)),
                 new SeparatorMenuItem(),
                 createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))
         );
 
         return menu;
+    }
+
+    /**
+     * Asks for kind and name of a new top-level type, declares it and opens it in the type editor
+     * (the diagram itself shows global elements only).
+     *
+     * @param kind the preselected kind
+     */
+    private void handleNewType(AddGlobalTypeCommand.Kind kind) {
+        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = editorContext.getSchema();
+        if (schema == null) {
+            return;
+        }
+        NewTypeDialog.ask(null, schema, kind).ifPresent(answer -> {
+            AddGlobalTypeCommand command = new AddGlobalTypeCommand(schema, answer.kind(), answer.name());
+            if (!editorContext.getCommandManager().executeCommand(command)) {
+                return;
+            }
+            logger.info("Added {} type '{}'", answer.kind(), answer.name());
+            if (command.getAddedType() instanceof XsdComplexType complexType && openComplexTypeEditorCallback != null) {
+                openComplexTypeEditorCallback.accept(complexType);
+            } else if (command.getAddedType() instanceof XsdSimpleType simpleType && openSimpleTypeEditorCallback != null) {
+                openSimpleTypeEditorCallback.accept(simpleType);
+            }
+        });
     }
 
     /**

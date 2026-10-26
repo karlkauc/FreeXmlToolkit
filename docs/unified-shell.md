@@ -467,7 +467,9 @@ The **Schema** activity's side panel lists the active schema's top-level declara
 grouped into **GLOBAL ELEMENTS**, **COMPLEX TYPES**, and **SIMPLE TYPES** (collapsible
 sections), with a **filter field** on top. Click a declaration to reveal it in the Tree
 view; double-click a type to open it in its dedicated **Type Editor** tab; right-click for
-**Reveal in Tree / Open Type Editor / Find Usage**. The schema tools (Generate Sample XML…, Sample XML with Options…, Flatten Schema…,
+**Reveal in Tree / Open Type Editor / Find Usage**. The **+** button in the COMPLEX TYPES and
+SIMPLE TYPES headers declares a new type and opens it in its Type Editor
+(see [Creating a New Type](xsd-tools.md#creating-a-new-type)). The schema tools (Generate Sample XML…, Sample XML with Options…, Flatten Schema…,
 Schema Analysis, Generate Documentation…) are **labelled rows in the TOOLS section below
 the type lists** - each row shows an icon and the tool's name, so nothing hides behind a
 tooltip. TOOLS starts collapsed; click its header to expand it.

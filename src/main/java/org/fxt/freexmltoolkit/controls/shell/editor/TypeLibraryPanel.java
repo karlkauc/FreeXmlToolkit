@@ -20,6 +20,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.analysis.SchemaAnalysisView;
 import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
@@ -45,6 +46,10 @@ public class TypeLibraryPanel extends VBox {
     @FXML private ListView<XsdNode> elementsList;
     @FXML private ListView<XsdNode> complexList;
     @FXML private ListView<XsdNode> simpleList;
+    @FXML private SidePanelSection complexSection;
+    @FXML private SidePanelSection simpleSection;
+    private javafx.scene.control.Button newComplexButton;
+    private javafx.scene.control.Button newSimpleButton;
     private String selectedTypeName;
     private boolean syncingSelection;
     private boolean lastRefreshEmpty = true;
@@ -66,6 +71,12 @@ public class TypeLibraryPanel extends VBox {
         configureList(elementsList, elements, false);
         configureList(complexList, complexTypes, true);
         configureList(simpleList, simpleTypes, true);
+        newComplexButton = complexSection.addHeaderAction("bi-plus-lg", "New complex type…",
+                () -> newType(AddGlobalTypeCommand.Kind.COMPLEX));
+        newComplexButton.setId("schema-new-complex-type");
+        newSimpleButton = simpleSection.addHeaderAction("bi-plus-lg", "New simple type…",
+                () -> newType(AddGlobalTypeCommand.Kind.SIMPLE));
+        newSimpleButton.setId("schema-new-simple-type");
 
         // Dropping an XSD anywhere on the panel opens it as a document; the library then
         // follows the newly active tab. Other extensions are rejected (red feedback).
@@ -153,7 +164,12 @@ public class TypeLibraryPanel extends VBox {
                             editorHost.openTypeEditorTab(selectedTypeName);
                         }
                     }),
-                    menuItem("Find Usage", "bi-search", this::findUsageOfSelectedType));
+                    menuItem("Find Usage", "bi-search", this::findUsageOfSelectedType),
+                    new javafx.scene.control.SeparatorMenuItem(),
+                    list == simpleList
+                            ? createItem("New Simple Type…", "bi-type", () -> newType(AddGlobalTypeCommand.Kind.SIMPLE))
+                            : createItem("New Complex Type…", "bi-diagram-3",
+                                    () -> newType(AddGlobalTypeCommand.Kind.COMPLEX)));
         }
         list.setContextMenu(menu);
     }
@@ -454,7 +470,24 @@ public class TypeLibraryPanel extends VBox {
     }
 
     /** Rebuilds the three group lists, honouring the filter text. */
+    /** Asks for a new top-level type of the active XSD and opens it in its type editor tab. */
+    public void newType(AddGlobalTypeCommand.Kind kind) {
+        if (editorHost.newTypeInActive(kind)) {
+            refresh();
+        }
+    }
+
+    private MenuItem createItem(String text, String iconLiteral, Runnable action) {
+        MenuItem item = new MenuItem(text, SemanticIcon.paint(icon(iconLiteral, 16), ActionColor.CREATE));
+        item.setOnAction(e -> action.run());
+        return item;
+    }
+
     private void refresh() {
+        boolean xsd = editorHost.getActiveDocument()
+                .map(d -> d.getFileType() == EditorFileType.XSD).orElse(false);
+        newComplexButton.setDisable(!xsd);
+        newSimpleButton.setDisable(!xsd);
         String query = filter.getText() != null ? filter.getText().strip().toLowerCase(Locale.ROOT) : "";
         syncingSelection = true;
         try {

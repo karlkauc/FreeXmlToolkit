@@ -42,7 +42,7 @@
                                 </ListView>
                             </children>
                         </SidePanelSection>
-                        <SidePanelSection title="COMPLEX TYPES">
+                        <SidePanelSection fx:id="complexSection" title="COMPLEX TYPES">
                             <children>
                                 <ListView fx:id="complexList" id="schema-complex-list" fixedCellSize="26"
                                           styleClass="fxt-open-editors, fxt-explorer-list">
@@ -52,7 +52,7 @@
                                 </ListView>
                             </children>
                         </SidePanelSection>
-                        <SidePanelSection title="SIMPLE TYPES">
+                        <SidePanelSection fx:id="simpleSection" title="SIMPLE TYPES">
                             <children>
                                 <ListView fx:id="simpleList" id="schema-simple-list" fixedCellSize="26"
                                           styleClass="fxt-open-editors, fxt-explorer-list">

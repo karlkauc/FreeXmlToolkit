@@ -86,8 +86,8 @@ element.setName("NewName");
 commandManager.executeCommand(new RenameNodeCommand(element, "NewName"));
 ```
 
-**32 Concrete Commands:**
-- Structure (12): `AddElementCommand`, `AddContainerElementCommand`, `AddAttributeCommand`, `AddSequenceCommand`, `AddChoiceCommand`, `AddAllCommand`, `AddCompositorCommand`, `DeleteNodeCommand`, `DeleteNodesCommand` (several nodes, one undo step), `MoveNodeCommand`, `DuplicateNodeCommand`, `PasteNodeCommand`
+**33 Concrete Commands:**
+- Structure (13): `AddGlobalTypeCommand` (top-level complex/simple type; dialog `controls/shell/schema/NewTypeDialog`, name rule `XsdEditRules.addGlobalType`), `AddElementCommand`, `AddContainerElementCommand`, `AddAttributeCommand`, `AddSequenceCommand`, `AddChoiceCommand`, `AddAllCommand`, `AddCompositorCommand`, `DeleteNodeCommand`, `DeleteNodesCommand` (several nodes, one undo step), `MoveNodeCommand`, `DuplicateNodeCommand`, `PasteNodeCommand`
 - Properties (9): `RenameNodeCommand`, `ChangeCardinalityCommand`, `ChangeTypeCommand`, `ChangeFormCommand`, `ChangeUseCommand`, `ChangeSubstitutionGroupCommand`, `ChangeDocumentationCommand`, `ChangeDocumentationsCommand`, `ChangeAppinfoCommand`
 - Facets (3): `AddFacetCommand`, `DeleteFacetCommand`, `EditFacetCommand`
 - Constraints (5): `AddPatternCommand`, `DeletePatternCommand`, `AddEnumerationCommand`, `DeleteEnumerationCommand`, `ChangeConstraintsCommand`

@@ -2082,6 +2082,18 @@ public class EditorHost extends BorderPane {
         return editActive(et -> et.addElement(et.currentSelection, name));
     }
 
+    /**
+     * Asks for a new top-level simple or complex type of the active XSD and adds it, then opens
+     * its type editor tab.
+     *
+     * @param kind the preselected kind
+     * @return whether a type was added
+     */
+    public boolean newTypeInActive(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind kind) {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                && et.document.getFileType() == EditorFileType.XSD && et.promptGlobalType(kind);
+    }
+
     /** Adds a container element (inline complexType + sequence) under the selected node. */
     public boolean addContainerElementToActive(String name) {
         return editActive(et -> et.addContainerElement(et.currentSelection, name));
@@ -7015,6 +7027,40 @@ public class EditorHost extends BorderPane {
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand(parent, name.trim()));
         }
 
+        /**
+         * Declares a new top-level type and opens it in its type editor tab.
+         *
+         * @return whether the type was added
+         */
+        boolean addGlobalType(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind kind,
+                              String name) {
+            ensureModelParsed();
+            if (editorContext == null || editorContext.getSchema() == null || kind == null
+                    || !permits("New Type", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules
+                    .addGlobalType(editorContext.getSchema(), name))) {
+                return false;
+            }
+            String typeName = name.trim();
+            boolean ok = executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand(
+                    editorContext.getSchema(), kind, typeName));
+            if (ok && openTypeEditorCallback != null) {
+                javafx.application.Platform.runLater(() -> openTypeEditorCallback.accept(typeName));
+            }
+            return ok;
+        }
+
+        /** Asks for kind and name of a new top-level type, then adds it ({@link #addGlobalType}). */
+        boolean promptGlobalType(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind kind) {
+            ensureModelParsed();
+            if (editorContext == null || editorContext.getSchema() == null) {
+                return false;
+            }
+            return org.fxt.freexmltoolkit.controls.shell.schema.NewTypeDialog
+                    .ask(ruleWindow(), editorContext.getSchema(), kind)
+                    .map(answer -> addGlobalType(answer.kind(), answer.name()))
+                    .orElse(false);
+        }
+
         boolean addComment(XsdNode parent, String content) {
             if (parent == null || content == null || content.isBlank()) {
                 return false;
@@ -7580,6 +7626,13 @@ public class EditorHost extends BorderPane {
                 @Override
                 public void addElement(XsdNode parent, String name) {
                     if (EditorTab.this.addElement(parent, name)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void newType(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind kind) {
+                    if (EditorTab.this.promptGlobalType(kind)) {
                         selectionCallback.run();
                     }
                 }

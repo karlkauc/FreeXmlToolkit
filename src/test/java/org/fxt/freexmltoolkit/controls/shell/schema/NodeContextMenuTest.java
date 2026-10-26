@@ -116,6 +116,31 @@ class NodeContextMenuTest {
     }
 
     @Test
+    void offersNewTypesOnTheSchemaNodeOnly() {
+        var schema = new org.fxt.freexmltoolkit.controls.v2.model.XsdSchema();
+        XsdNode element = new XsdElement("Target");
+        schema.addChild(element);
+        RecordingActions actions = new RecordingActions();
+        XsdNode[] current = {schema};
+        ContextMenu menu = WaitForAsyncUtils.waitForAsyncFx(2000, () -> NodeContextMenu.build(actions, () -> current[0]));
+
+        fireShowing(menu);
+        assertTrue(find(menu, "New Complex Type…").isVisible());
+        assertTrue(find(menu, "New Simple Type…").isVisible());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            find(menu, "New Simple Type…").fire();
+            return null;
+        });
+        assertEquals(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind.SIMPLE,
+                actions.newTypeKind);
+
+        current[0] = element;
+        fireShowing(menu);
+        assertFalse(find(menu, "New Complex Type…").isVisible(), "types are declared on the schema node");
+        assertFalse(find(menu, "New Simple Type…").isVisible());
+    }
+
+    @Test
     void disablesEditsThatWouldMakeTheSchemaInvalid() {
         XsdElement typed = new XsdElement("amount");
         typed.setType("xs:int");
@@ -163,6 +188,12 @@ class NodeContextMenuTest {
         XsdNode cutted;
         XsdNode pasted;
         boolean canPaste;
+        org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind newTypeKind;
+
+        @Override
+        public void newType(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind kind) {
+            newTypeKind = kind;
+        }
 
         @Override
         public void addElement(XsdNode parent, String name) {

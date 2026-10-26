@@ -284,6 +284,86 @@ public final class XsdEditRules {
         return null;
     }
 
+    // ----- global types --------------------------------------------------------------------
+
+    /**
+     * Declaring a new top-level simple or complex type named {@code name}. Simple and complex
+     * types share one symbol space, so the name must be unused by both (own and included types).
+     */
+    public static EditCheck addGlobalType(XsdSchema schema, String name) {
+        if (schema == null) {
+            return EditCheck.blocked("No schema is open.");
+        }
+        String n = name == null ? "" : name.trim();
+        if (n.isEmpty()) {
+            return EditCheck.blocked("Enter a name for the type.");
+        }
+        if (!isNcName(n)) {
+            return EditCheck.blocked("'" + n + "' is not a valid XML name: start with a letter or '_', "
+                    + "then use letters, digits, '.', '-' or '_' (no spaces or ':').");
+        }
+        for (XsdNode child : schema.getChildren()) {
+            if ((child instanceof XsdComplexType || child instanceof XsdSimpleType) && n.equals(child.getName())) {
+                return EditCheck.blocked("The schema already has " + (child instanceof XsdComplexType
+                        ? "a complex" : "a simple") + " type named '" + n + "'.");
+            }
+        }
+        return EditCheck.allowed();
+    }
+
+    /** @return {@code base}, or {@code base} with the first free number appended ("NewType2", …) */
+    public static String uniqueTypeName(XsdSchema schema, String base) {
+        if (addGlobalType(schema, base).isAllowed()) {
+            return base;
+        }
+        for (int i = 2; ; i++) {
+            if (addGlobalType(schema, base + i).isAllowed()) {
+                return base + i;
+            }
+        }
+    }
+
+    /** @return the prefix bound to the XSD namespace in {@code context}'s schema, {@code xs} if none */
+    public static String xsdPrefix(XsdNode context) {
+        XsdSchema schema = schemaOf(context);
+        if (schema != null) {
+            String fallback = null;
+            for (var e : schema.getNamespaces().entrySet()) {
+                if (XsdBuiltinTypeCatalog.XSD_NAMESPACE.equals(e.getValue()) && hasText(e.getKey())) {
+                    if ("xs".equals(e.getKey())) {
+                        return "xs";
+                    }
+                    fallback = fallback == null ? e.getKey() : fallback;
+                }
+            }
+            if (fallback != null) {
+                return fallback;
+            }
+        }
+        return "xs";
+    }
+
+    /** @return whether {@code s} is an XML NCName (a name without a colon) */
+    public static boolean isNcName(String s) {
+        if (s == null || s.isEmpty()) {
+            return false;
+        }
+        int first = s.codePointAt(0);
+        if (!(Character.isLetter(first) || first == '_')) {
+            return false;
+        }
+        for (int i = Character.charCount(first); i < s.length(); ) {
+            int c = s.codePointAt(i);
+            if (!(Character.isLetterOrDigit(c) || c == '.' || c == '-' || c == '_'
+                    || Character.getType(c) == Character.NON_SPACING_MARK
+                    || Character.getType(c) == Character.COMBINING_SPACING_MARK)) {
+                return false;
+            }
+            i += Character.charCount(c);
+        }
+        return true;
+    }
+
     // ----- helpers -------------------------------------------------------------------------
 
     /** @return the inline (anonymous) {@code xs:complexType} / {@code xs:simpleType} child, or null. */

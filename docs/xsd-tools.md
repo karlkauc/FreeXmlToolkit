@@ -171,6 +171,7 @@ top-level declarations so you can browse, find, and open every type in the schem
 | **Reveal in Tree**    | Click a declaration to reveal it in the schema's Tree view           |
 | **Open Type Editor**  | Double-click a type to open it in its own [Type Editor](#3-type-editor) tab |
 | **Find Usage**        | Right-click a type to find the places where it is used              |
+| **New type**          | The **+** button in the COMPLEX TYPES / SIMPLE TYPES header (or right-click → **New Complex Type…** / **New Simple Type…**) declares a new top-level type - see [Creating a New Type](#creating-a-new-type) |
 | **Schema tools**      | Labelled rows in the **TOOLS** section below the type lists (collapsed by default): Generate Sample XML…, Sample XML with Options…, Flatten Schema…, Schema Analysis, and Generate Documentation… |
 | **Generate XSD from XML** | Not in the Schema panel: **Generate XSD from XML** and **Generate XSD from XML Files…** are in the editor toolbar's **Schema ▾** split menu |
 
@@ -230,6 +231,30 @@ The **Base type**, **Item type** and **Add Member Type…** fields are the same
 [type picker](unified-shell.md#type-picker) as in the inspector, limited to what a simple type may
 derive from: the schema's other simple types and the built-in datatypes (complex types,
 `xs:anyType` and the type itself are left out).
+
+### Creating a New Type {#creating-a-new-type}
+
+New top-level types can be declared from three places:
+
+- **Graphic view:** right-click the schema node or an empty area of the diagram →
+  **Add Complex Type…** / **Add Simple Type…**
+- **Tree view:** right-click the schema (root) node → **New Complex Type…** / **New Simple Type…**
+- **Schema panel:** the **+** button in the **COMPLEX TYPES** or **SIMPLE TYPES** section header
+
+A small dialog asks for the kind and the name. A free name is suggested (`NewComplexType`,
+`NewComplexType2`, …); the name is checked while you type - it must be a valid XML name
+(no spaces or `:`) and must not be used by another simple or complex type of the schema, so
+**OK** stays disabled until it is.
+
+| Kind             | Starts as                                   |
+|------------------|---------------------------------------------|
+| **Complex type** | An empty `xs:sequence` - add child elements and attributes right away |
+| **Simple type**  | A restriction of `xs:string` - pick another base type and add facets   |
+
+The new type is added next to the schema's other types of the same kind, appears in the
+Type Library and opens in its own Type Editor tab. The diagram itself shows global elements
+only; assign the new type to an element with the [type picker](unified-shell.md#type-picker).
+One **Undo** removes the type again.
 
 ### How to Use
 
