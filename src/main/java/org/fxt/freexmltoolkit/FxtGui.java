@@ -328,6 +328,9 @@ public class FxtGui extends Application {
                 // unsaved documents are asked about first, Cancel keeps the application open.
                 primaryStage.setOnCloseRequest(t -> {
                     if (shellController.getShellView().confirmExit()) {
+                        // Hide while the toolkit is fully alive: hiding them only in stop(), after
+                        // Platform.exit(), made Glass/GTK report NullPointerExceptions without a trace.
+                        hideAllWindows();
                         Platform.exit();
                     } else {
                         t.consume();
@@ -384,6 +387,17 @@ public class FxtGui extends Application {
                 Platform.exit();
             }
         });
+    }
+
+    /** Hides every showing window; never throws. */
+    private static void hideAllWindows() {
+        try {
+            for (javafx.stage.Window window : new java.util.ArrayList<>(javafx.stage.Window.getWindows())) {
+                window.hide();
+            }
+        } catch (Throwable t) {
+            logger.debug("Hiding windows before shutdown failed: {}", t.toString());
+        }
     }
 
     /**
@@ -505,13 +519,8 @@ public class FxtGui extends Application {
         }
         // The shutdown below waits for the executor and telemetry (up to a few seconds) on the FX
         // thread: hide the windows first, so the user does not look at a frozen application meanwhile.
-        try {
-            for (javafx.stage.Window window : new java.util.ArrayList<>(javafx.stage.Window.getWindows())) {
-                window.hide();
-            }
-        } catch (Throwable t) {
-            logger.debug("Hiding windows before shutdown failed: {}", t.toString());
-        }
+        // (Normally already done by the close request; this covers other ways out.)
+        hideAllWindows();
         // From here on the session ends on purpose: the executor and service shutdowns below
         // can take seconds, and a process killed meanwhile (updater, OS logoff) is not a crash.
         try {
