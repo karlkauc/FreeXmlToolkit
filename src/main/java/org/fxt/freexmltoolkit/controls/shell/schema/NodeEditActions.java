@@ -1,6 +1,8 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.NewAttributeSpec;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.NewElementSpec;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 
 /**
@@ -13,6 +15,11 @@ public interface NodeEditActions {
 
     void addElement(XsdNode parent, String name);
 
+    /** Adds an element with every property of {@code spec} (type, cardinality, …) in one step. */
+    default void addElement(XsdNode parent, NewElementSpec spec) {
+        addElement(parent, spec.name());
+    }
+
     /** Adds an {@code <!-- … -->} comment node as a child of {@code parent}. */
     void addComment(XsdNode parent, String content);
 
@@ -20,6 +27,11 @@ public interface NodeEditActions {
     void addContainerElement(XsdNode parent, String name);
 
     void addAttribute(XsdNode parent, String name);
+
+    /** Adds an attribute with every property of {@code spec} (type, use, …) in one step. */
+    default void addAttribute(XsdNode parent, NewAttributeSpec spec) {
+        addAttribute(parent, spec.name());
+    }
 
     /** Asks for and declares a new top-level type of the schema ({@code kind} preselected). */
     default void newType(AddGlobalTypeCommand.Kind kind) {

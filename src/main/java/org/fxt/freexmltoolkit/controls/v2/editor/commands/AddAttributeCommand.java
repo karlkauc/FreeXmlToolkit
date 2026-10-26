@@ -32,6 +32,8 @@ public class AddAttributeCommand implements XsdCommand {
 
     private final XsdNode parentNode;
     private final String attributeName;
+    private final NewAttributeSpec spec;
+    private boolean checkSpec;  // created from user input: refuse properties that are not valid XSD
     private XsdAttribute addedAttribute;
     private XsdNode actualParent;
     private XsdComplexType createdComplexType;  // If we had to create a complexType
@@ -43,11 +45,31 @@ public class AddAttributeCommand implements XsdCommand {
      * @param attributeName  the name of the new attribute
      */
     public AddAttributeCommand(XsdNode parentNode, String attributeName) {
+        this(parentNode, NewAttributeSpec.named(attributeName));
+    }
+
+    /**
+     * Creates a new add attribute command that sets every property of {@code spec} on the new
+     * attribute before it is added (one undo step). Refuses a spec that is not valid XSD
+     * ({@link XsdEditRules#newAttributeProperties}).
+     *
+     * @param parentNode the parent node to add the attribute to
+     * @param spec       name, type, use and the other properties of the new attribute
+     */
+    public static AddAttributeCommand of(XsdNode parentNode, NewAttributeSpec spec) {
+        AddAttributeCommand command = new AddAttributeCommand(parentNode, spec);
+        command.checkSpec = true;
+        return command;
+    }
+
+    private AddAttributeCommand(XsdNode parentNode, NewAttributeSpec spec) {
         CommandValidation.requireNonNull(parentNode, "Parent node");
-        CommandValidation.requireNonEmpty(attributeName, "Attribute name");
+        CommandValidation.requireNonNull(spec, "Attribute spec");
+        CommandValidation.requireNonEmpty(spec.name(), "Attribute name");
 
         this.parentNode = parentNode;
-        this.attributeName = attributeName.trim();
+        this.attributeName = spec.name().trim();
+        this.spec = spec;
     }
 
     @Override
@@ -55,6 +77,11 @@ public class AddAttributeCommand implements XsdCommand {
         EditCheck conflict = XsdEditRules.contentConflict(parentNode);
         if (conflict.isBlocked()) {
             logger.warn("Refused to add attribute '{}': {}", attributeName, conflict.reason());
+            return false;
+        }
+        EditCheck valid = checkSpec ? XsdEditRules.newAttributeProperties(spec) : EditCheck.allowed();
+        if (valid.isBlocked()) {
+            logger.warn("Refused to add attribute '{}': {}", attributeName, valid.reason());
             return false;
         }
         // Find the correct parent to add the attribute to
@@ -65,8 +92,9 @@ public class AddAttributeCommand implements XsdCommand {
             return false;
         }
 
-        // Create the attribute without a type
+        // Create the attribute with the entered properties (no type unless one was given)
         addedAttribute = new XsdAttribute(attributeName);
+        applySpec(addedAttribute);
 
         // Add to parent
         actualParent.addChild(addedAttribute);
@@ -74,6 +102,32 @@ public class AddAttributeCommand implements XsdCommand {
         logger.info("Added attribute '{}' to '{}'",
                 attributeName, actualParent.getClass().getSimpleName());
         return true;
+    }
+
+    /** Sets the properties of the spec besides the name (defaults are left untouched). */
+    private void applySpec(XsdAttribute attribute) {
+        if (hasText(spec.type())) {
+            attribute.setType(spec.type().trim());
+        }
+        if (hasText(spec.use()) && !"optional".equals(spec.use().trim())) {
+            attribute.setUse(spec.use().trim());
+        }
+        if (hasText(spec.documentation())) {
+            attribute.setDocumentation(spec.documentation().trim());
+        }
+        if (spec.defaultValue() != null && !spec.defaultValue().isEmpty()) {
+            attribute.setDefaultValue(spec.defaultValue());
+        }
+        if (spec.fixed() != null && !spec.fixed().isEmpty()) {
+            attribute.setFixed(spec.fixed());
+        }
+        if (hasText(spec.form())) {
+            attribute.setForm(spec.form().trim());
+        }
+    }
+
+    private static boolean hasText(String s) {
+        return s != null && !s.isBlank();
     }
 
     /**

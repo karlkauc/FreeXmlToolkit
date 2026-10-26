@@ -23,6 +23,8 @@ public class AddElementCommand implements XsdCommand {
     private final XsdNode parentNode;
     private final String elementName;
     private final String elementType;
+    private final NewElementSpec spec;
+    private boolean checkSpec;  // created from user input: refuse properties that are not valid XSD
     private XsdElement addedElement;
     private XsdNode actualParent;  // The actual parent where element was added (might be compositor)
 
@@ -44,6 +46,25 @@ public class AddElementCommand implements XsdCommand {
      * @param elementType the XSD type of the new element (e.g., "xs:string", "xs:int"), or null for no type
      */
     public AddElementCommand(XsdNode parentNode, String elementName, String elementType) {
+        this(parentNode, NewElementSpec.of(elementName, elementType));
+    }
+
+    /**
+     * Creates a new add element command that sets every property of {@code spec} on the new
+     * element before it is added (one undo step). Refuses a spec that is not valid XSD
+     * ({@link XsdEditRules#newElementProperties}).
+     *
+     * @param parentNode the parent node to add the element to
+     * @param spec       name, type, cardinality and the other properties of the new element
+     */
+    public static AddElementCommand of(XsdNode parentNode, NewElementSpec spec) {
+        AddElementCommand command = new AddElementCommand(parentNode, spec);
+        command.checkSpec = true;
+        return command;
+    }
+
+    private AddElementCommand(XsdNode parentNode, NewElementSpec spec) {
+        String elementName = spec == null ? null : spec.name();
         if (parentNode == null) {
             throw new IllegalArgumentException("Parent node cannot be null");
         }
@@ -53,7 +74,8 @@ public class AddElementCommand implements XsdCommand {
 
         this.parentNode = parentNode;
         this.elementName = elementName.trim();
-        this.elementType = elementType;
+        this.elementType = blankToNull(spec.type());
+        this.spec = spec;
     }
 
     @Override
@@ -63,12 +85,18 @@ public class AddElementCommand implements XsdCommand {
             logger.warn("Refused to add element '{}': {}", elementName, conflict.reason());
             return false;
         }
+        EditCheck valid = checkSpec ? XsdEditRules.newElementProperties(parentNode, spec) : EditCheck.allowed();
+        if (valid.isBlocked()) {
+            logger.warn("Refused to add element '{}': {}", elementName, valid.reason());
+            return false;
+        }
         // Create actual XsdElement and add to parent model
         // This will fire PropertyChangeEvent which triggers automatic view refresh
         addedElement = new XsdElement(elementName);
         if (elementType != null) {
             addedElement.setType(elementType);
         }
+        applySpec(addedElement);
 
         // Find the correct parent to add to:
         // If parent is an element with complexType containing a compositor, add to compositor
@@ -79,6 +107,41 @@ public class AddElementCommand implements XsdCommand {
         logger.info("Added element '{}' with type '{}' to parent '{}'",
                 elementName, elementType, actualParent.getClass().getSimpleName());
         return true;
+    }
+
+    /** Sets the properties of the spec besides name and type (defaults are left untouched). */
+    private void applySpec(XsdElement element) {
+        if (spec.minOccurs() != 1) {
+            element.setMinOccurs(spec.minOccurs());
+        }
+        if (spec.maxOccurs() != 1) {
+            element.setMaxOccurs(spec.maxOccurs());
+        }
+        if (blankToNull(spec.documentation()) != null) {
+            element.setDocumentation(spec.documentation().trim());
+        }
+        if (spec.nillable()) {
+            element.setNillable(true);
+        }
+        if (spec.abstractElement()) {
+            element.setAbstract(true);
+        }
+        if (spec.defaultValue() != null && !spec.defaultValue().isEmpty()) {
+            element.setDefaultValue(spec.defaultValue());
+        }
+        if (spec.fixed() != null && !spec.fixed().isEmpty()) {
+            element.setFixed(spec.fixed());
+        }
+        if (blankToNull(spec.form()) != null) {
+            element.setForm(spec.form().trim());
+        }
+        if (blankToNull(spec.substitutionGroup()) != null) {
+            element.setSubstitutionGroup(spec.substitutionGroup().trim());
+        }
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
     }
 
     /**

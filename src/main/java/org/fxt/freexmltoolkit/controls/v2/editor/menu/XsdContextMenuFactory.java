@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.schema.TypeChoices;
 import org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs;
+import org.fxt.freexmltoolkit.controls.shell.schema.NewNodeDialog;
 import org.fxt.freexmltoolkit.controls.shell.schema.NewTypeDialog;
 import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerDialog;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
@@ -755,70 +756,45 @@ public class XsdContextMenuFactory {
     }
 
     /**
-     * Handles add element operation for a node.
-     * Creates a new element without a type (following XSD standard).
-     * Element can then have either a type or child compositors (Sequence/Choice/All).
+     * Handles add element operation for a node: asks for name, type, cardinality and the other
+     * properties ({@link NewNodeDialog}) and adds the element in one undo step.
      *
      * @param node the parent node
      */
     private void handleAddElement(VisualNode node) {
-        if (node.getModelObject() instanceof XsdNode target
-                && !permits("Add Element", XsdEditRules.addElement(target))) {
+        if (!(node.getModelObject() instanceof XsdNode parentNode)) {
+            logger.warn("Cannot add element - model object is not an XsdNode: {}",
+                    node.getModelObject() != null ? node.getModelObject().getClass() : "null");
             return;
         }
-        TextInputDialog dialog = new TextInputDialog("newElement");
-        dialog.setTitle("Add Element");
-        dialog.setHeaderText("Add element to '" + node.getLabel() + "'");
-        dialog.setContentText("Element name:");
-
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(elementName -> {
-            if (!elementName.trim().isEmpty()) {
-                // Extract XsdNode from VisualNode for the command
-                Object modelObject = node.getModelObject();
-                if (modelObject instanceof XsdNode parentNode) {
-                    // Create element without type (type will be xs:string by default in AddElementCommand)
-                    // But we create with null type instead
-                    AddElementCommand command = new AddElementCommand(parentNode, elementName.trim(), null);
-                    editorContext.getCommandManager().executeCommand(command);
-                    logger.info("Added element '{}' to '{}'", elementName, node.getLabel());
-                } else {
-                    logger.warn("Cannot add element - model object is not an XsdNode: {}",
-                            modelObject != null ? modelObject.getClass() : "null");
-                }
+        if (!permits("Add Element", XsdEditRules.addElement(parentNode))) {
+            return;
+        }
+        NewNodeDialog.askElement(null, parentNode, editorContext::getSchema, "newElement").ifPresent(spec -> {
+            if (editorContext.getCommandManager().executeCommand(AddElementCommand.of(parentNode, spec))) {
+                logger.info("Added element '{}' to '{}'", spec.name(), node.getLabel());
             }
         });
     }
 
     /**
-     * Handles add attribute operation for a node.
-     * Creates a new attribute without a type (type can be set in Properties Panel later).
+     * Handles add attribute operation for a node: asks for name, type, use and the other
+     * properties ({@link NewNodeDialog}) and adds the attribute in one undo step.
      *
      * @param node the parent node
      */
     private void handleAddAttribute(VisualNode node) {
-        if (node.getModelObject() instanceof XsdNode target
-                && !permits("Add Attribute", XsdEditRules.addAttribute(target))) {
+        if (!(node.getModelObject() instanceof XsdNode parentNode)) {
+            logger.warn("Cannot add attribute - model object is not an XsdNode: {}",
+                    node.getModelObject() != null ? node.getModelObject().getClass() : "null");
             return;
         }
-        TextInputDialog dialog = new TextInputDialog("newAttribute");
-        dialog.setTitle("Add Attribute");
-        dialog.setHeaderText("Add attribute to '" + node.getLabel() + "'");
-        dialog.setContentText("Attribute name:");
-
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(attributeName -> {
-            if (!attributeName.trim().isEmpty()) {
-                // Extract XsdNode from VisualNode for the command
-                Object modelObject = node.getModelObject();
-                if (modelObject instanceof XsdNode parentNode) {
-                    AddAttributeCommand command = new AddAttributeCommand(parentNode, attributeName.trim());
-                    editorContext.getCommandManager().executeCommand(command);
-                    logger.info("Added attribute '{}' to '{}'", attributeName, node.getLabel());
-                } else {
-                    logger.warn("Cannot add attribute - model object is not an XsdNode: {}",
-                            modelObject != null ? modelObject.getClass() : "null");
-                }
+        if (!permits("Add Attribute", XsdEditRules.addAttribute(parentNode))) {
+            return;
+        }
+        NewNodeDialog.askAttribute(null, parentNode, editorContext::getSchema, "newAttribute").ifPresent(spec -> {
+            if (editorContext.getCommandManager().executeCommand(AddAttributeCommand.of(parentNode, spec))) {
+                logger.info("Added attribute '{}' to '{}'", spec.name(), node.getLabel());
             }
         });
     }
@@ -940,17 +916,9 @@ public class XsdContextMenuFactory {
      * @param parentNode the parent node (schema)
      */
     private void handleAddRootElement(XsdNode parentNode) {
-        TextInputDialog dialog = new TextInputDialog("newElement");
-        dialog.setTitle("Add Root Element");
-        dialog.setHeaderText("Add element to schema");
-        dialog.setContentText("Element name:");
-
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(elementName -> {
-            if (!elementName.trim().isEmpty()) {
-                AddElementCommand command = new AddElementCommand(parentNode, elementName.trim(), null);
-                editorContext.getCommandManager().executeCommand(command);
-                logger.info("Added root element '{}' to schema", elementName);
+        NewNodeDialog.askElement(null, parentNode, editorContext::getSchema, "newElement").ifPresent(spec -> {
+            if (editorContext.getCommandManager().executeCommand(AddElementCommand.of(parentNode, spec))) {
+                logger.info("Added root element '{}' to schema", spec.name());
             }
         });
     }

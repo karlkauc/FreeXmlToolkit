@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerField?>
+
+<!--
+  Content of the "Add Element" / "Add Attribute" dialog: name, type, cardinality (elements) or use
+  (attributes), documentation, and the less common properties under "More". Loaded by
+  NewNodeDialog (FxmlViews.loadContent), which is the controller, hides the rows that do not apply
+  and checks the input live.
+-->
+<VBox spacing="10" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <children>
+        <GridPane hgap="10" vgap="10">
+            <children>
+                <Label text="Name" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="nameField" id="new-node-name" prefColumnCount="28"
+                           GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                <Label text="Type" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <TypePickerField fx:id="typeField" id="new-node-type" prefWidth="380"
+                                 GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                <Label fx:id="occursLabel" text="Occurs" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <HBox fx:id="occursRow" spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="2" GridPane.columnIndex="1">
+                    <children>
+                        <Label text="min"/>
+                        <Spinner fx:id="minSpinner" id="new-node-min" editable="true" prefWidth="80">
+                            <valueFactory>
+                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="999999" initialValue="1"/>
+                            </valueFactory>
+                        </Spinner>
+                        <Label text="max"/>
+                        <Spinner fx:id="maxSpinner" id="new-node-max" editable="true" prefWidth="80">
+                            <valueFactory>
+                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="999999" initialValue="1"/>
+                            </valueFactory>
+                        </Spinner>
+                        <CheckBox fx:id="unboundedCheck" id="new-node-unbounded" text="unbounded"/>
+                    </children>
+                </HBox>
+                <Label fx:id="useLabel" text="Use" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="useCombo" id="new-node-use" prefWidth="160" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                <Label text="Documentation" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                <TextArea fx:id="documentationArea" id="new-node-documentation" prefRowCount="3" wrapText="true"
+                          GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+            </children>
+        </GridPane>
+        <TitledPane fx:id="moreSection" id="new-node-more" text="More" expanded="false" animated="false">
+            <content>
+                <GridPane hgap="10" vgap="10">
+                    <children>
+                        <Label text="Default" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <TextField fx:id="defaultField" id="new-node-default" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                        <Label text="Fixed" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <TextField fx:id="fixedField" id="new-node-fixed" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                        <Label text="Form" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <ComboBox fx:id="formCombo" id="new-node-form" prefWidth="200" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                        <HBox fx:id="flagsRow" spacing="16" GridPane.rowIndex="3" GridPane.columnIndex="1">
+                            <children>
+                                <CheckBox fx:id="nillableCheck" id="new-node-nillable" text="nillable"/>
+                                <CheckBox fx:id="abstractCheck" id="new-node-abstract" text="abstract"/>
+                            </children>
+                        </HBox>
+                        <Label fx:id="substitutionLabel" text="Substitution group" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                        <TextField fx:id="substitutionField" id="new-node-substitution" promptText="head element name"
+                                   GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                    </children>
+                </GridPane>
+            </content>
+        </TitledPane>
+        <Label fx:id="errorLabel" id="new-node-error" wrapText="true" maxWidth="480" visible="false" managed="false"
+               style="-fx-text-fill: #e03131;"/>
+    </children>
+</VBox>

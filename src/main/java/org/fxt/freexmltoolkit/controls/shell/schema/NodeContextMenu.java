@@ -36,8 +36,8 @@ public final class NodeContextMenu {
     }
 
     /**
-     * @param schema supplies the edited schema for the type picker of "Change Type…" (its named
-     *               types and prefixes); may return {@code null} for built-in types only
+     * @param schema supplies the edited schema for the type pickers of "Add Element…", "Add
+     *               Attribute…" and "Change Type…" (its named types and prefixes); may return {@code null} for built-in types only
      * @return a context menu whose items invoke {@code actions} on {@code currentNode.get()}
      */
     public static ContextMenu build(NodeEditActions actions, Supplier<XsdNode> currentNode,
@@ -45,11 +45,13 @@ public final class NodeContextMenu {
         ContextMenu menu = new ContextMenu();
         MenuItem paste = item("Paste", "bi-clipboard-plus", ActionColor.CREATE, currentNode, actions::paste);
         MenuItem addElement = item("Add Element…", "bi-plus-circle", ActionColor.CREATE, currentNode,
-                node -> promptName(actions::addElement, node, "Add Element", "NewElement"));
+                node -> NewNodeDialog.askElement(null, node, schema, "NewElement")
+                        .ifPresent(spec -> actions.addElement(node, spec)));
         MenuItem addContainer = item("Add Container Element…", "bi-node-plus", ActionColor.CREATE, currentNode,
                 node -> promptName(actions::addContainerElement, node, "Add Container Element", "NewContainer"));
         MenuItem addAttribute = item("Add Attribute…", "bi-at", ActionColor.CREATE, currentNode,
-                node -> promptName(actions::addAttribute, node, "Add Attribute", "newAttribute"));
+                node -> NewNodeDialog.askAttribute(null, node, schema, "newAttribute")
+                        .ifPresent(spec -> actions.addAttribute(node, spec)));
         MenuItem addSequence = item("Add Sequence", "bi-list-ol", ActionColor.CREATE, currentNode, actions::addSequence);
         MenuItem addChoice = item("Add Choice", "bi-signpost-split", ActionColor.CREATE, currentNode, actions::addChoice);
         MenuItem addAll = item("Add All", "bi-list-check", ActionColor.CREATE, currentNode, actions::addAll);

@@ -66,12 +66,33 @@ The Graphic View lets you explore and edit your schemas visually.
 
 ### Tips
 
-- **Right-click** for a context menu with common actions (**Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete). **Change Type…** opens a small dialog with the [type picker](unified-shell.md#type-picker), pre-filled with the current type - the same dialog as in the Tree view
+- **Right-click** for a context menu with common actions (**Add Element…** / **Add Attribute…** with all properties - see [Adding an Element or Attribute](#adding-an-element-or-attribute), **Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete). **Change Type…** opens a small dialog with the [type picker](unified-shell.md#type-picker), pre-filled with the current type - the same dialog as in the Tree view
 - Edit the name and every other property in the Properties pane on the right
 - Only edits that keep the schema valid are possible; see [Only Valid Changes](#only-valid-changes)
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
 - **Ctrl+S** to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)
 - The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (Ctrl+Shift+S, save under a new name) and **Save All** (saves every open tab)
+
+### Adding an Element or Attribute {#adding-an-element-or-attribute}
+
+**Add Element…**, **Add Root Element** and **Add Attribute…** (right-click in the Graphic or Tree
+view) open one dialog in which you set the new node's properties right away. You do not have to
+fill them in afterwards in the Properties pane.
+
+- **Name**: pre-filled and selected, so you can type over it.
+- **Type**: the [type picker](unified-shell.md#type-picker) with built-in types and the
+  schema's own types. Leave it empty for no type. Attributes are offered simple types only.
+- **Occurs** (elements): **min**, **max** and **unbounded**. A top-level element has no
+  cardinality, so the row is hidden for **Add Root Element**.
+- **Use** (attributes): optional, required or prohibited.
+- **Documentation**: written as `xs:annotation/xs:documentation`.
+- **More** (collapsed): **Default** or **Fixed** value, **Form** (qualified / unqualified / schema
+  default), **nillable**, and for top-level elements **abstract** and **Substitution group**.
+
+The input is checked while you type. A red note names the problem and **OK** does nothing until
+it is fixed. For example, the name must be a valid XML name, min may not be greater than max, a
+node cannot have both a default and a fixed value, and an attribute with a default must be
+optional. The new node is added with all its properties as **one undo step**.
 
 ### Only Valid Changes {#only-valid-changes}
 

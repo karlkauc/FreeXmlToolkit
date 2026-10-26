@@ -192,6 +192,109 @@ public final class XsdEditRules {
         return EditCheck.blocked("Attributes cannot be added to " + article(parent) + ".");
     }
 
+    /**
+     * Adding an element with all properties of {@code spec} under {@code parent}: the parent
+     * rule ({@link #addElement}) plus {@link #newElementProperties}.
+     */
+    public static EditCheck newElement(XsdNode parent, NewElementSpec spec) {
+        EditCheck properties = newElementProperties(parent, spec);
+        return properties.isAllowed() ? addElement(parent) : properties;
+    }
+
+    /**
+     * The properties of a new element under {@code parent}: a valid name, cardinality and value
+     * constraint, and top-level-only properties only on a top-level element.
+     */
+    public static EditCheck newElementProperties(XsdNode parent, NewElementSpec spec) {
+        if (spec == null) {
+            return EditCheck.blocked("Nothing to add.");
+        }
+        EditCheck name = newName(spec.name(), "element");
+        if (!name.isAllowed()) {
+            return name;
+        }
+        boolean global = parent instanceof XsdSchema;
+        if (global) {
+            if (spec.minOccurs() != 1 || spec.maxOccurs() != 1) {
+                return EditCheck.blocked("A top-level element has no minOccurs or maxOccurs: set the "
+                        + "cardinality where the element is referenced.");
+            }
+            for (XsdNode child : ((XsdSchema) parent).getChildren()) {
+                if (child instanceof XsdElement && spec.name().trim().equals(child.getName())) {
+                    return EditCheck.blocked("The schema already has a top-level element named '"
+                            + spec.name().trim() + "'.");
+                }
+            }
+        } else {
+            if (spec.minOccurs() < 0) {
+                return EditCheck.blocked("minOccurs cannot be negative.");
+            }
+            if (spec.maxOccurs() != ChangeCardinalityCommand.UNBOUNDED && spec.minOccurs() > spec.maxOccurs()) {
+                return EditCheck.blocked("minOccurs (" + spec.minOccurs() + ") is greater than maxOccurs ("
+                        + spec.maxOccurs() + ").");
+            }
+            if (spec.abstractElement()) {
+                return EditCheck.blocked("Only a top-level element can be abstract.");
+            }
+            if (hasText(spec.substitutionGroup())) {
+                return EditCheck.blocked("Only a top-level element can join a substitution group.");
+            }
+        }
+        if (hasValue(spec.defaultValue()) && hasValue(spec.fixed())) {
+            return EditCheck.blocked("An element can have a default or a fixed value, not both.");
+        }
+        return EditCheck.allowed();
+    }
+
+    /**
+     * Adding an attribute with all properties of {@code spec} under {@code parent}: the parent
+     * rule ({@link #addAttribute}) plus {@link #newAttributeProperties}.
+     */
+    public static EditCheck newAttribute(XsdNode parent, NewAttributeSpec spec) {
+        EditCheck properties = newAttributeProperties(spec);
+        return properties.isAllowed() ? addAttribute(parent) : properties;
+    }
+
+    /** The properties of a new attribute: a valid name and a use that fits the value constraint. */
+    public static EditCheck newAttributeProperties(NewAttributeSpec spec) {
+        if (spec == null) {
+            return EditCheck.blocked("Nothing to add.");
+        }
+        EditCheck name = newName(spec.name(), "attribute");
+        if (!name.isAllowed()) {
+            return name;
+        }
+        boolean hasDefault = hasValue(spec.defaultValue());
+        boolean hasFixed = hasValue(spec.fixed());
+        if (hasDefault && hasFixed) {
+            return EditCheck.blocked("An attribute can have a default or a fixed value, not both.");
+        }
+        String use = spec.use() == null ? "" : spec.use().trim();
+        if (hasDefault && !use.isEmpty() && !"optional".equals(use)) {
+            return EditCheck.blocked("An attribute with a default value must be optional.");
+        }
+        if (hasFixed && "prohibited".equals(use)) {
+            return EditCheck.blocked("A prohibited attribute cannot have a fixed value.");
+        }
+        return EditCheck.allowed();
+    }
+
+    private static EditCheck newName(String name, String what) {
+        String n = name == null ? "" : name.trim();
+        if (n.isEmpty()) {
+            return EditCheck.blocked("Enter a name for the " + what + ".");
+        }
+        if (!isNcName(n)) {
+            return EditCheck.blocked("'" + n + "' is not a valid XML name: start with a letter or '_', "
+                    + "then use letters, digits, '.', '-' or '_' (no spaces or ':').");
+        }
+        return EditCheck.allowed();
+    }
+
+    private static boolean hasValue(String s) {
+        return s != null && !s.isEmpty();
+    }
+
     /** Pasting {@code node} under {@code target}: the rule of the pasted kind. */
     public static EditCheck paste(XsdNode target, XsdNode node) {
         if (target == null || node == null) {

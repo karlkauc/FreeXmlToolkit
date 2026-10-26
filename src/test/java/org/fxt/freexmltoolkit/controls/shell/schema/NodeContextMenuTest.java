@@ -141,6 +141,32 @@ class NodeContextMenuTest {
     }
 
     @Test
+    void addElementAndAttributePassTheDialogsSpecOn() {
+        XsdNode sequence = new org.fxt.freexmltoolkit.controls.v2.model.XsdSequence();
+        var elementSpec = new org.fxt.freexmltoolkit.controls.v2.editor.commands.NewElementSpec(
+                "line", "xs:int", 0, -1, null, false, false, null, null, null, null);
+        var attributeSpec = new org.fxt.freexmltoolkit.controls.v2.editor.commands.NewAttributeSpec(
+                "code", "xs:token", "required", null, null, null, null);
+        NewNodeDialog.setElementResponder((parent, name) -> java.util.Optional.of(elementSpec));
+        NewNodeDialog.setAttributeResponder((parent, name) -> java.util.Optional.of(attributeSpec));
+        try {
+            RecordingActions actions = new RecordingActions();
+            ContextMenu menu = WaitForAsyncUtils.waitForAsyncFx(2000,
+                    () -> NodeContextMenu.build(actions, () -> sequence));
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                find(menu, "Add Element…").fire();
+                find(menu, "Add Attribute…").fire();
+                return null;
+            });
+            assertSame(elementSpec, actions.elementSpec, "the whole spec reaches the edit actions");
+            assertSame(attributeSpec, actions.attributeSpec);
+        } finally {
+            NewNodeDialog.setElementResponder(null);
+            NewNodeDialog.setAttributeResponder(null);
+        }
+    }
+
+    @Test
     void disablesEditsThatWouldMakeTheSchemaInvalid() {
         XsdElement typed = new XsdElement("amount");
         typed.setType("xs:int");
@@ -195,8 +221,21 @@ class NodeContextMenuTest {
             newTypeKind = kind;
         }
 
+        org.fxt.freexmltoolkit.controls.v2.editor.commands.NewElementSpec elementSpec;
+        org.fxt.freexmltoolkit.controls.v2.editor.commands.NewAttributeSpec attributeSpec;
+
         @Override
         public void addElement(XsdNode parent, String name) {
+        }
+
+        @Override
+        public void addElement(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewElementSpec spec) {
+            elementSpec = spec;
+        }
+
+        @Override
+        public void addAttribute(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewAttributeSpec spec) {
+            attributeSpec = spec;
         }
 
         @Override

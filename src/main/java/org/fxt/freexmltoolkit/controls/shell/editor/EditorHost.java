@@ -7095,6 +7095,22 @@ public class EditorHost extends BorderPane {
                     new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand(node, min, max));
         }
 
+        boolean addElement(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewElementSpec spec) {
+            if (parent == null || spec == null
+                    || !permits("Add Element", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.newElement(parent, spec))) {
+                return false;
+            }
+            return executeAndApply(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand.of(parent, spec));
+        }
+
+        boolean addAttribute(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewAttributeSpec spec) {
+            if (parent == null || spec == null
+                    || !permits("Add Attribute", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.newAttribute(parent, spec))) {
+                return false;
+            }
+            return executeAndApply(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand.of(parent, spec));
+        }
+
         boolean addAttribute(XsdNode parent, String name) {
             if (parent == null || name == null || name.isBlank()
                     || !permits("Add Attribute", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addAttribute(parent))) {
@@ -7654,6 +7670,20 @@ public class EditorHost extends BorderPane {
                 @Override
                 public void addAttribute(XsdNode parent, String name) {
                     if (EditorTab.this.addAttribute(parent, name)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void addElement(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewElementSpec spec) {
+                    if (EditorTab.this.addElement(parent, spec)) {
+                        selectionCallback.run();
+                    }
+                }
+
+                @Override
+                public void addAttribute(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewAttributeSpec spec) {
+                    if (EditorTab.this.addAttribute(parent, spec)) {
                         selectionCallback.run();
                     }
                 }

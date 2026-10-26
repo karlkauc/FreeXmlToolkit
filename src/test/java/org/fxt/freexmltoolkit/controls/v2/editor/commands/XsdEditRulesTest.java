@@ -184,4 +184,36 @@ class XsdEditRulesTest {
         assertTrue(XsdEditRules.addElement(b).isAllowed(), "the schema's complex type 'string' has a sequence");
         assertNull(XsdEditRules.findNamedType(a, "xsd:string"), "the XSD namespace never resolves to a schema type");
     }
+
+    @Test
+    void newElementAndAttributeNeedConsistentProperties() {
+        NewElementSpec ok = new NewElementSpec("line", "xs:int", 0, -1, null, false, false, null, null, null, null);
+        assertTrue(XsdEditRules.newElement(order(), ok).isAllowed());
+        assertTrue(XsdEditRules.newElement(order(),
+                new NewElementSpec("line", null, 3, 2, null, false, false, null, null, null, null)).isBlocked(), "min > max");
+        assertTrue(XsdEditRules.newElement(order(),
+                new NewElementSpec("1line", null, 1, 1, null, false, false, null, null, null, null)).isBlocked(), "NCName");
+        assertTrue(XsdEditRules.newElement(order(),
+                new NewElementSpec("line", null, 1, 1, null, false, false, "a", "b", null, null)).isBlocked(),
+                "default and fixed");
+        assertTrue(XsdEditRules.newElement(order(),
+                new NewElementSpec("line", null, 1, 1, null, false, true, null, null, null, null)).isBlocked(),
+                "a local element cannot be abstract");
+        assertTrue(XsdEditRules.newElement(schema,
+                new NewElementSpec("top", null, 0, 1, null, false, false, null, null, null, null)).isBlocked(),
+                "no cardinality on a top-level element");
+        assertTrue(XsdEditRules.newElement(schema, NewElementSpec.named("note")).isBlocked(), "name taken");
+        assertTrue(XsdEditRules.newElement(schema, NewElementSpec.named("top")).isAllowed());
+        assertTrue(XsdEditRules.newElement(child("amount"), NewElementSpec.named("x")).isBlocked(),
+                "the parent rule still applies");
+
+        assertTrue(XsdEditRules.newAttribute(order(), NewAttributeSpec.named("code")).isAllowed());
+        assertTrue(XsdEditRules.newAttribute(order(),
+                new NewAttributeSpec("code", null, "required", null, "x", null, null)).isBlocked(),
+                "a default needs use=optional");
+        assertTrue(XsdEditRules.newAttribute(order(),
+                new NewAttributeSpec("code", null, "prohibited", null, null, "x", null)).isBlocked());
+        assertTrue(XsdEditRules.newAttribute(order(),
+                new NewAttributeSpec("code", null, "required", null, null, "x", null)).isAllowed());
+    }
 }
