@@ -181,6 +181,19 @@ public class FxtGui extends Application {
         org.fxt.freexmltoolkit.controls.v2.view.XsdTypeIconPaths.registerAll();
     }
 
+    /** Set once the application has decided to quit (windows are being hidden). */
+    private static volatile boolean shuttingDown;
+
+    /**
+     * Whether an uncaught exception is shutdown noise: on Linux, Glass/GTK reports a
+     * NullPointerException without any stack trace while the windows are torn down at exit.
+     * Such an exception carries nothing to act on, and the application ends anyway.
+     */
+    static boolean isShutdownNoise(Throwable throwable, boolean duringShutdown) {
+        return duringShutdown && throwable instanceof NullPointerException
+                && throwable.getStackTrace().length == 0;
+    }
+
     /** Guards the uncaught-exception handler against re-entrance (e.g. a failing logger). */
     private static final ThreadLocal<Boolean> IN_UNCAUGHT_HANDLER = new ThreadLocal<>();
 
@@ -195,13 +208,17 @@ public class FxtGui extends Application {
             if (Boolean.TRUE.equals(IN_UNCAUGHT_HANDLER.get())) {
                 return;
             }
+            if (isShutdownNoise(throwable, shuttingDown)) {
+                logger.debug("Ignoring {} without stack trace reported during shutdown", throwable);
+                return;
+            }
             IN_UNCAUGHT_HANDLER.set(Boolean.TRUE);
             try {
                 try {
                     logger.error("Uncaught exception in thread '{}'", thread.getName(), throwable);
                     if (throwable != null && throwable.getStackTrace().length == 0) {
-                        // A JIT-preallocated exception carries no trace: log where it was
-                        // reported from instead (e.g. the listener/event dispatch that ran it).
+                        // A JIT-preallocated or natively thrown exception carries no trace:
+                        // log where it was reported from instead (e.g. the event dispatch).
                         logger.error("Exception without stack trace, reported from:",
                                 new Throwable("uncaught-handler call site"));
                     }
@@ -388,8 +405,9 @@ public class FxtGui extends Application {
         });
     }
 
-    /** Hides every showing window; never throws. */
+    /** Hides every showing window as the application quits; never throws. */
     private static void hideAllWindows() {
+        shuttingDown = true;
         try {
             for (javafx.stage.Window window : new java.util.ArrayList<>(javafx.stage.Window.getWindows())) {
                 window.hide();
