@@ -77,6 +77,16 @@ public class PasteNodeCommand implements XsdCommand {
             return false;
         }
 
+        // Never put content under a simple-typed or referencing element
+        if ((pastedNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement
+                || pastedNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute)
+                && XsdEditRules.contentConflict(targetParent).isBlocked()) {
+            logger.warn("Refused paste into '{}': {}", targetParent.getName(),
+                    XsdEditRules.contentConflict(targetParent).reason());
+            pastedNode = null;
+            return false;
+        }
+
         // Find the correct parent to add to (same logic as AddElementCommand)
         actualParent = findTargetParent(targetParent);
         actualParent.addChild(pastedNode);

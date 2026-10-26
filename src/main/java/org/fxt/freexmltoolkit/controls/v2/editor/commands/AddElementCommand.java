@@ -58,6 +58,11 @@ public class AddElementCommand implements XsdCommand {
 
     @Override
     public boolean execute() {
+        EditCheck conflict = XsdEditRules.contentConflict(parentNode);
+        if (conflict.isBlocked()) {
+            logger.warn("Refused to add element '{}': {}", elementName, conflict.reason());
+            return false;
+        }
         // Create actual XsdElement and add to parent model
         // This will fire PropertyChangeEvent which triggers automatic view refresh
         addedElement = new XsdElement(elementName);

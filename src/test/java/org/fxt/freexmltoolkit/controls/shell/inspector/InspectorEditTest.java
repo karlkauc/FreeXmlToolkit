@@ -160,7 +160,7 @@ class InspectorEditTest {
         });
     }
 
-    private XsdNode find(XsdNode node, String name) {
+    static XsdNode find(XsdNode node, String name) {
         if (name.equals(node.getName())) {
             return node;
         }

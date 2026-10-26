@@ -68,9 +68,38 @@ The Graphic View lets you explore and edit your schemas visually.
 
 - **Right-click** for a context menu with common actions (**Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete). **Change Type…** opens a small dialog with the [type picker](unified-shell.md#type-picker), pre-filled with the current type - the same dialog as in the Tree view
 - Edit the name and every other property in the Properties pane on the right
+- Only edits that keep the schema valid are possible; see [Only Valid Changes](#only-valid-changes)
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
 - **Ctrl+S** to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)
 - The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (Ctrl+Shift+S, save under a new name) and **Save All** (saves every open tab)
+
+### Only Valid Changes {#only-valid-changes}
+
+The graphical editor only lets you make changes that keep the schema valid XML Schema. This
+applies to the Properties pane, the right-click menus of the Graphic and Tree views, Paste and
+drag & drop alike.
+
+- **Menu entries that cannot apply are disabled.** An element with a simple type such as
+  `xs:int` cannot contain child elements or attributes, so **Add Element…**, **Add Container
+  Element…** and **Add Attribute…** are greyed out for it. An element reference (`ref="…"`) takes
+  its type and content from the referenced element, so its **Type** field and **Change Type…** are
+  locked. Child elements need a **Sequence**, **Choice** or **All** first.
+- **A change that would replace existing content asks first.** Setting a type on an element that
+  defines its own content (an inline complex type, for example a sequence with child elements)
+  would leave both in the schema. Instead a dialog explains what would be lost and offers
+  **Replace with xs:int**. Confirming removes the inline content and sets the type. **Cancel**
+  keeps the schema unchanged. Adding a Sequence, Choice or All to an element that has a type works
+  the same way: the dialog offers **Remove type and add sequence**.
+- **Everything is one undo step.** **Ctrl+Z** brings back the inline content or the type you
+  replaced.
+- **Switching a compositor keeps its children.** Changing a Sequence into a Choice or All moves the
+  child elements over. An **All** is refused when it would hold a nested Sequence or Choice, or, in
+  an XSD 1.0 schema, an element with `maxOccurs` greater than 1.
+- **Attributes land in the right place.** For an element whose type is a named complex type, a new
+  attribute is added to that type. For a complex type with simple content it goes into the
+  `xs:extension`.
+
+When an edit is not possible, a short message says why.
 
 ### Automatic Resolution of Imported Schemas
 

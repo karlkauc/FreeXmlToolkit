@@ -2090,7 +2090,10 @@ Working with the field:
   you typed - useful for a type reference the picker does not know.
 
 A picked type is applied like every other inspector edit: one undo step (Ctrl+Z), written into
-the schema text right away.
+the schema text right away. If the element defines its own content (for example a sequence of
+child elements), a dialog asks before the type replaces it, and **Cancel** shows the previous type
+again. For an element or attribute reference the field is locked. See
+[Only Valid Changes](xsd-tools.md#only-valid-changes).
 
 > The type picker arrived in version 2.6.0; earlier versions took the type as plain text.
 

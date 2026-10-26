@@ -25,7 +25,10 @@ public class ChangeRefCommand extends AbstractNodePropertyCommand<String> {
      */
     public ChangeRefCommand(XsdEditorContext editorContext, XsdNode node, String ref) {
         super(editorContext, requireElementOrAttribute(node), normalize(ref));
+        this.newRef = ref;
     }
+
+    private final String newRef;
 
     private static XsdNode requireElementOrAttribute(XsdNode node) {
         if (!(node instanceof XsdElement) && !(node instanceof XsdAttribute)) {
@@ -37,6 +40,16 @@ public class ChangeRefCommand extends AbstractNodePropertyCommand<String> {
 
     private static String normalize(String value) {
         return (value == null || value.trim().isEmpty()) ? null : value.trim();
+    }
+
+    /** Refuses a reference next to a type or an inline type ({@link XsdEditRules#changeRef}). */
+    @Override
+    public boolean execute() {
+        String ref = normalize(newRef);
+        if (XsdEditRules.changeRef(node, ref).isBlocked()) {
+            return false;
+        }
+        return super.execute();
     }
 
     @Override

@@ -41,6 +41,11 @@ public interface NodeEditActions {
     /** @return whether the clipboard currently holds a node to paste. */
     boolean canPaste();
 
+    /** @return whether the clipboard's node may be pasted under {@code target} (valid XSD). */
+    default boolean canPasteInto(XsdNode target) {
+        return canPaste();
+    }
+
     void rename(XsdNode node, String newName);
 
     void changeType(XsdNode node, String newType);

@@ -269,7 +269,7 @@ public class XsdSerializer {
         } else if (node instanceof XsdAll all) {
             serializeAll(all, sb, indentation, indent);
         } else if (node instanceof XsdAttribute attribute) {
-            serializeAttribute(attribute, sb, indentation);
+            serializeAttribute(attribute, sb, indentation, indent);
         } else if (node instanceof XsdSimpleType simpleType) {
             serializeSimpleType(simpleType, sb, indentation, indent);
         } else if (node instanceof XsdRestriction restriction) {
@@ -605,7 +605,7 @@ public class XsdSerializer {
         sb.append(indentation).append("</xs:all>\n");
     }
 
-    private void serializeAttribute(XsdAttribute attribute, StringBuilder sb, String indentation) {
+    private void serializeAttribute(XsdAttribute attribute, StringBuilder sb, String indentation, int indent) {
         sb.append(indentation).append("<xs:attribute");
 
         // Check if this is a reference attribute (ref attribute)
@@ -650,7 +650,22 @@ public class XsdSerializer {
             sb.append(" form=\"").append(escapeXml(attribute.getForm())).append("\"");
         }
 
-        sb.append("/>\n");
+        // Annotation and inline simple type (anonymous xs:simpleType child)
+        boolean hasAnnotation = !attribute.getDocumentations().isEmpty()
+                || attribute.getDocumentation() != null
+                || attribute.getAppinfo() != null;
+        if (hasAnnotation || attribute.hasChildren()) {
+            sb.append(">\n");
+            if (hasAnnotation) {
+                serializeAnnotation(attribute, sb, indentation + indentString, indent + 1);
+            }
+            for (XsdNode child : attribute.getChildren()) {
+                serializeXsdNode(child, sb, indent + 1);
+            }
+            sb.append(indentation).append("</xs:attribute>\n");
+        } else {
+            sb.append("/>\n");
+        }
     }
 
     private void serializeSimpleType(XsdSimpleType simpleType, StringBuilder sb, String indentation, int indent) {

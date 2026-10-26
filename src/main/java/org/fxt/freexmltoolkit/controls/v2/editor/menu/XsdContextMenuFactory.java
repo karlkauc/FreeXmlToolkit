@@ -16,28 +16,27 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.schema.TypeChoices;
+import org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs;
 import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerDialog;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAllCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddChoiceCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCommentCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSequenceCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeUseCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DuplicateNodeCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCommentCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.MoveNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.PasteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.RenameNodeCommand;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComment;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
@@ -648,7 +647,15 @@ public class XsdContextMenuFactory {
                 // Extract XsdNode from VisualNode for the command
                 Object modelObject = node.getModelObject();
                 if (modelObject instanceof XsdNode xsdNode) {
-                    ChangeTypeCommand command = new ChangeTypeCommand(editorContext, xsdNode, newType);
+                    String type = newType.trim();
+                    Boolean replace = EditRuleDialogs.resolve(null, "Change Type",
+                            XsdEditRules.changeType(xsdNode, type));
+                    if (replace == null) {
+                        return;
+                    }
+                    ChangeTypeCommand command = replace
+                            ? ChangeTypeCommand.replacingInlineType(editorContext, xsdNode, type)
+                            : new ChangeTypeCommand(editorContext, xsdNode, type);
                     editorContext.getCommandManager().executeCommand(command);
                     logger.info("Executed change type command for node: {}", node.getLabel());
                 } else {
@@ -720,6 +727,10 @@ public class XsdContextMenuFactory {
      * @param node the parent node
      */
     private void handleAddElement(VisualNode node) {
+        if (node.getModelObject() instanceof XsdNode target
+                && !permits("Add Element", XsdEditRules.addElement(target))) {
+            return;
+        }
         TextInputDialog dialog = new TextInputDialog("newElement");
         dialog.setTitle("Add Element");
         dialog.setHeaderText("Add element to '" + node.getLabel() + "'");
@@ -751,6 +762,10 @@ public class XsdContextMenuFactory {
      * @param node the parent node
      */
     private void handleAddAttribute(VisualNode node) {
+        if (node.getModelObject() instanceof XsdNode target
+                && !permits("Add Attribute", XsdEditRules.addAttribute(target))) {
+            return;
+        }
         TextInputDialog dialog = new TextInputDialog("newAttribute");
         dialog.setTitle("Add Attribute");
         dialog.setHeaderText("Add attribute to '" + node.getLabel() + "'");
@@ -801,14 +816,7 @@ public class XsdContextMenuFactory {
         if (modelObject instanceof XsdComplexType complexType) {
             XsdNode parent = complexType.getParent();
             if (parent instanceof XsdElement element) {
-                XsdCommand command = switch (compositorType) {
-                    case "sequence" -> AddCompositorCommand.sequence(element);
-                    case "choice" -> AddCompositorCommand.choice(element);
-                    case "all" -> AddCompositorCommand.all(element);
-                    default -> null;
-                };
-                if (command != null) {
-                    editorContext.getCommandManager().executeCommand(command);
+                if (runCompositor(element, compositorType)) {
                     logger.info("Added {} to ComplexType '{}'", compositorType, node.getLabel());
                 }
             } else {
@@ -830,20 +838,39 @@ public class XsdContextMenuFactory {
             XsdNode complexType = compositorNode.getParent();
             if (complexType != null) {
                 XsdNode element = complexType.getParent();
-                if (element instanceof XsdElement xsdElement) {
-                    XsdCommand command = switch (targetType) {
-                        case "sequence" -> AddCompositorCommand.sequence(xsdElement);
-                        case "choice" -> AddCompositorCommand.choice(xsdElement);
-                        case "all" -> AddCompositorCommand.all(xsdElement);
-                        default -> null;
-                    };
-                    if (command != null) {
-                        editorContext.getCommandManager().executeCommand(command);
-                        logger.info("Changed compositor to {} in '{}'", targetType, xsdElement.getName());
-                    }
+                if (element instanceof XsdElement xsdElement && runCompositor(xsdElement, targetType)) {
+                    logger.info("Changed compositor to {} in '{}'", targetType, xsdElement.getName());
                 }
             }
         }
+    }
+
+    /**
+     * Adds (or switches to) a compositor after checking {@link XsdEditRules#addCompositor}; a typed
+     * element drops its type once the user agreed.
+     *
+     * @return whether the command ran
+     */
+    private boolean runCompositor(XsdElement element, String kind) {
+        Boolean replace = EditRuleDialogs.resolve(null, "Add " + kind, XsdEditRules.addCompositor(element, kind));
+        if (replace == null) {
+            return false;
+        }
+        AddCompositorCommand<?> command = switch (kind) {
+            case "choice" -> AddCompositorCommand.choice(element);
+            case "all" -> AddCompositorCommand.all(element);
+            default -> AddCompositorCommand.sequence(element);
+        };
+        return editorContext.getCommandManager().executeCommand(replace ? command.replacingType() : command);
+    }
+
+    /** @return whether an edit with this verdict may run (shows the reason when it is blocked). */
+    private static boolean permits(String title, EditCheck check) {
+        if (check.isBlocked()) {
+            EditRuleDialogs.showBlocked(null, title, check);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -902,9 +929,9 @@ public class XsdContextMenuFactory {
     private void handleAddSequence(VisualNode node) {
         Object modelObject = node.getModelObject();
         if (modelObject instanceof XsdElement element) {
-            AddSequenceCommand command = new AddSequenceCommand(element);
-            editorContext.getCommandManager().executeCommand(command);
-            logger.info("Added sequence to element '{}'", element.getName());
+            if (runCompositor(element, "sequence")) {
+                logger.info("Added sequence to element '{}'", element.getName());
+            }
         } else {
             logger.warn("Cannot add sequence - model object is not an XsdElement: {}",
                     modelObject != null ? modelObject.getClass() : "null");
@@ -920,9 +947,9 @@ public class XsdContextMenuFactory {
     private void handleAddChoice(VisualNode node) {
         Object modelObject = node.getModelObject();
         if (modelObject instanceof XsdElement element) {
-            AddChoiceCommand command = new AddChoiceCommand(element);
-            editorContext.getCommandManager().executeCommand(command);
-            logger.info("Added choice to element '{}'", element.getName());
+            if (runCompositor(element, "choice")) {
+                logger.info("Added choice to element '{}'", element.getName());
+            }
         } else {
             logger.warn("Cannot add choice - model object is not an XsdElement: {}",
                     modelObject != null ? modelObject.getClass() : "null");
@@ -938,9 +965,9 @@ public class XsdContextMenuFactory {
     private void handleAddAll(VisualNode node) {
         Object modelObject = node.getModelObject();
         if (modelObject instanceof XsdElement element) {
-            AddAllCommand command = new AddAllCommand(element);
-            editorContext.getCommandManager().executeCommand(command);
-            logger.info("Added all to element '{}'", element.getName());
+            if (runCompositor(element, "all")) {
+                logger.info("Added all to element '{}'", element.getName());
+            }
         } else {
             logger.warn("Cannot add all - model object is not an XsdElement: {}",
                     modelObject != null ? modelObject.getClass() : "null");
@@ -1114,8 +1141,9 @@ public class XsdContextMenuFactory {
         XsdClipboard clipboard = editorContext.getClipboard();
         MenuItem pasteItem = createMenuItem("Paste Node", "bi-clipboard-check", ActionColor.CREATE, () -> handlePaste(node));
 
-        // Disable paste if clipboard is empty
-        if (!clipboard.hasContent()) {
+        // Disable paste if clipboard is empty or the node cannot hold the clipboard's node
+        if (!clipboard.hasContent() || !(node.getModelObject() instanceof XsdNode target)
+                || XsdEditRules.paste(target, clipboard.getClipboardNode()).isBlocked()) {
             pasteItem.setDisable(true);
         }
 
@@ -1137,6 +1165,9 @@ public class XsdContextMenuFactory {
 
         Object modelObject = node.getModelObject();
         if (modelObject instanceof XsdNode targetParent) {
+            if (!permits("Paste", XsdEditRules.paste(targetParent, clipboard.getClipboardNode()))) {
+                return;
+            }
             PasteNodeCommand command = new PasteNodeCommand(clipboard, targetParent);
             editorContext.getCommandManager().executeCommand(command);
             logger.info("Pasted node to '{}'", node.getLabel());
@@ -1283,27 +1314,7 @@ public class XsdContextMenuFactory {
      * @return true if compositor can be added (element has no type/ref)
      */
     private boolean canAddCompositor(VisualNode node) {
-        Object modelObject = node.getModelObject();
-        if (!(modelObject instanceof XsdElement element)) {
-            return false;
-        }
-
-        // Check if element has type attribute
-        String type = element.getType();
-        if (type != null && !type.trim().isEmpty()) {
-            logger.debug("Element '{}' has type '{}', cannot add compositor", element.getName(), type);
-            return false;  // Element has type, cannot add compositor
-        }
-
-        // Check if element has ref attribute
-        String ref = element.getRef();
-        if (ref != null && !ref.trim().isEmpty()) {
-            logger.debug("Element '{}' has ref '{}', cannot add compositor", element.getName(), ref);
-            return false;  // Element has ref, cannot add compositor
-        }
-
-        logger.debug("Element '{}' can have compositor added", element.getName());
-        return true;  // Element can have compositor
+        return node.getModelObject() instanceof XsdNode xsdNode && !XsdEditRules.addCompositor(xsdNode, "sequence").isBlocked();
     }
 
     /**
@@ -1320,51 +1331,7 @@ public class XsdContextMenuFactory {
      * @return true if child elements can be added to this node
      */
     private boolean canAddElement(VisualNode node) {
-        Object modelObject = node.getModelObject();
-
-        // Compositor nodes (Sequence/Choice/All) can always have child elements added
-        if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
-            modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdChoice ||
-            modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAll) {
-            logger.debug("Node is a compositor, child elements can be added");
-            return true;
-        }
-
-        // Element nodes - check if they can have child elements
-        if (!(modelObject instanceof XsdElement element)) {
-            return false;
-        }
-
-        String type = element.getType();
-
-        // Check if it's a SimpleType (built-in or custom)
-        if (type != null && !type.trim().isEmpty()) {
-            if (type.startsWith("xs:")) {
-                // Built-in SimpleType - cannot add child elements
-                logger.debug("Element '{}' has built-in SimpleType '{}', cannot add child elements",
-                        element.getName(), type);
-                return false;
-            }
-
-            // Custom type - check if it's a SimpleType or ComplexType
-            XsdSimpleType simpleType = findSimpleTypeInSchema(type);
-            if (simpleType != null) {
-                // It's a SimpleType - cannot add child elements
-                logger.debug("Element '{}' references SimpleType '{}', cannot add child elements",
-                        element.getName(), type);
-                return false;
-            }
-        }
-
-        // Check if element has a compositor child (required for adding child elements)
-        if (element.hasCompositor()) {
-            logger.debug("Element '{}' has a compositor, child elements can be added", element.getName());
-            return true;
-        }
-
-        // No compositor - cannot add child elements according to XSD standard
-        logger.debug("Element '{}' has no compositor (Sequence/Choice/All), cannot add child elements", element.getName());
-        return false;
+        return node.getModelObject() instanceof XsdNode xsdNode && !XsdEditRules.addElement(xsdNode).isBlocked();
     }
 
     /**
@@ -1380,43 +1347,7 @@ public class XsdContextMenuFactory {
      * @return true if attributes can be added to the element
      */
     private boolean canAddAttribute(VisualNode node) {
-        Object modelObject = node.getModelObject();
-        if (!(modelObject instanceof XsdElement element)) {
-            return false;
-        }
-
-        // Check if element has a compositor - if so, cannot add attributes
-        // (Attributes and compositors are mutually exclusive in XSD)
-        if (element.hasCompositor()) {
-            logger.debug("Element '{}' has a compositor, cannot add attributes (mutually exclusive)",
-                    element.getName());
-            return false;
-        }
-
-        String type = element.getType();
-
-        // Check if it's a SimpleType (built-in or custom)
-        if (type != null && !type.trim().isEmpty()) {
-            if (type.startsWith("xs:")) {
-                // Built-in SimpleType - cannot add attributes
-                logger.debug("Element '{}' has built-in SimpleType '{}', cannot add attributes",
-                        element.getName(), type);
-                return false;
-            }
-
-            // Custom type - check if it's a SimpleType or ComplexType
-            XsdSimpleType simpleType = findSimpleTypeInSchema(type);
-            if (simpleType != null) {
-                // It's a SimpleType - cannot add attributes
-                logger.debug("Element '{}' references SimpleType '{}', cannot add attributes",
-                        element.getName(), type);
-                return false;
-            }
-        }
-
-        // No compositor, no SimpleType - attributes can be added
-        logger.debug("Element '{}' can have attributes added", element.getName());
-        return true;
+        return node.getModelObject() instanceof XsdNode xsdNode && !XsdEditRules.addAttribute(xsdNode).isBlocked();
     }
 
     /**

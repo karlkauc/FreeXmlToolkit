@@ -61,6 +61,15 @@ public class MoveNodeCommand implements XsdCommand {
             return false;
         }
 
+        // Never put content under a simple-typed or referencing element
+        if (newParent != oldParent && (nodeToMove instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement
+                || nodeToMove instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute)
+                && XsdEditRules.contentConflict(newParent).isBlocked()) {
+            logger.warn("Refused move of '{}': {}", nodeToMove.getName(),
+                    XsdEditRules.contentConflict(newParent).reason());
+            return false;
+        }
+
         // Update the model - these methods fire PropertyChangeEvent
         // which triggers automatic view refresh via VisualNode's listener
         oldParent.removeChild(nodeToMove);

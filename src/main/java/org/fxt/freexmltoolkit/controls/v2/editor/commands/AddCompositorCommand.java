@@ -37,6 +37,10 @@ public class AddCompositorCommand<T extends XsdNode> implements XsdCommand {
     private XsdComplexType addedComplexType;
     private boolean createdComplexType;
     private XsdNode previousCompositor;
+    private int previousIndex;
+    private final java.util.List<XsdNode> movedParticles = new java.util.ArrayList<>();
+    private boolean replaceType;
+    private String removedType;
 
     /**
      * Creates a new generic add compositor command.
@@ -88,8 +92,30 @@ public class AddCompositorCommand<T extends XsdNode> implements XsdCommand {
         return new AddCompositorCommand<>(targetElement, XsdAll::new, "all");
     }
 
+    /**
+     * Makes this command remove the element's {@code type} reference before it creates the inline
+     * complex type, for the case {@link XsdEditRules#addCompositor} reports as replaceable.
+     *
+     * @return this command
+     */
+    public AddCompositorCommand<T> replacingType() {
+        this.replaceType = true;
+        return this;
+    }
+
     @Override
     public boolean execute() {
+        EditCheck check = XsdEditRules.addCompositor(targetElement, compositorName);
+        if (check.isBlocked() || (check.needsConfirmation() && !replaceType)) {
+            logger.warn("Refused to add {} to '{}': {}", compositorName, targetElement.getName(), check.reason());
+            return false;
+        }
+        removedType = null;
+        if (check.needsConfirmation()) {
+            removedType = targetElement.getType();
+            targetElement.setType(null);
+        }
+
         // Check if element already has a complexType child
         XsdComplexType existingComplexType = null;
         for (XsdNode child : targetElement.getChildren()) {
@@ -113,15 +139,26 @@ public class AddCompositorCommand<T extends XsdNode> implements XsdCommand {
             for (XsdNode child : addedComplexType.getChildren()) {
                 if (child instanceof XsdSequence || child instanceof XsdChoice || child instanceof XsdAll) {
                     previousCompositor = child;
+                    previousIndex = addedComplexType.getChildren().indexOf(child);
                     addedComplexType.removeChild(child);
                     break;
                 }
             }
         }
 
-        // Create and add the compositor
+        // Create and add the compositor; XSD wants it before the attribute declarations
         addedCompositor = compositorFactory.get();
-        addedComplexType.addChild(addedCompositor);
+        addedComplexType.addChild(compositorIndex(addedComplexType), addedCompositor);
+
+        // Changing the compositor kind keeps the content: the particles move over
+        movedParticles.clear();
+        if (previousCompositor != null) {
+            movedParticles.addAll(previousCompositor.getChildren());
+            for (XsdNode particle : movedParticles) {
+                previousCompositor.removeChild(particle);
+                addedCompositor.addChild(particle);
+            }
+        }
 
         logger.info("Added {} to element '{}'", compositorName, targetElement.getName());
         return true;
@@ -134,25 +171,51 @@ public class AddCompositorCommand<T extends XsdNode> implements XsdCommand {
             return false;
         }
 
-        // Remove the compositor
+        // Remove the compositor (its moved particles go back to the previous one)
         addedComplexType.removeChild(addedCompositor);
+        for (XsdNode particle : movedParticles) {
+            addedCompositor.removeChild(particle);
+            previousCompositor.addChild(particle);
+        }
 
         // Restore previous compositor if there was one
         if (previousCompositor != null) {
-            addedComplexType.addChild(previousCompositor);
+            addedComplexType.addChild(Math.min(previousIndex, addedComplexType.getChildren().size()),
+                    previousCompositor);
         }
 
         // Remove complexType if we created it
         if (createdComplexType && addedComplexType != null) {
             targetElement.removeChild(addedComplexType);
         }
+        if (removedType != null) {
+            targetElement.setType(removedType);
+        }
 
         logger.info("Removed {} from element '{}'", compositorName, targetElement.getName());
         return true;
     }
 
+    /** The index before the first attribute-like child (attribute, attribute group, wildcard, assertion). */
+    private static int compositorIndex(XsdNode complexType) {
+        var children = complexType.getChildren();
+        for (int i = 0; i < children.size(); i++) {
+            XsdNode child = children.get(i);
+            if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute
+                    || child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup
+                    || child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAnyAttribute
+                    || child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAssert) {
+                return i;
+            }
+        }
+        return children.size();
+    }
+
     @Override
     public String getDescription() {
+        if (replaceType) {
+            return "Replace type of element '" + targetElement.getName() + "' with a " + compositorName;
+        }
         return "Add " + compositorName + " to element '" + targetElement.getName() + "'";
     }
 

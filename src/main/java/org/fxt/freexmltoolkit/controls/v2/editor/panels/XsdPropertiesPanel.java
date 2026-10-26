@@ -1,14 +1,10 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import java.util.Optional;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -50,7 +46,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeUseCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteAssertionCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteEnumerationCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteFacetCommand;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeletePatternCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCommentCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditFacetCommand;
@@ -982,58 +977,22 @@ public class XsdPropertiesPanel extends BorderPane {
         if (!java.util.Objects.equals(newType, currentType)) {
             XsdNode node = (XsdNode) modelObject;
 
-            // Check if we're setting a type on an element that has a compositor
-            // When setting a type on an element that already has a compositor, ask the user first.
-            if (node instanceof XsdElement element && newType != null && !newType.isEmpty()
-                    && element.hasCompositor()) {
-                Alert confirmDialog = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                        Alert.AlertType.CONFIRMATION, "Compositor Present", "Element '" + element.getName() + "' already has a Compositor (Sequence/Choice/All)", "Should the Compositor be removed to set a type?");
-
-                ButtonType removeButton = new ButtonType("Yes, remove Compositor");
-                ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-                confirmDialog.getButtonTypes().setAll(removeButton, cancelButton);
-
-                Optional<ButtonType> result = confirmDialog.showAndWait();
-                if (!result.isPresent() || result.get() != removeButton) {
-                    logger.debug("User cancelled type change due to existing compositor");
-                    // Reset the field to the old value
-                    updating = true;
-                    typePicker.setValue(currentType);
-                    updating = false;
-                    return;
-                }
-
-                // User confirmed removal - we'll remove compositor below
-                // First, remove the compositor
-                for (XsdNode child : new java.util.ArrayList<>(element.getChildren())) {
-                    if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
-                        // Remove compositor from complexType
-                        for (XsdNode ctChild : new java.util.ArrayList<>(complexType.getChildren())) {
-                            if (ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSequence ||
-                                ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdChoice ||
-                                ctChild instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAll) {
-                                // Remove the compositor via command (for undo/redo support)
-                                DeleteNodeCommand deleteCmd = new DeleteNodeCommand(ctChild);
-                                editorContext.getCommandManager().executeCommand(deleteCmd);
-                                logger.info("Removed compositor '{}' from element '{}'",
-                                        ctChild.getClass().getSimpleName(), element.getName());
-                                break;
-                            }
-                        }
-                        // If complexType is now empty (no other children), remove it too
-                        if (complexType.getChildren().isEmpty()) {
-                            DeleteNodeCommand deleteComplexTypeCmd = new DeleteNodeCommand(complexType);
-                            editorContext.getCommandManager().executeCommand(deleteComplexTypeCmd);
-                            logger.info("Removed empty complexType from element '{}'", element.getName());
-                        }
-                        break;
-                    }
-                }
+            // Only valid XSD: a type next to an inline type is replaced after confirmation, a type
+            // on a reference is refused (XsdEditRules); either way one undo step.
+            org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck check =
+                    org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, newType);
+            Boolean replace = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(
+                    getScene() == null ? null : getScene().getWindow(), "Change Type", check);
+            ChangeTypeCommand command = replace == null ? null : replace
+                    ? ChangeTypeCommand.replacingInlineType(editorContext, node, newType)
+                    : new ChangeTypeCommand(editorContext, node, newType);
+            if (command == null || !editorContext.getCommandManager().executeCommand(command)) {
+                logger.debug("Type change of '{}' not applied", node.getName());
+                updating = true;
+                typePicker.setValue(currentType);
+                updating = false;
+                return;
             }
-
-            // Now set the type
-            ChangeTypeCommand command = new ChangeTypeCommand(editorContext, node, newType);
-            editorContext.getCommandManager().executeCommand(command);
             logger.debug("Executed ChangeTypeCommand: {} -> {}", currentType, newType);
 
             // Update facets after type change to reflect applicable facets for the new type

@@ -11,6 +11,11 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
  * Command to change the type reference of an XSD element or attribute.
  * Supports undo by restoring the original type.
  * <p>
+ * Guarded by {@link XsdEditRules#changeType}: it refuses (returns {@code false}) a type on a
+ * reference and a type next to an inline {@code xs:complexType}/{@code xs:simpleType}. The
+ * {@link #replacingInlineType} variant removes that inline type and sets the type in one
+ * undoable step (after the user agreed to drop the inline definition).
+ * <p>
  * Updates the underlying XsdNode model, which automatically triggers
  * view refresh via PropertyChangeListener (Phase 2.3).
  *
@@ -24,6 +29,9 @@ public class ChangeTypeCommand implements XsdCommand {
     private final XsdNode node;
     private final String oldType;
     private final String newType;
+    private final boolean replaceInlineType;
+    private final java.util.List<XsdNode> removedInline = new java.util.ArrayList<>();
+    private final java.util.List<Integer> removedIndices = new java.util.ArrayList<>();
 
     /**
      * Creates a new change type command.
@@ -33,6 +41,18 @@ public class ChangeTypeCommand implements XsdCommand {
      * @param newType       the new type reference (e.g., "xs:string", "MyCustomType", or null/empty to remove)
      */
     public ChangeTypeCommand(XsdEditorContext editorContext, XsdNode node, String newType) {
+        this(editorContext, node, newType, false);
+    }
+
+    /**
+     * A type change that first removes the node's inline type definition, for the case
+     * {@link XsdEditRules#changeType} reports as {@link EditCheck.Status#REPLACEABLE}.
+     */
+    public static ChangeTypeCommand replacingInlineType(XsdEditorContext editorContext, XsdNode node, String newType) {
+        return new ChangeTypeCommand(editorContext, node, newType, true);
+    }
+
+    private ChangeTypeCommand(XsdEditorContext editorContext, XsdNode node, String newType, boolean replaceInlineType) {
         CommandValidation.requireEditorContextAndNode(editorContext, node);
         CommandValidation.requireNodeTypeOneOf(node, "Change type", XsdElement.class, XsdAttribute.class);
 
@@ -40,6 +60,7 @@ public class ChangeTypeCommand implements XsdCommand {
         this.node = node;
         this.oldType = getTypeFromNode(node);
         this.newType = (newType == null || newType.trim().isEmpty()) ? null : newType.trim();
+        this.replaceInlineType = replaceInlineType;
     }
 
     @Override
@@ -47,6 +68,24 @@ public class ChangeTypeCommand implements XsdCommand {
         try {
             logger.debug("Changing type of {} '{}' from '{}' to '{}'",
                     node.getClass().getSimpleName(), node.getName(), oldType, newType);
+
+            EditCheck check = XsdEditRules.changeType(node, newType);
+            if (check.isBlocked() || (check.needsConfirmation() && !replaceInlineType)) {
+                logger.warn("Refused type change of '{}': {}", node.getName(), check.reason());
+                return false;
+            }
+            removedInline.clear();
+            removedIndices.clear();
+            if (check.needsConfirmation()) {
+                for (XsdNode child : java.util.List.copyOf(node.getChildren())) {
+                    if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType
+                            || child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType) {
+                        removedIndices.add(node.getChildren().indexOf(child));
+                        removedInline.add(child);
+                        node.removeChild(child);
+                    }
+                }
+            }
 
             // Update the model - this will fire PropertyChangeEvent
             // which triggers automatic view refresh via VisualNode's listener
@@ -70,6 +109,10 @@ public class ChangeTypeCommand implements XsdCommand {
 
             // Update the model - this will fire PropertyChangeEvent
             setTypeOnNode(node, oldType);
+            for (int i = 0; i < removedInline.size(); i++) {
+                int index = Math.min(removedIndices.get(i), node.getChildren().size());
+                node.addChild(index, removedInline.get(i));
+            }
             editorContext.markNodeDirty(node);
 
             logger.info("Successfully undone type change of {} '{}'", node.getClass().getSimpleName(), node.getName());
@@ -86,7 +129,9 @@ public class ChangeTypeCommand implements XsdCommand {
         String nodeName = node.getName() != null ? node.getName() : "(unnamed)";
         String nodeType = node instanceof XsdElement ? "element" : "attribute";
 
-        if (newType == null || newType.isEmpty()) {
+        if (replaceInlineType) {
+            return "Replace inline type of " + nodeType + " " + nodeName + " with " + newType;
+        } else if (newType == null || newType.isEmpty()) {
             return "Remove type from " + nodeType + " " + nodeName;
         } else if (oldType == null || oldType.isEmpty()) {
             return "Set type of " + nodeType + " " + nodeName + " to " + newType;
@@ -103,7 +148,8 @@ public class ChangeTypeCommand implements XsdCommand {
     @Override
     public boolean canMergeWith(XsdCommand other) {
         // Consecutive type changes on the same node can be merged
-        if (!(other instanceof ChangeTypeCommand otherChange)) {
+        if (!(other instanceof ChangeTypeCommand otherChange)
+                || replaceInlineType || otherChange.replaceInlineType) {
             return false;
         }
 

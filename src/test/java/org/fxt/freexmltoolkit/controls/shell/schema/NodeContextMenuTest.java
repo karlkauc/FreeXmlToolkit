@@ -116,6 +116,30 @@ class NodeContextMenuTest {
     }
 
     @Test
+    void disablesEditsThatWouldMakeTheSchemaInvalid() {
+        XsdElement typed = new XsdElement("amount");
+        typed.setType("xs:int");
+        XsdElement reference = new XsdElement("noteRef");
+        reference.setRef("note");
+        RecordingActions actions = new RecordingActions();
+        XsdNode[] current = {typed};
+        ContextMenu menu = WaitForAsyncUtils.waitForAsyncFx(2000, () -> NodeContextMenu.build(actions, () -> current[0]));
+
+        fireShowing(menu);
+        assertTrue(find(menu, "Add Element…").isDisable(), "xs:int cannot contain elements");
+        assertTrue(find(menu, "Add Container Element…").isDisable());
+        assertTrue(find(menu, "Add Attribute…").isDisable(), "xs:int cannot have attributes");
+        assertFalse(find(menu, "Add Sequence").isDisable(), "replacing the type is offered (asks first)");
+        assertFalse(find(menu, "Change Type…").isDisable());
+
+        current[0] = reference;
+        fireShowing(menu);
+        assertTrue(find(menu, "Change Type…").isDisable(), "a reference takes the referenced type");
+        assertTrue(find(menu, "Add Sequence").isDisable());
+        assertTrue(find(menu, "Add Attribute…").isDisable());
+    }
+
+    @Test
     void doesNothingWhenNoCurrentNode() {
         RecordingActions actions = new RecordingActions();
         ContextMenu menu = WaitForAsyncUtils.waitForAsyncFx(2000, () -> NodeContextMenu.build(actions, () -> null));

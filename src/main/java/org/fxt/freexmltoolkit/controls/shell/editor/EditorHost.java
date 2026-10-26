@@ -7007,7 +7007,8 @@ public class EditorHost extends BorderPane {
         }
 
         boolean addElement(XsdNode parent, String name) {
-            if (parent == null || name == null || name.isBlank()) {
+            if (parent == null || name == null || name.isBlank()
+                    || !permits("Add Element", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addElement(parent))) {
                 return false;
             }
             return executeAndApply(
@@ -7023,7 +7024,8 @@ public class EditorHost extends BorderPane {
         }
 
         boolean addContainerElement(XsdNode parent, String name) {
-            if (parent == null || name == null || name.isBlank()) {
+            if (parent == null || name == null || name.isBlank()
+                    || !permits("Add Container Element", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addElement(parent))) {
                 return false;
             }
             return executeAndApply(
@@ -7048,7 +7050,8 @@ public class EditorHost extends BorderPane {
         }
 
         boolean addAttribute(XsdNode parent, String name) {
-            if (parent == null || name == null || name.isBlank()) {
+            if (parent == null || name == null || name.isBlank()
+                    || !permits("Add Attribute", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addAttribute(parent))) {
                 return false;
             }
             return executeAndApply(
@@ -7056,21 +7059,51 @@ public class EditorHost extends BorderPane {
         }
 
         boolean addSequence(XsdNode node) {
-            return node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element
-                    && executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSequenceCommand(element));
+            return addCompositor(node, "sequence");
         }
 
         boolean addChoice(XsdNode node) {
-            return node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element
-                    && executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddChoiceCommand(element));
+            return addCompositor(node, "choice");
         }
 
         boolean addAll(XsdNode node) {
-            return node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element
-                    && executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAllCommand(element));
+            return addCompositor(node, "all");
+        }
+
+        /** Adds a compositor after checking the rules; a typed element may drop its type (confirmed). */
+        private boolean addCompositor(XsdNode node, String kind) {
+            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
+                return false;
+            }
+            Boolean replace = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Add " + capitalize(kind),
+                    org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addCompositor(element, kind));
+            if (replace == null) {
+                return false;
+            }
+            var command = switch (kind) {
+                case "choice" -> org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand.choice(element);
+                case "all" -> org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand.all(element);
+                default -> org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand.sequence(element);
+            };
+            return executeAndApply(replace ? command.replacingType() : command);
+        }
+
+        private static String capitalize(String s) {
+            return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
+        }
+
+        /** @return whether an edit with this verdict may run as is (shows the reason when blocked). */
+        private boolean permits(String title, org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck check) {
+            if (check.isBlocked()) {
+                org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(ruleWindow(), title, check);
+                return false;
+            }
+            return true;
+        }
+
+        private javafx.stage.Window ruleWindow() {
+            return getTabPane() != null && getTabPane().getScene() != null
+                    ? getTabPane().getScene().getWindow() : null;
         }
 
         boolean duplicate(XsdNode node) {
@@ -7083,7 +7116,8 @@ public class EditorHost extends BorderPane {
 
         /** Pastes the shell clipboard's node under {@code target} (cut originals are removed). */
         boolean pasteNode(XsdNode target) {
-            if (target == null || !clipboard.hasContent()) {
+            if (target == null || !clipboard.hasContent()
+                    || !permits("Paste", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.paste(target, clipboard.getClipboardNode()))) {
                 return false;
             }
             return executeAndApply(
@@ -7109,8 +7143,20 @@ public class EditorHost extends BorderPane {
             if (editorContext == null || node == null || newType == null || newType.isBlank()) {
                 return false;
             }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand(
-                    editorContext, node, newType.trim()));
+            String type = newType.trim();
+            Boolean replace = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Change Type", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, type));
+            if (replace == null) {
+                return false;
+            }
+            return executeAndApply(replace
+                    ? org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand.replacingInlineType(editorContext, node, type)
+                    : new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand(editorContext, node, type));
+        }
+
+        /** @return whether {@code target} accepts the clipboard's node (for the context menu's Paste). */
+        boolean canPasteInto(XsdNode target) {
+            return clipboard.hasContent()
+                    && !org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.paste(target, clipboard.getClipboardNode()).isBlocked();
         }
 
         boolean changeUse(XsdNode node, String use) {
@@ -7192,7 +7238,7 @@ public class EditorHost extends BorderPane {
         }
 
         boolean changeRef(XsdNode node, String ref) {
-            if (editorContext == null || node == null) {
+            if (editorContext == null || node == null || !permits("Change Reference", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeRef(node, ref))) {
                 return false;
             }
             return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeRefCommand(
@@ -7625,6 +7671,11 @@ public class EditorHost extends BorderPane {
                 @Override
                 public boolean canPaste() {
                     return clipboard.hasContent();
+                }
+
+                @Override
+                public boolean canPasteInto(XsdNode target) {
+                    return EditorTab.this.canPasteInto(target);
                 }
 
                 @Override

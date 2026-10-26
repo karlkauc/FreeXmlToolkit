@@ -1595,6 +1595,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
         Object modelObject = selected.getModelObject();
         if (modelObject instanceof XsdNode targetParent) {
+            var check = org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.paste(
+                    targetParent, editorContext.getClipboard().getClipboardNode());
+            if (check.isBlocked()) {
+                org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(
+                        getScene() == null ? null : getScene().getWindow(), "Paste", check);
+                return;
+            }
             PasteNodeCommand command = new PasteNodeCommand(editorContext.getClipboard(), targetParent);
             editorContext.getCommandManager().executeCommand(command);
             logger.info("Pasted node to '{}' via Ctrl+V", targetParent.getName());
@@ -1886,6 +1893,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * Checks if the node can be dropped onto the given parent.
      */
     private boolean canDrop(XsdNode draggedXsdNode, XsdNode newParent) {
+        // Only moves that keep the schema valid (no content under simple types, compositor needed, …)
+        return canDropStructurally(draggedXsdNode, newParent)
+                && !org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.move(draggedXsdNode, newParent)
+                .isBlocked();
+    }
+
+    private boolean canDropStructurally(XsdNode draggedXsdNode, XsdNode newParent) {
         // Cannot drop onto itself
         if (draggedXsdNode == newParent) {
             return false;

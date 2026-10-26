@@ -36,6 +36,17 @@ public class AddChoiceCommand implements XsdCommand {
         this.delegate = AddCompositorCommand.choice(targetElement);
     }
 
+    /**
+     * Makes this command remove the element's {@code type} reference first (see
+     * {@link AddCompositorCommand#replacingType()}).
+     *
+     * @return this command
+     */
+    public AddChoiceCommand replacingType() {
+        delegate.replacingType();
+        return this;
+    }
+
     @Override
     public boolean execute() {
         return delegate.execute();

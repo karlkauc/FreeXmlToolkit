@@ -52,6 +52,11 @@ public class AddAttributeCommand implements XsdCommand {
 
     @Override
     public boolean execute() {
+        EditCheck conflict = XsdEditRules.contentConflict(parentNode);
+        if (conflict.isBlocked()) {
+            logger.warn("Refused to add attribute '{}': {}", attributeName, conflict.reason());
+            return false;
+        }
         // Find the correct parent to add the attribute to
         actualParent = findTargetParent(parentNode);
 
@@ -77,8 +82,12 @@ public class AddAttributeCommand implements XsdCommand {
      * If parent is an Element without a complexType, creates an inline complexType.
      */
     private XsdNode findTargetParent(XsdNode parent) {
-        // Case 1: Parent is already a ComplexType - add directly
+        // Case 1: Parent is already a ComplexType - add directly (into its simple/complex content derivation)
         if (parent instanceof XsdComplexType) {
+            XsdNode container = XsdEditRules.attributeContainer(parent);
+            if (container != null && container != parent) {
+                return container;
+            }
             logger.debug("Parent is ComplexType, adding attribute directly");
             return parent;
         }
@@ -95,8 +104,13 @@ public class AddAttributeCommand implements XsdCommand {
             return parent;
         }
 
-        // Case 4: Parent is an Element - look for inline complexType
+        // Case 4: Parent is an Element - the referenced named complex type, or the inline
+        // complexType (into the extension/restriction of a simple/complex content)
         if (parent instanceof XsdElement element) {
+            XsdNode container = XsdEditRules.attributeContainer(element);
+            if (container != null) {
+                return container;
+            }
             // Look for existing inline complexType
             for (XsdNode child : element.getChildren()) {
                 if (child instanceof XsdComplexType) {

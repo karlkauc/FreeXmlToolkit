@@ -991,12 +991,17 @@ public class XsdNodeFactory {
             attribute.setFixed(attributeElement.getAttribute("fixed"));
         }
 
-        // Parse annotation
+        // Parse annotation and the inline (anonymous) simple type
         NodeList children = attributeElement.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE && isXsdElement((Element) child, "annotation")) {
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+            if (isXsdElement((Element) child, "annotation")) {
                 parseAnnotation((Element) child, attribute);
+            } else if (isXsdElement((Element) child, "simpleType")) {
+                attribute.addChild(parseSimpleType((Element) child));
             }
         }
 

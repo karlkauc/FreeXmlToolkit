@@ -12,6 +12,7 @@ import javafx.scene.control.TextInputDialog;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
@@ -42,21 +43,29 @@ public final class NodeContextMenu {
                                     Supplier<XsdSchema> schema) {
         ContextMenu menu = new ContextMenu();
         MenuItem paste = item("Paste", "bi-clipboard-plus", ActionColor.CREATE, currentNode, actions::paste);
+        MenuItem addElement = item("Add Element…", "bi-plus-circle", ActionColor.CREATE, currentNode,
+                node -> promptName(actions::addElement, node, "Add Element", "NewElement"));
+        MenuItem addContainer = item("Add Container Element…", "bi-node-plus", ActionColor.CREATE, currentNode,
+                node -> promptName(actions::addContainerElement, node, "Add Container Element", "NewContainer"));
+        MenuItem addAttribute = item("Add Attribute…", "bi-at", ActionColor.CREATE, currentNode,
+                node -> promptName(actions::addAttribute, node, "Add Attribute", "newAttribute"));
+        MenuItem addSequence = item("Add Sequence", "bi-list-ol", ActionColor.CREATE, currentNode, actions::addSequence);
+        MenuItem addChoice = item("Add Choice", "bi-signpost-split", ActionColor.CREATE, currentNode, actions::addChoice);
+        MenuItem addAll = item("Add All", "bi-list-check", ActionColor.CREATE, currentNode, actions::addAll);
+        MenuItem changeType = item("Change Type…", "bi-type", ActionColor.STRUCTURE, currentNode,
+                node -> promptChangeType(actions, node, schema));
         menu.getItems().addAll(
-                item("Add Element…", "bi-plus-circle", ActionColor.CREATE, currentNode,
-                        node -> promptName(actions::addElement, node, "Add Element", "NewElement")),
-                item("Add Container Element…", "bi-node-plus", ActionColor.CREATE, currentNode,
-                        node -> promptName(actions::addContainerElement, node, "Add Container Element", "NewContainer")),
-                item("Add Attribute…", "bi-at", ActionColor.CREATE, currentNode,
-                        node -> promptName(actions::addAttribute, node, "Add Attribute", "newAttribute")),
-                item("Add Sequence", "bi-list-ol", ActionColor.CREATE, currentNode, actions::addSequence),
-                item("Add Choice", "bi-signpost-split", ActionColor.CREATE, currentNode, actions::addChoice),
-                item("Add All", "bi-list-check", ActionColor.CREATE, currentNode, actions::addAll),
+                addElement,
+                addContainer,
+                addAttribute,
+                addSequence,
+                addChoice,
+                addAll,
                 item("Add Comment…", "bi-chat-left-text", ActionColor.CREATE, currentNode,
                         node -> promptComment(actions, node)),
                 new SeparatorMenuItem(),
                 item("Rename…", "bi-pencil", ActionColor.MODIFY, currentNode, node -> promptRename(actions, node)),
-                item("Change Type…", "bi-type", ActionColor.STRUCTURE, currentNode, node -> promptChangeType(actions, node, schema)),
+                changeType,
                 item("Change Cardinality…", "bi-arrows-expand", ActionColor.STRUCTURE, currentNode, node -> promptCardinality(actions, node)),
                 new SeparatorMenuItem(),
                 item("Copy", "bi-clipboard", ActionColor.NEUTRAL, currentNode, actions::copy),
@@ -68,8 +77,20 @@ public final class NodeContextMenu {
                 item("Move Down", "bi-arrow-down", ActionColor.STRUCTURE, currentNode, actions::moveDown),
                 new SeparatorMenuItem(),
                 item("Delete", "bi-trash", ActionColor.DELETE, currentNode, actions::delete));
-        // Enable Paste only when the clipboard holds a node (re-checked on each open).
-        menu.setOnShowing(e -> paste.setDisable(!actions.canPaste()));
+        // Re-checked on each open: only edits that keep the schema valid are enabled. Edits that
+        // replace conflicting content stay enabled and ask first (EditorTab).
+        menu.setOnShowing(e -> {
+            XsdNode node = currentNode.get();
+            paste.setDisable(node == null || !actions.canPasteInto(node));
+            boolean noElement = node == null || XsdEditRules.addElement(node).isBlocked();
+            addElement.setDisable(noElement);
+            addContainer.setDisable(noElement);
+            addAttribute.setDisable(node == null || XsdEditRules.addAttribute(node).isBlocked());
+            addSequence.setDisable(node == null || XsdEditRules.addCompositor(node, "sequence").isBlocked());
+            addChoice.setDisable(node == null || XsdEditRules.addCompositor(node, "choice").isBlocked());
+            addAll.setDisable(node == null || XsdEditRules.addCompositor(node, "all").isBlocked());
+            changeType.setDisable(node == null || XsdEditRules.changeType(node, "xs:string").isBlocked());
+        });
         return menu;
     }
 

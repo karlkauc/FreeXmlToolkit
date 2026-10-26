@@ -642,8 +642,13 @@ public class InspectorPanel extends VBox {
 
         commitOnEnterAndBlur(nameField, this::commitName);
         typePicker.getEditor().getStyleClass().addAll("fxt-inspector-edit", "fxt-inspector-mono");
-        typePicker.setOnCommit(type -> commit(() ->
-                routeEdit(() -> editorHost.changeActiveType(type), t -> t.changeType(type), false)));
+        // A change the structural rules refuse (or the user cancels when it would replace an
+        // inline type) leaves the model as it was: show the unchanged value again.
+        typePicker.setOnCommit(type -> commit(() -> routeEdit(() -> {
+            if (!editorHost.changeActiveType(type)) {
+                debounce.playFromStart();
+            }
+        }, t -> t.changeType(type), false)));
         minSpinner.valueProperty().addListener((o, ov, nv) -> commit(this::commitCardinality));
         maxSpinner.valueProperty().addListener((o, ov, nv) -> commit(this::commitCardinality));
         unboundedCheck.selectedProperty().addListener((o, ov, nv) -> {
@@ -1067,8 +1072,12 @@ public class InspectorPanel extends VBox {
                 .orElseGet(() -> TypeChoices.of(editorHost.getActiveSchemaRoot().orElse(null),
                         editorHost.getActiveNamedTypes())));
         typePicker.setValue(PLACEHOLDER.equals(info.type()) ? "" : info.type());
-        typePicker.setPromptText(PLACEHOLDER.equals(info.type()) ? "(anonymous type)" : "");
-        typePicker.setDisable(false);
+        // A reference takes its type from the referenced declaration (XsdEditRules.changeType)
+        boolean typeFromRef = (isElement || isAttribute)
+                && org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, "xs:string").isBlocked();
+        typePicker.setPromptText(typeFromRef ? "(from the referenced declaration)"
+                : PLACEHOLDER.equals(info.type()) ? "(anonymous type)" : "");
+        typePicker.setDisable(typeFromRef);
         showRow(typeRow, isElement || isAttribute);
 
         // Cardinality (elements only)

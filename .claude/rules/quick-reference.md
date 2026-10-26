@@ -164,6 +164,7 @@ class MyUITest {
 | UI freezes | Heavy work on UI thread | Use `executorService` |
 | Changes not saved | Direct model modification | Use Command pattern |
 | Infinite loop | Circular XSD references | Check visited nodes |
+| New structural edit produces invalid XSD | Command runs without a rule check | Ask `XsdEditRules` first; resolve with `EditRuleDialogs.resolve` |
 | Icon missing | Invalid icon name | `IconifyIconCoverageTest` catches it |
 | Per-item icon color ignored | CSS `-fx-icon-color` overrides `setIconColor()` | `bind()` the property instead |
 | Native build fails | Non-public FXML method | Make all @FXML public |
@@ -192,6 +193,7 @@ class MyUITest {
 | Factory | `controls/v2/model/XsdNodeFactory.java` |
 | Facets Panel | `controls/v2/editor/panels/FacetsPanel.java` |
 | Type picker (type="…" of elements/attributes; base/item/member types in `SimpleTypeEditorView`) | `controls/shell/schema/TypePickerField.java` (+ `TypePickerPopup`, `TypePickerDialog`, `TypeChoices`), built-in catalog `domain/XsdBuiltinTypeCatalog.java` |
+| Structural edit rules (only valid XSD: type vs. inline type, content under simple types, compositor/attribute placement) | `controls/v2/editor/commands/XsdEditRules.java` → `EditCheck` (ALLOWED / REPLACEABLE / BLOCKED); every entry point asks it, dialogs via `controls/shell/schema/EditRuleDialogs` (test hooks `setConfirmer` / `setBlockedHandler`); commands guard themselves, replacing variants `ChangeTypeCommand.replacingInlineType`, `AddCompositorCommand.replacingType()` |
 | Shell CSS / tokens | `css/unified-shell.css`, `css/design-tokens.css` |
 | Style Guide | `STYLE_GUIDE.jsonc` |
 | Doc screenshots | `xvfb-run ./gradlew docScreenshots` → `docs/img/` (every `*DocScreenshotGenerator` in `src/test/.../screenshots/`; the XSLT debugger images come from `XsltDebuggerDocScreenshotGenerator`) |
