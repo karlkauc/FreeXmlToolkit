@@ -199,6 +199,12 @@ public class FxtGui extends Application {
             try {
                 try {
                     logger.error("Uncaught exception in thread '{}'", thread.getName(), throwable);
+                    if (throwable != null && throwable.getStackTrace().length == 0) {
+                        // A JIT-preallocated exception carries no trace: log where it was
+                        // reported from instead (e.g. the listener/event dispatch that ran it).
+                        logger.error("Exception without stack trace, reported from:",
+                                new Throwable("uncaught-handler call site"));
+                    }
                 } catch (Throwable ignored) {
                     // logging must not break the handler
                 }
