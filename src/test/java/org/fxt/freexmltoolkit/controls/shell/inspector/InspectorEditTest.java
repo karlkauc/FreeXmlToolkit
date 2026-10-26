@@ -4,20 +4,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerField;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerPopup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
@@ -31,6 +36,10 @@ class InspectorEditTest {
 
     private static final String XSD = """
             <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <xs:simpleType name="ISINType">
+                <xs:annotation><xs:documentation>Securities identifier</xs:documentation></xs:annotation>
+                <xs:restriction base="xs:string"/>
+              </xs:simpleType>
               <xs:element name="root">
                 <xs:complexType>
                   <xs:sequence>
@@ -108,6 +117,47 @@ class InspectorEditTest {
                         && ((ComboBox<?>) inspector.lookup("#inspector-use")).isVisible());
         assertTrue(((ComboBox<?>) inspector.lookup("#inspector-use")).isVisible(),
                 "Use must be visible for attributes");
+    }
+
+    @Test
+    void changingTypeViaPickerRoundTripsToText(FxRobot robot, @TempDir Path tmp) throws Exception {
+        selectInTree("child", tmp.resolve("schema.xsd"));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> "xs:string".equals(inspector.getTypeText()));
+        TypePickerField picker = (TypePickerField) inspector.lookup("#inspector-type");
+        assertNotNull(picker, "the inspector's Type row is a TypePickerField");
+        robot.clickOn(picker.getEditor());
+        robot.push(KeyCode.CONTROL, KeyCode.A);
+        robot.write("xs:int");
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, picker::isPopupShowing);
+        robot.push(KeyCode.ENTER);
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
+                () -> host.getActiveText().orElse("").contains("type=\"xs:int\""));
+        assertTrue(host.getActiveText().orElse("").contains("type=\"xs:int\""),
+                "committing a type in the inspector must round-trip to the text; picker value="
+                        + picker.getValue() + ", editor=" + picker.getEditor().getText());
+    }
+
+    @Test
+    void pickerOffersSchemaTypesWithExplanation(@TempDir Path tmp) throws Exception {
+        selectInTree("child", tmp.resolve("schema.xsd"));
+        TypePickerField picker = (TypePickerField) inspector.lookup("#inspector-type");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            picker.showPopup();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, picker::isPopupShowing);
+        List<TypePickerPopup.Row> rows = WaitForAsyncUtils.waitForAsyncFx(2000, () -> picker.popup().rows());
+        assertEquals(new TypePickerPopup.Header("Simple types"), rows.getFirst());
+        assertTrue(rows.stream().anyMatch(r -> r instanceof TypePickerPopup.Item i
+                && i.choice().qualifiedName().equals("ISINType")
+                && "Securities identifier".equals(i.choice().details().get().documentation())),
+                "the schema's own simple type is offered with its documentation");
+        assertTrue(rows.stream().anyMatch(r -> r instanceof TypePickerPopup.Item i
+                && i.choice().qualifiedName().equals("xs:dateTimeStamp")), "built-ins are offered");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            picker.hidePopup();
+            return null;
+        });
     }
 
     private XsdNode find(XsdNode node, String name) {

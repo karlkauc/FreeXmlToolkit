@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  TypePickerPopup content: the grouped type list on the left, the explanation of the highlighted
+  type on the right. Loaded by TypePickerPopup via FxmlViews.loadContent (the class wraps a Popup
+  and is not a Node itself). Cell factory, filtering and keyboard handling stay in Java.
+-->
+<VBox styleClass="fxt-type-picker-popup" prefWidth="620" prefHeight="340" spacing="0"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox VBox.vgrow="ALWAYS" spacing="0">
+            <children>
+                <ListView fx:id="typeList" prefWidth="280" minWidth="220" styleClass="fxt-type-picker-list"/>
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" HBox.hgrow="ALWAYS"
+                            styleClass="fxt-type-picker-detail-scroll">
+                    <content>
+                        <VBox fx:id="detailBox" spacing="6" styleClass="fxt-type-picker-detail">
+                            <children>
+                                <Label fx:id="detailTitle" wrapText="true" styleClass="fxt-type-picker-detail-title"/>
+                                <Label fx:id="detailKind" wrapText="true" styleClass="fxt-type-picker-detail-kind"/>
+                                <Label fx:id="detailNote" wrapText="true" styleClass="fxt-type-picker-detail-note"/>
+                                <Label fx:id="detailDoc" wrapText="true" styleClass="fxt-type-picker-detail-doc"/>
+                                <HBox fx:id="baseRow" spacing="8" alignment="TOP_LEFT" styleClass="fxt-type-picker-detail-row">
+                                    <children>
+                                        <Label text="Base type" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
+                                        <Label fx:id="detailBase" wrapText="true" styleClass="fxt-type-picker-detail-value, fxt-type-picker-mono"/>
+                                    </children>
+                                </HBox>
+                                <HBox fx:id="derivationRow" spacing="8" alignment="TOP_LEFT" styleClass="fxt-type-picker-detail-row">
+                                    <children>
+                                        <Label text="Derivation" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
+                                        <Label fx:id="detailDerivation" wrapText="true" styleClass="fxt-type-picker-detail-value"/>
+                                    </children>
+                                </HBox>
+                                <HBox fx:id="exampleRow" spacing="8" alignment="TOP_LEFT" styleClass="fxt-type-picker-detail-row">
+                                    <children>
+                                        <Label text="Example" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
+                                        <Label fx:id="detailExample" wrapText="true" styleClass="fxt-type-picker-detail-value, fxt-type-picker-mono"/>
+                                    </children>
+                                </HBox>
+                                <HBox fx:id="sourceRow" spacing="8" alignment="TOP_LEFT" styleClass="fxt-type-picker-detail-row">
+                                    <children>
+                                        <Label text="Source" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
+                                        <Label fx:id="detailSource" wrapText="true" styleClass="fxt-type-picker-detail-value"/>
+                                    </children>
+                                </HBox>
+                                <VBox fx:id="detailFacts" spacing="2" styleClass="fxt-type-picker-detail-facts"/>
+                                <Label fx:id="detailEmpty" text="Highlight a type to see what it means."
+                                       wrapText="true" styleClass="fxt-type-picker-detail-doc"/>
+                            </children>
+                        </VBox>
+                    </content>
+                </ScrollPane>
+            </children>
+        </HBox>
+        <Label fx:id="footer" maxWidth="Infinity" styleClass="fxt-type-picker-footer"
+               text="↑ ↓ navigate · Enter select · Esc close · type to filter"/>
+    </children>
+</VBox>

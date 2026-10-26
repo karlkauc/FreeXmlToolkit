@@ -12,7 +12,10 @@ import javafx.scene.control.TextInputDialog;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
  * Builds the shared XSD node-editing context menu (Add Element/Attribute/
@@ -27,6 +30,16 @@ public final class NodeContextMenu {
 
     /** @return a context menu whose items invoke {@code actions} on {@code currentNode.get()}. */
     public static ContextMenu build(NodeEditActions actions, Supplier<XsdNode> currentNode) {
+        return build(actions, currentNode, () -> null);
+    }
+
+    /**
+     * @param schema supplies the edited schema for the type picker of "Change Type…" (its named
+     *               types and prefixes); may return {@code null} for built-in types only
+     * @return a context menu whose items invoke {@code actions} on {@code currentNode.get()}
+     */
+    public static ContextMenu build(NodeEditActions actions, Supplier<XsdNode> currentNode,
+                                    Supplier<XsdSchema> schema) {
         ContextMenu menu = new ContextMenu();
         MenuItem paste = item("Paste", "bi-clipboard-plus", ActionColor.CREATE, currentNode, actions::paste);
         menu.getItems().addAll(
@@ -43,7 +56,7 @@ public final class NodeContextMenu {
                         node -> promptComment(actions, node)),
                 new SeparatorMenuItem(),
                 item("Rename…", "bi-pencil", ActionColor.MODIFY, currentNode, node -> promptRename(actions, node)),
-                item("Change Type…", "bi-type", ActionColor.STRUCTURE, currentNode, node -> promptChangeType(actions, node)),
+                item("Change Type…", "bi-type", ActionColor.STRUCTURE, currentNode, node -> promptChangeType(actions, node, schema)),
                 item("Change Cardinality…", "bi-arrows-expand", ActionColor.STRUCTURE, currentNode, node -> promptCardinality(actions, node)),
                 new SeparatorMenuItem(),
                 item("Copy", "bi-clipboard", ActionColor.NEUTRAL, currentNode, actions::copy),
@@ -97,15 +110,17 @@ public final class NodeContextMenu {
         });
     }
 
-    private static void promptChangeType(NodeEditActions actions, XsdNode node) {
-        TextInputDialog dialog = new TextInputDialog("xs:string");
-        dialog.setTitle("Change Type");
-        dialog.setHeaderText("New type:");
-        dialog.showAndWait().ifPresent(type -> {
-            if (!type.isBlank()) {
-                actions.changeType(node, type.trim());
-            }
-        });
+    private static void promptChangeType(NodeEditActions actions, XsdNode node, Supplier<XsdSchema> schema) {
+        String current = node instanceof XsdElement el ? el.getType()
+                : node instanceof XsdAttribute at ? at.getType() : null;
+        TypePickerDialog.show(null, "Change Type", "New type for '" + node.getName() + "':",
+                        current == null || current.isBlank() ? "xs:string" : current,
+                        () -> TypeChoices.of(schema == null ? null : schema.get()))
+                .ifPresent(type -> {
+                    if (!type.isBlank()) {
+                        actions.changeType(node, type.trim());
+                    }
+                });
     }
 
     private static void promptRename(NodeEditActions actions, XsdNode node) {

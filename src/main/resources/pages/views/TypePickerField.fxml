@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  TypePickerField: an editable type reference (xs:string, MyType, cmn:Money) with a dropdown
+  button that opens the TypePickerPopup. Loaded by TypePickerField via the fx:root pattern.
+  No id="…" attributes here: the control is instantiated several times, hosts call setId().
+-->
+<fx:root type="javafx.scene.layout.HBox" styleClass="fxt-type-picker" alignment="CENTER_LEFT" spacing="2"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <TextField fx:id="typeField" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-type-picker-field"/>
+        <Button fx:id="pickButton" onAction="#onPick" focusTraversable="false" styleClass="fxt-type-picker-button">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-chevron-down" iconSize="12"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Choose a type (Ctrl+Space)"/>
+            </tooltip>
+        </Button>
+    </children>
+</fx:root>

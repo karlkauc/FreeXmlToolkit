@@ -191,6 +191,7 @@ class MyUITest {
 | Serializer | `controls/v2/editor/serialization/XsdSerializer.java` |
 | Factory | `controls/v2/model/XsdNodeFactory.java` |
 | Facets Panel | `controls/v2/editor/panels/FacetsPanel.java` |
+| Type picker (type="…" of elements/attributes) | `controls/shell/schema/TypePickerField.java` (+ `TypePickerPopup`, `TypePickerDialog`, `TypeChoices`), built-in catalog `domain/XsdBuiltinTypeCatalog.java` |
 | Shell CSS / tokens | `css/unified-shell.css`, `css/design-tokens.css` |
 | Style Guide | `STYLE_GUIDE.jsonc` |
 | Doc screenshots | `xvfb-run ./gradlew docScreenshots` → `docs/img/` (every `*DocScreenshotGenerator` in `src/test/.../screenshots/`; the XSLT debugger images come from `XsltDebuggerDocScreenshotGenerator`) |

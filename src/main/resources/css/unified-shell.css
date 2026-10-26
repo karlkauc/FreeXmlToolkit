@@ -1676,6 +1676,143 @@
     -fx-text-fill: -fxt-text-primary;
 }
 
+/* ---------------------------------------------------------------------------
+   Type picker (TypePickerField + TypePickerPopup): type="…" of elements/attributes
+   --------------------------------------------------------------------------- */
+.fxt-type-picker-button,
+.button.fxt-type-picker-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 4;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 3 4 3 4;
+    -fx-cursor: hand;
+    -fx-effect: null;
+}
+
+.fxt-type-picker-button:hover,
+.button.fxt-type-picker-button:hover {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
+.fxt-type-picker-button .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-type-picker-popup {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 12, 0, 0, 3);
+}
+
+.fxt-type-picker-list {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 4 0 4 0;
+    -fx-border-color: transparent -fxt-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.fxt-type-picker-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 3 10 3 10;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-size: 12px;
+}
+
+.fxt-type-picker-list .list-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-type-picker-list .list-cell.fxt-type-picker-header,
+.fxt-type-picker-list .list-cell.fxt-type-picker-header:disabled {
+    -fx-opacity: 1;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-padding: 5 10 3 10;
+}
+
+.fxt-type-picker-row-name {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-type-picker-row-summary {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-text-overrun: ellipsis;
+}
+
+.fxt-type-picker-detail-scroll,
+.fxt-type-picker-detail-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.fxt-type-picker-detail {
+    -fx-padding: 10 14 10 14;
+}
+
+.fxt-type-picker-detail-title {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-type-picker-detail-kind {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-type-picker-detail-note {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-warning;
+}
+
+.fxt-type-picker-detail-doc {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-padding: 2 0 4 0;
+}
+
+.fxt-type-picker-detail-key {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-min-width: 70px;
+    -fx-padding: 1 0 0 0;
+}
+
+.fxt-type-picker-detail-value {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-type-picker-mono {
+    -fx-font-family: "JetBrains Mono", monospace;
+}
+
+.fxt-type-picker-detail-fact {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-type-picker-footer {
+    -fx-font-size: 10px;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-padding: 4 10 4 10;
+    -fx-border-color: -fxt-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
 /* DEBUG status while paused because a breakpoint condition failed to evaluate. */
 .fxt-output-status.fxt-debug-condition-error {
     -fx-text-fill: -fxt-danger;

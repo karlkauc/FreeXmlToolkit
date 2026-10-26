@@ -27,6 +27,8 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypeChoices;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerField;
 import org.fxt.freexmltoolkit.controls.shell.schema.XmlNodeIcons;
 import org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand;
@@ -59,9 +61,6 @@ public class InspectorPanel extends VBox {
 
     private static final String PLACEHOLDER = "—";
     private static final String NO_SCHEMA_DOC = "No documentation in the schema";
-    private static final List<String> BUILTIN_TYPES = List.of(
-            "xs:string", "xs:boolean", "xs:int", "xs:integer", "xs:long", "xs:decimal",
-            "xs:double", "xs:float", "xs:date", "xs:dateTime", "xs:time", "xs:anyURI", "xs:QName");
 
     private final EditorHost editorHost;
     private final XPathCalculator xpathCalculator = new XPathCalculator();
@@ -130,7 +129,7 @@ public class InspectorPanel extends VBox {
     @FXML private Label xmlFixedValue;
     // Editable controls
     @FXML private TextField nameField;
-    @FXML private ComboBox<String> typeCombo;
+    @FXML private TypePickerField typePicker;
     @FXML private Spinner<Integer> minSpinner;
     @FXML private Spinner<Integer> maxSpinner;
     @FXML private CheckBox unboundedCheck;
@@ -642,10 +641,9 @@ public class InspectorPanel extends VBox {
         maxSpinner.setEditable(true);
 
         commitOnEnterAndBlur(nameField, this::commitName);
-        typeCombo.setOnAction(e -> commit(() -> {
-            String type = comboText(typeCombo);
-            routeEdit(() -> editorHost.changeActiveType(type), t -> t.changeType(type), false);
-        }));
+        typePicker.getEditor().getStyleClass().addAll("fxt-inspector-edit", "fxt-inspector-mono");
+        typePicker.setOnCommit(type -> commit(() ->
+                routeEdit(() -> editorHost.changeActiveType(type), t -> t.changeType(type), false)));
         minSpinner.valueProperty().addListener((o, ov, nv) -> commit(this::commitCardinality));
         maxSpinner.valueProperty().addListener((o, ov, nv) -> commit(this::commitCardinality));
         unboundedCheck.selectedProperty().addListener((o, ov, nv) -> {
@@ -1062,17 +1060,15 @@ public class InspectorPanel extends VBox {
         nameField.setEditable(nameEditable(node));
         nameField.setText(blankToPlaceholder(info.name()).equals(PLACEHOLDER) ? "" : info.name());
 
-        // Type
-        List<String> types = new ArrayList<>(BUILTIN_TYPES);
-        for (XsdNode t : editorHost.getActiveNamedTypes()) {
-            if (t.getName() != null && !types.contains(t.getName())) {
-                types.add(t.getName());
-            }
-        }
-        typeCombo.getItems().setAll(types);
-        typeCombo.setValue(PLACEHOLDER.equals(info.type()) ? "" : info.type());
-        typeCombo.setPromptText(PLACEHOLDER.equals(info.type()) ? "(anonymous type)" : "");
-        typeCombo.setDisable(false);
+        // Type: the picker lists the schema's named types (own, included, imported with prefix) and
+        // every built-in type with an explanation; choices are built when the dropdown opens.
+        typePicker.setChoices(() -> editorHost.getActiveSchema()
+                .map(TypeChoices::of)
+                .orElseGet(() -> TypeChoices.of(editorHost.getActiveSchemaRoot().orElse(null),
+                        editorHost.getActiveNamedTypes())));
+        typePicker.setValue(PLACEHOLDER.equals(info.type()) ? "" : info.type());
+        typePicker.setPromptText(PLACEHOLDER.equals(info.type()) ? "(anonymous type)" : "");
+        typePicker.setDisable(false);
         showRow(typeRow, isElement || isAttribute);
 
         // Cardinality (elements only)
@@ -1618,16 +1614,10 @@ public class InspectorPanel extends VBox {
                 XmlNodeIcons.icon(el));
 
         // Type (editable) + derivation from the live model
-        List<String> types = new ArrayList<>(BUILTIN_TYPES);
-        for (XsdNode t : org.fxt.freexmltoolkit.controls.shell.schema.TypeLibrary.collectNamedTypes(schema)) {
-            if (t.getName() != null && !types.contains(t.getName())) {
-                types.add(t.getName());
-            }
-        }
-        typeCombo.getItems().setAll(types);
-        typeCombo.setValue(type == null ? "" : type);
-        typeCombo.setPromptText(type == null || type.isBlank() ? "(anonymous type)" : "");
-        typeCombo.setDisable(false);
+        typePicker.setChoices(() -> TypeChoices.of(schema));
+        typePicker.setValue(type == null ? "" : type);
+        typePicker.setPromptText(type == null || type.isBlank() ? "(anonymous type)" : "");
+        typePicker.setDisable(false);
         showRow(schemaTypeRow, false);
         showRow(typeRow, true);
         SchemaDerivation.of(decl, schema).ifPresent(d -> {
@@ -2124,14 +2114,6 @@ public class InspectorPanel extends VBox {
         });
     }
 
-    private String comboText(ComboBox<String> combo) {
-        String v = combo.getEditor().getText();
-        if (v == null || v.isBlank()) {
-            v = combo.getValue();
-        }
-        return v == null ? "" : v.trim();
-    }
-
     private String blankToPlaceholder(String s) {
         return (s == null || s.isBlank()) ? PLACEHOLDER : s;
     }
@@ -2156,7 +2138,8 @@ public class InspectorPanel extends VBox {
 
     /** @return the current type value (for tests/observers). */
     public String getTypeText() {
-        return comboText(typeCombo);
+        String t = typePicker.getEditor().getText();
+        return t == null ? "" : t.trim();
     }
 
     /** @return the current Kind value (for tests/observers). */

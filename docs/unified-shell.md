@@ -68,6 +68,9 @@ collapsed to give the editor more room - the activity bar always stays visible.
 - **Automatic file type detection** - Files are recognized by extension (.xml/.wsdl, .xsd, .xsl/.xslt, .xpl/.xproc, .xq/.xquery/.xqm/.xqy, .xpath, .sch/.schematron, .json/.jsonc/.json5, .html/.htm/.xhtml); anything else opens as plain text
 - **View modes per document** - Text, Tree and Graphic, all over one shared model, plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes))
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
+- **Type picker with explanations** - the inspector's **Type** field and *Change Type…* in the
+  diagram and tree context menus list the schema's own types and every XSD built-in datatype,
+  and a side pane explains the highlighted one (see [Choosing a type](#type-picker))
 - **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
   XML/JSON file right from the editor (Ctrl+Shift+X)
 - **Editor toolbar actions** - run [Validate, Transform, Run, Generate Documentation and the Type
@@ -1308,6 +1311,9 @@ of files written to a folder you choose. For a full walkthrough, see
 When an XSD file is open, the **Properties** inspector (Ctrl+Shift+P) shows the selected schema
 node. In addition to name, type, cardinality, facets, and constraints, you can now:
 
+- **Pick the type from a list** - The **Type** field opens a dropdown of the schema's own
+  simple and complex types and all XSD built-in datatypes, each explained in a side pane as you
+  move through the list. See [Choosing a type with the type picker](#type-picker).
 - **Edit the node's `xs:appinfo`** - The machine-readable metadata attached to the node.
   Structured fields cover `@since`, `@version`, `@see`, `@deprecated`, a **Markdown** choice
   (*Not set* / *Markdown* / *Plain text*, written as `@markdown`) and the node's **example
@@ -2008,6 +2014,8 @@ ADVANCED), the **facets** (add, edit, delete) and the **documentation/appinfo**.
 
 Things to know:
 
+- The **Type** field here is the same [type picker](#type-picker) as in the XSD inspector: it
+  lists the schema's own types and the XSD built-in datatypes and explains the highlighted one.
 - If the element uses a **named simple type**, its facets are the facets of that type. The list
   says so: *"Facets of the named type T – a change applies to every element of that type"*.
 - Before you change a type or a global declaration that is used in several places, the inspector
@@ -2036,6 +2044,53 @@ lets you edit it from whichever view you are in. XSD files have the same three v
   that preserves your caret and scroll position. If the caret is not inside a recognizable
   construct (for example inside an `xs:annotation`, a comment, or blank space), the pane falls
   back to a read-only caret/XPath view.
+
+#### Choosing a type with the type picker {#type-picker}
+
+The **Type** row of an element or attribute is a text field with a chevron button that opens a
+list of every type you can reference - in the Text, Tree and Graphic view alike. The same field
+sits in the small dialog behind **Change Type…** in the right-click menu of the Graphic view (the
+schema diagram) and of the Tree view, pre-filled with the current type.
+
+The list is grouped under section headers:
+
+- **Simple types** and **Complex types** defined in the schema itself, in included schemas and
+  in imported schemas. Imported types carry the namespace prefix your schema declares for their
+  namespace (for example `cmn:Money`). If the schema declares no prefix for that namespace, the
+  bare name is shown and the detail pane reminds you to add an `xmlns` prefix for it before
+  referencing the type.
+- **Built-in XSD datatypes** - all of them, grouped by category: Any, String, Numeric, Date &
+  Time, Binary, Boolean, URI & Names, IDs & References. They use the prefix your schema actually
+  uses (`xs:` or `xsd:`). The XSD 1.1 additions (`dateTimeStamp`, `dayTimeDuration`,
+  `yearMonthDuration`, `precisionDecimal`) are included and marked as *XSD 1.1 only*.
+
+Each row shows the type's name and a one-line summary - a short description for a built-in
+type, otherwise its make-up such as *restriction of xs:string*, *extension of BaseType* or
+*sequence*. The **detail pane** on the right explains the highlighted type: what kind of type it
+is (built-in with its category, simple or complex), its description or `xs:documentation`
+(English preferred), base type and derivation (restriction / extension / list / union), facts
+such as enumeration values, patterns, length limits, *abstract*, *mixed content*, the content
+model and the number of attributes, where it comes from (*Imported from common.xsd*, *Included
+from …*), an example value for built-in types, and notes such as *XSD 1.1 only* or *not
+supported by Xerces* (for `precisionDecimal`). Point at a row to read its explanation; click it
+or press **Enter** to pick it.
+
+Working with the field:
+
+- **Type to filter.** The list opens as you type and narrows to matching names. Exact matches
+  come first, so typing `xs:int` highlights `xs:int`, not `xs:integer`.
+- **Open the full list** with the chevron button, **↓** or **Ctrl+Space** - the current type is
+  highlighted.
+- **↑ / ↓** move through the list, **PageUp / PageDown** jump eight rows at a time, **Enter**
+  picks the highlighted type, **Esc** closes the list; a second **Esc** reverts an edit you have
+  not committed yet.
+- **Free text still works.** When nothing in the list matches, **Enter** commits exactly what
+  you typed - useful for a type reference the picker does not know.
+
+A picked type is applied like every other inspector edit: one undo step (Ctrl+Z), written into
+the schema text right away.
+
+> The type picker arrived in version 2.6.0; earlier versions took the type as plain text.
 
 **USED IN** (in **DOCUMENTATION & REFS**) shows where a node is used:
 

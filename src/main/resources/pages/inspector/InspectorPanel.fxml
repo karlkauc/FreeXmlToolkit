@@ -22,6 +22,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerField?>
 <?import org.fxt.freexmltoolkit.controls.shell.inspector.DocLanguagesEditor?>
 <?import org.fxt.freexmltoolkit.controls.shell.inspector.InspectorKeyValueList?>
 
@@ -228,7 +229,7 @@
                                         <HBox fx:id="typeRow" alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
                                             <children>
                                                 <Label text="Type" minWidth="-Infinity" styleClass="fxt-inspector-key"/>
-                                                <ComboBox fx:id="typeCombo" id="inspector-type" editable="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-edit, fxt-inspector-mono"/>
+                                                <TypePickerField fx:id="typePicker" id="inspector-type" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                                             </children>
                                         </HBox>
                                         <!-- Schema type of an XML instance element (read-only, from the bound XSD) -->

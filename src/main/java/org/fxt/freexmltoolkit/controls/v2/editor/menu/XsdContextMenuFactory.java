@@ -15,6 +15,8 @@ import javafx.scene.input.ClipboardContent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypeChoices;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerDialog;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
@@ -635,12 +637,12 @@ public class XsdContextMenuFactory {
      * @param node the node whose type to change
      */
     private void handleChangeType(VisualNode node) {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Change Type");
-        dialog.setHeaderText("Change type of '" + node.getLabel() + "'");
-        dialog.setContentText("New type (e.g., xs:string, MyCustomType):");
-
-        Optional<String> result = dialog.showAndWait();
+        Object current = node.getModelObject();
+        String currentType = current instanceof XsdElement el ? el.getType()
+                : current instanceof XsdAttribute at ? at.getType() : null;
+        Optional<String> result = TypePickerDialog.show(null, "Change Type",
+                "Change type of '" + node.getLabel() + "'", currentType,
+                () -> TypeChoices.of(editorContext.getSchema()));
         result.ifPresent(newType -> {
             if (!newType.trim().isEmpty()) {
                 // Extract XsdNode from VisualNode for the command

@@ -46,6 +46,7 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Visual Tree**: See your XSD as an interactive, hierarchical tree
 - **Easy Navigation**: Click on elements to explore their structure
 - **Edit Documentation**: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)
+- **Type Picker**: Choose an element's or attribute's type from a list of the schema's own types and all XSD built-in datatypes, each explained in a side pane
 - **Add Examples**: Include example values for elements
 - **Reorder and Duplicate**: Move nodes up and down, copy, cut, paste and duplicate them from the context menu
 - **Full Undo/Redo**: Go back and forward through your changes
@@ -65,7 +66,7 @@ The Graphic View lets you explore and edit your schemas visually.
 
 ### Tips
 
-- **Right-click** for a context menu with common actions (**Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete)
+- **Right-click** for a context menu with common actions (**Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete). **Change Type…** opens a small dialog with the [type picker](unified-shell.md#type-picker), pre-filled with the current type - the same dialog as in the Tree view
 - Edit the name and every other property in the Properties pane on the right
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
 - **Ctrl+S** to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)
@@ -250,7 +251,12 @@ when you switch between Text, Tree, and Graphic.
 
 For the selected schema node you can edit:
 
-- **Name, type, cardinality/occurrence, use, form** - The core properties of the node.
+- **Name, type, cardinality/occurrence, use, form** - The core properties of the node. The
+  **Type** field is a picker: it lists the schema's own simple and complex types (including
+  included and imported ones, with their namespace prefix) and every XSD built-in datatype,
+  filters as you type and explains the highlighted type in a side pane; free text is still
+  accepted for references it does not know. See [Choosing a type with the type
+  picker](unified-shell.md#type-picker) for the keyboard shortcuts and what the side pane shows.
   Compositors (`xs:sequence`, `xs:choice`, `xs:all`), group references and `xs:any` also show
   editable minOccurs/maxOccurs and their Order in **CARDINALITY & USE**.
 - **Facets** - Add, edit, and remove facets such as patterns, enumerations, and length limits.

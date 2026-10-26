@@ -100,7 +100,8 @@ class Xsd11BuiltinTypesTest {
 
         assertNotNull(info);
         assertEquals("xs:precisionDecimal", info.name());
-        assertEquals("xs:decimal", info.baseType());
+        // precisionDecimal is a primitive type in XSD 1.1 (not derived from decimal)
+        assertEquals("xs:anyAtomicType", info.baseType());
         assertTrue(info.isXsd11Only());
         assertTrue(info.description().contains("arbitrary precision"));
         assertTrue(info.description().contains("trailing zeros"));

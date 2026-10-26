@@ -43,7 +43,7 @@ public class XsdTreeView extends TreeView<XsdNode> implements XmlSearchTarget {
         setContextMenu(NodeContextMenu.build(actions, () -> {
             javafx.scene.control.TreeItem<XsdNode> selected = getSelectionModel().getSelectedItem();
             return selected != null ? selected.getValue() : null;
-        }));
+        }, () -> getRoot() != null && getRoot().getValue() instanceof XsdSchema schema ? schema : null));
     }
 
     /**

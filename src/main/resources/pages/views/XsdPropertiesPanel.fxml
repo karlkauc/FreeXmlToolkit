@@ -21,6 +21,7 @@
 <?import java.lang.String?>
 <?import javafx.collections.FXCollections?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+<?import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerField?>
 
 <!--
   Properties panel of the XSD graph view: a header (title · customize sections · hide), the
@@ -55,8 +56,7 @@
                         <Label text="Type:" GridPane.rowIndex="1"/>
                         <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="1" GridPane.columnIndex="1">
                             <children>
-                                <ComboBox fx:id="typeComboBox" editable="true" promptText="xs:string, MyCustomType"
-                                          maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                <TypePickerField fx:id="typePicker" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                                 <!-- XsdPropertiesPanel swaps literal and colour to match the datatype -->
                                 <IconifyIcon fx:id="typeIcon" iconLiteral="bi-diagram-3" iconSize="18"
                                              iconColor="#666666"/>
