@@ -5834,6 +5834,11 @@ editor"</em> - click it to expand and focus that PROBLEMS panel.</p>
 run combines several checks you can tell at a glance where each problem comes from.
 Hovering a <strong>Schematron</strong> row shows a <strong>tooltip</strong> with the full message, the failed
 rule/test expression, and the XPath of the failing node.</p>
+<p>Long messages are cut off in the row. <strong>Right-click</strong> a row in the PROBLEMS panel below the
+editor to copy it: <strong>Copy Message</strong> (just the message text), <strong>Copy Problem</strong> (severity,
+source, message, file and line/column, plus rule and context for Schematron) or <strong>Copy All
+Problems</strong> (one problem per line). <strong>Ctrl+C</strong> (<strong>Cmd+C</strong> on macOS) copies the selected row
+like Copy Problem.</p>
 <p>Selecting a problem in either list jumps to its line - and, for XML and XSD errors, to the
 reported column - in the editor (Text view). This works for
 <strong>Schematron problems too</strong>: the failing rule's context node is resolved back to its
