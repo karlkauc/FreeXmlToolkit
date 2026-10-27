@@ -1,273 +1,177 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.StartTagAttributes;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlNamespaceDeclarations;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XsltElementCatalog.XsltAttribute;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XsltElementCatalog.XsltElement;
 
 /**
- * Completion provider for XSLT documents.
- * Provides IntelliSense for XSLT 1.0/2.0/3.0 elements and attributes.
+ * Completion provider for XSLT documents, backed by the XSLT 3.0 {@link XsltElementCatalog}.
  *
- * <p>Supports XSLT elements like:</p>
- * <ul>
- *   <li>stylesheet, template, apply-templates, call-template</li>
- *   <li>for-each, if, choose, when, otherwise</li>
- *   <li>value-of, copy-of, variable, param</li>
- *   <li>element, attribute, text, comment, processing-instruction</li>
- * </ul>
+ * <p>Attribute names and values of {@code xsl:*} elements always come from here. Element
+ * names come from here only when no schema is bound; otherwise the higher-priority
+ * {@link XsdCompletionProvider} answers them from the auto-bound XSLT schema.</p>
+ *
+ * <p>XSLT elements are recognised by the prefix the document binds to the XSLT namespace,
+ * not by a hard-coded {@code xsl:}.</p>
  */
 public class XsltCompletionProvider implements CompletionProvider {
 
     private static final Logger logger = LogManager.getLogger(XsltCompletionProvider.class);
 
-    // XSLT elements
-    private static final String[] XSLT_ELEMENTS = {
-        // Structure
-        "stylesheet", "transform", "template", "include", "import",
-        // Flow control
-        "apply-templates", "call-template", "for-each", "if", "choose", "when", "otherwise",
-        // Variables and parameters
-        "variable", "param", "with-param",
-        // Output
-        "value-of", "copy", "copy-of", "text", "element", "attribute", "comment", "processing-instruction",
-        // Sorting and numbering
-        "sort", "number", "key", "decimal-format",
-        // Functions
-        "function", "result-document", "analyze-string", "matching-substring", "non-matching-substring",
-        // Misc
-        "output", "preserve-space", "strip-space", "namespace-alias",
-        "message", "fallback", "document"
-    };
+    /** Elements that are only allowed as children of xsl:stylesheet / xsl:transform / xsl:package. */
+    private static final Set<String> DECLARATIONS = Set.of(
+            "accumulator", "attribute-set", "character-map", "decimal-format", "function", "global-context-item",
+            "import", "import-schema", "include", "key", "mode", "namespace-alias", "output", "param",
+            "preserve-space", "strip-space", "template", "use-package", "variable", "expose");
 
-    // Common XSLT attributes
-    private static final String[] STYLESHEET_ATTRIBUTES = {"version", "xmlns:xsl", "exclude-result-prefixes"};
-    private static final String[] TEMPLATE_ATTRIBUTES = {"match", "name", "mode", "priority", "as"};
-    private static final String[] APPLY_TEMPLATES_ATTRIBUTES = {"select", "mode"};
-    private static final String[] CALL_TEMPLATE_ATTRIBUTES = {"name"};
-    private static final String[] FOR_EACH_ATTRIBUTES = {"select"};
-    private static final String[] IF_ATTRIBUTES = {"test"};
-    private static final String[] WHEN_ATTRIBUTES = {"test"};
-    private static final String[] VARIABLE_PARAM_ATTRIBUTES = {"name", "select", "as"};
-    private static final String[] VALUE_OF_ATTRIBUTES = {"select", "separator", "disable-output-escaping"};
-    private static final String[] SORT_ATTRIBUTES = {"select", "order", "data-type", "case-order", "lang"};
-    private static final String[] ELEMENT_ATTRIBUTES = {"name", "namespace", "use-attribute-sets"};
-    private static final String[] ATTRIBUTE_ATTRIBUTES = {"name", "namespace", "select", "separator"};
+    private static final Set<String> ROOT_ELEMENTS = Set.of("stylesheet", "transform", "package");
 
     @Override
     public boolean canProvideCompletions(XmlContext context, EditorMode mode) {
-        // Only provide for XSLT mode
         return mode == EditorMode.XSLT;
     }
 
     @Override
     public List<CompletionItem> getCompletions(XmlContext context) {
-        List<CompletionItem> items = new ArrayList<>();
-
-        switch (context.getType()) {
-            case ELEMENT:
-                items.addAll(getElementCompletions(context));
-                break;
-            case ATTRIBUTE:
-                items.addAll(getAttributeCompletions(context));
-                break;
-            case ATTRIBUTE_VALUE:
-                items.addAll(getAttributeValueCompletions(context));
-                break;
-            default:
-                break;
-        }
-
+        List<CompletionItem> items = switch (context.getType()) {
+            case ELEMENT -> getElementCompletions(context);
+            case ATTRIBUTE -> getAttributeCompletions(context);
+            case ATTRIBUTE_VALUE -> getAttributeValueCompletions(context);
+            default -> new ArrayList<>();
+        };
         logger.debug("XsltProvider returned {} items for context {}", items.size(), context.getType());
         return items;
     }
 
     /**
-     * Gets element completions.
+     * Element completions: the XSLT elements allowed under the parent, qualified with the
+     * document's XSLT prefix. The insert text is the bare name; the engine adds the end tag.
      */
     private List<CompletionItem> getElementCompletions(XmlContext context) {
         List<CompletionItem> items = new ArrayList<>();
+        XmlNamespaceDeclarations declarations = XmlNamespaceDeclarations.scan(context.getTextBeforeCaret());
+        // The element stack keeps the prefixes (the XPath strips them)
+        String parentName = context.getXPathContext() == null ? null : context.getXPathContext().getCurrentElement();
+        String parent = xsltLocalName(parentName, declarations);
+        boolean hasParent = parentName != null && !parentName.isEmpty();
 
-        String currentElement = context.getCurrentElement();
-
-        for (String element : XSLT_ELEMENTS) {
-            // Filter based on parent context
-            if (isElementValidInContext(element, currentElement)) {
-                CompletionItem item = new CompletionItem.Builder(
-                    "xsl:" + element,
-                    "<xsl:" + element + "></xsl:" + element + ">",
-                    CompletionItemType.ELEMENT
-                )
-                .description(getElementDescription(element))
-                .build();
-
-                items.add(item);
+        for (XsltElement element : XsltElementCatalog.elements()) {
+            if (isElementValidInContext(element.name(), parent, hasParent)) {
+                String name = declarations.qualify(element.name(), XsltElementCatalog.XSLT_NAMESPACE, "xsl");
+                items.add(new CompletionItem.Builder(name, name, CompletionItemType.ELEMENT)
+                        .description(element.description())
+                        .namespace(XsltElementCatalog.XSLT_NAMESPACE)
+                        .build());
             }
         }
-
         return items;
     }
 
     /**
-     * Gets attribute completions.
+     * Attribute completions for the XSLT element whose start tag the caret is in: required
+     * attributes first, then its own optional ones, then the standard attributes; attributes
+     * already written in the tag are left out. Literal result elements get none.
      */
     private List<CompletionItem> getAttributeCompletions(XmlContext context) {
         List<CompletionItem> items = new ArrayList<>();
-
-        String currentElement = context.getCurrentElement();
-        // Remove xsl: prefix if present
-        if (currentElement != null && currentElement.startsWith("xsl:")) {
-            currentElement = currentElement.substring(4);
+        XmlNamespaceDeclarations declarations = XmlNamespaceDeclarations.scan(context.getTextBeforeCaret());
+        String element = xsltLocalName(context.getCurrentElement(), declarations);
+        if (element == null) {
+            return items;
         }
 
-        String[] attributes = getAttributesForElement(currentElement);
+        Set<String> present = new HashSet<>(
+                StartTagAttributes.present(context.getTextBeforeCaret(), context.getTextAfterCaret()));
+        List<XsltAttribute> attributes = XsltElementCatalog.attributesOf(element);
+        Set<String> standard = new HashSet<>();
+        XsltElementCatalog.STANDARD_ATTRIBUTES.forEach(a -> standard.add(a.name()));
 
-        for (String attr : attributes) {
-            CompletionItem item = new CompletionItem.Builder(
-                attr,
-                attr + "=\"\"",
-                CompletionItemType.ATTRIBUTE
-            )
-            .description(getAttributeDescription(currentElement, attr))
-            .build();
-
-            items.add(item);
+        List<XsltAttribute> ordered = new ArrayList<>(attributes.stream().filter(XsltAttribute::required).toList());
+        attributes.stream().filter(a -> !a.required()).forEach(ordered::add);
+        for (XsltAttribute attribute : ordered) {
+            if (present.contains(attribute.name())) {
+                continue;
+            }
+            int relevance = attribute.required() ? 150 : standard.contains(attribute.name()) ? 50 : 100;
+            items.add(new CompletionItem.Builder(attribute.name(), attribute.name(), CompletionItemType.ATTRIBUTE)
+                    .description(attribute.description() + (attribute.required() ? " [required]" : ""))
+                    .required(attribute.required())
+                    .relevanceScore(relevance)
+                    .examples(attribute.values())
+                    .build());
         }
-
         return items;
     }
 
-    /**
-     * Gets attribute value completions.
-     */
+    /** Attribute value completions: the suggested values the catalog lists for the attribute. */
     private List<CompletionItem> getAttributeValueCompletions(XmlContext context) {
         List<CompletionItem> items = new ArrayList<>();
-
-        String currentAttribute = context.getCurrentAttribute();
-
-        // Provide some common values
-        if ("version".equals(currentAttribute)) {
-            items.add(createValueItem("1.0", "XSLT 1.0"));
-            items.add(createValueItem("2.0", "XSLT 2.0"));
-            items.add(createValueItem("3.0", "XSLT 3.0"));
-        } else if ("order".equals(currentAttribute)) {
-            items.add(createValueItem("ascending", "Ascending order"));
-            items.add(createValueItem("descending", "Descending order"));
-        } else if ("data-type".equals(currentAttribute)) {
-            items.add(createValueItem("text", "Sort as text"));
-            items.add(createValueItem("number", "Sort as number"));
-        } else if ("disable-output-escaping".equals(currentAttribute)) {
-            items.add(createValueItem("yes", "Disable escaping"));
-            items.add(createValueItem("no", "Enable escaping"));
-        } else if ("method".equals(currentAttribute)) {
-            items.add(createValueItem("xml", "XML output method"));
-            items.add(createValueItem("html", "HTML output method"));
-            items.add(createValueItem("xhtml", "XHTML output method"));
-            items.add(createValueItem("text", "Text output method"));
+        XmlNamespaceDeclarations declarations = XmlNamespaceDeclarations.scan(context.getTextBeforeCaret());
+        String element = xsltLocalName(context.getCurrentElement(), declarations);
+        String attributeName = context.getCurrentAttribute();
+        if (element == null || attributeName == null) {
+            return items;
         }
-
+        XsltElementCatalog.attribute(element, attributeName).ifPresent(attribute -> {
+            for (String value : attribute.values()) {
+                items.add(new CompletionItem.Builder(value, value, CompletionItemType.VALUE)
+                        .description(attribute.name() + ": " + attribute.description())
+                        .build());
+            }
+        });
         return items;
     }
 
     /**
-     * Checks if an element is valid in the current context.
+     * The local name of {@code qualifiedName} when it is an XSLT element, or null. With no
+     * namespace declarations in sight, the conventional {@code xsl} prefix is accepted.
      */
-    private boolean isElementValidInContext(String element, String parent) {
-        // Root elements
-        if (parent == null || parent.isEmpty()) {
-            return "stylesheet".equals(element) || "transform".equals(element);
+    static String xsltLocalName(String qualifiedName, XmlNamespaceDeclarations declarations) {
+        if (qualifiedName == null || qualifiedName.isEmpty()) {
+            return null;
         }
+        int colon = qualifiedName.indexOf(':');
+        String prefix = colon < 0 ? "" : qualifiedName.substring(0, colon);
+        String local = qualifiedName.substring(colon + 1);
+        String uri = declarations.uriFor(prefix)
+                .orElse("xsl".equals(prefix) ? XsltElementCatalog.XSLT_NAMESPACE : null);
+        return XsltElementCatalog.XSLT_NAMESPACE.equals(uri) ? local : null;
+    }
 
-        // Stylesheet/transform children
-        if ("stylesheet".equals(parent) || "transform".equals(parent)) {
-            return List.of("template", "include", "import", "output", "key",
-                          "decimal-format", "variable", "param", "function",
-                          "namespace-alias", "preserve-space", "strip-space").contains(element);
+    /**
+     * Checks if an element may appear under the parent.
+     *
+     * @param element   the candidate's local name
+     * @param parent    the parent's local name when it is an XSLT element, otherwise null
+     * @param hasParent whether there is a parent element at all (a literal result element counts)
+     */
+    private static boolean isElementValidInContext(String element, String parent, boolean hasParent) {
+        if (!hasParent) {
+            return ROOT_ELEMENTS.contains(element);
         }
-
-        // Default: allow all; inside a template, the top-level-only elements are not valid children.
-        return !"template".equals(parent)
-                || !List.of("stylesheet", "transform", "template", "include", "import").contains(element);
-    }
-
-    /**
-     * Gets attributes for a specific element.
-     */
-    private String[] getAttributesForElement(String element) {
-        return switch (element) {
-            case "stylesheet", "transform" -> STYLESHEET_ATTRIBUTES;
-            case "template" -> TEMPLATE_ATTRIBUTES;
-            case "apply-templates" -> APPLY_TEMPLATES_ATTRIBUTES;
-            case "call-template" -> CALL_TEMPLATE_ATTRIBUTES;
-            case "for-each" -> FOR_EACH_ATTRIBUTES;
-            case "if" -> IF_ATTRIBUTES;
-            case "when" -> WHEN_ATTRIBUTES;
-            case "variable", "param" -> VARIABLE_PARAM_ATTRIBUTES;
-            case "value-of" -> VALUE_OF_ATTRIBUTES;
-            case "sort" -> SORT_ATTRIBUTES;
-            case "element" -> ELEMENT_ATTRIBUTES;
-            case "attribute" -> ATTRIBUTE_ATTRIBUTES;
-            default -> new String[0];
-        };
-    }
-
-    /**
-     * Gets description for an element.
-     */
-    private String getElementDescription(String element) {
-        return switch (element) {
-            case "stylesheet", "transform" -> "Root element of XSLT stylesheet";
-            case "template" -> "Template rule for transformation";
-            case "apply-templates" -> "Apply templates to nodes";
-            case "call-template" -> "Call named template";
-            case "for-each" -> "Iterate over node set";
-            case "if" -> "Conditional processing";
-            case "choose" -> "Multiple conditional processing";
-            case "when" -> "Conditional branch in choose";
-            case "otherwise" -> "Default branch in choose";
-            case "variable" -> "Declare variable";
-            case "param" -> "Declare parameter";
-            case "value-of" -> "Output XPath expression value";
-            case "copy" -> "Shallow copy current node";
-            case "copy-of" -> "Deep copy nodes";
-            case "element" -> "Create element";
-            case "attribute" -> "Create attribute";
-            case "text" -> "Create text node";
-            case "comment" -> "Create comment";
-            default -> "XSLT element: " + element;
-        };
-    }
-
-    /**
-     * Gets description for an attribute.
-     */
-    private String getAttributeDescription(String _element, String attribute) {
-        if ("match".equals(attribute)) {
-            return "XPath pattern to match nodes";
-        } else if ("select".equals(attribute)) {
-            return "XPath expression to select nodes";
-        } else if ("test".equals(attribute)) {
-            return "XPath expression to test condition";
-        } else if ("name".equals(attribute)) {
-            return "Name identifier";
-        } else if ("mode".equals(attribute)) {
-            return "Processing mode";
+        if (ROOT_ELEMENTS.contains(element)) {
+            return false;
         }
-        return attribute + " attribute";
-    }
-
-    /**
-     * Creates a value completion item.
-     */
-    private CompletionItem createValueItem(String value, String description) {
-        return new CompletionItem.Builder(value, value, CompletionItemType.VALUE)
-            .description(description)
-            .build();
+        if (parent != null && ROOT_ELEMENTS.contains(parent)) {
+            return DECLARATIONS.contains(element);
+        }
+        if ("choose".equals(parent)) {
+            return "when".equals(element) || "otherwise".equals(element);
+        }
+        // Inside a sequence constructor: instructions, plus the locally declarable param/variable.
+        return !DECLARATIONS.contains(element) || "variable".equals(element) || "param".equals(element);
     }
 
     @Override

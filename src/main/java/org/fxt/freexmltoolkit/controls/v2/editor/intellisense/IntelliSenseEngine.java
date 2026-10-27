@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.v2.editor.intellisense;
 
 import java.util.List;
 
+import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.scene.input.KeyCode;
 
@@ -15,6 +16,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextTyp
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XPathContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.IntelliSenseState;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.CompletionProvider;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers.XsdCompletionProvider;
@@ -134,8 +136,10 @@ public class IntelliSenseEngine {
         }
 
         // Element completions depend on the siblings already present around the caret
-        // (sequence position, maxOccurs), so they must not be served from the XPath-keyed cache.
-        boolean cacheable = currentContext.getType() != ContextType.ELEMENT;
+        // (sequence position, maxOccurs), attribute completions on the attributes already in the
+        // tag and value completions on the attribute name, so only text content may be served
+        // from the XPath-keyed cache.
+        boolean cacheable = currentContext.getType() == ContextType.TEXT_CONTENT;
 
         // Try cache first
         List<CompletionItem> items = cacheable ? completionCache.get(
@@ -310,6 +314,12 @@ public class IntelliSenseEngine {
 
         logger.debug("Inserted '{}' at position {}, cursor moved to {}",
                      result.textToInsert, caretPos, newCaretPos);
+
+        // The caret now sits between the new attribute's quotes: offer its values right away.
+        // Deferred, because the popup hides itself after this callback returns; no values → no popup.
+        if (item.getType() == CompletionItemType.ATTRIBUTE) {
+            Platform.runLater(this::showCompletions);
+        }
     }
 
     /**

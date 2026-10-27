@@ -182,4 +182,23 @@ class ContextAnalyzerTest {
         XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
         assertEquals("/invoice/billTo/city", context.getXPath());
     }
+
+    @Test
+    void lineBreakAfterElementNameIsAnAttributeContext() {
+        String xml = "<root>\n  <xsl:template\n      ";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertEquals(ContextType.ATTRIBUTE, context.getType());
+        assertEquals("xsl:template", context.getCurrentElement());
+
+        String tab = "<root><item\t";
+        assertEquals(ContextType.ATTRIBUTE, ContextAnalyzer.analyze(tab, tab.length()).getType());
+    }
+
+    @Test
+    void attributeNameOnItsOwnLineIsFoundForValues() {
+        String xml = "<root><xsl:output\n    method=\"";
+        XmlContext context = ContextAnalyzer.analyze(xml, xml.length());
+        assertEquals(ContextType.ATTRIBUTE_VALUE, context.getType());
+        assertEquals("method", context.getCurrentAttribute());
+    }
 }

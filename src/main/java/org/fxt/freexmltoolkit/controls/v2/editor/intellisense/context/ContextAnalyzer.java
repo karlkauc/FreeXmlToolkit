@@ -311,8 +311,13 @@ public class ContextAnalyzer {
      * Checks if cursor is in attribute name position (space after element name).
      */
     private static boolean isInAttributePosition(String tagContent) {
-        // Must have at least one space (after element name)
-        return tagContent.contains(" ");
+        // Must have whitespace after the element name (a space, or a line break in multi-line tags)
+        for (int i = 0; i < tagContent.length(); i++) {
+            if (Character.isWhitespace(tagContent.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -353,7 +358,10 @@ public class ContextAnalyzer {
 
         // Find attribute name before '='
         String beforeEquals = textBeforeCaret.substring(0, lastEquals).trim();
-        int lastSpace = beforeEquals.lastIndexOf(' ');
+        int lastSpace = beforeEquals.length() - 1;
+        while (lastSpace >= 0 && !Character.isWhitespace(beforeEquals.charAt(lastSpace))) {
+            lastSpace--;
+        }
         if (lastSpace != -1) {
             return beforeEquals.substring(lastSpace + 1).trim();
         }

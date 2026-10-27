@@ -106,6 +106,14 @@ public final class XmlNamespaceDeclarations {
         return Optional.ofNullable(uriToPrefix.get(namespaceUri));
     }
 
+    /**
+     * Returns the URI the document binds to {@code prefix}; the empty string looks up the
+     * default namespace.
+     */
+    public Optional<String> uriFor(String prefix) {
+        return Optional.ofNullable(prefixToUri.get(prefix == null ? "" : prefix));
+    }
+
     /** Whether a default namespace ({@code xmlns="..."}) is declared. */
     public boolean hasDefaultNamespace() {
         return prefixToUri.containsKey("");

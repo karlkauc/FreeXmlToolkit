@@ -29,6 +29,7 @@ import java.util.regex.PatternSyntaxException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.XsdAttributeLookup;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 
@@ -121,31 +122,12 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
      * the documentation model lists under the element's (compositor-aware) map entry.
      */
     private List<XsdExtendedElement> declaredAttributes(String elementXPath) {
-        XsdExtendedElement element = findElement(elementXPath);
-        if (element == null || element.getChildren() == null) {
-            return Collections.emptyList();
-        }
-        var map = xsdDocumentationData.getExtendedXsdElementMap();
-        List<XsdExtendedElement> out = new java.util.ArrayList<>();
-        for (String child : element.getChildren()) {
-            if (child == null || !child.substring(child.lastIndexOf('/') + 1).startsWith("@")) {
-                continue;
-            }
-            XsdExtendedElement attribute = map.get(child);
-            if (attribute != null) {
-                out.add(attribute);
-            }
-        }
-        return out;
+        return XsdAttributeLookup.declaredAttributes(xsdDocumentationData, findElement(elementXPath));
     }
 
     /** @return the local attribute name, without "@" and prefix */
     private static String attributeName(XsdExtendedElement attribute) {
-        String name = attribute.getElementName() == null ? "" : attribute.getElementName();
-        if (name.startsWith("@")) {
-            name = name.substring(1);
-        }
-        return name.substring(name.indexOf(':') + 1);
+        return XsdAttributeLookup.attributeName(attribute);
     }
 
     private Optional<XsdExtendedElement> findAttribute(String elementXPath, String attributeName) {

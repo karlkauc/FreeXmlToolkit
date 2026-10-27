@@ -1,19 +1,24 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.providers;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextType;
+import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.StartTagAttributes;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlNamespaceDeclarations;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItem;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionItemType;
 import org.fxt.freexmltoolkit.controls.v2.editor.services.XmlSchemaProvider;
+import org.fxt.freexmltoolkit.domain.XsdAttributeLookup;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdElementDisplayUtils;
 import org.fxt.freexmltoolkit.domain.XsdElementNamespaceResolver;
@@ -39,7 +44,15 @@ public class XsdCompletionProvider implements CompletionProvider {
         boolean hasSchema = schemaProvider.hasSchema();
         boolean supportedContext = context.getType() == ContextType.ELEMENT ||
                                    context.getType() == ContextType.ATTRIBUTE ||
-                                   context.getType() == ContextType.TEXT_CONTENT;
+                                   context.getType() == ContextType.TEXT_CONTENT ||
+                                   // Specialized modes (XSLT, Schematron, XSL-FO) suggest their own values
+                                   (context.getType() == ContextType.ATTRIBUTE_VALUE
+                                           && (mode == null || !mode.requiresSpecializedProviders()));
+        // XSLT attributes come from the curated XSLT 3.0 catalog (XsltCompletionProvider): the
+        // auto-bound W3C schema only describes XSLT 2.0.
+        if (mode == EditorMode.XSLT && context.getType() == ContextType.ATTRIBUTE) {
+            return false;
+        }
 
         return hasSchema && supportedContext;
     }
@@ -56,6 +69,7 @@ public class XsdCompletionProvider implements CompletionProvider {
         switch (context.getType()) {
             case ELEMENT -> items.addAll(getElementCompletions(context, xsdData));
             case ATTRIBUTE -> items.addAll(getAttributeCompletions(context, xsdData));
+            case ATTRIBUTE_VALUE -> items.addAll(getAttributeValueCompletions(context, xsdData));
             case TEXT_CONTENT -> items.addAll(getTextContentCompletions(context, xsdData));
             default -> { }
         }
@@ -241,28 +255,120 @@ public class XsdCompletionProvider implements CompletionProvider {
     }
 
     /**
-     * Gets attribute completions.
-     *
-     * FUTURE ENHANCEMENT: XSD attribute completion
-     * Implementation would require:
-     * 1. Parse XSD schema to extract attribute definitions for current element type
-     * 2. Resolve element's type definition (complexType/simpleType)
-     * 3. Collect attributes from type definition and its base types
-     * 4. Filter out attributes already present in the element
-     * 5. Include global attributes if applicable
-     * 6. Provide completion items with attribute names, types, and documentation
-     *
-     * Complexity: High - requires full XSD type resolution and inheritance chain traversal
-     *
-     * @param context the XML context at cursor position
-     * @param xsdData the XSD documentation data
-     * @return list of attribute completion items (currently empty)
+     * Gets attribute completions: the attributes the schema declares for the element whose start
+     * tag the caret is in, without those already written in the tag; required ones first.
      */
-    private List<CompletionItem> getAttributeCompletions(XmlContext _context, XsdDocumentationData _xsdData) {
-        // Future enhancement: Parse XSD for attribute definitions
-        // See JavaDoc above for implementation requirements
-        logger.debug("Attribute completions from XSD not yet implemented");
-        return new ArrayList<>();
+    private List<CompletionItem> getAttributeCompletions(XmlContext context, XsdDocumentationData xsdData) {
+        List<CompletionItem> items = new ArrayList<>();
+
+        String elementPath = attributeOwnerPath(context);
+        if (elementPath == null) {
+            return items;
+        }
+        XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(elementPath);
+        if (elementInfo == null) {
+            elementInfo = schemaProvider.findBestMatchingElement(elementPath);
+        }
+        if (elementInfo == null) {
+            logger.debug("No XSD element info found for attribute owner: {}", elementPath);
+            return items;
+        }
+
+        Set<String> present = new HashSet<>();
+        for (String name : StartTagAttributes.present(context.getTextBeforeCaret(), context.getTextAfterCaret())) {
+            present.add(name.substring(name.indexOf(':') + 1));
+        }
+
+        List<XsdExtendedElement> attributes = new ArrayList<>(XsdAttributeLookup.declaredAttributes(xsdData, elementInfo));
+        attributes.removeIf(a -> present.contains(XsdAttributeLookup.attributeName(a)));
+        attributes.sort(Comparator.comparing((XsdExtendedElement a) -> !a.isMandatory())
+                .thenComparing(XsdAttributeLookup::attributeName));
+
+        for (XsdExtendedElement attribute : attributes) {
+            String name = XsdAttributeLookup.attributeName(attribute);
+            StringBuilder description = new StringBuilder("Attribute: ").append(name);
+            if (attribute.getElementType() != null && !attribute.getElementType().isEmpty()) {
+                description.append(" (").append(attribute.getElementType()).append(")");
+            }
+            if (attribute.isMandatory()) {
+                description.append(" [required]");
+            }
+            String doc = stripHtmlTags(attribute.getDocumentationAsHtml());
+            if (!doc.isEmpty()) {
+                description.append("\n").append(doc);
+            }
+            items.add(new CompletionItem.Builder(name, name, CompletionItemType.ATTRIBUTE)
+                    .description(description.toString())
+                    .dataType(attribute.getElementType())
+                    .required(attribute.isMandatory())
+                    .relevanceScore(attribute.isMandatory() ? 150 : 100)
+                    .build());
+        }
+        return items;
+    }
+
+    /**
+     * Gets attribute value completions: the enumeration values of the attribute's type, or
+     * {@code true}/{@code false} for a boolean.
+     */
+    private List<CompletionItem> getAttributeValueCompletions(XmlContext context, XsdDocumentationData xsdData) {
+        List<CompletionItem> items = new ArrayList<>();
+        String elementPath = attributeOwnerPath(context);
+        String attributeName = context.getCurrentAttribute();
+        if (elementPath == null || attributeName == null) {
+            return items;
+        }
+        XsdExtendedElement elementInfo = xsdData.getExtendedXsdElementMap().get(elementPath);
+        if (elementInfo == null) {
+            elementInfo = schemaProvider.findBestMatchingElement(elementPath);
+        }
+        String local = attributeName.substring(attributeName.indexOf(':') + 1);
+        XsdExtendedElement attribute = XsdAttributeLookup.declaredAttributes(xsdData, elementInfo).stream()
+                .filter(a -> local.equals(XsdAttributeLookup.attributeName(a)))
+                .findFirst().orElse(null);
+        if (attribute == null) {
+            return items;
+        }
+
+        List<String> values = List.of();
+        String dataType = attribute.getElementType();
+        XsdExtendedElement.RestrictionInfo restriction = attribute.getRestrictionInfo();
+        if (restriction != null && restriction.facets() != null && restriction.facets().get("enumeration") != null) {
+            values = restriction.facets().get("enumeration");
+            dataType = restriction.base();
+        } else if (isBoolean(dataType) || (restriction != null && isBoolean(restriction.base()))) {
+            values = List.of("true", "false");
+        }
+        for (String value : values) {
+            items.add(new CompletionItem.Builder(value, value, CompletionItemType.VALUE)
+                    .description("Value of " + local + " from XSD")
+                    .dataType(dataType)
+                    .build());
+        }
+        return items;
+    }
+
+    private static boolean isBoolean(String type) {
+        return type != null && "boolean".equals(type.substring(type.indexOf(':') + 1));
+    }
+
+    /**
+     * The XPath of the element whose start tag the caret is in. The context's XPath already ends
+     * with it, except for a self-closing tag ({@code <a |/>}), which the analyzer does not push.
+     */
+    private static String attributeOwnerPath(XmlContext context) {
+        String path = context.getXPath();
+        String element = context.getCurrentElement();
+        if (element == null || element.isEmpty()) {
+            return path == null || path.isEmpty() ? null : path;
+        }
+        if (path == null || path.isEmpty() || "/".equals(path)) {
+            return "/" + DirectChildScanner.localName(element);
+        }
+        // The XPath holds local names
+        String local = DirectChildScanner.localName(element);
+        String last = path.substring(path.lastIndexOf('/') + 1);
+        return last.equals(local) ? path : path + "/" + local;
     }
 
     /**

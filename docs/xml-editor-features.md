@@ -101,9 +101,24 @@ Learn more: [Schematron Support](schematron-support.md) | [Favorites System](fav
 
 When you type `<` in the editor, a popup shows only the elements that are valid at your current position based on your XSD schema.
 
+### Attribute Suggestions
+
+Inside a start tag, type a space (or press **Ctrl+Space**) to see the element's attributes:
+
+- **Schema-bound XML** - the attributes your XSD declares for the element (including attribute
+  groups), required ones first, with type and documentation in the tooltip
+- **XSLT stylesheets** - the attributes of every XSLT 3.0 element from a built-in catalog, no
+  schema needed
+- Attributes with fixed values (XSD enumerations and booleans, XSLT values such as `xml`, `html`,
+  `text` for `xsl:output method`) show their values right after insertion; **Ctrl+Space** inside
+  the quotes brings them back
+- Attributes already in the tag are not offered again; accepting one inserts `name=""` with the
+  cursor between the quotes
+
 ### How It Works
 
 1. **Type `<`** - A popup appears with valid element options
+   (type a space inside a start tag for attributes, or press **Ctrl+Space** any time)
 2. **Use arrow keys** - Navigate through the suggestions
 3. **Press Enter** - Insert the selected element
 4. **Press Escape** - Close the popup
