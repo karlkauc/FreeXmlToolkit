@@ -1197,6 +1197,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#drag-and-drop-in-the-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moving and Copying by Drag and Drop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#adding-an-element-or-attribute" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2563,6 +2574,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#drag-and-drop-in-the-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moving and Copying by Drag and Drop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#adding-an-element-or-attribute" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3172,6 +3194,7 @@ document, and use XSD files effectively.</p>
 <li><strong>Edit Documentation</strong>: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)</li>
 <li><strong>Type Picker</strong>: Choose an element's or attribute's type from a list of the schema's own types and all XSD built-in datatypes, each explained in a side pane</li>
 <li><strong>Add Examples</strong>: Include example values for elements</li>
+<li><strong>Drag and Drop</strong>: Move or copy elements, compositors, group references and attributes by dragging their cards - see <a href="#drag-and-drop-in-the-diagram">Moving and Copying by Drag and Drop</a></li>
 <li><strong>Reorder and Duplicate</strong>: Move nodes up and down, copy, cut, paste and duplicate them from the context menu</li>
 <li><strong>Full Undo/Redo</strong>: Go back and forward through your changes</li>
 </ul>
@@ -3182,7 +3205,7 @@ document, and use XSD files effectively.</p>
 <li><strong>Select</strong> an element by clicking on it</li>
 <li><strong>Edit properties</strong> in the panel on the right (name, type, cardinality/occurrence, use, form, constraints, documentation, and facets)</li>
 <li><strong>Add children</strong> using the context menu (right-click)</li>
-<li><strong>Reorder</strong> nodes with <strong>Move Up</strong> / <strong>Move Down</strong> from the context menu; <strong>Delete</strong> removes the selected node</li>
+<li><strong>Reorder</strong> nodes by dragging them to a new place, or with <strong>Move Up</strong> / <strong>Move Down</strong> from the context menu; <strong>Delete</strong> removes the selected node</li>
 </ol>
 <blockquote>
 <p><strong>Editing properties from any view:</strong> The same Properties pane is
@@ -3197,6 +3220,45 @@ available in the <strong>Text</strong> view as well as the Graphic and Tree view
 <li><strong>Ctrl+Z</strong> to undo, <strong>Ctrl+Y</strong> to redo</li>
 <li><strong>Ctrl+S</strong> to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)</li>
 <li>The toolbar's <strong>Save ▾</strong> split button saves the schema; its arrow menu offers <strong>Save As…</strong> (Ctrl+Shift+S, save under a new name) and <strong>Save All</strong> (saves every open tab)</li>
+</ul>
+<h3 id="drag-and-drop-in-the-diagram">Moving and Copying by Drag and Drop<a class="headerlink" href="#drag-and-drop-in-the-diagram" title="Permanent link">&para;</a></h3>
+<p>In the Graphic view you can rearrange the schema by dragging its cards: elements, compositors
+(sequence, choice, all), group references and attributes.</p>
+<ol>
+<li><strong>Press the left mouse button</strong> on a card and move the mouse a few pixels - the drag starts.
+   While you drag a card, the diagram does not pan (dragging on empty space still pans it).</li>
+<li><strong>Point at the target</strong> and watch the feedback:<ul>
+<li>A <strong>blue line</strong> above or below a card: the node is dropped <strong>before</strong> or <strong>after</strong> that card
+  (point at the upper or lower quarter of the card).</li>
+<li>A <strong>green frame</strong> around a card: the node is dropped <strong>into</strong> it (point at the middle).
+  Elements go into the card's sequence, choice or all; attributes go into its complex type.
+  Sequence, choice and all symbols only accept drops into them.</li>
+<li>A <strong>red frame</strong>: the drop would not produce a valid schema. If you release there, a message
+  explains why and nothing changes.</li>
+</ul>
+</li>
+<li><strong>Release the mouse button</strong> to move the node. Hold <strong>Ctrl</strong> (<strong>Cmd</strong> on macOS) while releasing
+   to <strong>copy</strong> it instead. The copy keeps its name, or gets the suffix <code>_copy</code> if a sibling already
+   has that name.</li>
+</ol>
+<p>More details:</p>
+<ul>
+<li>Near the edge of the visible area the diagram <strong>scrolls automatically</strong>.</li>
+<li>Press <strong>Esc</strong> to cancel the drag.</li>
+<li><strong>Shared definitions ask first.</strong> Dropping into or out of a named global type or group that is
+  used by more than one declaration changes every place that uses it. A confirmation dialog tells
+  you how often the definition is used ("This changes a shared definition … used N times").</li>
+<li><strong>Not possible</strong> (shown with a red frame):<ul>
+<li>moving a global declaration into a content model - use a reference (<code>ref</code>) instead</li>
+<li>moving a local declaration to the top level of the schema</li>
+<li>dropping attributes among elements, or elements among attributes</li>
+<li>dropping into an element with a simple type (such as <code>xs:string</code>)</li>
+<li>changing nodes that come from an imported schema</li>
+</ul>
+</li>
+<li><strong>Every drop is one undo step</strong> - <strong>Ctrl+Z</strong> reverts it. The <strong>Text</strong> view shows the change
+  right away.</li>
+<li>As an alternative without the mouse, use <strong>Move Up</strong> / <strong>Move Down</strong> from the context menu.</li>
 </ul>
 <h3 id="adding-an-element-or-attribute">Adding an Element or Attribute<a class="headerlink" href="#adding-an-element-or-attribute" title="Permanent link">&para;</a></h3>
 <p><strong>Add Element…</strong>, <strong>Add Root Element</strong> and <strong>Add Attribute…</strong> (right-click in the Graphic or Tree
