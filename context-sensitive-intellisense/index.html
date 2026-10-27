@@ -962,6 +962,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#4-attribute-suggestions-schema-bound-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Attribute Suggestions (Schema-Bound XML)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-xslt-stylesheets-works-without-a-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. XSLT Stylesheets (Works Without a Schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -995,6 +1017,17 @@
     <span class="md-ellipsis">
       
         Step 2: Use Auto-Completion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-add-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Add Attributes
       
     </span>
   </a>
@@ -1089,6 +1122,17 @@
     <span class="md-ellipsis">
       
         The First Child Is Offered Again Inside a Repeatable Element?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#no-attribute-suggestions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No Attribute Suggestions?
       
     </span>
   </a>
@@ -2207,6 +2251,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#4-attribute-suggestions-schema-bound-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Attribute Suggestions (Schema-Bound XML)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-xslt-stylesheets-works-without-a-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. XSLT Stylesheets (Works Without a Schema)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2240,6 +2306,17 @@
     <span class="md-ellipsis">
       
         Step 2: Use Auto-Completion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-add-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Add Attributes
       
     </span>
   </a>
@@ -2341,6 +2418,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#no-attribute-suggestions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No Attribute Suggestions?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prefix-missing-or-unexpected" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2397,6 +2485,9 @@
 <p><img alt="Auto-Completion in Action" src="../img/intellisense-overview.png" />
 <em>The XML Editor with a schema-backed document - typing <code>&lt;</code> shows context-valid element suggestions</em></p>
 <p>When you type <code>&lt;</code> in the XML Editor, a popup appears showing only the elements that are valid at your current position. This is based on your XSD schema.</p>
+<p>Inside a start tag, typing a space (or pressing <strong>Ctrl+Space</strong>) suggests the <strong>attributes</strong> of
+that element - from your XSD schema, or, in XSLT stylesheets, from a built-in XSLT 3.0
+catalog that needs no schema at all.</p>
 <hr />
 <h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
 <h3 id="1-smart-element-suggestions">1. Smart Element Suggestions<a class="headerlink" href="#1-smart-element-suggestions" title="Permanent link">&para;</a></h3>
@@ -2443,6 +2534,110 @@
 </table>
 <h3 id="3-automatic-tag-closing">3. Automatic Tag Closing<a class="headerlink" href="#3-automatic-tag-closing" title="Permanent link">&para;</a></h3>
 <p>When you type an opening tag like <code>&lt;element&gt;</code>, the editor automatically adds the closing tag <code>&lt;/element&gt;</code>.</p>
+<h3 id="4-attribute-suggestions-schema-bound-xml">4. Attribute Suggestions (Schema-Bound XML)<a class="headerlink" href="#4-attribute-suggestions-schema-bound-xml" title="Permanent link">&para;</a></h3>
+<p><em>New in 2.6.0</em></p>
+<p>When your document is bound to an XSD schema, the editor also helps with attributes:</p>
+<ul>
+<li><strong>Where</strong>: Place the cursor inside a start tag (for example after <code>&lt;Fund</code>) and type a space,
+  or press <strong>Ctrl+Space</strong></li>
+<li><strong>What</strong>: All attributes the schema declares for that element, including those from
+  attribute groups</li>
+<li><strong>Order</strong>: Required attributes come first, followed by the optional ones</li>
+<li><strong>Details</strong>: The tooltip shows each attribute's type and its documentation from the schema</li>
+<li><strong>No duplicates</strong>: Attributes that are already in the tag are not suggested again</li>
+<li><strong>Insertion</strong>: Accepting a suggestion inserts <code>name=""</code> and places the cursor between the
+  quotes, ready for the value</li>
+<li><strong>Values</strong>: If the attribute's type is an enumeration or <code>xs:boolean</code>, its values
+  (<code>true</code> / <code>false</code>) open right after the attribute is inserted; <strong>Ctrl+Space</strong> inside the
+  quotes shows them again</li>
+</ul>
+<h3 id="5-xslt-stylesheets-works-without-a-schema">5. XSLT Stylesheets (Works Without a Schema)<a class="headerlink" href="#5-xslt-stylesheets-works-without-a-schema" title="Permanent link">&para;</a></h3>
+<p><em>New in 2.6.0</em></p>
+<p>XSLT stylesheets get auto-completion even when no schema is bound. The editor knows every
+XSLT 3.0 instruction and declaration (including newer ones such as <code>xsl:iterate</code>,
+<code>xsl:mode</code>, <code>xsl:accumulator</code>, <code>xsl:merge</code> and <code>xsl:evaluate</code>).</p>
+<p><strong>Element suggestions</strong> follow the context you are in:</p>
+<table>
+<thead>
+<tr>
+<th>Cursor position</th>
+<th>Suggested elements</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Directly inside <code>xsl:stylesheet</code></td>
+<td>Declarations (<code>xsl:template</code>, <code>xsl:variable</code>, <code>xsl:output</code>, …)</td>
+</tr>
+<tr>
+<td>Inside <code>xsl:choose</code></td>
+<td><code>xsl:when</code>, <code>xsl:otherwise</code></td>
+</tr>
+<tr>
+<td>Inside a template or other instruction</td>
+<td>Instructions (<code>xsl:value-of</code>, <code>xsl:if</code>, <code>xsl:for-each</code>, …)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Attribute suggestions</strong> appear when you type a space inside an XSLT start tag such as
+<code>&lt;xsl:variable</code>, <code>&lt;xsl:template</code> or <code>&lt;xsl:param</code> (or press <strong>Ctrl+Space</strong> there):</p>
+<ol>
+<li><strong>Required attributes first</strong> - for example <code>name</code> for <code>xsl:variable</code></li>
+<li><strong>Then the element's own optional attributes</strong> - for example <code>select</code> or <code>as</code></li>
+<li><strong>Then the standard attributes</strong> every XSLT element accepts - <code>use-when</code>, <code>expand-text</code>,
+   <code>xpath-default-namespace</code>, <code>exclude-result-prefixes</code>, <code>version</code>, and others</li>
+</ol>
+<p>Attributes already present in the tag are left out, and accepting one inserts <code>name=""</code> with
+the cursor between the quotes.</p>
+<p><strong>Attribute value suggestions</strong>: when you insert an attribute that only allows a fixed set of
+values, the values open automatically (press <strong>Ctrl+Space</strong> inside the quotes to show them
+again), for example:</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Suggested values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>method</code> on <code>xsl:output</code></td>
+<td>xml, html, xhtml, text, json, adaptive</td>
+</tr>
+<tr>
+<td><code>indent</code> and other yes/no attributes</td>
+<td>yes, no</td>
+</tr>
+<tr>
+<td><code>order</code> / <code>data-type</code> / <code>case-order</code> on <code>xsl:sort</code></td>
+<td>ascending, descending / text, number / upper-first, lower-first</td>
+</tr>
+<tr>
+<td><code>validation</code></td>
+<td>strict, lax, preserve, strip</td>
+</tr>
+<tr>
+<td><code>on-no-match</code> on <code>xsl:mode</code></td>
+<td>text-only-copy, shallow-copy, deep-copy, shallow-skip, deep-skip, fail</td>
+</tr>
+<tr>
+<td><code>visibility</code></td>
+<td>public, private, final, abstract (depending on the element)</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>3.0, 2.0, 1.0</td>
+</tr>
+</tbody>
+</table>
+<p>Good to know:</p>
+<ul>
+<li>Any prefix bound to the XSLT namespace works - not only <code>xsl:</code></li>
+<li>Literal result elements (for example <code>&lt;html&gt;</code> or <code>&lt;div&gt;</code> inside a template) get no XSLT
+  attribute suggestions</li>
+<li>Start tags that span several lines are supported: press <strong>Ctrl+Space</strong> after a line break
+  inside the tag</li>
+</ul>
 <hr />
 <h2 id="how-to-use">How to Use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h2>
 <h3 id="step-1-load-an-xsd-schema">Step 1: Load an XSD Schema<a class="headerlink" href="#step-1-load-an-xsd-schema" title="Permanent link">&para;</a></h3>
@@ -2466,6 +2661,14 @@ schema validation.</p>
 <li>Use <strong>↑/↓</strong> arrow keys to navigate</li>
 <li>Press <strong>Enter</strong> to insert the selected element</li>
 <li>Press <strong>Escape</strong> to close without selecting</li>
+</ol>
+<h3 id="step-3-add-attributes">Step 3: Add Attributes<a class="headerlink" href="#step-3-add-attributes" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Place the cursor inside a start tag, after the element name (e.g. <code>&lt;xsl:variable|</code>)</li>
+<li>Type a space, or press <strong>Ctrl+Space</strong></li>
+<li>Pick an attribute - the editor inserts <code>name=""</code> with the cursor between the quotes</li>
+<li>If the attribute has a fixed set of values, they appear right away - pick one with <strong>Enter</strong>
+   (or press <strong>Escape</strong> and type your own value)</li>
 </ol>
 <h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>1. Inside &lt;document&gt;, type &lt;
@@ -2492,12 +2695,20 @@ schema validation.</p>
 <td>Open auto-completion</td>
 </tr>
 <tr>
+<td><code>Space</code> (inside a start tag)</td>
+<td>Suggest attributes</td>
+</tr>
+<tr>
+<td><code>Ctrl+Space</code></td>
+<td>Open auto-completion on demand (elements, attributes or attribute values, depending on the cursor position)</td>
+</tr>
+<tr>
 <td><code>↑</code> <code>↓</code></td>
 <td>Navigate suggestions</td>
 </tr>
 <tr>
 <td><code>Enter</code></td>
-<td>Insert selected element</td>
+<td>Insert selected element or attribute</td>
 </tr>
 <tr>
 <td><code>Escape</code></td>
@@ -2558,6 +2769,15 @@ move the cursor after the last child that belongs before your new element.</p>
 <p>It no longer is. Earlier versions treated a repeatable element like a repeatable group and
 restarted its content model. If you want to add another occurrence of the element itself,
 close the current one and type <code>&lt;</code> after it.</p>
+<h3 id="no-attribute-suggestions">No Attribute Suggestions?<a class="headerlink" href="#no-attribute-suggestions" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Make sure the cursor is inside the start tag, after the element name and before <code>&gt;</code></li>
+<li>For ordinary XML files, an XSD schema must be bound - attributes come from the schema</li>
+<li>In XSLT, only XSLT elements get attribute suggestions; literal result elements such as
+  <code>&lt;div&gt;</code> do not</li>
+<li>Attributes that are already in the tag are intentionally not offered again</li>
+<li>In a start tag that spans several lines, press <strong>Ctrl+Space</strong> to open the list</li>
+</ul>
 <h3 id="prefix-missing-or-unexpected">Prefix Missing or Unexpected?<a class="headerlink" href="#prefix-missing-or-unexpected" title="Permanent link">&para;</a></h3>
 <p>Prefixes are taken from the <code>xmlns</code> declarations of your document. If the namespace of the
 suggested element is not declared at all, the prefix used inside the schema is inserted -

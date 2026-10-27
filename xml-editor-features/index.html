@@ -1024,6 +1024,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#attribute-suggestions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attribute Suggestions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2392,6 +2403,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#attribute-suggestions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attribute Suggestions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2655,9 +2677,23 @@ problem row and pick a fix from the <strong>Quick Fix</strong> submenu. See
 <em>Auto-completion suggestions popup</em></p>
 <h3 id="smart-element-suggestions">Smart Element Suggestions<a class="headerlink" href="#smart-element-suggestions" title="Permanent link">&para;</a></h3>
 <p>When you type <code>&lt;</code> in the editor, a popup shows only the elements that are valid at your current position based on your XSD schema.</p>
+<h3 id="attribute-suggestions">Attribute Suggestions<a class="headerlink" href="#attribute-suggestions" title="Permanent link">&para;</a></h3>
+<p>Inside a start tag, type a space (or press <strong>Ctrl+Space</strong>) to see the element's attributes:</p>
+<ul>
+<li><strong>Schema-bound XML</strong> - the attributes your XSD declares for the element (including attribute
+  groups), required ones first, with type and documentation in the tooltip</li>
+<li><strong>XSLT stylesheets</strong> - the attributes of every XSLT 3.0 element from a built-in catalog, no
+  schema needed</li>
+<li>Attributes with fixed values (XSD enumerations and booleans, XSLT values such as <code>xml</code>, <code>html</code>,
+  <code>text</code> for <code>xsl:output method</code>) show their values right after insertion; <strong>Ctrl+Space</strong> inside
+  the quotes brings them back</li>
+<li>Attributes already in the tag are not offered again; accepting one inserts <code>name=""</code> with the
+  cursor between the quotes</li>
+</ul>
 <h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>Type <code>&lt;</code></strong> - A popup appears with valid element options</li>
+<li><strong>Type <code>&lt;</code></strong> - A popup appears with valid element options
+   (type a space inside a start tag for attributes, or press <strong>Ctrl+Space</strong> any time)</li>
 <li><strong>Use arrow keys</strong> - Navigate through the suggestions</li>
 <li><strong>Press Enter</strong> - Insert the selected element</li>
 <li><strong>Press Escape</strong> - Close the popup</li>
