@@ -252,6 +252,36 @@ class TransformPanelTest {
                 "the dropped input opens as the active editor tab");
     }
 
+    @Test
+    void aStylesheetTabInFrontNeverBecomesTheInput(@TempDir Path tmp) throws Exception {
+        Path xslt = tmp.resolve("t.xslt");
+        Files.writeString(xslt, XSLT);
+        javafx.scene.control.Label name = (javafx.scene.control.Label)
+                panel.lookup("#transform-input-row").lookup(".fxt-vp-source-name");
+
+        // Picked (e.g. from Recent) while nothing else is open: its tab is the only one and in front.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.selectXslt(List.of(xslt.toFile()), xslt.toFile());
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveDocument().isPresent());
+        assertNotEquals("t.xslt", name.getText(), "the stylesheet must not be shown as the input");
+
+        // With an XML open, the stylesheet tab in front keeps that XML as the input.
+        openGreeting(tmp);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xslt));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveDocument()
+                .map(d -> xslt.equals(d.getPath())).orElse(false));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals("doc.xml", name.getText(), "the last XML document stays the input");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.transform();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> panel.getOutputText().contains("<out>Hello</out>"));
+    }
+
     private void openGreeting(Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);

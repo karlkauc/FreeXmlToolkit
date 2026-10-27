@@ -106,8 +106,8 @@ class TransformPanelRedesignTest {
             return null;
         });
         WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS,
-                () -> panel.getOutputText().equals("No document open."));
-        assertEquals("No document open.", panel.getOutputText());
+                () -> panel.getOutputText().startsWith("No XML input"));
+        assertTrue(panel.getOutputText().startsWith("No XML input"), panel.getOutputText());
     }
 
     @Test

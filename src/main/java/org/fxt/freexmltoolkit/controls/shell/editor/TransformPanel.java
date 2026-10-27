@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -80,6 +81,8 @@ public class TransformPanel extends VBox {
     private File inputOverride;
     /** The source document of the latest transform (so a re-run from the result tab works). */
     private OpenDocument sourceDocument;
+    /** The last active document that can be an input (no stylesheet, no result); the input while a stylesheet tab is in front. */
+    private OpenDocument lastInputDocument;
     @FXML private PanelProgress progress;
     @FXML private Button transformButton;
 
@@ -262,10 +265,35 @@ public class TransformPanel extends VBox {
             inputRow.showFile(inputOverride);
             return;
         }
-        var active = editorHost.getActiveDocument();
-        inputRow.showName(active.map(OpenDocument::getDisplayName).orElse(null),
-                active.map(d -> d.getPath() != null ? d.getPath() + " (active document)" : "Active document (unsaved)")
+        var input = inputDocument();
+        inputRow.showName(input.map(OpenDocument::getDisplayName).orElse(null),
+                input.map(d -> d.getPath() != null ? d.getPath() + " (active document)" : "Active document (unsaved)")
                         .orElse(null));
+    }
+
+    /**
+     * The document a transform without an input file reads: the active document, unless that is a
+     * stylesheet or the transform result — then the last active document that was a valid input
+     * (picking a stylesheet opens it as a tab, which must not turn it into the input).
+     */
+    Optional<OpenDocument> inputDocument() {
+        OpenDocument active = editorHost.getActiveDocument().orElse(null);
+        if (active != null && isInputCandidate(active)) {
+            lastInputDocument = active;
+            return Optional.of(active);
+        }
+        if (lastInputDocument != null && isInputCandidate(lastInputDocument)
+                && editorHost.getOpenDocuments().contains(lastInputDocument)) {
+            return Optional.of(lastInputDocument);
+        }
+        lastInputDocument = null;
+        return Optional.empty();
+    }
+
+    private boolean isInputCandidate(OpenDocument document) {
+        return document != out.getResultDocument()
+                && document.getFileType() != EditorFileType.XSLT
+                && !isTheStylesheet(document);
     }
 
     // ----- parameters ----------------------------------------------------------
@@ -415,6 +443,7 @@ public class TransformPanel extends VBox {
         this.xsltFile = file;
         this.lastXsltModified = file != null ? file.lastModified() : 0L;
         xsltRow.showFile(file);
+        refreshInputName(); // the stylesheet is never the input
         if (file != null) {
             try {
                 org.fxt.freexmltoolkit.di.ServiceRegistry
@@ -559,8 +588,9 @@ public class TransformPanel extends VBox {
 
     /**
      * A stylesheet picked from the favorites (star menu or ◀ / ▶) or dropped on the row is loaded
-     * into the editor as well. Its tab only comes to the front while the input is a fixed file:
-     * with the input following the active document, a selected stylesheet tab would become the input.
+     * into the editor as well. Its tab only comes to the front while the input is a fixed file, so
+     * the XML document being transformed stays visible; the stylesheet never becomes the input
+     * either way ({@link #inputDocument()}).
      */
     private void pickXslt(File file) {
         editorHost.openFile(file.toPath(), inputOverride != null);
@@ -630,8 +660,7 @@ public class TransformPanel extends VBox {
      * input is available (override file or active editor document) — so auto-run won't error.
      */
     boolean readyToAutoRun() {
-        boolean hasInput = inputOverride != null
-                || editorHost.getActiveDocument().filter(d -> !isTheStylesheet(d)).isPresent();
+        boolean hasInput = inputOverride != null || inputDocument().isPresent();
         return runAutomatically.isSelected() && xsltFile != null && hasInput;
     }
 
@@ -760,7 +789,7 @@ public class TransformPanel extends VBox {
     }
 
     /**
-     * Transforms the input (the override file if set, otherwise the active XML —
+     * Transforms the input (the override file if set, otherwise {@link #inputDocument()} —
      * or the remembered source, when the result tab is active).
      */
     public void transform() {
@@ -780,16 +809,7 @@ public class TransformPanel extends VBox {
             xml = null;
         } else {
             OpenDocument active = editorHost.getActiveDocument().orElse(null);
-            if (active == null) {
-                out.showError("No document open.");
-                return;
-            }
-            if (isTheStylesheet(active)) {
-                out.showError("The active document is the stylesheet itself — switch to the XML document "
-                        + "to transform, or pick an input file.");
-                return;
-            }
-            if (active == out.getResultDocument()) {
+            if (active != null && active == out.getResultDocument()) {
                 // Re-run from the result tab: transform the original source again.
                 java.util.Optional<String> sourceText = sourceDocument != null
                         ? editorHost.getDocumentText(sourceDocument) : java.util.Optional.empty();
@@ -799,8 +819,13 @@ public class TransformPanel extends VBox {
                 }
                 xml = sourceText.get();
             } else {
-                sourceDocument = active;
-                xml = editorHost.getActiveText().orElse("");
+                OpenDocument input = inputDocument().orElse(null);
+                if (input == null) {
+                    out.showError("No XML input — open the XML document to transform, or pick an input file.");
+                    return;
+                }
+                sourceDocument = input;
+                xml = editorHost.getDocumentText(input).orElse("");
             }
         }
         File xslt = xsltFile;
@@ -913,10 +938,12 @@ public class TransformPanel extends VBox {
      * tab is active (guards against transforming their own output)
      */
     private boolean isTransformableDocumentActive() {
-        return inputOverride != null
-                || editorHost.getActiveDocument()
-                        .map(document -> document != out.getResultDocument())
-                        .orElse(false);
+        if (inputOverride != null) {
+            return true;
+        }
+        boolean resultActive = editorHost.getActiveDocument()
+                .map(document -> document == out.getResultDocument()).orElse(false);
+        return !resultActive && inputDocument().isPresent();
     }
 
     // ----- output-panel delegates (kept on the panel for tests/observers) ------
