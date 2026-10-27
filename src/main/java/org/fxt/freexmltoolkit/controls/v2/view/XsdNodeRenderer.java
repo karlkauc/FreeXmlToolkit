@@ -537,11 +537,9 @@ public class XsdNodeRenderer {
             gc.setLineDashes(null);  // Reset to solid
         }
 
-        // Draw drop target indicator (green highlight)
+        // Draw drop target indicator: insertion line before/after, frame for "into", red when refused
         if (node.isDropTarget()) {
-            gc.setStroke(Color.rgb(34, 197, 94));  // Green for drop target
-            gc.setLineWidth(3);
-            gc.strokeRoundRect(x - 4, y - 4, width + 8, height + 8, CORNER_RADIUS + 4, CORNER_RADIUS + 4);
+            renderDropIndicator(gc, node, x, y, width, height);
         }
 
         // Draw dragging indicator (semi-transparent overlay)
@@ -596,6 +594,37 @@ public class XsdNodeRenderer {
         if (node.hasChildren()) {
             drawExpandButton(gc, node, x, y, width, height);
         }
+    }
+
+    private static final Color DROP_INTO_COLOR = Color.rgb(34, 197, 94);      // green: drop into
+    private static final Color DROP_LINE_COLOR = Color.rgb(19, 115, 217);     // primary blue: insertion line
+    private static final Color DROP_BLOCKED_COLOR = Color.rgb(220, 53, 69);   // red: drop refused
+
+    /**
+     * Draws the drop feedback of a card: an insertion line above (before) or below (after) it,
+     * a frame for a drop into it, and a red frame when the drop is refused.
+     */
+    private void renderDropIndicator(GraphicsContext gc, VisualNode node, double x, double y,
+                                     double width, double height) {
+        XsdDropPlanner.Position position = node.getDropPosition();
+        if (node.isDropBlocked() || position == null || position == XsdDropPlanner.Position.INTO) {
+            gc.setStroke(node.isDropBlocked() ? DROP_BLOCKED_COLOR : DROP_INTO_COLOR);
+            gc.setLineWidth(3);
+            gc.strokeRoundRect(x - 4, y - 4, width + 8, height + 8, CORNER_RADIUS + 4, CORNER_RADIUS + 4);
+            if (!node.isDropBlocked()) {
+                gc.setGlobalAlpha(0.12);
+                gc.setFill(DROP_INTO_COLOR);
+                gc.fillRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
+                gc.setGlobalAlpha(1.0);
+            }
+            return;
+        }
+        double lineY = position == XsdDropPlanner.Position.BEFORE ? y - 6 : y + height + 6;
+        gc.setStroke(DROP_LINE_COLOR);
+        gc.setFill(DROP_LINE_COLOR);
+        gc.setLineWidth(2.5);
+        gc.strokeLine(x + 4, lineY, x + width, lineY);
+        gc.fillOval(x - 1, lineY - 4, 8, 8);
     }
 
     /**
@@ -693,9 +722,9 @@ public class XsdNodeRenderer {
             default -> throw new IllegalStateException("Unexpected value: " + node.getType());
         }
 
-        // Draw drop target indicator (green highlight)
+        // Draw drop target indicator (compositors only take drops into them)
         if (node.isDropTarget()) {
-            gc.setStroke(Color.rgb(34, 197, 94));  // Green for drop target
+            gc.setStroke(node.isDropBlocked() ? DROP_BLOCKED_COLOR : DROP_INTO_COLOR);
             gc.setLineWidth(3);
             gc.strokeOval(x - 4, y - 4, size + 8, size + 8);
         }
@@ -938,6 +967,8 @@ public class XsdNodeRenderer {
         private boolean inEditMode = false;
         private boolean dragging = false;
         private boolean dropTarget = false;
+        private XsdDropPlanner.Position dropPosition;
+        private boolean dropBlocked;
 
         // Lazy loading support (Phase 2 optimization)
         private boolean childrenLoaded = true;  // True if children have been loaded (or no lazy loading)
@@ -1999,6 +2030,32 @@ public class XsdNodeRenderer {
 
         public void setDropTarget(boolean dropTarget) {
             this.dropTarget = dropTarget;
+            if (!dropTarget) {
+                dropPosition = null;
+                dropBlocked = false;
+            }
+        }
+
+        /** @return where a drop on this card lands (null = no specific position), while it is the drop target */
+        public XsdDropPlanner.Position getDropPosition() {
+            return dropPosition;
+        }
+
+        /** @return whether the drop on this card is refused by the edit rules */
+        public boolean isDropBlocked() {
+            return dropBlocked;
+        }
+
+        /**
+         * Marks this card as the drop target with the given feedback.
+         *
+         * @param position where the drop lands
+         * @param blocked  whether it is refused
+         */
+        public void setDropIndicator(XsdDropPlanner.Position position, boolean blocked) {
+            this.dropTarget = true;
+            this.dropPosition = position;
+            this.dropBlocked = blocked;
         }
 
         /**

@@ -37,6 +37,7 @@ import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.CopyNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.MoveNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.PasteNodeCommand;
@@ -44,16 +45,9 @@ import org.fxt.freexmltoolkit.controls.v2.editor.menu.XsdContextMenuFactory;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdPropertiesPanel;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
@@ -122,6 +116,18 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     private double dragStartX = 0;
     private double dragStartY = 0;
     private static final double DRAG_THRESHOLD = 5.0; // Pixels before drag starts
+    private static final double AUTO_SCROLL_EDGE = 30.0; // viewport px from the edge that scroll while dragging
+    private static final double AUTO_SCROLL_STEP = 18.0; // virtual px per auto-scroll tick
+    private XsdDropPlanner dropPlanner;
+    private XsdDropPlanner.Plan dropPlan;
+    private boolean dragCopy;
+    private double lastDragX;
+    private double lastDragY;
+    private javafx.animation.Timeline autoScrollTimeline;
+    // A drag ends with a MOUSE_CLICKED on the canvas, which must not select the drop target.
+    private boolean suppressNextClick;
+    // Model id of a node to select once the rebuild after a drop-copy is done.
+    private String pendingSelectionId;
 
     // Debounce for model change events (prevents multiple rebuilds from rapid events)
     private PauseTransition rebuildDebounce;
@@ -625,6 +631,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
                 VisualNode nodeToSelect = nodeMap.get(selectedId);
                 if (nodeToSelect != null) {
                     getSelectionModel().addToSelection(nodeToSelect);
+                }
+            }
+            if (pendingSelectionId != null) {
+                VisualNode pending = nodeMap.get(pendingSelectionId);
+                pendingSelectionId = null;
+                if (pending != null) {
+                    getSelectionModel().select(pending);
                 }
             }
             logger.trace("Restored selection state (using HashMap O(1) lookup)");
@@ -1151,6 +1164,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
                         event.consume();
                         deleteSelectedNode();
                     }
+                    case ESCAPE -> {
+                        if (draggedNode != null) {
+                            event.consume();
+                            cancelDrag();
+                        }
+                    }
                     default -> { }
                 }
             }
@@ -1206,6 +1225,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * Handles mouse clicks on the canvas.
      */
     private void handleMouseClick(MouseEvent event) {
+        if (suppressNextClick && event.getButton() == MouseButton.PRIMARY) {
+            suppressNextClick = false;
+            return;
+        }
         // Handle right-click for context menu
         if (event.getButton() == MouseButton.SECONDARY) {
             handleContextMenu(event);
@@ -1636,9 +1659,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
     /**
      * Handles mouse press for initiating drag operations.
-     * Stores the start position and the node under the mouse.
+     * Remembers the card under the mouse; the press is consumed then so the pannable
+     * ScrollPane does not scroll the diagram while a card is dragged (panning keeps working on
+     * empty space).
      */
     private void handleMousePressed(MouseEvent event) {
+        suppressNextClick = false;
         if (event.getButton() != MouseButton.PRIMARY) {
             return;
         }
@@ -1651,119 +1677,265 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         dragStartX = x;
         dragStartY = y;
 
-        // Find node at click position
+        // Reset drag state
+        endDragFeedback();
+        draggedNode = null;
+
+        if (editorContext == null || !editorContext.isEditMode() || rootNode == null) {
+            return;
+        }
         VisualNode nodeAtPosition = findNodeAt(rootNode, x, y);
         // Don't start a drag when the click is on the expand button.
-        if (nodeAtPosition != null && !nodeAtPosition.expandButtonContainsPoint(x, y)) {
+        if (nodeAtPosition != null && nodeAtPosition.getModelNode() != null
+                && nodeAtPosition != rootNode && !nodeAtPosition.expandButtonContainsPoint(x, y)) {
             draggedNode = nodeAtPosition;
+            scrollPane.setPannable(false);
+            event.consume();
         }
-
-        // Reset drag state
-        isDragging = false;
-        dropTarget = null;
     }
 
     /**
-     * Handles mouse drag for drag operations.
-     * Starts dragging when threshold is exceeded and highlights valid drop targets.
+     * Handles mouse drag: starts dragging once the threshold is exceeded, then shows where the
+     * card would land (insertion line / frame, red when the edit rules refuse it) and scrolls
+     * the diagram when the cursor nears the viewport edge.
      */
     private void handleMouseDragged(MouseEvent event) {
-        if (event.getButton() != MouseButton.PRIMARY || draggedNode == null) {
+        if (!event.isPrimaryButtonDown() || draggedNode == null) {
             return;
         }
-
-        // Check if we're in edit mode
-        if (editorContext == null || !editorContext.isEditMode()) {
-            return;
-        }
+        event.consume();
 
         // Adjust coordinates for zoom level
         double x = (event.getX() + viewportX) / zoomLevel;
         double y = (event.getY() + viewportY) / zoomLevel;
 
-        // Check if drag threshold has been exceeded
-        double deltaX = Math.abs(x - dragStartX);
-        double deltaY = Math.abs(y - dragStartY);
-
-        if (!isDragging && (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD)) {
-            // Start dragging
+        if (!isDragging && (Math.abs(x - dragStartX) > DRAG_THRESHOLD || Math.abs(y - dragStartY) > DRAG_THRESHOLD)) {
             isDragging = true;
             logger.debug("Started dragging node '{}'", draggedNode.getLabel());
-
-            // Mark the dragged node visually
             draggedNode.setDragging(true);
+            requestFocus(); // Esc cancels
+            repaintNodes(java.util.List.of(draggedNode));
         }
-
-        if (isDragging) {
-            // Find potential drop target
-            VisualNode newDropTarget = findDropTargetAt(rootNode, x, y);
-
-            // Update drop target highlighting
-            if (newDropTarget != dropTarget) {
-                // Clear old drop target highlight
-                if (dropTarget != null) {
-                    dropTarget.setDropTarget(false);
-                }
-
-                // Set new drop target highlight
-                dropTarget = newDropTarget;
-                if (dropTarget != null) {
-                    dropTarget.setDropTarget(true);
-                }
-
-                redraw();
-            }
+        if (!isDragging) {
+            return;
         }
+        lastDragX = event.getX();
+        lastDragY = event.getY();
+        dragCopy = event.isShortcutDown();
+        updateDropTarget();
+        updateAutoScroll();
     }
 
     /**
-     * Handles mouse release for completing drag operations.
-     * Executes MoveNodeCommand if a valid drop target is selected.
+     * Handles mouse release: performs the planned move (or copy with the shortcut key held) as
+     * one undoable command, after asking when it changes a shared type or explaining why it is
+     * not possible.
      */
     private void handleMouseReleased(MouseEvent event) {
         if (event.getButton() != MouseButton.PRIMARY) {
             return;
         }
-
-        try {
-            if (isDragging && draggedNode != null && dropTarget != null) {
-                // Execute move operation
-                Object draggedModelObj = draggedNode.getModelObject();
-                Object dropTargetModelObj = dropTarget.getModelObject();
-
-                if (draggedModelObj instanceof XsdNode draggedXsdNode &&
-                        dropTargetModelObj instanceof XsdNode dropTargetXsdNode) {
-
-                    // Determine the new parent - could be the drop target itself or its parent
-                    XsdNode newParent = determineDropParent(dropTargetXsdNode);
-                    int newIndex = determineDropIndex(draggedXsdNode, dropTargetXsdNode, newParent);
-
-                    if (newParent != null && canDrop(draggedXsdNode, newParent)) {
-                        MoveNodeCommand command = new MoveNodeCommand(draggedXsdNode, newParent, newIndex);
-                        editorContext.getCommandManager().executeCommand(command);
-                        logger.info("Dropped node '{}' onto '{}' at index {}",
-                                draggedXsdNode.getName(), newParent.getName(), newIndex);
-                    } else {
-                        logger.debug("Cannot drop '{}' onto '{}' - invalid target",
-                                draggedXsdNode.getName(), dropTargetXsdNode.getName());
-                    }
-                }
-            }
-        } finally {
-            // Reset drag state
-            if (draggedNode != null) {
-                draggedNode.setDragging(false);
-            }
-            if (dropTarget != null) {
-                dropTarget.setDropTarget(false);
-            }
-
-            isDragging = false;
-            draggedNode = null;
-            dropTarget = null;
-
-            redraw();
+        boolean dragged = isDragging;
+        VisualNode source = draggedNode;
+        if (dragged) {
+            dragCopy = event.isShortcutDown();
+            lastDragX = event.getX();
+            lastDragY = event.getY();
+            updateDropTarget();
         }
+        XsdDropPlanner.Plan plan = dropPlan;
+        VisualNode target = dropTarget;
+        endDragFeedback();
+        draggedNode = null;
+        scrollPane.setPannable(true);
+        if (source != null) {
+            event.consume();
+        }
+        if (!dragged) {
+            return;
+        }
+        suppressNextClick = true;
+        if (plan != null) {
+            performDrop(plan, source, target);
+        }
+    }
+
+    /** Cancels a running drag (Esc) without changing the model. */
+    private void cancelDrag() {
+        if (draggedNode == null) {
+            return;
+        }
+        endDragFeedback();
+        draggedNode = null;
+        scrollPane.setPannable(true);
+        suppressNextClick = true;
+    }
+
+    /** Recomputes the drop target and plan for the last cursor position and repaints the feedback. */
+    private void updateDropTarget() {
+        if (draggedNode == null || rootNode == null) {
+            return;
+        }
+        double x = (lastDragX + viewportX) / zoomLevel;
+        double y = (lastDragY + viewportY) / zoomLevel;
+        VisualNode newTarget = findDropTargetAt(rootNode, x, y);
+        XsdDropPlanner.Plan newPlan = null;
+        XsdDropPlanner.Position position = null;
+        if (newTarget != null && newTarget.getModelNode() != null) {
+            XsdNode targetModel = newTarget.getModelNode();
+            boolean into = XsdDropPlanner.acceptsInto(targetModel);
+            position = XsdDropPlanner.intoOnly(targetModel)
+                    ? XsdDropPlanner.Position.INTO
+                    : XsdDropPlanner.zone(y, newTarget.getY(), newTarget.getHeight(), into);
+            newPlan = dropPlanner().plan(draggedNode.getModelNode(), targetModel, position, dragCopy);
+        }
+        if (newPlan == null) {
+            newTarget = null; // a drop here changes nothing: no feedback
+        }
+        boolean blocked = newPlan != null && newPlan.isBlocked();
+        boolean changed = newTarget != dropTarget || newTarget != null
+                && (position != newTarget.getDropPosition() || blocked != newTarget.isDropBlocked());
+        dropPlan = newPlan;
+        if (!changed) {
+            return;
+        }
+        VisualNode previous = dropTarget;
+        if (previous != null) {
+            previous.setDropTarget(false);
+        }
+        dropTarget = newTarget;
+        if (dropTarget != null) {
+            dropTarget.setDropIndicator(position, blocked);
+        }
+        canvas.setCursor(dropTarget == null ? javafx.scene.Cursor.CLOSED_HAND
+                : blocked ? javafx.scene.Cursor.DISAPPEAR : javafx.scene.Cursor.MOVE);
+        repaintNodes(java.util.Arrays.asList(previous, dropTarget));
+    }
+
+    /** Clears the drag feedback (dragging overlay, drop indicator, cursor, auto-scroll). */
+    private void endDragFeedback() {
+        stopAutoScroll();
+        java.util.List<VisualNode> affected = new java.util.ArrayList<>();
+        if (draggedNode != null && draggedNode.isDragging()) {
+            draggedNode.setDragging(false);
+            affected.add(draggedNode);
+        }
+        if (dropTarget != null) {
+            dropTarget.setDropTarget(false);
+            affected.add(dropTarget);
+        }
+        isDragging = false;
+        dropTarget = null;
+        dropPlan = null;
+        canvas.setCursor(null);
+        if (!affected.isEmpty()) {
+            repaintNodes(affected);
+        }
+    }
+
+    /** Runs the planned drop as a command, after the rule / shared-type dialogs. */
+    private void performDrop(XsdDropPlanner.Plan plan, VisualNode source, VisualNode target) {
+        javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
+        String title = plan.copy() ? "Copy Node" : "Move Node";
+        if (plan.isBlocked()) {
+            org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(owner, title, plan.check());
+            return;
+        }
+        java.util.List<String> shared = dropPlanner().sharedComponents(plan);
+        if (!shared.isEmpty() && !org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.confirm(owner, title,
+                "This changes a shared definition",
+                "Dropping here changes the " + String.join(" and the ", shared)
+                        + ". Every declaration that uses it will change too.",
+                plan.copy() ? "Copy anyway" : "Move anyway")) {
+            return;
+        }
+        if (plan.position() == XsdDropPlanner.Position.INTO && target != null) {
+            target.setExpanded(true); // show the dropped node
+        }
+        if (plan.copy()) {
+            CopyNodeCommand command = new CopyNodeCommand(plan.node(), plan.parent(), plan.index());
+            if (editorContext.getCommandManager().executeCommand(command)) {
+                pendingSelectionId = command.getCopy().getId();
+            }
+        } else {
+            getSelectionModel().select(source); // the rebuild restores the selection by id
+            editorContext.getCommandManager().executeCommand(
+                    new MoveNodeCommand(plan.node(), plan.parent(), plan.index()));
+        }
+        logger.info("Dropped '{}' {} '{}' (parent '{}', index {})", plan.node().getName(),
+                plan.position(), plan.target().getName(), plan.parent().getName(), plan.index());
+    }
+
+    /**
+     * Converts a diagram point (card coordinates) into canvas coordinates, as mouse events on the
+     * canvas carry them. For tests that drive the canvas with synthetic mouse events.
+     */
+    double[] toCanvasPoint(double diagramX, double diagramY) {
+        return new double[]{diagramX * zoomLevel - viewportX, diagramY * zoomLevel - viewportY};
+    }
+
+    private XsdDropPlanner dropPlanner() {
+        if (dropPlanner == null) {
+            dropPlanner = new XsdDropPlanner(xsdSchema);
+        }
+        return dropPlanner;
+    }
+
+    /** Starts or stops scrolling depending on whether the cursor is near the viewport edge. */
+    private void updateAutoScroll() {
+        if (autoScrollDelta()[0] == 0 && autoScrollDelta()[1] == 0) {
+            stopAutoScroll();
+            return;
+        }
+        if (autoScrollTimeline == null) {
+            autoScrollTimeline = new javafx.animation.Timeline(
+                    new javafx.animation.KeyFrame(Duration.millis(40), e -> autoScrollStep()));
+            autoScrollTimeline.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        }
+        if (autoScrollTimeline.getStatus() != javafx.animation.Animation.Status.RUNNING) {
+            autoScrollTimeline.play();
+        }
+    }
+
+    private void stopAutoScroll() {
+        if (autoScrollTimeline != null) {
+            autoScrollTimeline.stop();
+        }
+    }
+
+    /** @return the scroll step (virtual px, x and y) for the last cursor position; 0 = not at an edge */
+    private double[] autoScrollDelta() {
+        double dx = 0;
+        double dy = 0;
+        if (lastDragX < AUTO_SCROLL_EDGE) {
+            dx = -AUTO_SCROLL_STEP;
+        } else if (lastDragX > viewportWidth - AUTO_SCROLL_EDGE) {
+            dx = AUTO_SCROLL_STEP;
+        }
+        if (lastDragY < AUTO_SCROLL_EDGE) {
+            dy = -AUTO_SCROLL_STEP;
+        } else if (lastDragY > viewportHeight - AUTO_SCROLL_EDGE) {
+            dy = AUTO_SCROLL_STEP;
+        }
+        return new double[]{dx, dy};
+    }
+
+    private void autoScrollStep() {
+        if (!isDragging) {
+            stopAutoScroll();
+            return;
+        }
+        double[] delta = autoScrollDelta();
+        double maxH = Math.max(0, diagramWidth * zoomLevel - viewportWidth);
+        double maxV = Math.max(0, diagramHeight * zoomLevel - viewportHeight);
+        if (delta[0] != 0 && maxH > 0) {
+            scrollPane.setHvalue(Math.max(0, Math.min(1, scrollPane.getHvalue() + delta[0] / maxH)));
+        }
+        if (delta[1] != 0 && maxV > 0) {
+            scrollPane.setVvalue(Math.max(0, Math.min(1, scrollPane.getVvalue() + delta[1] / maxV)));
+        }
+        // the card under the (unmoved) cursor changed with the scroll offset
+        updateDropTarget();
     }
 
     /**
@@ -1774,11 +1946,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      */
     private VisualNode findDropTargetAt(VisualNode node, double x, double y) {
         if (node == null || node == draggedNode) {
-            return null;
-        }
-
-        // Don't allow dropping onto descendants
-        if (isDescendantOf(node, draggedNode)) {
             return null;
         }
 
@@ -1798,156 +1965,6 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         }
 
         return null;
-    }
-
-    /**
-     * Checks if potentialDescendant is a descendant of potentialAncestor.
-     */
-    private boolean isDescendantOf(VisualNode potentialDescendant, VisualNode potentialAncestor) {
-        if (potentialAncestor == null || potentialDescendant == null) {
-            return false;
-        }
-
-        for (VisualNode child : potentialAncestor.getChildren()) {
-            if (child == potentialDescendant) {
-                return true;
-            }
-            if (isDescendantOf(potentialDescendant, child)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Determines the parent node for a drop operation.
-     * If dropping onto a compositor (sequence, choice, all), returns the compositor.
-     * If dropping onto an element with compositor children, returns the compositor.
-     * Otherwise returns the node's parent for sibling insertion.
-     */
-    private XsdNode determineDropParent(XsdNode dropTargetXsdNode) {
-        // If drop target is a compositor, drop into it
-        if (dropTargetXsdNode instanceof XsdSequence ||
-                dropTargetXsdNode instanceof XsdChoice ||
-                dropTargetXsdNode instanceof XsdAll) {
-            return dropTargetXsdNode;
-        }
-
-        // If drop target is a complexType, find its compositor child
-        if (dropTargetXsdNode instanceof XsdComplexType complexType) {
-            for (XsdNode child : complexType.getChildren()) {
-                if (child instanceof XsdSequence || child instanceof XsdChoice || child instanceof XsdAll) {
-                    return child;
-                }
-            }
-            // No compositor found, drop into the complexType itself
-            return dropTargetXsdNode;
-        }
-
-        // If drop target is an element with inline complexType, find its compositor
-        if (dropTargetXsdNode instanceof XsdElement) {
-            for (XsdNode child : dropTargetXsdNode.getChildren()) {
-                if (child instanceof XsdComplexType) {
-                    for (XsdNode complexChild : child.getChildren()) {
-                        if (complexChild instanceof XsdSequence ||
-                                complexChild instanceof XsdChoice ||
-                                complexChild instanceof XsdAll) {
-                            return complexChild;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Default: make sibling by using drop target's parent
-        return dropTargetXsdNode.getParent();
-    }
-
-    /**
-     * Determines the index for inserting the dragged node.
-     */
-    private int determineDropIndex(XsdNode _draggedNode, XsdNode dropTargetXsdNode, XsdNode newParent) {
-        if (newParent == null) {
-            return 0;
-        }
-
-        // If dropping into the drop target (not as sibling), append at end
-        if (newParent == dropTargetXsdNode ||
-                (dropTargetXsdNode instanceof XsdComplexType && newParent.getParent() == dropTargetXsdNode)) {
-            return newParent.getChildren().size();
-        }
-
-        // Find index of drop target in its parent
-        int targetIndex = newParent.getChildren().indexOf(dropTargetXsdNode);
-        if (targetIndex < 0) {
-            // Drop target not directly in parent, append at end
-            return newParent.getChildren().size();
-        }
-
-        // Insert after the drop target
-        return targetIndex + 1;
-    }
-
-    /**
-     * Checks if the node can be dropped onto the given parent.
-     */
-    private boolean canDrop(XsdNode draggedXsdNode, XsdNode newParent) {
-        // Only moves that keep the schema valid (no content under simple types, compositor needed, …)
-        return canDropStructurally(draggedXsdNode, newParent)
-                && !org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.move(draggedXsdNode, newParent)
-                .isBlocked();
-    }
-
-    private boolean canDropStructurally(XsdNode draggedXsdNode, XsdNode newParent) {
-        // Cannot drop onto itself
-        if (draggedXsdNode == newParent) {
-            return false;
-        }
-
-        // Cannot drop onto descendants
-        if (isModelDescendant(newParent, draggedXsdNode)) {
-            return false;
-        }
-
-        // Check if parent can accept this type of child
-        // Elements can be dropped into compositors (sequence, choice, all)
-        if (draggedXsdNode instanceof XsdElement) {
-            return newParent instanceof XsdSequence ||
-                    newParent instanceof XsdChoice ||
-                    newParent instanceof XsdAll ||
-                    newParent instanceof XsdGroup;
-        }
-
-        // Attributes can be dropped into element, complexType, or attributeGroup
-        if (draggedXsdNode instanceof XsdAttribute) {
-            return newParent instanceof XsdElement ||
-                    newParent instanceof XsdComplexType ||
-                    newParent instanceof XsdAttributeGroup;
-        }
-
-        // Allow other node types to be moved to their parent type
-        return true;
-    }
-
-    /**
-     * Checks if potentialDescendant is a model descendant of potentialAncestor.
-     */
-    private boolean isModelDescendant(XsdNode potentialDescendant, XsdNode potentialAncestor) {
-        if (potentialAncestor == null || potentialDescendant == null) {
-            return false;
-        }
-
-        for (XsdNode child : potentialAncestor.getChildren()) {
-            if (child == potentialDescendant) {
-                return true;
-            }
-            if (isModelDescendant(potentialDescendant, child)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

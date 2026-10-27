@@ -14,8 +14,9 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
- * The two dialogs of the structural edit rules ({@code XsdEditRules}): a confirmation for an edit
- * that replaces conflicting content, and a notice for an edit that is not valid XSD.
+ * The dialogs of the structural edit rules ({@code XsdEditRules}): a confirmation for an edit
+ * that replaces conflicting content (or that changes more than it seems, {@link #confirm}), and a
+ * notice for an edit that is not valid XSD.
  *
  * <p>Tests install {@link #setConfirmer} / {@link #setBlockedHandler} so no modal dialog opens;
  * with {@code fxt.suppressErrorDialogs} set and no handler, a blocked notice is only logged.
@@ -60,6 +61,32 @@ public final class EditRuleDialogs {
         alert.getButtonTypes().setAll(replace, ButtonType.CANCEL);
         style(alert, owner);
         return alert.showAndWait().filter(replace::equals).isPresent();
+    }
+
+    /**
+     * Asks whether a valid but far-reaching edit may run (e.g. one that changes a shared type).
+     * Tests answer it through {@link #setConfirmer} like a replacement confirmation; the check they
+     * receive is a {@link EditCheck.Status#REPLACEABLE} verdict carrying {@code message}.
+     *
+     * @param owner   the owner window, may be {@code null}
+     * @param title   the dialog title
+     * @param header  the header line
+     * @param message what the edit affects
+     * @param okLabel the confirming button's text
+     * @return {@code true} when the user confirmed
+     */
+    public static boolean confirm(Window owner, String title, String header, String message, String okLabel) {
+        if (confirmer != null) {
+            return confirmer.test(title, EditCheck.replaceable(message, okLabel));
+        }
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(message);
+        ButtonType ok = new ButtonType(okLabel, ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(ok, ButtonType.CANCEL);
+        style(alert, owner);
+        return alert.showAndWait().filter(ok::equals).isPresent();
     }
 
     /**

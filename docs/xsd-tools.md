@@ -48,6 +48,7 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Edit Documentation**: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)
 - **Type Picker**: Choose an element's or attribute's type from a list of the schema's own types and all XSD built-in datatypes, each explained in a side pane
 - **Add Examples**: Include example values for elements
+- **Drag and Drop**: Move or copy elements, compositors, group references and attributes by dragging their cards - see [Moving and Copying by Drag and Drop](#drag-and-drop-in-the-diagram)
 - **Reorder and Duplicate**: Move nodes up and down, copy, cut, paste and duplicate them from the context menu
 - **Full Undo/Redo**: Go back and forward through your changes
 
@@ -58,7 +59,7 @@ The Graphic View lets you explore and edit your schemas visually.
 3. **Select** an element by clicking on it
 4. **Edit properties** in the panel on the right (name, type, cardinality/occurrence, use, form, constraints, documentation, and facets)
 5. **Add children** using the context menu (right-click)
-6. **Reorder** nodes with **Move Up** / **Move Down** from the context menu; **Delete** removes the selected node
+6. **Reorder** nodes by dragging them to a new place, or with **Move Up** / **Move Down** from the context menu; **Delete** removes the selected node
 
 > **Editing properties from any view:** The same Properties pane is
 > available in the **Text** view as well as the Graphic and Tree views. See
@@ -72,6 +73,42 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
 - **Ctrl+S** to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)
 - The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (Ctrl+Shift+S, save under a new name) and **Save All** (saves every open tab)
+
+### Moving and Copying by Drag and Drop {#drag-and-drop-in-the-diagram}
+
+In the Graphic view you can rearrange the schema by dragging its cards: elements, compositors
+(sequence, choice, all), group references and attributes.
+
+1. **Press the left mouse button** on a card and move the mouse a few pixels - the drag starts.
+   While you drag a card, the diagram does not pan (dragging on empty space still pans it).
+2. **Point at the target** and watch the feedback:
+    - A **blue line** above or below a card: the node is dropped **before** or **after** that card
+      (point at the upper or lower quarter of the card).
+    - A **green frame** around a card: the node is dropped **into** it (point at the middle).
+      Elements go into the card's sequence, choice or all; attributes go into its complex type.
+      Sequence, choice and all symbols only accept drops into them.
+    - A **red frame**: the drop would not produce a valid schema. If you release there, a message
+      explains why and nothing changes.
+3. **Release the mouse button** to move the node. Hold **Ctrl** (**Cmd** on macOS) while releasing
+   to **copy** it instead. The copy keeps its name, or gets the suffix `_copy` if a sibling already
+   has that name.
+
+More details:
+
+- Near the edge of the visible area the diagram **scrolls automatically**.
+- Press **Esc** to cancel the drag.
+- **Shared definitions ask first.** Dropping into or out of a named global type or group that is
+  used by more than one declaration changes every place that uses it. A confirmation dialog tells
+  you how often the definition is used ("This changes a shared definition … used N times").
+- **Not possible** (shown with a red frame):
+    - moving a global declaration into a content model - use a reference (`ref`) instead
+    - moving a local declaration to the top level of the schema
+    - dropping attributes among elements, or elements among attributes
+    - dropping into an element with a simple type (such as `xs:string`)
+    - changing nodes that come from an imported schema
+- **Every drop is one undo step** - **Ctrl+Z** reverts it. The **Text** view shows the change
+  right away.
+- As an alternative without the mouse, use **Move Up** / **Move Down** from the context menu.
 
 ### Adding an Element or Attribute {#adding-an-element-or-attribute}
 
