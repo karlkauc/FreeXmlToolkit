@@ -205,18 +205,27 @@ public class EditorHost extends BorderPane {
 
         setupDragAndDrop();
         externalChangeMonitor.attachTo(this);
+        // Tabs can be dragged left/right; the skin moves a tab by removing and re-adding it.
+        tabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         // Show the welcome empty-state while no document is open; swap to the tab
         // pane as soon as one opens, and back again when the last tab closes.
         tabPane.getTabs().addListener((javafx.collections.ListChangeListener<Tab>) c -> {
             // Abandon a removed tab's background schema work here rather than in setOnClosed:
-            // this fires however the tab goes away, including programmatic removal.
+            // this fires however the tab goes away, including programmatic removal. A tab that is
+            // still in the list was only moved (drag reorder) and keeps working.
             while (c.next()) {
                 for (Tab removed : c.getRemoved()) {
-                    if (removed instanceof EditorTab et) {
+                    if (removed instanceof EditorTab et && !tabPane.getTabs().contains(et)) {
                         et.closed.set(true);
                     }
                 }
+                for (Tab added : c.getAddedSubList()) {
+                    if (added.getContextMenu() == null) {
+                        EditorTabMenu.install(added, tabMenuActions);
+                    }
+                }
             }
+            syncOpenDocumentOrder();
             UsageEvents.openTabsChanged(tabPane.getTabs().size());
             updateCenter();
         });
@@ -1976,8 +1985,13 @@ public class EditorHost extends BorderPane {
      * @return completes on the FX thread with whether the file was written
      */
     public CompletableFuture<Boolean> saveActive() {
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (!(tab instanceof EditorTab et) || et.document.isUntitled()) {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                ? saveTab(et) : CompletableFuture.completedFuture(false);
+    }
+
+    /** Saves {@code et} to its current path (must be titled), written on a worker thread. */
+    private CompletableFuture<Boolean> saveTab(EditorTab et) {
+        if (et.document.isUntitled()) {
             return CompletableFuture.completedFuture(false);
         }
         return writeAsync(et, et.document.getPath()).thenApply(saved -> {
@@ -4294,8 +4308,16 @@ public class EditorHost extends BorderPane {
     }
 
     public boolean closeActiveTab() {
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab == null || !tab.isClosable()) {
+        return closeTab(tabPane.getSelectionModel().getSelectedItem());
+    }
+
+    /**
+     * Closes {@code tab} the way its close button does: a dirty document asks to save and can veto.
+     *
+     * @return {@code true} if the tab was closed
+     */
+    boolean closeTab(Tab tab) {
+        if (tab == null || !tab.isClosable() || !tabPane.getTabs().contains(tab)) {
             return false;
         }
         // Source and target are set up front: fireEvent would otherwise dispatch a copy and
@@ -4309,6 +4331,144 @@ public class EditorHost extends BorderPane {
         javafx.event.Event.fireEvent(tab, new javafx.event.Event(tab, tab, Tab.CLOSED_EVENT));
         return true;
     }
+
+    /**
+     * Closes every closable tab except {@code keep}, one after the other; stops at the first
+     * tab whose unsaved-changes prompt is cancelled.
+     */
+    void closeOtherTabs(Tab keep) {
+        for (Tab tab : new java.util.ArrayList<>(tabPane.getTabs())) {
+            if (tab != keep && tab.isClosable() && !closeTab(tab)) {
+                return;
+            }
+        }
+    }
+
+    /** Keeps {@link #openDocuments} in tab order after tabs were added, removed or dragged. */
+    private void syncOpenDocumentOrder() {
+        java.util.List<OpenDocument> inTabOrder = tabPane.getTabs().stream()
+                .filter(EditorTab.class::isInstance)
+                .map(t -> ((EditorTab) t).document)
+                .filter(openDocuments::contains)
+                .toList();
+        if (inTabOrder.size() == openDocuments.size() && !inTabOrder.equals(openDocuments)) {
+            FXCollections.sort(openDocuments, java.util.Comparator.comparingInt(inTabOrder::indexOf));
+        }
+    }
+
+    /** Called with a document's file by the tab menu's "Reveal in Explorer Panel" (set by the shell). */
+    public void setRevealInExplorerHandler(java.util.function.Consumer<Path> handler) {
+        this.revealInExplorerHandler = handler;
+    }
+
+    /** Test seam: decides whether a dirty document may be reloaded (discarding its changes). */
+    void setReloadConfirmer(java.util.function.Predicate<OpenDocument> confirmer) {
+        this.reloadConfirmer = java.util.Objects.requireNonNull(confirmer, "confirmer");
+    }
+
+    /** Test seam: the tab menu's entries for {@code tab}, in their current state. */
+    java.util.List<javafx.scene.control.MenuItem> tabMenuItems(Tab tab) {
+        return EditorTabMenu.items(tab, tabMenuActions);
+    }
+
+    /** Test seam: the open tabs in order. */
+    java.util.List<Tab> tabsForTest() {
+        return tabPane.getTabs();
+    }
+
+    private java.util.function.Consumer<Path> revealInExplorerHandler;
+
+    private java.util.function.Predicate<OpenDocument> reloadConfirmer = this::confirmReload;
+
+    private boolean confirmReload(OpenDocument doc) {
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Reload from Disk",
+                "Reload " + doc.getDisplayName() + "?",
+                "Your unsaved changes will be lost.");
+        javafx.scene.control.ButtonType reload =
+                new javafx.scene.control.ButtonType("Reload", javafx.scene.control.ButtonBar.ButtonData.YES);
+        alert.getButtonTypes().setAll(reload, javafx.scene.control.ButtonType.CANCEL);
+        if (getScene() != null && getScene().getWindow() != null) {
+            alert.initOwner(getScene().getWindow());
+        }
+        return alert.showAndWait().filter(reload::equals).isPresent();
+    }
+
+    /** The editor tab's actions behind {@link EditorTabMenu}; each targets the right-clicked tab. */
+    private final EditorTabMenu.Actions tabMenuActions = new EditorTabMenu.Actions() {
+        @Override
+        public OpenDocument documentOf(Tab tab) {
+            return tab instanceof EditorTab et ? et.document : null;
+        }
+
+        @Override
+        public boolean hasOtherClosableTabs(Tab tab) {
+            return tabPane.getTabs().stream().anyMatch(t -> t != tab && t.isClosable());
+        }
+
+        @Override
+        public void reload(Tab tab) {
+            if (tab instanceof EditorTab et && !et.document.isUntitled() && !et.loading
+                    && (!et.document.isDirty() || reloadConfirmer.test(et.document))) {
+                reloadFromDisk(et, et.document.getPath());
+            }
+        }
+
+        @Override
+        public void close(Tab tab) {
+            closeTab(tab);
+        }
+
+        @Override
+        public void closeOthers(Tab tab) {
+            closeOtherTabs(tab);
+        }
+
+        @Override
+        public void save(Tab tab) {
+            if (tab instanceof EditorTab et) {
+                if (et.document.isUntitled()) {
+                    saveTabAs(et);
+                } else {
+                    saveTab(et);
+                }
+            }
+        }
+
+        @Override
+        public void saveAs(Tab tab) {
+            if (tab instanceof EditorTab et) {
+                saveTabAs(et);
+            }
+        }
+
+        @Override
+        public void copyPath(Tab tab) {
+            if (tab instanceof EditorTab et && !et.document.isUntitled()) {
+                javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+                content.putString(et.document.getPath().toAbsolutePath().toString());
+                javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
+            }
+        }
+
+        @Override
+        public void revealInFileManager(Tab tab) {
+            if (tab instanceof EditorTab et && !et.document.isUntitled()) {
+                Path path = et.document.getPath().toAbsolutePath();
+                org.fxt.freexmltoolkit.util.DesktopActions.reveal(path.toFile(), e ->
+                        org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Reveal Failed",
+                                "Could not show " + path + " in the file manager.",
+                                "Open the folder manually.", e));
+            }
+        }
+
+        @Override
+        public void revealInExplorer(Tab tab) {
+            if (tab instanceof EditorTab et && !et.document.isUntitled() && revealInExplorerHandler != null) {
+                revealInExplorerHandler.accept(et.document.getPath().toAbsolutePath());
+            }
+        }
+    };
 
     /**
      * Records a tab's schema-binding status and mirrors it into {@link #activeSchemaStatus}

@@ -116,7 +116,7 @@ passed validation a green check. Both layers switch with the light/dark theme:
 
 1. The Unified Shell opens automatically on startup.
 2. Use the **Explorer** activity (or **File → Open**) to open files; **File → New** (Ctrl+N) opens the guided [New File dialog](#new-file-dialog) to create a new file from a template or schema. You can also **drag & drop** files from your file manager anywhere onto the window - every [supported file type](#supported-file-types) (XML, XSD, XSLT, XProc, XQuery, XPath, Schematron, JSON, HTML) opens as a new tab; other files are ignored.
-3. Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic - plus **Preview** for HTML files) with the segmented view switch.
+3. Files open as tabs in the editor host - switch tabs by clicking their headers (drag a header to reorder, right-click it for [tab actions](#editor-tabs)), and switch view modes (Text / Tree / Graphic - plus **Preview** for HTML files) with the segmented view switch.
 
 After the first start, a small **Anonymous usage statistics** notice appears once in the
 bottom-right corner of the window. It explains that FreeXmlToolkit sends anonymous usage
@@ -298,6 +298,26 @@ Stylesheet* / *Validate with Other Schematron*) and the favorites star menus.
 
 Not loaded: keystores and trust stores (binary files), and spreadsheets for import (the
 converted XML opens instead).
+
+## Working with Editor Tabs {#editor-tabs}
+
+- **Reorder tabs** by dragging a tab header left or right. The Explorer's
+  [OPEN EDITORS](#explorer-panel) list follows the new order.
+- **Right-click a tab** for a menu that acts on *that* tab, even if it is not the active one:
+
+| Menu item | What it does |
+|-----------|--------------|
+| **Reload from Disk** | Reads the file again. If the document has unsaved changes, you are asked first. Not available for untitled documents. |
+| **Close** | Closes the tab (asks to save unsaved changes). |
+| **Close Others** | Closes every other tab. Each tab with unsaved changes still asks to save; **Cancel** stops closing the rest. |
+| **Save** / **Save As…** | Saves the document. For an untitled document, **Save** works like **Save As…**. |
+| **Copy Path** | Copies the file's full path to the clipboard. |
+| **Reveal in File Manager** | Shows the file in Windows Explorer, the macOS Finder or your Linux file manager, with the file selected (if the file manager cannot select it, its folder opens). |
+| **Reveal in Explorer Panel** | Opens the [Explorer](#explorer-panel) and selects the file in the workspace tree. If the file lies outside the current workspace, its folder becomes the workspace. |
+
+Copy Path and the two Reveal items need a saved file, so they are disabled for untitled
+documents. Tabs that show no document - tool tabs such as the Type Editor, a diff or a PDF
+preview - only offer **Close** and **Close Others**.
 
 ## Files Changed Outside the Editor {#external-changes}
 
@@ -882,7 +902,8 @@ The sections appear from top to bottom in this order:
 - **OPEN EDITORS** - one row per open document. The **active document is highlighted**
   (blue, bold) and unsaved documents show a **dot** on the right. Click a row to switch to
   that document. The list shows about six rows; with more open documents it scrolls, so the
-  workspace tree below keeps its space.
+  workspace tree below keeps its space. The rows follow the order of the editor tabs -
+  [drag a tab](#editor-tabs) to reorder both.
 - **Workspace** - the file tree of the opened folder; the section is titled after the
   folder's name. Folders expand with their chevron; double-click (or Enter) opens a file.
   Only XML-family and JSON files are shown. While no folder is open, the section shows a

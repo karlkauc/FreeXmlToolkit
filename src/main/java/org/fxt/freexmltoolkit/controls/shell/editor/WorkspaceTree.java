@@ -127,6 +127,10 @@ public class WorkspaceTree extends VBox {
             TreeItem<Path> item = root.expandAndFind(path);
             if (item != null) {
                 tree.getSelectionModel().select(item);
+                int row = tree.getRow(item);
+                if (row >= 0) {
+                    tree.scrollTo(row);
+                }
             }
         }
     }

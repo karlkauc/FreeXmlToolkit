@@ -2,7 +2,11 @@ package org.fxt.freexmltoolkit.util;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import javafx.application.Platform;
@@ -41,6 +45,65 @@ public final class DesktopActions {
             }
             Desktop.getDesktop().browse(uri);
         }, onFailure);
+    }
+
+    /**
+     * Shows {@code file} selected in the system file manager (Explorer, Finder, or a freedesktop
+     * file manager over D-Bus). Where that fails, the containing folder is opened instead.
+     */
+    public static void reveal(File file, Consumer<Exception> onFailure) {
+        run(() -> {
+            List<String> command = revealCommand(System.getProperty("os.name", ""), file);
+            if (command != null && runsSuccessfully(command)) {
+                return;
+            }
+            File folder = file.getAbsoluteFile().getParentFile();
+            if (folder == null || !Desktop.isDesktopSupported()
+                    || !Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+                throw new UnsupportedOperationException("No file manager to show " + file);
+            }
+            Desktop.getDesktop().open(folder);
+        }, onFailure);
+    }
+
+    /**
+     * @return the OS command that shows {@code file} selected in the file manager, or {@code null}
+     *         if the OS has none
+     */
+    static List<String> revealCommand(String osName, File file) {
+        String os = osName.toLowerCase(Locale.ROOT);
+        String path = file.getAbsolutePath();
+        if (os.contains("win")) {
+            return List.of("explorer.exe", "/select," + path);
+        }
+        if (os.contains("mac")) {
+            return List.of("open", "-R", path);
+        }
+        if (os.contains("linux") || os.contains("bsd")) {
+            return List.of("dbus-send", "--session", "--print-reply", "--dest=org.freedesktop.FileManager1",
+                    "--type=method_call", "/org/freedesktop/FileManager1",
+                    "org.freedesktop.FileManager1.ShowItems",
+                    "array:string:" + file.getAbsoluteFile().toURI(), "string:");
+        }
+        return null;
+    }
+
+    private static boolean runsSuccessfully(List<String> command) {
+        try {
+            Process process = new ProcessBuilder(command).redirectErrorStream(true)
+                    .redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
+            if (!process.waitFor(10, TimeUnit.SECONDS)) {
+                process.destroy();
+                return false;
+            }
+            // explorer.exe /select reports exit code 1 even when it worked.
+            return process.exitValue() == 0 || command.getFirst().equals("explorer.exe");
+        } catch (IOException e) {
+            return false;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 
     @FunctionalInterface

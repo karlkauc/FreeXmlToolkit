@@ -181,6 +181,7 @@ public class UnifiedShellView extends BorderPane {
         // Route the Welcome/Dashboard "New" card through the guided New File dialog, so all
         // new-file entry points (toolbar, Explorer, Welcome) share one flow.
         editorHost.setNewDocumentHandler(this::newDocument);
+        editorHost.setRevealInExplorerHandler(this::revealInExplorer);
         queryConsole = new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
         queryConsole.setMinHeight(180);
         queryConsole.setPrefHeight(220);
@@ -364,6 +365,15 @@ public class UnifiedShellView extends BorderPane {
             }
         }
         return supported.size();
+    }
+
+    /** Opens the Explorer activity and selects {@code file} in its workspace tree (editor tab menu). */
+    private void revealInExplorer(java.nio.file.Path file) {
+        selectionModel.select(Activity.EXPLORER);
+        revealSidePanel();
+        if (explorerPanel != null) {
+            explorerPanel.revealFile(file);
+        }
     }
 
     /** Routes a Welcome/Dashboard action key to the matching activity. */

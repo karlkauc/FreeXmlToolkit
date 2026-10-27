@@ -645,6 +645,24 @@ public class ExplorerPanel extends VBox {
                 ? name.toString().toUpperCase(java.util.Locale.ROOT) : "WORKSPACE");
     }
 
+    /**
+     * Selects {@code file} in the workspace tree; a file outside the current workspace makes its
+     * folder the workspace first.
+     */
+    public void revealFile(Path file) {
+        Path absolute = file.toAbsolutePath().normalize();
+        Path root = getWorkspaceFolder();
+        if ((root == null || !absolute.startsWith(root.toAbsolutePath().normalize()))
+                && absolute.getParent() != null) {
+            setWorkspaceFolder(absolute.getParent());
+            root = getWorkspaceFolder();
+        }
+        if (root != null) {
+            // The tree items carry paths in the root's own form (possibly relative).
+            workspace.selectPath(root.resolve(root.toAbsolutePath().normalize().relativize(absolute)));
+        }
+    }
+
     /** @return the workspace section title currently shown (for tests/observers). */
     public String getWorkspaceTitle() {
         return workspaceTitle.getText();
