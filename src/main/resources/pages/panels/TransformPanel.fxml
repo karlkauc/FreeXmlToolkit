@@ -113,9 +113,10 @@
                                             </graphic>
                                         </Button>
                                         <Button fx:id="debugButton" id="transform-debug" text="Debug"
-                                                styleClass="fxt-tool-button" onAction="#startDebug">
+                                                styleClass="fxt-secondary-button, fxt-run-debug-button"
+                                                onAction="#startDebug">
                                             <graphic>
-                                                <IconifyIcon iconLiteral="bi-bug" iconSize="14"/>
+                                                <IconifyIcon iconLiteral="bi-bug-fill" iconSize="14"/>
                                             </graphic>
                                             <tooltip>
                                                 <Tooltip text="Debug the stylesheet: breakpoints, stepping, variables (Shift+F5)"/>

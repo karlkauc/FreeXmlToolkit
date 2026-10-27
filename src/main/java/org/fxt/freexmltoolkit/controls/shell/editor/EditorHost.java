@@ -1216,6 +1216,7 @@ public class EditorHost extends BorderPane {
                 ExecutionStatsView::new);
         if (tab.getContent() instanceof ExecutionStatsView view) {
             tab.setOnClosed(e -> view.dispose());
+            view.refreshRecordingState(); // the flag may have changed in Settings meanwhile
         }
     }
 

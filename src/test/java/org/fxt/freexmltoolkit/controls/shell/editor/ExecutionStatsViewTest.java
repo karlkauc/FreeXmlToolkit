@@ -92,4 +92,24 @@ class ExecutionStatsViewTest {
 
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> view.getRowCount() == 3);
     }
+
+    @Test
+    void recordingOffBarFollowsTheFlagAndEnablesRecording() throws Exception {
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, view::isRecordingOffBarVisible),
+                "bar hidden while recording is on");
+
+        PropertiesServiceImpl.getInstance().set(DeveloperPropertyKeys.EXECUTION_STATS_ENABLED, "false");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.refreshRecordingState();
+            return view.isRecordingOffBarVisible();
+        }), "bar shown while recording is off");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.onEnableRecording();
+            return null;
+        });
+        assertTrue(ExecutionStatsService.getInstance().isEnabled(), "Enable turns the flag on");
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, view::isRecordingOffBarVisible),
+                "bar hidden after enabling");
+    }
 }

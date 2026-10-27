@@ -443,6 +443,7 @@ public class XsltTransformationEngine {
             // Collect debug data from listeners
             if (enableDebugging && traceListener != null) {
                 result.setTemplateMatches(traceListener.getTemplateMatches());
+                result.setTemplateProfile(traceListener.getTemplateProfile());
                 result.setVariableValues(traceListener.getVariableValues());
                 result.setCallStack(traceListener.getCallStack());
 
@@ -648,6 +649,7 @@ public class XsltTransformationEngine {
             result.setExecutionTime(System.currentTimeMillis() - startTime);
             result.setTransformationContext(context);
             result.setTemplateMatches(traceListener.getTemplateMatches());
+            result.setTemplateProfile(traceListener.getTemplateProfile());
             result.setVariableValues(traceListener.getVariableValues());
             result.setCallStack(traceListener.getCallStack());
             result.setMessages(messageListener.getMessages());
@@ -1736,6 +1738,17 @@ public class XsltTransformationEngine {
      * @param executionTime The execution time in nanoseconds
      */
     public record TemplateMatchInfo(String pattern, String name, int lineNumber, long executionTime) {
+    }
+
+    /**
+     * Profile of one template rule, named template or function over a whole run
+     * @param name       the match pattern ({@code match="…"}), template name or {@code name#arity}
+     * @param kind       "Template rule", "Named template" or "Function"
+     * @param lineNumber the declaration's line in the stylesheet
+     * @param calls      number of invocations
+     * @param totalNanos inclusive time of all invocations (nested calls count in their callers too)
+     */
+    public record TemplateProfileEntry(String name, String kind, int lineNumber, int calls, long totalNanos) {
     }
 
     /**

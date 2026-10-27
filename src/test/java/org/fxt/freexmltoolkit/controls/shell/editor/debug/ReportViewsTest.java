@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,7 +20,7 @@ import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * Smoke test: {@link ProfileView} and {@link TraceView} render a real
- * transformation report without throwing (guards the Fix B null path).
+ * transformation report and show its rows (profile per template, trace per call).
  */
 @ExtendWith(ApplicationExtension.class)
 class ReportViewsTest {
@@ -27,7 +28,8 @@ class ReportViewsTest {
     private static final String XML = "<root><item>a</item><item>b</item></root>";
     private static final String XSLT = """
             <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-              <xsl:template match="/"><out><xsl:value-of select="count(//item)"/></out></xsl:template>
+              <xsl:template match="/"><out><xsl:apply-templates select="//item"/></out></xsl:template>
+              <xsl:template match="item"><i><xsl:message>seen</xsl:message></i></xsl:template>
             </xsl:stylesheet>
             """;
 
@@ -47,8 +49,9 @@ class ReportViewsTest {
         TraceView traceView = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new TraceView(result));
 
         assertFalse(profileView.getSummaryText().isBlank(), "profile summary non-blank");
-        assertTrue(profileView.getRowCount() >= 0, "profile row count sane");
-        assertTrue(traceView.getMatchCount() >= 0, "trace match count sane");
-        assertTrue(traceView.getMessageCount() >= 0, "trace message count sane");
+        assertEquals(2, profileView.getRowCount(), "one profile row per template rule");
+        assertEquals(3, traceView.getMatchCount(), "one trace row per template call");
+        assertEquals(2, traceView.getMessageCount(), "both xsl:message outputs");
+        assertTrue(traceView.getCallTraceCount() > 0, "call trace rows");
     }
 }

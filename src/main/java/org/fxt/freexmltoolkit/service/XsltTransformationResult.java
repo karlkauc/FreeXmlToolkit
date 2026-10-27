@@ -72,6 +72,7 @@ public class XsltTransformationResult {
 
     // Debugging information
     private List<XsltTransformationEngine.TemplateMatchInfo> templateMatches;
+    private List<XsltTransformationEngine.TemplateProfileEntry> templateProfile = new ArrayList<>();
     private Map<String, Object> variableValues;
     private List<String> callStack;
     private List<String> warnings;
@@ -586,6 +587,15 @@ public class XsltTransformationResult {
 
     public void setTemplateMatches(List<XsltTransformationEngine.TemplateMatchInfo> templateMatches) {
         this.templateMatches = templateMatches == null ? new java.util.ArrayList<>() : new java.util.ArrayList<>(templateMatches);
+    }
+
+    /** @return calls and time per template rule, named template and function (traced runs), slowest first */
+    public List<XsltTransformationEngine.TemplateProfileEntry> getTemplateProfile() {
+        return java.util.Collections.unmodifiableList(templateProfile);
+    }
+
+    public void setTemplateProfile(List<XsltTransformationEngine.TemplateProfileEntry> templateProfile) {
+        this.templateProfile = templateProfile == null ? new ArrayList<>() : new ArrayList<>(templateProfile);
     }
 
     public Map<String, Object> getVariableValues() {

@@ -2942,6 +2942,28 @@
     -fx-border-color: -fxt-primary;
 }
 
+/* Debug next to the filled Run button (Transform panel): an outlined button in the
+   transform workflow colour, as tall as Run, so the debugger reads as a peer of Run. */
+.fxt-secondary-button.fxt-run-debug-button {
+    -fx-border-color: -fxt-wf-transform-accent;
+    -fx-text-fill: -fxt-wf-transform-fg;
+    -fx-font-weight: bold;
+}
+
+.fxt-secondary-button.fxt-run-debug-button .iconify-icon {
+    -fx-icon-color: -fxt-wf-transform-fg;
+}
+
+.fxt-secondary-button.fxt-run-debug-button:hover {
+    -fx-background-color: -fxt-wf-transform-bg;
+    -fx-border-color: -fxt-wf-transform-fill;
+    -fx-text-fill: -fxt-wf-transform-fg;
+}
+
+.fxt-secondary-button.fxt-run-debug-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-wf-transform-fg;
+}
+
 .fxt-vp-status {
     -fx-padding: 6 14 0 14;
     -fx-font-size: 11.5px;

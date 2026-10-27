@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -10,11 +11,12 @@ import org.fxt.freexmltoolkit.service.XsltTransformationEngine.TemplateMatchInfo
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage;
 
-/** Read-only execution trace: template matches and {@code xsl:message} output. */
+/** Read-only execution trace: template matches, {@code xsl:message} output and the enter/leave call trace. */
 public class TraceView extends VBox {
 
     private final TableView<TemplateMatchInfo> matches = new TableView<>();
     private final TableView<TransformationMessage> messages = new TableView<>();
+    private final ListView<String> callTrace = new ListView<>();
 
     public TraceView(XsltTransformationResult result) {
         setSpacing(10);
@@ -24,7 +26,7 @@ public class TraceView extends VBox {
         Label matchTitle = new Label("TEMPLATE MATCHES");
         matchTitle.getStyleClass().add("fxt-side-panel-title");
         matches.getColumns().add(DebugTableColumns.col("Pattern", t -> t.pattern() != null ? t.pattern() : "", 200));
-        matches.getColumns().add(DebugTableColumns.col("Name", t -> t.name() != null ? t.name() : "", 140));
+        matches.getColumns().add(DebugTableColumns.col("Processing", t -> t.name() != null ? t.name() : "", 140));
         matches.getColumns().add(DebugTableColumns.col("Line", t -> Integer.toString(t.lineNumber()), 60));
         matches.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         matches.setPlaceholder(new Label("No template matches captured."));
@@ -44,7 +46,15 @@ public class TraceView extends VBox {
         }
         VBox.setVgrow(messages, Priority.ALWAYS);
 
-        getChildren().addAll(matchTitle, matches, msgTitle, messages);
+        Label traceTitle = new Label("CALL TRACE");
+        traceTitle.getStyleClass().add("fxt-side-panel-title");
+        callTrace.setPlaceholder(new Label("No instructions traced."));
+        if (result.getCallStack() != null) {
+            callTrace.getItems().setAll(result.getCallStack());
+        }
+        VBox.setVgrow(callTrace, Priority.ALWAYS);
+
+        getChildren().addAll(matchTitle, matches, msgTitle, messages, traceTitle, callTrace);
     }
 
     public int getMatchCount() {
@@ -53,5 +63,9 @@ public class TraceView extends VBox {
 
     public int getMessageCount() {
         return messages.getItems().size();
+    }
+
+    public int getCallTraceCount() {
+        return callTrace.getItems().size();
     }
 }

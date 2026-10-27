@@ -87,9 +87,11 @@ public class XsltDebugTraceListener implements TraceListener {
     private final Map<TemplateRule, String> matchPatterns = new java.util.IdentityHashMap<>();
     private final Map<String, Long> templateExecutionTimes = new ConcurrentHashMap<>();
     private final Map<String, Integer> templateExecutionCounts = new ConcurrentHashMap<>();
-
-    // Template rule search tracking
-    private long ruleSearchStartTime;
+    /**
+     * Calls and inclusive time per template rule, named template and function, in first-call
+     * order (key: kind, name and line). Saxon thread only.
+     */
+    private final Map<String, ProfileAccumulator> profile = new LinkedHashMap<>();
 
     // Global variables whose evaluation has completed (safe to read from the Bindery at a pause)
     private final Set<GlobalVariable> completedGlobals = Collections.synchronizedSet(new LinkedHashSet<>());
@@ -157,6 +159,9 @@ public class XsltDebugTraceListener implements TraceListener {
             CallStackEntry entry = new CallStackEntry(description, systemId, lineNumber,
                     frameKind(traceable), traceable, System.nanoTime(), context);
             callStack.push(entry);
+            if (traceable instanceof TemplateRule rule) {
+                recordTemplateMatch(rule, lineNumber, context);
+            }
 
             // Record in history with indentation
             if (historyCount < MAX_CALL_STACK_HISTORY) {
@@ -371,6 +376,9 @@ public class XsltDebugTraceListener implements TraceListener {
                 templateExecutionTimes.merge(pattern, duration, Long::sum);
                 templateExecutionCounts.merge(pattern, 1, Integer::sum);
             }
+            if (left != null && left.traceable() == traceable) {
+                recordProfile(traceable, left);
+            }
 
         } catch (Exception e) {
             logger.debug("Error in trace leave: {}", e.getMessage());
@@ -378,46 +386,56 @@ public class XsltDebugTraceListener implements TraceListener {
     }
 
     /**
-     * Called when template rule search begins.
+     * Called when template rule search begins. Template matches are recorded on entering the
+     * matched {@link TemplateRule} instead ({@link #recordTemplateMatch}): Saxon HE does not
+     * report rule searches for compiled-with-tracing stylesheets.
      */
     @Override
     public void startRuleSearch() {
-        ruleSearchStartTime = System.nanoTime();
+        // nothing to do, see endRuleSearch
     }
 
-    /**
-     * Called when template rule search ends.
-     * Captures which template was matched.
-     */
     @Override
     public void endRuleSearch(Object rule, Mode mode, Item item) {
-        try {
-            if (rule instanceof TemplateRule templateRule && templateMatches.size() < MAX_TEMPLATE_MATCHES) {
-                String pattern = templateRule.getMatchPattern() != null
-                        ? "match=\"" + templateRule.getMatchPattern().toShortString() + "\""
-                        : "match=\"*\"";
+        // matches are recorded in enter()
+    }
 
-                String templateName = templateRule.getObjectName() != null
-                        ? templateRule.getObjectName().getLocalPart()
-                        : "anonymous";
-
-                int lineNumber = templateRule.getLineNumber();
-                long executionTime = (System.nanoTime() - ruleSearchStartTime) / 1_000_000;
-
-                // Get item context for better description
-                String itemDescription = item != null ? item.toShortString() : "unknown";
-                String fullName = templateName + " [processing: " + truncate(itemDescription, 50) + "]";
-
-                XsltTransformationEngine.TemplateMatchInfo matchInfo =
-                        new XsltTransformationEngine.TemplateMatchInfo(pattern, fullName, lineNumber, executionTime);
-
-                templateMatches.add(matchInfo);
-
-                logger.trace("Template matched: {} at line {}", pattern, lineNumber);
-            }
-        } catch (Exception e) {
-            logger.debug("Error in endRuleSearch: {}", e.getMessage());
+    /** Records one template rule invocation for the trace report (capped). */
+    private void recordTemplateMatch(TemplateRule rule, int lineNumber, XPathContext context) {
+        if (templateMatches.size() >= MAX_TEMPLATE_MATCHES) {
+            return;
         }
+        // name: the processed item, prefixed by the template's name when it has one
+        String templateName = rule.getObjectName() != null
+                ? rule.getObjectName().getLocalPart() + " · "
+                : "";
+        Item item = context == null ? null : context.getContextItem();
+        String itemDescription = item != null ? item.toShortString() : "unknown";
+        templateMatches.add(new XsltTransformationEngine.TemplateMatchInfo(
+                "match=\"" + patternOf(rule, "*") + "\"",
+                templateName + truncate(itemDescription, 50),
+                lineNumber > 0 ? lineNumber : rule.getLineNumber(), 0));
+    }
+
+    /** Adds the call that just left to the per-template/function profile. */
+    private void recordProfile(Traceable traceable, CallStackEntry left) {
+        String kind;
+        String name;
+        if (traceable instanceof TemplateRule rule) {
+            kind = "Template rule";
+            name = "match=\"" + patternOf(rule, "*") + "\"";
+        } else if (traceable instanceof NamedTemplate named) {
+            kind = "Named template";
+            name = localName(named.getTemplateName());
+        } else if (traceable instanceof UserFunction fn) {
+            kind = "Function";
+            name = localName(fn.getFunctionName()) + "#" + fn.getArity();
+        } else {
+            return;
+        }
+        long nanos = System.nanoTime() - left.startTime();
+        profile.computeIfAbsent(kind + '\u0000' + name + '\u0000' + left.lineNumber(),
+                key -> new ProfileAccumulator(kind, name, left.lineNumber())).add(nanos);
     }
 
     /**
@@ -463,8 +481,6 @@ public class XsltDebugTraceListener implements TraceListener {
         logger.debug("XSLT Debug Trace ended. Templates matched: {}, Variables captured: {}",
                 templateMatches.size(), variableValues.size());
 
-        // Build final template match info with accumulated execution times
-        buildFinalTemplateStats();
         if (debugSession != null && debugSession.isCoverageEnabled()) {
             Map<String, int[]> byPath = new java.util.HashMap<>();
             coverageCounts.forEach((id, counts) -> byPath.merge(
@@ -1056,6 +1072,7 @@ public class XsltDebugTraceListener implements TraceListener {
         historyCount = 0;
         templateExecutionTimes.clear();
         templateExecutionCounts.clear();
+        profile.clear();
         completedGlobals.clear();
         matchPatterns.clear();
         coverageCounts.clear();
@@ -1064,18 +1081,6 @@ public class XsltDebugTraceListener implements TraceListener {
         outputSystemId = null;
         outputLine = 0;
         attributedLength = 0;
-    }
-
-    private void buildFinalTemplateStats() {
-        // Update template matches with accumulated execution times
-        // This is done at the end to get total times across all invocations
-        for (Map.Entry<String, Long> entry : templateExecutionTimes.entrySet()) {
-            String pattern = entry.getKey();
-            long totalTime = entry.getValue() / 1_000_000; // Convert to ms
-            int count = templateExecutionCounts.getOrDefault(pattern, 1);
-
-            logger.debug("Template '{}': executed {} times, total time {}ms", pattern, count, totalTime);
-        }
     }
 
     // ========== Getter Methods ==========
@@ -1115,7 +1120,42 @@ public class XsltDebugTraceListener implements TraceListener {
         return new HashMap<>(templateExecutionCounts);
     }
 
+    /**
+     * Returns calls and inclusive time per template rule, named template and function,
+     * slowest first.
+     */
+    public List<XsltTransformationEngine.TemplateProfileEntry> getTemplateProfile() {
+        List<XsltTransformationEngine.TemplateProfileEntry> entries = new ArrayList<>();
+        for (ProfileAccumulator acc : profile.values()) {
+            entries.add(new XsltTransformationEngine.TemplateProfileEntry(
+                    acc.name, acc.kind, acc.line, acc.calls, acc.totalNanos));
+        }
+        entries.sort(java.util.Comparator.comparingLong(
+                XsltTransformationEngine.TemplateProfileEntry::totalNanos).reversed());
+        return entries;
+    }
+
     // ========== Inner Classes ==========
+
+    /** Running totals of one profiled template or function. */
+    private static final class ProfileAccumulator {
+        private final String kind;
+        private final String name;
+        private final int line;
+        private int calls;
+        private long totalNanos;
+
+        ProfileAccumulator(String kind, String name, int line) {
+            this.kind = kind;
+            this.name = name;
+            this.line = line;
+        }
+
+        void add(long nanos) {
+            calls++;
+            totalNanos += nanos;
+        }
+    }
 
     /**
      * Represents an entry in the call stack.

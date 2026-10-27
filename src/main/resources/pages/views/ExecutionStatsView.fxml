@@ -54,6 +54,23 @@
             </children>
         </HBox>
 
+        <!-- Recording is opt-in (it reads JVM MXBeans on every run): say so while it is off. -->
+        <HBox fx:id="recordingOffBar" id="execution-stats-recording-off" spacing="10" alignment="CENTER_LEFT"
+              styleClass="fxt-hint-bar">
+            <children>
+                <IconifyIcon iconLiteral="bi-pause-circle" iconSize="16" styleClass="fxt-hint-bar-icon"/>
+                <Label text="Recording is off: transforms, queries and validations are not measured. You can also switch it in Settings."
+                       wrapText="true" minWidth="0" maxWidth="Infinity" styleClass="fxt-hint-bar-text"
+                       HBox.hgrow="ALWAYS"/>
+                <Button id="execution-stats-enable" text="Enable recording" styleClass="fxt-primary-button"
+                        onAction="#onEnableRecording">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-record-circle" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+
         <Label text="Resource usage per operation. Memory deltas are approximate in a shared JVM — use these numbers to compare runs, not as absolute costs."
                wrapText="true" styleClass="fxt-placeholder-text"/>
 
@@ -71,7 +88,7 @@
                 <TableColumn fx:id="statusColumn" text="Status" prefWidth="60"/>
             </columns>
             <placeholder>
-                <Label text="Run a transform, query or validation to record statistics."/>
+                <Label fx:id="emptyLabel" text="Run a transform, query or validation to record statistics."/>
             </placeholder>
         </TableView>
 

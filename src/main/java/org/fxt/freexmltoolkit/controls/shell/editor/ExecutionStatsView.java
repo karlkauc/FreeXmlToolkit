@@ -26,16 +26,20 @@ import java.util.function.Consumer;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.service.ExecutionStats;
+import org.fxt.freexmltoolkit.service.DeveloperPropertyKeys;
 import org.fxt.freexmltoolkit.service.ExecutionStatsService;
+import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.util.FormattingUtils;
 
 /**
@@ -63,6 +67,8 @@ public class ExecutionStatsView extends VBox {
     @FXML private TableColumn<ExecutionStats, String> outColumn;
     @FXML private TableColumn<ExecutionStats, String> statusColumn;
     @FXML private TextArea detail;
+    @FXML private HBox recordingOffBar;
+    @FXML private Label emptyLabel;
     private final Consumer<ExecutionStats> listener =
             stats -> Platform.runLater(() -> table.getItems().add(0, stats));
 
@@ -86,6 +92,32 @@ public class ExecutionStatsView extends VBox {
 
         table.getItems().setAll(ExecutionStatsService.getInstance().snapshot());
         ExecutionStatsService.getInstance().addListener(listener);
+        recordingOffBar.managedProperty().bind(recordingOffBar.visibleProperty());
+        refreshRecordingState();
+    }
+
+    /**
+     * Shows the "recording is off" bar while the feature flag is off; call when the tab is
+     * shown again, since the flag can also change in Settings.
+     */
+    public void refreshRecordingState() {
+        boolean enabled = ExecutionStatsService.getInstance().isEnabled();
+        recordingOffBar.setVisible(!enabled);
+        emptyLabel.setText(enabled
+                ? "Run a transform, query or validation to record statistics."
+                : "Recording is off. Enable it to measure the next runs.");
+    }
+
+    /** Turns recording on (same switch as Settings → Execution statistics). */
+    @FXML
+    public void onEnableRecording() {
+        PropertiesServiceImpl.getInstance().set(DeveloperPropertyKeys.EXECUTION_STATS_ENABLED, "true");
+        refreshRecordingState();
+    }
+
+    /** @return whether the "recording is off" bar is shown */
+    public boolean isRecordingOffBarVisible() {
+        return recordingOffBar.isVisible();
     }
 
     /** Unregisters the live-update listener; call when the hosting tab closes. */
