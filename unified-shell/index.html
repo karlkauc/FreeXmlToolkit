@@ -880,6 +880,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#editor-tabs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working with Editor Tabs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#external-changes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3294,6 +3305,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#editor-tabs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working with Editor Tabs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#external-changes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4477,7 +4499,7 @@ passed validation a green check. Both layers switch with the light/dark theme:</
 <ol>
 <li>The Unified Shell opens automatically on startup.</li>
 <li>Use the <strong>Explorer</strong> activity (or <strong>File → Open</strong>) to open files; <strong>File → New</strong> (Ctrl+N) opens the guided <a href="#new-file-dialog">New File dialog</a> to create a new file from a template or schema. You can also <strong>drag &amp; drop</strong> files from your file manager anywhere onto the window - every <a href="#supported-file-types">supported file type</a> (XML, XSD, XSLT, XProc, XQuery, XPath, Schematron, JSON, HTML) opens as a new tab; other files are ignored.</li>
-<li>Files open as tabs in the editor host - switch tabs by clicking their headers, and switch view modes (Text / Tree / Graphic - plus <strong>Preview</strong> for HTML files) with the segmented view switch.</li>
+<li>Files open as tabs in the editor host - switch tabs by clicking their headers (drag a header to reorder, right-click it for <a href="#editor-tabs">tab actions</a>), and switch view modes (Text / Tree / Graphic - plus <strong>Preview</strong> for HTML files) with the segmented view switch.</li>
 </ol>
 <p>After the first start, a small <strong>Anonymous usage statistics</strong> notice appears once in the
 bottom-right corner of the window. It explains that FreeXmlToolkit sends anonymous usage
@@ -4694,6 +4716,53 @@ Stylesheet</em> / <em>Validate with Other Schematron</em>) and the favorites sta
 </ul>
 <p>Not loaded: keystores and trust stores (binary files), and spreadsheets for import (the
 converted XML opens instead).</p>
+<h2 id="editor-tabs">Working with Editor Tabs<a class="headerlink" href="#editor-tabs" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Reorder tabs</strong> by dragging a tab header left or right. The Explorer's
+  <a href="#explorer-panel">OPEN EDITORS</a> list follows the new order.</li>
+<li><strong>Right-click a tab</strong> for a menu that acts on <em>that</em> tab, even if it is not the active one:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Menu item</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Reload from Disk</strong></td>
+<td>Reads the file again. If the document has unsaved changes, you are asked first. Not available for untitled documents.</td>
+</tr>
+<tr>
+<td><strong>Close</strong></td>
+<td>Closes the tab (asks to save unsaved changes).</td>
+</tr>
+<tr>
+<td><strong>Close Others</strong></td>
+<td>Closes every other tab. Each tab with unsaved changes still asks to save; <strong>Cancel</strong> stops closing the rest.</td>
+</tr>
+<tr>
+<td><strong>Save</strong> / <strong>Save As…</strong></td>
+<td>Saves the document. For an untitled document, <strong>Save</strong> works like <strong>Save As…</strong>.</td>
+</tr>
+<tr>
+<td><strong>Copy Path</strong></td>
+<td>Copies the file's full path to the clipboard.</td>
+</tr>
+<tr>
+<td><strong>Reveal in File Manager</strong></td>
+<td>Shows the file in Windows Explorer, the macOS Finder or your Linux file manager, with the file selected (if the file manager cannot select it, its folder opens).</td>
+</tr>
+<tr>
+<td><strong>Reveal in Explorer Panel</strong></td>
+<td>Opens the <a href="#explorer-panel">Explorer</a> and selects the file in the workspace tree. If the file lies outside the current workspace, its folder becomes the workspace.</td>
+</tr>
+</tbody>
+</table>
+<p>Copy Path and the two Reveal items need a saved file, so they are disabled for untitled
+documents. Tabs that show no document - tool tabs such as the Type Editor, a diff or a PDF
+preview - only offer <strong>Close</strong> and <strong>Close Others</strong>.</p>
 <h2 id="external-changes">Files Changed Outside the Editor<a class="headerlink" href="#external-changes" title="Permanent link">&para;</a></h2>
 <p>The shell watches the files of all open tabs. When another program changes or deletes one
 of them, a dialog asks what to do - checked every two seconds while the FreeXmlToolkit
@@ -5426,7 +5495,8 @@ The sections appear from top to bottom in this order:</p>
 <p><strong>OPEN EDITORS</strong> - one row per open document. The <strong>active document is highlighted</strong>
   (blue, bold) and unsaved documents show a <strong>dot</strong> on the right. Click a row to switch to
   that document. The list shows about six rows; with more open documents it scrolls, so the
-  workspace tree below keeps its space.</p>
+  workspace tree below keeps its space. The rows follow the order of the editor tabs -
+  <a href="#editor-tabs">drag a tab</a> to reorder both.</p>
 </li>
 <li><strong>Workspace</strong> - the file tree of the opened folder; the section is titled after the
   folder's name. Folders expand with their chevron; double-click (or Enter) opens a file.
