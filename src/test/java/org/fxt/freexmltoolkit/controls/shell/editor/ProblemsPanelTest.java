@@ -205,4 +205,66 @@ class ProblemsPanelTest {
         assertArrayEquals(new int[]{2, 6}, host.getActiveCaretLineColumn(),
                 "the caret lands on the reported column, not the line start");
     }
+
+    @Test
+    void describeGivesTheFullProblemText() {
+        String longMessage = "cvc-complex-type.2.4.a: Invalid content was found starting with element 'x'. "
+                + "One of '{\"http://www.w3.org/2001/XMLSchema\":annotation, \"http://www.w3.org/2001/XMLSchema\":simpleType}' is expected.";
+        assertEquals("[Error] XSD: " + longMessage + " (order.xsd : 12:5)",
+                ProblemsPanel.describe(new ValidationProblem("XSD", "error", 12, longMessage).withColumn(5), "order.xsd"));
+        assertEquals("[Warning] Schematron: NAV must be positive (f.xml : 7)\n"
+                        + "    Rule / Test: number(Nav) > 0\n    Context: /Funds/Fund[1]/Nav",
+                ProblemsPanel.describe(new ValidationProblem("Schematron", "warning", 7, "NAV must be positive",
+                        "number(Nav) > 0", "/Funds/Fund[1]/Nav"), "f.xml"));
+        assertEquals("[Error] XSD: broken (line 3)",
+                ProblemsPanel.describe(new ValidationProblem("XSD", "error", 3, "broken"), ""));
+        assertEquals("[Error] XSD: a (d.xsd : 1)\n[Error] XSD: b (d.xsd : 2)",
+                ProblemsPanel.describeAll(List.of(new ValidationProblem("XSD", "error", 1, "a"),
+                        new ValidationProblem("XSD", "error", 2, "b")), "d.xsd"));
+    }
+
+    @Test
+    void rowMenuCopiesMessageProblemAndAllProblems() throws Exception {
+        ValidationProblem first = new ValidationProblem("XSD", "error", 3, "a very long message that the row cuts off");
+        ValidationProblem second = new ValidationProblem("XSD", "warning", 4, "second");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveProblems(List.of(first, second));
+            return null;
+        });
+        String[] copied = new String[3];
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            var menu = panel.contextMenu(first);
+            var ids = menu.getItems().stream().map(javafx.scene.control.MenuItem::getId).toList();
+            assertEquals(List.of("problems-ctx-copy-message", "problems-ctx-copy", "problems-ctx-copy-all"), ids);
+            for (int i = 0; i < 3; i++) {
+                menu.getItems().get(i).fire();
+                copied[i] = javafx.scene.input.Clipboard.getSystemClipboard().getString();
+            }
+            return null;
+        });
+        assertEquals("a very long message that the row cuts off", copied[0]);
+        assertTrue(copied[1].startsWith("[Error] XSD: a very long message that the row cuts off"), copied[1]);
+        assertEquals(2, copied[2].lines().count(), copied[2]);
+        assertTrue(copied[2].contains("[Warning] XSD: second"), copied[2]);
+    }
+
+    @Test
+    void shortcutCopyCopiesTheSelectedProblem() throws Exception {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveProblems(List.of(new ValidationProblem("XSD", "error", 0, "selected one")));
+            @SuppressWarnings("unchecked")
+            var list = (ListView<ValidationProblem>) panel.lookup("#problems-panel-list");
+            list.getSelectionModel().select(0);
+            list.fireEvent(new javafx.scene.input.KeyEvent(javafx.scene.input.KeyEvent.KEY_PRESSED, "", "",
+                    javafx.scene.input.KeyCode.C, false, !isMac(), false, isMac()));
+            return null;
+        });
+        String copied = WaitForAsyncUtils.asyncFx(() -> javafx.scene.input.Clipboard.getSystemClipboard().getString())
+                .get(2, TimeUnit.SECONDS);
+        assertEquals("[Error] XSD: selected one", copied);
+    }
+
+    private static boolean isMac() {
+        return System.getProperty("os.name", "").toLowerCase().contains("mac");
+    }
 }
