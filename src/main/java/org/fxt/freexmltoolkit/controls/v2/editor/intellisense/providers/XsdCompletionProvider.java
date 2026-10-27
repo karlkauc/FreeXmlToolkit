@@ -53,6 +53,12 @@ public class XsdCompletionProvider implements CompletionProvider {
         if (mode == EditorMode.XSLT && context.getType() == ContextType.ATTRIBUTE) {
             return false;
         }
+        // Inside a literal result element (<div>, <td>, …) the schema knows no children: XSLT
+        // instructions come from the catalog there.
+        if (mode == EditorMode.XSLT && context.getType() == ContextType.ELEMENT
+                && !XsltCompletionProvider.insertsIntoXsltElement(context)) {
+            return false;
+        }
 
         return hasSchema && supportedContext;
     }

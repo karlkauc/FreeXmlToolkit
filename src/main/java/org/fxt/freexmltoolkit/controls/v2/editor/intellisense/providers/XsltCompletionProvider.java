@@ -62,8 +62,7 @@ public class XsltCompletionProvider implements CompletionProvider {
     private List<CompletionItem> getElementCompletions(XmlContext context) {
         List<CompletionItem> items = new ArrayList<>();
         XmlNamespaceDeclarations declarations = XmlNamespaceDeclarations.scan(context.getTextBeforeCaret());
-        // The element stack keeps the prefixes (the XPath strips them)
-        String parentName = context.getXPathContext() == null ? null : context.getXPathContext().getCurrentElement();
+        String parentName = parentElementName(context);
         String parent = xsltLocalName(parentName, declarations);
         boolean hasParent = parentName != null && !parentName.isEmpty();
 
@@ -132,6 +131,35 @@ public class XsltCompletionProvider implements CompletionProvider {
             }
         });
         return items;
+    }
+
+    /**
+     * The qualified name of the element a new element would be inserted into, or null at the
+     * document root. Reads the element stack, which keeps the prefixes (the XPath strips them);
+     * a partly typed name at the caret ({@code <xsl:va}) is on top of that stack and skipped.
+     */
+    static String parentElementName(XmlContext context) {
+        if (context.getXPathContext() == null) {
+            return null;
+        }
+        List<String> stack = context.getXPathContext().getElementStack();
+        int top = stack.size() - 1;
+        String typed = context.getCurrentElement();
+        if (top >= 0 && typed != null && !typed.isEmpty() && typed.equals(stack.get(top))) {
+            top--;
+        }
+        return top >= 0 ? stack.get(top) : null;
+    }
+
+    /**
+     * Whether a new element at the caret goes into an XSLT element (or is the root element).
+     * False inside a literal result element such as {@code <div>}, whose content is a sequence
+     * constructor the XSLT schema does not describe.
+     */
+    static boolean insertsIntoXsltElement(XmlContext context) {
+        String parent = parentElementName(context);
+        return parent == null
+                || xsltLocalName(parent, XmlNamespaceDeclarations.scan(context.getTextBeforeCaret())) != null;
     }
 
     /**

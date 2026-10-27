@@ -106,6 +106,17 @@ class XsdAttributeCompletionTest {
     }
 
     @Test
+    void xsltModeLeavesElementsInLiteralResultElementsToTheXsltProvider() {
+        String xsl = "<xsl:stylesheet xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:template match=\"/\">";
+        String inDiv = xsl + "<div><";
+        String inTemplate = xsl + "<";
+        assertFalse(provider.canProvideCompletions(ContextAnalyzer.analyze(inDiv, inDiv.length()), EditorMode.XSLT));
+        assertTrue(provider.canProvideCompletions(ContextAnalyzer.analyze(inTemplate, inTemplate.length()), EditorMode.XSLT));
+        // outside XSLT a literal-looking parent changes nothing
+        assertTrue(provider.canProvideCompletions(ContextAnalyzer.analyze(inDiv, inDiv.length()), EditorMode.XML_WITH_XSD));
+    }
+
+    @Test
     void xsltModeLeavesAttributesToTheXsltProvider() {
         XmlContext ctx = ContextAnalyzer.analyze("<order >", 7);
         assertTrue(provider.canProvideCompletions(ctx, EditorMode.XML_WITH_XSD));

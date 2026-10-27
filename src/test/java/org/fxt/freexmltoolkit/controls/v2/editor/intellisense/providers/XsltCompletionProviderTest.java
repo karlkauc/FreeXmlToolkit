@@ -103,6 +103,29 @@ class XsltCompletionProviderTest {
     }
 
     @Test
+    void literalResultElementsContainInstructions() {
+        String text = HEAD + "    <div class=\"check-result\">\n      <!-- a <comment> -->\n      <|\n    </div>" + TAIL;
+        List<String> labels = labels(complete(text));
+        assertTrue(labels.containsAll(List.of("xsl:attribute", "xsl:choose", "xsl:value-of", "xsl:variable")),
+                labels::toString);
+        assertFalse(labels.contains("xsl:template"));
+
+        int caret = text.indexOf('|');
+        XmlContext ctx = ContextAnalyzer.analyze(text.replace("|", ""), caret);
+        assertFalse(XsltCompletionProvider.insertsIntoXsltElement(ctx));
+        String inTemplate = HEAD + "    <|" + TAIL;
+        assertTrue(XsltCompletionProvider.insertsIntoXsltElement(
+                ContextAnalyzer.analyze(inTemplate.replace("|", ""), inTemplate.indexOf('|'))));
+    }
+
+    @Test
+    void partlyTypedNameIsNotTakenAsTheParent() {
+        // Ctrl+Space after "<xsl:w" inside xsl:choose: the parent is still xsl:choose
+        assertEquals(List.of("xsl:when", "xsl:otherwise"),
+                labels(complete(HEAD + "    <xsl:choose>\n      <xsl:w|\n    </xsl:choose>" + TAIL)));
+    }
+
+    @Test
     void onlyActiveInXsltMode() {
         XmlContext ctx = ContextAnalyzer.analyze("<a |/>", 3);
         assertEquals(ContextType.ATTRIBUTE, ctx.getType());
