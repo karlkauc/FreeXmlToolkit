@@ -48,10 +48,13 @@ final class EditorTabMenu {
     private EditorTabMenu() {
     }
 
-    /** Puts a context menu on {@code tab} whose entries are rebuilt on every opening. */
+    /** Puts a context menu on {@code tab} whose entries are refreshed on every opening. */
     static void install(Tab tab, Actions actions) {
         ContextMenu menu = new ContextMenu();
         menu.getStyleClass().add("fxt-editor-tab-menu");
+        // Filled up front: ContextMenu.show() returns without showing (and without onShowing)
+        // while the menu has no items.
+        menu.getItems().setAll(items(tab, actions));
         menu.setOnShowing(e -> menu.getItems().setAll(items(tab, actions)));
         tab.setContextMenu(menu);
     }

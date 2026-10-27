@@ -51,13 +51,31 @@ class EditorHostTabMenuTest {
         open(tmp, "a.xml", "<a/>");
         Tab tool = fx(() -> host.openToolTab("Tool", "bi-gear", new Pane()));
 
-        assertNotNull(fx(() -> tabs().get(0).getContextMenu()));
-        assertNotNull(fx(() -> tool.getContextMenu()));
+        // ContextMenu.show() ignores a menu without items, so it must not start out empty.
+        assertFalse(fx(() -> tabs().get(0).getContextMenu().getItems().isEmpty()));
+        assertFalse(fx(() -> tool.getContextMenu().getItems().isEmpty()));
         assertEquals(List.of("tab-ctx-reload", "tab-ctx-close", "tab-ctx-close-others", "tab-ctx-save",
                         "tab-ctx-save-as", "tab-ctx-copy-path", "tab-ctx-reveal-os", "tab-ctx-reveal-explorer"),
                 ids(tabs().get(0)));
         assertEquals(List.of("tab-ctx-close", "tab-ctx-close-others"), ids(tool),
                 "a tab without a document only offers closing");
+    }
+
+    @Test
+    void rightClickOnTheTabHeaderShowsTheMenu(org.testfx.api.FxRobot robot, @TempDir Path tmp) throws Exception {
+        open(tmp, "a.xml", "<a/>");
+        Tab tab = tabNamed("a.xml");
+
+        // The context-menu request the platform sends for a right-click, on the skin's tab header.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            javafx.scene.Node header = robot.lookup(".tab").query();
+            javafx.geometry.Point2D screen = header.localToScreen(5, 5);
+            header.fireEvent(new javafx.scene.input.ContextMenuEvent(
+                    javafx.scene.input.ContextMenuEvent.CONTEXT_MENU_REQUESTED, 5, 5,
+                    screen.getX(), screen.getY(), false, null));
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> fx(() -> tab.getContextMenu().isShowing()));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> tab.getContextMenu().hide());
     }
 
     @Test
