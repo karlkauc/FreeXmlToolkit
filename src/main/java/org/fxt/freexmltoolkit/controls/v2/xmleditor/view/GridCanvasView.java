@@ -347,6 +347,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private Color TABLE_ROW_SELECTED;
     private Color TABLE_MISSING_BG;
     private Color DANGER;
+    private Color NAMESPACE_PREFIX;
 
     /**
      * Assigns the light or dark grid palette from the {@link org.fxt.freexmltoolkit.controls.theme.DesignTokens}
@@ -397,6 +398,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         TABLE_ROW_SELECTED = SELECTED_BG;
         TABLE_MISSING_BG = BG_CANVAS.color(theme);
         DANGER = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.DANGER.color(theme);
+        NAMESPACE_PREFIX = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_DECL.color(theme);
     }
 
     /**
@@ -1127,7 +1129,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             String label = row.getLabel() != null ? row.getLabel() : "";
             gc.setFont(ROW_FONT_BOLD);
             gc.setFill(getRowLabelColor(row.getType()));
-            gc.fillText(label, x, cy);
+            fillName(label, x, cy, GridFont.ROW_BOLD);
             x += metrics.width(label, GridFont.ROW_BOLD);
             if (row.getInstanceIndex() > 0) {
                 gc.setFont(SMALL_FONT);
@@ -1257,7 +1259,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (row.getLabel() != null && !isEditingThisRowName) {
             gc.setFont(ROW_FONT_BOLD);
             gc.setFill(getRowLabelColor(row.getType()));
-            gc.fillText(row.getLabel(), textX, lineCenterY);
+            fillName(row.getLabel(), textX, lineCenterY, GridFont.ROW_BOLD);
             afterLabelX += labelTextWidth(row);
         }
 
@@ -1309,6 +1311,29 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             drawTextBlock(row.getValueBlock(), valueX + VALUE_PADDING, lineCenterY);
             gc.restore();
         }
+    }
+
+    /**
+     * Draws a node name in the current fill; a namespace prefix ({@code xsi:} in
+     * {@code xsi:type}) is drawn in the prefix colour, as XMLSpy sets prefixes apart.
+     */
+    private void fillName(String name, double x, double y, GridFont font) {
+        String prefix = namespacePrefix(name);
+        if (prefix == null) {
+            gc.fillText(name, x, y);
+            return;
+        }
+        javafx.scene.paint.Paint fill = gc.getFill();
+        gc.setFill(NAMESPACE_PREFIX);
+        gc.fillText(prefix, x, y);
+        gc.setFill(fill);
+        gc.fillText(name.substring(prefix.length()), x + metrics.width(prefix, font), y);
+    }
+
+    /** @return the namespace prefix of a name incl. the colon ({@code "xsi:"}), or {@code null} */
+    static String namespacePrefix(String name) {
+        int colon = name == null ? -1 : name.indexOf(':');
+        return colon > 0 && colon < name.length() - 1 ? name.substring(0, colon + 1) : null;
     }
 
     /** Draws the ▶ / ▼ expand arrow in the arrow area left of the icon. */
@@ -1619,7 +1644,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (sorted) {
             name += table.isSortAscending() ? " ▲" : " ▼";
         }
-        gc.fillText(name, x + RepeatingElementsTable.CELL_PADDING + HEADER_ICON_WIDTH, centerY);
+        fillName(name, x + RepeatingElementsTable.CELL_PADDING + HEADER_ICON_WIDTH, centerY, GridFont.ROW_BOLD);
         gc.restore();
     }
 
@@ -1806,7 +1831,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             gc.setTextAlign(TextAlignment.LEFT);
             gc.setTextBaseline(VPos.CENTER);
             if (row.getLabel() != null) {
-                gc.fillText(row.getLabel(), labelX, rowCenterY);
+                fillName(row.getLabel(), labelX, rowCenterY, GridFont.ROW);
             }
 
             // Draw child count for expandable elements
