@@ -231,6 +231,19 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     private Drag columnDrag = null;
+
+    // Drag & drop of nodes (and external text)
+    /** The row whose name cell was pressed (a drag candidate), or {@code null}. */
+    private FlatRow pressedDragRow = null;
+    /** The row being dragged inside the grid, or {@code null}. */
+    private FlatRow dragRow = null;
+    /** The current drop target row and position (drawn as an insertion line / box). */
+    private FlatRow dropTargetRow = null;
+    private DropPosition dropPosition = null;
+
+    /** A drop target: the row under the pointer and where the payload goes. */
+    record DropTarget(FlatRow row, DropPosition position) {
+    }
     private boolean columnDragMoved = false;
     /** Set after a drag so the MOUSE_CLICKED JavaFX fires afterwards does not sort/select. */
     private boolean suppressNextClick = false;
@@ -456,6 +469,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Event handlers
         setupEventHandlers();
+        setupDragAndDrop();
 
         // Listen for document changes (document replaced / changed outside the canvas)
         adapter.addModelListener(this::onDocumentChanged);
@@ -948,6 +962,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 renderInlineTable(row, rowYPositions[i] - scrollOffsetY);
             }
         }
+
+        drawDropIndicator();
 
         gc.restore();
 
@@ -2288,7 +2304,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 columnDrag = new BlockDrag(block.parent(), e.getX(), block.startWidth());
                 columnDragMoved = false;
                 e.consume();
+                return;
             }
+            pressedDragRow = dragCandidateAt(mx, my);
         });
         canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
             if (columnDrag == null) {
@@ -2326,6 +2344,178 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 e.consume();
             }
         });
+    }
+
+    // ==================== Drag & drop ====================
+
+    /** Internal drag payload: marks a drag that started in a grid canvas. */
+    private static final javafx.scene.input.DataFormat GRID_NODE_FORMAT = gridNodeFormat();
+
+    private static javafx.scene.input.DataFormat gridNodeFormat() {
+        javafx.scene.input.DataFormat existing = javafx.scene.input.DataFormat.lookupMimeType("application/x-fxt-grid-node");
+        return existing != null ? existing : new javafx.scene.input.DataFormat("application/x-fxt-grid-node");
+    }
+
+    /** @return the row whose name cell (first line, right of the expand arrow) is under the point, if draggable */
+    private FlatRow dragCandidateAt(double mx, double my) {
+        int idx = rowIndexAt(mx, my);
+        if (idx < 0) {
+            return null;
+        }
+        FlatRow row = visibleRows.get(idx);
+        double top = rowYPositions[idx] - scrollOffsetY;
+        boolean inNameCell = mx >= rowIconX(row) && mx < row.getValueX() - RESIZE_HANDLE
+                && my >= top && my < top + ROW_HEIGHT;
+        return inNameCell && adapter.canDrag(row) ? row : null;
+    }
+
+    /**
+     * Where a drop at the point would go: in a name cell's first line the upper third means
+     * "before", the lower third "after", the middle (and the rest of a spanning container
+     * cell) "into"; a value cell means "replace the value".
+     *
+     * @param mx x in model units
+     * @param my y in unscaled viewport units
+     * @return the drop target, or {@code null} when there is no row
+     */
+    DropTarget dropTargetAt(double mx, double my) {
+        int idx = rowIndexAt(mx, my);
+        if (idx < 0) {
+            return null;
+        }
+        FlatRow row = visibleRows.get(idx);
+        double top = rowYPositions[idx] - scrollOffsetY;
+        double rel = my - top;
+        boolean ownLine = rel < Math.max(rowHeights[idx], ROW_HEIGHT);
+        if (mx >= row.getValueX() && ownLine && !(row.hasRepeatingTable() && row.isExpanded())) {
+            return new DropTarget(row, DropPosition.VALUE);
+        }
+        if (rel >= ROW_HEIGHT) {
+            return new DropTarget(row, DropPosition.INTO);
+        }
+        if (rel < ROW_HEIGHT * 0.3) {
+            return new DropTarget(row, DropPosition.BEFORE);
+        }
+        if (rel > ROW_HEIGHT * 0.7) {
+            return new DropTarget(row, DropPosition.AFTER);
+        }
+        return new DropTarget(row, row.getType().isContainer() ? DropPosition.INTO : DropPosition.AFTER);
+    }
+
+    /**
+     * Resolves the drop target for the current drag: internal drags never replace a value
+     * (a value-cell position falls back to "into"/"after" by the vertical rule).
+     */
+    private DropTarget resolveDrop(double mx, double my, boolean internal) {
+        DropTarget target = dropTargetAt(mx, my);
+        if (target == null) {
+            return null;
+        }
+        if (internal && target.position() == DropPosition.VALUE) {
+            int idx = visibleRows.indexOf(target.row());
+            double rel = my - (rowYPositions[idx] - scrollOffsetY);
+            DropPosition pos = rel < ROW_HEIGHT * 0.3 ? DropPosition.BEFORE
+                    : rel > ROW_HEIGHT * 0.7 || !target.row().getType().isContainer() ? DropPosition.AFTER
+                    : DropPosition.INTO;
+            target = new DropTarget(target.row(), pos);
+        }
+        FlatRow dragged = internal ? dragRow : null;
+        return adapter.canDrop(dragged, target.row(), target.position()) ? target : null;
+    }
+
+    /** Installs the drag-and-drop handlers (drag a node by its name cell; drop nodes or external text). */
+    private void setupDragAndDrop() {
+        canvas.setOnDragDetected(e -> {
+            if (columnDrag != null || pressedDragRow == null || editField != null || activeWidgetNode != null) {
+                return;
+            }
+            String text = adapter.dragText(pressedDragRow);
+            javafx.scene.input.Dragboard db = canvas.startDragAndDrop(javafx.scene.input.TransferMode.COPY_OR_MOVE);
+            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+            content.putString(text != null ? text : "");
+            content.put(GRID_NODE_FORMAT, adapter.stableKey(pressedDragRow));
+            db.setContent(content);
+            dragRow = pressedDragRow;
+            pressedDragRow = null;
+            e.consume();
+        });
+        canvas.addEventHandler(javafx.scene.input.DragEvent.DRAG_OVER, e -> {
+            boolean internal = e.getGestureSource() == canvas && dragRow != null;
+            if (!internal && !e.getDragboard().hasString()) {
+                return;
+            }
+            DropTarget target = resolveDrop(toModelX(e.getX()), toViewportY(e.getY()), internal);
+            if (target != null) {
+                e.acceptTransferModes(internal ? javafx.scene.input.TransferMode.COPY_OR_MOVE
+                        : new javafx.scene.input.TransferMode[]{javafx.scene.input.TransferMode.COPY});
+            }
+            setDropIndicator(target);
+            e.consume();
+        });
+        canvas.addEventHandler(javafx.scene.input.DragEvent.DRAG_EXITED, e -> setDropIndicator(null));
+        canvas.addEventHandler(javafx.scene.input.DragEvent.DRAG_DROPPED, e -> {
+            boolean internal = e.getGestureSource() == canvas && dragRow != null;
+            DropTarget target = resolveDrop(toModelX(e.getX()), toViewportY(e.getY()), internal);
+            boolean done = false;
+            if (target != null) {
+                if (internal) {
+                    boolean copy = e.getTransferMode() == javafx.scene.input.TransferMode.COPY;
+                    done = adapter.dropRow(dragRow, target.row(), target.position(), copy);
+                } else if (e.getDragboard().hasString()) {
+                    done = adapter.dropText(target.row(), target.position(), e.getDragboard().getString());
+                }
+            }
+            setDropIndicator(null);
+            e.setDropCompleted(done);
+            e.consume();
+            if (done) {
+                javafx.application.Platform.runLater(() -> {
+                    rebuildTree();
+                    notifyDocumentModified();
+                });
+            }
+        });
+        canvas.setOnDragDone(e -> {
+            dragRow = null;
+            setDropIndicator(null);
+        });
+    }
+
+    private void setDropIndicator(DropTarget target) {
+        FlatRow row = target != null ? target.row() : null;
+        DropPosition pos = target != null ? target.position() : null;
+        if (row != dropTargetRow || pos != dropPosition) {
+            dropTargetRow = row;
+            dropPosition = pos;
+            render();
+        }
+    }
+
+    /** Draws the drop indicator: an insertion line (before/after), a frame (into / value). */
+    private void drawDropIndicator() {
+        if (dropTargetRow == null || dropPosition == null) {
+            return;
+        }
+        Integer idx = rowIndexMap.get(dropTargetRow);
+        if (idx == null) {
+            return;
+        }
+        FlatRow row = dropTargetRow;
+        double top = rowYPositions[idx] - scrollOffsetY;
+        double right = Math.max(totalWidth, viewportWidthModel() + scrollOffsetX);
+        gc.setStroke(ACCENT);
+        gc.setLineWidth(2);
+        switch (dropPosition) {
+            case BEFORE -> gc.strokeLine(row.getLabelX(), top + 1, right, top + 1);
+            case AFTER -> {
+                double bottom = top + rowSpanHeight(idx);
+                gc.strokeLine(row.getLabelX(), bottom - 1, right, bottom - 1);
+            }
+            case INTO -> gc.strokeRect(row.getLabelX() + 1, top + 1, row.getValueX() - row.getLabelX() - 2,
+                    Math.max(ROW_HEIGHT, rowSpanHeight(idx)) - 2);
+            case VALUE -> gc.strokeRect(row.getValueX() + 1, top + 1, right - row.getValueX() - 2,
+                    Math.max(ROW_HEIGHT, rowHeights[idx]) - 2);
+        }
     }
 
     /**

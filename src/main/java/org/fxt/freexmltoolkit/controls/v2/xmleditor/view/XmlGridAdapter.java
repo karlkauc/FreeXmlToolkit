@@ -200,6 +200,134 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         return kinds.stream().map(ConvertNodeTypeCommand.Kind::label).toList();
     }
 
+    // ==================== Drag & drop ====================
+
+    /** @return the node a row stands for when dragged: attributes and table owners are not draggable */
+    private static XmlNode draggableNode(FlatRow row) {
+        if (row == null || row.getType() == FlatRow.RowType.ATTRIBUTE || row.isTableGroupOwner()) {
+            return null;
+        }
+        return row.getModelNode() instanceof XmlNode node && node.getParent() instanceof XmlElement ? node : null;
+    }
+
+    @Override
+    public String dragText(FlatRow row) {
+        XmlNode node = draggableNode(row);
+        return node != null ? node.serialize(0) : null;
+    }
+
+    @Override
+    public boolean canDrag(FlatRow row) {
+        return draggableNode(row) != null;
+    }
+
+    @Override
+    public boolean canDrop(FlatRow dragged, FlatRow target, DropPosition position) {
+        if (target == null || target.getType() == FlatRow.RowType.ATTRIBUTE) {
+            return false;
+        }
+        Object targetNode = target.getModelNode();
+        if (position == DropPosition.VALUE) {
+            return dragged == null && canEditValue(target);
+        }
+        if (position == DropPosition.INTO) {
+            if (!(targetNode instanceof XmlElement el) || target.isTableGroupOwner() || el.hasNonWhitespaceTextContent()) {
+                return false;
+            }
+        } else if (!(targetNode instanceof XmlNode tn) || !(tn.getParent() instanceof XmlElement)) {
+            return false; // no siblings of the root / at document level
+        }
+        if (dragged == null) {
+            return true;
+        }
+        XmlNode node = draggableNode(dragged);
+        if (node == null || !(targetNode instanceof XmlNode tn)) {
+            return false;
+        }
+        // Never into itself or one of its descendants
+        return tn != node && !tn.isDescendantOf(node);
+    }
+
+    @Override
+    public boolean dropRow(FlatRow dragged, FlatRow target, DropPosition position, boolean copy) {
+        if (!canDrop(dragged, target, position)) {
+            return false;
+        }
+        XmlNode node = draggableNode(dragged);
+        XmlNode targetNode = (XmlNode) target.getModelNode();
+        XmlElement parent;
+        int index;
+        if (position == DropPosition.INTO) {
+            parent = (XmlElement) targetNode;
+            index = -1;
+        } else {
+            parent = (XmlElement) targetNode.getParent();
+            index = parent.indexOf(targetNode) + (position == DropPosition.AFTER ? 1 : 0);
+        }
+        if (copy) {
+            XmlNode duplicate = node.deepCopy("");
+            return context.executeCommand(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.InsertNodeCommand(
+                    parent, duplicate, index));
+        }
+        // MoveNodeCommand applies the index after removing the node from its old place
+        if (index >= 0 && node.getParent() == parent && parent.indexOf(node) < index) {
+            index--;
+        }
+        if (node.getParent() == parent && index == parent.indexOf(node)) {
+            return false; // dropped onto its own place
+        }
+        return context.executeCommand(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.MoveNodeCommand(
+                node, parent, index));
+    }
+
+    @Override
+    public boolean dropText(FlatRow target, DropPosition position, String text) {
+        if (text == null || !canDrop(null, target, position)) {
+            return false;
+        }
+        if (position == DropPosition.VALUE) {
+            return commitRowEdit(target, false, text.strip());
+        }
+        XmlNode targetNode = (XmlNode) target.getModelNode();
+        XmlElement parent = position == DropPosition.INTO ? (XmlElement) targetNode : (XmlElement) targetNode.getParent();
+        int index = position == DropPosition.INTO ? -1
+                : parent.indexOf(targetNode) + (position == DropPosition.AFTER ? 1 : 0);
+        List<XmlNode> nodes = parseFragment(text);
+        List<org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand> parts = new java.util.ArrayList<>();
+        int at = index;
+        for (XmlNode n : nodes) {
+            parts.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.InsertNodeCommand(parent, n, at));
+            if (at >= 0) {
+                at++;
+            }
+        }
+        return !parts.isEmpty() && context.executeCommand(new CompositeXmlCommand("Drop " + parts.size() + " node(s)", parts));
+    }
+
+    /** Parses dropped text as an XML fragment (nodes); plain text becomes one text node. */
+    static List<XmlNode> parseFragment(String text) {
+        String trimmed = text.strip();
+        if (trimmed.startsWith("<")) {
+            try {
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc =
+                        new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlParser()
+                                .parse("<fxt-fragment>" + trimmed + "</fxt-fragment>");
+                XmlElement wrapper = doc.getRootElement();
+                List<XmlNode> nodes = new java.util.ArrayList<>();
+                for (XmlNode child : List.copyOf(wrapper.getChildren())) {
+                    if (child instanceof XmlText t && t.isWhitespace()) {
+                        continue;
+                    }
+                    nodes.add(child.deepCopy(""));
+                }
+                return nodes;
+            } catch (Exception e) {
+                // not well-formed: fall through to plain text
+            }
+        }
+        return trimmed.isEmpty() ? List.of() : List.of(new XmlText(trimmed));
+    }
+
     @Override
     public boolean changeType(FlatRow row, String targetLabel) {
         ConvertNodeTypeCommand.Kind target = null;

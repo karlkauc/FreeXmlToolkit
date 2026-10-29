@@ -114,6 +114,46 @@ public interface GridModelAdapter<N> {
         return false;
     }
 
+    /** @return the text put on the clipboard of a drag (the node serialized), or {@code null} */
+    default String dragText(FlatRow row) {
+        return null;
+    }
+
+    /** @return whether the row's node can be dragged to another place in the grid */
+    default boolean canDrag(FlatRow row) {
+        return false;
+    }
+
+    /**
+     * @param dragged  the dragged row ({@code null} for external text)
+     * @param target   the row under the pointer
+     * @param position where the payload would go
+     * @return whether a drop there is allowed (never into the dragged node itself or its descendants)
+     */
+    default boolean canDrop(FlatRow dragged, FlatRow target, DropPosition position) {
+        return false;
+    }
+
+    /**
+     * Moves (or copies) the dragged row's node next to / into the target, through the
+     * command stack.
+     *
+     * @return whether the model changed
+     */
+    default boolean dropRow(FlatRow dragged, FlatRow target, DropPosition position, boolean copy) {
+        return false;
+    }
+
+    /**
+     * Drops external text (from another application): on a value cell it replaces the value,
+     * elsewhere an XML fragment becomes new nodes, plain text a text node.
+     *
+     * @return whether the model changed
+     */
+    default boolean dropText(FlatRow target, DropPosition position, String text) {
+        return false;
+    }
+
     /** @return the model node behind a row */
     N nodeOf(FlatRow row);
 
