@@ -709,6 +709,27 @@ public interface PropertiesService {
         set(GRID_MAX_CELL_LINES, String.valueOf(Math.max(0, Math.min(GRID_MAX_CELL_LINES_MAX, lines))));
     }
 
+    /** Property key: maximum child rows per sibling group in the grid (0 = unlimited / no groups). */
+    String GRID_SIBLING_GROUP_SIZE = "grid.siblingGroupSize";
+
+    /** @return the sibling-group size, 0 (no grouping) when unset, unparseable or negative */
+    default int getGridSiblingGroupSize() {
+        String v = get(GRID_SIBLING_GROUP_SIZE);
+        if (v == null || v.isBlank()) {
+            return 0;
+        }
+        try {
+            return Math.max(0, Integer.parseInt(v.trim()));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** @param size the sibling-group size to persist (0 = no grouping) */
+    default void setGridSiblingGroupSize(int size) {
+        set(GRID_SIBLING_GROUP_SIZE, String.valueOf(Math.max(0, size)));
+    }
+
     // Telemetry settings (opt-out; see docs/telemetry.md)
 
     /** Property key: random installation UUID used for anonymous telemetry. */

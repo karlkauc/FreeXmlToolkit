@@ -46,6 +46,20 @@ final class GridDisplayPreferences {
         }
     }
 
+    /** @return the persisted sibling-group size, 0 (no grouping) when none is available */
+    static int loadSiblingGroupSize() {
+        PropertiesService service = service();
+        return service != null ? service.getGridSiblingGroupSize() : 0;
+    }
+
+    /** @param size the sibling-group size to persist (ignored without a service) */
+    static void saveSiblingGroupSize(int size) {
+        PropertiesService service = service();
+        if (service != null) {
+            service.setGridSiblingGroupSize(size);
+        }
+    }
+
     private static PropertiesService service() {
         try {
             return ServiceRegistry.get(PropertiesService.class);

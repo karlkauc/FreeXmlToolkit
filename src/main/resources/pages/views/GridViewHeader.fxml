@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.RadioMenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.Tooltip?>
@@ -22,6 +23,7 @@
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <fx:define>
         <ToggleGroup fx:id="cellLinesGroup"/>
+        <ToggleGroup fx:id="siblingGroupGroup"/>
     </fx:define>
     <children>
         <Label text="Grid view" styleClass="fxt-grid-title">
@@ -100,6 +102,15 @@
                                toggleGroup="$cellLinesGroup" onAction="#onCellLines6"/>
                 <RadioMenuItem fx:id="cellLines12" id="grid-cell-lines-12" text="Cell height: 12 lines"
                                toggleGroup="$cellLinesGroup" onAction="#onCellLines12"/>
+                <SeparatorMenuItem/>
+                <RadioMenuItem fx:id="siblingGroupsOff" id="grid-sibling-groups-off" text="Sibling groups: unlimited"
+                               toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroupsOff"/>
+                <RadioMenuItem fx:id="siblingGroups100" id="grid-sibling-groups-100" text="Sibling groups: 100 nodes"
+                               toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroups100"/>
+                <RadioMenuItem fx:id="siblingGroups1000" id="grid-sibling-groups-1000" text="Sibling groups: 1,000 nodes"
+                               toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroups1000"/>
+                <RadioMenuItem fx:id="siblingGroups10000" id="grid-sibling-groups-10000" text="Sibling groups: 10,000 nodes"
+                               toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroups10000"/>
             </items>
         </MenuButton>
     </children>

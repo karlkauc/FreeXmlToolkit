@@ -38,6 +38,7 @@ public abstract class GridViewShell extends StackPane {
         view.zoomProperty().addListener((obs, oldZoom, newZoom) -> GridZoomPreference.save(newZoom.doubleValue()));
         view.setWordWrap(GridDisplayPreferences.loadWordWrap());
         view.setMaxCellLines(GridDisplayPreferences.loadMaxCellLines());
+        view.setSiblingGroupSize(GridDisplayPreferences.loadSiblingGroupSize());
         VBox.setVgrow(view, Priority.ALWAYS);
         getChildren().add(new VBox(new GridViewHeader(view, subtitle()), view));
         // Arrow-key navigation should work right away, without a mouse click first.

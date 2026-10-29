@@ -500,7 +500,8 @@ class FlatRowTest {
     void testRowTypeValues() {
         FlatRow.RowType[] types = FlatRow.RowType.values();
         assertNotNull(types);
-        assertEquals(13, types.length, "7 XML row types + 6 JSON row types");
+        assertEquals(14, types.length, "7 XML row types + the sibling GROUP + 6 JSON row types");
+        assertTrue(FlatRow.RowType.GROUP.isContainer(), "a sibling group expands like a container");
 
         // Verify all expected types are present
         assertNotNull(FlatRow.RowType.ELEMENT);

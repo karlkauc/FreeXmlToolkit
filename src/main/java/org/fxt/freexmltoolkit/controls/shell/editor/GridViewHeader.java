@@ -28,6 +28,10 @@ final class GridViewHeader extends HBox {
     @FXML private RadioMenuItem cellLines3;
     @FXML private RadioMenuItem cellLines6;
     @FXML private RadioMenuItem cellLines12;
+    @FXML private RadioMenuItem siblingGroupsOff;
+    @FXML private RadioMenuItem siblingGroups100;
+    @FXML private RadioMenuItem siblingGroups1000;
+    @FXML private RadioMenuItem siblingGroups10000;
 
     GridViewHeader(GridCanvasView<?> view, String subtitleText) {
         this.view = view;
@@ -37,6 +41,12 @@ final class GridViewHeader extends HBox {
         view.zoomProperty().addListener((obs, oldZoom, newZoom) -> zoomLabel.setText(percent(newZoom.doubleValue())));
         wordWrapButton.setSelected(view.isWordWrap());
         selectCellLines(view.getMaxCellLines());
+        (switch (view.getSiblingGroupSize()) {
+            case 100 -> siblingGroups100;
+            case 1000 -> siblingGroups1000;
+            case 10000 -> siblingGroups10000;
+            default -> siblingGroupsOff;
+        }).setSelected(true);
     }
 
     private void selectCellLines(int lines) {
@@ -104,6 +114,31 @@ final class GridViewHeader extends HBox {
     @FXML
     public void onCellLines12() {
         applyCellLines(12);
+    }
+
+    @FXML
+    public void onSiblingGroupsOff() {
+        applySiblingGroups(0);
+    }
+
+    @FXML
+    public void onSiblingGroups100() {
+        applySiblingGroups(100);
+    }
+
+    @FXML
+    public void onSiblingGroups1000() {
+        applySiblingGroups(1000);
+    }
+
+    @FXML
+    public void onSiblingGroups10000() {
+        applySiblingGroups(10000);
+    }
+
+    private void applySiblingGroups(int size) {
+        view.setSiblingGroupSize(size);
+        GridDisplayPreferences.saveSiblingGroupSize(size);
     }
 
     private void applyCellLines(int lines) {

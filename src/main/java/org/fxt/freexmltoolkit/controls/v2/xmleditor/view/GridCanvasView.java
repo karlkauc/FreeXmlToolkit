@@ -641,11 +641,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         // Remember expand state and selection by stable key before rebuilding
         for (FlatRow row : allRows) {
             if (row.isExpandable()) {
-                viewState.setExpanded(adapter.stableKey(row), row.isExpanded());
+                viewState.setExpanded(keyOf(row), row.isExpanded());
             }
         }
         if (selectedRow != null) {
-            viewState.setSelectedKey(adapter.stableKey(selectedRow));
+            viewState.setSelectedKey(keyOf(selectedRow));
         }
 
         if (!adapter.hasDocument()) {
@@ -661,7 +661,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
-        allRows = adapter.flatten(viewState::isTable);
+        allRows = FlatRow.groupSiblings(adapter.flatten(viewState::isTable), siblingGroupSize);
         adapter.attachTables(allRows, this::markLayoutDirty);
         GridMetrics currentMetrics = metrics;
         for (FlatRow row : allRows) {
@@ -678,7 +678,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         FlatRow restoredSelection = null;
         String selectedKey = viewState.getSelectedKey();
         for (FlatRow row : allRows) {
-            String key = adapter.stableKey(row);
+            String key = keyOf(row);
             if (row.isExpandable()) {
                 Boolean wasExpanded = viewState.expandedState(key);
                 if (wasExpanded != null) {
@@ -821,13 +821,46 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         totalWidth = maxWidth;
     }
 
+    /** @return the stable key of a row; sibling-group rows are keyed below their parent */
+    private String keyOf(FlatRow row) {
+        if (row.getType() == FlatRow.RowType.GROUP) {
+            return keyOf(row.getParentRow()) + "/#group" + row.getLabel();
+        }
+        return adapter.stableKey(row);
+    }
+
+    /** The sibling-group size (XMLSpy "maximum nodes per sibling group"), 0 = no grouping. */
+    private int siblingGroupSize = 0;
+
+    /** @return the sibling-group size, 0 = unlimited */
+    public int getSiblingGroupSize() {
+        return siblingGroupSize;
+    }
+
+    /**
+     * Splits containers with more child rows than {@code size} into collapsed groups of that
+     * many children (only one group per container open at a time).
+     *
+     * @param size the group size, 0 = no grouping
+     */
+    public void setSiblingGroupSize(int size) {
+        int value = Math.max(0, size);
+        if (value != siblingGroupSize) {
+            siblingGroupSize = value;
+            rebuildTree();
+        }
+    }
+
     /** @return the stable key of the block formed by the children of {@code parent} (root block: "") */
     private String blockKey(FlatRow parent) {
-        return parent == null ? GridViewState.ROOT_BLOCK : adapter.stableKey(parent);
+        return parent == null ? GridViewState.ROOT_BLOCK : keyOf(parent);
     }
 
     /** @return the cached one-line preview of a container row (computed once per row) */
     private String previewOf(FlatRow row) {
+        if (row.getType() == FlatRow.RowType.GROUP) {
+            return null; // a group previews nothing (its node is the whole parent)
+        }
         if (!row.hasCollapsedPreview()) {
             row.setCollapsedPreview(adapter.collapsedPreview(row, PREVIEW_MAX_CHARS));
         }
@@ -1340,6 +1373,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
             case PROCESSING_INSTRUCTION -> iconGlyph("<?", cx, cy, TEXT_PI, ICON_FONT);
             case DOCUMENT -> iconGlyph("XML", cx, cy, TEXT_SECONDARY, SMALL_FONT);
+            case GROUP -> iconGlyph("\u2026", cx, cy, TEXT_SECONDARY, ICON_FONT);
             case JSON_OBJECT, JSON_ARRAY, JSON_STRING, JSON_NUMBER, JSON_BOOLEAN, JSON_NULL -> {
                 // JSON glyphs: {} [] " # T/F ∅ in the type colour
                 Color color = (type == FlatRow.RowType.JSON_OBJECT || type == FlatRow.RowType.JSON_ARRAY)
@@ -2356,6 +2390,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             case CDATA -> TEXT_CDATA;
             case PROCESSING_INSTRUCTION -> TEXT_PI;
             case DOCUMENT -> TEXT_SECONDARY;
+            case GROUP -> TEXT_SECONDARY;
         };
     }
 
@@ -2611,7 +2646,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             javafx.scene.input.Dragboard db = canvas.startDragAndDrop(javafx.scene.input.TransferMode.COPY_OR_MOVE);
             javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
             content.putString(text != null ? text : "");
-            content.put(GRID_NODE_FORMAT, adapter.stableKey(pressedDragRow));
+            content.put(GRID_NODE_FORMAT, keyOf(pressedDragRow));
             db.setContent(content);
             dragRow = pressedDragRow;
             pressedDragRow = null;

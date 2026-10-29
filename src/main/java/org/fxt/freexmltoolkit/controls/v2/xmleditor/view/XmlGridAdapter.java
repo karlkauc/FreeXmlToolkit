@@ -71,6 +71,9 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
      */
     @Override
     public String collapsedPreview(FlatRow row, int maxChars) {
+        if (row.getType() == FlatRow.RowType.GROUP) {
+            return null;
+        }
         return row.getModelNode() instanceof XmlNode node ? XmlNodePreview.of(node, maxChars) : null;
     }
 
@@ -138,7 +141,10 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public XmlNode nodeOf(FlatRow row) {
-        return row != null && row.getModelNode() instanceof XmlNode node ? node : null;
+        if (row == null || row.getType() == FlatRow.RowType.GROUP) {
+            return null; // a sibling group is no node: menu actions must not hit the parent
+        }
+        return row.getModelNode() instanceof XmlNode node ? node : null;
     }
 
     @Override
@@ -177,7 +183,8 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public boolean canEditValue(FlatRow row) {
-        if (row.getType() == FlatRow.RowType.DOCUMENT || row.isTableGroupOwner()) {
+        if (row.getType() == FlatRow.RowType.DOCUMENT || row.getType() == FlatRow.RowType.GROUP
+                || row.isTableGroupOwner()) {
             return false;
         }
         return !(row.getType() == FlatRow.RowType.ELEMENT
@@ -186,7 +193,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public List<String> typeTargets(FlatRow row) {
-        if (row.isTableGroupOwner()) {
+        if (row.isTableGroupOwner() || row.getType() == FlatRow.RowType.GROUP) {
             return List.of();
         }
         List<ConvertNodeTypeCommand.Kind> kinds;
@@ -204,6 +211,9 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public int sourceLine(FlatRow row) {
+        if (row.getType() == FlatRow.RowType.GROUP) {
+            return 0;
+        }
         return row.getModelNode() instanceof XmlElement el ? Math.max(0, el.getSourceLineNumber()) : 0;
     }
 
@@ -224,7 +234,8 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     /** @return the node a row stands for when dragged: attributes and table owners are not draggable */
     private static XmlNode draggableNode(FlatRow row) {
-        if (row == null || row.getType() == FlatRow.RowType.ATTRIBUTE || row.isTableGroupOwner()) {
+        if (row == null || row.getType() == FlatRow.RowType.ATTRIBUTE || row.getType() == FlatRow.RowType.GROUP
+                || row.isTableGroupOwner()) {
             return null;
         }
         return row.getModelNode() instanceof XmlNode node && node.getParent() instanceof XmlElement ? node : null;
@@ -243,7 +254,8 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public boolean canDrop(FlatRow dragged, FlatRow target, DropPosition position) {
-        if (target == null || target.getType() == FlatRow.RowType.ATTRIBUTE) {
+        if (target == null || target.getType() == FlatRow.RowType.ATTRIBUTE
+                || target.getType() == FlatRow.RowType.GROUP) {
             return false;
         }
         Object targetNode = target.getModelNode();

@@ -61,6 +61,11 @@ public class FlatRow {
         PROCESSING_INSTRUCTION(Category.NOTE),
         /** The XML document root. */
         DOCUMENT(Category.NOTE),
+        /**
+         * A virtual sibling group (XMLSpy "sibling groups"): stands for a range of a container's
+         * child rows in very large documents; its model node is the container's node.
+         */
+        GROUP(Category.CONTAINER),
         /** A JSON object ({@code {...}}); expandable when it has properties. */
         JSON_OBJECT(Category.CONTAINER),
         /** A JSON array ({@code [...]}); expandable when it has items. */
@@ -129,8 +134,8 @@ public class FlatRow {
     /** The underlying model node ({@code XmlNode} for XML rows, {@code JsonNode} for JSON rows). */
     private final Object modelNode;
 
-    /** The parent FlatRow in the flattened list (null for root rows). */
-    private final FlatRow parentRow;
+    /** The parent FlatRow in the flattened list (null for root rows); changed only by sibling grouping. */
+    private FlatRow parentRow;
 
     /** Display label (element/attribute name, null for text/comment). */
     private final String label;
@@ -894,6 +899,15 @@ public class FlatRow {
         if (!elementRow.getType().isContainer()) {
             return; // Only container rows (elements, objects, arrays) are expandable
         }
+        if (elementRow.getType() == RowType.GROUP && !elementRow.isExpanded()) {
+            // Sibling groups open exclusively: opening one closes the other groups of its parent
+            for (FlatRow other : allRows) {
+                if (other != elementRow && other.getType() == RowType.GROUP && other.isExpanded()
+                        && other.getParentRow() == elementRow.getParentRow()) {
+                    toggleExpand(other, allRows);
+                }
+            }
+        }
 
         if (elementRow.isExpanded()) {
             // Collapse: hide all descendants EXCEPT direct attribute rows
@@ -931,6 +945,77 @@ public class FlatRow {
                 }
             }
         }
+    }
+
+    /**
+     * Splits the child rows of every container that has more than {@code groupSize} of them into
+     * virtual {@link RowType#GROUP} rows of {@code groupSize} children each (XMLSpy's sibling
+     * groups): the group rows are inserted before their first child and become the children's
+     * parent; attribute rows stay with their element. Groups start collapsed.
+     *
+     * @param rows      the flattened rows (pre-order)
+     * @param groupSize the group size; {@code <= 0} returns the rows unchanged
+     * @return the rows with group rows inserted
+     */
+    public static List<FlatRow> groupSiblings(List<FlatRow> rows, int groupSize) {
+        if (groupSize <= 0 || rows.size() <= groupSize) {
+            return rows;
+        }
+        // Direct, non-attribute child rows per parent
+        java.util.Map<FlatRow, List<FlatRow>> children = new java.util.IdentityHashMap<>();
+        for (FlatRow row : rows) {
+            if (row.getParentRow() != null && !row.getType().isAttribute()) {
+                children.computeIfAbsent(row.getParentRow(), k -> new ArrayList<>()).add(row);
+            }
+        }
+        // The group row to insert before a child, for every parent with too many children
+        java.util.Map<FlatRow, FlatRow> groupBefore = new java.util.IdentityHashMap<>();
+        java.util.Map<FlatRow, FlatRow> newParent = new java.util.IdentityHashMap<>();
+        for (java.util.Map.Entry<FlatRow, List<FlatRow>> entry : children.entrySet()) {
+            List<FlatRow> list = entry.getValue();
+            if (list.size() <= groupSize) {
+                continue;
+            }
+            FlatRow parent = entry.getKey();
+            for (int start = 0; start < list.size(); start += groupSize) {
+                int count = Math.min(groupSize, list.size() - start);
+                FlatRow first = list.get(start);
+                FlatRow group = new FlatRow(RowType.GROUP, first.getDepth(), parent.getModelNode(), parent,
+                        groupLabel(list, start, count), null, count);
+                groupBefore.put(first, group);
+                for (int i = start; i < start + count; i++) {
+                    newParent.put(list.get(i), group);
+                }
+            }
+        }
+        if (groupBefore.isEmpty()) {
+            return rows;
+        }
+        List<FlatRow> result = new ArrayList<>(rows.size() + groupBefore.size());
+        for (FlatRow row : rows) {
+            FlatRow group = groupBefore.get(row);
+            if (group != null) {
+                result.add(group);
+            }
+            FlatRow parent = newParent.get(row);
+            if (parent != null) {
+                row.parentRow = parent;
+            }
+            result.add(row);
+        }
+        return result;
+    }
+
+    /** @return {@code name <from..to>} when every row of the range has the same label, else {@code <from..to>} */
+    private static String groupLabel(List<FlatRow> list, int start, int count) {
+        String name = list.get(start).getLabel();
+        for (int i = start + 1; i < start + count && name != null; i++) {
+            if (!name.equals(list.get(i).getLabel())) {
+                name = null;
+            }
+        }
+        String range = "<" + (start + 1) + ".." + (start + count) + ">";
+        return name != null ? name + " " + range : range;
     }
 
     /**
