@@ -114,7 +114,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private String lastSearchText = "";
 
     /** Rows matching the current search text, in document order. */
-    private List<FlatRow> searchMatches = new ArrayList<>();
+    private List<XmlCanvasSearch.Hit> searchMatches = new ArrayList<>();
 
     /** Index of the currently highlighted match within {@link #searchMatches}, or -1. */
     private int currentMatchIndex = -1;
@@ -3659,7 +3659,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             currentMatchIndex = (currentMatchIndex - 1 + searchMatches.size()) % searchMatches.size();
         }
 
-        revealRow(searchMatches.get(currentMatchIndex));
+        revealHit(searchMatches.get(currentMatchIndex));
         return true;
     }
 
@@ -3674,7 +3674,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         rebuildMatches(searchText);
         if (!searchMatches.isEmpty()) {
             currentMatchIndex = 0;
-            revealRow(searchMatches.get(0));
+            revealHit(searchMatches.get(0));
         }
         return searchMatches.size();
     }
@@ -3696,8 +3696,52 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     private void rebuildMatches(String searchText) {
         lastSearchText = searchText;
-        searchMatches = XmlCanvasSearch.findMatches(allRows, searchText);
+        searchMatches = XmlCanvasSearch.findHits(allRows, searchText);
         currentMatchIndex = -1;
+    }
+
+    /**
+     * Reveals a search hit: a row, or a table cell (its owner is expanded too and the cell
+     * becomes the selected cell range).
+     */
+    private void revealHit(XmlCanvasSearch.Hit hit) {
+        if (!hit.isCell()) {
+            revealRow(hit.row());
+            return;
+        }
+        FlatRow owner = hit.row();
+        if (!owner.isExpanded()) {
+            owner.setExpanded(true);
+        }
+        revealRow(owner);
+        RepeatingElementsTable table = owner.getRepeatingTable();
+        if (table != null && hit.tableRow() < table.getRows().size()) {
+            selectTableRow(table, hit.tableRow());
+            setCellRange(hit.tableRow(), hit.tableColumn(), hit.tableRow(), hit.tableColumn());
+            ensureCellVisible(owner, table, hit.tableRow(), hit.tableColumn());
+            render();
+        }
+    }
+
+    /** Scrolls so that the given table cell is inside the viewport. */
+    private void ensureCellVisible(FlatRow owner, RepeatingElementsTable table, int row, int col) {
+        int idx = visibleRows.indexOf(owner);
+        if (idx < 0) {
+            return;
+        }
+        RepeatingElementsTable.CellRect rect = table.cellRect(row, col);
+        double top = rowYPositions[idx] + rect.y();
+        double bottom = top + rect.height();
+        double viewH = viewportHeightModel();
+        if (top < scrollOffsetY) {
+            animateScrollTo(top - 20);
+        } else if (bottom > scrollOffsetY + viewH) {
+            animateScrollTo(bottom - viewH + 20);
+        }
+        double viewW = viewportWidthModel();
+        if (rect.x() < scrollOffsetX || rect.x() + rect.width() > scrollOffsetX + viewW) {
+            hScrollBar.setValue(Math.max(0, Math.min(rect.x() - 20, hScrollBar.getMax())));
+        }
     }
 
     /**

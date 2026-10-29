@@ -249,6 +249,8 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   name and value are kept, attributes move into their element's attribute list. Containers
   with child elements keep their type. **Wrap in Element…** (**Ctrl+Alt+W**, context menu)
   puts a new parent element around the selected node. All of these are undoable.
+- **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables;
+  a table hit expands the group and selects the matching cell.
 - **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),
   **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
   shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query
