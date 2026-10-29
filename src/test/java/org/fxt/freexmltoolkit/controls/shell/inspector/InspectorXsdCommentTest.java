@@ -70,9 +70,9 @@ class InspectorXsdCommentTest {
             host.selectNodeInActiveTree(commentNode);
             return null;
         });
-        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> "Comment".equals(inspector.getKindText()));
-        assertTrue(inspector.getContentText().contains("original comment"),
-                "the comment content must be shown, was: " + inspector.getContentText());
+        // kind and content are filled in the same pulse: poll both together (flaky otherwise)
+        WaitForAsyncUtils.waitFor(4, TimeUnit.SECONDS, () -> "Comment".equals(inspector.getKindText())
+                && inspector.getContentText() != null && inspector.getContentText().contains("original comment"));
 
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.changeActiveComment("EDITED_COMMENT")));
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
