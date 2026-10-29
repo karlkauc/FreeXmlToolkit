@@ -41,6 +41,11 @@ public class XmlGridView extends GridViewShell {
         return canvasView;
     }
 
+    /** @return the embedded canvas, or {@code null} while a placeholder is shown */
+    public XmlCanvasView getCanvasView() {
+        return canvasView;
+    }
+
     /** Sets the callback invoked when the grid's selected node changes (for the inspector). */
     public void setOnSelectionChanged(Consumer<XmlNode> onSelectionChanged) {
         this.onSelectionChanged = onSelectionChanged;
@@ -141,4 +146,13 @@ public class XmlGridView extends GridViewShell {
             canvasView.setProblems(problems);
         }
     }
+
+    @Override
+    protected org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridCanvasView<?> createSplitCanvas() {
+        if (context == null || canvasView == null) {
+            return null;
+        }
+        return new XmlCanvasView(context);
+    }
+
 }

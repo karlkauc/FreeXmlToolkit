@@ -4178,6 +4178,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         this.onDocumentModified = callback;
     }
 
+    /** @return the callback called when the document is modified, or {@code null} */
+    public java.util.function.Consumer<String> getOnDocumentModified() {
+        return onDocumentModified;
+    }
+
     /**
      * Notifies the callback that the document was modified.
      */

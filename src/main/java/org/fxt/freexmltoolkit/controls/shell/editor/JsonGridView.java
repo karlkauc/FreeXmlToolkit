@@ -66,6 +66,7 @@ public class JsonGridView extends GridViewShell {
         if (canvasView != null) {
             canvasView.rebuild();
         }
+        rebuildSecondary();
     }
 
     /**
@@ -108,4 +109,13 @@ public class JsonGridView extends GridViewShell {
         this.canvasView = null;
         showPlaceholder("Cannot display grid:\n\n" + message + "\n\nFix the JSON errors first.");
     }
+
+    @Override
+    protected org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridCanvasView<?> createSplitCanvas() {
+        if (context == null || canvasView == null) {
+            return null;
+        }
+        return new JsonCanvasView(context);
+    }
+
 }

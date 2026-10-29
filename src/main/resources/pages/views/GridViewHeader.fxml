@@ -24,6 +24,7 @@
     <fx:define>
         <ToggleGroup fx:id="cellLinesGroup"/>
         <ToggleGroup fx:id="siblingGroupGroup"/>
+        <ToggleGroup fx:id="splitGroup"/>
     </fx:define>
     <children>
         <Label text="Grid view" styleClass="fxt-grid-title">
@@ -111,6 +112,13 @@
                                toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroups1000"/>
                 <RadioMenuItem fx:id="siblingGroups10000" id="grid-sibling-groups-10000" text="Sibling groups: 10,000 nodes"
                                toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroups10000"/>
+                <SeparatorMenuItem/>
+                <RadioMenuItem fx:id="splitOff" id="grid-split-off" text="Single view"
+                               toggleGroup="$splitGroup" onAction="#onSplitOff"/>
+                <RadioMenuItem fx:id="splitTopBottom" id="grid-split-top-bottom" text="Split: top / bottom"
+                               toggleGroup="$splitGroup" onAction="#onSplitTopBottom"/>
+                <RadioMenuItem fx:id="splitSideBySide" id="grid-split-side-by-side" text="Split: side by side"
+                               toggleGroup="$splitGroup" onAction="#onSplitSideBySide"/>
             </items>
         </MenuButton>
     </children>

@@ -32,15 +32,29 @@ final class GridViewHeader extends HBox {
     @FXML private RadioMenuItem siblingGroups100;
     @FXML private RadioMenuItem siblingGroups1000;
     @FXML private RadioMenuItem siblingGroups10000;
+    @FXML private RadioMenuItem splitOff;
+    @FXML private RadioMenuItem splitTopBottom;
+    @FXML private RadioMenuItem splitSideBySide;
+    private final java.util.function.Consumer<javafx.geometry.Orientation> splitHandler;
 
     GridViewHeader(GridCanvasView<?> view, String subtitleText) {
+        this(view, subtitleText, orientation -> { }, null);
+    }
+
+    GridViewHeader(GridCanvasView<?> view, String subtitleText,
+                   java.util.function.Consumer<javafx.geometry.Orientation> splitHandler,
+                   javafx.geometry.Orientation currentSplit) {
         this.view = view;
+        this.splitHandler = splitHandler;
         FxmlViews.load(this, "/pages/views/GridViewHeader.fxml");
         subtitle.setText(subtitleText);
         zoomLabel.setText(percent(view.getZoom()));
         view.zoomProperty().addListener((obs, oldZoom, newZoom) -> zoomLabel.setText(percent(newZoom.doubleValue())));
         wordWrapButton.setSelected(view.isWordWrap());
         selectCellLines(view.getMaxCellLines());
+        (currentSplit == null ? splitOff
+                : currentSplit == javafx.geometry.Orientation.VERTICAL ? splitTopBottom : splitSideBySide)
+                .setSelected(true);
         (switch (view.getSiblingGroupSize()) {
             case 100 -> siblingGroups100;
             case 1000 -> siblingGroups1000;
@@ -134,6 +148,21 @@ final class GridViewHeader extends HBox {
     @FXML
     public void onSiblingGroups10000() {
         applySiblingGroups(10000);
+    }
+
+    @FXML
+    public void onSplitOff() {
+        splitHandler.accept(null);
+    }
+
+    @FXML
+    public void onSplitTopBottom() {
+        splitHandler.accept(javafx.geometry.Orientation.VERTICAL);
+    }
+
+    @FXML
+    public void onSplitSideBySide() {
+        splitHandler.accept(javafx.geometry.Orientation.HORIZONTAL);
     }
 
     private void applySiblingGroups(int size) {

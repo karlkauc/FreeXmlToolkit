@@ -267,6 +267,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   problem show a red **!** at the end of the name cell and a red value; hover the row for the
   message. Problems inside a repeating group mark the member's row number. The markers clear
   on the next grid edit and come back with the next validation.
+- **Split view.** The header's **⋯** menu splits the grid *top / bottom* or *side by side* into
+  two views of the same document; each scrolls, expands and selects on its own, and an edit in
+  one appears in the other at once. *Single view* closes the second one.
 - **Scroll header.** While you scroll through a long element, a bar at the top shows the
   path of containers you are inside (`root › section › body`); click one to select it and
   scroll back to its start.
