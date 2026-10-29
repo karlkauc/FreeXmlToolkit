@@ -11,6 +11,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -32,6 +33,7 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CompositeXmlCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.MoveNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
@@ -90,6 +92,17 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private MenuItem collapseAllItem;
     private MenuItem expandFullyItem;
     private MenuItem collapseUnselectedItem;
+    private CheckMenuItem displayAsTableItem;
+    private CheckMenuItem flipTableItem;
+
+    // Table operations (visible with a table context)
+    private Menu tableMenu;
+    private MenuItem insertRowBeforeItem;
+    private MenuItem insertRowAfterItem;
+    private MenuItem appendRowItem;
+    private MenuItem insertColumnBeforeItem;
+    private MenuItem insertColumnAfterItem;
+    private MenuItem renameColumnItem;
 
     /** The canvas-level expand/collapse actions. */
     private final GridContextMenu.ViewActions viewActions;
@@ -221,6 +234,38 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         collapseUnselectedItem.setAccelerator(new KeyCodeCombination(KeyCode.MINUS,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
 
+        displayAsTableItem = new CheckMenuItem("Display as Table");
+        displayAsTableItem.setGraphic(createColoredIcon("bi-table", ActionColor.NEUTRAL));
+        displayAsTableItem.setOnAction(e -> viewActions.toggleTableDisplay().run());
+
+        flipTableItem = new CheckMenuItem("Flip Rows/Columns");
+        flipTableItem.setGraphic(createColoredIcon("bi-arrow-left-right", ActionColor.NEUTRAL));
+        flipTableItem.setOnAction(e -> viewActions.flipTable().run());
+
+        // === Table operations ===
+        tableMenu = new Menu("Table");
+        tableMenu.setGraphic(createColoredIcon("bi-grid-3x3", ActionColor.STRUCTURE));
+        insertRowBeforeItem = new MenuItem("Insert Row Before");
+        insertRowBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-up", ActionColor.CREATE));
+        insertRowBeforeItem.setOnAction(e -> insertRow(TableEditOps.Placement.BEFORE));
+        insertRowAfterItem = new MenuItem("Insert Row After");
+        insertRowAfterItem.setGraphic(createColoredIcon("bi-arrow-bar-down", ActionColor.CREATE));
+        insertRowAfterItem.setOnAction(e -> insertRow(TableEditOps.Placement.AFTER));
+        appendRowItem = new MenuItem("Append Row");
+        appendRowItem.setGraphic(createColoredIcon("bi-plus-square", ActionColor.CREATE));
+        appendRowItem.setOnAction(e -> insertRow(TableEditOps.Placement.APPEND));
+        insertColumnBeforeItem = new MenuItem("Insert Column Before…");
+        insertColumnBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-left", ActionColor.CREATE));
+        insertColumnBeforeItem.setOnAction(e -> insertColumn(TableEditOps.Placement.BEFORE));
+        insertColumnAfterItem = new MenuItem("Insert Column After…");
+        insertColumnAfterItem.setGraphic(createColoredIcon("bi-arrow-bar-right", ActionColor.CREATE));
+        insertColumnAfterItem.setOnAction(e -> insertColumn(TableEditOps.Placement.AFTER));
+        renameColumnItem = new MenuItem("Rename Column…");
+        renameColumnItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY));
+        renameColumnItem.setOnAction(e -> renameColumn(clickedTable, clickedColumnName));
+        tableMenu.getItems().addAll(insertRowBeforeItem, insertRowAfterItem, appendRowItem,
+                new SeparatorMenuItem(), insertColumnBeforeItem, insertColumnAfterItem, renameColumnItem);
+
         expandAllItem = new MenuItem("Expand All");
         expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
         expandAllItem.setOnAction(e -> viewActions.expandAll().run());
@@ -265,7 +310,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 new SeparatorMenuItem(),
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
-                sortMenu,
+                displayAsTableItem, flipTableItem, tableMenu, sortMenu,
                 new SeparatorMenuItem(),
                 deleteItem
         );
@@ -369,6 +414,82 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         boolean isInTableColumn = clickedTable != null && clickedColumnName != null;
         boolean canSort = isInTableColumn && clickedTable.isColumnSortable(clickedColumnName);
         sortMenu.setVisible(canSort);
+
+        // Table display toggles (canvas state): only while the selection belongs to a repeating group
+        Boolean tableState = viewActions.tableDisplayState().get();
+        displayAsTableItem.setVisible(tableState != null);
+        displayAsTableItem.setSelected(Boolean.TRUE.equals(tableState));
+        Boolean flipState = viewActions.flipState().get();
+        flipTableItem.setVisible(flipState != null);
+        flipTableItem.setSelected(Boolean.TRUE.equals(flipState));
+
+        // Whole-row / whole-column operations: only with a table context
+        boolean inTable = clickedTable != null;
+        tableMenu.setVisible(inTable);
+        boolean hasRow = inTable && clickedRowIndex >= 0;
+        insertRowBeforeItem.setDisable(!hasRow);
+        insertRowAfterItem.setDisable(!hasRow);
+        boolean hasColumn = isInTableColumn && clickedTable.getColumn(clickedColumnName) != null
+                && clickedTable.getColumn(clickedColumnName).getType() != RepeatingElementsTable.ColumnType.TEXT_CONTENT;
+        renameColumnItem.setDisable(!hasColumn);
+    }
+
+    // ==================== Table operations ====================
+
+    private void insertRow(TableEditOps.Placement placement) {
+        if (clickedTable == null) {
+            return;
+        }
+        XmlCommand cmd = TableEditOps.insertRow(clickedTable, clickedRowIndex, placement);
+        if (cmd != null && context.executeCommand(cmd)) {
+            refresh();
+        }
+    }
+
+    private void insertColumn(TableEditOps.Placement placement) {
+        if (clickedTable == null) {
+            return;
+        }
+        String name = showInputDialog("Insert Column", "Name of the new attribute or element:", "newColumn");
+        if (name == null || name.isBlank()) {
+            return;
+        }
+        name = name.trim();
+        RepeatingElementsTable.ColumnType type = RepeatingElementsTable.ColumnType.CHILD_ELEMENT;
+        if (name.startsWith("@")) {
+            type = RepeatingElementsTable.ColumnType.ATTRIBUTE;
+            name = name.substring(1);
+        }
+        if (name.isEmpty()) {
+            return;
+        }
+        CompositeXmlCommand cmd = TableEditOps.insertColumn(clickedTable, name, type, clickedColumnName, placement);
+        if (!cmd.isEmpty() && context.executeCommand(cmd)) {
+            refresh();
+        }
+    }
+
+    /**
+     * Renames a column (the attribute / child element of that name in every member) after
+     * asking for the new name; also the canvas' double-click-on-header entry point.
+     */
+    @Override
+    public void renameColumn(RepeatingElementsTable table, String columnName) {
+        if (table == null || columnName == null) {
+            return;
+        }
+        RepeatingElementsTable.TableColumn col = table.getColumn(columnName);
+        if (col == null || col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {
+            return;
+        }
+        String newName = showInputDialog("Rename Column", "New name for " + col.getDisplayName() + ":", columnName);
+        if (newName == null || newName.isBlank() || newName.trim().equals(columnName)) {
+            return;
+        }
+        CompositeXmlCommand cmd = TableEditOps.renameColumn(table, columnName, newName.trim());
+        if (!cmd.isEmpty() && context.executeCommand(cmd)) {
+            refresh();
+        }
     }
 
     private boolean isFirstChild(XmlNode node) {

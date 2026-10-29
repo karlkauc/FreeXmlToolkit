@@ -173,6 +173,13 @@ public class FlatRow {
     private List<?> tableMembers;
     /** Stable key of the repeating group ({@code parent-path/name}, the array path), or {@code null}. */
     private String tableGroupKey;
+    /**
+     * Key of the repeating group this row belongs to while the group is shown as individual
+     * rows (XMLSpy "standard" display) instead of a table; {@code null} otherwise.
+     */
+    private String standardGroupKey;
+    /** x of the table glyph drawn after the label (transient, set while drawing; NaN = none). */
+    private double tableGlyphX = Double.NaN;
 
     /**
      * Index of this row's attribute within its parent element's attribute map.
@@ -488,6 +495,31 @@ public class FlatRow {
         return repeatingTable != null;
     }
 
+    /** @return the key of the repeating group shown as standard rows this row belongs to, or {@code null} */
+    public String getStandardGroupKey() {
+        return standardGroupKey;
+    }
+
+    /** @param key the key of the repeating group this (standard) member row belongs to */
+    public void setStandardGroupKey(String key) {
+        this.standardGroupKey = key;
+    }
+
+    /** @return whether this row carries the table toggle glyph (a table owner or a group's first standard member) */
+    public boolean showsTableGlyph() {
+        return tableMembers != null || (standardGroupKey != null && instanceIndex <= 1);
+    }
+
+    /** @return the x of the drawn table glyph, or NaN when none was drawn (transient view state) */
+    public double getTableGlyphX() {
+        return tableGlyphX;
+    }
+
+    /** @param x the x of the drawn table glyph (NaN = none) */
+    public void setTableGlyphX(double x) {
+        this.tableGlyphX = x;
+    }
+
     /** @return whether this row stands for a repeating group (whether or not its table is built yet) */
     public boolean isTableGroupOwner() {
         return tableMembers != null;
@@ -760,6 +792,7 @@ public class FlatRow {
                         int before = rows.size();
                         flattenElement(childElement, depth + 1, elementRow, rows, false, groupAsTable);
                         rows.get(before).setInstanceIndex(index);
+                        rows.get(before).setStandardGroupKey(groupKey);
                     }
                 } else {
                     flattenElement(childElement, depth + 1, elementRow, rows, false, groupAsTable);

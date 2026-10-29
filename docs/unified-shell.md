@@ -206,6 +206,19 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   **embedded table beside the group's name cell**: one row per element (numbered in the
   first column), one column per attribute (`=`) and child element (`<>`). Click a column
   header to **sort** the group; cells with nested structure expand inline.
+- **Table or rows.** The small table glyph after the group's name (or the context menu's
+  **Display as Table**) switches the group between the table and XMLSpy's standard display,
+  where every member is its own row numbered `<1>`, `<2>`, … The choice is kept per group
+  while the document is open.
+- **Flip Rows/Columns.** The corner cell of a table (or the context menu entry) transposes
+  it: the columns become rows and the numbered members become columns - handy for wide
+  tables with few rows. Sorting, editing and the inline sub-trees keep working.
+- **Whole rows and columns.** Right-click inside a table for the **Table** submenu: **Insert
+  Row Before / After** and **Append Row** add a member with every column present but empty;
+  **Insert Column Before / After…** adds an attribute (type `@name`) or a child element
+  (`name`) to every member; **Rename Column…** (also: double-click a column header) renames
+  it in every member. Each of these is one undo step. Typing into an empty cell whose
+  member lacks that child element creates the element.
 - **Column widths.** Name columns and table columns size themselves to their content. Drag
   the hairline between a name column and its values (or a column separator in a table's
   header row) to resize it - text re-wraps to the new width - and **double-click the line**

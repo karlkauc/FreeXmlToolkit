@@ -15,16 +15,34 @@ public interface GridContextMenu<N> {
     /**
      * The canvas-level actions a menu can offer besides its model edits.
      *
-     * @param expandAll         expands every container
-     * @param collapseAll       collapses every container
-     * @param expandFully       expands the selected row and all its descendants
+     * @param expandAll          expands every container
+     * @param collapseAll        collapses every container
+     * @param expandFully        expands the selected row and all its descendants
      * @param collapseUnselected collapses everything except the selected row and its ancestors
+     * @param toggleTableDisplay shows the selection's repeating group as table / as rows
+     * @param tableDisplayState  {@code TRUE} when the selection's group is a table, {@code FALSE}
+     *                           when shown as rows, {@code null} when it belongs to no group
+     * @param flipTable          flips the rows and columns of the selection's table
+     * @param flipState          the flip state of the selection's table, {@code null} when in none
      */
-    record ViewActions(Runnable expandAll, Runnable collapseAll, Runnable expandFully, Runnable collapseUnselected) {
+    record ViewActions(Runnable expandAll, Runnable collapseAll, Runnable expandFully, Runnable collapseUnselected,
+                       Runnable toggleTableDisplay, java.util.function.Supplier<Boolean> tableDisplayState,
+                       Runnable flipTable, java.util.function.Supplier<Boolean> flipState) {
         /** @return actions that do nothing (for menus built without a canvas, e.g. in tests) */
         public static ViewActions none() {
-            return new ViewActions(() -> { }, () -> { }, () -> { }, () -> { });
+            return new ViewActions(() -> { }, () -> { }, () -> { }, () -> { },
+                    () -> { }, () -> null, () -> { }, () -> null);
         }
+    }
+
+    /**
+     * Lets the user rename a table column (every member's attribute/child of that name);
+     * the canvas calls it on a double-click of a column header. Does nothing by default.
+     *
+     * @param table      the table
+     * @param columnName the column
+     */
+    default void renameColumn(RepeatingElementsTable table, String columnName) {
     }
 
     /** Shows the menu for the given node at the given screen position. */

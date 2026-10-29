@@ -156,7 +156,7 @@ class JsonGridAdapterFlattenTest {
     @Test
     void emptyDocumentFlattensToNoRows() {
         assertTrue(JsonGridAdapter.flatten(new org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument()).isEmpty());
-        assertTrue(JsonGridAdapter.flatten(null).isEmpty());
+        assertTrue(JsonGridAdapter.flatten((org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument) null).isEmpty());
         assertFalse(new JsonGridAdapter(new JsonEditorContext()).hasDocument());
     }
 

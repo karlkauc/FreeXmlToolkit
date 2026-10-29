@@ -51,6 +51,11 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         return FlatRow.flatten(context.getDocument());
     }
 
+    @Override
+    public List<FlatRow> flatten(java.util.function.Predicate<String> groupAsTable) {
+        return FlatRow.flatten(context.getDocument(), groupAsTable);
+    }
+
     /**
      * Attaches RepeatingElementsTable instances to FlatRows that represent
      * repeating element groups (2+ siblings with the same tag name).
@@ -269,11 +274,12 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
             context.executeCommand(new SetAttributeCommand(rowElement, columnName, newValue));
         } else if (col.getType() == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
-            for (XmlNode child : rowElement.getChildren()) {
-                if (child instanceof XmlElement childElement && childElement.getName().equals(columnName)) {
-                    context.executeCommand(new SetElementTextCommand(childElement, newValue));
-                    break;
-                }
+            XmlElement childElement = rowElement.getChildElement(columnName);
+            if (childElement != null) {
+                context.executeCommand(new SetElementTextCommand(childElement, newValue));
+            } else if (newValue != null && !newValue.isEmpty()) {
+                // The member lacks this column's element: create it with the typed text
+                context.executeCommand(TableEditOps.createCellChild(rowElement, columnName, newValue));
             }
         } else if (col.getType() == RepeatingElementsTable.ColumnType.TEXT_CONTENT) {
             context.executeCommand(new SetElementTextCommand(rowElement, newValue));

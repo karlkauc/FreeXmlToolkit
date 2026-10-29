@@ -36,6 +36,17 @@ public interface GridModelAdapter<N> {
     List<FlatRow> flatten();
 
     /**
+     * Flattens the document, showing each repeating group either as one table-owner row or
+     * as individual numbered rows, as {@code groupAsTable} decides per group key.
+     *
+     * @param groupAsTable whether the group with the given key is shown as a table
+     * @return the rows, in document order
+     */
+    default List<FlatRow> flatten(java.util.function.Predicate<String> groupAsTable) {
+        return flatten();
+    }
+
+    /**
      * Attaches {@link RepeatingElementsTable}s to the rows that represent repeating groups.
      *
      * @param rows            the rows produced by {@link #flatten()}

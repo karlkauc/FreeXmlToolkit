@@ -11,6 +11,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -102,6 +103,8 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     private MenuItem collapseAllItem;
     private MenuItem expandFullyItem;
     private MenuItem collapseUnselectedItem;
+    private CheckMenuItem displayAsTableItem;
+    private CheckMenuItem flipTableItem;
 
     /** The canvas-level expand/collapse actions. */
     private final GridContextMenu.ViewActions viewActions;
@@ -234,6 +237,14 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         collapseUnselectedItem.setAccelerator(new KeyCodeCombination(KeyCode.MINUS,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
 
+        displayAsTableItem = new CheckMenuItem("Display as Table");
+        displayAsTableItem.setGraphic(createColoredIcon("bi-table", ActionColor.NEUTRAL));
+        displayAsTableItem.setOnAction(e -> viewActions.toggleTableDisplay().run());
+
+        flipTableItem = new CheckMenuItem("Flip Rows/Columns");
+        flipTableItem.setGraphic(createColoredIcon("bi-arrow-left-right", ActionColor.NEUTRAL));
+        flipTableItem.setOnAction(e -> viewActions.flipTable().run());
+
         expandAllItem = new MenuItem("Expand All");
         expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
         expandAllItem.setOnAction(e -> viewActions.expandAll().run());
@@ -276,6 +287,8 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
                 moveUpItem, moveDownItem,
                 new SeparatorMenuItem(),
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
+                new SeparatorMenuItem(),
+                displayAsTableItem, flipTableItem,
                 new SeparatorMenuItem(),
                 sortMenu,
                 new SeparatorMenuItem(),
@@ -388,6 +401,14 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         boolean isInTableColumn = clickedTable != null && clickedColumnName != null;
         boolean canSort = isInTableColumn && clickedTable.isColumnSortable(clickedColumnName);
         sortMenu.setVisible(canSort);
+
+        // Table display toggles (canvas state): only while the selection belongs to an array of objects
+        Boolean tableState = viewActions.tableDisplayState().get();
+        displayAsTableItem.setVisible(tableState != null);
+        displayAsTableItem.setSelected(Boolean.TRUE.equals(tableState));
+        Boolean flipState = viewActions.flipState().get();
+        flipTableItem.setVisible(flipState != null);
+        flipTableItem.setSelected(Boolean.TRUE.equals(flipState));
     }
 
     private static boolean isRoot(JsonNode node) {

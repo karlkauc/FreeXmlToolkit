@@ -167,6 +167,13 @@ public class RepeatingElementsTable {
     private double[] rowTops = new double[]{0};
     /** Width of the row-number column (drawn column 0), measured in the layout pass. */
     private double rowNumberWidth = MIN_ROW_NUMBER_WIDTH;
+    /** Whether rows and columns are shown flipped (XMLSpy "Flip Rows/Columns"). */
+    private boolean flipped = false;
+    /** Drawn-grid geometry (relative to the table origin), filled by the layout pass. */
+    private double[] drawnColX = {0};
+    private double[] drawnColW = {MIN_ROW_NUMBER_WIDTH};
+    private double[] drawnRowTop = {0};
+    private double[] drawnRowH = {ROW_HEIGHT};
 
     // ==================== State ====================
 
@@ -955,26 +962,17 @@ public class RepeatingElementsTable {
         double pad2 = CELL_PADDING * 2;
         double maxValueColumn = m.wrapWidth() + pad2;
 
-        // -- Column pass --
+        // -- Column pass: content-driven logical column widths (user overrides win) --
         for (TableColumn col : columns) {
             String name = col.getName();
             // Header = type icon + name (+ sort marker); the canvas draws the icon in HEADER_ICON_WIDTH
-            String header = name + (isSortedBy(name) ? " \u25B2" : "");
+            String header = name + (isSortedBy(name) ? " ▲" : "");
             double headerWidth = HEADER_ICON_WIDTH + m.width(header, GridFont.ROW_BOLD) + pad2;
             double contentWidth = 0;
             double maxNameCol = 0;
 
             for (TableRow row : rows) {
-                double w = m.width(row.getValue(name), GridFont.ROW);
-                if (row.hasComplexChild(name)) {
-                    w += GridMetrics.COMPLEX_ARROW_OFFSET;
-                }
-                String suffix = row.getAttributeSuffix(name);
-                if (suffix != null && !suffix.isEmpty()) {
-                    w += GridMetrics.SUFFIX_GAP + m.width(suffix, GridFont.ROW);
-                }
-                contentWidth = Math.max(contentWidth, w + pad2);
-
+                contentWidth = Math.max(contentWidth, cellContentWidth(row, name, m) + pad2);
                 if (row.isColumnExpanded(name)) {
                     double maxSubValue = 0;
                     for (FlatRow sub : row.getExpandedCellRows(name)) {
@@ -998,7 +996,35 @@ public class RepeatingElementsTable {
             col.setWidth(col.userWidth != null ? Math.max(col.userWidth, MIN_COLUMN_WIDTH) : natural);
         }
 
-        // -- Row pass --
+        rowNumberWidth = Math.max(MIN_ROW_NUMBER_WIDTH,
+                m.width(String.valueOf(rows.size()), GridFont.SMALL) + pad2);
+
+        if (flipped) {
+            layoutFlipped(m, pad2, maxValueColumn);
+        } else {
+            layoutStandard(m);
+        }
+        layoutValid = true;
+    }
+
+    /** @return the unwrapped width of a cell's content: value, complex-cell arrow and attribute suffix */
+    private double cellContentWidth(TableRow row, String name, GridMetrics m) {
+        double w = m.width(row.getValue(name), GridFont.ROW);
+        if (row.hasComplexChild(name)) {
+            w += GridMetrics.COMPLEX_ARROW_OFFSET;
+        }
+        String suffix = row.getAttributeSuffix(name);
+        if (suffix != null && !suffix.isEmpty()) {
+            w += GridMetrics.SUFFIX_GAP + m.width(suffix, GridFont.ROW);
+        }
+        return w;
+    }
+
+    /**
+     * Standard orientation: drawn row 0 is the column-header row, drawn rows 1..n the data
+     * rows; drawn column 0 numbers the rows, drawn columns 1..m are the logical columns.
+     */
+    private void layoutStandard(GridMetrics m) {
         rowTops = new double[rows.size() + 1];
         double top = 0;
         for (int r = 0; r < rows.size(); r++) {
@@ -1006,7 +1032,7 @@ public class RepeatingElementsTable {
             row.cellLayouts.clear();
             double rowHeight = ROW_HEIGHT;
             for (TableColumn col : columns) {
-                CellLayout cell = layoutCell(row, col, m);
+                CellLayout cell = layoutCell(row, col, m, col.getWidth());
                 row.cellLayouts.put(col.getName(), cell);
                 rowHeight = Math.max(rowHeight, cell.height());
             }
@@ -1016,22 +1042,91 @@ public class RepeatingElementsTable {
         }
         rowTops[rows.size()] = top;
 
-        double totalColWidth = 0;
-        for (TableColumn col : columns) {
-            totalColWidth += col.getWidth();
+        drawnColX = new double[columns.size() + 1];
+        drawnColW = new double[columns.size() + 1];
+        drawnColW[0] = rowNumberWidth;
+        for (int c = 0; c < columns.size(); c++) {
+            drawnColX[c + 1] = drawnColX[c] + drawnColW[c];
+            drawnColW[c + 1] = columns.get(c).getWidth();
         }
-        rowNumberWidth = Math.max(MIN_ROW_NUMBER_WIDTH,
-                m.width(String.valueOf(rows.size()), GridFont.SMALL) + pad2);
-        this.width = rowNumberWidth + totalColWidth;
+        drawnRowTop = new double[rows.size() + 1];
+        drawnRowH = new double[rows.size() + 1];
+        drawnRowH[0] = ROW_HEIGHT;
+        for (int r = 0; r < rows.size(); r++) {
+            drawnRowTop[r + 1] = ROW_HEIGHT + rowTops[r];
+            drawnRowH[r + 1] = rows.get(r).layoutHeight;
+        }
+        this.width = drawnColX[columns.size()] + drawnColW[columns.size()];
         this.height = ROW_HEIGHT + top;
-        layoutValid = true;
     }
 
-    private CellLayout layoutCell(TableRow row, TableColumn col, GridMetrics m) {
+    /**
+     * Flipped orientation (XMLSpy "Flip Rows/Columns"): drawn column 0 holds the column
+     * headers, drawn columns 1..n the records (one per logical row, numbered in drawn row 0);
+     * drawn rows 1..m are the logical columns. Each record gets its own width (its widest
+     * cell, capped at the wrap width); each logical column's drawn row is as tall as its
+     * tallest cell.
+     */
+    private void layoutFlipped(GridMetrics m, double pad2, double maxValueColumn) {
+        int n = rows.size();
+        int cols = columns.size();
+
+        // Drawn column 0: the header column
+        double headerCol = MIN_ROW_NUMBER_WIDTH;
+        for (TableColumn col : columns) {
+            String header = col.getName() + (isSortedBy(col.getName()) ? " ▲" : "");
+            headerCol = Math.max(headerCol, HEADER_ICON_WIDTH + m.width(header, GridFont.ROW_BOLD) + pad2);
+        }
+        drawnColX = new double[n + 1];
+        drawnColW = new double[n + 1];
+        drawnColW[0] = headerCol;
+        for (int r = 0; r < n; r++) {
+            TableRow row = rows.get(r);
+            double w = Math.max(MIN_COLUMN_WIDTH, m.width(String.valueOf(r + 1), GridFont.SMALL) + pad2);
+            for (TableColumn col : columns) {
+                w = Math.max(w, Math.min(cellContentWidth(row, col.getName(), m) + pad2, maxValueColumn));
+            }
+            drawnColX[r + 1] = drawnColX[r] + drawnColW[r];
+            drawnColW[r + 1] = w;
+        }
+
+        // Cells laid out at their record's width; drawn row per logical column
+        drawnRowTop = new double[cols + 1];
+        drawnRowH = new double[cols + 1];
+        drawnRowH[0] = ROW_HEIGHT;
+        for (TableRow row : rows) {
+            row.cellLayouts.clear();
+            row.layoutHeight = ROW_HEIGHT;
+        }
+        double top = ROW_HEIGHT;
+        for (int c = 0; c < cols; c++) {
+            TableColumn col = columns.get(c);
+            double rowHeight = ROW_HEIGHT;
+            for (int r = 0; r < n; r++) {
+                TableRow row = rows.get(r);
+                CellLayout cell = layoutCell(row, col, m, drawnColW[r + 1]);
+                row.cellLayouts.put(col.getName(), cell);
+                rowHeight = Math.max(rowHeight, cell.height());
+                row.layoutHeight = Math.max(row.layoutHeight, cell.height());
+            }
+            drawnRowTop[c + 1] = top;
+            drawnRowH[c + 1] = rowHeight;
+            top += rowHeight;
+        }
+        // Logical row tops are meaningless when flipped; keep them consistent for callers
+        rowTops = new double[n + 1];
+        for (int r = 0; r < n; r++) {
+            rowTops[r + 1] = rowTops[r] + rows.get(r).layoutHeight;
+        }
+        this.width = drawnColX[n] + drawnColW[n];
+        this.height = top;
+    }
+
+    private CellLayout layoutCell(TableRow row, TableColumn col, GridMetrics m, double cellWidth) {
         String name = col.getName();
         boolean complex = row.hasComplexChild(name);
         double textAvail = Math.max(GridMetrics.MIN_TEXT_WIDTH,
-                col.getWidth() - CELL_PADDING * 2 - (complex ? GridMetrics.COMPLEX_ARROW_OFFSET : 0));
+                cellWidth - CELL_PADDING * 2 - (complex ? GridMetrics.COMPLEX_ARROW_OFFSET : 0));
         TextBlock summary = TextBlock.of(m, row.getValue(name), GridFont.ROW, textAvail);
 
         boolean suffixOnNewLine = false;
@@ -1067,7 +1162,7 @@ public class RepeatingElementsTable {
                 }
             }
             double valueAvail = Math.max(GridMetrics.MIN_TEXT_WIDTH,
-                    col.getWidth() - CELL_PADDING * 2 - nameColumnWidth);
+                    cellWidth - CELL_PADDING * 2 - nameColumnWidth);
             subRowBlocks = new ArrayList<>(visibleSubRows.size());
             subRowTops = new double[visibleSubRows.size()];
             for (int i = 0; i < visibleSubRows.size(); i++) {
@@ -1239,6 +1334,9 @@ public class RepeatingElementsTable {
      */
     public int getColumnSeparatorAt(double px, double tolerance) {
         ensureLayout();
+        if (flipped) {
+            return -1; // record columns are sized to their content; no handles when flipped
+        }
         double edge = x + rowNumberWidth;
         for (int i = 0; i < columns.size(); i++) {
             edge += columns.get(i).getWidth();
@@ -1309,10 +1407,12 @@ public class RepeatingElementsTable {
 
     // ==================== Drawn grid ====================
     //
-    // The canvas renders and hit-tests the table only through the "drawn grid": drawn row 0 is
-    // the column-header row, drawn rows 1..n the data rows; drawn column 0 is the row-number
-    // column (the corner cell in the header row), drawn columns 1..m the logical columns.
-    // Flipping rows and columns only changes this mapping.
+    // The canvas renders and hit-tests the table only through the "drawn grid". Standard
+    // orientation: drawn row 0 is the column-header row, drawn rows 1..n the data rows; drawn
+    // column 0 numbers the rows (corner cell in the header row), drawn columns 1..m are the
+    // logical columns. Flipped (XMLSpy "Flip Rows/Columns"): drawn column 0 holds the column
+    // headers, drawn columns 1..n the numbered records, drawn rows 1..m the logical columns.
+    // Only this mapping and the geometry arrays differ between the orientations.
 
     /** What a drawn cell shows. */
     public enum CellKind {
@@ -1337,14 +1437,45 @@ public class RepeatingElementsTable {
     public record DrawnCell(CellKind kind, int rowIndex, int columnIndex) {
     }
 
-    /** @return the number of drawn columns (row-number column + logical columns) */
-    public int drawnColumnCount() {
-        return 1 + columns.size();
+    /**
+     * The rectangle of a drawn cell.
+     *
+     * @param x      absolute x of the left edge
+     * @param y      top edge relative to the table top
+     * @param width  the width
+     * @param height the height
+     */
+    public record CellRect(double x, double y, double width, double height) {
     }
 
-    /** @return the number of drawn rows (column-header row + data rows) */
+    /** @return whether rows and columns are shown flipped */
+    public boolean isFlipped() {
+        return flipped;
+    }
+
+    /**
+     * Shows the table with rows and columns flipped (or back): the logical columns become
+     * the drawn rows and the records the drawn columns.
+     *
+     * @param flipped the orientation
+     */
+    public void setFlipped(boolean flipped) {
+        if (this.flipped != flipped) {
+            this.flipped = flipped;
+            invalidateLayout();
+        }
+    }
+
+    /** @return the number of drawn columns */
+    public int drawnColumnCount() {
+        ensureLayout();
+        return drawnColW.length;
+    }
+
+    /** @return the number of drawn rows */
     public int drawnRowCount() {
-        return 1 + rows.size();
+        ensureLayout();
+        return drawnRowH.length;
     }
 
     /**
@@ -1353,15 +1484,7 @@ public class RepeatingElementsTable {
      */
     public double drawnColumnX(int dc) {
         ensureLayout();
-        double colX = x;
-        if (dc <= 0) {
-            return colX;
-        }
-        colX += rowNumberWidth;
-        for (int i = 0; i < dc - 1 && i < columns.size(); i++) {
-            colX += columns.get(i).getWidth();
-        }
-        return colX;
+        return x + drawnColX[Math.max(0, Math.min(dc, drawnColX.length - 1))];
     }
 
     /**
@@ -1370,11 +1493,7 @@ public class RepeatingElementsTable {
      */
     public double drawnColumnWidth(int dc) {
         ensureLayout();
-        if (dc <= 0) {
-            return rowNumberWidth;
-        }
-        TableColumn col = getColumn(dc - 1);
-        return col != null ? col.getWidth() : 0;
+        return dc >= 0 && dc < drawnColW.length ? drawnColW[dc] : 0;
     }
 
     /**
@@ -1383,7 +1502,7 @@ public class RepeatingElementsTable {
      */
     public double drawnRowTop(int dr) {
         ensureLayout();
-        return dr <= 0 ? 0 : ROW_HEIGHT + getRowTop(dr - 1);
+        return drawnRowTop[Math.max(0, Math.min(dr, drawnRowTop.length - 1))];
     }
 
     /**
@@ -1392,10 +1511,7 @@ public class RepeatingElementsTable {
      */
     public double drawnRowHeight(int dr) {
         ensureLayout();
-        if (dr <= 0) {
-            return ROW_HEIGHT;
-        }
-        return dr - 1 < rows.size() ? rows.get(dr - 1).layoutHeight : 0;
+        return dr >= 0 && dr < drawnRowH.length ? drawnRowH[dr] : 0;
     }
 
     /**
@@ -1404,12 +1520,32 @@ public class RepeatingElementsTable {
      * @return the cell drawn there
      */
     public DrawnCell cellAt(int dr, int dc) {
+        if (!flipped) {
+            if (dr <= 0) {
+                return dc <= 0 ? new DrawnCell(CellKind.CORNER, -1, -1)
+                        : new DrawnCell(CellKind.COLUMN_HEADER, -1, dc - 1);
+            }
+            return dc <= 0 ? new DrawnCell(CellKind.ROW_NUMBER, dr - 1, -1)
+                    : new DrawnCell(CellKind.DATA, dr - 1, dc - 1);
+        }
         if (dr <= 0) {
             return dc <= 0 ? new DrawnCell(CellKind.CORNER, -1, -1)
-                    : new DrawnCell(CellKind.COLUMN_HEADER, -1, dc - 1);
+                    : new DrawnCell(CellKind.ROW_NUMBER, dc - 1, -1);
         }
-        return dc <= 0 ? new DrawnCell(CellKind.ROW_NUMBER, dr - 1, -1)
-                : new DrawnCell(CellKind.DATA, dr - 1, dc - 1);
+        return dc <= 0 ? new DrawnCell(CellKind.COLUMN_HEADER, -1, dr - 1)
+                : new DrawnCell(CellKind.DATA, dc - 1, dr - 1);
+    }
+
+    /**
+     * @param rowIndex    a logical row
+     * @param columnIndex a logical column
+     * @return the rectangle of that data cell
+     */
+    public CellRect cellRect(int rowIndex, int columnIndex) {
+        ensureLayout();
+        int dr = flipped ? columnIndex + 1 : rowIndex + 1;
+        int dc = flipped ? rowIndex + 1 : columnIndex + 1;
+        return new CellRect(drawnColumnX(dc), drawnRowTop(dr), drawnColumnWidth(dc), drawnRowHeight(dr));
     }
 
     /**
@@ -1418,24 +1554,16 @@ public class RepeatingElementsTable {
      */
     public int drawnColumnAt(double px) {
         ensureLayout();
-        if (px < x) {
+        double rel = px - x;
+        if (rel < 0) {
             return -1;
         }
-        if (px < x + rowNumberWidth) {
-            return 0;
+        for (int dc = 0; dc < drawnColW.length; dc++) {
+            if (rel < drawnColX[dc] + drawnColW[dc]) {
+                return dc;
+            }
         }
-        int logical = getColumnIndexAt(px);
-        return logical < 0 ? -1 : logical + 1;
-    }
-
-    /**
-     * @param dr a drawn row index
-     * @param dc a drawn column index
-     * @return the logical data row shown in that drawn cell, or {@code null} for header cells
-     */
-    public TableRow rowOfDrawn(int dr, int dc) {
-        DrawnCell cell = cellAt(dr, dc);
-        return cell.rowIndex() >= 0 && cell.rowIndex() < rows.size() ? rows.get(cell.rowIndex()) : null;
+        return -1;
     }
 
     /**
@@ -1447,11 +1575,22 @@ public class RepeatingElementsTable {
         if (relY < 0) {
             return -1;
         }
-        if (relY < ROW_HEIGHT) {
-            return 0;
+        for (int dr = 0; dr < drawnRowH.length; dr++) {
+            if (relY < drawnRowTop[dr] + drawnRowH[dr]) {
+                return dr;
+            }
         }
-        int logical = getRowIndexAtDataOffset(relY - ROW_HEIGHT);
-        return logical < 0 ? -1 : logical + 1;
+        return -1;
+    }
+
+    /**
+     * @param dr a drawn row index
+     * @param dc a drawn column index
+     * @return the logical data row shown in that drawn cell, or {@code null} for header cells
+     */
+    public TableRow rowOfDrawn(int dr, int dc) {
+        DrawnCell cell = cellAt(dr, dc);
+        return cell.rowIndex() >= 0 && cell.rowIndex() < rows.size() ? rows.get(cell.rowIndex()) : null;
     }
 
     /**

@@ -71,12 +71,25 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         return flatten(context.getDocument());
     }
 
+    @Override
+    public List<FlatRow> flatten(java.util.function.Predicate<String> groupAsTable) {
+        return flatten(context.getDocument(), groupAsTable);
+    }
+
     /** Flattens a whole document: the root value is the expanded {@code $} row. */
     public static List<FlatRow> flatten(JsonDocument document) {
+        return flatten(document, FlatRow.ALWAYS_TABLE);
+    }
+
+    /**
+     * Flattens a whole document; {@code groupAsTable} decides per array path whether an
+     * array of objects becomes an embedded table or individual {@code [i]} rows.
+     */
+    public static List<FlatRow> flatten(JsonDocument document, java.util.function.Predicate<String> groupAsTable) {
         List<FlatRow> rows = new ArrayList<>();
         JsonNode root = document != null ? document.getRootValue() : null;
         if (root != null) {
-            flattenNode(root, ROOT_LABEL, 0, null, rows, true);
+            flattenNode(root, ROOT_LABEL, 0, null, rows, true, groupAsTable);
         }
         return rows;
     }
@@ -94,12 +107,13 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         }
         FlatRow anchor = new FlatRow(rowTypeOf(container), -1, container, null,
                 labelOf(container), null, container.getChildCount());
-        flattenChildren(container, 0, anchor, rows);
+        flattenChildren(container, 0, anchor, rows, FlatRow.ALWAYS_TABLE);
         return rows;
     }
 
     private static void flattenNode(JsonNode node, String label, int depth, FlatRow parent,
-                                    List<FlatRow> rows, boolean expand) {
+                                    List<FlatRow> rows, boolean expand,
+                                    java.util.function.Predicate<String> groupAsTable) {
         FlatRow.RowType type = rowTypeOf(node);
         if (node instanceof JsonPrimitive primitive) {
             rows.add(new FlatRow(type, depth, node, parent, label, JsonGridRecord.cellText(primitive), 0));
@@ -109,11 +123,15 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         row.setExpanded(expand);
         rows.add(row);
         if (node instanceof JsonArray array && isObjectTable(array)) {
-            // Items are shown as an embedded table, not as rows; attachTables only reads this marker
-            row.setTableGroup(array.getPath(), array.getChildren());
-            return;
+            if (groupAsTable.test(array.getPath())) {
+                // Items are shown as an embedded table, not as rows; attachTables only reads this marker
+                row.setTableGroup(array.getPath(), array.getChildren());
+                return;
+            }
+            // Standard display of an array of objects: the array row carries the toggle glyph
+            row.setStandardGroupKey(array.getPath());
         }
-        flattenChildren(node, depth + 1, row, rows);
+        flattenChildren(node, depth + 1, row, rows, groupAsTable);
     }
 
     /**
@@ -159,12 +177,13 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         return sb.length() < max;
     }
 
-    private static void flattenChildren(JsonNode container, int depth, FlatRow parent, List<FlatRow> rows) {
+    private static void flattenChildren(JsonNode container, int depth, FlatRow parent, List<FlatRow> rows,
+                                        java.util.function.Predicate<String> groupAsTable) {
         boolean array = container instanceof JsonArray;
         int index = 0;
         for (JsonNode child : container.getChildren()) {
             String label = array ? "[" + index + "]" : child.getKey();
-            flattenNode(child, label, depth, parent, rows, false);
+            flattenNode(child, label, depth, parent, rows, false, groupAsTable);
             index++;
         }
     }
