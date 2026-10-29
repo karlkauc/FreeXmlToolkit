@@ -284,6 +284,13 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   remove the filter. **Filter to Focus** filters the root down to the selected node. Filters
   only change the display, never the document; an invalid expression is reported and
   filters nothing. Filters live while the document is open.
+- **Formulas.** Right-click an element → **Add Formula…**: a name and an XQuery 3.1 expression
+  evaluated with that element as context (e.g. `avg(Month/Min)`). The formula row (icon `ƒ`)
+  shows the expression and, below it, the live result - or the error in red; double-click the
+  expression or the name to edit it. Formulas are saved in the file as
+  `<?fxt-formula name="…" expression="…"?>` instructions. **Store Formula Result in Document**
+  also writes the result into an element named after the formula, right after it;
+  **Recalculate Stored Formula Results** refreshes all of them in one undo step.
 - **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables;
   a table hit expands the group and selects the matching cell.
 - **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),

@@ -193,7 +193,8 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public List<String> typeTargets(FlatRow row) {
-        if (row.isTableGroupOwner() || row.isVirtual()) {
+        if (row.isTableGroupOwner() || row.isVirtual() || GridFormulas.isFormula(
+                row.getModelNode() instanceof XmlNode n ? n : null)) {
             return List.of();
         }
         List<ConvertNodeTypeCommand.Kind> kinds;
@@ -205,6 +206,23 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
             kinds = List.of();
         }
         return kinds.stream().map(ConvertNodeTypeCommand.Kind::label).toList();
+    }
+
+    // ==================== Formulas ====================
+
+    @Override
+    public boolean supportsFormulas() {
+        return true;
+    }
+
+    @Override
+    public FormulaView formula(FlatRow row) {
+        if (row.getType() != FlatRow.RowType.PROCESSING_INSTRUCTION
+                || !(row.getModelNode() instanceof XmlProcessingInstruction pi) || !GridFormulas.isFormula(pi)) {
+            return null;
+        }
+        GridFormulas.Evaluated e = GridFormulas.evaluate(pi);
+        return new FormulaView(e.formula().name(), e.formula().expression(), e.result(), e.error(), e.formula().store());
     }
 
     // ==================== Filters ====================
@@ -434,6 +452,10 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public EditSpec editSpec(FlatRow row, boolean nameEdit) {
+        if (row.getModelNode() instanceof XmlProcessingInstruction pi && GridFormulas.isFormula(pi)) {
+            GridFormulas.Formula f = GridFormulas.parse(pi.getData());
+            return EditSpec.plain(nameEdit ? f.name() : f.expression());
+        }
         if (nameEdit) {
             return EditSpec.plain(row.getLabel());
         }
@@ -507,6 +529,18 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     @Override
     public boolean commitRowEdit(FlatRow row, boolean nameEdit, String newValue) {
         Object modelNode = row.getModelNode();
+        if (modelNode instanceof XmlProcessingInstruction formulaPi && GridFormulas.isFormula(formulaPi)) {
+            GridFormulas.Formula f = GridFormulas.parse(formulaPi.getData());
+            String text = newValue == null ? "" : newValue.strip();
+            if (nameEdit && text.isEmpty()) {
+                return true;
+            }
+            GridFormulas.Formula updated = nameEdit ? f.withName(text) : f.withExpression(text);
+            if (!updated.equals(f)) {
+                context.executeCommand(GridFormulas.update(formulaPi, updated));
+            }
+            return true;
+        }
         if (nameEdit) {
             String name = newValue == null ? "" : newValue.trim();
             if (name.isEmpty()) {

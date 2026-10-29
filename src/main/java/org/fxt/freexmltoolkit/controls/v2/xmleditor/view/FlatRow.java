@@ -218,6 +218,38 @@ public class FlatRow {
     /** Left edge of this row's value column / child block in content coordinates (set by the layout). */
     private double valueX;
 
+    /** The evaluated formula of a formula row (computed once per row by the canvas), or {@code null}. */
+    private GridModelAdapter.FormulaView formula;
+    private boolean formulaComputed;
+    /** The laid-out result lines of a formula row (transient view state). */
+    private TextBlock resultBlock;
+
+    /** @return the cached formula, see {@link #hasFormulaComputed()} */
+    public GridModelAdapter.FormulaView getFormula() {
+        return formula;
+    }
+
+    /** @return whether the formula of this row has been looked up already */
+    public boolean hasFormulaComputed() {
+        return formulaComputed;
+    }
+
+    /** @param formula the evaluated formula ({@code null} = the row is no formula) */
+    public void setFormula(GridModelAdapter.FormulaView formula) {
+        this.formula = formula;
+        this.formulaComputed = true;
+    }
+
+    /** @return the laid-out result lines of a formula row, or {@code null} */
+    public TextBlock getResultBlock() {
+        return resultBlock;
+    }
+
+    /** @param block the laid-out result lines */
+    public void setResultBlock(TextBlock block) {
+        this.resultBlock = block;
+    }
+
     /** The one-line preview of a collapsed container, computed once per row by the adapter. */
     private String collapsedPreview;
     private boolean collapsedPreviewComputed;

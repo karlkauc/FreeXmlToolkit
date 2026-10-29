@@ -132,6 +132,32 @@ public interface GridModelAdapter<N> {
     }
 
     /**
+     * A formula row as the grid shows it (XMLSpy: the Formula node type).
+     *
+     * @param name       the formula's name
+     * @param expression the expression
+     * @param result     the live result ({@code null} on error)
+     * @param error      the error message ({@code null} on success)
+     * @param stored     whether the result is also written into the document
+     */
+    record FormulaView(String name, String expression, String result, String error, boolean stored) {
+    }
+
+    /**
+     * @param row a row
+     * @return the evaluated formula when the row is a formula, else {@code null}; the canvas
+     *         caches it on the row (rows are rebuilt after every edit)
+     */
+    default FormulaView formula(FlatRow row) {
+        return null;
+    }
+
+    /** @return whether formulas can be added (XML: {@code <?fxt-formula …?>} instructions) */
+    default boolean supportsFormulas() {
+        return false;
+    }
+
+    /**
      * @return whether the model supports filters (XMLSpy: a funnel on an element whose
      *         expression decides which nodes below it stay visible)
      */

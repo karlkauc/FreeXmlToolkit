@@ -838,6 +838,18 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             } else if (row.isExpandable() && row.isExpanded() && lastDescendantIndex[i] > i) {
                 // Expanded container: no own line, the name cell spans the child block
                 rowHeight = 0;
+            } else if (formulaOf(row) != null) {
+                // Formula: the expression, then the result ("= …") below it
+                GridModelAdapter.FormulaView f = formulaOf(row);
+                TextBlock expr = TextBlock.of(metrics, f.expression().isEmpty() ? " " : f.expression(),
+                        GridFont.ROW, metrics.wrapWidth());
+                String resultText = f.error() != null ? "Error: " + f.error() : "= " + f.result();
+                TextBlock result = TextBlock.of(metrics, resultText, GridFont.ROW, metrics.wrapWidth());
+                row.setValueBlock(expr);
+                row.setResultBlock(result);
+                rowHeight = expr.height() + result.lineCount() * LINE_HEIGHT;
+                maxWidth = Math.max(maxWidth, valueX + VALUE_PADDING
+                        + Math.max(expr.width(), result.width()) + NAME_VALUE_GAP + RIGHT_MARGIN);
             } else if (row.getValue() != null) {
                 String text = row.isLeafWithValue() ? adapter.decorateLeafValue(row) : row.getValue();
                 TextBlock block = TextBlock.of(metrics, text, GridFont.ROW, metrics.wrapWidth());
@@ -902,6 +914,23 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return parent == null ? GridViewState.ROOT_BLOCK : keyOf(parent);
     }
 
+    /** @return the evaluated formula of a formula row (cached on the row), or {@code null} */
+    private GridModelAdapter.FormulaView formulaOf(FlatRow row) {
+        if (row.getType() != FlatRow.RowType.PROCESSING_INSTRUCTION) {
+            return null;
+        }
+        if (!row.hasFormulaComputed()) {
+            row.setFormula(adapter.formula(row));
+        }
+        return row.getFormula();
+    }
+
+    /** @return the label a row shows: a formula's name, else the row label */
+    private String displayLabel(FlatRow row) {
+        GridModelAdapter.FormulaView f = formulaOf(row);
+        return f != null ? f.name() : row.getLabel();
+    }
+
     /** @return the cached one-line preview of a container row (computed once per row) */
     private String previewOf(FlatRow row) {
         if (row.getType() == FlatRow.RowType.GROUP) {
@@ -929,7 +958,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** @return the measured width of the row's label as drawn */
     private double labelTextWidth(FlatRow row) {
-        return row.getLabel() == null ? 0 : metrics.width(row.getLabel(), GridFont.ROW_BOLD);
+        String label = displayLabel(row);
+        return label == null ? 0 : metrics.width(label, GridFont.ROW_BOLD);
     }
 
     /**
@@ -1470,10 +1500,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         boolean isEditingThisRowValue = (editingRow == row && editingValue);
 
         double afterLabelX = textX;
-        if (row.getLabel() != null && !isEditingThisRowName) {
+        if (displayLabel(row) != null && !isEditingThisRowName) {
             gc.setFont(ROW_FONT_BOLD);
-            gc.setFill(getRowLabelColor(row.getType()));
-            fillName(row.getLabel(), textX, lineCenterY, GridFont.ROW_BOLD);
+            gc.setFill(formulaOf(row) != null ? ACCENT : getRowLabelColor(row.getType()));
+            fillName(displayLabel(row), textX, lineCenterY, GridFont.ROW_BOLD);
             afterLabelX += labelTextWidth(row);
         }
 
@@ -1526,7 +1556,23 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             } else {
                 gc.setFill(getRowValueColor(row.getType()));
             }
+            GridModelAdapter.FormulaView formula = formulaOf(row);
+            if (formula != null) {
+                gc.setFill(TEXT_PI);
+            }
             drawTextBlock(row.getValueBlock(), valueX + VALUE_PADDING, lineCenterY);
+            if (formula != null && row.getResultBlock() != null) {
+                gc.setFill(formula.error() != null ? DANGER : TEXT_CONTENT);
+                drawTextBlock(row.getResultBlock(), valueX + VALUE_PADDING,
+                        lineCenterY + row.getValueBlock().lineCount() * LINE_HEIGHT);
+                if (formula.stored()) {
+                    gc.setFont(SMALL_FONT);
+                    gc.setFill(TEXT_SECONDARY);
+                    gc.setTextAlign(TextAlignment.RIGHT);
+                    gc.fillText("stored", right - 8, lineCenterY);
+                    gc.setTextAlign(TextAlignment.LEFT);
+                }
+            }
             gc.restore();
         }
     }
@@ -1614,7 +1660,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 gc.strokeLine(cx + size, cy - size, cx + size, cy + size);
                 gc.strokeLine(cx + size, cy + size, cx + size - 2, cy + size);
             }
-            case PROCESSING_INSTRUCTION -> iconGlyph("<?", cx, cy, TEXT_PI, ICON_FONT);
+            case PROCESSING_INSTRUCTION -> {
+                if (formulaOf(row) != null) {
+                    iconGlyph("\u0192", cx, cy, ACCENT, ICON_FONT);
+                } else {
+                    iconGlyph("<?", cx, cy, TEXT_PI, ICON_FONT);
+                }
+            }
             case DOCUMENT -> iconGlyph("XML", cx, cy, TEXT_SECONDARY, SMALL_FONT);
             case GROUP -> iconGlyph("\u2026", cx, cy, TEXT_SECONDARY, ICON_FONT);
             case FILTER -> {

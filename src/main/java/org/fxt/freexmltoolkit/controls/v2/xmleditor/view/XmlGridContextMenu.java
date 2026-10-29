@@ -99,6 +99,9 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private MenuItem wrapInElementItem;
     private MenuItem editRawTextItem;
     private MenuItem filterItem;
+    private MenuItem addFormulaItem;
+    private CheckMenuItem storeFormulaItem;
+    private MenuItem recalculateFormulasItem;
     private MenuItem filterToFocusItem;
 
     // Table operations (visible with a table context)
@@ -239,6 +242,16 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         editRawTextItem.setAccelerator(new KeyCodeCombination(KeyCode.R,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN));
 
+        addFormulaItem = new MenuItem("Add Formula…");
+        addFormulaItem.setGraphic(createColoredIcon("bi-calculator", ActionColor.CREATE));
+        addFormulaItem.setOnAction(e -> addFormula());
+        storeFormulaItem = new CheckMenuItem("Store Formula Result in Document");
+        storeFormulaItem.setGraphic(createColoredIcon("bi-save", ActionColor.TOOL));
+        storeFormulaItem.setOnAction(e -> toggleStoreFormula());
+        recalculateFormulasItem = new MenuItem("Recalculate Stored Formula Results");
+        recalculateFormulasItem.setGraphic(createColoredIcon("bi-arrow-repeat", ActionColor.TOOL));
+        recalculateFormulasItem.setOnAction(e -> recalculateFormulas());
+
         filterItem = new MenuItem("Filter…");
         filterItem.setGraphic(createColoredIcon("bi-funnel", ActionColor.TOOL));
         filterItem.setOnAction(e -> viewActions.editFilter().run());
@@ -342,6 +355,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 displayAsTableItem, flipTableItem, copyTableTsvItem, tableMenu, sortMenu,
                 filterItem, filterToFocusItem,
                 new SeparatorMenuItem(),
+                addFormulaItem, storeFormulaItem, recalculateFormulasItem,
+                new SeparatorMenuItem(),
                 deleteItem
         );
 
@@ -442,6 +457,11 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         editRawTextItem.setDisable(!isElement);
         filterItem.setDisable(!viewActions.filterSupported().getAsBoolean());
         filterToFocusItem.setDisable(!isElement || isRoot);
+        addFormulaItem.setDisable(!isElement);
+        boolean isFormula = GridFormulas.isFormula(node);
+        storeFormulaItem.setVisible(isFormula);
+        storeFormulaItem.setSelected(isFormula
+                && GridFormulas.parse(((org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction) node).getData()).store());
 
         // Sort menu: Visible when clicking on a sortable table column (either header or data cell)
         // Note: clickedRowIndex can be -1 for column header clicks
@@ -513,6 +533,72 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         dialog.setResultConverter(button -> button == javafx.scene.control.ButtonType.OK ? area.getText() : null);
         javafx.application.Platform.runLater(area::requestFocus);
         return dialog.showAndWait();
+    }
+
+    // ==================== Formulas ====================
+
+    /** Asks for a formula name and expression and adds the formula as the selected element's last child. */
+    private void addFormula() {
+        if (!(context.getSelectionModel().getSelectedNode() instanceof XmlElement element)) {
+            return;
+        }
+        javafx.scene.control.Dialog<GridFormulas.Formula> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("Add Formula");
+        dialog.setHeaderText("XQuery formula evaluated with <" + element.getName() + "> as context,\n"
+                + "e.g. avg(Month/Min) or count(item)");
+        javafx.scene.control.TextField name = new javafx.scene.control.TextField("formula");
+        name.setId("grid-formula-name");
+        javafx.scene.control.TextField expression = new javafx.scene.control.TextField();
+        expression.setId("grid-formula-expression");
+        expression.setPrefColumnCount(40);
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(8);
+        grid.setVgap(8);
+        grid.addRow(0, new javafx.scene.control.Label("Name:"), name);
+        grid.addRow(1, new javafx.scene.control.Label("Expression:"), expression);
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(
+                javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+        dialog.setResultConverter(button -> button == javafx.scene.control.ButtonType.OK
+                && !name.getText().isBlank() && !expression.getText().isBlank()
+                ? new GridFormulas.Formula(name.getText().strip(), expression.getText().strip(), false) : null);
+        javafx.application.Platform.runLater(expression::requestFocus);
+        dialog.showAndWait().ifPresent(formula -> {
+            if (context.executeCommand(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.InsertNodeCommand(
+                    element, GridFormulas.create(formula), -1))) {
+                refresh();
+            }
+        });
+    }
+
+    /** Switches "store the result in the document" of the selected formula (stores it at once). */
+    private void toggleStoreFormula() {
+        if (!(context.getSelectionModel().getSelectedNode()
+                instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction pi)
+                || !GridFormulas.isFormula(pi)) {
+            return;
+        }
+        GridFormulas.Formula formula = GridFormulas.parse(pi.getData());
+        java.util.List<XmlCommand> parts = new java.util.ArrayList<>();
+        parts.add(GridFormulas.update(pi, formula.withStore(!formula.store())));
+        if (!formula.store()) {
+            XmlCommand store = GridFormulas.storeResult(pi);
+            if (store != null) {
+                parts.add(store);
+            }
+        }
+        if (context.executeCommand(new CompositeXmlCommand(
+                formula.store() ? "Stop storing formula result" : "Store formula result", parts))) {
+            refresh();
+        }
+    }
+
+    /** Refreshes every stored formula result in one undo step. */
+    private void recalculateFormulas() {
+        CompositeXmlCommand cmd = GridFormulas.recalculateAll(context.getDocument());
+        if (!cmd.isEmpty() && context.executeCommand(cmd)) {
+            refresh();
+        }
     }
 
     /** Wraps the selected node in a new element whose name the user enters. */
