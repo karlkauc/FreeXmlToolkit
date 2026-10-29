@@ -66,6 +66,11 @@ public class FlatRow {
          * child rows in very large documents; its model node is the container's node.
          */
         GROUP(Category.CONTAINER),
+        /**
+         * A virtual filter line shown as the first child of an element with a filter (XMLSpy's
+         * funnel line): its value is the filter expression, its model node the filtered element.
+         */
+        FILTER(Category.NOTE),
         /** A JSON object ({@code {...}}); expandable when it has properties. */
         JSON_OBJECT(Category.CONTAINER),
         /** A JSON array ({@code [...]}); expandable when it has items. */
@@ -493,6 +498,11 @@ public class FlatRow {
     public void setTableGroup(String groupKey, List<?> members) {
         this.tableGroupKey = groupKey;
         this.tableMembers = members;
+    }
+
+    /** @return whether this is a virtual row (sibling group, filter line) that stands for no node of its own */
+    public boolean isVirtual() {
+        return type == RowType.GROUP || type == RowType.FILTER;
     }
 
     /** @return whether the table of this row has been built already (see {@link #getRepeatingTable()}) */

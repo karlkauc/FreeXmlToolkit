@@ -276,6 +276,14 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   to copy instead of move. Text dragged in from other applications replaces a value when dropped
   on a value cell; dropped on a name cell, an XML fragment becomes new nodes and plain text a
   text node. A node is never dropped into its own subtree; every drop is one undo step.
+- **Filters.** Right-click an element → **Filter…** and enter an XQuery 3.1 expression evaluated
+  with that element as context, e.g. `Month[number(Min) > 10]`: below the element only the
+  matching nodes (with their ancestors and subtrees) stay visible, repeating groups shrink to
+  their matching members. A blue funnel line under the element shows the expression - click
+  the funnel to switch the filter off and on, double-click the line to edit it, clear it to
+  remove the filter. **Filter to Focus** filters the root down to the selected node. Filters
+  only change the display, never the document; an invalid expression is reported and
+  filters nothing. Filters live while the document is open.
 - **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables;
   a table hit expands the group and selects the matching cell.
 - **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),

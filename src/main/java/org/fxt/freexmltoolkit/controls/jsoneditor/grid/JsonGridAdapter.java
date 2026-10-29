@@ -139,7 +139,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
      */
     @Override
     public String collapsedPreview(FlatRow row, int maxChars) {
-        if (row.getType() == FlatRow.RowType.GROUP || !(row.getModelNode() instanceof JsonNode node)) {
+        if (row.isVirtual() || !(row.getModelNode() instanceof JsonNode node)) {
             return null;
         }
         StringBuilder sb = new StringBuilder(Math.min(maxChars + 16, 4096));
@@ -286,7 +286,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
 
     @Override
     public JsonNode nodeOf(FlatRow row) {
-        if (row == null || row.getType() == FlatRow.RowType.GROUP) {
+        if (row == null || row.isVirtual()) {
             return null; // a sibling group is no node
         }
         return row.getModelNode() instanceof JsonNode node ? node : null;
@@ -323,7 +323,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
 
     @Override
     public boolean canEditName(FlatRow row) {
-        return row.getDepth() >= 0 && row.getType() != FlatRow.RowType.GROUP && hasEditableKey(nodeOf(row));
+        return row.getDepth() >= 0 && !row.isVirtual() && hasEditableKey(nodeOf(row));
     }
 
     @Override

@@ -24,14 +24,18 @@ public interface GridContextMenu<N> {
      *                           when shown as rows, {@code null} when it belongs to no group
      * @param flipTable          flips the rows and columns of the selection's table
      * @param flipState          the flip state of the selection's table, {@code null} when in none
+     * @param editFilter         asks for the filter expression of the selected container
+     * @param filterToFocus      filters the root so that only the selection and its subtree remain
+     * @param filterSupported    whether the selection can carry a filter
      */
     record ViewActions(Runnable expandAll, Runnable collapseAll, Runnable expandFully, Runnable collapseUnselected,
                        Runnable toggleTableDisplay, java.util.function.Supplier<Boolean> tableDisplayState,
-                       Runnable flipTable, java.util.function.Supplier<Boolean> flipState) {
+                       Runnable flipTable, java.util.function.Supplier<Boolean> flipState,
+                       Runnable editFilter, Runnable filterToFocus, java.util.function.BooleanSupplier filterSupported) {
         /** @return actions that do nothing (for menus built without a canvas, e.g. in tests) */
         public static ViewActions none() {
             return new ViewActions(() -> { }, () -> { }, () -> { }, () -> { },
-                    () -> { }, () -> null, () -> { }, () -> null);
+                    () -> { }, () -> null, () -> { }, () -> null, () -> { }, () -> { }, () -> false);
         }
     }
 

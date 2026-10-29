@@ -98,6 +98,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private MenuItem copyTableTsvItem;
     private MenuItem wrapInElementItem;
     private MenuItem editRawTextItem;
+    private MenuItem filterItem;
+    private MenuItem filterToFocusItem;
 
     // Table operations (visible with a table context)
     private Menu tableMenu;
@@ -237,6 +239,13 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         editRawTextItem.setAccelerator(new KeyCodeCombination(KeyCode.R,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN));
 
+        filterItem = new MenuItem("Filter…");
+        filterItem.setGraphic(createColoredIcon("bi-funnel", ActionColor.TOOL));
+        filterItem.setOnAction(e -> viewActions.editFilter().run());
+        filterToFocusItem = new MenuItem("Filter to Focus");
+        filterToFocusItem.setGraphic(createColoredIcon("bi-bullseye", ActionColor.TOOL));
+        filterToFocusItem.setOnAction(e -> viewActions.filterToFocus().run());
+
         // === Expand/Collapse (canvas actions) ===
         expandFullyItem = new MenuItem("Expand Fully");
         expandFullyItem.setGraphic(createColoredIcon("bi-chevron-double-down", ActionColor.NEUTRAL));
@@ -331,6 +340,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
                 displayAsTableItem, flipTableItem, copyTableTsvItem, tableMenu, sortMenu,
+                filterItem, filterToFocusItem,
                 new SeparatorMenuItem(),
                 deleteItem
         );
@@ -430,6 +440,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         deleteItem.setDisable(!hasSelection || isRoot);
         wrapInElementItem.setDisable(!hasSelection || node instanceof XmlDocument || node.getParent() == null);
         editRawTextItem.setDisable(!isElement);
+        filterItem.setDisable(!viewActions.filterSupported().getAsBoolean());
+        filterToFocusItem.setDisable(!isElement || isRoot);
 
         // Sort menu: Visible when clicking on a sortable table column (either header or data cell)
         // Note: clickedRowIndex can be -1 for column header clicks

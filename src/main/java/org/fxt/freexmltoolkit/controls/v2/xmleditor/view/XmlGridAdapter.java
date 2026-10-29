@@ -71,7 +71,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
      */
     @Override
     public String collapsedPreview(FlatRow row, int maxChars) {
-        if (row.getType() == FlatRow.RowType.GROUP) {
+        if (row.isVirtual()) {
             return null;
         }
         return row.getModelNode() instanceof XmlNode node ? XmlNodePreview.of(node, maxChars) : null;
@@ -141,7 +141,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public XmlNode nodeOf(FlatRow row) {
-        if (row == null || row.getType() == FlatRow.RowType.GROUP) {
+        if (row == null || row.isVirtual()) {
             return null; // a sibling group is no node: menu actions must not hit the parent
         }
         return row.getModelNode() instanceof XmlNode node ? node : null;
@@ -183,7 +183,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public boolean canEditValue(FlatRow row) {
-        if (row.getType() == FlatRow.RowType.DOCUMENT || row.getType() == FlatRow.RowType.GROUP
+        if (row.getType() == FlatRow.RowType.DOCUMENT || row.isVirtual()
                 || row.isTableGroupOwner()) {
             return false;
         }
@@ -193,7 +193,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public List<String> typeTargets(FlatRow row) {
-        if (row.isTableGroupOwner() || row.getType() == FlatRow.RowType.GROUP) {
+        if (row.isTableGroupOwner() || row.isVirtual()) {
             return List.of();
         }
         List<ConvertNodeTypeCommand.Kind> kinds;
@@ -207,11 +207,66 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         return kinds.stream().map(ConvertNodeTypeCommand.Kind::label).toList();
     }
 
+    // ==================== Filters ====================
+
+    @Override
+    public boolean supportsFilters() {
+        return true;
+    }
+
+    @Override
+    public java.util.function.Predicate<Object> filterPredicate(FlatRow row, String expression) {
+        if (!(row.getModelNode() instanceof XmlElement context) || row.isVirtual()) {
+            return null;
+        }
+        java.util.Set<XmlNode> matches = XmlGridQuery.evaluate(context, expression).nodes();
+        java.util.Set<XmlNode> ancestors = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        for (XmlNode match : matches) {
+            XmlNode current = match.getParent();
+            while (current != null && current != context) {
+                ancestors.add(current);
+                current = current.getParent();
+            }
+        }
+        return candidate -> {
+            if (!(candidate instanceof XmlNode node) || node == context) {
+                return true;
+            }
+            if (ancestors.contains(node)) {
+                return true;
+            }
+            XmlNode current = node;
+            while (current != null && current != context) {
+                if (matches.contains(current)) {
+                    return true; // the match itself or a node in its subtree
+                }
+                current = current.getParent();
+            }
+            return false;
+        };
+    }
+
+    @Override
+    public String focusFilterExpression(FlatRow root, FlatRow target) {
+        if (!(root.getModelNode() instanceof XmlElement rootElement)
+                || !(target.getModelNode() instanceof XmlNode node) || node == rootElement) {
+            return null;
+        }
+        String rootPath = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(rootElement);
+        String path = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(
+                node instanceof XmlElement ? node : node.getParent());
+        if (!path.startsWith(rootPath + "/")) {
+            return null;
+        }
+        // Local names only: the expression must not depend on namespace prefixes being declared
+        return path.substring(rootPath.length() + 1);
+    }
+
     // ==================== Validation markers ====================
 
     @Override
     public int sourceLine(FlatRow row) {
-        if (row.getType() == FlatRow.RowType.GROUP) {
+        if (row.isVirtual()) {
             return 0;
         }
         return row.getModelNode() instanceof XmlElement el ? Math.max(0, el.getSourceLineNumber()) : 0;
@@ -234,7 +289,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     /** @return the node a row stands for when dragged: attributes and table owners are not draggable */
     private static XmlNode draggableNode(FlatRow row) {
-        if (row == null || row.getType() == FlatRow.RowType.ATTRIBUTE || row.getType() == FlatRow.RowType.GROUP
+        if (row == null || row.getType() == FlatRow.RowType.ATTRIBUTE || row.isVirtual()
                 || row.isTableGroupOwner()) {
             return null;
         }
@@ -255,7 +310,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     @Override
     public boolean canDrop(FlatRow dragged, FlatRow target, DropPosition position) {
         if (target == null || target.getType() == FlatRow.RowType.ATTRIBUTE
-                || target.getType() == FlatRow.RowType.GROUP) {
+                || target.isVirtual()) {
             return false;
         }
         Object targetNode = target.getModelNode();

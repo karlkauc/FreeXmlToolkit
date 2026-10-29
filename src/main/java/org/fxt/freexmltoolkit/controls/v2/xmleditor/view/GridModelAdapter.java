@@ -131,6 +131,35 @@ public interface GridModelAdapter<N> {
         return new int[0];
     }
 
+    /**
+     * @return whether the model supports filters (XMLSpy: a funnel on an element whose
+     *         expression decides which nodes below it stay visible)
+     */
+    default boolean supportsFilters() {
+        return false;
+    }
+
+    /**
+     * @param row        the filtered container row
+     * @param expression the filter expression (XQuery for XML)
+     * @return a predicate over model nodes below the row (the matches, their ancestors up to the
+     *         row and their descendants pass), or {@code null} when the model has no filters
+     * @throws IllegalArgumentException when the expression fails
+     */
+    default java.util.function.Predicate<Object> filterPredicate(FlatRow row, String expression) {
+        return null;
+    }
+
+    /**
+     * @param root   the root row
+     * @param target a row below it
+     * @return the filter expression that, set on {@code root}, shows only {@code target} and its
+     *         subtree (XMLSpy "Filter to Focus"), or {@code null} when not supported
+     */
+    default String focusFilterExpression(FlatRow root, FlatRow target) {
+        return null;
+    }
+
     /** @return the text put on the clipboard of a drag (the node serialized), or {@code null} */
     default String dragText(FlatRow row) {
         return null;

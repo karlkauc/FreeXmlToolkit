@@ -702,7 +702,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
-        allRows = FlatRow.groupSiblings(adapter.flatten(viewState::isTable), siblingGroupSize);
+        allRows = FlatRow.groupSiblings(applyFilters(adapter.flatten(viewState::isTable)), siblingGroupSize);
         adapter.attachTables(allRows, this::markLayoutDirty);
         GridMetrics currentMetrics = metrics;
         for (FlatRow row : allRows) {
@@ -868,6 +868,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private String keyOf(FlatRow row) {
         if (row.getType() == FlatRow.RowType.GROUP) {
             return keyOf(row.getParentRow()) + "/#group" + row.getLabel();
+        }
+        if (row.getType() == FlatRow.RowType.FILTER) {
+            return keyOf(row.getParentRow()) + "/#filter";
         }
         return adapter.stableKey(row);
     }
@@ -1051,6 +1054,175 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Draw info overlay (not scrolled)
         drawInfo();
+    }
+
+    // ==================== Filters ====================
+
+    /** The error of a filter that could not be evaluated, by row key (shown on its filter line). */
+    private final java.util.Map<String, String> filterErrors = new java.util.HashMap<>();
+
+    /**
+     * Applies the defined filters to freshly flattened rows: below a filtered container only the
+     * rows the adapter's predicate keeps remain (the matches, their ancestors and subtrees; the
+     * container's own attributes stay), repeating groups are reduced to their matching members,
+     * and every filtered container gets a virtual {@link FlatRow.RowType#FILTER} line as first
+     * child showing the expression. Inactive filters keep their line but filter nothing.
+     */
+    private List<FlatRow> applyFilters(List<FlatRow> rows) {
+        filterErrors.clear();
+        if (viewState.filters().isEmpty()) {
+            return rows;
+        }
+        java.util.Map<FlatRow, java.util.function.Predicate<Object>> predicates = new java.util.IdentityHashMap<>();
+        java.util.Map<FlatRow, String> filtered = new java.util.IdentityHashMap<>();
+        for (FlatRow row : rows) {
+            if (!row.getType().isContainer() || row.isVirtual()) {
+                continue;
+            }
+            String key = keyOf(row);
+            String expression = viewState.filter(key);
+            if (expression == null) {
+                continue;
+            }
+            filtered.put(row, key);
+            if (!viewState.isFilterActive(key)) {
+                continue;
+            }
+            try {
+                java.util.function.Predicate<Object> p = adapter.filterPredicate(row, expression);
+                if (p != null) {
+                    predicates.put(row, p);
+                }
+            } catch (IllegalArgumentException e) {
+                filterErrors.put(key, e.getMessage());
+            }
+        }
+        if (filtered.isEmpty()) {
+            return rows;
+        }
+        List<FlatRow> result = new ArrayList<>(rows.size() + filtered.size());
+        for (FlatRow row : rows) {
+            if (!passesFilters(row, predicates)) {
+                continue;
+            }
+            result.add(row);
+            String key = filtered.get(row);
+            if (key != null) {
+                String expression = viewState.filter(key);
+                FlatRow line = new FlatRow(FlatRow.RowType.FILTER, row.getDepth() + 1, row.getModelNode(), row,
+                        null, expression, 0);
+                result.add(line);
+            }
+        }
+        return result;
+    }
+
+    /** @return whether the row survives every filter of its ancestors (and reduces a table group) */
+    private boolean passesFilters(FlatRow row, java.util.Map<FlatRow, java.util.function.Predicate<Object>> predicates) {
+        if (predicates.isEmpty()) {
+            return true;
+        }
+        FlatRow ancestor = row.getParentRow();
+        while (ancestor != null) {
+            java.util.function.Predicate<Object> p = predicates.get(ancestor);
+            if (p != null) {
+                if (row.getType().isAttribute() && row.getParentRow() == ancestor) {
+                    // the filtered element's own attributes stay
+                } else if (row.isTableGroupOwner()) {
+                    List<Object> kept = new ArrayList<>();
+                    for (Object member : row.getTableMembers()) {
+                        if (p.test(member)) {
+                            kept.add(member);
+                        }
+                    }
+                    if (kept.isEmpty()) {
+                        return false;
+                    }
+                    if (kept.size() < row.getTableMembers().size()) {
+                        row.setTableGroup(row.getTableGroupKey(), kept);
+                    }
+                } else if (!p.test(row.getModelNode())) {
+                    return false;
+                }
+            }
+            ancestor = ancestor.getParentRow();
+        }
+        return true;
+    }
+
+    /** @return the key of the filtered container a filter line belongs to */
+    private String filterKeyOf(FlatRow filterLine) {
+        return keyOf(filterLine.getParentRow());
+    }
+
+    /**
+     * Sets, changes or (blank) removes the filter of a container row and rebuilds.
+     *
+     * @param row        the container row
+     * @param expression the expression, {@code null}/blank to remove the filter
+     */
+    public void setFilter(FlatRow row, String expression) {
+        String key = keyOf(row);
+        viewState.setFilter(key, expression);
+        if (expression != null && !expression.isBlank()) {
+            viewState.setFilterActive(key, true);
+            row.setExpanded(true);
+            viewState.setExpanded(key, true);
+        }
+        rebuildTree();
+        String error = filterErrors.get(key);
+        if (error != null) {
+            showToast("Filter: " + error, ToastNotification.Type.WARNING);
+        }
+    }
+
+    /** Switches the filter of the line's container on or off. */
+    private void toggleFilter(FlatRow filterLine) {
+        String key = filterKeyOf(filterLine);
+        viewState.setFilterActive(key, !viewState.isFilterActive(key));
+        rebuildTree();
+    }
+
+    /** @return whether the selection is a container that can carry a filter */
+    public boolean canFilterSelection() {
+        return selectedRow != null && selectedRow.isExpandable() && !selectedRow.isVirtual()
+                && !selectedRow.isTableGroupOwner() && filterSupported(selectedRow);
+    }
+
+    private boolean filterSupported(FlatRow row) {
+        return adapter.supportsFilters() && row.getType() == FlatRow.RowType.ELEMENT;
+    }
+
+    /** Asks for the filter expression of the selected container (empty removes the filter). */
+    public void editFilterOfSelection() {
+        if (!canFilterSelection()) {
+            return;
+        }
+        FlatRow row = selectedRow;
+        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(
+                viewState.filter(keyOf(row)) != null ? viewState.filter(keyOf(row)) : "");
+        dialog.setTitle("Filter");
+        dialog.setHeaderText("XQuery filter on <" + row.getLabel() + ">\n"
+                + "Shows only the matching nodes below it, e.g. Month[Min > 10]. Empty removes the filter.");
+        dialog.setContentText("Expression:");
+        dialog.getEditor().setPrefColumnCount(40);
+        dialog.showAndWait().ifPresent(expression -> setFilter(row, expression));
+    }
+
+    /** Filters the root so that only the selected row and its subtree remain (XMLSpy "Filter to Focus"). */
+    public void filterToFocus() {
+        if (selectedRow == null || allRows.isEmpty()) {
+            return;
+        }
+        FlatRow root = allRows.stream().filter(r -> r.getParentRow() == null && r.getType().isContainer())
+                .findFirst().orElse(null);
+        if (root == null) {
+            return;
+        }
+        String expression = adapter.focusFilterExpression(root, selectedRow);
+        if (expression != null) {
+            setFilter(root, expression);
+        }
     }
 
     // ==================== Validation markers ====================
@@ -1341,7 +1513,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             gc.rect(valueX, top, right - valueX, own);
             gc.clip();
             gc.setFont(ROW_FONT);
-            if (problems != null && !showsPreview(row)) {
+            if (row.getType() == FlatRow.RowType.FILTER) {
+                String key = keyOf(row.getParentRow());
+                gc.setFill(filterErrors.containsKey(key) ? DANGER
+                        : viewState.isFilterActive(key) ? ACCENT : TEXT_SECONDARY);
+            } else if (problems != null && !showsPreview(row)) {
                 gc.setFill(DANGER);
             } else if (showsPreview(row)) {
                 gc.setFill(PREVIEW_TEXT);
@@ -1441,6 +1617,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             case PROCESSING_INSTRUCTION -> iconGlyph("<?", cx, cy, TEXT_PI, ICON_FONT);
             case DOCUMENT -> iconGlyph("XML", cx, cy, TEXT_SECONDARY, SMALL_FONT);
             case GROUP -> iconGlyph("\u2026", cx, cy, TEXT_SECONDARY, ICON_FONT);
+            case FILTER -> {
+                boolean active = viewState.isFilterActive(keyOf(row.getParentRow()));
+                iconGlyph(active ? "\u25BC" : "\u25BD", cx, cy, active ? ACCENT : TEXT_SECONDARY, ICON_FONT);
+            }
             case JSON_OBJECT, JSON_ARRAY, JSON_STRING, JSON_NUMBER, JSON_BOOLEAN, JSON_NULL -> {
                 // JSON glyphs: {} [] " # T/F ∅ in the type colour
                 Color color = (type == FlatRow.RowType.JSON_OBJECT || type == FlatRow.RowType.JSON_ARRAY)
@@ -2458,6 +2638,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             case PROCESSING_INSTRUCTION -> TEXT_PI;
             case DOCUMENT -> TEXT_SECONDARY;
             case GROUP -> TEXT_SECONDARY;
+            case FILTER -> ACCENT;
         };
     }
 
@@ -3041,6 +3222,17 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
+        // Filter line: the funnel switches the filter on/off, a double-click edits the expression
+        if (clickedRow.getType() == FlatRow.RowType.FILTER) {
+            if (event.getClickCount() == 2) {
+                selectRow(clickedRow.getParentRow());
+                editFilterOfSelection();
+            } else if (mx < clickedRow.getValueX()) {
+                toggleFilter(clickedRow);
+            }
+            return;
+        }
+
         // Double-click handling
         if (event.getClickCount() == 2) {
             if (mx >= clickedRow.getValueX()) {
@@ -3199,7 +3391,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             contextMenu = adapter.createContextMenu(this::refresh, new GridContextMenu.ViewActions(
                     this::expandAll, this::collapseAll, this::expandSelectedFully, this::collapseUnselected,
                     this::toggleTableDisplayOfSelection, this::tableDisplayStateOfSelection,
-                    this::flipTableOfSelection, this::flipStateOfSelection));
+                    this::flipTableOfSelection, this::flipStateOfSelection,
+                    this::editFilterOfSelection, this::filterToFocus, this::canFilterSelection));
         }
         return contextMenu;
     }

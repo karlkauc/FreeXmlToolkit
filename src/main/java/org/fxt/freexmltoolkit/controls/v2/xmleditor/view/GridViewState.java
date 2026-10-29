@@ -88,6 +88,45 @@ public final class GridViewState {
         return !nameColumnWidths.isEmpty();
     }
 
+    // ==================== Filters ====================
+
+    private final Map<String, String> filters = new java.util.LinkedHashMap<>();
+    private final Set<String> filtersOff = new HashSet<>();
+
+    /** @return the filter expression of the row with the given key, or {@code null} */
+    public String filter(String key) {
+        return filters.get(key);
+    }
+
+    /** Sets ({@code null}/blank = removes) the filter of a row; a new filter starts active. */
+    public void setFilter(String key, String expression) {
+        if (expression == null || expression.isBlank()) {
+            filters.remove(key);
+            filtersOff.remove(key);
+        } else {
+            filters.put(key, expression.strip());
+        }
+    }
+
+    /** @return the filtered rows' keys and expressions */
+    public Map<String, String> filters() {
+        return java.util.Collections.unmodifiableMap(filters);
+    }
+
+    /** @return whether the filter of the row is switched on */
+    public boolean isFilterActive(String key) {
+        return filters.containsKey(key) && !filtersOff.contains(key);
+    }
+
+    /** Switches the filter of a row on or off (it stays defined). */
+    public void setFilterActive(String key, boolean active) {
+        if (active) {
+            filtersOff.remove(key);
+        } else {
+            filtersOff.add(key);
+        }
+    }
+
     // ==================== Table display per group ====================
 
     /** @return whether the repeating group with the given key is shown as a table */
