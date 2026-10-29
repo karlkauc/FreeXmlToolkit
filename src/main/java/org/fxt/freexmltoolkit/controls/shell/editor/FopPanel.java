@@ -210,10 +210,13 @@ public class FopPanel extends VBox {
         FopRunner.PdfOptions options = currentOptions();
         PanelStatus.info(status, "Rendering…");
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             FopRunner.FopResult outcome = FopRunner.renderFo(fo, pdfOutput, options);
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.pdfGenerated(t0, outcome.stage(), outcome.failure());
             Platform.runLater(() -> {
                 lastResult = new FopRunner.FopResult(outcome.ok(), outcome.pdf(), fo,
-                        lastResult != null ? lastResult.messages() : java.util.List.of(), outcome.events(), outcome.error());
+                        lastResult != null ? lastResult.messages() : java.util.List.of(), outcome.events(), outcome.error(),
+                        outcome.stage(), outcome.failure());
                 messagesButton.setDisable(false);
                 if (outcome.ok()) {
                     PanelStatus.success(status, "Generated: " + pdfOutput.getName());
@@ -222,8 +225,9 @@ public class FopPanel extends VBox {
                     previewButton.setDisable(false);
                     previewPdf();
                 } else {
+                    // fop_pdf already carries the failure; the dialog must not report it a second time.
                     PanelStatus.failure(status, "PDF generation failed", "PDF generation failed.",
-                            "FOP rejected the FO document.", PanelStatus.strip(outcome.asText()));
+                            "FOP rejected the FO document.", PanelStatus.strip(outcome.asText()), false);
                     editorHost.transformOutputPanel().showMessages("PDF / FOP · rendering failed",
                             PanelStatus.strip(outcome.asText()) + "\n\n" + lastResult.notesText());
                 }
@@ -326,7 +330,7 @@ public class FopPanel extends VBox {
             FopRunner.FopResult outcome = FopRunner.generateResult(xmlFile, xsl, pdfOutput, options);
             String result = outcome.asText();
             boolean generated = outcome.ok();
-            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.pdfGenerated(t0, generated);
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.pdfGenerated(t0, outcome.stage(), outcome.failure());
             long elapsedMs = probe.finish(xmlFile.length(), generated ? pdfOutput.length() : -1, generated,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             boolean showStats = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().isEnabled();
@@ -353,10 +357,11 @@ public class FopPanel extends VBox {
                     previewButton.setDisable(false);
                     previewPdf(); // show the result in-app immediately
                 } else {
+                    // fop_pdf already carries the failure; the dialog must not report it a second time.
                     PanelStatus.failure(status, "PDF generation failed",
                             "PDF generation failed.",
                             "Check that the XML and the XSL-FO stylesheet are valid and the target file is writable, then try again.",
-                            PanelStatus.strip(result));
+                            PanelStatus.strip(result), false);
                     // The details (stylesheet error with its location, FOP's reason) go to OUTPUT.
                     editorHost.transformOutputPanel().showMessages("PDF / FOP · generation failed",
                             PanelStatus.strip(result) + "\n\n" + outcome.notesText());

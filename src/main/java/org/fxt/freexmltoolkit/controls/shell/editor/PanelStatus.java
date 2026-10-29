@@ -92,9 +92,19 @@ public final class PanelStatus {
      */
     public static void failure(Label status, String dialogTitle, String whatHappened,
                                String remedy, String detail) {
+        failure(status, dialogTitle, whatHappened, remedy, detail, true);
+    }
+
+    /**
+     * As {@link #failure(Label, String, String, String, String)}, with control over the error
+     * telemetry: pass {@code reportError=false} when the action's own usage event already records
+     * the failure, so it is not counted a second time as a dialog error.
+     */
+    public static void failure(Label status, String dialogTitle, String whatHappened,
+                               String remedy, String detail, boolean reportError) {
         String clean = strip(whatHappened);
         apply(status, clean, ERROR, "bi-x-circle");
-        DialogHelper.showActionError(dialogTitle, clean, remedy, detail);
+        DialogHelper.showActionError(dialogTitle, clean, remedy, detail, reportError);
     }
 
     private static void apply(Label status, String text, String severityClass, String iconLiteral) {

@@ -39,7 +39,11 @@ class SessionMarkerTest {
         new SessionMarker(dir, m -> false).begin("crashed", "2.3.0"); // never ended
 
         List<SessionMarker.DeadSession> dead = new SessionMarker(dir, m -> false).begin("s2", "2.4.0");
-        assertEquals(List.of(new SessionMarker.DeadSession("crashed", "2.3.0")), dead);
+        assertEquals(1, dead.size());
+        assertEquals("crashed", dead.get(0).sessionId());
+        assertEquals("2.3.0", dead.get(0).appVersion());
+        assertEquals(ProcessHandle.current().pid(), dead.get(0).pid(), "the marker keeps the pid of the dead process");
+        assertTrue(dead.get(0).processStartMillis() > 0, "and its start time");
         assertTrue(new SessionMarker(dir, m -> false).begin("s3", "2.4.0").stream()
                 .noneMatch(d -> d.sessionId().equals("crashed")), "reported only once");
     }

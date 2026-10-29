@@ -256,7 +256,7 @@ public class DialogHelper {
      * @param remedy       what the user can do about it / which options they have
      */
     public static void showActionError(String title, String whatHappened, String remedy) {
-        showActionErrorWithDetail(title, whatHappened, remedy, null, null);
+        showActionErrorWithDetail(title, whatHappened, remedy, null, null, true);
     }
 
     /**
@@ -272,7 +272,7 @@ public class DialogHelper {
      */
     public static void showActionError(String title, String whatHappened, String remedy, Throwable detail) {
         showActionErrorWithDetail(title, whatHappened, remedy,
-                detail == null ? null : getStackTraceAsString(detail), detail);
+                detail == null ? null : getStackTraceAsString(detail), detail, true);
     }
 
     /**
@@ -288,19 +288,34 @@ public class DialogHelper {
      *                        "Technical details" section (may be null/blank)
      */
     public static void showActionError(String title, String whatHappened, String remedy, String technicalDetail) {
-        showActionErrorWithDetail(title, whatHappened, remedy, technicalDetail, null);
+        showActionErrorWithDetail(title, whatHappened, remedy, technicalDetail, null, true);
+    }
+
+    /**
+     * As {@link #showActionError(String, String, String, String)}, with control over the error
+     * telemetry.
+     *
+     * @param reportError {@code false} when the failure is already recorded by the action's own
+     *                    usage event (otherwise it would count twice)
+     */
+    public static void showActionError(String title, String whatHappened, String remedy, String technicalDetail,
+                                       boolean reportError) {
+        showActionErrorWithDetail(title, whatHappened, remedy, technicalDetail, null, reportError);
     }
 
     /** Fixed telemetry error code for action-failure dialogs that have no throwable. */
     private static final String ACTION_FAILED_CODE = "ui.action_failed";
 
     private static void showActionErrorWithDetail(String title, String whatHappened, String remedy,
-                                                  String detailText, Throwable cause) {
-        // Anonymous error telemetry (never the message / detail text, which may contain paths).
-        if (cause != null) {
-            Telemetry.reportError(cause, "dialog." + title);
-        } else {
-            Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + title);
+                                                  String detailText, Throwable cause, boolean reportError) {
+        // Anonymous error telemetry (never the message / detail text, which may contain paths);
+        // skipped when the action's own usage event already recorded the failure.
+        if (reportError) {
+            if (cause != null) {
+                Telemetry.reportError(cause, "dialog." + title);
+            } else {
+                Telemetry.reportError(ACTION_FAILED_CODE, "dialog." + title);
+            }
         }
         if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
             return;

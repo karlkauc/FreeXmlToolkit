@@ -366,6 +366,61 @@ class TelemetryServiceImplTest {
     }
 
     @Test
+    void jvmCrashFileOfTheDeadSessionIsReportedWithTheCrash(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        java.nio.file.Path markers = dir.resolve("sessions");
+        java.nio.file.Path crashDir = dir.resolve("crashes");
+        java.nio.file.Files.createDirectories(crashDir);
+        new SessionMarker(markers, m -> false).begin("old-session", "2.6.0"); // crashed earlier
+        long pid = ProcessHandle.current().pid(); // the marker holds this process' pid
+        java.nio.file.Files.writeString(crashDir.resolve("hs_err_pid" + pid + ".log"), """
+                #
+                # A fatal error has been detected by the Java Runtime Environment:
+                #
+                #  EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007ffb12345678, pid=%d, tid=4321
+                #
+                # JRE version: OpenJDK Runtime Environment (25.0+36) (build 25+36)
+                # Java VM: OpenJDK 64-Bit Server VM (25+36, mixed mode, sharing, tiered, compressed oops, g1 gc, windows-amd64)
+                # Problematic frame:
+                # C  [fontmanager.dll+0x1a2b3]
+                #
+
+                ---------------  T H R E A D  ---------------
+
+                Current thread (0x000001d2c3b4a000):  JavaThread "JavaFX Application Thread" [_thread_in_native, id=4321]
+                """.formatted(pid));
+        service.setSessionMarker(new SessionMarker(markers, m -> false));
+        service.setJvmCrashLog(new JvmCrashLog(List.of(crashDir)));
+
+        service.trackAppStart();
+        service.awaitIdle();
+
+        TelemetryEvent crashed = queued().stream()
+                .filter(e -> e.eventType().equals("prev_session_crashed")).findFirst().orElseThrow();
+        assertEquals("old-session", crashed.meta().get("prev_session"));
+        assertEquals(true, crashed.meta().get("jvm_crash"));
+        assertEquals("EXCEPTION_ACCESS_VIOLATION", crashed.meta().get("crash_signal"));
+        assertEquals("C fontmanager.dll", crashed.meta().get("crash_frame"));
+        assertEquals("JavaFX Application Thread", crashed.meta().get("crash_thread"));
+    }
+
+    @Test
+    void deadSessionWithoutCrashFileHasNoCrashFields(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        new SessionMarker(dir, m -> false).begin("old-session", "2.6.0");
+        service.setSessionMarker(new SessionMarker(dir, m -> false));
+        service.setJvmCrashLog(new JvmCrashLog(List.of(dir.resolve("nowhere"))));
+
+        service.trackAppStart();
+        service.awaitIdle();
+
+        TelemetryEvent crashed = queued().stream()
+                .filter(e -> e.eventType().equals("prev_session_crashed")).findFirst().orElseThrow();
+        assertFalse(crashed.meta().containsKey("jvm_crash"));
+        assertFalse(crashed.meta().containsKey("crash_frame"));
+    }
+
+    @Test
     void markedCleanShutdownIsNotReportedAsCrashEvenWithoutAppExit(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
             throws Exception {
         service.setSessionMarker(new SessionMarker(dir, m -> false));

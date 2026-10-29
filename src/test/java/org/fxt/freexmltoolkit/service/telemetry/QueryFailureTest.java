@@ -30,6 +30,28 @@ class QueryFailureTest {
     }
 
     @Test
+    void foRejectedByFopIsInvalidInput() {
+        Throwable chain = new RuntimeException("FOP processing error",
+                new javax.xml.transform.TransformerException(
+                        new org.apache.fop.fo.ValidationException("First element must be the fo:root formatting object")));
+
+        QueryFailure failure = QueryFailure.of(chain);
+
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, failure.status());
+        assertEquals("ValidationException", failure.errorCode());
+        assertNull(failure.signature(), "no stack signature for the user's document");
+    }
+
+    @Test
+    void otherFopFailuresKeepTheirSignature() {
+        QueryFailure failure = QueryFailure.of(new RuntimeException("FOP processing error",
+                new org.apache.fop.apps.FOPException("no fonts")));
+
+        assertEquals(TelemetryEvent.Status.ERROR, failure.status());
+        assertNotNull(failure.signature());
+    }
+
+    @Test
     void staticCodesAreInvalidInput() {
         for (String code : new String[] {"XPST0003", "XQST0031", "XTSE0010", "SXXP0003", "err:XS0001",
                 "Q{http://www.w3.org/2005/xqt-errors}XPST0017"}) {

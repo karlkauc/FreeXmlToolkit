@@ -392,20 +392,26 @@ public class DocumentationView extends BorderPane {
         running = FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             String result;
-            var usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.OK;
+            boolean cancelled = false;
+            org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
             try {
                 runGeneration(options);
                 result = "Generated " + options.format() + " in " + humanDuration(System.currentTimeMillis() - start)
                         + " — " + options.output().getAbsolutePath();
             } catch (InterruptedException | java.util.concurrent.CancellationException e) {
                 result = "Cancelled.";
-                usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.CANCELLED;
+                cancelled = true;
             } catch (Throwable t) {
                 result = "ERROR: " + (t.getMessage() != null ? t.getMessage() : t.toString());
-                usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.ERROR;
+                // A schema that does not parse is the user's input (invalid_input); anything else
+                // keeps its exception class and stack signature.
+                failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(t);
             }
-            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated(
-                    options.format(), t0, usageStatus);
+            if (cancelled) {
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocCancelled(options.format(), t0);
+            } else {
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated(options.format(), t0, failure);
+            }
             String finalResult = result;
             Platform.runLater(() -> {
                 stopElapsedTimer();

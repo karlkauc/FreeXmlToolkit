@@ -92,6 +92,8 @@ public class TelemetryServiceImpl implements TelemetryService {
     private final AtomicBoolean flushPending = new AtomicBoolean();
     /** Crash detection via per-session marker files; null = off (tests, killed). */
     private volatile SessionMarker sessionMarker;
+    /** Looks up the JVM crash file of a dead session; {@code null} disables the lookup. */
+    private volatile JvmCrashLog crashLog = JvmCrashLog.createDefault();
     /** Settings holding a pending in-app update ({@link UpdateFunnel}); null = not reported (tests, killed). */
     private volatile PropertiesService updateStore;
 
@@ -252,12 +254,24 @@ public class TelemetryServiceImpl implements TelemetryService {
         }
         SessionMarker marker = sessionMarker;
         if (marker != null) {
+            JvmCrashLog crashLogs = crashLog;
             runInBackground(() -> {
                 for (SessionMarker.DeadSession dead : marker.begin(sessionId, version)) {
-                    track("prev_session_crashed", TelemetryEvent.Category.LIFECYCLE, b -> b
-                            .status(TelemetryEvent.Status.ERROR)
-                            .meta("prev_session", dead.sessionId())
-                            .meta("prev_version", dead.appVersion()));
+                    // A native JVM crash leaves hs_err_pid<pid>.log behind: signal, faulting
+                    // library / method and thread name tell what died (no paths, no addresses).
+                    JvmCrashLog.Crash crash = crashLogs == null ? null
+                            : crashLogs.find(dead.pid(), dead.processStartMillis()).orElse(null);
+                    track("prev_session_crashed", TelemetryEvent.Category.LIFECYCLE, b -> {
+                        b.status(TelemetryEvent.Status.ERROR)
+                                .meta("prev_session", dead.sessionId())
+                                .meta("prev_version", dead.appVersion());
+                        if (crash != null) {
+                            b.meta("jvm_crash", true)
+                                    .meta("crash_signal", crash.signal())
+                                    .meta("crash_frame", crash.frame())
+                                    .meta("crash_thread", crash.thread());
+                        }
+                    });
                 }
             });
         }
@@ -271,6 +285,11 @@ public class TelemetryServiceImpl implements TelemetryService {
     /** Enables crash detection (the production instance and tests that cover it). */
     void setSessionMarker(SessionMarker marker) {
         this.sessionMarker = marker;
+    }
+
+    /** Where the JVM's crash files are looked for (tests point this at a temp folder). */
+    void setJvmCrashLog(JvmCrashLog crashLog) {
+        this.crashLog = crashLog;
     }
 
     @Override

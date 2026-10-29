@@ -110,15 +110,16 @@ public final class FundsXmlRunner {
                 .resolve("docs").resolve(version == null ? "current" : version);
         java.nio.file.Files.createDirectories(outputDir);
         long t0 = System.nanoTime();
-        var usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.ERROR;
         try {
             var docService = new org.fxt.freexmltoolkit.service.XsdDocumentationService();
             docService.setXsdFilePath(activeSchema.toString());
             docService.generateXsdDocumentation(outputDir.toFile());
-            usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.OK;
-        } finally {
-            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated("html", t0, usageStatus);
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated("html", t0,
+                    org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(t));
+            throw t;
         }
+        org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated("html", t0, null);
         return outputDir;
     }
 }

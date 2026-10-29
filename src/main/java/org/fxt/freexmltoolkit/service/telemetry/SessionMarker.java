@@ -26,8 +26,13 @@ public final class SessionMarker {
     /** Upper bound of reported dead sessions per start (a long-unused machine may hold many). */
     static final int MAX_REPORTED = 3;
 
-    /** A session that ended without removing its marker. */
-    public record DeadSession(String sessionId, String appVersion) {
+    /**
+     * A session that ended without removing its marker.
+     *
+     * @param pid                the process id of that session (the JVM names its crash file after it)
+     * @param processStartMillis when that process started (epoch ms), {@code 0} if unknown
+     */
+    public record DeadSession(String sessionId, String appVersion, long pid, long processStartMillis) {
     }
 
     private final Path dir;
@@ -72,7 +77,8 @@ public final class SessionMarker {
                     }
                     Files.deleteIfExists(file);
                     if (marker.isPresent() && dead.size() < MAX_REPORTED) {
-                        dead.add(new DeadSession(marker.get().sessionId(), marker.get().appVersion()));
+                        Marker m = marker.get();
+                        dead.add(new DeadSession(m.sessionId(), m.appVersion(), m.pid(), m.processStartMillis()));
                     }
                 }
             }

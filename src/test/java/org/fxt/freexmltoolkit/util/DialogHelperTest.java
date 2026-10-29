@@ -138,6 +138,29 @@ public class DialogHelperTest {
     }
 
     @Test
+    @DisplayName("showActionError meldet den Fehler nur, wenn die Aktion ihn nicht schon selbst erfasst")
+    void actionErrorTelemetryCanBeLeftToTheActionsOwnEvent() {
+        var telemetry = new org.fxt.freexmltoolkit.service.telemetry.RecordingTelemetryService();
+        org.fxt.freexmltoolkit.service.telemetry.Telemetry.install(telemetry);
+        String previous = System.setProperty("fxt.suppressErrorDialogs", "true");
+        try {
+            runAndWait(() -> {
+                DialogHelper.showActionError("PDF generation failed", "What happened", "Remedy", "ERROR: detail", false);
+                assertTrue(telemetry.errorReports().isEmpty(), "already recorded by the action's own event");
+                DialogHelper.showActionError("PDF generation failed", "What happened", "Remedy", "ERROR: detail");
+                assertEquals(1, telemetry.errorReports().size(), "the default still reports the dialog");
+            });
+        } finally {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset();
+            if (previous == null) {
+                System.clearProperty("fxt.suppressErrorDialogs");
+            } else {
+                System.setProperty("fxt.suppressErrorDialogs", previous);
+            }
+        }
+    }
+
+    @Test
     @DisplayName("showActionError sollte im Suppress-Modus nie blockieren oder werfen")
     void testActionErrorSuppressedIsNonBlocking() {
         String previous = System.getProperty("fxt.suppressErrorDialogs");

@@ -319,7 +319,7 @@ class UsageEventsTest {
         UsageEvents.xsltTransformed(1, 0, false);
         UsageEvents.xqueryExecuted(0, false);
         UsageEvents.xpathExecuted(0, false);
-        UsageEvents.pdfGenerated(0, false);
+        UsageEvents.pdfGenerated(0, "render", QueryFailure.UNKNOWN);
         UsageEvents.signed(0, false);
         UsageEvents.xsdGenerated(1, 0, false);
         UsageEvents.formatted(DocKind.XML, false);
@@ -334,12 +334,12 @@ class UsageEventsTest {
         UsageEvents.xsltTransformed(1, 0, true);
         UsageEvents.xqueryExecuted(0, true);
         UsageEvents.xpathExecuted(0, true);
-        UsageEvents.pdfGenerated(0, true);
+        UsageEvents.pdfGenerated(0, "render", null);
         UsageEvents.signed(0, true);
         UsageEvents.signatureVerified("basic", "invalid", 0);
         UsageEvents.xsdGenerated(2, 0, true);
         UsageEvents.formatted(DocKind.JSON, true);
-        UsageEvents.schemaDocGenerated("HTML", 0, TelemetryEvent.Status.OK);
+        UsageEvents.schemaDocGenerated("HTML", 0, null);
         UsageEvents.quickFixApplied();
 
         verify(local).trackTransformation();
@@ -358,9 +358,40 @@ class UsageEventsTest {
 
     @Test
     void cancelledDocGenerationIsNotCountedLocally() {
-        UsageEvents.schemaDocGenerated("pdf", 0, TelemetryEvent.Status.CANCELLED);
+        UsageEvents.schemaDocCancelled("pdf", 0);
 
         assertEquals(TelemetryEvent.Status.CANCELLED, single("schema_doc").status());
+        assertEquals("pdf", single("schema_doc").meta().get("format"));
+        verify(local, never()).trackFeatureUsed(anyString());
+    }
+
+    @Test
+    void failedPdfGenerationCarriesStageAndFailure() {
+        UsageEvents.pdfGenerated(0, "transform", QueryFailure.ofCode("XTSE0010"));
+        UsageEvents.pdfGenerated(0, "render", QueryFailure.of(new IllegalStateException("boom")));
+
+        List<TelemetryEvent> events = telemetry.events("fop_pdf");
+        assertEquals(2, events.size());
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, events.get(0).status(),
+                "a stylesheet that does not compile is the user's input");
+        assertEquals("XTSE0010", events.get(0).errorCode());
+        assertEquals("transform", events.get(0).meta().get("stage"));
+        assertEquals(TelemetryEvent.Status.ERROR, events.get(1).status());
+        assertEquals("java.lang.IllegalStateException", events.get(1).errorCode());
+        assertNotNull(events.get(1).errorHash(), "an app failure keeps its stack signature");
+        assertEquals("render", events.get(1).meta().get("stage"));
+        verify(local, never()).trackPdfGeneration();
+    }
+
+    @Test
+    void schemaDocOnAnUnparsableSchemaIsInvalidInput() {
+        UsageEvents.schemaDocGenerated("PDF", 0,
+                QueryFailure.of(new RuntimeException(new org.xml.sax.SAXParseException("broken", null))));
+
+        TelemetryEvent e = single("schema_doc");
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, e.status());
+        assertEquals("SAXParseException", e.errorCode());
+        assertEquals("pdf", e.meta().get("format"));
         verify(local, never()).trackFeatureUsed(anyString());
     }
 

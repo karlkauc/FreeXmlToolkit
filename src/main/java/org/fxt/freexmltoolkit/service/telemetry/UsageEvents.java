@@ -534,13 +534,22 @@ public final class UsageEvents {
 
     // ------------------------------------------------------------------ tools
 
-    /** A PDF was rendered with FOP. */
-    public static void pdfGenerated(long startNanos, boolean ok) {
+    /**
+     * A PDF was rendered with FOP (XSLT to XSL-FO, then FOP to PDF).
+     *
+     * @param stage   the stage that ran last: {@code transform} or {@code render} (nullable)
+     * @param failure why it failed (processor error code or exception class; a broken stylesheet
+     *                or FO document counts as {@code invalid_input}), or {@code null} when it succeeded
+     */
+    public static void pdfGenerated(long startNanos, String stage, QueryFailure failure) {
         action("fop_pdf", b -> {
-            b.status(status(ok));
+            outcome(b, failure);
+            if (stage != null) {
+                b.meta("stage", stage);
+            }
             duration(b, startNanos);
         });
-        if (ok) {
+        if (failure == null) {
             local(UsageTrackingService::trackPdfGeneration);
         }
     }
@@ -588,18 +597,32 @@ public final class UsageEvents {
     /**
      * Schema documentation was generated.
      *
-     * @param format {@code html|pdf|word} (normalized to lower case)
-     * @param status {@code OK}, {@code ERROR} or {@code CANCELLED}
+     * @param format  {@code html|pdf|word} (normalized to lower case)
+     * @param failure why it failed (a schema that does not parse counts as {@code invalid_input};
+     *                other failures carry the exception class and stack signature), or
+     *                {@code null} when it succeeded
      */
-    public static void schemaDocGenerated(String format, long startNanos, TelemetryEvent.Status status) {
+    public static void schemaDocGenerated(String format, long startNanos, QueryFailure failure) {
         action("schema_doc", b -> {
-            b.docKind(DocKind.XSD).status(status)
-                    .meta("format", format != null ? format.toLowerCase(java.util.Locale.ROOT) : null);
+            b.docKind(DocKind.XSD).meta("format", normalizedFormat(format));
+            outcome(b, failure);
             duration(b, startNanos);
         });
-        if (status == TelemetryEvent.Status.OK) {
+        if (failure == null) {
             local(s -> s.trackFeatureUsed("xsd_documentation"));
         }
+    }
+
+    /** The user cancelled a schema documentation run. */
+    public static void schemaDocCancelled(String format, long startNanos) {
+        action("schema_doc", b -> {
+            b.docKind(DocKind.XSD).status(TelemetryEvent.Status.CANCELLED).meta("format", normalizedFormat(format));
+            duration(b, startNanos);
+        });
+    }
+
+    private static String normalizedFormat(String format) {
+        return format != null ? format.toLowerCase(java.util.Locale.ROOT) : null;
     }
 
     /**

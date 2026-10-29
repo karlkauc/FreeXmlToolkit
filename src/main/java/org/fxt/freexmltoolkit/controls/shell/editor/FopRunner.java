@@ -9,6 +9,7 @@ import org.fxt.freexmltoolkit.service.FOPService;
 import org.fxt.freexmltoolkit.service.FopEvent;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage;
+import org.fxt.freexmltoolkit.service.telemetry.QueryFailure;
 
 /**
  * UI-free PDF generation for the PDF/FOP activity: transforms an XML file with
@@ -21,6 +22,11 @@ public final class FopRunner {
 
     private FopRunner() {
     }
+
+    /** Stage of a generation: the XSLT run that produces the XSL-FO. */
+    public static final String STAGE_TRANSFORM = "transform";
+    /** Stage of a generation: FOP rendering the XSL-FO to PDF. */
+    public static final String STAGE_RENDER = "render";
 
     /**
      * The panel's generation options (Figma mockup node 49:2): PDF metadata
@@ -56,14 +62,23 @@ public final class FopRunner {
     /**
      * Outcome of a generation: the PDF (when {@code ok}), the intermediate XSL-FO (whenever
      * the XSLT stage succeeded), the stylesheet's messages and FOP's rendering events, and
-     * the error text for a failed run.
+     * the error text for a failed run. {@code stage} names the stage that ran last
+     * ({@link #STAGE_TRANSFORM} / {@link #STAGE_RENDER}) and {@code failure} classifies a failed
+     * run for telemetry (processor error code or exception class, never message text);
+     * both are {@code null} for a result that did not come from a run.
      */
     public record FopResult(boolean ok, File pdf, String foXml, List<TransformationMessage> messages,
-                            List<FopEvent> events, String error) {
+                            List<FopEvent> events, String error, String stage, QueryFailure failure) {
 
         public FopResult {
             messages = messages == null ? List.of() : List.copyOf(messages);
             events = events == null ? List.of() : List.copyOf(events);
+        }
+
+        /** A result without stage / failure classification (e.g. the FO of a debug run). */
+        public FopResult(boolean ok, File pdf, String foXml, List<TransformationMessage> messages,
+                         List<FopEvent> events, String error) {
+            this(ok, pdf, foXml, messages, events, error, null, null);
         }
 
         /** @return {@code true} if there is anything to show in a messages view. */
@@ -129,11 +144,13 @@ public final class FopRunner {
         try {
             fo = service.transformToFo(xmlFile, xslFile, opts.stylesheetParameters());
         } catch (Exception e) {
-            return new FopResult(false, null, null, List.of(), List.of(), e.getMessage());
+            return new FopResult(false, null, null, List.of(), List.of(), e.getMessage(),
+                    STAGE_TRANSFORM, QueryFailure.of(e));
         }
         if (!fo.isSuccess()) {
             return new FopResult(false, null, null, fo.getMessages(), List.of(),
-                    "Failed to transform XML using XSL stylesheet: " + fo.getErrorMessage());
+                    "Failed to transform XML using XSL stylesheet: " + fo.getErrorMessage(),
+                    STAGE_TRANSFORM, QueryFailure.ofCode(fo.getErrorCode()));
         }
         return render(service, fo.getOutputContent(), fo.getMessages(), pdfOutput, opts);
     }
@@ -148,9 +165,10 @@ public final class FopRunner {
         try {
             List<FopEvent> events = service.renderFo(foXml, pdfOutput, opts.toSettings(),
                     opts.subject(), opts.pdfACompliant(), null);
-            return new FopResult(true, pdfOutput, foXml, messages, events, null);
+            return new FopResult(true, pdfOutput, foXml, messages, events, null, STAGE_RENDER, null);
         } catch (Exception e) {
-            return new FopResult(false, null, foXml, messages, List.of(), e.getMessage());
+            return new FopResult(false, null, foXml, messages, List.of(), e.getMessage(),
+                    STAGE_RENDER, QueryFailure.of(e));
         }
     }
 

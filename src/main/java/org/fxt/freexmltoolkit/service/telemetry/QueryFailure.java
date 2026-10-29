@@ -28,8 +28,10 @@ public record QueryFailure(String errorCode, TelemetryEvent.Status status, Error
     private static final String[] INPUT_CODE_PREFIXES = {"XPST", "XQST", "XTSE", "SXXP", "XS", "SESU", "SEPM", "SERE"};
 
     /**
-     * Classifies a thrown failure. A processor error code anywhere in the cause chain wins;
-     * otherwise the failure keeps its full stack signature so it can be diagnosed.
+     * Classifies a thrown failure. A processor error code anywhere in the cause chain wins; an
+     * XSL-FO document FOP rejects ({@code org.apache.fop.fo.ValidationException}) and an XML
+     * document that does not parse are the user's input; otherwise the failure keeps its full
+     * stack signature so it can be diagnosed.
      *
      * @param t the failure (nullable)
      * @return the classification, never null
@@ -39,6 +41,13 @@ public record QueryFailure(String errorCode, TelemetryEvent.Status status, Error
             return UNKNOWN;
         }
         Throwable last = t;
+        for (Throwable c = t; c != null && c != c.getCause(); c = c.getCause()) {
+            // Checked first: FOP's SAX handler fails inside an identity transformation, which Saxon
+            // reports as SXCH0003 ("failure in ContentHandler") with the real cause further down.
+            if (c instanceof org.apache.fop.fo.ValidationException) {
+                return new QueryFailure("ValidationException", TelemetryEvent.Status.INVALID_INPUT, null);
+            }
+        }
         for (Throwable c = t; c != null && c != c.getCause(); c = c.getCause()) {
             last = c;
             String code = processorCode(c);

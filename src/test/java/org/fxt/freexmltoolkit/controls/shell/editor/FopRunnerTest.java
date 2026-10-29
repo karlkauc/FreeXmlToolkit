@@ -117,6 +117,63 @@ class FopRunnerTest {
     }
 
     @Test
+    void brokenStylesheetIsClassifiedAsInvalidInputOfTheTransformStage(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("broken.xslt");
+        Files.writeString(xsl, "<xsl:not-a-stylesheet/>");
+
+        FopRunner.FopResult result = FopRunner.generateResult(xml.toFile(), xsl.toFile(),
+                tmp.resolve("out.pdf").toFile(), FopRunner.PdfOptions.none());
+
+        assertFalse(result.ok());
+        assertEquals(FopRunner.STAGE_TRANSFORM, result.stage());
+        assertNotNull(result.failure());
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.INVALID_INPUT,
+                result.failure().status(), "the user's stylesheet, not an app failure: " + result.failure());
+        assertNotNull(result.failure().errorCode(), "the processor's error code is kept");
+    }
+
+    @Test
+    void foThatFopRejectsIsClassifiedAsInvalidInputOfTheRenderStage(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("not-fo.xslt");
+        // A valid stylesheet whose output is not an XSL-FO document (no fo:root)
+        Files.writeString(xsl, """
+                <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template match="/"><html><body>not fo</body></html></xsl:template>
+                </xsl:stylesheet>
+                """);
+
+        FopRunner.FopResult result = FopRunner.generateResult(xml.toFile(), xsl.toFile(),
+                tmp.resolve("out.pdf").toFile(), FopRunner.PdfOptions.none());
+
+        assertFalse(result.ok());
+        assertEquals(FopRunner.STAGE_RENDER, result.stage());
+        assertNotNull(result.foXml(), "the transform stage succeeded");
+        assertNotNull(result.failure());
+        assertEquals(org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.INVALID_INPUT,
+                result.failure().status(), "FOP rejecting the document is the user's input: " + result.failure());
+        assertEquals("ValidationException", result.failure().errorCode());
+    }
+
+    @Test
+    void successfulRunHasNoFailureAndEndsInTheRenderStage(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, XML);
+        Path xsl = tmp.resolve("to-fo.xslt");
+        Files.writeString(xsl, XSLT_FO);
+
+        FopRunner.FopResult result = FopRunner.generateResult(xml.toFile(), xsl.toFile(),
+                tmp.resolve("out.pdf").toFile(), FopRunner.PdfOptions.none());
+
+        assertTrue(result.ok(), result.error());
+        assertEquals(FopRunner.STAGE_RENDER, result.stage());
+        assertNull(result.failure());
+    }
+
+    @Test
     void structuredResultCarriesTheIntermediateFoMessagesAndEvents(@TempDir Path tmp) throws Exception {
         Path xml = tmp.resolve("doc.xml");
         Files.writeString(xml, XML);
