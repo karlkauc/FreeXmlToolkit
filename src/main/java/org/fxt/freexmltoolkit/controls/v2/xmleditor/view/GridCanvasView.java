@@ -140,8 +140,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** Length of the preview shown in the hover tooltip. */
     private static final int TOOLTIP_MAX_CHARS = 2000;
 
-    /** Measured text metrics shared with the embedded tables (real FX font measurement). */
-    private final GridMetrics metrics = new GridMetrics(TextMeasurer.fx(), GridMetrics.DEFAULT_WRAP_WIDTH);
+    /**
+     * Measured text metrics shared with the embedded tables (real FX font measurement); replaced
+     * as a whole when word wrap or the cell-line limit changes (see {@link #applyMetrics}).
+     */
+    private GridMetrics metrics = new GridMetrics(TextMeasurer.fx(), GridMetrics.DEFAULT_WRAP_WIDTH);
 
     /** Width of the root block's name column (the test hook {@link #nameColumnWidthValue()}). */
     private double nameColumnWidth = MIN_NAME_COL_WIDTH;
@@ -210,12 +213,24 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // Column resizing (drag a separator in an embedded table's column-header row)
     private static final double RESIZE_HANDLE = 4;
 
-    /** An in-progress column drag: which column of which table, and where it started. */
-    private record ColumnDrag(RepeatingElementsTable table, int columnIndex,
-                              double startScreenX, double startWidth) {
+    /** An in-progress separator drag: a table column or a block's name column. */
+    private sealed interface Drag permits ColumnDrag, BlockDrag {
+        double startScreenX();
     }
 
-    private ColumnDrag columnDrag = null;
+    /** A column drag: which column of which table, and where it started. */
+    private record ColumnDrag(RepeatingElementsTable table, int columnIndex,
+                              double startScreenX, double startWidth) implements Drag {
+    }
+
+    /**
+     * A name-column drag of the block formed by the children of {@code parent} ({@code null} =
+     * root block), and where it started.
+     */
+    private record BlockDrag(FlatRow parent, double startScreenX, double startWidth) implements Drag {
+    }
+
+    private Drag columnDrag = null;
     private boolean columnDragMoved = false;
     /** Set after a drag so the MOUSE_CLICKED JavaFX fires afterwards does not sort/select. */
     private boolean suppressNextClick = false;
@@ -1940,11 +1955,20 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             if (e.getButton() != MouseButton.PRIMARY || editField != null || activeWidgetNode != null) {
                 return;
             }
-            ColumnDrag handle = findColumnHandleAt(toModelX(e.getX()), toViewportY(e.getY()));
+            double mx = toModelX(e.getX());
+            double my = toViewportY(e.getY());
+            // Anchor on the SCREEN x: narrowing a column can shrink the content width and
+            // pull the horizontal scroll offset back, which must not feed into the delta.
+            ColumnDrag handle = findColumnHandleAt(mx, my);
             if (handle != null) {
-                // Anchor on the SCREEN x: narrowing a column can shrink the content width and
-                // pull the horizontal scroll offset back, which must not feed into the delta.
                 columnDrag = new ColumnDrag(handle.table(), handle.columnIndex(), e.getX(), handle.startWidth());
+                columnDragMoved = false;
+                e.consume();
+                return;
+            }
+            BlockDrag block = findBlockSeparatorAt(mx, my);
+            if (block != null) {
+                columnDrag = new BlockDrag(block.parent(), e.getX(), block.startWidth());
                 columnDragMoved = false;
                 e.consume();
             }
@@ -1954,14 +1978,26 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 return;
             }
             double delta = (e.getX() - columnDrag.startScreenX()) / getZoom();
-            double newWidth = Math.max(RepeatingElementsTable.MIN_COLUMN_WIDTH, columnDrag.startWidth() + delta);
-            RepeatingElementsTable.TableColumn col = columnDrag.table().getColumn(columnDrag.columnIndex());
-            if (col != null && Math.abs(col.getWidth() - newWidth) >= 0.5) {
-                columnDrag.table().setColumnUserWidth(col.getName(), newWidth);
-                columnDragMoved = true;
-                recalculateVisibleRows();
-                updateScrollBars();
-                render();
+            if (columnDrag instanceof ColumnDrag drag) {
+                double newWidth = Math.max(RepeatingElementsTable.MIN_COLUMN_WIDTH, drag.startWidth() + delta);
+                RepeatingElementsTable.TableColumn col = drag.table().getColumn(drag.columnIndex());
+                if (col != null && Math.abs(col.getWidth() - newWidth) >= 0.5) {
+                    drag.table().setColumnUserWidth(col.getName(), newWidth);
+                    columnDragMoved = true;
+                    recalculateVisibleRows();
+                    updateScrollBars();
+                    render();
+                }
+            } else if (columnDrag instanceof BlockDrag drag) {
+                double newWidth = Math.max(MIN_NAME_COL_WIDTH, drag.startWidth() + delta);
+                Double current = viewState.nameColumnWidth(blockKey(drag.parent()));
+                if (current == null || Math.abs(current - newWidth) >= 0.5) {
+                    viewState.setNameColumnWidth(blockKey(drag.parent()), newWidth);
+                    columnDragMoved = true;
+                    recalculateVisibleRows();
+                    updateScrollBars();
+                    render();
+                }
             }
             canvas.setCursor(Cursor.H_RESIZE);
             e.consume();
@@ -2003,6 +2039,28 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return null;
         }
         return new ColumnDrag(table, colIdx, 0, table.getColumn(colIdx).getWidth());
+    }
+
+    /**
+     * Finds a block's name-column separator under the pointer: the hairline between a row's
+     * name cell and its value column (it spans the row's whole name cell, i.e. an expanded
+     * container's child block too), within {@link #RESIZE_HANDLE} pixels. Dragging it resizes
+     * the name column of the block the row belongs to.
+     *
+     * @param mx x in model units
+     * @param my y in unscaled viewport units
+     * @return the drag descriptor (start width = the block's current name-column width), or {@code null}
+     */
+    private BlockDrag findBlockSeparatorAt(double mx, double my) {
+        int rowIndex = rowIndexAt(mx, my);
+        if (rowIndex < 0) {
+            return null;
+        }
+        FlatRow row = visibleRows.get(rowIndex);
+        if (Math.abs(mx - row.getValueX()) > RESIZE_HANDLE) {
+            return null;
+        }
+        return new BlockDrag(row.getParentRow(), 0, row.getValueX() - row.getLabelX());
     }
 
     // ==================== Mouse Handling ====================
@@ -2091,6 +2149,19 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         FlatRow clickedRow = visibleRows.get(rowIndex);
+
+        // A click on a block's name-column separator never selects; a double-click returns the
+        // block to automatic width
+        BlockDrag separator = findBlockSeparatorAt(mx, my);
+        if (separator != null) {
+            if (event.getClickCount() == 2) {
+                viewState.setNameColumnWidth(blockKey(separator.parent()), null);
+                recalculateVisibleRows();
+                updateScrollBars();
+                render();
+            }
+            return;
+        }
 
         // Check if clicking on the expand arrow
         FlatRow expandBarRow = findExpandBarAt(mx, my);
@@ -2222,7 +2293,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         updatePreviewTooltip(rowIndex, mx, my);
 
         // Update cursor
-        if (columnDrag != null || findColumnHandleAt(mx, my) != null) {
+        if (columnDrag != null || findColumnHandleAt(mx, my) != null || findBlockSeparatorAt(mx, my) != null) {
             canvas.setCursor(Cursor.H_RESIZE);
         } else if (hoveredExpandBar != null) {
             canvas.setCursor(Cursor.HAND);
@@ -2975,6 +3046,79 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** @return the view state (expand state, selection, column widths, table toggles) */
     public GridViewState getViewState() {
         return viewState;
+    }
+
+    // ==================== Display settings ====================
+
+    /** @return whether long values wrap onto further lines */
+    public boolean isWordWrap() {
+        return metrics.wraps();
+    }
+
+    /**
+     * Switches word wrap: on, values wrap at the wrap width; off, every value stays on one
+     * line and the content grows to the right (horizontal scrolling).
+     *
+     * @param wrap whether to wrap
+     */
+    public void setWordWrap(boolean wrap) {
+        if (wrap == isWordWrap()) {
+            return;
+        }
+        applyMetrics(new GridMetrics(metrics.measurer(),
+                wrap ? GridMetrics.DEFAULT_WRAP_WIDTH : GridMetrics.NO_WRAP, metrics.maxLines()));
+    }
+
+    /** @return the maximum lines per cell/value, 0 = unlimited */
+    public int getMaxCellLines() {
+        return metrics.maxLines();
+    }
+
+    /**
+     * Limits the height of every cell/value to the given number of lines (XMLSpy "Limit cell
+     * height"); longer text is cut off with an ellipsis.
+     *
+     * @param lines the limit, 0 = unlimited
+     */
+    public void setMaxCellLines(int lines) {
+        int limit = Math.max(0, lines);
+        if (limit == metrics.maxLines()) {
+            return;
+        }
+        applyMetrics(new GridMetrics(metrics.measurer(), metrics.wrapWidth(), limit));
+    }
+
+    /** Installs new metrics on the canvas and every built table, then lays out again. */
+    private void applyMetrics(GridMetrics newMetrics) {
+        cancelEditing();
+        metrics = newMetrics;
+        for (FlatRow row : allRows) {
+            if (row.isRepeatingTableBuilt()) {
+                row.getRepeatingTable().setMetrics(newMetrics);
+            } else if (row.hasRepeatingTable()) {
+                row.whenRepeatingTableReady(table -> table.setMetrics(newMetrics));
+            }
+        }
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
+    }
+
+    /**
+     * Returns every block's name column and every table column to automatic (content) width
+     * (XMLSpy "Optimal widths").
+     */
+    public void optimalWidths() {
+        viewState.clearNameColumnWidths();
+        RepeatingElementsTable.clearColumnWidthOverrides();
+        for (FlatRow row : allRows) {
+            if (row.isRepeatingTableBuilt()) {
+                row.getRepeatingTable().clearUserWidths();
+            }
+        }
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
     }
 
     /**

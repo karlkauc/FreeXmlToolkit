@@ -483,6 +483,11 @@ public class FlatRow {
         this.tableMembers = members;
     }
 
+    /** @return whether the table of this row has been built already (see {@link #getRepeatingTable()}) */
+    public boolean isRepeatingTableBuilt() {
+        return repeatingTable != null;
+    }
+
     /** @return whether this row stands for a repeating group (whether or not its table is built yet) */
     public boolean isTableGroupOwner() {
         return tableMembers != null;

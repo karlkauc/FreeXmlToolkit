@@ -11,8 +11,24 @@ import java.util.List;
  *
  * @param measurer  measures text widths
  * @param wrapWidth the width at which cell/value text starts wrapping onto further lines
+ *                  ({@link #NO_WRAP} = word wrap off)
+ * @param maxLines  the maximum number of lines per cell/value, 0 = unlimited (XMLSpy's
+ *                  "Limit cell height"); longer text is cut off with an ellipsis
  */
-public record GridMetrics(TextMeasurer measurer, double wrapWidth) {
+public record GridMetrics(TextMeasurer measurer, double wrapWidth, int maxLines) {
+
+    /** Wrap width that never wraps (word wrap off): every value stays on one line. */
+    public static final double NO_WRAP = 1e9;
+
+    /** Metrics without a cell-line limit. */
+    public GridMetrics(TextMeasurer measurer, double wrapWidth) {
+        this(measurer, wrapWidth, 0);
+    }
+
+    /** @return whether values wrap at all */
+    public boolean wraps() {
+        return wrapWidth < NO_WRAP;
+    }
 
     /** Height of a single-line row. */
     public static final double ROW_HEIGHT = 24;

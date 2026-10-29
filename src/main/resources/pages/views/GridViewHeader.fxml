@@ -2,6 +2,10 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.RadioMenuItem?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -9,12 +13,16 @@
 
 <!--
   Header bar of the shell's Grid views (XML and JSON): table icon · "Grid view" · subtitle ·…·
-  zoom pill [ − 100% + ] · Expand all · Collapse all. Loaded by GridViewHeader via the fx:root
-  pattern (FxmlViews.load); GridViewHeader is root and controller and forwards the actions to
-  the grid canvas. The subtitle and the zoom percentage are set in code.
+  zoom pill [ − 100% + ] · Optimal widths · Word wrap · Expand all · Collapse all · ⋯ (cell
+  height limit). Loaded by GridViewHeader via the fx:root pattern (FxmlViews.load);
+  GridViewHeader is root and controller and forwards the actions to the grid canvas. The
+  subtitle, the zoom percentage and the toggle states are set in code.
 -->
 <fx:root type="javafx.scene.layout.HBox" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-grid-header"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <fx:define>
+        <ToggleGroup fx:id="cellLinesGroup"/>
+    </fx:define>
     <children>
         <Label text="Grid view" styleClass="fxt-grid-title">
             <graphic>
@@ -48,6 +56,24 @@
             </children>
         </HBox>
 
+        <Button id="grid-optimal-widths" text="Optimal widths" styleClass="fxt-tool-button" focusTraversable="false"
+                onAction="#onOptimalWidths">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-arrows-angle-expand" iconSize="13"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Size every name column and table column to its content"/>
+            </tooltip>
+        </Button>
+        <ToggleButton fx:id="wordWrapButton" id="grid-word-wrap" text="Wrap" styleClass="fxt-tool-button"
+                      focusTraversable="false" onAction="#onWordWrap">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-text-wrap" iconSize="13"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Word wrap: long values wrap onto further lines"/>
+            </tooltip>
+        </ToggleButton>
         <Button id="grid-expand-all" text="Expand all" styleClass="fxt-tool-button" onAction="#onExpandAll">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-expand" iconSize="13"/>
@@ -58,5 +84,23 @@
                 <IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="13"/>
             </graphic>
         </Button>
+        <MenuButton id="grid-more" styleClass="fxt-tool-button" focusTraversable="false">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-three-dots" iconSize="13"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Grid settings"/>
+            </tooltip>
+            <items>
+                <RadioMenuItem fx:id="cellLinesOff" id="grid-cell-lines-off" text="Cell height: unlimited"
+                               toggleGroup="$cellLinesGroup" onAction="#onCellLinesOff"/>
+                <RadioMenuItem fx:id="cellLines3" id="grid-cell-lines-3" text="Cell height: 3 lines"
+                               toggleGroup="$cellLinesGroup" onAction="#onCellLines3"/>
+                <RadioMenuItem fx:id="cellLines6" id="grid-cell-lines-6" text="Cell height: 6 lines"
+                               toggleGroup="$cellLinesGroup" onAction="#onCellLines6"/>
+                <RadioMenuItem fx:id="cellLines12" id="grid-cell-lines-12" text="Cell height: 12 lines"
+                               toggleGroup="$cellLinesGroup" onAction="#onCellLines12"/>
+            </items>
+        </MenuButton>
     </children>
 </fx:root>

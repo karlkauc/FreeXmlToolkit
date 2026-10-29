@@ -13,8 +13,9 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridCanvasView;
  * display, and the toast container role for the embedded {@link GridCanvasView}.
  * Subclasses bind a concrete editor context.
  *
- * <p>The zoom factor is shared by all grids and persisted through
- * {@link GridZoomPreference}; every newly installed canvas starts at the saved value.</p>
+ * <p>The zoom factor, word wrap and the cell-height limit are shared by all grids and
+ * persisted through {@link GridZoomPreference} / {@link GridDisplayPreferences}; every newly
+ * installed canvas starts at the saved values.</p>
  */
 public abstract class GridViewShell extends StackPane {
 
@@ -35,6 +36,8 @@ public abstract class GridViewShell extends StackPane {
         view.setToastContainer(this);
         view.setZoom(GridZoomPreference.load());
         view.zoomProperty().addListener((obs, oldZoom, newZoom) -> GridZoomPreference.save(newZoom.doubleValue()));
+        view.setWordWrap(GridDisplayPreferences.loadWordWrap());
+        view.setMaxCellLines(GridDisplayPreferences.loadMaxCellLines());
         VBox.setVgrow(view, Priority.ALWAYS);
         getChildren().add(new VBox(new GridViewHeader(view, subtitle()), view));
         // Arrow-key navigation should work right away, without a mouse click first.

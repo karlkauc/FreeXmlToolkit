@@ -4,6 +4,8 @@ import java.util.Locale;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioMenuItem;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
@@ -11,14 +13,21 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridCanvasView;
 
 /**
  * The header bar of a {@link GridViewShell}: "Grid view" title, subtitle, the zoom pill
- * ({@code [ − 100% + ]}) and the Expand-all / Collapse-all buttons, all acting on one
- * {@link GridCanvasView}. The layout lives in {@code /pages/views/GridViewHeader.fxml}.
+ * ({@code [ − 100% + ]}), Optimal widths, the Word-wrap toggle, Expand-all / Collapse-all and
+ * the ⋯ menu with the cell-height limit, all acting on one {@link GridCanvasView}. The layout
+ * lives in {@code /pages/views/GridViewHeader.fxml}; word wrap and the cell-height limit are
+ * persisted through {@link GridDisplayPreferences}.
  */
 final class GridViewHeader extends HBox {
 
     private final GridCanvasView<?> view;
     @FXML private Label subtitle;
     @FXML private Label zoomLabel;
+    @FXML private ToggleButton wordWrapButton;
+    @FXML private RadioMenuItem cellLinesOff;
+    @FXML private RadioMenuItem cellLines3;
+    @FXML private RadioMenuItem cellLines6;
+    @FXML private RadioMenuItem cellLines12;
 
     GridViewHeader(GridCanvasView<?> view, String subtitleText) {
         this.view = view;
@@ -26,6 +35,18 @@ final class GridViewHeader extends HBox {
         subtitle.setText(subtitleText);
         zoomLabel.setText(percent(view.getZoom()));
         view.zoomProperty().addListener((obs, oldZoom, newZoom) -> zoomLabel.setText(percent(newZoom.doubleValue())));
+        wordWrapButton.setSelected(view.isWordWrap());
+        selectCellLines(view.getMaxCellLines());
+    }
+
+    private void selectCellLines(int lines) {
+        RadioMenuItem item = switch (lines) {
+            case 3 -> cellLines3;
+            case 6 -> cellLines6;
+            case 12 -> cellLines12;
+            default -> cellLinesOff;
+        };
+        item.setSelected(true);
     }
 
     @FXML
@@ -44,6 +65,18 @@ final class GridViewHeader extends HBox {
     }
 
     @FXML
+    public void onOptimalWidths() {
+        view.optimalWidths();
+    }
+
+    @FXML
+    public void onWordWrap() {
+        boolean wrap = wordWrapButton.isSelected();
+        view.setWordWrap(wrap);
+        GridDisplayPreferences.saveWordWrap(wrap);
+    }
+
+    @FXML
     public void onExpandAll() {
         view.expandAll();
     }
@@ -51,6 +84,31 @@ final class GridViewHeader extends HBox {
     @FXML
     public void onCollapseAll() {
         view.collapseAll();
+    }
+
+    @FXML
+    public void onCellLinesOff() {
+        applyCellLines(0);
+    }
+
+    @FXML
+    public void onCellLines3() {
+        applyCellLines(3);
+    }
+
+    @FXML
+    public void onCellLines6() {
+        applyCellLines(6);
+    }
+
+    @FXML
+    public void onCellLines12() {
+        applyCellLines(12);
+    }
+
+    private void applyCellLines(int lines) {
+        view.setMaxCellLines(lines);
+        GridDisplayPreferences.saveMaxCellLines(lines);
     }
 
     private static String percent(double zoom) {

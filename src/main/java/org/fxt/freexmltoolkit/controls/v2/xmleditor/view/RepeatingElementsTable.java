@@ -129,6 +129,11 @@ public class RepeatingElementsTable {
     // rebuild that follows every edit/sort/undo (same idea as the sort-state cache).
     private static final Map<String, Map<String, Double>> columnWidthOverrideCache = new HashMap<>();
 
+    /** Forgets every user-dragged column width ("Optimal widths" for tables not built yet). */
+    public static void clearColumnWidthOverrides() {
+        columnWidthOverrideCache.clear();
+    }
+
     /**
      * Clears all caches. Call this when loading a new document.
      */
@@ -1109,6 +1114,16 @@ public class RepeatingElementsTable {
         } else {
             overrides.put(columnName, col.userWidth);
         }
+        invalidateLayout();
+        ensureLayout();
+    }
+
+    /** Returns every column to automatic (content) width ("Optimal widths"). */
+    public void clearUserWidths() {
+        for (TableColumn col : columns) {
+            col.userWidth = null;
+        }
+        columnWidthOverrideCache.remove(elementName);
         invalidateLayout();
         ensureLayout();
     }

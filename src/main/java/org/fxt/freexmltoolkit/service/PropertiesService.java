@@ -671,6 +671,44 @@ public interface PropertiesService {
         set(GRID_ZOOM, String.valueOf(z));
     }
 
+    /** Property key: whether grid values wrap onto further lines ({@code true}) or stay on one line. */
+    String GRID_WORD_WRAP = "grid.wordWrap";
+
+    /** @return whether grid values wrap (the default) */
+    default boolean isGridWordWrap() {
+        String v = get(GRID_WORD_WRAP);
+        return v == null || v.isBlank() || !"false".equalsIgnoreCase(v.trim());
+    }
+
+    /** @param wrap whether grid values wrap onto further lines */
+    default void setGridWordWrap(boolean wrap) {
+        set(GRID_WORD_WRAP, String.valueOf(wrap));
+    }
+
+    /** Property key: maximum lines per grid cell (0 = unlimited; XMLSpy "Limit cell height"). */
+    String GRID_MAX_CELL_LINES = "grid.maxCellLines";
+    /** Largest persisted cell-line limit. */
+    int GRID_MAX_CELL_LINES_MAX = 999;
+
+    /** @return the maximum lines per grid cell, 0 (unlimited) when unset, unparseable or negative */
+    default int getGridMaxCellLines() {
+        String v = get(GRID_MAX_CELL_LINES);
+        if (v == null || v.isBlank()) {
+            return 0;
+        }
+        try {
+            int lines = Integer.parseInt(v.trim());
+            return lines < 0 ? 0 : Math.min(GRID_MAX_CELL_LINES_MAX, lines);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** @param lines the maximum lines per grid cell to persist (0 = unlimited) */
+    default void setGridMaxCellLines(int lines) {
+        set(GRID_MAX_CELL_LINES, String.valueOf(Math.max(0, Math.min(GRID_MAX_CELL_LINES_MAX, lines))));
+    }
+
     // Telemetry settings (opt-out; see docs/telemetry.md)
 
     /** Property key: random installation UUID used for anonymous telemetry. */

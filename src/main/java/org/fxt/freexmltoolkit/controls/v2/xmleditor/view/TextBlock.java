@@ -12,6 +12,9 @@ import java.util.List;
  */
 public record TextBlock(List<String> lines, double width, double height) {
 
+    /** The ellipsis appended to the last kept line when the cell-line limit cuts text off. */
+    public static final String ELLIPSIS = "\u2026";
+
     /**
      * Wraps {@code text} to {@code maxWidth} and measures the result.
      *
@@ -23,6 +26,13 @@ public record TextBlock(List<String> lines, double width, double height) {
      */
     public static TextBlock of(GridMetrics m, String text, GridFont font, double maxWidth) {
         List<String> lines = m.wrap(text, font, maxWidth);
+        if (m.maxLines() > 0 && lines.size() > m.maxLines()) {
+            // Cell-height limit: keep the first lines, mark the cut with an ellipsis
+            List<String> kept = new java.util.ArrayList<>(lines.subList(0, m.maxLines()));
+            int last = kept.size() - 1;
+            kept.set(last, kept.get(last) + ELLIPSIS);
+            lines = kept;
+        }
         double widest = 0;
         for (String line : lines) {
             widest = Math.max(widest, m.width(line, font));

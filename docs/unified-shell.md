@@ -180,8 +180,8 @@ When an XML-instance document (XML, XSLT, or Schematron) is in the **Graphic** v
 shows the editable grid, laid out like XMLSpy's Grid View:
 
 - A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
-  grids"* and offers the **zoom pill** (`− 100% +`), **Expand all** and **Collapse all**
-  buttons that unfold or fold every container at once.
+  grids"* and offers the **zoom pill** (`− 100% +`), **Optimal widths**, the **Wrap** toggle,
+  **Expand all** / **Collapse all**, and a **⋯** menu with the cell-height limit.
 - **Nested containers.** Every element is a row with a **name cell** (expand arrow, type icon,
   bold name) and, to its right, either its **value cell** or the **block** of its children. A
   child block is docked at the parent's value column, so the structure reads as nested boxes;
@@ -206,10 +206,14 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   **embedded table beside the group's name cell**: one row per element (numbered in the
   first column), one column per attribute (`=`) and child element (`<>`). Click a column
   header to **sort** the group; cells with nested structure expand inline.
-- **Column widths** in embedded tables size themselves to their content; drag a column
-  separator in the column-header row to resize a column (text re-wraps to the new width),
-  and **double-click the separator** to return to automatic sizing. Dragged widths survive
-  edits and undo.
+- **Column widths.** Name columns and table columns size themselves to their content. Drag
+  the hairline between a name column and its values (or a column separator in a table's
+  header row) to resize it - text re-wraps to the new width - and **double-click the line**
+  to return to automatic sizing. Each nested block has its own name-column width. **Optimal
+  widths** in the header resets every column at once. Dragged widths survive edits and undo.
+- **Wrap** (header toggle, remembered across restarts) switches word wrap off: every value
+  stays on one line and the grid grows to the right instead. The **⋯** menu limits the
+  **cell height** to 3, 6 or 12 lines (longer values end with "…"), also remembered.
 - **Keyboard navigation** works as soon as the view opens (no click needed):
   **↑/↓** walk the rows, **→** expands a collapsed element, **←** collapses it (or jumps to
   the parent), **Space** or **Enter** toggles a container (Enter starts editing a value),
