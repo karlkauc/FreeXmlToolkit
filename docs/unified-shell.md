@@ -218,7 +218,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   **Insert Column Before / After…** adds an attribute (type `@name`) or a child element
   (`name`) to every member; **Rename Column…** (also: double-click a column header) renames
   it in every member. Each of these is one undo step. Typing into an empty cell whose
-  member lacks that child element creates the element.
+  member lacks that child element creates the element. **Drag a column header** onto another
+  header to move that column - a blue line shows where it lands; the child element (or
+  attribute) moves in every member, one undo step. Attributes move only among attributes.
 - **Spreadsheet exchange.** Click a table cell to select it, **Shift+click** another cell
   (or a row number) to select a range, **Ctrl+A** selects the whole table. **Ctrl+C** copies
   the selection as tab-separated text (the whole table with a header line); the context menu

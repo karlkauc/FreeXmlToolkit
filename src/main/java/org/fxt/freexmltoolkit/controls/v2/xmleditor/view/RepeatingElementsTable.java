@@ -129,6 +129,42 @@ public class RepeatingElementsTable {
     // rebuild that follows every edit/sort/undo (same idea as the sort-state cache).
     private static final Map<String, Map<String, Double>> columnWidthOverrideCache = new HashMap<>();
 
+    /** @return the cached column-key order of the tables of the given element name, or {@code null} */
+    public static List<String> cachedColumnOrder(String elementName) {
+        List<String> order = columnOrderCache.get(elementName);
+        return order == null ? null : List.copyOf(order);
+    }
+
+    /**
+     * Replaces the cached column-key order of the tables of an element name (used when a column
+     * is moved: the cache would otherwise keep the old order across the rebuild).
+     */
+    public static void setCachedColumnOrder(String elementName, List<String> keys) {
+        if (keys == null) {
+            columnOrderCache.remove(elementName);
+        } else {
+            columnOrderCache.put(elementName, new ArrayList<>(keys));
+        }
+    }
+
+    /** @return the column key of a column: {@code @name} for attributes, {@code #text}, else the name */
+    public static String columnKey(TableColumn col) {
+        return switch (col.getType()) {
+            case ATTRIBUTE -> "@" + col.getName();
+            case TEXT_CONTENT -> XmlGridRecord.TEXT_KEY;
+            case CHILD_ELEMENT -> col.getName();
+        };
+    }
+
+    /** @return the keys of this table's columns, in display order */
+    public List<String> columnKeys() {
+        List<String> keys = new ArrayList<>(columns.size());
+        for (TableColumn col : columns) {
+            keys.add(columnKey(col));
+        }
+        return keys;
+    }
+
     /** Forgets every user-dragged column width ("Optimal widths" for tables not built yet). */
     public static void clearColumnWidthOverrides() {
         columnWidthOverrideCache.clear();

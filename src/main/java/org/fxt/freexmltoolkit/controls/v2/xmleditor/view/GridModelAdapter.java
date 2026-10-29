@@ -242,6 +242,16 @@ public interface GridModelAdapter<N> {
         return changed;
     }
 
+    /**
+     * Moves a table column before/after another column in every member of the group
+     * (XMLSpy: drag a column header onto another one).
+     *
+     * @return whether the model changed
+     */
+    default boolean moveTableColumn(RepeatingElementsTable table, int from, int to, boolean before) {
+        return false;
+    }
+
     /** Sorts the repeating group behind the table by a column, through the command stack. */
     void sortTable(RepeatingElementsTable table, String columnName, boolean ascending);
 

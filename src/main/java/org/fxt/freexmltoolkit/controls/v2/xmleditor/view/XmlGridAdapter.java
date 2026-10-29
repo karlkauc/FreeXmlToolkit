@@ -527,6 +527,12 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     }
 
     @Override
+    public boolean moveTableColumn(RepeatingElementsTable table, int from, int to, boolean before) {
+        var cmd = new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.MoveTableColumnCommand(table, from, to, before);
+        return cmd.isApplicable() && context.executeCommand(cmd);
+    }
+
+    @Override
     public void sortTable(RepeatingElementsTable table, String columnName, boolean ascending) {
         context.executeCommand(new SortElementsCommand(table, columnName, ascending));
         table.setSortState(columnName, ascending);

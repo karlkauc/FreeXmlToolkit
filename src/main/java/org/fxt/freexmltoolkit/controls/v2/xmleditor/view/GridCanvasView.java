@@ -241,6 +241,24 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private FlatRow dropTargetRow = null;
     private DropPosition dropPosition = null;
 
+    /** A column-header drag that moves a table column (XMLSpy: drag a header onto another). */
+    private static final class HeaderDrag {
+        final RepeatingElementsTable table;
+        final int column;
+        final double startScreenX;
+        boolean active;
+        int target = -1;
+        boolean before;
+
+        HeaderDrag(RepeatingElementsTable table, int column, double startScreenX) {
+            this.table = table;
+            this.column = column;
+            this.startScreenX = startScreenX;
+        }
+    }
+
+    private HeaderDrag headerDrag = null;
+
     /** A drop target: the row under the pointer and where the payload goes. */
     record DropTarget(FlatRow row, DropPosition position) {
     }
@@ -1001,6 +1019,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         drawDropIndicator();
+        drawHeaderDragIndicator();
 
         gc.restore();
 
@@ -2545,6 +2564,44 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 return;
             }
             pressedDragRow = dragCandidateAt(mx, my);
+            headerDrag = headerDragAt(mx, my, e.getX());
+        });
+        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
+            if (headerDrag == null) {
+                return;
+            }
+            if (!headerDrag.active && Math.abs(e.getX() - headerDrag.startScreenX) > 6) {
+                headerDrag.active = true;
+            }
+            if (headerDrag.active) {
+                double mx = toModelX(e.getX());
+                int dc = headerDrag.table.drawnColumnAt(mx);
+                RepeatingElementsTable.DrawnCell cell = dc >= 0 ? headerDrag.table.cellAt(0, dc) : null;
+                if (cell != null && cell.columnIndex() >= 0) {
+                    headerDrag.target = cell.columnIndex();
+                    headerDrag.before = mx < headerDrag.table.drawnColumnX(dc) + headerDrag.table.drawnColumnWidth(dc) / 2;
+                } else {
+                    headerDrag.target = -1;
+                }
+                render();
+                e.consume();
+            }
+        });
+        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> {
+            HeaderDrag drag = headerDrag;
+            headerDrag = null;
+            if (drag == null || !drag.active) {
+                return;
+            }
+            suppressNextClick = true; // the click after the drag must not sort
+            if (drag.target >= 0 && drag.target != drag.column
+                    && adapter.moveTableColumn(drag.table, drag.column, drag.target, drag.before)) {
+                rebuildTree();
+                notifyDocumentModified();
+            } else {
+                render();
+            }
+            e.consume();
         });
         canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
             if (columnDrag == null) {
@@ -2592,6 +2649,37 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private static javafx.scene.input.DataFormat gridNodeFormat() {
         javafx.scene.input.DataFormat existing = javafx.scene.input.DataFormat.lookupMimeType("application/x-fxt-grid-node");
         return existing != null ? existing : new javafx.scene.input.DataFormat("application/x-fxt-grid-node");
+    }
+
+    /** @return a column-header drag candidate when the press is on a column header (not a resize handle) */
+    private HeaderDrag headerDragAt(double mx, double my, double screenX) {
+        int idx = rowIndexAt(mx, my);
+        RepeatingElementsTable table = tableAt(idx, mx, my);
+        if (table == null || table.isFlipped() || table.getColumnSeparatorAt(mx, RESIZE_HANDLE) >= 0) {
+            return null;
+        }
+        double tableTop = rowYPositions[idx] - scrollOffsetY;
+        int dr = table.drawnRowAt(my - tableTop);
+        int dc = table.drawnColumnAt(mx);
+        if (dr != 0 || dc < 1) {
+            return null;
+        }
+        return new HeaderDrag(table, table.cellAt(0, dc).columnIndex(), screenX);
+    }
+
+    /** Draws the insertion line of a running column-header drag. */
+    private void drawHeaderDragIndicator() {
+        HeaderDrag drag = headerDrag;
+        if (drag == null || !drag.active || drag.target < 0) {
+            return;
+        }
+        RepeatingElementsTable table = drag.table;
+        RepeatingElementsTable.CellRect rect = table.cellRect(0, drag.target);
+        double x = drag.before ? rect.x() : rect.x() + rect.width();
+        double top = table.getY() - scrollOffsetY;
+        gc.setStroke(ACCENT);
+        gc.setLineWidth(2);
+        gc.strokeLine(x, top, x, top + table.getHeight());
     }
 
     /** @return the row whose name cell (first line, right of the expand arrow) is under the point, if draggable */
