@@ -113,10 +113,11 @@ class XmlCanvasViewZoomTest {
     @Test
     void hitTestingHonoursTheZoom() {
         WaitForAsyncUtils.waitForFxEvents();
-        // Visible rows: root (0..24) · child (24..48) · other (48..)
-        int childIdx = view.visibleRowList().indexOf(view.visibleRowList().stream()
-                .filter(r -> "child".equals(r.getLabel())).findFirst().orElseThrow());
-        double x = 120;
+        // Visible rows: root (expanded: its name cell spans the child block) · child (0..24) · other (24..)
+        FlatRow child = view.visibleRowList().stream()
+                .filter(r -> "child".equals(r.getLabel())).findFirst().orElseThrow();
+        int childIdx = view.visibleRowList().indexOf(child);
+        double x = view.labelXOf(child) + 30;
         double y = view.rowTopAt(childIdx) + GridMetrics.ROW_HEIGHT / 2;
 
         click(x, y, 1);
@@ -126,7 +127,8 @@ class XmlCanvasViewZoomTest {
         click(x * 2, y * 2, 1);
         assertEquals("child", selectedElementName(), "screen coordinates scale with the zoom");
         click(x, y, 1);
-        assertEquals("root", selectedElementName(), "unscaled coordinates now hit the row above");
+        assertEquals("root", selectedElementName(),
+                "unscaled coordinates now land left of the child block, in the root's spanning name cell");
     }
 
     @Test
@@ -136,13 +138,14 @@ class XmlCanvasViewZoomTest {
                 .filter(r -> "child".equals(r.getLabel())).findFirst().orElseThrow());
         double z = 1.5;
         fx(() -> view.setZoom(z));
-        double modelX = view.nameColumnWidthValue() + 10;
+        FlatRow child = view.visibleRowList().get(childIdx);
+        double modelX = view.valueXOf(child) + 10;
         double modelY = view.rowTopAt(childIdx) + GridMetrics.ROW_HEIGHT / 2;
 
         click(modelX * z, modelY * z, 2); // double-click in the value column
         TextField field = view.editFieldForTest();
         assertNotNull(field, "double-click on a value must open the inline editor");
-        assertEquals(view.nameColumnWidthValue() * z, field.getLayoutX(), 0.5);
+        assertEquals(view.valueXOf(child) * z, field.getLayoutX(), 0.5);
         assertEquals(GridMetrics.ROW_HEIGHT * z, field.getPrefHeight(), 0.5);
         assertTrue(field.getStyle().contains("18.0px"), "font scales: " + field.getStyle());
     }
@@ -152,7 +155,8 @@ class XmlCanvasViewZoomTest {
         WaitForAsyncUtils.waitForFxEvents();
         int childIdx = view.visibleRowList().indexOf(view.visibleRowList().stream()
                 .filter(r -> "child".equals(r.getLabel())).findFirst().orElseThrow());
-        click(view.nameColumnWidthValue() + 10, view.rowTopAt(childIdx) + GridMetrics.ROW_HEIGHT / 2, 2);
+        click(view.valueXOf(view.visibleRowList().get(childIdx)) + 10,
+                view.rowTopAt(childIdx) + GridMetrics.ROW_HEIGHT / 2, 2);
         assertNotNull(view.editFieldForTest(), "double-click opens the inline editor");
 
         fx(() -> Event.fireEvent(view.canvasNode(), new ScrollEvent(ScrollEvent.SCROLL, 10, 10, 10, 10,

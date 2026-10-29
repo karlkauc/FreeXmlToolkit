@@ -634,14 +634,13 @@ class RepeatingElementsTableTest {
         double after = table.calculateRowHeight(table.getRows().get(0));
         assertTrue(after > before, "narrower column must wrap into more lines");
 
-        double dataTop = RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT;
+        double dataTop = RepeatingElementsTable.ROW_HEIGHT; // the column-header row
         assertEquals(dataTop, table.getRowY(0), 0.001);
         assertEquals(dataTop + after, table.getRowY(1), 0.001);
-        assertEquals(0, table.getRowIndexAt(dataTop + after - 1));
-        assertEquals(1, table.getRowIndexAt(dataTop + after + 1));
-        assertEquals(-1, table.getRowIndexAt(dataTop - 1), "column header row is not a data row");
-        assertEquals(dataTop + after + RepeatingElementsTable.ROW_HEIGHT + RepeatingElementsTable.GRID_PADDING,
-                table.calculateHeight(), 0.001);
+        assertEquals(0, table.getRowIndexAtY(dataTop + after - 1));
+        assertEquals(1, table.getRowIndexAtY(dataTop + after + 1));
+        assertEquals(-1, table.getRowIndexAtY(dataTop - 1), "column header row is not a data row");
+        assertEquals(dataTop + after + RepeatingElementsTable.ROW_HEIGHT, table.calculateHeight(), 0.001);
     }
 
     @Test
@@ -674,7 +673,7 @@ class RepeatingElementsTableTest {
         table.setX(0);
         double w0 = table.getColumn("A").getWidth();
         double w1 = table.getColumn("B").getWidth();
-        double sep0 = RepeatingElementsTable.GRID_PADDING + w0;
+        double sep0 = table.getRowNumberColumnWidth() + w0;
         double sep1 = sep0 + w1;
 
         assertEquals(0, table.getColumnSeparatorAt(sep0, 4));
@@ -682,8 +681,8 @@ class RepeatingElementsTableTest {
         assertEquals(0, table.getColumnSeparatorAt(sep0 + 3, 4));
         assertEquals(-1, table.getColumnSeparatorAt(sep0 + 10, 4));
         assertEquals(1, table.getColumnSeparatorAt(sep1, 4), "the last column's right edge is a handle too");
-        assertEquals(-1, table.getColumnSeparatorAt(RepeatingElementsTable.GRID_PADDING, 4),
-                "the table's left edge is not a separator");
+        assertEquals(-1, table.getColumnSeparatorAt(table.getRowNumberColumnWidth(), 4),
+                "the row-number column's edge is not a resize handle");
     }
 
     /**

@@ -26,13 +26,17 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
  *
  * <p>Example: Multiple {@code <item>} elements become:</p>
  * <pre>
- * ┌─ items (3x) ─────────────────────────────────────────┐
- * │ @sku     │ @qty  │ name      │ price   │ description │
- * ├──────────┼───────┼───────────┼─────────┼─────────────┤
- * │ ABC-123  │ 5     │ Widget    │ 9.99    │ A widget    │
- * │ DEF-456  │ 2     │ Gadget    │ 19.99   │ A gadget    │
- * │ GHI-789  │ 10    │ Thing     │ 4.99    │ A thing     │
- * └──────────────────────────────────────────────────────┘
+ * ┌───┬──────────┬───────┬───────────┬─────────┬─────────────┐
+ * │ ⇄ │ = sku    │ = qty │ <> name   │ <> price│ <> description│
+ * ├───┼──────────┼───────┼───────────┼─────────┼─────────────┤
+ * │ 1 │ ABC-123  │ 5     │ Widget    │ 9.99    │ A widget    │
+ * │ 2 │ DEF-456  │ 2     │ Gadget    │ 19.99   │ A gadget    │
+ * │ 3 │ GHI-789  │ 10    │ Thing     │ 4.99    │ A thing     │
+ * └───┴──────────┴───────┴───────────┴─────────┴─────────────┘
+ *
+ * <p>The first drawn column numbers the rows, the corner cell toggles the row/column flip;
+ * the table sits beside its owner row's name cell (see {@code GridCanvasView}). Rendering and
+ * hit-testing go through the "drawn grid" accessors ({@link #cellAt}, {@link #drawnColumnX}, …).</p>
  * </pre>
  *
  * @author Claude Code
@@ -41,12 +45,6 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 public class RepeatingElementsTable {
 
     // ==================== Layout Constants ====================
-
-    /**
-     * The height of the table header row in pixels.
-     * This header displays the element name and count (e.g., "items (3x)").
-     */
-    public static final double HEADER_HEIGHT = 28;
 
     /**
      * The height of a single-line data row in pixels (alias of {@link GridMetrics#ROW_HEIGHT}).
@@ -60,22 +58,17 @@ public class RepeatingElementsTable {
      */
     public static final double MIN_COLUMN_WIDTH = 80;
 
-    /**
-     * The padding around the grid content in pixels.
-     * Applied to all sides of the table.
-     */
-    public static final double GRID_PADDING = 8;
+    /** The narrowest row-number column (XMLSpy's numbered first column). */
+    public static final double MIN_ROW_NUMBER_WIDTH = 22;
+
+    /** Width reserved for the type icon ({@code =} / {@code <>}) in a column header. */
+    public static final double HEADER_ICON_WIDTH = 18;
 
     /**
      * The padding inside each cell in pixels (alias of {@link GridMetrics#CELL_PADDING}).
      * Applied horizontally to cell content.
      */
     public static final double CELL_PADDING = GridMetrics.CELL_PADDING;
-
-    /**
-     * The minimum width of a table in pixels.
-     */
-    private static final double MIN_TABLE_WIDTH = 200;
 
     private static final double[] NO_TOPS = new double[0];
 
@@ -167,10 +160,11 @@ public class RepeatingElementsTable {
     private boolean layoutValid = false;
     /** Row top offsets relative to the first data row; {@code rowTops[rows.size()]} = total. */
     private double[] rowTops = new double[]{0};
+    /** Width of the row-number column (drawn column 0), measured in the layout pass. */
+    private double rowNumberWidth = MIN_ROW_NUMBER_WIDTH;
 
     // ==================== State ====================
 
-    private boolean expanded = true;
     private boolean selected = false;
     private boolean hovered = false;
     private int hoveredRowIndex = -1;
@@ -959,8 +953,9 @@ public class RepeatingElementsTable {
         // -- Column pass --
         for (TableColumn col : columns) {
             String name = col.getName();
-            String header = col.getDisplayName() + (isSortedBy(name) ? " \u25B2" : "");
-            double headerWidth = m.width(header, GridFont.ROW_BOLD) + pad2;
+            // Header = type icon + name (+ sort marker); the canvas draws the icon in HEADER_ICON_WIDTH
+            String header = name + (isSortedBy(name) ? " \u25B2" : "");
+            double headerWidth = HEADER_ICON_WIDTH + m.width(header, GridFont.ROW_BOLD) + pad2;
             double contentWidth = 0;
             double maxNameCol = 0;
 
@@ -1020,10 +1015,10 @@ public class RepeatingElementsTable {
         for (TableColumn col : columns) {
             totalColWidth += col.getWidth();
         }
-        this.width = Math.max(MIN_TABLE_WIDTH, totalColWidth + GRID_PADDING * 2);
-        this.height = expanded
-                ? HEADER_HEIGHT + ROW_HEIGHT + top + GRID_PADDING
-                : HEADER_HEIGHT + GRID_PADDING;
+        rowNumberWidth = Math.max(MIN_ROW_NUMBER_WIDTH,
+                m.width(String.valueOf(rows.size()), GridFont.SMALL) + pad2);
+        this.width = rowNumberWidth + totalColWidth;
+        this.height = ROW_HEIGHT + top;
         layoutValid = true;
     }
 
@@ -1140,8 +1135,8 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * @return the height of this table (lays out first if stale): header + padding when
-     * collapsed, header + column header + all rows + padding when expanded
+     * @return the height of this table (lays out first if stale): the column-header row
+     * plus all data rows
      */
     public double calculateHeight() {
         ensureLayout();
@@ -1167,24 +1162,23 @@ public class RepeatingElementsTable {
     }
 
     /**
-     * Gets the absolute Y position of a row's top edge (after the table header and
-     * the column header row).
+     * Gets the absolute Y position of a row's top edge (below the column header row).
      *
      * @param rowIndex the zero-based index of the row
      * @return the Y coordinate of the row's top edge in pixels
      */
     public double getRowY(int rowIndex) {
-        return y + HEADER_HEIGHT + ROW_HEIGHT + getRowTop(rowIndex);
+        return y + ROW_HEIGHT + getRowTop(rowIndex);
     }
 
     /**
-     * Gets the row index at an absolute Y position (ignores the expanded flag).
+     * Gets the row index at an absolute Y position.
      *
      * @param py the Y coordinate to test
-     * @return the zero-based row index, or -1 if in the header area or outside
+     * @return the zero-based row index, or -1 if in the column header row or outside
      */
     public int getRowIndexAtY(double py) {
-        return getRowIndexAtDataOffset(py - (y + HEADER_HEIGHT + ROW_HEIGHT));
+        return getRowIndexAtDataOffset(py - (y + ROW_HEIGHT));
     }
 
     /**
@@ -1230,7 +1224,7 @@ public class RepeatingElementsTable {
      */
     public int getColumnSeparatorAt(double px, double tolerance) {
         ensureLayout();
-        double edge = x + GRID_PADDING;
+        double edge = x + rowNumberWidth;
         for (int i = 0; i < columns.size(); i++) {
             edge += columns.get(i).getWidth();
             if (Math.abs(px - edge) <= tolerance) {
@@ -1256,65 +1250,14 @@ public class RepeatingElementsTable {
     // ==================== Hit Testing ====================
 
     /**
-     * Tests if a point is inside this table's header area.
-     *
-     * <p>The header is the top row that displays the element name and count.</p>
-     *
-     * @param px the X coordinate to test
-     * @param py the Y coordinate to test
-     * @return true if the point is within the header bounds
-     */
-    public boolean isHeaderHit(double px, double py) {
-        return px >= x && px <= x + width &&
-               py >= y && py <= y + HEADER_HEIGHT;
-    }
-
-    /**
-     * Tests if a point is inside the column headers row.
-     *
-     * <p>The column header row is positioned below the table header and above the data rows.
-     * It displays column names like "@sku", "@qty", "name", etc.</p>
-     *
-     * @param px the X coordinate to test
-     * @param py the Y coordinate to test
-     * @return true if the point is within the column header row bounds
-     */
-    public boolean isColumnHeaderHit(double px, double py) {
-        double columnHeaderY = y + HEADER_HEIGHT;
-        return px >= x && px <= x + width &&
-               py >= columnHeaderY && py <= columnHeaderY + ROW_HEIGHT;
-    }
-
-    /**
-     * Tests if a point is inside this table's bounds.
-     *
-     * @param px the X coordinate to test
-     * @param py the Y coordinate to test
-     * @return true if the point is within the table's bounding rectangle
-     */
-    public boolean containsPoint(double px, double py) {
-        return px >= x && px <= x + width &&
-               py >= y && py <= y + height;
-    }
-
-    /**
-     * Gets the row index at an absolute Y coordinate, accounting for variable row heights.
-     *
-     * @param py the Y coordinate to test
-     * @return the zero-based row index, or -1 if collapsed, in the header area or outside
-     */
-    public int getRowIndexAt(double py) {
-        return expanded ? getRowIndexAtY(py) : -1;
-    }
-
-    /**
      * Gets the column index at a given X coordinate.
      *
      * @param px the X coordinate to test
      * @return the zero-based column index, or -1 if outside column bounds
      */
     public int getColumnIndexAt(double px) {
-        double colX = x + GRID_PADDING;
+        ensureLayout();
+        double colX = x + rowNumberWidth;
         for (int i = 0; i < columns.size(); i++) {
             double nextX = colX + columns.get(i).getWidth();
             if (px >= colX && px < nextX) {
@@ -1332,14 +1275,168 @@ public class RepeatingElementsTable {
      * @return the X coordinate of the column's left edge, or the default position if not found
      */
     public double getColumnX(String columnName) {
-        double colX = x + GRID_PADDING;
+        ensureLayout();
+        double colX = x + rowNumberWidth;
         for (TableColumn col : columns) {
             if (col.getName().equals(columnName)) {
                 return colX;
             }
             colX += col.getWidth();
         }
-        return x + GRID_PADDING;
+        return x + rowNumberWidth;
+    }
+
+    /** @return the width of the row-number column (drawn column 0), after layout */
+    public double getRowNumberColumnWidth() {
+        ensureLayout();
+        return rowNumberWidth;
+    }
+
+    // ==================== Drawn grid ====================
+    //
+    // The canvas renders and hit-tests the table only through the "drawn grid": drawn row 0 is
+    // the column-header row, drawn rows 1..n the data rows; drawn column 0 is the row-number
+    // column (the corner cell in the header row), drawn columns 1..m the logical columns.
+    // Flipping rows and columns only changes this mapping.
+
+    /** What a drawn cell shows. */
+    public enum CellKind {
+        /** The top-left corner cell (the flip toggle). */
+        CORNER,
+        /** A column header cell. */
+        COLUMN_HEADER,
+        /** A row-number cell. */
+        ROW_NUMBER,
+        /** A data cell of a logical (row, column). */
+        DATA
+    }
+
+    /**
+     * A drawn cell: its kind and, for header/number/data cells, the logical row and column
+     * it stands for ({@code -1} when not applicable).
+     *
+     * @param kind        the kind of cell
+     * @param rowIndex    the logical data row (-1 for header cells)
+     * @param columnIndex the logical column (-1 for row-number cells)
+     */
+    public record DrawnCell(CellKind kind, int rowIndex, int columnIndex) {
+    }
+
+    /** @return the number of drawn columns (row-number column + logical columns) */
+    public int drawnColumnCount() {
+        return 1 + columns.size();
+    }
+
+    /** @return the number of drawn rows (column-header row + data rows) */
+    public int drawnRowCount() {
+        return 1 + rows.size();
+    }
+
+    /**
+     * @param dc a drawn column index
+     * @return the absolute x of the drawn column's left edge
+     */
+    public double drawnColumnX(int dc) {
+        ensureLayout();
+        double colX = x;
+        if (dc <= 0) {
+            return colX;
+        }
+        colX += rowNumberWidth;
+        for (int i = 0; i < dc - 1 && i < columns.size(); i++) {
+            colX += columns.get(i).getWidth();
+        }
+        return colX;
+    }
+
+    /**
+     * @param dc a drawn column index
+     * @return the drawn column's width
+     */
+    public double drawnColumnWidth(int dc) {
+        ensureLayout();
+        if (dc <= 0) {
+            return rowNumberWidth;
+        }
+        TableColumn col = getColumn(dc - 1);
+        return col != null ? col.getWidth() : 0;
+    }
+
+    /**
+     * @param dr a drawn row index
+     * @return the drawn row's top edge relative to the table top
+     */
+    public double drawnRowTop(int dr) {
+        ensureLayout();
+        return dr <= 0 ? 0 : ROW_HEIGHT + getRowTop(dr - 1);
+    }
+
+    /**
+     * @param dr a drawn row index
+     * @return the drawn row's height
+     */
+    public double drawnRowHeight(int dr) {
+        ensureLayout();
+        if (dr <= 0) {
+            return ROW_HEIGHT;
+        }
+        return dr - 1 < rows.size() ? rows.get(dr - 1).layoutHeight : 0;
+    }
+
+    /**
+     * @param dr a drawn row index
+     * @param dc a drawn column index
+     * @return the cell drawn there
+     */
+    public DrawnCell cellAt(int dr, int dc) {
+        if (dr <= 0) {
+            return dc <= 0 ? new DrawnCell(CellKind.CORNER, -1, -1)
+                    : new DrawnCell(CellKind.COLUMN_HEADER, -1, dc - 1);
+        }
+        return dc <= 0 ? new DrawnCell(CellKind.ROW_NUMBER, dr - 1, -1)
+                : new DrawnCell(CellKind.DATA, dr - 1, dc - 1);
+    }
+
+    /**
+     * @param px an absolute x
+     * @return the drawn column at that x, or -1 outside the table
+     */
+    public int drawnColumnAt(double px) {
+        ensureLayout();
+        if (px < x) {
+            return -1;
+        }
+        if (px < x + rowNumberWidth) {
+            return 0;
+        }
+        int logical = getColumnIndexAt(px);
+        return logical < 0 ? -1 : logical + 1;
+    }
+
+    /**
+     * @param dr a drawn row index
+     * @param dc a drawn column index
+     * @return the logical data row shown in that drawn cell, or {@code null} for header cells
+     */
+    public TableRow rowOfDrawn(int dr, int dc) {
+        DrawnCell cell = cellAt(dr, dc);
+        return cell.rowIndex() >= 0 && cell.rowIndex() < rows.size() ? rows.get(cell.rowIndex()) : null;
+    }
+
+    /**
+     * @param relY a y relative to the table top
+     * @return the drawn row at that y, or -1 outside the table
+     */
+    public int drawnRowAt(double relY) {
+        ensureLayout();
+        if (relY < 0) {
+            return -1;
+        }
+        if (relY < ROW_HEIGHT) {
+            return 0;
+        }
+        int logical = getRowIndexAtDataOffset(relY - ROW_HEIGHT);
+        return logical < 0 ? -1 : logical + 1;
     }
 
     /**
@@ -1528,35 +1625,6 @@ public class RepeatingElementsTable {
      */
     public void setHeight(double height) {
         this.height = height;
-    }
-
-    /**
-     * Checks if this table is expanded to show all rows.
-     *
-     * @return true if expanded, false if collapsed
-     */
-    public boolean isExpanded() {
-        return expanded;
-    }
-
-    /**
-     * Sets the expansion state of this table.
-     * Fires a property change event for "expanded".
-     *
-     * @param expanded true to expand, false to collapse
-     */
-    public void setExpanded(boolean expanded) {
-        boolean old = this.expanded;
-        this.expanded = expanded;
-        invalidateLayout();
-        pcs.firePropertyChange("expanded", old, expanded);
-    }
-
-    /**
-     * Toggles the expansion state of this table.
-     */
-    public void toggleExpanded() {
-        setExpanded(!expanded);
     }
 
     /**

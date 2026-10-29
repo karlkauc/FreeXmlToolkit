@@ -78,9 +78,9 @@ class GridCanvasLayoutTest {
         WaitForAsyncUtils.waitForFxEvents();
         FlatRow longRow = rowLabelled("long");
         TextBlock block = view.valueBlockOf(longRow);
-        assertTrue(view.contentWidth() >= view.nameColumnWidthValue() + block.width(),
-                "content width " + view.contentWidth() + " must cover name col "
-                        + view.nameColumnWidthValue() + " + value " + block.width());
+        assertTrue(view.contentWidth() >= view.valueXOf(longRow) + block.width(),
+                "content width " + view.contentWidth() + " must cover the value column at "
+                        + view.valueXOf(longRow) + " + value " + block.width());
     }
 
     @Test

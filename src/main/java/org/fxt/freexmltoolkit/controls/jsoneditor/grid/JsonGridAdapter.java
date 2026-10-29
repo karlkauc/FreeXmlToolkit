@@ -109,9 +109,54 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         row.setExpanded(expand);
         rows.add(row);
         if (node instanceof JsonArray array && isObjectTable(array)) {
-            return; // items are shown as an embedded table, not as rows
+            // Items are shown as an embedded table, not as rows; attachTables only reads this marker
+            row.setTableGroup(array.getPath(), array.getChildren());
+            return;
         }
         flattenChildren(node, depth + 1, row, rows);
+    }
+
+    /**
+     * One-line preview of a collapsed object/array: compact JSON cut off at the limit.
+     */
+    @Override
+    public String collapsedPreview(FlatRow row, int maxChars) {
+        if (!(row.getModelNode() instanceof JsonNode node)) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder(Math.min(maxChars + 16, 4096));
+        if (!appendPreview(node, sb, maxChars)) {
+            sb.append('…');
+        }
+        return sb.toString();
+    }
+
+    /** @return {@code false} once the limit was hit and the output is incomplete */
+    private static boolean appendPreview(JsonNode node, StringBuilder sb, int max) {
+        if (sb.length() >= max) {
+            return false;
+        }
+        if (node instanceof JsonPrimitive p) {
+            sb.append(p.isString() ? "\"" + p.getAsString() + "\"" : JsonGridRecord.cellText(p));
+            return sb.length() < max;
+        }
+        boolean array = node instanceof JsonArray;
+        sb.append(array ? '[' : '{');
+        boolean first = true;
+        for (JsonNode child : node.getChildren()) {
+            if (!first) {
+                sb.append(", ");
+            }
+            first = false;
+            if (!array) {
+                sb.append('"').append(child.getKey()).append("\": ");
+            }
+            if (!appendPreview(child, sb, max)) {
+                return false;
+            }
+        }
+        sb.append(array ? ']' : '}');
+        return sb.length() < max;
     }
 
     private static void flattenChildren(JsonNode container, int depth, FlatRow parent, List<FlatRow> rows) {
@@ -175,15 +220,17 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
     @Override
     public void attachTables(List<FlatRow> rows, Runnable onLayoutChanged) {
         for (FlatRow row : rows) {
-            if (row.getType() == FlatRow.RowType.JSON_ARRAY
-                    && row.getModelNode() instanceof JsonArray array && isObjectTable(array)) {
+            List<?> members = row.getTableMembers();
+            if (members != null) {
                 String label = row.getLabel();
                 int depth = row.getDepth();
                 // Built when the array is first expanded or drawn (FlatRow#setRepeatingTableFactory)
                 row.setRepeatingTableFactory(() -> {
                     List<JsonGridRecord> records = new ArrayList<>();
-                    for (JsonNode item : array.getChildren()) {
-                        records.add(new JsonGridRecord((JsonObject) item));
+                    for (Object item : members) {
+                        if (item instanceof JsonObject object) {
+                            records.add(new JsonGridRecord(object));
+                        }
                     }
                     return RepeatingElementsTable.ofRecords(label, records, depth, onLayoutChanged);
                 });

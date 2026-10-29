@@ -56,11 +56,16 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
      * repeating element groups (2+ siblings with the same tag name).
      */
     @Override
+    public String collapsedPreview(FlatRow row, int maxChars) {
+        return row.getModelNode() instanceof XmlNode node ? XmlNodePreview.of(node, maxChars) : null;
+    }
+
+    @Override
     public void attachTables(List<FlatRow> rows, Runnable onLayoutChanged) {
         for (FlatRow row : rows) {
             // flatten() already grouped the siblings; rescanning them per row cost tens of ms
             List<XmlElement> group = row.getRepeatingGroup();
-            if (group != null) {
+            if (group != null && !group.isEmpty()) {
                 // Built when the group is first expanded or drawn (FlatRow#setRepeatingTableFactory)
                 String label = row.getLabel();
                 int depth = row.getDepth();

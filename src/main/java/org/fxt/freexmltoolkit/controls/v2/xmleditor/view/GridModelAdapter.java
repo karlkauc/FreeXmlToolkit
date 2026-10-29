@@ -56,6 +56,20 @@ public interface GridModelAdapter<N> {
     default void installViewHooks(GridCanvasView<N> view) {
     }
 
+    /**
+     * One-line preview of a collapsed container row (XMLSpy's inline preview): a compact
+     * serialization of the node, cut off after about {@code maxChars} characters. The canvas
+     * caches the result on the row, so an implementation may serialize eagerly but must stop
+     * early at the limit (the root of a large document is collapsed on every load).
+     *
+     * @param row      a container row
+     * @param maxChars the soft length limit
+     * @return the preview text, or {@code null} for none
+     */
+    default String collapsedPreview(FlatRow row, int maxChars) {
+        return null;
+    }
+
     /** @return the model node behind a row */
     N nodeOf(FlatRow row);
 

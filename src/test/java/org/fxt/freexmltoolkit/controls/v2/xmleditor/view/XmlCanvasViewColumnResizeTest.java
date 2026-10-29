@@ -82,11 +82,10 @@ class XmlCanvasViewColumnResizeTest {
                 .findFirst().orElseThrow();
     }
 
-    /** @return the y (unscaled viewport units) of the column-header row's centre */
+    /** @return the y (unscaled viewport units) of the column-header row's centre (the table starts at the owner's top) */
     private double headerCenterY() {
         int idx = view.visibleRowList().indexOf(tableRow());
-        return view.rowTopAt(idx) + GridMetrics.ROW_HEIGHT
-                + RepeatingElementsTable.HEADER_HEIGHT + RepeatingElementsTable.ROW_HEIGHT / 2;
+        return view.rowTopAt(idx) + RepeatingElementsTable.ROW_HEIGHT / 2;
     }
 
     /** @return the x (model units) of column b's right edge */
@@ -116,7 +115,7 @@ class XmlCanvasViewColumnResizeTest {
                 "the narrower column wraps into more lines");
         assertNull(table.getSortedColumnName(), "a resize must not sort the column");
 
-        mouse(MouseEvent.MOUSE_MOVED, 300, 5, 0, true);
+        mouse(MouseEvent.MOUSE_MOVED, 2, 5, 0, true);
         assertEquals(Cursor.DEFAULT, view.canvasNode().getCursor());
     }
 

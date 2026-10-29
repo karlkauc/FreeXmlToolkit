@@ -164,8 +164,15 @@ public class FlatRow {
     private RepeatingElementsTable repeatingTable = null;
     /** Builds {@link #repeatingTable} on first use (see {@link #setRepeatingTableFactory}). */
     private java.util.function.Supplier<RepeatingElementsTable> repeatingTableFactory;
-    /** The same-name siblings this row stands for (2+), set by {@link #flatten}; null otherwise. */
-    private List<XmlElement> repeatingGroup;
+    /**
+     * The repeating group this row stands for as a table (the same-name sibling elements, the
+     * object items of a JSON array), set by the model's flatten pass; {@code null} for a plain row.
+     * {@code attachTables} only looks at this marker, so "flatten decides, attachTables obeys"
+     * holds for every model.
+     */
+    private List<?> tableMembers;
+    /** Stable key of the repeating group ({@code parent-path/name}, the array path), or {@code null}. */
+    private String tableGroupKey;
 
     /**
      * Index of this row's attribute within its parent element's attribute map.
@@ -174,10 +181,29 @@ public class FlatRow {
     private int attributeIndex = -1;
 
     /**
+     * 1-based position of this element among the same-named siblings that are shown as
+     * individual rows (XMLSpy's {@code <1>}, {@code <2>} numbering); 0 when the name is
+     * unique under its parent.
+     */
+    private int instanceIndex = 0;
+
+    // ==================== Transient view state (set by the canvas layout) ====================
+
+    /**
      * The measured, wrapped value text as laid out by the canvas (transient view state;
      * rows are rebuilt on every model change, so no invalidation is needed).
      */
     private TextBlock valueBlock;
+
+    /** Left edge of this row's name cell in content coordinates (set by the canvas layout). */
+    private double labelX;
+
+    /** Left edge of this row's value column / child block in content coordinates (set by the layout). */
+    private double valueX;
+
+    /** The one-line preview of a collapsed container, computed once per row by the adapter. */
+    private String collapsedPreview;
+    private boolean collapsedPreviewComputed;
 
     /** @return the canvas' laid-out value text, or {@code null} before layout */
     public TextBlock getValueBlock() {
@@ -187,6 +213,46 @@ public class FlatRow {
     /** @param valueBlock the laid-out value text */
     public void setValueBlock(TextBlock valueBlock) {
         this.valueBlock = valueBlock;
+    }
+
+    /** @return the left edge of the name cell (content x, after layout) */
+    public double getLabelX() {
+        return labelX;
+    }
+
+    /** @return the left edge of the value column; the child block of a container starts here */
+    public double getValueX() {
+        return valueX;
+    }
+
+    /**
+     * Sets the horizontal cell geometry of this row (called by the canvas layout pass).
+     *
+     * @param labelX left edge of the name cell
+     * @param valueX left edge of the value column
+     */
+    public void setCellGeometry(double labelX, double valueX) {
+        this.labelX = labelX;
+        this.valueX = valueX;
+    }
+
+    /**
+     * @return the cached one-line preview of this (collapsed) container, or {@code null}
+     *         when {@link #setCollapsedPreview} has not been called yet
+     */
+    public String getCollapsedPreview() {
+        return collapsedPreview;
+    }
+
+    /** @return whether the preview has been computed (it may legitimately be {@code null}) */
+    public boolean hasCollapsedPreview() {
+        return collapsedPreviewComputed;
+    }
+
+    /** @param preview the one-line preview to cache (may be {@code null}) */
+    public void setCollapsedPreview(String preview) {
+        this.collapsedPreview = preview;
+        this.collapsedPreviewComputed = true;
     }
 
     // ==================== Constructor ====================
@@ -379,9 +445,57 @@ public class FlatRow {
         this.repeatingTableFactory = factory;
     }
 
-    /** @return the same-name siblings this row represents as a table, or {@code null} for a plain row */
+    /**
+     * @return the same-name sibling elements this row represents as a table, or {@code null}
+     *         for a plain row (JSON table rows carry their items in {@link #getTableMembers()})
+     */
     public List<XmlElement> getRepeatingGroup() {
-        return repeatingGroup;
+        if (tableMembers == null) {
+            return null;
+        }
+        List<XmlElement> elements = new ArrayList<>(tableMembers.size());
+        for (Object member : tableMembers) {
+            if (member instanceof XmlElement el) {
+                elements.add(el);
+            }
+        }
+        return elements;
+    }
+
+    /** @return the model nodes of the repeating group shown as a table, or {@code null} for a plain row */
+    public List<?> getTableMembers() {
+        return tableMembers;
+    }
+
+    /** @return the stable key of the repeating group, or {@code null} for a plain row */
+    public String getTableGroupKey() {
+        return tableGroupKey;
+    }
+
+    /**
+     * Marks this row as the owner of a repeating group rendered as an embedded table.
+     *
+     * @param groupKey stable key of the group (used for the per-group table/standard toggle)
+     * @param members  the group's model nodes, in document order
+     */
+    public void setTableGroup(String groupKey, List<?> members) {
+        this.tableGroupKey = groupKey;
+        this.tableMembers = members;
+    }
+
+    /** @return whether this row stands for a repeating group (whether or not its table is built yet) */
+    public boolean isTableGroupOwner() {
+        return tableMembers != null;
+    }
+
+    /** @return the 1-based {@code <n>} instance number, or 0 when the name is unique under the parent */
+    public int getInstanceIndex() {
+        return instanceIndex;
+    }
+
+    /** @param instanceIndex the 1-based instance number (0 = none) */
+    public void setInstanceIndex(int instanceIndex) {
+        this.instanceIndex = instanceIndex;
     }
 
     /** Runs {@code setup} on the table now if it exists, or as soon as it is built. */
@@ -495,7 +609,7 @@ public class FlatRow {
         // Children start COLLAPSED (expandByDefault=false) so the user can expand on demand.
         for (XmlNode child : element.getChildren()) {
             if (child instanceof XmlElement childEl) {
-                flattenElement(childEl, 0, rootRow, rows, false);
+                flattenElement(childEl, 0, rootRow, rows, false, ALWAYS_TABLE);
             } else if (child instanceof XmlText text) {
                 if (text.getText() != null && !text.getText().isBlank()) {
                     rows.add(new FlatRow(RowType.TEXT, 0, text, rootRow,
@@ -530,10 +644,27 @@ public class FlatRow {
      * @return ordered list of FlatRows representing the entire document
      */
     public static List<FlatRow> flatten(XmlDocument document) {
+        return flatten(document, ALWAYS_TABLE);
+    }
+
+    /** Every repeating group is shown as a table (the default and the rule inside table cells). */
+    public static final java.util.function.Predicate<String> ALWAYS_TABLE = key -> true;
+
+    /**
+     * Flattens the document, rendering each run of 2+ same-named sibling elements either as one
+     * table-owner row (when {@code groupAsTable} accepts the group's key) or as individual rows
+     * numbered {@code <1>}, {@code <2>}, … (XMLSpy's "standard" display of a repeating group).
+     *
+     * @param document     the XML document to flatten
+     * @param groupAsTable decides per group key ({@code parent-xpath/name}) whether the group
+     *                     becomes an embedded table
+     * @return ordered list of FlatRows representing the entire document
+     */
+    public static List<FlatRow> flatten(XmlDocument document, java.util.function.Predicate<String> groupAsTable) {
         List<FlatRow> rows = new ArrayList<>();
         for (XmlNode child : document.getChildren()) {
             if (child instanceof XmlElement element) {
-                flattenElement(element, 0, null, rows, true);
+                flattenElement(element, 0, null, rows, true, groupAsTable);
             } else if (child instanceof XmlComment comment) {
                 rows.add(new FlatRow(RowType.COMMENT, 0, comment, null, null, comment.getText(), 0));
             } else if (child instanceof XmlProcessingInstruction pi) {
@@ -552,9 +683,11 @@ public class FlatRow {
      * @param parentRow       parent FlatRow (null for root elements)
      * @param rows            accumulator list
      * @param expandByDefault whether this element should start expanded
+     * @param groupAsTable    per group key, whether a repeating group becomes a table
      */
     private static void flattenElement(XmlElement element, int depth, FlatRow parentRow,
-                                       List<FlatRow> rows, boolean expandByDefault) {
+                                       List<FlatRow> rows, boolean expandByDefault,
+                                       java.util.function.Predicate<String> groupAsTable) {
         // Count only child nodes that will actually be rendered as separate rows.
         // Attributes are always shown inline and don't need expand/collapse.
         // Text nodes are only rendered as separate rows in mixed content (element has child elements),
@@ -595,20 +728,36 @@ public class FlatRow {
         }
 
         // Child nodes - recurse into elements, emit TEXT/COMMENT/CDATA/PI rows
+        String parentPath = null; // the group key prefix, computed once and only when needed
+        Map<String, Integer> instanceCounters = null;
         for (XmlNode child : element.getChildren()) {
             if (child instanceof XmlElement childElement) {
                 List<XmlElement> group = elementsByName.get(childElement.getName());
                 if (group.size() >= 2) {
-                    // One row for the whole group, at its first element; the others are skipped
-                    if (group.get(0) == childElement) {
-                        FlatRow tableRow = new FlatRow(RowType.ELEMENT, depth + 1, childElement,
-                                elementRow, childElement.getName(), null, group.size());
-                        tableRow.repeatingGroup = group;
-                        tableRow.setExpanded(false); // Default to collapsed, like non-repeating children
-                        rows.add(tableRow);
+                    if (parentPath == null) {
+                        parentPath = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath
+                                .positional(element);
+                        instanceCounters = new java.util.HashMap<>();
+                    }
+                    String groupKey = groupKey(parentPath, childElement.getName());
+                    if (groupAsTable.test(groupKey)) {
+                        // One row for the whole group, at its first element; the others are skipped
+                        if (group.get(0) == childElement) {
+                            FlatRow tableRow = new FlatRow(RowType.ELEMENT, depth + 1, childElement,
+                                    elementRow, childElement.getName(), null, group.size());
+                            tableRow.setTableGroup(groupKey, group);
+                            tableRow.setExpanded(false); // Default to collapsed, like non-repeating children
+                            rows.add(tableRow);
+                        }
+                    } else {
+                        // Standard display: every member is its own numbered row (<1>, <2>, …)
+                        int index = instanceCounters.merge(childElement.getName(), 1, Integer::sum);
+                        int before = rows.size();
+                        flattenElement(childElement, depth + 1, elementRow, rows, false, groupAsTable);
+                        rows.get(before).setInstanceIndex(index);
                     }
                 } else {
-                    flattenElement(childElement, depth + 1, elementRow, rows, false);
+                    flattenElement(childElement, depth + 1, elementRow, rows, false, groupAsTable);
                 }
             } else if (child instanceof XmlComment comment) {
                 rows.add(new FlatRow(RowType.COMMENT, depth + 1, comment, elementRow,
@@ -626,6 +775,15 @@ public class FlatRow {
                         null, text.getText().strip(), 0));
             }
         }
+    }
+
+    /**
+     * @param parentPath positional XPath of the parent element
+     * @param name       the repeated child name
+     * @return the stable key of a repeating group: {@code parent-xpath/name}
+     */
+    public static String groupKey(String parentPath, String name) {
+        return ("/".equals(parentPath) ? "" : parentPath) + "/" + name;
     }
 
     /**

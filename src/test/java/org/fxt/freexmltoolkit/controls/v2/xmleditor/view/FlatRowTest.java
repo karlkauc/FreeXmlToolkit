@@ -393,6 +393,43 @@ class FlatRowTest {
      * are collapsed into a single FlatRow with the group size as childCount.
      */
     @Test
+    void testRepeatingGroupCarriesAStableKeyAndItsMembers() {
+        XmlDocument document = new XmlDocument();
+        XmlElement root = new XmlElement("Root");
+        root.addChild(createElementWithText("Item", "A"));
+        root.addChild(createElementWithText("Item", "B"));
+        document.addChild(root);
+
+        FlatRow itemRow = FlatRow.flatten(document).get(1);
+        assertTrue(itemRow.isTableGroupOwner());
+        assertEquals("/Root/Item", itemRow.getTableGroupKey());
+        assertEquals(2, itemRow.getTableMembers().size());
+        assertEquals(2, itemRow.getRepeatingGroup().size());
+        assertEquals(0, itemRow.getInstanceIndex(), "a table owner is not numbered");
+    }
+
+    @Test
+    void testGroupShownAsStandardRowsIsNumbered() {
+        XmlDocument document = new XmlDocument();
+        XmlElement root = new XmlElement("Root");
+        root.addChild(createElementWithText("Item", "A"));
+        root.addChild(createElementWithText("Other", "X"));
+        root.addChild(createElementWithText("Item", "B"));
+        document.addChild(root);
+
+        List<FlatRow> rows = FlatRow.flatten(document, key -> !key.equals("/Root/Item"));
+
+        // Root, Item <1>, Other, Item <2>
+        assertEquals(4, rows.size());
+        assertEquals("Item", rows.get(1).getLabel());
+        assertEquals(1, rows.get(1).getInstanceIndex());
+        assertFalse(rows.get(1).isTableGroupOwner());
+        assertEquals("A", rows.get(1).getValue(), "members keep their own value");
+        assertEquals(0, rows.get(2).getInstanceIndex(), "a unique name is not numbered");
+        assertEquals(2, rows.get(3).getInstanceIndex());
+    }
+
+    @Test
     @DisplayName("Flatten detects repeating elements and creates single row per group")
     void testFlattenRepeatingElements() {
         XmlDocument document = new XmlDocument();

@@ -177,28 +177,39 @@ when you switch views.
 ### The Grid (Graphic view for XML)
 
 When an XML-instance document (XML, XSLT, or Schematron) is in the **Graphic** view, the editor
-shows the editable grid:
+shows the editable grid, laid out like XMLSpy's Grid View:
 
 - A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
   grids"* and offers the **zoom pill** (`− 100% +`), **Expand all** and **Collapse all**
   buttons that unfold or fold every container at once.
-- **Nothing is cut off.** Cells and rows take the width their content needs; long values
-  **wrap** onto further lines (the row grows) instead of being shortened with "…". Very wide
-  content is reached with the horizontal scrollbar (Shift+wheel).
+- **Nested containers.** Every element is a row with a **name cell** (expand arrow, type icon,
+  bold name) and, to its right, either its **value cell** or the **block** of its children. A
+  child block is docked at the parent's value column, so the structure reads as nested boxes;
+  an expanded container's name cell spans its whole child block. Each block has its own
+  name-column width (the widest name in it).
+- **Type icons** follow XMLSpy: `<>` element, `=` attribute, `Abc` text, `[ ]` CDATA, `<!`
+  comment, `<?` processing instruction. Colours come from the application theme (light/dark).
+- **Attributes always show** as `=` rows directly beneath their element - also while the
+  element itself is collapsed.
+- **Collapsed containers show a grey one-line preview** of their content (the markup without
+  whitespace, cut off with "…"); hovering the preview shows a longer excerpt as a tooltip.
+- **Counts.** A container's name is followed by its child count `(n)`; a repeating group shows
+  the number of its members and a small table glyph.
+- **Nothing is cut off.** Values take the width their content needs; long values **wrap** onto
+  further lines (the row grows). Very wide content is reached with the horizontal scrollbar
+  (Shift+wheel).
 - **Zoom** the whole grid - text, rows, icons and embedded tables - with **Ctrl+mouse wheel**,
   **Ctrl +** / **Ctrl −** (10 % steps, 50-300 %) or the `−`/`+` buttons; **Ctrl 0** or a
   click on the percentage resets to 100 %. The zoom factor is remembered across files, XML
   and JSON grids and restarts.
-- **Column widths** in embedded grids size themselves to their content; drag a column
+- **Repeating elements** (two or more siblings with the same name) are rendered as an
+  **embedded table beside the group's name cell**: one row per element (numbered in the
+  first column), one column per attribute (`=`) and child element (`<>`). Click a column
+  header to **sort** the group; cells with nested structure expand inline.
+- **Column widths** in embedded tables size themselves to their content; drag a column
   separator in the column-header row to resize a column (text re-wraps to the new width),
   and **double-click the separator** to return to automatic sizing. Dragged widths survive
   edits and undo.
-- Rows with a simple value are marked with a **`{}`** marker so you can tell value rows from
-  containers at a glance.
-- **Attributes always show** as `@name` rows directly beneath their element - also while the
-  element itself is collapsed.
-- Collapsed containers show a **"collapsed"** hint, so you always know there is hidden content.
-- Repeating elements are rendered as **embedded grids** (tables inside the row).
 - **Keyboard navigation** works as soon as the view opens (no click needed):
   **↑/↓** walk the rows, **→** expands a collapsed element, **←** collapses it (or jumps to
   the parent), **Enter** toggles a container / starts editing a value, **Home/End** jump to
