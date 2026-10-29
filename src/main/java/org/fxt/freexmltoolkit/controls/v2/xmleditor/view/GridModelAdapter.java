@@ -114,6 +114,23 @@ public interface GridModelAdapter<N> {
         return false;
     }
 
+    /**
+     * @param row a row
+     * @return the source line of the row's node (1-based; the start tag's line for an element,
+     *         its owner's for an attribute), 0 when unknown
+     */
+    default int sourceLine(FlatRow row) {
+        return 0;
+    }
+
+    /**
+     * @param row a table-owner row
+     * @return the source line of every member of its repeating group (0 = unknown), in row order
+     */
+    default int[] memberSourceLines(FlatRow row) {
+        return new int[0];
+    }
+
     /** @return the text put on the clipboard of a drag (the node serialized), or {@code null} */
     default String dragText(FlatRow row) {
         return null;

@@ -586,6 +586,10 @@ public class EditorHost extends BorderPane {
     public void setActiveProblems(java.util.List<ValidationProblem> problems) {
         activeProblems.setAll(problems);
         rebuildQuickFixGutter(problems);
+        // The Graphic (grid) view of the active document marks the rows with problems too
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab active && active.xmlGridView != null) {
+            active.xmlGridView.setProblems(problems);
+        }
     }
 
     // ----- quick fixes (SQF) ----------------------------------------------

@@ -346,6 +346,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private Color TABLE_ROW_HOVER;
     private Color TABLE_ROW_SELECTED;
     private Color TABLE_MISSING_BG;
+    private Color DANGER;
 
     /**
      * Assigns the light or dark grid palette from the {@link org.fxt.freexmltoolkit.controls.theme.DesignTokens}
@@ -395,6 +396,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         TABLE_ROW_HOVER = HOVERED_BG;
         TABLE_ROW_SELECTED = SELECTED_BG;
         TABLE_MISSING_BG = BG_CANVAS.color(theme);
+        DANGER = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.DANGER.color(theme);
     }
 
     /**
@@ -974,6 +976,56 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         drawInfo();
     }
 
+    // ==================== Validation markers ====================
+
+    /** Validation messages by 1-based source line ({@code null} = none / stale). */
+    private java.util.Map<Integer, List<String>> problemsByLine = null;
+
+    /**
+     * Shows validation problems in the grid: rows (and table rows) whose node starts on a line
+     * with a problem get a red marker and the messages as tooltip. The line numbers refer to the
+     * parsed text, so the markers are dropped on the first grid edit (they become stale) until
+     * the next validation publishes new ones.
+     *
+     * @param byLine messages per 1-based line; {@code null} or empty clears the markers
+     */
+    public void setProblems(java.util.Map<Integer, List<String>> byLine) {
+        problemsByLine = byLine == null || byLine.isEmpty() ? null : new java.util.HashMap<>(byLine);
+        render();
+    }
+
+    /** @return the problems of the row's own line, or {@code null} */
+    List<String> problemsOf(FlatRow row) {
+        if (problemsByLine == null) {
+            return null;
+        }
+        int line = adapter.sourceLine(row);
+        return line > 0 && !row.isTableGroupOwner() ? problemsByLine.get(line) : null;
+    }
+
+    /** @return the problems of a table row's member, or {@code null} */
+    private List<String> problemsOfMember(FlatRow owner, int memberIndex) {
+        if (problemsByLine == null) {
+            return null;
+        }
+        int[] lines = adapter.memberSourceLines(owner);
+        return memberIndex < lines.length && lines[memberIndex] > 0 ? problemsByLine.get(lines[memberIndex]) : null;
+    }
+
+    /** Draws the red problem marker ("!" in a circle) at the right end of a name cell's first line. */
+    private void drawProblemMarker(double rightX, double cy) {
+        double r = 6;
+        double cx = rightX - r - 4;
+        gc.setFill(DANGER);
+        gc.fillOval(cx - r, cy - r, 2 * r, 2 * r);
+        gc.setFill(ROW_BG_EVEN);
+        gc.setFont(ICON_FONT);
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.CENTER);
+        gc.fillText("!", cx, cy + 0.5);
+        gc.setTextAlign(TextAlignment.LEFT);
+    }
+
     // ==================== Scroll header ====================
 
     /** Height of the sticky scroll header (unscaled). */
@@ -1200,6 +1252,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             row.setTableGlyphX(Double.NaN);
         }
 
+        List<String> problems = problemsOf(row);
+        if (problems != null) {
+            drawProblemMarker(valueX, lineCenterY);
+        }
+
         // -- Value text (wrapped) or the grey one-line preview, clipped to the value cell --
         if (hasValueCell && row.getValueBlock() != null && !isEditingThisRowValue) {
             gc.save();
@@ -1207,7 +1264,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             gc.rect(valueX, top, right - valueX, own);
             gc.clip();
             gc.setFont(ROW_FONT);
-            if (showsPreview(row)) {
+            if (problems != null && !showsPreview(row)) {
+                gc.setFill(DANGER);
+            } else if (showsPreview(row)) {
                 gc.setFill(PREVIEW_TEXT);
             } else if (row.isLeafWithValue()) {
                 gc.setFill(row.getType().isJson() ? getRowValueColor(row.getType()) : TEXT_CONTENT);
@@ -1472,7 +1531,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     case CORNER -> drawCornerCell(colX, rowTop, colWidth, rowHeight);
                     case COLUMN_HEADER -> drawColumnHeaderCell(table, table.getColumn(cell.columnIndex()),
                             colX, rowTop, colWidth, rowHeight);
-                    case ROW_NUMBER -> drawRowNumberCell(table, cell.rowIndex(), colX, rowTop, colWidth, rowHeight);
+                    case ROW_NUMBER -> {
+                        drawRowNumberCell(table, cell.rowIndex(), colX, rowTop, colWidth, rowHeight);
+                        if (problemsOfMember(tableRow, cell.rowIndex()) != null) {
+                            drawProblemMarker(colX + colWidth + 14, rowTop + ROW_HEIGHT / 2);
+                        }
+                    }
                     case DATA -> drawDataCell(table, cell.rowIndex(), cell.columnIndex(),
                             colX, rowTop, colWidth, rowHeight);
                 }
@@ -2990,10 +3054,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     private void updatePreviewTooltip(int rowIndex, double mx, double my) {
         FlatRow target = null;
+        String text = null;
         if (rowIndex >= 0) {
             FlatRow row = visibleRows.get(rowIndex);
             double top = rowYPositions[rowIndex] - scrollOffsetY;
-            if (showsPreview(row) && mx >= row.getValueX() && my >= top && my < top + ROW_HEIGHT) {
+            List<String> problems = problemsOf(row);
+            if (problems != null && my >= top && my < top + ROW_HEIGHT) {
+                target = row;
+                text = String.join("\n", problems);
+            } else if (showsPreview(row) && mx >= row.getValueX() && my >= top && my < top + ROW_HEIGHT) {
                 target = row;
             }
         }
@@ -3005,7 +3074,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             Tooltip.uninstall(canvas, previewTooltip);
             return;
         }
-        String full = adapter.collapsedPreview(target, TOOLTIP_MAX_CHARS);
+        String full = text != null ? text : adapter.collapsedPreview(target, TOOLTIP_MAX_CHARS);
         previewTooltip.setText(full != null ? full : "");
         previewTooltip.setWrapText(true);
         previewTooltip.setMaxWidth(600);
@@ -3633,6 +3702,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Notifies the callback that the document was modified.
      */
     private void notifyDocumentModified() {
+        problemsByLine = null; // line numbers refer to the text before this edit
         if (onDocumentModified != null) {
             String serialized = adapter.serialize();
             onDocumentModified.accept(serialized);

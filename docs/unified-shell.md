@@ -249,6 +249,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   name and value are kept, attributes move into their element's attribute list. Containers
   with child elements keep their type. **Wrap in Element…** (**Ctrl+Alt+W**, context menu)
   puts a new parent element around the selected node. All of these are undoable.
+- **Validation markers.** After a validation (Validation panel), rows whose element has a
+  problem show a red **!** at the end of the name cell and a red value; hover the row for the
+  message. Problems inside a repeating group mark the member's row number. The markers clear
+  on the next grid edit and come back with the next validation.
 - **Scroll header.** While you scroll through a long element, a bar at the top shows the
   path of containers you are inside (`root › section › body`); click one to select it and
   scroll back to its start.

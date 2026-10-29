@@ -200,6 +200,26 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         return kinds.stream().map(ConvertNodeTypeCommand.Kind::label).toList();
     }
 
+    // ==================== Validation markers ====================
+
+    @Override
+    public int sourceLine(FlatRow row) {
+        return row.getModelNode() instanceof XmlElement el ? Math.max(0, el.getSourceLineNumber()) : 0;
+    }
+
+    @Override
+    public int[] memberSourceLines(FlatRow row) {
+        List<XmlElement> members = row.getRepeatingGroup();
+        if (members == null) {
+            return new int[0];
+        }
+        int[] lines = new int[members.size()];
+        for (int i = 0; i < lines.length; i++) {
+            lines[i] = Math.max(0, members.get(i).getSourceLineNumber());
+        }
+        return lines;
+    }
+
     // ==================== Drag & drop ====================
 
     /** @return the node a row stands for when dragged: attributes and table owners are not draggable */

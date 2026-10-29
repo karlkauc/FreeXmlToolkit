@@ -114,5 +114,31 @@ public class XmlGridView extends GridViewShell {
             }
         });
         installCanvas(view);
+        if (problems != null) {
+            view.setProblems(problems);
+        }
+    }
+
+    /** The last validation problems by line, re-applied when the canvas is rebuilt. */
+    private java.util.Map<Integer, java.util.List<String>> problems;
+
+    /**
+     * Shows the document's validation problems as markers in the grid.
+     *
+     * @param list the problems of the document (an empty list clears the markers)
+     */
+    public void setProblems(java.util.List<ValidationProblem> list) {
+        java.util.Map<Integer, java.util.List<String>> byLine = new java.util.HashMap<>();
+        if (list != null) {
+            for (ValidationProblem problem : list) {
+                if (problem.line() > 0) {
+                    byLine.computeIfAbsent(problem.line(), l -> new java.util.ArrayList<>()).add(problem.message());
+                }
+            }
+        }
+        problems = byLine.isEmpty() ? null : byLine;
+        if (canvasView != null) {
+            canvasView.setProblems(problems);
+        }
     }
 }
