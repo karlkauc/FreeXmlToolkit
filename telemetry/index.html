@@ -2276,7 +2276,7 @@ first start.</p>
 </tr>
 <tr>
 <td><code>meta.where</code></td>
-<td>Where in the app it happened, e.g. <code>uncaught</code>, <code>executor</code>, or the title of the error dialog.</td>
+<td>Where in the app it happened, e.g. <code>uncaught</code> (an exception no code handled), <code>executor</code> (a background task), <code>dialog.&lt;title&gt;</code> (an error dialog was shown; a dialog without a known cause carries the fixed code <code>ui.error_dialog</code> or <code>ui.action_failed</code>), or <code>log.&lt;class&gt;</code> / <code>logwarn.&lt;class&gt;</code> (the application logged an exception as an error / warning; the log message itself is never sent). The same exception is counted once, however many of these paths it passes.</td>
 </tr>
 </tbody>
 </table>
@@ -2293,6 +2293,18 @@ support); only other <code>runtime</code> failures have status <code>error</code
 <code>not_well_formed</code> with status <code>invalid_input</code> when the sample XML is not well-formed. A failed
 <strong>update check</strong> (<code>update_check</code>) names a fixed reason in <code>meta.reason</code>: <code>network</code> (no response),
 <code>http_&lt;status&gt;</code> (e.g. <code>http_403</code>), <code>empty</code>, <code>parse</code>, <code>no_version</code> or <code>exception</code>.</p>
+<p>Every feature action records <em>why</em> it failed the same way: the processor's error code or the
+exception class in <code>error_code</code>, a stack signature (<code>error_detail</code>, <code>error_hash</code>) for an app failure,
+and status <code>invalid_input</code> when the user's document, stylesheet, schema or environment was the cause
+(not well-formed input, a missing or unreadable file, an unreachable host). This applies to
+<code>xslt_transform</code>, <code>sign</code>, <code>verify_signature</code>, <code>create_certificate</code>, <code>schema_analysis</code>, <code>xsd_generate</code>,
+<code>sample_generate</code>, <code>spreadsheet_convert</code>, <code>format</code> (<code>meta.mode</code> = <code>format</code> or <code>minify</code>),
+<code>schematron_check</code>, <code>quick_fix</code> (a fix that does not apply to the document is <code>invalid_input</code>, a
+skipped one <code>cancelled</code> with <code>meta.reason</code>), <code>replace</code> (<code>meta.kind</code> = <code>xpath</code>/<code>text</code>, <code>meta.scope</code> =
+<code>document</code>/<code>files</code>), <code>file_search</code> (<code>meta.kind</code>, files searched and files that could not be read),
+<code>debug_run</code> (<code>meta.language</code> = <code>xslt</code>/<code>xquery</code>/<code>schematron</code>, <code>meta.stage</code> = <code>start</code>/<code>run</code>, a stopped
+run is <code>cancelled</code>), <code>xsd_flatten</code>, <code>type_usages</code>, <code>schema_library</code> (<code>meta.action</code>), <code>template_insert</code>
+and <code>update_apply</code>. A dialog that belongs to such an action is not counted a second time.</p>
 <p>A <strong>PDF generation</strong> (<code>fop_pdf</code>) names the stage that ran last in <code>meta.stage</code> (<code>transform</code> = the
 XSLT run that produces the XSL-FO, <code>render</code> = Apache FOP rendering it) and, for a failure, the
 processor's error code or the exception class in <code>error_code</code>. A stylesheet that does not compile
@@ -2331,7 +2343,7 @@ events are sent per session.</p>
 </tr>
 <tr>
 <td><code>file_open</code>, <code>view_mode</code>, <code>validate</code>, <code>schema_analysis</code>, <code>schema_bind</code></td>
-<td>How long opening a document, switching to the Text/Tree/Graphic view, validating or analyzing took, and the document size. <code>schema_bind</code> tells how a schema was found for an opened document (<code>declared</code>, <code>library</code>, <code>catalog</code>, <code>manual</code> or <code>none</code>); when a referenced schema could not be bound, it names the source that was tried and the reason in <code>meta.failure</code> (<code>unresolved</code> = the reference could not be resolved or reached, <code>unloadable</code> = the schema was found but could not be loaded) and the <em>form</em> of the reference in <code>meta.ref_kind</code> (<code>http</code>, <code>file</code>, <code>relative</code>, <code>urn</code> or <code>other</code>) — never the location itself. A <code>relative</code> reference that cannot be resolved names a file missing next to the document and is sent with status <code>invalid_input</code>. A file that is not opened because of its size is recorded as <code>file_open</code> with status <code>cancelled</code> (the user declined the large-file warning) or <code>unsupported</code> (it does not fit into the memory limit), its size, <code>meta.reason=too_large</code> and the memory limit (<code>meta.heap_max_mb</code>).</td>
+<td>How long opening a document, switching to the Text/Tree/Graphic view, validating or analyzing took, and the document size. <code>schema_bind</code> tells how a schema was found for an opened document (<code>declared</code>, <code>library</code>, <code>catalog</code>, <code>manual</code> or <code>none</code>); when a referenced schema could not be bound, it names the source that was tried and the reason in <code>meta.failure</code> (<code>unresolved</code> = the reference could not be resolved or reached, <code>unloadable</code> = the schema was found but could not be loaded) and the <em>form</em> of the reference in <code>meta.ref_kind</code> (<code>http</code>, <code>file</code>, <code>relative</code>, <code>urn</code> or <code>other</code>) — never the location itself. A <code>relative</code> reference that cannot be resolved names a file missing next to the document and is sent with status <code>invalid_input</code>. A file that cannot be read is recorded as <code>file_open</code> with status <code>invalid_input</code> (missing, unreadable or not decodable: the exception class in <code>error_code</code>) or <code>error</code> (an app failure, with its stack signature); a file that cannot be written is <code>file_save</code> with the same classification. A validation that could not run — the schema or Schematron does not load, or the validator itself failed — is <code>validate</code> with status <code>invalid_input</code> or <code>error</code> and the error code; problems <em>in</em> the document are <code>error_count</code> on a status <code>ok</code> event. A file that is not opened because of its size is recorded as <code>file_open</code> with status <code>cancelled</code> (the user declined the large-file warning) or <code>unsupported</code> (it does not fit into the memory limit), its size, <code>meta.reason=too_large</code> and the memory limit (<code>meta.heap_max_mb</code>).</td>
 </tr>
 <tr>
 <td><code>ui_stall</code></td>
