@@ -4412,7 +4412,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 </tr>
 <tr>
 <td><strong>Status bar</strong> (bottom)</td>
-<td>Caret position (Ln/Col), character count, file type, the XSD / IntelliSense indicator, the encoding label (UTF-8), the last recorded run (Developer feature), a memory indicator and the active file's path (see <a href="#status-bar">Status Bar</a>).</td>
+<td>Caret position (Ln/Col), character count, file type, the XSD / IntelliSense indicator, the encoding label (the charset the file was read in and is saved in, e.g. UTF-8 or ISO-8859-1), the last recorded run (Developer feature), a memory indicator and the active file's path (see <a href="#status-bar">Status Bar</a>).</td>
 </tr>
 </tbody>
 </table>
@@ -6620,7 +6620,11 @@ for JSON documents) from
 your file manager onto it to bind the schema to the active document in one move - it
 glows <strong>green</strong> while a loadable file hovers over it and <strong>red</strong> for a wrong file type
 (which is rejected).
-- An <strong>encoding label</strong> (<strong>UTF-8</strong>).
+- An <strong>encoding label</strong>: the character encoding the file was read in - taken from a byte order
+  mark or the XML declaration's <code>encoding="…"</code>, otherwise <strong>UTF-8</strong> (a file that is not valid
+  UTF-8 and declares nothing is read as <strong>windows-1252</strong>). Saving writes the file back in that
+  encoding; change the <code>encoding</code> of the XML declaration to save in another one. Characters the
+  encoding cannot hold are saved as character references such as <code>&amp;#x20AC;</code>.
 - A <strong>last run</strong> item (right-hand side) showing the last recorded XSLT/XQuery/validation run -
   it appears only while <strong>Record execution statistics</strong> (Settings → <strong>DEVELOPER</strong>) is on;
   <strong>click it</strong> to open the <strong>Execution Statistics</strong> tool tab.
