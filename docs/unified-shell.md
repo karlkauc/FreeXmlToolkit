@@ -240,6 +240,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   the parent), **Space** or **Enter** toggles a container (on a leaf row Enter starts renaming it),
   **Home/End** jump to the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**,
   **Ctrl+D** (duplicate) and **Delete** act on the selected node.
+- **Several rows at once.** **Ctrl+click** adds or removes a row from the selection,
+  **Shift+click** selects every sibling between the selected row and the clicked one.
+  **Shift+click on the arrow** of a selected row expands or collapses all selected rows.
 - **Expand Fully** (**Ctrl+Shift++**) opens the selected container with everything below it;
   **Collapse Unselected** (**Ctrl+Shift+−**) folds every container except the path to the
   selection. Both, plus **Expand All / Collapse All**, are in the context menu. The expanded

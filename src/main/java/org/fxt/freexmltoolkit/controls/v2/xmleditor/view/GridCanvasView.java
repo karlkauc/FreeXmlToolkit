@@ -194,6 +194,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // ==================== Selection / Hover State ====================
 
     private FlatRow selectedRow = null;
+    /**
+     * All selected rows (Ctrl+click adds/removes, Shift+click selects a sibling range); the
+     * primary selection {@link #selectedRow} is always part of it. Shift+click on the expand
+     * arrow of a selected row expands/collapses every selected row (XMLSpy).
+     */
+    private final List<FlatRow> multiSelection = new ArrayList<>();
     private FlatRow hoveredRow = null;
     /** The row whose expand arrow is under the pointer. */
     private FlatRow hoveredExpandBar = null;
@@ -710,8 +716,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
         selectedRow = restoredSelection;
+        multiSelection.clear();
         if (selectedRow != null) {
             selectedRow.setSelected(true);
+            multiSelection.add(selectedRow);
         }
         hoveredRow = null;
         hoveredExpandBar = null;
@@ -3003,6 +3011,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Check if clicking on the expand arrow
         FlatRow expandBarRow = findExpandBarAt(mx, my);
+        if (expandBarRow != null && event.isShiftDown() && multiSelection.size() > 1
+                && multiSelection.contains(expandBarRow)) {
+            // Shift+click on a selected row's arrow: all selected rows follow (XMLSpy)
+            setExpandedAll(multiSelection, !expandBarRow.isExpanded());
+            return;
+        }
         if (expandBarRow != null) {
             FlatRow.toggleExpand(expandBarRow, allRows);
             recalculateVisibleRows();
@@ -3073,7 +3087,58 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
 
+        if (event.getClickCount() == 1 && (event.isShortcutDown() || event.isShiftDown()) && selectedRow != null) {
+            extendSelection(clickedRow, event.isShiftDown());
+            return;
+        }
         selectRow(clickedRow);
+    }
+
+    /**
+     * Ctrl+click toggles a row in the multi-selection; Shift+click selects every visible sibling
+     * between the primary selection and the clicked row (both must share the parent).
+     */
+    private void extendSelection(FlatRow clicked, boolean range) {
+        if (range) {
+            FlatRow anchor = selectedRow;
+            if (anchor.getParentRow() != clicked.getParentRow()) {
+                selectRow(clicked);
+                return;
+            }
+            int a = visibleRows.indexOf(anchor);
+            int b = visibleRows.indexOf(clicked);
+            for (int i = Math.min(a, b); i <= Math.max(a, b); i++) {
+                FlatRow row = visibleRows.get(i);
+                if (row.getParentRow() == anchor.getParentRow() && !multiSelection.contains(row)) {
+                    multiSelection.add(row);
+                    row.setSelected(true);
+                }
+            }
+        } else if (multiSelection.contains(clicked) && clicked != selectedRow) {
+            multiSelection.remove(clicked);
+            clicked.setSelected(false);
+        } else if (!multiSelection.contains(clicked)) {
+            multiSelection.add(clicked);
+            clicked.setSelected(true);
+        }
+        render();
+    }
+
+    /** Expands or collapses every expandable row of the list (keeping the others' states). */
+    private void setExpandedAll(List<FlatRow> rows, boolean expanded) {
+        for (FlatRow row : List.copyOf(rows)) {
+            if (row.isExpandable() && row.isExpanded() != expanded) {
+                FlatRow.toggleExpand(row, allRows);
+            }
+        }
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
+    }
+
+    /** @return the selected rows, primary selection included (test hook) */
+    List<FlatRow> multiSelectionForTest() {
+        return List.copyOf(multiSelection);
     }
 
     private void handleContextMenu(MouseEvent event, double mx, double my) {
@@ -3468,6 +3533,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         if (selectedRow != null) {
             selectedRow.setSelected(false);
+        }
+        for (FlatRow other : multiSelection) {
+            other.setSelected(false);
+        }
+        multiSelection.clear();
+        if (row != null) {
+            multiSelection.add(row);
         }
 
         selectedRow = row;
