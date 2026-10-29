@@ -427,7 +427,7 @@ public final class DiffView extends Tab {
             if (leftSaveHandler != null) leftSaveHandler.accept(leftArea.getText());
             setDirty(0, false);
         } catch (Exception ex) {
-            showError("Could not save left side", ex.getMessage());
+            showError("Could not save left side", ex.getMessage(), ex);
         }
     }
 
@@ -436,7 +436,7 @@ public final class DiffView extends Tab {
             Files.writeString(rightFile.toPath(), rightArea.getText(), StandardCharsets.UTF_8);
             setDirty(1, false);
         } catch (IOException ex) {
-            showError("Could not save right side", ex.getMessage());
+            showError("Could not save right side", ex.getMessage(), ex);
         }
     }
 
@@ -482,11 +482,9 @@ public final class DiffView extends Tab {
         }
     }
 
-    private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, message == null ? "" : message);
-        alert.setTitle(title);
-        alert.setHeaderText(title);
-        alert.showAndWait();
+    private void showError(String title, String message, Throwable cause) {
+        // themed, and counted in the error telemetry like every other error dialog
+        org.fxt.freexmltoolkit.util.DialogHelper.showError(title, title, message == null ? "" : message, cause);
     }
 
     /** For tests: returns the chunks computed for the current text pair. */

@@ -109,10 +109,18 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
         logger.debug("Executing command: {}", command.getDescription());
 
         // Execute the command FIRST (this updates the model)
-        boolean success = command.execute();
+        boolean success;
+        try {
+            success = command.execute();
+        } catch (RuntimeException e) {
+            // reported here with the command's name (the FX uncaught handler would say only "uncaught")
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError(e, "command." + command.getClass().getSimpleName());
+            throw e;
+        }
 
         if (!success) {
             logger.warn("Command execution failed: {}", command.getDescription());
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError("command.failed", "command." + command.getClass().getSimpleName());
             return false;
         }
         org.fxt.freexmltoolkit.service.telemetry.EditStats.executed(telemetryDomain(), command.getClass());
@@ -187,6 +195,7 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
             // Restore command to undo stack if undo failed
             undoStack.push(command);
             logger.error("Undo failed: {}", command.getDescription());
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError("undo.failed", "command." + command.getClass().getSimpleName());
         }
 
         return success;
@@ -220,6 +229,7 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
             // Restore command to redo stack if execute failed
             redoStack.push(command);
             logger.error("Redo failed: {}", command.getDescription());
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError("redo.failed", "command." + command.getClass().getSimpleName());
         }
 
         return success;

@@ -1,7 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
 import java.util.Collection;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -77,11 +76,11 @@ public class SyntaxHighlightManagerV2 {
     public SyntaxHighlightManagerV2(CodeArea codeArea, long debounceMillis) {
         this.codeArea = codeArea;
         this.debounceMillis = debounceMillis;
-        this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        this.scheduler = org.fxt.freexmltoolkit.service.telemetry.ErrorReportingThreadPoolExecutor.scheduled(1, r -> {
             Thread t = new Thread(r, "SyntaxHighlightV2");
             t.setDaemon(true);
             return t;
-        });
+        }, "editor.highlight");
 
         // In viewport mode, re-highlight the newly visible region when the user scrolls.
         codeArea.estimatedScrollYProperty().addListener((obs, oldV, newV) -> {

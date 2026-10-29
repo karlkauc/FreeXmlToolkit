@@ -210,8 +210,11 @@ public class TextSearchPane extends VBox {
         PanelStatus.info(status, "Searching…");
         progress.beginIndeterminate(() -> cancelFlag.set(true));
         FxtGui.executorService.submit(() -> {
+            long t0 = System.nanoTime();
             List<FileSearchResult> results =
                     FileSearchRunner.search(root, query, buffers::get, null, cancelFlag::get);
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.filesSearched("text", results.size(),
+                    (int) results.stream().filter(r -> r.error() != null).count(), t0, cancelFlag.get());
             Platform.runLater(() -> {
                 if (gen != generation) {
                     return; // a newer search superseded this run
@@ -391,12 +394,15 @@ public class TextSearchPane extends VBox {
                 .map(o -> o.file().getFileName() + ": " + o.error())
                 .toList();
         if (problems.isEmpty()) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("text", "files", applied, null);
             PanelStatus.success(status, "Replaced " + applied + " match(es) in " + okFiles + " file(s)");
         } else {
+            // files that changed meanwhile or cannot be written: the environment, counted by the event
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("text", "files", applied, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("files_skipped"));
             PanelStatus.failure(status, "Replace in Files",
                     "Replaced " + applied + " match(es) in " + okFiles + " file(s); "
                             + problems.size() + " file(s) skipped:\n"
-                            + String.join("\n", problems));
+                            + String.join("\n", problems), false);
         }
     }
 

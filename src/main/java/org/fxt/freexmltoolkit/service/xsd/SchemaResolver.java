@@ -1035,6 +1035,7 @@ public class SchemaResolver {
 
             } catch (Exception e) {
                 logger.warn("Error resolving resource '{}': {}", systemId, e.getMessage());
+                org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "schema.resolve");
                 return null;
             }
         }
@@ -1213,6 +1214,7 @@ public class SchemaResolver {
             } catch (Exception e) {
                 logger.debug("Error resolving path '{}' with base '{}': {}",
                         systemId, baseURI, e.getMessage());
+                org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "schema.resolve_path");
                 return null;
             }
         }
@@ -1246,6 +1248,7 @@ public class SchemaResolver {
                     }
                     return Path.of(path);
                 } catch (Exception fallbackException) {
+                    org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(fallbackException, "schema.uri_to_path");
                     return null;
                 }
             }

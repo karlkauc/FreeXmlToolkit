@@ -161,11 +161,11 @@ public class FavoritesService {
 
     /** Writes the favorites file in order, off the calling thread. */
     private static final java.util.concurrent.ExecutorService WRITER =
-            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+            org.fxt.freexmltoolkit.service.telemetry.ErrorReportingThreadPoolExecutor.fixed(1, r -> {
                 Thread t = new Thread(r, "FavoritesWriter");
                 t.setDaemon(true);
                 return t;
-            });
+            }, "favorites.write");
 
     /** Serializes the favorites now (on the caller, so the snapshot is consistent) and queues the write. */
     private java.util.concurrent.Future<?> queueWrite() {

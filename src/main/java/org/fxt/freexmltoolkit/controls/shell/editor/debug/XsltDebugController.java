@@ -192,14 +192,18 @@ public final class XsltDebugController {
         if (args == null) {
             return;
         }
+        long startNanos = System.nanoTime();
+        final String languageName = language.name().toLowerCase(java.util.Locale.ROOT);
         String xslt;
         try {
             xslt = args.xsltSource().get();
         } catch (RuntimeException e) {
             XsltTransformationResult failure = XsltTransformationResult.error(
-                    "Could not read stylesheet: " + e.getMessage());
+                    "Could not read stylesheet: " + e.getMessage(), e);
             lastResult = failure;
             session.close();
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.debugStartFailed(languageName,
+                    org.fxt.freexmltoolkit.controls.shell.editor.TransformRunner.failureOf(failure));
             completionListeners.forEach(l -> l.accept(failure));
             return;
         }
@@ -254,14 +258,19 @@ public final class XsltDebugController {
                                 args.xml(), args.inputSystemId(), lastXslt, args.xsltSystemId(), args.parameters(),
                                 args.format(), session, this::publishMessage, moduleSnapshot::get);
             } catch (RuntimeException e) {
-                logger.warn("Debug run failed unexpectedly", e);
-                result = XsltTransformationResult.error("Debug run failed: " + e.getMessage());
+                // the debug_run event carries class + stack; the log line only the summary
+                logger.warn("Debug run failed unexpectedly: {}", e.toString());
+                result = XsltTransformationResult.error("Debug run failed: " + e.getMessage(), e);
                 if (session.getState() != DebugSession.State.IDLE) {
                     session.close();
                 }
             }
             lastResult = result;
             running.set(false);
+            boolean stopped = result != null && !result.isSuccess() && result.getErrorMessage() != null
+                    && result.getErrorMessage().contains("stopped");
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.debugRun(languageName, startNanos, stopped,
+                    org.fxt.freexmltoolkit.controls.shell.editor.TransformRunner.failureOf(result));
             for (Consumer<XsltTransformationResult> listener : completionListeners) {
                 try {
                     listener.accept(result);
@@ -289,7 +298,7 @@ public final class XsltDebugController {
             if (session.getState() != DebugSession.State.IDLE) {
                 session.close();
             }
-            return XsltTransformationResult.error(e.getMessage());
+            return XsltTransformationResult.error(e.getMessage(), e);
         }
         session.setSourceMapping(compiled.sourceMap());
         lastXslt = compiled.xslt(); // its namespaces serve watches and conditions

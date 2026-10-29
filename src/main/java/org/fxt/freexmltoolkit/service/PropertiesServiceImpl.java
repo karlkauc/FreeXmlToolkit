@@ -50,11 +50,11 @@ public class PropertiesServiceImpl implements PropertiesService {
      * re-encrypt every password, 10,000 PBKDF2 rounds each) on the calling thread - usually the UI.
      */
     private final java.util.concurrent.ScheduledExecutorService writer =
-            java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+            org.fxt.freexmltoolkit.service.telemetry.ErrorReportingThreadPoolExecutor.scheduled(1, r -> {
                 Thread t = new Thread(r, "PropertiesWriter");
                 t.setDaemon(true);
                 return t;
-            });
+            }, "properties.writer");
     private java.util.concurrent.ScheduledFuture<?> pendingSave;
     private boolean writing;
     /** Last-modified time and size of the file as last read or written: unchanged means no re-read. */
@@ -214,10 +214,10 @@ public class PropertiesServiceImpl implements PropertiesService {
                 Files.move(temp, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             }
         } catch (IOException | RuntimeException e) {
-            logger.error("Could not save settings to {}: {}", propertiesFile.getAbsolutePath(), e.getMessage());
             if (saveFailureReported.compareAndSet(false, true)) {
                 Telemetry.reportError(e, "properties.save");
             }
+            logger.error("Could not save settings to {}: {}", propertiesFile.getAbsolutePath(), e.getMessage());
         } finally {
             synchronized (diskLock) {
                 writing = false;

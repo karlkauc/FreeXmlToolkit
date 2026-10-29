@@ -65,8 +65,23 @@ public final class SampleXmlRunner {
      * @see #generate(File, boolean, int, boolean)
      */
     public static String generate(File xsd, boolean mandatoryOnly, int maxOccurrences, boolean realistic, Long seed) {
+        return generateResult(xsd, mandatoryOnly, maxOccurrences, realistic, seed).text();
+    }
+
+    /**
+     * A generated sample as shown to the user plus, for a failed run, its telemetry classification.
+     *
+     * @param text    the sample XML, an XML comment explaining a limit, or {@code "ERROR: …"}
+     * @param failure why the run failed ({@code null} = a sample was produced)
+     */
+    public record SampleRun(String text, org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure) {
+    }
+
+    /** As {@link #generate(File, boolean, int, boolean, Long)}, additionally reporting why a failed run failed. */
+    public static SampleRun generateResult(File xsd, boolean mandatoryOnly, int maxOccurrences, boolean realistic,
+                                           Long seed) {
         if (!xsd.isFile()) {
-            return "ERROR: file not found: " + xsd;
+            return new SampleRun("ERROR: file not found: " + xsd, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("file_not_found"));
         }
         try {
             XsdDocumentationService service = new XsdDocumentationService();
@@ -77,13 +92,13 @@ public final class SampleXmlRunner {
                 service.setSampleSeed(seed);
             }
             if (!realistic) {
-                return service.generateSampleXml(mandatoryOnly, maxOccurrences);
+                return new SampleRun(service.generateSampleXml(mandatoryOnly, maxOccurrences), null);
             }
             // Expand only the first root, not every global element (bounded memory for large schemas)
             service.loadSchema(XsdDocumentationService.MarkdownMode.ALL);
             String root = service.getDefaultRootElementName();
             if (root == null) {
-                return "<!-- No root element found in XSD -->";
+                return new SampleRun("<!-- No root element found in XSD -->", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("no_root_element"));
             }
             service.expandForSample(root, mandatoryOnly, XsdDocumentationService.MarkdownMode.ALL);
             var profile = new org.fxt.freexmltoolkit.domain.GenerationProfile("Realistic");
@@ -92,11 +107,14 @@ public final class SampleXmlRunner {
             var generator = seed != null
                     ? new org.fxt.freexmltoolkit.service.ProfiledXmlGeneratorService(seed)
                     : new org.fxt.freexmltoolkit.service.ProfiledXmlGeneratorService();
-            return generator.generateRealistic(profile, service.xsdDocumentationData, xsd.getAbsolutePath(), root);
+            return new SampleRun(generator.generateRealistic(profile, service.xsdDocumentationData,
+                    xsd.getAbsolutePath(), root), null);
         } catch (SampleXmlLimits.LimitExceededException e) {
-            return e.toXmlComment();
+            // the schema asks for more than the sample limits allow: not a failure of the app
+            return new SampleRun(e.toXmlComment(), new org.fxt.freexmltoolkit.service.telemetry.QueryFailure("limit_exceeded",
+                    org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.UNSUPPORTED, null));
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return new SampleRun("ERROR: " + e.getMessage(), org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
         }
     }
 }

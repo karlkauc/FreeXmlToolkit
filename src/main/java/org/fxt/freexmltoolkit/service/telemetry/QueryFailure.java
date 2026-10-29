@@ -40,6 +40,17 @@ public record QueryFailure(String errorCode, TelemetryEvent.Status status, Error
         if (t == null) {
             return UNKNOWN;
         }
+        // The classification travels with the action event; logging the throwable afterwards
+        // (the log bridge) must not count it a second time.
+        Telemetry.markReported(t);
+        return classify(t);
+    }
+
+    /** As {@link #of(Throwable)}, without marking the throwable as reported (a pure lookup). */
+    public static QueryFailure classify(Throwable t) {
+        if (t == null) {
+            return UNKNOWN;
+        }
         Throwable last = t;
         for (Throwable c = t; c != null && c != c.getCause(); c = c.getCause()) {
             // Checked first: FOP's SAX handler fails inside an identity transformation, which Saxon
@@ -57,6 +68,10 @@ public record QueryFailure(String errorCode, TelemetryEvent.Status status, Error
         }
         if (last instanceof org.xml.sax.SAXParseException) {
             return new QueryFailure("SAXParseException", TelemetryEvent.Status.INVALID_INPUT, null);
+        }
+        if (isEnvironmentFailure(last)) {
+            // a file the OS refuses or a text in an unexpected encoding: the user's environment
+            return new QueryFailure(last.getClass().getSimpleName(), TelemetryEvent.Status.INVALID_INPUT, null);
         }
         ErrorSignature signature = ErrorSignature.of(t);
         return new QueryFailure(signature.errorCode(), TelemetryEvent.Status.ERROR, signature);
@@ -89,6 +104,16 @@ public record QueryFailure(String errorCode, TelemetryEvent.Status status, Error
      */
     public static QueryFailure invalidInput(String code) {
         return new QueryFailure(code, TelemetryEvent.Status.INVALID_INPUT, null);
+    }
+
+    private static boolean isEnvironmentFailure(Throwable t) {
+        return t instanceof java.nio.file.FileSystemException
+                || t instanceof com.google.gson.JsonParseException
+                || t instanceof java.io.FileNotFoundException
+                || t instanceof java.nio.charset.CharacterCodingException
+                || t instanceof java.net.UnknownHostException
+                || t instanceof java.net.ConnectException
+                || t instanceof java.net.SocketTimeoutException;
     }
 
     private static String processorCode(Throwable t) {

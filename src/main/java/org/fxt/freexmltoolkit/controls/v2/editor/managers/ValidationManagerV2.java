@@ -120,7 +120,7 @@ public class ValidationManagerV2 {
             }
 
             return errors;
-        }, executor);
+        }, executor).whenComplete(org.fxt.freexmltoolkit.service.telemetry.Telemetry.whenComplete("editor.live_validation"));
     }
 
     /**
@@ -140,7 +140,7 @@ public class ValidationManagerV2 {
                 applyErrorHighlighting(errors);
                 fireValidationCompleted(errors);
             });
-        });
+        }).whenComplete(org.fxt.freexmltoolkit.service.telemetry.Telemetry.whenComplete("editor.live_validation"));
     }
 
     /**

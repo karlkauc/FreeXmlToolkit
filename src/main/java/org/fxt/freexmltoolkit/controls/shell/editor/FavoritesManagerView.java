@@ -244,7 +244,8 @@ public class FavoritesManagerView extends BorderPane {
     void cleanup() {
         try {
             FavoritesService.getInstance().cleanupNonExistentFiles();
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "favorites.cleanup"); // absent registry in tests is not reported by the no-op service
             // no store (tests)
         }
         refresh();
@@ -314,7 +315,8 @@ public class FavoritesManagerView extends BorderPane {
                     folders.add(folder);
                 }
             }
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "favorites.folders"); // absent registry in tests is not reported by the no-op service
             // no favorites store (tests) - empty view
         }
         folders.remove(UNCATEGORIZED);

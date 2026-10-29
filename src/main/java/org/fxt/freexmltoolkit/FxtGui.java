@@ -214,6 +214,8 @@ public class FxtGui extends Application {
             }
             IN_UNCAUGHT_HANDLER.set(Boolean.TRUE);
             try {
+                // Reported before it is logged: the log bridge then skips the already-reported throwable.
+                Telemetry.reportError(throwable, "uncaught");
                 try {
                     logger.error("Uncaught exception in thread '{}'", thread.getName(), throwable);
                     if (throwable != null && throwable.getStackTrace().length == 0) {
@@ -225,7 +227,6 @@ public class FxtGui extends Application {
                 } catch (Throwable ignored) {
                     // logging must not break the handler
                 }
-                Telemetry.reportError(throwable, "uncaught");
                 if (previous != null) {
                     previous.uncaughtException(thread, throwable);
                 }
@@ -408,6 +409,7 @@ public class FxtGui extends Application {
     /** Hides every showing window as the application quits; never throws. */
     private static void hideAllWindows() {
         shuttingDown = true;
+        Telemetry.markShuttingDown();
         try {
             for (javafx.stage.Window window : new java.util.ArrayList<>(javafx.stage.Window.getWindows())) {
                 window.hide();
@@ -664,6 +666,9 @@ public class FxtGui extends Application {
      * @param args command line arguments
      */
     public static void main(String[] args) {
+        // Every logged exception (WARN/ERROR with a throwable) reaches the error telemetry; reports
+        // made before the service is installed are buffered. First, so startup failures count too.
+        org.fxt.freexmltoolkit.service.telemetry.TelemetryLogAppender.install();
         org.fxt.freexmltoolkit.service.telemetry.StartupPhases.markMain();
 
         // Already running: hand the files to that instance instead of starting a second one.

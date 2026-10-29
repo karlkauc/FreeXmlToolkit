@@ -253,7 +253,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
                 updateCheckPerformed = true;
                 return cachedUpdateInfo;
             }
-        }, getExecutorService());
+        }, getExecutorService()).whenComplete(org.fxt.freexmltoolkit.service.telemetry.Telemetry.whenComplete("update.check"));
     }
 
     /**

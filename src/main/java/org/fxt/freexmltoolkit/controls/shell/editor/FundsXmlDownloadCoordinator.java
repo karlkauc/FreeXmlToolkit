@@ -126,6 +126,7 @@ public final class FundsXmlDownloadCoordinator {
                 logger.warn("FundsXML background download failed: {}", t.getMessage());
                 result = FundsXmlExtensionService.DownloadResult.builder()
                         .error("Download failed: " + t.getMessage())
+                        .cause(t)
                         .build();
             } finally {
                 running.set(false);

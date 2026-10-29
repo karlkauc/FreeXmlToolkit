@@ -111,12 +111,13 @@ public final class EditorActions {
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             File schema = schemaSupplier.get();
-            List<ValidationProblem> result = json
-                    ? ValidationRunner.validateJson(content, schema)
-                    : ValidationRunner.run(content, schema, schematron);
+            ValidationRunner.RunResult runResult = json
+                    ? new ValidationRunner.RunResult(ValidationRunner.validateJson(content, schema), null)
+                    : ValidationRunner.runWithReport(content, schema, schematron, null);
+            List<ValidationProblem> result = runResult.problems();
             boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
             UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
-                    docKind, content, result.size(), t0, false, false);
+                    docKind, content, result.size(), t0, runResult.failure(), false);
             Platform.runLater(() -> {
                 String summary = result.isEmpty()
                         ? (hasSchema ? "Valid" : WELL_FORMED_NO_SCHEMA)
@@ -126,6 +127,13 @@ public final class EditorActions {
                         result.size(), summary);
                 editorHost.openToolTab("Validation", "bi-check2-circle",
                         validationResultRegion(result, summary));
+                if (runResult.failed()) {
+                    // the validate event already carries the failure; the dialog explains it
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Validation",
+                            "Validation could not run.",
+                            "Check that the bound schema or Schematron loads, then validate again.",
+                            runResult.error(), false);
+                }
             });
         });
     }
@@ -282,8 +290,8 @@ public final class EditorActions {
                 probe.phase("Compile", fullResult.getCompilationTime());
                 probe.phase("Transform", fullResult.getTransformationTime());
             }
-            UsageEvents.xsltTransformed(1, t0, fullResult.isSuccess(), false,
-                    fullResult.getErrorCode(), fullResult.getErrorPhase(), xml.length());
+            UsageEvents.xsltTransformed(1, t0, false, fullResult.getErrorPhase(),
+                    TransformRunner.failureOf(fullResult), xml.length());
             long elapsedMs = probe.finish(xml.length(),
                     fullResult.isSuccess() ? result.length() : -1, fullResult.isSuccess(),
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));

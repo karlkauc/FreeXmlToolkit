@@ -213,7 +213,8 @@ public class EditorWelcomePane extends VBox {
                 categories.add(java.util.Map.entry(cat.name(),
                         org.fxt.freexmltoolkit.service.SkillTracker.getCategoryProgress(cat.name(), statsModel)));
             }
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "welcome.skills"); // absent registry in tests is not reported by the no-op service
             // no stats model available → omit the strip gracefully
         }
         return new TrendData(totals, categories);

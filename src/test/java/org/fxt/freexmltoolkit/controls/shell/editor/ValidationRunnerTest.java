@@ -149,6 +149,21 @@ class ValidationRunnerTest {
     }
 
     @Test
+    void schematronThatDoesNotLoadIsReportedAsFailureNotSilence(@TempDir Path tmp) throws Exception {
+        org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
+        Path sch = tmp.resolve("broken.sch");
+        Files.writeString(sch, "<sch:schema xmlns:sch=\"http://purl.oclc.org/dsdl/schematron\"><sch:pattern>");
+
+        ValidationRunner.RunResult result = ValidationRunner.runWithReport("<root/>", null, sch.toFile(), "doc.xml");
+
+        assertTrue(result.failed(), "the Schematron stage could not run");
+        assertNotNull(result.failure().status());
+        assertNotNull(result.error());
+        assertTrue(result.problems().stream().anyMatch(p -> "Schematron".equals(p.source())
+                && p.message().startsWith("Schematron could not be run")), result.problems().toString());
+    }
+
+    @Test
     void wellFormednessErrorsCarryTheirColumn() {
         org.fxt.freexmltoolkit.di.ServiceRegistry.initialize();
         List<ValidationProblem> problems = ValidationRunner.run("<root>\n  <a></b>\n</root>", null, null);

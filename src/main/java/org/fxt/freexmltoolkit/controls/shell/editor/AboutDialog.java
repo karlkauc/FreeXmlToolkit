@@ -276,7 +276,7 @@ public final class AboutDialog {
             org.fxt.freexmltoolkit.util.DialogHelper.showError("Update Failed",
                     "The update could not be started",
                     "The installation was changed while this window was open, probably by an update"
-                            + " started in another window.\n\nPlease close and restart FreeXmlToolkit.");
+                            + " started in another window.\n\nPlease close and restart FreeXmlToolkit.", e);
         }
     }
 

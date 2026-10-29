@@ -90,6 +90,25 @@ public final class UpdateFunnel {
      *
      * @param launched whether the updater took over
      */
+    /**
+     * The update failed after the download was complete (extraction, staging, launching the
+     * updater): {@code update_apply} with the failure's classification.
+     */
+    public static void applyFailed(String from, String to, Throwable error) {
+        QueryFailure failure = QueryFailure.of(error);
+        try {
+            Telemetry.get().trackAction("update_apply", b -> {
+                versions(b, from, to);
+                b.status(failure.status()).errorCode(failure.errorCode());
+                if (failure.signature() != null) {
+                    b.error(failure.signature());
+                }
+            });
+        } catch (Throwable ignored) {
+            // never disturb the update
+        }
+    }
+
     public static void applied(String from, String to, boolean launched) {
         try {
             Telemetry.get().trackAction("update_apply", b -> {

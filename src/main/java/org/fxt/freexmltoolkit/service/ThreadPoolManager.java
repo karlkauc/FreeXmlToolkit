@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.ScheduledExecutorService;
@@ -113,7 +112,7 @@ public class ThreadPoolManager {
         }, "threadpool.io");
 
         // Scheduled Executor - For timed/delayed operations
-        this.scheduledExecutor = Executors.newScheduledThreadPool(2, new ThreadFactory() {
+        this.scheduledExecutor = ErrorReportingThreadPoolExecutor.scheduled(2, new ThreadFactory() {
             private final AtomicInteger counter = new AtomicInteger(1);
 
             @Override
@@ -123,7 +122,7 @@ public class ThreadPoolManager {
                 t.setPriority(Thread.NORM_PRIORITY - 1);
                 return t;
             }
-        });
+        }, "threadpool.scheduled");
 
         // Background Executor - Low priority cleanup and maintenance
         this.backgroundExecutor = ErrorReportingThreadPoolExecutor.fixed(BACKGROUND_POOL_SIZE, new ThreadFactory() {
@@ -350,7 +349,7 @@ public class ThreadPoolManager {
             try {
                 task.run();
                 future.complete(null);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 future.completeExceptionally(e);
                 reportUnexpectedFailure(e, "threadpool.scheduled");
             } finally {
@@ -459,15 +458,7 @@ public class ThreadPoolManager {
      * unchanged.
      */
     private static void reportUnexpectedFailure(Throwable throwable, String where) {
-        Throwable t = throwable;
-        while ((t instanceof java.util.concurrent.CompletionException
-                || t instanceof java.util.concurrent.ExecutionException) && t.getCause() != null) {
-            t = t.getCause();
-        }
-        if (t instanceof java.util.concurrent.CancellationException || t instanceof InterruptedException) {
-            return;
-        }
-        Telemetry.reportError(t, where);
+        Telemetry.reportUnexpected(throwable, where);
     }
 
     private int getActiveThreadCount(ExecutorService executor) {
@@ -482,14 +473,14 @@ public class ThreadPoolManager {
      * This task periodically logs statistics about thread pool usage.
      */
     private void startPerformanceMonitoring() {
-        scheduledExecutor.scheduleAtFixedRate(() -> {
+        scheduledExecutor.scheduleAtFixedRate(Telemetry.guard("threadpool.monitor", () -> {
             if (logger.isDebugEnabled()) {
                 ThreadPoolStats stats = getStats();
                 logger.debug("Thread pool stats: Submitted={}, Completed={}, Failed={}, Running={}, AvgTime={}ms",
                         stats.tasksSubmitted, stats.tasksCompleted, stats.tasksFailed,
                         stats.runningTasks, stats.averageExecutionTimeMs);
             }
-        }, 30, 30, TimeUnit.SECONDS);
+        }), 30, 30, TimeUnit.SECONDS);
     }
 
     /**

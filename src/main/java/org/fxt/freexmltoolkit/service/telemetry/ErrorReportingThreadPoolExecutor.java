@@ -5,6 +5,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -51,12 +52,32 @@ public class ErrorReportingThreadPoolExecutor extends ThreadPoolExecutor {
                 new LinkedBlockingQueue<>(), factory, where);
     }
 
+    /**
+     * Drop-in replacement for {@code Executors.newScheduledThreadPool(n, factory)} /
+     * {@code newSingleThreadScheduledExecutor(factory)}. A scheduled pool wraps every task — also
+     * one given to {@code execute()} — in a {@code ScheduledFutureTask}, which swallows the
+     * exception and, for a periodic task, silently ends its schedule. This executor reports and
+     * logs such failures.
+     */
+    public static ScheduledThreadPoolExecutor scheduled(int threads, ThreadFactory factory, String where) {
+        return new Scheduled(threads, factory, where);
+    }
+
     @Override
     protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
+        reportFailedTask(r, t, where);
+    }
+
+    /**
+     * Reports the failure of a finished task: a plain {@code execute()}d Runnable that threw
+     * ({@code t != null}) terminates the worker thread and reaches the default
+     * uncaught-exception handler, which reports it — not counted here. A {@code submit()}ted
+     * task keeps its exception in the {@link Future}; it is unwrapped from the completed task
+     * (a later {@code get()} still throws the same {@link ExecutionException}).
+     */
+    static void reportFailedTask(Runnable r, Throwable t, String where) {
         if (t != null) {
-            // A plain execute()d Runnable threw: the exception terminates the worker thread and
-            // reaches the default uncaught-exception handler, which reports it — don't double count.
             return;
         }
         Throwable failure = null;
@@ -72,8 +93,24 @@ public class ErrorReportingThreadPoolExecutor extends ThreadPoolExecutor {
             }
         }
         if (failure != null && !(failure instanceof InterruptedException)) {
-            logger.warn("Unhandled exception in background task ({})", where, failure);
             Telemetry.reportError(failure, where);
+            logger.warn("Unhandled exception in background task ({})", where, failure);
+        }
+    }
+
+    /** The scheduled variant; see {@link #scheduled(int, ThreadFactory, String)}. */
+    static final class Scheduled extends ScheduledThreadPoolExecutor {
+        private final String where;
+
+        Scheduled(int threads, ThreadFactory factory, String where) {
+            super(threads, factory);
+            this.where = where;
+        }
+
+        @Override
+        protected void afterExecute(Runnable r, Throwable t) {
+            super.afterExecute(r, t);
+            reportFailedTask(r, t, where);
         }
     }
 }

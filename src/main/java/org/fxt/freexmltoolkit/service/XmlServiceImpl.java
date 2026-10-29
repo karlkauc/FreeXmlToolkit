@@ -828,6 +828,9 @@ public class XmlServiceImpl implements XmlService {
             String s = Files.readString(xml.toPath());
             return validateText(s, schemaFile);
         } catch (IOException ioException) {
+            // null = "could not validate"; an unreadable file is the environment, a decoding bug is counted
+            logger.warn("Could not read {} for validation: {}", xml, ioException.toString());
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(ioException, "xml.validate_file");
             return null;
         }
     }

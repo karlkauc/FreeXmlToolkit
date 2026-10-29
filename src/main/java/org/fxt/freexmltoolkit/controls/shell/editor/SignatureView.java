@@ -347,6 +347,7 @@ public class SignatureView extends ScrollPane {
             long t0 = System.nanoTime();
             String result;
             boolean ok = false;
+            org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
             try {
                 File signed = new SignatureService()
                         .signDocument(xml, keystore, ksPw, aliasName, aliasPw, output.getAbsolutePath(), type);
@@ -354,8 +355,9 @@ public class SignatureView extends ScrollPane {
                 ok = true;
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
+                failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e);
             }
-            UsageEvents.signed(t0, ok);
+            UsageEvents.signed(t0, failure);
             boolean success = ok;
             String finalResult = result;
             Platform.runLater(() -> {
@@ -370,7 +372,8 @@ public class SignatureView extends ScrollPane {
                         showValidateSignedLink(true);
                     }
                 } else {
-                    PanelStatus.failure(status, "Signing failed", finalResult);
+                    // the sign event already carries the failure
+                    PanelStatus.failure(status, "Signing failed", finalResult, false);
                 }
             });
         });
@@ -521,7 +524,9 @@ public class SignatureView extends ScrollPane {
             }
             SignatureService.ValidationOutcome result = outcome;
             UsageEvents.signatureVerified("basic",
-                    result.status().name().toLowerCase(java.util.Locale.ROOT), t0);
+                    result.status().name().toLowerCase(java.util.Locale.ROOT), t0,
+                    result.status() == SignatureService.ValidationStatus.ERROR
+                            ? org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(result.cause()) : null);
             Platform.runLater(() -> reportValidationOutcome(result));
         });
     }
@@ -537,24 +542,24 @@ public class SignatureView extends ScrollPane {
                     "The document no longer matches its signature — it was probably modified "
                             + "after signing. Re-sign the current content, or validate the original, "
                             + "unmodified file. \"Validate (Details)\" shows the signing certificate.",
-                    outcome.cause());
+                    outcome.cause(), false); // the user's document, counted by verify_signature
             case UNSUPPORTED_KEY_INFO -> PanelStatus.failure(status, "Signature validation failed",
                     outcome.message(),
                     "Validation uses the certificate embedded in the signature itself. Ask the "
                             + "sender for a signature that embeds its X.509 certificate (RSA key, "
                             + "SHA-256/512), or inspect the signature via \"Validate (Details)\". "
                             + "Files signed by this application always embed their certificate.",
-                    outcome.cause());
+                    outcome.cause(), false);
             case WEAK_ALGORITHM -> PanelStatus.failure(status, "Signature validation failed",
                     outcome.message(),
                     "SHA-1 signatures are rejected for security reasons. "
                             + "Re-sign the document with SHA-256 or SHA-512.",
-                    outcome.cause());
+                    outcome.cause(), false);
             case ERROR -> PanelStatus.failure(status, "Signature validation failed",
                     outcome.message(),
                     "Check that the file is well-formed XML and readable, then try again. "
                             + "The technical details below show the underlying cause.",
-                    outcome.cause());
+                    outcome.cause(), false); // verify_signature carries the failure
         }
     }
 
@@ -572,10 +577,15 @@ public class SignatureView extends ScrollPane {
         PanelStatus.info(status, "Validating…");
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
-            String report = SignatureActionRunner.describeSignature(xml);
-            UsageEvents.signatureVerified("details", report.startsWith("ERROR") ? "error" : "report", t0);
+            SignatureActionRunner.Report run = SignatureActionRunner.describeSignatureResult(xml);
+            String report = run.text();
+            UsageEvents.signatureVerified("details", run.failure() != null ? "error" : "report", t0, run.failure());
             Platform.runLater(() -> {
-                PanelStatus.success(status, "Validation report opened");
+                if (run.failure() != null) {
+                    PanelStatus.failure(status, "Signature validation failed", report, false);
+                } else {
+                    PanelStatus.success(status, "Validation report opened");
+                }
                 editorHost.openGeneratedDocument(report, EditorFileType.OTHER, "Signature-Report.txt");
             });
         });
@@ -606,13 +616,15 @@ public class SignatureView extends ScrollPane {
         FxtGui.executorService.submit(() -> {
             String result;
             File created = null;
+            org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
             try {
                 created = SignatureActionRunner.createKeystore(info, aliasName, ksPw, aliasPw);
                 result = "Created keystore: " + created.getAbsolutePath();
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
+                failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e);
             }
-            UsageEvents.certificateCreated(created != null);
+            UsageEvents.certificateCreated(failure);
             File ks = created;
             String finalResult = result;
             Platform.runLater(() -> {
@@ -620,7 +632,8 @@ public class SignatureView extends ScrollPane {
                     PanelStatus.success(status, finalResult);
                     setKeystore(ks); // ready to sign with the new keystore
                 } else {
-                    PanelStatus.failure(status, "Certificate creation failed", finalResult);
+                    // create_certificate already carries the failure
+                    PanelStatus.failure(status, "Certificate creation failed", finalResult, false);
                 }
             });
         });
@@ -667,6 +680,7 @@ public class SignatureView extends ScrollPane {
             long t0 = System.nanoTime();
             String report;
             String outcome;
+            Exception error = null;
             try {
                 java.security.KeyStore trustStore = loadTrustStore(store, storePassword);
                 SignatureTrustValidator.TrustResult result =
@@ -676,11 +690,20 @@ public class SignatureView extends ScrollPane {
             } catch (Exception e) {
                 report = "ERROR: " + e.getMessage();
                 outcome = "error";
+                error = e;
             }
-            UsageEvents.signatureVerified("trust", outcome, t0);
+            UsageEvents.signatureVerified("trust", outcome, t0,
+                    error != null ? org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(error) : null);
             String finalReport = report;
+            Exception failure = error;
             Platform.runLater(() -> {
-                PanelStatus.success(status, "Trust report opened");
+                if (failure != null) {
+                    // verify_signature carries the failure; the dialog explains it
+                    PanelStatus.failure(status, "Trust validation failed", "Trust validation could not run.",
+                            "Check the trust store file and its password, then try again.", failure, false);
+                } else {
+                    PanelStatus.success(status, "Trust report opened");
+                }
                 editorHost.openGeneratedDocument(finalReport, EditorFileType.OTHER, "Signature-Trust-Report.txt");
             });
         });

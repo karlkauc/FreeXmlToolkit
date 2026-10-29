@@ -271,8 +271,11 @@ public class XPathSearchPane extends VBox {
             PanelStatus.info(status, "Searching…");
             progress.beginIndeterminate(() -> cancelFlag.set(true));
             FxtGui.executorService.submit(() -> {
+                long t0 = System.nanoTime();
                 List<FileXPathResult> results = XPathBatchRunner.search(
                         root, globs(), query, buffers::get, null, cancelFlag::get);
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.filesSearched("xpath", results.size(),
+                        (int) results.stream().filter(r -> r.error() != null).count(), t0, cancelFlag.get());
                 Platform.runLater(() -> {
                     if (gen != generation) {
                         return;
@@ -438,8 +441,13 @@ public class XPathSearchPane extends VBox {
                 summary += " (" + result.subsumed() + " nested match(es) covered by their ancestor)";
             }
             PanelStatus.success(status, summary);
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("xpath", "document",
+                    result.plan().edits().size(), null);
         } catch (XPathEditException e) {
-            PanelStatus.failure(status, "XPath Replace", e.getMessage());
+            // the planner rejected the user's XPath / document: invalid_input, not an app error
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("xpath", "document", 0,
+                    org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("XPathEditException"));
+            PanelStatus.failure(status, "XPath Replace", e.getMessage(), false);
         }
     }
 
@@ -516,12 +524,14 @@ public class XPathSearchPane extends VBox {
                         .map(o -> o.file().getFileName() + ": " + o.error())
                         .toList();
                 if (problems.isEmpty()) {
+                    org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("xpath", "files", applied, null);
                     PanelStatus.success(status, "Replaced " + applied + " match(es) in "
                             + outcomes.size() + " file(s)");
                 } else {
+                    org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("xpath", "files", applied, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("files_skipped"));
                     PanelStatus.failure(status, "XPath Replace",
                             "Replaced " + applied + " match(es); " + problems.size()
-                                    + " file(s) skipped:\n" + String.join("\n", problems));
+                                    + " file(s) skipped:\n" + String.join("\n", problems), false);
                 }
             });
         });

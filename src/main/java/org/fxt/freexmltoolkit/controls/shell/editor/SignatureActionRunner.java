@@ -39,10 +39,27 @@ public final class SignatureActionRunner {
      * @return the report, or {@code "ERROR: …"}
      */
     public static String describeSignature(File signedFile) {
+        return describeSignatureResult(signedFile).text();
+    }
+
+    /** A report as shown to the user plus, for a failed check, its telemetry classification. */
+    public record Report(String text, org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure) {
+    }
+
+    /** As {@link #describeSignature(File)}, additionally reporting why a failed check failed. */
+    public static Report describeSignatureResult(File signedFile) {
         if (!signedFile.isFile()) {
-            return "ERROR: file not found: " + signedFile;
+            return new Report("ERROR: file not found: " + signedFile, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("file_not_found"));
         }
         try {
+            return new Report(describe(signedFile), null);
+        } catch (Exception e) {
+            return new Report("ERROR: " + e.getMessage(), org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
+        }
+    }
+
+    private static String describe(File signedFile) throws Exception {
+        {
             boolean valid = new SignatureService().isSignatureValid(signedFile);
             StringBuilder report = new StringBuilder();
             report.append("Signature: ").append(valid ? "VALID ✓" : "INVALID ✗").append('\n');
@@ -61,8 +78,6 @@ public final class SignatureActionRunner {
             }
             report.append("\nNot checked: certificate chain, trust anchor, revocation (OCSP/CRL), timestamp.\n");
             return report.toString();
-        } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
         }
     }
 

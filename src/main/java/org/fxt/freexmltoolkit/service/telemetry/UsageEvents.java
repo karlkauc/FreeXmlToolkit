@@ -177,6 +177,36 @@ public final class UsageEvents {
         action("file_save", b -> b.docKind(kind).fileCount(fileCount));
     }
 
+    /**
+     * A document could not be written.
+     *
+     * @param failure why (a file the OS refuses — missing folder, locked, read-only — is
+     *                {@code invalid_input}; anything else carries the exception class and stack)
+     */
+    public static void fileSaveFailed(DocKind kind, QueryFailure failure) {
+        action("file_save", b -> {
+            b.docKind(kind).fileCount(1);
+            outcome(b, failure != null ? failure : QueryFailure.UNKNOWN);
+        });
+    }
+
+    /**
+     * A document could not be read.
+     *
+     * @param inputBytes file size, negative = unknown
+     * @param failure    why (a missing or unreadable file is {@code invalid_input}; anything else
+     *                   carries the exception class and stack)
+     */
+    public static void fileOpenFailed(DocKind kind, long inputBytes, String source, QueryFailure failure) {
+        action("file_open", b -> {
+            b.docKind(kind).meta("source", source);
+            if (inputBytes >= 0) {
+                b.inputBytes(inputBytes);
+            }
+            outcome(b, failure != null ? failure : QueryFailure.UNKNOWN);
+        });
+    }
+
     /** The active document switched view mode ({@code text|tree|graphic|preview}). */
     public static void viewModeChanged(String mode, DocKind kind) {
         viewModeChanged(mode, kind, -1, 0);
@@ -283,8 +313,8 @@ public final class UsageEvents {
      * @param live       triggered by typing (throttled) rather than an explicit user action
      */
     public static void validated(String schema, DocKind kind, int errorCount, long startNanos,
-                                 boolean failed, boolean live) {
-        validated(schema, kind, -1, errorCount, startNanos, failed, live);
+                                 QueryFailure failure, boolean live) {
+        validated(schema, kind, -1, errorCount, startNanos, failure, live);
     }
 
     /**
@@ -293,8 +323,8 @@ public final class UsageEvents {
      * @param inputChars document size in characters (negative = unknown)
      */
     public static void validated(String schema, DocKind kind, long inputChars, int errorCount, long startNanos,
-                                 boolean failed, boolean live) {
-        validated(schema, kind, inputChars, null, errorCount, startNanos, failed, live);
+                                 QueryFailure failure, boolean live) {
+        validated(schema, kind, inputChars, null, errorCount, startNanos, failure, live);
     }
 
     /**
@@ -303,21 +333,27 @@ public final class UsageEvents {
      * is actually recorded, and only for the XML family).
      *
      * @param content the validated text (nullable: size and element count unknown)
+     * @param failure why the validation itself could not run (a schema that does not load is
+     *                {@code invalid_input}; anything else carries the exception class and stack
+     *                signature), or {@code null} when it ran — validation problems in the document
+     *                are {@code errorCount}, not a failure
      */
     public static void validated(String schema, DocKind kind, CharSequence content, int errorCount,
-                                 long startNanos, boolean failed, boolean live) {
+                                 long startNanos, QueryFailure failure, boolean live) {
         validated(schema, kind, content != null ? content.length() : -1,
                 content != null ? () -> elementCount(kind, content) : null,
-                errorCount, startNanos, failed, live);
+                errorCount, startNanos, failure, live);
     }
 
     private static void validated(String schema, DocKind kind, long inputChars, IntSupplier elementCount,
-                                  int errorCount, long startNanos, boolean failed, boolean live) {
-        if (live && !liveRunDue("validate")) {
-            return;
+                                  int errorCount, long startNanos, QueryFailure failure, boolean live) {
+        boolean failed = failure != null;
+        if (live && !failed && !liveRunDue("validate")) {
+            return; // a failed live run is never throttled away
         }
         action("validate", b -> {
-            b.docKind(kind).errorCount(errorCount).status(status(!failed)).meta("schema", schema);
+            b.docKind(kind).errorCount(errorCount).meta("schema", schema);
+            outcome(b, failure);
             if (inputChars >= 0) {
                 b.inputBytes(inputChars);
             }
@@ -368,11 +404,24 @@ public final class UsageEvents {
      * @param issueCount detected issues (errors, warnings and infos)
      */
     public static void schematronChecked(int issueCount, long startNanos) {
+        schematronChecked(issueCount, startNanos, null);
+    }
+
+    /**
+     * The Schematron rule checker ran over a document.
+     *
+     * @param failure why the checker itself failed, or {@code null} when it ran ({@code issueCount}
+     *                are findings in the document, not failures)
+     */
+    public static void schematronChecked(int issueCount, long startNanos, QueryFailure failure) {
         action("schematron_check", b -> {
             b.docKind(DocKind.SCHEMATRON).errorCount(issueCount);
+            outcome(b, failure);
             duration(b, startNanos);
         });
-        local(s -> s.trackFeatureUsed("schematron_validation"));
+        if (failure == null) {
+            local(s -> s.trackFeatureUsed("schematron_validation"));
+        }
     }
 
     // ------------------------------------------------------------------ transform / query
@@ -420,6 +469,48 @@ public final class UsageEvents {
             b.docKind(DocKind.XML).status(xsltStatus(ok, phase, errorCode)).meta("engine", "saxon");
             if (!ok) {
                 b.errorCode(errorCode).meta("phase", phase);
+            }
+            if (inputBytes >= 0) {
+                b.inputBytes(inputBytes);
+            }
+            if (fileCount > 1) {
+                b.fileCount(fileCount);
+            }
+            if (live) {
+                b.meta("trigger", "live");
+            }
+            duration(b, startNanos);
+        });
+        if (ok) {
+            local(UsageTrackingService::trackTransformation);
+        }
+    }
+
+    /**
+     * An XSLT transformation ran; a failed run is classified by {@code failure} (processor error
+     * code and, for an app failure, the stack signature). A failure in the {@code compile} or
+     * {@code input} phase is the user's stylesheet or source being broken, not the app.
+     *
+     * @param phase   failure phase {@code compile | input | runtime} (nullable)
+     * @param failure why it failed, or {@code null} when it succeeded
+     */
+    public static void xsltTransformed(int fileCount, long startNanos, boolean live, String phase,
+                                       QueryFailure failure, long inputBytes) {
+        if (live && !liveRunDue("xslt_transform")) {
+            return;
+        }
+        boolean ok = failure == null;
+        action("xslt_transform", b -> {
+            b.docKind(DocKind.XML).meta("engine", "saxon");
+            if (ok) {
+                b.status(TelemetryEvent.Status.OK);
+            } else {
+                TelemetryEvent.Status byPhase = xsltStatus(false, phase, failure.errorCode());
+                b.status(byPhase == TelemetryEvent.Status.INVALID_INPUT ? byPhase : failure.status())
+                        .errorCode(failure.errorCode()).meta("phase", phase);
+                if (failure.signature() != null) {
+                    b.error(failure.signature());
+                }
             }
             if (inputBytes >= 0) {
                 b.inputBytes(inputBytes);
@@ -556,11 +647,22 @@ public final class UsageEvents {
 
     /** A document was signed. */
     public static void signed(long startNanos, boolean ok) {
+        signed(startNanos, ok ? null : QueryFailure.UNKNOWN);
+    }
+
+    /**
+     * A document was signed.
+     *
+     * @param failure why signing failed (keystore, password, I/O: exception class and stack), or
+     *                {@code null} when it succeeded
+     */
+    public static void signed(long startNanos, QueryFailure failure) {
         action("sign", b -> {
-            b.docKind(DocKind.XML).status(status(ok));
+            b.docKind(DocKind.XML);
+            outcome(b, failure);
             duration(b, startNanos);
         });
-        if (ok) {
+        if (failure == null) {
             local(s -> s.trackSignatureOperation(true));
         }
     }
@@ -575,10 +677,20 @@ public final class UsageEvents {
      *                as {@code error_count=1}
      */
     public static void signatureVerified(String mode, String outcome, long startNanos) {
-        boolean ok = !"error".equals(outcome);
+        signatureVerified(mode, outcome, startNanos, "error".equals(outcome) ? QueryFailure.UNKNOWN : null);
+    }
+
+    /**
+     * A signature was verified; when the check itself failed ({@code outcome=error}),
+     * {@code failure} says why (exception class and stack; a document that is not XML is
+     * {@code invalid_input}).
+     */
+    public static void signatureVerified(String mode, String outcome, long startNanos, QueryFailure failure) {
+        boolean ok = failure == null && !"error".equals(outcome);
         action("verify_signature", b -> {
-            b.docKind(DocKind.XML).status(status(ok)).errorCount("valid".equals(outcome) || "report".equals(outcome) ? 0 : 1)
+            b.docKind(DocKind.XML).errorCount("valid".equals(outcome) || "report".equals(outcome) ? 0 : 1)
                     .meta("mode", mode).meta("outcome", outcome);
+            outcome(b, ok ? null : failure != null ? failure : QueryFailure.UNKNOWN);
             duration(b, startNanos);
         });
         if (ok) {
@@ -588,8 +700,13 @@ public final class UsageEvents {
 
     /** A signing certificate was created. */
     public static void certificateCreated(boolean ok) {
-        action("create_certificate", b -> b.status(status(ok)));
-        if (ok) {
+        certificateCreated(ok ? null : QueryFailure.UNKNOWN);
+    }
+
+    /** A signing certificate was created; {@code failure} says why it was not (nullable). */
+    public static void certificateCreated(QueryFailure failure) {
+        action("create_certificate", b -> outcome(b, failure));
+        if (failure == null) {
             local(s -> s.trackFeatureUsed("digital_signature"));
         }
     }
@@ -632,8 +749,34 @@ public final class UsageEvents {
      * @param status     {@code OK}, {@code ERROR} or {@code CANCELLED}
      */
     public static void schemaAnalyzed(long inputChars, long startNanos, TelemetryEvent.Status status) {
+        if (status == TelemetryEvent.Status.CANCELLED) {
+            schemaAnalysisCancelled(inputChars, startNanos);
+        } else {
+            schemaAnalyzed(inputChars, startNanos, status == TelemetryEvent.Status.OK ? null : QueryFailure.UNKNOWN);
+        }
+    }
+
+    /**
+     * The Schema Analysis tool ran.
+     *
+     * @param failure why it failed (a schema that does not parse is {@code invalid_input}; anything
+     *                else carries the exception class and stack), or {@code null} when it succeeded
+     */
+    public static void schemaAnalyzed(long inputChars, long startNanos, QueryFailure failure) {
         action("schema_analysis", b -> {
-            b.docKind(DocKind.XSD).status(status);
+            b.docKind(DocKind.XSD);
+            outcome(b, failure);
+            if (inputChars >= 0) {
+                b.inputBytes(inputChars);
+            }
+            duration(b, startNanos);
+        });
+    }
+
+    /** The user cancelled a Schema Analysis run. */
+    public static void schemaAnalysisCancelled(long inputChars, long startNanos) {
+        action("schema_analysis", b -> {
+            b.docKind(DocKind.XSD).status(TelemetryEvent.Status.CANCELLED);
             if (inputChars >= 0) {
                 b.inputBytes(inputChars);
             }
@@ -654,16 +797,24 @@ public final class UsageEvents {
      * @param invalidInput whether the failure is the user's input ({@code invalid_input})
      */
     public static void xsdGenerated(int fileCount, long startNanos, String errorCode, boolean invalidInput) {
-        boolean ok = errorCode == null;
+        xsdGenerated(fileCount, startNanos, errorCode == null ? null
+                : invalidInput ? QueryFailure.invalidInput(errorCode.isEmpty() ? null : errorCode)
+                : new QueryFailure(errorCode.isEmpty() ? null : errorCode, TelemetryEvent.Status.ERROR, null));
+    }
+
+    /**
+     * XSD(s) were generated from XML instance(s).
+     *
+     * @param failure why it failed (an instance that is not well-formed is {@code invalid_input};
+     *                anything else carries the exception class and stack), or {@code null} when it succeeded
+     */
+    public static void xsdGenerated(int fileCount, long startNanos, QueryFailure failure) {
         action("xsd_generate", b -> {
-            b.docKind(DocKind.XML).fileCount(fileCount).status(ok ? TelemetryEvent.Status.OK
-                    : invalidInput ? TelemetryEvent.Status.INVALID_INPUT : TelemetryEvent.Status.ERROR);
-            if (!ok && !errorCode.isEmpty()) {
-                b.errorCode(errorCode);
-            }
+            b.docKind(DocKind.XML).fileCount(fileCount);
+            outcome(b, failure);
             duration(b, startNanos);
         });
-        if (ok) {
+        if (failure == null) {
             local(UsageTrackingService::trackSchemaGeneration);
         }
     }
@@ -680,6 +831,23 @@ public final class UsageEvents {
      */
     public static void spreadsheetConverted(String direction, String format, TelemetryEvent.Status status,
                                             long startNanos, long inputBytes, String errorCode) {
+        spreadsheetConverted(direction, format, status, startNanos, inputBytes, errorCode, null);
+    }
+
+    /**
+     * The spreadsheet converter ran; a failed run carries the exception class and, for an app
+     * failure (status {@code error}), the stack signature of {@code error}.
+     *
+     * @param error the failure (nullable)
+     */
+    public static void spreadsheetConverted(String direction, String format, TelemetryEvent.Status status,
+                                            long startNanos, long inputBytes, Throwable error) {
+        spreadsheetConverted(direction, format, status, startNanos, inputBytes,
+                error != null ? error.getClass().getSimpleName() : null, error);
+    }
+
+    private static void spreadsheetConverted(String direction, String format, TelemetryEvent.Status status,
+                                             long startNanos, long inputBytes, String errorCode, Throwable error) {
         action("spreadsheet_convert", b -> {
             b.status(status).meta("direction", direction).meta("format", format);
             if (inputBytes >= 0) {
@@ -688,16 +856,39 @@ public final class UsageEvents {
             if (errorCode != null) {
                 b.errorCode(errorCode);
             }
+            if (error != null && status == TelemetryEvent.Status.ERROR) {
+                b.error(ErrorSignature.of(error));
+                Telemetry.markReported(error);
+            }
             duration(b, startNanos);
         });
     }
 
     /** The active document was pretty-printed. */
     public static void formatted(DocKind kind, boolean ok) {
-        action("format", b -> b.docKind(kind).status(status(ok)));
-        if (ok) {
+        formatted(kind, "format", ok ? null : QueryFailure.UNKNOWN);
+    }
+
+    /**
+     * The active document was rewritten as a whole.
+     *
+     * @param mode    {@code format} (pretty-print) or {@code minify}
+     * @param failure why it failed (a document that does not parse is {@code invalid_input}), or
+     *                {@code null} when it succeeded
+     */
+    public static void formatted(DocKind kind, String mode, QueryFailure failure) {
+        action("format", b -> {
+            b.docKind(kind).meta("mode", mode);
+            outcome(b, failure);
+        });
+        if (failure == null) {
             local(UsageTrackingService::trackFormatting);
         }
+    }
+
+    /** A format / minify run produced nothing to apply (the text changed meanwhile, or the result was empty). */
+    public static void formatSkipped(DocKind kind, String mode) {
+        action("format", b -> b.docKind(kind).meta("mode", mode).status(TelemetryEvent.Status.CANCELLED));
     }
 
     /**
@@ -706,8 +897,19 @@ public final class UsageEvents {
      * @param mode {@code basic | profiled}
      */
     public static void sampleGenerated(String mode, int fileCount, long startNanos, boolean ok) {
+        sampleGenerated(mode, fileCount, startNanos, ok ? null : QueryFailure.UNKNOWN);
+    }
+
+    /**
+     * Sample XML instance(s) were generated from a schema.
+     *
+     * @param failure why it failed (a schema that does not parse is {@code invalid_input}, a
+     *                sample beyond the size limits {@code unsupported}), or {@code null} when it succeeded
+     */
+    public static void sampleGenerated(String mode, int fileCount, long startNanos, QueryFailure failure) {
         action("sample_generate", b -> {
-            b.docKind(DocKind.XSD).fileCount(fileCount).status(status(ok)).meta("mode", mode);
+            b.docKind(DocKind.XSD).fileCount(fileCount).meta("mode", mode);
+            outcome(b, failure);
             duration(b, startNanos);
         });
     }
@@ -748,6 +950,122 @@ public final class UsageEvents {
     }
 
     /** A Schematron Quick Fix (SQF) was applied (counts as one corrected error locally). */
+    /**
+     * A quick fix was chosen but could not be applied.
+     *
+     * @param failure why: a fix the Schematron's SQF cannot compute for this document is
+     *                {@code invalid_input} ({@code SqfExecutionException}); anything else an app failure
+     */
+    public static void quickFixFailed(QueryFailure failure) {
+        action("quick_fix", b -> outcome(b, failure != null ? failure : QueryFailure.UNKNOWN));
+    }
+
+    /**
+     * A quick fix was chosen but not applied for a reason that is neither success nor failure.
+     *
+     * @param reason fixed code: {@code no_document}, {@code document_changed}, {@code cancelled}
+     */
+    public static void quickFixSkipped(String reason) {
+        action("quick_fix", b -> b.status(TelemetryEvent.Status.CANCELLED).meta("reason", reason));
+    }
+
+    /**
+     * A replace over search matches ran.
+     *
+     * @param kind    {@code xpath} or {@code text}
+     * @param scope   {@code document} (the active editor) or {@code files}
+     * @param count   replaced matches (or files)
+     * @param failure why it failed (an XPath the planner rejects is {@code invalid_input}), or {@code null}
+     */
+    public static void replaced(String kind, String scope, int count, QueryFailure failure) {
+        action("replace", b -> {
+            b.meta("kind", kind).meta("scope", scope).errorCount(0).fileCount(Math.max(count, 0));
+            outcome(b, failure);
+        });
+    }
+
+    /**
+     * A debugger run (XSLT, XQuery or Schematron) ended.
+     *
+     * @param language {@code xslt | xquery | schematron}
+     * @param stopped  the user stopped the run (status {@code cancelled})
+     * @param failure  why the run failed (stylesheet errors are {@code invalid_input}; an engine or
+     *                 debugger failure carries class + stack), or {@code null} when it completed
+     */
+    public static void debugRun(String language, long startNanos, boolean stopped, QueryFailure failure) {
+        action("debug_run", b -> {
+            b.meta("language", language).meta("stage", "run");
+            if (stopped) {
+                b.status(TelemetryEvent.Status.CANCELLED);
+            } else {
+                outcome(b, failure);
+            }
+            duration(b, startNanos);
+        });
+        if (!stopped && failure == null) {
+            local(s -> s.trackFeatureUsed("xslt_debugger"));
+        }
+    }
+
+    /** The debugger could not be started (stylesheet or input unreadable, no input document). */
+    public static void debugStartFailed(String language, QueryFailure failure) {
+        action("debug_run", b -> {
+            b.meta("language", language).meta("stage", "start");
+            outcome(b, failure != null ? failure : QueryFailure.UNKNOWN);
+        });
+    }
+
+    /** An XSD was flattened (includes resolved, optional reductions). */
+    public static void schemaFlattened(long startNanos, QueryFailure failure) {
+        action("xsd_flatten", b -> {
+            b.docKind(DocKind.XSD);
+            outcome(b, failure);
+            duration(b, startNanos);
+        });
+    }
+
+    /** "Find usages" of a type ran over the active schema. */
+    public static void typeUsagesSearched(int usages, long startNanos, QueryFailure failure) {
+        action("type_usages", b -> {
+            b.docKind(DocKind.XSD).errorCount(0).fileCount(Math.max(usages, 0));
+            outcome(b, failure);
+            duration(b, startNanos);
+        });
+    }
+
+    /**
+     * A Schema Library action ran.
+     *
+     * @param action  {@code materialize | open | refresh | import_catalog | reveal}
+     * @param failure why it failed (an unavailable remote schema is {@code invalid_input}), or {@code null}
+     */
+    public static void schemaLibraryAction(String action, QueryFailure failure) {
+        action("schema_library", b -> {
+            b.meta("action", action);
+            outcome(b, failure);
+        });
+    }
+
+    /**
+     * A search over the workspace files ran.
+     *
+     * @param kind       {@code text | xpath}
+     * @param files      files searched
+     * @param errorFiles files that could not be read or evaluated
+     */
+    public static void filesSearched(String kind, int files, int errorFiles, long startNanos, boolean cancelled) {
+        action("file_search", b -> {
+            b.meta("kind", kind).fileCount(Math.max(files, 0)).errorCount(Math.max(errorFiles, 0))
+                    .status(cancelled ? TelemetryEvent.Status.CANCELLED : TelemetryEvent.Status.OK);
+            duration(b, startNanos);
+        });
+    }
+
+    /** A template was rendered into the editor; {@code failure} says why it was not (nullable). */
+    public static void templateInserted(QueryFailure failure) {
+        action("template_insert", b -> outcome(b, failure));
+    }
+
     public static void quickFixApplied() {
         action("quick_fix", b -> b.docKind(DocKind.XML));
         local(s -> s.trackErrorCorrected(1));

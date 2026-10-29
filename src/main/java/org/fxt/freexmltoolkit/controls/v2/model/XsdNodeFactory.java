@@ -1906,7 +1906,8 @@ public class XsdNodeFactory {
 
             return result.toString().trim();
         } catch (Exception e) {
-            logger.warn("Failed to serialize inner XML: {}", e.getMessage());
+            // "" would drop the appinfo content on save: an error worth knowing about
+            logger.error("Failed to serialize inner XML", e);
             return "";
         }
     }

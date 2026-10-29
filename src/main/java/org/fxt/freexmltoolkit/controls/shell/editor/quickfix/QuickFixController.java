@@ -68,8 +68,9 @@ public final class QuickFixController {
     public void applyFix(ValidationProblem problem, SqfFixSuggestion fix) {
         String text = editorHost.getActiveText().orElse(null);
         if (text == null) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.quickFixSkipped("no_document");
             DialogHelper.showActionError("Quick Fix", "No editable document is active.",
-                    "Open the XML document the problem belongs to and re-run validation.");
+                    "Open the XML document the problem belongs to and re-run validation.", (String) null, false);
             return;
         }
         SqfCatalog catalog = SqfCatalogCache.forFile(fix.schematronFile());
@@ -82,6 +83,7 @@ public final class QuickFixController {
             Optional<Map<String, String>> prompted =
                     userEntryPrompt.prompt(fix.title(), entries, defaults);
             if (prompted.isEmpty()) {
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.quickFixSkipped("cancelled");
                 return; // cancelled
             }
             userValues = prompted.get();
@@ -93,15 +95,21 @@ public final class QuickFixController {
                 SqfEditPlan plan = SqfExecutionEngine.computeEdit(text, catalog, fix, values);
                 Platform.runLater(() -> applyPlan(text, plan));
             } catch (SqfExecutionException e) {
+                // the fix does not apply to this document: the Schematron's SQF, not the app
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.quickFixFailed(
+                        org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("SqfExecutionException"));
                 logger.info("Quick fix '{}' not applied: {}", fix.fixId(), e.getMessage());
                 Platform.runLater(() -> DialogHelper.showActionError("Quick Fix",
                         "The fix \"" + fix.title() + "\" could not be applied.",
-                        e.getMessage()));
+                        e.getMessage(), (String) null, false));
             } catch (Exception e) {
+                // classified first (quick_fix carries class + stack), then logged
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.quickFixFailed(
+                        org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
                 logger.warn("Quick fix '{}' failed", fix.fixId(), e);
                 Platform.runLater(() -> DialogHelper.showActionError("Quick Fix",
                         "The fix \"" + fix.title() + "\" failed unexpectedly.",
-                        "Re-validate the document and try again.", e));
+                        "Re-validate the document and try again.", e, false));
             }
         });
     }
@@ -109,9 +117,10 @@ public final class QuickFixController {
     private void applyPlan(String textAtCompute, SqfEditPlan plan) {
         String current = editorHost.getActiveText().orElse(null);
         if (current == null || !current.equals(textAtCompute)) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.quickFixSkipped("document_changed");
             DialogHelper.showActionError("Quick Fix",
                     "The document changed while the fix was being computed.",
-                    "Re-validate the document and apply the fix again.");
+                    "Re-validate the document and apply the fix again.", (String) null, false);
             return;
         }
         // merge all edits into one region → exactly one native undo entry
@@ -126,8 +135,11 @@ public final class QuickFixController {
             region.replace(edit.start() - start, edit.end() - start, edit.replacement());
         }
         if (!editorHost.replaceActiveTextRegion(start, end, region.toString())) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.quickFixFailed(
+                    new org.fxt.freexmltoolkit.service.telemetry.QueryFailure("editor_replace_failed",
+                            org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.ERROR, null));
             DialogHelper.showActionError("Quick Fix", "The fix could not be applied to the editor.",
-                    "Switch to the document's Text view and try again.");
+                    "Switch to the document's Text view and try again.", (String) null, false);
             return;
         }
         logger.info("Applied quick fix: {}", plan.fixTitle());

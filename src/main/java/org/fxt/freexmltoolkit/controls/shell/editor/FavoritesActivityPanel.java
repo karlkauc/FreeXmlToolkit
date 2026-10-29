@@ -206,7 +206,8 @@ public class FavoritesActivityPanel extends VBox {
                     folders.add(f);
                 }
             });
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "favorites.folders"); // absent registry in tests is not reported by the no-op service
             // no store (tests)
         }
         for (String folder : folders) {

@@ -54,6 +54,8 @@ public class XsltTransformationResult {
     // Machine-readable failure classification (safe for anonymous telemetry: no free text)
     private String errorCode;
     private String errorPhase;
+    /** The exception behind an unclassified failure (never sent as text; telemetry uses its stack signature). */
+    private Throwable cause;
     private long executionTime; // in milliseconds
     private LocalDateTime executedAt;
 
@@ -147,6 +149,22 @@ public class XsltTransformationResult {
         result.errorCode = errorCode;
         result.errorPhase = errorPhase;
         return result;
+    }
+
+    /** Create an error result for an unexpected exception, keeping it for diagnosis. */
+    public static XsltTransformationResult error(String errorMessage, Throwable cause) {
+        XsltTransformationResult result = error(errorMessage);
+        result.cause = cause;
+        return result;
+    }
+
+    /** @return the exception behind an unclassified failure, or {@code null} */
+    public Throwable getCause() {
+        return cause;
+    }
+
+    public void setCause(Throwable cause) {
+        this.cause = cause;
     }
 
     /**

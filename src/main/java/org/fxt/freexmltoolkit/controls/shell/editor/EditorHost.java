@@ -1457,6 +1457,7 @@ public class EditorHost extends BorderPane {
             try {
                 pages = PdfPreviewRenderer.pageCount(pdf);
             } catch (IOException | RuntimeException e) {
+                org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.pdf_preview");
                 Platform.runLater(() -> result.complete(null));
                 return;
             }
@@ -1686,7 +1687,8 @@ public class EditorHost extends BorderPane {
             org.fxt.freexmltoolkit.di.ServiceRegistry
                     .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
                     .clearLastOpenFiles();
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "editor.recent.clear"); // absent registry in tests is not reported by the no-op service
             // service not available (e.g. isolated tests): just clear the displayed list
         }
         welcomePane.setRecentFiles(java.util.List.of());
@@ -1891,11 +1893,11 @@ public class EditorHost extends BorderPane {
                 }
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
+                fullResult = org.fxt.freexmltoolkit.service.XsltTransformationResult.error(e.getMessage(), e);
             }
             boolean ok = !result.startsWith("ERROR");
-            UsageEvents.xsltTransformed(1, t0, ok, false,
-                    fullResult != null ? fullResult.getErrorCode() : null,
-                    fullResult != null ? fullResult.getErrorPhase() : null, inputChars);
+            UsageEvents.xsltTransformed(1, t0, false, fullResult != null ? fullResult.getErrorPhase() : null,
+                    TransformRunner.failureOf(fullResult), inputChars);
             long elapsedMs = probe.finish(inputChars, ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
@@ -1929,6 +1931,7 @@ public class EditorHost extends BorderPane {
             xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
             format = TransformRunner.detectXsltOutputFormat(xsltContent);
         } catch (IOException e) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError(e, "editor.batch_stylesheet");
             out.showError("Could not read stylesheet: " + e.getMessage());
             return;
         }
@@ -1946,7 +1949,8 @@ public class EditorHost extends BorderPane {
             org.fxt.freexmltoolkit.di.ServiceRegistry
                     .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
                     .addLastOpenFile(path.toFile());
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "editor.recent.add"); // absent registry in tests is not reported by the no-op service
             // properties service unavailable — no recent-files persistence
         }
     }
@@ -1957,7 +1961,8 @@ public class EditorHost extends BorderPane {
             org.fxt.freexmltoolkit.di.ServiceRegistry
                     .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
                     .addRecentXsltFile(xsltFile);
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "editor.recent.add"); // absent registry in tests is not reported by the no-op service
             // properties service unavailable — no recent-files persistence
         }
     }
@@ -2711,13 +2716,9 @@ public class EditorHost extends BorderPane {
             return CompletableFuture.completedFuture(false);
         }
         boolean json = et.document.getFileType() == EditorFileType.JSON;
-        return transformActiveText(et, text -> json
+        return transformActiveText(et, "format", text -> json
                 ? new org.fxt.freexmltoolkit.service.JsonService().formatJson(text, 2)
-                : org.fxt.freexmltoolkit.service.XmlService.prettyFormat(text, 2))
-                .thenApply(done -> {
-                    UsageEvents.formatted(et.document.getFileType().docKind(), done);
-                    return done;
-                });
+                : org.fxt.freexmltoolkit.service.XmlService.prettyFormat(text, 2));
     }
 
     /**
@@ -2731,7 +2732,7 @@ public class EditorHost extends BorderPane {
             return CompletableFuture.completedFuture(false);
         }
         boolean json = et.document.getFileType() == EditorFileType.JSON;
-        return transformActiveText(et, text -> json
+        return transformActiveText(et, "minify", text -> json
                 ? new org.fxt.freexmltoolkit.service.JsonService().compactJson(text)
                 : text.replaceAll(">\\s+<", "><").strip());
     }
@@ -2747,19 +2748,23 @@ public class EditorHost extends BorderPane {
      * if it takes a while) and puts the result into the editor on the FX thread, unless the text was
      * edited meanwhile or the rewrite failed or produced nothing.
      */
-    private CompletableFuture<Boolean> transformActiveText(EditorTab et, TextRewrite rewrite) {
+    private CompletableFuture<Boolean> transformActiveText(EditorTab et, String mode, TextRewrite rewrite) {
         String text = et.view.getText();
         long revision = et.textRevision;
+        var kind = et.document.getFileType().docKind();
         et.beginLoading();
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            String rewritten;
+            String rewritten = null;
+            org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
             try {
                 rewritten = rewrite.apply(text);
             } catch (Exception e) {
-                rewritten = null; // invalid content: leave the text untouched
+                // invalid content (invalid_input) or a rewrite bug: the text stays untouched
+                failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e);
             }
             String output = rewritten;
+            var outcome = failure;
             Platform.runLater(() -> {
                 et.endLoading();
                 boolean apply = output != null && !output.isBlank() && et.textRevision == revision
@@ -2767,6 +2772,11 @@ public class EditorHost extends BorderPane {
                 if (apply) {
                     et.view.setText(output);
                     et.document.setDirty(true);
+                    UsageEvents.formatted(kind, mode, null);
+                } else if (outcome != null) {
+                    UsageEvents.formatted(kind, mode, outcome);
+                } else {
+                    UsageEvents.formatSkipped(kind, mode);
                 }
                 result.complete(apply);
             });
@@ -2883,6 +2893,8 @@ public class EditorHost extends BorderPane {
         }
         publishSchemaStatus(et, SchemaStatus.LOADING);
         CompletableFuture<Boolean> result = new CompletableFuture<>();
+        long bindStart = System.nanoTime();
+        var bindKind = et.document.getFileType().docKind();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             boolean bound = false;
             // Same per-tab lock as the detections: the Xerces DOM behind the schema pipeline is
@@ -2919,6 +2931,11 @@ public class EditorHost extends BorderPane {
                 } else {
                     // the user picked a schema that failed to load — surface it in the status bar
                     publishSchemaStatus(et, SchemaStatus.ERROR);
+                }
+                if (origin == SchemaRebindPolicy.SchemaBindingOrigin.MANUAL) {
+                    // the automatic bindings report themselves when a document is opened
+                    UsageEvents.schemaBound(bindKind, "manual", applied, applied ? null : "unloadable",
+                            applied ? null : "file", bindStart);
                 }
                 result.complete(applied);
             });
@@ -3241,13 +3258,10 @@ public class EditorHost extends BorderPane {
         try {
             java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
         } catch (Exception e) {
-            javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                    javafx.scene.control.Alert.AlertType.ERROR, "XSLT Debug",
-                    "Could not start the debugger", "Could not read stylesheet: " + e.getMessage());
-            if (getScene() != null) {
-                alert.initOwner(getScene().getWindow());
-            }
-            alert.showAndWait();
+            // debug_run (stage start) carries the failure; the dialog explains it
+            UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("XSLT Debug", "Could not start the debugger.",
+                    "Could not read stylesheet: " + e.getMessage(), e, false);
             return;
         }
 
@@ -3793,6 +3807,7 @@ public class EditorHost extends BorderPane {
         try {
             xslt = java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
         } catch (IOException e) {
+            UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
             return "Could not read the stylesheet: " + e.getMessage();
         }
         String xml;
@@ -3802,6 +3817,7 @@ public class EditorHost extends BorderPane {
             try {
                 xml = java.nio.file.Files.readString(input, java.nio.charset.StandardCharsets.UTF_8);
             } catch (IOException e) {
+                UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
                 return "Could not read the input " + input + ": " + e.getMessage();
             }
         } else {
@@ -3813,6 +3829,7 @@ public class EditorHost extends BorderPane {
             try {
                 xml = target.get().loadXml();
             } catch (IOException e) {
+                UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
                 return "Could not read the input: " + e.getMessage();
             }
             if (target.get().file() != null) {
@@ -4583,13 +4600,20 @@ public class EditorHost extends BorderPane {
             TextEncoding.Read read = TextEncoding.read(path);
             content = read.text();
             encoding = read.encoding();
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
+            // Counted (file_open with status + code: a missing / unreadable file is invalid_input,
+            // anything else an app failure) and told to the user; the tab shows the reason.
+            UsageEvents.fileOpenFailed(tab.document.getFileType().docKind(), sizeOrUnknown(path),
+                    UsageEvents.SOURCE_FILE, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
             Platform.runLater(() -> {
                 tab.view.setText("Could not read " + path + ": " + e.getMessage());
                 tab.endLoading();
                 tab.document.setDiskStamp(stamp);
                 tab.loading = false;
                 publishSchemaStatus(tab, SchemaStatus.NONE);
+                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Open failed",
+                        "Could not read " + path.getFileName() + ".",
+                        "Check that the file exists and that you may read it, then open it again.", e, false);
             });
             return;
         }
@@ -5003,7 +5027,8 @@ public class EditorHost extends BorderPane {
             }
             return new SchemaDetection(xsd, SchemaStatus.READY, source, detail);
         } catch (Exception e) {
-            // detection is best-effort; a malformed document simply binds no schema
+            // detection is best-effort; a malformed document simply binds no schema (a detector bug is counted)
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.schema_detect");
             return SchemaDetection.NOT_FOUND;
         }
     }
@@ -5128,7 +5153,8 @@ public class EditorHost extends BorderPane {
             }
             return new SchemaDetection(schema, SchemaStatus.READY, SchemaSource.DECLARED, declared.get());
         } catch (Exception e) {
-            // detection is best-effort; a malformed document simply binds no schema
+            // detection is best-effort; a malformed document simply binds no schema (a detector bug is counted)
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.schema_detect");
             return SchemaDetection.NOT_FOUND;
         }
     }
@@ -5164,7 +5190,8 @@ public class EditorHost extends BorderPane {
                     model = XsdUiParser.parse(Files.readString(xsd.toPath(), StandardCharsets.UTF_8),
                             xsd.toPath(), null);
                 } catch (Exception | LinkageError e) {
-                    model = null;
+                    model = null; // a schema that does not parse is the user's; a parser bug is counted
+                    org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_bound_xsd");
                 }
                 var boundModel = model;
                 Platform.runLater(() -> {
@@ -5860,16 +5887,18 @@ public class EditorHost extends BorderPane {
         CompletableFuture<?> previous = tab.pendingWrite;
         tab.pendingWrite = result;
         previous.handle((ignored, error) -> null).thenRunAsync(() -> {
-            DiskStamp stamp;
+            DiskStamp stamp = null;
             TextEncoding saved = null;
+            Throwable failure = null;
             try {
                 saved = encoding.write(target, text, xml);
                 stamp = DiskStamp.of(target);
-            } catch (IOException e) {
-                stamp = null;
+            } catch (IOException | RuntimeException | StackOverflowError | OutOfMemoryError e) {
+                failure = e;
             }
             DiskStamp written = stamp;
             TextEncoding writtenEncoding = saved;
+            Throwable error = failure;
             Platform.runLater(() -> {
                 tab.saving--;
                 if (written != null) {
@@ -5881,11 +5910,44 @@ public class EditorHost extends BorderPane {
                     if (tab.document.getFileType() == EditorFileType.XSD) {
                         reloadXmlSchemasBoundTo(target);
                     }
+                } else {
+                    reportSaveFailure(tab, target, error);
                 }
                 result.complete(written != null);
             });
-        }, org.fxt.freexmltoolkit.FxtGui.executorService);
+        }, org.fxt.freexmltoolkit.FxtGui.executorService).whenComplete((ignored, error) -> {
+            if (error != null) {
+                // The worker itself failed (rejected, or an Error escaped): never leave the tab "saving".
+                Platform.runLater(() -> {
+                    if (!result.isDone()) {
+                        tab.saving--;
+                        reportSaveFailure(tab, target, error);
+                        result.complete(false);
+                    }
+                });
+            }
+        });
         return result;
+    }
+
+    /**
+     * A write failed: counted as {@code file_save} with status and error code, logged, and told
+     * to the user (the previous behaviour — nothing at all — lost documents silently).
+     */
+    private void reportSaveFailure(EditorTab tab, Path target, Throwable error) {
+        Throwable cause = error;
+        while ((cause instanceof java.util.concurrent.CompletionException
+                || cause instanceof java.util.concurrent.ExecutionException) && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        UsageEvents.fileSaveFailed(tab.document.getFileType().docKind(),
+                org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(cause));
+        logger.warn("Could not save {}: {}", target, String.valueOf(cause));
+        // file_save already carries the failure; the dialog must not report it a second time.
+        org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
+                "Could not save " + target.getFileName() + ".",
+                "Check that the file is not read-only or locked by another program and that the drive "
+                        + "has free space, then try again or use Save As.", cause, false);
     }
 
     private boolean write(EditorTab tab, Path target) {
@@ -5901,7 +5963,8 @@ public class EditorHost extends BorderPane {
                 reloadXmlSchemasBoundTo(target);
             }
             return true;
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException | StackOverflowError | OutOfMemoryError e) {
+            reportSaveFailure(tab, target, e);
             return false;
         }
     }
@@ -6700,7 +6763,8 @@ public class EditorHost extends BorderPane {
                 try {
                     parsed = XsdUiParser.parseDetailed(text, path, remoteCallback);
                 } catch (Exception | LinkageError e) {
-                    parsed = null;
+                    parsed = null; // the Tree/Graphic view shows a placeholder; a parser bug is counted
+                    org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_xsd");
                 }
                 XsdUiParser.Result result = parsed;
                 Platform.runLater(() -> {
@@ -6760,6 +6824,7 @@ public class EditorHost extends BorderPane {
                     parsed = text == null || text.isBlank() ? null : parseXmlDocument(text);
                 } catch (Exception | LinkageError e) {
                     parsed = null;
+                    org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_xml");
                 }
                 var doc = parsed;
                 Platform.runLater(() -> {
@@ -6942,6 +7007,7 @@ public class EditorHost extends BorderPane {
                     parsed = parseXmlDocument(text);
                 } catch (Exception | LinkageError e) {
                     parsed = null;
+                    org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_xml");
                 }
                 var doc = parsed;
                 Platform.runLater(() -> {

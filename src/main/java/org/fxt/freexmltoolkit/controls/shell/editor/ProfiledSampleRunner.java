@@ -33,9 +33,13 @@ public final class ProfiledSampleRunner {
         try {
             return new ProfiledXmlGeneratorService().extractXPaths(data);
         } catch (Exception e) {
+            LOGGER.error("Could not extract the XPaths of {}", xsd, e);
             return List.of();
         }
     }
+
+    private static final org.apache.logging.log4j.Logger LOGGER =
+            org.apache.logging.log4j.LogManager.getLogger(ProfiledSampleRunner.class);
 
     /**
      * Generates a single sample document for the profile.
@@ -43,17 +47,25 @@ public final class ProfiledSampleRunner {
      * @return the generated XML, or {@code "ERROR: …"} on failure
      */
     public static String generate(File xsd, GenerationProfile profile) {
+        return generateResult(xsd, profile).text();
+    }
+
+    /** As {@link #generate(File, GenerationProfile)}, additionally reporting why a failed run failed. */
+    public static SampleXmlRunner.SampleRun generateResult(File xsd, GenerationProfile profile) {
         if (xsd == null || !xsd.isFile()) {
-            return "ERROR: file not found: " + xsd;
+            return new SampleXmlRunner.SampleRun("ERROR: file not found: " + xsd,
+                    org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("file_not_found"));
         }
         try {
             XsdDocumentationData data = process(xsd);
             if (data == null) {
-                return "ERROR: could not parse schema: " + xsd.getName();
+                return new SampleXmlRunner.SampleRun("ERROR: could not parse schema: " + xsd.getName(),
+                        org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("schema_not_parsed"));
             }
-            return new ProfiledXmlGeneratorService().generate(profile, data, xsd.getAbsolutePath());
+            return new SampleXmlRunner.SampleRun(
+                    new ProfiledXmlGeneratorService().generate(profile, data, xsd.getAbsolutePath()), null);
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return new SampleXmlRunner.SampleRun("ERROR: " + e.getMessage(), org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
         }
     }
 
@@ -88,6 +100,7 @@ public final class ProfiledSampleRunner {
             generator.setOutputDirectory(outputDir != null ? outputDir.toPath() : null);
             return generator.generateBatch(profile, data, xsd.getAbsolutePath());
         } catch (Exception e) {
+            LOGGER.error("Sample batch generation failed for {}", xsd, e);
             return List.of();
         }
     }
@@ -108,7 +121,8 @@ public final class ProfiledSampleRunner {
                 java.nio.file.Files.writeString(out.toPath(), file.content());
                 written.add(out);
             } catch (Exception e) {
-                // best-effort: skip files that fail to write
+                // the file is skipped; the caller reports how many were written
+                LOGGER.error("Could not write sample file {}", file.fileName(), e);
             }
         }
         return written;
@@ -125,6 +139,7 @@ public final class ProfiledSampleRunner {
             service.processXsd(Boolean.TRUE);
             return service.xsdDocumentationData;
         } catch (Exception e) {
+            LOGGER.warn("Could not parse {} for sample generation", xsd, e);
             return null;
         }
     }

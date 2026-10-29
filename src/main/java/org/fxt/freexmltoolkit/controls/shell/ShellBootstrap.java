@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -23,11 +22,12 @@ public final class ShellBootstrap {
     private static final Logger logger = LogManager.getLogger(ShellBootstrap.class);
     private static final ShellBootstrap INSTANCE = new ShellBootstrap();
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, r -> {
-        Thread t = new Thread(r, "ShellBootstrap-Scheduler");
-        t.setDaemon(true);
-        return t;
-    });
+    private final ScheduledExecutorService scheduler =
+            org.fxt.freexmltoolkit.service.telemetry.ErrorReportingThreadPoolExecutor.scheduled(1, r -> {
+                Thread t = new Thread(r, "ShellBootstrap-Scheduler");
+                t.setDaemon(true);
+                return t;
+            }, "bootstrap");
     private volatile boolean scheduled;
 
     private ShellBootstrap() {

@@ -147,20 +147,26 @@ public class SchemaAnalysisView extends BorderPane {
             SchemaAnalysisData result = null;
             String outcome;
             long t0 = System.nanoTime();
-            var usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.OK;
+            boolean cancelled = false;
+            org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
             try {
                 result = SchemaAnalysisRunner.analyze(text, name, path, nestingLimit);
                 outcome = null;
             } catch (InterruptedException | CancellationException e) {
                 outcome = "Cancelled.";
-                usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.CANCELLED;
+                cancelled = true;
             } catch (Throwable t) {
+                // classified first (a schema that does not parse is invalid_input), then logged
+                failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(t);
                 logger.warn("Schema analysis failed for {}", name, t);
                 outcome = "ERROR: " + (t.getMessage() != null ? t.getMessage() : t.toString());
-                usageStatus = org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.ERROR;
             }
-            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaAnalyzed(
-                    text != null ? text.length() : -1, t0, usageStatus);
+            long inputChars = text != null ? text.length() : -1;
+            if (cancelled) {
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaAnalysisCancelled(inputChars, t0);
+            } else {
+                org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaAnalyzed(inputChars, t0, failure);
+            }
             SchemaAnalysisData finalResult = result;
             String finalOutcome = outcome;
             Platform.runLater(() -> {

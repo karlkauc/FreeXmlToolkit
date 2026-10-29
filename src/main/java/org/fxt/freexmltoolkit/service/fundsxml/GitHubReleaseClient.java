@@ -100,6 +100,7 @@ public class GitHubReleaseClient {
             return parseReleases(json);
         } catch (IOException e) {
             logger.warn("Failed to list releases for {}: {}", repo, e.getMessage());
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "fundsxml.releases"); // offline / DNS is the environment
             return Collections.emptyList();
         }
     }
@@ -128,6 +129,7 @@ public class GitHubReleaseClient {
             return null;
         } catch (Exception e) {
             logger.warn("Failed to parse latest release JSON for {}: {}", repo, e.getMessage());
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "fundsxml.latest_release");
             return null;
         }
     }

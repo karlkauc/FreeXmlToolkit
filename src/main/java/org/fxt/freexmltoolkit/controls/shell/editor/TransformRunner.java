@@ -61,8 +61,27 @@ public final class TransformRunner {
             return XsltTransformationEngine.getInstance()
                     .transform(xml, xsltContent, parameters, outputFormat);
         } catch (Exception e) {
-            return XsltTransformationResult.error(e.getMessage());
+            return XsltTransformationResult.error(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Classifies a transformation result for telemetry: the processor's error code when there is
+     * one, otherwise the exception behind the failure (class + stack signature).
+     *
+     * @return {@code null} for a successful result
+     */
+    public static QueryFailure failureOf(XsltTransformationResult result) {
+        if (result == null) {
+            return QueryFailure.UNKNOWN;
+        }
+        if (result.isSuccess()) {
+            return null;
+        }
+        if (result.getErrorCode() != null) {
+            return QueryFailure.ofCode(result.getErrorCode());
+        }
+        return result.getCause() != null ? QueryFailure.of(result.getCause()) : QueryFailure.UNKNOWN;
     }
 
     /**
@@ -117,7 +136,7 @@ public final class TransformRunner {
             return XsltTransformationEngine.getInstance()
                     .transformWithDebugSession(xml, xsltContent, parameters, outputFormat, session);
         } catch (Exception e) {
-            return XsltTransformationResult.error(e.getMessage());
+            return XsltTransformationResult.error(e.getMessage(), e);
         }
     }
 

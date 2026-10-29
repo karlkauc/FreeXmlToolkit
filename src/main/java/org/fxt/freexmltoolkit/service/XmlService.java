@@ -201,6 +201,8 @@ public interface XmlService {
             final var temp = String.join(System.lineSeparator(), allLines);
             return prettyFormat(temp, indent);
         } catch (Exception e) {
+            // null = "not formatted"; a document that does not parse is the user's, a formatter bug is counted
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "xml.pretty_format");
             return null;
         }
     }

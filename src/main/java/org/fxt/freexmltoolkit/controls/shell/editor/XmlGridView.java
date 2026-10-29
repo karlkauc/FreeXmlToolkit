@@ -75,6 +75,7 @@ public class XmlGridView extends GridViewShell {
         } catch (Exception e) {
             context = null;
             canvasView = null;
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "grid.parse");
             showPlaceholder("Cannot display grid:\n\n" + e.getMessage() + "\n\nFix the XML errors first.");
             return;
         }

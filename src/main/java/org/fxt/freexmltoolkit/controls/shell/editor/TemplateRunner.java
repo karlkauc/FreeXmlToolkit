@@ -27,10 +27,15 @@ public final class TemplateRunner {
      * @return the processed content, or {@code "ERROR: …"} (e.g. a required parameter is missing)
      */
     public static String render(XmlTemplate template, Map<String, String> parameters) {
+        return renderResult(template, parameters).text();
+    }
+
+    /** As {@link #render}, additionally reporting why a failed render failed. */
+    public static ActionRun renderResult(XmlTemplate template, Map<String, String> parameters) {
         try {
-            return template.processTemplate(parameters == null ? Map.of() : parameters);
+            return ActionRun.ok(template.processTemplate(parameters == null ? Map.of() : parameters));
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return ActionRun.failed(e);
         }
     }
 }

@@ -196,8 +196,29 @@ public class DialogHelper {
      * @param content the alert content text
      */
     public static void showError(String title, String header, String content) {
+        showError(title, header, content, null);
+    }
+
+    /**
+     * Shows an error alert for a failure whose cause is known: the cause is reported to the
+     * anonymous error telemetry (exception classes and code locations only), the texts are shown.
+     *
+     * @param cause the failure behind the dialog (nullable: falls back to the fixed code)
+     */
+    public static void showError(String title, String header, String content, Throwable cause) {
+        if (cause != null) {
+            Telemetry.reportError(cause, "dialog." + title);
+        } else {
+            Telemetry.reportError(ERROR_DIALOG_CODE, "dialog." + title);
+        }
+        if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
+            return;
+        }
         showAlert(Alert.AlertType.ERROR, title, header, content, "bi-x-circle");
     }
+
+    /** Fixed telemetry error code for plain error alerts that carry no throwable. */
+    private static final String ERROR_DIALOG_CODE = "ui.error_dialog";
 
     /**
      * Raises an unmistakable modal error dialog for a failed action (an operation
@@ -271,8 +292,20 @@ public class DialogHelper {
      *                     in a collapsible "Technical details" section (may be null)
      */
     public static void showActionError(String title, String whatHappened, String remedy, Throwable detail) {
+        showActionError(title, whatHappened, remedy, detail, true);
+    }
+
+    /**
+     * As {@link #showActionError(String, String, String, Throwable)}, with control over the error
+     * telemetry.
+     *
+     * @param reportError {@code false} when the failure is already recorded by the action's own
+     *                    usage event (otherwise it would count twice)
+     */
+    public static void showActionError(String title, String whatHappened, String remedy, Throwable detail,
+                                       boolean reportError) {
         showActionErrorWithDetail(title, whatHappened, remedy,
-                detail == null ? null : getStackTraceAsString(detail), detail, true);
+                detail == null ? null : getStackTraceAsString(detail), detail, reportError);
     }
 
     /**
@@ -442,6 +475,10 @@ public class DialogHelper {
             case CONFIRMATION -> "bi-question-circle";
             default -> "bi-info-circle";
         };
+        if (type == Alert.AlertType.ERROR) {
+            // An error the user is shown counts as an error, wherever the alert is built.
+            Telemetry.reportError(ERROR_DIALOG_CODE, "dialog." + title);
+        }
         return createAlert(type, title, header, content, iconLiteral);
     }
 

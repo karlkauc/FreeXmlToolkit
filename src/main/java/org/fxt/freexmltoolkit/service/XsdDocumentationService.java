@@ -5616,6 +5616,7 @@ public class XsdDocumentationService {
                         return java.util.Optional.of(SchemaResourceCache.shared().getOrDownload(location));
                     } catch (java.io.IOException e) {
                         logger.warn("Cannot download imported schema {}: {}", location, e.getMessage());
+                        org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "schema_doc.import_download");
                         return java.util.Optional.empty();
                     }
                 })

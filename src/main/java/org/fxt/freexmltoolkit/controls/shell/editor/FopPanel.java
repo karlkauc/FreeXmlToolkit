@@ -408,6 +408,9 @@ public class FopPanel extends VBox {
             Files.writeString(temp.toPath(), editorHost.getActiveText().orElse(""), StandardCharsets.UTF_8);
             return temp;
         } catch (Exception e) {
+            // the panel then says "No document open"; the failure itself is counted via the log bridge
+            org.apache.logging.log4j.LogManager.getLogger(FopPanel.class)
+                    .warn("Could not write the unsaved document to a temp file for FOP", e);
             return null;
         }
     }

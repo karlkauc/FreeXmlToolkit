@@ -87,7 +87,7 @@ class UsageEventsTest {
 
     @Test
     void validationCarriesDocumentSize() {
-        UsageEvents.validated("xsd", DocKind.XML, 4096, 0, 0, false, false);
+        UsageEvents.validated("xsd", DocKind.XML, 4096, 0, 0, null, false);
         assertEquals(4096L, single("validate").inputBytes());
     }
 
@@ -126,7 +126,7 @@ class UsageEventsTest {
     @Test
     void validationOfTextCarriesSizeAndElementCount() {
         String xml = "<root><a/><b/></root>";
-        UsageEvents.validated("xsd", DocKind.XML, xml, 0, 0, false, false);
+        UsageEvents.validated("xsd", DocKind.XML, xml, 0, 0, null, false);
         TelemetryEvent e = single("validate");
         assertEquals((long) xml.length(), e.inputBytes());
         assertEquals(3, e.elementCount());
@@ -135,7 +135,7 @@ class UsageEventsTest {
 
     @Test
     void jsonValidationHasNoElementCount() {
-        UsageEvents.validated("json", DocKind.JSON, "{\"a\": 1}", 0, 0, false, false);
+        UsageEvents.validated("json", DocKind.JSON, "{\"a\": 1}", 0, 0, null, false);
         TelemetryEvent e = single("validate");
         assertEquals(8L, e.inputBytes());
         assertNull(e.elementCount());
@@ -236,7 +236,7 @@ class UsageEventsTest {
     @Test
     void validationWithProblemsIsOkWithErrorCountAndUpdatesLocalStatistics() {
         long t0 = System.nanoTime();
-        UsageEvents.validated("xsd_schematron", DocKind.XML, 3, t0, false, false);
+        UsageEvents.validated("xsd_schematron", DocKind.XML, 3, t0, null, false);
 
         TelemetryEvent e = single("validate");
         assertEquals(TelemetryEvent.Status.OK, e.status());
@@ -250,7 +250,7 @@ class UsageEventsTest {
 
     @Test
     void failedValidationIsErrorAndSkipsLocalStatistics() {
-        UsageEvents.validated("wellformed", DocKind.XML, 0, 0, true, false);
+        UsageEvents.validated("wellformed", DocKind.XML, 0, 0, QueryFailure.UNKNOWN, false);
 
         TelemetryEvent e = single("validate");
         assertEquals(TelemetryEvent.Status.ERROR, e.status());
@@ -259,11 +259,26 @@ class UsageEventsTest {
     }
 
     @Test
+    void validationThatCouldNotRunCarriesCodeAndIsNeverThrottled() {
+        UsageEvents.validated("xsd", DocKind.XML, 0, 0, null, true); // the live slot is used up
+        UsageEvents.validated("xsd", DocKind.XML, "<a/>", 1, 0,
+                QueryFailure.of(new RuntimeException(new org.xml.sax.SAXParseException("schema broken", null))), true);
+
+        List<TelemetryEvent> events = telemetry.events("validate");
+        assertEquals(2, events.size(), "a failed live run is reported even inside the throttle window");
+        TelemetryEvent failed = events.get(1);
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, failed.status(), "a schema that does not load is the user's input");
+        assertEquals("SAXParseException", failed.errorCode());
+        assertEquals("live", failed.meta().get("trigger"));
+        verify(local, never()).trackFileValidation(1);
+    }
+
+    @Test
     void liveValidationIsThrottledButExplicitRunsAreNot() {
-        UsageEvents.validated("xsd", DocKind.XML, 0, 0, false, true);
-        UsageEvents.validated("xsd", DocKind.XML, 0, 0, false, true);
-        UsageEvents.validated("xsd", DocKind.XML, 0, 0, false, false);
-        UsageEvents.validated("xsd", DocKind.XML, 0, 0, false, false);
+        UsageEvents.validated("xsd", DocKind.XML, 0, 0, null, true);
+        UsageEvents.validated("xsd", DocKind.XML, 0, 0, null, true);
+        UsageEvents.validated("xsd", DocKind.XML, 0, 0, null, false);
+        UsageEvents.validated("xsd", DocKind.XML, 0, 0, null, false);
 
         List<TelemetryEvent> events = telemetry.events("validate");
         assertEquals(3, events.size());
@@ -272,7 +287,7 @@ class UsageEventsTest {
 
     @Test
     void liveTransformIsThrottledIndependentlyOfValidation() {
-        UsageEvents.validated("xsd", DocKind.XML, 0, 0, false, true);
+        UsageEvents.validated("xsd", DocKind.XML, 0, 0, null, true);
         UsageEvents.xsltTransformed(1, 0, true, true);
         UsageEvents.xsltTransformed(1, 0, true, true);
 
@@ -393,6 +408,106 @@ class UsageEventsTest {
         assertEquals("SAXParseException", e.errorCode());
         assertEquals("pdf", e.meta().get("format"));
         verify(local, never()).trackFeatureUsed(anyString());
+    }
+
+    @Test
+    void transformFailureClassifiedByQueryFailureKeepsCodeOrSignature() {
+        UsageEvents.xsltTransformed(1, 0, false, "compile", QueryFailure.ofCode("XTSE0010"), 10);
+        UsageEvents.xsltTransformed(1, 0, false, null, QueryFailure.of(new IllegalStateException("engine")), 10);
+        UsageEvents.xsltTransformed(1, 0, false, null, null, 10);
+
+        List<TelemetryEvent> events = telemetry.events("xslt_transform");
+        assertEquals(3, events.size());
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, events.get(0).status());
+        assertEquals("XTSE0010", events.get(0).errorCode());
+        assertEquals(TelemetryEvent.Status.ERROR, events.get(1).status());
+        assertEquals("java.lang.IllegalStateException", events.get(1).errorCode());
+        assertNotNull(events.get(1).errorHash(), "an engine failure keeps its stack signature");
+        assertEquals(TelemetryEvent.Status.OK, events.get(2).status());
+        verify(local).trackTransformation();
+    }
+
+    @Test
+    void signatureSampleFormatAndQuickFixEventsCarryTheirFailure() {
+        UsageEvents.signed(0, QueryFailure.of(new java.io.IOException("keystore")));
+        UsageEvents.signatureVerified("trust", "error", 0, QueryFailure.of(new IllegalStateException("x")));
+        UsageEvents.signatureVerified("basic", "invalid", 0, null);
+        UsageEvents.certificateCreated(QueryFailure.of(new IllegalArgumentException("dn")));
+        UsageEvents.sampleGenerated("basic", 1, 0,
+                new QueryFailure("limit_exceeded", TelemetryEvent.Status.UNSUPPORTED, null));
+        UsageEvents.formatted(DocKind.XML, "minify", QueryFailure.of(
+                new RuntimeException(new org.xml.sax.SAXParseException("bad", null))));
+        UsageEvents.formatSkipped(DocKind.JSON, "format");
+        UsageEvents.quickFixFailed(QueryFailure.invalidInput("SqfExecutionException"));
+        UsageEvents.quickFixSkipped("document_changed");
+        UsageEvents.replaced("xpath", "document", 0, QueryFailure.invalidInput("XPathEditException"));
+        UsageEvents.schematronChecked(0, 0, QueryFailure.of(new IllegalStateException("detector")));
+        UsageEvents.schemaAnalysisCancelled(100, 0);
+        UsageEvents.xsdGenerated(1, 0, QueryFailure.invalidInput("not_well_formed"));
+        UsageEvents.spreadsheetConverted("to_xml", "xlsx", TelemetryEvent.Status.ERROR, 0, -1,
+                new IllegalStateException("poi"));
+
+        assertEquals("java.io.IOException", single("sign").errorCode());
+        assertEquals(TelemetryEvent.Status.ERROR, single("sign").status());
+        List<TelemetryEvent> verified = telemetry.events("verify_signature");
+        assertEquals(TelemetryEvent.Status.ERROR, verified.get(0).status());
+        assertNotNull(verified.get(0).errorHash());
+        assertEquals(TelemetryEvent.Status.OK, verified.get(1).status(), "an invalid signature is an outcome, not a failure");
+        assertEquals(1, verified.get(1).errorCount());
+        assertEquals(TelemetryEvent.Status.ERROR, single("create_certificate").status());
+        assertEquals(TelemetryEvent.Status.UNSUPPORTED, single("sample_generate").status());
+        assertEquals("limit_exceeded", single("sample_generate").errorCode());
+        List<TelemetryEvent> formats = telemetry.events("format");
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, formats.get(0).status());
+        assertEquals("minify", formats.get(0).meta().get("mode"));
+        assertEquals(TelemetryEvent.Status.CANCELLED, formats.get(1).status());
+        List<TelemetryEvent> fixes = telemetry.events("quick_fix");
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, fixes.get(0).status());
+        assertEquals(TelemetryEvent.Status.CANCELLED, fixes.get(1).status());
+        assertEquals("document_changed", fixes.get(1).meta().get("reason"));
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, single("replace").status());
+        assertEquals("xpath", single("replace").meta().get("kind"));
+        assertEquals(TelemetryEvent.Status.ERROR, single("schematron_check").status());
+        assertEquals(TelemetryEvent.Status.CANCELLED, single("schema_analysis").status());
+        assertEquals("not_well_formed", single("xsd_generate").errorCode());
+        TelemetryEvent spreadsheet = single("spreadsheet_convert");
+        assertEquals("java.lang.IllegalStateException", spreadsheet.errorCode(), "the signature's class name wins");
+        assertNotNull(spreadsheet.errorHash(), "an app failure of the converter keeps its stack");
+        verify(local, never()).trackFormatting();
+        verify(local, never()).trackSignatureOperation(true);
+    }
+
+    @Test
+    void phaseThreeEventsCarryStageStatusAndFailure() {
+        UsageEvents.debugRun("xslt", 0, false, QueryFailure.ofCode("XTSE0010"));
+        UsageEvents.debugRun("xquery", 0, true, null);
+        UsageEvents.debugRun("xslt", 0, false, null);
+        UsageEvents.debugStartFailed("schematron", QueryFailure.of(new java.nio.file.NoSuchFileException("x.sch")));
+        UsageEvents.schemaFlattened(0, QueryFailure.of(new IllegalStateException("cycle")));
+        UsageEvents.typeUsagesSearched(3, 0, null);
+        UsageEvents.schemaLibraryAction("materialize", QueryFailure.invalidInput("unavailable"));
+        UsageEvents.filesSearched("text", 12, 2, 0, false);
+        UsageEvents.templateInserted(QueryFailure.of(new IllegalArgumentException("missing parameter")));
+
+        List<TelemetryEvent> debug = telemetry.events("debug_run");
+        assertEquals(4, debug.size());
+        assertEquals(TelemetryEvent.Status.OK, debug.get(2).status());
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, debug.get(0).status());
+        assertEquals("run", debug.get(0).meta().get("stage"));
+        assertEquals(TelemetryEvent.Status.CANCELLED, debug.get(1).status());
+        assertEquals("xquery", debug.get(1).meta().get("language"));
+        assertEquals("start", debug.get(3).meta().get("stage"));
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, debug.get(3).status(), "a missing file is the environment");
+        assertEquals("NoSuchFileException", debug.get(3).errorCode());
+        assertEquals(TelemetryEvent.Status.ERROR, single("xsd_flatten").status());
+        assertNotNull(single("xsd_flatten").errorHash());
+        assertEquals(3, single("type_usages").fileCount());
+        assertEquals("materialize", single("schema_library").meta().get("action"));
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, single("schema_library").status());
+        assertEquals(12, single("file_search").fileCount());
+        assertEquals(2, single("file_search").errorCount());
+        assertEquals(TelemetryEvent.Status.ERROR, single("template_insert").status());
+        verify(local).trackFeatureUsed("xslt_debugger");
     }
 
     @Test
@@ -575,7 +690,7 @@ class UsageEventsTest {
             }
         });
 
-        assertDoesNotThrow(() -> UsageEvents.validated("xsd", DocKind.XML, 1, 0, false, false));
+        assertDoesNotThrow(() -> UsageEvents.validated("xsd", DocKind.XML, 1, 0, null, false));
         assertDoesNotThrow(() -> UsageEvents.fileOpened(null, -1, null));
     }
 
@@ -583,7 +698,7 @@ class UsageEventsTest {
     void localSinkFailureDoesNotSuppressTelemetry() {
         doThrow(new IllegalStateException("disk full")).when(local).trackFileValidation(2);
 
-        assertDoesNotThrow(() -> UsageEvents.validated("xsd", DocKind.XML, 2, 0, false, false));
+        assertDoesNotThrow(() -> UsageEvents.validated("xsd", DocKind.XML, 2, 0, null, false));
         assertEquals(1, telemetry.events("validate").size());
     }
 

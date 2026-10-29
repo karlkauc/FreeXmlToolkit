@@ -12,7 +12,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -74,14 +73,15 @@ public class UsageTrackingServiceImpl implements UsageTrackingService {
         this.statistics = new UsageStatistics();
 
         // Initialize save scheduler for debounced saves
-        this.saveScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        this.saveScheduler = org.fxt.freexmltoolkit.service.telemetry.ErrorReportingThreadPoolExecutor.scheduled(1, r -> {
             Thread t = new Thread(r, "UsageTracking-SaveScheduler");
             t.setDaemon(true);
             return t;
-        });
+        }, "usage_stats.save");
 
-        // Schedule periodic save check
-        saveScheduler.scheduleAtFixedRate(this::checkAndSave,
+        // Schedule periodic save check; guarded so one failed save does not end the schedule
+        saveScheduler.scheduleAtFixedRate(
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.guard("usage_stats.save", this::checkAndSave),
             SAVE_DEBOUNCE_SECONDS, SAVE_DEBOUNCE_SECONDS, TimeUnit.SECONDS);
 
         loadStatistics();

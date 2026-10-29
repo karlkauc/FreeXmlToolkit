@@ -141,6 +141,7 @@ public class DialogHelperTest {
     @DisplayName("showActionError meldet den Fehler nur, wenn die Aktion ihn nicht schon selbst erfasst")
     void actionErrorTelemetryCanBeLeftToTheActionsOwnEvent() {
         var telemetry = new org.fxt.freexmltoolkit.service.telemetry.RecordingTelemetryService();
+        org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset(); // drop reports buffered by earlier tests
         org.fxt.freexmltoolkit.service.telemetry.Telemetry.install(telemetry);
         String previous = System.setProperty("fxt.suppressErrorDialogs", "true");
         try {
@@ -150,6 +151,32 @@ public class DialogHelperTest {
                 DialogHelper.showActionError("PDF generation failed", "What happened", "Remedy", "ERROR: detail");
                 assertEquals(1, telemetry.errorReports().size(), "the default still reports the dialog");
             });
+        } finally {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset();
+            if (previous == null) {
+                System.clearProperty("fxt.suppressErrorDialogs");
+            } else {
+                System.setProperty("fxt.suppressErrorDialogs", previous);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("showError meldet jeden Fehlerdialog, mit Ursache wenn bekannt")
+    void plainErrorDialogsAreCounted() {
+        var telemetry = new org.fxt.freexmltoolkit.service.telemetry.RecordingTelemetryService();
+        org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset(); // drop reports buffered by earlier tests
+        org.fxt.freexmltoolkit.service.telemetry.Telemetry.install(telemetry);
+        String previous = System.setProperty("fxt.suppressErrorDialogs", "true");
+        try {
+            runAndWait(() -> {
+                DialogHelper.showError("Open an Example", "header", "content");
+                DialogHelper.showError("Update Failed", "header", "content", new java.io.IOException("disk"));
+                DialogHelper.createStyledAlert(Alert.AlertType.ERROR, "XSLT Debug", "h", "c");
+                DialogHelper.createStyledAlert(Alert.AlertType.CONFIRMATION, "Unsaved Changes", "h", "c");
+            });
+            assertEquals(List.of("dialog.Open an Example", "dialog.Update Failed", "dialog.XSLT Debug"),
+                    telemetry.errorReports(), "every error alert counts, a confirmation does not");
         } finally {
             org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset();
             if (previous == null) {

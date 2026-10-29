@@ -457,7 +457,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         logger.debug("Generating Complex Type Pages in parallel...");
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             for (final var complexTypeNode : xsdDocumentationData.getGlobalComplexTypes()) {
-                executor.submit(() -> generateSingleComplexTypePage(complexTypeNode));
+                executor.execute(() -> generateSingleComplexTypePage(complexTypeNode));
             }
         }
     }
@@ -517,7 +517,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
         logger.debug("Generating Simple Type Pages in parallel...");
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             for (final var simpleTypeNode : xsdDocumentationData.getGlobalSimpleTypes()) {
-                executor.submit(() -> generateSingleSimpleTypePage(simpleTypeNode));
+                executor.execute(() -> generateSingleSimpleTypePage(simpleTypeNode));
             }
         }
     }

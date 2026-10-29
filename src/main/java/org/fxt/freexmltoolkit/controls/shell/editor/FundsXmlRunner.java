@@ -63,6 +63,7 @@ public final class FundsXmlRunner {
                         + (outcome.errorMessage() == null ? "unexpected error" : outcome.errorMessage());
             };
         } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError(t, "fundsxml.validate");
             return "Validation error: " + t.getMessage();
         }
     }
@@ -103,6 +104,8 @@ public final class FundsXmlRunner {
     public static Path generateDocumentation() throws Exception {
         Path activeSchema = FundsXmlCache.getInstance().getActiveSchemaFile();
         if (activeSchema == null) {
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaDocGenerated("html", 0,
+                    org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("no_active_schema"));
             throw new IllegalStateException("No active FundsXML schema");
         }
         String version = FundsXmlCache.getInstance().loadMetadata().getActiveSchemaVersion();

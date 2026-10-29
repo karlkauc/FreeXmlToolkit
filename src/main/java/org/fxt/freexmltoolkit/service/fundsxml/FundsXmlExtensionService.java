@@ -549,6 +549,7 @@ public class FundsXmlExtensionService {
         private final int featuredXmlFavoritesAdded;
         private final int templatesAdded;
         private final String error;
+        private final Throwable cause;
 
         private DownloadResult(Builder b) {
             this.latestRelease = b.latestRelease;
@@ -564,6 +565,7 @@ public class FundsXmlExtensionService {
             this.featuredXmlFavoritesAdded = b.featuredXmlFavoritesAdded;
             this.templatesAdded = b.templatesAdded;
             this.error = b.error;
+            this.cause = b.cause;
         }
 
         public GitHubRelease latestRelease() { return latestRelease; }
@@ -579,6 +581,8 @@ public class FundsXmlExtensionService {
         public int featuredXmlFavoritesAdded() { return featuredXmlFavoritesAdded; }
         public int templatesAdded() { return templatesAdded; }
         public String error() { return error; }
+        /** @return the exception behind {@link #error()}, or {@code null} (for diagnosis, never shown as text) */
+        public Throwable cause() { return cause; }
         public boolean isSuccess() { return error == null; }
 
         public static Builder builder() { return new Builder(); }
@@ -597,7 +601,9 @@ public class FundsXmlExtensionService {
             private int featuredXmlFavoritesAdded;
             private int templatesAdded;
             private String error;
+            private Throwable cause;
 
+            public Builder cause(Throwable t) { this.cause = t; return this; }
             public Builder latestRelease(GitHubRelease r) { this.latestRelease = r; return this; }
             public Builder schemaVersion(String v) { this.schemaVersion = v; return this; }
             public Builder schemaDownloaded(boolean v) { this.schemaDownloaded = v; return this; }

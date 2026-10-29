@@ -270,6 +270,7 @@ public class SchemaGenerationEngine {
             return builder.parse(new InputSource(new StringReader(xmlContent)));
         } catch (Exception e) {
             logger.warn("Failed to parse XML document: {}", e.getMessage());
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "xsd_generate.parse"); // not well-formed is the user's input
             return null;
         }
     }

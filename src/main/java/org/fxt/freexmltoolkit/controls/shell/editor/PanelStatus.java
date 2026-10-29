@@ -59,9 +59,17 @@ public final class PanelStatus {
      * @param message     the failure message (may carry an "ERROR: " prefix)
      */
     public static void failure(Label status, String dialogTitle, String message) {
+        failure(status, dialogTitle, message, true);
+    }
+
+    /**
+     * As {@link #failure(Label, String, String)}, with control over the error telemetry: pass
+     * {@code reportError=false} when the action's own usage event already records the failure.
+     */
+    public static void failure(Label status, String dialogTitle, String message, boolean reportError) {
         String clean = strip(message);
         apply(status, clean, ERROR, "bi-x-circle");
-        DialogHelper.notifyActionFailure(dialogTitle, clean);
+        DialogHelper.notifyActionFailure(dialogTitle, clean, reportError);
     }
 
     /**
@@ -80,9 +88,19 @@ public final class PanelStatus {
      */
     public static void failure(Label status, String dialogTitle, String whatHappened,
                                String remedy, Throwable detail) {
+        failure(status, dialogTitle, whatHappened, remedy, detail, true);
+    }
+
+    /**
+     * As {@link #failure(Label, String, String, String, Throwable)}, with control over the error
+     * telemetry: pass {@code reportError=false} when the action's own usage event already records
+     * the failure.
+     */
+    public static void failure(Label status, String dialogTitle, String whatHappened,
+                               String remedy, Throwable detail, boolean reportError) {
         String clean = strip(whatHappened);
         apply(status, clean, ERROR, "bi-x-circle");
-        DialogHelper.showActionError(dialogTitle, clean, remedy, detail);
+        DialogHelper.showActionError(dialogTitle, clean, remedy, detail, reportError);
     }
 
     /**

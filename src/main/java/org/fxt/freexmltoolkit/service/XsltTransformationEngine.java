@@ -483,7 +483,7 @@ public class XsltTransformationEngine {
 
         } catch (Exception e) {
             logger.error("Unexpected error during XSLT transformation", e);
-            return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
+            return XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e);
         }
     }
 
@@ -663,7 +663,7 @@ public class XsltTransformationEngine {
             return runtimeFailure(e);
         } catch (Exception e) {
             logger.error("Unexpected error during debug XSLT transformation", e);
-            return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
+            return XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e);
         } finally {
             session.setOutputProbe(null);
             session.setOutputLength(null);
@@ -1015,7 +1015,7 @@ public class XsltTransformationEngine {
 
         } catch (Exception e) {
             logger.error("Unexpected error during XQuery transformation", e);
-            return XsltTransformationResult.error("Unexpected error: " + e.getMessage());
+            return XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e);
         }
     }
 

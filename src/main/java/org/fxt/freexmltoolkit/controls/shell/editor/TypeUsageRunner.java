@@ -31,19 +31,38 @@ public final class TypeUsageRunner {
      * @return usage descriptions ("Node 'x' (kind) — path") for {@code typeName}, or empty.
      */
     public static List<String> findUsages(String xsdText, Path baseDirectory, String typeName) {
+        return findUsagesResult(xsdText, baseDirectory, typeName).usages();
+    }
+
+    /**
+     * The usages found, or why the search could not run.
+     *
+     * @param usages  usage descriptions (empty when the search failed)
+     * @param failure the search's failure, classified for telemetry ({@code null} = it ran)
+     * @param error   the cause behind {@code failure}, or {@code null}
+     */
+    public record Usages(List<String> usages, org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure,
+                         Throwable error) {
+        public boolean failed() {
+            return failure != null;
+        }
+    }
+
+    /** As {@link #findUsages}, additionally reporting a failure of the search itself. */
+    public static Usages findUsagesResult(String xsdText, Path baseDirectory, String typeName) {
         try {
             XsdNodeFactory factory = new XsdNodeFactory();
             XsdNode root = baseDirectory != null
                     ? factory.fromString(xsdText, baseDirectory)
                     : factory.fromString(xsdText);
             if (!(root instanceof XsdSchema schema)) {
-                return List.of();
+                return new Usages(List.of(), null, null);
             }
-            return new TypeUsageFinder(schema).findUsages(typeName).stream()
+            return new Usages(new TypeUsageFinder(schema).findUsages(typeName).stream()
                     .map(u -> u.getDescription() + " — " + u.getPath())
-                    .toList();
+                    .toList(), null, null);
         } catch (Exception e) {
-            return List.of();
+            return new Usages(List.of(), org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e), e);
         }
     }
 }

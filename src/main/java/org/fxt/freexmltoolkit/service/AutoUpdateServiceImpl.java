@@ -289,6 +289,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             } catch (IOException e) {
                 if (!downloadReported) {
                     UpdateFunnel.downloaded(fromVersion, toVersion, downloadStart, -1, e, cancelRequested.get());
+                } else {
+                    UpdateFunnel.applyFailed(fromVersion, toVersion, e); // extraction / staging after the download
                 }
                 logger.error("Update failed", e);
                 writeDebugLog(debugLog, "ERROR (IOException): " + e.getMessage());
@@ -299,6 +301,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             } catch (Exception e) {
                 if (!downloadReported) {
                     UpdateFunnel.downloaded(fromVersion, toVersion, downloadStart, -1, e, cancelRequested.get());
+                } else {
+                    UpdateFunnel.applyFailed(fromVersion, toVersion, e);
                 }
                 logger.error("Unexpected error during update", e);
                 writeDebugLog(debugLog, "ERROR (Exception): " + e.getMessage());
@@ -310,7 +314,7 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                 updateInProgress.set(false);
                 currentConnection = null;
             }
-        }, executorService);
+        }, executorService).whenComplete(org.fxt.freexmltoolkit.service.telemetry.Telemetry.whenComplete("update.apply"));
     }
 
     /** @return the settings that hold the pending update for {@code update_installed}, or null */

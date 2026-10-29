@@ -602,7 +602,8 @@ public class SettingsPanel extends VBox {
                             String.CASE_INSENSITIVE_ORDER))
                     .toList();
             templatesList.getItems().setAll(userTemplates);
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "settings.templates"); // absent registry in tests is not reported by the no-op service
             // repository unavailable (e.g. tests)
         }
     }
@@ -727,7 +728,8 @@ public class SettingsPanel extends VBox {
                             : props.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED)));
             templatesDir.setText(orEmpty(props.getTemplatesDirectory()));
             schemaLibraryAutoBind.setSelected(props.isSchemaLibraryAutoBindEnabled());
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "settings.load"); // absent registry in tests is not reported by the no-op service
             // properties service unavailable (e.g. tests) — controls keep their defaults
         } finally {
             loading = false;
@@ -813,8 +815,12 @@ public class SettingsPanel extends VBox {
             if (!fundsXmlWasEnabled && fundsXmlEnabled.isSelected() && onFundsXmlEnabled != null) {
                 onFundsXmlEnabled.run();
             }
-        } catch (Throwable ignored) {
-            // properties service unavailable — nothing to persist
+        } catch (Throwable t) {
+            // Reported with its stack (where = dialog.Settings) and told to the user: a settings
+            // save that fails silently looks like a save that worked.
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Settings",
+                    "The settings could not be saved.",
+                    "Check that the settings file in your home folder (.freeXmlToolkit) is writable, then try again.", t);
         }
     }
 
@@ -831,7 +837,8 @@ public class SettingsPanel extends VBox {
                 telemetry.setUsageEnabled(telemetryUsage.isSelected());
                 telemetry.setErrorReportingEnabled(telemetryErrors.isSelected());
             }
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "settings.telemetry_save"); // absent registry in tests is not reported by the no-op service
             // telemetry unavailable — the persisted properties are authoritative
         }
     }
@@ -890,7 +897,8 @@ public class SettingsPanel extends VBox {
             } else {
                 associationCheckBoxes().keySet().forEach(cb -> cb.setSelected(true));
             }
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "settings.associations.load"); // absent registry in tests is not reported by the no-op service
             associationCheckBoxes().keySet().forEach(cb -> cb.setSelected(true));
         }
         refreshAssociationStatus(svc);
@@ -919,7 +927,8 @@ public class SettingsPanel extends VBox {
             PropertiesService props = ServiceRegistry.get(PropertiesService.class);
             props.set("fileAssociations.selected", types.stream()
                     .map(Enum::name).reduce((a, b) -> a + "," + b).orElse(""));
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "settings.associations.save"); // absent registry in tests is not reported by the no-op service
             // persistence unavailable — the action itself still works
         }
         setAssociationControlsDisabled(true);

@@ -20,14 +20,32 @@ public final class SchematronCheckRunner {
      * @return all detected issues (errors + warnings + infos), or an empty list for blank input
      */
     public static List<SchematronError> check(String schematronText) {
+        return checkResult(schematronText).issues();
+    }
+
+    /**
+     * The checker's outcome: the issues found, or why the checker itself could not run.
+     *
+     * @param issues  the detected issues (empty when the checker failed)
+     * @param failure the checker's own failure, classified for telemetry ({@code null} = it ran)
+     * @param error   the cause behind {@code failure} (for the dialog), or {@code null}
+     */
+    public record CheckResult(List<SchematronError> issues, org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure, Throwable error) {
+        public boolean failed() {
+            return failure != null;
+        }
+    }
+
+    /** As {@link #check(String)}, additionally reporting a failure of the checker itself. */
+    public static CheckResult checkResult(String schematronText) {
         if (schematronText == null || schematronText.isBlank()) {
-            return List.of();
+            return new CheckResult(List.of(), null, null);
         }
         SchematronErrorDetector detector = new SchematronErrorDetector();
         try {
-            return detector.detectErrors(schematronText).getAllIssues();
+            return new CheckResult(detector.detectErrors(schematronText).getAllIssues(), null, null);
         } catch (Exception e) {
-            return List.of();
+            return new CheckResult(List.of(), org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e), e);
         } finally {
             detector.dispose();
         }

@@ -29,7 +29,15 @@ public final class SchemaActionRunner {
      *                     or {@code not_well_formed}); null on success
      * @param invalidInput whether the failure is the user's input (no well-formed XML)
      */
-    public record XsdGeneration(String text, String errorCode, boolean invalidInput) {
+    public record XsdGeneration(String text, String errorCode, boolean invalidInput,
+                                org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure) {
+
+        public XsdGeneration(String text, String errorCode, boolean invalidInput) {
+            this(text, errorCode, invalidInput, errorCode == null ? null
+                    : invalidInput ? org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput(errorCode)
+                    : new org.fxt.freexmltoolkit.service.telemetry.QueryFailure(errorCode,
+                            org.fxt.freexmltoolkit.service.telemetry.TelemetryEvent.Status.ERROR, null));
+        }
 
         /** @return whether an XSD was generated */
         public boolean ok() {
@@ -48,7 +56,10 @@ public final class SchemaActionRunner {
         }
 
         static XsdGeneration failed(Exception e, boolean invalidInput) {
-            return new XsdGeneration("ERROR: " + e.getMessage(), e.getClass().getSimpleName(), invalidInput);
+            // an app failure keeps its stack signature; the user's input only its class
+            return new XsdGeneration("ERROR: " + e.getMessage(), e.getClass().getSimpleName(), invalidInput,
+                    invalidInput ? org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput(e.getClass().getSimpleName())
+                            : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
         }
     }
 
@@ -126,6 +137,12 @@ public final class SchemaActionRunner {
      */
     public static String flatten(String xsdContent, Path baseDirectory, Path mainSchemaFile,
                                  FlattenOptions options) {
+        return flattenResult(xsdContent, baseDirectory, mainSchemaFile, options).text();
+    }
+
+    /** As {@link #flatten(String, Path, Path, FlattenOptions)}, additionally reporting why a failed run failed. */
+    public static ActionRun flattenResult(String xsdContent, Path baseDirectory, Path mainSchemaFile,
+                                          FlattenOptions options) {
         try {
             XsdNodeFactory factory = new XsdNodeFactory();
             XsdSchema schema = factory.fromStringWithSchemaFile(xsdContent, mainSchemaFile, baseDirectory);
@@ -133,9 +150,9 @@ public final class SchemaActionRunner {
                 new SchemaFlattenTransformer().apply(schema, options);
             }
             String result = new XsdSerializer().serialize(schema);
-            return options.minify() ? XsdOutputMinifier.minify(result) : result;
+            return ActionRun.ok(options.minify() ? XsdOutputMinifier.minify(result) : result);
         } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
+            return ActionRun.failed(e);
         }
     }
 }

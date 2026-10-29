@@ -471,7 +471,7 @@ public class UnifiedShellView extends BorderPane {
             } catch (java.io.IOException e) {
                 javafx.application.Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
                         "Open an Example", "The example could not be created",
-                        e.getMessage()));
+                        e.getMessage(), e));
             }
         });
     }
@@ -1126,7 +1126,8 @@ public class UnifiedShellView extends BorderPane {
             org.fxt.freexmltoolkit.di.ServiceRegistry
                     .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
                     .set(key, String.valueOf(value));
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "shell.prefs.save"); // absent registry in tests is not reported by the no-op service
             // properties service unavailable — nothing to persist
         }
     }
@@ -1209,7 +1210,8 @@ public class UnifiedShellView extends BorderPane {
             org.fxt.freexmltoolkit.di.ServiceRegistry
                     .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
                     .set(key, String.valueOf(Math.round(width)));
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "shell.prefs.save"); // absent registry in tests is not reported by the no-op service
             // properties service unavailable — nothing to persist
         }
     }
@@ -1222,7 +1224,8 @@ public class UnifiedShellView extends BorderPane {
             if (value != null) {
                 return Math.max(MIN_PANEL_WIDTH, Double.parseDouble(value));
             }
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "shell.prefs.read"); // absent registry in tests is not reported by the no-op service
             // properties service unavailable or malformed value — fall back to the default
         }
         return defaultWidth;
@@ -1395,7 +1398,8 @@ public class UnifiedShellView extends BorderPane {
                     return path;
                 }
             }
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "shell.workspace.resolve"); // absent registry in tests is not reported by the no-op service
             // properties service unavailable (e.g. tests)
         }
         return null;
@@ -1790,7 +1794,8 @@ public class UnifiedShellView extends BorderPane {
                     org.fxt.freexmltoolkit.service.PropertiesService.class);
             showLabels = props.isToolbarShowLabels();
             large = "large".equalsIgnoreCase(props.getToolbarIconSize());
-        } catch (Throwable ignored) {
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(t, "shell.prefs.read"); // absent registry in tests is not reported by the no-op service
             // properties service unavailable (e.g. tests) — fall back to defaults
         }
         Object stored = button.getProperties().get(TOOL_LABEL_KEY);
@@ -2095,16 +2100,18 @@ public class UnifiedShellView extends BorderPane {
             java.io.File schema = result.schema();
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 long t0 = System.nanoTime();
-                String xml = org.fxt.freexmltoolkit.controls.shell.editor.SampleXmlRunner
-                        .generate(schema, true, 2, false);
+                var run = org.fxt.freexmltoolkit.controls.shell.editor.SampleXmlRunner
+                        .generateResult(schema, true, 2, false, null);
+                String xml = run.text();
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.sampleGenerated(
-                        "skeleton", 1, t0, !xml.startsWith("ERROR:"));
+                        "skeleton", 1, t0, run.failure());
                 javafx.application.Platform.runLater(() -> {
                     if (xml.startsWith("ERROR:")) {
+                        // sample_generate already carries the failure
                         org.fxt.freexmltoolkit.util.DialogHelper.showActionError("New File",
                                 "Could not generate a document from the schema.",
                                 org.fxt.freexmltoolkit.util.DialogHelper.Remedies.INVALID_SCHEMA,
-                                org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(xml));
+                                org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(xml), false);
                     } else {
                         finishNewDocument(xml, result);
                     }
@@ -2225,7 +2232,7 @@ public class UnifiedShellView extends BorderPane {
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .exportToCsv(xml, out, settings.delimiter().config(), settings.config());
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.spreadsheetConverted("to_spreadsheet", format,
-                        result.telemetryStatus(), start, xml.length(), errorCodeOf(result));
+                        result.telemetryStatus(), start, xml.length(), result.error());
                 javafx.application.Platform.runLater(() -> {
                     done.run();
                     reportConversion(result, out, false);
@@ -2251,7 +2258,7 @@ public class UnifiedShellView extends BorderPane {
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .csvToXml(in, settings.delimiter().config(), settings.config());
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.spreadsheetConverted("to_xml",
-                        isExcel ? "xlsx" : "csv", result.telemetryStatus(), start, -1, errorCodeOf(result));
+                        isExcel ? "xlsx" : "csv", result.telemetryStatus(), start, -1, result.error());
                 javafx.application.Platform.runLater(() -> {
                     done.run();
                     if (result.isError()) {
@@ -2289,10 +2296,6 @@ public class UnifiedShellView extends BorderPane {
         };
     }
 
-    private static String errorCodeOf(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result) {
-        return result.isError() ? result.error().getClass().getSimpleName() : null;
-    }
-
     private void reportConversion(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result,
                                   java.io.File file, boolean imported) {
         if (!result.isError()) {
@@ -2322,8 +2325,9 @@ public class UnifiedShellView extends BorderPane {
                     imported
                             ? "Check that the spreadsheet is a valid .xlsx/.csv file and not open in another program, then try again."
                             : "Check that the document is well-formed and the target file is writable (not open elsewhere), then try again.",
-                    // the exception (not just its message): class + stack reach the details and the error report
-                    result.error());
+                    // the exception (not just its message): class + stack reach the details and the error
+                    // report; spreadsheet_convert already counted it
+                    result.error(), false);
         }
     }
 
@@ -2349,10 +2353,17 @@ public class UnifiedShellView extends BorderPane {
                 }
                 params = entered.get();
             }
-            String content = org.fxt.freexmltoolkit.controls.shell.editor.TemplateRunner
-                    .render(template, params);
-            if (!content.startsWith("ERROR:")) {
-                editorHost.insertTextAtCaret(content);
+            var run = org.fxt.freexmltoolkit.controls.shell.editor.TemplateRunner
+                    .renderResult(template, params);
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.templateInserted(run.failure());
+            if (run.failed()) {
+                // template_insert carries the failure; the user used to see nothing at all
+                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Insert Template",
+                        "The template could not be rendered.",
+                        "Check the template's parameters and placeholders, then try again.",
+                        org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(run.text()), false);
+            } else {
+                editorHost.insertTextAtCaret(run.text());
                 org.fxt.freexmltoolkit.service.TemplateRepository.getInstance().recordUsage(template.getId());
             }
         });

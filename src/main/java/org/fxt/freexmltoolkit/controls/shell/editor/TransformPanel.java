@@ -887,15 +887,15 @@ public class TransformPanel extends VBox {
                         : "ERROR: " + fullResult.getErrorMessage();
             } catch (Exception e) {
                 result = "ERROR: " + e.getMessage();
+                fullResult = org.fxt.freexmltoolkit.service.XsltTransformationResult.error(e.getMessage(), e);
             }
             if (fullResult != null && fullResult.isSuccess()) {
                 probe.phase("Compile", fullResult.getCompilationTime());
                 probe.phase("Transform", fullResult.getTransformationTime());
             }
             boolean ok = !result.startsWith("ERROR");
-            UsageEvents.xsltTransformed(1, t0, ok, live,
-                    fullResult != null ? fullResult.getErrorCode() : null,
-                    fullResult != null ? fullResult.getErrorPhase() : null, xmlInput.length());
+            UsageEvents.xsltTransformed(1, t0, live, fullResult != null ? fullResult.getErrorPhase() : null,
+                    TransformRunner.failureOf(fullResult), xmlInput.length());
             long elapsedMs = probe.finish(xmlInput.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;

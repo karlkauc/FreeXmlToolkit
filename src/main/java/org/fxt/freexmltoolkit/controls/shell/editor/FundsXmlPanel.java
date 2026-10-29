@@ -38,6 +38,10 @@ public class FundsXmlPanel extends VBox {
                 PanelStatus.success(status, result.schemaVersion() != null
                         ? "Download complete — schema version " + result.schemaVersion() + "."
                         : "Download complete.");
+            } else if (result.cause() != null) {
+                PanelStatus.failure(status, "Download failed",
+                        "Download failed: " + (result.error() == null ? "unknown error" : result.error()),
+                        "Check your internet connection and the proxy settings, then try again.", result.cause());
             } else {
                 PanelStatus.failure(status, "Download failed",
                         "Download failed: " + (result.error() == null ? "unknown error" : result.error()));
@@ -159,7 +163,8 @@ public class FundsXmlPanel extends VBox {
                 if (finalOk) {
                     PanelStatus.success(status, finalMsg);
                 } else {
-                    PanelStatus.failure(status, "Documentation failed", finalMsg);
+                    // schema_doc already carries the failure
+                    PanelStatus.failure(status, "Documentation failed", finalMsg, false);
                 }
             });
         });

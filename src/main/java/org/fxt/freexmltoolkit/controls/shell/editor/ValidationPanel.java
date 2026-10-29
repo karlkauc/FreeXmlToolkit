@@ -312,10 +312,18 @@ public class ValidationPanel extends VBox {
         String text = editorHost.getActiveText().orElse("");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
-            var issues = SchematronCheckRunner.check(text);
-            UsageEvents.schematronChecked(issues.size(), t0);
-            javafx.application.Platform.runLater(() -> editorHost.openToolTab(
-                    "Schematron Check", "bi-bug", new SchematronCheckResultView(issues)));
+            var run = SchematronCheckRunner.checkResult(text);
+            var issues = run.issues();
+            UsageEvents.schematronChecked(issues.size(), t0, run.failure());
+            javafx.application.Platform.runLater(() -> {
+                editorHost.openToolTab("Schematron Check", "bi-bug", new SchematronCheckResultView(issues));
+                if (run.failed()) {
+                    // schematron_check carries the failure; the dialog explains it
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Schematron Check",
+                            "The check could not run.", "Check that the document is well-formed, then run it again.",
+                            run.error(), false);
+                }
+            });
         });
     }
 
@@ -419,7 +427,7 @@ public class ValidationPanel extends VBox {
                     : ValidationRunner.runWithReport(content, schema, schematron, documentName);
             List<ValidationProblem> result = runResult.problems();
             UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
-                    docKind, content, result.size(), t0, false, live);
+                    docKind, content, result.size(), t0, runResult.failure(), live);
             probe.phase("XSD", runResult.xsdMillis());
             probe.phase("Schematron", runResult.schematronMillis());
             long elapsedMs = probe.finish(content.length(), -1, result.isEmpty(),
@@ -444,6 +452,12 @@ public class ValidationPanel extends VBox {
                 editorHost.setValidationStatus(
                         result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
                         result.size(), summary);
+                if (runResult.failed() && !live) {
+                    // the validate event already carries the failure; the dialog explains it
+                    PanelStatus.failure(status, "Validation", "Validation could not run.",
+                            "Check that the bound schema or Schematron loads, then validate again.",
+                            runResult.error(), false);
+                }
             });
         });
     }

@@ -574,6 +574,7 @@ public class JsonService {
             return file.exists() ? file : null;
         } catch (Exception e) {
             logger.warn("Could not resolve JSON Schema location '{}': {}", temp, e.getMessage());
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "json.schema_location");
             return null;
         }
     }
@@ -601,6 +602,7 @@ public class JsonService {
             return cached.toFile();
         } catch (Exception e) {
             logger.warn("Could not download JSON Schema '{}': {}", url, e.getMessage());
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "json.schema_download");
             return null;
         }
     }

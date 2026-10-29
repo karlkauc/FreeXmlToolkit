@@ -100,10 +100,25 @@ public final class ValidationRunner {
      * @param schematronMillis duration of the Schematron stage (0 if it didn't run)
      */
     public record RunResult(List<ValidationProblem> problems, SchematronReportData schematronReport,
-                            long xsdMillis, long schematronMillis) {
+                            long xsdMillis, long schematronMillis,
+                            org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure, Throwable error) {
 
         public RunResult(List<ValidationProblem> problems, SchematronReportData schematronReport) {
-            this(problems, schematronReport, 0, 0);
+            this(problems, schematronReport, 0, 0, null, null);
+        }
+
+        public RunResult(List<ValidationProblem> problems, SchematronReportData schematronReport,
+                         long xsdMillis, long schematronMillis) {
+            this(problems, schematronReport, xsdMillis, schematronMillis, null, null);
+        }
+
+        /**
+         * @return whether the validation itself could not run (schema or Schematron does not load,
+         *         service failure) — then {@link #failure()} classifies it for telemetry and
+         *         {@link #error()} is the cause; the problems carry a row describing it
+         */
+        public boolean failed() {
+            return failure != null;
         }
     }
 
@@ -119,14 +134,21 @@ public final class ValidationRunner {
         // Without an XSD this is a well-formedness (structural) check; with one it also
         // validates against the schema. Label problems by their actual source.
         String source = xsd != null ? "XSD" : "Well-formed";
+        org.fxt.freexmltoolkit.service.telemetry.QueryFailure failure = null;
+        Throwable error = null;
         long xsdStart = System.nanoTime();
         try {
             for (SAXParseException e : ServiceRegistry.get(XmlService.class).validateText(xml, xsd)) {
                 problems.add(new ValidationProblem(source, "error", e.getLineNumber(), e.getMessage())
                         .withColumn(e.getColumnNumber()));
             }
-        } catch (Throwable ignored) {
-            // validation unavailable (e.g. no service registry) — skip
+        } catch (Throwable t) {
+            // The validation itself could not run: the document must not look valid. Counted with
+            // its code (a schema that does not load is the user's input, anything else an app failure).
+            failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(t);
+            error = t;
+            problems.add(new ValidationProblem(source, "error", 0,
+                    "Validation could not run: " + (t.getMessage() != null ? t.getMessage() : t.toString())));
         }
         long xsdMillis = (System.nanoTime() - xsdStart) / 1_000_000;
         long schematronMillis = 0;
@@ -160,13 +182,19 @@ public final class ValidationRunner {
                 reportData = new SchematronReportData(documentName, schematron,
                         List.copyOf(schematronProblems), report.svrl());
             } catch (Exception e) {
-                // invalid/unloadable schematron — skip its stage, never hide the XSD stage
+                // invalid/unloadable schematron — its stage is shown as a problem, the XSD stage stays
                 LogManager.getLogger(ValidationRunner.class)
-                        .debug("Schematron stage skipped: {}", e.getMessage());
+                        .debug("Schematron stage failed: {}", e.getMessage());
+                if (failure == null) {
+                    failure = org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e);
+                    error = e;
+                }
+                problems.add(new ValidationProblem("Schematron", "error", 0,
+                        "Schematron could not be run: " + (e.getMessage() != null ? e.getMessage() : e.toString())));
             }
             schematronMillis = (System.nanoTime() - schematronStart) / 1_000_000;
         }
-        return new RunResult(problems, reportData, xsdMillis, schematronMillis);
+        return new RunResult(problems, reportData, xsdMillis, schematronMillis, failure, error);
     }
 
     /**
