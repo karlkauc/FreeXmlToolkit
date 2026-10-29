@@ -1,0 +1,723 @@
+<title>XMLSpy Grid Analyse</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (72ch) with a sticky mini-TOC above; grid mockups reproduce the
+   XMLSpy look (red type icons, yellow table headers, hairline grid) inside bordered "screen" frames. */
+:root {
+  --bg: #fbfbfd;
+  --fg: #1b2230;
+  --muted: #5d6675;
+  --line: #d9dde6;
+  --surface: #ffffff;
+  --surface-2: #f1f3f8;
+  --accent: #1a5fb4;
+  --accent-soft: #e4edf9;
+  --ok: #1f7a3a; --ok-bg: #e2f3e6;
+  --part: #9a6200; --part-bg: #fff1d6;
+  --miss: #b3261e; --miss-bg: #fbe4e2;
+  /* XMLSpy grid palette (deliberately light-only inside the frame, with a dark frame variant below) */
+  --xg-bg: #ffffff; --xg-line: #c9ced8; --xg-name: #111; --xg-val: #222; --xg-muted: #8a8f99;
+  --xg-icon: #c0392b; --xg-head: #fff6bf; --xg-head-sel: #c7d9f5; --xg-focus: #cfe0fb;
+  --xg-formula: #e8eef9; --xg-err: #d21f1f; --xg-filter: #d9a300;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14181f; --fg: #e6e9ef; --muted: #a3abb8; --line: #2f3642; --surface: #1b2029; --surface-2: #222835;
+    --accent: #7fb2ff; --accent-soft: #223252;
+    --ok: #7fd79a; --ok-bg: #1d3626; --part: #f0c060; --part-bg: #3d3014; --miss: #ff8d85; --miss-bg: #46201e;
+    --xg-bg: #f7f7f9; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14181f; --fg: #e6e9ef; --muted: #a3abb8; --line: #2f3642; --surface: #1b2029; --surface-2: #222835;
+  --accent: #7fb2ff; --accent-soft: #223252;
+  --ok: #7fd79a; --ok-bg: #1d3626; --part: #f0c060; --part-bg: #3d3014; --miss: #ff8d85; --miss-bg: #46201e;
+  --xg-bg: #f7f7f9; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 4rem; }
+main { max-width: 76ch; margin: 0 auto; }
+header.top { max-width: 76ch; margin: 0 auto; padding-block: 2.5rem 1rem; border-bottom: 1px solid var(--line); }
+.eyebrow { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+h1 { font-size: 2rem; line-height: 1.15; margin: .4rem 0 .6rem; font-weight: 600; text-wrap: balance; }
+h2 { font-size: 1.35rem; margin: 2.8rem 0 .8rem; padding-top: .6rem; border-top: 1px solid var(--line); font-weight: 600; text-wrap: balance; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .5rem; font-weight: 600; }
+p { margin: 0 0 .9rem; max-width: 72ch; }
+ul, ol { margin: 0 0 1rem; padding-left: 1.3rem; max-width: 72ch; }
+li { margin-bottom: .3rem; }
+a { color: var(--accent); }
+code, kbd { font-family: var(--font-mono); font-size: .86em; }
+code { background: var(--surface-2); padding: .05em .3em; border-radius: 3px; }
+kbd { background: var(--surface-2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 .35em; white-space: nowrap; }
+.lead { font-size: 1.05rem; color: var(--muted); max-width: 70ch; }
+.meta { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; font-size: .85rem; color: var(--muted); margin-top: .8rem; }
+nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 5; border-bottom: 1px solid var(--line);
+  margin: 0 auto 1rem; max-width: 76ch; padding: .5rem 0; display: flex; gap: .3rem .9rem; flex-wrap: wrap; font-size: .8rem; }
+nav.toc a { color: var(--muted); text-decoration: none; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.note { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: .6rem .9rem; border-radius: 0 6px 6px 0; margin: 1rem 0; max-width: 72ch; }
+.src { font-size: .8rem; color: var(--muted); margin-top: -.4rem; margin-bottom: 1rem; }
+.src a { color: inherit; }
+table.t { border-collapse: collapse; width: 100%; font-size: .88rem; margin: .6rem 0 1.2rem; }
+table.t th, table.t td { border: 1px solid var(--line); padding: .4rem .55rem; vertical-align: top; text-align: left; }
+table.t th { background: var(--surface-2); font-weight: 600; }
+table.t td.c, table.t th.c { text-align: center; }
+.wrap { overflow-x: auto; max-width: 100%; }
+.badge { display: inline-block; font-size: .72rem; font-weight: 600; padding: .05em .5em; border-radius: 999px; white-space: nowrap; }
+.ok { background: var(--ok-bg); color: var(--ok); } .part { background: var(--part-bg); color: var(--part); } .miss { background: var(--miss-bg); color: var(--miss); }
+.p1 { color: var(--miss); font-weight: 600; } .p2 { color: var(--part); font-weight: 600; } .p3 { color: var(--muted); font-weight: 600; }
+figure { margin: 1rem 0 1.4rem; }
+figcaption { font-size: .8rem; color: var(--muted); margin-top: .4rem; }
+.screen { border: 1px solid var(--line); border-radius: 6px; background: var(--xg-bg); color: var(--xg-val); overflow-x: auto; padding: 6px; font-family: var(--font-body); font-size: 13px; }
+.screen .ttl { font-size: 11px; color: #666; background: #ececf0; margin: -6px -6px 6px; padding: 2px 8px; border-bottom: 1px solid var(--xg-line); font-family: var(--font-body); }
+
+/* --- XMLSpy grid mockup --- */
+.xg { display: flex; flex-direction: column; min-width: 420px; border: 1px solid var(--xg-line); background: var(--xg-bg); }
+.xg .r { display: flex; align-items: stretch; border-bottom: 1px solid var(--xg-line); }
+.xg .r:last-child { border-bottom: 0; }
+.xg .ar { flex: 0 0 14px; font-size: 9px; color: #333; text-align: center; padding-top: 5px; border-right: 1px solid var(--xg-line); background: #f5f5f7; }
+.xg .nm { flex: 0 0 150px; padding: 3px 6px; font-weight: 600; color: var(--xg-name); border-right: 1px solid var(--xg-line); white-space: nowrap; display: flex; flex-direction: column; gap: 2px; }
+.xg .nm.w { flex-basis: 120px; }
+.xg .vl { flex: 1; padding: 3px 6px; color: var(--xg-val); min-width: 0; }
+.xg .sub { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.xg .sub .r:first-child { border-top: 0; }
+.xg .muted { color: var(--xg-muted); font-weight: 400; }
+.xg .cnt { font-weight: 400; font-style: italic; color: #444; }
+.xg .idx { font-weight: 400; color: var(--xg-muted); }
+.xg .flt { padding: 1px 6px; color: var(--xg-muted); font-size: 11px; border-bottom: 1px solid var(--xg-line); background: #fafafa; }
+.xg .flt.on { color: #7a5c00; background: #fff8dc; }
+.xg .flt.on::before { content: "▼ "; color: var(--xg-filter); }
+.xg .flt:not(.on)::before { content: "▽"; }
+.xg .ns { color: var(--xg-icon); }
+.xg .err { color: var(--xg-err); }
+.xg .sel { background: var(--xg-focus); outline: 1px solid #2b6cd9; }
+.xg .prev { color: var(--xg-muted); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ic { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--xg-icon); width: 24px; margin-right: 2px; }
+.ic.t { color: #2b6cd9; } .ic.f { color: #2b6cd9; } .ic.x { color: #777; } .ic.c { color: #2e8b57; } .ic.cd { color: #7a3ab8; }
+.ic.tbl { font-size: 12px; color: #555; } .ic.tbl.on { color: #1a7a1a; }
+/* table display */
+table.xt { border-collapse: collapse; font-size: 13px; min-width: 360px; background: var(--xg-bg); color: var(--xg-val); }
+table.xt th, table.xt td { border: 1px solid var(--xg-line); padding: 2px 8px; text-align: left; white-space: nowrap; }
+table.xt th { background: var(--xg-head); font-weight: 600; color: var(--xg-name); }
+table.xt th.sel { background: var(--xg-head-sel); }
+table.xt td.n { background: var(--xg-head); color: #555; width: 2em; text-align: right; }
+table.xt td.focus { background: var(--xg-focus); outline: 1px solid #2b6cd9; }
+table.xt td.err { color: var(--xg-err); font-weight: 600; }
+table.xt td.fx { color: #1d4ed8; }
+table.xt .flip { color: #555; font-size: 12px; }
+.twrap { display: flex; gap: 0; min-width: 420px; }
+.twrap .nmcol { flex: 0 0 150px; border: 1px solid var(--xg-line); border-right: 0; padding: 3px 6px; font-weight: 600; background: var(--xg-bg); color: var(--xg-name); display: flex; flex-direction: column; gap: 2px; }
+.sh { border: 1px solid var(--xg-line); background: #eef0f4; padding: 2px 8px; font-size: 12px; display: flex; gap: 14px; color: #333; font-weight: 600; }
+.menu { display: inline-block; border: 1px solid var(--xg-line); background: #fff; color: #222; font-size: 12.5px; min-width: 240px; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+.menu div { display: flex; justify-content: space-between; gap: 2rem; padding: 3px 10px; }
+.menu div.sep { border-top: 1px solid #ddd; padding: 0; }
+.menu .k { color: #666; font-family: var(--font-mono); font-size: 11px; }
+.menu .dis { color: #aaa; }
+.helper { display: inline-flex; flex-direction: column; border: 1px solid var(--xg-line); background: #fff; color: #222; font-size: 12.5px; min-width: 200px; }
+.helper .hd { background: #e9ebf0; padding: 2px 8px; font-weight: 600; border-bottom: 1px solid var(--xg-line); }
+.helper div { padding: 2px 8px; display: flex; gap: 6px; align-items: center; }
+.helper .g { color: #999; }
+.helper .req::after { content: " !"; color: var(--xg-icon); font-weight: 700; }
+.helper .act { margin-left: auto; color: #2b6cd9; font-size: 11px; }
+.dnd { position: relative; display: inline-block; }
+.dnd .tag { position: absolute; left: 60%; top: 1.6em; background: #fff; border: 1px solid #777; padding: 1px 6px; font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,.2); color: #222; white-space: nowrap; }
+.legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .4rem 1rem; font-size: .85rem; margin: .5rem 0 1rem; }
+.legend div { display: flex; gap: .5rem; align-items: baseline; }
+.cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; align-items: start; }
+.cols2 > * { min-width: 0; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+@media (max-width: 480px) { h1 { font-size: 1.6rem; } body { font-size: 14.5px; } }
+</style>
+
+<header class="top">
+  <div class="eyebrow">Wettbewerbsanalyse · Altova XMLSpy 2026/2027 Enterprise</div>
+  <h1>Das XML-Grid von XMLSpy: Features und Optik</h1>
+  <p class="lead">Was die Grid-Ansicht (Grid View) kann, wie sie aussieht und welche Teile im FreeXmlToolkit-Grid schon vorhanden sind. Grundlage sind das Altova-Handbuch (DE/EN), die Produktseite und der Blog zur Neuentwicklung des Grids in Version 2021r2.</p>
+  <div class="meta"><span>Stand: 29. Oktober 2026</span><span>Autor: Claude (Recherche) für Karl Kauc</span><span>Screenshots: nur verlinkt, Mockups eigene Nachbildungen</span></div>
+</header>
+
+<nav class="toc" aria-label="Inhalt">
+  <a href="#aufbau">Aufbau</a><a href="#knoten">Knotentypen</a><a href="#klappen">Ein-/Ausklappen</a><a href="#breite">Spaltenbreite</a>
+  <a href="#tabelle">Tabellenansicht</a><a href="#edit">Bearbeiten</a><a href="#dnd">Drag &amp; Drop</a><a href="#filter">Filter/Formeln</a>
+  <a href="#nav">Navigation</a><a href="#menu">Toolbar/Menü</a><a href="#settings">Einstellungen</a><a href="#gap">Gap-Analyse</a><a href="#quellen">Quellen</a>
+</nav>
+
+<main>
+
+<h2 id="aufbau">1. Überblick und Grundaufbau</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/de/XMLSpy/SpyEnterprise/xseditingviews_gridview.html">Grid-Ansicht (DE)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_docdisplay.html">Document Display (EN)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridview01_zoom80.png">Screenshot Gesamtansicht</a></p>
+<p>Die Grid-Ansicht zeigt ein XML-Dokument als Hierarchie <strong>verschachtelter Container</strong>. Jede Zeile ist ein Knoten. Links steht die Namenszelle mit Typ-Icon und fettem Knotennamen, rechts entweder die Wertzelle oder der eingerückte Container mit den Kindern. Die Ansicht gibt es für XML, JSON, YAML und DTD; Altova hat sie mit Version 2021r2 (März 2021) komplett neu geschrieben.</p>
+
+<figure>
+<div class="screen"><div class="ttl">Mockup: Standardansicht (Company.xml, nach Altova-Beispiel)</div>
+<div class="xg">
+  <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic x">XML</span></span></div><div class="vl muted">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div></div>
+  <div class="r"><div class="ar">▲</div><div class="nm"><span><span class="ic">&lt;&gt;</span>Company</span></div>
+    <div class="sub">
+      <div class="flt"></div>
+      <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic">=</span>xmlns</span></div><div class="vl">http://my-company.com/namespace</div></div>
+      <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic">=</span>xmlns:<span class="ns">xsi</span></span></div><div class="vl">http://www.w3.org/2001/XMLSchema-instance</div></div>
+      <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic">=</span><span class="ns">xsi:</span>schemaLocation</span></div><div class="vl">http://my-company.com/namespace AddressLast.xsd</div></div>
+      <div class="r"><div class="ar">▲</div><div class="nm"><span><span class="ic">&lt;&gt;</span>Address</span></div>
+        <div class="sub">
+          <div class="flt"></div>
+          <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic">=</span><span class="ns">xsi:</span>type</span></div><div class="vl">US-Address</div></div>
+          <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic">&lt;&gt;</span>Name</span></div><div class="vl">US dependency</div></div>
+          <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic">&lt;&gt;</span>Street</span></div><div class="vl">Noble Ave.</div></div>
+          <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic">&lt;&gt;</span>City</span></div><div class="vl">Dallas</div></div>
+          <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic">&lt;&gt;</span>Zip</span></div><div class="vl">04812</div></div>
+          <div class="r"><div class="ar"></div><div class="nm"><span><span class="ic">&lt;&gt;</span>State</span></div><div class="vl">Texas</div></div>
+        </div></div>
+      <div class="r"><div class="ar">▲</div><div class="nm"><span><span class="ic">&lt;&gt;</span>Person <span class="cnt">(3)</span></span><span><span class="ic tbl on">▦</span></span></div>
+        <div class="sub"><div class="vl" style="padding:0">
+          <table class="xt">
+            <tr><th><span class="flip">⇄</span></th><th><span class="ic">=</span>Manager</th><th><span class="ic">=</span>Degree</th><th><span class="ic">=</span>Programmer</th><th><span class="ic">&lt;&gt;</span>First</th><th><span class="ic">&lt;&gt;</span>Last</th></tr>
+            <tr><td class="n">1</td><td>false</td><td>MA</td><td>true</td><td>Alfred</td><td>Aldrich</td></tr>
+            <tr><td class="n">2</td><td>true</td><td>Ph.D</td><td>false</td><td>Colin</td><td>Coletti</td></tr>
+            <tr><td class="n">3</td><td>true</td><td class="focus">BA</td><td>false</td><td>Fred</td><td>Smith</td></tr>
+          </table>
+        </div></div></div>
+    </div></div>
+</div></div>
+<figcaption>Nachbildung der Gesamtansicht: XML-Deklaration als erste Zeile, Namespace-Deklarationen als Attributzeilen, Container pro Element mit Filter-Trichter, wiederholtes Element <code>Person</code> bereits als Tabelle.</figcaption>
+</figure>
+
+<h3>Optische Merkmale</h3>
+<div class="legend">
+  <div><span class="ic">&lt;&gt;</span><span>rotes Element-Icon, Name fett</span></div>
+  <div><span class="ic">=</span><span>Attribut, immer vor den Kind-Elementen</span></div>
+  <div><span class="ic t">Abc</span><span>Textknoten, nur Wert</span></div>
+  <div><span class="ic x">XML</span><span>XML-Deklaration, grauer Text</span></div>
+  <div><span style="color:var(--xg-icon);font-weight:600">ipo:</span><span>Namespace-Präfix rot hervorgehoben</span></div>
+  <div><span class="cnt" style="font-style:italic">(3)</span><span>Anzahl gleichnamiger Geschwister, kursiv</span></div>
+  <div><span class="idx" style="color:var(--xg-muted)">&lt;1&gt;</span><span>Instanznummer, grau, nur Anzeige</span></div>
+  <div><span>▽</span><span>Filter-Trichter unter jedem Element-Container</span></div>
+  <div><span class="ic tbl on">▦</span><span>Tabellenmodus-Icon, farbig wenn aktiv</span></div>
+  <div><span>▲ / ▼</span><span>Pfeilspitze ganz links zum Klappen</span></div>
+</div>
+<ul>
+  <li><strong>Raster:</strong> hellgraue Hairlines, weißer Hintergrund, keine Zebra-Streifen. Jede Einrückungsebene ist ein eigener Rahmen, der links an der Namenszelle des Elternelements „andockt“.</li>
+  <li><strong>Namenszelle:</strong> fester Platz für Typ-Icon, Name, Zähler, darunter das Tabellen-Icon. Die Breite ist pro Spalte ziehbar (siehe Abschnitt 4).</li>
+  <li><strong>Werte:</strong> normale Schrift, linksbündig, bei Word-Wrap mehrzeilig. Die Zellhöhe folgt dem Inhalt.</li>
+  <li><strong>Selektion/Fokus:</strong> hellblaue Fläche mit blauem Rand (Farben konfigurierbar, inkl. inaktiver Variante wenn ein anderes Fenster aktiv ist).</li>
+  <li><strong>Validierungsfehler</strong> (Validate on Edit): Wert in Rot, rotes <code>!</code>-Icon, daneben eine Glühbirne für SmartFix-Vorschläge, Tooltip mit Fehlertext.</li>
+  <li><strong>Suchtreffer</strong> (Ctrl+F/Ctrl+H) werden orange hinterlegt, inklusive der umgebenden Zelle.</li>
+</ul>
+
+<h2 id="knoten">2. Knotentypen und Darstellung von Werten und Attributen</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_doccontent.html">Document Content</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewnodetypes.png">Screenshot Typ-Dropdown</a></p>
+<p>Jede Grid-Zeile ist genau ein Knoten. Das Typ-Icon oben links in der Zelle ist zugleich ein <strong>Dropdown zum Typwechsel</strong>: ein Klick öffnet die Liste aller Typen, der Knoten wird konvertiert und behält, soweit möglich, Name und Wert.</p>
+
+<div class="cols2">
+<div class="wrap">
+<table class="t">
+<tr><th>Typ</th><th>Icon</th><th>Zellen</th><th>Kürzel im Typ-Menü</th></tr>
+<tr><td>Element</td><td><span class="ic">&lt;&gt;</span></td><td>Name + Wert/Container</td><td><kbd>&lt;</kbd></td></tr>
+<tr><td>Attribut</td><td><span class="ic">=</span></td><td>Name + Wert</td><td><kbd>=</kbd></td></tr>
+<tr><td>Text</td><td><span class="ic t">Abc</span></td><td>nur Wert</td><td><kbd>'</kbd></td></tr>
+<tr><td>CDATA</td><td><span class="ic cd">[…]</span></td><td>nur Wert</td><td><kbd>[</kbd></td></tr>
+<tr><td>Kommentar</td><td><span class="ic c">&lt;!--</span></td><td>nur Wert</td><td><kbd>/</kbd></td></tr>
+<tr><td>XML-Deklaration</td><td><span class="ic x">XML</span></td><td>Definition (nicht editierbar als Typ)</td><td>–</td></tr>
+<tr><td>Processing Instruction</td><td><span class="ic">&lt;?</span></td><td>Name + Wert</td><td><kbd>?</kbd></td></tr>
+<tr><td>DOCTYPE</td><td><span class="ic x">Doc</span></td><td>Definition</td><td><kbd>!</kbd></td></tr>
+<tr><td>Entity/Zeichenreferenz</td><td><span class="ic">Ent</span></td><td>nur Wert</td><td><kbd>&amp;</kbd></td></tr>
+<tr><td>Formel (XMLSpy-spezifisch)</td><td><span class="ic f">f(x)</span></td><td>Name + Ausdruck + Ergebnis</td><td><kbd>,</kbd></td></tr>
+</table>
+</div>
+<figure>
+<div class="screen"><div class="ttl">Mockup: Typ-Dropdown am Icon</div>
+<div class="menu">
+  <div><span><span class="ic">&lt;&gt;</span>Element</span><span class="k">&lt;</span></div>
+  <div><span><span class="ic">=</span>Attribute</span><span class="k">=</span></div>
+  <div><span><span class="ic t">Abc</span>Text</span><span class="k">'</span></div>
+  <div><span><span class="ic cd">[…]</span>CDATA</span><span class="k">[</span></div>
+  <div><span><span class="ic c">&lt;!--</span>Comment</span><span class="k">/</span></div>
+  <div class="dis"><span><span class="ic x">XML</span>XML Declaration</span><span></span></div>
+  <div><span><span class="ic">&lt;?</span>Processing Instruction</span><span class="k">?</span></div>
+  <div class="dis"><span><span class="ic x">Doc</span>DOCTYPE</span><span class="k">!</span></div>
+  <div><span><span class="ic">Ent</span>Entity/Char Reference</span><span class="k">&amp;</span></div>
+  <div><span><span class="ic f">f(x)</span>Formula</span><span class="k">,</span></div>
+</div></div>
+<figcaption>Typen, die an der Stelle nicht erlaubt sind, erscheinen ausgegraut.</figcaption>
+</figure>
+</div>
+
+<h3>Regeln für Werte und Attribute</h3>
+<ul>
+  <li><strong>Attribute zuerst:</strong> unter einem Element stehen immer erst alle Attribute, dann Kind-Elemente und Text. Ein Typwechsel Element → Attribut sortiert den Knoten deshalb nach oben.</li>
+  <li><strong>Einfacher Inhalt</strong> steht direkt in der Wertzelle rechts vom Namen (<code>City | Dallas</code>). Es gibt keine eigene Textzeile für den Inhalt eines Blattelements.</li>
+  <li><strong>Gemischter Inhalt</strong> (mixed content) wird als Folge von Text- und Elementzeilen dargestellt; aufeinanderfolgende Textknoten werden beim Typwechsel automatisch zusammengelegt.</li>
+  <li><strong>Namespaces:</strong> <code>xmlns</code>-Deklarationen sind normale Attributzeilen; Präfixe werden rot vom lokalen Namen abgesetzt.</li>
+  <li><strong>Entities</strong> werden aufgelöst angezeigt, optional als Rohtext (Einstellung „Convert XML entities to raw text on loading“). „Edit as Raw Text“ (Ctrl+Alt+R) macht aus dem gesamten Inhalt einer Elternzelle eine einzige Rohtext-Zelle mit unaufgelöstem Markup.</li>
+  <li><strong>Whitespace</strong> ist sichtbar schaltbar: Leerzeichen als Mittelpunkt, Tab als Pfeil, Zeilenende als sichtbarer Umbruch in der Zelle.</li>
+  <li><strong>Bilder:</strong> Base64-Inhalt (PNG, JPEG, BMP, animiertes GIF) wird direkt als Grafik in der Zelle gerendert; SVG wird als XML aufgeklappt und zusätzlich unter dem letzten Kind von <code>svg</code> als Bild gezeigt.</li>
+  <li><strong>Textrichtung</strong> pro Textknoten umschaltbar (LTR/RTL) über das Kontextmenü.</li>
+</ul>
+
+<h2 id="klappen">3. Ein- und Ausklappen</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_docdisplay.html">Document Display</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_settings.html">Grid View Settings</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/gridviewnormal02_zoom58.png">Screenshot zugeklappte Vorschau</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/gridviewsettingssiblinggroup.png">Screenshot Sibling-Gruppen</a></p>
+
+<figure>
+<div class="screen"><div class="ttl">Mockup: Person &lt;1&gt; offen, &lt;2&gt; und &lt;3&gt; zugeklappt mit Inline-Vorschau</div>
+<div class="xg">
+  <div class="r"><div class="ar">▲</div><div class="nm"><span><span class="ic">&lt;&gt;</span>Person <span class="idx">&lt;1&gt;</span></span><span><span class="ic tbl">▦</span></span></div>
+    <div class="sub"><div class="flt"></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">&lt;&gt;</span>First</span></div><div class="vl">Fred</div></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">&lt;&gt;</span>Last</span></div><div class="vl">Landis</div></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">&lt;&gt;</span>Title</span></div><div class="vl">Program Manager</div></div>
+    </div></div>
+  <div class="r"><div class="ar">▼</div><div class="nm"><span><span class="ic">&lt;&gt;</span>Person <span class="idx">&lt;2&gt;</span></span></div><div class="vl prev">&lt;Person&gt;&lt;First&gt;Michelle&lt;/First&gt;&lt;Last&gt;Butler&lt;/Last&gt;&lt;Title&gt;Software Engineer&lt;/Title&gt;…</div></div>
+  <div class="r"><div class="ar">▼</div><div class="nm"><span><span class="ic">&lt;&gt;</span>Person <span class="idx">&lt;3&gt;</span></span></div><div class="vl prev">&lt;Person&gt;&lt;First&gt;Ted&lt;/First&gt;&lt;Last&gt;Little&lt;/Last&gt;&lt;Title&gt;Software Engineer&lt;/Title&gt;…</div></div>
+</div></div>
+<figcaption>Ein zugeklappter Knoten zeigt seinen Inhalt als eine graue Vorschauzeile; der Tooltip zeigt den vollständigen Inhalt.</figcaption>
+</figure>
+
+<table class="t">
+<tr><th>Mechanismus</th><th>Verhalten</th></tr>
+<tr><td>Pfeilspitze links</td><td>Klick klappt den Knoten auf oder zu. Offen: ▲ (Spitze nach oben), geschlossen: ▼.</td></tr>
+<tr><td>Shift-Klick</td><td>Mehrere Geschwister markieren, dann Shift-Klick auf eine der markierten Pfeilspitzen: alle markierten Knoten klappen gemeinsam.</td></tr>
+<tr><td>Inline-Vorschau</td><td>Zugeklappter Knoten zeigt Inhalt als eine Zeile. Einstellung „Show inline previews“ (an), Variante „nur Attribute“. Aus: nur die Indexnummer.</td></tr>
+<tr><td>Expand Fully</td><td>Kontextmenü / Menü View: Knoten und alle Nachfahren öffnen.</td></tr>
+<tr><td>Collapse Unselected</td><td>Alles außer der Auswahl und ihren Vorfahren zuklappen (Fokus-Modus).</td></tr>
+<tr><td>Expand / Collapse (Menü View)</td><td>Nur den markierten Knoten eine Ebene öffnen/schließen.</td></tr>
+<tr><td>Tastatur</td><td><kbd>→</kbd> öffnet (Default an), <kbd>←</kbd> schließt (Default aus, sonst Fokus zum Elternknoten), <kbd>Leertaste</kbd> toggelt (an). <kbd>↑</kbd>/<kbd>↓</kbd> mit „Keep column position“ bleiben auf derselben Ebene (z. B. nur Buchtitel). In Tabellenzellen bewegen Pfeiltasten nur den Zellfokus.</td></tr>
+<tr><td>Beim Laden</td><td>„Expand all cells on loading“ ist standardmäßig aus: Root und alle Nachfahren starten zugeklappt.</td></tr>
+<tr><td>Sibling-Gruppen</td><td>Für sehr große Dateien: Geschwister in Gruppen zu 100 / 1k / 10k Knoten (Default Unlimited). Gruppenzeile <code>node &lt;10001..20000&gt;</code>; es ist immer genau eine Gruppe offen, sie schließt erst beim Öffnen einer anderen.</td></tr>
+<tr><td>Zustand</td><td>Bleibt bei Edits erhalten; die Tabellenansicht hat pro wiederholtem Element ihren eigenen Zustand. Optimal Widths rechnet nur mit sichtbaren Zellen, Auf-/Zuklappen ändert das Ergebnis.</td></tr>
+</table>
+
+<h2 id="breite">4. Spaltenbreite, Zellhöhe, Zoom, Zeilenumbruch</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/de/XMLSpy/SpyEnterprise/xseditingviews_gridview.html">Grid-Ansicht (DE)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuview_optimalwidths.html">Optimal Widths</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsgridviewsettings.png">Screenshot Einstellungsdialog</a></p>
+<table class="t">
+<tr><th>Aktion</th><th>Wie</th></tr>
+<tr><td>Spalte manuell ändern</td><td>Spaltenrand (Rasterlinie rechts der Spalte) mit der Maus ziehen. Gilt für Namens- und Wertspalten jeder Ebene sowie für Tabellenspalten.</td></tr>
+<tr><td>An Inhalt anpassen</td><td>Doppelklick auf die Rasterlinie rechts der Spalte: Breite des breitesten Eintrags.</td></tr>
+<tr><td>Optimal Widths</td><td>Menü View oder Toolbar-Icon: alle Spalten so breit wie ihr längster einzeiliger String, berechnet nur über sichtbare Zellen. Optional „Limit optimal cell width to N px“ (Default aus, 100 px).</td></tr>
+<tr><td>Automatisch optimal</td><td>„Automatically provide optimal cell widths“ (Default aus): nutzt die volle Gridbreite, bricht Text in einzelnen Zellen um.</td></tr>
+<tr><td>Zellhöhe</td><td>Folgt dem Inhalt. „Limit cell height to N“ (Default aus, 100) kappt lange Werte; Überlauf als <em>Fade</em> (Default) oder Ellipsis.</td></tr>
+<tr><td>Word Wrap</td><td>Toolbar-Toggle; wenn an, bricht Text, der breiter als die Zelle ist, um. Das Dropdown am Icon kann zusätzlich Knotennamen umbrechen.</td></tr>
+<tr><td>Zoom</td><td><kbd>Ctrl</kbd>+Mausrad, <kbd>Ctrl</kbd>+<kbd>+</kbd>/<kbd>−</kbd>, Prozentfeld in der Toolbar.</td></tr>
+<tr><td>Schrift/Farben</td><td>Tools › Options › Fonts and Colors › Grid View: Schriftart und -größe (auch für Ausdruck), Stil/Farbe/Hintergrund je Textelementtyp, Zellfarben für Tabellen.</td></tr>
+</table>
+
+<h2 id="tabelle">5. Tabellenansicht (Table Display) für wiederholte Elemente</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_tabledisplayxml.html">Table Display (XML)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_displayastable.html">Display as Table</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_fliprowscolumns.html">Flip Rows/Columns</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_ascendingdescendingsort.html">Sort</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xstutxml_dbtableview.html">Tutorial „Editing in Table Display“</a>, Screenshots <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/gridviewnormal.png">Standard</a> / <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/gridviewtable.png">Tabelle</a> / <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/tutxmltablesorted.png">sortiert mit Fehler</a></p>
+
+<h3>Aktivieren</h3>
+<ul>
+  <li>Voraussetzung: eine <strong>Folge gleichnamiger Geschwisterelemente</strong> (auch ein Einzelelement ist möglich; sein Tabellen-Icon erscheint beim Anklicken).</li>
+  <li>Toggle über das Tabellen-Icon unter dem Namen der <em>ersten</em> Instanz, über <em>XML › Display as Table</em> oder das Toolbar-Icon. Aktiv = Icon farbig.</li>
+  <li>Einstellung „Detect tables automatically on loading“ (XML: an, Schwelle 0 % gefüllte Zellen; JSON: an, 65 %): Wiederholungen werden beim Laden direkt als Tabelle gezeigt, wenn genug Zellen belegt sind.</li>
+  <li>Der Zustand ist <strong>pro Wiederholungsgruppe</strong>; Standard- und Tabellendarstellung können im selben Dokument gemischt sein.</li>
+</ul>
+
+<figure>
+<div class="screen"><div class="ttl">Mockup: dieselben drei Person-Elemente, links Standard-, rechts Tabellendarstellung</div>
+<div class="cols2">
+<div class="xg" style="min-width:300px">
+  <div class="r"><div class="ar">▲</div><div class="nm w"><span><span class="ic">&lt;&gt;</span>Person <span class="idx">&lt;1&gt;</span></span><span><span class="ic tbl">▦</span></span></div>
+    <div class="sub"><div class="flt"></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">=</span>Manager</span></div><div class="vl">true</div></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">=</span>Degree</span></div><div class="vl">BA</div></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">&lt;&gt;</span>First</span></div><div class="vl">Fred</div></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">&lt;&gt;</span>Last</span></div><div class="vl">Smith</div></div>
+    </div></div>
+  <div class="r"><div class="ar">▲</div><div class="nm w"><span><span class="ic">&lt;&gt;</span>Person <span class="idx">&lt;2&gt;</span></span></div>
+    <div class="sub"><div class="flt"></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">=</span>Manager</span></div><div class="vl">false</div></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">=</span>Degree</span></div><div class="vl">MA</div></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">&lt;&gt;</span>First</span></div><div class="vl">Alfred</div></div>
+      <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">&lt;&gt;</span>Last</span></div><div class="vl">Aldrich</div></div>
+    </div></div>
+</div>
+<div class="twrap" style="min-width:300px">
+  <div class="nmcol"><span>▲ <span class="ic">&lt;&gt;</span>Person <span class="cnt">(3)</span></span><span><span class="ic tbl on">▦</span></span></div>
+  <table class="xt" style="min-width:0">
+    <tr><th><span class="flip">⇄</span></th><th><span class="ic">=</span>Manager</th><th><span class="ic">=</span>Degree</th><th class="sel"><span class="ic">&lt;&gt;</span>First</th><th><span class="ic">&lt;&gt;</span>Last</th></tr>
+    <tr><td class="n">1</td><td>true</td><td>BA</td><td>Fred</td><td>Smith</td></tr>
+    <tr><td class="n">2</td><td>false</td><td>MA</td><td>Alfred</td><td>Aldrich</td></tr>
+    <tr><td class="n">3</td><td>true</td><td></td><td>Colin</td><td>Coletti</td></tr>
+  </table>
+</div>
+</div></div>
+<figcaption>Tabellendarstellung: gelbe Kopfzeile mit Typ-Icon und Name je Kindknoten, gelbe Zeilennummern, Flip-Icon in der Ecke oben links, markierter Spaltenkopf („First“) in Blau. Fehlende Kindknoten (Zeile 3, Degree) bleiben leer.</figcaption>
+</figure>
+
+<h3>Aufbau der Tabelle</h3>
+<ul>
+  <li><strong>Spalten</strong> = Kindknoten der Wiederholung, in Dokumentreihenfolge; Attribute zuerst (Icon <span class="ic">=</span>), dann Kind-Elemente (<span class="ic">&lt;&gt;</span>), auch Textinhalt. Spaltenkopf = Typ-Icon + Name.</li>
+  <li><strong>Zeilen</strong> = Instanzen, mit Zeilennummer in einer gelben Nummernspalte (die Nummern existieren nur in der Anzeige).</li>
+  <li><strong>Fehlende Knoten</strong> ergeben leere Zellen; ihre Farbe („Missing Table Entry“) ist konfigurierbar.</li>
+  <li><strong>Komplexe Kinder:</strong> enthält eine Zelle wieder Kinder, erscheint darin ein verschachtelter Container oder eine verschachtelte Tabelle, jeweils mit eigener Pfeilspitze.</li>
+  <li><strong>Formelspalten:</strong> haben alle Zellen einer Spalte dieselbe Formel, steht sie einmal im Kopf (<span class="ic f">f(x)</span>), die Zellen zeigen nur ihr Ergebnis mit <code>#</code>-Icon.</li>
+</ul>
+
+<h3>Zeilen und Spalten tauschen (Flip)</h3>
+<p>Die Zelle oben links trägt das Flip-Icon. Ist sie markiert, wird <em>XML › Flip Rows/Columns</em> (Toolbar-Icon) aktiv und die Tabelle wird transponiert: die Kindknoten werden Zeilen, die Instanzen Spalten. Altova empfiehlt das für breite Tabellen mit wenigen Zeilen. Auch im geflippten Zustand bleiben Sortieren, Bearbeiten und Einfügen verfügbar; der Toggle gilt pro Tabelle.</p>
+
+<figure>
+<div class="screen"><div class="ttl">Mockup: geflippte Tabelle (Kindknoten als Zeilen, Instanzen als Spalten)</div>
+<div class="twrap">
+  <div class="nmcol"><span>▲ <span class="ic">&lt;&gt;</span>Person <span class="cnt">(3)</span></span><span><span class="ic tbl on">▦</span></span></div>
+  <table class="xt" style="min-width:0">
+    <tr><th><span class="flip">⇅</span></th><th>1</th><th>2</th><th>3</th></tr>
+    <tr><td class="n" style="text-align:left"><span class="ic">=</span>Manager</td><td>true</td><td>false</td><td>true</td></tr>
+    <tr><td class="n" style="text-align:left"><span class="ic">=</span>Degree</td><td>BA</td><td>MA</td><td></td></tr>
+    <tr><td class="n" style="text-align:left"><span class="ic">&lt;&gt;</span>First</td><td>Fred</td><td>Alfred</td><td>Colin</td></tr>
+    <tr><td class="n" style="text-align:left"><span class="ic">&lt;&gt;</span>Last</td><td>Smith</td><td>Aldrich</td><td>Coletti</td></tr>
+  </table>
+</div></div>
+<figcaption>Flip tauscht nur die Darstellung; das Dokument bleibt unverändert.</figcaption>
+</figure>
+
+<h3>Operationen auf ganzen Zeilen und Spalten</h3>
+<table class="t">
+<tr><th>Operation</th><th>Verhalten</th></tr>
+<tr><td>Sortieren</td><td>Spaltenkopf markieren, dann <em>Ascending Sort</em> / <em>Descending Sort</em> (Toolbar oder XML-Menü). Alphabetisch oder numerisch je Datentyp der Spalte. Sortieren <strong>ändert die Dokumentreihenfolge</strong> der Instanzen (Undo möglich). Nicht-lateinische Alphabete brauchen ggf. Windows-UTF-8-Einstellung.</td></tr>
+<tr><td>Zeile einfügen</td><td>Kontextmenü auf der Zeilennummer: <em>Insert Row Before/After</em>, <em>Append Row</em>. Die neue Instanz enthält alle Kindknoten der Spalten (leer).</td></tr>
+<tr><td>Spalte einfügen</td><td><em>Insert Column Before/After</em> auf einem Spaltenkopf: der neue Kindknoten wird in <strong>allen</strong> Instanzen angelegt.</td></tr>
+<tr><td>Spalte umbenennen</td><td>Spaltenkopf editieren = Knoten in allen Instanzen umbenennen.</td></tr>
+<tr><td>Spaltentyp ändern</td><td>Typ-Icon im Kopf anklicken (z. B. Element → Attribut) wirkt auf alle Instanzen.</td></tr>
+<tr><td>Spalte verschieben</td><td>Spaltenkopf per Drag auf einen anderen Kopf ziehen; eine Einfügelinie zeigt die Seite. Verschiebt den Kindknoten in allen Instanzen.</td></tr>
+<tr><td>Zelloperationen</td><td>Pro Zelle: Append Sibling, Add Child, Wrap in Element (neues Element zwischen Zelle und Elternknoten).</td></tr>
+<tr><td>Kopieren nach Excel</td><td>Zellen, Zeilenköpfe, Spaltenköpfe oder ganze Tabelle markieren, <em>Copy as Tab-separated Text</em>; Default für Tabellenzellen in der Zwischenablage ist TSV (umstellbar auf XML).</td></tr>
+<tr><td>Einfügen aus Excel</td><td>Bereich in der Tabellenkalkulation kopieren, in der Tabelle <strong>eine</strong> Zelle markieren, <kbd>Ctrl</kbd>+<kbd>V</kbd>: Daten füllen ab dieser Zelle nach rechts/unten, überschreiben Vorhandenes, fehlende Zeilen und Spalten werden angelegt, Werte werden Elementinhalt.</td></tr>
+<tr><td>Validierung in Zellen</td><td>Mit <em>Validate on Edit</em>: ungültiger Wert rot, <code>!</code>-Icon und SmartFix-Glühbirne direkt in der Zelle. Dropdowns für Boolean/Enumerationen bleiben in Tabellenzellen erhalten.</td></tr>
+</table>
+
+<figure>
+<div class="screen"><div class="ttl">Mockup: Validierungsfehler in einer Tabellenzelle (Validate on Edit)</div>
+<table class="xt">
+  <tr><th><span class="ic">&lt;&gt;</span>Last</th><th><span class="ic">&lt;&gt;</span>PhoneExt</th><th><span class="ic">&lt;&gt;</span>Email</th></tr>
+  <tr><td>Smith</td><td>22</td><td>Smith@work.com</td></tr>
+  <tr><td>Aldrich</td><td class="focus err">330 <span title="Fehler">⚠</span> <span style="color:#d4a000">💡</span></td><td>Aldrich@work.com</td></tr>
+</table>
+<div style="margin-top:6px;border:1px solid #d21f1f;background:#fff5f5;color:#222;display:inline-block;padding:2px 8px;font-size:12px"><span style="color:#d21f1f;font-weight:700">!</span> Value '330' is not allowed for element &lt;PhoneExt&gt;.</div>
+</div>
+<figcaption>Der rote Wert, das Fehler-Icon und die Glühbirne (SmartFix-Vorschlag) sitzen in der Zelle; der Fehlertext erscheint als Tooltip.</figcaption>
+</figure>
+
+<h3>JSON/YAML-Variante</h3>
+<p>Objekte und Arrays, die mindestens ein Objekt oder Array enthalten, lassen sich einzeln als <em>Liste</em> oder <em>Tabelle</em> anzeigen (Icon unter dem Objekt/Array-Icon). Array-Elemente werden Zeilen, die Property-Namen Spalten; Datentypen werden automatisch erkannt und per Kürzel (<kbd>*</kbd> Auto, <kbd>"</kbd> String, <kbd>[</kbd> Array, <kbd>{</kbd> Objekt, <kbd>//</kbd> Kommentar, <kbd>=</kbd> Formel) überschrieben.</p>
+
+<h2 id="edit">6. Bearbeiten von Struktur und Inhalt</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_docstructure.html">Document Structure</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_doccontent.html">Document Content</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_entryhelpers.html">Entry Helpers</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewentryhelperssibchild.png">Screenshot Eingabehilfen</a></p>
+
+<h3>Inhalt</h3>
+<ul>
+  <li><strong>In-Place-Edit:</strong> Doppelklick in die Wertzelle (oder Namenszelle), <kbd>Enter</kbd> bestätigt, <kbd>Esc</kbd> verwirft. <kbd>Ctrl</kbd>+<kbd>Enter</kbd> fügt in Ausdrücken einen Zeilenumbruch ein.</li>
+  <li><strong>Autocomplete</strong> bei zugewiesenem Schema: Popup an der Zelle plus Eingabehilfen; Pfeiltasten wählen, <kbd>Enter</kbd> übernimmt. Boolean/Enumerationen als Dropdown.</li>
+  <li><strong>Validate on Edit</strong> (Default aus): Wohlgeformtheit und Schema-Validierung bei jeder Eingabe, Fehler rot mit SmartFix-Vorschlägen (Glühbirne).</li>
+  <li><strong>Typwechsel</strong> per Icon oder Kontextmenü <em>Type</em> (<kbd>Ctrl</kbd>+<kbd>Menü</kbd>); bei Mehrfachauswahl Rückfrage (Einstellung Always/Never/Ask).</li>
+  <li><strong>Suchen/Ersetzen</strong> (<kbd>Ctrl</kbd>+<kbd>F</kbd>/<kbd>H</kbd>) mit Groß/Klein, ganzes Wort, Regex, nur Auswahl; Treffer orange.</li>
+  <li><strong>Entities</strong> über die Eingabehilfe „Entities“ einfügen; XInclude, Dateipfad und Base16/Base64-kodierte Dateien über <em>Insert</em>.</li>
+</ul>
+
+<h3>Struktur</h3>
+<div class="cols2">
+<div class="wrap">
+<table class="t">
+<tr><th>Befehl</th><th>Shortcut</th><th>Wirkung</th></tr>
+<tr><td>Insert After</td><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>Leeres Geschwisterelement nach der Auswahl</td></tr>
+<tr><td>Insert Before</td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd></td><td>… davor</td></tr>
+<tr><td>Append</td><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>A</kbd></td><td>… als letztes Geschwister</td></tr>
+<tr><td>Add Child</td><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Enter</kbd></td><td>Leeres Kindelement anhängen</td></tr>
+<tr><td>Add Attribute</td><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd></td><td>Attribut mit Default-Namen</td></tr>
+<tr><td>Wrap in Element</td><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>W</kbd></td><td>Neues Elternelement um die Auswahl</td></tr>
+<tr><td>Edit as Raw Text</td><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd></td><td>Inhalt als eine Rohtext-Zelle</td></tr>
+<tr><td>Move Up/Down/Left/Right</td><td>Menü</td><td>Knoten verschieben, nur aktiv wenn möglich</td></tr>
+<tr><td>Delete</td><td><kbd>Entf</kbd></td><td>Auswahl löschen</td></tr>
+<tr><td>Element Whitespace</td><td>Menü</td><td><code>xml:space</code> Omit / Preserve / Default</td></tr>
+<tr><td>Undo / Redo</td><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd></td><td>Jede Grid-Operation, auch Drag &amp; Drop und Sortierung</td></tr>
+</table>
+</div>
+<figure>
+<div class="screen"><div class="ttl">Mockup: Eingabehilfen Siblings / Children</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<div class="helper"><div class="hd">Siblings</div>
+  <div><span class="ic">=</span><span class="ic">&lt;&gt;</span><span style="color:#999;font-size:11px">Filter</span></div>
+  <div class="g"><span class="ic">=</span>xsi:type</div>
+  <div class="g"><span class="ic">&lt;&gt;</span>Address</div>
+  <div class="req" style="background:#dbe7fb"><span class="ic">&lt;&gt;</span>Person<span class="act">⇤ ⇥ ⇥|</span></div>
+</div>
+<div class="helper"><div class="hd">Children</div>
+  <div class="req"><span class="ic">=</span>Manager</div>
+  <div><span class="ic">=</span>Programmer</div>
+  <div><span class="ic">=</span>Degree</div>
+  <div class="req"><span class="ic">&lt;&gt;</span>First</div>
+  <div class="g"><span class="ic">&lt;&gt;</span>Last</div>
+  <div class="g"><span class="ic">&lt;&gt;</span>Title</div>
+</div>
+</div></div>
+<figcaption>Schwarz = vom Schema erlaubt und noch nicht vorhanden, grau = schon vorhanden oder noch nicht erlaubt, <code>!</code> = Pflicht. Icons rechts: Insert Before / After / Append. Doppelklick fügt ein.</figcaption>
+</figure>
+</div>
+<p>Neue Knoten entstehen immer <strong>leer als Element</strong> und werden danach umgetypt oder benannt. Die Eingabehilfen (Siblings, Children, Values) reagieren auf die markierte Zelle: sie zeigen nur, was das Schema an dieser Stelle zulässt, und <em>Values</em> listet Enumerationswerte zum Doppelklick.</p>
+
+<h2 id="dnd">7. Drag &amp; Drop</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_dragndropxml.html">Drag-and-Drop (XML)</a>, Screenshots <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewdndval2val.png">Wert → Wert</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewdndtable01.png">Matrix in Tabelle</a></p>
+<p>Das Grid blendet beim Ziehen ein <strong>Overlay</strong> ein, das zeigt, <em>was</em> gezogen wird und <em>wie</em> es beim Loslassen angelegt würde. Quellen sind andere XMLSpy-Dokumente, externe Programme (Excel, Texteditor, IDE) und Webseiten.</p>
+<table class="t">
+<tr><th>Ziel</th><th>Overlay</th><th>Ergebnis</th></tr>
+<tr><td>Wertzelle</td><td>Zelle wird umrahmt, Tag <code>Abc</code></td><td>Wert wird ersetzt</td></tr>
+<tr><td>Knotenname</td><td>Einfügelinie</td><td>Gezogener Wert wird neuer Textknoten im Baum</td></tr>
+<tr><td>Mehrere Knoten gleichen Typs</td><td>Typ-Icon + Anzahl</td><td>Knoten werden eingefügt</td></tr>
+<tr><td>Mehrere Knoten gemischten Typs</td><td>„Mixed“ + Anzahl</td><td>dito</td></tr>
+<tr><td>Tabelle, Zellen gezogen</td><td>Matrix „2 x 2“</td><td>Zielzelle bekommt den Wert oben links, Rest nach rechts/unten; fehlende Zeilen/Spalten werden angelegt</td></tr>
+<tr><td>Knotenbaum, Tabellenzellen gezogen</td><td>Element, Spalten in <code>[…]</code>, Zeilenanzahl</td><td>Neue Elemente mit den Spalten als Kinder</td></tr>
+<tr><td>Spaltenkopf auf Spaltenkopf</td><td>Einfügelinie links/rechts</td><td>Spalte wird verschoben (in allen Instanzen)</td></tr>
+</table>
+<p>Jede Verschiebung ist mit <kbd>Ctrl</kbd>+<kbd>Z</kbd> rückgängig zu machen. Knoten innerhalb des Grids werden ebenfalls per Drag verschoben (Handbuch: „Modifying structure with Windows mechanisms“).</p>
+
+<h2 id="filter">8. Filter, Formeln, Bilder, Diagramme</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_filters.html">Filters</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_formulasxml.html">Formulas (XML)</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_images.html">Images</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_charts.html">Charts</a>, Screenshots <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewfilters.png">Filter</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewformulas.png">Formel</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewformulastable.png">Formelspalte</a></p>
+
+<figure>
+<div class="screen"><div class="ttl">Mockup: aktiver Filter auf Temperatures, darunter eine Formel mit Ergebnis</div>
+<div class="xg">
+  <div class="r"><div class="ar">▲</div><div class="nm"><span><span class="ic">&lt;&gt;</span>Temperatures</span></div>
+    <div class="sub"><div class="flt on">Month[Min &gt; 10]</div>
+      <div class="r"><div class="ar">▲</div><div class="nm w"><span><span class="ic">&lt;&gt;</span>Month <span class="cnt">(4)</span></span><span><span class="ic tbl on">▦</span></span></div>
+        <div class="sub"><div class="vl" style="padding:0"><table class="xt" style="min-width:0">
+          <tr><th><span class="flip">⇄</span></th><th><span class="ic">=</span>name</th><th><span class="ic">&lt;&gt;</span>Min</th><th><span class="ic">&lt;&gt;</span>Max</th></tr>
+          <tr><td class="n">6</td><td>June</td><td>12</td><td>26</td></tr>
+          <tr><td class="n">7</td><td>July</td><td>14</td><td>34</td></tr>
+          <tr><td class="n">8</td><td>August</td><td>16</td><td>36</td></tr>
+          <tr><td class="n">9</td><td>September</td><td>11</td><td>28</td></tr>
+        </table></div></div></div>
+      <div class="r" style="background:var(--xg-formula)"><div class="ar"></div><div class="nm w"><span><span class="ic f">f(x)</span>MinTemps</span><span><span class="ic f">💾</span></span></div>
+        <div class="sub">
+          <div class="vl" style="font-family:var(--font-mono);font-size:12px;color:#1d4ed8">concat("MinMin=", min(Month/Min), ", MaxMin=", max(Month/Min), ", AvgMin=", avg(Month/Min))</div>
+          <div class="vl" style="border-top:1px solid var(--xg-line)"><span class="ic t">Abc</span>MinMin=-16, MaxMin=16, AvgMin=3.25</div>
+        </div></div>
+    </div></div>
+</div></div>
+<figcaption>Gefilterte Zeilen behalten ihre Originalnummern (6–9). Die Formelzeile ist blau hinterlegt: Name, Diskettensymbol (Ergebnis ins Dokument schreiben), Ausdruck mit Syntaxfarben, Ergebniszeile.</figcaption>
+</figure>
+
+<table class="t">
+<tr><th>Feature</th><th>Details</th></tr>
+<tr><td>Filter</td><td>XQuery-3.1-Ausdruck auf einem <strong>Elementknoten</strong> (Kontext = dieser Knoten), zeigt nur die passenden Nachfahren. Rechtsklick › Filter, Ausdruck eingeben, Trichter-Icon schaltet an/aus, Doppelklick editiert. Filter sind nestbar (innerer Filter arbeitet auf dem Ergebnis des äußeren), ändern nur die Anzeige und werden in einer Metadatei (<code>json-metadata.json</code> unter Altova\XMLSpyCommon) gespeichert, nicht im Dokument. <em>Filter to Focus</em> erzeugt einen Filter auf der Wurzel, der nur den markierten Knoten mit Nachfahren zeigt.</td></tr>
+<tr><td>Formeln</td><td>Knotentyp <em>Formula</em>: Name, XQuery-3.1-Ausdruck (Kontext = Elternknoten), Ergebnis darunter. Diskettensymbol speichert das Ergebnis als Elementinhalt im Dokument; Einstellung <em>Persistence</em> (Default an) legt den Ausdruck zusätzlich als Processing Instruction ab. Ergebnisse werden immer in der Metadatei gehalten. In Tabellen erscheint eine spaltenweit gleiche Formel im Kopf; einzelne Zellen können abweichen, wenn man die Tabellendarstellung kurz abschaltet.</td></tr>
+<tr><td>Bilder</td><td>Base64-Inhalt wird als Grafik gerendert (PNG, JPEG, BMP, GIF, SVG). Einfügen über <em>Edit › Insert › Encoded External File</em> (Pfad, Base64, als neues Kindelement möglich) oder per Formel <code>unparsed-text("url", "x-binarytobase64")</code>. <em>Save as Image</em> schreibt die Grafik zurück in eine Datei; die Endung wird aus den Daten erkannt. Bilder aus Bildeditoren lassen sich direkt einfügen.</td></tr>
+<tr><td>Diagramme</td><td>Formel mit der Altova-Erweiterung <code>altovaext:chart(config, series)</code>: Konfiguration (title, kind, width, height), Serien als Arrays (Name, X-Werte, Y-Werte). Das Diagramm erscheint als Bild unter der Formel und kann als Bild oder XML kopiert werden.</td></tr>
+</table>
+
+<h2 id="nav">9. Navigation und Fenster</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_splitview.html">Split View</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsgridviewscrollheader.png">Screenshot Scroll-Header</a></p>
+<figure>
+<div class="screen"><div class="ttl">Mockup: Scroll-Header (Breadcrumb) beim Scrollen</div>
+<div class="sh"><span><span class="ic">&lt;&gt;</span>Company</span><span><span class="ic">&lt;&gt;</span>Person <span class="idx" style="color:#888;font-weight:400">&lt;1&gt;</span></span></div>
+<div class="xg" style="border-top:0">
+  <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">=</span>Programmer</span></div><div class="vl">true</div></div>
+  <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">&lt;&gt;</span>First</span></div><div class="vl">Alfred</div></div>
+  <div class="r"><div class="ar"></div><div class="nm w"><span><span class="ic">&lt;&gt;</span>Last</span></div><div class="vl">Aldrich</div></div>
+</div></div>
+<figcaption>Scrollt der Anfang eines Knotens aus dem Bild, zeigt die Kopfleiste die Vorfahren des obersten sichtbaren Knotens. Klick auf einen Eintrag selektiert ihn und scrollt ihn ins Bild.</figcaption>
+</figure>
+<ul>
+  <li><strong>Split View:</strong> horizontales Teilen durch Ziehen des Split-Icons oben rechts, vertikales durch das Icon unten rechts. Beide Hälften scrollen und navigieren unabhängig, zeigen aber dasselbe Dokument; Edits erscheinen sofort in beiden. Doppelklick auf den Splitter beendet die Teilung. Jedes Dokument hat seinen eigenen Split-Zustand.</li>
+  <li><strong>Nummerierung:</strong> gleichnamige Geschwister werden ab 1 durchnummeriert (<code>&lt;1&gt;</code>, <code>&lt;2&gt;</code>), die Nummern sind reine Anzeige und bleiben bei Filtern stabil.</li>
+  <li><strong>Markierung</strong> bleibt beim Wechsel in die Textansicht erhalten; der Wechsel aus der Textansicht prüft zuerst die Wohlgeformtheit.</li>
+  <li><strong>Copy XPath</strong> (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>) und <em>Copy XPointer</em> liefern den Pfad des markierten Knotens.</li>
+</ul>
+
+<h2 id="menu">10. Toolbar und Kontextmenü</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_contextmenu.html">Context Menu</a>, Screenshots <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewtoolbar.png">Toolbar</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsxmlgridviewcontextmenu_zoom94.png">Kontextmenü</a></p>
+<div class="cols2">
+<div>
+<h3>Toolbar „XML Grid“ (von links)</h3>
+<ol>
+  <li>Optimal Widths</li>
+  <li>Expand / Collapse / Expand Fully / Collapse Unselected</li>
+  <li>Insert Before / Insert After / Append / Add Child</li>
+  <li>Typ-Schnellwahl Element / Attribut / Text (Dropdown)</li>
+  <li>Display as Table, Flip Rows/Columns, Ascending Sort, Descending Sort (nur bei markiertem Spaltenkopf aktiv)</li>
+  <li>Filter an/aus (farbig wenn aktiv), Validate on Edit</li>
+  <li>Word Wrap (Dropdown: auch Namen umbrechen)</li>
+  <li>Zoom-Prozentfeld, Grid View Settings (Zahnrad)</li>
+</ol>
+</div>
+<figure>
+<div class="screen"><div class="ttl">Mockup: Kontextmenü einer Zelle</div>
+<div class="menu">
+  <div><span>Type ▸</span><span class="k">Ctrl+Menü</span></div>
+  <div class="sep"></div>
+  <div><span>Insert After</span><span class="k">Ctrl+Enter</span></div>
+  <div><span>Insert Before</span><span class="k">Ctrl+Shift+Enter</span></div>
+  <div><span>Append</span><span class="k">Ctrl+Alt+A</span></div>
+  <div><span>Add Child</span><span class="k">Ctrl+Alt+Enter</span></div>
+  <div class="sep"></div>
+  <div><span>Add Attribute</span><span class="k">Ctrl+Alt+I</span></div>
+  <div><span>Wrap in Element</span><span class="k">Ctrl+Alt+W</span></div>
+  <div><span>Edit as Raw Text</span><span class="k">Ctrl+Alt+R</span></div>
+  <div><span>Element Whitespace ▸</span><span></span></div>
+  <div class="sep"></div>
+  <div><span>Move ▸</span><span></span></div>
+  <div><span>Copy ▸</span><span></span></div>
+  <div class="sep"></div>
+  <div><span>Copy XPath</span><span class="k">Ctrl+Shift+C</span></div>
+  <div><span>Copy XPointer</span><span></span></div>
+  <div class="sep"></div>
+  <div><span>Insert ▸</span><span></span></div>
+  <div><span>Save as Image…</span><span></span></div>
+  <div class="sep"></div>
+  <div><span>Filter</span><span></span></div>
+  <div><span>Filter to Focus</span><span></span></div>
+  <div class="sep"></div>
+  <div><span>Expand Fully</span><span></span></div>
+  <div><span>Collapse Unselected</span><span></span></div>
+  <div class="sep"></div>
+  <div><span>Text Direction ▸</span><span></span></div>
+</div></div>
+<figcaption>Untermenü <em>Copy</em>: as XML Text, as Tab-separated Text, as Image. Untermenü <em>Insert</em>: File Path, XInclude, Encoded External File. Untermenü <em>Move</em>: Up, Down, Left, Right.</figcaption>
+</figure>
+</div>
+
+<h2 id="settings">11. Einstellungsdialog (Grid View Settings)</h2>
+<p class="src">Quelle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview_settings.html">Grid View Settings</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/images/xsgridviewsettings.png">Screenshot Dialog</a>. Defaults aus dem Screenshot übernommen.</p>
+<div class="wrap">
+<table class="t">
+<tr><th>Gruppe</th><th>Option</th><th>Default</th><th>Bedeutung</th></tr>
+<tr><td rowspan="9">Display</td><td>Expand all cells on loading</td><td class="c">aus</td><td>Aus: Root und alle Nachfahren starten zugeklappt</td></tr>
+<tr><td>Convert XML entities to raw text on loading</td><td class="c">aus</td><td>Entities als Rohtext statt aufgelöst</td></tr>
+<tr><td>Show inline previews</td><td class="c">an</td><td>Zugeklappte Knoten zeigen Inhalt + Attribute als Vorschauzeile</td></tr>
+<tr><td>… for attributes only in XML</td><td class="c">aus</td><td>Vorschau nur mit Attributen</td></tr>
+<tr><td>Automatically provide optimal cell widths</td><td class="c">aus</td><td>Volle Gridbreite nutzen, Umbruch in einzelnen Zellen</td></tr>
+<tr><td>Limit optimal cell width to N px</td><td class="c">aus (100)</td><td>Obergrenze für Optimal Widths</td></tr>
+<tr><td>Limit cell height to N px</td><td class="c">aus (100)</td><td>Obergrenze für die Zellhöhe</td></tr>
+<tr><td>Display of text overflow</td><td class="c">Fade</td><td>Fade oder Ellipsis</td></tr>
+<tr><td>Display whitespace / Max nodes per sibling group</td><td class="c">Yes / Unlimited</td><td>Whitespace-Symbole; Gruppen 100 / 1k / 10k / Unlimited</td></tr>
+<tr><td rowspan="4">Navigation</td><td>Expand on → key</td><td class="c">an</td><td>Rechtspfeil öffnet zugeklappte Zelle (nicht in Tabellen)</td></tr>
+<tr><td>Collapse on ← key</td><td class="c">aus</td><td>Linkspfeil schließt; sonst Fokus zum Elternknoten</td></tr>
+<tr><td>Expand/Collapse on spacebar</td><td class="c">an</td><td>Leertaste toggelt</td></tr>
+<tr><td>Keep column position on ↑↓ keys</td><td class="c">aus</td><td>Auf/Ab bleibt auf der Ebene, überspringt andere Spalten</td></tr>
+<tr><td rowspan="3">Editing</td><td>Change type of all selected cells simultaneously</td><td class="c">Ask</td><td>Always / Never / Ask</td></tr>
+<tr><td>Keep JSON value when changing type to object/array</td><td class="c">Ask</td><td>JSON-spezifisch</td></tr>
+<tr><td>Paste direction for inserted items</td><td class="c">After</td><td>Vor oder nach der markierten Zelle</td></tr>
+<tr><td>Persistence</td><td>Store formulas in document (if possible)</td><td class="c">an</td><td>XML: Ausdruck als PI, Ergebnis als Elementinhalt</td></tr>
+<tr><td>JSON Tables</td><td>Detect tables automatically on loading, min. filled cells</td><td class="c">an, 65 %</td><td>Schwelle für automatische Tabellendarstellung</td></tr>
+<tr><td>XML Tables</td><td>Detect tables automatically on loading, min. filled cells</td><td class="c">an, 0 %</td><td>Jede Wiederholung wird beim Laden Tabelle</td></tr>
+<tr><td>Clipboard</td><td>Default copy to clipboard for table value cells</td><td class="c">TSV</td><td>TSV oder XML</td></tr>
+</table>
+</div>
+<p>Zusätzlich unter <em>Tools › Options › Fonts and Colors › Grid View</em>: Schriftart/-größe (eine für alle oder je Textelementtyp), Stil, Farbe und Hintergrund je Typ, sowie Zellfarben für Tabellen: Table Header (unselected/selected), Missing Table Entry, Selection, Focus, Inactive Selection, Inactive Focus.</p>
+
+<h2 id="gap">12. Gap-Analyse: FreeXmlToolkit-Grid heute</h2>
+<p>Stand des eigenen Grids (<code>controls/v2/xmleditor/view/GridCanvasView.java</code>, <code>FlatRow.java</code>, <code>RepeatingElementsTable.java</code>, <code>XmlGridAdapter.java</code>, <code>XmlGridContextMenu.java</code>; Shell-Seite <code>controls/shell/editor/GridViewShell.java</code>, <code>GridViewHeader.java</code>, <code>XmlGridView.java</code>). Zeilenangaben sind Stand 29. Oktober 2026.</p>
+<div class="legend">
+  <div><span class="badge ok">✓ vorhanden</span></div>
+  <div><span class="badge part">◐ teilweise</span></div>
+  <div><span class="badge miss">✗ fehlt</span></div>
+  <div><span class="p1">P1</span><span>Kernfunktion, direkt sichtbar</span></div>
+  <div><span class="p2">P2</span><span>Komfort, mittlerer Aufwand</span></div>
+  <div><span class="p3">P3</span><span>Spezialfeature</span></div>
+</div>
+
+<h3>Ein-/Ausklappen</h3>
+<div class="wrap"><table class="t">
+<tr><th>Feature (XMLSpy)</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
+<tr><td>Klappen pro Knoten</td><td class="c"><span class="badge ok">✓</span></td><td>Balken/Icon-Klick, <code>FlatRow.toggleExpand</code>; GridCanvasView ≈2046, 2081</td><td class="c">–</td></tr>
+<tr><td>Expand All / Collapse All</td><td class="c"><span class="badge part">◐</span></td><td>Header-Buttons funktionieren (GridViewHeader 46–54); Kontextmenü-Einträge sind Stubs (XmlGridContextMenu ≈1219)</td><td class="c p2">P2</td></tr>
+<tr><td>Expand Fully / Collapse Unselected</td><td class="c"><span class="badge miss">✗</span></td><td>Nur ganzes Dokument, kein Subtree-/Fokus-Befehl</td><td class="c p1">P1</td></tr>
+<tr><td>Shift-Klick auf mehrere Geschwister</td><td class="c"><span class="badge miss">✗</span></td><td>Keine Mehrfachselektion von Zeilen</td><td class="c p3">P3</td></tr>
+<tr><td>Inline-Vorschau zugeklappter Knoten</td><td class="c"><span class="badge part">◐</span></td><td>Nur ein „collapsed“-Hinweis (GridCanvasView 902–915), kein Inhaltstext; Attribut-Vorschau nur in Tabellenzellen (1415–1425)</td><td class="c p1">P1</td></tr>
+<tr><td>Tastatur →/←/Leertaste</td><td class="c"><span class="badge part">◐</span></td><td>→/←/Enter vorhanden (2305–2342); Leertaste und „Spaltenposition halten“ fehlen</td><td class="c p3">P3</td></tr>
+<tr><td>Zustand überlebt Edits</td><td class="c"><span class="badge part">◐</span></td><td>Key <code>type:depth:label</code> (549–589) ist nicht eindeutig: gleichnamige Geschwister teilen den Zustand; Tabellen-Flag nicht erfasst</td><td class="c p1">P1</td></tr>
+<tr><td>Sibling-Gruppen (100/1k/10k)</td><td class="c"><span class="badge miss">✗</span></td><td>Keine Gruppierung großer Geschwistermengen</td><td class="c p2">P2</td></tr>
+<tr><td>Default beim Laden konfigurierbar</td><td class="c"><span class="badge part">◐</span></td><td>Fest: Root offen, Rest zu (FlatRow 556ff)</td><td class="c p3">P3</td></tr>
+</table></div>
+
+<h3>Spaltenbreite und Darstellung</h3>
+<div class="wrap"><table class="t">
+<tr><th>Feature (XMLSpy)</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
+<tr><td>Spaltenrand ziehen (Baum)</td><td class="c"><span class="badge miss">✗</span></td><td>Namensspalte automatisch ≥120 px (630–639), nicht ziehbar</td><td class="c p1">P1</td></tr>
+<tr><td>Spaltenrand ziehen (Tabelle)</td><td class="c"><span class="badge ok">✓</span></td><td><code>ColumnDrag</code> (170, 1925–1962), Doppelklick = auto (1610–1616)</td><td class="c">–</td></tr>
+<tr><td>Optimal Widths (Befehl)</td><td class="c"><span class="badge miss">✗</span></td><td>Kein Befehl, keine Breitenlimits</td><td class="c p2">P2</td></tr>
+<tr><td>Breiten persistent</td><td class="c"><span class="badge part">◐</span></td><td>Session-Cache pro Elementname (RepeatingElementsTable 137), nicht auf Platte</td><td class="c p3">P3</td></tr>
+<tr><td>Zellhöhe nach Inhalt, Limit, Fade/Ellipsis</td><td class="c"><span class="badge part">◐</span></td><td>Umbruch fest bei 480 px (GridMetrics), kein Limit, kein Overflow-Stil</td><td class="c p2">P2</td></tr>
+<tr><td>Word-Wrap-Toggle</td><td class="c"><span class="badge miss">✗</span></td><td>Immer an</td><td class="c p2">P2</td></tr>
+<tr><td>Zoom</td><td class="c"><span class="badge ok">✓</span></td><td>50–300 %, Ctrl+Rad/+/−/0, persistent (<code>GridZoomPreference</code>)</td><td class="c">–</td></tr>
+<tr><td>Typ-Icons je Knotenart</td><td class="c"><span class="badge ok">✓</span></td><td><code>&lt;&gt;</code>, <code>{}</code>, <code>=</code>, <code>T</code>, Kommentar, CDATA, PI (924–1006); Light/Dark-Palette</td><td class="c">–</td></tr>
+<tr><td>Typ-Icon als Typwechsel-Dropdown</td><td class="c"><span class="badge miss">✗</span></td><td>Kein Typwechsel im Grid</td><td class="c p2">P2</td></tr>
+<tr><td>Attribute zuerst, als eigene Zeilen</td><td class="c"><span class="badge ok">✓</span></td><td><code>@name</code>-Zeilen unter dem Element (FlatRow 532–628)</td><td class="c">–</td></tr>
+<tr><td>Instanznummern <code>&lt;1&gt;</code>, Zähler <code>(n)</code></td><td class="c"><span class="badge part">◐</span></td><td>Kindzahl „(n)“ (709) und Tabellen-„(Nx)“ vorhanden, keine Instanznummer</td><td class="c p2">P2</td></tr>
+<tr><td>Namespace-Präfix hervorheben</td><td class="c"><span class="badge miss">✗</span></td><td>Keine Präfix-Färbung</td><td class="c p3">P3</td></tr>
+<tr><td>Scroll-Header (Breadcrumb)</td><td class="c"><span class="badge miss">✗</span></td><td>Keine Kopfleiste, keine fixierten Tabellenköpfe</td><td class="c p1">P1</td></tr>
+<tr><td>Validierungsmarker in Zellen</td><td class="c"><span class="badge miss">✗</span></td><td>Schema nur für Widgets und Add-Dialoge (XmlGridAdapter 160–230)</td><td class="c p2">P2</td></tr>
+<tr><td>Bilder (Base64) rendern</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p3">P3</td></tr>
+</table></div>
+
+<h3>Tabellenansicht</h3>
+<div class="wrap"><table class="t">
+<tr><th>Feature (XMLSpy)</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
+<tr><td>Automatische Tabelle bei Wiederholung</td><td class="c"><span class="badge ok">✓</span></td><td>Ab 2 gleichnamigen Geschwistern (FlatRow 565–607, <code>XmlGridAdapter.attachTables</code>)</td><td class="c">–</td></tr>
+<tr><td>Toggle Tabelle/Standard pro Element</td><td class="c"><span class="badge miss">✗</span></td><td>Die 2+-Regel gilt immer, kein Umschalten</td><td class="c p1">P1</td></tr>
+<tr><td>Spalten = Attribute + Kinder + Text, Typ-Icon im Kopf</td><td class="c"><span class="badge ok">✓</span></td><td><code>ColumnType</code> ATTRIBUTE / CHILD_ELEMENT / TEXT_CONTENT (RepeatingElementsTable ≈295)</td><td class="c">–</td></tr>
+<tr><td>Zeilennummern-Spalte</td><td class="c"><span class="badge miss">✗</span></td><td>Nur Kommentar „Row number“ (1343), nichts gezeichnet</td><td class="c p1">P1</td></tr>
+<tr><td>Flip Rows/Columns</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p1">P1</td></tr>
+<tr><td>Sortieren per Spaltenkopf</td><td class="c"><span class="badge ok">✓</span></td><td><code>SortElementsCommand</code> mit Undo, Indikator ▲/▼ (1296–1298, 1605–1625)</td><td class="c">–</td></tr>
+<tr><td>Zeile einfügen (Before/After/Append)</td><td class="c"><span class="badge miss">✗</span></td><td>Nur über Baum-Kontextmenü, nicht aus der Tabelle</td><td class="c p1">P1</td></tr>
+<tr><td>Spalte einfügen (alle Instanzen)</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p2">P2</td></tr>
+<tr><td>Spalte umbenennen / Typ ändern (alle Instanzen)</td><td class="c"><span class="badge miss">✗</span></td><td>Kopf ist nicht editierbar</td><td class="c p2">P2</td></tr>
+<tr><td>Spalte per Drag verschieben</td><td class="c"><span class="badge miss">✗</span></td><td>Einziger Drag ist Resize</td><td class="c p3">P3</td></tr>
+<tr><td>Verschachtelte Tabellen in Zellen</td><td class="c"><span class="badge ok">✓</span></td><td>Zell-Expand mit Unterbaum (1635–1691)</td><td class="c">–</td></tr>
+<tr><td>Copy as Tab-separated Text</td><td class="c"><span class="badge miss">✗</span></td><td>Nur Zellinhalt / Knoten als XML</td><td class="c p2">P2</td></tr>
+<tr><td>Paste aus Tabellenkalkulation</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p2">P2</td></tr>
+<tr><td>Zellfarben (Header, Missing, Focus …)</td><td class="c"><span class="badge part">◐</span></td><td>Feste Palette, keine „Missing Entry“-Farbe</td><td class="c p3">P3</td></tr>
+<tr><td>Schwelle für Auto-Erkennung</td><td class="c"><span class="badge miss">✗</span></td><td>Keine Einstellung</td><td class="c p3">P3</td></tr>
+</table></div>
+
+<h3>Bearbeiten, Drag &amp; Drop, Sonstiges</h3>
+<div class="wrap"><table class="t">
+<tr><th>Feature (XMLSpy)</th><th class="c">FXT</th><th>Befund</th><th class="c">Prio</th></tr>
+<tr><td>In-Place-Edit (Doppelklick, Enter/Esc)</td><td class="c"><span class="badge ok">✓</span></td><td>2056–2077, 2525–2716; schemabasierte Widgets (Date-Picker, Enum-Combo)</td><td class="c">–</td></tr>
+<tr><td>Kommentar/PI/CDATA-Werte editieren</td><td class="c"><span class="badge part">◐</span></td><td><code>canEditValue</code> true, aber <code>commitRowEdit</code> behandelt nur Attribut/Element/Text (XmlGridAdapter 155, 232–278); Commands existieren</td><td class="c p1">P1</td></tr>
+<tr><td>Insert Before/After/Append/Add Child/Attribute</td><td class="c"><span class="badge ok">✓</span></td><td>Kontextmenü mit Schema-Vorschlägen (XmlGridContextMenu 107–246, 383–845)</td><td class="c">–</td></tr>
+<tr><td>Wrap in Element</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p2">P2</td></tr>
+<tr><td>Typwechsel Element ↔ Attribut ↔ Text</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p2">P2</td></tr>
+<tr><td>Edit as Raw Text</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p3">P3</td></tr>
+<tr><td>Move Up/Down, Duplicate, Delete, Rename</td><td class="c"><span class="badge ok">✓</span></td><td>Alt+↑/↓, Ctrl+D, Entf, F2</td><td class="c">–</td></tr>
+<tr><td>Copy/Cut/Paste als Sibling/Child, Copy XPath</td><td class="c"><span class="badge ok">✓</span></td><td>Interne Node-Zwischenablage, Ctrl+Shift+V, Ctrl+Alt+X</td><td class="c">–</td></tr>
+<tr><td>Knoten per Drag &amp; Drop verschieben</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p2">P2</td></tr>
+<tr><td>Drop externer Inhalte mit Overlay</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p3">P3</td></tr>
+<tr><td>Eingabehilfen Siblings/Children/Values</td><td class="c"><span class="badge part">◐</span></td><td>Schema-Vorschläge nur im Kontextmenü; kein Panel, kein Pflicht-Marker</td><td class="c p2">P2</td></tr>
+<tr><td>Validate on Edit + SmartFix</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p2">P2</td></tr>
+<tr><td>Suche</td><td class="c"><span class="badge part">◐</span></td><td><code>find/findAll</code> (2957–3003), Tabellenzeilen werden nicht durchsucht</td><td class="c p2">P2</td></tr>
+<tr><td>Filter (XQuery, nur Anzeige)</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p3">P3</td></tr>
+<tr><td>Formeln / Diagramme</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p3">P3</td></tr>
+<tr><td>Split View</td><td class="c"><span class="badge miss">✗</span></td><td>–</td><td class="c p3">P3</td></tr>
+<tr><td>Gemeinsamer Undo-Stack über Text/Tree/Grid</td><td class="c"><span class="badge ok">✓</span></td><td><code>XmlEditorContext</code> pro Dokument (XmlGridView 152–160)</td><td class="c">–</td></tr>
+</table></div>
+
+<h3>Priorisierte Lückenliste</h3>
+<p><strong>P1, direkt sichtbar und zu den Schwerpunkten gehörend:</strong></p>
+<ol>
+  <li>Zeilennummern-Spalte und <strong>Flip Rows/Columns</strong> in der Tabellenansicht; Zeilen aus der Tabelle heraus einfügen.</li>
+  <li><strong>Toggle Tabelle/Standard</strong> pro Wiederholungsgruppe (Icon unter dem Elementnamen, Zustand pro Gruppe).</li>
+  <li>Namens-/Wertspalte des Baums <strong>per Drag resizebar</strong>, Doppelklick = Inhalt.</li>
+  <li>Inline-Vorschau des Inhalts bei zugeklappten Knoten (Text grau, Tooltip voll); Expand Fully / Collapse Unselected.</li>
+  <li>Expand-Zustand eindeutig schlüsseln (Pfad statt <code>type:depth:label</code>), inklusive Tabellen-Flag.</li>
+  <li>Scroll-Header mit Vorfahren des obersten sichtbaren Knotens.</li>
+  <li>Kommentar-, PI- und CDATA-Werte im Grid editierbar machen (Commands vorhanden).</li>
+</ol>
+<p><strong>P2:</strong> Optimal Widths + Word-Wrap-Toggle + Zellhöhen-Limit mit Fade/Ellipsis; Instanznummern <code>&lt;n&gt;</code>; Typwechsel und Wrap in Element; Spalte einfügen/umbenennen für alle Instanzen; TSV-Copy und Spreadsheet-Paste; Node-Drag &amp; Drop; Validierungsmarker in Zellen; Sibling-Gruppen; Suche auch in Tabellenzeilen; Eingabehilfen als Panel.</p>
+<p><strong>P3:</strong> Filter, Formeln, Bilder, Diagramme, Split View, Raw-Text-Edit, Spalten-Drag, Namespace-Färbung, konfigurierbare Zellfarben und Erkennungsschwelle.</p>
+
+<h2 id="quellen">13. Quellen</h2>
+<ul>
+  <li>Altova XMLSpy Enterprise Handbuch (EN): <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xseditingviews_gridview.html">Grid View</a> mit Unterseiten Document Display, Document Structure, Document Content, Split View, Entry Helpers, Table Display (XML / JSON-YAML), Drag-and-Drop, Formulas, Filters, Images, Charts, Context Menu, Grid View Settings.</li>
+  <li>Deutsche Ausgabe: <a href="https://www.altova.com/manual/de/XMLSpy/SpyEnterprise/xseditingviews_gridview.html">Grid-Ansicht</a>.</li>
+  <li>Menübefehle: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuview_optimalwidths.html">Optimal Widths</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_displayastable.html">Display as Table</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_fliprowscolumns.html">Flip Rows/Columns</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_ascendingdescendingsort.html">Ascending/Descending Sort</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenuxml_moveupdownleftright.html">Move</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsmenutools_options_fontscolors_gridview.html">Fonts and Colors: Grid View</a>.</li>
+  <li>Tutorial: <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xstutxml_dbtableview.html">Editing in Table Display</a>, <a href="https://www.altova.com/manual/XMLSpy/spyenterprise/xsxml_gridview.html">XML in Grid View</a>.</li>
+  <li>Produktseite: <a href="https://www.altova.com/xmlspy-xml-editor">XMLSpy XML Editor</a>. Blog: <a href="https://www.altova.com/blog/xml-grid-gets-a-makeover">XML Grid Gets a Makeover</a> (2021r2).</li>
+  <li>FreeXmlToolkit: eigene Specs <code>docs/superpowers/specs/2026-03-26-xmlspy-grid-view-design.md</code> und <code>2026-03-26-grid-cell-expansion-design.md</code>.</li>
+</ul>
+<p class="src">Alle Screenshot-Links zeigen auf Bilder des Altova-Handbuchs (© Altova GmbH). Die Mockups in diesem Dokument sind eigene Nachbildungen und geben die Optik nur schematisch wieder.</p>
+
+</main>
