@@ -249,6 +249,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   name and value are kept, attributes move into their element's attribute list. Containers
   with child elements keep their type. **Wrap in Element…** (**Ctrl+Alt+W**, context menu)
   puts a new parent element around the selected node. All of these are undoable.
+- **Scroll header.** While you scroll through a long element, a bar at the top shows the
+  path of containers you are inside (`root › section › body`); click one to select it and
+  scroll back to its start.
 - **Drag & drop.** Drag a node by its name cell: drop it on the upper or lower third of another
   name cell to place it before / after that node, on the middle (or anywhere in an expanded
   element's cell) to append it as a child. A blue line or frame shows the target; hold **Ctrl**

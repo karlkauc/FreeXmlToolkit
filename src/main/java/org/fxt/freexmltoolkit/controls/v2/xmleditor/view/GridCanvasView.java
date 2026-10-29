@@ -967,8 +967,122 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         gc.restore();
 
+        // Sticky scroll header: the ancestors of the first visible row (zoomed, not scrolled)
+        drawScrollHeader(firstVisible);
+
         // Draw info overlay (not scrolled)
         drawInfo();
+    }
+
+    // ==================== Scroll header ====================
+
+    /** Height of the sticky scroll header (unscaled). */
+    static final double SCROLL_HEADER_HEIGHT = 22;
+
+    /** A clickable breadcrumb segment of the scroll header (x range in unscaled viewport units). */
+    private record HeaderSegment(FlatRow row, double x0, double x1) {
+    }
+
+    private List<HeaderSegment> headerSegments = List.of();
+
+    /**
+     * @return the rows the scroll header shows: the containers whose name cell starts above the
+     *         viewport but reaches into it (the first visible row's ancestors, outermost first,
+     *         plus that row itself when it is a scrolled-off spanning container)
+     */
+    List<FlatRow> scrollHeaderRows() {
+        if (scrollOffsetY <= 0 || visibleRows.isEmpty()) {
+            return List.of();
+        }
+        int first = findRowIndexAtY(scrollOffsetY + SCROLL_HEADER_HEIGHT);
+        if (first < 0) {
+            return List.of();
+        }
+        List<FlatRow> chain = new ArrayList<>();
+        for (int idx : ancestorIndices(first)) {
+            if (rowYPositions[idx] < scrollOffsetY + SCROLL_HEADER_HEIGHT) {
+                chain.add(visibleRows.get(idx));
+            }
+        }
+        return chain;
+    }
+
+    private void drawScrollHeader(int firstVisible) {
+        List<FlatRow> chain = scrollHeaderRows();
+        if (chain.isEmpty()) {
+            headerSegments = List.of();
+            return;
+        }
+        double z = getZoom();
+        gc.save();
+        gc.scale(z, z);
+        double width = viewportWidthModel();
+        gc.setFill(TABLE_HEADER_BG);
+        gc.fillRect(0, 0, width, SCROLL_HEADER_HEIGHT);
+        gc.setStroke(FRAME_LINE);
+        gc.setLineWidth(1);
+        gc.strokeLine(0, SCROLL_HEADER_HEIGHT - 0.5, width, SCROLL_HEADER_HEIGHT - 0.5);
+
+        List<HeaderSegment> segments = new ArrayList<>();
+        double x = LEFT_MARGIN;
+        double cy = SCROLL_HEADER_HEIGHT / 2;
+        gc.setTextBaseline(VPos.CENTER);
+        gc.setTextAlign(TextAlignment.LEFT);
+        for (int i = 0; i < chain.size(); i++) {
+            FlatRow row = chain.get(i);
+            if (i > 0) {
+                gc.setFont(SMALL_FONT);
+                gc.setFill(TEXT_SECONDARY);
+                gc.fillText("\u203A", x, cy);
+                x += 12;
+            }
+            double start = x;
+            drawRowIcon(row, x - 4, cy);
+            x += ICON_AREA_WIDTH - 4;
+            String label = row.getLabel() != null ? row.getLabel() : "";
+            gc.setFont(ROW_FONT_BOLD);
+            gc.setFill(getRowLabelColor(row.getType()));
+            gc.fillText(label, x, cy);
+            x += metrics.width(label, GridFont.ROW_BOLD);
+            if (row.getInstanceIndex() > 0) {
+                gc.setFont(SMALL_FONT);
+                gc.setFill(INSTANCE_INDEX);
+                String idx = " " + instanceIndexText(row);
+                gc.fillText(idx, x, cy);
+                x += metrics.width(idx, GridFont.SMALL);
+            }
+            segments.add(new HeaderSegment(row, start, x));
+            x += 10;
+            if (x > width) {
+                break;
+            }
+        }
+        headerSegments = segments;
+        gc.restore();
+    }
+
+    /**
+     * Handles a click into the scroll header: selects the clicked ancestor and scrolls it into
+     * view. Any click inside the header band is consumed (rows below it are hidden).
+     *
+     * @return whether the click was inside the header
+     */
+    private boolean handleScrollHeaderClick(double viewportX, double viewportY) {
+        if (headerSegments.isEmpty() || viewportY >= SCROLL_HEADER_HEIGHT) {
+            return false;
+        }
+        for (HeaderSegment segment : headerSegments) {
+            if (viewportX >= segment.x0() && viewportX < segment.x1()) {
+                FlatRow row = segment.row();
+                selectRow(row);
+                Integer idx = rowIndexMap.get(row);
+                if (idx != null) {
+                    animateScrollTo(rowYPositions[idx] - 4);
+                }
+                break;
+            }
+        }
+        return true;
     }
 
     /** @return the visible-row indices of the row's ancestors, outermost first */
@@ -2634,6 +2748,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
+        // The sticky scroll header covers the top band of the viewport
+        if (event.getButton() == MouseButton.PRIMARY && handleScrollHeaderClick(event.getX() / getZoom(), my)) {
+            return;
+        }
+
         // Handle right-click for context menu
         if (event.getButton() == MouseButton.SECONDARY) {
             handleContextMenu(event, mx, my);
@@ -3780,6 +3899,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** @return the x where the row's name cell starts (test hook) */
     double labelXOf(FlatRow row) {
         return row.getLabelX();
+    }
+
+    /** Scrolls to the given content y immediately (test hook). */
+    void scrollToForTest(double y) {
+        vScrollBar.setValue(Math.max(0, Math.min(y, vScrollBar.getMax())));
+        scrollOffsetY = vScrollBar.getValue();
+        render();
     }
 
     /** Selects the table cell range (test hook / programmatic selection). */
