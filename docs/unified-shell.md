@@ -235,7 +235,7 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   **cell height** to 3, 6 or 12 lines (longer values end with "…"), also remembered.
 - **Keyboard navigation** works as soon as the view opens (no click needed):
   **↑/↓** walk the rows, **→** expands a collapsed element, **←** collapses it (or jumps to
-  the parent), **Space** or **Enter** toggles a container (Enter starts editing a value),
+  the parent), **Space** or **Enter** toggles a container (on a leaf row Enter starts renaming it),
   **Home/End** jump to the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**,
   **Ctrl+D** (duplicate) and **Delete** act on the selected node.
 - **Expand Fully** (**Ctrl+Shift++**) opens the selected container with everything below it;
@@ -297,17 +297,26 @@ looks and feels exactly like an XML file in the grid:
   After), **Rename Key** (F2), **Duplicate** (Ctrl+D), **Copy / Cut / Paste as Sibling /
   Paste as Child**, **Copy Cell Content**, **Copy JSONPath** (Ctrl+Alt+X - e.g.
   `$.items[1].name`), **Copy Node (JSON)** (Ctrl+Alt+C), **Change Type** (String / Number /
-  Boolean / Null / Object / Array), **Move Up / Down** (Alt+↑/↓), **Expand All / Collapse
-  All**, **Sort Column** and **Delete**. Copy Cell Content is Ctrl+Shift+C, as in the XML grid.
+  Boolean / Null / Object / Array), **Move Up / Down** (Alt+↑/↓), **Expand Fully / Collapse
+  Unselected**, **Display as Table**, **Flip Rows/Columns**, **Copy Table as Tab-separated
+  Text**, **Expand All / Collapse All**, **Sort Column** and **Delete**. Copy Cell Content is
+  Ctrl+Shift+C, as in the XML grid.
 - All edits go through the document's **undo history** (Ctrl+Z / Ctrl+Y) and are written back
   into the text - the Text, Tree and Graphic views share one model, and the **Properties**
   inspector edits keys and values from any of them.
-- **Zoom, wrapping and column widths** behave exactly as in the XML grid: the header's
-  **zoom pill** and **Ctrl+mouse wheel** / **Ctrl +** / **Ctrl −** / **Ctrl 0** zoom the whole
-  grid (the factor is shared with the XML grid), long strings **wrap** instead of being cut
-  off, and the columns of an embedded array table can be **dragged** to a new width
-  (double-click the separator to auto-fit). **Expand all** / **Collapse all** sit in the
-  header strip as well.
+- **Same layout and controls as the XML grid.** Objects and arrays are nested blocks with
+  one-line previews when collapsed; the header strip offers the **zoom pill**, **Optimal
+  widths**, **Wrap**, **Expand all** / **Collapse all** and the **⋯** menu (cell-height limit,
+  sibling groups); name and table columns can be dragged to a new width (double-click to
+  auto-fit). **Expand Fully** (Ctrl+Shift++) and **Collapse Unselected** (Ctrl+Shift+−),
+  **Display as Table** / **Flip Rows/Columns** for arrays of objects, the scroll header and
+  the search in table cells all work as described above. Table cells can be selected and
+  copied as tab-separated text (Ctrl+C or **Copy Table as Tab-separated Text**); Ctrl+V
+  overwrites existing cells only. The zoom factor is shared with the XML grid.
+- **XML only:** changing a node's type by clicking its icon (Ctrl+Alt+T), **Wrap in
+  Element**, drag & drop, the **Table** submenu (insert / append rows and columns, rename
+  columns) and validation markers are not available in the JSON grid - use **Change Type**,
+  **Add** and **Move Up / Down** from the context menu instead.
 
 !!! warning "Comments and JSON5 syntax are not preserved"
     The grid edits the parsed *model*. Comments (JSONC) and JSON5 syntax (unquoted keys,
@@ -1926,7 +1935,7 @@ On macOS use **Cmd** instead of Ctrl for the shortcuts above (see [Menu Bar → 
     **Format Document moved to Shift+Alt+F** - the toolbar's **Format** button works
     unchanged. The in-editor find/replace stays on **Ctrl+F / Ctrl+H**.
 
-> **Search in all view modes:** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the **Text**, **Tree** and **Graphic** views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values; for JSON documents (Tree and Graphic) it is keys and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's **Preview**, Ctrl+F searches the underlying markup text, not the rendered page. See [XML Editor Features](xml-editor-features.md#search-find) for details.
+> **Search in all view modes:** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the **Text**, **Tree** and **Graphic** views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values (also inside embedded table cells); for JSON documents (Tree and Graphic) it is keys and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's **Preview**, Ctrl+F searches the underlying markup text, not the rendered page. See [XML Editor Features](xml-editor-features.md#search-find) for details.
 
 ## Compare & Merge
 

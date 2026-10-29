@@ -19,7 +19,7 @@ Press **Ctrl+F** to open the Find feature and type the text you are looking for.
 You can search in the **Text**, **Tree** or **Graphic** view of a document:
 
 - **Text view** - Matches are highlighted in the source code. **Replace** is available here.
-- **Graphic view (XML instances)** - The search looks through element names, attribute names, and values across the whole document. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.
+- **Graphic view (XML instances)** - The search looks through element names, attribute names, and values across the whole document, including the cells of embedded tables. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.
 - **Tree and Graphic views (XSD schemas)** - The search looks through the schema nodes themselves: element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments. Matching nodes are revealed (collapsed branches expand), selected, and scrolled into view — in the Graphic diagram this includes loading lazily rendered subtrees.
 - **Tree and Graphic views (JSON documents)** - The search looks through the keys and values of the document. Matches inside collapsed objects or arrays are revealed, selected, and scrolled into view, the same way as in the XML grid.
 
@@ -157,16 +157,25 @@ Changes made in any view are synchronized automatically.
 ### Reading the Grid
 
 - The **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
-  grids"* and offers the **zoom pill** (`− 100% +`) plus **Expand all** and **Collapse all**
-  buttons.
+  grids"* and offers the **zoom pill** (`− 100% +`), **Optimal widths**, the **Wrap** toggle,
+  **Expand all** / **Collapse all** and a **⋯** menu (cell-height limit, sibling groups).
+- **Nested blocks**: each element has a name cell; its value or the block of its children sits
+  to the right, so the structure reads as nested boxes.
+- **Type icons** mark every row: `<>` element, `=` attribute, `Abc` text, `[ ]` CDATA, `<!`
+  comment, `<?` processing instruction. Click an icon to change the node's type.
 - **Nothing is truncated**: cells grow to their content, long values wrap onto more lines and
-  the row grows with them.
+  the row grows with them (switch **Wrap** off to keep values on one line).
 - **Zoom** the grid with **Ctrl+mouse wheel** or **Ctrl +/−** (**Ctrl 0** resets); the factor
   is remembered for all grids.
-- Rows holding a simple value are marked with **`{}`**.
-- Collapsed containers show a **"collapsed"** hint so you know there is hidden content.
-- Repeating elements appear as **embedded grids** - small tables nested inside the row. Drag a
-  column separator in the column-header row to resize a column; double-click it to auto-fit.
+- Collapsed containers show a grey **one-line preview** of their content; hover it for a
+  longer excerpt.
+- Repeating elements appear as **embedded tables beside the group's name**, with numbered
+  rows. Toggle a group between table and plain rows (**Display as Table**), transpose it
+  (**Flip Rows/Columns**), and copy or paste cell ranges as tab-separated text to and from
+  spreadsheets. Drag a column separator to resize a column; double-click it to auto-fit.
+
+See [Unified Shell - The Grid](unified-shell.md#the-grid-graphic-view-for-xml) for the full
+list of grid features (drag & drop, Wrap in Element, validation markers, scroll header, …).
 
 ---
 
