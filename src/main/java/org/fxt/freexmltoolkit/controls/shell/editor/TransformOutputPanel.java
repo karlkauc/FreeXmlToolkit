@@ -22,6 +22,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
+import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
 
@@ -43,7 +44,7 @@ public class TransformOutputPanel extends VBox {
     private final EditorHost editorHost;
     // The Text view is a read-only CodeArea (not a TextArea) so results get line
     // numbers, syntax highlighting and font zoom like the main text editor.
-    private final CodeArea output = new CodeArea();
+    private final CodeArea output = new PlainTextCodeArea();
     private final VirtualizedScrollPane<CodeArea> outputScroll = new VirtualizedScrollPane<>(output);
     @FXML private ToggleGroup viewGroup;
     @FXML private StackPane content;

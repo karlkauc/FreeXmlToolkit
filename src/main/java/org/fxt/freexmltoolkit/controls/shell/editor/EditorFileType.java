@@ -69,6 +69,14 @@ public enum EditorFileType {
         };
     }
 
+    /** @return whether documents of this type are XML (character references are valid in them). */
+    public boolean isXmlFamily() {
+        return switch (this) {
+            case XML, XSD, XSLT, SCHEMATRON, XPROC -> true;
+            default -> false;
+        };
+    }
+
     /** @return the primary (first) file extension for this type, or {@code "txt"} if none. */
     public String primaryExtension() {
         return extensions.isEmpty() ? "txt" : extensions.get(0);

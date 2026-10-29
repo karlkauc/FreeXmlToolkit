@@ -4,7 +4,10 @@ import java.nio.file.Path;
 import java.util.Objects;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -20,6 +23,7 @@ public class OpenDocument {
     private final StringProperty displayName = new SimpleStringProperty();
     private final BooleanProperty dirty = new SimpleBooleanProperty(false);
     private DiskStamp diskStamp; // FX thread only
+    private final ObjectProperty<TextEncoding> encoding = new SimpleObjectProperty<>(TextEncoding.DEFAULT); // FX thread only
 
     private OpenDocument(Path path, String displayName) {
         this.path = path;
@@ -96,6 +100,19 @@ public class OpenDocument {
     /** Records the file's state on disk that the editor content corresponds to. */
     public void setDiskStamp(DiskStamp diskStamp) {
         this.diskStamp = diskStamp;
+    }
+
+    /** The charset and BOM the file was read in, and is saved in. */
+    public TextEncoding getEncoding() {
+        return encoding.get();
+    }
+
+    public void setEncoding(TextEncoding encoding) {
+        this.encoding.set(Objects.requireNonNull(encoding, "encoding"));
+    }
+
+    public ReadOnlyObjectProperty<TextEncoding> encodingProperty() {
+        return encoding;
     }
 
     private static String fileName(Path path) {

@@ -258,6 +258,12 @@ class FxStallWatchdogTest {
                 frame("org.fxt.freexmltoolkit.util.FileChooserHelper", "showOpenDialog")}));
         assertTrue(FxStallWatchdog.isNativeWait(new StackTraceElement[] {
                 frame("com.sun.glass.ui.gtk.GtkApplication", "_enterNestedEventLoopImpl")}));
+        // Telemetry hash 4ba4f9eac8da27c1: GTK maps the window of a context menu being shown
+        assertTrue(FxStallWatchdog.isNativeWait(new StackTraceElement[] {
+                frame("com.sun.glass.ui.gtk.GtkWindow", "setVisibleImpl"),
+                frame("com.sun.glass.ui.gtk.GtkWindow", "_setVisible"),
+                frame("com.sun.glass.ui.Window", "setVisible"),
+                frame("org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView", "handleContextMenu")}));
     }
 
     @Test

@@ -329,7 +329,9 @@ public final class FxStallWatchdog {
         }
         return method.startsWith("_runLoop")
                 || method.startsWith("_enterNestedEventLoop")
-                || (cls.endsWith("CommonDialogs") && method.startsWith("_show"));
+                || (cls.endsWith("CommonDialogs") && method.startsWith("_show"))
+                // the window system maps a native window (GTK: a popup or context menu being shown)
+                || (cls.endsWith("Window") && (method.equals("setVisibleImpl") || method.equals("_setVisible")));
     }
 
     /**

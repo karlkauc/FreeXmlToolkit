@@ -1,7 +1,10 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.search;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,7 +13,9 @@ import java.nio.file.Path;
  * Detects the character encoding of an XML-family text file so search results
  * and replacements round-trip without corrupting non-UTF-8 files: BOM first
  * (UTF-8 / UTF-16LE / UTF-16BE), then the {@code encoding="…"} pseudo-attribute
- * of an XML declaration, defaulting to UTF-8.
+ * of an XML declaration, defaulting to UTF-8. Bytes that are not valid UTF-8 although
+ * no BOM says so (an undeclared or wrongly declared Latin-1 file) are read as windows-1252,
+ * which maps every byte, so writing the text back restores the file unchanged.
  */
 public final class EncodingSniffer {
 
@@ -47,7 +52,15 @@ public final class EncodingSniffer {
      * {@code null} if absent or the name is unknown to this JVM.
      */
     private static Charset declaredEncoding(byte[] head) {
-        String prefix = new String(head, 0, Math.min(head.length, 256), StandardCharsets.ISO_8859_1);
+        return declaredEncoding(new String(head, 0, Math.min(head.length, 256), StandardCharsets.ISO_8859_1));
+    }
+
+    /**
+     * The charset named by the XML declaration at the start of {@code text}, or {@code null} if there
+     * is none or the name is unknown to this JVM.
+     */
+    public static Charset declaredEncoding(String text) {
+        String prefix = text.length() > 256 ? text.substring(0, 256) : text;
         if (!prefix.startsWith("<?xml")) {
             return null;
         }
@@ -83,10 +96,31 @@ public final class EncodingSniffer {
 
     /** Reads and decodes {@code file} with the sniffed charset, stripping a BOM. */
     public static Loaded load(Path file) throws IOException {
-        byte[] bytes = Files.readAllBytes(file);
+        return decode(Files.readAllBytes(file));
+    }
+
+    /** Decodes a whole file's bytes with the sniffed charset, stripping a BOM. */
+    public static Loaded decode(byte[] bytes) {
         Sniff sniff = sniff(bytes);
-        String text = new String(bytes, sniff.bomLength(), bytes.length - sniff.bomLength(),
-                sniff.charset());
-        return new Loaded(text, sniff.charset(), sniff.bomLength() > 0);
+        int offset = sniff.bomLength();
+        int length = bytes.length - offset;
+        if (StandardCharsets.UTF_8.equals(sniff.charset()) && offset == 0 && !isValidUtf8(bytes)) {
+            return new Loaded(new String(bytes, WINDOWS_1252), WINDOWS_1252, false);
+        }
+        return new Loaded(new String(bytes, offset, length, sniff.charset()), sniff.charset(), offset > 0);
+    }
+
+    private static final Charset WINDOWS_1252 = Charset.forName("windows-1252");
+
+    private static boolean isValidUtf8(byte[] bytes) {
+        try {
+            StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(bytes));
+            return true;
+        } catch (CharacterCodingException e) {
+            return false;
+        }
     }
 }

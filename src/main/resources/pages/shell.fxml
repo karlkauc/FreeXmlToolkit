@@ -323,7 +323,7 @@
                 <Label fx:id="statusChars" styleClass="fxt-status-item"/>
                 <Label fx:id="statusType" styleClass="fxt-status-item"/>
                 <Label fx:id="statusSchema" id="status-schema" text="No XSD" styleClass="fxt-status-item"/>
-                <Label text="UTF-8" styleClass="fxt-status-item"/>
+                <Label fx:id="statusEncoding" id="status-encoding" text="UTF-8" styleClass="fxt-status-item"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="statusLastRun" styleClass="fxt-status-item"/>
                 <Label fx:id="statusMemory" styleClass="fxt-status-item"/>

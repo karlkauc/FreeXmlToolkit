@@ -12,6 +12,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
+import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.shared.XPathSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
 
@@ -24,7 +25,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseE
  */
 final class QueryEditorView implements EditorView {
 
-    private final CodeArea codeArea = new CodeArea();
+    private final CodeArea codeArea = new PlainTextCodeArea();
     private final VBox root = new VBox();
     private final XPathIntelliSenseEngine intelliSense;
     private Runnable runHandler;

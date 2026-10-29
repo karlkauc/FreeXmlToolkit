@@ -45,6 +45,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
+import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 
 /**
  * JSON Code Editor component using RichTextFX.
@@ -90,7 +91,7 @@ public class JsonCodeEditor extends VBox {
         logger.info("Creating JsonCodeEditor...");
 
         // Create code area
-        this.codeArea = new CodeArea();
+        this.codeArea = new PlainTextCodeArea();
         this.scrollPane = new VirtualizedScrollPane<>(codeArea);
 
         // Create status bar

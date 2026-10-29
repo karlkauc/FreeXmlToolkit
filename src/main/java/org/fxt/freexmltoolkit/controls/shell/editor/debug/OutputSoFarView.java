@@ -18,6 +18,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
+import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.shell.editor.ResultHighlighter;
 
 /**
@@ -31,7 +32,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.ResultHighlighter;
 public class OutputSoFarView extends VBox {
 
     private final Label info = new Label("The output appears here while the run is paused.");
-    private final CodeArea area = new CodeArea();
+    private final CodeArea area = new PlainTextCodeArea();
     private static final String PRINCIPAL = "Principal result";
     private final ChoiceBox<String> resultChoice = new ChoiceBox<>();
     private final MenuButton documents = new MenuButton("Documents");

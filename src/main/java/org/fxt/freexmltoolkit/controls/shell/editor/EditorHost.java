@@ -22,7 +22,6 @@ import javafx.scene.layout.BorderPane;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.service.DragDropService;
@@ -897,7 +896,11 @@ public class EditorHost extends BorderPane {
             // A tool tab (e.g. a type editor) is active — keep listing the structured XSD tab's types.
             EditorTab et = resolveStructuredEditorTab();
             if (et != null) {
-                et.ensureModelParsed();
+                if (!et.isModelCurrent()) {
+                    // Off the FX thread: the parse downloads remote imports. The XSD tab is not the
+                    // selected one, so its own model callback does not bump activeModelRevision.
+                    et.ensureModelParsedAsync(() -> activeModelRevision.set(activeModelRevision.get() + 1));
+                }
                 if (et.editorContext != null) {
                     schema = et.editorContext.getSchema();
                 }
@@ -4575,8 +4578,11 @@ public class EditorHost extends BorderPane {
         // next external-change check instead of being silently missed.
         DiskStamp stamp = DiskStamp.of(path);
         String content;
+        TextEncoding encoding;
         try {
-            content = Files.readString(path, StandardCharsets.UTF_8);
+            TextEncoding.Read read = TextEncoding.read(path);
+            content = read.text();
+            encoding = read.encoding();
         } catch (IOException e) {
             Platform.runLater(() -> {
                 tab.view.setText("Could not read " + path + ": " + e.getMessage());
@@ -4609,6 +4615,7 @@ public class EditorHost extends BorderPane {
             }
             tab.refreshPreviewIfActive();
             tab.endLoading();
+            tab.document.setEncoding(encoding);
             tab.document.setDirty(false);
             tab.document.setDiskStamp(stamp);
             tab.loading = false;
@@ -5845,6 +5852,8 @@ public class EditorHost extends BorderPane {
      */
     private CompletableFuture<Boolean> writeAsync(EditorTab tab, Path target) {
         String text = tab.view.getText();
+        TextEncoding encoding = tab.document.getEncoding();
+        boolean xml = tab.document.getFileType().isXmlFamily();
         long revision = tab.textRevision;
         tab.saving++;
         CompletableFuture<Boolean> result = new CompletableFuture<>();
@@ -5852,13 +5861,15 @@ public class EditorHost extends BorderPane {
         tab.pendingWrite = result;
         previous.handle((ignored, error) -> null).thenRunAsync(() -> {
             DiskStamp stamp;
+            TextEncoding saved = null;
             try {
-                Files.writeString(target, text, StandardCharsets.UTF_8);
+                saved = encoding.write(target, text, xml);
                 stamp = DiskStamp.of(target);
             } catch (IOException e) {
                 stamp = null;
             }
             DiskStamp written = stamp;
+            TextEncoding writtenEncoding = saved;
             Platform.runLater(() -> {
                 tab.saving--;
                 if (written != null) {
@@ -5866,6 +5877,7 @@ public class EditorHost extends BorderPane {
                         tab.document.setDirty(false);
                     }
                     tab.document.setDiskStamp(written);
+                    tab.document.setEncoding(writtenEncoding);
                     if (tab.document.getFileType() == EditorFileType.XSD) {
                         reloadXmlSchemasBoundTo(target);
                     }
@@ -5878,7 +5890,9 @@ public class EditorHost extends BorderPane {
 
     private boolean write(EditorTab tab, Path target) {
         try {
-            Files.writeString(target, tab.view.getText(), StandardCharsets.UTF_8);
+            TextEncoding encoding = tab.document.getEncoding();
+            tab.document.setEncoding(encoding.write(target, tab.view.getText(),
+                    tab.document.getFileType().isXmlFamily()));
             tab.document.setDirty(false);
             // Our own write must not be reported as an external change.
             tab.document.setDiskStamp(DiskStamp.of(target));
@@ -5970,9 +5984,9 @@ public class EditorHost extends BorderPane {
         tab.beginLoading();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             DiskStamp stamp = DiskStamp.of(path); // before the read, as in loadAsync
-            String content;
+            TextEncoding.Read read;
             try {
-                content = Files.readString(path, StandardCharsets.UTF_8);
+                read = TextEncoding.read(path);
             } catch (IOException e) {
                 Platform.runLater(() -> {
                     tab.endLoading();
@@ -5993,7 +6007,8 @@ public class EditorHost extends BorderPane {
                 if (isAbandoned(tab)) {
                     return;
                 }
-                tab.replaceContentFromDisk(content);
+                tab.replaceContentFromDisk(read.text());
+                tab.document.setEncoding(read.encoding());
                 tab.document.setDirty(false);
                 tab.document.setDiskStamp(stamp);
                 if (tab.isSelected()) {
@@ -6523,10 +6538,15 @@ public class EditorHost extends BorderPane {
 
         /** (Re)parses the model only when missing or when the text changed since the last parse (P2). */
         private void ensureModelParsed() {
-            if ((editorContext == null || lastParsedRevision != textRevision)
-                    && failedXsdParseRevision != textRevision) { // a known failure is not parsed again
+            if (!isModelCurrent()) {
                 parseModel();
             }
+        }
+
+        /** Whether the XSD model matches the text, or the text is known not to parse (not parsed again). */
+        private boolean isModelCurrent() {
+            return (editorContext != null && lastParsedRevision == textRevision)
+                    || failedXsdParseRevision == textRevision;
         }
 
         /** Above this size a structured view's stale model is parsed off the FX thread. */

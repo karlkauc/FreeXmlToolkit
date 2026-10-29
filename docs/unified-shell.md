@@ -26,7 +26,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). Hidden automatically while a page without a document (Settings, Schema Library, Signature, reports, tool tabs) is selected. |
-| **Status bar** (bottom) | Caret position (Ln/Col), character count, file type, the XSD / IntelliSense indicator, the encoding label (UTF-8), the last recorded run (Developer feature), a memory indicator and the active file's path (see [Status Bar](#status-bar)). |
+| **Status bar** (bottom) | Caret position (Ln/Col), character count, file type, the XSD / IntelliSense indicator, the encoding label (the charset the file was read in and is saved in, e.g. UTF-8 or ISO-8859-1), the last recorded run (Developer feature), a memory indicator and the active file's path (see [Status Bar](#status-bar)). |
 
 #### Resizing and collapsing the side panels {#collapsing-the-side-panels}
 
@@ -1800,7 +1800,11 @@ The status bar at the bottom of the window includes (left to right):
     your file manager onto it to bind the schema to the active document in one move - it
     glows **green** while a loadable file hovers over it and **red** for a wrong file type
     (which is rejected).
-- An **encoding label** (**UTF-8**).
+- An **encoding label**: the character encoding the file was read in - taken from a byte order
+  mark or the XML declaration's `encoding="…"`, otherwise **UTF-8** (a file that is not valid
+  UTF-8 and declares nothing is read as **windows-1252**). Saving writes the file back in that
+  encoding; change the `encoding` of the XML declaration to save in another one. Characters the
+  encoding cannot hold are saved as character references such as `&#x20AC;`.
 - A **last run** item (right-hand side) showing the last recorded XSLT/XQuery/validation run -
   it appears only while **Record execution statistics** (Settings → **DEVELOPER**) is on;
   **click it** to open the **Execution Statistics** tool tab.

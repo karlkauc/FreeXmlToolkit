@@ -22,14 +22,12 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.XdmValue;
-
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
+import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
 import org.fxt.freexmltoolkit.controls.shell.editor.ResultHighlighter;
@@ -37,6 +35,9 @@ import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.debugger.SourceLocations;
 import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
+
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XdmValue;
 
 /**
  * Non-modal window of the XSLT debugger that shows one variable or watch value in full: the
@@ -59,8 +60,8 @@ public final class ValueViewerWindow extends Stage {
 
     private final ValueSource source;
     private final WatchEvaluator evaluator;
-    private final CodeArea valueArea = new CodeArea();
-    private final CodeArea resultArea = new CodeArea();
+    private final CodeArea valueArea = new PlainTextCodeArea();
+    private final CodeArea resultArea = new PlainTextCodeArea();
     private final Consumer<DesignTokens.Theme> themeListener;
     /** Bumped per render / XPath run so a slow earlier pass cannot overwrite a newer one. */
     private int renderGeneration;

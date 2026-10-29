@@ -34,6 +34,7 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
+import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.shared.XPathSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.XPathIntelliSenseEngine;
@@ -69,13 +70,13 @@ public class QueryConsole extends Region {
     @FXML private ToggleButton xqueryToggle;
     @FXML private Label target;
     // RichTextFX CodeAreas so the XPath/XQuery IntelliSense engine can attach (autocomplete).
-    private final CodeArea xpathField = new CodeArea();
-    private final CodeArea xqueryArea = new CodeArea();
+    private final CodeArea xpathField = new PlainTextCodeArea();
+    private final CodeArea xqueryArea = new PlainTextCodeArea();
     @FXML private StackPane inputStack;
     @FXML private VBox resultsBox;
     // Results are a read-only CodeArea (not a TextArea) so XML/JSON output can be
     // syntax-highlighted like the main text editor.
-    private final CodeArea resultsArea = new CodeArea();
+    private final CodeArea resultsArea = new PlainTextCodeArea();
 
     /** Per-run statistics ("42 ms · 1234 chars"), shown only when execution statistics are enabled. */
     @FXML private Label statsLabel;

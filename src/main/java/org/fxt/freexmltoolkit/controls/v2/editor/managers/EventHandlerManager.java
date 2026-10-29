@@ -1,6 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
-import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
 import javafx.scene.control.Alert;
 import javafx.scene.input.KeyEvent;
@@ -213,18 +212,45 @@ public class EventHandlerManager {
             return;
         }
 
-        // Get character position at mouse cursor
-        int charPos = getCharacterPosition(event);
+        // Hit-test and analyse once the mouse rests, not for every pixel it moves: the hit test
+        // lays out the line under the mouse (seconds on lines of 100k characters), the tooltip
+        // analyses the document up to that position (tens of ms on multi-MB documents).
+        hoverX = event.getX();
+        hoverY = event.getY();
+        hoverPause.playFromStart();
+    }
+
+    /** Paragraphs longer than this get no hover tooltip: hit-testing them stalls the FX thread. */
+    static final int MAX_HOVER_PARAGRAPH_LENGTH = 10_000;
+
+    /** Mouse position (in code-area coordinates) the hover pause was last restarted at. */
+    private double hoverX;
+    private double hoverY;
+
+    /** Shows the tooltip for where the mouse rests (end of {@link #hoverPause}). */
+    private void hoverAtRest() {
+        int charPos = longParagraphVisible() ? -1 : getCharacterPosition(hoverX, hoverY);
         if (charPos < 0) {
-            hoverPause.stop();
             removeTooltip();
             return;
         }
+        showTooltipAt(charPos);
+    }
 
-        // The tooltip analyses the document up to the mouse position: do that once the mouse rests,
-        // not for every pixel it moves (tens of ms per event on multi-MB documents).
-        hoverPosition = charPos;
-        hoverPause.playFromStart();
+    /** Whether a paragraph too long to hit-test cheaply is on screen. */
+    private boolean longParagraphVisible() {
+        try {
+            int first = codeArea.firstVisibleParToAllParIndex();
+            int last = codeArea.lastVisibleParToAllParIndex();
+            for (int i = first; i <= last; i++) {
+                if (codeArea.getParagraphLength(i) > MAX_HOVER_PARAGRAPH_LENGTH) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (RuntimeException e) {
+            return true; // viewport not laid out: no hover now
+        }
     }
 
     /** Counts text edits, so an unchanged tooltip spot is recognized without comparing texts. */
@@ -234,8 +260,6 @@ public class EventHandlerManager {
         return editRevision;
     }
 
-    /** Character position the mouse rests on (see {@link #hoverPause}). */
-    private int hoverPosition = -1;
     /** Text revision and position the current tooltip was built for: an unchanged spot is not re-analysed. */
     private long tooltipRevision = -1;
     private int tooltipPosition = -1;
@@ -243,7 +267,7 @@ public class EventHandlerManager {
 
     private javafx.animation.PauseTransition createHoverPause() {
         javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
-        pause.setOnFinished(e -> showTooltipAt(hoverPosition));
+        pause.setOnFinished(e -> hoverAtRest());
         return pause;
     }
 
@@ -332,9 +356,12 @@ public class EventHandlerManager {
      * Gets character position from mouse event.
      */
     private int getCharacterPosition(MouseEvent event) {
+        return getCharacterPosition(event.getX(), event.getY());
+    }
+
+    private int getCharacterPosition(double x, double y) {
         try {
-            Point2D point = new Point2D(event.getX(), event.getY());
-            var hitInfo = codeArea.hit(point.getX(), point.getY());
+            var hitInfo = codeArea.hit(x, y);
             return hitInfo.getInsertionIndex();
         } catch (Exception e) {
             logger.debug("Error getting character position: {}", e.getMessage());

@@ -151,6 +151,20 @@ class UsageEventsTest {
     }
 
     @Test
+    void missingRelativeSchemaFileIsInvalidInput() {
+        UsageEvents.schemaBound(DocKind.XML, "declared", false, "unresolved", "relative", 0);
+        TelemetryEvent e = single("schema_bind");
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, e.status());
+        assertEquals("relative", e.meta().get("ref_kind"));
+    }
+
+    @Test
+    void unreachableRemoteSchemaStaysAnError() {
+        UsageEvents.schemaBound(DocKind.XML, "declared", false, "unresolved", "http", 0);
+        assertEquals(TelemetryEvent.Status.ERROR, single("schema_bind").status());
+    }
+
+    @Test
     void successfulSchemaBindingHasNoFailureReason() {
         UsageEvents.schemaBound(DocKind.XML, "catalog", true, "unloadable", 0);
         assertFalse(single("schema_bind").meta().containsKey("failure"));

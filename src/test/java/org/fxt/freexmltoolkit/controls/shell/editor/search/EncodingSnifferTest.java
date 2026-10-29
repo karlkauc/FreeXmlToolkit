@@ -76,4 +76,19 @@ class EncodingSnifferTest {
         assertFalse(EncodingSniffer.isBinary(new byte[]{(byte) 0xFF, (byte) 0xFE, 0x3C, 0x00}));
         assertFalse(EncodingSniffer.isBinary("<root/>".getBytes(StandardCharsets.UTF_8)));
     }
+
+    @Test
+    void invalidUtf8WithoutDeclarationIsReadAsWindows1252() {
+        byte[] bytes = "<a>café €</a>".getBytes(Charset.forName("windows-1252"));
+        EncodingSniffer.Loaded loaded = EncodingSniffer.decode(bytes);
+        assertEquals("<a>café €</a>", loaded.text());
+        assertEquals(Charset.forName("windows-1252"), loaded.charset());
+    }
+
+    @Test
+    void validUtf8StaysUtf8() {
+        EncodingSniffer.Loaded loaded = EncodingSniffer.decode("<a>café</a>".getBytes(StandardCharsets.UTF_8));
+        assertEquals("<a>café</a>", loaded.text());
+        assertEquals(StandardCharsets.UTF_8, loaded.charset());
+    }
 }

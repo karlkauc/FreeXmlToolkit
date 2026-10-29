@@ -13,6 +13,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.ReadOnlyStyledDocument;
 import org.fxmisc.richtext.model.StyledDocument;
+import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorEventBus;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorMode;
@@ -85,7 +86,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         logger.info("Creating XmlCodeEditorV2...");
 
         // Create core components
-        this.codeArea = new CodeArea();
+        this.codeArea = new PlainTextCodeArea();
         this.scrollPane = new VirtualizedScrollPane<>(codeArea);
         this.eventBus = new EditorEventBus();
         this.editorContext = new EditorContext(codeArea, eventBus, schemaProvider);

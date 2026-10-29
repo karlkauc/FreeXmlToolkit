@@ -33,6 +33,7 @@ import javafx.util.Duration;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 
 /**
@@ -47,8 +48,8 @@ public final class DiffView extends Tab {
 
     private static final Duration DEBOUNCE = Duration.millis(300);
 
-    private final CodeArea leftArea = new CodeArea();
-    private final CodeArea rightArea = new CodeArea();
+    private final CodeArea leftArea = new PlainTextCodeArea();
+    private final CodeArea rightArea = new PlainTextCodeArea();
     private final DiffGutter gutter;
     private final Label leftHeaderLabel = new Label();
     private final Label rightHeaderLabel = new Label();

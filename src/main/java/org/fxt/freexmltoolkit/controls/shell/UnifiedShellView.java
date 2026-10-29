@@ -118,6 +118,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private Label statusPosition;
     @FXML private Label statusChars;
     @FXML private Label statusType;
+    @FXML private Label statusEncoding;
     @FXML private Label statusSchema;
     @FXML private Label statusFile;
     @FXML private Label statusLastRun;
@@ -289,7 +290,11 @@ public class UnifiedShellView extends BorderPane {
 
         // Keep the status bar in sync with the active editor.
         editorHost.activeCaretProperty().addListener((obs, oldV, newV) -> updateStatusBar());
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> updateStatusBar());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
+            watchActiveEncoding();
+            updateStatusBar();
+        });
+        watchActiveEncoding();
         updateStatusBar();
 
         // File-operation keyboard shortcuts (scoped to the shell).
@@ -882,12 +887,27 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
+    /** The document whose encoding the status bar follows (it is known only once the file is read). */
+    private org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument encodingWatched;
+    private final javafx.beans.value.ChangeListener<Object> encodingListener = (obs, oldV, newV) -> updateStatusBar();
+
+    private void watchActiveEncoding() {
+        if (encodingWatched != null) {
+            encodingWatched.encodingProperty().removeListener(encodingListener);
+        }
+        encodingWatched = editorHost.getActiveDocument().orElse(null);
+        if (encodingWatched != null) {
+            encodingWatched.encodingProperty().addListener(encodingListener);
+        }
+    }
+
     private void updateStatusBar() {
         var docOpt = editorHost.getActiveDocument();
         if (docOpt.isEmpty()) {
             statusPosition.setText("Ln 1, Col 1");
             statusChars.setText("");
             statusType.setText("");
+            statusEncoding.setText("");
             statusFile.setText("No file open");
             return;
         }
@@ -895,6 +915,8 @@ public class UnifiedShellView extends BorderPane {
         statusPosition.setText("Ln " + pos[0] + ", Col " + pos[1]);
         var doc = docOpt.get();
         statusType.setText(doc.getFileType().label());
+        var encoding = doc.getEncoding();
+        statusEncoding.setText(encoding.charset().displayName() + (encoding.bom() ? " with BOM" : ""));
         // Character count (relocated from the per-editor status line, which the shell hides).
         int length = editorHost.getActiveTextLength();
         statusChars.setText(length >= 0 ? String.format("%,d chars", length) : "");
