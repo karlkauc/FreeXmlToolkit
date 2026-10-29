@@ -248,7 +248,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   change the node's type - element, attribute, text, CDATA, comment or processing instruction;
   name and value are kept, attributes move into their element's attribute list. Containers
   with child elements keep their type. **Wrap in Element…** (**Ctrl+Alt+W**, context menu)
-  puts a new parent element around the selected node. All of these are undoable.
+  puts a new parent element around the selected node. **Edit as Raw Text…** (**Ctrl+Alt+R**)
+  opens the selected element's content as markup (entities unresolved) and parses it back;
+  not well-formed markup is reported and the editor reopens. All of these are undoable.
 - **Sibling groups** for very large files (**⋯** menu → *Sibling groups: 100 / 1,000 / 10,000
   nodes*, remembered): an element with more children than that shows them in collapsed groups
   such as `record <1001..2000>`; opening a group closes the other groups of the same element.

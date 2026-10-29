@@ -97,6 +97,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private CheckMenuItem flipTableItem;
     private MenuItem copyTableTsvItem;
     private MenuItem wrapInElementItem;
+    private MenuItem editRawTextItem;
 
     // Table operations (visible with a table context)
     private Menu tableMenu;
@@ -230,6 +231,12 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         wrapInElementItem.setAccelerator(new KeyCodeCombination(KeyCode.W,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN));
 
+        editRawTextItem = new MenuItem("Edit as Raw Text…");
+        editRawTextItem.setGraphic(createColoredIcon("bi-code-slash", ActionColor.MODIFY));
+        editRawTextItem.setOnAction(e -> editAsRawText());
+        editRawTextItem.setAccelerator(new KeyCodeCombination(KeyCode.R,
+                KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN));
+
         // === Expand/Collapse (canvas actions) ===
         expandFullyItem = new MenuItem("Expand Fully");
         expandFullyItem.setGraphic(createColoredIcon("bi-chevron-double-down", ActionColor.NEUTRAL));
@@ -319,7 +326,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 new SeparatorMenuItem(),
                 goToDefinitionItem,
                 new SeparatorMenuItem(),
-                moveUpItem, moveDownItem, wrapInElementItem,
+                moveUpItem, moveDownItem, wrapInElementItem, editRawTextItem,
                 new SeparatorMenuItem(),
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
@@ -422,6 +429,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         moveDownItem.setDisable(!canMove || isLastChild(node));
         deleteItem.setDisable(!hasSelection || isRoot);
         wrapInElementItem.setDisable(!hasSelection || node instanceof XmlDocument || node.getParent() == null);
+        editRawTextItem.setDisable(!isElement);
 
         // Sort menu: Visible when clicking on a sortable table column (either header or data cell)
         // Note: clickedRowIndex can be -1 for column header clicks
@@ -447,6 +455,52 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         boolean hasColumn = isInTableColumn && clickedTable.getColumn(clickedColumnName) != null
                 && clickedTable.getColumn(clickedColumnName).getType() != RepeatingElementsTable.ColumnType.TEXT_CONTENT;
         renameColumnItem.setDisable(!hasColumn);
+    }
+
+    /**
+     * Edits the selected element's content as raw markup in a dialog and replaces the children
+     * with the parsed result (one undo step); not well-formed markup is reported and the
+     * dialog reopens with the typed text.
+     */
+    private void editAsRawText() {
+        if (!(context.getSelectionModel().getSelectedNode() instanceof XmlElement element)) {
+            return;
+        }
+        String text = RawTextContent.of(element);
+        while (true) {
+            java.util.Optional<String> edited = showRawTextDialog(element.getName(), text);
+            if (edited.isEmpty()) {
+                return;
+            }
+            text = edited.get();
+            try {
+                java.util.List<XmlNode> nodes = RawTextContent.parse(text);
+                if (context.executeCommand(
+                        new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.ReplaceChildrenCommand(element, nodes))) {
+                    refresh();
+                }
+                return;
+            } catch (IllegalArgumentException e) {
+                showWarningAlert("Not Well-Formed", "The content is not well-formed XML:\n" + e.getMessage());
+            }
+        }
+    }
+
+    private java.util.Optional<String> showRawTextDialog(String elementName, String text) {
+        javafx.scene.control.Dialog<String> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("Edit as Raw Text");
+        dialog.setHeaderText("Content of <" + elementName + "> as markup");
+        javafx.scene.control.TextArea area = new javafx.scene.control.TextArea(text);
+        area.setId("grid-raw-text-area");
+        area.setWrapText(true);
+        area.setPrefSize(640, 320);
+        area.setStyle("-fx-font-family: 'JetBrains Mono', monospace;");
+        dialog.getDialogPane().setContent(area);
+        dialog.getDialogPane().getButtonTypes().addAll(
+                javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+        dialog.setResultConverter(button -> button == javafx.scene.control.ButtonType.OK ? area.getText() : null);
+        javafx.application.Platform.runLater(area::requestFocus);
+        return dialog.showAndWait();
     }
 
     /** Wraps the selected node in a new element whose name the user enters. */
@@ -1499,6 +1553,10 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         } else if (event.isControlDown() && event.getCode() == KeyCode.D) {
             context.getSelectionModel().setSelectedNode(selectedNode);
             duplicateElement();
+            event.consume();
+        } else if (event.isControlDown() && event.isAltDown() && event.getCode() == KeyCode.R) {
+            context.getSelectionModel().setSelectedNode(selectedNode);
+            editAsRawText();
             event.consume();
         } else if (event.isControlDown() && event.isAltDown() && event.getCode() == KeyCode.W) {
             context.getSelectionModel().setSelectedNode(selectedNode);
