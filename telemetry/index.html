@@ -2293,6 +2293,14 @@ support); only other <code>runtime</code> failures have status <code>error</code
 <code>not_well_formed</code> with status <code>invalid_input</code> when the sample XML is not well-formed. A failed
 <strong>update check</strong> (<code>update_check</code>) names a fixed reason in <code>meta.reason</code>: <code>network</code> (no response),
 <code>http_&lt;status&gt;</code> (e.g. <code>http_403</code>), <code>empty</code>, <code>parse</code>, <code>no_version</code> or <code>exception</code>.</p>
+<p>A <strong>PDF generation</strong> (<code>fop_pdf</code>) names the stage that ran last in <code>meta.stage</code> (<code>transform</code> = the
+XSLT run that produces the XSL-FO, <code>render</code> = Apache FOP rendering it) and, for a failure, the
+processor's error code or the exception class in <code>error_code</code>. A stylesheet that does not compile
+or an XSL-FO document FOP rejects (<code>ValidationException</code>) is a problem with the user's files and
+has status <code>invalid_input</code>; the error dialog of such a run is not reported a second time. A
+<strong>schema documentation</strong> run (<code>schema_doc</code>) records the format (<code>meta.format</code>), the duration and,
+for a failure, the exception class in <code>error_code</code>; a schema that does not parse
+(<code>SAXParseException</code>) has status <code>invalid_input</code>.</p>
 <p>The <strong>spreadsheet converter</strong> (<code>spreadsheet_convert</code>) records the direction in <code>meta.direction</code>
 (<code>to_spreadsheet</code> or <code>to_xml</code>), the format in <code>meta.format</code> (<code>xlsx</code>, <code>xls</code> or <code>csv</code>), the duration,
 the size of the exported document in characters (<code>input_bytes</code>) and, for a failure, the exception
@@ -2319,7 +2327,7 @@ events are sent per session.</p>
 </tr>
 <tr>
 <td><code>prev_session_crashed</code></td>
-<td>Sent at the next start when the previous session ended without a clean exit (crash, forced close). Contains only that session's anonymous ID and app version. The detection uses small marker files in <code>~/.freeXmlToolkit/sessions/</code>.</td>
+<td>Sent at the next start when the previous session ended without a clean exit (crash, forced close). Contains only that session's anonymous ID and app version. The detection uses small marker files in <code>~/.freeXmlToolkit/sessions/</code>. If the Java runtime itself crashed, it leaves a crash file (<code>hs_err_pid&lt;pid&gt;.log</code>) behind; the app then adds <code>meta.jvm_crash</code> with three fixed pieces read from that file's header: the signal (<code>crash_signal</code>, e.g. <code>EXCEPTION_ACCESS_VIOLATION</code>), the faulting library or Java method (<code>crash_frame</code>, e.g. <code>C fontmanager.dll</code>) and the thread name (<code>crash_thread</code>). Paths, addresses, registers and the rest of the file are never read or sent, and the file is left in place.</td>
 </tr>
 <tr>
 <td><code>file_open</code>, <code>view_mode</code>, <code>validate</code>, <code>schema_analysis</code>, <code>schema_bind</code></td>
