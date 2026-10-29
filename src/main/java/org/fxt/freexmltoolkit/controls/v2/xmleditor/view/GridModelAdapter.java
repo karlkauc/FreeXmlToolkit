@@ -94,6 +94,26 @@ public interface GridModelAdapter<N> {
         return row.getType() + ":" + row.getDepth() + ":" + row.getLabel();
     }
 
+    /**
+     * @param row a row
+     * @return the labels of the node types the row can be converted to (XMLSpy: click the
+     *         type icon), in menu order; empty when the row's type cannot change
+     */
+    default List<String> typeTargets(FlatRow row) {
+        return List.of();
+    }
+
+    /**
+     * Converts the row's node to another type through the command stack.
+     *
+     * @param row         the row
+     * @param targetLabel one of {@link #typeTargets(FlatRow)}
+     * @return whether the model changed
+     */
+    default boolean changeType(FlatRow row, String targetLabel) {
+        return false;
+    }
+
     /** @return the model node behind a row */
     N nodeOf(FlatRow row);
 

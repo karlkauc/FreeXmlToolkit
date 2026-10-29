@@ -242,6 +242,13 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   **Collapse Unselected** (**Ctrl+Shift+−**) folds every container except the path to the
   selection. Both, plus **Expand All / Collapse All**, are in the context menu. The expanded
   state and the selection survive edits, undo and sorting (rows are tracked by their XPath).
+- **Editing every node kind.** Double-click a value to edit it - also comments, CDATA sections
+  and processing instructions; double-click the name of an attribute or a processing
+  instruction to rename it. **Click the type icon** of a row (or press **Ctrl+Alt+T**) to
+  change the node's type - element, attribute, text, CDATA, comment or processing instruction;
+  name and value are kept, attributes move into their element's attribute list. Containers
+  with child elements keep their type. **Wrap in Element…** (**Ctrl+Alt+W**, context menu)
+  puts a new parent element around the selected node. All of these are undoable.
 - **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),
   **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
   shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query

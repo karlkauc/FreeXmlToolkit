@@ -7,6 +7,14 @@ import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CompositeXmlCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.ConvertNodeTypeCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameAttributeCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetCDataTextCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetCommentTextCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetProcessingInstructionCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand;
@@ -159,12 +167,54 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public boolean canEditName(FlatRow row) {
-        return row.getType() == FlatRow.RowType.ELEMENT && row.getModelNode() instanceof XmlElement;
+        return switch (row.getType()) {
+            case ELEMENT -> row.getModelNode() instanceof XmlElement && !row.isTableGroupOwner();
+            case ATTRIBUTE -> row.getModelNode() instanceof XmlElement;
+            case PROCESSING_INSTRUCTION -> row.getModelNode() instanceof XmlProcessingInstruction;
+            default -> false;
+        };
     }
 
     @Override
     public boolean canEditValue(FlatRow row) {
-        return true;
+        if (row.getType() == FlatRow.RowType.DOCUMENT || row.isTableGroupOwner()) {
+            return false;
+        }
+        return !(row.getType() == FlatRow.RowType.ELEMENT
+                && row.getModelNode() instanceof XmlElement el && el.hasElementChildren());
+    }
+
+    @Override
+    public List<String> typeTargets(FlatRow row) {
+        if (row.isTableGroupOwner()) {
+            return List.of();
+        }
+        List<ConvertNodeTypeCommand.Kind> kinds;
+        if (row.getType() == FlatRow.RowType.ATTRIBUTE) {
+            kinds = row.getModelNode() instanceof XmlElement ? ConvertNodeTypeCommand.targetsOfAttribute() : List.of();
+        } else if (row.getModelNode() instanceof XmlNode node) {
+            kinds = ConvertNodeTypeCommand.targetsOfNode(node);
+        } else {
+            kinds = List.of();
+        }
+        return kinds.stream().map(ConvertNodeTypeCommand.Kind::label).toList();
+    }
+
+    @Override
+    public boolean changeType(FlatRow row, String targetLabel) {
+        ConvertNodeTypeCommand.Kind target = null;
+        for (ConvertNodeTypeCommand.Kind kind : ConvertNodeTypeCommand.Kind.values()) {
+            if (kind.label().equals(targetLabel)) {
+                target = kind;
+            }
+        }
+        if (target == null || !typeTargets(row).contains(targetLabel)) {
+            return false;
+        }
+        ConvertNodeTypeCommand cmd = row.getType() == FlatRow.RowType.ATTRIBUTE
+                ? ConvertNodeTypeCommand.ofAttribute((XmlElement) row.getModelNode(), row.getLabel(), target)
+                : ConvertNodeTypeCommand.ofNode((XmlNode) row.getModelNode(), target);
+        return context.executeCommand(cmd);
     }
 
     @Override
@@ -243,10 +293,31 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     public boolean commitRowEdit(FlatRow row, boolean nameEdit, String newValue) {
         Object modelNode = row.getModelNode();
         if (nameEdit) {
-            // Editing element name
-            if (modelNode instanceof XmlElement element && !newValue.trim().isEmpty()) {
-                context.executeCommand(new RenameNodeCommand(element, newValue.trim()));
+            String name = newValue == null ? "" : newValue.trim();
+            if (name.isEmpty()) {
+                return true;
             }
+            if (row.getType() == FlatRow.RowType.ATTRIBUTE && modelNode instanceof XmlElement owner) {
+                if (!name.equals(row.getLabel())) {
+                    context.executeCommand(new RenameAttributeCommand(owner, row.getLabel(), name));
+                }
+            } else if (modelNode instanceof XmlProcessingInstruction pi) {
+                context.executeCommand(new SetProcessingInstructionCommand(pi, name, pi.getData()));
+            } else if (modelNode instanceof XmlElement element) {
+                context.executeCommand(new RenameNodeCommand(element, name));
+            }
+            return true;
+        }
+        if (modelNode instanceof XmlComment comment) {
+            context.executeCommand(new SetCommentTextCommand(comment, newValue));
+            return true;
+        }
+        if (modelNode instanceof XmlCData cdata) {
+            context.executeCommand(new SetCDataTextCommand(cdata, newValue));
+            return true;
+        }
+        if (modelNode instanceof XmlProcessingInstruction pi) {
+            context.executeCommand(new SetProcessingInstructionCommand(pi, pi.getTarget(), newValue));
             return true;
         }
         // Editing value

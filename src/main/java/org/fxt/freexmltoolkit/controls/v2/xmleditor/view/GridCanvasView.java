@@ -2017,6 +2017,49 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 cellX, cellY, rect.width());
     }
 
+    // ==================== Type change ====================
+
+    /** The popup listing the node types a row can be converted to. */
+    private javafx.scene.control.ContextMenu typeMenu;
+
+    /** Shows the type menu (XMLSpy's node-type dropdown) for the row at the screen position. */
+    private void showTypeMenu(FlatRow row, double screenX, double screenY) {
+        if (typeMenu != null) {
+            typeMenu.hide();
+        }
+        typeMenu = new javafx.scene.control.ContextMenu();
+        for (String label : adapter.typeTargets(row)) {
+            javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem(label);
+            item.setOnAction(e -> changeRowType(row, label));
+            typeMenu.getItems().add(item);
+        }
+        if (!typeMenu.getItems().isEmpty()) {
+            typeMenu.show(canvas, screenX, screenY);
+        }
+    }
+
+    /**
+     * Converts the row's node to the given type and rebuilds.
+     *
+     * @param row         the row
+     * @param targetLabel the target type label (one of the adapter's type targets)
+     * @return whether the type changed
+     */
+    public boolean changeRowType(FlatRow row, String targetLabel) {
+        if (!adapter.changeType(row, targetLabel)) {
+            return false;
+        }
+        viewState.setSelectedKey(null);
+        rebuildTree();
+        notifyDocumentModified();
+        return true;
+    }
+
+    /** @return the type menu shown last (test hook) */
+    javafx.scene.control.ContextMenu typeMenuForTest() {
+        return typeMenu;
+    }
+
     // ==================== Table display toggles ====================
 
     /**
@@ -2466,6 +2509,25 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     }
                     return;
                 }
+                // Attribute / PI: rename; value-only nodes (text, comment, CDATA): edit the value
+                if (adapter.canEditName(clickedRow)) {
+                    startEditingElementName(clickedRow);
+                } else {
+                    startEditingValue(clickedRow);
+                }
+                return;
+            }
+        }
+
+        // Single click on the type icon of a row whose type can change: the type menu
+        if (event.getClickCount() == 1) {
+            double iconX = rowIconX(clickedRow);
+            double top = rowYPositions[rowIndex] - scrollOffsetY;
+            if (mx >= iconX && mx < iconX + ICON_AREA_WIDTH && my >= top && my < top + ROW_HEIGHT
+                    && !clickedRow.isExpandable() && !adapter.typeTargets(clickedRow).isEmpty()) {
+                selectRow(clickedRow);
+                showTypeMenu(clickedRow, event.getScreenX(), event.getScreenY());
+                return;
             }
         }
 
@@ -2716,6 +2778,21 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Table cell clipboard (TSV) before the node shortcuts of the context menu
         if (handleTableClipboardKeys(event)) {
+            return;
+        }
+
+        // Ctrl+Alt+T: the type menu of the selected row (XMLSpy: Type, Ctrl+Menu)
+        if (event.isShortcutDown() && event.isAltDown() && event.getCode() == KeyCode.T && selectedRow != null) {
+            int idx = visibleRows.indexOf(selectedRow);
+            if (idx >= 0 && !adapter.typeTargets(selectedRow).isEmpty()) {
+                javafx.geometry.Point2D p = canvas.localToScreen(
+                        (rowIconX(selectedRow) - scrollOffsetX) * getZoom(),
+                        (rowYPositions[idx] - scrollOffsetY + ROW_HEIGHT) * getZoom());
+                if (p != null) {
+                    showTypeMenu(selectedRow, p.getX(), p.getY());
+                }
+            }
+            event.consume();
             return;
         }
 

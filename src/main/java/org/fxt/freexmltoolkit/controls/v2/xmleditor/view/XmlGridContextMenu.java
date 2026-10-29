@@ -35,6 +35,7 @@ import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CompositeXmlCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.DeleteNodeCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.WrapInElementCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.MoveNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
@@ -95,6 +96,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private CheckMenuItem displayAsTableItem;
     private CheckMenuItem flipTableItem;
     private MenuItem copyTableTsvItem;
+    private MenuItem wrapInElementItem;
 
     // Table operations (visible with a table context)
     private Menu tableMenu;
@@ -222,6 +224,12 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         moveDownItem.setOnAction(e -> moveElement(1));
         moveDownItem.setAccelerator(new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN));
 
+        wrapInElementItem = new MenuItem("Wrap in Element…");
+        wrapInElementItem.setGraphic(createColoredIcon("bi-box-arrow-in-down", ActionColor.STRUCTURE));
+        wrapInElementItem.setOnAction(e -> wrapInElement());
+        wrapInElementItem.setAccelerator(new KeyCodeCombination(KeyCode.W,
+                KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN));
+
         // === Expand/Collapse (canvas actions) ===
         expandFullyItem = new MenuItem("Expand Fully");
         expandFullyItem.setGraphic(createColoredIcon("bi-chevron-double-down", ActionColor.NEUTRAL));
@@ -311,7 +319,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 new SeparatorMenuItem(),
                 goToDefinitionItem,
                 new SeparatorMenuItem(),
-                moveUpItem, moveDownItem,
+                moveUpItem, moveDownItem, wrapInElementItem,
                 new SeparatorMenuItem(),
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
@@ -413,6 +421,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         moveUpItem.setDisable(!canMove || isFirstChild(node));
         moveDownItem.setDisable(!canMove || isLastChild(node));
         deleteItem.setDisable(!hasSelection || isRoot);
+        wrapInElementItem.setDisable(!hasSelection || node instanceof XmlDocument || node.getParent() == null);
 
         // Sort menu: Visible when clicking on a sortable table column (either header or data cell)
         // Note: clickedRowIndex can be -1 for column header clicks
@@ -438,6 +447,23 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         boolean hasColumn = isInTableColumn && clickedTable.getColumn(clickedColumnName) != null
                 && clickedTable.getColumn(clickedColumnName).getType() != RepeatingElementsTable.ColumnType.TEXT_CONTENT;
         renameColumnItem.setDisable(!hasColumn);
+    }
+
+    /** Wraps the selected node in a new element whose name the user enters. */
+    private void wrapInElement() {
+        XmlNode selected = context.getSelectionModel().getSelectedNode();
+        if (selected == null || selected instanceof XmlDocument || selected.getParent() == null) {
+            return;
+        }
+        String name = showInputDialog("Wrap in Element", "Name of the new parent element:", "wrapper");
+        if (name == null || name.isBlank()) {
+            return;
+        }
+        WrapInElementCommand cmd = new WrapInElementCommand(selected, name.trim());
+        if (context.executeCommand(cmd)) {
+            context.getSelectionModel().setSelectedNode(cmd.getWrapper());
+            refresh();
+        }
     }
 
     // ==================== Table operations ====================
@@ -1473,6 +1499,10 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         } else if (event.isControlDown() && event.getCode() == KeyCode.D) {
             context.getSelectionModel().setSelectedNode(selectedNode);
             duplicateElement();
+            event.consume();
+        } else if (event.isControlDown() && event.isAltDown() && event.getCode() == KeyCode.W) {
+            context.getSelectionModel().setSelectedNode(selectedNode);
+            wrapInElement();
             event.consume();
         } else if (event.isAltDown() && event.getCode() == KeyCode.UP) {
             context.getSelectionModel().setSelectedNode(selectedNode);
