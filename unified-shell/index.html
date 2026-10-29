@@ -4596,33 +4596,96 @@ active. There is no separate <strong>Grid</strong> mode - the grid is part of
 when you switch views.</p>
 <h3 id="the-grid-graphic-view-for-xml">The Grid (Graphic view for XML)<a class="headerlink" href="#the-grid-graphic-view-for-xml" title="Permanent link">&para;</a></h3>
 <p>When an XML-instance document (XML, XSLT, or Schematron) is in the <strong>Graphic</strong> view, the editor
-shows the editable grid:</p>
+shows the editable grid, laid out like XMLSpy's Grid View:</p>
 <ul>
 <li>A <strong>header strip</strong> at the top reads <em>"Grid view · nested · repeating elements as embedded
-  grids"</em> and offers the <strong>zoom pill</strong> (<code>− 100% +</code>), <strong>Expand all</strong> and <strong>Collapse all</strong>
-  buttons that unfold or fold every container at once.</li>
-<li><strong>Nothing is cut off.</strong> Cells and rows take the width their content needs; long values
-  <strong>wrap</strong> onto further lines (the row grows) instead of being shortened with "…". Very wide
-  content is reached with the horizontal scrollbar (Shift+wheel).</li>
+  grids"</em> and offers the <strong>zoom pill</strong> (<code>− 100% +</code>), <strong>Optimal widths</strong>, the <strong>Wrap</strong> toggle,
+  <strong>Expand all</strong> / <strong>Collapse all</strong>, and a <strong>⋯</strong> menu with the cell-height limit.</li>
+<li><strong>Nested containers.</strong> Every element is a row with a <strong>name cell</strong> (expand arrow, type icon,
+  bold name) and, to its right, either its <strong>value cell</strong> or the <strong>block</strong> of its children. A
+  child block is docked at the parent's value column, so the structure reads as nested boxes;
+  an expanded container's name cell spans its whole child block. Each block has its own
+  name-column width (the widest name in it).</li>
+<li><strong>Type icons</strong> follow XMLSpy: <code>&lt;&gt;</code> element, <code>=</code> attribute, <code>Abc</code> text, <code>[ ]</code> CDATA, <code>&lt;!</code>
+  comment, <code>&lt;?</code> processing instruction. Colours come from the application theme (light/dark).</li>
+<li><strong>Attributes always show</strong> as <code>=</code> rows directly beneath their element - also while the
+  element itself is collapsed.</li>
+<li><strong>Collapsed containers show a grey one-line preview</strong> of their content (the markup without
+  whitespace, cut off with "…"); hovering the preview shows a longer excerpt as a tooltip.</li>
+<li><strong>Counts.</strong> A container's name is followed by its child count <code>(n)</code>; a repeating group shows
+  the number of its members and a small table glyph.</li>
+<li><strong>Nothing is cut off.</strong> Values take the width their content needs; long values <strong>wrap</strong> onto
+  further lines (the row grows). Very wide content is reached with the horizontal scrollbar
+  (Shift+wheel).</li>
 <li><strong>Zoom</strong> the whole grid - text, rows, icons and embedded tables - with <strong>Ctrl+mouse wheel</strong>,
   <strong>Ctrl +</strong> / <strong>Ctrl −</strong> (10 % steps, 50-300 %) or the <code>−</code>/<code>+</code> buttons; <strong>Ctrl 0</strong> or a
   click on the percentage resets to 100 %. The zoom factor is remembered across files, XML
   and JSON grids and restarts.</li>
-<li><strong>Column widths</strong> in embedded grids size themselves to their content; drag a column
-  separator in the column-header row to resize a column (text re-wraps to the new width),
-  and <strong>double-click the separator</strong> to return to automatic sizing. Dragged widths survive
-  edits and undo.</li>
-<li>Rows with a simple value are marked with a <strong><code>{}</code></strong> marker so you can tell value rows from
-  containers at a glance.</li>
-<li><strong>Attributes always show</strong> as <code>@name</code> rows directly beneath their element - also while the
-  element itself is collapsed.</li>
-<li>Collapsed containers show a <strong>"collapsed"</strong> hint, so you always know there is hidden content.</li>
-<li>Repeating elements are rendered as <strong>embedded grids</strong> (tables inside the row).</li>
+<li><strong>Repeating elements</strong> (two or more siblings with the same name) are rendered as an
+  <strong>embedded table beside the group's name cell</strong>: one row per element (numbered in the
+  first column), one column per attribute (<code>=</code>) and child element (<code>&lt;&gt;</code>). Click a column
+  header to <strong>sort</strong> the group; cells with nested structure expand inline.</li>
+<li><strong>Table or rows.</strong> The small table glyph after the group's name (or the context menu's
+  <strong>Display as Table</strong>) switches the group between the table and XMLSpy's standard display,
+  where every member is its own row numbered <code>&lt;1&gt;</code>, <code>&lt;2&gt;</code>, … The choice is kept per group
+  while the document is open.</li>
+<li><strong>Flip Rows/Columns.</strong> The corner cell of a table (or the context menu entry) transposes
+  it: the columns become rows and the numbered members become columns - handy for wide
+  tables with few rows. Sorting, editing and the inline sub-trees keep working.</li>
+<li><strong>Whole rows and columns.</strong> Right-click inside a table for the <strong>Table</strong> submenu: <strong>Insert
+  Row Before / After</strong> and <strong>Append Row</strong> add a member with every column present but empty;
+  <strong>Insert Column Before / After…</strong> adds an attribute (type <code>@name</code>) or a child element
+  (<code>name</code>) to every member; <strong>Rename Column…</strong> (also: double-click a column header) renames
+  it in every member. Each of these is one undo step. Typing into an empty cell whose
+  member lacks that child element creates the element.</li>
+<li><strong>Spreadsheet exchange.</strong> Click a table cell to select it, <strong>Shift+click</strong> another cell
+  (or a row number) to select a range, <strong>Ctrl+A</strong> selects the whole table. <strong>Ctrl+C</strong> copies
+  the selection as tab-separated text (the whole table with a header line); the context menu
+  offers <strong>Copy Table as Tab-separated Text</strong>. Copy a range in Excel or LibreOffice, select a
+  table cell and press <strong>Ctrl+V</strong>: the values fill the table from that cell to the right and
+  down, overwriting existing cells; extra rows become new elements. One undo step.</li>
+<li><strong>Column widths.</strong> Name columns and table columns size themselves to their content. Drag
+  the hairline between a name column and its values (or a column separator in a table's
+  header row) to resize it - text re-wraps to the new width - and <strong>double-click the line</strong>
+  to return to automatic sizing. Each nested block has its own name-column width. <strong>Optimal
+  widths</strong> in the header resets every column at once. Dragged widths survive edits and undo.</li>
+<li><strong>Wrap</strong> (header toggle, remembered across restarts) switches word wrap off: every value
+  stays on one line and the grid grows to the right instead. The <strong>⋯</strong> menu limits the
+  <strong>cell height</strong> to 3, 6 or 12 lines (longer values end with "…"), also remembered.</li>
 <li><strong>Keyboard navigation</strong> works as soon as the view opens (no click needed):
   <strong>↑/↓</strong> walk the rows, <strong>→</strong> expands a collapsed element, <strong>←</strong> collapses it (or jumps to
-  the parent), <strong>Enter</strong> toggles a container / starts editing a value, <strong>Home/End</strong> jump to
-  the first/last row, <strong>F2</strong> renames, and the usual <strong>Ctrl+C/X/V</strong>, <strong>Ctrl+D</strong> (duplicate)
-  and <strong>Delete</strong> act on the selected node.</li>
+  the parent), <strong>Space</strong> or <strong>Enter</strong> toggles a container (on a leaf row Enter starts renaming it),
+  <strong>Home/End</strong> jump to the first/last row, <strong>F2</strong> renames, and the usual <strong>Ctrl+C/X/V</strong>,
+  <strong>Ctrl+D</strong> (duplicate) and <strong>Delete</strong> act on the selected node.</li>
+<li><strong>Expand Fully</strong> (<strong>Ctrl+Shift++</strong>) opens the selected container with everything below it;
+  <strong>Collapse Unselected</strong> (<strong>Ctrl+Shift+−</strong>) folds every container except the path to the
+  selection. Both, plus <strong>Expand All / Collapse All</strong>, are in the context menu. The expanded
+  state and the selection survive edits, undo and sorting (rows are tracked by their XPath).</li>
+<li><strong>Editing every node kind.</strong> Double-click a value to edit it - also comments, CDATA sections
+  and processing instructions; double-click the name of an attribute or a processing
+  instruction to rename it. <strong>Click the type icon</strong> of a row (or press <strong>Ctrl+Alt+T</strong>) to
+  change the node's type - element, attribute, text, CDATA, comment or processing instruction;
+  name and value are kept, attributes move into their element's attribute list. Containers
+  with child elements keep their type. <strong>Wrap in Element…</strong> (<strong>Ctrl+Alt+W</strong>, context menu)
+  puts a new parent element around the selected node. All of these are undoable.</li>
+<li><strong>Sibling groups</strong> for very large files (<strong>⋯</strong> menu → <em>Sibling groups: 100 / 1,000 / 10,000
+  nodes</em>, remembered): an element with more children than that shows them in collapsed groups
+  such as <code>record &lt;1001..2000&gt;</code>; opening a group closes the other groups of the same element.</li>
+<li><strong>Validation markers.</strong> After a validation (Validation panel), rows whose element has a
+  problem show a red <strong>!</strong> at the end of the name cell and a red value; hover the row for the
+  message. Problems inside a repeating group mark the member's row number. The markers clear
+  on the next grid edit and come back with the next validation.</li>
+<li><strong>Scroll header.</strong> While you scroll through a long element, a bar at the top shows the
+  path of containers you are inside (<code>root › section › body</code>); click one to select it and
+  scroll back to its start.</li>
+<li><strong>Drag &amp; drop.</strong> Drag a node by its name cell: drop it on the upper or lower third of another
+  name cell to place it before / after that node, on the middle (or anywhere in an expanded
+  element's cell) to append it as a child. A blue line or frame shows the target; hold <strong>Ctrl</strong>
+  to copy instead of move. Text dragged in from other applications replaces a value when dropped
+  on a value cell; dropped on a name cell, an XML fragment becomes new nodes and plain text a
+  text node. A node is never dropped into its own subtree; every drop is one undo step.</li>
+<li><strong>Search</strong> (Ctrl+F) finds names and values in the rows and in the cells of embedded tables;
+  a table hit expands the group and selects the matching cell.</li>
 <li><strong>Copy XPath / Copy Node</strong>: the grid's context menu offers <strong>Copy XPath</strong> (<strong>Ctrl+Alt+X</strong>),
   <strong>Copy Cell Content</strong> (<strong>Ctrl+Shift+C</strong>) and <strong>Copy Node (XML)</strong> (<strong>Ctrl+Alt+C</strong>); all three
   shortcuts also work directly on the selected node. <strong>Ctrl+Shift+X</strong> toggles the Query
@@ -4651,17 +4714,26 @@ looks and feels exactly like an XML file in the grid:</p>
   After), <strong>Rename Key</strong> (F2), <strong>Duplicate</strong> (Ctrl+D), <strong>Copy / Cut / Paste as Sibling /
   Paste as Child</strong>, <strong>Copy Cell Content</strong>, <strong>Copy JSONPath</strong> (Ctrl+Alt+X - e.g.
   <code>$.items[1].name</code>), <strong>Copy Node (JSON)</strong> (Ctrl+Alt+C), <strong>Change Type</strong> (String / Number /
-  Boolean / Null / Object / Array), <strong>Move Up / Down</strong> (Alt+↑/↓), <strong>Expand All / Collapse
-  All</strong>, <strong>Sort Column</strong> and <strong>Delete</strong>. Copy Cell Content is Ctrl+Shift+C, as in the XML grid.</li>
+  Boolean / Null / Object / Array), <strong>Move Up / Down</strong> (Alt+↑/↓), <strong>Expand Fully / Collapse
+  Unselected</strong>, <strong>Display as Table</strong>, <strong>Flip Rows/Columns</strong>, <strong>Copy Table as Tab-separated
+  Text</strong>, <strong>Expand All / Collapse All</strong>, <strong>Sort Column</strong> and <strong>Delete</strong>. Copy Cell Content is
+  Ctrl+Shift+C, as in the XML grid.</li>
 <li>All edits go through the document's <strong>undo history</strong> (Ctrl+Z / Ctrl+Y) and are written back
   into the text - the Text, Tree and Graphic views share one model, and the <strong>Properties</strong>
   inspector edits keys and values from any of them.</li>
-<li><strong>Zoom, wrapping and column widths</strong> behave exactly as in the XML grid: the header's
-  <strong>zoom pill</strong> and <strong>Ctrl+mouse wheel</strong> / <strong>Ctrl +</strong> / <strong>Ctrl −</strong> / <strong>Ctrl 0</strong> zoom the whole
-  grid (the factor is shared with the XML grid), long strings <strong>wrap</strong> instead of being cut
-  off, and the columns of an embedded array table can be <strong>dragged</strong> to a new width
-  (double-click the separator to auto-fit). <strong>Expand all</strong> / <strong>Collapse all</strong> sit in the
-  header strip as well.</li>
+<li><strong>Same layout and controls as the XML grid.</strong> Objects and arrays are nested blocks with
+  one-line previews when collapsed; the header strip offers the <strong>zoom pill</strong>, <strong>Optimal
+  widths</strong>, <strong>Wrap</strong>, <strong>Expand all</strong> / <strong>Collapse all</strong> and the <strong>⋯</strong> menu (cell-height limit,
+  sibling groups); name and table columns can be dragged to a new width (double-click to
+  auto-fit). <strong>Expand Fully</strong> (Ctrl+Shift++) and <strong>Collapse Unselected</strong> (Ctrl+Shift+−),
+  <strong>Display as Table</strong> / <strong>Flip Rows/Columns</strong> for arrays of objects, the scroll header and
+  the search in table cells all work as described above. Table cells can be selected and
+  copied as tab-separated text (Ctrl+C or <strong>Copy Table as Tab-separated Text</strong>); Ctrl+V
+  overwrites existing cells only. The zoom factor is shared with the XML grid.</li>
+<li><strong>XML only:</strong> changing a node's type by clicking its icon (Ctrl+Alt+T), <strong>Wrap in
+  Element</strong>, drag &amp; drop, the <strong>Table</strong> submenu (insert / append rows and columns, rename
+  columns) and validation markers are not available in the JSON grid - use <strong>Change Type</strong>,
+  <strong>Add</strong> and <strong>Move Up / Down</strong> from the context menu instead.</li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Comments and JSON5 syntax are not preserved</p>
@@ -6805,7 +6877,7 @@ now opens <strong>Search (Find in Files)</strong>, and <strong>Ctrl+Shift+H</str
 unchanged. The in-editor find/replace stays on <strong>Ctrl+F / Ctrl+H</strong>.</p>
 </div>
 <blockquote>
-<p><strong>Search in all view modes:</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values; for JSON documents (Tree and Graphic) it is keys and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's <strong>Preview</strong>, Ctrl+F searches the underlying markup text, not the rendered page. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
+<p><strong>Search in all view modes:</strong> Pressing <strong>Ctrl+F</strong> opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the <strong>Text</strong>, <strong>Tree</strong> and <strong>Graphic</strong> views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values (also inside embedded table cells); for JSON documents (Tree and Graphic) it is keys and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. <strong>Replace</strong> is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's <strong>Preview</strong>, Ctrl+F searches the underlying markup text, not the rendered page. See <a href="../xml-editor-features/#search-find">XML Editor Features</a> for details.</p>
 </blockquote>
 <h2 id="compare-merge">Compare &amp; Merge<a class="headerlink" href="#compare-merge" title="Permanent link">&para;</a></h2>
 <p><strong>Tools → Compare with File…</strong> compares the active document (XML, XSD or any other text file)
