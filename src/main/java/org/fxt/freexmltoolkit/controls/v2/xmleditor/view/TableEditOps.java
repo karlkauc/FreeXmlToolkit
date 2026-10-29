@@ -130,6 +130,82 @@ public final class TableEditOps {
     }
 
     /**
+     * The commands that write a pasted block of cell values into the table starting at the
+     * given cell (XMLSpy: pasting a spreadsheet range): existing cells are overwritten, rows
+     * beyond the last member are appended as new members (every column present), values
+     * beyond the last column are ignored. Attribute cells become attribute values, element
+     * cells the child's text (the child is created when the member lacks it), a text-content
+     * column the member's own text.
+     *
+     * @param table    the table
+     * @param startRow the row of the target cell
+     * @param startCol the column of the target cell
+     * @param values   the pasted values, row by row
+     * @return one undoable step (empty when nothing is to do)
+     */
+    public static CompositeXmlCommand pasteCells(RepeatingElementsTable table, int startRow, int startCol,
+                                                 List<List<String>> values) {
+        List<XmlCommand> parts = new ArrayList<>();
+        List<XmlElement> members = new ArrayList<>(table.getElements());
+        List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
+        if (members.isEmpty() || startRow < 0 || startCol < 0) {
+            return new CompositeXmlCommand("Paste cells", parts);
+        }
+        XmlNode parent = members.get(0).getParent();
+        for (int i = 0; i < values.size(); i++) {
+            int r = startRow + i;
+            XmlElement member;
+            if (r < members.size()) {
+                member = members.get(r);
+            } else {
+                if (!(parent instanceof XmlElement parentElement)) {
+                    break;
+                }
+                // Append a new member with every column present, right after the current last one
+                member = new XmlElement(table.getElementName());
+                for (RepeatingElementsTable.TableColumn col : columns) {
+                    switch (col.getType()) {
+                        case ATTRIBUTE -> member.setAttribute(col.getName(), "");
+                        case CHILD_ELEMENT -> member.addChild(new XmlElement(col.getName()));
+                        case TEXT_CONTENT -> { /* set below */ }
+                    }
+                }
+                XmlElement last = members.get(members.size() - 1);
+                parts.add(new AddElementCommand(parentElement, member, parentElement.indexOf(last) + 1));
+                members.add(member);
+            }
+            List<String> rowValues = values.get(i);
+            for (int j = 0; j < rowValues.size(); j++) {
+                int c = startCol + j;
+                if (c >= columns.size()) {
+                    break;
+                }
+                RepeatingElementsTable.TableColumn col = columns.get(c);
+                String value = rowValues.get(j);
+                switch (col.getType()) {
+                    case ATTRIBUTE -> parts.add(new SetAttributeCommand(member, col.getName(), value));
+                    case CHILD_ELEMENT -> {
+                        XmlElement child = member.getChildElement(col.getName());
+                        if (child != null) {
+                            parts.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand(
+                                    child, value));
+                        } else {
+                            parts.add(createCellChild(member, col.getName(), value));
+                        }
+                    }
+                    case TEXT_CONTENT -> {
+                        if (!member.hasElementChildren()) {
+                            parts.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand(
+                                    member, value));
+                        }
+                    }
+                }
+            }
+        }
+        return new CompositeXmlCommand("Paste " + values.size() + " row(s)", parts);
+    }
+
+    /**
      * A child element with the given text, for a cell whose member lacks the column's element.
      *
      * @param member the row's element

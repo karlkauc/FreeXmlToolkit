@@ -219,6 +219,12 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   (`name`) to every member; **Rename Column…** (also: double-click a column header) renames
   it in every member. Each of these is one undo step. Typing into an empty cell whose
   member lacks that child element creates the element.
+- **Spreadsheet exchange.** Click a table cell to select it, **Shift+click** another cell
+  (or a row number) to select a range, **Ctrl+A** selects the whole table. **Ctrl+C** copies
+  the selection as tab-separated text (the whole table with a header line); the context menu
+  offers **Copy Table as Tab-separated Text**. Copy a range in Excel or LibreOffice, select a
+  table cell and press **Ctrl+V**: the values fill the table from that cell to the right and
+  down, overwriting existing cells; extra rows become new elements. One undo step.
 - **Column widths.** Name columns and table columns size themselves to their content. Drag
   the hairline between a name column and its values (or a column separator in a table's
   header row) to resize it - text re-wraps to the new width - and **double-click the line**

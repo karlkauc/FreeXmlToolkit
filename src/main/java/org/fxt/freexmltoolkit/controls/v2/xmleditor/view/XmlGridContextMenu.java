@@ -94,6 +94,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private MenuItem collapseUnselectedItem;
     private CheckMenuItem displayAsTableItem;
     private CheckMenuItem flipTableItem;
+    private MenuItem copyTableTsvItem;
 
     // Table operations (visible with a table context)
     private Menu tableMenu;
@@ -242,6 +243,10 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         flipTableItem.setGraphic(createColoredIcon("bi-arrow-left-right", ActionColor.NEUTRAL));
         flipTableItem.setOnAction(e -> viewActions.flipTable().run());
 
+        copyTableTsvItem = new MenuItem("Copy Table as Tab-separated Text");
+        copyTableTsvItem.setGraphic(createColoredIcon("bi-file-earmark-spreadsheet", ActionColor.NEUTRAL));
+        copyTableTsvItem.setOnAction(e -> copyTableAsTsv());
+
         // === Table operations ===
         tableMenu = new Menu("Table");
         tableMenu.setGraphic(createColoredIcon("bi-grid-3x3", ActionColor.STRUCTURE));
@@ -310,7 +315,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 new SeparatorMenuItem(),
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
-                displayAsTableItem, flipTableItem, tableMenu, sortMenu,
+                displayAsTableItem, flipTableItem, copyTableTsvItem, tableMenu, sortMenu,
                 new SeparatorMenuItem(),
                 deleteItem
         );
@@ -422,6 +427,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         Boolean flipState = viewActions.flipState().get();
         flipTableItem.setVisible(flipState != null);
         flipTableItem.setSelected(Boolean.TRUE.equals(flipState));
+        copyTableTsvItem.setVisible(clickedTable != null);
 
         // Whole-row / whole-column operations: only with a table context
         boolean inTable = clickedTable != null;
@@ -1495,4 +1501,15 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 Alert.AlertType.WARNING, title, null, message);
         alert.showAndWait();
     }
+
+    /** Copies the clicked table (header line + every row) as tab-separated text, for spreadsheets. */
+    private void copyTableAsTsv() {
+        if (clickedTable == null) {
+            return;
+        }
+        javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+        content.putString(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.TsvClipboard.formatTable(clickedTable));
+        javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
+    }
+
 }

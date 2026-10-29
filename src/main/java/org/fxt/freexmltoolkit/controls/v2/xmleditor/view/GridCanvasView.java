@@ -237,6 +237,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     // Table selection/hover state (kept for repeating table integration)
     private RepeatingElementsTable selectedTable = null;
+    /**
+     * Cell range selected in {@link #selectedTable} (logical rows/columns, inclusive; anchor =
+     * where the selection started, focus = where Shift+click extended it). -1 = none.
+     */
+    private int selAnchorRow = -1;
+    private int selAnchorCol = -1;
+    private int selFocusRow = -1;
+    private int selFocusCol = -1;
     private RepeatingElementsTable hoveredTable = null;
     private int hoveredTableRowIndex = -1;
     private int hoveredTableColumnIndex = -1;
@@ -1413,7 +1421,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         boolean missing = !row.getValues().containsKey(colName) && !isComplex;
 
         Color bg = null;
-        if (rowIndex == table.getSelectedRowIndex()) {
+        boolean inRange = inCellRange(table, rowIndex, columnIndex);
+        if (inRange) {
+            bg = SELECTED_BG;
+        } else if (rowIndex == table.getSelectedRowIndex() && selAnchorRow < 0) {
             bg = TABLE_ROW_SELECTED;
         } else if (rowIndex == hoveredTableRowIndex && table == hoveredTable) {
             bg = TABLE_ROW_HOVER;
@@ -1427,6 +1438,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         gc.setStroke(TABLE_BORDER);
         gc.setLineWidth(1);
         gc.strokeRect(cellX + 0.5, rowTop + 0.5, colWidth, rowHeight);
+        if (inRange && rowIndex == selFocusRow && columnIndex == selFocusCol) {
+            gc.setStroke(SELECTED_BORDER);
+            gc.strokeRect(cellX + 1, rowTop + 1, colWidth - 1, rowHeight - 1);
+        }
 
         double cellCenterY = rowTop + ROW_HEIGHT / 2;
 
@@ -1699,7 +1714,16 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 return;
             }
             case ROW_NUMBER -> {
+                boolean extend = event.isShiftDown() && selectedTable == table && selAnchorRow >= 0;
                 selectTableRow(table, cell.rowIndex());
+                int lastCol = Math.max(0, table.getColumns().size() - 1);
+                if (extend) {
+                    selFocusRow = cell.rowIndex();
+                    selFocusCol = lastCol;
+                    selAnchorCol = 0;
+                } else {
+                    setCellRange(cell.rowIndex(), 0, cell.rowIndex(), lastCol);
+                }
                 render();
                 return;
             }
@@ -1755,7 +1779,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
 
+        boolean extend = event.isShiftDown() && selectedTable == table && selAnchorRow >= 0;
         selectTableRow(table, rowIdx);
+        if (extend) {
+            selFocusRow = rowIdx;
+            selFocusCol = cell.columnIndex();
+        } else {
+            setCellRange(rowIdx, cell.columnIndex(), rowIdx, cell.columnIndex());
+        }
 
         // Double-click to edit cell
         if (event.getClickCount() == 2) {
@@ -1763,6 +1794,120 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         render();
+    }
+
+    private void setCellRange(int anchorRow, int anchorCol, int focusRow, int focusCol) {
+        selAnchorRow = anchorRow;
+        selAnchorCol = anchorCol;
+        selFocusRow = focusRow;
+        selFocusCol = focusCol;
+    }
+
+    /** @return whether the logical cell lies in the selected cell range of the table */
+    private boolean inCellRange(RepeatingElementsTable table, int row, int col) {
+        if (table != selectedTable || selAnchorRow < 0) {
+            return false;
+        }
+        return row >= Math.min(selAnchorRow, selFocusRow) && row <= Math.max(selAnchorRow, selFocusRow)
+                && col >= Math.min(selAnchorCol, selFocusCol) && col <= Math.max(selAnchorCol, selFocusCol);
+    }
+
+    // ==================== TSV clipboard ====================
+
+    /**
+     * @return the selected table cells as tab-separated text (the whole table with a header
+     *         line when the selection covers every cell), or {@code null} without a cell selection
+     */
+    public String selectedCellsAsTsv() {
+        if (selectedTable == null || selAnchorRow < 0) {
+            return null;
+        }
+        int rows = selectedTable.getRows().size();
+        int cols = selectedTable.getColumns().size();
+        boolean all = Math.min(selAnchorRow, selFocusRow) == 0 && Math.max(selAnchorRow, selFocusRow) == rows - 1
+                && Math.min(selAnchorCol, selFocusCol) == 0 && Math.max(selAnchorCol, selFocusCol) == cols - 1;
+        return TsvClipboard.format(selectedTable, selAnchorRow, selAnchorCol, selFocusRow, selFocusCol, all && rows > 1);
+    }
+
+    /** Selects every cell of the table (the corner-cell / Ctrl+A target). */
+    private void selectAllCells(RepeatingElementsTable table) {
+        if (table.getRows().isEmpty()) {
+            return;
+        }
+        selectTableRow(table, 0);
+        setCellRange(0, 0, table.getRows().size() - 1, Math.max(0, table.getColumns().size() - 1));
+        render();
+    }
+
+    /**
+     * Pastes a tab-separated block into the selected table, starting at the top-left selected
+     * cell (rows beyond the table become new members where the model allows it).
+     *
+     * @param text the clipboard text
+     * @return whether anything was pasted
+     */
+    public boolean pasteTsvIntoSelection(String text) {
+        if (selectedTable == null || selAnchorRow < 0 || text == null) {
+            return false;
+        }
+        List<List<String>> values = TsvClipboard.parse(text);
+        if (values.isEmpty()) {
+            return false;
+        }
+        int startRow = Math.min(selAnchorRow, selFocusRow);
+        int startCol = Math.min(selAnchorCol, selFocusCol);
+        if (!adapter.pasteCells(selectedTable, startRow, startCol, values)) {
+            return false;
+        }
+        rebuildTree();
+        notifyDocumentModified();
+        return true;
+    }
+
+    /**
+     * Ctrl+C / Ctrl+V / Ctrl+A while table cells are selected: copy them as TSV, paste a TSV
+     * block, select the whole table. Handled before the context-menu shortcuts (which would
+     * copy/paste the row's element node instead).
+     *
+     * @return whether the event was handled
+     */
+    private boolean handleTableClipboardKeys(KeyEvent event) {
+        if (!event.isShortcutDown() || event.isShiftDown() || event.isAltDown()
+                || selectedTable == null || selAnchorRow < 0) {
+            return false;
+        }
+        javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+        switch (event.getCode()) {
+            case C -> {
+                String tsv = selectedCellsAsTsv();
+                if (tsv != null) {
+                    javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+                    content.putString(tsv);
+                    clipboard.setContent(content);
+                    event.consume();
+                    return true;
+                }
+                return false;
+            }
+            case V -> {
+                String text = clipboard.hasString() ? clipboard.getString() : null;
+                boolean multiCell = selAnchorRow != selFocusRow || selAnchorCol != selFocusCol;
+                if (text != null && (TsvClipboard.isBlock(text) || multiCell || !contextMenu().hasClipboard())) {
+                    pasteTsvIntoSelection(text);
+                    event.consume();
+                    return true;
+                }
+                return false;
+            }
+            case A -> {
+                selectAllCells(selectedTable);
+                event.consume();
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 
     /** Selects a table row (clearing the tree-row selection) and tells the selection model. */
@@ -2569,6 +2714,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
 
+        // Table cell clipboard (TSV) before the node shortcuts of the context menu
+        if (handleTableClipboardKeys(event)) {
+            return;
+        }
+
         N selected = getSelectedNode();
 
         // Context menu shortcuts (Delete, F2, Ctrl+C/X/V/D)
@@ -2706,6 +2856,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             selectedTable.setSelectedRowIndex(-1);
             selectedTable = null;
         }
+        selAnchorRow = selAnchorCol = selFocusRow = selFocusCol = -1;
     }
 
     private void selectRow(FlatRow row) {
@@ -3362,6 +3513,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** @return the x where the row's name cell starts (test hook) */
     double labelXOf(FlatRow row) {
         return row.getLabelX();
+    }
+
+    /** Selects the table cell range (test hook / programmatic selection). */
+    void selectCellRangeForTest(RepeatingElementsTable table, int r1, int c1, int r2, int c2) {
+        selectTableRow(table, r1);
+        setCellRange(r1, c1, r2, c2);
+        render();
     }
 
     /** @return the row under the given model x / viewport y, or {@code null} (test hook) */

@@ -134,6 +134,37 @@ public interface GridModelAdapter<N> {
     /** Applies an embedded-table cell edit; same contract as {@link #commitRowEdit}. */
     boolean commitCellEdit(RepeatingElementsTable table, int rowIndex, String columnName, String newValue);
 
+    /**
+     * Writes a pasted block of cell values into the table starting at the given cell: cell by
+     * cell through {@link #commitCellEdit} by default (one undo step per cell, values beyond
+     * the table ignored); models with a composite command override this.
+     *
+     * @param table    the table
+     * @param startRow the target cell's row
+     * @param startCol the target cell's column
+     * @param values   the pasted values, row by row
+     * @return whether anything was written
+     */
+    default boolean pasteCells(RepeatingElementsTable table, int startRow, int startCol,
+                               java.util.List<java.util.List<String>> values) {
+        boolean changed = false;
+        for (int i = 0; i < values.size(); i++) {
+            int r = startRow + i;
+            if (r >= table.getRows().size()) {
+                break;
+            }
+            java.util.List<String> row = values.get(i);
+            for (int j = 0; j < row.size(); j++) {
+                int c = startCol + j;
+                if (c >= table.getColumns().size()) {
+                    break;
+                }
+                changed |= commitCellEdit(table, r, table.getColumn(c).getName(), row.get(j));
+            }
+        }
+        return changed;
+    }
+
     /** Sorts the repeating group behind the table by a column, through the command stack. */
     void sortTable(RepeatingElementsTable table, String columnName, boolean ascending);
 

@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CompositeXmlCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand;
@@ -285,6 +286,13 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
             context.executeCommand(new SetElementTextCommand(rowElement, newValue));
         }
         return true;
+    }
+
+    @Override
+    public boolean pasteCells(RepeatingElementsTable table, int startRow, int startCol,
+                              List<List<String>> values) {
+        CompositeXmlCommand cmd = TableEditOps.pasteCells(table, startRow, startCol, values);
+        return !cmd.isEmpty() && context.executeCommand(cmd);
     }
 
     @Override

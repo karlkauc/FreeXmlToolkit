@@ -105,6 +105,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     private MenuItem collapseUnselectedItem;
     private CheckMenuItem displayAsTableItem;
     private CheckMenuItem flipTableItem;
+    private MenuItem copyTableTsvItem;
 
     /** The canvas-level expand/collapse actions. */
     private final GridContextMenu.ViewActions viewActions;
@@ -245,6 +246,10 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         flipTableItem.setGraphic(createColoredIcon("bi-arrow-left-right", ActionColor.NEUTRAL));
         flipTableItem.setOnAction(e -> viewActions.flipTable().run());
 
+        copyTableTsvItem = new MenuItem("Copy Table as Tab-separated Text");
+        copyTableTsvItem.setGraphic(createColoredIcon("bi-file-earmark-spreadsheet", ActionColor.NEUTRAL));
+        copyTableTsvItem.setOnAction(e -> copyTableAsTsv());
+
         expandAllItem = new MenuItem("Expand All");
         expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
         expandAllItem.setOnAction(e -> viewActions.expandAll().run());
@@ -288,7 +293,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
                 new SeparatorMenuItem(),
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
-                displayAsTableItem, flipTableItem,
+                displayAsTableItem, flipTableItem, copyTableTsvItem,
                 new SeparatorMenuItem(),
                 sortMenu,
                 new SeparatorMenuItem(),
@@ -409,6 +414,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         Boolean flipState = viewActions.flipState().get();
         flipTableItem.setVisible(flipState != null);
         flipTableItem.setSelected(Boolean.TRUE.equals(flipState));
+        copyTableTsvItem.setVisible(clickedTable != null);
     }
 
     private static boolean isRoot(JsonNode node) {
@@ -888,4 +894,15 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     public boolean hasClipboard() {
         return clipboardNode != null;
     }
+
+    /** Copies the clicked table (header line + every row) as tab-separated text, for spreadsheets. */
+    private void copyTableAsTsv() {
+        if (clickedTable == null) {
+            return;
+        }
+        javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
+        content.putString(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.TsvClipboard.formatTable(clickedTable));
+        javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
+    }
+
 }
