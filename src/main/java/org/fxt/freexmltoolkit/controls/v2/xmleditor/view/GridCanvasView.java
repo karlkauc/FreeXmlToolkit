@@ -421,6 +421,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         TABLE_ROW_HOVER = HOVERED_BG;
         TABLE_ROW_SELECTED = SELECTED_BG;
         TABLE_MISSING_BG = BG_CANVAS.color(theme);
+
+        // User-configurable cell colours (Settings → Grid table colours) win over the tokens
+        TABLE_HEADER_BG = GridColors.resolve(theme, GridColors.Slot.TABLE_HEADER);
+        TABLE_MISSING_BG = GridColors.resolve(theme, GridColors.Slot.MISSING_CELL);
+        TABLE_HEADER_SELECTED = GridColors.resolve(theme, GridColors.Slot.SELECTION);
+        TABLE_ROW_SELECTED = TABLE_HEADER_SELECTED;
+        SELECTED_BG = TABLE_HEADER_SELECTED;
+        SELECTED_BORDER = GridColors.resolve(theme, GridColors.Slot.FOCUS);
         DANGER = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.DANGER.color(theme);
         NAMESPACE_PREFIX = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_DECL.color(theme);
     }
@@ -434,6 +442,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 applyPalette(theme);
                 render();
             };
+
+    /** Repaints when a user cell colour changes (weakly registered with {@link GridColors}). */
+    private final Runnable gridColorListener = () -> {
+        applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme());
+        render();
+    };
 
     // ==================== Fonts ====================
 
@@ -455,6 +469,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme());
         org.fxt.freexmltoolkit.controls.theme.DesignTokens.addThemeListener(themeListener);
+        GridColors.addListener(gridColorListener);
 
         // NOTE: Do NOT enable node caching on the canvas or its container. The canvas is
         // re-rendered on every change and can grow large for big documents; with setCache(true)
@@ -4189,6 +4204,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** @return the x where the row's name cell starts (test hook) */
     double labelXOf(FlatRow row) {
         return row.getLabelX();
+    }
+
+    /** @return the colour the table headers are drawn in (test hook) */
+    Color tableHeaderColorForTest() {
+        return TABLE_HEADER_BG;
     }
 
     /** Scrolls to the given content y immediately (test hook). */

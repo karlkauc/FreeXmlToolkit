@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 
 /**
@@ -57,6 +58,31 @@ final class GridDisplayPreferences {
         PropertiesService service = service();
         if (service != null) {
             service.setGridSiblingGroupSize(size);
+        }
+    }
+
+    /** Loads the user's grid table colours (both themes) into {@link GridColors}. */
+    static void loadColors() {
+        PropertiesService service = service();
+        if (service == null) {
+            return;
+        }
+        for (org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme
+                : org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.values()) {
+            for (GridColors.Slot slot : GridColors.Slot.values()) {
+                String hex = service.getGridColor(GridColors.key(slot), GridColors.key(theme));
+                javafx.scene.paint.Color color = null;
+                if (hex != null) {
+                    try {
+                        color = javafx.scene.paint.Color.web(hex);
+                    } catch (IllegalArgumentException e) {
+                        logger.debug("Ignoring invalid grid colour {} = {}", slot, hex);
+                    }
+                }
+                if (!java.util.Objects.equals(color, GridColors.override(theme, slot))) {
+                    GridColors.setOverride(theme, slot, color);
+                }
+            }
         }
     }
 

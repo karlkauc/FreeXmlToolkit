@@ -4,6 +4,7 @@
 <?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
@@ -174,6 +175,37 @@
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="100" initialValue="20"/>
                                                             </valueFactory>
                                                         </Spinner>
+                                                    </children>
+                                                </HBox>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="GRID TABLE COLOURS" iconLiteral="bi-table" color="#6f42c1">
+                                            <children>
+                                                <CheckBox fx:id="gridCustomColors" id="settings-grid-custom-colors"
+                                                          text="Custom cell colours in the Graphic grid"/>
+                                                <Label fx:id="gridColorsTheme" styleClass="fxt-placeholder-text" wrapText="true"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Table header:" minWidth="110"/>
+                                                        <ColorPicker fx:id="gridHeaderColor" id="settings-grid-header-color"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Missing cell:" minWidth="110"/>
+                                                        <ColorPicker fx:id="gridMissingColor" id="settings-grid-missing-color"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Selection:" minWidth="110"/>
+                                                        <ColorPicker fx:id="gridSelectionColor" id="settings-grid-selection-color"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Focus frame:" minWidth="110"/>
+                                                        <ColorPicker fx:id="gridFocusColor" id="settings-grid-focus-color"/>
                                                     </children>
                                                 </HBox>
                                             </children>

@@ -72,6 +72,12 @@ public class SettingsPanel extends VBox {
     @FXML private Spinner<Integer> indentSpaces;
     @FXML private Spinner<Integer> jsonIndent;
     @FXML private CheckBox autoFormat;
+    @FXML private CheckBox gridCustomColors;
+    @FXML private Label gridColorsTheme;
+    @FXML private javafx.scene.control.ColorPicker gridHeaderColor;
+    @FXML private javafx.scene.control.ColorPicker gridMissingColor;
+    @FXML private javafx.scene.control.ColorPicker gridSelectionColor;
+    @FXML private javafx.scene.control.ColorPicker gridFocusColor;
     @FXML private CheckBox xsdPrettyPrint;
     @FXML private CheckBox schematronPretty;
     @FXML private Spinner<Integer> recentFilesLimit;
@@ -373,6 +379,7 @@ public class SettingsPanel extends VBox {
                 case TextField field -> field.textProperty().addListener(mark);
                 case Spinner<?> spinner -> spinner.valueProperty().addListener(mark);
                 case ComboBox<?> combo -> combo.valueProperty().addListener(mark);
+                case javafx.scene.control.ColorPicker picker -> picker.valueProperty().addListener(mark);
                 case javafx.scene.control.Control _ -> { } // other controls: do not descend into their skin
                 case javafx.scene.Parent parent -> trackChanges(parent);
                 default -> { }
@@ -409,6 +416,8 @@ public class SettingsPanel extends VBox {
         indentSpaces.getValueFactory().setValue(4);
         jsonIndent.getValueFactory().setValue(2);
         autoFormat.setSelected(false);
+        gridCustomColors.setSelected(false);
+        fillGridColorPickers(true);
         xsdPrettyPrint.setSelected(true);
         schematronPretty.setSelected(false);
         recentFilesLimit.getValueFactory().setValue(20);
@@ -675,6 +684,77 @@ public class SettingsPanel extends VBox {
         }
     }
 
+    // ----- grid table colours ---------------------------------------------------
+
+    /** @return the "custom cell colours" switch (test hook) */
+    CheckBox gridCustomColorsForTest() {
+        return gridCustomColors;
+    }
+
+    /** @return the table-header colour picker (test hook) */
+    javafx.scene.control.ColorPicker gridHeaderColorForTest() {
+        return gridHeaderColor;
+    }
+
+    private java.util.Map<org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.Slot,
+            javafx.scene.control.ColorPicker> gridColorPickers() {
+        var slots = org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.Slot.class;
+        java.util.Map<org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.Slot,
+                javafx.scene.control.ColorPicker> map = new java.util.EnumMap<>(slots);
+        map.put(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.Slot.TABLE_HEADER, gridHeaderColor);
+        map.put(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.Slot.MISSING_CELL, gridMissingColor);
+        map.put(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.Slot.SELECTION, gridSelectionColor);
+        map.put(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.Slot.FOCUS, gridFocusColor);
+        return map;
+    }
+
+    /** Fills the pickers with the current theme's colours (the defaults when {@code defaults}). */
+    private void fillGridColorPickers(boolean defaults) {
+        var theme = org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme();
+        gridColorsTheme.setText("Colours for the " + (theme == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK
+                ? "dark" : "light") + " theme (switch the theme to set the other one).");
+        gridColorPickers().forEach((slot, picker) -> picker.setValue(defaults
+                ? org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.defaultColor(theme, slot)
+                : org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.resolve(theme, slot)));
+    }
+
+    private void loadGridColors(PropertiesService props) {
+        var theme = org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme();
+        String themeKey = org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.key(theme);
+        boolean any = false;
+        for (var slot : org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.Slot.values()) {
+            String hex = props.getGridColor(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.key(slot), themeKey);
+            javafx.scene.paint.Color color = null;
+            if (hex != null) {
+                try {
+                    color = javafx.scene.paint.Color.web(hex);
+                    any = true;
+                } catch (IllegalArgumentException ignored) {
+                    // invalid stored value: default
+                }
+            }
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.setOverride(theme, slot, color);
+        }
+        gridCustomColors.setSelected(any);
+        fillGridColorPickers(false);
+        gridColorPickers().values().forEach(p -> p.disableProperty().bind(gridCustomColors.selectedProperty().not()));
+    }
+
+    /** Stores the pickers' colours for the current theme (or clears them) and repaints the grids. */
+    private void saveGridColors(PropertiesService props) {
+        var theme = org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme();
+        String themeKey = org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.key(theme);
+        gridColorPickers().forEach((slot, picker) -> {
+            javafx.scene.paint.Color color = gridCustomColors.isSelected() ? picker.getValue() : null;
+            if (color != null && color.equals(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.defaultColor(theme, slot))) {
+                color = null; // the default needs no override
+            }
+            props.setGridColor(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.key(slot), themeKey,
+                    color == null ? null : org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.toHex(color));
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.setOverride(theme, slot, color);
+        });
+    }
+
     /** Loads the persisted settings into the controls. */
     private void loadSettings() {
         loading = true;
@@ -683,6 +763,7 @@ public class SettingsPanel extends VBox {
             indentSpaces.getValueFactory().setValue(props.getXmlIndentSpaces());
             jsonIndent.getValueFactory().setValue(props.getJsonIndentSpaces());
             autoFormat.setSelected(props.isXmlAutoFormatAfterLoading());
+            loadGridColors(props);
             xsdPrettyPrint.setSelected(props.isXsdPrettyPrintOnSave());
             schematronPretty.setSelected(props.isSchematronPrettyPrintOnLoad());
             recentFilesLimit.getValueFactory().setValue(props.getRecentFilesLimit());
@@ -765,6 +846,7 @@ public class SettingsPanel extends VBox {
             props.setXmlIndentSpaces(indentSpaces.getValue());
             props.setJsonIndentSpaces(jsonIndent.getValue());
             props.setXmlAutoFormatAfterLoading(autoFormat.isSelected());
+            saveGridColors(props);
             props.setXsdPrettyPrintOnSave(xsdPrettyPrint.isSelected());
             props.setSchematronPrettyPrintOnLoad(schematronPretty.isSelected());
             props.setRecentFilesLimit(recentFilesLimit.getValue());

@@ -709,6 +709,21 @@ public interface PropertiesService {
         set(GRID_MAX_CELL_LINES, String.valueOf(Math.max(0, Math.min(GRID_MAX_CELL_LINES_MAX, lines))));
     }
 
+    /**
+     * @param slot  the colour slot key (e.g. {@code tableHeader})
+     * @param theme {@code light} or {@code dark}
+     * @return the user's grid table colour as {@code #rrggbb}, or {@code null} for the theme default
+     */
+    default String getGridColor(String slot, String theme) {
+        String v = get("grid.color." + slot + "." + theme);
+        return v == null || v.isBlank() ? null : v.trim();
+    }
+
+    /** Stores ({@code #rrggbb}) or clears ({@code null}) a user grid table colour. */
+    default void setGridColor(String slot, String theme, String hex) {
+        set("grid.color." + slot + "." + theme, hex == null ? "" : hex);
+    }
+
     /** Property key: maximum child rows per sibling group in the grid (0 = unlimited / no groups). */
     String GRID_SIBLING_GROUP_SIZE = "grid.siblingGroupSize";
 
