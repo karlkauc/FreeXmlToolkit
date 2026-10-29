@@ -88,6 +88,11 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private MenuItem deleteItem;
     private MenuItem expandAllItem;
     private MenuItem collapseAllItem;
+    private MenuItem expandFullyItem;
+    private MenuItem collapseUnselectedItem;
+
+    /** The canvas-level expand/collapse actions. */
+    private final GridContextMenu.ViewActions viewActions;
 
     // Sort menu items
     private Menu sortMenu;
@@ -95,8 +100,14 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private MenuItem sortDescendingItem;
 
     public XmlGridContextMenu(XmlEditorContext context, Runnable refreshCallback) {
+        this(context, refreshCallback, GridContextMenu.ViewActions.none());
+    }
+
+    public XmlGridContextMenu(XmlEditorContext context, Runnable refreshCallback,
+                              GridContextMenu.ViewActions viewActions) {
         this.context = context;
         this.refreshCallback = refreshCallback;
+        this.viewActions = viewActions != null ? viewActions : GridContextMenu.ViewActions.none();
         this.contextMenu = buildContextMenu();
     }
 
@@ -197,14 +208,26 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         moveDownItem.setOnAction(e -> moveElement(1));
         moveDownItem.setAccelerator(new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN));
 
-        // === Expand/Collapse ===
+        // === Expand/Collapse (canvas actions) ===
+        expandFullyItem = new MenuItem("Expand Fully");
+        expandFullyItem.setGraphic(createColoredIcon("bi-chevron-double-down", ActionColor.NEUTRAL));
+        expandFullyItem.setOnAction(e -> viewActions.expandFully().run());
+        expandFullyItem.setAccelerator(new KeyCodeCombination(KeyCode.PLUS,
+                KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
+
+        collapseUnselectedItem = new MenuItem("Collapse Unselected");
+        collapseUnselectedItem.setGraphic(createColoredIcon("bi-chevron-double-up", ActionColor.NEUTRAL));
+        collapseUnselectedItem.setOnAction(e -> viewActions.collapseUnselected().run());
+        collapseUnselectedItem.setAccelerator(new KeyCodeCombination(KeyCode.MINUS,
+                KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
+
         expandAllItem = new MenuItem("Expand All");
         expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
-        expandAllItem.setOnAction(e -> expandAll());
+        expandAllItem.setOnAction(e -> viewActions.expandAll().run());
 
         collapseAllItem = new MenuItem("Collapse All");
         collapseAllItem.setGraphic(createColoredIcon("bi-arrows-collapse", ActionColor.NEUTRAL));
-        collapseAllItem.setOnAction(e -> collapseAll());
+        collapseAllItem.setOnAction(e -> viewActions.collapseAll().run());
 
         // === Sort (for table columns) ===
         sortMenu = new Menu("Sort Column");
@@ -240,7 +263,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 new SeparatorMenuItem(),
                 moveUpItem, moveDownItem,
                 new SeparatorMenuItem(),
-                expandAllItem, collapseAllItem,
+                expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
                 sortMenu,
                 new SeparatorMenuItem(),
@@ -1214,14 +1237,6 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
             context.getSelectionModel().clearSelection();
             refresh();
         }
-    }
-
-    private void expandAll() {
-        // Expand-all is handled by the view; placeholder no-op (no callback wired yet).
-    }
-
-    private void collapseAll() {
-        // Collapse-all is handled by the view; placeholder no-op (no callback wired yet).
     }
 
     private String getNodeName(XmlNode node) {

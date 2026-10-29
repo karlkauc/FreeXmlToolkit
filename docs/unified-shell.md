@@ -212,9 +212,13 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   edits and undo.
 - **Keyboard navigation** works as soon as the view opens (no click needed):
   **↑/↓** walk the rows, **→** expands a collapsed element, **←** collapses it (or jumps to
-  the parent), **Enter** toggles a container / starts editing a value, **Home/End** jump to
-  the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**, **Ctrl+D** (duplicate)
-  and **Delete** act on the selected node.
+  the parent), **Space** or **Enter** toggles a container (Enter starts editing a value),
+  **Home/End** jump to the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**,
+  **Ctrl+D** (duplicate) and **Delete** act on the selected node.
+- **Expand Fully** (**Ctrl+Shift++**) opens the selected container with everything below it;
+  **Collapse Unselected** (**Ctrl+Shift+−**) folds every container except the path to the
+  selection. Both, plus **Expand All / Collapse All**, are in the context menu. The expanded
+  state and the selection survive edits, undo and sorting (rows are tracked by their XPath).
 - **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),
   **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
   shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query

@@ -147,10 +147,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private double nameColumnWidth = MIN_NAME_COL_WIDTH;
 
     /**
-     * User-dragged name-column widths per block, keyed by the block's parent row ({@code null}
-     * for the root block); {@code null} values never occur. Filled by the name-column drag.
+     * The per-document view state (expand state, selection, name-column widths, table toggles)
+     * that survives the row rebuild after every edit; keyed by the adapter's stable row keys.
      */
-    private final java.util.Map<FlatRow, Double> nameColumnOverrides = new java.util.IdentityHashMap<>();
+    private final GridViewState viewState = new GridViewState();
 
     /**
      * Own height of each visible row: its value line(s), an embedded table's height for a table
@@ -599,19 +599,22 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Preserves expand/collapse state across rebuilds by matching rows by label+type+depth.
      */
     private void rebuildTree() {
-        // Collect expand state before rebuilding
-        java.util.Map<String, Boolean> expandState = new java.util.HashMap<>();
+        // Remember expand state and selection by stable key before rebuilding
         for (FlatRow row : allRows) {
             if (row.isExpandable()) {
-                String key = row.getType() + ":" + row.getDepth() + ":" + row.getLabel();
-                expandState.put(key, row.isExpanded());
+                viewState.setExpanded(adapter.stableKey(row), row.isExpanded());
             }
+        }
+        if (selectedRow != null) {
+            viewState.setSelectedKey(adapter.stableKey(selectedRow));
         }
 
         if (!adapter.hasDocument()) {
             allRows = new ArrayList<>();
             visibleRows = new ArrayList<>();
             lastDescendantIndex = new int[0];
+            rowIndexMap = new java.util.IdentityHashMap<>();
+            selectedRow = null;
             totalHeight = 0;
             totalWidth = 0;
             updateScrollBars();
@@ -627,19 +630,28 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
 
-        // Restore expand state
-        if (!expandState.isEmpty()) {
-            for (FlatRow row : allRows) {
-                if (row.isExpandable()) {
-                    String key = row.getType() + ":" + row.getDepth() + ":" + row.getLabel();
-                    Boolean wasExpanded = expandState.get(key);
-                    if (wasExpanded != null) {
-                        row.setExpanded(wasExpanded);
-                    }
+        // Restore expand state and selection
+        FlatRow restoredSelection = null;
+        String selectedKey = viewState.getSelectedKey();
+        for (FlatRow row : allRows) {
+            String key = adapter.stableKey(row);
+            if (row.isExpandable()) {
+                Boolean wasExpanded = viewState.expandedState(key);
+                if (wasExpanded != null) {
+                    row.setExpanded(wasExpanded);
                 }
             }
+            if (restoredSelection == null && selectedKey != null && selectedKey.equals(key)) {
+                restoredSelection = row;
+            }
         }
-        
+        selectedRow = restoredSelection;
+        if (selectedRow != null) {
+            selectedRow.setSelected(true);
+        }
+        hoveredRow = null;
+        hoveredExpandBar = null;
+
         // Re-apply visibility based on restored or default expand state
         recalculateVisibility();
 
@@ -701,7 +713,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             blockWidths.merge(row.getParentRow(), w, Math::max);
         }
         for (java.util.Map.Entry<FlatRow, Double> entry : blockWidths.entrySet()) {
-            Double override = nameColumnOverrides.get(entry.getKey());
+            Double override = viewState.nameColumnWidth(blockKey(entry.getKey()));
             entry.setValue(override != null ? override : Math.max(MIN_NAME_COL_WIDTH, entry.getValue()));
         }
         nameColumnWidth = blockWidths.getOrDefault(null, MIN_NAME_COL_WIDTH);
@@ -763,6 +775,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         totalHeight = currentY;
         totalWidth = maxWidth;
+    }
+
+    /** @return the stable key of the block formed by the children of {@code parent} (root block: "") */
+    private String blockKey(FlatRow parent) {
+        return parent == null ? GridViewState.ROOT_BLOCK : adapter.stableKey(parent);
     }
 
     /** @return the cached one-line preview of a container row (computed once per row) */
@@ -2140,7 +2157,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     private GridContextMenu<N> contextMenu() {
         if (contextMenu == null) {
-            contextMenu = adapter.createContextMenu(this::refresh);
+            contextMenu = adapter.createContextMenu(this::refresh, new GridContextMenu.ViewActions(
+                    this::expandAll, this::collapseAll, this::expandSelectedFully, this::collapseUnselected));
         }
         return contextMenu;
     }
@@ -2278,6 +2296,24 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
+        // View shortcuts: Ctrl+Shift+Plus expands the selection fully, Ctrl+Shift+Minus
+        // collapses everything else (before the zoom keys, which share the key codes)
+        if (event.isShortcutDown() && event.isShiftDown()) {
+            switch (event.getCode()) {
+                case PLUS, ADD, EQUALS -> {
+                    expandSelectedFully();
+                    event.consume();
+                    return;
+                }
+                case MINUS, SUBTRACT -> {
+                    collapseUnselected();
+                    event.consume();
+                    return;
+                }
+                default -> { /* not a view key */ }
+            }
+        }
+
         // Zoom shortcuts: Ctrl + / Ctrl - / Ctrl 0 (also the numpad keys)
         if (event.isShortcutDown()) {
             switch (event.getCode()) {
@@ -2363,6 +2399,16 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                         // Start editing
                         startEditingElementName(selectedRow);
                     }
+                }
+                event.consume();
+            }
+            case SPACE -> {
+                // Spacebar toggles the selected container (XMLSpy "Expand/Collapse on spacebar")
+                if (selectedRow != null && selectedRow.isExpandable()) {
+                    FlatRow.toggleExpand(selectedRow, allRows);
+                    recalculateVisibleRows();
+                    updateScrollBars();
+                    render();
                 }
                 event.consume();
             }
@@ -2873,6 +2919,62 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         recalculateVisibleRows();
         updateScrollBars();
         render();
+    }
+
+    /**
+     * Expands the given container and every container below it (XMLSpy "Expand Fully").
+     *
+     * @param row the container row; ignored when {@code null} or not expandable
+     */
+    public void expandFully(FlatRow row) {
+        if (row == null || !row.isExpandable()) {
+            return;
+        }
+        row.setExpanded(true);
+        for (FlatRow candidate : allRows) {
+            if (candidate.isExpandable() && FlatRow.isDescendantOf(candidate, row)) {
+                candidate.setExpanded(true);
+            }
+        }
+        recalculateVisibility();
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
+    }
+
+    /** Expands the selected container fully (keyboard / menu entry point). */
+    public void expandSelectedFully() {
+        if (selectedRow != null) {
+            expandFully(selectedRow);
+            ensureRowVisible(selectedRow);
+        }
+    }
+
+    /**
+     * Collapses every container except the selected row's ancestors (XMLSpy "Collapse
+     * Unselected"); the selected row itself keeps its state. Without a selection this is
+     * {@link #collapseAll()}.
+     */
+    public void collapseUnselected() {
+        if (selectedRow == null) {
+            collapseAll();
+            return;
+        }
+        for (FlatRow row : allRows) {
+            if (row.isExpandable() && row != selectedRow && !FlatRow.isDescendantOf(selectedRow, row)) {
+                row.setExpanded(false);
+            }
+        }
+        recalculateVisibility();
+        recalculateVisibleRows();
+        updateScrollBars();
+        render();
+        ensureRowVisible(selectedRow);
+    }
+
+    /** @return the view state (expand state, selection, column widths, table toggles) */
+    public GridViewState getViewState() {
+        return viewState;
     }
 
     /**

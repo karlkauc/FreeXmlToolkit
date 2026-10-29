@@ -295,7 +295,29 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     }
 
     @Override
-    public GridContextMenu<XmlNode> createContextMenu(Runnable refresh) {
-        return new XmlGridContextMenu(context, refresh);
+    public GridContextMenu<XmlNode> createContextMenu(Runnable refresh, GridContextMenu.ViewActions actions) {
+        return new XmlGridContextMenu(context, refresh, actions);
+    }
+
+    /**
+     * The positional XPath of the row's node; attribute rows add {@code /@name}, text,
+     * comment, CDATA and PI rows add {@code /#<child index>} under their parent's path.
+     */
+    @Override
+    public String stableKey(FlatRow row) {
+        Object node = row.getModelNode();
+        if (node instanceof XmlElement element) {
+            String path = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(element);
+            return row.getType() == FlatRow.RowType.ATTRIBUTE ? path + "/@" + row.getLabel() : path;
+        }
+        if (node instanceof XmlNode xmlNode) {
+            XmlNode parent = xmlNode.getParent();
+            String parentPath = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(parent);
+            int index = parent instanceof XmlElement pe ? pe.indexOf(xmlNode)
+                    : parent instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc
+                    ? doc.getChildren().indexOf(xmlNode) : -1;
+            return parentPath + "/#" + index;
+        }
+        return GridModelAdapter.super.stableKey(row);
     }
 }

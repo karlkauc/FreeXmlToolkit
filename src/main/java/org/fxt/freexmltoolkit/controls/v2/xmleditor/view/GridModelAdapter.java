@@ -70,6 +70,19 @@ public interface GridModelAdapter<N> {
         return null;
     }
 
+    /**
+     * A key that identifies the row's node across rebuilds (the positional XPath of an XML
+     * node, the path of a JSON node): the canvas keeps expand state, selection and column
+     * widths by it. The default falls back to type, depth and label, which collides for
+     * same-named siblings.
+     *
+     * @param row a row
+     * @return the stable key, never {@code null}
+     */
+    default String stableKey(FlatRow row) {
+        return row.getType() + ":" + row.getDepth() + ":" + row.getLabel();
+    }
+
     /** @return the model node behind a row */
     N nodeOf(FlatRow row);
 
@@ -116,8 +129,12 @@ public interface GridModelAdapter<N> {
     /** @return the document serialized to text (for the round-trip into the text editor) */
     String serialize();
 
-    /** @return the model-specific context menu for the canvas */
-    GridContextMenu<N> createContextMenu(Runnable refresh);
+    /**
+     * @param refresh rebuilds the canvas after an edit
+     * @param actions the view's expand/collapse actions the menu offers
+     * @return the context menu for this model
+     */
+    GridContextMenu<N> createContextMenu(Runnable refresh, GridContextMenu.ViewActions actions);
 
     /** @return the text drawn when no document is loaded */
     String emptyStateText();

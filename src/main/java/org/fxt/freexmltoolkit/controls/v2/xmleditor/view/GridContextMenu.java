@@ -12,6 +12,21 @@ import javafx.scene.input.KeyEvent;
  */
 public interface GridContextMenu<N> {
 
+    /**
+     * The canvas-level actions a menu can offer besides its model edits.
+     *
+     * @param expandAll         expands every container
+     * @param collapseAll       collapses every container
+     * @param expandFully       expands the selected row and all its descendants
+     * @param collapseUnselected collapses everything except the selected row and its ancestors
+     */
+    record ViewActions(Runnable expandAll, Runnable collapseAll, Runnable expandFully, Runnable collapseUnselected) {
+        /** @return actions that do nothing (for menus built without a canvas, e.g. in tests) */
+        public static ViewActions none() {
+            return new ViewActions(() -> { }, () -> { }, () -> { }, () -> { });
+        }
+    }
+
     /** Shows the menu for the given node at the given screen position. */
     void show(Node anchor, double screenX, double screenY, N selectedNode);
 

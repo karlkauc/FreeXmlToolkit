@@ -429,7 +429,13 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
     }
 
     @Override
-    public GridContextMenu<JsonNode> createContextMenu(Runnable refresh) {
-        return new JsonGridContextMenu(context, refresh);
+    public GridContextMenu<JsonNode> createContextMenu(Runnable refresh, GridContextMenu.ViewActions actions) {
+        return new JsonGridContextMenu(context, refresh, actions);
+    }
+
+    /** The node's JSONPath-like path (unique per document). */
+    @Override
+    public String stableKey(FlatRow row) {
+        return row.getModelNode() instanceof JsonNode node ? node.getPath() : GridModelAdapter.super.stableKey(row);
     }
 }
