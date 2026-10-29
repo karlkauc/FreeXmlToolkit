@@ -4637,7 +4637,13 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   <strong>Insert Column Before / After…</strong> adds an attribute (type <code>@name</code>) or a child element
   (<code>name</code>) to every member; <strong>Rename Column…</strong> (also: double-click a column header) renames
   it in every member. Each of these is one undo step. Typing into an empty cell whose
-  member lacks that child element creates the element.</li>
+  member lacks that child element creates the element. <strong>Drag a column header</strong> onto another
+  header to move that column - a blue line shows where it lands; the child element (or
+  attribute) moves in every member, one undo step. Attributes move only among attributes.</li>
+<li><strong>Cell colours.</strong> <em>Settings → Editor → Grid table colours</em> sets your own colours for table
+  headers, missing cells, the selection and the focus frame - separately for the light and the
+  dark theme (switch the theme to set the other one). Open grids repaint at once; switching the
+  option off returns to the theme colours.</li>
 <li><strong>Spreadsheet exchange.</strong> Click a table cell to select it, <strong>Shift+click</strong> another cell
   (or a row number) to select a range, <strong>Ctrl+A</strong> selects the whole table. <strong>Ctrl+C</strong> copies
   the selection as tab-separated text (the whole table with a header line); the context menu
@@ -4657,6 +4663,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   the parent), <strong>Space</strong> or <strong>Enter</strong> toggles a container (on a leaf row Enter starts renaming it),
   <strong>Home/End</strong> jump to the first/last row, <strong>F2</strong> renames, and the usual <strong>Ctrl+C/X/V</strong>,
   <strong>Ctrl+D</strong> (duplicate) and <strong>Delete</strong> act on the selected node.</li>
+<li><strong>Several rows at once.</strong> <strong>Ctrl+click</strong> adds or removes a row from the selection,
+  <strong>Shift+click</strong> selects every sibling between the selected row and the clicked one.
+  <strong>Shift+click on the arrow</strong> of a selected row expands or collapses all selected rows.</li>
 <li><strong>Expand Fully</strong> (<strong>Ctrl+Shift++</strong>) opens the selected container with everything below it;
   <strong>Collapse Unselected</strong> (<strong>Ctrl+Shift+−</strong>) folds every container except the path to the
   selection. Both, plus <strong>Expand All / Collapse All</strong>, are in the context menu. The expanded
@@ -4667,7 +4676,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   change the node's type - element, attribute, text, CDATA, comment or processing instruction;
   name and value are kept, attributes move into their element's attribute list. Containers
   with child elements keep their type. <strong>Wrap in Element…</strong> (<strong>Ctrl+Alt+W</strong>, context menu)
-  puts a new parent element around the selected node. All of these are undoable.</li>
+  puts a new parent element around the selected node. <strong>Edit as Raw Text…</strong> (<strong>Ctrl+Alt+R</strong>)
+  opens the selected element's content as markup (entities unresolved) and parses it back;
+  not well-formed markup is reported and the editor reopens. All of these are undoable.</li>
 <li><strong>Sibling groups</strong> for very large files (<strong>⋯</strong> menu → <em>Sibling groups: 100 / 1,000 / 10,000
   nodes</em>, remembered): an element with more children than that shows them in collapsed groups
   such as <code>record &lt;1001..2000&gt;</code>; opening a group closes the other groups of the same element.</li>
@@ -4675,6 +4686,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   problem show a red <strong>!</strong> at the end of the name cell and a red value; hover the row for the
   message. Problems inside a repeating group mark the member's row number. The markers clear
   on the next grid edit and come back with the next validation.</li>
+<li><strong>Split view.</strong> The header's <strong>⋯</strong> menu splits the grid <em>top / bottom</em> or <em>side by side</em> into
+  two views of the same document; each scrolls, expands and selects on its own, and an edit in
+  one appears in the other at once. <em>Single view</em> closes the second one.</li>
 <li><strong>Scroll header.</strong> While you scroll through a long element, a bar at the top shows the
   path of containers you are inside (<code>root › section › body</code>); click one to select it and
   scroll back to its start.</li>
@@ -4684,6 +4698,21 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   to copy instead of move. Text dragged in from other applications replaces a value when dropped
   on a value cell; dropped on a name cell, an XML fragment becomes new nodes and plain text a
   text node. A node is never dropped into its own subtree; every drop is one undo step.</li>
+<li><strong>Filters.</strong> Right-click an element → <strong>Filter…</strong> and enter an XQuery 3.1 expression evaluated
+  with that element as context, e.g. <code>Month[number(Min) &gt; 10]</code>: below the element only the
+  matching nodes (with their ancestors and subtrees) stay visible, repeating groups shrink to
+  their matching members. A blue funnel line under the element shows the expression - click
+  the funnel to switch the filter off and on, double-click the line to edit it, clear it to
+  remove the filter. <strong>Filter to Focus</strong> filters the root down to the selected node. Filters
+  only change the display, never the document; an invalid expression is reported and
+  filters nothing. Filters live while the document is open.</li>
+<li><strong>Formulas.</strong> Right-click an element → <strong>Add Formula…</strong>: a name and an XQuery 3.1 expression
+  evaluated with that element as context (e.g. <code>avg(Month/Min)</code>). The formula row (icon <code>ƒ</code>)
+  shows the expression and, below it, the live result - or the error in red; double-click the
+  expression or the name to edit it. Formulas are saved in the file as
+  <code>&lt;?fxt-formula name="…" expression="…"?&gt;</code> instructions. <strong>Store Formula Result in Document</strong>
+  also writes the result into an element named after the formula, right after it;
+  <strong>Recalculate Stored Formula Results</strong> refreshes all of them in one undo step.</li>
 <li><strong>Search</strong> (Ctrl+F) finds names and values in the rows and in the cells of embedded tables;
   a table hit expands the group and selects the matching cell.</li>
 <li><strong>Copy XPath / Copy Node</strong>: the grid's context menu offers <strong>Copy XPath</strong> (<strong>Ctrl+Alt+X</strong>),
