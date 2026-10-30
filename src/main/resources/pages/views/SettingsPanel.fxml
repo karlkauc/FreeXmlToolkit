@@ -356,13 +356,13 @@
                                                         <Button text="…" onAction="#onBrowseTempDir"/>
                                                     </children>
                                                 </HBox>
-                                                <Button text="Clear Temp Folder" maxWidth="Infinity"
+                                                <Button fx:id="clearTempButton" id="settings-clear-temp" text="Clear Temp Folder" maxWidth="Infinity"
                                                         styleClass="fxt-tool-button" onAction="#onClearTemp">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Clear Cache Folder" maxWidth="Infinity"
+                                                <Button fx:id="clearCacheButton" id="settings-clear-cache" text="Clear Cache Folder" maxWidth="Infinity"
                                                         styleClass="fxt-tool-button" onAction="#onClearCache">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>

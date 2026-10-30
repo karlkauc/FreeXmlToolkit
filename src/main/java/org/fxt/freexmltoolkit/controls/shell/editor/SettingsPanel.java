@@ -42,6 +42,9 @@ import org.fxt.freexmltoolkit.util.ProjectLinks;
  */
 public class SettingsPanel extends VBox {
 
+    private static final org.apache.logging.log4j.Logger logger =
+            org.apache.logging.log4j.LogManager.getLogger(SettingsPanel.class);
+
     /** Group key → side-panel icon (keys are the {@code settings-group-<key>} ids of the FXML). */
     private static final java.util.Map<String, String> GROUP_ICONS = java.util.Map.of(
             "appearance", "bi-palette", "editor", "bi-pencil-square", "schemas", "bi-diagram-3",
@@ -105,6 +108,8 @@ public class SettingsPanel extends VBox {
     @FXML private CheckBox useSystemTemp;
     @FXML private TextField customTempDir;
     @FXML private Label tempStatus;
+    @FXML private Button clearTempButton;
+    @FXML private Button clearCacheButton;
     @FXML private CheckBox logCleanup;
     @FXML private Spinner<Integer> logMaxAge;
     @FXML private Spinner<Integer> logMaxSize;
@@ -215,6 +220,7 @@ public class SettingsPanel extends VBox {
         refreshMemoryStatus();
         maxMemory.valueProperty().addListener((obs, old, value) -> refreshMemoryStatus());
         refreshLogStatus(null);
+        refreshFolderUsage();
 
         trackChanges(groups);
         dirtyHint.visibleProperty().bind(dirty);
@@ -477,8 +483,89 @@ public class SettingsPanel extends VBox {
         tempStatus.setText("Clearing…");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             int cleared = clear.getAsInt();
-            javafx.application.Platform.runLater(() -> tempStatus.setText("Cleared " + cleared + what));
+            javafx.application.Platform.runLater(() -> {
+                tempStatus.setText("Cleared " + cleared + what);
+                refreshFolderUsage();
+            });
         });
+    }
+
+    /** What a clear button would delete: number of files and their total size. */
+    record FolderUsage(int files, long bytes) {
+        static final FolderUsage NONE = new FolderUsage(0, 0);
+    }
+
+    /** Shows on both clear buttons how much they would free, counted off the FX thread. */
+    private void refreshFolderUsage() {
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            FolderUsage temp = tempFolderUsage();
+            FolderUsage cache = usageOf(cacheFolder(), true);
+            javafx.application.Platform.runLater(() -> {
+                clearTempButton.setText(clearLabel("Clear Temp Folder", temp));
+                clearCacheButton.setText(clearLabel("Clear Cache Folder", cache));
+            });
+        });
+    }
+
+    /** @return the button text with the space in use, e.g. "Clear Cache Folder · 12.3 MB (45 files)" */
+    static String clearLabel(String action, FolderUsage usage) {
+        if (usage.files() == 0) {
+            return action + " \u00b7 empty";
+        }
+        return action + " \u00b7 " + formatSize(usage.bytes()) + " (" + usage.files()
+                + (usage.files() == 1 ? " file)" : " files)");
+    }
+
+    /** @return {@code bytes} as B, KB, MB or GB with one decimal */
+    static String formatSize(long bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        String[] units = {"KB", "MB", "GB", "TB"};
+        double value = bytes;
+        int unit = -1;
+        do {
+            value /= 1024;
+            unit++;
+        } while (value >= 1024 && unit < units.length - 1);
+        return String.format(java.util.Locale.ROOT, "%.1f %s", value, units[unit]);
+    }
+
+    /** Files directly inside the effective temp folder: what {@link #clearTempFolder()} deletes. */
+    private static FolderUsage tempFolderUsage() {
+        try {
+            String folder = ServiceRegistry.get(PropertiesService.class).getTempFolder();
+            return folder == null || folder.isBlank() ? FolderUsage.NONE : usageOf(new File(folder), false);
+        } catch (RuntimeException e) {
+            return FolderUsage.NONE;
+        }
+    }
+
+    /**
+     * Counts the files in {@code dir} — directly inside it, or {@code recursive}ly as
+     * {@link #deleteContents} deletes them. Symbolic links are not followed.
+     */
+    static FolderUsage usageOf(File dir, boolean recursive) {
+        if (dir == null || !dir.isDirectory()) {
+            return FolderUsage.NONE;
+        }
+        int[] files = {0};
+        long[] bytes = {0};
+        try (java.util.stream.Stream<java.nio.file.Path> paths = recursive
+                ? java.nio.file.Files.walk(dir.toPath())
+                : java.nio.file.Files.list(dir.toPath())) {
+            paths.filter(java.nio.file.Files::isRegularFile).forEach(path -> {
+                try {
+                    bytes[0] += java.nio.file.Files.size(path);
+                    files[0]++;
+                } catch (java.io.IOException | SecurityException ignored) {
+                    // vanished or unreadable: not counted
+                }
+            });
+        } catch (java.io.IOException | java.io.UncheckedIOException | SecurityException e) {
+            logger.debug("Could not measure {}: {}", dir, e.toString());
+        }
+        return new FolderUsage(files[0], bytes[0]);
     }
 
     /** Confirms "Clean Up Now" for a log folder; replaceable by tests. */
@@ -595,6 +682,7 @@ public class SettingsPanel extends VBox {
         saveSettings();
         dirty.set(false);
         saveStatus.setText("Settings saved.");
+        refreshFolderUsage(); // the temp folder may have changed
     }
 
     @FXML

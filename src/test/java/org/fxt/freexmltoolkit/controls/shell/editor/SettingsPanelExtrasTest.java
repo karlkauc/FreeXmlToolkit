@@ -63,4 +63,29 @@ class SettingsPanelExtrasTest {
                 "the cache folder itself stays, but must be empty");
         assertTrue(Files.exists(tmp), "the cache folder itself is kept");
     }
+
+    @Test
+    void folderUsageCountsWhatTheClearButtonsDelete(@TempDir Path tmp) throws Exception {
+        Files.write(tmp.resolve("a.tmp"), new byte[1500]);
+        Path sub = Files.createDirectory(tmp.resolve("schemas"));
+        Files.write(sub.resolve("b.xsd"), new byte[500]);
+
+        SettingsPanel.FolderUsage direct = SettingsPanel.usageOf(tmp.toFile(), false);
+        SettingsPanel.FolderUsage recursive = SettingsPanel.usageOf(tmp.toFile(), true);
+
+        assertEquals(new SettingsPanel.FolderUsage(1, 1500), direct, "temp: files directly inside");
+        assertEquals(new SettingsPanel.FolderUsage(2, 2000), recursive, "cache: everything below");
+        assertEquals(SettingsPanel.FolderUsage.NONE, SettingsPanel.usageOf(tmp.resolve("missing").toFile(), true));
+    }
+
+    @Test
+    void clearLabelsNameTheSpaceInUse() {
+        assertEquals("Clear Cache Folder \u00b7 empty",
+                SettingsPanel.clearLabel("Clear Cache Folder", SettingsPanel.FolderUsage.NONE));
+        assertEquals("Clear Temp Folder \u00b7 1.5 MB (3 files)",
+                SettingsPanel.clearLabel("Clear Temp Folder", new SettingsPanel.FolderUsage(3, 1572864)));
+        assertEquals("Clear Temp Folder \u00b7 512 B (1 file)",
+                SettingsPanel.clearLabel("Clear Temp Folder", new SettingsPanel.FolderUsage(1, 512)));
+        assertEquals("2.0 GB", SettingsPanel.formatSize(2L * 1024 * 1024 * 1024));
+    }
 }
