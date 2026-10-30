@@ -15,16 +15,10 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
@@ -63,17 +57,42 @@ public class DataDictionaryExcelExporter {
             "Level"
     };
 
+    /** Index of the "Mandatory" column, styled by its value. */
+    private static final int MANDATORY_COLUMN = 4;
+
+    /** How each column's cells look (parallel to {@link #COLUMN_HEADERS}). */
+    private static final DataDictionaryExcelStyles.Role[] COLUMN_ROLES = {
+            DataDictionaryExcelStyles.Role.CENTER,  // #
+            DataDictionaryExcelStyles.Role.XPATH,   // XPath
+            DataDictionaryExcelStyles.Role.NAME,    // Element Name
+            DataDictionaryExcelStyles.Role.MONO,    // Type
+            DataDictionaryExcelStyles.Role.CENTER,  // Mandatory (replaced by its value's role)
+            DataDictionaryExcelStyles.Role.CENTER,  // Min Occurs
+            DataDictionaryExcelStyles.Role.CENTER,  // Max Occurs
+            DataDictionaryExcelStyles.Role.CENTER,  // Cardinality
+            DataDictionaryExcelStyles.Role.WRAP,    // Documentation
+            DataDictionaryExcelStyles.Role.WRAP,    // Type Documentation
+            DataDictionaryExcelStyles.Role.MONO,    // Restriction Base
+            DataDictionaryExcelStyles.Role.WRAP,    // Enumerations
+            DataDictionaryExcelStyles.Role.MONO,    // Pattern
+            DataDictionaryExcelStyles.Role.TEXT,    // Min/Max Length
+            DataDictionaryExcelStyles.Role.TEXT,    // Min/Max Value
+            DataDictionaryExcelStyles.Role.TEXT,    // Total/Fraction Digits
+            DataDictionaryExcelStyles.Role.TEXT,    // Sample Data
+            DataDictionaryExcelStyles.Role.CENTER   // Level
+    };
+
     private static final int[] COLUMN_WIDTHS = {
             2000,   // #
-            12000,  // XPath
+            14000,  // XPath
             6000,   // Element Name
             6000,   // Type
             3000,   // Mandatory
             3000,   // Min Occurs
             3000,   // Max Occurs
             4000,   // Cardinality
-            15000,  // Documentation
-            15000,  // Type Documentation
+            16000,  // Documentation
+            16000,  // Type Documentation
             5000,   // Restriction Base
             10000,  // Enumerations
             8000,   // Pattern
@@ -87,10 +106,8 @@ public class DataDictionaryExcelExporter {
     private final XsdDocumentationData xsdDocumentationData;
     private final XsdDocumentationHtmlService htmlService;
 
-    // Metadata sheet styles (initialized in exportToExcel)
-    private CellStyle sectionHeaderStyle;
-    private CellStyle labelStyle;
-    private CellStyle valueStyle;
+    // Styles of the Schema Info sheet's helpers (set by createMetadataSheet)
+    private DataDictionaryExcelStyles metadataStyles;
 
     /**
      * Creates a new exporter.
@@ -167,18 +184,10 @@ public class DataDictionaryExcelExporter {
                 languagesToExport = allLanguages;
             }
 
-            // Create styles for language sheets
-            CellStyle headerStyle = createHeaderStyle(workbook);
-            CellStyle mandatoryYesStyle = createMandatoryYesStyle(workbook);
-            CellStyle mandatoryNoStyle = createMandatoryNoStyle(workbook);
-            CellStyle normalStyle = createNormalStyle(workbook);
-            CellStyle wrapStyle = createWrapStyle(workbook);
-
-            // Create styles for metadata sheet
-            initMetadataStyles(workbook);
+            DataDictionaryExcelStyles styles = new DataDictionaryExcelStyles(workbook);
 
             // Create metadata sheet FIRST (will be moved to position 0)
-            createMetadataSheet(workbook, elements, languagesToExport);
+            createMetadataSheet(workbook, styles, elements, languagesToExport);
 
             // Pre-compute the language-INDEPENDENT columns (XPath, type, occurs, restrictions,
             // sample data, ...) once per element instead of recomputing them for every one of the
@@ -194,8 +203,7 @@ public class DataDictionaryExcelExporter {
                 if (sheetName.length() > 31) {
                     sheetName = sheetName.substring(0, 31);
                 }
-                createLanguageSheet(workbook, sheetName, language, precomputedRows,
-                        headerStyle, mandatoryYesStyle, mandatoryNoStyle, normalStyle, wrapStyle);
+                createLanguageSheet(workbook, sheetName, language, precomputedRows, styles);
             }
 
             // Ensure Schema Info is the first sheet
@@ -279,19 +287,22 @@ public class DataDictionaryExcelExporter {
      * Creates a sheet for a specific language with all element data.
      */
     private void createLanguageSheet(Workbook workbook, String sheetName, String language,
-                                     List<PrecomputedRow> rows,
-                                     CellStyle headerStyle, CellStyle mandatoryYesStyle,
-                                     CellStyle mandatoryNoStyle, CellStyle normalStyle,
-                                     CellStyle wrapStyle) {
+                                     List<PrecomputedRow> rows, DataDictionaryExcelStyles styles) {
         Sheet sheet = workbook.createSheet(sheetName);
+        sheet.setDisplayGridlines(false);
+        if (sheet instanceof org.apache.poi.xssf.streaming.SXSSFSheet streaming) {
+            streaming.setTabColor(DataDictionaryExcelStyles.color(DataDictionaryExcelStyles.ACCENT_RULE));
+        }
         int rowNum = 0;
 
         // Create header row
         Row headerRow = sheet.createRow(rowNum++);
+        headerRow.setHeightInPoints(22);
         for (int i = 0; i < COLUMN_HEADERS.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(COLUMN_HEADERS[i]);
-            cell.setCellStyle(headerStyle);
+            cell.setCellStyle(COLUMN_ROLES[i] == DataDictionaryExcelStyles.Role.CENTER
+                    ? styles.headerCenter : styles.header);
         }
 
         // Freeze header row
@@ -301,65 +312,35 @@ public class DataDictionaryExcelExporter {
         // documentation columns are resolved per language here)
         int counter = 1;
         for (PrecomputedRow data : rows) {
+            boolean stripe = rowNum % 2 == 0;
             Row row = sheet.createRow(rowNum++);
-            int colNum = 0;
-
-            // #
-            createCell(row, colNum++, String.valueOf(counter++), normalStyle);
-
-            // XPath
-            createCell(row, colNum++, data.cleanXPath(), normalStyle);
-
-            // Element Name
-            createCell(row, colNum++, data.elementName(), normalStyle);
-
-            // Type
-            createCell(row, colNum++, data.elementType(), normalStyle);
-
-            // Mandatory
-            boolean isMandatory = data.mandatory();
-            Cell mandatoryCell = row.createCell(colNum++);
-            mandatoryCell.setCellValue(isMandatory ? "Yes" : "No");
-            mandatoryCell.setCellStyle(isMandatory ? mandatoryYesStyle : mandatoryNoStyle);
-
-            // Min Occurs
-            createCell(row, colNum++, data.minOccurs(), normalStyle);
-
-            // Max Occurs
-            createCell(row, colNum++, data.maxOccurs(), normalStyle);
-
-            // Cardinality
-            createCell(row, colNum++, data.cardinality(), normalStyle);
-
-            // Documentation (language-specific)
-            createCell(row, colNum++, getDocumentationForLanguage(data.element(), language), wrapStyle);
-
-            // Type Documentation (language-specific)
-            createCell(row, colNum++, getTypeDocumentationForLanguage(data.element(), language), wrapStyle);
-
-            // Restriction Base
-            createCell(row, colNum++, data.restrictionBase(), normalStyle);
-
-            // Enumerations
-            createCell(row, colNum++, data.enumerations(), wrapStyle);
-
-            // Pattern
-            createCell(row, colNum++, data.pattern(), normalStyle);
-
-            // Min/Max Length
-            createCell(row, colNum++, data.minMaxLength(), normalStyle);
-
-            // Min/Max Value
-            createCell(row, colNum++, data.minMaxValue(), normalStyle);
-
-            // Total/Fraction Digits
-            createCell(row, colNum++, data.totalFractionDigits(), normalStyle);
-
-            // Sample Data
-            createCell(row, colNum++, data.sampleData(), normalStyle);
-
-            // Level
-            createCell(row, colNum, data.level(), normalStyle);
+            String[] values = {
+                    String.valueOf(counter++),
+                    data.cleanXPath(),
+                    data.elementName(),
+                    data.elementType(),
+                    data.mandatory() ? "Yes" : "No",
+                    data.minOccurs(),
+                    data.maxOccurs(),
+                    data.cardinality(),
+                    getDocumentationForLanguage(data.element(), language),
+                    getTypeDocumentationForLanguage(data.element(), language),
+                    data.restrictionBase(),
+                    data.enumerations(),
+                    data.pattern(),
+                    data.minMaxLength(),
+                    data.minMaxValue(),
+                    data.totalFractionDigits(),
+                    data.sampleData(),
+                    data.level()
+            };
+            for (int col = 0; col < values.length; col++) {
+                DataDictionaryExcelStyles.Role role = col == MANDATORY_COLUMN
+                        ? (data.mandatory() ? DataDictionaryExcelStyles.Role.MANDATORY_YES
+                                : DataDictionaryExcelStyles.Role.MANDATORY_NO)
+                        : COLUMN_ROLES[col];
+                createCell(row, col, values[col], styles.body(role, stripe));
+            }
         }
 
         // Set column widths
@@ -367,10 +348,21 @@ public class DataDictionaryExcelExporter {
             sheet.setColumnWidth(i, COLUMN_WIDTHS[i]);
         }
 
+        printOnePageWide(sheet, true);
+        sheet.setRepeatingRows(org.apache.poi.ss.util.CellRangeAddress.valueOf("1:1"));
+
         // Enable auto-filter
         if (rowNum > 1) {
             sheet.setAutoFilter(new org.apache.poi.ss.util.CellRangeAddress(0, rowNum - 1, 0, COLUMN_HEADERS.length - 1));
         }
+    }
+
+    /** Prints the sheet one page wide (as many pages tall as needed), landscape for the wide tables. */
+    private static void printOnePageWide(Sheet sheet, boolean landscape) {
+        sheet.setFitToPage(true);
+        sheet.getPrintSetup().setLandscape(landscape);
+        sheet.getPrintSetup().setFitWidth((short) 1);
+        sheet.getPrintSetup().setFitHeight((short) 0);
     }
 
     private void createCell(Row row, int colIndex, String value, CellStyle style) {
@@ -572,43 +564,26 @@ public class DataDictionaryExcelExporter {
     // ==================== Metadata Sheet Methods ====================
 
     /**
-     * Initializes styles for the metadata sheet.
-     */
-    private void initMetadataStyles(Workbook workbook) {
-        // Section header: Blue background, white bold text
-        sectionHeaderStyle = workbook.createCellStyle();
-        sectionHeaderStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
-        sectionHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        Font headerFont = workbook.createFont();
-        headerFont.setBold(true);
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
-        headerFont.setFontHeightInPoints((short) 12);
-        sectionHeaderStyle.setFont(headerFont);
-        sectionHeaderStyle.setAlignment(HorizontalAlignment.LEFT);
-        sectionHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-
-        // Label: Bold, light grey background
-        labelStyle = workbook.createCellStyle();
-        labelStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        labelStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        Font labelFont = workbook.createFont();
-        labelFont.setBold(true);
-        labelStyle.setFont(labelFont);
-        labelStyle.setAlignment(HorizontalAlignment.LEFT);
-        labelStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-
-        // Value: Normal white background
-        valueStyle = workbook.createCellStyle();
-        valueStyle.setAlignment(HorizontalAlignment.LEFT);
-        valueStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-    }
-
-    /**
      * Creates the metadata sheet with export info, schema info, and statistics.
      */
-    private void createMetadataSheet(Workbook workbook, List<XsdExtendedElement> elements, Set<String> languages) {
+    private void createMetadataSheet(Workbook workbook, DataDictionaryExcelStyles styles,
+                                     List<XsdExtendedElement> elements, Set<String> languages) {
         Sheet sheet = workbook.createSheet("Schema Info");
+        sheet.setDisplayGridlines(false);
+        if (sheet instanceof org.apache.poi.xssf.streaming.SXSSFSheet streaming) {
+            streaming.setTabColor(DataDictionaryExcelStyles.color(DataDictionaryExcelStyles.HEADER_FILL));
+        }
+        metadataStyles = styles;
         int rowNum = 0;
+
+        // Title
+        Row titleRow = sheet.createRow(rowNum++);
+        titleRow.setHeightInPoints(28);
+        Cell titleCell = titleRow.createCell(0);
+        String schemaName = getSchemaFileName(xsdDocumentationData.getXsdFilePath());
+        titleCell.setCellValue(schemaName.isEmpty() ? "Data Dictionary" : "Data Dictionary \u2014 " + schemaName);
+        titleCell.setCellStyle(styles.title);
+        rowNum++; // Empty row
 
         // === SECTION 1: Export Information ===
         rowNum = createSectionHeader(sheet, rowNum, "Export Information");
@@ -708,6 +683,7 @@ public class DataDictionaryExcelExporter {
         // Set column widths
         sheet.setColumnWidth(0, 10000);  // Label column
         sheet.setColumnWidth(1, 20000);  // Value column
+        printOnePageWide(sheet, false);
 
         logger.debug("Created Schema Info sheet with {} rows", rowNum);
     }
@@ -717,11 +693,12 @@ public class DataDictionaryExcelExporter {
      */
     private int createSectionHeader(Sheet sheet, int rowNum, String title) {
         Row row = sheet.createRow(rowNum);
+        row.setHeightInPoints(22);
         Cell cell = row.createCell(0);
         cell.setCellValue(title);
-        cell.setCellStyle(sectionHeaderStyle);
-        // Merge cells for section header
-        sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(rowNum, rowNum, 0, 1));
+        cell.setCellStyle(metadataStyles.section);
+        // The rule below the title spans both columns
+        row.createCell(1).setCellStyle(metadataStyles.section);
         return rowNum + 1;
     }
 
@@ -733,11 +710,11 @@ public class DataDictionaryExcelExporter {
 
         Cell labelCell = row.createCell(0);
         labelCell.setCellValue(label);
-        labelCell.setCellStyle(labelStyle);
+        labelCell.setCellStyle(metadataStyles.label);
 
         Cell valueCell = row.createCell(1);
         valueCell.setCellValue(value != null ? value : "");
-        valueCell.setCellStyle(valueStyle);
+        valueCell.setCellStyle(metadataStyles.value);
 
         return rowNum + 1;
     }
@@ -751,68 +728,5 @@ public class DataDictionaryExcelExporter {
         }
         int lastSep = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
         return lastSep >= 0 ? path.substring(lastSep + 1) : path;
-    }
-
-    // ==================== Cell Style Methods ====================
-
-    private CellStyle createHeaderStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        Font font = workbook.createFont();
-        font.setBold(true);
-        font.setFontHeightInPoints((short) 11);
-        font.setColor(IndexedColors.WHITE.getIndex());
-        style.setFont(font);
-        style.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setAlignment(HorizontalAlignment.LEFT);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        return style;
-    }
-
-    private CellStyle createMandatoryYesStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        style.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        return style;
-    }
-
-    private CellStyle createMandatoryNoStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        return style;
-    }
-
-    private CellStyle createNormalStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        style.setAlignment(HorizontalAlignment.LEFT);
-        style.setVerticalAlignment(VerticalAlignment.CENTER);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        return style;
-    }
-
-    private CellStyle createWrapStyle(Workbook workbook) {
-        CellStyle style = createNormalStyle(workbook);
-        style.setWrapText(true);
-        return style;
     }
 }

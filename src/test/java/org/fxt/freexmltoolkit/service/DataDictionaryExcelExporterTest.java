@@ -155,4 +155,49 @@ public class DataDictionaryExcelExporterTest {
             assertEquals("Bold & Italic", content);
         }
     }
+
+    @Test
+    @DisplayName("Styles follow the HTML documentation: slate header, zebra rows, coloured Mandatory text")
+    void testHtmlDocumentationLook() throws IOException {
+        File outputFile = tempDir.resolve("styled.xlsx").toFile();
+        List<XsdExtendedElement> elements = new ArrayList<>();
+        for (String name : List.of("First", "Second")) {
+            XsdExtendedElement element = new XsdExtendedElement();
+            element.setElementName(name);
+            element.setElementType("xs:string");
+            element.setLevel(1);
+            element.setCurrentNode(Mockito.mock(org.w3c.dom.Node.class));
+            elements.add(element);
+        }
+
+        exporter.exportToExcel(outputFile, elements);
+
+        try (FileInputStream fis = new FileInputStream(outputFile);
+             XSSFWorkbook workbook = new XSSFWorkbook(fis)) {
+            assertEquals("Schema Info", workbook.getSheetName(0));
+            org.apache.poi.xssf.usermodel.XSSFSheet sheet = workbook.getSheet("DEFAULT");
+            assertFalse(sheet.isDisplayGridlines());
+            assertFalse(workbook.getSheet("Schema Info").isDisplayGridlines());
+
+            org.apache.poi.xssf.usermodel.XSSFCellStyle header = sheet.getRow(0).getCell(0).getCellStyle();
+            assertEquals("FF" + DataDictionaryExcelStyles.HEADER_FILL, header.getFillForegroundXSSFColor().getARGBHex());
+            assertTrue(header.getFont().getBold());
+            assertEquals("FFFFFFFF", header.getFont().getXSSFColor().getARGBHex());
+
+            // First data row plain, second striped
+            assertNull(sheet.getRow(1).getCell(1).getCellStyle().getFillForegroundXSSFColor());
+            assertEquals("FF" + DataDictionaryExcelStyles.ZEBRA_FILL,
+                    sheet.getRow(2).getCell(1).getCellStyle().getFillForegroundXSSFColor().getARGBHex());
+
+            // Mandatory: coloured bold text, no filled block on a plain row
+            org.apache.poi.xssf.usermodel.XSSFCellStyle yes = sheet.getRow(1).getCell(4).getCellStyle();
+            assertEquals("Yes", sheet.getRow(1).getCell(4).getStringCellValue());
+            assertNull(yes.getFillForegroundXSSFColor());
+            assertTrue(yes.getFont().getBold());
+            assertEquals("FF" + DataDictionaryExcelStyles.MANDATORY, yes.getFont().getXSSFColor().getARGBHex());
+
+            // XPath in a monospace font
+            assertEquals("Consolas", sheet.getRow(1).getCell(1).getCellStyle().getFont().getFontName());
+        }
+    }
 }
