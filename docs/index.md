@@ -10,6 +10,7 @@
       <ul class="fxt-download-card__alts">
         <li><a data-fxt-asset="win-msi" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">MSI package</a> – for silent / Group Policy deployment<span class="fxt-asset-size"></span></li>
         <li><a data-fxt-asset="win-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> – no installation, extract and run<span class="fxt-asset-size"></span></li>
+        <li><a href="#install-with-a-package-manager">Scoop</a> – <code>scoop install karlkauc/freexmltoolkit</code></li>
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="macos">
@@ -19,6 +20,7 @@
         <li><a data-fxt-asset="mac-x64-dmg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Intel .dmg</a> – for Intel-based Macs<span class="fxt-asset-size"></span></li>
         <li><a data-fxt-asset="mac-arm64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg installer</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg</a> (Intel)</li>
         <li><a data-fxt-asset="mac-arm64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Intel)</li>
+        <li><a href="#install-with-a-package-manager">Homebrew</a> – <code>brew install --cask karlkauc/tap/freexmltoolkit</code></li>
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="linux">
@@ -82,6 +84,49 @@ The macOS packages are signed with an Apple Developer ID and notarized by Apple,
 | `.zip` | x64 | **Portable** - No installation needed. Extract and run. Works on any Linux distribution. |
 
 > **Note:** On macOS, pick the build that matches your Mac: **Apple Silicon (ARM64)** for M-series Macs, **Intel (x64)** for older Macs (Apple menu → *About This Mac* shows the chip). Windows and Linux builds are provided for **x64** (Intel/AMD) only.
+
+### Install with a Package Manager
+
+If you already use a package manager, it can install FreeXmlToolkit for you and keep it up to date. The packages are published with every release and contain the same builds as the download buttons above.
+
+#### Windows – Scoop
+
+[Scoop](https://scoop.sh) installs the portable build into your user profile – no installer, no admin rights. Add the FreeXmlToolkit bucket once, then install:
+
+```powershell
+scoop bucket add karlkauc https://github.com/karlkauc/scoop-bucket
+scoop install karlkauc/freexmltoolkit
+```
+
+Scoop adds **FreeXmlToolkit** to the Start menu. Update and remove it with:
+
+```powershell
+scoop update freexmltoolkit
+scoop uninstall freexmltoolkit
+```
+
+#### macOS – Homebrew
+
+[Homebrew](https://brew.sh) installs the signed and notarized app into *Applications* and picks the Apple Silicon or Intel build automatically (macOS 11 Big Sur or newer):
+
+```bash
+brew install --cask karlkauc/tap/freexmltoolkit
+```
+
+Update and remove it with:
+
+```bash
+brew upgrade --cask freexmltoolkit
+brew uninstall --cask freexmltoolkit
+```
+
+`brew uninstall --zap --cask freexmltoolkit` also removes your settings (`~/.freeXmlToolkit`).
+
+#### Updates
+
+A copy installed by Scoop or Homebrew is updated by the package manager: when a new version is out, the update notice in FreeXmlToolkit shows the command to run instead of downloading the new version itself.
+
+On Linux, use the `.deb` / `.rpm` packages or the portable ZIP above.
 
 ---
 
