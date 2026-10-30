@@ -65,18 +65,26 @@ public final class MoveTableColumnCommand implements XmlCommand {
                 oldAttributes.add(new LinkedHashMap<>(member.getAttributes()));
                 reorderAttributes(member);
             } else {
-                XmlElement moved = member.getChildElement(column.getName());
-                XmlElement anchor = member.getChildElement(target.getName());
-                if (moved == null || anchor == null) {
+                // Every child of the column moves, in document order, next to the target's children
+                // (before the first one or after the last one).
+                List<XmlElement> moving = member.getChildElements(column.getName());
+                List<XmlElement> anchors = member.getChildElements(target.getName());
+                if (moving.isEmpty() || anchors.isEmpty()) {
                     continue;
                 }
-                int index = member.indexOf(anchor) + (before ? 0 : 1);
-                if (member.indexOf(moved) < index) {
-                    index--; // MoveNodeCommand inserts after removing the node
-                }
-                MoveNodeCommand move = new MoveNodeCommand(moved, member, index);
-                if (move.execute()) {
-                    parts.add(move);
+                XmlElement previous = null;
+                for (XmlElement moved : moving) {
+                    int index = previous != null ? member.indexOf(previous) + 1
+                            : before ? member.indexOf(anchors.getFirst())
+                            : member.indexOf(anchors.getLast()) + 1;
+                    if (member.indexOf(moved) < index) {
+                        index--; // MoveNodeCommand inserts after removing the node
+                    }
+                    MoveNodeCommand move = new MoveNodeCommand(moved, member, index);
+                    if (move.execute()) {
+                        parts.add(move);
+                    }
+                    previous = moved;
                 }
             }
         }

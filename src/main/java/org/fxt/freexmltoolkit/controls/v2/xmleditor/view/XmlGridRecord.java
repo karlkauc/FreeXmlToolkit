@@ -27,6 +27,8 @@ public final class XmlGridRecord implements GridRecord {
     private final List<String> columnKeys = new ArrayList<>();
     private final Map<String, String> values = new LinkedHashMap<>();
     private final Map<String, Object> complexChildren = new LinkedHashMap<>();
+    /** Every child element per column name, in document order. */
+    private final Map<String, List<XmlElement>> cellMembers = new LinkedHashMap<>();
     private final Map<String, String> attributeSuffixes = new LinkedHashMap<>();
 
     public XmlGridRecord(XmlElement element) {
@@ -49,7 +51,18 @@ public final class XmlGridRecord implements GridRecord {
                 if (!columnKeys.contains(childName)) {
                     columnKeys.add(childName);
                 }
-                if (!values.containsKey(childName)) {
+                List<XmlElement> members = cellMembers.computeIfAbsent(childName, k -> new ArrayList<>());
+                members.add(childEl);
+                if (members.size() == 2) {
+                    // Several children of one name (four Positions of one Waehrung): the cell holds
+                    // the whole group and opens like any repeating group.
+                    values.put(childName, groupSummary(childName, 2));
+                    attributeSuffixes.remove(childName);
+                    complexChildren.put(childName, members.getFirst());
+                } else if (members.size() > 2) {
+                    values.put(childName, groupSummary(childName, members.size()));
+                }
+                if (members.size() == 1) {
                     values.put(childName, extractElementText(childEl));
                     // The cell element's own attributes (e.g. ccy="EUR" on an
                     // Amount) are shown as a display-only suffix next to the value.
@@ -121,8 +134,20 @@ public final class XmlGridRecord implements GridRecord {
 
     @Override
     public List<FlatRow> flattenComplexChild(String columnName) {
-        Object child = complexChildren.get(columnName);
-        return child instanceof XmlElement el ? FlatRow.flattenElement(el) : List.of();
+        return complexChildren.containsKey(columnName)
+                ? FlatRow.flattenCellContent(element, cellMembers(columnName), FlatRow.CELL_GROUPS)
+                : List.of();
+    }
+
+    /** @return every child element behind the column, in document order (empty for attributes and text) */
+    public List<XmlElement> cellMembers(String columnName) {
+        List<XmlElement> members = cellMembers.get(columnName);
+        return members == null ? List.of() : Collections.unmodifiableList(members);
+    }
+
+    /** @return the summary of a cell holding {@code count} children named {@code name} */
+    static String groupSummary(String name, int count) {
+        return count + " \u00d7 <" + name + ">";
     }
 
     /**

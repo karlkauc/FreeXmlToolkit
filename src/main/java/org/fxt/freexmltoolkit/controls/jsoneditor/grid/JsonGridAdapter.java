@@ -114,7 +114,8 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         }
         FlatRow anchor = new FlatRow(rowTypeOf(container), -1, container, null,
                 labelOf(container), null, container.getChildCount());
-        flattenChildren(container, 0, anchor, rows, FlatRow.ALWAYS_TABLE);
+        // Arrays of objects inside a cell show as rows until cells can hold embedded tables
+        flattenChildren(container, 0, anchor, rows, FlatRow.CELL_GROUPS);
         return rows;
     }
 

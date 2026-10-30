@@ -584,7 +584,9 @@ public class RepeatingElementsTable {
             } else {
                 expandedColumns.add(columnName);
                 if (!expandedCellRows.containsKey(columnName) && complexChildren.containsKey(columnName)) {
-                    expandedCellRows.put(columnName, record.flattenComplexChild(columnName));
+                    List<FlatRow> cellRows = record.flattenComplexChild(columnName);
+                    FlatRow.applyVisibility(cellRows); // collapsed descendants start hidden
+                    expandedCellRows.put(columnName, cellRows);
                 }
             }
             invalidateLayout();
@@ -897,6 +899,9 @@ public class RepeatingElementsTable {
         }
         if (row.getLabel() != null) {
             width += m.width(row.getLabel(), GridFont.ROW);
+        }
+        if (row.getInstanceIndex() > 0) {
+            width += GridMetrics.CHILD_COUNT_GAP + m.width("<" + row.getInstanceIndex() + ">", GridFont.SMALL);
         }
         if (row.isExpandable()) {
             String suffix = "(" + row.getChildCount() + ")";

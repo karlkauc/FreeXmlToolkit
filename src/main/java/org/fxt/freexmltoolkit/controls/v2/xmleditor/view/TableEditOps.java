@@ -100,8 +100,7 @@ public final class TableEditOps {
     }
 
     /**
-     * Renames a column in every member: the attribute or the (first) child element of the old
-     * name.
+     * Renames a column in every member: the attribute or every child element of the old name.
      *
      * @param table   the table
      * @param oldName the column to rename
@@ -120,8 +119,7 @@ public final class TableEditOps {
                     parts.add(new RenameAttributeCommand(member, oldName, newName));
                 }
             } else if (col.getType() == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
-                XmlElement child = member.getChildElement(oldName);
-                if (child != null) {
+                for (XmlElement child : member.getChildElements(oldName)) {
                     parts.add(new RenameNodeCommand(child, newName));
                 }
             }
@@ -185,6 +183,9 @@ public final class TableEditOps {
                 switch (col.getType()) {
                     case ATTRIBUTE -> parts.add(new SetAttributeCommand(member, col.getName(), value));
                     case CHILD_ELEMENT -> {
+                        if (member.getChildElements(col.getName()).size() > 1) {
+                            break; // a group of several children has no single value to overwrite
+                        }
                         XmlElement child = member.getChildElement(col.getName());
                         if (child != null) {
                             parts.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand(

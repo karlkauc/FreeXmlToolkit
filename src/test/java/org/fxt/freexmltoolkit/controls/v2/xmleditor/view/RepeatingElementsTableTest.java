@@ -498,6 +498,11 @@ class RepeatingElementsTableTest {
 
         RepeatingElementsTable.TableRow row = table.getRows().get(0);
         row.toggleColumnExpanded("Nested");
+        // Open every level of the cell (collapsed descendants are hidden until expanded)
+        List<FlatRow> cellRows = row.getExpandedCellRows("Nested");
+        cellRows.forEach(r -> r.setExpanded(true));
+        FlatRow.applyVisibility(cellRows);
+        row.invalidateLayout();
         table.recalculateColumnWidths();
 
         double maxNamePortion = row.getExpandedCellRows("Nested").stream()

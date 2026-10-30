@@ -2119,13 +2119,19 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 fillName(row.getLabel(), labelX, rowCenterY, GridFont.ROW);
             }
 
-            // Draw child count for expandable elements
+            // Instance number of a member of a group shown as rows (<1>, <2>, …), then the child count
+            double afterLabel = labelX + (row.getLabel() != null ? metrics.width(row.getLabel(), GridFont.ROW) : 0);
+            if (row.getInstanceIndex() > 0) {
+                gc.setFont(SMALL_FONT);
+                gc.setFill(TEXT_SECONDARY);
+                afterLabel += GridMetrics.CHILD_COUNT_GAP;
+                gc.fillText(instanceIndexText(row), afterLabel, rowCenterY);
+                afterLabel += metrics.width(instanceIndexText(row), GridFont.SMALL);
+            }
             if (row.isExpandable()) {
                 gc.setFont(SMALL_FONT);
                 gc.setFill(TEXT_SECONDARY);
-                double afterLabel = labelX + (row.getLabel() != null ? metrics.width(row.getLabel(), GridFont.ROW) : 0)
-                        + GridMetrics.CHILD_COUNT_GAP;
-                gc.fillText("(" + row.getChildCount() + ")", afterLabel, rowCenterY);
+                gc.fillText("(" + row.getChildCount() + ")", afterLabel + GridMetrics.CHILD_COUNT_GAP, rowCenterY);
             }
 
             // Draw value (wrapped)

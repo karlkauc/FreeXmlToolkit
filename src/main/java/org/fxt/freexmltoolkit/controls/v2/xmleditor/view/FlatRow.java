@@ -673,39 +673,52 @@ public class FlatRow {
      * @return ordered list of FlatRows representing the element's children
      */
     public static List<FlatRow> flattenElement(XmlElement element) {
-        List<FlatRow> rows = new ArrayList<>();
-        // Create a virtual root row (depth=-1) as parent anchor for tree structure.
-        // This row is NOT added to the list; it only serves as the parentRow reference
-        // so that isDescendantOf() and toggleExpand() can walk the parent chain correctly.
-        FlatRow rootRow = new FlatRow(RowType.ELEMENT, -1, element, null,
-                element.getName(), null, 0);
+        return flattenCellContent(element.getParent() instanceof XmlElement parent ? parent : element,
+                List.of(element), CELL_GROUPS);
+    }
 
-        // Add attributes of the element itself at depth 0
-        int attrIdx = 0;
-        for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
-            FlatRow attrRow = new FlatRow(RowType.ATTRIBUTE, 0, element, rootRow,
-                    attr.getKey(), attr.getValue(), 0);
-            attrRow.setAttributeIndex(attrIdx++);
-            rows.add(attrRow);
+    /**
+     * Repeating groups inside table cells are shown as numbered rows ({@code <1>}, {@code <2>}, …)
+     * until cells can hold embedded tables themselves.
+     */
+    public static final java.util.function.Predicate<String> CELL_GROUPS = key -> false;
+
+    /**
+     * The rows of an opened table cell, built like the root grid's rows of the same nodes. The cell
+     * belongs to {@code record} and holds {@code members} — the record's children of one name:
+     * <ul>
+     *   <li>one member: its attributes and children (a repeating group among them becomes a table
+     *       or numbered rows, as {@code groupAsTable} decides);</li>
+     *   <li>several members (e.g. four {@code Position}s of one {@code Waehrung}): the group itself,
+     *       as one table row or as numbered rows {@code <1>…<n>}.</li>
+     * </ul>
+     * A virtual anchor row (depth -1, not in the list) is the parent of the top rows.
+     *
+     * @param record       the table row's element
+     * @param members      the record's children shown in the cell (at least one)
+     * @param groupAsTable per group key, whether a repeating group becomes a table
+     * @return the cell's rows in display order
+     */
+    public static List<FlatRow> flattenCellContent(XmlElement record, List<XmlElement> members,
+                                                   java.util.function.Predicate<String> groupAsTable) {
+        List<FlatRow> rows = new ArrayList<>();
+        if (members == null || members.isEmpty()) {
+            return rows;
         }
-        // Flatten children using the private method which sets proper parentRow,
-        // depth, childCount, and handles repeating element detection.
-        // Children start COLLAPSED (expandByDefault=false) so the user can expand on demand.
-        for (XmlNode child : element.getChildren()) {
-            if (child instanceof XmlElement childEl) {
-                flattenElement(childEl, 0, rootRow, rows, false, ALWAYS_TABLE);
-            } else if (child instanceof XmlText text) {
-                if (text.getText() != null && !text.getText().isBlank()) {
-                    rows.add(new FlatRow(RowType.TEXT, 0, text, rootRow,
-                            "#text", text.getText().strip(), 0));
-                }
-            } else if (child instanceof XmlComment comment) {
-                rows.add(new FlatRow(RowType.COMMENT, 0, comment, rootRow,
-                        null, comment.getText(), 0));
-            } else if (child instanceof XmlCData cdata) {
-                rows.add(new FlatRow(RowType.CDATA, 0, cdata, rootRow,
-                        null, cdata.getText(), 0));
+        if (members.size() == 1) {
+            XmlElement element = members.getFirst();
+            FlatRow anchor = new FlatRow(RowType.ELEMENT, -1, element, null, element.getName(), null, 0);
+            int attrIdx = 0;
+            for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
+                FlatRow attrRow = new FlatRow(RowType.ATTRIBUTE, 0, element, anchor,
+                        attr.getKey(), attr.getValue(), 0);
+                attrRow.setAttributeIndex(attrIdx++);
+                rows.add(attrRow);
             }
+            flattenChildren(element, -1, anchor, rows, groupAsTable, null);
+        } else {
+            FlatRow anchor = new FlatRow(RowType.ELEMENT, -1, record, null, record.getName(), null, 0);
+            flattenChildren(record, -1, anchor, rows, groupAsTable, members.getFirst().getName());
         }
         return rows;
     }
@@ -811,10 +824,38 @@ public class FlatRow {
             rows.add(attrRow);
         }
 
+        flattenChildren(element, depth, elementRow, rows, groupAsTable, null, elementsByName);
+    }
+
+    /**
+     * Emits the rows of {@code element}'s children below {@code elementRow} (at {@code depth + 1}):
+     * child elements recursively, repeating groups as one table row or as numbered rows, and the
+     * TEXT/COMMENT/CDATA/PI rows.
+     *
+     * @param onlyName when set, only the child elements of this name (no other nodes)
+     */
+    static void flattenChildren(XmlElement element, int depth, FlatRow elementRow, List<FlatRow> rows,
+                                java.util.function.Predicate<String> groupAsTable, String onlyName) {
+        Map<String, List<XmlElement>> elementsByName = new LinkedHashMap<>();
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlElement ce) {
+                elementsByName.computeIfAbsent(ce.getName(), k -> new ArrayList<>()).add(ce);
+            }
+        }
+        flattenChildren(element, depth, elementRow, rows, groupAsTable, onlyName, elementsByName);
+    }
+
+    private static void flattenChildren(XmlElement element, int depth, FlatRow elementRow, List<FlatRow> rows,
+                                        java.util.function.Predicate<String> groupAsTable, String onlyName,
+                                        Map<String, List<XmlElement>> elementsByName) {
+        boolean hasElementChildren = !elementsByName.isEmpty();
         // Child nodes - recurse into elements, emit TEXT/COMMENT/CDATA/PI rows
         String parentPath = null; // the group key prefix, computed once and only when needed
         Map<String, Integer> instanceCounters = null;
         for (XmlNode child : element.getChildren()) {
+            if (onlyName != null && !(child instanceof XmlElement only && onlyName.equals(only.getName()))) {
+                continue;
+            }
             if (child instanceof XmlElement childElement) {
                 List<XmlElement> group = elementsByName.get(childElement.getName());
                 if (group.size() >= 2) {
