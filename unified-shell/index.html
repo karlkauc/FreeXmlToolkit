@@ -4626,6 +4626,15 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   first column), one column per attribute (<code>=</code>) and child element (<code>&lt;&gt;</code>). Click the small
   <strong>arrow at the right of a column header</strong> to <strong>sort</strong> the group (also: <strong>Sort Column</strong> in the
   context menu); cells with nested structure expand inline.</li>
+<li><strong>Every node looks like a root node, at any depth.</strong> An opened table cell shows its content as
+  a grid of its own: expandable rows, blocks and - for repeating children - a <strong>table again</strong>
+  (or numbered rows <code>&lt;1&gt;</code>, <code>&lt;2&gt;</code>, … after a click on the table glyph), whose cells open the same
+  way, however deep tables and rows are nested. A column with several children of one name
+  (e.g. four <code>Position</code>s of a <code>Waehrung</code>) is one cell (<code>4 × &lt;Position&gt;</code>) holding them all.
+  Rows inside cells are selected, edited (double-click), expanded and navigated with the arrow
+  keys like any other row (<strong>Left</strong> at the top of a cell's grid returns to the cell); tables
+  inside cells sort, flip and edit like the outer ones. Open cells, expanded rows and table/flip
+  choices at every depth survive edits.</li>
 <li><strong>Open whole rows and columns.</strong> Click a <strong>row number</strong> to select the whole row, click a
   <strong>column header</strong> (its name, not the arrow) to select the whole column; <strong>Shift+click</strong>
   extends to more rows or columns. Then press <strong>+</strong> to open the nested cells of the selection
@@ -4734,8 +4743,8 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   <code>&lt;?fxt-formula name="…" expression="…"?&gt;</code> instructions. <strong>Store Formula Result in Document</strong>
   also writes the result into an element named after the formula, right after it;
   <strong>Recalculate Stored Formula Results</strong> refreshes all of them in one undo step.
-- <strong>Search</strong> (Ctrl+F) finds names and values in the rows and in the cells of embedded tables;
-  a table hit expands the group and selects the matching cell.
+- <strong>Search</strong> (Ctrl+F) finds names and values in the rows and in the cells of embedded tables,
+  including the rows and tables inside opened cells; a hit expands what hides it and selects it.
 - <strong>Copy XPath / Copy Node</strong>: the grid's context menu offers <strong>Copy XPath</strong> (<strong>Ctrl+Alt+X</strong>),
   <strong>Copy Cell Content</strong> (<strong>Ctrl+Shift+C</strong>) and <strong>Copy Node (XML)</strong> (<strong>Ctrl+Alt+C</strong>); all three
   shortcuts also work directly on the selected node. <strong>Ctrl+Shift+X</strong> toggles the Query
