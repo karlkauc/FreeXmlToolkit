@@ -39,7 +39,10 @@ final class GridBlockLayout {
         /** @return the one-line preview of a collapsed container, or {@code null} */
         String preview(FlatRow row);
 
-        /** @return the user's width for the block under {@code parent} ({@code null} = top), or {@code null} */
+        /**
+         * @return the user's width for the block under {@code parent} — {@code null} for the root's top
+         *         block, a virtual anchor (depth &lt; 0) for an opened cell's top block — or {@code null}
+         */
         Double nameColumnOverride(FlatRow parent);
 
         /** @return the width available to embedded tables (the canvas width) */
@@ -86,12 +89,17 @@ final class GridBlockLayout {
 
         // -- Pass 1: name-column width per block (keyed by the block's parent row; null = top) --
         Map<FlatRow, Double> blockWidths = new IdentityHashMap<>();
+        FlatRow topParent = null; // the top block's real parent: null (root) or a cell's anchor
         for (FlatRow row : visible) {
             double w = GridMetrics.EXPAND_BAR_WIDTH + GridMetrics.ICON_AREA_WIDTH + m.labelWidth(row) + NAME_VALUE_GAP;
-            blockWidths.merge(topOrParent(row), w, Math::max);
+            FlatRow block = topOrParent(row);
+            if (block == null && row.getParentRow() != null) {
+                topParent = row.getParentRow();
+            }
+            blockWidths.merge(block, w, Math::max);
         }
         for (Map.Entry<FlatRow, Double> entry : blockWidths.entrySet()) {
-            Double override = m.nameColumnOverride(entry.getKey());
+            Double override = m.nameColumnOverride(entry.getKey() == null ? topParent : entry.getKey());
             entry.setValue(override != null ? override : Math.max(MIN_NAME_COL_WIDTH, entry.getValue()));
         }
         double nameColumnWidth = blockWidths.getOrDefault(null, MIN_NAME_COL_WIDTH);

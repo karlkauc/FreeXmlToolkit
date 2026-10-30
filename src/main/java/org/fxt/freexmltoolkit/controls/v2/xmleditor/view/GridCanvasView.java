@@ -235,10 +235,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /**
-     * A name-column drag of the block formed by the children of {@code parent} ({@code null} =
-     * root block), and where it started.
+     * A name-column drag of one block (its width key, the opened cell's grid holding it or
+     * {@code null} for the root grid), and where it started.
      */
-    private record BlockDrag(FlatRow parent, double startScreenX, double startWidth) implements Drag {
+    private record BlockDrag(String key, GridBlock grid, double startScreenX, double startWidth) implements Drag {
     }
 
     private Drag columnDrag = null;
@@ -257,14 +257,17 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         final RepeatingElementsTable table;
         final int column;
         final double startScreenX;
+        /** x offset of the coordinates the table lives in (0 for a root table) */
+        final double originX;
         boolean active;
         int target = -1;
         boolean before;
 
-        HeaderDrag(RepeatingElementsTable table, int column, double startScreenX) {
+        HeaderDrag(RepeatingElementsTable table, int column, double startScreenX, double originX) {
             this.table = table;
             this.column = column;
             this.startScreenX = startScreenX;
+            this.originX = originX;
         }
     }
 
@@ -2373,6 +2376,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
             hoveredTable = table;
             table.setHovered(true);
+            hoveredTableRowIndex = -1;
+            hoveredTableColumnIndex = -1;
         }
 
         int dr = table.drawnRowAt(my - tableScreenTop);
@@ -2614,6 +2619,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 hoveredExpandBar = null;
                 needsRedraw = true;
             }
+            if (hoveredTable != null) {
+                hoveredTable.setHoveredRowIndex(-1);
+                hoveredTable.setHoveredColumnIndex(-1);
+                hoveredTable.setHovered(false);
+                hoveredTable = null;
+                hoveredTableRowIndex = -1;
+                hoveredTableColumnIndex = -1;
+                needsRedraw = true;
+            }
             if (needsRedraw) {
                 render();
             }
@@ -2703,7 +2717,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
             BlockDrag block = findBlockSeparatorAt(mx, my);
             if (block != null) {
-                columnDrag = new BlockDrag(block.parent(), e.getX(), block.startWidth());
+                columnDrag = new BlockDrag(block.key(), block.grid(), e.getX(), block.startWidth());
                 columnDragMoved = false;
                 e.consume();
                 return;
@@ -2719,7 +2733,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 headerDrag.active = true;
             }
             if (headerDrag.active) {
-                double mx = toModelX(e.getX());
+                double mx = toModelX(e.getX()) - headerDrag.originX;
                 int dc = headerDrag.table.drawnColumnAt(mx);
                 RepeatingElementsTable.DrawnCell cell = dc >= 0 ? headerDrag.table.cellAt(0, dc) : null;
                 if (cell != null && cell.columnIndex() >= 0) {
@@ -2765,9 +2779,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 }
             } else if (columnDrag instanceof BlockDrag drag) {
                 double newWidth = Math.max(MIN_NAME_COL_WIDTH, drag.startWidth() + delta);
-                Double current = viewState.nameColumnWidth(blockKey(drag.parent()));
+                Double current = viewState.nameColumnWidth(drag.key());
                 if (current == null || Math.abs(current - newWidth) >= 0.5) {
-                    viewState.setNameColumnWidth(blockKey(drag.parent()), newWidth);
+                    viewState.setNameColumnWidth(drag.key(), newWidth);
+                    if (drag.grid() != null) {
+                        drag.grid().invalidate();
+                    }
                     columnDragMoved = true;
                     recalculateVisibleRows();
                     updateScrollBars();
@@ -2798,18 +2815,17 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** @return a column-header drag candidate when the press is on a column header (not a resize handle) */
     private HeaderDrag headerDragAt(double mx, double my, double screenX) {
-        int idx = rowIndexAt(mx, my);
-        RepeatingElementsTable table = tableAt(idx, mx, my);
-        if (table == null || table.isFlipped() || table.getColumnSeparatorAt(mx, RESIZE_HANDLE) >= 0) {
+        Pointer p = pointerAt(mx, my); // tables inside opened cells too
+        RepeatingElementsTable table = p == null ? null : p.table();
+        if (table == null || table.isFlipped() || table.getColumnSeparatorAt(p.lx(), RESIZE_HANDLE) >= 0) {
             return null;
         }
-        double tableTop = rowYPositions[idx] - scrollOffsetY;
-        int dr = table.drawnRowAt(my - tableTop);
-        int dc = table.drawnColumnAt(mx);
+        int dr = table.drawnRowAt(p.ly() - p.tableTop());
+        int dc = table.drawnColumnAt(p.lx());
         if (dr != 0 || dc < 1) {
             return null;
         }
-        return new HeaderDrag(table, table.cellAt(0, dc).columnIndex(), screenX);
+        return new HeaderDrag(table, table.cellAt(0, dc).columnIndex(), screenX, p.ox());
     }
 
     /** Draws the insertion line of a running column-header drag. */
@@ -2819,24 +2835,27 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
         RepeatingElementsTable table = drag.table;
+        double[] origin = tableOrigin(table);
+        if (origin == null) {
+            return;
+        }
         RepeatingElementsTable.CellRect rect = table.cellRect(0, drag.target);
-        double x = drag.before ? rect.x() : rect.x() + rect.width();
-        double top = table.getY() - scrollOffsetY;
+        double x = origin[0] + (drag.before ? rect.x() : rect.x() + rect.width());
+        double top = origin[1];
         gc.setStroke(ACCENT);
         gc.setLineWidth(2);
         gc.strokeLine(x, top, x, top + table.getHeight());
     }
 
     /** @return the row whose name cell (first line, right of the expand arrow) is under the point, if draggable */
-    private FlatRow dragCandidateAt(double mx, double my) {
-        int idx = rowIndexAt(mx, my);
-        if (idx < 0) {
+    FlatRow dragCandidateAt(double mx, double my) {
+        Pointer p = pointerAt(mx, my); // rows inside opened cells too
+        if (p == null || p.table() != null) {
             return null;
         }
-        FlatRow row = visibleRows.get(idx);
-        double top = rowYPositions[idx] - scrollOffsetY;
-        boolean inNameCell = mx >= rowIconX(row) && mx < row.getValueX() - RESIZE_HANDLE
-                && my >= top && my < top + ROW_HEIGHT;
+        FlatRow row = p.row();
+        boolean inNameCell = p.lx() >= rowIconX(row) && p.lx() < row.getValueX() - RESIZE_HANDLE
+                && p.ly() >= p.rowTop() && p.ly() < p.rowTop() + ROW_HEIGHT;
         return inNameCell && adapter.canDrag(row) ? row : null;
     }
 
@@ -2850,15 +2869,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @return the drop target, or {@code null} when there is no row
      */
     DropTarget dropTargetAt(double mx, double my) {
-        int idx = rowIndexAt(mx, my);
-        if (idx < 0) {
+        Pointer p = pointerAt(mx, my); // rows inside opened cells too
+        RowBox box = p == null ? null : rowBox(p.row());
+        if (box == null) {
             return null;
         }
-        FlatRow row = visibleRows.get(idx);
-        double top = rowYPositions[idx] - scrollOffsetY;
-        double rel = my - top;
-        boolean ownLine = rel < Math.max(rowHeights[idx], ROW_HEIGHT);
-        if (mx >= row.getValueX() && ownLine && !(row.hasRepeatingTable() && row.isExpanded())) {
+        FlatRow row = p.row();
+        double rel = p.ly() - p.rowTop();
+        boolean ownLine = rel < Math.max(box.own(), ROW_HEIGHT);
+        if (p.lx() >= row.getValueX() && ownLine && !(row.hasRepeatingTable() && row.isExpanded())) {
             return new DropTarget(row, DropPosition.VALUE);
         }
         if (rel >= ROW_HEIGHT) {
@@ -2883,8 +2902,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return null;
         }
         if (internal && target.position() == DropPosition.VALUE) {
-            int idx = visibleRows.indexOf(target.row());
-            double rel = my - (rowYPositions[idx] - scrollOffsetY);
+            Pointer p = pointerAt(mx, my);
+            double rel = p == null ? 0 : p.ly() - p.rowTop();
             DropPosition pos = rel < ROW_HEIGHT * 0.3 ? DropPosition.BEFORE
                     : rel > ROW_HEIGHT * 0.7 || !target.row().getType().isContainer() ? DropPosition.AFTER
                     : DropPosition.INTO;
@@ -2915,6 +2934,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             if (!internal && !e.getDragboard().hasString()) {
                 return;
             }
+            autoScrollWhileDragging(toViewportY(e.getY()));
             DropTarget target = resolveDrop(toModelX(e.getX()), toViewportY(e.getY()), internal);
             if (target != null) {
                 e.acceptTransferModes(internal ? javafx.scene.input.TransferMode.COPY_OR_MOVE
@@ -2952,6 +2972,23 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         });
     }
 
+    /** Band at the top and bottom edge where a drag scrolls the grid (unscaled pixels). */
+    private static final double DRAG_SCROLL_BAND = 24;
+
+    /** Scrolls a little while a drag is held near the top or bottom edge, so deep targets come into reach. */
+    private void autoScrollWhileDragging(double my) {
+        double height = viewportHeightModel();
+        double step = 0;
+        if (my < DRAG_SCROLL_BAND) {
+            step = -(DRAG_SCROLL_BAND - Math.max(0, my));
+        } else if (my > height - DRAG_SCROLL_BAND) {
+            step = DRAG_SCROLL_BAND - Math.max(0, height - my);
+        }
+        if (step != 0) {
+            vScrollBar.setValue(Math.max(vScrollBar.getMin(), Math.min(vScrollBar.getMax(), vScrollBar.getValue() + step)));
+        }
+    }
+
     private void setDropIndicator(DropTarget target) {
         FlatRow row = target != null ? target.row() : null;
         DropPosition pos = target != null ? target.position() : null;
@@ -2967,26 +3004,52 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (dropTargetRow == null || dropPosition == null) {
             return;
         }
-        Integer idx = rowIndexMap.get(dropTargetRow);
-        if (idx == null) {
+        FlatRow row = dropTargetRow;
+        RowBox box = rowBox(row);
+        if (box == null) {
             return;
         }
-        FlatRow row = dropTargetRow;
-        double top = rowYPositions[idx] - scrollOffsetY;
-        double right = Math.max(totalWidth, viewportWidthModel() + scrollOffsetX);
+        double top = box.top();
+        double right = box.right();
+        double labelX = box.ox() + row.getLabelX();
+        double valueX = box.ox() + row.getValueX();
         gc.setStroke(ACCENT);
         gc.setLineWidth(2);
         switch (dropPosition) {
-            case BEFORE -> gc.strokeLine(row.getLabelX(), top + 1, right, top + 1);
+            case BEFORE -> gc.strokeLine(labelX, top + 1, right, top + 1);
             case AFTER -> {
-                double bottom = top + rowSpanHeight(idx);
-                gc.strokeLine(row.getLabelX(), bottom - 1, right, bottom - 1);
+                double bottom = top + box.span();
+                gc.strokeLine(labelX, bottom - 1, right, bottom - 1);
             }
-            case INTO -> gc.strokeRect(row.getLabelX() + 1, top + 1, row.getValueX() - row.getLabelX() - 2,
-                    Math.max(ROW_HEIGHT, rowSpanHeight(idx)) - 2);
-            case VALUE -> gc.strokeRect(row.getValueX() + 1, top + 1, right - row.getValueX() - 2,
-                    Math.max(ROW_HEIGHT, rowHeights[idx]) - 2);
+            case INTO -> gc.strokeRect(labelX + 1, top + 1, valueX - labelX - 2, Math.max(ROW_HEIGHT, box.span()) - 2);
+            case VALUE -> gc.strokeRect(valueX + 1, top + 1, right - valueX - 2, Math.max(ROW_HEIGHT, box.own()) - 2);
         }
+    }
+
+    /**
+     * Where a row of any grid is drawn: the x offset of its grid (content x), its top (viewport y),
+     * its own height, the height of its name cell and where its value cells end.
+     */
+    private record RowBox(double ox, double top, double own, double span, double right) {
+    }
+
+    /** @return the drawn box of a visible row of the root or of an opened cell's grid, or {@code null} */
+    private RowBox rowBox(FlatRow row) {
+        GridBlock block = row.getBlock();
+        if (block == null) {
+            Integer i = rowIndexMap.get(row);
+            return i == null ? null : new RowBox(0, rowYPositions[i] - scrollOffsetY, rowHeights[i], rowSpanHeight(i),
+                    Math.max(totalWidth, viewportWidthModel() + scrollOffsetX));
+        }
+        GridBlockLayout.Result g = block.geometry();
+        Integer i = g == null ? null : g.index().get(row);
+        double[] origin = i == null ? null : blockOrigin(block);
+        if (origin == null) {
+            return null;
+        }
+        int last = g.lastDescendant()[i];
+        return new RowBox(origin[0], origin[1] + g.y()[i], g.height()[i], g.y()[last] + g.height()[last] - g.y()[i],
+                origin[0] + g.width());
     }
 
     /**
@@ -2999,20 +3062,16 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @return the drag descriptor, or {@code null} when no handle is there
      */
     private ColumnDrag findColumnHandleAt(double mx, double my) {
-        int rowIndex = rowIndexAt(mx, my);
-        if (rowIndex < 0) {
+        Pointer p = pointerAt(mx, my); // the deepest table under the point (inside opened cells too)
+        if (p == null || p.table() == null) {
             return null;
         }
-        FlatRow owner = visibleRows.get(rowIndex);
-        if (!owner.hasRepeatingTable() || !owner.isExpanded()) {
+        RepeatingElementsTable table = p.table();
+        double headerTop = p.tableTop();
+        if (p.ly() < headerTop || p.ly() >= headerTop + ROW_HEIGHT || p.lx() < table.getX()) {
             return null;
         }
-        RepeatingElementsTable table = owner.getRepeatingTable();
-        double headerTop = rowYPositions[rowIndex] - scrollOffsetY;
-        if (my < headerTop || my >= headerTop + ROW_HEIGHT || mx < table.getX()) {
-            return null;
-        }
-        int colIdx = table.getColumnSeparatorAt(mx, RESIZE_HANDLE);
+        int colIdx = table.getColumnSeparatorAt(p.lx(), RESIZE_HANDLE);
         if (colIdx < 0) {
             return null;
         }
@@ -3030,15 +3089,46 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @return the drag descriptor (start width = the block's current name-column width), or {@code null}
      */
     private BlockDrag findBlockSeparatorAt(double mx, double my) {
-        int rowIndex = rowIndexAt(mx, my);
-        if (rowIndex < 0) {
+        Pointer p = pointerAt(mx, my);
+        return p == null ? null : blockSeparator(p.row(), p.lx());
+    }
+
+    /** @return the drag of the block of {@code row} when {@code x} (the row's grid) is on its separator */
+    private BlockDrag blockSeparator(FlatRow row, double x) {
+        if (Math.abs(x - row.getValueX()) > RESIZE_HANDLE) {
             return null;
         }
-        FlatRow row = visibleRows.get(rowIndex);
-        if (Math.abs(mx - row.getValueX()) > RESIZE_HANDLE) {
-            return null;
+        return new BlockDrag(widthKeyOf(row), row.getBlock(), 0, row.getValueX() - row.getLabelX());
+    }
+
+    /** @return the key the name-column width of the block holding {@code row} is stored under */
+    private String widthKeyOf(FlatRow row) {
+        FlatRow parent = row.getParentRow();
+        if (row.getBlock() == null) {
+            return blockKey(parent);
         }
-        return new BlockDrag(row.getParentRow(), 0, row.getValueX() - row.getLabelX());
+        return parent == null || parent.getDepth() < 0 ? cellBlockKey(row.getBlock()) : keyOf(parent);
+    }
+
+    /**
+     * @return the width key of an opened cell's top block: the member's positional path within its
+     *         group and the column ({@code /a/item[2]/#cell/name}), distinct from every row key
+     */
+    private static String cellBlockKey(GridBlock grid) {
+        RepeatingElementsTable.TableRow host = grid.host();
+        RepeatingElementsTable table = host == null ? null : host.getOwner();
+        FlatRow owner = table == null ? null : table.getOwnerRow();
+        String group = owner == null ? null : owner.getTableGroupKey();
+        int r = table == null ? -1 : table.getRows().indexOf(host);
+        return (group == null ? "" : group) + "[" + (r + 1) + "]/#cell/" + grid.column();
+    }
+
+    /** Returns a block to automatic (content) name-column width. */
+    private void resetBlockWidth(BlockDrag separator) {
+        viewState.setNameColumnWidth(separator.key(), null);
+        if (separator.grid() != null) {
+            separator.grid().invalidate();
+        }
     }
 
     // ==================== Mouse Handling ====================
@@ -3138,7 +3228,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         BlockDrag separator = findBlockSeparatorAt(mx, my);
         if (separator != null) {
             if (event.getClickCount() == 2) {
-                viewState.setNameColumnWidth(blockKey(separator.parent()), null);
+                resetBlockWidth(separator);
                 recalculateVisibleRows();
                 updateScrollBars();
                 render();
@@ -3276,25 +3366,24 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         // Inside an embedded table: select the clicked row and offer the table-aware menu
         RepeatingElementsTable table = tableAt(rowIndex, mx, my);
         if (table != null) {
-            double tableTop = rowYPositions[rowIndex] - scrollOffsetY;
-            DeepHit hit = deepHitInTable(table, mx, my, tableTop);
-            if (hit != null && hit.row() != null) {
+            Pointer hit = pointerAt(mx, my);
+            if (hit != null && hit.table() == null) {
                 // A row inside an opened cell (at any depth): its own node menu
                 selectRow(hit.row());
                 contextMenu().show(canvas, event.getScreenX(), event.getScreenY(), adapter.nodeOf(hit.row()));
                 return;
             }
-            if (hit != null) {
+            if (hit != null && hit.cell() != null) {
                 RepeatingElementsTable hitTable = hit.table();
-                if (hit.tableRow() >= 0) {
-                    selectTableRow(hitTable, hit.tableRow());
+                int tableRow = hit.cell().rowIndex();
+                String column = hit.cell().columnIndex() >= 0 ? hitTable.getColumn(hit.cell().columnIndex()).getName()
+                        : null;
+                if (tableRow >= 0) {
+                    selectTableRow(hitTable, tableRow);
                     render();
                 }
-                FlatRow owner = hitTable.getOwnerRow() != null ? hitTable.getOwnerRow() : visibleRows.get(rowIndex);
-                N node = hit.tableRow() >= 0 ? adapter.nodeOf(hitTable.getRows().get(hit.tableRow()))
-                        : adapter.nodeOf(owner);
-                contextMenu().show(canvas, event.getScreenX(), event.getScreenY(), node,
-                        hitTable, hit.tableRow(), hit.column());
+                N node = tableRow >= 0 ? adapter.nodeOf(hitTable.getRows().get(tableRow)) : adapter.nodeOf(hit.row());
+                contextMenu().show(canvas, event.getScreenX(), event.getScreenY(), node, hitTable, tableRow, column);
                 return;
             }
         }
@@ -3332,18 +3421,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         boolean needsRedraw = false;
 
-        // Calculate hovered row
-        int rowIndex = rowIndexAt(mx, my);
-
-        // Check table hover state
-        RepeatingElementsTable table = tableAt(rowIndex, mx, my);
-        boolean tableHovered = table != null;
-        if (tableHovered) {
-            updateTableHover(table, mx, my, rowYPositions[rowIndex] - scrollOffsetY);
-        }
-
-        // Clear table hover if not over a table
-        if (!tableHovered && hoveredTable != null) {
+        // The deepest row or table under the pointer (inside opened cells too)
+        Pointer pointer = pointerAt(mx, my);
+        RepeatingElementsTable table = pointer == null ? null : pointer.table();
+        if (table != null) {
+            updateTableHover(table, pointer.lx(), pointer.ly(), pointer.tableTop());
+        } else if (hoveredTable != null) {
             hoveredTable.setHoveredRowIndex(-1);
             hoveredTable.setHoveredColumnIndex(-1);
             hoveredTable.setHovered(false);
@@ -3353,12 +3436,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             needsRedraw = true;
         }
 
-        FlatRow newHoveredRow = null;
-        if (!tableHovered && rowIndex >= 0) {
-            newHoveredRow = visibleRows.get(rowIndex);
-        }
-
-        // Update hovered row
+        FlatRow newHoveredRow = pointer != null && table == null ? pointer.row() : null;
         if (newHoveredRow != hoveredRow) {
             if (hoveredRow != null) {
                 hoveredRow.setHovered(false);
@@ -3370,20 +3448,19 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             needsRedraw = true;
         }
 
-        // Update hovered expand arrow
-        FlatRow newHoveredExpandBar = findExpandBarAt(mx, my);
+        FlatRow newHoveredExpandBar = expandBarAt(pointer);
         if (newHoveredExpandBar != hoveredExpandBar) {
             hoveredExpandBar = newHoveredExpandBar;
             needsRedraw = true;
         }
 
-        // Preview tooltip over the value cell of a collapsed container
-        updatePreviewTooltip(rowIndex, mx, my);
+        // Preview tooltip over the value cell of a collapsed container (root rows)
+        updatePreviewTooltip(pointer != null && pointer.block() == null && table == null ? rowIndexAt(mx, my) : -1,
+                mx, my);
 
-        // Update cursor
         if (columnDrag != null || findColumnHandleAt(mx, my) != null || findBlockSeparatorAt(mx, my) != null) {
             canvas.setCursor(Cursor.H_RESIZE);
-        } else if (hoveredExpandBar != null) {
+        } else if (hoveredExpandBar != null || pointsAtToggle(pointer)) {
             canvas.setCursor(Cursor.HAND);
         } else {
             canvas.setCursor(Cursor.DEFAULT);
@@ -3392,6 +3469,114 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (needsRedraw) {
             render();
         }
+    }
+
+    /**
+     * The deepest thing under a point, with the coordinate system it lives in: a row of the root
+     * grid or of an opened cell's grid, and — when the point is inside that row's embedded table —
+     * the table and its drawn cell.
+     *
+     * @param block    the opened cell's grid holding the row ({@code null} = the root grid)
+     * @param ox       x offset of that grid's coordinates (content x; 0 for the root)
+     * @param oy       y offset of that grid's coordinates (viewport y; 0 for the root)
+     * @param row      the row under the point (for a table: its owner)
+     * @param rowTop   the row's top in the grid's coordinates
+     * @param table    the embedded table under the point, or {@code null}
+     * @param tableTop the table's top in the grid's coordinates
+     * @param cell     the table's drawn cell under the point, or {@code null}
+     * @param lx       the point in the grid's coordinates
+     * @param ly       the point in the grid's coordinates
+     */
+    record Pointer(GridBlock block, double ox, double oy, FlatRow row, double rowTop,
+                   RepeatingElementsTable table, double tableTop, RepeatingElementsTable.DrawnCell cell,
+                   double lx, double ly) {
+    }
+
+    /** @return what lies under the canvas point (content x, viewport y), at any depth, or {@code null} */
+    Pointer pointerAt(double mx, double my) {
+        int idx = rowIndexAt(mx, my);
+        if (idx < 0) {
+            return null;
+        }
+        double top = rowYPositions[idx] - scrollOffsetY;
+        return descend(null, 0, 0, visibleRows.get(idx), top, tableAt(idx, mx, my), top, mx, my);
+    }
+
+    /** Goes from a row (and its table, if hit) into an opened cell under the point, recursively. */
+    private Pointer descend(GridBlock block, double ox, double oy, FlatRow row, double rowTop,
+                            RepeatingElementsTable table, double tableTop, double lx, double ly) {
+        if (table == null) {
+            return new Pointer(block, ox, oy, row, rowTop, null, 0, null, lx, ly);
+        }
+        int dr = table.drawnRowAt(ly - tableTop);
+        int dc = table.drawnColumnAt(lx);
+        RepeatingElementsTable.DrawnCell cell = dr >= 0 && dc >= 0 ? table.cellAt(dr, dc) : null;
+        if (cell != null && cell.kind() == RepeatingElementsTable.CellKind.DATA
+                && cell.rowIndex() >= 0 && cell.columnIndex() >= 0) {
+            RepeatingElementsTable.TableRow tableRow = table.getRows().get(cell.rowIndex());
+            String column = table.getColumn(cell.columnIndex()).getName();
+            RepeatingElementsTable.CellLayout layout = table.getCellLayout(tableRow, column);
+            if (layout != null && layout.grid() != null) {
+                RepeatingElementsTable.CellRect rect = table.cellRect(cell.rowIndex(), cell.columnIndex());
+                double gx = rect.x() + RepeatingElementsTable.CELL_PADDING;
+                double gy = tableTop + rect.y() + layout.summaryHeight();
+                GridBlock grid = layout.grid();
+                GridBlockLayout.Result g = grid.geometry();
+                int i = ly >= gy && g != null ? grid.rowIndexAt(lx - gx, ly - gy) : -1;
+                if (i >= 0) {
+                    double x = lx - gx;
+                    double y = ly - gy;
+                    FlatRow inner = g.visible().get(i);
+                    double innerTop = g.y()[i];
+                    RepeatingElementsTable nested = null;
+                    if (inner.hasRepeatingTable() && inner.isExpanded()) {
+                        RepeatingElementsTable t = inner.getRepeatingTable();
+                        if (x >= t.getX() && x <= t.getX() + t.getWidth() + RESIZE_HANDLE
+                                && y >= innerTop && y < innerTop + t.getHeight()) {
+                            nested = t;
+                        }
+                    }
+                    return descend(grid, ox + gx, oy + gy, inner, innerTop, nested, innerTop, x, y);
+                }
+            }
+        }
+        return new Pointer(block, ox, oy, row, rowTop, table, tableTop, cell, lx, ly);
+    }
+
+    /** @return the row whose expand arrow is under the pointer (first line of its name cell), or null */
+    private static FlatRow expandBarAt(Pointer p) {
+        if (p == null || p.table() != null || !p.row().isExpandable()) {
+            return null;
+        }
+        double left = p.row().getLabelX();
+        boolean onArrow = p.lx() >= left && p.lx() < left + EXPAND_BAR_WIDTH + 2;
+        boolean onLine = p.ly() >= p.rowTop() && p.ly() < p.rowTop() + ROW_HEIGHT;
+        return onArrow && onLine ? p.row() : null;
+    }
+
+    /** @return whether the pointer is on a table glyph or on the arrow of a complex table cell */
+    private static boolean pointsAtToggle(Pointer p) {
+        if (p == null) {
+            return false;
+        }
+        if (p.table() == null) {
+            double glyphX = p.row().getTableGlyphX();
+            return p.row().showsTableGlyph() && !Double.isNaN(glyphX)
+                    && p.lx() >= glyphX - 2 && p.lx() <= glyphX + TABLE_ICON_SIZE + 2
+                    && p.ly() >= p.rowTop() && p.ly() < p.rowTop() + ROW_HEIGHT;
+        }
+        RepeatingElementsTable.DrawnCell cell = p.cell();
+        if (cell == null || cell.kind() != RepeatingElementsTable.CellKind.DATA
+                || cell.rowIndex() < 0 || cell.columnIndex() < 0) {
+            return false;
+        }
+        String column = p.table().getColumn(cell.columnIndex()).getName();
+        if (!p.table().getRows().get(cell.rowIndex()).hasComplexChild(column)) {
+            return false;
+        }
+        RepeatingElementsTable.CellRect rect = p.table().cellRect(cell.rowIndex(), cell.columnIndex());
+        return p.lx() >= rect.x() && p.lx() <= rect.x() + 16
+                && p.ly() >= p.tableTop() + rect.y() && p.ly() < p.tableTop() + rect.y() + ROW_HEIGHT;
     }
 
     /**
@@ -3901,55 +4086,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         Integer i = g == null ? null : g.index().get(row);
         double[] origin = i == null ? null : blockOrigin(block);
         return origin == null ? null : new double[] {origin[0], origin[1] + g.y()[i]};
-    }
-
-    /** The deepest thing under a point: a row of an opened cell's grid, or a cell of a table. */
-    private record DeepHit(FlatRow row, RepeatingElementsTable table, int tableRow, String column) {
-    }
-
-    /** @return what lies under the point inside {@code table} (coordinates of the table's system) */
-    private DeepHit deepHitInTable(RepeatingElementsTable table, double x, double y, double tableTop) {
-        int dr = table.drawnRowAt(y - tableTop);
-        int dc = table.drawnColumnAt(x);
-        if (dr < 0 || dc < 0) {
-            return null;
-        }
-        RepeatingElementsTable.DrawnCell cell = table.cellAt(dr, dc);
-        String column = cell.columnIndex() >= 0 ? table.getColumn(cell.columnIndex()).getName() : null;
-        if (cell.kind() == RepeatingElementsTable.CellKind.DATA && cell.rowIndex() >= 0 && column != null) {
-            RepeatingElementsTable.TableRow row = table.getRows().get(cell.rowIndex());
-            RepeatingElementsTable.CellLayout layout = table.getCellLayout(row, column);
-            if (layout != null && layout.grid() != null) {
-                RepeatingElementsTable.CellRect rect = table.cellRect(cell.rowIndex(), cell.columnIndex());
-                double gridTop = tableTop + rect.y() + layout.summaryHeight();
-                if (y >= gridTop) {
-                    DeepHit inner = deepHitInBlock(layout.grid(),
-                            x - rect.x() - RepeatingElementsTable.CELL_PADDING, y - gridTop);
-                    if (inner != null) {
-                        return inner;
-                    }
-                }
-            }
-        }
-        return new DeepHit(null, table, cell.rowIndex(), column);
-    }
-
-    /** @return what lies under the point inside an opened cell's grid (block-local coordinates) */
-    private DeepHit deepHitInBlock(GridBlock grid, double x, double y) {
-        int i = grid.rowIndexAt(x, y);
-        GridBlockLayout.Result g = grid.geometry();
-        if (i < 0 || g == null) {
-            return null;
-        }
-        FlatRow row = g.visible().get(i);
-        if (row.hasRepeatingTable() && row.isExpanded()) {
-            RepeatingElementsTable nested = row.getRepeatingTable();
-            if (x >= nested.getX() && x <= nested.getX() + nested.getWidth()
-                    && y >= g.y()[i] && y <= g.y()[i] + nested.getHeight()) {
-                return deepHitInTable(nested, x, y, g.y()[i]);
-            }
-        }
-        return new DeepHit(row, null, -1, null);
     }
 
     private void startEditingValue(FlatRow row) {
@@ -4623,11 +4759,17 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return grid;
     }
 
-    /** How the rows of opened cells are measured (no user name-column widths inside cells yet). */
+    /** How the rows of opened cells are measured, with the user's name-column widths of their blocks. */
     private final GridBlockLayout.Measure cellMeasure = new BlockMeasure() {
         @Override
         public Double nameColumnOverride(FlatRow parent) {
-            return null;
+            if (parent == null) {
+                return null;
+            }
+            if (parent.getDepth() < 0) {
+                return parent.getBlock() == null ? null : viewState.nameColumnWidth(cellBlockKey(parent.getBlock()));
+            }
+            return viewState.nameColumnWidth(keyOf(parent));
         }
     };
 
@@ -4700,6 +4842,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 handleTableClick(event, nested, x, y, top, row);
                 return true;
             }
+        }
+        BlockDrag separator = blockSeparator(row, x);
+        if (separator != null) {
+            // A click on a block's separator never selects; a double-click returns it to automatic width
+            if (event.getClickCount() == 2) {
+                resetBlockWidth(separator);
+                markLayoutDirty();
+            }
+            return true;
         }
         boolean onLine = y <= top + ROW_HEIGHT;
         if (event.getClickCount() == 1 && onLine) {
@@ -4822,11 +4973,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     public void optimalWidths() {
         viewState.clearNameColumnWidths();
         RepeatingElementsTable.clearColumnWidthOverrides();
-        for (FlatRow row : allRows) {
+        forEachLiveRow(row -> { // tables and blocks inside opened cells too
             if (row.isRepeatingTableBuilt()) {
                 row.getRepeatingTable().clearUserWidths();
             }
-        }
+            if (row.getBlock() != null) {
+                row.getBlock().invalidate();
+            }
+        });
         recalculateVisibleRows();
         updateScrollBars();
         render();

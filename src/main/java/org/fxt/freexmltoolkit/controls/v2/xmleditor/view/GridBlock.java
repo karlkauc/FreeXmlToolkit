@@ -33,6 +33,10 @@ public final class GridBlock {
         this.column = column;
         for (FlatRow row : rows) {
             row.setBlock(this);
+            FlatRow parent = row.getParentRow();
+            if (parent != null && parent.getDepth() < 0) {
+                parent.setBlock(this); // the virtual anchor: identifies the cell's top block
+            }
         }
     }
 

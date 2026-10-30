@@ -214,8 +214,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   (e.g. four `Position`s of a `Waehrung`) is one cell (`4 × <Position>`) holding them all.
   Rows inside cells are selected, edited (double-click), expanded and navigated with the arrow
   keys like any other row (**Left** at the top of a cell's grid returns to the cell); tables
-  inside cells sort, flip and edit like the outer ones. Open cells, expanded rows and table/flip
-  choices at every depth survive edits.
+  inside cells sort, flip and edit like the outer ones. Hover, the name-column separators of
+  blocks, column handles and column drags of tables, **Optimal widths** and **drag & drop of rows**
+  (with auto-scroll at the top and bottom edge) work at every depth too. Open cells, expanded
+  rows, dragged widths and table/flip choices at every depth survive edits.
 - **Open whole rows and columns.** Click a **row number** to select the whole row, click a
   **column header** (its name, not the arrow) to select the whole column; **Shift+click**
   extends to more rows or columns. Then press **+** to open the nested cells of the selection

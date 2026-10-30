@@ -81,4 +81,39 @@ class JsonCanvasViewNestedGridTest {
             return null;
         });
     }
+
+    @Test
+    void itemsInsideACellAreMovedByDragAndDrop() {
+        fx(() -> {
+            view.expandAll();
+            orders().getRows().getFirst().toggleColumnExpanded("lines");
+            view.rebuild();
+            GridBlock lines = orders().getRows().getFirst().getCellGrid("lines");
+            view.toggleTableDisplay(lines.rows().getFirst()); // the lines as rows
+            return null;
+        });
+        GridBlock lines = fx(() -> orders().getRows().getFirst().getCellGrid("lines"));
+        // As rows, the items hang directly off the cell's anchor
+        java.util.List<FlatRow> items = lines.rows().stream()
+                .filter(r -> r.getParentRow() != null && r.getParentRow().getDepth() < 0)
+                .toList();
+        assertEquals(2, items.size(), "the two line items as rows");
+
+        assertTrue(fx(() -> view.getAdapter().dropRow(items.get(1), items.get(0), DropPosition.BEFORE, false)));
+        fx(() -> {
+            view.rebuild();
+            return null;
+        });
+        GridBlock after = fx(() -> orders().getRows().getFirst().getCellGrid("lines"));
+        assertNotNull(after, "the cell stays open after the drop");
+        FlatRow firstItem = after.rows().stream()
+                .filter(r -> r.getParentRow() != null && r.getParentRow().getDepth() < 0).findFirst().orElseThrow();
+        GridBlock tagsOfFirst = fx(() -> {
+            firstItem.setExpanded(true);
+            return after;
+        });
+        assertTrue(tagsOfFirst.rows().stream().anyMatch(r -> r.getParentRow() == firstItem));
+        assertTrue(fx(() -> view.getAdapter().dragText(firstItem)).contains("\"k\": 3"),
+                "the former second item (tags 3, 4) is first now");
+    }
 }
