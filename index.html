@@ -702,6 +702,56 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#install-with-a-package-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install with a Package Manager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Install with a Package Manager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#windows-scoop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows – Scoop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#macos-homebrew" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macOS – Homebrew
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2380,6 +2430,56 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#install-with-a-package-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install with a Package Manager
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Install with a Package Manager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#windows-scoop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Windows – Scoop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#macos-homebrew" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macOS – Homebrew
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2715,6 +2815,7 @@
       <ul class="fxt-download-card__alts">
         <li><a data-fxt-asset="win-msi" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">MSI package</a> – for silent / Group Policy deployment<span class="fxt-asset-size"></span></li>
         <li><a data-fxt-asset="win-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> – no installation, extract and run<span class="fxt-asset-size"></span></li>
+        <li><a href="#install-with-a-package-manager">Scoop</a> – <code>scoop install karlkauc/freexmltoolkit</code></li>
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="macos">
@@ -2724,6 +2825,7 @@
         <li><a data-fxt-asset="mac-x64-dmg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Intel .dmg</a> – for Intel-based Macs<span class="fxt-asset-size"></span></li>
         <li><a data-fxt-asset="mac-arm64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg installer</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg</a> (Intel)</li>
         <li><a data-fxt-asset="mac-arm64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Intel)</li>
+        <li><a href="#install-with-a-package-manager">Homebrew</a> – <code>brew install --cask karlkauc/tap/freexmltoolkit</code></li>
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="linux">
@@ -2840,6 +2942,29 @@
 <blockquote>
 <p><strong>Note:</strong> On macOS, pick the build that matches your Mac: <strong>Apple Silicon (ARM64)</strong> for M-series Macs, <strong>Intel (x64)</strong> for older Macs (Apple menu → <em>About This Mac</em> shows the chip). Windows and Linux builds are provided for <strong>x64</strong> (Intel/AMD) only.</p>
 </blockquote>
+<h3 id="install-with-a-package-manager">Install with a Package Manager<a class="headerlink" href="#install-with-a-package-manager" title="Permanent link">&para;</a></h3>
+<p>If you already use a package manager, it can install FreeXmlToolkit for you and keep it up to date. The packages are published with every release and contain the same builds as the download buttons above.</p>
+<h4 id="windows-scoop">Windows – Scoop<a class="headerlink" href="#windows-scoop" title="Permanent link">&para;</a></h4>
+<p><a href="https://scoop.sh">Scoop</a> installs the portable build into your user profile – no installer, no admin rights. Add the FreeXmlToolkit bucket once, then install:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">scoop</span> <span class="n">bucket</span> <span class="n">add</span> <span class="n">karlkauc</span> <span class="n">https</span><span class="p">://</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">karlkauc</span><span class="p">/</span><span class="n">scoop-bucket</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">scoop</span> <span class="n">install</span> <span class="n">karlkauc</span><span class="p">/</span><span class="n">freexmltoolkit</span>
+</code></pre></div>
+<p>Scoop adds <strong>FreeXmlToolkit</strong> to the Start menu. Update and remove it with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">scoop</span> <span class="n">update</span> <span class="n">freexmltoolkit</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">scoop</span> <span class="n">uninstall</span> <span class="n">freexmltoolkit</span>
+</code></pre></div>
+<h4 id="macos-homebrew">macOS – Homebrew<a class="headerlink" href="#macos-homebrew" title="Permanent link">&para;</a></h4>
+<p><a href="https://brew.sh">Homebrew</a> installs the signed and notarized app into <em>Applications</em> and picks the Apple Silicon or Intel build automatically (macOS 11 Big Sur or newer):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>brew<span class="w"> </span>install<span class="w"> </span>--cask<span class="w"> </span>karlkauc/tap/freexmltoolkit
+</code></pre></div>
+<p>Update and remove it with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>brew<span class="w"> </span>upgrade<span class="w"> </span>--cask<span class="w"> </span>freexmltoolkit
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>brew<span class="w"> </span>uninstall<span class="w"> </span>--cask<span class="w"> </span>freexmltoolkit
+</code></pre></div>
+<p><code>brew uninstall --zap --cask freexmltoolkit</code> also removes your settings (<code>~/.freeXmlToolkit</code>).</p>
+<h4 id="updates">Updates<a class="headerlink" href="#updates" title="Permanent link">&para;</a></h4>
+<p>A copy installed by Scoop or Homebrew is updated by the package manager: when a new version is out, the update notice in FreeXmlToolkit shows the command to run instead of downloading the new version itself.</p>
+<p>On Linux, use the <code>.deb</code> / <code>.rpm</code> packages or the portable ZIP above.</p>
 <hr />
 <h2 id="feature-overview">Feature Overview<a class="headerlink" href="#feature-overview" title="Permanent link">&para;</a></h2>
 <h3 id="xml-editor">XML Editor<a class="headerlink" href="#xml-editor" title="Permanent link">&para;</a></h3>
