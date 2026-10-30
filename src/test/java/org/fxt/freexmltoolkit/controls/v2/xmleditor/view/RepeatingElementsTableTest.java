@@ -463,15 +463,16 @@ class RepeatingElementsTableTest {
         row.toggleColumnExpanded("AssetDetails");
         table.recalculateColumnWidths();
 
-        double maxNamePortion = row.getExpandedCellRows("AssetDetails").stream()
-                .filter(FlatRow::isVisible)
-                .mapToDouble(r -> RepeatingElementsTable.subRowNameColumnWidth(r, GridMetrics.estimated()))
-                .max()
-                .orElseThrow();
-
-        assertTrue(col.getWidth() >= RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion,
-                "Column must reserve the full name portion (width=" + col.getWidth()
-                        + ", required=" + (RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion) + ")");
+        GridBlockLayout.Result grid = row.getCellGrid("AssetDetails").geometry();
+        double required = RepeatingElementsTable.CELL_PADDING * 2 + grid.width();
+        assertTrue(col.getWidth() >= required,
+                "Column must hold the cell's whole grid (width=" + col.getWidth() + ", required=" + required + ")");
+        GridBlockLayout.Measure m = table.getCellMeasure();
+        for (FlatRow sub : grid.visible()) {
+            assertTrue(sub.getValueX() - sub.getLabelX() >= GridMetrics.EXPAND_BAR_WIDTH
+                            + GridMetrics.ICON_AREA_WIDTH + m.labelWidth(sub),
+                    "the name cell of " + sub.getLabel() + " holds its full name");
+        }
     }
 
     /**
@@ -505,44 +506,40 @@ class RepeatingElementsTableTest {
         row.invalidateLayout();
         table.recalculateColumnWidths();
 
-        double maxNamePortion = row.getExpandedCellRows("Nested").stream()
-                .filter(FlatRow::isVisible)
-                .mapToDouble(r -> RepeatingElementsTable.subRowNameColumnWidth(r, GridMetrics.estimated()))
-                .max()
-                .orElseThrow();
+        double gridPortion = RepeatingElementsTable.CELL_PADDING * 2
+                + row.getCellGrid("Nested").geometry().width();
 
-        assertTrue(RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion
-                        > GridMetrics.DEFAULT_WRAP_WIDTH,
-                "Test setup: the name portion alone must exceed the wrap width");
+        assertTrue(gridPortion > GridMetrics.DEFAULT_WRAP_WIDTH,
+                "Test setup: the cell's grid alone must exceed the wrap width");
         assertTrue(col.getWidth() > GridMetrics.DEFAULT_WRAP_WIDTH,
                 "Column must exceed the wrap width when names require it, was " + col.getWidth());
-        assertEquals(RepeatingElementsTable.CELL_PADDING * 2 + maxNamePortion, col.getWidth(), 0.001,
-                "Column width must equal exactly the name-portion floor");
+        assertEquals(gridPortion, col.getWidth(), 0.001,
+                "Column width must equal exactly the grid's width");
     }
 
     /**
-     * The "(n)" child-count suffix drawn after expandable labels must be part
-     * of the name-portion budget so it never collides with the value column.
+     * The "(n)" child-count suffix drawn after expandable labels is part of the name cell, so it
+     * never collides with the value column.
      */
     @Test
     void testChildCountSuffixBudgetedInNameColumnWidth() {
-        FlatRow leaf = new FlatRow(FlatRow.RowType.ELEMENT, 0, null, null, "Item", "v", 0);
-        FlatRow expandable5 = new FlatRow(FlatRow.RowType.ELEMENT, 0, null, null, "Item", null, 5);
-        FlatRow expandable12 = new FlatRow(FlatRow.RowType.ELEMENT, 0, null, null, "Item", null, 12);
+        GridBlockLayout.Measure m = new RepeatingElementsTable("Item", List.of(new XmlElement("Item")), 0, () -> { })
+                .getCellMeasure();
+        String label = "AnItemNameLongEnoughToPassTheMinimumWidth";
+        FlatRow leaf = new FlatRow(FlatRow.RowType.ELEMENT, 0, null, null, label, "v", 0);
+        FlatRow expandable5 = new FlatRow(FlatRow.RowType.ELEMENT, 0, null, null, label, null, 5);
+        FlatRow expandable12 = new FlatRow(FlatRow.RowType.ELEMENT, 0, null, null, label, null, 12);
 
-        // "(12)" has one glyph more than "(5)" → exactly SUB_ROW_SMALL_CHAR_WIDTH (6.0) wider.
-        assertEquals(6.0,
-                RepeatingElementsTable.subRowNameColumnWidth(expandable12, GridMetrics.estimated())
-                        - RepeatingElementsTable.subRowNameColumnWidth(expandable5, GridMetrics.estimated()),
-                0.001,
-                "A longer child-count suffix must widen the name portion per glyph");
+        // "(12)" has one glyph more than "(5)" → exactly one SMALL glyph (6.0) wider.
+        assertEquals(6.0, nameColumn(expandable12, m) - nameColumn(expandable5, m), 0.001,
+                "A longer child-count suffix must widen the name cell per glyph");
+        // Expandable vs leaf: suffix gap (4) + "(5)" (3 * 6.0 = 18) = 22 (the expand bar is reserved in every row).
+        assertEquals(22.0, nameColumn(expandable5, m) - nameColumn(leaf, m), 0.001,
+                "Expandable rows must budget the child-count suffix");
+    }
 
-        // Expandable vs leaf: expand bar (12) + suffix gap (4) + "(5)" (3 * 6.0 = 18) = 34.
-        assertEquals(34.0,
-                RepeatingElementsTable.subRowNameColumnWidth(expandable5, GridMetrics.estimated())
-                        - RepeatingElementsTable.subRowNameColumnWidth(leaf, GridMetrics.estimated()),
-                0.001,
-                "Expandable rows must budget expand bar and child-count suffix");
+    private static double nameColumn(FlatRow row, GridBlockLayout.Measure m) {
+        return GridBlockLayout.layout(List.of(row), 0, m).nameColumnWidth();
     }
 
     /**

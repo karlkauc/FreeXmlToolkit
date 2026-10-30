@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -72,7 +73,6 @@ public class RepeatingElementsTable {
      */
     public static final double CELL_PADDING = GridMetrics.CELL_PADDING;
 
-    private static final double[] NO_TOPS = new double[0];
 
     // ==================== Column Order Cache ====================
     // Caches the original column order per element name to maintain stability after sorting
@@ -556,10 +556,8 @@ public class RepeatingElementsTable {
          */
         private final Set<String> expandedColumns = new HashSet<>();
 
-        /**
-         * Cache of flattened child rows for expanded complex cells.
-         */
-        private final Map<String, List<FlatRow>> expandedCellRows = new LinkedHashMap<>();
+        /** The content of every opened complex cell, shown as a grid of its own. */
+        private final Map<String, GridBlock> cellGrids = new LinkedHashMap<>();
 
         /**
          * Checks if a column's complex cell is expanded for this row.
@@ -579,27 +577,49 @@ public class RepeatingElementsTable {
          */
         public void toggleColumnExpanded(String columnName) {
             if (expandedColumns.contains(columnName)) {
+                // The grid is kept: reopening the cell shows it as it was
                 expandedColumns.remove(columnName);
-                expandedCellRows.remove(columnName);
             } else {
                 expandedColumns.add(columnName);
-                if (!expandedCellRows.containsKey(columnName) && complexChildren.containsKey(columnName)) {
-                    List<FlatRow> cellRows = record.flattenComplexChild(columnName);
-                    FlatRow.applyVisibility(cellRows); // collapsed descendants start hidden
-                    expandedCellRows.put(columnName, cellRows);
+                if (!cellGrids.containsKey(columnName) && complexChildren.containsKey(columnName)) {
+                    CellGridFactory factory = owner != null ? owner.cellGridFactory : DEFAULT_CELL_GRIDS;
+                    cellGrids.put(columnName, factory.create(owner, this, columnName));
                 }
             }
             invalidateLayout();
         }
 
         /**
-         * Returns the flattened child rows for an expanded complex cell.
+         * Returns every row of an expanded complex cell (visible or not).
          *
          * @param columnName the column name
-         * @return the list of FlatRows, or empty list if not expanded
+         * @return the cell's rows, or an empty list if not expanded
          */
         public List<FlatRow> getExpandedCellRows(String columnName) {
-            return expandedCellRows.getOrDefault(columnName, List.of());
+            GridBlock grid = getCellGrid(columnName);
+            return grid == null ? List.of() : grid.rows();
+        }
+
+        /** @return the grid of an expanded complex cell, or {@code null} when the cell is closed */
+        public GridBlock getCellGrid(String columnName) {
+            return expandedColumns.contains(columnName) ? cellGrids.get(columnName) : null;
+        }
+
+        /** @return the grids of this row's opened cells, by column name */
+        public Map<String, GridBlock> getCellGrids() {
+            Map<String, GridBlock> open = new LinkedHashMap<>();
+            for (String column : expandedColumns) {
+                GridBlock grid = cellGrids.get(column);
+                if (grid != null) {
+                    open.put(column, grid);
+                }
+            }
+            return Collections.unmodifiableMap(open);
+        }
+
+        /** @return the table this row belongs to, or {@code null} */
+        public RepeatingElementsTable getOwner() {
+            return owner;
         }
 
         /**
@@ -877,38 +897,6 @@ public class RepeatingElementsTable {
         }
     }
 
-    /**
-     * Calculates the width of the "name portion" of a sub-row inside an expanded
-     * complex cell: indentation, expand bar, icon area, label, the "(n)" child-count
-     * suffix for expandable rows, and the label/value gap — everything left of the
-     * value column, excluding {@link #CELL_PADDING}.
-     *
-     * <p>This is the single source of truth shared by the table's layout pass and the
-     * canvas' cell-tree renderer. The invariant both sides rely on: <em>column width
-     * &ge; CELL_PADDING * 2 + the maximum of this value over all visible sub-rows</em>,
-     * so node names are never truncated.</p>
-     *
-     * @param row the sub-row
-     * @param m   the metrics to measure with
-     * @return the name-portion width in unscaled pixels
-     */
-    static double subRowNameColumnWidth(FlatRow row, GridMetrics m) {
-        double width = row.getDepth() * GridMetrics.INDENT + GridMetrics.ICON_AREA_WIDTH;
-        if (row.isExpandable()) {
-            width += GridMetrics.EXPAND_BAR_WIDTH;
-        }
-        if (row.getLabel() != null) {
-            width += m.width(row.getLabel(), GridFont.ROW);
-        }
-        if (row.getInstanceIndex() > 0) {
-            width += GridMetrics.CHILD_COUNT_GAP + m.width("<" + row.getInstanceIndex() + ">", GridFont.SMALL);
-        }
-        if (row.isExpandable()) {
-            String suffix = "(" + row.getChildCount() + ")";
-            width += GridMetrics.CHILD_COUNT_GAP + m.width(suffix, GridFont.SMALL);
-        }
-        return width + GridMetrics.SUB_ROW_LABEL_VALUE_GAP;
-    }
 
     // ==================== Layout ====================
 
@@ -921,46 +909,11 @@ public class RepeatingElementsTable {
      * @param suffix           the laid-out attribute suffix (one line when inline, wrapped when on
      *                         its own lines), or {@code null} when the cell has none
      * @param summaryHeight    height of the summary block including the suffix lines, if any
-     * @param nameColumnWidth  width of the sub-row name column for an expanded cell (0 otherwise)
-     * @param visibleSubRows   the visible sub-rows of an expanded cell, in draw order
-     * @param subRowBlocks     the wrapped value block of each visible sub-row
-     * @param subRowTops       top offset of each visible sub-row relative to the sub-row area
-     * @param height           total cell height (summary + sub-rows)
+     * @param grid             the opened cell's content (laid out), or {@code null} when the cell is closed
+     * @param height           total cell height (summary + the grid)
      */
     public record CellLayout(TextBlock summary, boolean suffixOnNewLine, double suffixX, TextBlock suffix,
-                             double summaryHeight, double nameColumnWidth,
-                             List<FlatRow> visibleSubRows, List<TextBlock> subRowBlocks,
-                             double[] subRowTops, double height) {
-
-        /**
-         * @param yInSubRows y relative to the top of the sub-row area (below the summary)
-         * @return the index into {@link #visibleSubRows()} at that y, or -1
-         */
-        public int subRowIndexAt(double yInSubRows) {
-            if (yInSubRows < 0 || subRowBlocks.isEmpty()) {
-                return -1;
-            }
-            int lo = 0;
-            int hi = subRowBlocks.size() - 1;
-            while (lo <= hi) {
-                int mid = (lo + hi) >>> 1;
-                double top = subRowTops[mid];
-                double bottom = top + subRowBlocks.get(mid).height();
-                if (yInSubRows < top) {
-                    hi = mid - 1;
-                } else if (yInSubRows >= bottom) {
-                    lo = mid + 1;
-                } else {
-                    return mid;
-                }
-            }
-            return -1;
-        }
-
-        /** @return the height of the given visible sub-row */
-        public double subRowHeight(int index) {
-            return subRowBlocks.get(index).height();
-        }
+                             double summaryHeight, GridBlock grid, double height) {
     }
 
     /**
@@ -971,6 +924,11 @@ public class RepeatingElementsTable {
     public void setMetrics(GridMetrics metrics) {
         if (metrics != null && metrics != this.metrics) {
             this.metrics = metrics;
+            for (TableRow row : rows) {
+                for (GridBlock grid : row.cellGrids.values()) {
+                    grid.invalidate(); // measured with the old metrics
+                }
+            }
             invalidateLayout();
         }
     }
@@ -980,9 +938,123 @@ public class RepeatingElementsTable {
         return metrics;
     }
 
-    /** Marks column widths, row heights and cell layouts stale. */
+    /**
+     * Marks column widths, row heights and cell layouts stale, and — for a table inside an opened
+     * cell — the grid holding it.
+     */
     public void invalidateLayout() {
         layoutValid = false;
+        if (parentInvalidator != null) {
+            parentInvalidator.run();
+        }
+    }
+
+    // ==================== Opened cells (nested grids) ====================
+
+    /** Builds the grid of an opened cell. */
+    @FunctionalInterface
+    public interface CellGridFactory {
+        /**
+         * @param table  the table (may be {@code null} for a row without one)
+         * @param row    the table row
+         * @param column the opened column
+         * @return the cell's grid
+         */
+        GridBlock create(RepeatingElementsTable table, TableRow row, String column);
+    }
+
+    /** Without a canvas: the cell's rows as the record flattens them, collapsed descendants hidden. */
+    static final CellGridFactory DEFAULT_CELL_GRIDS = (table, row, column) -> {
+        List<FlatRow> cellRows = row.getRecord().flattenComplexChild(column);
+        FlatRow.applyVisibility(cellRows);
+        return new GridBlock(cellRows, row);
+    };
+
+    private CellGridFactory cellGridFactory = DEFAULT_CELL_GRIDS;
+    /** Measures the rows of opened cells; the canvas replaces it with its own. */
+    private GridBlockLayout.Measure cellMeasure = new EstimatingMeasure();
+    /** The grid row this table is the embedded table of (null when unknown, e.g. in unit tests). */
+    private FlatRow ownerRow;
+    /** Run when this table's layout changes: invalidates the grid holding the owner row. */
+    private Runnable parentInvalidator;
+
+    /** @param factory builds the grids of opened cells ({@code null} = the default) */
+    public void setCellGridFactory(CellGridFactory factory) {
+        this.cellGridFactory = factory != null ? factory : DEFAULT_CELL_GRIDS;
+    }
+
+    /** @param measure measures the rows of opened cells ({@code null} = estimate with the table's metrics) */
+    public void setCellMeasure(GridBlockLayout.Measure measure) {
+        this.cellMeasure = measure != null ? measure : new EstimatingMeasure();
+        for (TableRow row : rows) {
+            row.cellGrids.values().forEach(GridBlock::invalidate);
+        }
+        invalidateLayout();
+    }
+
+    /** @return how the rows of opened cells are measured */
+    GridBlockLayout.Measure getCellMeasure() {
+        return cellMeasure;
+    }
+
+    /** @param ownerRow the grid row this table belongs to */
+    public void setOwnerRow(FlatRow ownerRow) {
+        this.ownerRow = ownerRow;
+    }
+
+    /** @return the grid row this table belongs to, or {@code null} */
+    public FlatRow getOwnerRow() {
+        return ownerRow;
+    }
+
+    /** @param parentInvalidator run when this table's layout changes ({@code null} = nothing) */
+    public void setParentInvalidator(Runnable parentInvalidator) {
+        this.parentInvalidator = parentInvalidator;
+    }
+
+    /** Measures cell rows with the table's metrics alone (no formulas, previews or decorations). */
+    private final class EstimatingMeasure implements GridBlockLayout.Measure {
+        @Override
+        public GridMetrics metrics() {
+            return metrics;
+        }
+
+        @Override
+        public double labelWidth(FlatRow row) {
+            double w = row.getLabel() == null ? 0 : metrics.width(row.getLabel(), GridFont.ROW_BOLD);
+            if (row.getInstanceIndex() > 0) {
+                w += GridMetrics.CHILD_COUNT_GAP + metrics.width("<" + row.getInstanceIndex() + ">", GridFont.SMALL);
+            }
+            if (row.isExpandable()) {
+                w += GridMetrics.CHILD_COUNT_GAP + metrics.width("(" + row.getChildCount() + ")", GridFont.SMALL);
+            }
+            return w;
+        }
+
+        @Override
+        public GridModelAdapter.FormulaView formula(FlatRow row) {
+            return null;
+        }
+
+        @Override
+        public String leafValueText(FlatRow row) {
+            return row.getValue();
+        }
+
+        @Override
+        public String preview(FlatRow row) {
+            return null;
+        }
+
+        @Override
+        public Double nameColumnOverride(FlatRow parent) {
+            return null;
+        }
+
+        @Override
+        public double availableWidth() {
+            return Double.MAX_VALUE;
+        }
     }
 
     /**
@@ -1011,30 +1083,23 @@ public class RepeatingElementsTable {
             // Header = type icon + name + sort arrow zone (always reserved: sorting keeps the width)
             double headerWidth = HEADER_ICON_WIDTH + m.width(name, GridFont.ROW_BOLD) + SORT_ZONE + pad2;
             double contentWidth = 0;
-            double maxNameCol = 0;
+            double maxGridWidth = 0;
 
             for (TableRow row : rows) {
                 contentWidth = Math.max(contentWidth, cellContentWidth(row, name, m) + pad2);
-                if (row.isColumnExpanded(name)) {
-                    double maxSubValue = 0;
-                    for (FlatRow sub : row.getExpandedCellRows(name)) {
-                        if (!sub.isVisible()) {
-                            continue;
-                        }
-                        maxNameCol = Math.max(maxNameCol, subRowNameColumnWidth(sub, m));
-                        if (sub.getValue() != null) {
-                            maxSubValue = Math.max(maxSubValue, m.width(sub.getValue(), GridFont.ROW));
-                        }
-                    }
-                    contentWidth = Math.max(contentWidth, pad2 + maxNameCol + maxSubValue);
+                GridBlock grid = row.isColumnExpanded(name) ? row.getCellGrid(name) : null;
+                if (grid != null) {
+                    maxGridWidth = Math.max(maxGridWidth, grid.geometry(cellMeasure).width());
                 }
             }
+            contentWidth = Math.max(contentWidth, pad2 + maxGridWidth);
 
             col.contentWidth = contentWidth;
-            // Values are capped at the wrap width (they wrap); header and sub-row names never are.
+            // Values are capped at the wrap width (they wrap); an opened cell's grid never is (its
+            // values wrap inside it already).
             double natural = Math.max(
                     Math.max(MIN_COLUMN_WIDTH, headerWidth),
-                    Math.max(Math.min(contentWidth, maxValueColumn), pad2 + maxNameCol));
+                    Math.max(Math.min(contentWidth, maxValueColumn), pad2 + maxGridWidth));
             col.setWidth(col.userWidth != null ? Math.max(col.userWidth, MIN_COLUMN_WIDTH) : natural);
         }
 
@@ -1127,6 +1192,10 @@ public class RepeatingElementsTable {
             double w = Math.max(MIN_COLUMN_WIDTH, m.width(String.valueOf(r + 1), GridFont.SMALL) + pad2);
             for (TableColumn col : columns) {
                 w = Math.max(w, Math.min(cellContentWidth(row, col.getName(), m) + pad2, maxValueColumn));
+                GridBlock grid = row.isColumnExpanded(col.getName()) ? row.getCellGrid(col.getName()) : null;
+                if (grid != null) {
+                    w = Math.max(w, pad2 + grid.geometry(cellMeasure).width());
+                }
             }
             drawnColX[r + 1] = drawnColX[r] + drawnColW[r];
             drawnColW[r + 1] = w;
@@ -1190,32 +1259,10 @@ public class RepeatingElementsTable {
             }
         }
 
-        List<FlatRow> visibleSubRows = List.of();
-        List<TextBlock> subRowBlocks = List.of();
-        double[] subRowTops = NO_TOPS;
-        double nameColumnWidth = 0;
-        double subRowsHeight = 0;
-        if (row.isColumnExpanded(name)) {
-            visibleSubRows = new ArrayList<>();
-            for (FlatRow sub : row.getExpandedCellRows(name)) {
-                if (sub.isVisible()) {
-                    visibleSubRows.add(sub);
-                    nameColumnWidth = Math.max(nameColumnWidth, subRowNameColumnWidth(sub, m));
-                }
-            }
-            double valueAvail = Math.max(GridMetrics.MIN_TEXT_WIDTH,
-                    cellWidth - CELL_PADDING * 2 - nameColumnWidth);
-            subRowBlocks = new ArrayList<>(visibleSubRows.size());
-            subRowTops = new double[visibleSubRows.size()];
-            for (int i = 0; i < visibleSubRows.size(); i++) {
-                subRowTops[i] = subRowsHeight;
-                TextBlock block = TextBlock.of(m, visibleSubRows.get(i).getValue(), GridFont.ROW, valueAvail);
-                subRowBlocks.add(block);
-                subRowsHeight += block.height();
-            }
-        }
-        return new CellLayout(summary, suffixOnNewLine, suffixX, suffixBlock, summaryHeight, nameColumnWidth,
-                visibleSubRows, subRowBlocks, subRowTops, summaryHeight + subRowsHeight);
+        GridBlock grid = row.isColumnExpanded(name) ? row.getCellGrid(name) : null;
+        double gridHeight = grid != null ? grid.geometry(cellMeasure).totalHeight() : 0;
+        return new CellLayout(summary, suffixOnNewLine, suffixX, suffixBlock, summaryHeight, grid,
+                summaryHeight + gridHeight);
     }
 
     /**

@@ -139,6 +139,13 @@ public final class XmlGridRecord implements GridRecord {
                 : List.of();
     }
 
+    @Override
+    public List<FlatRow> flattenCell(String columnName, java.util.function.Predicate<String> groupAsTable) {
+        return complexChildren.containsKey(columnName)
+                ? FlatRow.flattenCellContent(element, cellMembers(columnName), groupAsTable)
+                : List.of();
+    }
+
     /** @return every child element behind the column, in document order (empty for attributes and text) */
     public List<XmlElement> cellMembers(String columnName) {
         List<XmlElement> members = cellMembers.get(columnName);

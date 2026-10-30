@@ -108,14 +108,26 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
      * start collapsed, like {@link FlatRow#flattenElement}.
      */
     public static List<FlatRow> flattenValue(JsonNode container) {
+        return flattenValue(container, FlatRow.CELL_GROUPS);
+    }
+
+    /**
+     * The rows of an opened cell holding {@code container}, grouped like the root grid's rows: an
+     * array of objects becomes one table row when {@code groupAsTable} accepts its path.
+     */
+    public static List<FlatRow> flattenValue(JsonNode container, java.util.function.Predicate<String> groupAsTable) {
         List<FlatRow> rows = new ArrayList<>();
         if (container == null) {
             return rows;
         }
         FlatRow anchor = new FlatRow(rowTypeOf(container), -1, container, null,
                 labelOf(container), null, container.getChildCount());
-        // Arrays of objects inside a cell show as rows until cells can hold embedded tables
-        flattenChildren(container, 0, anchor, rows, FlatRow.CELL_GROUPS);
+        if (container instanceof JsonArray array && isObjectTable(array) && groupAsTable.test(array.getPath())) {
+            // The cell holds an array of objects: one row with its embedded table, as in the root grid
+            flattenNode(container, labelOf(container), 0, anchor, rows, true, groupAsTable);
+            return rows;
+        }
+        flattenChildren(container, 0, anchor, rows, groupAsTable);
         return rows;
     }
 

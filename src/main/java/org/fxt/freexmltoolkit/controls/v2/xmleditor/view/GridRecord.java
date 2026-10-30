@@ -46,4 +46,16 @@ public interface GridRecord {
      * @return the flat rows (empty when the column has no complex child)
      */
     List<FlatRow> flattenComplexChild(String columnName);
+
+    /**
+     * The rows of the opened cell of a complex column, grouped like the root grid's rows of the same
+     * nodes: a repeating group becomes one table row when {@code groupAsTable} accepts its key.
+     *
+     * @param columnName   the column
+     * @param groupAsTable per group key, whether a repeating group becomes a table
+     * @return the cell's rows (top rows hang off a virtual anchor)
+     */
+    default List<FlatRow> flattenCell(String columnName, java.util.function.Predicate<String> groupAsTable) {
+        return flattenComplexChild(columnName);
+    }
 }

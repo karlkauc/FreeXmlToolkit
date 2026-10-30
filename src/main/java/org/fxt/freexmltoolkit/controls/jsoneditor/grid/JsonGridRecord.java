@@ -100,6 +100,12 @@ public final class JsonGridRecord implements GridRecord {
     }
 
     @Override
+    public List<FlatRow> flattenCell(String columnName, java.util.function.Predicate<String> groupAsTable) {
+        Object child = complexChildren.get(columnName);
+        return child instanceof JsonNode node ? JsonGridAdapter.flattenValue(node, groupAsTable) : List.of();
+    }
+
+    @Override
     public List<FlatRow> flattenComplexChild(String columnName) {
         Object child = complexChildren.get(columnName);
         return child instanceof JsonNode node ? JsonGridAdapter.flattenValue(node) : List.of();

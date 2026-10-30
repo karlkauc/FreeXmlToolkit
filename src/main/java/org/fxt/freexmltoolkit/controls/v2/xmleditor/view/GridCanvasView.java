@@ -148,6 +148,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** Width of the root block's name column (the test hook {@link #nameColumnWidthValue()}). */
     private double nameColumnWidth = MIN_NAME_COL_WIDTH;
+    /** The visible area in the current drawing coordinates (shifted while an opened cell's grid draws). */
+    private double cullTop;
+    private double cullBottom;
+    private double cullLeft;
+    private double cullRight;
 
     /**
      * The per-document view state (expand state, selection, name-column widths, table toggles)
@@ -679,12 +684,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Preserves expand/collapse state across rebuilds by matching rows by label+type+depth.
      */
     private void rebuildTree() {
-        // Remember expand state and selection by stable key before rebuilding
-        for (FlatRow row : allRows) {
-            if (row.isExpandable()) {
-                viewState.setExpanded(keyOf(row), row.isExpanded());
-            }
-        }
+        // Remember expand state (at any depth), open cells and selection by stable key
         if (selectedRow != null) {
             viewState.setSelectedKey(keyOf(selectedRow));
         }
@@ -705,16 +705,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         allRows = FlatRow.groupSiblings(applyFilters(adapter.flatten(viewState::isTable)), siblingGroupSize);
         adapter.attachTables(allRows, this::markLayoutDirty);
-        GridMetrics currentMetrics = metrics;
         for (FlatRow row : allRows) {
             if (row.hasRepeatingTable()) {
-                boolean flipped = viewState.isFlipped(row.getTableGroupKey());
-                java.util.Set<String> cells = viewState.cellExpansion(row.getTableGroupKey());
-                row.whenRepeatingTableReady(table -> { // without building it now
-                    table.setMetrics(currentMetrics);
-                    table.setFlipped(flipped);
-                    restoreCellExpansion(table, cells);
-                });
+                row.whenRepeatingTableReady(table -> configureTable(table, row)); // without building it now
             }
         }
 
@@ -959,11 +952,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (block == null) {
             return;
         }
-        double canvasBottom = viewportHeightModel() + LINE_HEIGHT;
+        double canvasBottom = cullBottom + LINE_HEIGHT;
         List<String> lines = block.lines();
         for (int k = 0; k < lines.size(); k++) {
             double y = firstLineCenterY + k * LINE_HEIGHT;
-            if (y < -LINE_HEIGHT) {
+            if (y < cullTop - LINE_HEIGHT) {
                 continue;
             }
             if (y > canvasBottom) {
@@ -1016,6 +1009,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         double z = getZoom();
         gc.scale(z, z);
         gc.translate(-scrollOffsetX, 0);
+        cullTop = 0;
+        cullBottom = viewportHeightModel();
+        cullLeft = scrollOffsetX;
+        cullRight = scrollOffsetX + viewportWidthModel();
 
         // The name cells of the first visible row's ancestors start above the viewport but
         // span into it: draw them first (outermost first), then the rows in view.
@@ -1399,13 +1396,22 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * value cell with the wrapped value or the grey preview, the cell frames and the expand arrow.
      */
     private void drawRow(int visibleIndex) {
-        FlatRow row = visibleRows.get(visibleIndex);
-        double top = rowYPositions[visibleIndex] - scrollOffsetY;
-        double own = rowHeights[visibleIndex];
-        double span = rowSpanHeight(visibleIndex);
+        drawRowAt(visibleRows.get(visibleIndex), rowYPositions[visibleIndex] - scrollOffsetY,
+                rowHeights[visibleIndex], rowSpanHeight(visibleIndex),
+                Math.max(totalWidth, viewportWidthModel() + scrollOffsetX));
+    }
+
+    /**
+     * Draws one row of any grid (the root or an opened cell's) in the current coordinates.
+     *
+     * @param top   the row's top
+     * @param own   its own height (0 for an expanded container)
+     * @param span  the height of its name cell (own line plus visible descendants)
+     * @param right where the value cells end
+     */
+    private void drawRowAt(FlatRow row, double top, double own, double span, double right) {
         double labelX = row.getLabelX();
         double valueX = row.getValueX();
-        double right = Math.max(totalWidth, viewportWidthModel() + scrollOffsetX);
         boolean tableOwner = row.hasRepeatingTable() && row.isExpanded();
         boolean hasValueCell = own > 0 && !tableOwner;
 
@@ -1793,11 +1799,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         int drawnCols = table.drawnColumnCount();
         int drawnRows = table.drawnRowCount();
 
-        // Cull drawn rows and columns to the viewport (a flipped table has one column per record)
-        double viewTop = -tableY;
-        double viewBottom = viewportHeightModel() - tableY;
-        double viewLeft = scrollOffsetX;
-        double viewRight = scrollOffsetX + viewportWidthModel();
+        // Cull drawn rows and columns to the view (a flipped table has one column per record)
+        double viewTop = cullTop - tableY;
+        double viewBottom = cullBottom - tableY;
+        double viewLeft = cullLeft;
+        double viewRight = cullRight;
 
         gc.setTextBaseline(VPos.CENTER);
         for (int dr = 0; dr < drawnRows; dr++) {
@@ -1993,9 +1999,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
 
-        // Expanded cell content as a full tree (sub-rows below the summary block)
-        if (row.isColumnExpanded(colName)) {
-            renderCellTree(layout, cellX, rowTop + layout.summaryHeight(), colWidth);
+        // An opened cell's content: a grid of its own below the summary block
+        if (layout.grid() != null) {
+            renderBlock(layout.grid(), cellX + RepeatingElementsTable.CELL_PADDING,
+                    rowTop + layout.summaryHeight(), colWidth - 2 * RepeatingElementsTable.CELL_PADDING);
         }
 
         gc.restore();
@@ -2022,146 +2029,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     // ==================== Cell Tree Rendering ====================
-
-    /**
-     * Renders a full tree view within an expanded cell's content area.
-     * Supports recursive expand/collapse, expand indicators, tree lines,
-     * icons, labels, wrapped values, and child counts -- the same behavior as
-     * the main tree view but rendered within cell bounds.
-     *
-     * @param layout    the cell's measured layout (visible sub-rows, tops, value blocks)
-     * @param cellX     the X coordinate of the cell's left edge
-     * @param cellY     the Y coordinate where the sub-rows start (below the summary block)
-     * @param cellWidth the width of the cell
-     */
-    private void renderCellTree(RepeatingElementsTable.CellLayout layout, double cellX, double cellY,
-                                double cellWidth) {
-        List<FlatRow> visibleCellRows = layout.visibleSubRows();
-        if (visibleCellRows.isEmpty()) {
-            return;
-        }
-
-        double cellPadding = RepeatingElementsTable.CELL_PADDING;
-        double cellNameColWidth = layout.nameColumnWidth();
-
-        // Draw tree connection lines within cell
-        drawCellTreeLines(layout, cellX + cellPadding, cellY);
-
-        // Draw each visible sub-row
-        for (int i = 0; i < visibleCellRows.size(); i++) {
-            FlatRow row = visibleCellRows.get(i);
-            double rowY = cellY + layout.subRowTops()[i];
-            double rowHeight = layout.subRowHeight(i);
-            double rowCenterY = rowY + ROW_HEIGHT / 2;
-
-            double contentX = cellX + cellPadding + row.getDepth() * INDENT;
-
-            // Draw expand indicator for expandable elements
-            if (row.isExpandable()) {
-                drawCellExpandIndicator(row, contentX, rowY);
-            }
-
-            // Draw icon
-            double iconX = contentX + (row.isExpandable() ? EXPAND_BAR_WIDTH : 0);
-            drawRowIcon(row, iconX, rowCenterY);
-
-            // Draw label (never truncated: the column reserves the full name portion)
-            double labelX = iconX + ICON_AREA_WIDTH;
-            gc.setFont(ROW_FONT);
-            gc.setFill(getRowLabelColor(row.getType()));
-            gc.setTextAlign(TextAlignment.LEFT);
-            gc.setTextBaseline(VPos.CENTER);
-            if (row.getLabel() != null) {
-                fillName(row.getLabel(), labelX, rowCenterY, GridFont.ROW);
-            }
-
-            // Instance number of a member of a group shown as rows (<1>, <2>, …), then the child count
-            double afterLabel = labelX + (row.getLabel() != null ? metrics.width(row.getLabel(), GridFont.ROW) : 0);
-            if (row.getInstanceIndex() > 0) {
-                gc.setFont(SMALL_FONT);
-                gc.setFill(TEXT_SECONDARY);
-                afterLabel += GridMetrics.CHILD_COUNT_GAP;
-                gc.fillText(instanceIndexText(row), afterLabel, rowCenterY);
-                afterLabel += metrics.width(instanceIndexText(row), GridFont.SMALL);
-            }
-            if (row.isExpandable()) {
-                gc.setFont(SMALL_FONT);
-                gc.setFill(TEXT_SECONDARY);
-                gc.fillText("(" + row.getChildCount() + ")", afterLabel + GridMetrics.CHILD_COUNT_GAP, rowCenterY);
-            }
-
-            // Draw value (wrapped)
-            double valueX = cellX + cellPadding + cellNameColWidth;
-            if (row.getValue() != null) {
-                gc.setFont(ROW_FONT);
-                gc.setFill(getRowValueColor(row.getType()));
-                drawTextBlock(layout.subRowBlocks().get(i), valueX, rowCenterY);
-            }
-
-            // Row separator
-            gc.setStroke(ROW_SEPARATOR);
-            gc.setLineWidth(0.3);
-            gc.strokeLine(cellX + cellPadding, rowY + rowHeight, cellX + cellWidth - cellPadding, rowY + rowHeight);
-        }
-    }
-
-    /**
-     * Draws an expand/collapse indicator (triangle) for an expandable sub-row within a cell.
-     *
-     * @param row the expandable row
-     * @param x   the X coordinate where the expand indicator starts
-     * @param y   the Y coordinate of the row's top edge
-     */
-    private void drawCellExpandIndicator(FlatRow row, double x, double y) {
-        double arrowX = x + EXPAND_BAR_WIDTH / 2;
-        double arrowY = y + RepeatingElementsTable.ROW_HEIGHT / 2;
-        double arrowSize = 3;
-        gc.setFill(EXPAND_BAR_ARROW);
-
-        if (row.isExpanded()) {
-            // Down-pointing triangle (expanded)
-            gc.fillPolygon(
-                    new double[]{arrowX - arrowSize, arrowX, arrowX + arrowSize},
-                    new double[]{arrowY - arrowSize / 2, arrowY + arrowSize, arrowY - arrowSize / 2},
-                    3);
-        } else {
-            // Right-pointing triangle (collapsed)
-            gc.fillPolygon(
-                    new double[]{arrowX - arrowSize / 2, arrowX + arrowSize, arrowX - arrowSize / 2},
-                    new double[]{arrowY - arrowSize, arrowY, arrowY + arrowSize},
-                    3);
-        }
-    }
-
-    /**
-     * Draws tree connection lines for visible sub-rows within a cell.
-     * Connects child rows to their parent with horizontal branch lines.
-     *
-     * @param layout the cell layout (visible sub-rows and their tops)
-     * @param baseX  the X offset for tree line calculations
-     * @param baseY  the Y coordinate where the first sub-row starts
-     */
-    private void drawCellTreeLines(RepeatingElementsTable.CellLayout layout, double baseX, double baseY) {
-        gc.setStroke(TREE_LINE_COLOR);
-        gc.setLineWidth(0.5);
-
-        List<FlatRow> visibleCellRows = layout.visibleSubRows();
-        for (int i = 0; i < visibleCellRows.size(); i++) {
-            FlatRow row = visibleCellRows.get(i);
-            FlatRow parent = row.getParentRow();
-            if (parent == null || parent.getDepth() < 0) {
-                continue; // Skip rows whose parent is the virtual root
-            }
-
-            double rowY = baseY + layout.subRowTops()[i] + ROW_HEIGHT / 2;
-            double parentBarX = baseX + parent.getDepth() * INDENT + EXPAND_BAR_WIDTH / 2;
-            double iconX = baseX + row.getDepth() * INDENT
-                    + (row.isExpandable() ? EXPAND_BAR_WIDTH : 0);
-
-            // Horizontal branch from parent bar to child icon
-            gc.strokeLine(parentBarX, rowY, iconX, rowY);
-        }
-    }
 
     // ==================== Table Interaction ====================
 
@@ -2266,28 +2133,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
-        // Click on a sub-row's expand indicator inside an expanded cell
-        if (event.getClickCount() == 1 && row.isColumnExpanded(colName)) {
-            List<FlatRow> cellRows = row.getExpandedCellRows(colName);
-            RepeatingElementsTable.CellLayout layout = table.getCellLayout(row, colName);
-            double rowTopY = tableScreenTop + rect.y();
-            double subRowStartY = rowTopY + layout.summaryHeight();
-            double cellPad = RepeatingElementsTable.CELL_PADDING;
-
-            int subRowIdx = layout.subRowIndexAt(my - subRowStartY);
-            if (subRowIdx >= 0) {
-                FlatRow subRow = layout.visibleSubRows().get(subRowIdx);
-                if (subRow.isExpandable()) {
-                    double subContentX = cellLeft + cellPad + subRow.getDepth() * INDENT;
-                    if (mx >= subContentX && mx <= subContentX + EXPAND_BAR_WIDTH) {
-                        FlatRow.toggleExpand(subRow, cellRows);
-                        table.recalculateColumnWidths();
-                        recalculateVisibleRows();
-                        updateScrollBars();
-                        render();
-                        return;
-                    }
-                }
+        // A click inside an opened cell goes to its grid (rows, nested tables, their cells …)
+        RepeatingElementsTable.CellLayout cellLayout = table.getCellLayout(row, colName);
+        if (cellLayout != null && cellLayout.grid() != null) {
+            double gridTop = tableScreenTop + rect.y() + cellLayout.summaryHeight();
+            double gridLeft = cellLeft + RepeatingElementsTable.CELL_PADDING;
+            if (my >= gridTop && handleBlockClick(event, cellLayout.grid(), mx - gridLeft, my - gridTop)) {
+                return;
             }
         }
 
@@ -2300,8 +2152,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             setCellRange(rowIdx, cell.columnIndex(), rowIdx, cell.columnIndex());
         }
 
-        // Double-click to edit cell
-        if (event.getClickCount() == 2) {
+        // Double-click to edit cell (cells of tables inside opened cells: not yet)
+        if (event.getClickCount() == 2 && tableOwner.getBlock() == null) {
             startEditingTableCell(table, rowIdx, colName, tableScreenTop);
         }
 
@@ -4386,6 +4238,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         FlatRow.applyVisibility(cellRows);
         boolean changed = openShallowest(cellRows);
         FlatRow.applyVisibility(cellRows);
+        if (changed) {
+            row.getCellGrid(column).invalidate();
+        }
         return changed;
     }
 
@@ -4397,6 +4252,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         FlatRow.applyVisibility(cellRows);
         if (closeDeepest(cellRows)) {
             FlatRow.applyVisibility(cellRows);
+            row.getCellGrid(column).invalidate();
             return true;
         }
         row.toggleColumnExpanded(column);
@@ -4473,31 +4329,38 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     // ==================== Cell expansion across rebuilds ====================
 
-    /** Remembers the open complex cells (and their open sub-rows) of every built table. */
+    /**
+     * Remembers, for every row that exists now — the root's and those inside opened cells, at any
+     * depth — its expand state, and for every built table its opened cells ("row:column").
+     */
     private void saveCellExpansion() {
         for (FlatRow row : allRows) {
-            if (row.getTableGroupKey() == null || !row.isRepeatingTableBuilt()) {
-                continue;
-            }
-            RepeatingElementsTable table = row.getRepeatingTable();
-            java.util.Set<String> entries = new java.util.LinkedHashSet<>();
-            List<RepeatingElementsTable.TableRow> rows = table.getRows();
-            for (int r = 0; r < rows.size(); r++) {
-                for (String column : rows.get(r).getExpandedColumns()) {
-                    entries.add(r + ":" + column);
-                    List<FlatRow> cellRows = rows.get(r).getExpandedCellRows(column);
-                    for (int i = 0; i < cellRows.size(); i++) {
-                        if (cellRows.get(i).isExpandable() && cellRows.get(i).isExpanded()) {
-                            entries.add(r + ":" + column + ":" + i);
-                        }
-                    }
-                }
-            }
-            viewState.setCellExpansion(row.getTableGroupKey(), entries);
+            saveLiveState(row);
         }
     }
 
-    /** Re-opens the remembered cells and sub-rows of a rebuilt table; stale entries are ignored. */
+    private void saveLiveState(FlatRow row) {
+        if (row.isExpandable()) {
+            viewState.setExpanded(keyOf(row), row.isExpanded());
+        }
+        if (row.getTableGroupKey() == null || !row.isRepeatingTableBuilt()) {
+            return;
+        }
+        RepeatingElementsTable table = row.getRepeatingTable();
+        java.util.Set<String> entries = new java.util.LinkedHashSet<>();
+        List<RepeatingElementsTable.TableRow> rows = table.getRows();
+        for (int r = 0; r < rows.size(); r++) {
+            for (var open : rows.get(r).getCellGrids().entrySet()) {
+                entries.add(r + ":" + open.getKey());
+                for (FlatRow inner : open.getValue().rows()) {
+                    saveLiveState(inner);
+                }
+            }
+        }
+        viewState.setCellExpansion(row.getTableGroupKey(), entries);
+    }
+
+    /** Re-opens the remembered cells of a rebuilt table; stale and old sub-row entries are ignored. */
     private static void restoreCellExpansion(RepeatingElementsTable table, java.util.Set<String> entries) {
         if (entries == null || entries.isEmpty()) {
             return;
@@ -4505,45 +4368,167 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         boolean changed = false;
         List<RepeatingElementsTable.TableRow> rows = table.getRows();
         for (String entry : entries) {
-            String[] parts = entry.split(":", -1);
+            int colon = entry.indexOf(':');
+            if (colon <= 0) {
+                continue;
+            }
             int r;
             try {
-                r = Integer.parseInt(parts[0]);
+                r = Integer.parseInt(entry.substring(0, colon));
             } catch (NumberFormatException e) {
                 continue;
             }
-            if (parts.length < 2 || r < 0 || r >= rows.size()) {
+            String column = entry.substring(colon + 1);
+            int last = column.lastIndexOf(':');
+            if (last >= 0 && column.substring(last + 1).matches("\\d+")) {
+                continue; // a sub-row entry of the former flat cell content
+            }
+            if (r < 0 || r >= rows.size()) {
                 continue;
             }
-            // Column names never contain ':' in XML (QNames aside) — the sub-row index is the last part
-            boolean subRow = parts.length > 2 && parts[parts.length - 1].matches("\\d+");
-            String column = subRow ? entry.substring(parts[0].length() + 1, entry.lastIndexOf(':'))
-                    : entry.substring(parts[0].length() + 1);
             RepeatingElementsTable.TableRow row = rows.get(r);
-            if (!row.hasComplexChild(column)) {
-                continue;
-            }
-            if (!row.isColumnExpanded(column)) {
+            if (row.hasComplexChild(column) && !row.isColumnExpanded(column)) {
                 row.toggleColumnExpanded(column);
                 changed = true;
             }
-            if (subRow) {
-                int i = Integer.parseInt(parts[parts.length - 1]);
-                List<FlatRow> cellRows = row.getExpandedCellRows(column);
-                if (i < cellRows.size() && cellRows.get(i).isExpandable()) {
-                    cellRows.get(i).setExpanded(true);
-                    changed = true;
-                }
-            }
         }
         if (changed) {
-            for (RepeatingElementsTable.TableRow row : rows) {
-                for (String column : row.getExpandedColumns()) {
-                    FlatRow.applyVisibility(row.getExpandedCellRows(column));
-                }
-            }
             table.recalculateColumnWidths();
         }
+    }
+
+    /**
+     * Sets up a table of any grid once it is built: metrics, flip, how opened cells are built and
+     * measured, its owner row, the invalidation of the grid holding it, and its remembered cells.
+     */
+    private void configureTable(RepeatingElementsTable table, FlatRow owner) {
+        table.setMetrics(metrics);
+        table.setFlipped(viewState.isFlipped(owner.getTableGroupKey()));
+        table.setOwnerRow(owner);
+        table.setCellMeasure(cellMeasure);
+        table.setCellGridFactory(this::createCellGrid);
+        GridBlock holder = owner.getBlock();
+        table.setParentInvalidator(holder == null ? null : holder::invalidate);
+        restoreCellExpansion(table, viewState.cellExpansion(owner.getTableGroupKey()));
+    }
+
+    /**
+     * Builds the grid of an opened cell like the root grid: groups become tables (unless switched
+     * off), every remembered expand state and opened cell inside comes back.
+     */
+    private GridBlock createCellGrid(RepeatingElementsTable table, RepeatingElementsTable.TableRow row,
+                                     String column) {
+        List<FlatRow> rows = row.getRecord().flattenCell(column, viewState::isTable);
+        GridBlock grid = new GridBlock(rows, row);
+        adapter.attachTables(rows, this::markLayoutDirty);
+        for (FlatRow inner : rows) {
+            if (inner.isExpandable()) {
+                Boolean expanded = viewState.expandedState(keyOf(inner));
+                if (expanded != null) {
+                    inner.setExpanded(expanded);
+                }
+            }
+            if (inner.hasRepeatingTable()) {
+                inner.whenRepeatingTableReady(nested -> configureTable(nested, inner));
+            }
+        }
+        FlatRow.applyVisibility(rows);
+        return grid;
+    }
+
+    /** How the rows of opened cells are measured (no user name-column widths inside cells yet). */
+    private final GridBlockLayout.Measure cellMeasure = new BlockMeasure() {
+        @Override
+        public Double nameColumnOverride(FlatRow parent) {
+            return null;
+        }
+    };
+
+    /**
+     * Draws an opened cell's grid with its block origin at ({@code ox}, {@code oy}) in the current
+     * coordinates: its rows, then the embedded tables of its rows (whose cells may open grids again).
+     *
+     * @param minRight the cell's inner width: value cells reach at least that far
+     */
+    private void renderBlock(GridBlock grid, double ox, double oy, double minRight) {
+        GridBlockLayout.Result g = grid.geometry() != null ? grid.geometry() : grid.geometry(cellMeasure);
+        double top0 = cullTop;
+        double bottom0 = cullBottom;
+        double left0 = cullLeft;
+        double right0 = cullRight;
+        gc.save();
+        gc.translate(ox, oy);
+        cullTop = top0 - oy;
+        cullBottom = bottom0 - oy;
+        cullLeft = left0 - ox;
+        cullRight = right0 - ox;
+        try {
+            List<FlatRow> visible = g.visible();
+            double right = Math.max(g.width(), minRight);
+            for (int i = 0; i < visible.size(); i++) {
+                int last = g.lastDescendant()[i];
+                double top = g.y()[i];
+                double span = g.y()[last] + g.height()[last] - top;
+                if (top + span < cullTop || top > cullBottom) {
+                    continue;
+                }
+                drawRowAt(visible.get(i), top, g.height()[i], span, right);
+            }
+            for (int i = 0; i < visible.size(); i++) {
+                FlatRow row = visible.get(i);
+                if (row.hasRepeatingTable() && row.isExpanded()) {
+                    double top = g.y()[i];
+                    if (top + g.height()[i] >= cullTop && top <= cullBottom) {
+                        renderInlineTable(row, top);
+                    }
+                }
+            }
+        } finally {
+            cullTop = top0;
+            cullBottom = bottom0;
+            cullLeft = left0;
+            cullRight = right0;
+            gc.restore();
+        }
+    }
+
+    /**
+     * A click inside an opened cell's grid, in the grid's coordinates: a nested table gets it
+     * (recursively), an expand arrow toggles its row, a table glyph switches table/rows display.
+     *
+     * @return whether the click was used (otherwise it selects the host table row)
+     */
+    private boolean handleBlockClick(MouseEvent event, GridBlock grid, double x, double y) {
+        int i = grid.rowIndexAt(x, y);
+        GridBlockLayout.Result g = grid.geometry();
+        if (i < 0 || g == null) {
+            return false;
+        }
+        FlatRow row = g.visible().get(i);
+        double top = g.y()[i];
+        if (row.hasRepeatingTable() && row.isExpanded()) {
+            RepeatingElementsTable nested = row.getRepeatingTable();
+            if (x >= nested.getX() && x <= nested.getX() + nested.getWidth()
+                    && y >= top && y <= top + nested.getHeight()) {
+                handleTableClick(event, nested, x, y, top, row);
+                return true;
+            }
+        }
+        if (event.getClickCount() != 1 || y > top + ROW_HEIGHT) {
+            return false;
+        }
+        if (row.isExpandable() && x >= row.getLabelX() && x <= row.getLabelX() + EXPAND_BAR_WIDTH) {
+            FlatRow.toggleExpand(row, grid.rows());
+            grid.invalidate();
+            markLayoutDirty();
+            return true;
+        }
+        double glyphX = row.getTableGlyphX();
+        if (row.showsTableGlyph() && !Double.isNaN(glyphX) && x >= glyphX - 2 && x <= glyphX + TABLE_ICON_SIZE + 2) {
+            toggleTableDisplay(row);
+            return true;
+        }
+        return false;
     }
 
     /** Expands the selected container fully (keyboard / menu entry point). */

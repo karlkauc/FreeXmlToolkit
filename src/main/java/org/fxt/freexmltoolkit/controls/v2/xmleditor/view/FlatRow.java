@@ -719,6 +719,9 @@ public class FlatRow {
         } else {
             FlatRow anchor = new FlatRow(RowType.ELEMENT, -1, record, null, record.getName(), null, 0);
             flattenChildren(record, -1, anchor, rows, groupAsTable, members.getFirst().getName());
+            if (!rows.isEmpty() && rows.getFirst().getTableMembers() != null) {
+                rows.getFirst().setExpanded(true); // the cell IS the group: show its table at once
+            }
         }
         return rows;
     }
@@ -910,6 +913,18 @@ public class FlatRow {
      */
     public static String groupKey(String parentPath, String name) {
         return ("/".equals(parentPath) ? "" : parentPath) + "/" + name;
+    }
+
+    /** The opened table cell's grid this row belongs to; {@code null} for the root grid. */
+    private GridBlock block;
+
+    /** @return the opened cell's grid this row belongs to, or {@code null} for the root grid */
+    public GridBlock getBlock() {
+        return block;
+    }
+
+    void setBlock(GridBlock block) {
+        this.block = block;
     }
 
     /**
