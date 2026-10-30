@@ -4383,7 +4383,10 @@
 
 .fxt-grid-entry-list .list-cell {
     -fx-background-color: transparent;
-    -fx-padding: 2 10 2 10;
+    /* The selection bar's width is reserved here, so selecting a row only changes colours. */
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 0 2;
+    -fx-padding: 2 10 2 8;
     -fx-font-size: 12px;
 }
 
@@ -4394,7 +4397,6 @@
 .fxt-grid-entry-list .list-cell:filled:selected {
     -fx-background-color: -fxt-bg-subtle;
     -fx-border-color: transparent transparent transparent -fxt-accent;
-    -fx-border-width: 0 0 0 2;
 }
 
 .fxt-grid-entry-list .list-cell .label {

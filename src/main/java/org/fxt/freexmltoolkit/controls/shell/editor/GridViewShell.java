@@ -37,10 +37,10 @@ public abstract class GridViewShell extends StackPane {
         primary = view;
         secondary = null;
         header = new GridViewHeader(view, subtitle(), this::setSplit, split);
-        header.configureSidePanel(sidePanel() != null, sidePanelShown, this::setSidePanelShown);
+        header.configureSidePanel(hasSidePanel(), sidePanelShown, this::setSidePanelShown);
         layoutRoot = new VBox(header, view);
         getChildren().add(layoutRoot);
-        if (split != null || (sidePanelShown && sidePanel() != null)) {
+        if (split != null || (sidePanelShown && hasSidePanel())) {
             applySplit();
         }
         // Arrow-key navigation should work right away, without a mouse click first.
@@ -151,6 +151,14 @@ public abstract class GridViewShell extends StackPane {
         return null;
     }
 
+    /**
+     * @return whether this view offers a side panel; answered without building it, so a hidden panel
+     *         costs nothing when the grid opens
+     */
+    protected boolean hasSidePanel() {
+        return false;
+    }
+
     /** Shows or hides the side panel (persisted). */
     public void setSidePanelShown(boolean shown) {
         sidePanelShown = shown;
@@ -162,7 +170,7 @@ public abstract class GridViewShell extends StackPane {
 
     /** @return whether the side panel is switched on */
     public boolean isSidePanelShown() {
-        return sidePanelShown && sidePanel() != null;
+        return sidePanelShown && hasSidePanel();
     }
 
     /** Puts the grid (one canvas or the split pane) below the header, with the side panel beside it. */

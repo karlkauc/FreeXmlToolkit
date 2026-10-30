@@ -4650,6 +4650,9 @@ public class EditorHost extends BorderPane {
             tab.attachDirtyTracking();
             UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
                     UsageEvents.SOURCE_FILE, openStart, elementCount, encoding.charset().name());
+            if (tab.document.getFileType().isXmlFamily()) {
+                GridWarmup.start(); // the first switch to the Graphic view then skips class loading
+            }
             documentLoadedHandler.accept(tab.document, content);
             Runnable after = tab.afterLoad;
             tab.afterLoad = null;

@@ -131,6 +131,11 @@ public class XmlGridView extends GridViewShell {
     private GridEntryHelpersPanel entryHelpers;
 
     @Override
+    protected boolean hasSidePanel() {
+        return true;
+    }
+
+    @Override
     protected javafx.scene.Node sidePanel() {
         if (entryHelpers == null) {
             entryHelpers = new GridEntryHelpersPanel();
