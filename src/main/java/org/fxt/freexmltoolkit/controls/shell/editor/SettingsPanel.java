@@ -308,11 +308,11 @@ public class SettingsPanel extends VBox {
         return list;
     }
 
-    /** @return the cards of a group (the children of its FlowPane) */
+    /** @return the cards of a group (the children of its card grid) */
     private static java.util.List<javafx.scene.Node> cards(VBox group) {
         for (javafx.scene.Node node : group.getChildren()) {
-            if (node instanceof javafx.scene.layout.FlowPane flow) {
-                return flow.getChildren();
+            if (node instanceof SettingsCardGrid grid) {
+                return grid.getChildren();
             }
         }
         return java.util.List.of();

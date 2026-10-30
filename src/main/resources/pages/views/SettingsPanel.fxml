@@ -15,12 +15,12 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
-<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCard?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SettingsCardGrid?>
 <?import org.fxt.freexmltoolkit.controls.theme.SemanticColors?>
 
 <!--
@@ -45,14 +45,14 @@
                         <Label text="SETTINGS" styleClass="fxt-side-panel-title, fxt-panel-title"/>
 
                         <!-- One group per topic; the side panel (PageNavigator) lists the groups. -->
-                        <VBox fx:id="groups" spacing="28">
+                        <VBox fx:id="groups" spacing="28" maxWidth="1200">
                             <children>
                                 <VBox id="settings-group-appearance" spacing="12" styleClass="fxt-settings-group">
                                     <children>
                                         <Label text="Appearance" styleClass="fxt-settings-group-title"/>
-                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                        <SettingsCardGrid color="#1373D9">
                                             <children>
-                                        <SettingsCard title="THEME" iconLiteral="bi-palette" color="#1373D9">
+                                        <SettingsCard title="THEME" iconLiteral="bi-palette">
                                             <children>
                                                 <HBox spacing="6">
                                                     <children>
@@ -74,7 +74,7 @@
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="LAYOUT" iconLiteral="bi-layout-sidebar" color="#007bff">
+                                        <SettingsCard title="LAYOUT" iconLiteral="bi-layout-sidebar">
                                             <children>
                                                 <CheckBox fx:id="smallIcons" text="Use small icons"/>
                                                 <CheckBox fx:id="toolbarLabels" text="Show toolbar button labels"/>
@@ -97,7 +97,7 @@
                                             </children>
                                         </SettingsCard>
                                         <!-- JavaFX Prism pipeline; applied at next startup -->
-                                        <SettingsCard title="RENDERING" iconLiteral="bi-gpu-card" color="#e83e8c">
+                                        <SettingsCard title="RENDERING" iconLiteral="bi-gpu-card">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
@@ -120,7 +120,7 @@
                                                        wrapText="true" styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="MEMORY" iconLiteral="bi-memory" color="#198754">
+                                        <SettingsCard title="MEMORY" iconLiteral="bi-memory">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
@@ -134,15 +134,15 @@
                                             </children>
                                         </SettingsCard>
                                             </children>
-                                        </FlowPane>
+                                        </SettingsCardGrid>
                                     </children>
                                 </VBox>
                                 <VBox id="settings-group-editor" spacing="12" styleClass="fxt-settings-group">
                                     <children>
                                         <Label text="Editor" styleClass="fxt-settings-group-title"/>
-                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                        <SettingsCardGrid color="#0e8fa3">
                                             <children>
-                                        <SettingsCard title="EDITOR" iconLiteral="bi-pencil-square" color="#17a2b8">
+                                        <SettingsCard title="EDITOR" iconLiteral="bi-pencil-square">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
@@ -179,7 +179,7 @@
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="GRID TABLE COLOURS" iconLiteral="bi-table" color="#6f42c1">
+                                        <SettingsCard title="GRID TABLE COLOURS" iconLiteral="bi-table">
                                             <children>
                                                 <CheckBox fx:id="gridCustomColors" id="settings-grid-custom-colors"
                                                           text="Custom cell colours in the Graphic grid"/>
@@ -210,7 +210,7 @@
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="TEMPLATES" iconLiteral="bi-file-earmark-plus" color="#0d6efd">
+                                        <SettingsCard title="TEMPLATES" iconLiteral="bi-file-earmark-plus">
                                             <children>
                                                 <Label text="Templates directory:"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
@@ -247,7 +247,7 @@
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="USER INFO" iconLiteral="bi-person" color="#28a745">
+                                        <SettingsCard title="USER INFO" iconLiteral="bi-person">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
@@ -270,15 +270,15 @@
                                             </children>
                                         </SettingsCard>
                                             </children>
-                                        </FlowPane>
+                                        </SettingsCardGrid>
                                     </children>
                                 </VBox>
                                 <VBox id="settings-group-schemas" spacing="12" styleClass="fxt-settings-group">
                                     <children>
                                         <Label text="Schemas &amp; Validation" styleClass="fxt-settings-group-title"/>
-                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                        <SettingsCardGrid color="#6f42c1">
                                             <children>
-                                        <SettingsCard title="XSD" iconLiteral="bi-diagram-3" color="#6f42c1">
+                                        <SettingsCard title="XSD" iconLiteral="bi-diagram-3">
                                             <children>
                                                 <CheckBox fx:id="xsdAutoSave" text="Auto-save"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
@@ -312,7 +312,7 @@
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="SCHEMA LIBRARY" iconLiteral="bi-collection" color="#20c997">
+                                        <SettingsCard title="SCHEMA LIBRARY" iconLiteral="bi-collection">
                                             <children>
                                                 <CheckBox fx:id="schemaLibraryAutoBind" id="settings-schema-library-autobind"
                                                           text="Use the Schema Library to bind schemas automatically"
@@ -326,7 +326,7 @@
                                                 </Hyperlink>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="PARSER" iconLiteral="bi-cpu" color="#fd7e14">
+                                        <SettingsCard title="PARSER" iconLiteral="bi-cpu">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
@@ -338,15 +338,15 @@
                                             </children>
                                         </SettingsCard>
                                             </children>
-                                        </FlowPane>
+                                        </SettingsCardGrid>
                                     </children>
                                 </VBox>
                                 <VBox id="settings-group-files" spacing="12" styleClass="fxt-settings-group">
                                     <children>
                                         <Label text="Files &amp; Cache" styleClass="fxt-settings-group-title"/>
-                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                        <SettingsCardGrid color="#c2850c">
                                             <children>
-                                        <SettingsCard title="TEMP &amp; CACHE" iconLiteral="bi-trash" color="#ffc107">
+                                        <SettingsCard title="TEMP &amp; CACHE" iconLiteral="bi-trash">
                                             <children>
                                                 <CheckBox fx:id="useSystemTemp" text="Use system temp folder"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
@@ -377,7 +377,7 @@
                                                 </Hyperlink>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="LOG FILES" iconLiteral="bi-journal-text" color="#6c757d">
+                                        <SettingsCard title="LOG FILES" iconLiteral="bi-journal-text">
                                             <children>
                                                 <CheckBox fx:id="logCleanup" id="settings-log-cleanup"
                                                           text="Delete old log files automatically at startup"/>
@@ -419,8 +419,7 @@
                                                        styleClass="fxt-placeholder-text" wrapText="true"/>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="FILE ASSOCIATIONS" iconLiteral="bi-file-earmark-check"
-                                                      color="#0dcaf0">
+                                        <SettingsCard title="FILE ASSOCIATIONS" iconLiteral="bi-file-earmark-check">
                                             <children>
                                                 <Label text="Make FreeXmlToolkit the default application for the selected file types (current user only)."
                                                        wrapText="true" styleClass="fxt-placeholder-text"/>
@@ -451,41 +450,41 @@
                                             </children>
                                         </SettingsCard>
                                             </children>
-                                        </FlowPane>
+                                        </SettingsCardGrid>
                                     </children>
                                 </VBox>
                                 <VBox id="settings-group-network" spacing="12" styleClass="fxt-settings-group">
                                     <children>
                                         <Label text="Network &amp; Security" styleClass="fxt-settings-group-title"/>
-                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                        <SettingsCardGrid color="#6610f2">
                                             <children>
-                                        <SettingsCard title="HTTP PROXY" iconLiteral="bi-globe" color="#6610f2">
+                                        <SettingsCard title="HTTP PROXY" iconLiteral="bi-globe">
                                             <children>
                                                 <CheckBox fx:id="useSystemProxy" text="Use system proxy"/>
                                                 <TextField fx:id="proxyHost" promptText="host"/>
                                                 <TextField fx:id="proxyPort" promptText="port"/>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="SECURITY" iconLiteral="bi-shield-lock" color="#dc3545">
+                                        <SettingsCard title="SECURITY" iconLiteral="bi-shield-lock">
                                             <children>
                                                 <CheckBox fx:id="trustAllCerts" text="Trust all certificates"/>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="UPDATES" iconLiteral="bi-arrow-repeat" color="#007bff">
+                                        <SettingsCard title="UPDATES" iconLiteral="bi-arrow-repeat">
                                             <children>
                                                 <CheckBox fx:id="updateCheck" text="Check for updates on startup"/>
                                             </children>
                                         </SettingsCard>
                                             </children>
-                                        </FlowPane>
+                                        </SettingsCardGrid>
                                     </children>
                                 </VBox>
                                 <VBox id="settings-group-privacy" spacing="12" styleClass="fxt-settings-group">
                                     <children>
                                         <Label text="Privacy" styleClass="fxt-settings-group-title"/>
-                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                        <SettingsCardGrid color="#64748b">
                                             <children>
-                                        <SettingsCard title="USAGE STATISTICS" iconLiteral="bi-graph-up" color="#6c757d">
+                                        <SettingsCard title="USAGE STATISTICS" iconLiteral="bi-graph-up">
                                             <children>
                                                 <CheckBox fx:id="trackingEnabled" text="Enable usage tracking"/>
                                                 <Button text="Clear statistics" maxWidth="Infinity"
@@ -514,20 +513,20 @@
                                             </children>
                                         </SettingsCard>
                                             </children>
-                                        </FlowPane>
+                                        </SettingsCardGrid>
                                     </children>
                                 </VBox>
                                 <VBox id="settings-group-extensions" spacing="12" styleClass="fxt-settings-group">
                                     <children>
                                         <Label text="Extensions" styleClass="fxt-settings-group-title"/>
-                                        <FlowPane hgap="16" vgap="16" prefWrapLength="820">
+                                        <SettingsCardGrid color="#0ca678">
                                             <children>
-                                        <SettingsCard title="FUNDSXML" iconLiteral="bi-file-earmark-code" color="#20c997">
+                                        <SettingsCard title="FUNDSXML" iconLiteral="bi-file-earmark-code">
                                             <children>
                                                 <CheckBox fx:id="fundsXmlEnabled" text="Enable FundsXML extensions"/>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="DEVELOPER" iconLiteral="bi-speedometer2" color="#495057">
+                                        <SettingsCard title="DEVELOPER" iconLiteral="bi-speedometer2">
                                             <children>
                                                 <CheckBox fx:id="execStatsEnabled" text="Record execution statistics"/>
                                                 <Label text="Collects duration, CPU and memory per XSLT/XQuery/validation run. View them in the &quot;Execution Statistics&quot; tool tab."
@@ -549,7 +548,7 @@
                                             </children>
                                         </SettingsCard>
                                             </children>
-                                        </FlowPane>
+                                        </SettingsCardGrid>
                                     </children>
                                 </VBox>
                             </children>

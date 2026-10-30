@@ -1321,8 +1321,8 @@
       ]
     },
     "settingsCard": {
-      "example": "<SettingsCard title=\"EDITOR\" iconLiteral=\"bi-pencil-square\" color=\"#17a2b8\">…rows…</SettingsCard>",
-      "notes": "One card per topic on the Settings page (pages/views/SettingsPanel.fxml); the cards sit in seven groups (VBox id settings-group-<key>, heading .fxt-settings-group-title). Changes apply via the fixed save bar (.fxt-settings-save-bar) with an 'Unsaved changes' hint."
+      "example": "<SettingsCardGrid color=\"#0e8fa3\"><SettingsCard title=\"EDITOR\" iconLiteral=\"bi-pencil-square\">…rows…</SettingsCard>…</SettingsCardGrid>",
+      "notes": "One card per topic on the Settings page (pages/views/SettingsPanel.fxml); the cards sit in seven groups (VBox id settings-group-<key>, heading .fxt-settings-group-title), each group's cards in a SettingsCardGrid: two equal columns (one below 720 px), the cards of a row equally tall, heights measured at the column width so wrapped help texts never overlap the next heading. The grid's color tints every card's icon tile; cards are neutral (1 px -fxt-border, radius 10). Help labels wrap instead of ending in '…'. Changes apply via the fixed save bar (.fxt-settings-save-bar) with an 'Unsaved changes' hint."
     },
     "mainAreaPage": {
       "notes": "Activities whose content needs width (tables, long forms) open a page as a main-area tab: Settings, Schema Library, Signature. Their side panel is a PageNavigator (rows = the page's sections, the shown one marked .fxt-nav-current, optional search). Tool tabs hide the Inspector.",

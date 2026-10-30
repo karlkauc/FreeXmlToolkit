@@ -12,8 +12,9 @@ import javafx.scene.paint.Color;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 
 /**
- * A colour-coded card of the Settings page: tinted icon tile + title, then the section's
- * controls. The colour tints the icon, the tile background and the top border.
+ * A card of the Settings page: tinted icon tile + title, then the section's controls. The colour
+ * (usually the group's, set by {@link SettingsCardGrid}) tints the icon and its tile; the card itself
+ * stays neutral.
  *
  * <p>FXML: {@code <SettingsCard title="EDITOR" iconLiteral="bi-pencil-square" color="#17a2b8">}
  * with the section's controls as children.
@@ -34,7 +35,6 @@ public final class SettingsCard extends VBox {
         header.setAlignment(Pos.CENTER_LEFT);
         getChildren().add(header);
         getStyleClass().add("fxt-settings-card");
-        setPrefWidth(390);
         color.addListener((obs, was, is) -> applyColor(is));
     }
 
@@ -42,14 +42,11 @@ public final class SettingsCard extends VBox {
         icon.iconColorProperty().unbind();
         if (hex == null || hex.isBlank()) {
             tile.setStyle(null);
-            setStyle(null);
             return;
         }
         // Bound, not set: themed CSS (-fx-icon-color) would otherwise repaint the icon.
         icon.iconColorProperty().bind(new javafx.beans.property.SimpleObjectProperty<>(Color.web(hex)));
-        tile.setStyle("-fx-background-color: " + hex + "22;"); // ~13% alpha tint
-        setStyle("-fx-border-color: " + hex + "55 transparent transparent transparent;"
-                + "-fx-border-width: 3 0 0 0;");
+        tile.setStyle("-fx-background-color: " + hex + "1F;"); // ~12% alpha tint
     }
 
     /** The card title, shown as given (upper case by convention). */

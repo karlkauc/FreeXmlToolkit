@@ -42,7 +42,7 @@ in its constructor via `FxmlViews.load(this, …)` (dialog content: `FxmlViews.l
 and is its own controller, so constructor signatures stay unchanged. Static structure, texts, icons
 and `id`s go into the FXML; cell factories, bindings and data-driven lists stay in code. Recurring
 building blocks are FXML tags (`SidePanelHeader`, `SidePanelSection`, `PanelActionList` /
-`PanelActionButton`, `SourceRow`, `SettingsCard`, `Welcome*Card`). `FxmlContractTest` checks every
+`PanelActionButton`, `SourceRow`, `SettingsCard` in `SettingsCardGrid`, `Welcome*Card`). `FxmlContractTest` checks every
 FXML against its class (`@FXML` fields ↔ `fx:id`, handlers public, unique `id`s). See
 `.claude/rules/quick-reference.md` → "FXML Views".
 
