@@ -4689,37 +4689,49 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
 <li><strong>Split view.</strong> The header's <strong>⋯</strong> menu splits the grid <em>top / bottom</em> or <em>side by side</em> into
   two views of the same document; each scrolls, expands and selects on its own, and an edit in
   one appears in the other at once. <em>Single view</em> closes the second one.</li>
-<li><strong>Scroll header.</strong> While you scroll through a long element, a bar at the top shows the
+<li><strong>Entry helpers.</strong> The header's panel button (right of <em>Collapse all</em>) opens the entry
+  helpers beside the grid, as in XMLSpy. They need an XSD bound to the document and follow the
+  selected row. <strong>Siblings</strong> lists the attributes and elements the schema allows next to the
+  selected node, <strong>Children</strong> lists those allowed inside the selected element, and <strong>Values</strong>
+  lists the enumeration values of the selected element or attribute. Entries that are already
+  there and cannot occur again are greyed out. Required ones (<code>use="required"</code>, <code>minOccurs</code> ≥ 1
+  outside an optional or choice group) carry a red <strong>!</strong>. A double-click inserts:</li>
+<li>Siblings: after the selected node; the buttons insert before it or append at the end.</li>
+<li>Children: as the last child of the selected element. An attribute starts with its schema
+    default.</li>
+<li>Values: sets the value.</li>
+</ul>
+<p>Every insertion is one undo step. The panel stays open or closed across sessions.
+- <strong>Scroll header.</strong> While you scroll through a long element, a bar at the top shows the
   path of containers you are inside (<code>root › section › body</code>); click one to select it and
-  scroll back to its start.</li>
-<li><strong>Drag &amp; drop.</strong> Drag a node by its name cell: drop it on the upper or lower third of another
+  scroll back to its start.
+- <strong>Drag &amp; drop.</strong> Drag a node by its name cell: drop it on the upper or lower third of another
   name cell to place it before / after that node, on the middle (or anywhere in an expanded
   element's cell) to append it as a child. A blue line or frame shows the target; hold <strong>Ctrl</strong>
   to copy instead of move. Text dragged in from other applications replaces a value when dropped
   on a value cell; dropped on a name cell, an XML fragment becomes new nodes and plain text a
-  text node. A node is never dropped into its own subtree; every drop is one undo step.</li>
-<li><strong>Filters.</strong> Right-click an element → <strong>Filter…</strong> and enter an XQuery 3.1 expression evaluated
+  text node. A node is never dropped into its own subtree; every drop is one undo step.
+- <strong>Filters.</strong> Right-click an element → <strong>Filter…</strong> and enter an XQuery 3.1 expression evaluated
   with that element as context, e.g. <code>Month[number(Min) &gt; 10]</code>: below the element only the
   matching nodes (with their ancestors and subtrees) stay visible, repeating groups shrink to
   their matching members. A blue funnel line under the element shows the expression - click
   the funnel to switch the filter off and on, double-click the line to edit it, clear it to
   remove the filter. <strong>Filter to Focus</strong> filters the root down to the selected node. Filters
   only change the display, never the document; an invalid expression is reported and
-  filters nothing. Filters live while the document is open.</li>
-<li><strong>Formulas.</strong> Right-click an element → <strong>Add Formula…</strong>: a name and an XQuery 3.1 expression
+  filters nothing. Filters live while the document is open.
+- <strong>Formulas.</strong> Right-click an element → <strong>Add Formula…</strong>: a name and an XQuery 3.1 expression
   evaluated with that element as context (e.g. <code>avg(Month/Min)</code>). The formula row (icon <code>ƒ</code>)
   shows the expression and, below it, the live result - or the error in red; double-click the
   expression or the name to edit it. Formulas are saved in the file as
   <code>&lt;?fxt-formula name="…" expression="…"?&gt;</code> instructions. <strong>Store Formula Result in Document</strong>
   also writes the result into an element named after the formula, right after it;
-  <strong>Recalculate Stored Formula Results</strong> refreshes all of them in one undo step.</li>
-<li><strong>Search</strong> (Ctrl+F) finds names and values in the rows and in the cells of embedded tables;
-  a table hit expands the group and selects the matching cell.</li>
-<li><strong>Copy XPath / Copy Node</strong>: the grid's context menu offers <strong>Copy XPath</strong> (<strong>Ctrl+Alt+X</strong>),
+  <strong>Recalculate Stored Formula Results</strong> refreshes all of them in one undo step.
+- <strong>Search</strong> (Ctrl+F) finds names and values in the rows and in the cells of embedded tables;
+  a table hit expands the group and selects the matching cell.
+- <strong>Copy XPath / Copy Node</strong>: the grid's context menu offers <strong>Copy XPath</strong> (<strong>Ctrl+Alt+X</strong>),
   <strong>Copy Cell Content</strong> (<strong>Ctrl+Shift+C</strong>) and <strong>Copy Node (XML)</strong> (<strong>Ctrl+Alt+C</strong>); all three
   shortcuts also work directly on the selected node. <strong>Ctrl+Shift+X</strong> toggles the Query
-  Console everywhere, including while the grid has focus.</li>
-</ul>
+  Console everywhere, including while the grid has focus.</p>
 <h3 id="json-grid">The Grid (Graphic view for JSON)<a class="headerlink" href="#json-grid" title="Permanent link">&para;</a></h3>
 <p>JSON documents (<code>.json</code>, <code>.jsonc</code>, <code>.json5</code>) get the <strong>same grid</strong> in the <strong>Graphic</strong> view -
 same header strip, same rows, same keyboard shortcuts and context menu - so a JSON file
@@ -4759,10 +4771,23 @@ looks and feels exactly like an XML file in the grid:</p>
   the search in table cells all work as described above. Table cells can be selected and
   copied as tab-separated text (Ctrl+C or <strong>Copy Table as Tab-separated Text</strong>); Ctrl+V
   overwrites existing cells only. The zoom factor is shared with the XML grid.</li>
-<li><strong>XML only:</strong> changing a node's type by clicking its icon (Ctrl+Alt+T), <strong>Wrap in
-  Element</strong>, drag &amp; drop, the <strong>Table</strong> submenu (insert / append rows and columns, rename
-  columns) and validation markers are not available in the JSON grid - use <strong>Change Type</strong>,
-  <strong>Add</strong> and <strong>Move Up / Down</strong> from the context menu instead.</li>
+<li><strong>Change a value's type</strong> by clicking its type glyph (or Ctrl+Alt+T on the selected row):
+  a popup lists the other types. Number ↔ String ↔ Boolean ↔ Null convert the value
+  (<code>"42"</code> → <code>42</code>); Object and Array start empty. One undo step.</li>
+<li><strong>Drag &amp; drop:</strong> drag a row by its name cell onto another row - the upper part of the name
+  cell inserts <strong>before</strong> it, the lower part <strong>after</strong> it, the middle of an object or array
+  <strong>into</strong> it; hold <strong>Ctrl</strong> to copy instead of move. A property moved into another object
+  keeps its key (made unique with <code>_copy</code> if it is taken); an item moved into an object gets
+  the key <code>item</code>. JSON text dragged in from another application becomes a new value (an
+  object dropped into an object adds its properties), plain text a string; dropped on a value
+  cell it replaces the value. A node can never be dropped into itself.</li>
+<li><strong>Table</strong> submenu (right-click a cell of an array-of-objects table): <strong>Insert Row Before /
+  After</strong>, <strong>Append Row</strong> (a new object with every column as an empty string), <strong>Insert
+  Column Before / After…</strong> (the key in every object, next to the clicked column) and
+  <strong>Rename Column…</strong> (also a double-click on the column header; refused as a whole when an
+  object already uses the new key). Each is one undo step.</li>
+<li><strong>XML only:</strong> <strong>Wrap in Element</strong>, <strong>Edit as Raw Text</strong>, filters, formulas and validation
+  markers.</li>
 </ul>
 <div class="admonition warning">
 <p class="admonition-title">Comments and JSON5 syntax are not preserved</p>
