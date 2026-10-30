@@ -130,11 +130,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private static final double LEFT_MARGIN = 8;
     /** Breathing room right of the widest content (keeps the last frame line inside the view). */
     private static final double RIGHT_MARGIN = 8;
-    private static final double NAME_VALUE_GAP = 16;
-    private static final double MIN_NAME_COL_WIDTH = 120;
-    private static final double MIN_VALUE_COL_WIDTH = 100;
+    private static final double NAME_VALUE_GAP = GridBlockLayout.NAME_VALUE_GAP;
+    private static final double MIN_NAME_COL_WIDTH = GridBlockLayout.MIN_NAME_COL_WIDTH;
+    private static final double MIN_VALUE_COL_WIDTH = GridBlockLayout.MIN_VALUE_COL_WIDTH;
     /** Horizontal padding of a value cell's text. */
-    private static final double VALUE_PADDING = 6;
+    private static final double VALUE_PADDING = GridBlockLayout.VALUE_PADDING;
     /** Soft length of the inline preview of a collapsed container. */
     static final int PREVIEW_MAX_CHARS = 200;
     /** Length of the preview shown in the hover tooltip. */
@@ -784,100 +784,56 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * </ol>
      */
     private void recalculateVisibleRows() {
-        visibleRows = new ArrayList<>();
-        for (FlatRow row : allRows) {
-            if (row.isVisible()) {
-                visibleRows.add(row);
-            }
-        }
-        lastDescendantIndex = lastDescendantIndices(visibleRows);
-        rowIndexMap = new java.util.IdentityHashMap<>();
-        for (int i = 0; i < visibleRows.size(); i++) {
-            rowIndexMap.put(visibleRows.get(i), i);
-        }
+        GridBlockLayout.Result layout = GridBlockLayout.layout(allRows, LEFT_MARGIN, rootMeasure);
+        visibleRows = new ArrayList<>(layout.visible());
+        lastDescendantIndex = layout.lastDescendant();
+        rowIndexMap = new java.util.IdentityHashMap<>(layout.index());
+        rowYPositions = layout.y();
+        rowHeights = layout.height();
+        nameColumnWidth = layout.nameColumnWidth();
+        totalHeight = layout.totalHeight();
+        totalWidth = layout.width();
+    }
 
-        // -- Pass 1: name-column width per block (keyed by the block's parent row; null = root) --
-        java.util.Map<FlatRow, Double> blockWidths = new java.util.IdentityHashMap<>();
-        for (FlatRow row : visibleRows) {
-            double w = EXPAND_BAR_WIDTH + ICON_AREA_WIDTH + labelTextWidth(row) + labelExtrasWidth(row)
-                    + NAME_VALUE_GAP;
-            blockWidths.merge(row.getParentRow(), w, Math::max);
+    /** How {@link GridBlockLayout} measures the root grid's rows. */
+    private final GridBlockLayout.Measure rootMeasure = new BlockMeasure() {
+        @Override
+        public Double nameColumnOverride(FlatRow parent) {
+            return viewState.nameColumnWidth(blockKey(parent));
         }
-        for (java.util.Map.Entry<FlatRow, Double> entry : blockWidths.entrySet()) {
-            Double override = viewState.nameColumnWidth(blockKey(entry.getKey()));
-            entry.setValue(override != null ? override : Math.max(MIN_NAME_COL_WIDTH, entry.getValue()));
-        }
-        nameColumnWidth = blockWidths.getOrDefault(null, MIN_NAME_COL_WIDTH);
+    };
 
-        // -- Pass 2: x positions (pre-order: a parent is laid out before its children) --
-        for (FlatRow row : visibleRows) {
-            FlatRow parent = row.getParentRow();
-            double labelX = parent == null ? LEFT_MARGIN : parent.getValueX();
-            double blockWidth = blockWidths.getOrDefault(parent, MIN_NAME_COL_WIDTH);
-            row.setCellGeometry(labelX, labelX + blockWidth);
+    /** Row measuring shared by every grid of this view; the name-column override is per grid. */
+    abstract class BlockMeasure implements GridBlockLayout.Measure {
+        @Override
+        public GridMetrics metrics() {
+            return metrics;
         }
 
-        // -- Pass 3: heights, y positions and extents --
-        rowYPositions = new double[visibleRows.size()];
-        rowHeights = new double[visibleRows.size()];
-        double currentY = 0;
-        double maxWidth = LEFT_MARGIN + nameColumnWidth + MIN_VALUE_COL_WIDTH + RIGHT_MARGIN;
-
-        for (int i = 0; i < visibleRows.size(); i++) {
-            FlatRow row = visibleRows.get(i);
-            rowYPositions[i] = currentY;
-            row.setValueBlock(null);
-            double valueX = row.getValueX();
-            maxWidth = Math.max(maxWidth, valueX + MIN_VALUE_COL_WIDTH + RIGHT_MARGIN);
-
-            double rowHeight;
-            if (row.hasRepeatingTable() && row.isExpanded()) {
-                // Table owner: the embedded table sits beside the name cell, at the value column
-                RepeatingElementsTable table = row.getRepeatingTable();
-                table.setX(valueX);
-                table.setY(currentY);
-                table.calculateWidth(canvas.getWidth());
-                rowHeight = Math.max(ROW_HEIGHT, table.calculateHeight());
-                maxWidth = Math.max(maxWidth, valueX + table.getWidth() + RIGHT_MARGIN);
-            } else if (row.isExpandable() && row.isExpanded() && lastDescendantIndex[i] > i) {
-                // Expanded container: no own line, the name cell spans the child block
-                rowHeight = 0;
-            } else if (formulaOf(row) != null) {
-                // Formula: the expression, then the result ("= …") below it
-                GridModelAdapter.FormulaView f = formulaOf(row);
-                TextBlock expr = TextBlock.of(metrics, f.expression().isEmpty() ? " " : f.expression(),
-                        GridFont.ROW, metrics.wrapWidth());
-                String resultText = f.error() != null ? "Error: " + f.error() : "= " + f.result();
-                TextBlock result = TextBlock.of(metrics, resultText, GridFont.ROW, metrics.wrapWidth());
-                row.setValueBlock(expr);
-                row.setResultBlock(result);
-                rowHeight = expr.height() + result.lineCount() * LINE_HEIGHT;
-                maxWidth = Math.max(maxWidth, valueX + VALUE_PADDING
-                        + Math.max(expr.width(), result.width()) + NAME_VALUE_GAP + RIGHT_MARGIN);
-            } else if (row.getValue() != null) {
-                String text = row.isLeafWithValue() ? adapter.decorateLeafValue(row) : row.getValue();
-                TextBlock block = TextBlock.of(metrics, text, GridFont.ROW, metrics.wrapWidth());
-                row.setValueBlock(block);
-                rowHeight = block.height();
-                maxWidth = Math.max(maxWidth, valueX + VALUE_PADDING + block.width() + NAME_VALUE_GAP + RIGHT_MARGIN);
-            } else if (row.isExpandable() && !row.isExpanded()) {
-                // Collapsed container: one grey preview line (never wrapped)
-                String preview = previewOf(row);
-                if (preview != null && !preview.isEmpty()) {
-                    double width = metrics.width(preview, GridFont.ROW);
-                    row.setValueBlock(new TextBlock(List.of(preview), width, ROW_HEIGHT));
-                }
-                rowHeight = ROW_HEIGHT;
-            } else {
-                rowHeight = ROW_HEIGHT;
-            }
-
-            rowHeights[i] = rowHeight;
-            currentY += rowHeight;
+        @Override
+        public double labelWidth(FlatRow row) {
+            return labelTextWidth(row) + labelExtrasWidth(row);
         }
 
-        totalHeight = currentY;
-        totalWidth = maxWidth;
+        @Override
+        public GridModelAdapter.FormulaView formula(FlatRow row) {
+            return formulaOf(row);
+        }
+
+        @Override
+        public String leafValueText(FlatRow row) {
+            return adapter.decorateLeafValue(row);
+        }
+
+        @Override
+        public String preview(FlatRow row) {
+            return previewOf(row);
+        }
+
+        @Override
+        public double availableWidth() {
+            return canvas.getWidth();
+        }
     }
 
     /** @return the stable key of a row; sibling-group rows are keyed below their parent */
