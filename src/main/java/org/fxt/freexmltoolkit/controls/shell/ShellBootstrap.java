@@ -52,6 +52,7 @@ public final class ShellBootstrap {
                 ServiceRegistry.get(PropertiesService.class)), 1, TimeUnit.SECONDS);
         scheduler.schedule(this::checkForAppUpdate, 2, TimeUnit.SECONDS);
         scheduler.schedule(this::fundsXmlStartupSync, 5, TimeUnit.SECONDS);
+        scheduler.schedule(ShellBootstrap::cleanOldLogs, 10, TimeUnit.SECONDS);
         // Anonymous telemetry: first flush after ~60 s, then every 5 minutes. The flush itself
         // runs on the telemetry worker thread, so this scheduler thread is never blocked.
         scheduler.scheduleWithFixedDelay(ShellBootstrap::flushTelemetry,
@@ -62,6 +63,19 @@ public final class ShellBootstrap {
     static final long TELEMETRY_FIRST_FLUSH_SECONDS = 60;
     /** Interval of the periodic telemetry flush. */
     static final long TELEMETRY_FLUSH_INTERVAL_SECONDS = 300;
+
+    /** Deletes old log files with the user's limits (Settings → Log Files), when enabled. */
+    private static void cleanOldLogs() {
+        try {
+            PropertiesService props = ServiceRegistry.get(PropertiesService.class);
+            if (props != null && props.isLogCleanupEnabled()) {
+                org.fxt.freexmltoolkit.service.LogCleanupService.clean(
+                        props.getLogCleanupMaxAgeDays(), props.getLogCleanupMaxSizeMb());
+            }
+        } catch (Throwable t) {
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnexpected(t, "log_cleanup");
+        }
+    }
 
     private static void flushTelemetry() {
         try {

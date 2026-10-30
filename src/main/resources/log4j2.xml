@@ -26,7 +26,8 @@
 
         <!-- Rolling log file: archives are gzipped; archives (and legacy per-launch
              "*-fxt.log" files) older than 14 days, or beyond 100 MB in total, are deleted
-             automatically on every rollover. -->
+             automatically on every rollover. The app also cleans this folder at startup with the
+             limits from Settings → Log Files (LogCleanupService). -->
         <RollingFile name="MyFile" fileName="logs/fxt.log"
                      filePattern="logs/fxt-%d{yyyy-MM-dd}-%i.log.gz"
                      immediateFlush="true" createOnDemand="true">

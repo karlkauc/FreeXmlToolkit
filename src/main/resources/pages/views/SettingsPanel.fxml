@@ -377,6 +377,48 @@
                                                 </Hyperlink>
                                             </children>
                                         </SettingsCard>
+                                        <SettingsCard title="LOG FILES" iconLiteral="bi-journal-text" color="#6c757d">
+                                            <children>
+                                                <CheckBox fx:id="logCleanup" id="settings-log-cleanup"
+                                                          text="Delete old log files automatically at startup"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Keep for (days):" minWidth="150"/>
+                                                        <Spinner fx:id="logMaxAge" id="settings-log-max-age" editable="true" prefWidth="100">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="365" initialValue="14"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Maximum total size (MB):" minWidth="150"/>
+                                                        <Spinner fx:id="logMaxSize" id="settings-log-max-size" editable="true" prefWidth="100">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="10000" initialValue="100" amountToStepBy="10"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                    </children>
+                                                </HBox>
+                                                <Label text="0 means no limit. The log file in use is never deleted."
+                                                       styleClass="fxt-placeholder-text" wrapText="true"/>
+                                                <Button fx:id="cleanLogsButton" id="settings-log-clean-now" text="Clean Up Now"
+                                                        maxWidth="Infinity" styleClass="fxt-tool-button" onAction="#onCleanLogsNow">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
+                                                    </graphic>
+                                                </Button>
+                                                <Hyperlink id="settings-log-open-folder" text="Open log folder"
+                                                           onAction="#onOpenLogFolder">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                                    </graphic>
+                                                </Hyperlink>
+                                                <Label fx:id="logStatus" id="settings-log-status"
+                                                       styleClass="fxt-placeholder-text" wrapText="true"/>
+                                            </children>
+                                        </SettingsCard>
                                         <SettingsCard title="FILE ASSOCIATIONS" iconLiteral="bi-file-earmark-check"
                                                       color="#0dcaf0">
                                             <children>

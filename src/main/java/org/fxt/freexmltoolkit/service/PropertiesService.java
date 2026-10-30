@@ -834,4 +834,47 @@ public interface PropertiesService {
         String v = get(TELEMETRY_ENDPOINT);
         return v == null || v.isBlank() ? null : v.trim();
     }
+
+    /** Whether old log files are deleted at startup (see {@code LogCleanupService}). */
+    String LOG_CLEANUP_ENABLED = "log.cleanup.enabled";
+    /** Days log files are kept; 0 = no age limit. */
+    String LOG_CLEANUP_MAX_AGE_DAYS = "log.cleanup.maxAgeDays";
+    /** Total size in MB the log files may take; 0 = no size limit. */
+    String LOG_CLEANUP_MAX_SIZE_MB = "log.cleanup.maxSizeMb";
+
+    /** @return whether old log files are deleted automatically at startup (default: true) */
+    default boolean isLogCleanupEnabled() {
+        String v = get(LOG_CLEANUP_ENABLED);
+        return v == null || v.isBlank() || Boolean.parseBoolean(v.trim());
+    }
+
+    default void setLogCleanupEnabled(boolean enabled) {
+        set(LOG_CLEANUP_ENABLED, String.valueOf(enabled));
+    }
+
+    /** @return days log files are kept, 0 = no age limit (default: 14) */
+    default int getLogCleanupMaxAgeDays() {
+        return nonNegativeInt(get(LOG_CLEANUP_MAX_AGE_DAYS), 14);
+    }
+
+    default void setLogCleanupMaxAgeDays(int days) {
+        set(LOG_CLEANUP_MAX_AGE_DAYS, String.valueOf(Math.max(0, days)));
+    }
+
+    /** @return total size in MB the log files may take, 0 = no size limit (default: 100) */
+    default int getLogCleanupMaxSizeMb() {
+        return nonNegativeInt(get(LOG_CLEANUP_MAX_SIZE_MB), 100);
+    }
+
+    default void setLogCleanupMaxSizeMb(int mb) {
+        set(LOG_CLEANUP_MAX_SIZE_MB, String.valueOf(Math.max(0, mb)));
+    }
+
+    private static int nonNegativeInt(String value, int fallback) {
+        try {
+            return value == null ? fallback : Math.max(0, Integer.parseInt(value.trim()));
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
 }

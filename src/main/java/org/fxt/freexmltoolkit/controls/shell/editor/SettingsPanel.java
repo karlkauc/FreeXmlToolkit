@@ -105,6 +105,11 @@ public class SettingsPanel extends VBox {
     @FXML private CheckBox useSystemTemp;
     @FXML private TextField customTempDir;
     @FXML private Label tempStatus;
+    @FXML private CheckBox logCleanup;
+    @FXML private Spinner<Integer> logMaxAge;
+    @FXML private Spinner<Integer> logMaxSize;
+    @FXML private Button cleanLogsButton;
+    @FXML private Label logStatus;
 
     // General
     @FXML private CheckBox updateCheck;
@@ -188,6 +193,8 @@ public class SettingsPanel extends VBox {
         parserType.getItems().setAll(XmlParserType.values());
         backupDir.disableProperty().bind(backupSeparateDir.selectedProperty().not());
         customTempDir.disableProperty().bind(useSystemTemp.selectedProperty());
+        logMaxAge.disableProperty().bind(logCleanup.selectedProperty().not());
+        logMaxSize.disableProperty().bind(logCleanup.selectedProperty().not());
         proxyHost.disableProperty().bind(useSystemProxy.selectedProperty());
         proxyPort.disableProperty().bind(useSystemProxy.selectedProperty());
 
@@ -207,6 +214,7 @@ public class SettingsPanel extends VBox {
         refreshRenderingStatus();
         refreshMemoryStatus();
         maxMemory.valueProperty().addListener((obs, old, value) -> refreshMemoryStatus());
+        refreshLogStatus(null);
 
         trackChanges(groups);
         dirtyHint.visibleProperty().bind(dirty);
@@ -430,6 +438,9 @@ public class SettingsPanel extends VBox {
         xsltExtensions.setSelected(false);
         schemaLibraryAutoBind.setSelected(true);
         useSystemTemp.setSelected(true);
+        logCleanup.setSelected(true);
+        logMaxAge.getValueFactory().setValue(14);
+        logMaxSize.getValueFactory().setValue(100);
         useSystemProxy.setSelected(true);
         trustAllCerts.setSelected(false);
         updateCheck.setSelected(true);
@@ -468,6 +479,63 @@ public class SettingsPanel extends VBox {
             int cleared = clear.getAsInt();
             javafx.application.Platform.runLater(() -> tempStatus.setText("Cleared " + cleared + what));
         });
+    }
+
+    /** Confirms "Clean Up Now" for a log folder; replaceable by tests. */
+    static java.util.function.Predicate<java.nio.file.Path> logCleanupConfirmer = dir ->
+            org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clean Up Log Files",
+                    "Delete old log files now?",
+                    "Log files beyond the limits set here are deleted from\n" + dir
+                            + "\n\nThe log file in use is kept. This action cannot be undone.");
+
+    /** The log folder the page works on; replaceable by tests. */
+    static java.util.function.Supplier<java.nio.file.Path> logDirectory =
+            org.fxt.freexmltoolkit.service.LogCleanupService::logDirectory;
+
+    @FXML
+    public void onCleanLogsNow() {
+        java.nio.file.Path dir = logDirectory.get();
+        int maxAge = logMaxAge.getValue();
+        int maxSize = logMaxSize.getValue();
+        if (maxAge <= 0 && maxSize <= 0) {
+            logStatus.setText("Set a number of days or a size limit first.");
+            return;
+        }
+        if (!logCleanupConfirmer.test(dir)) {
+            return;
+        }
+        cleanLogsButton.setDisable(true);
+        logStatus.setText("Cleaning up…");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            var result = org.fxt.freexmltoolkit.service.LogCleanupService.clean(dir, maxAge, maxSize);
+            javafx.application.Platform.runLater(() -> {
+                cleanLogsButton.setDisable(false);
+                refreshLogStatus("Deleted " + result.files() + " file(s), "
+                        + formatMegabytes(result.bytes()) + " freed. ");
+            });
+        });
+    }
+
+    @FXML
+    public void onOpenLogFolder() {
+        java.nio.file.Path dir = logDirectory.get();
+        org.fxt.freexmltoolkit.util.DesktopActions.open(dir.toFile(),
+                e -> logStatus.setText("Could not open " + dir + "."));
+    }
+
+    /** Shows the log folder with its file count and size, counted off the FX thread, after {@code prefix}. */
+    private void refreshLogStatus(String prefix) {
+        java.nio.file.Path dir = logDirectory.get();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            var usage = org.fxt.freexmltoolkit.service.LogCleanupService.usage(dir);
+            javafx.application.Platform.runLater(() -> logStatus.setText((prefix != null ? prefix : "")
+                    + "Log folder: " + dir + " (" + usage.files() + " file(s), "
+                    + formatMegabytes(usage.bytes()) + ")"));
+        });
+    }
+
+    static String formatMegabytes(long bytes) {
+        return String.format(java.util.Locale.ROOT, "%.1f MB", bytes / (1024.0 * 1024.0));
     }
 
     @FXML
@@ -779,6 +847,9 @@ public class SettingsPanel extends VBox {
             maxMemory.setValue(memoryLabel(org.fxt.freexmltoolkit.app.MemoryLimit.configuredMb(
                     props.get(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY))));
             useSystemTemp.setSelected(props.isUseSystemTempFolder());
+            logCleanup.setSelected(props.isLogCleanupEnabled());
+            logMaxAge.getValueFactory().setValue(props.getLogCleanupMaxAgeDays());
+            logMaxSize.getValueFactory().setValue(props.getLogCleanupMaxSizeMb());
             customTempDir.setText(orEmpty(props.getCustomTempFolder()));
             updateCheck.setSelected(props.isUpdateCheckEnabled());
             smallIcons.setSelected(props.isUseSmallIcons());
@@ -863,6 +934,9 @@ public class SettingsPanel extends VBox {
             props.setRenderingMode(renderingModeValue(renderingMode.getValue()));
             props.set(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY, String.valueOf(memoryValue(maxMemory.getValue())));
             props.setUseSystemTempFolder(useSystemTemp.isSelected());
+            props.setLogCleanupEnabled(logCleanup.isSelected());
+            props.setLogCleanupMaxAgeDays(logMaxAge.getValue());
+            props.setLogCleanupMaxSizeMb(logMaxSize.getValue());
             props.setCustomTempFolder(customTempDir.getText());
             props.setUpdateCheckEnabled(updateCheck.isSelected());
             props.setUseSmallIcons(smallIcons.isSelected());
