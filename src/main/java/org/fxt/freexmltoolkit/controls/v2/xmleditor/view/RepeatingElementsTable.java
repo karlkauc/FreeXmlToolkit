@@ -967,7 +967,7 @@ public class RepeatingElementsTable {
     static final CellGridFactory DEFAULT_CELL_GRIDS = (table, row, column) -> {
         List<FlatRow> cellRows = row.getRecord().flattenComplexChild(column);
         FlatRow.applyVisibility(cellRows);
-        return new GridBlock(cellRows, row);
+        return new GridBlock(cellRows, row, column);
     };
 
     private CellGridFactory cellGridFactory = DEFAULT_CELL_GRIDS;

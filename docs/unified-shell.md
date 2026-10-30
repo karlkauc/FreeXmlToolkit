@@ -207,6 +207,15 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   first column), one column per attribute (`=`) and child element (`<>`). Click the small
   **arrow at the right of a column header** to **sort** the group (also: **Sort Column** in the
   context menu); cells with nested structure expand inline.
+- **Every node looks like a root node, at any depth.** An opened table cell shows its content as
+  a grid of its own: expandable rows, blocks and - for repeating children - a **table again**
+  (or numbered rows `<1>`, `<2>`, … after a click on the table glyph), whose cells open the same
+  way, however deep tables and rows are nested. A column with several children of one name
+  (e.g. four `Position`s of a `Waehrung`) is one cell (`4 × <Position>`) holding them all.
+  Rows inside cells are selected, edited (double-click), expanded and navigated with the arrow
+  keys like any other row (**Left** at the top of a cell's grid returns to the cell); tables
+  inside cells sort, flip and edit like the outer ones. Open cells, expanded rows and table/flip
+  choices at every depth survive edits.
 - **Open whole rows and columns.** Click a **row number** to select the whole row, click a
   **column header** (its name, not the arrow) to select the whole column; **Shift+click**
   extends to more rows or columns. Then press **+** to open the nested cells of the selection
@@ -315,8 +324,8 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   `<?fxt-formula name="…" expression="…"?>` instructions. **Store Formula Result in Document**
   also writes the result into an element named after the formula, right after it;
   **Recalculate Stored Formula Results** refreshes all of them in one undo step.
-- **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables;
-  a table hit expands the group and selects the matching cell.
+- **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables,
+  including the rows and tables inside opened cells; a hit expands what hides it and selects it.
 - **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),
   **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
   shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query

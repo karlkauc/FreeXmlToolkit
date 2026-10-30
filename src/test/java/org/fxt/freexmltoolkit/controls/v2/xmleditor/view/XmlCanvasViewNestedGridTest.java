@@ -6,6 +6,8 @@ import java.util.List;
 
 import javafx.event.Event;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
@@ -205,11 +207,38 @@ class XmlCanvasViewNestedGridTest {
     }
 
     private void click(double x, double y) {
+        click(x, y, 1);
+    }
+
+    private void click(double x, double y, int count) {
         fx(() -> {
             Event.fireEvent(view.canvasNode(), new MouseEvent(MouseEvent.MOUSE_CLICKED, x, y, x, y,
-                    MouseButton.PRIMARY, 1, false, false, false, false,
+                    MouseButton.PRIMARY, count, false, false, false, false,
                     false, false, false, true, false, true, null));
             return null;
+        });
+    }
+
+    private void key(KeyCode code) {
+        fx(() -> {
+            Event.fireEvent(view, new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, false, false));
+            return null;
+        });
+    }
+
+    /** The canvas point of a cell of a table inside the Position cell of Waehrung row 0. */
+    private double[] nestedPoint(java.util.function.Function<GridBlock, double[]> inGrid) {
+        return fx(() -> {
+            FlatRow owner = rootOwner("Waehrung");
+            RepeatingElementsTable waehrung = owner.getRepeatingTable();
+            double top = view.rowTopAt(view.visibleRowList().indexOf(owner));
+            RepeatingElementsTable.TableRow row = waehrung.getRows().getFirst();
+            RepeatingElementsTable.CellRect cell = waehrung.cellRect(0,
+                    waehrung.getColumns().indexOf(waehrung.getColumn("Position")));
+            double summary = waehrung.getCellLayout(row, "Position").summaryHeight();
+            double[] local = inGrid.apply(row.getCellGrid("Position"));
+            return new double[] {cell.x() + RepeatingElementsTable.CELL_PADDING + local[0],
+                    top + cell.y() + summary + local[1]};
         });
     }
 
@@ -241,5 +270,103 @@ class XmlCanvasViewNestedGridTest {
         GridBlock serials = fx(() -> partTable.getRows().get(1).getCellGrid("Serial"));
         assertNotNull(serials, "the inner cell opened by a click");
         assertEquals(3, fx(() -> topRow(serials).getRepeatingTable().getRows().size()));
+    }
+
+    @Test
+    void aDoubleClickEditsACellOfANestedTable() {
+        load(BELEG);
+        fx(() -> {
+            rootOwner("Waehrung").getRepeatingTable().getRows().getFirst().toggleColumnExpanded("Position");
+            view.rebuild();
+            return null;
+        });
+        double[] wert = nestedPoint(grid -> {
+            FlatRow owner = topRow(grid);
+            RepeatingElementsTable positions = owner.getRepeatingTable();
+            RepeatingElementsTable.CellRect rect = positions.cellRect(1,
+                    positions.getColumns().indexOf(positions.getColumn("Wert")));
+            double ownerTop = grid.geometry().y()[grid.geometry().index().get(owner)];
+            return new double[] {rect.x() + 6, ownerTop + rect.y() + GridMetrics.ROW_HEIGHT / 2};
+        });
+
+        click(wert[0], wert[1], 2);
+        javafx.scene.control.TextField field = fx(view::editFieldForTest);
+        assertNotNull(field, "the nested cell is edited in place");
+        assertEquals("20", fx(field::getText));
+        fx(() -> {
+            field.setText("999");
+            Event.fireEvent(field, new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ENTER, false, false, false, false));
+            return null;
+        });
+
+        // The model changed, and after the rebuild the cell is open with its table again
+        RepeatingElementsTable waehrung = fx(() -> rootOwner("Waehrung").getRepeatingTable());
+        GridBlock grid = fx(() -> waehrung.getRows().getFirst().getCellGrid("Position"));
+        assertNotNull(grid, "the cell stays open after the edit");
+        assertEquals("999", fx(() -> topRow(grid).getRepeatingTable().getRows().get(1).getValue("Wert")));
+    }
+
+    @Test
+    void rowsInsideACellAreSelectedAndNavigatedByKeyboard() {
+        load(BELEG);
+        fx(() -> {
+            rootOwner("Waehrung").getRepeatingTable().getRows().getFirst().toggleColumnExpanded("Position");
+            view.rebuild();
+            return null;
+        });
+        fx(() -> {
+            GridBlock grid = rootOwner("Waehrung").getRepeatingTable().getRows().getFirst().getCellGrid("Position");
+            view.toggleTableDisplay(topRow(grid)); // the Positions as numbered rows
+            return null;
+        });
+        double[] second = nestedPoint(grid -> {
+            FlatRow row = grid.rows().stream().filter(r -> r.getInstanceIndex() == 2).findFirst().orElseThrow();
+            int i = grid.geometry().index().get(row);
+            return new double[] {row.getLabelX() + 40, grid.geometry().y()[i] + GridMetrics.ROW_HEIGHT / 2};
+        });
+
+        click(second[0], second[1]);
+        Object selected = fx(view::getSelectedNode);
+        assertTrue(selected instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e
+                && "Position".equals(e.getName()) && "2".equals(e.getAttribute("Posnr")), "selected: " + selected);
+
+        key(KeyCode.DOWN); // the next visible row of the cell's grid: the Posnr of <2>
+        assertEquals("Posnr", fx(() -> view.multiSelectionForTest().getFirst().getLabel()));
+        key(KeyCode.DOWN); // then <3>
+        assertEquals(3, fx(() -> view.multiSelectionForTest().getFirst().getInstanceIndex()));
+
+        key(KeyCode.UP);
+        key(KeyCode.UP);
+        assertEquals(2, fx(() -> view.multiSelectionForTest().getFirst().getInstanceIndex()));
+        assertEquals(selected, fx(view::getSelectedNode));
+        key(KeyCode.RIGHT); // expands <2>
+        GridBlock grid = fx(() -> rootOwner("Waehrung").getRepeatingTable().getRows().getFirst().getCellGrid("Position"));
+        assertTrue(grid.rows().stream().anyMatch(r -> "Wert".equals(r.getLabel()) && r.isVisible()));
+
+        key(KeyCode.LEFT); // collapses
+        key(KeyCode.LEFT); // top of the cell's grid: back to the Waehrung cell
+        Object host = fx(view::getSelectedNode);
+        assertTrue(host instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e
+                && "Waehrung".equals(e.getName()), "back at the host cell: " + host);
+    }
+
+    @Test
+    void findRevealsAHitInsideAnOpenedCell() {
+        load(BELEG);
+        fx(() -> {
+            rootOwner("Waehrung").getRepeatingTable().getRows().getFirst().toggleColumnExpanded("Position");
+            view.rebuild();
+            GridBlock grid = rootOwner("Waehrung").getRepeatingTable().getRows().getFirst().getCellGrid("Position");
+            view.toggleTableDisplay(topRow(grid)); // numbered rows, all collapsed
+            return null;
+        });
+
+        assertTrue(fx(() -> view.find("30", true)), "the Wert of <3> inside the cell is found");
+
+        FlatRow hit = fx(() -> view.multiSelectionForTest().getFirst());
+        assertEquals("Wert", hit.getLabel());
+        assertNotNull(hit.getBlock(), "a row of the cell's grid");
+        assertTrue(hit.isVisible(), "its collapsed <3> was opened");
+        assertEquals(3, hit.getParentRow().getInstanceIndex());
     }
 }

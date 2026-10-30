@@ -19,15 +19,18 @@ public final class GridBlock {
 
     private final List<FlatRow> rows;
     private final RepeatingElementsTable.TableRow host;
+    private final String column;
     private GridBlockLayout.Result geometry;
 
     /**
      * @param rows the block's rows (the opened cell's content; the top rows hang off a virtual anchor)
-     * @param host the table row whose cell this block is (its layout is invalidated with the block's)
+     * @param host   the table row whose cell this block is (its layout is invalidated with the block's)
+     * @param column the opened column of that row
      */
-    GridBlock(List<FlatRow> rows, RepeatingElementsTable.TableRow host) {
+    GridBlock(List<FlatRow> rows, RepeatingElementsTable.TableRow host, String column) {
         this.rows = rows;
         this.host = host;
+        this.column = column;
         for (FlatRow row : rows) {
             row.setBlock(this);
         }
@@ -36,6 +39,11 @@ public final class GridBlock {
     /** @return every row of the block, visible or not, in display order */
     public List<FlatRow> rows() {
         return rows;
+    }
+
+    /** @return the column of the host row whose cell this block is */
+    public String column() {
+        return column;
     }
 
     /** @return the table row whose cell this block is */
