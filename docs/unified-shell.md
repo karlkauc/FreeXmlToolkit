@@ -204,8 +204,16 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   and JSON grids and restarts.
 - **Repeating elements** (two or more siblings with the same name) are rendered as an
   **embedded table beside the group's name cell**: one row per element (numbered in the
-  first column), one column per attribute (`=`) and child element (`<>`). Click a column
-  header to **sort** the group; cells with nested structure expand inline.
+  first column), one column per attribute (`=`) and child element (`<>`). Click the small
+  **arrow at the right of a column header** to **sort** the group (also: **Sort Column** in the
+  context menu); cells with nested structure expand inline.
+- **Open whole rows and columns.** Click a **row number** to select the whole row, click a
+  **column header** (its name, not the arrow) to select the whole column; **Shift+click**
+  extends to more rows or columns. Then press **+** to open the nested cells of the selection
+  one level, and again for the next level inside them; **−** closes the deepest open level
+  first, then the cells. The same entries are in the **Table** submenu (**Expand / Collapse
+  Selected Cells**). Without a table selection, **+** / **−** open and close the selected
+  grid rows one level. Open cells stay open after edits.
 - **Table or rows.** The small table glyph after the group's name (or the context menu's
   **Display as Table**) switches the group between the table and XMLSpy's standard display,
   where every member is its own row numbered `<1>`, `<2>`, … The choice is kept per group
@@ -329,8 +337,10 @@ looks and feels exactly like an XML file in the grid:
   `#` number, `T`/`F` boolean and `∅` null. **Strings are shown quoted** (`= "Alice"`) - like
   XML leaf values - so `"42"` and `42` are never confused.
 - **Arrays of objects** are rendered as **embedded grids** (a table with one column per key,
-  merged across all items), exactly like repeating elements in XML. Column headers **sort**
-  the array (numbers, dates and strings are recognised), nested objects expand inline.
+  merged across all items), exactly like repeating elements in XML. The arrow in a column
+  header **sorts** the array (numbers, dates and strings are recognised), nested objects expand
+  inline; a click on the header's name selects the column, **+** / **−** open and close its
+  nested objects level by level, as in XML.
 - **Inline editing** keeps the value's type: double-click a number and type a number
   (anything else is rejected with a hint and the editor stays open), booleans toggle between
   `true`/`false`, `null` stays `null` unless you type text. Double-click a key to rename it

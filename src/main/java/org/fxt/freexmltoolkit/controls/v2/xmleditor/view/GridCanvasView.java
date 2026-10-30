@@ -688,6 +688,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (selectedRow != null) {
             viewState.setSelectedKey(keyOf(selectedRow));
         }
+        saveCellExpansion();
 
         if (!adapter.hasDocument()) {
             allRows = new ArrayList<>();
@@ -708,9 +709,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         for (FlatRow row : allRows) {
             if (row.hasRepeatingTable()) {
                 boolean flipped = viewState.isFlipped(row.getTableGroupKey());
+                java.util.Set<String> cells = viewState.cellExpansion(row.getTableGroupKey());
                 row.whenRepeatingTableReady(table -> { // without building it now
                     table.setMetrics(currentMetrics);
                     table.setFlipped(flipped);
+                    restoreCellExpansion(table, cells);
                 });
             }
         }
@@ -1897,11 +1900,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         iconGlyph("⇄", x + w / 2, y + ROW_HEIGHT / 2, TABLE_HEADER_TEXT, ICON_FONT);
     }
 
-    /** A column header: type icon + name (+ sort marker), highlighted when sorted by. */
+    /**
+     * A column header: type icon, name and the sort arrow at the right (faint until the table is
+     * sorted by the column); highlighted when sorted by or when the whole column is selected.
+     */
     private void drawColumnHeaderCell(RepeatingElementsTable table, RepeatingElementsTable.TableColumn col,
                                       double x, double y, double w, double h) {
         boolean sorted = col != null && table.isSortedBy(col.getName());
-        drawHeaderCellFrame(x, y, w, h, sorted ? TABLE_HEADER_SELECTED : TABLE_HEADER_BG);
+        boolean selected = col != null && isWholeColumnSelected(table, table.getColumns().indexOf(col));
+        drawHeaderCellFrame(x, y, w, h, sorted || selected ? TABLE_HEADER_SELECTED : TABLE_HEADER_BG);
         if (col == null) {
             return;
         }
@@ -1915,18 +1922,21 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         gc.setFont(ROW_FONT_BOLD);
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.CENTER);
-        String name = col.getName();
-        if (sorted) {
-            name += table.isSortAscending() ? " ▲" : " ▼";
-        }
-        fillName(name, x + RepeatingElementsTable.CELL_PADDING + HEADER_ICON_WIDTH, centerY, GridFont.ROW_BOLD);
+        fillName(col.getName(), x + RepeatingElementsTable.CELL_PADDING + HEADER_ICON_WIDTH, centerY, GridFont.ROW_BOLD);
+        gc.setFont(SMALL_FONT);
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setFill(sorted ? TABLE_HEADER_TEXT : PREVIEW_TEXT);
+        gc.fillText(sorted && !table.isSortAscending() ? "▼" : "▲",
+                x + w - RepeatingElementsTable.SORT_ZONE / 2 - 2, centerY);
+        gc.setTextAlign(TextAlignment.LEFT);
         gc.restore();
     }
 
     /** A row-number cell, highlighted when its row is selected. */
     private void drawRowNumberCell(RepeatingElementsTable table, int rowIndex,
                                    double x, double y, double w, double h) {
-        boolean selected = rowIndex == table.getSelectedRowIndex();
+        boolean selected = selAnchorRow >= 0 ? isWholeRowSelected(table, rowIndex)
+                : rowIndex == table.getSelectedRowIndex();
         drawHeaderCellFrame(x, y, w, h, selected ? TABLE_HEADER_SELECTED : TABLE_HEADER_BG);
         gc.setFont(SMALL_FONT);
         gc.setFill(TABLE_HEADER_TEXT);
@@ -2229,16 +2239,28 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 return;
             }
             case COLUMN_HEADER -> {
-                // Column header: single click sorts, double-click renames the column
+                // Column header: a click on the arrow at the right sorts, elsewhere it selects the
+                // whole column (Shift extends); a double-click renames the column
                 RepeatingElementsTable.TableColumn col = table.getColumn(cell.columnIndex());
                 if (col == null) {
                     return;
                 }
                 if (event.getClickCount() == 2) {
                     contextMenu().renameColumn(table, col.getName());
-                } else if (event.getClickCount() == 1 && table.isColumnSortable(col.getName())) {
-                    handleTableSort(table, col.getName(), tableOwner);
+                    return;
                 }
+                if (event.getClickCount() != 1) {
+                    return;
+                }
+                double headerRight = table.drawnColumnX(dc) + table.drawnColumnWidth(dc);
+                if (mx >= headerRight - RepeatingElementsTable.SORT_ZONE) {
+                    if (table.isColumnSortable(col.getName())) {
+                        handleTableSort(table, col.getName(), tableOwner);
+                    }
+                    return;
+                }
+                selectTableColumn(table, cell.columnIndex(), event.isShiftDown());
+                render();
                 return;
             }
             case ROW_NUMBER -> {
@@ -2322,6 +2344,37 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         render();
+    }
+
+    /**
+     * Selects a whole column of the table (all rows); with {@code extend} and a column selection
+     * of the same table already present, the range grows to this column.
+     */
+    void selectTableColumn(RepeatingElementsTable table, int columnIndex, boolean extend) {
+        int lastRow = table.getRows().size() - 1;
+        if (lastRow < 0) {
+            return;
+        }
+        boolean hadColumns = extend && selectedTable == table && selAnchorRow == 0 && selFocusRow == lastRow;
+        int anchorCol = hadColumns ? selAnchorCol : columnIndex;
+        selectTableRow(table, 0);
+        setCellRange(0, anchorCol, lastRow, columnIndex);
+    }
+
+    /** @return whether every row of the column lies in the selected range */
+    private boolean isWholeColumnSelected(RepeatingElementsTable table, int col) {
+        int rows = table.getRows().size();
+        return rows > 0 && table == selectedTable && selAnchorRow >= 0
+                && Math.min(selAnchorRow, selFocusRow) == 0 && Math.max(selAnchorRow, selFocusRow) == rows - 1
+                && col >= Math.min(selAnchorCol, selFocusCol) && col <= Math.max(selAnchorCol, selFocusCol);
+    }
+
+    /** @return whether every column of the row lies in the selected range */
+    private boolean isWholeRowSelected(RepeatingElementsTable table, int row) {
+        int cols = table.getColumns().size();
+        return cols > 0 && table == selectedTable && selAnchorRow >= 0
+                && Math.min(selAnchorCol, selFocusCol) == 0 && Math.max(selAnchorCol, selFocusCol) == cols - 1
+                && row >= Math.min(selAnchorRow, selFocusRow) && row <= Math.max(selAnchorRow, selFocusRow);
     }
 
     private void setCellRange(int anchorRow, int anchorCol, int focusRow, int focusCol) {
@@ -3446,7 +3499,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     this::expandAll, this::collapseAll, this::expandSelectedFully, this::collapseUnselected,
                     this::toggleTableDisplayOfSelection, this::tableDisplayStateOfSelection,
                     this::flipTableOfSelection, this::flipStateOfSelection,
-                    this::editFilterOfSelection, this::filterToFocus, this::canFilterSelection));
+                    this::editFilterOfSelection, this::filterToFocus, this::canFilterSelection,
+                    this::expandSelectionOneLevel, this::collapseSelectionOneLevel));
         }
         return contextMenu;
     }
@@ -3632,6 +3686,22 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         // Table cell clipboard (TSV) before the node shortcuts of the context menu
         if (handleTableClipboardKeys(event)) {
             return;
+        }
+
+        // + / − (also the numpad keys): open / close one more level of the selection
+        if (!event.isShortcutDown() && !event.isAltDown() && !event.isMetaDown() && !event.isControlDown()) {
+            KeyCode code = event.getCode();
+            String text = event.getText();
+            if (code == KeyCode.ADD || code == KeyCode.PLUS || "+".equals(text)) {
+                expandSelectionOneLevel();
+                event.consume();
+                return;
+            }
+            if (code == KeyCode.SUBTRACT || code == KeyCode.MINUS || "-".equals(text)) {
+                collapseSelectionOneLevel();
+                event.consume();
+                return;
+            }
         }
 
         // Ctrl+Alt+T: the type menu of the selected row (XMLSpy: Type, Ctrl+Menu)
@@ -4289,6 +4359,229 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         recalculateVisibleRows();
         updateScrollBars();
         render();
+    }
+
+    // ==================== One level at a time (+ / −) ====================
+
+    /**
+     * Opens one more level of the selection (key "+"): in a table, every complex cell of the
+     * selected range (a closed cell opens, an open one opens its shallowest closed sub-rows);
+     * otherwise every selected row (a collapsed row expands, an expanded one expands its
+     * shallowest collapsed descendants).
+     */
+    public void expandSelectionOneLevel() {
+        stepSelection(true);
+    }
+
+    /**
+     * Closes one level of the selection (key "−"): the deepest open level inside each selected
+     * cell or row closes first, then the cell or row itself.
+     */
+    public void collapseSelectionOneLevel() {
+        stepSelection(false);
+    }
+
+    private void stepSelection(boolean open) {
+        boolean changed = false;
+        if (selectedTable != null && selAnchorRow >= 0) {
+            RepeatingElementsTable table = selectedTable;
+            for (int r = Math.min(selAnchorRow, selFocusRow); r <= Math.max(selAnchorRow, selFocusRow); r++) {
+                if (r >= table.getRows().size()) {
+                    break;
+                }
+                RepeatingElementsTable.TableRow row = table.getRows().get(r);
+                for (int c = Math.min(selAnchorCol, selFocusCol); c <= Math.max(selAnchorCol, selFocusCol); c++) {
+                    RepeatingElementsTable.TableColumn col = table.getColumn(c);
+                    if (col != null && row.hasComplexChild(col.getName())) {
+                        changed |= open ? openCellLevel(row, col.getName()) : closeCellLevel(row, col.getName());
+                    }
+                }
+            }
+            if (changed) {
+                table.recalculateColumnWidths();
+            }
+        } else {
+            for (FlatRow row : List.copyOf(multiSelection)) {
+                changed |= open ? openRowLevel(row) : closeRowLevel(row);
+            }
+            if (changed) {
+                recalculateVisibility();
+            }
+        }
+        if (changed) {
+            recalculateVisibleRows();
+            updateScrollBars();
+            render();
+        }
+    }
+
+    private static boolean openCellLevel(RepeatingElementsTable.TableRow row, String column) {
+        if (!row.isColumnExpanded(column)) {
+            row.toggleColumnExpanded(column);
+            return true;
+        }
+        List<FlatRow> cellRows = row.getExpandedCellRows(column);
+        FlatRow.applyVisibility(cellRows);
+        boolean changed = openShallowest(cellRows);
+        FlatRow.applyVisibility(cellRows);
+        return changed;
+    }
+
+    private static boolean closeCellLevel(RepeatingElementsTable.TableRow row, String column) {
+        if (!row.isColumnExpanded(column)) {
+            return false;
+        }
+        List<FlatRow> cellRows = row.getExpandedCellRows(column);
+        FlatRow.applyVisibility(cellRows);
+        if (closeDeepest(cellRows)) {
+            FlatRow.applyVisibility(cellRows);
+            return true;
+        }
+        row.toggleColumnExpanded(column);
+        return true;
+    }
+
+    private boolean openRowLevel(FlatRow row) {
+        if (!row.isExpandable()) {
+            return false;
+        }
+        if (!row.isExpanded()) {
+            row.setExpanded(true);
+            return true;
+        }
+        return openShallowest(descendantsOf(row));
+    }
+
+    private boolean closeRowLevel(FlatRow row) {
+        if (!row.isExpandable() || !row.isExpanded()) {
+            return false;
+        }
+        if (closeDeepest(descendantsOf(row))) {
+            return true;
+        }
+        row.setExpanded(false);
+        return true;
+    }
+
+    private List<FlatRow> descendantsOf(FlatRow row) {
+        List<FlatRow> result = new ArrayList<>();
+        for (FlatRow other : allRows) {
+            if (other != row && FlatRow.isDescendantOf(other, row)) {
+                result.add(other);
+            }
+        }
+        return result;
+    }
+
+    /** Expands the visible collapsed containers of the shallowest depth; @return whether any */
+    private static boolean openShallowest(List<FlatRow> rows) {
+        int depth = Integer.MAX_VALUE;
+        for (FlatRow r : rows) {
+            if (r.isExpandable() && !r.isExpanded() && r.isVisible()) {
+                depth = Math.min(depth, r.getDepth());
+            }
+        }
+        boolean changed = false;
+        for (FlatRow r : rows) {
+            if (r.isExpandable() && !r.isExpanded() && r.isVisible() && r.getDepth() == depth) {
+                r.setExpanded(true);
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    /** Collapses the visible expanded containers of the deepest depth; @return whether any */
+    private static boolean closeDeepest(List<FlatRow> rows) {
+        int depth = Integer.MIN_VALUE;
+        for (FlatRow r : rows) {
+            if (r.isExpandable() && r.isExpanded() && r.isVisible()) {
+                depth = Math.max(depth, r.getDepth());
+            }
+        }
+        boolean changed = false;
+        for (FlatRow r : rows) {
+            if (r.isExpandable() && r.isExpanded() && r.isVisible() && r.getDepth() == depth) {
+                r.setExpanded(false);
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    // ==================== Cell expansion across rebuilds ====================
+
+    /** Remembers the open complex cells (and their open sub-rows) of every built table. */
+    private void saveCellExpansion() {
+        for (FlatRow row : allRows) {
+            if (row.getTableGroupKey() == null || !row.isRepeatingTableBuilt()) {
+                continue;
+            }
+            RepeatingElementsTable table = row.getRepeatingTable();
+            java.util.Set<String> entries = new java.util.LinkedHashSet<>();
+            List<RepeatingElementsTable.TableRow> rows = table.getRows();
+            for (int r = 0; r < rows.size(); r++) {
+                for (String column : rows.get(r).getExpandedColumns()) {
+                    entries.add(r + ":" + column);
+                    List<FlatRow> cellRows = rows.get(r).getExpandedCellRows(column);
+                    for (int i = 0; i < cellRows.size(); i++) {
+                        if (cellRows.get(i).isExpandable() && cellRows.get(i).isExpanded()) {
+                            entries.add(r + ":" + column + ":" + i);
+                        }
+                    }
+                }
+            }
+            viewState.setCellExpansion(row.getTableGroupKey(), entries);
+        }
+    }
+
+    /** Re-opens the remembered cells and sub-rows of a rebuilt table; stale entries are ignored. */
+    private static void restoreCellExpansion(RepeatingElementsTable table, java.util.Set<String> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return;
+        }
+        boolean changed = false;
+        List<RepeatingElementsTable.TableRow> rows = table.getRows();
+        for (String entry : entries) {
+            String[] parts = entry.split(":", -1);
+            int r;
+            try {
+                r = Integer.parseInt(parts[0]);
+            } catch (NumberFormatException e) {
+                continue;
+            }
+            if (parts.length < 2 || r < 0 || r >= rows.size()) {
+                continue;
+            }
+            // Column names never contain ':' in XML (QNames aside) — the sub-row index is the last part
+            boolean subRow = parts.length > 2 && parts[parts.length - 1].matches("\\d+");
+            String column = subRow ? entry.substring(parts[0].length() + 1, entry.lastIndexOf(':'))
+                    : entry.substring(parts[0].length() + 1);
+            RepeatingElementsTable.TableRow row = rows.get(r);
+            if (!row.hasComplexChild(column)) {
+                continue;
+            }
+            if (!row.isColumnExpanded(column)) {
+                row.toggleColumnExpanded(column);
+                changed = true;
+            }
+            if (subRow) {
+                int i = Integer.parseInt(parts[parts.length - 1]);
+                List<FlatRow> cellRows = row.getExpandedCellRows(column);
+                if (i < cellRows.size() && cellRows.get(i).isExpandable()) {
+                    cellRows.get(i).setExpanded(true);
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            for (RepeatingElementsTable.TableRow row : rows) {
+                for (String column : row.getExpandedColumns()) {
+                    FlatRow.applyVisibility(row.getExpandedCellRows(column));
+                }
+            }
+            table.recalculateColumnWidths();
+        }
     }
 
     /** Expands the selected container fully (keyboard / menu entry point). */

@@ -63,6 +63,8 @@ public class RepeatingElementsTable {
 
     /** Width reserved for the type icon ({@code =} / {@code <>}) in a column header. */
     public static final double HEADER_ICON_WIDTH = 18;
+    /** Width of the sort arrow at the right of every column header (a click there sorts). */
+    public static final double SORT_ZONE = 16;
 
     /**
      * The padding inside each cell in pixels (alias of {@link GridMetrics#CELL_PADDING}).
@@ -1001,9 +1003,8 @@ public class RepeatingElementsTable {
         // -- Column pass: content-driven logical column widths (user overrides win) --
         for (TableColumn col : columns) {
             String name = col.getName();
-            // Header = type icon + name (+ sort marker); the canvas draws the icon in HEADER_ICON_WIDTH
-            String header = name + (isSortedBy(name) ? " ▲" : "");
-            double headerWidth = HEADER_ICON_WIDTH + m.width(header, GridFont.ROW_BOLD) + pad2;
+            // Header = type icon + name + sort arrow zone (always reserved: sorting keeps the width)
+            double headerWidth = HEADER_ICON_WIDTH + m.width(name, GridFont.ROW_BOLD) + SORT_ZONE + pad2;
             double contentWidth = 0;
             double maxNameCol = 0;
 
@@ -1110,8 +1111,8 @@ public class RepeatingElementsTable {
         // Drawn column 0: the header column
         double headerCol = MIN_ROW_NUMBER_WIDTH;
         for (TableColumn col : columns) {
-            String header = col.getName() + (isSortedBy(col.getName()) ? " ▲" : "");
-            headerCol = Math.max(headerCol, HEADER_ICON_WIDTH + m.width(header, GridFont.ROW_BOLD) + pad2);
+            headerCol = Math.max(headerCol,
+                    HEADER_ICON_WIDTH + m.width(col.getName(), GridFont.ROW_BOLD) + SORT_ZONE + pad2);
         }
         drawnColX = new double[n + 1];
         drawnColW = new double[n + 1];

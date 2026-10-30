@@ -127,6 +127,31 @@ public final class GridViewState {
         }
     }
 
+    // ==================== Open table cells per group ====================
+
+    private final Map<String, Set<String>> cellExpansion = new HashMap<>();
+
+    /**
+     * @return the open complex cells of a group's table: {@code "<row>:<column>"} for an open
+     *         cell, {@code "<row>:<column>:<i>"} for its open sub-row {@code i} (empty when none)
+     */
+    public Set<String> cellExpansion(String groupKey) {
+        Set<String> entries = groupKey != null ? cellExpansion.get(groupKey) : null;
+        return entries != null ? java.util.Collections.unmodifiableSet(entries) : Set.of();
+    }
+
+    /** Remembers the open cells of a group's table (an empty set forgets them). */
+    public void setCellExpansion(String groupKey, Set<String> entries) {
+        if (groupKey == null) {
+            return;
+        }
+        if (entries == null || entries.isEmpty()) {
+            cellExpansion.remove(groupKey);
+        } else {
+            cellExpansion.put(groupKey, new java.util.LinkedHashSet<>(entries));
+        }
+    }
+
     // ==================== Table display per group ====================
 
     /** @return whether the repeating group with the given key is shown as a table */

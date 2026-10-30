@@ -117,6 +117,8 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     private MenuItem insertColumnBeforeItem;
     private MenuItem insertColumnAfterItem;
     private MenuItem renameColumnItem;
+    private MenuItem expandCellsItem;
+    private MenuItem collapseCellsItem;
 
     /** The canvas-level expand/collapse actions. */
     private final GridContextMenu.ViewActions viewActions;
@@ -282,8 +284,17 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         renameColumnItem = new MenuItem("Rename Column…");
         renameColumnItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY));
         renameColumnItem.setOnAction(e -> renameColumn(clickedTable, clickedColumnName));
+        expandCellsItem = new MenuItem("Expand Selected Cells");
+        expandCellsItem.setGraphic(createColoredIcon("bi-plus-square-dotted", ActionColor.NEUTRAL));
+        expandCellsItem.setAccelerator(new javafx.scene.input.KeyCharacterCombination("+"));
+        expandCellsItem.setOnAction(e -> viewActions.expandOneLevel().run());
+        collapseCellsItem = new MenuItem("Collapse Selected Cells");
+        collapseCellsItem.setGraphic(createColoredIcon("bi-dash-square-dotted", ActionColor.NEUTRAL));
+        collapseCellsItem.setAccelerator(new javafx.scene.input.KeyCharacterCombination("-"));
+        collapseCellsItem.setOnAction(e -> viewActions.collapseOneLevel().run());
         tableMenu.getItems().addAll(insertRowBeforeItem, insertRowAfterItem, appendRowItem,
-                new SeparatorMenuItem(), insertColumnBeforeItem, insertColumnAfterItem, renameColumnItem);
+                new SeparatorMenuItem(), insertColumnBeforeItem, insertColumnAfterItem, renameColumnItem,
+                new SeparatorMenuItem(), expandCellsItem, collapseCellsItem);
 
         expandAllItem = new MenuItem("Expand All");
         expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));

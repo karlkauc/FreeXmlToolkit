@@ -54,4 +54,14 @@ class GridViewStateTest {
         state.setFlipped("/root/item", false);
         assertFalse(state.isFlipped("/root/item"));
     }
+
+    @Test
+    void openCellsAreRememberedPerGroup() {
+        GridViewState state = new GridViewState();
+        assertTrue(state.cellExpansion("/root/item").isEmpty());
+        state.setCellExpansion("/root/item", java.util.Set.of("0:address", "0:address:2"));
+        assertEquals(java.util.Set.of("0:address", "0:address:2"), state.cellExpansion("/root/item"));
+        state.setCellExpansion("/root/item", java.util.Set.of());
+        assertTrue(state.cellExpansion("/root/item").isEmpty(), "an empty set forgets the group");
+    }
 }

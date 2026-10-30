@@ -174,7 +174,8 @@ Changes made in any view are synchronized automatically.
 - Repeating elements appear as **embedded tables beside the group's name**, with numbered
   rows. Toggle a group between table and plain rows (**Display as Table**), transpose it
   (**Flip Rows/Columns**), and copy or paste cell ranges as tab-separated text to and from
-  spreadsheets. Drag a column separator to resize a column; double-click it to auto-fit.
+  spreadsheets. Select a whole row (row number) or column (header) and press **+** / **−** to
+  open or close its nested cells one level at a time; the arrow in a header sorts. Drag a column separator to resize a column; double-click it to auto-fit.
 
 See [Unified Shell - The Grid](unified-shell.md#the-grid-graphic-view-for-xml) for the full
 list of grid features (drag & drop, Wrap in Element, validation markers, scroll header, …).
