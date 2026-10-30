@@ -6,7 +6,11 @@ import java.util.Objects;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.jsoneditor.commands.AddArrayItemCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.AddPropertyCommand;
+import org.fxt.freexmltoolkit.controls.jsoneditor.commands.CompositeJsonCommand;
+import org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommand;
+import org.fxt.freexmltoolkit.controls.jsoneditor.commands.ReparentNodeCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.RenameKeyCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.SetPrimitiveValueCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.SortArrayCommand;
@@ -14,8 +18,11 @@ import org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonArray;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeFactory;
+import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNodeType;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.DropPosition;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.FlatRow;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridCanvasView;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridContextMenu;
@@ -441,6 +448,197 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         }
         context.executeCommand(new SortArrayCommand(array, columnName, ascending, table.detectColumnDataType(columnName)));
         table.setSortState(columnName, ascending);
+    }
+
+    // ==================== Type change (click on the type icon) ====================
+
+    @Override
+    public List<String> typeTargets(FlatRow row) {
+        JsonNode node = nodeOf(row);
+        if (node == null || row.isTableGroupOwner() || isRootNode(node)) {
+            return List.of();
+        }
+        List<String> labels = new ArrayList<>();
+        for (JsonNodeType type : JsonGridContextMenu.VALUE_TYPES) {
+            if (type != node.getNodeType()) {
+                labels.add(JsonGridContextMenu.typeLabel(type));
+            }
+        }
+        return labels;
+    }
+
+    @Override
+    public boolean changeType(FlatRow row, String targetLabel) {
+        if (!typeTargets(row).contains(targetLabel)) {
+            return false;
+        }
+        for (JsonNodeType type : JsonGridContextMenu.VALUE_TYPES) {
+            if (JsonGridContextMenu.typeLabel(type).equals(targetLabel)) {
+                JsonCommand command = JsonGridContextMenu.typeChangeCommand(nodeOf(row), type);
+                return command != null && context.executeCommand(command);
+            }
+        }
+        return false;
+    }
+
+    private static boolean isRootNode(JsonNode node) {
+        return node.getParent() == null || node.getParent() instanceof JsonDocument;
+    }
+
+    // ==================== Drag & drop ====================
+
+    /** @return the node a row drags (never the root or a sibling group), or {@code null} */
+    private JsonNode draggableNode(FlatRow row) {
+        JsonNode node = nodeOf(row);
+        return node != null && !isRootNode(node) ? node : null;
+    }
+
+    @Override
+    public String dragText(FlatRow row) {
+        JsonNode node = draggableNode(row);
+        return node != null ? node.serialize(2, 0) : null;
+    }
+
+    @Override
+    public boolean canDrag(FlatRow row) {
+        return draggableNode(row) != null;
+    }
+
+    @Override
+    public boolean canDrop(FlatRow dragged, FlatRow target, DropPosition position) {
+        JsonNode targetNode = nodeOf(target);
+        if (targetNode == null) {
+            return false;
+        }
+        if (position == DropPosition.VALUE) {
+            return dragged == null && canEditValue(target);
+        }
+        if (position == DropPosition.INTO) {
+            if (!(targetNode instanceof JsonObject) && !(targetNode instanceof JsonArray)) {
+                return false;
+            }
+        } else if (isRootNode(targetNode)) {
+            return false; // the root has no siblings
+        }
+        if (dragged == null) {
+            return true;
+        }
+        JsonNode node = draggableNode(dragged);
+        // Never into itself or one of its descendants
+        return node != null && !ReparentNodeCommand.isSelfOrAncestor(node, targetNode);
+    }
+
+    @Override
+    public boolean dropRow(FlatRow dragged, FlatRow target, DropPosition position, boolean copy) {
+        if (!canDrop(dragged, target, position)) {
+            return false;
+        }
+        JsonNode node = draggableNode(dragged);
+        JsonNode targetNode = nodeOf(target);
+        JsonNode parent = position == DropPosition.INTO ? targetNode : targetNode.getParent();
+        int index = position == DropPosition.INTO ? -1
+                : parent.indexOf(targetNode) + (position == DropPosition.AFTER ? 1 : 0);
+        if (copy) {
+            return context.executeCommand(insertCommand(parent, index, node.deepCopy(), node.getKey()));
+        }
+        // ReparentNodeCommand takes the index after removing the node from its old place
+        if (node.getParent() == parent) {
+            int current = parent.indexOf(node);
+            if (index >= 0 && current < index) {
+                index--;
+            }
+            if (index == current || (index < 0 && current == parent.getChildCount() - 1)) {
+                return false; // dropped onto its own place
+            }
+        }
+        String key = parent instanceof JsonObject object
+                ? (node.getParent() == parent ? node.getKey() : JsonGridContextMenu.uniqueKey(object, keyOrItem(node)))
+                : null;
+        return context.executeCommand(new ReparentNodeCommand(node, parent, index, key));
+    }
+
+    /**
+     * Drops external text: on a value cell it replaces the value (keeping the type), elsewhere
+     * JSON text becomes a new value (an object dropped into an object adds its properties),
+     * any other text a string.
+     */
+    @Override
+    public boolean dropText(FlatRow target, DropPosition position, String text) {
+        if (text == null || !canDrop(null, target, position)) {
+            return false;
+        }
+        if (position == DropPosition.VALUE) {
+            return commitRowEdit(target, false, text.strip());
+        }
+        JsonNode targetNode = nodeOf(target);
+        JsonNode parent = position == DropPosition.INTO ? targetNode : targetNode.getParent();
+        int index = position == DropPosition.INTO ? -1
+                : parent.indexOf(targetNode) + (position == DropPosition.AFTER ? 1 : 0);
+        JsonNode value = parseDropped(text);
+        if (value == null) {
+            return false;
+        }
+        if (parent instanceof JsonObject object && value instanceof JsonObject properties) {
+            List<JsonCommand> parts = new ArrayList<>();
+            java.util.Set<String> used = new java.util.HashSet<>();
+            int at = index;
+            for (JsonNode property : List.copyOf(properties.getChildren())) {
+                String key = uniqueKey(object, used, keyOrItem(property));
+                used.add(key);
+                parts.add(new AddPropertyCommand(object, key, property.deepCopy(), at));
+                if (at >= 0) {
+                    at++;
+                }
+            }
+            return !parts.isEmpty()
+                    && context.executeCommand(new CompositeJsonCommand("Drop " + parts.size() + " property(s)", parts));
+        }
+        return context.executeCommand(insertCommand(parent, index, value, "value"));
+    }
+
+    /** @return the dropped text as a JSON value; text that is no JSON becomes a string */
+    static JsonNode parseDropped(String text) {
+        String trimmed = text.strip();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        try {
+            JsonNode root = JsonNodeFactory.parse(trimmed).getRootValue();
+            if (root != null) {
+                root.setKey(null);
+                if (root.getParent() != null) {
+                    root.getParent().removeChild(root);
+                }
+                return root;
+            }
+        } catch (Exception e) {
+            // not JSON: falls through to a string
+        }
+        return new JsonPrimitive(trimmed);
+    }
+
+    /** The command inserting a value into an object (unique key) or an array. */
+    private static JsonCommand insertCommand(JsonNode parent, int index, JsonNode value, String preferredKey) {
+        if (parent instanceof JsonObject object) {
+            String key = JsonGridContextMenu.uniqueKey(object, preferredKey != null ? preferredKey : "item");
+            return new AddPropertyCommand(object, key, value, index);
+        }
+        value.setKey(null);
+        return new AddArrayItemCommand((JsonArray) parent, index, value);
+    }
+
+    private static String keyOrItem(JsonNode node) {
+        return node.getKey() != null ? node.getKey() : "item";
+    }
+
+    /** {@link JsonGridContextMenu#uniqueKey} that also avoids the keys of the same drop. */
+    private static String uniqueKey(JsonObject object, java.util.Set<String> used, String base) {
+        String candidate = JsonGridContextMenu.uniqueKey(object, base);
+        int n = 2;
+        while (used.contains(candidate)) {
+            candidate = JsonGridContextMenu.uniqueKey(object, base + "_" + n++);
+        }
+        return candidate;
     }
 
     // ==================== Serialization & menu ====================

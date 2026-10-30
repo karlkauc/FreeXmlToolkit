@@ -34,6 +34,7 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.AddArrayItemCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.AddPropertyCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.ChangeValueTypeCommand;
+import org.fxt.freexmltoolkit.controls.jsoneditor.commands.CompositeJsonCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.DuplicateNodeCommand;
 import org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommand;
@@ -52,6 +53,7 @@ import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridContextMenu;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.TableEditOps.Placement;
 
 /**
  * Context menu of the JSON grid: the JSON counterpart of {@code XmlGridContextMenu} with
@@ -106,6 +108,15 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     private CheckMenuItem displayAsTableItem;
     private CheckMenuItem flipTableItem;
     private MenuItem copyTableTsvItem;
+
+    // Table operations (visible with a table context)
+    private Menu tableMenu;
+    private MenuItem insertRowBeforeItem;
+    private MenuItem insertRowAfterItem;
+    private MenuItem appendRowItem;
+    private MenuItem insertColumnBeforeItem;
+    private MenuItem insertColumnAfterItem;
+    private MenuItem renameColumnItem;
 
     /** The canvas-level expand/collapse actions. */
     private final GridContextMenu.ViewActions viewActions;
@@ -250,6 +261,30 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         copyTableTsvItem.setGraphic(createColoredIcon("bi-file-earmark-spreadsheet", ActionColor.NEUTRAL));
         copyTableTsvItem.setOnAction(e -> copyTableAsTsv());
 
+        // === Table operations ===
+        tableMenu = new Menu("Table");
+        tableMenu.setGraphic(createColoredIcon("bi-grid-3x3", ActionColor.STRUCTURE));
+        insertRowBeforeItem = new MenuItem("Insert Row Before");
+        insertRowBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-up", ActionColor.CREATE));
+        insertRowBeforeItem.setOnAction(e -> insertRow(Placement.BEFORE));
+        insertRowAfterItem = new MenuItem("Insert Row After");
+        insertRowAfterItem.setGraphic(createColoredIcon("bi-arrow-bar-down", ActionColor.CREATE));
+        insertRowAfterItem.setOnAction(e -> insertRow(Placement.AFTER));
+        appendRowItem = new MenuItem("Append Row");
+        appendRowItem.setGraphic(createColoredIcon("bi-plus-square", ActionColor.CREATE));
+        appendRowItem.setOnAction(e -> insertRow(Placement.APPEND));
+        insertColumnBeforeItem = new MenuItem("Insert Column Before…");
+        insertColumnBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-left", ActionColor.CREATE));
+        insertColumnBeforeItem.setOnAction(e -> insertColumn(Placement.BEFORE));
+        insertColumnAfterItem = new MenuItem("Insert Column After…");
+        insertColumnAfterItem.setGraphic(createColoredIcon("bi-arrow-bar-right", ActionColor.CREATE));
+        insertColumnAfterItem.setOnAction(e -> insertColumn(Placement.AFTER));
+        renameColumnItem = new MenuItem("Rename Column…");
+        renameColumnItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY));
+        renameColumnItem.setOnAction(e -> renameColumn(clickedTable, clickedColumnName));
+        tableMenu.getItems().addAll(insertRowBeforeItem, insertRowAfterItem, appendRowItem,
+                new SeparatorMenuItem(), insertColumnBeforeItem, insertColumnAfterItem, renameColumnItem);
+
         expandAllItem = new MenuItem("Expand All");
         expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
         expandAllItem.setOnAction(e -> viewActions.expandAll().run());
@@ -293,7 +328,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
                 new SeparatorMenuItem(),
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
-                displayAsTableItem, flipTableItem, copyTableTsvItem,
+                displayAsTableItem, flipTableItem, copyTableTsvItem, tableMenu,
                 new SeparatorMenuItem(),
                 sortMenu,
                 new SeparatorMenuItem(),
@@ -373,6 +408,11 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         contextMenu.hide();
     }
 
+    /** @return the Table submenu (test hook) */
+    Menu tableMenuForTest() {
+        return tableMenu;
+    }
+
     /** Enables/disables the items for the node; package-private test seam. */
     void updateMenuState(JsonNode node) {
         boolean hasSelection = node != null;
@@ -415,6 +455,14 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         flipTableItem.setVisible(flipState != null);
         flipTableItem.setSelected(Boolean.TRUE.equals(flipState));
         copyTableTsvItem.setVisible(clickedTable != null);
+
+        // Whole-row / whole-column operations: only with a table context
+        boolean inTable = clickedTable != null;
+        tableMenu.setVisible(inTable);
+        boolean hasRow = inTable && clickedRowIndex >= 0;
+        insertRowBeforeItem.setDisable(!hasRow);
+        insertRowAfterItem.setDisable(!hasRow);
+        renameColumnItem.setDisable(!(isInTableColumn && clickedTable.getColumn(clickedColumnName) != null));
     }
 
     private static boolean isRoot(JsonNode node) {
@@ -672,17 +720,78 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         Clipboard.getSystemClipboard().setContent(content);
     }
 
-    /** Converts the selected value: primitive → primitive via {@link ChangeValueTypeCommand}, otherwise a fresh node. */
     private void changeType(JsonNodeType type) {
-        JsonNode selected = selected();
-        if (selected == null || isRoot(selected) || selected.getNodeType() == type) {
-            return;
+        JsonCommand command = typeChangeCommand(selected(), type);
+        if (command != null) {
+            execute(command);
+        }
+    }
+
+    /**
+     * The command converting a value to another type: primitive → primitive via
+     * {@link ChangeValueTypeCommand} (the value is converted), otherwise a fresh empty node.
+     *
+     * @return the command, or {@code null} for the root, a missing node or an unchanged type
+     */
+    static JsonCommand typeChangeCommand(JsonNode node, JsonNodeType type) {
+        if (node == null || isRoot(node) || node.getNodeType() == type) {
+            return null;
         }
         boolean primitiveTarget = type != JsonNodeType.OBJECT && type != JsonNodeType.ARRAY;
-        if (selected instanceof JsonPrimitive primitive && primitiveTarget) {
-            execute(new ChangeValueTypeCommand(primitive, type));
+        if (node instanceof JsonPrimitive primitive && primitiveTarget) {
+            return new ChangeValueTypeCommand(primitive, type);
+        }
+        return new ReplaceNodeCommand(node, newNode(type));
+    }
+
+    // ==================== Table operations ====================
+
+    private void insertRow(Placement placement) {
+        if (clickedTable == null) {
+            return;
+        }
+        JsonCommand cmd = JsonTableEditOps.insertRow(clickedTable, clickedRowIndex, placement);
+        if (cmd != null) {
+            execute(cmd);
+        }
+    }
+
+    private void insertColumn(Placement placement) {
+        if (clickedTable == null) {
+            return;
+        }
+        String key = showInputDialog("Insert Column", "Key of the new property:", "newColumn");
+        if (key == null || key.isBlank()) {
+            return;
+        }
+        CompositeJsonCommand cmd = JsonTableEditOps.insertColumn(clickedTable, key.trim(), clickedColumnName, placement);
+        if (!cmd.isEmpty()) {
+            execute(cmd);
+        }
+    }
+
+    /**
+     * Renames a column (the property of that key in every object) after asking for the new
+     * key; also the canvas' double-click-on-header entry point. A key already used by one of
+     * the objects is rejected as a whole.
+     */
+    @Override
+    public void renameColumn(RepeatingElementsTable table, String columnName) {
+        if (table == null || columnName == null || table.getColumn(columnName) == null) {
+            return;
+        }
+        String newKey = showInputDialog("Rename Column", "New key for " + columnName + ":", columnName);
+        if (newKey == null || newKey.isBlank() || newKey.trim().equals(columnName)) {
+            return;
+        }
+        CompositeJsonCommand cmd = JsonTableEditOps.renameColumn(table, columnName, newKey.trim());
+        if (cmd.isEmpty()) {
+            return;
+        }
+        if (context.executeCommand(cmd)) {
+            refresh();
         } else {
-            execute(new ReplaceNodeCommand(selected, newNode(type)));
+            showWarningAlert("Cannot Rename Column", "A row already has a property \"" + newKey.trim() + "\".");
         }
     }
 

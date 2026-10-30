@@ -342,10 +342,23 @@ looks and feels exactly like an XML file in the grid:
   the search in table cells all work as described above. Table cells can be selected and
   copied as tab-separated text (Ctrl+C or **Copy Table as Tab-separated Text**); Ctrl+V
   overwrites existing cells only. The zoom factor is shared with the XML grid.
-- **XML only:** changing a node's type by clicking its icon (Ctrl+Alt+T), **Wrap in
-  Element**, drag & drop, the **Table** submenu (insert / append rows and columns, rename
-  columns) and validation markers are not available in the JSON grid - use **Change Type**,
-  **Add** and **Move Up / Down** from the context menu instead.
+- **Change a value's type** by clicking its type glyph (or Ctrl+Alt+T on the selected row):
+  a popup lists the other types. Number ↔ String ↔ Boolean ↔ Null convert the value
+  (`"42"` → `42`); Object and Array start empty. One undo step.
+- **Drag & drop:** drag a row by its name cell onto another row - the upper part of the name
+  cell inserts **before** it, the lower part **after** it, the middle of an object or array
+  **into** it; hold **Ctrl** to copy instead of move. A property moved into another object
+  keeps its key (made unique with `_copy` if it is taken); an item moved into an object gets
+  the key `item`. JSON text dragged in from another application becomes a new value (an
+  object dropped into an object adds its properties), plain text a string; dropped on a value
+  cell it replaces the value. A node can never be dropped into itself.
+- **Table** submenu (right-click a cell of an array-of-objects table): **Insert Row Before /
+  After**, **Append Row** (a new object with every column as an empty string), **Insert
+  Column Before / After…** (the key in every object, next to the clicked column) and
+  **Rename Column…** (also a double-click on the column header; refused as a whole when an
+  object already uses the new key). Each is one undo step.
+- **XML only:** **Wrap in Element**, **Edit as Raw Text**, filters, formulas and validation
+  markers.
 
 !!! warning "Comments and JSON5 syntax are not preserved"
     The grid edits the parsed *model*. Comments (JSONC) and JSON5 syntax (unquoted keys,
