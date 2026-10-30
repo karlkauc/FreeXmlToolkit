@@ -33,6 +33,20 @@ final class GridDisplayPreferences {
         }
     }
 
+    /** @return whether the entry helpers are shown beside the XML grid (off when nothing is persisted) */
+    static boolean loadEntryHelpers() {
+        PropertiesService service = service();
+        return service != null && service.isGridEntryHelpers();
+    }
+
+    /** @param shown the entry-helpers setting to persist (ignored without a service) */
+    static void saveEntryHelpers(boolean shown) {
+        PropertiesService service = service();
+        if (service != null) {
+            service.setGridEntryHelpers(shown);
+        }
+    }
+
     /** @return the persisted cell-line limit, 0 (unlimited) when none is available */
     static int loadMaxCellLines() {
         PropertiesService service = service();

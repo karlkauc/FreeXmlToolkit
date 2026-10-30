@@ -35,6 +35,8 @@ final class GridViewHeader extends HBox {
     @FXML private RadioMenuItem splitOff;
     @FXML private RadioMenuItem splitTopBottom;
     @FXML private RadioMenuItem splitSideBySide;
+    @FXML private ToggleButton sidePanelButton;
+    private java.util.function.Consumer<Boolean> sidePanelHandler = shown -> { };
     private final java.util.function.Consumer<javafx.geometry.Orientation> splitHandler;
 
     GridViewHeader(GridCanvasView<?> view, String subtitleText) {
@@ -61,6 +63,25 @@ final class GridViewHeader extends HBox {
             case 10000 -> siblingGroups10000;
             default -> siblingGroupsOff;
         }).setSelected(true);
+    }
+
+    /**
+     * Shows the side-panel toggle (XML: entry helpers) when the view has a side panel.
+     *
+     * @param supported whether the view has a side panel
+     * @param shown     its current state
+     * @param handler   receives the new state
+     */
+    void configureSidePanel(boolean supported, boolean shown, java.util.function.Consumer<Boolean> handler) {
+        sidePanelButton.setVisible(supported);
+        sidePanelButton.setManaged(supported);
+        sidePanelButton.setSelected(shown);
+        sidePanelHandler = handler;
+    }
+
+    @FXML
+    public void onSidePanel() {
+        sidePanelHandler.accept(sidePanelButton.isSelected());
     }
 
     private void selectCellLines(int lines) {

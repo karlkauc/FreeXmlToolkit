@@ -122,6 +122,26 @@ public class XmlGridView extends GridViewShell {
         if (problems != null) {
             view.setProblems(problems);
         }
+        if (entryHelpers != null) {
+            entryHelpers.bind(ctx, view);
+        }
+    }
+
+    /** The entry helpers beside the grid, created on first use. */
+    private GridEntryHelpersPanel entryHelpers;
+
+    @Override
+    protected javafx.scene.Node sidePanel() {
+        if (entryHelpers == null) {
+            entryHelpers = new GridEntryHelpersPanel();
+            entryHelpers.bind(context, canvasView);
+        }
+        return entryHelpers;
+    }
+
+    /** @return the entry helpers (created on first use) */
+    GridEntryHelpersPanel getEntryHelpers() {
+        return (GridEntryHelpersPanel) sidePanel();
     }
 
     /** The last validation problems by line, re-applied when the canvas is rebuilt. */

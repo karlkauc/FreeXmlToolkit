@@ -736,6 +736,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             selectedRow.setSelected(true);
             multiSelection.add(selectedRow);
         }
+        fireSelectionChanged();
         hoveredRow = null;
         hoveredExpandBar = null;
 
@@ -2456,6 +2457,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Notify SelectionModel so sidebar properties pane updates
         adapter.select(adapter.nodeOf(table.getRows().get(rowIdx)));
+        fireSelectionChanged();
     }
 
     /**
@@ -3809,8 +3811,30 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             // Update selection model
             adapter.select(adapter.nodeOf(row));
         }
+        fireSelectionChanged();
 
         render();
+    }
+
+    private final List<Runnable> selectionListeners = new ArrayList<>();
+
+    /**
+     * Registers a listener run whenever the selected row or table row changes, also when the
+     * model node stays the same (an attribute row selects its element) and after a rebuild.
+     */
+    public void addSelectionListener(Runnable listener) {
+        selectionListeners.add(listener);
+    }
+
+    private void fireSelectionChanged() {
+        for (Runnable listener : List.copyOf(selectionListeners)) {
+            listener.run();
+        }
+    }
+
+    /** @return the selected row ({@code null} while nothing or a table row is selected) */
+    public FlatRow getSelectedRow() {
+        return selectedRow;
     }
 
     // ==================== Scroll-to-Selection ====================
@@ -4395,6 +4419,22 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
         return selectedRow != null ? adapter.nodeOf(selectedRow) : null;
+    }
+
+    /**
+     * Selects the first row that matches, revealing it if it is collapsed away (e.g. an
+     * attribute row, which {@link #setSelectedNode} cannot address).
+     *
+     * @return whether a row matched
+     */
+    public boolean selectRowMatching(java.util.function.Predicate<FlatRow> match) {
+        for (FlatRow row : allRows) {
+            if (match.test(row)) {
+                revealRow(row);
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Selects the row of the given model node, revealing it if it is collapsed away. */

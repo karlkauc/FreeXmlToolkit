@@ -685,6 +685,20 @@ public interface PropertiesService {
         set(GRID_WORD_WRAP, String.valueOf(wrap));
     }
 
+    /** Property key: whether the XML grid shows the entry helpers (Siblings / Children / Values) beside it. */
+    String GRID_ENTRY_HELPERS = "grid.entryHelpers";
+
+    /** @return whether the entry helpers are shown (off by default) */
+    default boolean isGridEntryHelpers() {
+        String v = get(GRID_ENTRY_HELPERS);
+        return v != null && "true".equalsIgnoreCase(v.trim());
+    }
+
+    /** @param shown whether the XML grid shows the entry helpers */
+    default void setGridEntryHelpers(boolean shown) {
+        set(GRID_ENTRY_HELPERS, String.valueOf(shown));
+    }
+
     /** Property key: maximum lines per grid cell (0 = unlimited; XMLSpy "Limit cell height"). */
     String GRID_MAX_CELL_LINES = "grid.maxCellLines";
     /** Largest persisted cell-line limit. */

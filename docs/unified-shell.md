@@ -270,6 +270,19 @@ shows the editable grid, laid out like XMLSpy's Grid View:
 - **Split view.** The header's **⋯** menu splits the grid *top / bottom* or *side by side* into
   two views of the same document; each scrolls, expands and selects on its own, and an edit in
   one appears in the other at once. *Single view* closes the second one.
+- **Entry helpers.** The header's panel button (right of *Collapse all*) opens the entry
+  helpers beside the grid, as in XMLSpy. They need an XSD bound to the document and follow the
+  selected row. **Siblings** lists the attributes and elements the schema allows next to the
+  selected node, **Children** lists those allowed inside the selected element, and **Values**
+  lists the enumeration values of the selected element or attribute. Entries that are already
+  there and cannot occur again are greyed out. Required ones (`use="required"`, `minOccurs` ≥ 1
+  outside an optional or choice group) carry a red **!**. A double-click inserts:
+  - Siblings: after the selected node; the buttons insert before it or append at the end.
+  - Children: as the last child of the selected element. An attribute starts with its schema
+    default.
+  - Values: sets the value.
+
+  Every insertion is one undo step. The panel stays open or closed across sessions.
 - **Scroll header.** While you scroll through a long element, a bar at the top shows the
   path of containers you are inside (`root › section › body`); click one to select it and
   scroll back to its start.

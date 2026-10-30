@@ -37,9 +37,10 @@ public abstract class GridViewShell extends StackPane {
         primary = view;
         secondary = null;
         header = new GridViewHeader(view, subtitle(), this::setSplit, split);
+        header.configureSidePanel(sidePanel() != null, sidePanelShown, this::setSidePanelShown);
         layoutRoot = new VBox(header, view);
         getChildren().add(layoutRoot);
-        if (split != null) {
+        if (split != null || (sidePanelShown && sidePanel() != null)) {
             applySplit();
         }
         // Arrow-key navigation should work right away, without a mouse click first.
@@ -101,14 +102,14 @@ public abstract class GridViewShell extends StackPane {
 
     private void applySplit() {
         if (split == null) {
-            layoutRoot.getChildren().setAll(header, primary);
+            showContent(primary);
             return;
         }
         if (secondary == null) {
             secondary = createSplitCanvas();
             if (secondary == null) {
                 split = null;
-                layoutRoot.getChildren().setAll(header, primary);
+                showContent(primary);
                 return;
             }
             configure(secondary);
@@ -135,8 +136,48 @@ public abstract class GridViewShell extends StackPane {
         pane.setId("grid-split-pane");
         pane.setOrientation(split);
         pane.setDividerPositions(0.5);
-        VBox.setVgrow(pane, Priority.ALWAYS);
-        layoutRoot.getChildren().setAll(header, pane);
+        showContent(pane);
+    }
+
+    // ==================== Side panel (XML: entry helpers) ====================
+
+    private boolean sidePanelShown = GridDisplayPreferences.loadEntryHelpers();
+
+    /**
+     * @return the panel shown beside the grid when switched on in the header (XML: the entry
+     *         helpers), or {@code null} when this view has none; the same instance every call
+     */
+    protected javafx.scene.Node sidePanel() {
+        return null;
+    }
+
+    /** Shows or hides the side panel (persisted). */
+    public void setSidePanelShown(boolean shown) {
+        sidePanelShown = shown;
+        GridDisplayPreferences.saveEntryHelpers(shown);
+        if (primary != null && layoutRoot != null) {
+            applySplit();
+        }
+    }
+
+    /** @return whether the side panel is switched on */
+    public boolean isSidePanelShown() {
+        return sidePanelShown && sidePanel() != null;
+    }
+
+    /** Puts the grid (one canvas or the split pane) below the header, with the side panel beside it. */
+    private void showContent(javafx.scene.Node content) {
+        javafx.scene.Node panel = sidePanelShown ? sidePanel() : null;
+        javafx.scene.Node body = content;
+        if (panel != null) {
+            javafx.scene.control.SplitPane withPanel = new javafx.scene.control.SplitPane(content, panel);
+            withPanel.setId("grid-side-split");
+            javafx.scene.control.SplitPane.setResizableWithParent(panel, false);
+            withPanel.setDividerPositions(0.72);
+            body = withPanel;
+        }
+        VBox.setVgrow(body, Priority.ALWAYS);
+        layoutRoot.getChildren().setAll(header, body);
     }
 
     /** Rebuilds the second view of a split (after a change made outside the grid). */

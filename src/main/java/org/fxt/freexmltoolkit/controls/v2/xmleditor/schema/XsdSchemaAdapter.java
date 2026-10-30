@@ -101,8 +101,56 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
             return Collections.emptyList();
         }
 
-        logger.debug("getValidChildElements: parentXPath='{}' - returning empty (XsdIntegrationAdapter removed)", parentXPath);
-        return Collections.emptyList();
+        XsdExtendedElement parent = resolveElement(parentXPath);
+        if (parent == null) {
+            return Collections.emptyList();
+        }
+        Map<String, Boolean> children = new java.util.LinkedHashMap<>();
+        collectChildElements(parent, xsdDocumentationData.getExtendedXsdElementMap(), false, children,
+                new java.util.HashSet<>());
+        return List.copyOf(children.keySet());
+    }
+
+    @Override
+    public boolean isChildElementRequired(String parentXPath, String childName) {
+        XsdExtendedElement parent = hasSchema() ? resolveElement(parentXPath) : null;
+        if (parent == null) {
+            return false;
+        }
+        Map<String, Boolean> children = new java.util.LinkedHashMap<>();
+        collectChildElements(parent, xsdDocumentationData.getExtendedXsdElementMap(), false, children,
+                new java.util.HashSet<>());
+        return Boolean.TRUE.equals(children.get(childName));
+    }
+
+    /**
+     * Collects the element children declared under {@code parent} (local name → required), in
+     * schema order, descending transparently through synthetic compositor children
+     * (SEQUENCE/CHOICE/ALL/GROUP); attributes are skipped, cycles are cut. A child is required
+     * when its own {@code minOccurs > 0} and no compositor on the way is optional
+     * ({@code minOccurs="0"}) or a choice.
+     */
+    private void collectChildElements(XsdExtendedElement parent, Map<String, XsdExtendedElement> elementMap,
+                                      boolean optional, Map<String, Boolean> out, java.util.Set<String> visited) {
+        if (parent == null || parent.getChildren() == null || elementMap == null) {
+            return;
+        }
+        for (String childKey : parent.getChildren()) {
+            if (childKey == null || childKey.contains("@") || !visited.add(childKey)) {
+                continue;
+            }
+            String childLocal = localName(childKey.substring(childKey.lastIndexOf('/') + 1));
+            XsdExtendedElement child = elementMap.get(childKey);
+            if (isCompositorName(childLocal)) {
+                org.w3c.dom.Node node = child != null ? child.getCurrentNode() : null;
+                boolean optionalHere = optional || childLocal.toUpperCase().startsWith("CHOICE")
+                        || "0".equals(getAttributeValue(node, "minOccurs", "1"));
+                collectChildElements(child, elementMap, optionalHere, out, visited);
+            } else if (!childLocal.isBlank()) {
+                boolean required = !optional && child != null && child.isMandatory();
+                out.merge(childLocal, required, Boolean::logicalOr);
+            }
+        }
     }
 
     @Override

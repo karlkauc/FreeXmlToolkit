@@ -27,7 +27,7 @@
         <ToggleGroup fx:id="splitGroup"/>
     </fx:define>
     <children>
-        <Label text="Grid view" styleClass="fxt-grid-title">
+        <Label text="Grid view" styleClass="fxt-grid-title" minWidth="-Infinity">
             <graphic>
                 <IconifyIcon iconLiteral="bi-table" iconSize="15"/>
             </graphic>
@@ -36,7 +36,7 @@
         <Region HBox.hgrow="ALWAYS"/>
 
         <!-- Zoom pill; clicking the percentage resets to 100 % -->
-        <HBox alignment="CENTER" styleClass="fxt-graph-zoom-pill, fxt-grid-zoom-pill">
+        <HBox alignment="CENTER" styleClass="fxt-graph-zoom-pill, fxt-grid-zoom-pill" minWidth="-Infinity">
             <children>
                 <Button id="grid-zoom-out" text="−" focusTraversable="false" styleClass="fxt-graph-zoom-button"
                         onAction="#onZoomOut">
@@ -44,7 +44,7 @@
                         <Tooltip text="Zoom out (Ctrl −)"/>
                     </tooltip>
                 </Button>
-                <Label fx:id="zoomLabel" id="grid-zoom-label" styleClass="fxt-graph-zoom-label"
+                <Label fx:id="zoomLabel" id="grid-zoom-label" styleClass="fxt-graph-zoom-label" minWidth="-Infinity"
                        onMouseClicked="#onZoomReset">
                     <tooltip>
                         <Tooltip text="Reset zoom to 100% (Ctrl 0)"/>
@@ -59,7 +59,7 @@
             </children>
         </HBox>
 
-        <Button id="grid-optimal-widths" text="Optimal widths" styleClass="fxt-tool-button" focusTraversable="false"
+        <Button id="grid-optimal-widths" minWidth="-Infinity" text="Optimal widths" styleClass="fxt-tool-button" focusTraversable="false"
                 onAction="#onOptimalWidths">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-angle-expand" iconSize="13"/>
@@ -68,7 +68,7 @@
                 <Tooltip text="Size every name column and table column to its content"/>
             </tooltip>
         </Button>
-        <ToggleButton fx:id="wordWrapButton" id="grid-word-wrap" text="Wrap" styleClass="fxt-tool-button"
+        <ToggleButton fx:id="wordWrapButton" id="grid-word-wrap" minWidth="-Infinity" text="Wrap" styleClass="fxt-tool-button"
                       focusTraversable="false" onAction="#onWordWrap">
             <graphic>
                 <IconifyIcon iconLiteral="bi-text-wrap" iconSize="13"/>
@@ -77,17 +77,26 @@
                 <Tooltip text="Word wrap: long values wrap onto further lines"/>
             </tooltip>
         </ToggleButton>
-        <Button id="grid-expand-all" text="Expand all" styleClass="fxt-tool-button" onAction="#onExpandAll">
+        <Button id="grid-expand-all" minWidth="-Infinity" text="Expand all" styleClass="fxt-tool-button" onAction="#onExpandAll">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-expand" iconSize="13"/>
             </graphic>
         </Button>
-        <Button id="grid-collapse-all" text="Collapse all" styleClass="fxt-tool-button" onAction="#onCollapseAll">
+        <Button id="grid-collapse-all" minWidth="-Infinity" text="Collapse all" styleClass="fxt-tool-button" onAction="#onCollapseAll">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="13"/>
             </graphic>
         </Button>
-        <MenuButton id="grid-more" styleClass="fxt-tool-button" focusTraversable="false">
+        <ToggleButton fx:id="sidePanelButton" id="grid-entry-helpers-toggle" minWidth="-Infinity" styleClass="fxt-tool-button"
+                      focusTraversable="false" visible="false" managed="false" onAction="#onSidePanel">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-layout-sidebar-reverse" iconSize="13"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Entry helpers: elements, attributes and values the schema allows here"/>
+            </tooltip>
+        </ToggleButton>
+        <MenuButton id="grid-more" minWidth="-Infinity" styleClass="fxt-tool-button" focusTraversable="false">
             <graphic>
                 <IconifyIcon iconLiteral="bi-three-dots" iconSize="13"/>
             </graphic>

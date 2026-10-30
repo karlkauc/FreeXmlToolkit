@@ -158,7 +158,9 @@ Changes made in any view are synchronized automatically.
 
 - The **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
   grids"* and offers the **zoom pill** (`− 100% +`), **Optimal widths**, the **Wrap** toggle,
-  **Expand all** / **Collapse all** and a **⋯** menu (cell-height limit, sibling groups).
+  **Expand all** / **Collapse all**, the **entry helpers** button (a side panel with the
+  siblings, children and enumeration values the bound XSD allows at the selected row; a
+  double-click inserts them) and a **⋯** menu (cell-height limit, sibling groups, split view).
 - **Nested blocks**: each element has a name cell; its value or the block of its children sits
   to the right, so the structure reads as nested boxes.
 - **Type icons** mark every row: `<>` element, `=` attribute, `Abc` text, `[ ]` CDATA, `<!`

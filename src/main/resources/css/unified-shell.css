@@ -4348,3 +4348,85 @@
     -fx-text-fill: -fxt-text-secondary;
     -fx-padding: 2 6 2 6;
 }
+
+/* ----- XML grid entry helpers (Siblings / Children / Values) ------------ */
+.fxt-grid-entry-helpers {
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-min-width: 180;
+    -fx-pref-width: 240;
+}
+
+.fxt-grid-entry-section {
+    -fx-padding: 6 6 4 10;
+    -fx-border-color: -fxt-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.fxt-grid-entry-title {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-grid-entry-hint {
+    -fx-padding: 8 10 8 10;
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-grid-entry-list {
+    -fx-background-color: -fxt-bg-canvas;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.fxt-grid-entry-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 2 10 2 10;
+    -fx-font-size: 12px;
+}
+
+.fxt-grid-entry-list .list-cell:filled:hover {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-grid-entry-list .list-cell:filled:selected {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-border-color: transparent transparent transparent -fxt-accent;
+    -fx-border-width: 0 0 0 2;
+}
+
+.fxt-grid-entry-list .list-cell .label {
+    -fx-text-fill: -fxt-text-primary;
+}
+
+
+.fxt-grid-entry-list .list-cell .fxt-grid-entry-glyph {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 10px;
+    -fx-text-fill: -fxt-code-elem;
+}
+
+.fxt-grid-entry-list .list-cell.fxt-grid-entry-attribute .fxt-grid-entry-glyph {
+    -fx-text-fill: -fxt-code-attr;
+}
+
+.fxt-grid-entry-list .list-cell.fxt-grid-entry-value .fxt-grid-entry-glyph {
+    -fx-text-fill: -fxt-code-val;
+}
+
+.fxt-grid-entry-list .list-cell .fxt-grid-entry-mandatory {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-danger;
+}
+
+.fxt-grid-entry-list .list-cell.fxt-grid-entry-unavailable .label,
+.fxt-grid-entry-list .list-cell.fxt-grid-entry-unavailable .fxt-grid-entry-glyph {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-grid-entry-placeholder {
+    -fx-font-size: 11px;
+    -fx-text-fill: -fxt-text-muted;
+}

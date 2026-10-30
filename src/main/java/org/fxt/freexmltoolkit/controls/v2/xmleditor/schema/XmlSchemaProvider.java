@@ -53,6 +53,18 @@ public interface XmlSchemaProvider {
     List<String> getValidChildElements(String parentXPath);
 
     /**
+     * Whether a child element is required in the parent: its own {@code minOccurs > 0} and no
+     * optional or choice compositor around it. The default only looks at the element itself.
+     *
+     * @param parentXPath the XPath of the parent element
+     * @param childName   the child element's local name
+     * @return whether every instance of the parent must contain the child
+     */
+    default boolean isChildElementRequired(String parentXPath, String childName) {
+        return getElementTypeInfo(parentXPath + "/" + childName).map(ElementTypeInfo::isMandatory).orElse(false);
+    }
+
+    /**
      * Gets the list of valid attribute names for an element.
      *
      * @param elementXPath the XPath of the element
