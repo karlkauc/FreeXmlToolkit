@@ -4623,8 +4623,16 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   and JSON grids and restarts.</li>
 <li><strong>Repeating elements</strong> (two or more siblings with the same name) are rendered as an
   <strong>embedded table beside the group's name cell</strong>: one row per element (numbered in the
-  first column), one column per attribute (<code>=</code>) and child element (<code>&lt;&gt;</code>). Click a column
-  header to <strong>sort</strong> the group; cells with nested structure expand inline.</li>
+  first column), one column per attribute (<code>=</code>) and child element (<code>&lt;&gt;</code>). Click the small
+  <strong>arrow at the right of a column header</strong> to <strong>sort</strong> the group (also: <strong>Sort Column</strong> in the
+  context menu); cells with nested structure expand inline.</li>
+<li><strong>Open whole rows and columns.</strong> Click a <strong>row number</strong> to select the whole row, click a
+  <strong>column header</strong> (its name, not the arrow) to select the whole column; <strong>Shift+click</strong>
+  extends to more rows or columns. Then press <strong>+</strong> to open the nested cells of the selection
+  one level, and again for the next level inside them; <strong>−</strong> closes the deepest open level
+  first, then the cells. The same entries are in the <strong>Table</strong> submenu (<strong>Expand / Collapse
+  Selected Cells</strong>). Without a table selection, <strong>+</strong> / <strong>−</strong> open and close the selected
+  grid rows one level. Open cells stay open after edits.</li>
 <li><strong>Table or rows.</strong> The small table glyph after the group's name (or the context menu's
   <strong>Display as Table</strong>) switches the group between the table and XMLSpy's standard display,
   where every member is its own row numbered <code>&lt;1&gt;</code>, <code>&lt;2&gt;</code>, … The choice is kept per group
@@ -4745,8 +4753,10 @@ looks and feels exactly like an XML file in the grid:</p>
   <code>#</code> number, <code>T</code>/<code>F</code> boolean and <code>∅</code> null. <strong>Strings are shown quoted</strong> (<code>= "Alice"</code>) - like
   XML leaf values - so <code>"42"</code> and <code>42</code> are never confused.</li>
 <li><strong>Arrays of objects</strong> are rendered as <strong>embedded grids</strong> (a table with one column per key,
-  merged across all items), exactly like repeating elements in XML. Column headers <strong>sort</strong>
-  the array (numbers, dates and strings are recognised), nested objects expand inline.</li>
+  merged across all items), exactly like repeating elements in XML. The arrow in a column
+  header <strong>sorts</strong> the array (numbers, dates and strings are recognised), nested objects expand
+  inline; a click on the header's name selects the column, <strong>+</strong> / <strong>−</strong> open and close its
+  nested objects level by level, as in XML.</li>
 <li><strong>Inline editing</strong> keeps the value's type: double-click a number and type a number
   (anything else is rejected with a hint and the editor stays open), booleans toggle between
   <code>true</code>/<code>false</code>, <code>null</code> stays <code>null</code> unless you type text. Double-click a key to rename it
