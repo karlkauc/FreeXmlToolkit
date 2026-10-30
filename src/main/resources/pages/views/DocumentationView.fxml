@@ -119,11 +119,11 @@
                                                     </tooltip>
                                                 </ComboBox>
                                                 <CheckBox fx:id="includeTypeDefs"
-                                                          text="Include type definitions in source code"/>
+                                                          text="Include type definitions in source code" selected="true"/>
                                                 <CheckBox fx:id="showDocInSvg" text="Show documentation in diagrams"
                                                           selected="true"/>
-                                                <CheckBox fx:id="svgOverview" text="Generate SVG overview page"/>
-                                                <CheckBox fx:id="addMetadata" text="Add metadata in output"/>
+                                                <CheckBox fx:id="svgOverview" text="Generate SVG overview page" selected="true"/>
+                                                <CheckBox fx:id="addMetadata" text="Add metadata in output" selected="true"/>
                                                 <CheckBox fx:id="dedupDataDictionary"
                                                           text="Deduplicate data dictionary by type">
                                                     <tooltip>

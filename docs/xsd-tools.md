@@ -594,10 +594,10 @@ Create professional documentation from your XSD file automatically.
 | Option                                          | Description                                                        |
 |-------------------------------------------------|--------------------------------------------------------------------|
 | **Markdown rendering**                          | *All documentation* (default), *Per node (`@markdown`)*, or *Off* - see below      |
-| **Include type definitions in source code**     | Show the type's XSD source on the detail pages                     |
+| **Include type definitions in source code**     | Show the type's XSD source on the detail pages (on by default)     |
 | **Show documentation in diagrams**              | Print the documentation text inside the SVG element boxes          |
-| **Generate SVG overview page**                  | Interactive full-schema SVG                                        |
-| **Add metadata in output**                      | Generator name, date and schema information in the output          |
+| **Generate SVG overview page**                  | Interactive full-schema SVG (on by default)                        |
+| **Add metadata in output**                      | Generator name, date and schema information in the output (on by default) |
 | **Deduplicate data dictionary by type**         | List each type once in the Data Dictionary instead of per usage    |
 | **Image format**                                | SVG (default), PNG or JPG for the diagrams                         |
 | **Favicon**                                     | A custom icon file for the HTML output                             |

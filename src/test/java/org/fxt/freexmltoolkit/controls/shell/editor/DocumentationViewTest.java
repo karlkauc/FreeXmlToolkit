@@ -86,6 +86,9 @@ class DocumentationViewTest {
         assertEquals(XsdDocumentationService.MarkdownMode.ALL, options.markdown(),
                 "Markdown renderer defaults to rendering all documentation");
         assertTrue(options.openAfter(), "open-after defaults to on");
+        assertTrue(options.includeTypeDefs(), "type definitions in source code default to on");
+        assertTrue(options.svgOverview(), "the SVG overview page defaults to on");
+        assertTrue(options.addMetadata(), "metadata in the output defaults to on");
         assertEquals("SVG", options.imageFormat());
         assertEquals(xsd.toFile(), options.xsd());
         assertNull(options.favicon(), "no favicon by default");
