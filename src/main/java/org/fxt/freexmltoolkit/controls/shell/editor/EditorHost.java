@@ -4649,7 +4649,7 @@ public class EditorHost extends BorderPane {
             tab.loading = false;
             tab.attachDirtyTracking();
             UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
-                    UsageEvents.SOURCE_FILE, openStart, elementCount);
+                    UsageEvents.SOURCE_FILE, openStart, elementCount, encoding.charset().name());
             documentLoadedHandler.accept(tab.document, content);
             Runnable after = tab.afterLoad;
             tab.afterLoad = null;
@@ -5945,13 +5945,49 @@ public class EditorHost extends BorderPane {
             cause = cause.getCause();
         }
         UsageEvents.fileSaveFailed(tab.document.getFileType().docKind(),
-                org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(cause));
+                org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(cause),
+                tab.document.getEncoding().charset().name());
         logger.warn("Could not save {}: {}", target, String.valueOf(cause));
+        if (cause instanceof java.nio.charset.CharacterCodingException) {
+            offerUtf8Save(tab, target);
+            return;
+        }
         // file_save already carries the failure; the dialog must not report it a second time.
         org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
                 "Could not save " + target.getFileName() + ".",
                 "Check that the file is not read-only or locked by another program and that the drive "
                         + "has free space, then try again or use Save As.", cause, false);
+    }
+
+    /**
+     * Asked when the text holds characters the document's charset cannot store (only outside XML, where
+     * they would otherwise become character references): {@code true} saves it as UTF-8 instead.
+     * Replaceable by tests.
+     */
+    static java.util.function.Predicate<String> utf8SaveConfirmer = charset ->
+            org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Save failed",
+                    "The text contains characters that " + charset + " cannot store.",
+                    "Save the file as UTF-8 instead? Its other characters stay as they are, only their bytes "
+                            + "on disk change.",
+                    "Save as UTF-8", "Cancel");
+
+    /** Offers to save {@code tab} as UTF-8 after its own charset could not encode the text. FX thread. */
+    private void offerUtf8Save(EditorTab tab, Path target) {
+        TextEncoding current = tab.document.getEncoding();
+        if (org.fxt.freexmltoolkit.controls.shell.editor.search.EncodingSniffer.declaredEncoding(
+                tab.view.getText()) != null) {
+            // A declaration would pick the charset again on the next write: the user has to edit it.
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
+                    "Could not save " + target.getFileName() + ": the text contains characters that "
+                            + current.charset().name() + " cannot store.",
+                    "Change the encoding in the XML declaration (for example to UTF-8) and save again.",
+                    (String) null, false);
+            return;
+        }
+        if (utf8SaveConfirmer.test(current.charset().name())) {
+            tab.document.setEncoding(TextEncoding.DEFAULT);
+            writeAsync(tab, target);
+        }
     }
 
     private boolean write(EditorTab tab, Path target) {
@@ -6985,12 +7021,18 @@ public class EditorHost extends BorderPane {
          * malformed or the caret is not inside an element. XML-instance files only.
          */
         private void resolveCaretXmlNode() {
-            if (viewMode != ViewMode.TEXT || document.getFileType() == EditorFileType.XSD
-                    || document.getFileType() == EditorFileType.JSON) {
-                return;
+            EditorFileType type = document.getFileType();
+            if (viewMode != ViewMode.TEXT || type == EditorFileType.XSD || !type.isXmlFamily()) {
+                return; // plain text, HTML, XQuery, JSON …: not an XML instance, nothing to map
             }
             // Both parses (shared model, caret map) run off the FX thread; the mapping below is cheap.
-            ensureXmlModelParsedAsync(() -> ensureCaretMapAsync(this::applyCaretXmlNode));
+            ensureXmlModelParsedAsync(() -> {
+                if (failedXmlParseRevision == textRevision) {
+                    applyCaretXmlNode(); // malformed: no node; a caret-map parse would only fail again
+                    return;
+                }
+                ensureCaretMapAsync(this::applyCaretXmlNode);
+            });
         }
 
         /**

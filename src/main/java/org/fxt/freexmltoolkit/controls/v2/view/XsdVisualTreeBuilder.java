@@ -68,6 +68,13 @@ public class XsdVisualTreeBuilder {
     private static final int MAX_DEPTH = 30;
 
     /**
+     * Element cards one build creates eagerly. A type used in several places is unfolded at every use,
+     * so a small schema with nested reuse can expand into millions of cards (seconds to minutes on the
+     * FX thread); past this budget, elements with content get a lazy loader and unfold when expanded.
+     */
+    static final int DEFAULT_NODE_BUDGET = 2000;
+
+    /**
      * Static cache for type indexes per schema.
      * Key: Schema identity hash code (System.identityHashCode)
      * Value: Map of type name → XsdComplexType
@@ -108,6 +115,12 @@ public class XsdVisualTreeBuilder {
 
     /** Reference to the schema for lazy loading context */
     private XsdSchema currentSchema;
+
+    /** Eager element cards allowed in one build (a lazy expansion starts a fresh budget). */
+    private int nodeBudget = DEFAULT_NODE_BUDGET;
+
+    /** Element cards created so far in this build. */
+    private int elementNodeCount = 0;
 
     /**
      * Clears the static type and element caches.
@@ -152,6 +165,17 @@ public class XsdVisualTreeBuilder {
             default -> throw new IllegalStateException("Unexpected value: " + mode);
         }
         logger.debug("Build mode set to {} (lazy depth threshold: {})", mode, lazyLoadDepthThreshold);
+        return this;
+    }
+
+    /**
+     * Sets how many element cards a build creates before it defers the rest to lazy loaders.
+     *
+     * @param budget eager element cards per build (at least 1)
+     * @return this builder for method chaining
+     */
+    public XsdVisualTreeBuilder withNodeBudget(int budget) {
+        this.nodeBudget = Math.max(1, budget);
         return this;
     }
 
@@ -365,7 +389,7 @@ public class XsdVisualTreeBuilder {
 
         // Check depth limit to prevent extremely deep trees
         if (currentDepth > MAX_DEPTH) {
-            logger.warn("Maximum depth ({}) exceeded for element '{}'. Truncating tree.", MAX_DEPTH, element.getName());
+            logger.debug("Maximum depth ({}) exceeded for element '{}'. Truncating tree.", MAX_DEPTH, element.getName());
             String label = element.getName() != null ? element.getName() : "(unnamed)";
             return new VisualNode(label + " (max depth)", "", NodeWrapperType.ELEMENT, element, parent,
                     element.getMinOccurs(), element.getMaxOccurs(), onModelChangeCallback);
@@ -373,7 +397,7 @@ public class XsdVisualTreeBuilder {
 
         // Check for circular reference at element level
         if (visitedElements.contains(element.getId())) {
-            logger.warn("Circular reference detected: element '{}' (ID: {}) is already being processed. Skipping to prevent infinite recursion.",
+            logger.debug("Circular reference detected: element '{}' (ID: {}) is already being processed. Skipping to prevent infinite recursion.",
                     element.getName(), element.getId());
             // Return a placeholder node without children
             String label = element.getName() != null ? element.getName() : "(unnamed)";
@@ -435,7 +459,9 @@ public class XsdVisualTreeBuilder {
 
         // Check if we should defer child loading (lazy loading optimization)
         // Elements with potential children beyond the lazy threshold get lazy loaders
-        boolean shouldLazyLoad = buildMode != BuildMode.FULL && currentDepth >= lazyLoadDepthThreshold;
+        elementNodeCount++;
+        boolean shouldLazyLoad = (buildMode != BuildMode.FULL && currentDepth >= lazyLoadDepthThreshold)
+                || elementNodeCount > nodeBudget;
         boolean hasComplexContent = hasComplexContent(element);
 
         if (shouldLazyLoad && hasComplexContent) {
@@ -451,7 +477,8 @@ public class XsdVisualTreeBuilder {
             node.setLazyChildrenLoader(() -> {
                 // Create a new builder instance for lazy loading to avoid state conflicts
                 XsdVisualTreeBuilder lazyBuilder = new XsdVisualTreeBuilder();
-                lazyBuilder.buildMode = BuildMode.FULL;  // Build fully when expanding
+                lazyBuilder.buildMode = BuildMode.FULL;  // Build fully when expanding, within a fresh budget
+                lazyBuilder.nodeBudget = this.nodeBudget;
                 lazyBuilder.currentSchema = this.currentSchema;
                 lazyBuilder.onModelChangeCallback = this.onModelChangeCallback;
                 lazyBuilder.importedSchemas = this.importedSchemas;
@@ -508,7 +535,7 @@ public class XsdVisualTreeBuilder {
             } else if (!hasInlineComplexType && (elementType == null || elementType.isEmpty())) {
                 // Element has no type attribute and no inline type definition
                 // According to XSD spec, this means type="xs:anyType" (allows any content)
-                logger.warn("Element '{}' has no type attribute and no inline type definition. " +
+                logger.debug("Element '{}' has no type attribute and no inline type definition. " +
                         "This is treated as xs:anyType (allows any content). " +
                         "The element will have no structured visual children.", element.getName());
             } else {
@@ -647,7 +674,7 @@ public class XsdVisualTreeBuilder {
                                                   Set<String> visitedTypes, Set<String> visitedElements,
                                                   java.util.List<VisualNode> children) {
         if (visitedTypes.contains(typeName)) {
-            logger.warn("Lazy loading: Circular type reference detected: {} is already being processed", typeName);
+            logger.debug("Lazy loading: Circular type reference detected: {} is already being processed", typeName);
             return;
         }
 
@@ -890,7 +917,7 @@ public class XsdVisualTreeBuilder {
 
         // Check for circular reference - if this type is already being processed, skip it
         if (visitedTypes.contains(typeName)) {
-            logger.warn("Circular reference detected: type '{}' is already being processed for element '{}'. Skipping to prevent infinite recursion.",
+            logger.debug("Circular reference detected: type '{}' is already being processed for element '{}'. Skipping to prevent infinite recursion.",
                     typeName, element.getName());
             return;
         }
@@ -912,7 +939,7 @@ public class XsdVisualTreeBuilder {
 
         // Check for circular reference - if this type is already in the chain, skip it
         if (visitedTypes.contains(typeName)) {
-            logger.warn("Type '{}' already in processing chain, skipping to prevent circular reference", typeName);
+            logger.debug("Type '{}' already in processing chain, skipping to prevent circular reference", typeName);
             return;
         }
 
@@ -999,7 +1026,7 @@ public class XsdVisualTreeBuilder {
 
             // Check for circular reference
             if (visitedElements.contains(referencedElement.getId())) {
-                logger.warn("Circular element reference detected: element '{}' is already being processed. Skipping.",
+                logger.debug("Circular element reference detected: element '{}' is already being processed. Skipping.",
                         elementName);
                 return;
             }

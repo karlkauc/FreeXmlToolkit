@@ -69,6 +69,13 @@ public record QueryFailure(String errorCode, TelemetryEvent.Status status, Error
         if (last instanceof org.xml.sax.SAXParseException) {
             return new QueryFailure("SAXParseException", TelemetryEvent.Status.INVALID_INPUT, null);
         }
+        for (Throwable c = t; c != null && c != c.getCause(); c = c.getCause()) {
+            // A StAX parser (Woodstox) reports a malformed document with the position it stopped at;
+            // its I/O failures carry no location and stay errors.
+            if (c instanceof javax.xml.stream.XMLStreamException x && x.getLocation() != null) {
+                return new QueryFailure(c.getClass().getSimpleName(), TelemetryEvent.Status.INVALID_INPUT, null);
+            }
+        }
         if (isEnvironmentFailure(last)) {
             // a file the OS refuses or a text in an unexpected encoding: the user's environment
             return new QueryFailure(last.getClass().getSimpleName(), TelemetryEvent.Status.INVALID_INPUT, null);

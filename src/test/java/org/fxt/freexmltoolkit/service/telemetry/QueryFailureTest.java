@@ -134,4 +134,22 @@ class QueryFailureTest {
         assertEquals(TelemetryEvent.Status.ERROR, telemetry.events("xproc").get(0).status());
         assertEquals(TelemetryEvent.Status.OK, telemetry.events("jsonpath").get(0).status());
     }
+
+    @Test
+    void malformedDocumentFromTheStaxParserIsInvalidInput() {
+        Exception failure = assertThrows(Exception.class, () ->
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.StreamingXmlParser()
+                        .parse("x<root/>"));
+
+        QueryFailure classified = QueryFailure.classify(failure);
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, classified.status());
+        assertNull(classified.signature());
+    }
+
+    @Test
+    void staxFailureWithoutLocationStaysAnError() {
+        Exception failure = new RuntimeException(new javax.xml.stream.XMLStreamException("stream closed"));
+
+        assertEquals(TelemetryEvent.Status.ERROR, QueryFailure.classify(failure).status());
+    }
 }

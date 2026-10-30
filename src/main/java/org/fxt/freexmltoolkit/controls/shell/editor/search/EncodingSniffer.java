@@ -13,9 +13,10 @@ import java.nio.file.Path;
  * Detects the character encoding of an XML-family text file so search results
  * and replacements round-trip without corrupting non-UTF-8 files: BOM first
  * (UTF-8 / UTF-16LE / UTF-16BE), then the {@code encoding="…"} pseudo-attribute
- * of an XML declaration, defaulting to UTF-8. Bytes that are not valid UTF-8 although
- * no BOM says so (an undeclared or wrongly declared Latin-1 file) are read as windows-1252,
- * which maps every byte, so writing the text back restores the file unchanged.
+ * of an XML declaration, defaulting to UTF-8. Bytes that do not decode in that charset although
+ * no BOM says so (an undeclared or wrongly declared Latin-1 file) are read as windows-1252 — or as
+ * ISO-8859-1 when they contain one of the five bytes windows-1252 leaves undefined — so every byte
+ * maps to a character and writing the text back restores the file unchanged.
  */
 public final class EncodingSniffer {
 
@@ -104,23 +105,42 @@ public final class EncodingSniffer {
         Sniff sniff = sniff(bytes);
         int offset = sniff.bomLength();
         int length = bytes.length - offset;
-        if (StandardCharsets.UTF_8.equals(sniff.charset()) && offset == 0 && !isValidUtf8(bytes)) {
-            return new Loaded(new String(bytes, WINDOWS_1252), WINDOWS_1252, false);
+        if (offset == 0) {
+            String text = decodeStrictly(bytes, sniff.charset());
+            if (text != null) {
+                return new Loaded(text, sniff.charset(), false);
+            }
+            // Not what it claims (or, undeclared, not UTF-8): a lossy decode would turn the bad bytes
+            // into U+FFFD, which no save can write back. Read it as single bytes instead.
+            Charset fallback = singleByteFallback(bytes);
+            return new Loaded(new String(bytes, fallback), fallback, false);
         }
-        return new Loaded(new String(bytes, offset, length, sniff.charset()), sniff.charset(), offset > 0);
+        return new Loaded(new String(bytes, offset, length, sniff.charset()), sniff.charset(), true);
     }
 
     private static final Charset WINDOWS_1252 = Charset.forName("windows-1252");
 
-    private static boolean isValidUtf8(byte[] bytes) {
+    /** windows-1252, unless a byte it leaves undefined occurs; then ISO-8859-1, which maps all 256. */
+    static Charset singleByteFallback(byte[] bytes) {
+        for (byte b : bytes) {
+            int v = b & 0xFF;
+            if (v == 0x81 || v == 0x8D || v == 0x8F || v == 0x90 || v == 0x9D) {
+                return StandardCharsets.ISO_8859_1;
+            }
+        }
+        return WINDOWS_1252;
+    }
+
+    /** @return the text, or {@code null} if a byte sequence is malformed or unmappable in {@code charset} */
+    private static String decodeStrictly(byte[] bytes, Charset charset) {
         try {
-            StandardCharsets.UTF_8.newDecoder()
+            return charset.newDecoder()
                     .onMalformedInput(CodingErrorAction.REPORT)
                     .onUnmappableCharacter(CodingErrorAction.REPORT)
-                    .decode(ByteBuffer.wrap(bytes));
-            return true;
-        } catch (CharacterCodingException e) {
-            return false;
+                    .decode(ByteBuffer.wrap(bytes))
+                    .toString();
+        } catch (CharacterCodingException | UnsupportedOperationException e) {
+            return null;
         }
     }
 }

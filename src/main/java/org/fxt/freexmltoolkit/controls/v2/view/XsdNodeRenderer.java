@@ -1089,6 +1089,12 @@ public class XsdNodeRenderer {
             return minOccurs + ".." + maxStr;
         }
 
+        /** The type name in a detail string, without trailing flags such as {@code [N]} (no regex: runs per card). */
+        private static String typeNameOf(String detail) {
+            int bracket = detail.indexOf('[');
+            return (bracket >= 0 ? detail.substring(0, bracket) : detail).trim();
+        }
+
         /**
          * Determines the appropriate icon literal based on node type and datatype.
          * Uses different icons for primitive types vs complex types.
@@ -1101,7 +1107,7 @@ public class XsdNodeRenderer {
                     // Try to detect element datatype from detail string
                     if (detail != null && !detail.isEmpty()) {
                         // Extract just the type name (remove flags like [N], [A], etc.)
-                        String typeName = detail.split("\\s*\\[")[0].trim();
+                        String typeName = typeNameOf(detail);
                         return getDataTypeIcon(typeName);
                     }
                     return "bi-file-earmark";  // Generic document
@@ -1109,7 +1115,7 @@ public class XsdNodeRenderer {
                     // Try to detect attribute datatype from detail string
                     if (detail != null && !detail.isEmpty()) {
                         // Extract just the type name (remove flags like [Q], [U])
-                        String typeName = detail.split("\\s*\\[")[0].trim();
+                        String typeName = typeNameOf(detail);
                         String icon = getDataTypeIcon(typeName);
                         if (!"bi-code".equals(icon)) {
                             return icon;
@@ -1123,7 +1129,7 @@ public class XsdNodeRenderer {
                     // Use custom SimpleType icons with "S" badge based on base type
                     if (detail != null && !detail.isEmpty()) {
                         // Extract just the type name (remove flags if any)
-                        String typeName = detail.split("\\s*\\[")[0].trim();
+                        String typeName = typeNameOf(detail);
                         return getSimpleTypeIcon(typeName);
                     }
                     return "xsd-simple-generic";  // Generic SimpleType with "S" badge

@@ -144,6 +144,8 @@ class ImportedSchemaRefResolutionTest {
         }
 
         if (signatureNode != null) {
+            // Deep in a large schema the card may lie past the builder's eager budget: expand it as the user would.
+            signatureNode.setExpanded(true);
             System.out.println("Found Signature node: " + signatureNode.getLabel());
             System.out.println("Children count: " + signatureNode.getChildren().size());
             System.out.println("Children:");

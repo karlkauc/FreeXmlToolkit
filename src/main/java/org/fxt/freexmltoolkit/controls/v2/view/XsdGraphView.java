@@ -597,7 +597,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             // 1. Save collapsed state (inverse logic - track what's collapsed, not expanded)
             // This ensures new nodes are expanded by default
             Set<String> collapsedNodeIds = new HashSet<>();
-            collectCollapsedNodes(rootNode, collapsedNodeIds);
+            Set<String> expandedNodeIds = new HashSet<>();
+            collectCollapsedNodes(rootNode, collapsedNodeIds, expandedNodeIds);
             logger.trace("Saved {} collapsed nodes", collapsedNodeIds.size());
 
             // 2. Save selection state
@@ -621,7 +622,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.debug("Root node has {} children", rootNode.getChildren().size());
 
             // 4. Restore expansion state in single pass (optimized from double traversal)
-            restoreExpansionState(rootNode, collapsedNodeIds);
+            restoreExpansionState(rootNode, collapsedNodeIds, expandedNodeIds);
+            // Subtrees the restore loaded lazily are not in the builder's map yet.
+            indexLoadedNodes(rootNode);
             logger.trace("Restored expansion state (single pass O(n))");
 
             // 5. Restore selection using nodeMap for O(1) lookup instead of O(n) findNodeById
@@ -660,9 +663,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * Recursively collects IDs of all COLLAPSED nodes (nodes that have children but are not expanded).
      * This inverse logic ensures that new nodes are expanded by default.
      */
-    private void collectCollapsedNodes(VisualNode node, Set<String> collapsedIds) {
+    private void collectCollapsedNodes(VisualNode node, Set<String> collapsedIds, Set<String> expandedIds) {
         if (node == null) {
             return;
+        }
+        if (node.isExpanded() && node.getModelObject() instanceof XsdNode expandedModel) {
+            expandedIds.add(expandedModel.getId());
         }
 
         // Only track nodes that have children but are collapsed
@@ -674,7 +680,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         }
 
         for (VisualNode child : node.getChildren()) {
-            collectCollapsedNodes(child, collapsedIds);
+            collectCollapsedNodes(child, collapsedIds, expandedIds);
         }
     }
 
@@ -683,10 +689,15 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * Expands nodes that were NOT in the collapsed set, collapses those that were.
      * This is an optimization over the previous two-pass approach (expandAll + applyCollapsed).
      *
+     * A node whose children are not loaded yet (past the builder's budget) is expanded only if it was
+     * expanded before: expanding it loads its subtree, and doing that for every new lazy node would
+     * unfold the whole type graph again.
+     *
      * @param node         the node to process
      * @param collapsedIds set of node IDs that should be collapsed
+     * @param expandedIds  set of node IDs that were expanded before the rebuild
      */
-    private void restoreExpansionState(VisualNode node, Set<String> collapsedIds) {
+    private void restoreExpansionState(VisualNode node, Set<String> collapsedIds, Set<String> expandedIds) {
         if (node == null) {
             return;
         }
@@ -694,7 +705,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         // Determine expansion state: expand unless it was in the collapsed set
         Object modelObj = node.getModelObject();
         if (modelObj instanceof XsdNode xsdNode) {
-            boolean shouldBeCollapsed = collapsedIds.contains(xsdNode.getId());
+            boolean shouldBeCollapsed = collapsedIds.contains(xsdNode.getId())
+                    || (node.hasUnloadedChildren() && !expandedIds.contains(xsdNode.getId()));
             node.setExpanded(!shouldBeCollapsed);
         } else {
             // Non-model nodes default to expanded
@@ -703,7 +715,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
         // Recursively process children
         for (VisualNode child : node.getChildren()) {
-            restoreExpansionState(child, collapsedIds);
+            restoreExpansionState(child, collapsedIds, expandedIds);
         }
     }
 
@@ -1317,16 +1329,43 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         return null;
     }
 
+    /** Cards "Expand All" opens at most: past it, lazily loaded subtrees stay closed. */
+    static final int EXPAND_ALL_LIMIT = 5000;
+
     /**
-     * Expands all nodes recursively.
+     * Expands all nodes, up to {@link #EXPAND_ALL_LIMIT} cards: nodes whose children are not loaded
+     * yet are left closed once the limit is reached (a schema that reuses types in nested places
+     * would otherwise unfold without end).
      */
-    private void expandAll(VisualNode node) {
-        if (node == null) {
+    private void expandAll(VisualNode root) {
+        if (root == null) {
             return;
         }
-        node.setExpanded(true);
-        for (VisualNode child : node.getChildren()) {
-            expandAll(child);
+        int opened = 0;
+        java.util.Deque<VisualNode> pending = new java.util.ArrayDeque<>();
+        pending.add(root);
+        while (!pending.isEmpty()) {
+            VisualNode node = pending.poll();
+            if (node.hasUnloadedChildren() && opened >= EXPAND_ALL_LIMIT) {
+                continue;
+            }
+            node.setExpanded(true);
+            opened++;
+            pending.addAll(node.getChildren());
+        }
+        indexLoadedNodes(root);
+    }
+
+    /** Adds the loaded cards below {@code root} that the builder's map does not know (lazy subtrees). */
+    private void indexLoadedNodes(VisualNode root) {
+        java.util.Deque<VisualNode> pending = new java.util.ArrayDeque<>();
+        pending.push(root);
+        while (!pending.isEmpty()) {
+            VisualNode node = pending.pop();
+            if (node.getModelObject() instanceof XsdNode model) {
+                nodeMap.putIfAbsent(model.getId(), node);
+            }
+            node.getChildren().forEach(pending::push);
         }
     }
 

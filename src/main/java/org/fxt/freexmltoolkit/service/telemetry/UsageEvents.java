@@ -138,9 +138,21 @@ public final class UsageEvents {
      */
     public static void fileOpened(DocKind kind, long inputBytes, String source, long startNanos,
                                   int elementCount) {
+        fileOpened(kind, inputBytes, source, startNanos, elementCount, null);
+    }
+
+    /**
+     * A document was opened.
+     *
+     * @param charset name of the charset the file was read in; recorded only when it is not UTF-8
+     *                (nullable)
+     */
+    public static void fileOpened(DocKind kind, long inputBytes, String source, long startNanos,
+                                  int elementCount, String charset) {
         sessionFilesOpened.incrementAndGet();
         action("file_open", b -> {
             b.docKind(kind).meta("source", source);
+            charsetMeta(b, charset);
             if (inputBytes >= 0) {
                 b.inputBytes(inputBytes);
             }
@@ -184,10 +196,27 @@ public final class UsageEvents {
      *                {@code invalid_input}; anything else carries the exception class and stack)
      */
     public static void fileSaveFailed(DocKind kind, QueryFailure failure) {
+        fileSaveFailed(kind, failure, null);
+    }
+
+    /**
+     * A document could not be written.
+     *
+     * @param charset name of the document's charset; recorded only when it is not UTF-8 (nullable)
+     */
+    public static void fileSaveFailed(DocKind kind, QueryFailure failure, String charset) {
         action("file_save", b -> {
             b.docKind(kind).fileCount(1);
+            charsetMeta(b, charset);
             outcome(b, failure != null ? failure : QueryFailure.UNKNOWN);
         });
+    }
+
+    /** {@code meta.charset}: a charset name such as {@code windows-1252}, never anything from the file. */
+    private static void charsetMeta(TelemetryEvent.Builder b, String charset) {
+        if (charset != null && !charset.isBlank() && !"UTF-8".equalsIgnoreCase(charset)) {
+            b.meta("charset", charset);
+        }
     }
 
     /**
