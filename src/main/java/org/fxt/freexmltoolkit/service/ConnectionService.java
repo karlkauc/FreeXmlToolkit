@@ -119,4 +119,28 @@ public interface ConnectionService {
         throw new UnsupportedOperationException("postJson not supported");
     }
 
+    /**
+     * A connection to {@code uri} configured like every other one of this service (proxy for the URL,
+     * proxy authentication, timeouts, User-Agent, certificate settings) but not yet connected: for
+     * callers that set their own method and headers or stream a large download. Code that needs an
+     * HTTP connection gets it here and never opens one itself.
+     *
+     * @param uri the target
+     * @return the unconnected connection
+     * @throws IOException if the URL cannot be opened
+     */
+    default java.net.HttpURLConnection openConnection(URI uri) throws IOException {
+        throw new UnsupportedOperationException("openConnection not supported");
+    }
+
+    /**
+     * The proxies for XML Calabash's {@code p:http-request} (which uses its own HTTP client): scheme
+     * ({@code http}, {@code https}) to proxy URI, empty when connecting directly or when the system
+     * decides per URL (PAC).
+     *
+     * @return the proxy map for {@code XmlCalabashBuilder.getProxies()}
+     */
+    default Map<String, String> xprocProxies() {
+        return Map.of();
+    }
 }

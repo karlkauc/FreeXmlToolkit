@@ -72,10 +72,29 @@ public final class XProcRunner {
      *                     unbound (fine for self-contained pipelines)
      * @return the serialized primary output, or an {@code "ERROR: …"} result
      */
+    /**
+     * A Calabash instance whose {@code p:http-request} (its own HTTP client) uses the proxy from the
+     * settings; document loading goes through the JVM-wide proxy settings of the HTTP service.
+     */
+    static XmlCalabash newCalabash() {
+        com.xmlcalabash.XmlCalabashBuilder builder = new com.xmlcalabash.XmlCalabashBuilder();
+        try {
+            var connection = org.fxt.freexmltoolkit.di.ServiceRegistry.get(
+                    org.fxt.freexmltoolkit.service.ConnectionService.class);
+            if (connection != null) {
+                connection.xprocProxies().forEach(builder.getProxies()::put);
+            }
+        } catch (RuntimeException e) {
+            org.apache.logging.log4j.LogManager.getLogger(XProcRunner.class)
+                    .debug("No proxy for XProc: {}", e.toString());
+        }
+        return builder.build();
+    }
+
     public static Result runPipeline(String pipelineText, File pipelineFile,
                                      String inputXmlText, File inputXmlFile) {
         try {
-            XmlCalabash calabash = XmlCalabash.Companion.newInstance();
+            XmlCalabash calabash = newCalabash();
 
             StreamSource pipelineSource = new StreamSource(new StringReader(pipelineText));
             pipelineSource.setSystemId(baseUriFor(pipelineFile));

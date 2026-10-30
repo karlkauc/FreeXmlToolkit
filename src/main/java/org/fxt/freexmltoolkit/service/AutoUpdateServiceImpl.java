@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.Proxy;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -351,25 +350,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
         try {
             URI uri = URI.create(urlString);
 
-            // Resolve proxy from application settings (manual/system/none)
-            Proxy proxy = null;
-            try {
-                ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
-                proxy = connectionService.resolveProxy();
-                logger.debug("Resolved proxy for update download: {}", proxy);
-            } catch (Exception e) {
-                logger.warn("Could not resolve proxy from settings, falling back to ProxySelector: {}", e.getMessage());
-            }
-
-            // Open connection using resolved proxy
-            if (proxy != null) {
-                connection = (HttpURLConnection) uri.toURL().openConnection(proxy);
-                logger.debug("Update download using proxy: {}", proxy);
-            } else {
-                // null means delegate to Java's ProxySelector (PAC/WPAD)
-                connection = (HttpURLConnection) uri.toURL().openConnection();
-                logger.debug("Update download using Java ProxySelector (PAC/WPAD delegation)");
-            }
+            // Proxy, proxy authentication and certificate settings come from the one HTTP service.
+            connection = ServiceRegistry.get(ConnectionService.class).openConnection(uri);
             currentConnection = connection;
 
             connection.setRequestMethod("GET");

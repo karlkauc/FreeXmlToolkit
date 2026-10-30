@@ -168,6 +168,12 @@ public class FxtGui extends Application {
         logger.info("Initializing service registry...");
         ServiceRegistry.initialize();
         logger.info("Service registry initialization complete");
+        // The proxy settings apply to every connection, including the ones libraries open themselves.
+        try {
+            org.fxt.freexmltoolkit.service.ConnectionServiceImpl.getInstance().applyGlobalSettings();
+        } catch (RuntimeException e) {
+            logger.warn("Could not apply the proxy settings: {}", e.toString());
+        }
 
         // Anonymous opt-out telemetry (no-op in tests / dev builds, see docs/telemetry.md)
         try {

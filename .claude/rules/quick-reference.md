@@ -165,6 +165,7 @@ class MyUITest {
 | Changes not saved | Direct model modification | Use Command pattern |
 | Infinite loop | Circular XSD references | Check visited nodes |
 | New structural edit produces invalid XSD | Command runs without a rule check | Ask `XsdEditRules` first; resolve with `EditRuleDialogs.resolve` |
+| HTTP 407 / proxy ignored | Code opened its own connection (`url.openConnection`, `HttpClient`) | Only `ConnectionServiceImpl` opens connections: use `ConnectionService` (`openConnection`, `fetchBinary`, `executeHttpRequest`, `postJson`); settings in `ProxySettings`, JVM-wide `SettingsProxySelector` + `ProxyAuthenticator` for libraries; `HttpCallsGuardTest` enforces it |
 | Icon missing | Invalid icon name | `IconifyIconCoverageTest` catches it |
 | Per-item icon color ignored | CSS `-fx-icon-color` overrides `setIconColor()` | `bind()` the property instead |
 | Native build fails | Non-public FXML method | Make all @FXML public |

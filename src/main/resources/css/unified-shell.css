@@ -1216,6 +1216,12 @@
     -fx-padding: 14 16 16 16;
 }
 
+/* A heading inside a card (e.g. "Proxy authentication"). */
+.fxt-settings-subtitle {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
 /* Help texts wrap at the card's width instead of ending in "…". */
 .fxt-settings-card > .label,
 .fxt-settings-card .fxt-placeholder-text {

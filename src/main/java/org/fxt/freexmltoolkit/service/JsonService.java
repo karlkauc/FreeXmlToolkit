@@ -480,8 +480,28 @@ public class JsonService {
      */
     private static SchemaRegistry newSchemaRegistry() {
         return SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12,
-                builder -> builder.schemaLoader(loader -> loader.fetchRemoteResources()));
+                builder -> builder.schemaLoader(loader -> loader.fetchRemoteResources()
+                        .resourceLoaders(loaders -> loaders.values(list -> list.add(0, HTTP_SCHEMA_LOADER)))));
     }
+
+    /**
+     * Loads {@code http(s)} schemas and {@code $ref}s through the one HTTP service (proxy, proxy
+     * authentication, certificates); other schemes fall through to the library's loaders.
+     */
+    static final com.networknt.schema.resource.ResourceLoader HTTP_SCHEMA_LOADER = iri -> {
+        String scheme = iri.getScheme();
+        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+            return null;
+        }
+        return () -> {
+            ConnectionService connection = ServiceRegistry.get(ConnectionService.class);
+            ConnectionService.BinaryResponse response = connection.fetchBinary(URI.create(iri.toString()));
+            if (response.status() < 200 || response.status() >= 300) {
+                throw new java.io.IOException("HTTP " + response.status() + " for " + iri);
+            }
+            return new java.io.ByteArrayInputStream(response.body());
+        };
+    };
 
     // ==================== JSON Schema binding ====================
 

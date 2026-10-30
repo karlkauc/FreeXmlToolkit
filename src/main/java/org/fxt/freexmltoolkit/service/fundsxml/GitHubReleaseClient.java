@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.Proxy;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -54,7 +53,7 @@ import com.google.gson.JsonParser;
  *       captured response fixtures without touching the network.</li>
  *   <li>HTTP I/O — uses {@link HttpURLConnection} (to match the rest of the codebase,
  *       which intentionally avoids Apache HttpClient for corporate-proxy compatibility),
- *       and pulls the proxy from {@link ConnectionService#resolveProxy()}.</li>
+ *       and gets its connections from {@link ConnectionService#openConnection(URI)}.</li>
  * </ul>
  *
  * <p>Tests inject a {@link HttpConnectionFactory} to simulate responses or capture
@@ -332,23 +331,14 @@ public class GitHubReleaseClient {
     }
 
     /**
-     * Default connection opener — resolves proxy from {@link ConnectionService}, falls
-     * back to the JVM's default {@code ProxySelector} (PAC/WPAD) when no service is
-     * registered.
+     * Default connection opener: the one HTTP service ({@link ConnectionService#openConnection}),
+     * which applies proxy, proxy authentication, timeouts and certificate settings.
      */
     private static HttpURLConnection openProductionConnection(URI uri) throws IOException {
-        Proxy proxy = null;
-        try {
-            ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
-            if (connectionService != null) {
-                proxy = connectionService.resolveProxy();
-            }
-        } catch (Exception e) {
-            logger.debug("ConnectionService unavailable; using ProxySelector default: {}", e.getMessage());
+        ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
+        if (connectionService == null) {
+            throw new IOException("No HTTP connection service registered");
         }
-        if (proxy != null) {
-            return (HttpURLConnection) uri.toURL().openConnection(proxy);
-        }
-        return (HttpURLConnection) uri.toURL().openConnection();
+        return connectionService.openConnection(uri);
     }
 }

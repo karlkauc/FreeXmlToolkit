@@ -127,9 +127,19 @@ public class SettingsPanel extends VBox {
     @FXML private CheckBox showInspector;
 
     // Proxy
-    @FXML private CheckBox useSystemProxy;
+    @FXML private ComboBox<String> proxyMode;
     @FXML private TextField proxyHost;
     @FXML private TextField proxyPort;
+    @FXML private TextField proxyBypass;
+    @FXML private TextField proxyUser;
+    @FXML private javafx.scene.control.PasswordField proxyPassword;
+    @FXML private TextField proxyDomain;
+    @FXML private CheckBox proxyWindowsSignOn;
+    @FXML private Spinner<Integer> connectTimeout;
+    @FXML private Spinner<Integer> readTimeout;
+    @FXML private TextField proxyTestUrl;
+    @FXML private Button proxyTestButton;
+    @FXML private Label proxyTestStatus;
 
     // User info
     @FXML private TextField userName;
@@ -200,8 +210,19 @@ public class SettingsPanel extends VBox {
         customTempDir.disableProperty().bind(useSystemTemp.selectedProperty());
         logMaxAge.disableProperty().bind(logCleanup.selectedProperty().not());
         logMaxSize.disableProperty().bind(logCleanup.selectedProperty().not());
-        proxyHost.disableProperty().bind(useSystemProxy.selectedProperty());
-        proxyPort.disableProperty().bind(useSystemProxy.selectedProperty());
+        proxyMode.getItems().setAll(PROXY_MODE_LABELS.values());
+        var notManual = javafx.beans.binding.Bindings.notEqual(
+                PROXY_MODE_LABELS.get(org.fxt.freexmltoolkit.service.ProxySettings.Mode.MANUAL),
+                proxyMode.valueProperty());
+        proxyHost.disableProperty().bind(notManual);
+        proxyPort.disableProperty().bind(notManual);
+        var direct = javafx.beans.binding.Bindings.equal(
+                PROXY_MODE_LABELS.get(org.fxt.freexmltoolkit.service.ProxySettings.Mode.NONE),
+                proxyMode.valueProperty());
+        for (javafx.scene.Node node : new javafx.scene.Node[] {proxyBypass, proxyUser, proxyPassword,
+                proxyDomain, proxyWindowsSignOn}) {
+            node.disableProperty().bind(direct);
+        }
 
         templatesList.setCellFactory(lv -> templateCell());
         editTemplateButton.disableProperty().bind(
@@ -447,7 +468,7 @@ public class SettingsPanel extends VBox {
         logCleanup.setSelected(true);
         logMaxAge.getValueFactory().setValue(14);
         logMaxSize.getValueFactory().setValue(100);
-        useSystemProxy.setSelected(true);
+        showProxySettings(org.fxt.freexmltoolkit.service.ProxySettings.from(new java.util.Properties()));
         trustAllCerts.setSelected(false);
         updateCheck.setSelected(true);
         saveStatus.setText("Defaults restored — click Save Settings to keep them.");
@@ -625,6 +646,96 @@ public class SettingsPanel extends VBox {
         return String.format(java.util.Locale.ROOT, "%.1f MB", bytes / (1024.0 * 1024.0));
     }
 
+    // ----- HTTP proxy -----------------------------------------------------------
+
+    /** The proxy modes in the order the combo box lists them. */
+    static final java.util.Map<org.fxt.freexmltoolkit.service.ProxySettings.Mode, String> PROXY_MODE_LABELS;
+
+    static {
+        var labels = new java.util.EnumMap<org.fxt.freexmltoolkit.service.ProxySettings.Mode, String>(
+                org.fxt.freexmltoolkit.service.ProxySettings.Mode.class);
+        labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.SYSTEM, "System proxy (automatic)");
+        labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.MANUAL, "Manual proxy");
+        labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.NONE, "No proxy (direct connection)");
+        PROXY_MODE_LABELS = java.util.Collections.unmodifiableMap(labels);
+    }
+
+    private void showProxySettings(org.fxt.freexmltoolkit.service.ProxySettings settings) {
+        proxyMode.setValue(PROXY_MODE_LABELS.get(settings.mode()));
+        proxyHost.setText(settings.host());
+        proxyPort.setText(settings.port() > 0 ? String.valueOf(settings.port()) : "");
+        proxyBypass.setText(String.join(", ", settings.nonProxyHosts()));
+        proxyUser.setText(settings.user());
+        proxyPassword.setText(settings.password());
+        proxyDomain.setText(settings.domain());
+        proxyWindowsSignOn.setSelected(settings.windowsSignOn());
+        connectTimeout.getValueFactory().setValue(settings.connectTimeoutMs() / 1000);
+        readTimeout.getValueFactory().setValue(settings.readTimeoutMs() / 1000);
+    }
+
+    /** @return the proxy settings as the form shows them (saved or not) */
+    org.fxt.freexmltoolkit.service.ProxySettings proxySettingsFromForm() {
+        var mode = org.fxt.freexmltoolkit.service.ProxySettings.Mode.SYSTEM;
+        for (var entry : PROXY_MODE_LABELS.entrySet()) {
+            if (entry.getValue().equals(proxyMode.getValue())) {
+                mode = entry.getKey();
+            }
+        }
+        int port;
+        try {
+            port = Integer.parseInt(proxyPort.getText().trim());
+        } catch (NumberFormatException e) {
+            port = -1;
+        }
+        return new org.fxt.freexmltoolkit.service.ProxySettings(mode, proxyHost.getText(), port,
+                org.fxt.freexmltoolkit.service.ProxySettings.parseHostList(proxyBypass.getText()),
+                proxyUser.getText(), proxyPassword.getText(), proxyDomain.getText(),
+                proxyWindowsSignOn.isSelected(), connectTimeout.getValue() * 1000, readTimeout.getValue() * 1000);
+    }
+
+    /** Tests the connection with the values in the form (not the saved ones), off the FX thread. */
+    @FXML
+    public void onTestConnection() {
+        java.net.URI uri;
+        try {
+            uri = java.net.URI.create(proxyTestUrl.getText().trim());
+            if (uri.getScheme() == null || !uri.getScheme().toLowerCase(java.util.Locale.ROOT).startsWith("http")) {
+                throw new IllegalArgumentException("not an http(s) URL");
+            }
+        } catch (IllegalArgumentException e) {
+            proxyTestStatus.setText("Enter an http:// or https:// address to test.");
+            return;
+        }
+        java.util.Properties test = new java.util.Properties();
+        proxySettingsFromForm().writeTo(test);
+        test.setProperty("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
+        proxyTestButton.setDisable(true);
+        proxyTestStatus.setText("Connecting to " + uri.getHost() + "…");
+        java.net.URI target = uri;
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            var result = org.fxt.freexmltoolkit.service.ConnectionServiceImpl.getInstance()
+                    .testHttpRequest(target, test);
+            javafx.application.Platform.runLater(() -> {
+                proxyTestButton.setDisable(false);
+                proxyTestStatus.setText(describeTest(result));
+            });
+        });
+    }
+
+    /** @return a one-line verdict on a connection test */
+    static String describeTest(org.fxt.freexmltoolkit.domain.ConnectionResult result) {
+        int status = result.httpStatus();
+        if (status == 0) {
+            String why = result.resultBody() == null || result.resultBody().isBlank() ? "no answer" : result.resultBody();
+            return "Failed: " + why;
+        }
+        if (status == 407) {
+            return "Failed: the proxy asks for authentication (HTTP 407) — check user, password and domain.";
+        }
+        String verdict = status < 400 ? "Connected" : "Reached the server, but it answered";
+        return verdict + ": HTTP " + status + " in " + result.duration() + " ms";
+    }
+
     @FXML
     public void onClearStatistics() {
         if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clear Statistics",
@@ -683,6 +794,7 @@ public class SettingsPanel extends VBox {
         dirty.set(false);
         saveStatus.setText("Settings saved.");
         refreshFolderUsage(); // the temp folder may have changed
+        org.fxt.freexmltoolkit.service.ConnectionServiceImpl.getInstance().applyGlobalSettings();
     }
 
     @FXML
@@ -948,9 +1060,7 @@ public class SettingsPanel extends VBox {
             // Side-panel visibility (shared with UnifiedShellView; default open).
             showLeftPanel.setSelected(!"false".equalsIgnoreCase(orEmpty(props.get("shell.leftPanel.visible"))));
             showInspector.setSelected(!"false".equalsIgnoreCase(orEmpty(props.get("shell.inspector.visible"))));
-            useSystemProxy.setSelected(!"false".equalsIgnoreCase(orEmpty(props.get("useSystemProxy"))));
-            proxyHost.setText(orEmpty(props.get("http.proxy.host")));
-            proxyPort.setText(orEmpty(props.get("http.proxy.port")));
+            showProxySettings(org.fxt.freexmltoolkit.service.ProxySettings.from(props.loadProperties()));
             userName.setText(props.get("user.name") == null ? "" : props.get("user.name"));
             userEmail.setText(props.get("user.email") == null ? "" : props.get("user.email"));
             userCompany.setText(props.get("user.company") == null ? "" : props.get("user.company"));
@@ -1033,10 +1143,11 @@ public class SettingsPanel extends VBox {
             props.setToolbarIconSize(toolbarIconLarge.isSelected() ? "large" : "small");
             props.set("shell.leftPanel.visible", String.valueOf(showLeftPanel.isSelected()));
             props.set("shell.inspector.visible", String.valueOf(showInspector.isSelected()));
-            props.set("useSystemProxy", String.valueOf(useSystemProxy.isSelected()));
-            props.set("manualProxy", String.valueOf(!useSystemProxy.isSelected()));
-            props.set("http.proxy.host", proxyHost.getText());
-            props.set("http.proxy.port", proxyPort.getText());
+            java.util.Properties proxy = new java.util.Properties();
+            proxySettingsFromForm().writeTo(proxy);
+            for (String key : proxy.stringPropertyNames()) {
+                props.set(key, proxy.getProperty(key));
+            }
             props.set("user.name", userName.getText().trim());
             props.set("user.email", userEmail.getText().trim());
             props.set("user.company", userCompany.getText().trim());

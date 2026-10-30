@@ -192,10 +192,12 @@ public class ConnectionServiceImpl implements ConnectionService {
     /** Max response body kept from a POST (the telemetry API answers with tiny JSON documents). */
     private static final int MAX_POST_RESPONSE_BYTES = 64 * 1024;
 
+    /** Redirects followed by the GET paths (including HTTP → HTTPS). */
+    private static final int MAX_REDIRECTS = 5;
+
     /**
-     * POSTs {@code jsonBody} using the same proxy / proxy-authentication / SSL resolution as
-     * {@link #openConnectionFollowingRedirects} (via {@link #configureProxyAuthentication} and
-     * {@link #configureProxy}). Redirects are not followed for POST.
+     * POSTs {@code jsonBody} through a connection from {@link #newConnection} (proxy, proxy
+     * authentication, SSL as configured). Redirects are not followed for POST.
      */
     @Override
     public HttpPostResult postJson(URI uri, String jsonBody, Duration timeout) throws IOException {
@@ -203,31 +205,14 @@ public class ConnectionServiceImpl implements ConnectionService {
         HttpURLConnection connection = null;
         int timeoutMs = (int) Math.max(1, Math.min(Integer.MAX_VALUE, timeout == null ? 10_000 : timeout.toMillis()));
         try {
-            boolean trustAllCerts = Boolean.parseBoolean(properties.getProperty("ssl.trustAllCerts", "false"));
-            configureProxyAuthentication(properties);
-            Proxy proxy = configureProxy(properties);
-            URL url = uri.toURL();
-            if (proxy == null) {
-                connection = (HttpURLConnection) url.openConnection();
-            } else {
-                connection = (HttpURLConnection) url.openConnection(proxy);
-            }
+            connection = newConnection(uri, properties);
             connection.setRequestMethod("POST");
             connection.setInstanceFollowRedirects(false);
             connection.setDoOutput(true);
             connection.setConnectTimeout(timeoutMs);
             connection.setReadTimeout(timeoutMs);
-            connection.setRequestProperty("User-Agent",
-                    "FreeXmlToolkit/" + org.fxt.freexmltoolkit.util.VersionUtil.getVersion());
             connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
             connection.setRequestProperty("Accept", "application/json");
-            if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
-                try {
-                    applySslBypassToConnection(httpsConnection);
-                } catch (Exception sslEx) {
-                    logger.warn("Failed to apply SSL bypass to POST connection: {}", sslEx.getMessage());
-                }
-            }
             byte[] bytes = (jsonBody == null ? "" : jsonBody).getBytes(StandardCharsets.UTF_8);
             connection.setFixedLengthStreamingMode(bytes.length);
             try (OutputStream os = connection.getOutputStream()) {
@@ -245,6 +230,21 @@ public class ConnectionServiceImpl implements ConnectionService {
             if (connection != null) {
                 connection.disconnect();
             }
+        }
+    }
+
+    /**
+     * A connection to {@code uri} with the saved settings, not yet connected: for callers that stream
+     * a download or set their own headers. They must not open connections any other way.
+     */
+    @Override
+    public HttpURLConnection openConnection(URI uri) throws IOException {
+        try {
+            return newConnection(uri, propertiesService.loadProperties());
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e.getMessage(), e);
         }
     }
 
@@ -272,137 +272,77 @@ public class ConnectionServiceImpl implements ConnectionService {
     private record ConnectionAttempt(HttpURLConnection connection, URI finalUri, int responseCode, int redirectCount) {}
 
     /**
-     * Resolves the proxy/authentication/SSL settings from {@code testProperties}, opens a
-     * connection to {@code uri}, and follows up to 5 redirects (including HTTP→HTTPS).
+     * Opens a GET to {@code uri} with the settings in {@code properties} and follows up to
+     * {@link #MAX_REDIRECTS} redirects (including HTTP → HTTPS), each through {@link #newConnection}.
      *
-     * <p>This is the single source of truth for the proxy/auth/SSL/redirect handling, shared by
-     * both the text response path ({@link #testHttpRequest}) and the binary response path
-     * ({@link #fetchBinary}) — do not duplicate this logic elsewhere.
-     *
-     * @param uri            the URI to connect to
-     * @param testProperties connection settings (proxy, auth, SSL bypass)
      * @return the final connection, positioned after the response code has been read
-     * @throws Exception on any failure resolving/opening the connection or following redirects
      */
-    private ConnectionAttempt openConnectionFollowingRedirects(URI uri, Properties testProperties) throws Exception {
-        // Log proxy configuration for debugging
-        logger.debug("Testing HTTP request to: {}", uri);
-        logger.debug("Proxy properties: manualProxy={}, useSystemProxy={}, http.proxyHost={}, socksProxyHost={}",
-                testProperties.getProperty("manualProxy", "false"),
-                testProperties.getProperty("useSystemProxy", "true"),
-                testProperties.getProperty("http.proxy.host", "not set"),
-                System.getProperty("socksProxyHost", "not set"));
-
-        // Read the SSL-bypass opt-in. SECURITY: the bypass is applied ONLY to this specific
-        // connection (see applySslBypassToConnection below), never to the JVM-global
-        // HttpsURLConnection defaults. Poisoning the global defaults would silently disable
-        // certificate validation for every other HTTPS connection in the process - including
-        // auto-update downloads - which must always validate certificates.
-        boolean trustAllCerts = Boolean.parseBoolean(testProperties.getProperty("ssl.trustAllCerts", "false"));
-        if (trustAllCerts) {
-            logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled for this "
-                    + "connection test only ({}).", uri);
-        }
-
-        // Configure proxy authentication
-        configureProxyAuthentication(testProperties);
-
-        // Configure proxy
-        Proxy proxy = configureProxy(testProperties);
-
-        // Create connection based on proxy configuration:
-        // - non-null, non-NO_PROXY: use explicit proxy
-        // - Proxy.NO_PROXY: user chose no proxy, bypass all
-        // - null: delegate to Java's ProxySelector (handles PAC/WPAD)
-        URL url = uri.toURL();
-        HttpURLConnection connection;
-
-        if (proxy == null) {
-            // Delegate to Java's ProxySelector (PAC/WPAD auto-configuration)
-            connection = (HttpURLConnection) url.openConnection();
-            logger.debug("Using Java ProxySelector (PAC/WPAD delegation)");
-        } else if (proxy == Proxy.NO_PROXY) {
-            connection = (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
-            logger.debug("Using direct connection (user chose no proxy)");
-        } else {
-            connection = (HttpURLConnection) url.openConnection(proxy);
-            logger.debug("Using explicit proxy: {}", proxy);
-        }
-
-        // Configure connection
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(30000);
-        connection.setReadTimeout(30000);
-        connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
-        connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-
-        // Apply SSL settings to this specific connection if it's HTTPS
-        if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
-            try {
-                applySslBypassToConnection(httpsConnection);
-            } catch (Exception sslEx) {
-                logger.warn("Failed to apply SSL bypass to connection, using default SSL settings: {}", sslEx.getMessage());
-            }
-        }
-
-        // Execute request and follow redirects manually (including HTTP→HTTPS)
+    private ConnectionAttempt openConnectionFollowingRedirects(URI uri, Properties properties) throws Exception {
+        logger.debug("HTTP GET {}", uri);
+        HttpURLConnection connection = newGet(uri, properties);
         int responseCode = connection.getResponseCode();
         URI finalUri = uri;
-        int maxRedirects = 5;
         int redirectCount = 0;
-
-        while (responseCode >= 300 && responseCode < 400 && redirectCount < maxRedirects) {
+        while (responseCode >= 300 && responseCode < 400 && redirectCount < MAX_REDIRECTS) {
             String location = connection.getHeaderField("Location");
             if (location == null || location.isEmpty()) {
                 logger.warn("Redirect response {} without Location header for: {}", responseCode, finalUri);
                 break;
             }
-
-            // Close current connection
             connection.disconnect();
-
-            // Parse redirect location (can be relative or absolute)
-            URI redirectUri;
-            if (location.startsWith("http://") || location.startsWith("https://")) {
-                redirectUri = new URI(location);
-            } else {
-                // Relative URL - resolve against current URL
-                redirectUri = finalUri.resolve(location);
-            }
-
+            URI redirectUri = location.startsWith("http://") || location.startsWith("https://")
+                    ? new URI(location) : finalUri.resolve(location);
             logger.debug("Following redirect {} → {} ({})", responseCode, redirectUri, redirectCount + 1);
-
-            // Create new connection for redirect (same proxy logic)
-            url = redirectUri.toURL();
-            if (proxy == null) {
-                connection = (HttpURLConnection) url.openConnection();
-            } else {
-                connection = (HttpURLConnection) url.openConnection(proxy);
-            }
-
-            // Configure connection
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(30000);
-            connection.setReadTimeout(30000);
-            connection.setRequestProperty("User-Agent", "FreeXmlToolkit/2.0");
-            connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-
-            // Apply SSL settings if redirected to HTTPS
-            if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
-                try {
-                    applySslBypassToConnection(httpsConnection);
-                } catch (Exception sslEx) {
-                    logger.warn("Failed to apply SSL bypass to redirect connection: {}", sslEx.getMessage());
-                }
-            }
-
-            // Get response
+            connection = newGet(redirectUri, properties);
             responseCode = connection.getResponseCode();
             finalUri = redirectUri;
             redirectCount++;
         }
-
         return new ConnectionAttempt(connection, finalUri, responseCode, redirectCount);
+    }
+
+    private HttpURLConnection newGet(URI uri, Properties properties) throws Exception {
+        HttpURLConnection connection = newConnection(uri, properties);
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        return connection;
+    }
+
+    /**
+     * The one place where the application opens HTTP connections: proxy for this URL (mode,
+     * exceptions), proxy authentication (credentials or Windows sign-on, set on this connection
+     * only), timeouts, User-Agent and — when switched on — the per-connection certificate bypass.
+     */
+    private HttpURLConnection newConnection(URI uri, Properties properties) throws Exception {
+        ProxySettings settings = ProxySettings.from(properties);
+        Proxy proxy = proxyFor(settings, uri);
+        URL url = uri.toURL();
+        HttpURLConnection connection;
+        if (proxy == null) {
+            // Delegate to the ProxySelector (the system's with PAC/WPAD, wrapped by SettingsProxySelector)
+            connection = (HttpURLConnection) url.openConnection();
+        } else {
+            connection = (HttpURLConnection) url.openConnection(proxy);
+        }
+        connection.setAuthenticator(ProxyAuthenticator.forSettings(settings));
+        connection.setConnectTimeout(settings.connectTimeoutMs());
+        connection.setReadTimeout(settings.readTimeoutMs());
+        connection.setRequestProperty("User-Agent",
+                "FreeXmlToolkit/" + org.fxt.freexmltoolkit.util.VersionUtil.getVersion());
+
+        // SECURITY: the bypass applies ONLY to this connection, never to the JVM-global
+        // HttpsURLConnection defaults (see applySslBypassToConnection).
+        boolean trustAllCerts = Boolean.parseBoolean(properties.getProperty("ssl.trustAllCerts", "false"));
+        if (trustAllCerts && connection instanceof HttpsURLConnection httpsConnection) {
+            logger.warn("!!! SECURITY WARNING !!! SSL certificate validation is disabled for {}", uri);
+            try {
+                applySslBypassToConnection(httpsConnection);
+            } catch (Exception sslEx) {
+                logger.warn("Failed to apply SSL bypass, using default SSL settings: {}", sslEx.getMessage());
+            }
+        }
+        return connection;
     }
 
     /**
@@ -445,116 +385,73 @@ public class ConnectionServiceImpl implements ConnectionService {
         logger.debug("SSL bypass applied to connection for: {}", httpsConnection.getURL());
     }
 
+    @Override
+    public Proxy resolveProxy() {
+        return proxyFor(ProxySettings.from(propertiesService.loadProperties()), null);
+    }
+
     /**
-     * Configures proxy authentication if manual proxy with credentials is enabled.
-     *
-     * <p>This method installs a custom Authenticator that provides proxy credentials
-     * to HttpURLConnection when connecting through an authenticated proxy.
-     *
-     * <p>Security: The authenticator only responds to PROXY authentication requests.
-     * Server authentication requests are ignored to avoid credential leakage.
-     *
-     * @param props properties containing proxy settings
+     * The proxy for {@code uri} (nullable: no URL known):
+     * <ul>
+     *   <li>{@link Proxy#NO_PROXY}: no proxy, a configured exception or a local address</li>
+     *   <li>a proxy: the manual one, or the system proxy found by {@link SystemProxyDetector}</li>
+     *   <li>{@code null}: system mode without a static proxy — the ProxySelector decides (PAC/WPAD)</li>
+     * </ul>
      */
-    private void configureProxyAuthentication(Properties props) {
-        boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
-
-        if (!useManualProxy) {
-            // Not using manual proxy - no authentication needed
-            logger.debug("Manual proxy not enabled, skipping proxy authentication");
-            return;
+    static Proxy proxyFor(ProxySettings settings, URI uri) {
+        if (uri != null && settings.bypasses(uri.getHost())) {
+            return Proxy.NO_PROXY;
         }
+        return switch (settings.mode()) {
+            case NONE -> Proxy.NO_PROXY;
+            case MANUAL -> {
+                Proxy manual = settings.manualProxy();
+                if (manual == null) {
+                    logger.warn("Manual proxy selected without a valid host and port; connecting directly");
+                    yield Proxy.NO_PROXY;
+                }
+                yield manual;
+            }
+            case SYSTEM -> {
+                Optional<SystemProxyDetector.ProxyConfig> detected = SystemProxyDetector.detectSystemProxy();
+                if (detected.isPresent()) {
+                    SystemProxyDetector.ProxyConfig config = detected.get();
+                    yield new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(config.host(), config.port()));
+                }
+                yield null;
+            }
+        };
+    }
 
-        String proxyUser = props.getProperty("http.proxy.user", "").trim();
-        String proxyPassword = props.getProperty("http.proxy.password", "").trim();
+    /**
+     * Applies the saved settings JVM-wide, for every connection the application does not open
+     * itself (libraries, WebView): the {@link SettingsProxySelector} and the proxy
+     * {@link Authenticator}. Called at startup and whenever the settings are saved.
+     */
+    public void applyGlobalSettings() {
+        applyGlobalSettings(ProxySettings.from(propertiesService.loadProperties()));
+    }
 
-        // Only configure authentication if credentials are provided
-        if (!proxyUser.isEmpty()) {
-            logger.debug("Configuring proxy authentication for user: {}", proxyUser);
-            // DO NOT log password!
-
-            ProxyAuthenticator authenticator = new ProxyAuthenticator(proxyUser, proxyPassword);
-            Authenticator.setDefault(authenticator);
-
-            logger.debug("Proxy authenticator installed successfully");
-        } else {
-            logger.debug("No proxy credentials provided, proxy authentication not configured");
-        }
+    static void applyGlobalSettings(ProxySettings settings) {
+        SettingsProxySelector.install(settings);
+        Authenticator.setDefault(ProxyAuthenticator.forSettings(settings));
+        // Read by the JDK when NTLM is first used (Windows only): a change needs a restart.
+        System.setProperty("jdk.http.ntlm.transparentAuth", settings.windowsSignOn() ? "allHosts" : "disabled");
     }
 
     @Override
-    public Proxy resolveProxy() {
-        Properties props = propertiesService.loadProperties();
-        return configureProxy(props);
+    public Map<String, String> xprocProxies() {
+        Proxy proxy = proxyFor(ProxySettings.from(propertiesService.loadProperties()), null);
+        Map<String, String> proxies = new HashMap<>();
+        if (proxy != null && proxy.type() == Proxy.Type.HTTP
+                && proxy.address() instanceof InetSocketAddress address) {
+            String target = "http://" + address.getHostString() + ":" + address.getPort();
+            proxies.put("http", target);
+            proxies.put("https", target);
+        }
+        return proxies;
     }
 
-    /**
-     * Configures proxy settings based on properties.
-     *
-     * <p>Supports three modes:
-     * <ul>
-     *   <li>Manual proxy: Uses explicitly configured proxy host/port</li>
-     *   <li>System proxy: Detects proxy using NTLM-aware system proxy detection.
-     *       If custom detection fails, returns {@code null} to delegate to Java's
-     *       built-in ProxySelector (which handles PAC/WPAD auto-configuration).</li>
-     *   <li>No proxy: Returns {@link Proxy#NO_PROXY} to explicitly bypass all proxies</li>
-     * </ul>
-     *
-     * <p><b>Return value semantics:</b>
-     * <ul>
-     *   <li>{@code non-null Proxy} (not NO_PROXY): Use this explicit proxy</li>
-     *   <li>{@code Proxy.NO_PROXY}: User explicitly chose no proxy — bypass all</li>
-     *   <li>{@code null}: Delegate to Java's ProxySelector (PAC/WPAD support)</li>
-     * </ul>
-     *
-     * @param props properties containing proxy configuration
-     * @return a Proxy instance, {@link Proxy#NO_PROXY}, or null to delegate to ProxySelector
-     */
-    private Proxy configureProxy(Properties props) {
-        boolean useManualProxy = Boolean.parseBoolean(props.getProperty("manualProxy", "false"));
-        boolean useSystemProxy = Boolean.parseBoolean(props.getProperty("useSystemProxy", "true"));
-
-        if (useManualProxy) {
-            String proxyHost = props.getProperty("http.proxy.host", "");
-            String proxyPortStr = props.getProperty("http.proxy.port", "");
-
-            if (!proxyHost.isEmpty() && !proxyPortStr.isEmpty()) {
-                try {
-                    int proxyPort = Integer.parseInt(proxyPortStr);
-                    logger.debug("Using manual proxy configuration: {}:{}", proxyHost, proxyPort);
-                    return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
-                } catch (NumberFormatException e) {
-                    logger.error("Invalid proxy port: {}", proxyPortStr);
-                }
-            }
-        }
-
-        if (useSystemProxy) {
-            // Use NTLM-aware system proxy detection
-            logger.debug("Using system proxy detection with NTLM support");
-
-            Optional<SystemProxyDetector.ProxyConfig> proxyConfig = SystemProxyDetector.detectSystemProxy();
-
-            if (proxyConfig.isPresent()) {
-                SystemProxyDetector.ProxyConfig config = proxyConfig.get();
-                // Configure JVM proxy properties for NTLM authentication
-                SystemProxyDetector.configureProxy(config.host(), config.port());
-                logger.info("System proxy detected and configured: {}:{}", config.host(), config.port());
-                return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(config.host(), config.port()));
-            } else {
-                // Custom detection found nothing, but system proxy is enabled.
-                // Return null to delegate to Java's ProxySelector which handles
-                // PAC/WPAD auto-configuration transparently.
-                logger.debug("No static proxy detected; delegating to Java ProxySelector (PAC/WPAD)");
-                return null;
-            }
-        }
-
-        // User explicitly chose "No Proxy" (both manual and system are false)
-        logger.debug("No proxy mode selected, using Proxy.NO_PROXY");
-        return Proxy.NO_PROXY;
-    }
-    
     /**
      * Reads the response from an HTTP connection
      */

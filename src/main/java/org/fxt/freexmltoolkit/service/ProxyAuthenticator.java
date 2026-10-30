@@ -74,6 +74,18 @@ public class ProxyAuthenticator extends Authenticator {
     }
 
     /**
+     * The authenticator for {@code settings}: their credentials ({@code DOMAIN\\user} when a domain is
+     * set), or — without credentials — {@code null} answers, which let the JDK use the signed-in
+     * Windows user for NTLM/Kerberos (when {@link ProxySettings#windowsSignOn()} allows it).
+     */
+    public static Authenticator forSettings(ProxySettings settings) {
+        if (settings != null && settings.hasCredentials()) {
+            return new ProxyAuthenticator(settings.authenticationUser(), settings.password());
+        }
+        return new ProxyAuthenticator(null, null);
+    }
+
+    /**
      * Called by HttpURLConnection when authentication is required.
      *
      * <p>This method only provides credentials for proxy authentication requests
@@ -86,7 +98,7 @@ public class ProxyAuthenticator extends Authenticator {
     @Override
     protected PasswordAuthentication getPasswordAuthentication() {
         // Only provide credentials for proxy authentication
-        if (getRequestorType() == RequestorType.PROXY) {
+        if (getRequestorType() == RequestorType.PROXY && username != null) {
             logger.debug("Providing proxy authentication for: {}:{}",
                     getRequestingHost(), getRequestingPort());
             // DO NOT log username or password!

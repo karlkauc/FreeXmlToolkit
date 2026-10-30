@@ -38,8 +38,8 @@ class SettingsPanelBasicsTest {
                 .get(org.fxt.freexmltoolkit.service.PropertiesService.class).getXmlIndentSpaces();
         assertEquals(expectedIndent, settings.getIndentValue(),
                 "indent spinner must load the persisted XML indent setting");
-        boolean hasProxyHost = WaitForAsyncUtils.waitForAsyncFx(2000, () -> settings.lookupAll(".text-field").stream()
-                .anyMatch(n -> n instanceof javafx.scene.control.TextField t && "host".equals(t.getPromptText())));
+        boolean hasProxyHost = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> settings.lookup("#settings-proxy-host") instanceof javafx.scene.control.TextField);
         boolean hasSave = WaitForAsyncUtils.waitForAsyncFx(2000, () -> settings.lookupAll(".button").stream()
                 .anyMatch(n -> n instanceof javafx.scene.control.Button b && "Save Settings".equals(b.getText())));
         assertNotNull(settings.lookup("#settings-save-bar"), "Save sits in a fixed bar below the cards");

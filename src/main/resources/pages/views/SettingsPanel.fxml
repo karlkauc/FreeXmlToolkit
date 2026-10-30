@@ -9,6 +9,7 @@
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Spinner?>
@@ -460,9 +461,80 @@
                                             <children>
                                         <SettingsCard title="HTTP PROXY" iconLiteral="bi-globe">
                                             <children>
-                                                <CheckBox fx:id="useSystemProxy" text="Use system proxy"/>
-                                                <TextField fx:id="proxyHost" promptText="host"/>
-                                                <TextField fx:id="proxyPort" promptText="port"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Connection:" minWidth="110"/>
+                                                        <ComboBox fx:id="proxyMode" id="settings-proxy-mode" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Proxy host:" minWidth="110"/>
+                                                        <TextField fx:id="proxyHost" id="settings-proxy-host" promptText="proxy.example.com" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="Port:"/>
+                                                        <TextField fx:id="proxyPort" id="settings-proxy-port" promptText="8080" prefColumnCount="5"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="No proxy for:" minWidth="110"/>
+                                                        <TextField fx:id="proxyBypass" id="settings-proxy-bypass" promptText="localhost, *.corp.example, 10.*" HBox.hgrow="ALWAYS"/>
+                                                    </children>
+                                                </HBox>
+                                                <Separator/>
+                                                <Label text="Proxy authentication" styleClass="fxt-settings-subtitle"/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="User:" minWidth="110"/>
+                                                        <TextField fx:id="proxyUser" id="settings-proxy-user" promptText="user or DOMAIN\user" HBox.hgrow="ALWAYS"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Password:" minWidth="110"/>
+                                                        <PasswordField fx:id="proxyPassword" id="settings-proxy-password" HBox.hgrow="ALWAYS"/>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Domain (NTLM):" minWidth="110"/>
+                                                        <TextField fx:id="proxyDomain" id="settings-proxy-domain" promptText="optional" HBox.hgrow="ALWAYS"/>
+                                                    </children>
+                                                </HBox>
+                                                <CheckBox fx:id="proxyWindowsSignOn" id="settings-proxy-windows-sign-on"
+                                                          text="Without a user, sign in with the Windows account (NTLM / Kerberos)" wrapText="true"/>
+                                                <Separator/>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <Label text="Timeouts (s):" minWidth="110"/>
+                                                        <Label text="connect"/>
+                                                        <Spinner fx:id="connectTimeout" id="settings-connect-timeout" editable="true" prefWidth="80">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="600" initialValue="30"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                        <Label text="read"/>
+                                                        <Spinner fx:id="readTimeout" id="settings-read-timeout" editable="true" prefWidth="80">
+                                                            <valueFactory>
+                                                                <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="3600" initialValue="60"/>
+                                                            </valueFactory>
+                                                        </Spinner>
+                                                    </children>
+                                                </HBox>
+                                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                                    <children>
+                                                        <TextField fx:id="proxyTestUrl" id="settings-proxy-test-url" text="https://github.com" HBox.hgrow="ALWAYS"/>
+                                                        <Button fx:id="proxyTestButton" id="settings-proxy-test" text="Test Connection"
+                                                                styleClass="fxt-tool-button" onAction="#onTestConnection">
+                                                            <graphic>
+                                                                <IconifyIcon iconLiteral="bi-plug" iconSize="16"/>
+                                                            </graphic>
+                                                        </Button>
+                                                    </children>
+                                                </HBox>
+                                                <Label fx:id="proxyTestStatus" id="settings-proxy-test-status" styleClass="fxt-placeholder-text"/>
+                                                <Label text="Used by every connection: schema and catalog downloads, updates, FundsXML, telemetry, doc() in XPath and XQuery, XProc and HTML previews. The test uses the values shown here, saved or not. Changing the Windows sign-in takes effect after a restart."
+                                                       styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="SECURITY" iconLiteral="bi-shield-lock">
