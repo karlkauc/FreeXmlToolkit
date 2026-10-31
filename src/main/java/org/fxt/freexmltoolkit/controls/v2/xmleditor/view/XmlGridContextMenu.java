@@ -1699,14 +1699,13 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         alert.showAndWait();
     }
 
-    /** Copies the clicked table (header line + every row) as tab-separated text, for spreadsheets. */
+    /** Copies the clicked table (header line + every row) as tab-separated text and HTML, for spreadsheets. */
     private void copyTableAsTsv() {
         if (clickedTable == null) {
             return;
         }
-        javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
-        content.putString(org.fxt.freexmltoolkit.controls.v2.xmleditor.view.TsvClipboard.formatTable(clickedTable));
-        javafx.scene.input.Clipboard.getSystemClipboard().setContent(content);
+        javafx.scene.input.Clipboard.getSystemClipboard().setContent(
+                org.fxt.freexmltoolkit.controls.v2.xmleditor.view.TsvClipboard.tableContent(clickedTable));
     }
 
 }

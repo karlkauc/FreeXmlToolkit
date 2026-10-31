@@ -39,9 +39,41 @@ class TsvClipboardTest {
     @Test
     void formatsARangeAndTheWholeTable() {
         assertEquals("a\t1\n", TsvClipboard.format(table, 0, 1, 0, 2, false));
-        assertEquals("1\ta\n2\tb x\n", TsvClipboard.format(table, 1, 1, 0, 0, false),
-                "any corner order; a tab inside a value becomes a space");
-        assertEquals("@id\tname\tqty\n1\ta\t1\n2\tb x\t\n", TsvClipboard.formatTable(table));
+        assertEquals("1\ta\n2\t\"b\tx\"\n", TsvClipboard.format(table, 1, 1, 0, 0, false),
+                "any corner order; a value holding a tab is quoted, not changed");
+        assertEquals("@id\tname\tqty\n1\ta\t1\n2\t\"b\tx\"\t\n", TsvClipboard.formatTable(table));
+    }
+
+    @Test
+    void valuesWithTabsLineBreaksAndQuotesSurviveARoundTrip() {
+        List<List<String>> cells = List.of(
+                List.of("plain", "tab\there", "two\nlines"),
+                List.of("\"quoted\" start", "inner \"quote\"", ""),
+                List.of("crlf\r\nline", "\t", "end"));
+        String tsv = TsvClipboard.toTsv(cells);
+        assertEquals("\"\"\"quoted\"\" start\"", TsvClipboard.quote("\"quoted\" start"));
+        assertEquals("inner \"quote\"", TsvClipboard.quote("inner \"quote\""), "a quote inside stays as is");
+        assertEquals(cells, TsvClipboard.parse(tsv), "every value comes back unchanged, in its own cell");
+        assertEquals(List.of(List.of("a\tb", "c")), TsvClipboard.parse("\"a\tb\"\tc"));
+        assertTrue(TsvClipboard.isBlock(tsv));
+    }
+
+    @Test
+    void theHtmlTableKeepsEveryValueInItsCellAndMarksValuesSpreadsheetsWouldChange() {
+        String html = TsvClipboard.toHtml(List.of(List.of("Name", "Id"),
+                List.of("a<b>&\tc\nd", "00123"), List.of("=SUM(A1)", "-5")), true);
+        assertTrue(html.contains("<th>Name</th>"), html);
+        assertTrue(html.contains("<td>a&lt;b&gt;&amp;&#9;c<br style=\"mso-data-placement:same-cell\"/>d</td>"), html);
+        assertTrue(html.contains("<td style=\"mso-number-format:'\\@'\">00123</td>"), "leading zeros stay text");
+        assertTrue(html.contains("<td style=\"mso-number-format:'\\@'\">=SUM(A1)</td>"), "no formula");
+        assertTrue(html.contains("<td>-5</td>"), "a negative number stays a number");
+        assertTrue(TsvClipboard.keepAsText("12345678901234567"));
+        assertFalse(TsvClipboard.keepAsText("123"));
+        assertFalse(TsvClipboard.keepAsText("2012-10-24"));
+
+        var content = TsvClipboard.tableContent(table);
+        assertEquals(TsvClipboard.formatTable(table), content.getString());
+        assertTrue(content.getHtml().contains("<td>b&#9;x</td>"), content.getHtml());
     }
 
     @Test

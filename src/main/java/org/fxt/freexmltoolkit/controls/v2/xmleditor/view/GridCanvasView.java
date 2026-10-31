@@ -2236,6 +2236,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      *         line when the selection covers every cell), or {@code null} without a cell selection
      */
     public String selectedCellsAsTsv() {
+        javafx.scene.input.ClipboardContent content = selectedCellsContent();
+        return content == null ? null : content.getString();
+    }
+
+    /** @return the selected table cells as clipboard content (TSV + HTML), or {@code null} without a cell selection */
+    private javafx.scene.input.ClipboardContent selectedCellsContent() {
         if (selectedTable == null || selAnchorRow < 0) {
             return null;
         }
@@ -2243,7 +2249,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         int cols = selectedTable.getColumns().size();
         boolean all = Math.min(selAnchorRow, selFocusRow) == 0 && Math.max(selAnchorRow, selFocusRow) == rows - 1
                 && Math.min(selAnchorCol, selFocusCol) == 0 && Math.max(selAnchorCol, selFocusCol) == cols - 1;
-        return TsvClipboard.format(selectedTable, selAnchorRow, selAnchorCol, selFocusRow, selFocusCol, all && rows > 1);
+        return TsvClipboard.content(selectedTable, selAnchorRow, selAnchorCol, selFocusRow, selFocusCol, all && rows > 1);
     }
 
     /** Selects every cell of the table (the corner-cell / Ctrl+A target). */
@@ -2296,10 +2302,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
         switch (event.getCode()) {
             case C -> {
-                String tsv = selectedCellsAsTsv();
-                if (tsv != null) {
-                    javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
-                    content.putString(tsv);
+                javafx.scene.input.ClipboardContent content = selectedCellsContent();
+                if (content != null) {
                     clipboard.setContent(content);
                     event.consume();
                     return true;
@@ -2700,6 +2704,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         canvas.setOnMousePressed(e -> {
             if (!canvas.isFocused() && editField == null && activeWidgetNode == null) {
                 canvas.requestFocus();
+            }
+        });
+        // A press on the grid ends here: an enclosing TabPane would otherwise take the focus on
+        // every press it receives, and keys ("+", "−", arrows) would no longer reach the grid
+        addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
+            if (e.getTarget() == canvas) {
+                e.consume();
             }
         });
 
