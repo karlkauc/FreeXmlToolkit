@@ -1,7 +1,5 @@
 # XML Editor Features
 
-> **Version:** 2.1.0
-
 This page describes the advanced features available in the XML Editor.
 
 ---

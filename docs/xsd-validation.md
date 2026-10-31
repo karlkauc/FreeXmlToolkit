@@ -1,7 +1,5 @@
 # XSD Validation
 
-> **Version:** 2.1.0
-
 > **Note:** The standalone *XSD Validation* tab has been retired.
 > Validation — XSD and Schematron, single-file and batch — now lives in the
 > **Unified Shell's Validation activity panel**. The capabilities below are

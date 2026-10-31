@@ -1,7 +1,5 @@
 # Profiled XML Generation
 
-> **Version:** 2.1.0
-
 Generate customized sample XML from an XSD schema. The **Generate Sample XML (Advanced)…** dialog lists every element and attribute path of your schema, lets you pick a generation strategy per path, saves those settings as reusable profiles, and can write a whole batch of files in one go.
 
 ---

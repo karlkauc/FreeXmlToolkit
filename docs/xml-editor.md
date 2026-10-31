@@ -1,7 +1,5 @@
 # XML Editor
 
-> **Version:** 2.1.0
-
 The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and easy-to-use interface for working with XML files.
 
 ---
@@ -11,7 +9,7 @@ The XML Editor is the main feature of FreeXmlToolkit. It provides a powerful and
 ![XML Editor - Text Mode](img/xml-editor-text.png)
 *The XML Editor in text mode with syntax highlighting*
 
-![XML Editor - Grid Mode](img/xml-editor-graphic.png)
+![XML Editor - Graphic view](img/xml-editor-graphic.png)
 *The XML Editor in the Graphic view (grid) for structured editing*
 
 ---
@@ -406,7 +404,7 @@ Choose **Tools → Spreadsheet Converter…** (Ctrl+E) to open the converter dia
 Choose **Edit → Insert Template…** (Ctrl+T) to insert a snippet:
 
 - Insert pre-defined XML snippets
-- Create your own templates (Settings → Templates)
+- Create your own templates (**Settings → Editor → TEMPLATES**)
 - Organize templates by category
 
 Learn more: [Template Management](template-management.md)

@@ -1,7 +1,5 @@
 # Auto-Completion (IntelliSense)
 
-> **Version:** 2.1.0
-
 The XML Editor includes smart auto-completion that helps you write XML faster and with fewer errors.
 
 ---

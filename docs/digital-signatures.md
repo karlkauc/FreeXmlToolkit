@@ -1,7 +1,5 @@
 # XML Digital Signatures
 
-> **Version:** 2.1.0
-
 > **Note:** Signing, signature validation (including detailed and PKIX
 > trust/chain/revocation/timestamp validation) and self-signed certificate creation
 > live on the **Signature page** of the Unified Shell. Click **Signature** in the activity
@@ -13,7 +11,8 @@ This tool lets you digitally sign XML documents and verify signatures. A digital
 
 ## Overview
 
-![Signature activity in the Unified Shell](img/unified-shell-signature.png)
+![Signature activity in the Unified Shell](img/unified-shell-signature.png#only-light)
+![Signature activity in the Unified Shell](img/unified-shell-signature-dark.png#only-dark)
 *Signing, validation and certificate creation live on the Signature page (screenshot may show an older layout)*
 
 ### What Can You Do?

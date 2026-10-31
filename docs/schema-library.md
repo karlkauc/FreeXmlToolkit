@@ -1,7 +1,5 @@
 # Schema Library
 
-> **Version:** 2.1.0
-
 The **Schema Library** maps namespaces (and JSON `$schema` URIs) to schema files, so
 documents that don't carry an explicit reference to their schema can still be validated
 and get IntelliSense automatically.
@@ -127,7 +125,8 @@ Register `catalog.xml` in the Catalogs tab, open the documents and validate; the
 
 ## 4. Schema cache
 
-![Schema Library - Cache](img/unified-shell-schema-library-cache.png)
+![Schema Library - Cache](img/unified-shell-schema-library-cache.png#only-light)
+![Schema Library - Cache](img/unified-shell-schema-library-dark.png#only-dark)
 *The Cache tab: remote schemas downloaded and cached under `~/.freeXmlToolkit/cache/schemas`.*
 
 Every remote schema resolved through the library (or downloaded because a document

@@ -1,7 +1,5 @@
 # Favorites System
 
-> **Version:** 2.1.0
-
 Save your frequently used files for quick access. The favorites system works across all editors in FreeXmlToolkit.
 
 ---

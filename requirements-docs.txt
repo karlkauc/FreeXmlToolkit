@@ -1,0 +1,4 @@
+# Python packages for building the MkDocs site (used by .github/workflows/docs.yml)
+mkdocs==1.6.1
+mkdocs-material==9.8.0
+pymdown-extensions==12.3

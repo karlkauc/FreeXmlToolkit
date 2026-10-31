@@ -52,8 +52,7 @@ plugins:
 # Internal developer-reference documents that are not part of the published site
 # (gitignore-style patterns): planning/spec notes plus a few orphan dev docs.
 exclude_docs: |
-  superpowers/plans/
-  superpowers/specs/
+  superpowers/
   ThreadPoolArchitecture.md
   testing/auto-update-windows.md
 

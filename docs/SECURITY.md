@@ -1,7 +1,5 @@
 # Security Features
 
-> **Version:** 2.1.0
-
 This page describes the security measures built into FreeXmlToolkit to protect you from XML-based attacks.
 
 ---

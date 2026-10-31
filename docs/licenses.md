@@ -1,6 +1,6 @@
 # Third-Party Libraries and Licenses
 
-FreeXmlToolkit (Version 2.1.0) uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
+FreeXmlToolkit uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
 
 ## Core Dependencies
 
@@ -24,6 +24,7 @@ FreeXmlToolkit (Version 2.1.0) uses several third-party libraries. The following
 | Library | Version | License |
 |---------|---------|---------|
 | **ph-schematron** (com.helger.schematron:ph-schematron-pure / -xslt / -schxslt / -api) | 10.2.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **JAXB Runtime** (org.glassfish.jaxb:jaxb-runtime, SVRL marshalling) | 4.0.9 | [Eclipse Distribution License 1.0](https://www.eclipse.org/org/documents/edl-v10.php) |
 | **ph-commons** (com.helger.commons:ph-commons / ph-xml / ph-io) | 12.x | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## XML Validation (XSD 1.1 Support)
@@ -40,8 +41,9 @@ FreeXmlToolkit (Version 2.1.0) uses several third-party libraries. The following
 |---------|---------|---------|
 | **JavaFX** (Liberica Full JDK) | 25 | [GPL v2 with Classpath Exception](https://openjdk.java.net/legal/gplv2+ce.html) |
 | **RichTextFX** (org.fxmisc.richtext:richtextfx) | 0.11.7 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
-| **ControlsFX** (org.controlsfx:controlsfx) | 11.2.5 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
+| **ControlsFX** (org.controlsfx:controlsfx) | 11.2.6 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 | **CSSFX** (fr.brouillard.oss:cssfx) | 11.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **NSMenuFX** (de.jangassen:nsmenufx, macOS menu bar) | 3.1.0 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 
 ## Icons and Graphics
 
@@ -56,18 +58,18 @@ Icons are rendered by the in-house `IconifyIcon` control from bundled
 
 | Library | Version | License |
 |---------|---------|---------|
-| **Apache FOP** (org.apache.xmlgraphics:fop) | 2.11 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache FOP** (org.apache.xmlgraphics:fop) | 2.12 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache PDFBox** (org.apache.pdfbox:pdfbox) | 3.0.8 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache POI** (org.apache.poi:poi) | 5.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache POI OOXML** (org.apache.poi:poi-ooxml) | 5.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache POI** (org.apache.poi:poi) | 6.0.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache POI OOXML** (org.apache.poi:poi-ooxml) | 6.0.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## SVG and Graphics Processing
 
 | Library | Version | License |
 |---------|---------|---------|
-| **Apache Batik SVG Generator** (org.apache.xmlgraphics:batik-svggen) | 1.19 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache Batik All** (org.apache.xmlgraphics:batik-all) | 1.19 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache Batik Transcoder** (org.apache.xmlgraphics:batik-transcoder) | 1.19 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Batik SVG Generator** (org.apache.xmlgraphics:batik-svggen) | 1.20 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Batik All** (org.apache.xmlgraphics:batik-all) | 1.20 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache Batik Transcoder** (org.apache.xmlgraphics:batik-transcoder) | 1.20 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Security and Cryptography
 
@@ -82,8 +84,9 @@ Icons are rendered by the in-house `IconifyIcon` control from bundled
 |---------|---------|---------|
 | **Apache Commons Lang3** (org.apache.commons:commons-lang3) | 3.21.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons IO** (commons-io:commons-io) | 2.22.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **Apache HttpClient 5** (org.apache.httpcomponents.client5:httpclient5) | 5.6.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **java-diff-utils** (io.github.java-diff-utils:java-diff-utils) | 4.17 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache HttpClient 5** (org.apache.httpcomponents.client5:httpclient5) | 5.6.5 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Apache HttpCore 5 H2** (org.apache.httpcomponents.core5:httpcore5-h2) | 5.4.4 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **java-diff-utils** (io.github.java-diff-utils:java-diff-utils) | 4.18 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons Text** (org.apache.commons:commons-text) | 1.15.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons Validator** (commons-validator:commons-validator) | 1.11.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
@@ -121,6 +124,8 @@ Icons are rendered by the in-house `IconifyIcon` control from bundled
 |---------|---------|---------|
 | **JUnit Jupiter** (org.junit.jupiter:junit-jupiter, via org.junit:junit-bom) | 6.1.3 | [Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/) |
 | **Mockito** (org.mockito:mockito-core) | 5.24.0 | [MIT License](https://opensource.org/licenses/MIT) |
+| **Mockito JUnit Jupiter** (org.mockito:mockito-junit-jupiter) | 5.24.0 | [MIT License](https://opensource.org/licenses/MIT) |
+| **Hamcrest** (org.hamcrest:hamcrest) | 3.0 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 | **TestFX Core** (org.testfx:testfx-core) | 4.0.18 | [EUPL-1.1](https://joinup.ec.europa.eu/software/page/eupl) |
 | **TestFX JUnit5** (org.testfx:testfx-junit5) | 4.0.18 | [EUPL-1.1](https://joinup.ec.europa.eu/software/page/eupl) |
 | **OpenJFX Monocle** (org.testfx:openjfx-monocle) | 21.0.2 | [GPL v2 with Classpath Exception](https://openjdk.java.net/legal/gplv2+ce.html) |
@@ -133,22 +138,14 @@ The majority of libraries used in FreeXmlToolkit are licensed under permissive o
 
 | License Type | Count |
 |--------------|-------|
-| Apache License 2.0 | ~30 |
+| Apache License 2.0 | 29 |
 | MIT License | 5 |
-| BSD (2/3-Clause) | 3 |
-| Eclipse Public / Distribution License | 4 |
+| BSD (2/3-Clause) | 5 |
+| Eclipse Public / Distribution License | 5 |
 | EUPL-1.1 | 2 |
-| Mozilla Public License 2.0 | 1 |
 | GPL v2 with Classpath Exception | 2 |
+| Mozilla Public License 2.0 | 1 |
+| CUP License | 1 |
 
 All licenses are compatible with the Apache License 2.0 under which FreeXmlToolkit is distributed.
 
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [Security](SECURITY.md) | [Home](index.md) | [Home](index.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

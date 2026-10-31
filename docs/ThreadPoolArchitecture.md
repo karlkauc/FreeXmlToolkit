@@ -1,7 +1,5 @@
 # Thread Pool Management Architecture
 
-> **Version:** 2.1.0
-
 ## Overview
 
 The `ThreadPoolManager` system replaces individual thread creation with a centralized, optimized thread pool management system.

@@ -36,7 +36,7 @@ multi-factor authentication for GitHub and SignPath.
 FreeXmlToolkit connects to other systems only for the following purposes:
 
 - **Anonymous usage statistics and error reports** — on by default and can be switched off
-  in *Settings → Usage Statistics*. Nothing is sent before the one-time notice was shown after the
+  in *Settings → Privacy → USAGE STATISTICS*. Nothing is sent before the one-time notice was shown after the
   first start. No file contents, file names, paths or personal data are transmitted. Details:
   [Privacy & Anonymous Telemetry](https://karlkauc.github.io/FreeXmlToolkit/telemetry/).
 - **Update check** — asks the GitHub Releases API for the latest version at startup (switch off

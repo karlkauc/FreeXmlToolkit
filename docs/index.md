@@ -308,7 +308,7 @@ On some Windows computers, the application may fail to start or crash immediatel
 2. **Try the portable version** -- If you used the installer (.exe or .msi), try the portable (.zip) version instead.
 3. **Report the issue** -- If the problem persists, please report it on the project's GitHub Issues page with your Windows version and graphics card model.
 
-> **Note:** Since version 1.6.3, FreeXmlToolkit picks a safe renderer automatically (software rendering on graphics adapters it does not recognise). You can force hardware or software rendering under **Settings → RENDERING**; the change takes effect after a restart.
+> **Note:** FreeXmlToolkit picks a safe renderer automatically (software rendering on graphics adapters it does not recognise). You can force hardware or software rendering under **Settings → Appearance → RENDERING**; the change takes effect after a restart.
 
 ### Application Looks Blurry or Slow
 
@@ -404,7 +404,7 @@ FreeXmlToolkit is free and open source. If it saves you time, please consider sp
 
 [&#9829; Sponsor on GitHub](https://github.com/sponsors/karlkauc){ .md-button .md-button--primary }
 
-Inside the application the sponsor link is available in the **Help** menu (**Sponsor this Project**), in the **About** dialog, on the **Welcome** page and under **Settings → Support the Project**. Starring the repository and reporting bugs helps too.
+Inside the application the sponsor link is available in the **Help** menu (**Sponsor this Project**), in the **About** dialog, on the **Welcome** page and under **Settings → Extensions → SUPPORT THE PROJECT**. Starring the repository and reporting bugs helps too.
 
 ---
 

@@ -1,7 +1,5 @@
 # Schema Support
 
-> **Version:** 2.1.0
-
 FreeXmlToolkit supports different schema formats for validating your XML and JSON files. This page explains what's supported and what isn't.
 
 ---

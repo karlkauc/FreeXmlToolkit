@@ -7,6 +7,7 @@ on:
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
+      - 'requirements-docs.txt'
   workflow_dispatch:
 
 permissions:
@@ -34,9 +35,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
-        run: |
-          pip install mkdocs-material
-          pip install mkdocs-minify-plugin
+        run: pip install -r requirements-docs.txt
 
       - name: Build and deploy
-        run: mkdocs gh-deploy --force
+        run: mkdocs gh-deploy --force --strict

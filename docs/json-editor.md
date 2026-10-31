@@ -2,8 +2,6 @@
 
 The JSON Editor provides a powerful environment for editing, validating, and querying JSON files with support for multiple JSON formats.
 
-> **Version:** 2.1.0
-
 > **Note:** The standalone *JSON Editor* tab has been retired. JSON
 > editing — text editing, the tree and grid views, and validation — now lives in the
 > **Unified Shell**: open a `.json` file and the **Text**, **Tree** and **Graphic** (grid)

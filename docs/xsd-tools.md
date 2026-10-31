@@ -1,7 +1,5 @@
 # XSD Tools
 
-> **Version:** 2.1.0
-
 > **Note:** The standalone *XSD Editor* tab has been retired. XSD
 > editing — the Text/Tree/Graphic views, the inspector, the Type Library, type
 > editing, documentation generation, schema flattening and schema analysis —
@@ -71,7 +69,7 @@ The Graphic View lets you explore and edit your schemas visually.
 - Edit the name and every other property in the Properties pane on the right
 - Only edits that keep the schema valid are possible; see [Only Valid Changes](#only-valid-changes)
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
-- **Ctrl+S** to save (a backup is created automatically - Settings → XSD lets you turn this off or change the number of kept versions, 3 by default)
+- **Ctrl+S** to save (a backup is created automatically - **Settings → Schemas & Validation → XSD** lets you turn this off or change the number of kept versions, 3 by default)
 - The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (Ctrl+Shift+S, save under a new name) and **Save All** (saves every open tab)
 
 ### Moving and Copying by Drag and Drop {#drag-and-drop-in-the-diagram}
@@ -202,7 +200,7 @@ A few things to know:
   catalog / Schema Library entry for their location - they are not looked up by namespace.
 - Internal and private network addresses are never contacted - see
   [Security Features](SECURITY.md#ssrf-server-side-request-forgery-protection).
-- Clearing the cache (Settings → Temp & Cache, or the Schema Library's Cache tab) is safe:
+- Clearing the cache (**Settings → Files & Cache → TEMP & CACHE**, or the Schema Library's Cache tab) is safe:
   missing schemas are simply re-downloaded the next time they are needed.
 - *Advanced:* to turn remote downloads off entirely (for example in fully offline
   environments), start the application with the system property
@@ -663,6 +661,10 @@ all of them.
 ### Adding Technical Notes to Your Schema
 
 You can add structured technical information directly in your XSD files:
+
+!!! info "Full tag reference"
+    All supported tags, their semantics and examples are listed in the
+    [XsdDoc Tags reference](xsddoc-tags.html).
 
 The tag goes into the `source` attribute of an `xs:appinfo`, its value into the element's text
 content.

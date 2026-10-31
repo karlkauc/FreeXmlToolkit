@@ -1,7 +1,5 @@
 # Schematron Validation
 
-> **Version:** 2.1.0
-
 > **Note:** The standalone *Schematron* editor tab has been retired.
 > `.sch` files open as ordinary editor tabs in the [Unified Shell](unified-shell.md),
 > and validation runs in the **Validation activity panel**. The Schematron tools —

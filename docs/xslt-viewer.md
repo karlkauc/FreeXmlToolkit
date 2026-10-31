@@ -1,7 +1,5 @@
 # XSLT Viewer
 
-> **Version:** 2.1.0
-
 > **Note:** The standalone *XSLT Viewer* tab has been retired. Quick
 > XSLT transformations now live in the **Unified Shell's Transform panel**
 > (set a stylesheet, transform, preview the result, open in browser). Parameters,

@@ -2,8 +2,6 @@
 
 FreeXmlToolkit is built using modern Java technologies and libraries to provide a robust, cross-platform XML and JSON processing environment.
 
-> **Version:** 2.1.0
-
 ## Core Technologies
 
 ### Java Platform
@@ -15,7 +13,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 - **JavaFX:** 25 for cross-platform desktop GUI (bundled with Liberica Full JDK)
 - **FXML:** Declarative UI layout with MVC architecture
 - **RichTextFX:** 0.11.7 - Advanced text editing component with syntax highlighting
-- **ControlsFX:** 11.2.5 - Extended JavaFX controls
+- **ControlsFX:** 11.2.6 - Extended JavaFX controls
 
 ## Key Libraries
 
@@ -32,9 +30,9 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 - **JSON Schema Validator:** 3.0.8 (NetworkNT) - JSON Schema validation (Draft-07, 2019-09, 2020-12)
 
 ### PDF Generation
-- **Apache FOP:** 2.11 - XSL-FO to PDF transformation
+- **Apache FOP:** 2.12 - XSL-FO to PDF transformation
 - **Apache PDFBox:** 3.0.8 - PDF manipulation
-- **Apache Batik:** 1.19 - SVG processing and rendering
+- **Apache Batik:** 1.20 - SVG processing and rendering
 
 ### Digital Signatures
 - **Apache Santuario:** 4.0.4 - XML Security (XML-DSig)
@@ -42,7 +40,7 @@ FreeXmlToolkit is built using modern Java technologies and libraries to provide 
 - **Java Cryptography Architecture (JCA):** Native Java crypto support
 
 ### Office Integration
-- **Apache POI:** 5.5.1 - Excel export for validation results
+- **Apache POI:** 6.0.0 - Excel export for validation results
 
 ### Utilities
 - **Apache Commons Lang3:** 3.21.0 - String manipulation and utilities
@@ -164,11 +162,11 @@ dependencies {
     implementation("org.exist-db.thirdparty.xerces:xercesImpl:2.12.2")
 
     // PDF Generation
-    implementation("org.apache.xmlgraphics:fop:2.11")
+    implementation("org.apache.xmlgraphics:fop:2.12")
 
     // UI Components
     implementation("org.fxmisc.richtext:richtextfx:0.11.7")
-    implementation("org.controlsfx:controlsfx:11.2.5")
+    implementation("org.controlsfx:controlsfx:11.2.6")
 
     // Security
     implementation("org.apache.santuario:xmlsec:4.0.4")

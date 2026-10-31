@@ -1,7 +1,5 @@
 # FundsXML Extensions
 
-> **Version:** 2.1.0
-
 Optional integration with the [FundsXML](https://fundsxml.org/) standard for the fund management industry. When enabled, FreeXmlToolkit automatically downloads and keeps up to date the official FundsXML schemas, sample documents, Schematron rules, and XPath/XQuery snippets - and uses them for quick validation of your own files.
 
 This feature is **off by default**. Enable it only if you work with FundsXML documents.
@@ -91,7 +89,7 @@ Whenever content is downloaded (automatically or manually), the application will
 - Register each **XSLT stylesheet** found in the examples as an XSLT Favorite under **FundsXML XSLT**.
 - Register the Schematron files as Favorites under the category **FundsXML Schematron**.
 - Register the most compact sample XMLs as **new-document templates** under the **FundsXML** category, so you can start a fresh document from a real sample via the toolbar's **New** button (Ctrl+N) → **Template** list.
-- Seed the XPath/XQuery snippets into your **Saved Queries**, tagged `fundsxml` - they show up in the [Query Console](unified-shell.md#query-console)'s **Snippets** menu under a **FUNDSXML** section (for example *fund-summary*, *top-holdings*, *look-through*, *aggregate-by-assettype*), and in the Transform panel's XPATH mode under the **Saved** menu.
+- Seed the XPath/XQuery snippets into your **Saved Queries**, tagged `fundsxml` - they show up in the [Query Console](unified-shell.md#query-console)'s **Snippets** menu under a **FUNDSXML** section (for example *fund-summary*, *top-holdings*, *look-through*, *aggregate-by-assettype*).
 - Select the newly downloaded schema version as the **active** version.
 - Make a compact starter sample available from the Welcome page's **Open Example** card, so you can immediately try **Validate active document** in the FundsXML panel.
 
@@ -282,7 +280,7 @@ The automatic background download has not finished yet (or it failed - for examp
 
 ### The FundsXML activity disappeared
 
-The feature was disabled. Re-enable it under **Settings -> FUNDSXML -> Enable FundsXML extensions**. Your downloaded content is still on disk and will reappear immediately.
+The feature was disabled. Re-enable it under **Settings → Extensions → FUNDSXML → Enable FundsXML extensions**. Your downloaded content is still on disk and will reappear immediately.
 
 ### I want to remove everything
 

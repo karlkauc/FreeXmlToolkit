@@ -1,7 +1,5 @@
 # Template Management
 
-> **Version:** 2.1.0
-
 Reusable XML snippets and document skeletons: insert them into the document you are editing, or
 start a new file from one. Templates can carry `${parameter}` placeholders that you fill in when
 the template is used.
@@ -9,7 +7,7 @@ the template is used.
 !!! tip "Templates power the New File dialog"
     Templates also appear in the guided **New File** dialog (filtered to the matching file type),
     so a brand-new document can start from a template instead of a blank page. You manage your
-    own templates in the **Settings → TEMPLATES** card. See
+    own templates in the **Settings → Editor → TEMPLATES** card. See
     [Creating templates for the New File dialog](#creating-templates-for-the-new-file-dialog).
 
 ---

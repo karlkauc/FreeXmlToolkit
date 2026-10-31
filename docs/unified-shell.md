@@ -12,7 +12,8 @@ switching between separate editor pages, you open files as tabs in the central *
 host** and reach every tool through the **activity bar** on the left. You can work with an
 XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the same time.
 
-![Unified Shell overview](img/unified-shell-overview.png)
+![Unified Shell overview](img/unified-shell-overview.png#only-light)
+![Unified Shell overview](img/unified-shell-overview-dark.png#only-dark)
 *The Unified Shell: activity bar (left), Explorer side panel, editor host with an XML file
 (Text/Tree/Graphic view toggle), the Properties inspector (right) and the status bar.*
 
@@ -55,7 +56,7 @@ collapsed to give the editor more room - the activity bar always stays visible.
   activity from the activity bar also re-opens the left side panel. A re-opened panel comes
   back at its **last dragged width**.
 - The collapsed/expanded state is **remembered across restarts** and can also be changed under
-  **Settings → Appearance → Layout** ("Show left side panel" / "Show Properties (inspector) panel").
+  **Settings → Appearance → LAYOUT** ("Show left side panel" / "Show Properties (inspector) panel").
 - **The inspector only appears next to documents.** When you switch to a tab that is not a
   document - **Settings**, **Schema Library**, **Signature**, a report or another tool tab - the
   inspector hides automatically, so the page gets the full width. Its toggle button is greyed out
@@ -243,7 +244,7 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   member lacks that child element creates the element. **Drag a column header** onto another
   header to move that column - a blue line shows where it lands; the child element (or
   attribute) moves in every member, one undo step. Attributes move only among attributes.
-- **Cell colours.** *Settings → Editor → Grid table colours* sets your own colours for table
+- **Cell colours.** **Settings → Editor → GRID TABLE COLOURS** sets your own colours for table
   headers, missing cells, the selection and the focus frame - separately for the light and the
   dark theme (switch the theme to set the other one). Open grids repaint at once; switching the
   option off returns to the theme colours.
@@ -523,7 +524,7 @@ schemas, **Save** needs an open document).
 | **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first) |
 | **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
 | **View** | The view modes (Text / Tree / Graphic / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), Toggle Light / Dark Theme, Full Screen |
-| **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Toggle Breakpoint (F9), Set Schema…, Generate Documentation…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites |
+| **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites |
 | **Help** | Documentation, Keyboard Shortcuts, FundsXML Website and FundsXML Schema Docs (only while the [FundsXML extension](fundsxml-extensions.md) is enabled), Report a Problem… (when error reporting is enabled), GitHub Repository, Sponsor this Project, Check for Updates…, About FreeXmlToolkit - see [Help Menu & About](#help-menu-about) |
 
 ### macOS
@@ -1636,7 +1637,7 @@ See [PDF Generator](pdf-generator.md) for stylesheet guidance.
 > **Open Schema in Editor** button.
 
 The **FundsXML** activity appears in the activity bar only when the optional
-[FundsXML extension](fundsxml-extensions.md) is enabled (Settings → FUNDSXML card).
+[FundsXML extension](fundsxml-extensions.md) is enabled (**Settings → Extensions → FUNDSXML**).
 Enabling it is enough - the official FundsXML schema, examples, Schematron rules and query
 snippets download automatically in the background, and a toast notification appears when
 they are ready.
@@ -1668,7 +1669,7 @@ Like Settings, it opens as a **page** - a tab named **Schema Library** in the ma
 area, where all table columns fit. The page has three tabs - **Mappings**, **Catalogs** and
 **Cache** - each with clearly labelled action buttons, and a shared status line at the bottom.
 The side panel on the left lists the same three sections: click one to jump to that tab; the
-tab you are on is highlighted. **Settings → Manage schema cache…** opens the page directly on
+tab you are on is highlighted. **Settings → Schemas & Validation → SCHEMA LIBRARY → Manage schema cache…** opens the page directly on
 the **Cache** tab. See the [Schema Library guide](schema-library.md) for the full reference,
 including the resolution order, the bundled standards list and troubleshooting.
 
@@ -1677,6 +1678,9 @@ including the resolution order, the bundled standards list and troubleshooting.
 Help is not a side panel - it lives in the **Help** menu of the menu bar. The **?** button in
 the header bar and the **F1** key open the same menu as a popup, right where you are working.
 It contains:
+
+![Help menu](img/unified-shell-help-menu.png)
+*The Help menu, opened with the **?** button or F1*
 
 | Item | What it does |
 |------|--------------|
@@ -1695,7 +1699,7 @@ application menu instead (see [macOS](#macos)). To find out which version you ar
 
 - **Sponsor this Project** opens the project's [GitHub Sponsors](https://github.com/sponsors/karlkauc)
   page in your browser. The same link is in the **About** dialog, as a small banner on the
-  **Welcome** page and under **Settings → Support the Project**.
+  **Welcome** page and under **Settings → Extensions → SUPPORT THE PROJECT**.
 
 - **Report a Problem…** opens the **Send Error Report** dialog. Describe what you were doing,
   optionally leave an email address if you would like a reply, and click **Send**. The report
@@ -1718,6 +1722,10 @@ These buttons are only shown while **Send anonymous error reports** is enabled i
 
 Click the gear icon at the bottom of the activity bar (or press **Ctrl+,**): the **Settings page
 opens as a tab in the main editor area**, where there is room for all options.
+
+![Settings page](img/unified-shell-settings.png#only-light)
+![Settings page](img/unified-shell-settings-dark.png#only-dark)
+*The Settings page: groups in the side panel, colour-coded cards in the main area*
 
 **Finding a setting** - the side panel on the left lists the seven groups. Click a group to
 scroll the page to it; the group you are looking at is highlighted. Type into the **search field** at the top of the side panel to filter both
@@ -1961,7 +1969,7 @@ The status bar at the bottom of the window includes (left to right):
   encoding; change the `encoding` of the XML declaration to save in another one. Characters the
   encoding cannot hold are saved as character references such as `&#x20AC;`.
 - A **last run** item (right-hand side) showing the last recorded XSLT/XQuery/validation run -
-  it appears only while **Record execution statistics** (Settings → **DEVELOPER**) is on;
+  it appears only while **Record execution statistics** (**Settings → Extensions → DEVELOPER**) is on;
   **click it** to open the **Execution Statistics** tool tab.
 - A **memory monitor** showing the JVM heap usage as **used / max MB**. **Click it** to run
   garbage collection, which can free memory after working with large files.
@@ -2062,7 +2070,8 @@ any error to jump straight to its location:
 > values, or documentation). The width is remembered across restarts - see
 > [Resizing and collapsing the side panels](#collapsing-the-side-panels).
 
-![Properties inspector](img/unified-shell-inspector.png)
+![Properties inspector](img/unified-shell-inspector.png#only-light)
+![Properties inspector](img/unified-shell-inspector-dark.png#only-dark)
 *The Properties inspector for an XML element with a bound schema: node header with validation
 pill, NODE & XPATH, schema facts, and documentation with example values and valid children.*
 
