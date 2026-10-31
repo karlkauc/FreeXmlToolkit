@@ -4666,7 +4666,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
 <li><strong>Spreadsheet exchange.</strong> Click a table cell to select it, <strong>Shift+click</strong> another cell
   (or a row number) to select a range, <strong>Ctrl+A</strong> selects the whole table. <strong>Ctrl+C</strong> copies
   the selection as tab-separated text (the whole table with a header line); the context menu
-  offers <strong>Copy Table as Tab-separated Text</strong>. Copy a range in Excel or LibreOffice, select a
+  offers <strong>Copy Table as Tab-separated Text</strong>. Values arrive in the spreadsheet unchanged and
+  each in its own cell, even when they contain tabs, line breaks or quotes (the clipboard holds
+  quoted text plus an HTML table; values such as <code>00123</code> stay text). Copy a range in Excel or LibreOffice, select a
   table cell and press <strong>Ctrl+V</strong>: the values fill the table from that cell to the right and
   down, overwriting existing cells; extra rows become new elements. One undo step.</li>
 <li><strong>Column widths.</strong> Name columns and table columns size themselves to their content. Drag
