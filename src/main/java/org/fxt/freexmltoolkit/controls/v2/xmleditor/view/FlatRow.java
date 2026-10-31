@@ -924,8 +924,9 @@ public class FlatRow {
 
     /**
      * @return the only child of {@code element} when {@code element} merely wraps it — no attributes,
-     *         no text, comments or other children — and that child has content of its own (attributes
-     *         or child elements); otherwise {@code null}
+     *         no text, comments or other children — and that child is a container (has child
+     *         elements); a leaf such as {@code <Amount ccy="EUR">12</Amount>} stays a row of its own,
+     *         its value beside its name; otherwise {@code null}
      */
     static XmlElement soleWrappedChild(XmlElement element) {
         if (!element.getAttributes().isEmpty()) {
@@ -941,8 +942,8 @@ public class FlatRow {
             }
             sole = childElement;
         }
-        if (sole == null || !sole.getAttributes().isEmpty()) {
-            return sole;
+        if (sole == null) {
+            return null;
         }
         for (XmlNode child : sole.getChildren()) {
             if (child instanceof XmlElement) {
@@ -1099,6 +1100,14 @@ public class FlatRow {
                     // If this child container is itself expanded, show its subtree too
                     if (row.getType().isContainer() && row.isExpanded()) {
                         pending.push(row);
+                    } else {
+                        // Attributes always show with their element, even a collapsed one or a
+                        // leaf that cannot expand (<Amount ccy="EUR">12</Amount>)
+                        for (FlatRow attribute : children.getOrDefault(row, List.of())) {
+                            if (attribute.getType().isAttribute()) {
+                                attribute.setVisible(true);
+                            }
+                        }
                     }
                 }
             }

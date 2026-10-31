@@ -112,6 +112,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     // Table operations (visible with a table context)
     private Menu tableMenu;
     private MenuItem insertRowBeforeItem;
+    private MenuItem deleteRowItem;
     private MenuItem insertRowAfterItem;
     private MenuItem appendRowItem;
     private MenuItem insertColumnBeforeItem;
@@ -275,6 +276,9 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         appendRowItem = new MenuItem("Append Row");
         appendRowItem.setGraphic(createColoredIcon("bi-plus-square", ActionColor.CREATE));
         appendRowItem.setOnAction(e -> insertRow(Placement.APPEND));
+        deleteRowItem = new MenuItem("Delete Row");
+        deleteRowItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
+        deleteRowItem.setOnAction(e -> deleteRow());
         insertColumnBeforeItem = new MenuItem("Insert Column Before…");
         insertColumnBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-left", ActionColor.CREATE));
         insertColumnBeforeItem.setOnAction(e -> insertColumn(Placement.BEFORE));
@@ -292,7 +296,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         collapseCellsItem.setGraphic(createColoredIcon("bi-dash-square-dotted", ActionColor.NEUTRAL));
         collapseCellsItem.setAccelerator(new javafx.scene.input.KeyCharacterCombination("-"));
         collapseCellsItem.setOnAction(e -> viewActions.collapseOneLevel().run());
-        tableMenu.getItems().addAll(insertRowBeforeItem, insertRowAfterItem, appendRowItem,
+        tableMenu.getItems().addAll(insertRowBeforeItem, insertRowAfterItem, appendRowItem, deleteRowItem,
                 new SeparatorMenuItem(), insertColumnBeforeItem, insertColumnAfterItem, renameColumnItem,
                 new SeparatorMenuItem(), expandCellsItem, collapseCellsItem);
 
@@ -473,6 +477,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         boolean hasRow = inTable && clickedRowIndex >= 0;
         insertRowBeforeItem.setDisable(!hasRow);
         insertRowAfterItem.setDisable(!hasRow);
+        deleteRowItem.setDisable(!hasRow);
         renameColumnItem.setDisable(!(isInTableColumn && clickedTable.getColumn(clickedColumnName) != null));
     }
 
@@ -764,6 +769,18 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         JsonCommand cmd = JsonTableEditOps.insertRow(clickedTable, clickedRowIndex, placement);
         if (cmd != null) {
             execute(cmd);
+        }
+    }
+
+    /** Deletes the clicked table row's value (one undo step). */
+    private void deleteRow() {
+        if (clickedTable == null || clickedRowIndex < 0 || clickedRowIndex >= clickedTable.getRows().size()) {
+            return;
+        }
+        if (clickedTable.getRows().get(clickedRowIndex).getNode() instanceof JsonNode node
+                && context.executeCommand(new DeleteNodeCommand(node))) {
+            context.getSelectionModel().clearSelection();
+            refresh();
         }
     }
 

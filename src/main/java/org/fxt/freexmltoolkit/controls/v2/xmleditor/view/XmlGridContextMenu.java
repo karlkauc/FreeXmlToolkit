@@ -107,6 +107,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     // Table operations (visible with a table context)
     private Menu tableMenu;
     private MenuItem insertRowBeforeItem;
+    private MenuItem deleteRowItem;
     private MenuItem insertRowAfterItem;
     private MenuItem appendRowItem;
     private MenuItem insertColumnBeforeItem;
@@ -298,6 +299,9 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         appendRowItem = new MenuItem("Append Row");
         appendRowItem.setGraphic(createColoredIcon("bi-plus-square", ActionColor.CREATE));
         appendRowItem.setOnAction(e -> insertRow(TableEditOps.Placement.APPEND));
+        deleteRowItem = new MenuItem("Delete Row");
+        deleteRowItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
+        deleteRowItem.setOnAction(e -> deleteRow());
         insertColumnBeforeItem = new MenuItem("Insert Column Before…");
         insertColumnBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-left", ActionColor.CREATE));
         insertColumnBeforeItem.setOnAction(e -> insertColumn(TableEditOps.Placement.BEFORE));
@@ -315,7 +319,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         collapseCellsItem.setGraphic(createColoredIcon("bi-dash-square-dotted", ActionColor.NEUTRAL));
         collapseCellsItem.setAccelerator(new javafx.scene.input.KeyCharacterCombination("-"));
         collapseCellsItem.setOnAction(e -> viewActions.collapseOneLevel().run());
-        tableMenu.getItems().addAll(insertRowBeforeItem, insertRowAfterItem, appendRowItem,
+        tableMenu.getItems().addAll(insertRowBeforeItem, insertRowAfterItem, appendRowItem, deleteRowItem,
                 new SeparatorMenuItem(), insertColumnBeforeItem, insertColumnAfterItem, renameColumnItem,
                 new SeparatorMenuItem(), expandCellsItem, collapseCellsItem);
 
@@ -495,6 +499,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         boolean hasRow = inTable && clickedRowIndex >= 0;
         insertRowBeforeItem.setDisable(!hasRow);
         insertRowAfterItem.setDisable(!hasRow);
+        deleteRowItem.setDisable(!hasRow);
         boolean hasColumn = isInTableColumn && clickedTable.getColumn(clickedColumnName) != null
                 && clickedTable.getColumn(clickedColumnName).getType() != RepeatingElementsTable.ColumnType.TEXT_CONTENT;
         renameColumnItem.setDisable(!hasColumn);
@@ -637,6 +642,18 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         }
         XmlCommand cmd = TableEditOps.insertRow(clickedTable, clickedRowIndex, placement);
         if (cmd != null && context.executeCommand(cmd)) {
+            refresh();
+        }
+    }
+
+    /** Deletes the clicked table row's element (one undo step). */
+    private void deleteRow() {
+        if (clickedTable == null || clickedRowIndex < 0 || clickedRowIndex >= clickedTable.getRows().size()) {
+            return;
+        }
+        XmlElement element = clickedTable.getRows().get(clickedRowIndex).getElement();
+        if (element != null && context.executeCommand(new DeleteNodeCommand(element))) {
+            context.getSelectionModel().clearSelection();
             refresh();
         }
     }

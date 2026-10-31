@@ -206,7 +206,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   **embedded table beside the group's name cell**: one row per element (numbered in the
   first column), one column per attribute (`=`) and child element (`<>`). Click the small
   **arrow at the right of a column header** to **sort** the group (also: **Sort Column** in the
-  context menu); cells with nested structure expand inline.
+  context menu); cells with nested structure expand inline. **Right-click a cell** that is an
+  element of its own (e.g. `Identifiers` of an `Asset` row): the node actions of the context menu
+  (Add Child Element / Attribute, Rename, Copy, Delete, Move, …) act on that element; whole-row
+  actions are in the **Table** submenu (**Insert Row Before/After**, **Append Row**, **Delete Row**).
 - **Every node looks like a root node, at any depth.** An opened table cell shows its content as
   a grid of its own: expandable rows, blocks and - for repeating children - a **table again**
   (or numbered rows `<1>`, `<2>`, … after a click on the table glyph), whose cells open the same
@@ -272,7 +275,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   **Collapse Unselected** (**Ctrl+Shift+−**) folds every container except the path to the
   selection. Both, plus **Expand All / Collapse All**, are in the context menu. The expanded
   state and the selection survive edits, undo and sorting (rows are tracked by their XPath).
-- **Editing every node kind.** Double-click a value to edit it - also comments, CDATA sections
+- **Editing every node kind.** Double-click a value to edit it - with a bound schema the editor
+  follows the declared type: a **dropdown** for enumerations (elements and attributes, in tree rows,
+  table columns and opened cells), date pickers, number spinners, length/pattern checks - also comments, CDATA sections
   and processing instructions; double-click the name of an attribute or a processing
   instruction to rename it. **Click the type icon** of a row (or press **Ctrl+Alt+T**) to
   change the node's type - element, attribute, text, CDATA, comment or processing instruction;

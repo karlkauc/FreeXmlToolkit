@@ -152,6 +152,17 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         return row != null ? row.getElement() : null;
     }
 
+    /** A child-element cell holding exactly one element of its column stands for that element. */
+    @Override
+    public XmlNode cellNode(RepeatingElementsTable.TableRow row, String column) {
+        XmlElement element = row != null ? row.getElement() : null;
+        if (element == null || column == null || column.startsWith("@")) {
+            return null;
+        }
+        List<XmlElement> members = element.getChildElements(column);
+        return members.size() == 1 ? members.getFirst() : null;
+    }
+
     @Override
     public void select(XmlNode node) {
         context.getSelectionModel().setSelectedNode(node);
@@ -471,8 +482,12 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         RepeatingElementsTable.TableColumn col = table.getColumn(columnName);
         String currentValue = row.getValue(columnName);
         String elementXPath = pathFor(row.getElement());
-        String attributeName = (col != null && col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE)
-                ? columnName : null;
+        RepeatingElementsTable.ColumnType type = col != null ? col.getType() : null;
+        String attributeName = type == RepeatingElementsTable.ColumnType.ATTRIBUTE ? columnName : null;
+        if (type == RepeatingElementsTable.ColumnType.CHILD_ELEMENT) {
+            // The cell's value is the child element's text: its type is declared at the child
+            elementXPath = elementXPath + "/" + columnName;
+        }
         return schemaAwareSpec(currentValue, elementXPath, attributeName);
     }
 

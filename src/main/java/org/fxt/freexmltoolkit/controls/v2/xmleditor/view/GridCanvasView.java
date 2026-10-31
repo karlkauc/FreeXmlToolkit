@@ -3398,6 +3398,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     render();
                 }
                 N node = tableRow >= 0 ? adapter.nodeOf(hitTable.getRows().get(tableRow)) : adapter.nodeOf(hit.row());
+                // A cell that is an element of its own (e.g. Identifiers of an Asset row) is the target
+                // of the node actions; row actions stay in the menu's Table submenu
+                N cell = tableRow >= 0 && column != null ? adapter.cellNode(hitTable.getRows().get(tableRow), column) : null;
+                if (cell != null) {
+                    node = cell;
+                    adapter.select(cell);
+                }
                 contextMenu().show(canvas, event.getScreenX(), event.getScreenY(), node, hitTable, tableRow, column);
                 return;
             }

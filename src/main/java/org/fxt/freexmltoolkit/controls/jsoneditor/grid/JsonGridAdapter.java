@@ -318,6 +318,16 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         return row != null && row.getNode() instanceof JsonNode node ? node : null;
     }
 
+    /** A cell holding an object or array stands for that value. */
+    @Override
+    public JsonNode cellNode(RepeatingElementsTable.TableRow row, String column) {
+        if (!(nodeOf(row) instanceof JsonObject object) || column == null) {
+            return null;
+        }
+        JsonNode value = object.getProperty(column);
+        return value instanceof JsonObject || value instanceof JsonArray ? value : null;
+    }
+
     @Override
     public void select(JsonNode node) {
         context.getSelectionModel().setSelectedNode(node);

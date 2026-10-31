@@ -138,8 +138,19 @@ class GridRowRangesTest {
                     row.setVisible(true);
                     if (row.getType().isContainer() && row.isExpanded()) {
                         legacyShowExpandedSubtree(row, allRows);
+                    } else {
+                        legacyShowAttributes(row, allRows);
                     }
                 }
+            }
+        }
+    }
+
+    /** Attributes always show with their element, even a collapsed one or a leaf. */
+    private static void legacyShowAttributes(FlatRow elementRow, List<FlatRow> allRows) {
+        for (FlatRow row : allRows) {
+            if (row.getParentRow() == elementRow && row.getType().isAttribute()) {
+                row.setVisible(true);
             }
         }
     }
@@ -150,6 +161,8 @@ class GridRowRangesTest {
                 row.setVisible(true);
                 if (row.getType().isContainer() && row.isExpanded()) {
                     legacyShowExpandedSubtree(row, allRows);
+                } else {
+                    legacyShowAttributes(row, allRows);
                 }
             }
         }

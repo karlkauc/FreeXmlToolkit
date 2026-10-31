@@ -232,6 +232,14 @@ public interface GridModelAdapter<N> {
     /** @return the model node behind an embedded-table row */
     N nodeOf(RepeatingElementsTable.TableRow row);
 
+    /**
+     * @return the node a table cell stands for — the target of the context menu's node actions on
+     *         that cell — or {@code null} when the cell is no node of its own (the row's node then)
+     */
+    default N cellNode(RepeatingElementsTable.TableRow row, String column) {
+        return null;
+    }
+
     /** Makes the node the current selection of the model's selection model. */
     void select(N node);
 
