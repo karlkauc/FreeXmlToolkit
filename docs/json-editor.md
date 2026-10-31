@@ -71,7 +71,7 @@ very same grid the shell uses for XML files, so it is instantly familiar:
 | **Search** | Ctrl+F finds keys and values, revealing matches inside collapsed nodes |
 | **Zoom & layout** | Zoom the whole grid with Ctrl+mouse wheel, Ctrl + / Ctrl − or the header's zoom pill (Ctrl 0 resets; the factor is shared with the XML grid). Nothing is cut off - long strings wrap onto further lines - and the columns of an array table can be dragged to a new width (double-click the separator to auto-fit). **Expand all** / **Collapse all** buttons sit in the header |
 
-See [Unified Shell - The Grid for JSON](grid.md#json-grid) for details.
+See [Grid View - JSON](grid.md#json-grid) for details.
 
 ### Properties Inspector
 
@@ -87,7 +87,7 @@ a node in the **Tree** or **Graphic** (grid) view and the inspector shows:
   number stays a number.
 
 Edits made in the inspector are undoable (Ctrl+Z) and written back into the text just like
-grid edits. See [Unified Shell - Properties Inspector](inspector.md#json-files) for details.
+grid edits. See [Properties Inspector - JSON Files](inspector.md#json-files) for details.
 
 ### Hover Information
 

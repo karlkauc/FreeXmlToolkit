@@ -10,7 +10,7 @@
       <ul class="fxt-download-card__alts">
         <li><a data-fxt-asset="win-msi" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">MSI package</a> – for silent / Group Policy deployment<span class="fxt-asset-size"></span></li>
         <li><a data-fxt-asset="win-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> – no installation, extract and run<span class="fxt-asset-size"></span></li>
-        <li><a href="#install-with-a-package-manager">Scoop</a> – <code>scoop install karlkauc/freexmltoolkit</code></li>
+        <li><a href="installation/#install-with-a-package-manager">Scoop</a> – <code>scoop install karlkauc/freexmltoolkit</code></li>
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="macos">
@@ -20,7 +20,7 @@
         <li><a data-fxt-asset="mac-x64-dmg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Intel .dmg</a> – for Intel-based Macs<span class="fxt-asset-size"></span></li>
         <li><a data-fxt-asset="mac-arm64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg installer</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-pkg" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">.pkg</a> (Intel)</li>
         <li><a data-fxt-asset="mac-arm64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Apple Silicon) · <a data-fxt-asset="mac-x64-zip" href="https://github.com/karlkauc/FreeXmlToolkit/releases/latest">Portable ZIP</a> (Intel)</li>
-        <li><a href="#install-with-a-package-manager">Homebrew</a> – <code>brew install --cask karlkauc/tap/freexmltoolkit</code></li>
+        <li><a href="installation/#install-with-a-package-manager">Homebrew</a> – <code>brew install --cask karlkauc/tap/freexmltoolkit</code></li>
       </ul>
     </div>
     <div class="fxt-download-card" data-fxt-platform="linux">
@@ -55,78 +55,7 @@ FreeXmlToolkit is a free desktop application for working with XML files. It help
 
 ### Works On All Platforms
 
-FreeXmlToolkit is available for Windows, macOS, and Linux in multiple formats. Choose the one that works best for you - all files are published on the [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases/latest) (see the [download buttons](#download) above).
-
-#### Windows
-
-| Format | Architecture | Description |
-|--------|--------------|-------------|
-| `.exe` | x64 | **Installer** - Standard setup wizard. No admin rights required. Recommended for most users. |
-| `.msi` | x64 | **MSI Package** - For enterprise deployment and silent installation via Group Policy. |
-| `.zip` | x64 | **Portable** - No installation needed. Extract and run. Good for USB drives or restricted systems. |
-
-#### macOS
-
-| Format | Architecture | Description |
-|--------|--------------|-------------|
-| `.dmg` | Intel (x64), Apple Silicon (ARM64) | **Disk Image** - Standard macOS installation. Drag to Applications folder. |
-| `.pkg` | Intel (x64), Apple Silicon (ARM64) | **Package Installer** - Guided installation wizard. Useful for managed deployments. |
-| `.zip` | Intel (x64), Apple Silicon (ARM64) | **Portable** - No installation needed. Extract and run the app directly. |
-
-The macOS packages are signed with an Apple Developer ID and notarized by Apple, so they open without a Gatekeeper warning.
-
-#### Linux
-
-| Format | Architecture | Description |
-|--------|--------------|-------------|
-| `.deb` | x64 | **Debian Package** - For Ubuntu, Debian, Linux Mint. Install with `sudo dpkg -i` or double-click. |
-| `.rpm` | x64 | **RPM Package** - For Fedora, Red Hat, openSUSE. Install with `sudo rpm -i` or `dnf install`. |
-| `.zip` | x64 | **Portable** - No installation needed. Extract and run. Works on any Linux distribution. |
-
-> **Note:** On macOS, pick the build that matches your Mac: **Apple Silicon (ARM64)** for M-series Macs, **Intel (x64)** for older Macs (Apple menu → *About This Mac* shows the chip). Windows and Linux builds are provided for **x64** (Intel/AMD) only.
-
-### Install with a Package Manager
-
-If you already use a package manager, it can install FreeXmlToolkit for you and keep it up to date. The packages are published with every release and contain the same builds as the download buttons above.
-
-#### Windows – Scoop
-
-[Scoop](https://scoop.sh) installs the portable build into your user profile – no installer, no admin rights. Add the FreeXmlToolkit bucket once, then install:
-
-```powershell
-scoop bucket add karlkauc https://github.com/karlkauc/scoop-bucket
-scoop install karlkauc/freexmltoolkit
-```
-
-Scoop adds **FreeXmlToolkit** to the Start menu. Update and remove it with:
-
-```powershell
-scoop update freexmltoolkit
-scoop uninstall freexmltoolkit
-```
-
-#### macOS – Homebrew
-
-[Homebrew](https://brew.sh) installs the signed and notarized app into *Applications* and picks the Apple Silicon or Intel build automatically (macOS 11 Big Sur or newer):
-
-```bash
-brew install --cask karlkauc/tap/freexmltoolkit
-```
-
-Update and remove it with:
-
-```bash
-brew upgrade --cask freexmltoolkit
-brew uninstall --cask freexmltoolkit
-```
-
-`brew uninstall --zap --cask freexmltoolkit` also removes your settings (`~/.freeXmlToolkit`).
-
-#### Updates
-
-A copy installed by Scoop or Homebrew is updated by the package manager: when a new version is out, the update notice in FreeXmlToolkit shows the command to run instead of downloading the new version itself.
-
-On Linux, use the `.deb` / `.rpm` packages or the portable ZIP above.
+FreeXmlToolkit runs on **Windows** (x64), **macOS** (Apple Silicon and Intel) and **Linux** (x64) - as an installer, a native package or a portable ZIP, and via **Scoop** and **Homebrew**. The [Installation](installation.md) page explains every format and the package managers.
 
 ---
 
@@ -144,8 +73,11 @@ Edit your XML files with professional tools:
 | **Find & Replace** | Search and replace text in your documents |
 | **Find in Files** | Search and replace across all files of a folder - by plain text or by XPath (the Search activity, Ctrl+Shift+F) |
 | **Code Folding** | Collapse sections to focus on what matters |
+| **Grid View** | Edit XML like a spreadsheet in the Graphic view: repeating elements as tables, opened cells, entry helpers, copy/paste with Excel |
+| **Properties Inspector** | View and edit the selected node - and its schema declaration - in every view |
+| **Query Console** | Run XPath 3.1, XQuery 3.1 and JSONPath against the open document (Ctrl+K) |
 
-Learn more: [XML Editor Guide](xml-editor.md) | [Editor Features](xml-editor-features.md)
+Learn more: [XML Editor Guide](xml-editor.md) | [Grid View](grid.md)
 
 ### JSON Editor
 
@@ -188,11 +120,11 @@ Convert XML into other formats:
 | **Live Preview** | See results as you work |
 | **Rendered HTML Results** | Open an HTML result as an editor tab showing the rendered page (Preview view) |
 | **Modern XSLT Support** | Uses the latest XSLT 3.0 standard |
-| **Interactive Debugger** | Breakpoints, stepping, variables, call stack and watches in a DEBUG dock below the stylesheet |
+| **Interactive Debugger** | Debug XSLT, XQuery and Schematron: conditional breakpoints, logpoints, stepping, variables, watches, call stack and coverage |
 | **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
 | **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
 
-Learn more: [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [XProc Pipelines](xproc.md#xproc-pipelines)
+Learn more: [Transform Panel](transform-panel.md) | [XSLT Developer](xslt-developer.md) | [Debugger](debugger.md) | [XProc Pipelines](xproc.md)
 
 ### PDF Generation
 
@@ -257,14 +189,7 @@ Learn more: [FundsXML Extensions Guide](fundsxml-extensions.md)
 
 ## Getting Started
 
-### Installation
-
-1. **Download** the package for your operating system using the [download buttons](#download) at the top of this page (or from the [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases/latest))
-2. **Install** it:
-    - **Windows:** run the `.exe` installer (no administrator rights required) or the `.msi`; the portable `.zip` only needs to be extracted
-    - **macOS:** open the `.dmg` and drag FreeXmlToolkit to *Applications*, or run the `.pkg` installer
-    - **Linux:** `sudo dpkg -i freexmltoolkit-*.deb` (Debian/Ubuntu) or `sudo rpm -i freexmltoolkit-*.rpm` (Fedora/RHEL/openSUSE); the portable `.zip` only needs to be extracted
-3. **Launch** FreeXmlToolkit from your applications menu (portable: run `FreeXmlToolkit` / `FreeXmlToolkit.exe` in the extracted folder)
+Download FreeXmlToolkit with the [buttons above](#download); the [Installation](installation.md) guide covers every package format, Scoop and Homebrew.
 
 ### Your First Steps
 
@@ -298,21 +223,7 @@ The application includes example files in the `examples/` folder to help you get
 
 ## Troubleshooting
 
-### Application Does Not Start (Windows)
-
-On some Windows computers, the application may fail to start or crash immediately after launch. This is typically caused by incompatible graphics drivers.
-
-**What to try:**
-
-1. **Update your graphics drivers** -- Visit your GPU manufacturer's website (NVIDIA, AMD, or Intel) and install the latest driver for your graphics card.
-2. **Try the portable version** -- If you used the installer (.exe or .msi), try the portable (.zip) version instead.
-3. **Report the issue** -- If the problem persists, please report it on the project's GitHub Issues page with your Windows version and graphics card model.
-
-> **Note:** FreeXmlToolkit picks a safe renderer automatically (software rendering on graphics adapters it does not recognise). You can force hardware or software rendering under **Settings → Appearance → RENDERING**; the change takes effect after a restart.
-
-### Application Looks Blurry or Slow
-
-If the interface appears blurry or animations are slow, your system may be using software rendering instead of hardware acceleration. Updating your graphics drivers usually resolves this.
+Problems starting the application, blurry rendering, proxies, memory or schemas that do not resolve: see the **[FAQ & Troubleshooting](faq.md)** page.
 
 ---
 
@@ -335,50 +246,6 @@ The complete list is on the **[Keyboard Shortcuts](keyboard-shortcuts.md)** page
 
 ---
 
-## Documentation Pages
-
-### Feature Guides
-
-| Page                                          | Description                              |
-|-----------------------------------------------|------------------------------------------|
-| [Unified Shell](unified-shell.md)             | The single workspace - start here        |
-| [XML Editor](xml-editor.md)                   | How to edit XML files                    |
-| [XML Editor Features](xml-editor-features.md) | Detailed editor features                 |
-| [JSON Editor](json-editor.md)                 | How to edit JSON files                   |
-| [XSD Tools](xsd-tools.md)                     | Working with XML schemas                 |
-| [Profiled XML Generation](profiled-xml-generation.md) | Advanced sample XML generation with profiles |
-| [XSD Validation](xsd-validation.md)           | Validating XML against schemas           |
-| [Schema Library](schema-library.md)           | Namespace mappings, XML catalogs, schema cache |
-| [XSLT Viewer](xslt-viewer.md)                 | Quick XSLT transformations               |
-| [XSLT Developer](xslt-developer.md)           | Full XSLT/XQuery development environment |
-| [PDF Generator](pdf-generator.md)             | Creating PDF documents                   |
-| [Digital Signatures](digital-signatures.md)   | Signing XML documents                    |
-| [Schematron Support](schematron-support.md)   | Business rule validation                 |
-| [Schematron Quick Fixes](schematron-quick-fixes.md) | One-click fixes for Schematron findings |
-| [FundsXML Extensions](fundsxml-extensions.md) | Optional FundsXML standard integration   |
-
-### Productivity Tools
-
-| Page | Description |
-|------|-------------|
-| [Auto-Completion (IntelliSense)](context-sensitive-intellisense.md) | Smart suggestions while typing |
-| [Favorites System](favorites-system.md) | Quick access to your files |
-| [Template Management](template-management.md) | Reusable code snippets |
-| [Schema Support](schema-support.md) | Supported schema formats |
-| [File Associations](file-associations.md) | Open XML, XSD, XSLT and more from your file manager |
-| [Execution Statistics](execution-statistics.md) | Optional timing statistics for validations, transformations and other operations |
-
-### Reference
-
-| Page | Description |
-|------|-------------|
-| [Security Features](SECURITY.md) | Built-in protections against XML attacks |
-| [Privacy & Anonymous Telemetry](telemetry.md) | What the anonymous usage statistics and error reports contain, and how to switch them off |
-| [Technology Stack](technology-stack.md) | Libraries and versions used |
-| [Third-Party Licenses](licenses.md) | License information |
-
----
-
 ## Support the Project
 
 FreeXmlToolkit is free and open source. If it saves you time, please consider sponsoring its development — sponsorships directly fund maintenance, bug fixes and new features.
@@ -391,16 +258,7 @@ Inside the application the sponsor link is available in the **Help** menu (**Spo
 
 ## Need Help?
 
-- Browse the documentation pages listed above
+- Browse the documentation in the navigation, starting with the [Unified Shell](unified-shell.md) guide
+- Read the [FAQ & Troubleshooting](faq.md) page
 - Check the example files included with the application
 - Report issues on the project's GitHub page, or send an anonymous report from inside the app with **Help → Report a Problem…**
-
----
-
-## Quick Links
-
-**Editors:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [PDF/FOP](pdf-generator.md) | [Signatures](digital-signatures.md)
-
-**Features:** [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Schema Support](schema-support.md) | [Favorites](favorites-system.md) | [Templates](template-management.md)
-
-**Reference:** [Security](SECURITY.md) | [Privacy & Telemetry](telemetry.md) | [Tech Stack](technology-stack.md) | [Licenses](licenses.md)

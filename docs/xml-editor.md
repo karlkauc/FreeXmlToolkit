@@ -94,33 +94,36 @@ The text editor provides:
   [Properties Inspector](#properties-inspector)
 - Right-click for context menu options
 
-### Graphic Mode (Grid)
+### Graphic View (Grid)
 
-> For XML documents, the **Graphic** view shows the editable XMLSpy-style grid.
+> For XML documents (and XSLT / Schematron), the **Graphic** view shows the editable XMLSpy-style grid.
 
 ![XML Grid view in the Unified Shell](img/unified-shell-xml-grid.png)
 *An XML document in the Graphic view (XMLSpy-style grid editing)*
 
-The grid provides:
+1. Open an XML file and switch to the **Graphic** view with the view switch
+2. Click cells to edit values directly; move with the arrow keys
+3. Add, delete, wrap or move nodes through the right-click context menu or drag & drop
+4. Select a row to view and edit its properties in the [Properties inspector](#properties-inspector)
 
-- **Table View**: Edit XML data in a spreadsheet-like interface
-- **Header Strip**: A header at the top ("Grid view · nested · repeating elements as embedded
-  grids") with the zoom pill (`− 100% +`) and **Expand all** / **Collapse all** buttons
-- **Nothing Cut Off**: Cells grow to their content and long values wrap onto further lines
-  (the row grows) instead of being shortened with "…"
-- **Zoom**: `Ctrl`+mouse wheel or `Ctrl` `+` / `Ctrl` `−` zoom the whole grid (50-300 %),
-  `Ctrl` `0` resets; the factor is remembered across files and restarts
-- **Column Widths**: Drag a separator in an embedded grid's column-header row to resize a
-  column (text re-wraps); double-click the separator to return to automatic sizing
-- **Value Markers**: Rows with a simple value are marked with `{}`; collapsed containers show a
-  "collapsed" hint
-- **Direct Cell Editing**: Click cells to edit values directly
-- **Easy Navigation**: Move through the document using arrow keys
-- **Sorting**: Right-click a sortable table column and choose **Sort Column → Sort Ascending /
-  Sort Descending** (clicking a column header does not sort)
-- **Structural Editing**: Add, delete, and move nodes through the right-click context menu
-- **Edit Properties**: Select a row to edit its properties in the Properties inspector -
-  see [Properties Inspector](#properties-inspector)
+Repeating elements appear as **embedded tables** (sortable, flippable, copy/paste with
+spreadsheets), cells can be **opened** to show their nested content as a grid of their own, and
+the **entry helpers** side panel offers the siblings, children and values the bound XSD allows.
+All views share one model, so changes show up in the Text view immediately.
+
+See the **[Grid View](grid.md)** page for every grid feature.
+
+### Code Folding
+
+![Code Folding](img/xml-editor-folding.png)
+*Code folding - collapse XML sections to focus on the parts that matter*
+
+For large XML files, you can collapse sections to focus on what you're working on:
+
+- **Collapse**: Click the minus (-) icon next to an element
+- **Expand**: Click the plus (+) icon to show the content again
+- **Nested Folding**: Collapse parent elements to hide all children
+
 
 ---
 
@@ -131,7 +134,8 @@ The grid provides:
 
 The Properties inspector shows the details of the currently selected node and lets you change
 them. Toggle the panel with the toggle at the right end of the editor toolbar; it appears on
-the right side of the editor.
+the right side of the editor. The [Properties Inspector](inspector.md) page describes it for every
+document type.
 
 ### Selecting a Node
 
@@ -164,7 +168,7 @@ Sections without content are not shown.
 The **⋮** menu at the top of the inspector offers **Copy XPath**, **Copy Node (XML)**,
 **Expand All Sections** and **Collapse All Sections**, and the **star** next to it adds the file
 to your Favorites. For the full layout, see
-[Unified Shell - Properties Inspector](inspector.md#properties-inspector).
+[Properties Inspector](inspector.md).
 
 Your edits are written straight back to the document, so the source text always stays in sync.
 In the Text view, edits are applied as a minimal change that keeps your caret and scroll
@@ -190,7 +194,7 @@ errors, or *Well-formed · no schema bound* when no schema is bound.
   the change is one undo step there, and after you save the XSD the XML document's schema facts
   are reloaded. Declarations from included/imported schemas and cached Schema Library copies are
   read-only. See
-  [Unified Shell - Editing the bound schema](inspector.md#editing-the-bound-schema).
+  [Properties Inspector - Editing the bound schema](inspector.md#editing-the-bound-schema).
 - **Documentation** - the element's documentation from the schema (*"No documentation in the
   schema"* when there is none).
 - **Value check** - *"Value matches the schema facets"* in green, or an amber warning such as
@@ -218,18 +222,47 @@ and Graphic views.
 
 ## Search (Find)
 
-> Search works in **every view mode** - Text, Tree, and Graphic.
+> Search works in **every view mode** — Text, Tree and Graphic — for XML documents, XSD schemas and JSON documents.
 
-Press **Ctrl+F** to find text in your document. An inline search bar opens where you type your search term and use the up and down arrows (**Find Previous** / **Find Next**, or Enter / Shift+Enter) to move between matches; the search wraps around at the end.
+### Finding Text in Your Document
 
-Search works in all views (case-insensitive):
+Press **Ctrl+F** to open the Find feature and type the text you are looking for. Use the up and down arrows (**Find Previous** / **Find Next**, or Enter / Shift+Enter) to move between matches. When you reach the last match, the search wraps around and continues from the beginning.
 
-- **Text view** - Matches are highlighted in the source. **Replace** is available here.
-- **Tree and Graphic views** - The search looks through element names, attribute names, and values across the whole document. The editor jumps to each matching node, auto-expanding collapsed parent nodes, selecting the matching row, and scrolling it into view. (**Replace** is not available here.)
+### Search Works in All Views
 
-If you switch the view mode (Text / Tree / Graphic) or the file tab while the search bar is open, the search re-targets the active view automatically.
+You can search in the **Text**, **Tree** or **Graphic** view of a document:
 
-Learn more: [Search (Find)](xml-editor-features.md#search-find)
+- **Text view** - Matches are highlighted in the source code. **Replace** is available here.
+- **Graphic view (XML instances)** - The search looks through element names, attribute names, and values across the whole document, including the cells of embedded tables. When you press the up/down arrows, the editor jumps directly to the matching node: if the match is inside a collapsed node, its parent nodes are expanded automatically, the matching row is selected, and it is scrolled into view.
+- **Tree and Graphic views (XSD schemas)** - The search looks through the schema nodes themselves: element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments. Matching nodes are revealed (collapsed branches expand), selected, and scrolled into view — in the Graphic diagram this includes loading lazily rendered subtrees.
+- **Tree and Graphic views (JSON documents)** - The search looks through the keys and values of the document. Matches inside collapsed objects or arrays are revealed, selected, and scrolled into view, the same way as in the XML grid.
+
+Searching is **case-insensitive** in all views.
+
+### Switching Views While Searching
+
+If you switch the view mode (Text / Tree / Graphic) or the file tab while the search bar is open, the search automatically re-targets the view you switched to, so you can keep navigating without retyping your search term.
+
+### Where Search Is Available
+
+Pressing **Ctrl+F** opens an **inline search bar** at the top of the editor, with up/down
+chevron arrows for Find Previous / Find Next and a replace toggle (Text view only). The same
+bar works in every view mode, for every XML-family document type and for JSON documents.
+
+> **Note:** In the **Tree** and **Graphic** views, search is for finding and navigating only - **Replace** is not available there (the replace toggle is disabled). To replace text, use the **Text** view.
+
+> **Note:** HTML documents have a rendered, read-only **Preview** view instead of Tree/Graphic (see [HTML Preview](unified-shell.md#html-preview)). Pressing **Ctrl+F** there searches the document's underlying markup text, not the rendered page.
+
+### Searching Across Many Files
+
+Ctrl+F searches the **active document**. To search - and replace -
+across **all files of a folder**, by plain text or by an XPath expression, use the
+**Search** activity in the Unified Shell: press **Ctrl+Shift+F** (Find in Files) or
+**Ctrl+Shift+H** (Replace in Files), or click the magnifying-glass icon in the activity
+bar. See the [Search Panel](unified-shell.md#search-panel) guide.
+
+> **Changed shortcut:** Ctrl+Shift+F used to format the document - **Format Document is
+> now Shift+Alt+F**.
 
 ---
 
@@ -246,6 +279,25 @@ The editor automatically suggests valid elements and attributes based on your XS
 4. **Press Escape** to close the suggestions
 
 The suggestions are context-sensitive - only elements valid at your current position are shown.
+
+### Attribute Suggestions
+
+Inside a start tag, type a space (or press **Ctrl+Space**) to see the element's attributes:
+
+- **Schema-bound XML** - the attributes your XSD declares for the element (including attribute
+  groups), required ones first, with type and documentation in the tooltip
+- **XSLT stylesheets** - the attributes of every XSLT 3.0 element from a built-in catalog, no
+  schema needed
+- Attributes with fixed values (XSD enumerations and booleans, XSLT values such as `xml`, `html`,
+  `text` for `xsl:output method`) show their values right after insertion; **Ctrl+Space** inside
+  the quotes brings them back
+- Attributes already in the tag are not offered again; accepting one inserts `name=""` with the
+  cursor between the quotes
+
+### Auto-Closing Tags
+
+When you type an opening tag like `<element>`, the editor automatically adds the closing tag `</element>` and places your cursor between them.
+
 
 Learn more: [Auto-Completion Guide](context-sensitive-intellisense.md)
 
@@ -314,6 +366,46 @@ Click **Format** or use `Shift+Alt+F` to format your XML with proper indentation
 | Schematron | Full support |
 | DTD | Not supported |
 | RelaxNG | Not supported |
+
+---
+
+## Schematron Integration
+
+![Schematron Validation](img/xml-editor-schematron.png)
+*Schematron validation in the Validation panel - the bound rules file in SOURCES, the
+findings in the PROBLEMS list*
+
+### What is Schematron?
+
+Schematron lets you create custom validation rules for your XML documents. While XSD schemas validate the structure, Schematron validates business rules - for example, "if field A contains X, then field B must not be empty."
+
+### How to Use Schematron
+
+1. Open an XML file in the editor
+2. Open the **Validation** panel from the activity bar
+3. In the **SOURCES** section, click **Change** on the Schematron row and pick a `.sch`
+   file - or pick a favorited Schematron from the row's **star** menu, or simply drop a
+   `.sch` file onto the row
+4. Click **Run Validation** - the findings appear in the **PROBLEMS** list (each row tagged
+   with a **Schematron** badge); click a problem to jump to the offending element
+5. Enable **Validate while typing** (the panel's ⋮ menu) to check as you type
+
+Problems whose rules define **quick fixes** can be corrected in place: click the yellow
+lightbulb in the editor gutter (or press **Alt+Enter** / **Ctrl+.**), or right-click the
+problem row and pick a fix from the **Quick Fix** submenu. See
+[Schematron Quick Fixes](schematron-quick-fixes.md).
+
+### Saving Schematron Files as Favorites
+
+Save frequently used Schematron files for quick access:
+- Add them to your [Favorites](favorites-system.md) (for example with **Add current** in the
+  Favorites panel while the `.sch` file is open)
+- Organize them in favorites folders like "Business Rules"
+- Bind a saved rules file in one click via the **star** menu on the Validation panel's
+  Schematron row - or via **Validate with Other Schematron ▸ Favorites** in the Explorer's
+  right-click menu
+
+Learn more: [Schematron Support](schematron-support.md) | [Favorites System](favorites-system.md)
 
 ---
 

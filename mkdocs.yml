@@ -51,6 +51,10 @@ plugins:
 
 # Internal developer-reference documents that are not part of the published site
 # (gitignore-style patterns): planning/spec notes plus a few orphan dev docs.
+# Pages kept only so that old links keep working
+not_in_nav: |
+  xml-editor-features.md
+
 exclude_docs: |
   superpowers/
   ThreadPoolArchitecture.md
@@ -104,6 +108,7 @@ nav:
   - Download: https://github.com/karlkauc/FreeXmlToolkit/releases/latest
   - Sponsor: https://github.com/sponsors/karlkauc
   - Getting Started:
+    - Installation: installation.md
     - Unified Shell: unified-shell.md
     - Keyboard Shortcuts: keyboard-shortcuts.md
     - Settings: settings.md
@@ -112,7 +117,6 @@ nav:
     - Execution Statistics: execution-statistics.md
   - XML Editing:
     - XML Editor: xml-editor.md
-    - Editor Features: xml-editor-features.md
     - Grid View: grid.md
     - Auto-Completion: context-sensitive-intellisense.md
     - Query Console: query-console.md
@@ -146,5 +150,6 @@ nav:
     - Code Signing Policy: code-signing-policy.md
   - Reference:
     - What's New: whats-new.md
+    - FAQ & Troubleshooting: faq.md
     - Technology Stack: technology-stack.md
     - Licenses: licenses.md

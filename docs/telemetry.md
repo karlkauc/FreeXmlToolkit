@@ -117,12 +117,12 @@ attaches the exception class, fingerprint and stack signature described above. A
 
 ## How to see what is sent
 
-**Settings ▸ Usage Statistics ▸ What is sent?** shows a sample of the exact payload (built
+**Settings → Privacy → USAGE STATISTICS → What is sent?** shows a sample of the exact payload (built
 from the events currently waiting to be sent) together with your anonymous installation ID.
 
 ## How to switch it off
 
-Open **Settings ▸ Usage Statistics** and clear
+Open **Settings → Privacy → USAGE STATISTICS** and clear
 
 - **Send anonymous usage statistics** and/or
 - **Send anonymous error reports**,
@@ -141,7 +141,7 @@ telemetry.errors.enabled=false
 
 ## How to reset the installation ID
 
-**Settings ▸ Usage Statistics ▸ What is sent? ▸ Reset ID** replaces the anonymous installation
+**Settings → Privacy → USAGE STATISTICS → What is sent? → Reset ID** replaces the anonymous installation
 ID with a new random one. Data sent afterwards can no longer be linked to data sent before.
 
 ## Where the data goes
@@ -160,5 +160,5 @@ stored or logged.
 
 Events are queued locally in `~/.freeXmlToolkit/telemetry-queue.jsonl` (at most 5000 events and
 14 days, oldest dropped first) and sent in small batches about every five minutes. Requests use
-the proxy configured in **Settings ▸ HTTP Proxy**. If the server cannot be reached, sending is
+the proxy configured in **Settings → Network & Security → HTTP PROXY**. If the server cannot be reached, sending is
 retried later with increasing pauses (up to six hours); the application is never slowed down.

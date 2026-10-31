@@ -175,7 +175,7 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 **Architecture:** `docs/ThreadPoolArchitecture.md`
 
-**Features:** `docs/unified-shell.md` (shell user guide), `docs/context-sensitive-intellisense.md`, `docs/favorites-system.md`, `docs/xml-editor-features.md`
+**Features:** `docs/unified-shell.md` (shell user guide), `docs/context-sensitive-intellisense.md`, `docs/favorites-system.md`, `docs/xml-editor.md`, `docs/grid.md`, `docs/debugger.md`
 
 **User Documentation:** `docs/index.md` (MkDocs site), `README.md`
 

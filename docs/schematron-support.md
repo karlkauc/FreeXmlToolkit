@@ -77,7 +77,7 @@ To try out a rule's `context` or `test` expression, open the XML document you wa
 check and press **Ctrl+Shift+X** to show the **Query Console**. It evaluates XPath (and
 XQuery) against the active document and lists the matching nodes, so you can refine an
 expression before putting it into a rule. See
-[Query Console](query-console.md#query-console) in the Unified Shell guide.
+[Query Console](query-console.md#query-console).
 
 ---
 
