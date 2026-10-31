@@ -224,13 +224,3 @@ entries resolve. Use **Download / verify** to fetch one explicitly.
 **"URL is not allowed" when adding a mapping:** the location resolves to a private or
 internal network address (loopback, link-local, RFC 1918 ranges, etc.) and is rejected as
 unsafe - remote schema locations must be reachable public URLs.
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [Schema Support](schema-support.md) | [Home](index.md) | [XSLT Viewer](xslt-viewer.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [Schema Library](schema-library.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

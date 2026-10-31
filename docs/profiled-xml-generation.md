@@ -229,13 +229,3 @@ No -- the files are written into one folder, so a later file with the same name 
 
 **Where is the Validate button?**
 Not in the dialog: open the generated tab and use the **Validate** action of the shell (see [XSD Validation](xsd-validation.md)).
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [XSD Tools](xsd-tools.md) | [Home](index.md) | [XSD Validation](xsd-validation.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

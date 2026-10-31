@@ -175,7 +175,7 @@ Changes made in any view are synchronized automatically.
   spreadsheets. Select a whole row (row number) or column (header) and press **+** / **−** to
   open or close its nested cells one level at a time; the arrow in a header sorts. Drag a column separator to resize a column; double-click it to auto-fit.
 
-See [Unified Shell - The Grid](unified-shell.md#the-grid-graphic-view-for-xml) for the full
+See [Unified Shell - The Grid](grid.md#the-grid-graphic-view-for-xml) for the full
 list of grid features (drag & drop, Wrap in Element, validation markers, scroll header, …).
 
 ---
@@ -211,7 +211,7 @@ See the [Properties Inspector](xml-editor.md#properties-inspector) section for f
 
 > **JSON documents** get the same inspector: select a node in the Tree or Graphic (grid)
 > view to edit its key and scalar value and to see its JSONPath - see
-> [Unified Shell - JSON Files](unified-shell.md#json-files).
+> [Unified Shell - JSON Files](inspector.md#json-files).
 
 ---
 
@@ -255,13 +255,3 @@ The tree view shows your XML document as a hierarchical structure:
 | Schematron | Business rules validation |
 | DTD | Not supported |
 | RelaxNG | Not supported |
-
----
-
-## Navigation
-
-| Previous                    | Home             | Next                      |
-|-----------------------------|------------------|---------------------------|
-| [XML Editor](xml-editor.md) | [Home](index.md) | [XSD Tools](xsd-tools.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

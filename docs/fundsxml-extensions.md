@@ -89,7 +89,7 @@ Whenever content is downloaded (automatically or manually), the application will
 - Register each **XSLT stylesheet** found in the examples as an XSLT Favorite under **FundsXML XSLT**.
 - Register the Schematron files as Favorites under the category **FundsXML Schematron**.
 - Register the most compact sample XMLs as **new-document templates** under the **FundsXML** category, so you can start a fresh document from a real sample via the toolbar's **New** button (Ctrl+N) → **Template** list.
-- Seed the XPath/XQuery snippets into your **Saved Queries**, tagged `fundsxml` - they show up in the [Query Console](unified-shell.md#query-console)'s **Snippets** menu under a **FUNDSXML** section (for example *fund-summary*, *top-holdings*, *look-through*, *aggregate-by-assettype*).
+- Seed the XPath/XQuery snippets into your **Saved Queries**, tagged `fundsxml` - they show up in the [Query Console](query-console.md#query-console)'s **Snippets** menu under a **FUNDSXML** section (for example *fund-summary*, *top-holdings*, *look-through*, *aggregate-by-assettype*).
 - Select the newly downloaded schema version as the **active** version.
 - Make a compact starter sample available from the Welcome page's **Open Example** card, so you can immediately try **Validate active document** in the FundsXML panel.
 
@@ -298,13 +298,3 @@ The FundsXML content downloaded by this feature is published by the FundsXML com
 - **Examples, Schematron, Queries** (`fundsxml/examples`): Apache License 2.0
 
 FreeXmlToolkit itself does not bundle any of this content - it is fetched from the public GitHub repositories only after you enable the feature.
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [Schematron Support](schematron-support.md) | [Home](index.md) | [Security Features](SECURITY.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

@@ -143,13 +143,3 @@ dialog validates the input accordingly and offers default values where defined.
 | **Clear names** | Use descriptive parameter names such as `${customerId}` instead of `${x}` |
 | **Use categories** | The Insert Template dialog shows *name — category*, so consistent categories make long lists scannable |
 | **One file type per template** | Pick the File type carefully - it controls where the template is offered in the New File dialog |
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [Favorites](favorites-system.md) | [Home](index.md) | [Tech Stack](technology-stack.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

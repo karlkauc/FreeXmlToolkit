@@ -41,7 +41,7 @@ Without an open document (for example on the Welcome page) the toolbar shows onl
 **Open**.
 
 The **Run ▾** button and the **Input** dropdown (*"Input: …"*) appear when a query, XSLT, or XProc document
-is active - see [Query Documents](unified-shell.md#query-documents-the-target-selector).
+is active - see [Query Documents](query-console.md#query-documents-the-target-selector).
 
 ---
 
@@ -164,7 +164,7 @@ Sections without content are not shown.
 The **⋮** menu at the top of the inspector offers **Copy XPath**, **Copy Node (XML)**,
 **Expand All Sections** and **Collapse All Sections**, and the **star** next to it adds the file
 to your Favorites. For the full layout, see
-[Unified Shell - Properties Inspector](unified-shell.md#properties-inspector).
+[Unified Shell - Properties Inspector](inspector.md#properties-inspector).
 
 Your edits are written straight back to the document, so the source text always stays in sync.
 In the Text view, edits are applied as a minimal change that keeps your caret and scroll
@@ -190,7 +190,7 @@ errors, or *Well-formed · no schema bound* when no schema is bound.
   the change is one undo step there, and after you save the XSD the XML document's schema facts
   are reloaded. Declarations from included/imported schemas and cached Schema Library copies are
   read-only. See
-  [Unified Shell - Editing the bound schema](unified-shell.md#editing-the-bound-schema).
+  [Unified Shell - Editing the bound schema](inspector.md#editing-the-bound-schema).
 - **Documentation** - the element's documentation from the schema (*"No documentation in the
   schema"* when there is none).
 - **Value check** - *"Value matches the schema facets"* in green, or an amber warning such as
@@ -338,7 +338,7 @@ against the **active** document.
 
 **Save** stores the current expression as a named snippet, and the **Snippets** menu loads
 any saved XPath or XQuery snippet back into the console. See
-[Query Console](unified-shell.md#query-console) for the full reference.
+[Query Console](query-console.md#query-console) for the full reference.
 
 ### XPath Examples
 
@@ -379,9 +379,9 @@ collections in the `examples` folder next to the application:
 All examples target the FundsXML4 sample documents in `examples/xml/`. The simplest way
 to run one: **open the file directly** and press the toolbar's **Run** button
 (`Ctrl+Enter`) - query, XSLT and XProc files are first-class editor documents that run
-against the [Input dropdown](unified-shell.md#query-documents-the-target-selector)'s
+against the [Input dropdown](query-console.md#query-documents-the-target-selector)'s
 selection (by default the most recently active XML document). Alternatively paste a query
-into the query panel or the [Query Console](unified-shell.md#query-console) - the
+into the query panel or the [Query Console](query-console.md#query-console) - the
 `map:`, `array:` and `math:` function namespaces are pre-declared, so expressions using
 `map:merge()`, `array:size()` etc. run without any prolog. Each folder contains a
 `README.md` describing every example.
@@ -438,26 +438,18 @@ Learn more: [Favorites System](favorites-system.md)
 
 ## Keyboard Shortcuts
 
+The complete list is on the **[Keyboard Shortcuts](keyboard-shortcuts.md)** page (and in the app under **Help → Keyboard Shortcuts**).
+
+Especially useful while editing XML:
+
 | Shortcut | Action |
 |----------|--------|
-| Ctrl+N | New file |
-| Ctrl+O | Open file |
-| Ctrl+S | Save file |
-| Ctrl+Shift+S | Save As |
-| Ctrl+Z | Undo |
-| Ctrl+Y | Redo |
-| Ctrl+F | Find |
-| Ctrl+H | Replace |
-| Ctrl+D | Add the current file to favorites |
-| Ctrl+Shift+D | Toggle the Favorites panel |
-| Shift+Alt+F | Format/Pretty Print |
-| Ctrl+Shift+X | Toggle the Query Console |
-| Ctrl+E | XML/Excel converter |
-| Ctrl+T | Templates |
-| Ctrl+mouse wheel | Zoom the editor font in the Text view, the whole grid in the Graphic view (Ctrl+0 resets) |
-| Ctrl++ / Ctrl+- | Graphic view: zoom the grid in / out |
+| Ctrl+Space or `<` | Open auto-completion |
+| Shift+Alt+F | Format / pretty-print |
 | F8 | Validate |
-| `<` | Open auto-completion |
+| Ctrl+T | Insert a template |
+| Ctrl+Alt+X / Ctrl+Alt+C | Grid view: copy the XPath / the node as XML |
+| Ctrl+mouse wheel, Ctrl+0 | Zoom (Text: font size, Graphic: the grid) / reset |
 
 ---
 
@@ -469,13 +461,3 @@ Learn more: [Favorites System](favorites-system.md)
 - **Quick Validation**: Errors are highlighted as you type
 - **Drag & Drop**: Drag files directly into the editor window
 - **Recent Files**: Reopen recent files from the Explorer panel's **RECENT** section or the Welcome page
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [Home](index.md) | [Home](index.md) | [XML Editor Features](xml-editor-features.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

@@ -21,9 +21,9 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Signature, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (**Settings**, **Schema Library** and **Signature** open as a full page in the editor area - see [Settings Page](#settings-page), [Schema Library Page](#schema-library-page) and [Signature Page](#signature-panel). Help is not an activity - it is the **Help** menu, see [Help Menu & About](#help-menu-about).) |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Signature, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (**Settings**, **Schema Library** and **Signature** open as a full page in the editor area - see [Settings Page](settings.md#settings-page), [Schema Library Page](#schema-library-page) and [Signature Page](#signature-panel). Help is not an activity - it is the **Help** menu, see [Help Menu & About](#help-menu-about).) |
 | **Menu bar** (very top) | **File / Edit / View / Tools / Help** - every action of the toolbar, the Activity Bar and the keyboard shortcuts in one place (see [Menu Bar](#menu-bar)). On macOS it is the system menu bar at the top of the screen. |
-| **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](#query-console) when clicked, the **?** button (opens the [Help menu](#help-menu-about) as a popup - same as **F1**) and the Theme button. |
+| **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](query-console.md#query-console) when clicked, the **?** button (opens the [Help menu](#help-menu-about) as a popup - same as **F1**) and the Theme button. |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). Hidden automatically while a page without a document (Settings, Schema Library, Signature, reports, tool tabs) is selected. |
@@ -71,8 +71,8 @@ collapsed to give the editor more room - the activity bar always stays visible.
 - **Inspector editing everywhere** - edit node properties from the Text, Tree and Graphic views, not just one
 - **Type picker with explanations** - the inspector's **Type** field and *Change Type…* in the
   diagram and tree context menus list the schema's own types and every XSD built-in datatype,
-  and a side pane explains the highlighted one (see [Choosing a type](#type-picker))
-- **Integrated XPath/XQuery** - a bottom [Query Console](#query-console) queries the active
+  and a side pane explains the highlighted one (see [Choosing a type](inspector.md#type-picker))
+- **Integrated XPath/XQuery** - a bottom [Query Console](query-console.md#query-console) queries the active
   XML/JSON file right from the editor (Ctrl+Shift+X)
 - **Editor toolbar actions** - run [Validate, Transform, Run, Generate Documentation and the Type
   Editor](#editor-toolbar-document-actions) for the active document without switching activities
@@ -177,236 +177,7 @@ when you switch views.
 
 ### The Grid (Graphic view for XML)
 
-When an XML-instance document (XML, XSLT, or Schematron) is in the **Graphic** view, the editor
-shows the editable grid, laid out like XMLSpy's Grid View:
-
-- A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
-  grids"* and offers the **zoom pill** (`− 100% +`), **Optimal widths**, the **Wrap** toggle,
-  **Expand all** / **Collapse all**, and a **⋯** menu with the cell-height limit.
-- **Nested containers.** Every element is a row with a **name cell** (expand arrow, type icon,
-  bold name) and, to its right, either its **value cell** or the **block** of its children. A
-  child block is docked at the parent's value column, so the structure reads as nested boxes;
-  an expanded container's name cell spans its whole child block. Each block has its own
-  name-column width (the widest name in it).
-- **Type icons** follow XMLSpy: `<>` element, `=` attribute, `Abc` text, `[ ]` CDATA, `<!`
-  comment, `<?` processing instruction. Colours come from the application theme (light/dark).
-- **Attributes always show** as `=` rows directly beneath their element - also while the
-  element itself is collapsed.
-- **Collapsed containers show a grey one-line preview** of their content (the markup without
-  whitespace, cut off with "…"); hovering the preview shows a longer excerpt as a tooltip.
-- **Counts.** A container's name is followed by its child count `(n)`; a repeating group shows
-  the number of its members and a small table glyph.
-- **Nothing is cut off.** Values take the width their content needs; long values **wrap** onto
-  further lines (the row grows). Very wide content is reached with the horizontal scrollbar
-  (Shift+wheel).
-- **Zoom** the whole grid - text, rows, icons and embedded tables - with **Ctrl+mouse wheel**,
-  **Ctrl +** / **Ctrl −** (10 % steps, 50-300 %) or the `−`/`+` buttons; **Ctrl 0** or a
-  click on the percentage resets to 100 %. The zoom factor is remembered across files, XML
-  and JSON grids and restarts.
-- **Repeating elements** (two or more siblings with the same name) are rendered as an
-  **embedded table beside the group's name cell**: one row per element (numbered in the
-  first column), one column per attribute (`=`) and child element (`<>`). Click the small
-  **arrow at the right of a column header** to **sort** the group (also: **Sort Column** in the
-  context menu); cells with nested structure expand inline. **Right-click a cell** that is an
-  element of its own (e.g. `Identifiers` of an `Asset` row): the node actions of the context menu
-  (Add Child Element / Attribute, Rename, Copy, Delete, Move, …) act on that element; whole-row
-  actions are in the **Table** submenu (**Insert Row Before/After**, **Append Row**, **Delete Row**).
-- **Every node looks like a root node, at any depth.** An opened table cell shows its content as
-  a grid of its own: expandable rows, blocks and - for repeating children - a **table again**
-  (or numbered rows `<1>`, `<2>`, … after a click on the table glyph), whose cells open the same
-  way, however deep tables and rows are nested. A column with several children of one name
-  (e.g. four `Position`s of a `Waehrung`) is one cell (`4 × <Position>`) holding them all.
-  Rows inside cells are selected, edited (double-click), expanded and navigated with the arrow
-  keys like any other row (**Left** at the top of a cell's grid returns to the cell); tables
-  inside cells sort, flip and edit like the outer ones. Hover, the name-column separators of
-  blocks, column handles and column drags of tables, **Optimal widths** and **drag & drop of rows**
-  (with auto-scroll at the top and bottom edge) work at every depth too. Open cells, expanded
-  rows, dragged widths and table/flip choices at every depth survive edits.
-- **Open whole rows and columns.** Click a **row number** to select the whole row, click a
-  **column header** (its name, not the arrow) to select the whole column; **Shift+click**
-  extends to more rows or columns. Then press **+** to open the nested cells of the selection
-  one level, and again for the next level inside them; **−** closes the deepest open level
-  first, then the cells. The same entries are in the **Table** submenu (**Expand / Collapse
-  Selected Cells**). Without a table selection, **+** / **−** open and close the selected
-  grid rows one level. Open cells stay open after edits.
-- **Table or rows.** The small table glyph after the group's name (or the context menu's
-  **Display as Table**) switches the group between the table and XMLSpy's standard display,
-  where every member is its own row numbered `<1>`, `<2>`, … The choice is kept per group
-  while the document is open.
-- **Flip Rows/Columns.** The corner cell of a table (or the context menu entry) transposes
-  it: the columns become rows and the numbered members become columns - handy for wide
-  tables with few rows. Sorting, editing and the inline sub-trees keep working.
-- **Whole rows and columns.** Right-click inside a table for the **Table** submenu: **Insert
-  Row Before / After** and **Append Row** add a member with every column present but empty;
-  **Insert Column Before / After…** adds an attribute (type `@name`) or a child element
-  (`name`) to every member; **Rename Column…** (also: double-click a column header) renames
-  it in every member. Each of these is one undo step. Typing into an empty cell whose
-  member lacks that child element creates the element. **Drag a column header** onto another
-  header to move that column - a blue line shows where it lands; the child element (or
-  attribute) moves in every member, one undo step. Attributes move only among attributes.
-- **Cell colours.** **Settings → Editor → GRID TABLE COLOURS** sets your own colours for table
-  headers, missing cells, the selection and the focus frame - separately for the light and the
-  dark theme (switch the theme to set the other one). Open grids repaint at once; switching the
-  option off returns to the theme colours.
-- **Spreadsheet exchange.** Click a table cell to select it, **Shift+click** another cell
-  (or a row number) to select a range, **Ctrl+A** selects the whole table. **Ctrl+C** copies
-  the selection as tab-separated text (the whole table with a header line); the context menu
-  offers **Copy Table as Tab-separated Text**. Values arrive in the spreadsheet unchanged and
-  each in its own cell, even when they contain tabs, line breaks or quotes (the clipboard holds
-  quoted text plus an HTML table; values such as `00123` stay text). Copy a range in Excel or LibreOffice, select a
-  table cell and press **Ctrl+V**: the values fill the table from that cell to the right and
-  down, overwriting existing cells; extra rows become new elements. One undo step.
-- **Column widths.** Name columns and table columns size themselves to their content. Drag
-  the hairline between a name column and its values (or a column separator in a table's
-  header row) to resize it - text re-wraps to the new width - and **double-click the line**
-  to return to automatic sizing. Each nested block has its own name-column width. **Optimal
-  widths** in the header resets every column at once. Dragged widths survive edits and undo.
-- **Wrap** (header toggle, remembered across restarts) switches word wrap off: every value
-  stays on one line and the grid grows to the right instead. The **⋯** menu limits the
-  **cell height** to 3, 6 or 12 lines (longer values end with "…"), also remembered.
-- **Keyboard navigation** works as soon as the view opens (no click needed):
-  **↑/↓** walk the rows, **→** expands a collapsed element, **←** collapses it (or jumps to
-  the parent), **Space** or **Enter** toggles a container (on a leaf row Enter starts renaming it),
-  **Home/End** jump to the first/last row, **F2** renames, and the usual **Ctrl+C/X/V**,
-  **Ctrl+D** (duplicate) and **Delete** act on the selected node.
-- **Several rows at once.** **Ctrl+click** adds or removes a row from the selection,
-  **Shift+click** selects every sibling between the selected row and the clicked one.
-  **Shift+click on the arrow** of a selected row expands or collapses all selected rows.
-- **Expand Fully** (**Ctrl+Shift++**) opens the selected container with everything below it;
-  **Collapse Unselected** (**Ctrl+Shift+−**) folds every container except the path to the
-  selection. Both, plus **Expand All / Collapse All**, are in the context menu. The expanded
-  state and the selection survive edits, undo and sorting (rows are tracked by their XPath).
-- **Editing every node kind.** Double-click a value to edit it - with a bound schema the editor
-  follows the declared type: a **dropdown** for enumerations (elements and attributes, in tree rows,
-  table columns and opened cells), date pickers, number spinners, length/pattern checks - also comments, CDATA sections
-  and processing instructions; double-click the name of an attribute or a processing
-  instruction to rename it. **Click the type icon** of a row (or press **Ctrl+Alt+T**) to
-  change the node's type - element, attribute, text, CDATA, comment or processing instruction;
-  name and value are kept, attributes move into their element's attribute list. Containers
-  with child elements keep their type. **Wrap in Element…** (**Ctrl+Alt+W**, context menu)
-  puts a new parent element around the selected node. **Edit as Raw Text…** (**Ctrl+Alt+R**)
-  opens the selected element's content as markup (entities unresolved) and parses it back;
-  not well-formed markup is reported and the editor reopens. All of these are undoable.
-- **Sibling groups** for very large files (**⋯** menu → *Sibling groups: 100 / 1,000 / 10,000
-  nodes*, remembered): an element with more children than that shows them in collapsed groups
-  such as `record <1001..2000>`; opening a group closes the other groups of the same element.
-- **Validation markers.** After a validation (Validation panel), rows whose element has a
-  problem show a red **!** at the end of the name cell and a red value; hover the row for the
-  message. Problems inside a repeating group mark the member's row number. The markers clear
-  on the next grid edit and come back with the next validation.
-- **Split view.** The header's **⋯** menu splits the grid *top / bottom* or *side by side* into
-  two views of the same document; each scrolls, expands and selects on its own, and an edit in
-  one appears in the other at once. *Single view* closes the second one.
-- **Entry helpers.** The header's panel button (right of *Collapse all*) opens the entry
-  helpers beside the grid, as in XMLSpy. They need an XSD bound to the document and follow the
-  selected row. **Siblings** lists the attributes and elements the schema allows next to the
-  selected node, **Children** lists those allowed inside the selected element, and **Values**
-  lists the enumeration values of the selected element or attribute. Entries that are already
-  there and cannot occur again are greyed out. Required ones (`use="required"`, `minOccurs` ≥ 1
-  outside an optional or choice group) carry a red **!**. A double-click inserts:
-  - Siblings: after the selected node; the buttons insert before it or append at the end.
-  - Children: as the last child of the selected element. An attribute starts with its schema
-    default.
-  - Values: sets the value.
-
-  Every insertion is one undo step. The panel stays open or closed across sessions.
-- **Scroll header.** While you scroll through a long element, a bar at the top shows the
-  path of containers you are inside (`root › section › body`); click one to select it and
-  scroll back to its start.
-- **Drag & drop.** Drag a node by its name cell: drop it on the upper or lower third of another
-  name cell to place it before / after that node, on the middle (or anywhere in an expanded
-  element's cell) to append it as a child. A blue line or frame shows the target; hold **Ctrl**
-  to copy instead of move. Text dragged in from other applications replaces a value when dropped
-  on a value cell; dropped on a name cell, an XML fragment becomes new nodes and plain text a
-  text node. A node is never dropped into its own subtree; every drop is one undo step.
-- **Filters.** Right-click an element → **Filter…** and enter an XQuery 3.1 expression evaluated
-  with that element as context, e.g. `Month[number(Min) > 10]`: below the element only the
-  matching nodes (with their ancestors and subtrees) stay visible, repeating groups shrink to
-  their matching members. A blue funnel line under the element shows the expression - click
-  the funnel to switch the filter off and on, double-click the line to edit it, clear it to
-  remove the filter. **Filter to Focus** filters the root down to the selected node. Filters
-  only change the display, never the document; an invalid expression is reported and
-  filters nothing. Filters live while the document is open.
-- **Formulas.** Right-click an element → **Add Formula…**: a name and an XQuery 3.1 expression
-  evaluated with that element as context (e.g. `avg(Month/Min)`). The formula row (icon `ƒ`)
-  shows the expression and, below it, the live result - or the error in red; double-click the
-  expression or the name to edit it. Formulas are saved in the file as
-  `<?fxt-formula name="…" expression="…"?>` instructions. **Store Formula Result in Document**
-  also writes the result into an element named after the formula, right after it;
-  **Recalculate Stored Formula Results** refreshes all of them in one undo step.
-- **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables,
-  including the rows and tables inside opened cells; a hit expands what hides it and selects it.
-- **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),
-  **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
-  shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query
-  Console everywhere, including while the grid has focus.
-
-### The Grid (Graphic view for JSON) {#json-grid}
-
-JSON documents (`.json`, `.jsonc`, `.json5`) get the **same grid** in the **Graphic** view -
-same header strip, same rows, same keyboard shortcuts and context menu - so a JSON file
-looks and feels exactly like an XML file in the grid:
-
-![A JSON document in the Graphic (grid) view](img/unified-shell-json-grid.png)
-
-- The **root** value is the `$` row; **object properties** and **array items** (`[0]`, `[1]`, …)
-  are the rows beneath it. Objects and arrays are collapsible containers showing their child
-  count; scalar properties show as `key = value` rows.
-- Every row carries a **type glyph** in its own colour: `{}` object, `[]` array, `"` string,
-  `#` number, `T`/`F` boolean and `∅` null. **Strings are shown quoted** (`= "Alice"`) - like
-  XML leaf values - so `"42"` and `42` are never confused.
-- **Arrays of objects** are rendered as **embedded grids** (a table with one column per key,
-  merged across all items), exactly like repeating elements in XML. The arrow in a column
-  header **sorts** the array (numbers, dates and strings are recognised), nested objects expand
-  inline; a click on the header's name selects the column, **+** / **−** open and close its
-  nested objects level by level, as in XML.
-- **Inline editing** keeps the value's type: double-click a number and type a number
-  (anything else is rejected with a hint and the editor stays open), booleans toggle between
-  `true`/`false`, `null` stays `null` unless you type text. Double-click a key to rename it
-  (duplicate keys are refused).
-- The context menu mirrors the XML one: **Add** (Property / Array Item / Sibling Before /
-  After), **Rename Key** (F2), **Duplicate** (Ctrl+D), **Copy / Cut / Paste as Sibling /
-  Paste as Child**, **Copy Cell Content**, **Copy JSONPath** (Ctrl+Alt+X - e.g.
-  `$.items[1].name`), **Copy Node (JSON)** (Ctrl+Alt+C), **Change Type** (String / Number /
-  Boolean / Null / Object / Array), **Move Up / Down** (Alt+↑/↓), **Expand Fully / Collapse
-  Unselected**, **Display as Table**, **Flip Rows/Columns**, **Copy Table as Tab-separated
-  Text**, **Expand All / Collapse All**, **Sort Column** and **Delete**. Copy Cell Content is
-  Ctrl+Shift+C, as in the XML grid.
-- All edits go through the document's **undo history** (Ctrl+Z / Ctrl+Y) and are written back
-  into the text - the Text, Tree and Graphic views share one model, and the **Properties**
-  inspector edits keys and values from any of them.
-- **Same layout and controls as the XML grid.** Objects and arrays are nested blocks with
-  one-line previews when collapsed; the header strip offers the **zoom pill**, **Optimal
-  widths**, **Wrap**, **Expand all** / **Collapse all** and the **⋯** menu (cell-height limit,
-  sibling groups); name and table columns can be dragged to a new width (double-click to
-  auto-fit). **Expand Fully** (Ctrl+Shift++) and **Collapse Unselected** (Ctrl+Shift+−),
-  **Display as Table** / **Flip Rows/Columns** for arrays of objects, the scroll header and
-  the search in table cells all work as described above. Table cells can be selected and
-  copied as tab-separated text (Ctrl+C or **Copy Table as Tab-separated Text**); Ctrl+V
-  overwrites existing cells only. The zoom factor is shared with the XML grid.
-- **Change a value's type** by clicking its type glyph (or Ctrl+Alt+T on the selected row):
-  a popup lists the other types. Number ↔ String ↔ Boolean ↔ Null convert the value
-  (`"42"` → `42`); Object and Array start empty. One undo step.
-- **Drag & drop:** drag a row by its name cell onto another row - the upper part of the name
-  cell inserts **before** it, the lower part **after** it, the middle of an object or array
-  **into** it; hold **Ctrl** to copy instead of move. A property moved into another object
-  keeps its key (made unique with `_copy` if it is taken); an item moved into an object gets
-  the key `item`. JSON text dragged in from another application becomes a new value (an
-  object dropped into an object adds its properties), plain text a string; dropped on a value
-  cell it replaces the value. A node can never be dropped into itself.
-- **Table** submenu (right-click a cell of an array-of-objects table): **Insert Row Before /
-  After**, **Append Row** (a new object with every column as an empty string), **Insert
-  Column Before / After…** (the key in every object, next to the clicked column) and
-  **Rename Column…** (also a double-click on the column header; refused as a whole when an
-  object already uses the new key). Each is one undo step.
-- **XML only:** **Wrap in Element**, **Edit as Raw Text**, filters, formulas and validation
-  markers.
-
-!!! warning "Comments and JSON5 syntax are not preserved"
-    The grid edits the parsed *model*. Comments (JSONC) and JSON5 syntax (unquoted keys,
-    single quotes, trailing commas) are not part of it, so the **first grid edit rewrites the
-    file as standard JSON**. The grid shows a warning the first time it opens such a file;
-    if you need to keep the comments, edit in the Text view instead.
+The Graphic view of XML and JSON documents is an editable grid with tables for repeating elements, opened cells, entry helpers, filters and formulas - see **[Grid View](grid.md)**.
 
 ### HTML Preview (Preview view for HTML) {#html-preview}
 
@@ -426,7 +197,7 @@ would show it:
 - **Transform results render here too.** The OUTPUT panel's **Open result as editor tab**
   opens an HTML/XHTML transform result as an HTML document showing its Preview, and
   re-running the transform updates the open result tab live - see
-  [The OUTPUT Panel](#the-output-panel-results).
+  [The OUTPUT Panel](transform-panel.md#the-output-panel-results).
 
 !!! note "Preview limitations"
     - The page is rendered **without a base URL**, so **relative references** - external
@@ -506,11 +277,11 @@ the dialogs appear one after the other, each with its tab brought to the front.
 | **XML** | .xml, .wsdl | Text + graphic view, XSD/Schematron linking, IntelliSense, continuous validation |
 | **XSD** | .xsd | Text + graphic view, Type Library, Type Editor, Schema Analysis, Documentation, Sample Data, Flatten |
 | **XSLT** | .xsl, .xslt | XSLT editor + XML input + output preview, live transform, parameters, performance metrics |
-| **XProc** | .xpl, .xproc | Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see [XProc Pipelines](#xproc-pipelines) |
-| **XQuery** | .xq, .xquery, .xqm, .xqy | Query editor with highlighting + IntelliSense, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
-| **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](#query-documents-the-target-selector) |
+| **XProc** | .xpl, .xproc | Pipeline editor (Text + Tree view), Run Pipeline via the embedded XML Calabash engine - see [XProc Pipelines](xproc.md#xproc-pipelines) |
+| **XQuery** | .xq, .xquery, .xqm, .xqy | Query editor with highlighting + IntelliSense, Run Query against a selectable target - see [Query Documents](query-console.md#query-documents-the-target-selector) |
+| **XPath** | .xpath | Single-expression query editor, Run Query against a selectable target - see [Query Documents](query-console.md#query-documents-the-target-selector) |
 | **Schematron** | .sch, .schematron | Code editor + Visual Builder + Tester + Documentation Generator |
-| **JSON** | .json, .jsonc, .json5 | Text + tree + editable **grid** view (see [The Grid for JSON](#json-grid)), JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
+| **JSON** | .json, .jsonc, .json5 | Text + tree + editable **grid** view (see [The Grid for JSON](grid.md#json-grid)), JSONPath queries, JSON Schema validation. The JSON/JSONC/JSON5 flavor is detected from the content, so comments and trailing commas are accepted in any of the three. |
 | **HTML** | .html, .htm, .xhtml | Rendered read-only **Preview** (the default view) + Text editing; also the format of HTML/XHTML transform results opened as editor tabs - see [HTML Preview](#html-preview) |
 
 ## Menu Bar {#menu-bar}
@@ -572,8 +343,8 @@ with the closely related actions:
 |--------------|---------------|----------------|
 | **Save** | Save the current tab (Ctrl+S) | **Save As…** (Ctrl+Shift+S) - save under a new name (the file chooser is pre-set to the tab's file type) · **Save All** - save every open tab at once |
 | **Format** | Pretty-print the active document (Shift+Alt+F; note: **Ctrl+Shift+F** opens the [Search panel](#search-panel), not document search). XML is indented by two spaces per level and every start tag stays on one line, however many attributes it carries | **Minify** - remove all insignificant whitespace |
-| **Run** | Run the active document against the selected **Input** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Debug Transform** (XSLT, Shift+F5 - the active stylesheet in the [debugger](#xslt-debugger)) · **Debug Query** (XQuery, Shift+F5 - the same debugger on a query) · **Debug Schematron** (Schematron, Shift+F5 - the debugger on the Schematron's checks, against the selected Input; the primary click on a Schematron tab) · **Run Pipeline** (XProc) |
-| **Transform** | **Transform with XSLT…** - opens the [Transform panel](#transform-panel) on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel) | **Transform with XSLT…** · **Debug with XSLT…** (Shift+F5) - the same, but in the [debugger](#xslt-debugger) |
+| **Run** | Run the active document against the selected **Input** (Ctrl+Enter) - the primary click automatically runs whichever action the active file type supports | **Run Query** (XPath/XQuery) · **Run Transform** (XSLT) · **Debug Transform** (XSLT, Shift+F5 - the active stylesheet in the [debugger](transform-panel.md#xslt-debugger)) · **Debug Query** (XQuery, Shift+F5 - the same debugger on a query) · **Debug Schematron** (Schematron, Shift+F5 - the debugger on the Schematron's checks, against the selected Input; the primary click on a Schematron tab) · **Run Pipeline** (XProc) |
+| **Transform** | **Transform with XSLT…** - opens the [Transform panel](transform-panel.md#transform-panel) on the active XML document, asks for a stylesheet if none is set, and runs it there (result in the OUTPUT panel) | **Transform with XSLT…** · **Debug with XSLT…** (Shift+F5) - the same, but in the [debugger](transform-panel.md#xslt-debugger) |
 | **Schema** | **Set XSD Schema…** - bind an XSD to the active document for IntelliSense and validation | **Set XSD Schema…** · **Generate Documentation…** (HTML/PDF/Word for the active XSD) · **Type Editor…** (edit a named type of the active XSD) · **Generate XSD from XML** (infer a schema from the active XML document) · **Generate XSD from XML Files…** (infer one schema from several XML files) |
 
 - **Transform** is a split button, see above: the primary click transforms, the ▾ arrow offers **Debug with XSLT…**
@@ -593,20 +364,20 @@ its type** (greyed out otherwise) - this covers **Validate**, **Transform with X
 **Type Editor…** / **Generate Sample XML…** (also in **Tools**). The **Input** dropdown (labelled *"Input: …"*, formerly *Target*) appears next to **Run** only while a query, XSLT, or
 XProc document is active and selects the XML document the run works on. See
 [Editor Toolbar Document Actions](#editor-toolbar-document-actions) and
-[Query Documents & the Input Selector](#query-documents-the-target-selector) below.
+[Query Documents & the Input Selector](query-console.md#query-documents-the-target-selector) below.
 
 ## Panel Toggles
 
 - **Side panel** (Ctrl+L) - Show/hide the left side panel (the active activity's Explorer,
   Validation, Transform, Schema, … panel); the same as the collapse button (`|<`) at the panel's inner edge
 - **Query Console** (Ctrl+Shift+X) - Show/hide the bottom XPath/XQuery query console (terminal
-  icon in the editor toolbar). See [Query Console](#query-console) below.
+  icon in the editor toolbar). See [Query Console](query-console.md#query-console) below.
 - **Properties** (Ctrl+Shift+P) - Show/hide properties and validation sidebar. For XML files,
   the properties inspector lets you view **and edit** a node's properties (element name,
   namespace, attributes, and text content) from **all three** views - Text, Tree, and Graphic
   (the grid). For XSD files, the same inspector lets you edit a schema node's
   properties from **all three** XSD views - Text, Tree, and Graphic. See
-  [Properties Inspector](#properties-inspector) below.
+  [Properties Inspector](inspector.md#properties-inspector) below.
 - **Favorites** (Ctrl+Shift+D) - Show/hide the favorites panel (Ctrl+D adds the active document to favorites)
 
 ## XSD Views & Tools
@@ -620,7 +391,7 @@ Schema Analysis, Generate Sample XML / Documentation) on the left.*
 ![XSD schema in the Tree view](img/unified-shell-schema-tree.png)
 *The same schema in the Tree view - select a node to edit its properties in the inspector.*
 
-- **Text** - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see [Properties Inspector](#properties-inspector))
+- **Text** - Source code editing with syntax highlighting; moving the caret into a schema construct also lets you edit its properties in the Properties pane (see [Properties Inspector](inspector.md#properties-inspector))
 - **Graphic** - Visual XMLSpy-style schema diagram; drag cards to move nodes, hold Ctrl (Cmd on macOS) to copy (see [Moving and Copying by Drag and Drop](xsd-tools.md#drag-and-drop-in-the-diagram))
 - **Type Editor** - Edit ComplexTypes graphically, SimpleTypes with form editor
 - **Analysis** - The **Schema Analysis** tool tab: statistics incl. complexity metrics, unused types / groups and circular references, a Types tab with usage locations and "Remove unused", quality checks with score, identity constraints, XPath validation - every finding reveals its node in the Tree view, and the whole report exports as CSV / JSON / HTML / PDF / Excel (see [Schema Analysis](xsd-tools.md#5-schema-analysis))
@@ -684,66 +455,9 @@ a tab in the main editor area with the full option set:
 - **PROGRESS** - the right-hand log streams the pipeline's task messages live while
   generating; the run can be **cancelled**, and the result can open automatically.
 
-## Query Documents & the Input Selector {#query-documents-the-target-selector}
-
-> XPath and XQuery files are first-class editor documents: open a
-> `.xq` or `.xpath` file (or any file from `examples/xpath/` and `examples/xquery/`),
-> press **Run Query**, and read the result in the OUTPUT panel - no console or panel
-> switching required.
-
-![A query document with the Input dropdown open and its CSV result in the OUTPUT panel](img/unified-shell-query-target.png)
-*An XQuery document from `examples/xquery/` with the **Input** dropdown open: pick an
-open XML-family document, a file from disk, or Automatic (the most recently active XML
-document, here checked). Below, the OUTPUT panel shows the query's CSV result.*
-
-### Query documents
-
-`.xq`, `.xquery`, `.xqm`, `.xqy` (XQuery) and `.xpath` (XPath) files open in a dedicated
-query editor with XPath/XQuery syntax highlighting and the same context-aware
-[autocomplete](#xpath-xquery-autocomplete) as the Query Console. They appear in the
-Explorer workspace tree, the file choosers and drag & drop like every other supported
-type.
-
-### Running
-
-- **Run Query** (the toolbar's **Run** button, or `Ctrl+Enter`) runs the active
-  XPath/XQuery document. The **Run ▾** arrow menu lists all three run actions explicitly.
-- **Run Transform** does the same for an active **XSLT** stylesheet - output format
-  auto-detected from its `xsl:output` declaration.
-- **Run Pipeline** covers **XProc** documents (see [XProc Pipelines](#xproc-pipelines)).
-
-Results appear in the **[OUTPUT panel](#the-output-panel-results)** docked below the
-editor, with execution time and result size in the status line. A tabular XQuery result
-(a sequence of similar elements) additionally offers a **Table** view; HTML results get
-a preview, and everything can be opened as an editor tab, opened in the browser, or
-saved from the panel's header buttons.
-
-### The Input dropdown {#the-target-dropdown}
-
-The query, stylesheet or pipeline runs against an **XML input document**. The
-**Input** dropdown in the editor toolbar (its label reads *"Input: …"* followed by the chosen document) (shown only for query/XSLT/XProc documents)
-controls which one:
-
-- **Automatic (last active XML document)** - the default: the most recently active
-  XML-family document (XML, XSD, XSLT, Schematron, XProc). The active document itself is
-  never chosen - an XSLT stylesheet does not transform itself.
-- **An open document** - pick any other open XML-family tab. The run uses the tab's
-  **live editor text**, including unsaved changes.
-- **Choose XML from file system…** - pick a file without opening it; it is read fresh
-  on every run.
-
-The choice is remembered **per document** for the session. If a chosen target tab is
-closed, the run falls back to Automatic. With no XML-family document available at all,
-Run Query/Run Transform show a short guard message instead of failing.
-
-!!! tip
-    Ready-made queries ship in `examples/xpath/` (32 expressions) and `examples/xquery/`
-    (17 scripts) - open any of them and press `Ctrl+Enter` against a FundsXML sample from
-    `examples/xml/`. See [Bundled Example Collections](xml-editor.md#bundled-example-collections).
-
 ## XSLT Features
 
-XSLT work happens in the [Transform Panel](#transform-panel) (Activity Bar → **Transform**):
+XSLT work happens in the [Transform Panel](transform-panel.md#transform-panel) (Activity Bar → **Transform**):
 
 - **Run Transform** - Run an XSLT transformation against the chosen input
 - **Live preview** (OPTIONS & TOOLS section) - Re-run automatically while you edit
@@ -753,299 +467,18 @@ XSLT work happens in the [Transform Panel](#transform-panel) (Activity Bar → *
 - **Debug** (next to **Run Transform**, also **Tools → Debug with XSLT…** / **Shift+F5**) - the
   interactive debugger: breakpoints, stepping, variables, call stack, watches and live
   `xsl:message` output in a **DEBUG** dock below the stylesheet - see
-  [Debugging a Stylesheet](#xslt-debugger)
+  [Debugging a Stylesheet](transform-panel.md#xslt-debugger)
 - **Profile / Trace** (OPTIONS & TOOLS section) - Per-template timings and the
   template-match trace with `xsl:message` output of a normal run
 - **Open in browser** - View HTML output in your default browser from the OUTPUT panel
 
 ## XProc Pipelines
 
-XProc 3.0 pipelines (`.xpl`, `.xproc`) are first-class editor
-documents, executed with the embedded **XML Calabash 3** engine:
-
-![An XProc pipeline after Run Pipeline, with its CSV result in the OUTPUT panel](img/unified-shell-xproc-pipeline.png)
-*The bundled `03-positions-csv.xpl` example after **Run Pipeline**: the pipeline runs
-the CSV export stylesheet (referenced with a relative href) against the Automatic
-target and streams the result into the OUTPUT panel.*
-
-- **Run Pipeline** (the toolbar's **Run** button or its ▾ menu, or `Ctrl+Enter`) runs the active pipeline. The
-  primary input (`source` port) is the document chosen in the **Input** dropdown —
-  by default the most recently active XML document, exactly like
-  [Run Query and Run Transform](#query-documents-the-target-selector).
-- Relative `href`s in the pipeline (`p:document`, `p:xslt` stylesheets, Schematron
-  schemas) resolve against the pipeline file's directory.
-- Results appear in the **OUTPUT panel**; XML, HTML, text/CSV and JSON outputs are
-  routed to the matching view automatically.
-- Self-contained pipelines (no input ports, or ports with default bindings) run
-  without a target.
-- **File → New** offers an XProc skeleton (`p:declare-step` with `source`/`result`
-  ports and `p:identity`).
-- Ready-to-run examples ship in `examples/xproc/` — see
-  [Bundled Example Collections](xml-editor.md#bundled-example-collections).
-
-!!! note "Saxon-HE limitations"
-    `p:validate-with-xml-schema` and `p:xsl-formatter` require Saxon-EE and are not
-    available; use the Validation activity (Xerces, full XSD 1.1) and the PDF/FOP
-    activity instead. `p:validate-with-json-schema` is not supported in this bundle.
+`.xpl` / `.xproc` documents run with the embedded XML Calabash 3 engine - see **[XProc Pipelines](xproc.md)**.
 
 ## Transform Panel
 
-> The panel is organized into **collapsible sections**
-> (STYLESHEET, INPUT, OUTPUT METHOD, PARAMETERS) with a single primary
-> **Run Transform** button and a **Run automatically** checkbox next to it. Results do not open as an editor tab -
-> they appear in the **[OUTPUT panel](#the-output-panel-results)** docked below the
-> editor. The run options (checkboxes) and the advanced tools share the collapsed
-> **OPTIONS & TOOLS** section below the run button.
-
-The **Transform** panel (open it from the **Transform** icon in the activity bar on the
-left) runs XSLT transformations. XPath, XQuery and JSONPath queries against the open
-document live in the [Query Console](#query-console) - the panel shows a short hint with an
-**Open Query Console** button for them. The panel
-header reads **TRANSFORM**; the run options and tools are in the **OPTIONS & TOOLS**
-section (see [OPTIONS & TOOLS](#the-transform-menu) below). Each section header
-is clickable to collapse or expand that section.
-
-!!! tip
-    For a quick transform without opening this panel, right-click XML files in the Explorer
-    and choose **[Transform with …](#explorer-context-menu)**. It shares
-    the same recent-stylesheet list and shows its result in the same OUTPUT panel.
-
-### STYLESHEET
-
-- Shows the **name of the chosen XSLT stylesheet** on its own line below the icon, the
-  favorites/browse controls and **Change** (long names are shortened in the middle; hover
-  for the full path). While no stylesheet is set, the row reads *"No stylesheet — choose or
-  drop a file"* - clicking it works like **Change**.
-- **Change** - pick an `.xsl` / `.xslt` file from disk (it is also loaded into the editor).
-- The **clock icon** opens the **recent stylesheets** menu: reapply a recently used
-  stylesheet in a single click (it is also loaded into the editor), or choose **Clear recent**
-  to empty the list.
-- The **star icon** opens your **XSLT favorites** - see
-  [Browsing favorites with ◀ / ▶](#browsing-favorites) below. A picked stylesheet is also
-  loaded into the editor.
-- **Drag & drop**: drop an `.xsl` / `.xslt` file from your file
-  manager straight onto the STYLESHEET row - it becomes the current stylesheet and is loaded
-  into the editor, exactly as if you had picked it from a favorite. While dragging, the row glows
-  **green** when the file can be loaded and **red** when it has the wrong extension (a
-  red drop is rejected). As with favorites, the transform **runs automatically** as soon
-  as both a stylesheet and an input are ready (while **Run automatically** is checked).
-
-### INPUT
-
-The INPUT section shows which document the transform will use as its input (the name on
-its own line, the full path as tooltip; *"No input — open a document or drop a file"* while
-there is none):
-
-- By default the input **follows the active editor document**: switch to another tab and
-  the next run transforms that document (the shown input name updates live).
-- **Change** opens a small menu with two options:
-    - **Select XML file…** - transform a fixed XML file from disk instead, regardless of
-      which editor tab is active.
-    - **Use active editor** - go back to following the active tab.
-- The **star icon** opens your **XML favorites** - see
-  [Browsing favorites with ◀ / ▶](#browsing-favorites) below. A picked input is also opened
-  in the editor and becomes the active tab.
-- **Drag & drop**: drop an `.xml` file from your file manager
-  straight onto the INPUT row to transform that file - exactly like picking a favorite: it
-  becomes the input and opens as the active editor tab. The same **green** (loadable) / **red** (rejected) drag-over
-  feedback applies, and the transform **runs automatically** as soon as both a stylesheet
-  and an input are ready (while **Run automatically** is checked).
-
-### Browsing favorites with ◀ / ▶ {#browsing-favorites}
-
-> Pick stylesheets and input files straight from your
-> [Favorites](favorites-system.md) and page through them, so you can run the same
-> stylesheet over many files, or many stylesheets over one file, without ever opening a
-> file chooser.
-
-![Transform panel browsing XSLT and XML favorites: the STYLESHEET and INPUT rows show the star menu and ◀ / ▶ navigation, and the auto-run result appears in the output dock below.](img/unified-shell-transform-favorites.png)
-
-Both the **STYLESHEET** and the **INPUT** rows carry a **star icon**, a pair of
-**◀ / ▶ navigation buttons**, and a small **"i / n" position label**. The ◀ / ▶ buttons and
-the label only appear once the browse list holds **at least two** entries.
-
-- The **star menu** lists the favorites of the matching type - **XSLT** favorites for
-  STYLESHEET, **XML** favorites for INPUT - grouped by their folder (category). An
-  **"All … favorites"** entry at the top selects the whole list at once.
-- **Picking a favorite** (or an "All"/folder entry) does three things: it sets the current
-  file, it builds a **browse list** from that selection, and it **loads the file into the
-  editor**. An input comes to the front as the active tab. A stylesheet opens *behind* the
-  active tab while the input follows the active document (otherwise the stylesheet would become
-  its own input); with a fixed input file it comes to the front too. The same happens on every
-  ◀ / ▶ step.
-- The **◀ / ▶ buttons** then step backward and forward through that browse list. Browsing
-  is **cyclic**: pressing ▶ on the last entry wraps to the first, and ◀ on the first wraps
-  to the last. The **"i / n" label** shows your position (for example, *3 / 12*).
-- Each ◀ / ▶ step **runs the transformation automatically** (while **Run automatically** is
-  checked) - but only once **both** sides
-  are ready: a stylesheet is selected **and** an input is available (either a chosen input
-  file or the active editor document). Until both are present, stepping just loads the file
-  without transforming.
-
-This supports two common workflows:
-
-1. **Fix the input, step through stylesheets.** Keep one XML file as input, then page
-   through several data-quality or reporting stylesheets with ▶ to see each result in turn.
-2. **Fix the stylesheet, step through inputs.** Choose one XSLT stylesheet, then page
-   through many XML input files with ▶ to apply the same transformation to each.
-
-The existing **Change** file chooser, the **clock** (recent stylesheets) menu, and **Use
-active editor** all keep working exactly as before.
-
-### OUTPUT METHOD
-
-A single dropdown with **Auto, XML, HTML, XHTML, Text, JSON**. **Auto** (the
-default) detects the output format from the stylesheet's `xsl:output` declaration; pick a
-concrete format to override the detection.
-
-### PARAMETERS
-
-Define XSLT parameters as **name = value** rows:
-
-- **Add parameter** adds a new row.
-- Each row has its own **remove** button.
-- The values are passed to the stylesheet on every run.
-
-### Running a Transformation
-
-1. Choose a stylesheet (**STYLESHEET → Change**, or pick one from the recent menu).
-2. Check the **INPUT** section shows the document you want to transform.
-3. Click **Run Transform**.
-
-The **Run automatically** checkbox next to **Run Transform** (on by default) controls the
-automatic run that starts when you drop a stylesheet or input, pick one from your favorites,
-or browse with ◀ / ▶. Uncheck it to only set the file and run with **Run Transform** yourself.
-
-The result appears in the **OUTPUT panel** below the editor - see
-[The OUTPUT Panel](#the-output-panel-results) below.
-
-### Debugging a Stylesheet {#xslt-debugger}
-
-**Debug** (next to **Run Transform**) runs the same stylesheet over the same input as **Run
-Transform** (the INPUT file when one is set by dropping, a favorite or ◀ / ▶ browsing, otherwise
-the active document) in the interactive XSLT debugger. The other ways in are **Tools → Debug with XSLT…**, the
-**Transform ▾ → Debug with XSLT…** toolbar entry, **Run ▾ → Debug Transform** for an active
-XSLT document (against the toolbar's **Input** target), the **PDF / FOP** panel's
-**Debug stylesheet…**, and **Shift+F5** whenever a document is open.
-
-What happens:
-
-1. The stylesheet opens as a document. The debugger runs its **editor text** - unsaved changes
-   included, also of open included modules - under the file's location, so relative
-   `xsl:include` / `xsl:import` hrefs resolve (a new stylesheet must be saved once). Every saved XSLT document already has
-   a **breakpoint gutter**: click the slot left of a line to toggle a red breakpoint, before or
-   during a session (the click does not move the caret). Breakpoints are **remembered per
-   file** across sessions and restarts, including those set in included modules.
-2. The **DEBUG** dock opens *below* the editor, so the stylesheet stays visible while you
-   step. The dock shares its space with **OUTPUT**; a small **OUTPUT | DEBUG** strip switches
-   between them, and a result that arrives while DEBUG is in front marks the OUTPUT toggle.
-3. The run starts and **pauses at the first instruction** when there are no breakpoints
-   (**Pause on entry**, a toggle in the dock's header), otherwise at the first breakpoint.
-   The paused line is tinted in the editor and marked with a green arrow in the gutter (a
-   yellow arrow on a breakpoint line). When Saxon pauses inside an included module, that
-   file opens, with its own breakpoints in its gutter.
-
-The dock's header holds the controls - **Continue** (F5), **Pause** (F6, breaks into a running transformation), **Run to Cursor** (Ctrl+F10; also gutter right-click → Run to Here, and it starts the debugger when none runs), **Step Into** (F7), **Step Over**
-(F8), **Step Out** (Shift+F8), **Restart** (runs again from the start with the same
-breakpoints, reading the stylesheet again from the editor), **Stop**, **Pause on entry**, **Mute** (all breakpoints off, steps still work), **Show in editor**, **Show input** (the paused context node in the input XML, which is tinted blue there), **Evaluate** (Alt+F8: any XPath in the selected frame, with a history on Up/Down)
-and **✕** (ends the session). Below it, two tab groups show the paused state - **Variables |
-Watch** on the left, **Call Stack | Messages | Breakpoints | Output** on the right, with a draggable
-divider whose position is remembered. Messages and Breakpoints carry a count badge; a failed
-run brings Messages to the front. The panels:
-
-| Panel | Shows |
-|-------|-------|
-| **Variables** | The context item (`.`), `position()` / `last()`, the XSLT context (mode, `current-group()` / `current-grouping-key()`, `regex-group(n)`, tunnel parameters, accumulator values), every local variable in scope and every global variable that has been evaluated so far - with real values and XDM types, as a tree: nodes unfold into attributes and children, sequences, maps and arrays into their items; each row's XPath can be watched. While paused, the stylesheet also shows each variable's value at the end of its declaration line ([details](xslt-developer.md#values-in-the-code)), and resting the mouse on a `$variable` (or a selected XPath) shows its value in a popup. **Click a value** to open it in a window with the full, highlighted value, Copy, and an XPath field that runs against it ([details](xslt-developer.md#viewing-a-value-in-full)) |
-| **Watch** | Your XPath expressions, evaluated **against the paused context item** with the variables in scope (`count(item)`, `$total`, `position()`); re-evaluated at every pause. **Add** / **Remove** sit above the table (or Variables → right-click → **Add to Watches**); Delete removes, F2 / double-click edits an expression; click a value to open the full result. Watches are saved per stylesheet |
-| **Call Stack** | Template and function frames (instructions nested inside them are dimmed), each with its module and line; loops show their current item, e.g. *ForEach (3 of 222)*; double-click jumps there, also into an include. **Selecting a frame switches Variables and Watch to that frame** (its context item, own locals and the globals). **Enter** / **Open Value…** opens the frame's context item, with XPath over that frame's own variables |
-| **Messages** | `xsl:message` output and Saxon warnings **as they happen**, with their stylesheet location; double-click jumps to the line. Filter by level and text, **Copy**, **Clear** |
-| **Breakpoints** | All breakpoints of the session, grouped by file (checkbox = enabled · file · line · condition · hit rule · hits of this run; after a completed run, breakpoints it never reached are flagged and drawn amber in the gutter) with **Remove** / **Edit…** / **Template…** (break whenever a template rule, named template, function or mode is entered, at any line) / **Clear all** / **Break on ▾** (dynamic errors - pausing at the failing instruction with its variables -, terminating or all `xsl:message`) above the list (Delete removes the selected one); double-click jumps to the line; right-click an entry for per-file Enable / Disable / Remove and **Export / Import Breakpoints…**. Right-click a gutter slot for a **conditional breakpoint** (XPath, pauses only when true), a **logpoint** (writes `item {@id}`-style messages to Messages, optionally without pausing) or a **hit count** rule (exactly / from / every N-th hit) - [details](xslt-developer.md#conditional-breakpoints) |
-| **Output** | The output written so far, refreshed at every pause; the complete result once the run finishes. Secondary results (`xsl:result-document`, kept in memory) are selectable; **Documents** lists and opens what `doc()` / `document()` / `collection()` loaded |
-
-When the run ends, the status reads *Finished · N ms* and the **result lands in the OUTPUT
-panel** (the OUTPUT toggle lights up; DEBUG stays in front so the messages remain readable).
-A failed run shows the error with its location in **Messages**. The debugger runs on its own
-Saxon processor, so a normal **Run Transform** during a paused session is unaffected.
-**Tools → Debug Configuration…** saves per stylesheet the input (Run target or a file), parameters, output format and pause on entry; **Re-run Last Debug** (Ctrl+Shift+F5) repeats the last debug run with its input read again.
-Details and stylesheet tips: [XSLT Developer → Interactive Live Debugger](xslt-developer.md#interactive-live-debugger).
-
-### Queries (XPath, XQuery, JSONPath)
-
-The Transform panel no longer has its own XPATH and XQUERY sections. Below the run
-controls, a short hint and an **Open Query Console** button take you to the
-[Query Console](#query-console), which runs XPath, XQuery and JSONPath queries against the
-open document and offers the saved queries (**Snippets** menu) and the XQuery **Examples**.
-
-### OPTIONS & TOOLS {#the-transform-menu}
-
-The collapsible **OPTIONS & TOOLS** section below the **Run Transform** button (collapsed by
-default - click its header to expand it) holds everything secondary. First the run
-**options**, as checkboxes:
-
-| Option | What it does |
-|-------|--------------|
-| **Live preview** | Re-runs the transform automatically (debounced) while you edit the input document. |
-| **Watch stylesheet file** | Re-runs the transform whenever the chosen stylesheet changes on disk - handy while editing the stylesheet in another tool. |
-| **Profile run** | A transform also opens a read-only **Profile** tool tab (timings + per-template execution times). |
-| **Trace run** | A transform also opens a **Trace** tool tab (template matches + `xsl:message` output). |
-| **Auto-open result tab** | Additionally opens every successful result as a regular editor tab (HTML/XHTML results open rendered in the [Preview](#html-preview) view). **Off by default.** |
-
-Below the options, the advanced **tools** are labelled rows (icon + name):
-
-| Row | What it does |
-|-----|--------------|
-| **Debug XSLT…** | Same as the **Debug** button next to **Run Transform**: opens the stylesheet (with the breakpoints set in its gutter) and the **DEBUG** dock below the editor - see [Debugging a Stylesheet](#xslt-debugger). |
-| **Batch Transform…** | Runs the chosen stylesheet - or, when no stylesheet is set, the active XQuery document - over many XML files, with per-file results and "Save All". |
-| **Execution Statistics** | Opens the **Execution Statistics** tool tab (duration, CPU and memory per XSLT/XQuery/validation run). Runs are only recorded while **Record execution statistics** is enabled in the Settings page's **DEVELOPER** card. |
-
-> XSLT version selection (1.0/2.0/3.0) is intentionally not offered: Saxon HE
-> auto-detects the version from the stylesheet's `version` attribute, so an
-> explicit selector would be cosmetic.
-
-### The OUTPUT Panel (Results)
-
-> Transform and query results appear in an **OUTPUT panel
-> docked below the editor** instead of opening editor tabs and a separate
-> HTML-preview tool tab.
-
-All Transform-panel results - XSLT transforms, XPath/JSONPath queries, and XQuery runs -
-appear in an **OUTPUT panel** that docks **below the editor**: the source document stays
-on top and the result shows underneath, while the Properties inspector keeps its full
-height. The panel **persists across activity switches**, so the last result stays visible
-while you work elsewhere.
-
-The OUTPUT panel header shows:
-
-- A **format badge** (XML, HTML, …) for the result.
-- A **status**: a green check with `Transformed · N ms · M chars` on success (how long the
-  run took and how large the output is), or a red error icon with the error message on
-  failure.
-- **View toggles** - **Preview | Text | Table**:
-    - **Text** - the result in a **read-only code editor** (the default):
-      line numbers, syntax highlighting matching the result format (XML or JSON;
-      plain text otherwise), and font zoom with **Ctrl+mouse wheel** (**Ctrl+0** resets).
-    - **Preview** - the result rendered as a web page; available for **HTML/XHTML**
-      results only.
-    - **Table** - available for **XQuery** results that return a **sequence** of items
-      (auto-selected when applicable). Each item becomes a row, and the columns are taken
-      from each item's child elements (or, if an item has no child elements, its
-      attributes). A sequence of plain values is shown in a single **value** column.
-- **Actions**:
-    - **Open as Tab** (*Open result as editor tab*) - opens the result as a regular document
-      (`Transform-Result.xml` / `.html` / `.json` / `.txt`) that you can edit and save.
-      An **HTML/XHTML result** opens as an HTML document rendered in the
-      [Preview](#html-preview) view (switch to Text to see the markup); re-running the
-      transform updates the open result tab, re-rendering the preview if it is showing.
-    - **Browser** (*Open in browser*) - opens the result (typically HTML) in your system web browser.
-    - **Save…** (*Save result…*) - writes the result straight to a file.
-    - **✕** - hides the OUTPUT panel; it reappears automatically on the next run.
-
-!!! note
-    In earlier versions, every transform opened a `Transform-Result.*` editor tab, and HTML
-    output additionally opened an "HTML Preview" tool tab. Both were replaced by the OUTPUT
-    panel: an editor tab now opens only via the panel's **Open result as editor tab** action
-    or the **Auto-open result tab** option in OPTIONS & TOOLS, and HTML is rendered inline via
-    the panel's **Preview** view.
+The **Transform** activity runs XSLT transformations: stylesheet, input, output method, parameters, live transform, debugging and the OUTPUT panel - see **[Transform Panel](transform-panel.md)**.
 
 ## Explorer Panel
 
@@ -1103,13 +536,13 @@ When nothing is selected in the tree, Transform and Validate use the **active ed
 document** (if it is XML).
 
 The last-used stylesheet and Schematron are **sticky** and **shared with the
-[Transform panel](#transform-panel)** and the [Validation panel](#validation-panel): both
+[Transform panel](transform-panel.md#transform-panel)** and the [Validation panel](validation-panel.md#validation-panel): both
 places draw from the same recent lists.
 
 **What Transform does** depends on how many XML files are selected:
 
 - **One XML file** (or the active document): the stylesheet runs and the result appears in
-  the docked **[Transform OUTPUT panel](#the-output-panel-results)** below the editor. HTML
+  the docked **[Transform OUTPUT panel](transform-panel.md#the-output-panel-results)** below the editor. HTML
   dashboards render in the **Preview** (WebView). The output format is auto-detected from the
   stylesheet's `xsl:output` declaration.
 - **Several XML files**: the **Batch Transform** tool tab opens, pre-loaded with those files,
@@ -1126,7 +559,7 @@ any) - bind or clear the XSD in the Validation panel's SOURCES section to contro
     Primary workflow: choose your stylesheet once, then just select another XML file in the
     tree and right-click **Transform with *&lt;stylesheet&gt;*** again - the stylesheet stays
     put. For output-format overrides, parameters, watch-and-rerun, and the result table, use
-    the full [Transform panel](#transform-panel).
+    the full [Transform panel](transform-panel.md#transform-panel).
 
 ## Search Panel
 
@@ -1134,7 +567,7 @@ any) - bind or clear the XSD in the Validation panel's SOURCES section to contro
 > **Find in Files** with Replace, plus an **XPath search & replace** that works across
 > whole folders. **Heads-up:** its shortcut is **Ctrl+Shift+F** - formatting
 > lives on **Shift+Alt+F** (see
-> [Keyboard Shortcuts](#keyboard-shortcuts)).
+> [Keyboard Shortcuts](keyboard-shortcuts.md#keyboard-shortcuts)).
 
 Open the **Search** panel from the magnifying-glass icon in the activity bar (directly
 below Explorer), or press **Ctrl+Shift+F** - any text selected in the editor is
@@ -1187,7 +620,7 @@ Replacements are applied safely:
 ### Find by XPath
 
 Find & replace by XPath in a document or across a folder. For queries against the open
-document, use the [Query Console](#query-console) (Ctrl+K).
+document, use the [Query Console](query-console.md#query-console) (Ctrl+K).
 
 Evaluates an **XPath 3.1** expression (Saxon; the `map`, `array`, `math`, `fn` and `xs`
 prefixes are pre-declared) and lists the matching nodes:
@@ -1260,197 +693,7 @@ See [Favorites System](favorites-system.md) for more.
 
 ## Validation Panel
 
-Open the **Validation** panel from the activity bar to validate the active document.
-
-> The panel offers a SOURCES section, a Single file / Batch mode toggle, a primary
-> **Run Validation** button, a status line, and - in Batch mode - a color-coded RESULTS
-> list.
-
-### Sources
-
-The **SOURCES** section shows the schemas bound to the active document, and its rows
-follow the document's type: for XML-family documents it shows the **XSD** and
-**Schematron** rows, for JSON documents a single **JSON Schema** row.
-Each row has two lines: the first carries the icon, a caption (**XSD**, **Schematron** or
-**JSON Schema**), the favorites button and **Change**; the second shows the bound file's
-name (long names are shortened in the middle - hover for the full path). An empty row
-shows a hint such as *"No XSD bound — choose or drop a file"*, and clicking it works like
-**Change**.
-Click the **Change** button next to a source to pick a different file. **Every**
-row carries a **star button** next to its *Change* button: on the XSD row it opens a
-quick-select menu of your favorited XSD schemas, on the Schematron row a menu of your
-favorited Schematron files, and on the JSON Schema row a menu of your favorited JSON
-files - pick one to bind it in a single click, without browsing the
-file system. The menus group entries by favorites folder when you use more than one, and
-are grayed out while you have no matching favorites. (See
-[Favorites](favorites-system.md).)
-
-**All source rows are drop targets**: drop an `.xsd` file from
-your file manager onto the XSD row, a `.sch` / `.schematron` file onto the Schematron
-row, or a `.json` schema onto the JSON Schema row, to bind it to the active document in
-one move - the row glows **green** while a
-loadable file hovers over it and **red** for a wrong file type (which is rejected). The
-dropped file behaves exactly like one picked via **Change** or a favorite, including
-appearing in the recent list.
-
-- **The referenced XSD binds automatically.** When the XML declares its schema
-  (`xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` - local or remote), that XSD is
-  bound when the file is opened, so the declared schema is the default. The
-  declaration is also re-checked against the **current editor content before
-  every validation run** (Run Validation, the toolbar's Validate, and live validation):
-  a schema reference you add or change in the editor is picked up immediately - even in
-  unsaved or untitled documents - and a removed reference downgrades validation to a
-  well-formedness check (the status bar shows **"No XSD"**). A declared location is first
-  looked up in your XML catalogs and Schema Library mappings; remote `https` schema URLs
-  that no catalog redirects are downloaded to the schema cache, and if the download fails,
-  a Schema Library mapping for the document's namespace is used instead. The status bar
-  shows how the schema was found - plain **"XSD: name"** for a declared location,
-  **"(catalog)"**, **"(library)"** or **"(manual)"** otherwise (see
-  [Status Bar](#status-bar)). A schema you picked yourself (via **Change**, a favorite, or
-  the status bar) is never overridden.
-- **JSON documents work the same way**: a top-level `"$schema"` member pointing at a
-  schema file or URL auto-binds that **JSON Schema** on open, is re-checked before every
-  validation run, and a manual choice always wins. (Values pointing at `json-schema.org`
-  meta-schemas are dialect declarations, not bindings, and are ignored.) See
-  [JSON Editor](json-editor.md) for details and the supported drafts.
-- **Click a bound source name to open the file in the editor** - one click on the XSD or
-  Schematron name opens it as a tab for direct editing.
-
-!!! tip
-    You can also bind a schema **without opening the Validation panel**: click the
-    **schema indicator** in the status bar (for XML it reads **"No XSD"**, **"XSD: name"**,
-    **"Detecting XSD…"** or **"XSD error"**; for JSON documents the same states read
-    **"No JSON Schema"**, **"JSON Schema: name"**, and so on; see
-    [Status Bar](#status-bar)) or click the editor toolbar's **Schema** button
-    (**Set XSD Schema…**) and pick a schema file. For XML the binding drives both
-    **IntelliSense** and **schema validation**; for JSON it drives **validation**.
-
-### Running a Validation
-
-1. Pick a mode with the **Single file | Batch** toggle.
-2. Click **Run Validation**.
-
-- **Single file** validates the active document against the bound XSD and/or Schematron.
-- **Batch** validates a whole set of XML files. In Batch mode, **Run Validation** opens a
-  small menu with two ways to pick the files:
-    - **Select XML files…** - a file chooser where you pick one or more XML files.
-    - **Select folder…** - a folder chooser; every `*.xml` file in the folder **and all of
-      its subfolders** is validated.
-
-  The **RESULTS** list then shows one row per file with a status icon (red ✕ = errors,
-  orange ⚠ = warnings only, green ✓ = valid) and a badge with the problem count. Select a
-  row to see that file's problems in the panel's **PROBLEMS** list; double-click to open
-  the file. The plain-text batch report opens from the **REPORTS & CHECKS** section
-  (**Open Last Batch Report**).
-
-The **status line** below the button summarises the run: **Valid**, **1 problem** /
-**N problems**, or - when no schema is bound and only the well-formedness check ran -
-**Well-formed · no schema bound** (shown neutral, not green - in the panel and in the
-Inspector's badge: bind an XSD in SOURCES to validate against a schema).
-
-The **RESULTS** list and the panel's own **PROBLEMS** list are only shown in **Batch**
-mode. In **Single file** mode the problems are listed in the PROBLEMS panel below the
-editor, and the side panel shows a single row such as *"3 problems — show below the
-editor"* - click it to expand and focus that PROBLEMS panel.
-
-### Problems
-
-Problems appear in two places:
-
-- The **PROBLEMS** list in the side panel (**Batch mode only**): the problems of the file
-  selected in RESULTS. **Export Problems to Excel** in the **REPORTS & CHECKS** section
-  saves the current list as an `.xlsx` workbook.
-- The **PROBLEMS panel below the editor**: it appears automatically when
-  validation finds problems, shows error/warning counts in its header, and can be collapsed
-  to just the header. Each row shows the message and the file/line in a monospaced label.
-
-Every row in the PROBLEMS panel below the editor carries a
-**source badge** - **XSD**, **Schematron**, **Well-formed**, or **JSON Schema** - so when a
-run combines several checks you can tell at a glance where each problem comes from.
-Hovering a **Schematron** row shows a **tooltip** with the full message, the failed
-rule/test expression, and the XPath of the failing node.
-
-Long messages are cut off in the row. **Right-click** a row in the PROBLEMS panel below the
-editor to copy it: **Copy Message** (just the message text), **Copy Problem** (severity,
-source, message, file and line/column, plus rule and context for Schematron) or **Copy All
-Problems** (one problem per line). **Ctrl+C** (**Cmd+C** on macOS) copies the selected row
-like Copy Problem.
-
-Selecting a problem in either list jumps to its line - and, for XML and XSD errors, to the
-reported column - in the editor (Text view). This works for
-**Schematron problems too**: the failing rule's context node is resolved back to its
-line in the XML, so a click navigates straight to the offending element.
-
-Schematron problems whose rules define **quick fixes** (SQF)
-can be corrected in place: right-click the problem row in either list and pick a fix
-from the **Quick Fix** submenu, or use the **yellow lightbulb** that appears in the
-editor gutter on lines with fixable problems (click it, or press **Alt+Enter** /
-**Ctrl+.** on the line). See [Schematron Quick Fixes](schematron-quick-fixes.md).
-
-### Detailed Schematron Report
-
-> A full report of the last Schematron run, opened as a tool tab
-> and saveable as HTML or SVRL.
-
-After validating a document that has a Schematron file bound, open the report in
-either of two ways:
-
-- Click the **Validation Report** row in the Validation panel's **REPORTS & CHECKS** section (it is
-  enabled once a run with a bound Schematron has finished).
-
-The report opens as a **Schematron Report** tool tab showing the document name, the
-Schematron file, a severity summary (errors / warnings), and a table with one row per
-finding:
-
-| Column | Content |
-|--------|---------|
-| **Severity** | Error or Warning |
-| **Line** | Line in the XML document |
-| **Message** | The rule's message text |
-| **Rule / Test** | The Schematron test expression that failed |
-| **Context (XPath)** | The XPath of the failing node |
-| **Fix** | A lightbulb button on findings that offer [Schematron Quick Fixes](schematron-quick-fixes.md) — click it to apply a fix directly from the report |
-
-**Click a row** to jump straight to that line in the editor. Two buttons export the
-report:
-
-- **Save Report (HTML)** - a self-contained HTML file you can archive or share.
-- **Save SVRL (XML)** - the raw SVRL output (Schematron Validation Report Language)
-  of the run, for further processing by other tools.
-
-### The Tool Sections and the ⋮ Menu
-
-The tools are labelled rows (icon + name) in two collapsible sections below the status
-line. Both start collapsed so the results keep their space; click a header to expand it.
-
-**REPORTS & CHECKS** - results and exports of a run:
-
-| Row | What It Does |
-|-----|--------------|
-| **Validation Report** | Open the [detailed Schematron report](#detailed-schematron-report) of the last validation run (enabled after such a run) |
-| **Export Problems to Excel** | Save the current problems as an Excel workbook (enabled while there are problems) |
-| **Open Last Batch Report** | Open the plain-text report of the last batch run |
-
-FundsXML validation lives in the [FundsXML panel](fundsxml-extensions.md) (when the
-FundsXML extension is enabled).
-
-**SCHEMATRON AUTHORING** - tools for writing Schematron rules (usable without a run):
-
-| Row | What It Does |
-|-----|--------------|
-| **Rule Templates** | Insert ready-made Schematron rule patterns |
-| **Schematron Tester** | Run the Schematron rules against an XML file |
-| **Rule Builder** | Build rules visually |
-| **Check Rules** | Run an error detector over the Schematron itself and show a categorised issue table |
-| **Schematron Documentation** | Open the Schematron documentation generator |
-
-The panel header's ⋮ (overflow) menu keeps only the **Validate while typing** toggle for
-continuous (debounced) validation.
-
-> **Check Rules** inspects the Schematron file for problems and lists them
-> by category - XML syntax, structural, XPath, semantic, and best-practice issues - so you can
-> fix mistakes in the rules before you rely on them. See
-> [Schematron Validation](schematron-support.md) for details.
+The **Validation** activity validates the active document or whole folders against XSD, Schematron and JSON Schema and lists the problems - see **[Validation Panel](validation-panel.md)**.
 
 ## Schema Panel: Sample-Data Generation
 
@@ -1490,29 +733,6 @@ The dialog can either generate a **single document** (which opens in a new tab) 
 of files written to a folder you choose. For a full walkthrough, see
 [Profiled XML Generation](profiled-xml-generation.md) and the
 [Sample XML Generator](xsd-tools.md#7-sample-xml-generator) section of the XSD Tools guide.
-
-## Inspector (XSD Properties)
-
-When an XSD file is open, the **Properties** inspector (Ctrl+Shift+P) shows the selected schema
-node. In addition to name, type, cardinality, facets, and constraints, you can now:
-
-- **Pick the type from a list** - The **Type** field opens a dropdown of the schema's own
-  simple and complex types and all XSD built-in datatypes, each explained in a side pane as you
-  move through the list. See [Choosing a type with the type picker](#type-picker).
-- **Edit the node's `xs:appinfo`** - The machine-readable metadata attached to the node.
-  Structured fields cover `@since`, `@version`, `@see`, `@deprecated`, a **Markdown** choice
-  (*Not set* / *Markdown* / *Plain text*, written as `@markdown`) and the node's **example
-  values**. Everything the fields do not cover - other tags and custom XML inside the appinfo -
-  is preserved untouched. See [Adding Technical Notes to Your
-  Schema](xsd-tools.md#adding-technical-notes-to-your-schema).
-- **Edit multi-language `xs:documentation`** - One row per language. Use **Add language** to add
-  a translation and the **✕** button to remove one.
-- **Edit comments** - Select an XSD comment in the tree to edit its text. To add a new comment,
-  use **Add Comment…** in a node's right-click context menu.
-- **Delete a constraint** - In the **CONSTRAINTS** section, select a `key`, `keyref`, `unique`,
-  or `assert` constraint and click **Delete constraint** to remove it.
-- **See where a component is used** - **USED IN** (in **DOCUMENTATION & REFS**) lists every
-  reference to a global type, element or group; click one to select the referring node.
 
 ## Signature Page {#signature-panel}
 
@@ -1623,7 +843,7 @@ The **PDF / FOP** panel renders the XML to PDF with an XSL-FO stylesheet (Apache
   warnings. A failed generation puts the stylesheet error with its location, or FOP's
   reason, into OUTPUT as well.
 - **TOOLS → Debug stylesheet…** runs the XSL-FO stylesheet in the
-  [XSLT debugger](#xslt-debugger) (breakpoints, stepping, variables, live messages); the
+  [XSLT debugger](transform-panel.md#xslt-debugger) (breakpoints, stepping, variables, live messages); the
   page-size parameters are passed on. The FO a finished debug run produced lands in OUTPUT
   and in the panel's result, so **Show intermediate FO** and **Render PDF from FO…** (renders
   that FO to a PDF of your choice) work right after debugging.
@@ -1712,135 +932,11 @@ application menu instead (see [macOS](#macos)). To find out which version you ar
   type and code locations - never messages, paths or content).
 
 These buttons are only shown while **Send anonymous error reports** is enabled in
-[Settings](#settings-page). See [Privacy & Anonymous Telemetry](telemetry.md) for details.
+[Settings](settings.md#settings-page). See [Privacy & Anonymous Telemetry](telemetry.md) for details.
 
 ## Settings Page
 
-> Settings open as a **full page** (a tab in the main editor
-> area) rather than in the narrow left side panel. The options are presented
-> as **color-coded cards**, sorted into seven groups.
-
-Click the gear icon at the bottom of the activity bar (or press **Ctrl+,**): the **Settings page
-opens as a tab in the main editor area**, where there is room for all options.
-
-![Settings page](img/unified-shell-settings.png#only-light)
-![Settings page](img/unified-shell-settings-dark.png#only-dark)
-*The Settings page: groups in the side panel, colour-coded cards in the main area*
-
-**Finding a setting** - the side panel on the left lists the seven groups. Click a group to
-scroll the page to it; the group you are looking at is highlighted. Type into the **search field** at the top of the side panel to filter both
-the group list and the cards on the page down to the matching settings; if nothing matches, the
-page shows *"No settings match the search."*.
-
-**Saving** - a save bar stays fixed at the bottom of the page:
-
-- **Unsaved changes** appears as soon as you change an option that has not been saved yet.
-- **Save Settings** stores and applies your changes.
-- **Reset to Defaults…** asks for confirmation and then puts the default values into the
-  controls. Nothing is stored until you click **Save Settings**, so you can still review or
-  adjust the values first. The reset leaves your privacy / usage statistics choices, your user
-  info, your templates, the file associations and the extension settings (FundsXML, Developer)
-  unchanged.
-- A few actions take effect **immediately**, without Save: switching the **theme**, registering
-  or unregistering **file associations**, and creating, editing or deleting **templates**.
-
-| Group | Cards and options |
-|-------|-------------------|
-| **Appearance** | **Theme** - switch between **Light** and **Dark**. **Layout** - **Show toolbar button labels**; **Show activity bar labels**; **Use small icons**; toolbar icon size (**Small** / **Large**); **Show left side panel**; **Show Properties (inspector) panel**. **Rendering** - JavaFX graphics pipeline: **Auto** / **Hardware** / **Software** (takes effect after restart), with the active pipeline and GPU status; see [Rendering mode (hardware vs. software)](#rendering-mode) below. **Memory** - **Maximum memory** for the application: **Automatic** (half of the installed memory) or a fixed limit (takes effect after restart); see [Memory and large files](#memory) below. |
-| **Editor** | **Editor** - XML indent and JSON indent (spaces); **Auto-format after loading**; **Pretty-print XSD on save**; **Pretty-print Schematron on load**; **Recent files to remember** (1–100, default 20) - every file opened in the editor, opened in the background or saved with **Save As** goes into File → Recent, the Explorer's **RECENT** list and the Welcome page. **Templates** - a configurable **templates directory**, plus a **New / Edit / Delete** list of your own templates; see [Managing your templates](#managing-your-templates) below. **User Info** - **Name**, **Email** and **Company**, used for example when generating documentation or signing. |
-| **Schemas & Validation** | **XSD** - **Auto-save** (with an interval in minutes); **Create backups on save** (with the number of versions to keep, and an optional **separate backup directory**). **Schema Library** - **Use the Schema Library to bind schemas automatically**; shows the library file's location and a **Manage schema cache…** link; see [Schema Library](schema-library.md). **Parser** - **XML parser** engine (Xerces or Saxon); **Allow XSLT extension functions**. |
-| **Files & Cache** | **Temp & Cache** - **Use system temp folder** or a custom temp folder; **Clear Temp Folder** to free disk space; **Clear Cache Folder** to delete cached files (downloaded schemas etc.); **Manage schema cache…**. **Log Files** - **Delete old log files automatically at startup** (on by default) with **Keep for (days)** (default 14) and **Maximum total size (MB)** (default 100; 0 = no limit); **Clean Up Now** applies the limits at once, **Open log folder** shows the folder, and the card names the folder with its file count and size. The log file in use is never deleted. **File Associations** - make FreeXmlToolkit the **default application** for XML, XSD, XSLT, Schematron and JSON files (per user, no admin rights); see [File Associations](file-associations.md). |
-| **Network & Security** | **HTTP Proxy** - **Connection**: *System proxy* (default, includes automatic configuration via PAC/WPAD), *Manual proxy* (host and port) or *No proxy*; **No proxy for**: hosts connected directly (`*` wildcard, e.g. `*.corp.example, 10.*`; local addresses always); **Proxy authentication**: user (`DOMAIN\user` or `user@domain` also work), password (stored encrypted) and NTLM domain, or — without a user — sign-in with the Windows account (NTLM/Kerberos; takes effect after a restart); **Timeouts** for connecting and reading; **Test Connection** checks an address with the values shown, saved or not. Every connection uses these settings: schema and catalog downloads, updates, FundsXML, telemetry, `doc()` in XPath/XQuery, JSON Schema `$ref`s, XProc (incl. `p:http-request`) and HTML previews. **Security** - **Trust all certificates**: accept any TLS certificate for HTTPS downloads (schemas, updates); use with care. **Updates** - **Check for updates on startup**. |
-| **Privacy** | **Usage Statistics** - **Enable usage tracking** (local, anonymous feature-usage counters shown on the Welcome page) and **Clear statistics**. Below them: **Send anonymous usage statistics** and **Send anonymous error reports** (both on by default) and a **What is sent?** link that shows the exact data and your anonymous installation ID. See [Privacy & Anonymous Telemetry](telemetry.md). |
-| **Extensions** | **FundsXML** - **Enable FundsXML extensions** adds the [FundsXML activity](fundsxml-extensions.md) to the activity bar. **Developer** - **Record execution statistics** collects duration, CPU and memory per XSLT/XQuery/validation run; view them in the **Execution Statistics** tool tab or via the "last run" item in the status bar. **Support the Project** - a **Sponsor on GitHub** link. |
-
-### Clearing the Cache Folder
-
-The **Clear Cache Folder** button in the **TEMP & CACHE** section deletes the contents of the
-application's local cache folder (`~/.freeXmlToolkit/cache`) - for example downloaded schemas,
-including schemas fetched automatically for missing `xs:import` references. Clearing is safe:
-such schemas are simply re-downloaded the next time they are needed. A confirmation dialog is
-shown first, because the action cannot be undone. The cache folder itself is kept; only its
-contents are removed.
-
-### Memory and large files {#memory}
-
-> The **MEMORY** card sets how much memory the application may use, so that large files
-> can be opened on machines with plenty of RAM.
-
-The editor keeps a whole document in memory several times over (text, line model,
-highlighting, structured views), roughly **16 times the file size**. The memory limit
-therefore decides how large a file can be:
-
-| Maximum memory | Largest file that opens |
-|----------------|-------------------------|
-| 4 GB | about 256 MB |
-| 8 GB | about 512 MB |
-| 16 GB | about 1 GB |
-
-- **Automatic** *(default)* uses half of the installed memory.
-- A fixed value (2 GB up to the installed memory) applies from the **next start**; the
-  application restarts itself once with that limit. The card shows the limit of the current
-  session and the installed memory.
-- If the chosen limit cannot be used, the application falls back to **Automatic** on its own.
-- In a development run (`./gradlew run`) the setting has no effect; the Gradle task sets the memory.
-
-Opening a file of **50 MB or more** asks for confirmation first, because editing it will be
-slow. A file that does not fit into the current memory limit is not opened; the message names
-the limit and points to this card.
-
-### Rendering mode (hardware vs. software) {#rendering-mode}
-
-> The **RENDERING** card lets you choose how JavaFX draws the UI,
-> per machine, without relying on a fixed JVM flag.
-
-JavaFX can render either on the **GPU** (hardware-accelerated, faster) or purely in
-**software**. On machines with only an integrated GPU, hardware rendering can become
-unstable on very large diagrams/grids, while machines with a dedicated GPU benefit from it.
-The **Mode** dropdown controls this:
-
-| Mode | Behaviour |
-|------|-----------|
-| **Auto** *(default)* | The application detects the graphics adapter at startup and picks **hardware** rendering on a dedicated GPU (and on macOS), or **software** rendering on integrated/unknown adapters. The detection result is cached. |
-| **Hardware** | Always prefer GPU rendering (with an automatic software fallback if the GPU pipeline cannot start). Use this if **Auto** does not recognize your dedicated GPU. |
-| **Software** | Always use software rendering. Use this if hardware rendering causes display glitches or crashes on your machine. |
-
-Below the dropdown the card shows the **current run's** rendering status:
-
-- **Active pipeline** - what JavaFX is *actually* using right now: *Hardware — Direct3D*,
-  *Hardware — OpenGL ES2*, *Hardware — Metal*, or *Software*. This is read from the live
-  graphics pipeline, so with **Auto** you can see at a glance whether you ended up on
-  hardware or software rendering.
-- **Detected GPU** - the graphics adapter(s) the application found on this machine.
-
-Notes:
-
-- **A restart is required** for a change to take effect - the graphics pipeline is chosen
-  once when the application starts. The **Active pipeline** line always reflects the
-  pipeline of the *running* session, not an unsaved dropdown change.
-- An explicit `-Dprism.order=...` JVM flag (command line) still **overrides** this setting,
-  so power users can force a specific pipeline for troubleshooting.
-- **Auto** is intentionally conservative: any adapter it cannot confidently identify as a
-  dedicated GPU falls back to software rendering. If your dedicated GPU is not detected,
-  switch the mode to **Hardware**.
-
-### Managing your templates
-
-> The **TEMPLATES** card lets you keep your own starting templates,
-> which then show up (filtered by file type) in the [New File dialog](#new-file-dialog).
-
-- **Templates directory** - Use **Browse…** to point the application at the folder where your
-  templates live. Leave it empty to use the default location. Changing the directory takes
-  effect immediately, **without restarting** the application.
-- **Your templates** - The card lists your own (non-built-in) templates. Use:
-    - **New** - Create a template. A dialog asks for its **Name**, **Category**,
-      **Description**, **File type**, and **Content**.
-    - **Edit** - Change the selected template.
-    - **Delete** - Remove the selected template.
-
-Each template is stored as a `.template` file in the templates directory. Once saved, your
-templates appear in the **New File** dialog whenever their file type is selected. For the wider
-template and XPath-snippet system, see [Template Management](template-management.md).
+Settings open as a page in the editor area (**Ctrl+,**), grouped into colour-coded cards - see **[Settings](settings.md)** for every option.
 
 ## Welcome / Dashboard
 
@@ -1867,9 +963,9 @@ When no document is open, the editor shows a welcome dashboard with:
 
     | Task | What happens |
     |------|--------------|
-    | **Validate an XML file** | Asks for a file, opens it, shows the [Validation panel](#validation-panel) and validates it as soon as it is loaded |
-    | **Run an XSLT transformation** | Asks for an XML file, opens it and shows the [Transform panel](#transform-panel), where you choose the stylesheet |
-    | **Query a document** | Asks for an XML file, opens it and opens the [Query Console](#query-console) for XPath / XQuery |
+    | **Validate an XML file** | Asks for a file, opens it, shows the [Validation panel](validation-panel.md#validation-panel) and validates it as soon as it is loaded |
+    | **Run an XSLT transformation** | Asks for an XML file, opens it and shows the [Transform panel](transform-panel.md#transform-panel), where you choose the stylesheet |
+    | **Query a document** | Asks for an XML file, opens it and opens the [Query Console](query-console.md#query-console) for XPath / XQuery |
     | **Edit a schema** | Asks for an XSD file, opens it and shows the Schema panel |
     | **Create a PDF** | Asks for an XML file, opens it and shows the **PDF / FOP** panel, where you pick the XSL-FO stylesheet |
     | **Sign or verify a document** | Opens the **Signature** page directly (no file needed first) |
@@ -1977,56 +1073,7 @@ The status bar at the bottom of the window includes (left to right):
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+N | New file (opens the guided New File dialog) |
-| Ctrl+O | Open file |
-| Ctrl+S | Save current tab |
-| Ctrl+Shift+S | Save As (the Save ▾ menu also offers Save All) |
-| Ctrl+W (Windows/Linux also Ctrl+F4) | Close the active tab (asks to save unsaved changes) |
-| Ctrl+Tab / Ctrl+Shift+Tab | Next / previous tab |
-| Ctrl+Q | Quit FreeXmlToolkit (**Cmd+Q** on macOS; Alt+F4 on Windows works as usual). With unsaved documents one dialog lists them and offers **Save All** / **Don't Save** / **Cancel** - the same when the window is closed |
-| Ctrl+, | Open the Settings page |
-| Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) | Undo / Redo (works from the Text, Tree and Graphic views) |
-| Ctrl+F | Find (in the active document) |
-| Ctrl+H | Find and Replace (in the active document); **Alt+Cmd+F** on macOS |
-| Ctrl+Shift+F | **Find in Files** - opens the [Search panel](#search-panel), prefilled with the editor selection |
-| Ctrl+Shift+H | **Replace in Files** - opens the Search panel with the replace row expanded |
-| F8 | Validate the active document (same run as Tools → Validate, the toolbar's **Validate** button and the Validation panel's **Run Validation**) |
-| F9 | Toggle the breakpoint on the caret line of a saved XSLT document (also **Tools → Toggle Breakpoint**) - see [Debugging a Stylesheet](#xslt-debugger) |
-| Shift+Alt+F | Format (pretty-print) the active document |
-| Ctrl+D | Add the active document to favorites |
-| Ctrl+Shift+D | Show the Favorites panel (press again to collapse the side panel) |
-| Ctrl+Shift+X | Toggle Query Console (XPath/XQuery) |
-| Ctrl+K | Open the Query Console and focus its input (same as the header search pill) |
-| Ctrl+Enter | Run the active XPath/XQuery, XSLT or XProc document (Run Query / Run Transform / Run Pipeline) |
-| F5 | Run the active XQuery / XPath / XSLT / XProc document (does nothing for other documents - use F8 to validate) |
-| Shift+F5 | **Debug with XSLT** - the active XSLT document, the PDF / FOP panel's stylesheet, or the Transform panel's (asks for one if none is set) - see [Debugging a Stylesheet](#xslt-debugger) |
-| F5 / F7 / F8 / Shift+F8 | While the debugger is **paused**: Continue / Step Into / Step Over / Step Out (F5 and F8 keep their normal meaning otherwise) |
-| Shift+F7 | While the debugger is paused: Smart Step Into - choose which call on the line to step into |
-| F1 | Show the Help menu (as a popup, like the header's **?** button) |
-| F11 | Toggle full screen (also **Ctrl+Cmd+F** on macOS) |
-| Ctrl+L | Show/hide the left side panel |
-| Ctrl+Shift+P | Show/hide the Properties inspector |
-| Ctrl+E | Spreadsheet Converter… (Excel / CSV ↔ XML) |
-| Ctrl+T | Insert Template… (needs an open document) |
-| Alt+Enter / Ctrl+. | Quick Fix - apply a [Schematron Quick Fix](schematron-quick-fixes.md) on the caret line |
-| Ctrl++ / Ctrl+- | Zoom in / out (Text view: font size; Graphic view: the grid in 10 % steps, 50-300 %) |
-| Ctrl+0 | Reset the zoom to 100 % (Text view: font size, Graphic view: the grid) |
-| Ctrl+Alt+X | Graphic view: copy the XPath / JSONPath of the selected node |
-| Ctrl+Alt+C | Graphic view: copy the selected node as XML / JSON |
-| Ctrl+Shift+C | Graphic view: copy the cell content |
-| Ctrl+mouse wheel | Zoom (Text view: font size, Graphic view: the whole grid) |
-
-On macOS use **Cmd** instead of Ctrl for the shortcuts above (see [Menu Bar → macOS](#macos)).
-
-!!! warning "Changed shortcut"
-    **Ctrl+Shift+F no longer formats the document.** Following the VS Code convention, it
-    now opens **Search (Find in Files)**, and **Ctrl+Shift+H** opens **Replace in Files**.
-    **Format Document moved to Shift+Alt+F** - the toolbar's **Format** button works
-    unchanged. The in-editor find/replace stays on **Ctrl+F / Ctrl+H**.
-
-> **Search in all view modes:** Pressing **Ctrl+F** opens an inline search bar with up/down chevron arrows for Find Previous / Find Next (Enter / Shift+Enter work too). The search works in the **Text**, **Tree** and **Graphic** views. In the structured views it searches the nodes themselves — for XSD schemas that is element/attribute/type names, documentation and appinfo, type references, fixed/default values, enumeration and facet values, and comments; for XML instances in the Graphic grid it is element names, attribute names, and values (also inside embedded table cells); for JSON documents (Tree and Graphic) it is keys and values. A match hidden inside a collapsed branch is revealed automatically (ancestors expand), selected, and scrolled into view; matches wrap around when you reach the end. Switching the view mode or tab while the bar is open re-targets the search to the active view. **Replace** is available in the Text view only — in Tree/Graphic views the replace toggle is disabled. In an HTML document's **Preview**, Ctrl+F searches the underlying markup text, not the rendered page. See [XML Editor Features](xml-editor-features.md#search-find) for details.
+All shortcuts are listed on the **[Keyboard Shortcuts](keyboard-shortcuts.md)** page and in the app under **Help → Keyboard Shortcuts**.
 
 ## Compare & Merge
 
@@ -2060,268 +1107,7 @@ any error to jump straight to its location:
 
 ## Properties Inspector
 
-> Property editing works in **all** views - for XML files in Text, Tree, and
-> Graphic, and for XSD files in the **Text** view as well as the Tree and Graphic views
-> (see [XSD Files](#xsd-files) below). For JSON files the inspector edits keys and values
-> from the Tree and Graphic views (see [JSON Files](#json-files) below).
->
-> The inspector is not fixed-width: drag the divider line
-> between the editor and the inspector to make it wider (handy for long XPaths, attribute
-> values, or documentation). The width is remembered across restarts - see
-> [Resizing and collapsing the side panels](#collapsing-the-side-panels).
-
-![Properties inspector](img/unified-shell-inspector.png#only-light)
-![Properties inspector](img/unified-shell-inspector-dark.png#only-dark)
-*The Properties inspector for an XML element with a bound schema: node header with validation
-pill, NODE & XPATH, schema facts, and documentation with example values and valid children.*
-
-While nothing is selected, the inspector shows a short hint instead of empty sections:
-*"Open a document to see the properties of its nodes here."* when no document is open, and
-*"Select a node in the Tree or Graphic view to see and edit its properties."* (or, in the
-Text view, a hint to place the caret on an element) when no node is selected.
-
-### Layout of the inspector
-
-From top to bottom:
-
-- **Top bar** - the title **PROPERTIES**, a **star** button and a **⋮** menu.
-  - The **star** adds the active file to [Favorites](favorites-system.md) (or removes it, when it
-    is already a favorite). It is greyed out for a document that has never been saved.
-  - The **⋮** menu offers **Copy XPath**, **Copy Node (XML)**, **Expand All Sections** and
-    **Collapse All Sections** (the two copy actions are also buttons in **NODE & XPATH**).
-- **Node header** - an icon for the kind of node, the node's **name**, a subtitle such as
-  *Element · xs:string* (kind · type), and the **validation pill**: **Valid**, the number of
-  errors, or *Well-formed · no schema bound*. **Click the name to rename the node** in place
-  (only for nodes that have a name).
-- **Sections** - collapsible sections with a full-width title bar. Each row shows the property
-  name on the left and its value on the right.
-
-**Editing in place:** editable values (type, minOccurs/maxOccurs, use, form, fixed, default, …)
-look like plain text until you point at them or click them - then the field frame, the
-drop-down arrow or the spinner buttons appear. Values without that hover effect are read-only.
-
-The sections appear in this order. A section is shown only when it has content for the
-selected node - empty sections are left out:
-
-| Section | Content |
-|---------|---------|
-| **NODE & XPATH** | **Kind**, **Namespace**, **Depth** (the nesting level; the root element is 0), **Position** *Ln x · Col y* (Text view only), and the **XPath** in a code box with the **Copy XPath** and **Copy Node (XML)** buttons |
-| **NAMESPACE** | Edit the element's namespace **prefix** and **URI** (expanded by default) |
-| **TYPE & FACETS** | **Type**, **Base type**, **Derivation** (restriction / extension / list / union) and the list of **facets**; for an XML element with a bound schema it starts with the declaration box (see [Editing the bound schema from the XML document](#editing-the-bound-schema)) |
-| **CARDINALITY & USE** | minOccurs / maxOccurs, Use, and **Order** - the node's position in its parent compositor, e.g. *3 of 3 · sequence* |
-| **VALUE & ATTRIBUTES** | The element text and the list of **attributes** |
-| **CONTENT** / **PROCESSING INSTRUCTION** / **XML DECLARATION** | The text of comments, CDATA sections, processing instructions and the XML declaration |
-| **DOCUMENTATION & REFS** | Documentation, value check, example values, valid children and **USED IN** (see below) |
-| **ADVANCED**, **SCHEMA**, **CONSTRAINTS** | Further schema-node properties (fixed/default, nillable, form, final, appinfo, identity constraints, assertions, …) |
-
-The **Namespace** row in NODE & XPATH shows the URI, marked *(default)* for an unprefixed
-namespace, otherwise *prefix → URI*. An undeclared prefix shows as *prefix → (unbound)*, an
-element without a namespace as *(no namespace)*. For an XSD declaration the row shows the target
-namespace for global and qualified declarations, and *(no namespace)* for unqualified local ones.
-
-### Copying the XPath or the node
-
-The **NODE & XPATH** section shows the selected node's XPath in a code box:
-
-- **Copy XPath** - click the **Copy XPath** button next to the code box, or **click the XPath
-  itself**, to copy the positional XPath (e.g. `/root/item[2]`) to the clipboard.
-- **Copy Node (XML)** - the second button next to the code box; copies the selected node's XML
-  serialization.
-
-Both actions are also in the **⋮** menu of the top bar. In the Text view they act on the element
-enclosing the caret; in the Tree/Graphic views they act on the selected node. For an **XSD** node
-selected in the Tree or Graphic view, Copy XPath copies the schema XPath and Copy Node copies the
-XSD source of that node; for **JSON** they copy the JSONPath and the JSON source.
-
-### Facets and attributes lists
-
-Facets (in **TYPE & FACETS**) and attributes (in **VALUE & ATTRIBUTES**) are shown as framed
-lists that you edit directly:
-
-- **Click a value** to edit it. **Enter** saves the change, **Esc** cancels it.
-- For attributes, **click the name** to rename the attribute.
-- **Point at a row** to show its **trash** icon; click it to delete the facet or attribute.
-- **Add** a new entry with the row below the list (facet kind or attribute name, value, **Add**).
-- **Inherited facets** (from a base type) are shown in *italics* and cannot be edited here.
-- **Long values wrap** onto several lines instead of being cut off. The row's tooltip shows the
-  full value, plus where it comes from (*inherited from the referenced named type* or
-  *defined by the schema*).
-- **Keyboard:** press **Tab** to move to a row; **Enter** edits its value and **Delete** removes
-  the row.
-
-### XML Files
-
-When an XML file is open, the Properties sidebar (Ctrl+Shift+P) shows the selected node and
-lets you edit it from whichever view you are in:
-
-- **Text view** - Move the text caret into an element to select it. The inspector shows the
-  element's name, namespace, attributes, and text as editable fields. Edits round-trip into the
-  source as a minimal change that preserves your caret and scroll position. If the caret is not
-  inside a well-formed element, the inspector falls back to a read-only name/XPath view. When you
-  switch back to the Text view, the inspector shows the node at the caret again right away.
-- **Tree view** - Click any node (element, text, comment, CDATA, or processing instruction) to
-  edit its properties.
-- **Graphic view** (the grid) - Select a row to edit its properties. The grid also handles
-  structural editing (adding, deleting, and moving nodes) through its right-click context menu.
-
-All three views share one in-memory model per open document, so your edits and Undo/Redo
-history are preserved when you switch between Text, Tree, and Graphic.
-
-**With a bound XSD schema**, the inspector also shows what the schema says about the selected
-element: Type, Base type, Derivation (including the **list item type** or the **union member
-types**), the facets (including the **enumeration** values), minOccurs/maxOccurs/Use, Order,
-**nillable**, **default** and **fixed** values, *Since …* / *Deprecated: …* from the schema's
-documentation tags, the schema's **appinfo**, and in **CONSTRAINTS** the identity constraints,
-assertions and type alternatives. Where the declaration is editable you can change many of these
-right here - see [Editing the bound schema from the XML document](#editing-the-bound-schema).
-The **DOCUMENTATION & REFS** section adds:
-
-- the element's **documentation** from the schema, or *"No documentation in the schema"* when
-  the schema has none;
-- a **value check** - *"Value matches the schema facets"* in green, or an amber warning such
-  as *"Value should be one of: …"* when the current text breaks a facet;
-- **EXAMPLE VALUES** as chips - click one to set it as the element's text;
-- **VALID CHILDREN** as chips - click one to add that child element (*None* for a container
-  element that allows no children);
-- **USED IN** - the containing element and its type.
-
-**Attributes with a bound schema:** each attribute row shows its declared type as a small badge
-(`*` marks a required attribute). Attributes the schema does not declare are marked
-**undeclared**. For an attribute with enumerated values, the value editor is a drop-down. Below
-the list, **DECLARED, NOT SET** shows chips such as **+ id \*** for declared attributes that are
-missing - click one to add the attribute. Required ones are highlighted, and a default or fixed
-value is filled in for you.
-
-#### Editing the bound schema from the XML document {#editing-the-bound-schema}
-
-For an XML element with a bound XSD, **TYPE & FACETS** starts with a box such as
-*Declared in order.xsd · local element · type AmountType* and an **Open in schema** link. The
-link opens the XSD in the **Graphic** view, expanded along the element's path in the document
-(root element › … › element), and selects exactly this card - also when the schema has several
-local elements with the same name or the element sits in a named type used in several places.
-
-When the declaration is editable, these inspector fields change **the declaration in the XSD**
-(not the XML): **Type**, **minOccurs/maxOccurs**, **Nillable**, **Fixed**, **Default** (in
-ADVANCED), the **facets** (add, edit, delete) and the **documentation/appinfo**. What happens:
-
-1. The XSD opens as a background tab - your XML document stays in front.
-2. The change is one undo step in the XSD tab, and the XSD tab shows as unsaved.
-3. Save the XSD. The XML document's schema facts (value check, example values, attribute
-   information) are then reloaded.
-
-Things to know:
-
-- The **Type** field here is the same [type picker](#type-picker) as in the XSD inspector: it
-  lists the schema's own types and the XSD built-in datatypes and explains the highlighted one.
-- If the element uses a **named simple type**, its facets are the facets of that type. The list
-  says so: *"Facets of the named type T – a change applies to every element of that type"*.
-- Before you change a type or a global declaration that is used in several places, the inspector
-  asks once for confirmation (**Change T**).
-- Some declarations are **read-only**, with a note:
-  - *"Read-only: declared in an included or imported schema."*
-  - *"Read-only: a cached copy from the Schema Library."* (also for read-only files)
-
-### XSD Files
-
-When an XSD (schema) file is open, the Properties sidebar shows the selected schema node and
-lets you edit it from whichever view you are in. XSD files have the same three views - **Text**,
-**Tree**, and **Graphic** (for XSD, the Graphic view shows the schema diagram):
-
-- **Tree** and **Graphic** views - Select a schema node to edit its name, type,
-  cardinality/occurrence, use, form, constraints, documentation, and facets.
-  Compositors (`xs:sequence`, `xs:choice`, `xs:all`), group references and `xs:any` show
-  editable **minOccurs/maxOccurs** and their **Order** in **CARDINALITY & USE**. A simple type
-  shows its **final** value (read-only) in **ADVANCED**. When all facets of an element or
-  attribute come from a named type, the add row is replaced by the hint *"Facets come from T –
-  click to edit them there."*; clicking it selects that type.
-- **Text** view - Move the text caret into an XSD construct (such as an `xs:element`,
-  `xs:complexType`, `xs:simpleType`, `xs:attribute`, a compositor, or a facet) to select the
-  matching schema node and edit the same properties you would in the Tree and Graphic views -
-  without leaving the source editor. Edits round-trip into the schema text as a minimal change
-  that preserves your caret and scroll position. If the caret is not inside a recognizable
-  construct (for example inside an `xs:annotation`, a comment, or blank space), the pane falls
-  back to a read-only caret/XPath view.
-
-#### Choosing a type with the type picker {#type-picker}
-
-The **Type** row of an element or attribute is a text field with a chevron button that opens a
-list of every type you can reference - in the Text, Tree and Graphic view alike. The same field
-sits in the small dialog behind **Change Type…** in the right-click menu of the Graphic view (the
-schema diagram) and of the Tree view, pre-filled with the current type, and in the
-[SimpleType Editor](xsd-tools.md#simpletype-editor) for the base type, the list item type and new
-union member types - there it offers simple types only.
-
-The list is grouped under section headers:
-
-- **Simple types** and **Complex types** defined in the schema itself, in included schemas and
-  in imported schemas. Imported types carry the namespace prefix your schema declares for their
-  namespace (for example `cmn:Money`). If the schema declares no prefix for that namespace, the
-  bare name is shown and the detail pane reminds you to add an `xmlns` prefix for it before
-  referencing the type.
-- **Built-in XSD datatypes** - all of them, grouped by category: Any, String, Numeric, Date &
-  Time, Binary, Boolean, URI & Names, IDs & References. They use the prefix your schema actually
-  uses (`xs:` or `xsd:`). The XSD 1.1 additions (`dateTimeStamp`, `dayTimeDuration`,
-  `yearMonthDuration`, `precisionDecimal`) are included and marked as *XSD 1.1 only*.
-
-Each row shows the type's name and a one-line summary - a short description for a built-in
-type, otherwise its make-up such as *restriction of xs:string*, *extension of BaseType* or
-*sequence*. The **detail pane** on the right explains the highlighted type: what kind of type it
-is (built-in with its category, simple or complex), its description or `xs:documentation`
-(English preferred), base type and derivation (restriction / extension / list / union), facts
-such as enumeration values, patterns, length limits, *abstract*, *mixed content*, the content
-model and the number of attributes, where it comes from (*Imported from common.xsd*, *Included
-from …*), an example value for built-in types, and notes such as *XSD 1.1 only* or *not
-supported by Xerces* (for `precisionDecimal`). Point at a row to read its explanation; click it
-or press **Enter** to pick it.
-
-Working with the field:
-
-- **Type to filter.** The list opens as you type and narrows to matching names. Exact matches
-  come first, so typing `xs:int` highlights `xs:int`, not `xs:integer`.
-- **Open the full list** with the chevron button, **↓** or **Ctrl+Space** - the current type is
-  highlighted.
-- **↑ / ↓** move through the list, **PageUp / PageDown** jump eight rows at a time, **Enter**
-  picks the highlighted type, **Esc** closes the list; a second **Esc** reverts an edit you have
-  not committed yet.
-- **Free text still works.** When nothing in the list matches, **Enter** commits exactly what
-  you typed - useful for a type reference the picker does not know.
-
-A picked type is applied like every other inspector edit: one undo step (Ctrl+Z), written into
-the schema text right away. If the element defines its own content (for example a sequence of
-child elements), a dialog asks before the type replaces it, and **Cancel** shows the previous type
-again. For an element or attribute reference the field is locked. See
-[Only Valid Changes](xsd-tools.md#only-valid-changes).
-
-> The type picker arrived in version 2.6.0; earlier versions took the type as plain text.
-
-**USED IN** (in **DOCUMENTATION & REFS**) shows where a node is used:
-
-- For a **global** type, element or group, it lists every place that references it. Click an
-  entry to select the referring node in the Tree or Graphic view.
-- For a **local** declaration, it shows the global component that contains it.
-
-All three XSD views share one in-memory schema model, so your edits and Undo/Redo history are
-preserved when you switch between Text, Tree, and Graphic. Structural editing (adding, deleting,
-and moving nodes) remains a Tree/Graphic capability through the right-click context menu.
-
-### JSON Files
-
-When a JSON file is open, select a node in the **Tree** or **Graphic** (grid) view and the
-Properties sidebar shows it:
-
-- **NODE & XPATH** shows the node's **JSONPath** (e.g. `$.items[1]`) instead of an XPath;
-  click the value to copy it.
-- The **key** is editable for object properties - click the name in the node header to rename
-  the key (duplicate keys are refused). Array items (`[0]`, `[1]`, …) and the root `$` have no key.
-- The **Value** field is editable for scalars (strings, numbers, booleans, `null`); the type
-  is kept, so a number must stay a number. Objects and arrays show a summary instead.
-- The node **kind** (object, array, string, …) is shown for information.
-
-The inspector shares the document model with the grid, the tree and the text, so an edit here
-is one undo step (Ctrl+Z) and is written back into the text immediately. Structural editing
-(adding, deleting, moving or duplicating nodes, changing a value's type) is done in the grid's
-right-click context menu - see [The Grid for JSON](#json-grid). In the Text view the inspector
-shows only the document type for JSON files.
+The right-hand **Properties** inspector shows and edits the selected node of XML, XSD and JSON documents in every view - see **[Properties Inspector](inspector.md)**.
 
 ## Editor Toolbar Document Actions
 
@@ -2343,11 +1129,11 @@ use **F8**, **Tools → Validate**, the toolbar's **Validate** button or the Val
 | Action | Applies to | What it does |
 |--------|-----------|--------------|
 | **Validate** | XML, XSD, XSLT, Schematron, JSON | Validates the active document and lists any problems (or reports it is valid / well-formed). For an XML document this uses the bound XSD/Schematron if one is set; a JSON document uses its bound JSON Schema if one is set, otherwise it is checked for syntax only. |
-| **Transform with XSLT…** | XML | Opens the [Transform panel](#transform-panel) on the active XML document, asks you to pick a stylesheet if none is set, and runs it there - with the panel's parameters and output method; the result appears in the [OUTPUT panel](#the-output-panel-results) (including **Save**). Also available as **Tools → Transform with XSLT…**. |
+| **Transform with XSLT…** | XML | Opens the [Transform panel](transform-panel.md#transform-panel) on the active XML document, asks you to pick a stylesheet if none is set, and runs it there - with the panel's parameters and output method; the result appears in the [OUTPUT panel](transform-panel.md#the-output-panel-results) (including **Save**). Also available as **Tools → Transform with XSLT…**. |
 | **Generate Documentation…** (Schema ▾ menu) | XSD | Lets you choose a format - **HTML**, **PDF**, or **Word** - and an output location, then generates the schema documentation there. |
 | **Type Editor…** (Schema ▾ menu) | XSD | Lets you pick one of the schema's named types and opens it in a focused Type Editor tab. |
 | **Input** (dropdown) | XQuery, XPath, XSLT, XProc | Selects the XML document the next run works on: Automatic (last active XML document), any open XML-family tab, or a file chosen from disk. Remembered per document. |
-| **Run Query** (Run ▾) | XQuery, XPath | Runs the active query against the selected target and shows the result in the [OUTPUT panel](#the-output-panel-results) (`Ctrl+Enter`). |
+| **Run Query** (Run ▾) | XQuery, XPath | Runs the active query against the selected target and shows the result in the [OUTPUT panel](transform-panel.md#the-output-panel-results) (`Ctrl+Enter`). |
 | **Run Transform** (Run ▾) | XSLT | Runs the active stylesheet against the selected target, output format auto-detected from `xsl:output` (`Ctrl+Enter`). |
 | **Run Pipeline** (Run ▾) | XProc | Runs the active pipeline with XML Calabash, the selected target feeding the `source` port (`Ctrl+Enter`). |
 
@@ -2361,126 +1147,7 @@ faster way to reach them.
 
 ## Query Console
 
-> Run XPath, XQuery and JSONPath against the open document right from the editor. This is
-> the one place for queries - the Transform panel links here with its **Open Query Console**
-> button.
-
-The **Query Console** is a panel that opens along the **bottom of the editor**. Toggle it with the
-**terminal icon** in the editor toolbar or with **Ctrl+Shift+X**; **Ctrl+K** (or a click on the
-header search pill) opens it and focuses the query input. It runs against whichever
-document is currently active, so it is the fastest way to probe an XML or JSON file while you work.
-
-![Query Console docked at the bottom of the editor](img/unified-shell-query-console.png)
-*The Query Console with IntelliSense: typing `/` in the XPath input opens the completion popup
-(document elements and axes). The mode toggle and Run are on the left; on the right, the results
-pane shows the previous run's XML result with syntax highlighting.*
-
-### Layout
-
-- **Left - the query:**
-  - An **XPath / XQuery** mode toggle. While a JSON document is active, the XPath toggle
-    reads **JSONPath**.
-  - The query input **with IntelliSense** (autocomplete): suggestions pop up as you type after
-    `/`, `//`, `@`, `[`, `(`, `$` and `::`, or on demand with **Ctrl+Space**. It suggests element
-    and attribute names from the active document, XPath/XQuery functions, axes, operators and
-    (in XQuery mode) FLWOR keywords. Use ↑/↓ to navigate and **Enter**/**Tab** to accept.
-  - The query is **syntax-highlighted** as you type: keywords, functions, axes, variables,
-    strings, numbers and comments each get their own color.
-  - To run: press **Ctrl+Enter** in either mode (Enter inserts a new line, so queries can
-    span several lines; a hint below the query says so). The **Run** button works in both modes.
-  - **Run** - Execute the query against the active document.
-  - **Save** - Save the current expression as a reusable snippet (see below).
-  - **Snippets** - A menu of your saved XPath and XQuery snippets; pick one to load it (the console
-    switches to the matching mode automatically).
-  - **Examples** - Inserts a built-in XQuery example: **Simple**, **FLWOR**, **HTML report** or
-    **Data-quality check**.
-- **Right - the results:**
-  - A read-only, selectable results editor with **line numbers** showing the query
-    result. **XML results are
-    syntax-highlighted** (tags, attributes, values, comments), and **JSON results** (e.g. from
-    JSONPath queries) get JSON highlighting; scalar results and messages stay plain.
-  - **Copy** - Copy the full result to the clipboard.
-  - **Table** - Shows the last XQuery result as a table in the
-    [OUTPUT panel](#the-output-panel-results) (enabled after an XQuery run whose result can be
-    shown as a table).
-
-Like the text editor, every console area zooms with the mouse: hold **Ctrl** and scroll the
-**mouse wheel** over the query input or the results to change that area's font size
-(**Ctrl+0** resets it).
-
-### Running a Query
-
-1. Open the console (**Ctrl+K**, the header search pill, the terminal icon, or **Ctrl+Shift+X**) - it opens focused on the query input.
-2. Choose **XPath** or **XQuery** with the mode toggle.
-3. Type your expression, then click **Run** (in XPath mode, **Enter** also runs).
-4. The result appears on the right. Use **Copy** to put it on the clipboard.
-
-The console always runs against the **active** document. For an **XML** document it evaluates the
-expression directly; for a **JSON** document the toggle reads **JSONPath** and the input is
-evaluated as a **JSONPath** expression. When no document is open, **Run** is disabled and the results pane shows
-*"No document open."*
-
-The `map:`, `array:` and `math:` function namespaces are
-**pre-declared** in the console, so XPath 3.1 expressions using `map:merge()`,
-`array:size()`, `math:pow()` etc. run directly - no namespace prolog needed.
-
-!!! note
-    The Query Console is an additional, faster access point - it does not replace the **Transform**
-    activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
-    the OUTPUT panel's result table and HTML preview, use the [Transform Panel](#transform-panel).
-
-### Saving and Loading Snippets
-
-Reusable XPath **and** XQuery expressions are saved as **snippets**:
-
-- **Save** - Prompts for a name and stores the current expression. XPath snippets are saved as
-  `.xpath` files and XQuery snippets as `.xquery` files.
-- **Snippets** - Lists every saved snippet, prefixed with its kind (*XPath* / *XQuery*). Selecting
-  one loads it into the console and switches to the matching mode.
-
-Snippets are kept in the shared query folder.
-
-Saved snippets can be **managed** directly from the menu. Each snippet's
-submenu offers, next to *Load into console* and *Open in editor*:
-
-- **Overwrite with current query** - Replaces the saved expression with the console's current
-  input of the snippet's kind (an `.xpath` snippet always takes the XPath input, an `.xquery`
-  snippet the XQuery input), after a confirmation.
-- **Rename…** - Prompts for a new name (pre-filled with the current one). Names already in use
-  are refused.
-- **Delete…** - Deletes the snippet file, after a confirmation.
-
-The entries in the **FUNDSXML** section (see below) are read-only - they are re-registered from
-the FundsXML content cache on every start and therefore offer no management actions.
-
-Looking for ready-made queries? The installation's `examples/xpath/` folder contains
-**32 XPath 3.1 examples** and `examples/xquery/` contains **17 XQuery 3.1 scripts**
-(data-quality checks plus a reporting series producing CSV, ASCII tables/charts,
-Markdown and JSON), all written for the FundsXML4 sample files in `examples/xml/`.
-Paste them into the console, or copy the `.xpath` files into your query folder to have
-them appear in the **Snippets** menu. See the `README.md` in each folder for details.
-
-When the optional [FundsXML extension](fundsxml-extensions.md) is
-enabled, the **Snippets** menu also shows a **FUNDSXML** section with the XPath/XQuery
-example queries shipped with the FundsXML examples (for example *fund-summary*,
-*top-holdings*, *look-through*, *aggregate-by-assettype*). Selecting one loads it into the
-console and switches the XPath/XQuery mode to match. These entries come from the FundsXML
-content cache and are re-registered automatically on every start.
-
-## XPath / XQuery Autocomplete
-
-The XPath/XQuery inputs of the Query Console offer context-aware
-autocomplete in both the XPath and
-XQuery input fields. Suggestions appear automatically after trigger characters (`/`, `[`, `@`, `(`,
-`$`, `::`) or on demand with **Ctrl+Space**. Depending on context it suggests element names, attribute
-names, XPath axes, functions, and (in XQuery) variables. Navigate with the arrow keys and press
-**Enter** or **Tab** to insert; **Escape** dismisses the popup. Functions and axes are inserted with
-their parentheses / `::` automatically.
-
-### Saving, Loading and Examples
-
-Saved queries are the Query Console's **Snippets** menu, and its **Examples** menu inserts the
-built-in XQuery examples - see [Saving and Loading Snippets](#saving-and-loading-snippets).
+The **Query Console** (Ctrl+K) runs XPath, XQuery and JSONPath against the open document; `.xq` / `.xpath` documents run against a selectable input - see **[Query Console & Query Documents](query-console.md)**.
 
 ## Drag and Drop
 
@@ -2489,21 +1156,21 @@ Drag files from your file manager directly into the editor to open them. Multipl
 The file **pickers and source rows** across the shell are **drop
 targets too**:
 
-- Drop an `.xsl` / `.xslt` file onto the Transform panel's **[STYLESHEET](#stylesheet)** row
+- Drop an `.xsl` / `.xslt` file onto the Transform panel's **[STYLESHEET](transform-panel.md#stylesheet)** row
   to make it the current stylesheet.
-- Drop an `.xml` file onto the Transform panel's **[INPUT](#input)** row to make it the
+- Drop an `.xml` file onto the Transform panel's **[INPUT](transform-panel.md#input)** row to make it the
   transform's input file. On both Transform panel rows a drop behaves like picking a
   favorite: the file is loaded into the editor and the transform **runs automatically** once
   both a stylesheet and an input are ready (while **Run automatically** is checked).
 - Drop a `.sch` / `.schematron` file onto the Validation panel's
-  **[SCHEMATRON source row](#sources)** to make it the current
+  **[SCHEMATRON source row](validation-panel.md#sources)** to make it the current
   Schematron (and bind it to the active document). Like every schema, stylesheet or input
   dropped on a panel row, it is also loaded into the editor - schemas behind the document
   they are bound to, inputs as the active tab.
-- Drop an `.xsd` file onto the Validation panel's **[XSD source row](#sources)** or onto
+- Drop an `.xsd` file onto the Validation panel's **[XSD source row](validation-panel.md#sources)** or onto
   the **[schema indicator in the status bar](#status-bar)** (shown for XML-family documents)
   to bind that schema to the active document.
-- Drop a `.json` schema onto the Validation panel's **[JSON Schema source row](#sources)**
+- Drop a `.json` schema onto the Validation panel's **[JSON Schema source row](validation-panel.md#sources)**
   or onto the **[schema indicator in the status bar](#status-bar)** (while a JSON document
   is active) to bind it for JSON validation.
 - Drop an `.xml` file onto the **[PDF / FOP panel](#pdf-fop-panel)**'s XML input row, or
@@ -2525,20 +1192,4 @@ panels. The feedback colors follow the light and dark theme.
 
 ## Where the former tabs went
 
-The Unified Shell consolidates what used to be separate sidebar tabs. The earlier
-standalone editors - XSD Editor, XSD Validation, JSON Editor, XSLT Viewer, Schematron,
-Schema Generator, Digital Signatures and FOP/PDF - have been **retired** and their
-functionality now lives in the shell:
-
-| Former tab | Now in the shell |
-|------------|------------------|
-| XSD Editor / Tools | Open an `.xsd`: Text/Tree/Graphic views + inspector; **Schema** activity (Type Library panel) for type editing, documentation, flatten and schema analysis |
-| XSD Validation | **Validation** activity (single + batch, XSD & Schematron) |
-| JSON Editor | Open a `.json` / `.jsonc` / `.json5`: Text / Tree / Graphic (grid) views + inspector; JSONPath via the Query Console; JSON Schema validation in the **Validation** activity |
-| XSLT Viewer | **Transform** panel (set stylesheet, transform, preview, browser) |
-| Schematron | **Validation** activity: check rules, templates, tester, builder, documentation, CSV/JSON export |
-| Schema Generator | Editor toolbar **Schema ▾** → Generate XSD from XML |
-| Digital Signatures | **Signature** activity (sign, validate, trust validation, certificate creation) |
-| FOP / PDF | **FOP** activity (XSL-FO → PDF + preview) |
-| XSLT Developer | **Transform** panel + editor: run/live transform, parameters, and the OPTIONS & TOOLS section (batch, profile, trace, debugger) — see [XSLT Developer](xslt-developer.md) |
-| XML Editor | The shell's editor itself: every XML document opens with IntelliSense, Text/Tree/Graphic views and the Properties inspector |
+The former per-tool tabs and where their features live now are listed in **[What's New](whats-new.md#where-the-former-tabs-went)**.

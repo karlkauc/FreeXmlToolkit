@@ -35,7 +35,7 @@ bar. The panel is organized into three sections plus the primary action:
 | **OPTIONS** | **PDF/A-1b compliant** toggle and the **Page size** dropdown (A4/Letter · Portrait/Landscape) |
 | **Generate PDF** | Asks for the output file and renders off the UI thread (XSLT → XSL-FO → PDF) |
 | **RESULT** | **Preview PDF**, **Open PDF**, **Show intermediate FO** (the XSL-FO the stylesheet produced, as an editor tab) and **Messages & events (n)** (the stylesheet's `xsl:message` output and every event Apache FOP raised, in the OUTPUT panel) |
-| **TOOLS** | **Debug stylesheet…** runs the XSL-FO stylesheet in the [XSLT debugger](xslt-developer.md#interactive-live-debugger); **Render PDF from FO…** renders the FO of the latest run (e.g. of a debug run) to a PDF |
+| **TOOLS** | **Debug stylesheet…** runs the XSL-FO stylesheet in the [XSLT debugger](debugger.md#interactive-live-debugger); **Render PDF from FO…** renders the FO of the latest run (e.g. of a debug run) to a PDF |
 
 ---
 
@@ -102,7 +102,7 @@ Every generation keeps the **intermediate XSL-FO** and the messages of both stag
 ### Debugging the stylesheet
 
 **TOOLS → Debug stylesheet…** runs the XSL-FO stylesheet in the interactive
-[XSLT debugger](xslt-developer.md#interactive-live-debugger): set breakpoints in the
+[XSLT debugger](debugger.md#interactive-live-debugger): set breakpoints in the
 stylesheet's gutter, step through templates, watch variables and the context node, read
 `xsl:message` output live. The page-size and orientation parameters are passed on. When the
 debug run finishes, its FO is in the OUTPUT panel and in the panel's result, so **Show
@@ -210,13 +210,3 @@ XSL-FO (Extensible Stylesheet Language Formatting Objects) defines how your XML 
 | Generation fails | The status shows a short reason; the OUTPUT panel has the stylesheet error with its line, or FOP's reason. **Show intermediate FO** tells you whether the FO itself is what you expect |
 | PDF looks wrong (fonts, overflow) | Open **Messages & events** - FOP reports substituted fonts and overflowing content there |
 | A template does not fire / wrong values | **TOOLS → Debug stylesheet…** and step through it - see [Debugging the stylesheet](#debugging-the-stylesheet) |
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [XSLT Developer](xslt-developer.md) | [Home](index.md) | [Digital Signatures](digital-signatures.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

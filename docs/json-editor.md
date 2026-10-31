@@ -71,7 +71,7 @@ very same grid the shell uses for XML files, so it is instantly familiar:
 | **Search** | Ctrl+F finds keys and values, revealing matches inside collapsed nodes |
 | **Zoom & layout** | Zoom the whole grid with Ctrl+mouse wheel, Ctrl + / Ctrl − or the header's zoom pill (Ctrl 0 resets; the factor is shared with the XML grid). Nothing is cut off - long strings wrap onto further lines - and the columns of an array table can be dragged to a new width (double-click the separator to auto-fit). **Expand all** / **Collapse all** buttons sit in the header |
 
-See [Unified Shell - The Grid for JSON](unified-shell.md#json-grid) for details.
+See [Unified Shell - The Grid for JSON](grid.md#json-grid) for details.
 
 ### Properties Inspector
 
@@ -87,7 +87,7 @@ a node in the **Tree** or **Graphic** (grid) view and the inspector shows:
   number stays a number.
 
 Edits made in the inspector are undoable (Ctrl+Z) and written back into the text just like
-grid edits. See [Unified Shell - Properties Inspector](unified-shell.md#json-files) for details.
+grid edits. See [Unified Shell - Properties Inspector](inspector.md#json-files) for details.
 
 ### Hover Information
 
@@ -156,27 +156,17 @@ resolve as expected.
 
 ## Keyboard Shortcuts
 
+The complete list is on the **[Keyboard Shortcuts](keyboard-shortcuts.md)** page (and in the app under **Help → Keyboard Shortcuts**).
+
+JSON-specific, in the Graphic (grid) view:
+
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+N` | New JSON file |
-| `Ctrl+O` | Open file |
-| `Ctrl+S` | Save file |
-| `Ctrl+Shift+S` | Save as |
-| `Shift+Alt+F` | Format JSON |
-| `F8` | Validate JSON |
-| `Ctrl+Z` | Undo (also for tree/grid/inspector edits) |
-| `Ctrl+Y` | Redo |
-| `F2` | Rename the selected key (grid) |
-| `Ctrl+D` | Duplicate the selected node (grid; elsewhere Ctrl+D adds the file to favorites) |
-| `Alt+↑` / `Alt+↓` | Move the selected node up / down (grid) |
-| `Ctrl+Alt+X` | Copy JSONPath (grid) |
-| `Ctrl+Shift+X` | Toggle the Query Console (also while the grid has focus) |
-| `Ctrl+Shift+C` | Copy Cell Content (grid) |
-| `Ctrl+Alt+C` | Copy Node (JSON) (grid) |
-| `Ctrl++` | Zoom in (Text view: font size, Graphic view: the grid) |
-| `Ctrl+-` | Zoom out (Text view: font size, Graphic view: the grid) |
-| `Ctrl+0` | Reset zoom (Text view: font size, Graphic view: the grid) |
-| `Ctrl+mouse wheel` | Zoom (Text view: font size, Graphic view: the whole grid) |
+| `F2` | Rename the selected key |
+| `Ctrl+D` | Duplicate the selected node (elsewhere Ctrl+D adds the file to favorites) |
+| `Alt+↑` / `Alt+↓` | Move the selected node up / down |
+| `Ctrl+Alt+X` / `Ctrl+Alt+C` | Copy JSONPath / Copy Node (JSON) |
+| `Ctrl+Shift+C` | Copy Cell Content |
 
 ## Supported Formats
 
@@ -269,13 +259,3 @@ the right end of the toolbar.
 
 - [XML Editor](xml-editor.md) - Edit XML files with similar features
 - [XSLT Developer](xslt-developer.md) - Transform JSON to other formats
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [Schematron](schematron-support.md) | [Home](index.md) | [XML Editor](xml-editor.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [Schema Library](schema-library.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

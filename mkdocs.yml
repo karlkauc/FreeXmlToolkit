@@ -56,6 +56,13 @@ exclude_docs: |
   ThreadPoolArchitecture.md
   testing/auto-update-windows.md
 
+# Fail the (strict) build on broken links and anchors
+validation:
+  omitted_files: warn
+  absolute_links: info
+  unrecognized_links: warn
+  anchors: warn
+
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -96,13 +103,19 @@ nav:
   - Home: index.md
   - Download: https://github.com/karlkauc/FreeXmlToolkit/releases/latest
   - Sponsor: https://github.com/sponsors/karlkauc
-  - Unified Shell: unified-shell.md
-  - File Associations: file-associations.md
-  - Execution Statistics: execution-statistics.md
+  - Getting Started:
+    - Unified Shell: unified-shell.md
+    - Keyboard Shortcuts: keyboard-shortcuts.md
+    - Settings: settings.md
+    - Properties Inspector: inspector.md
+    - File Associations: file-associations.md
+    - Execution Statistics: execution-statistics.md
   - XML Editing:
     - XML Editor: xml-editor.md
     - Editor Features: xml-editor-features.md
+    - Grid View: grid.md
     - Auto-Completion: context-sensitive-intellisense.md
+    - Query Console: query-console.md
     - Templates: template-management.md
     - Favorites: favorites-system.md
   - JSON Editing:
@@ -114,10 +127,14 @@ nav:
     - Schema Support: schema-support.md
     - Schema Library: schema-library.md
   - Transformations:
-    - XSLT Viewer: xslt-viewer.md
+    - Transform Panel: transform-panel.md
+    - XSLT Quick Start & Examples: xslt-viewer.md
     - XSLT Developer: xslt-developer.md
+    - Debugger: debugger.md
+    - XProc Pipelines: xproc.md
     - PDF Generator (FOP): pdf-generator.md
   - Validation:
+    - Validation Panel: validation-panel.md
     - Schematron: schematron-support.md
     - Schematron Quick Fixes: schematron-quick-fixes.md
   - Industry Standards:
@@ -128,5 +145,6 @@ nav:
     - Privacy & Telemetry: telemetry.md
     - Code Signing Policy: code-signing-policy.md
   - Reference:
+    - What's New: whats-new.md
     - Technology Stack: technology-stack.md
     - Licenses: licenses.md

@@ -77,7 +77,7 @@ To try out a rule's `context` or `test` expression, open the XML document you wa
 check and press **Ctrl+Shift+X** to show the **Query Console**. It evaluates XPath (and
 XQuery) against the active document and lists the matching nodes, so you can refine an
 expression before putting it into a rule. See
-[Query Console](unified-shell.md#query-console) in the Unified Shell guide.
+[Query Console](query-console.md#query-console) in the Unified Shell guide.
 
 ---
 
@@ -125,7 +125,7 @@ Clicking a row jumps to that line in the editor.
 
 The report can be exported with **Save Report (HTML)** (a self-contained HTML file) or
 **Save SVRL (XML)** (the raw SVRL result of the run). See
-[Detailed Schematron Report](unified-shell.md#detailed-schematron-report) in the Unified
+[Detailed Schematron Report](validation-panel.md#detailed-schematron-report) in the Unified
 Shell guide.
 
 ---
@@ -337,13 +337,3 @@ Common XPath expressions for Schematron rules:
 | False positives | Review your test condition logic |
 | Namespace issues | Add namespace declarations to schema |
 | Performance slow | Optimize complex XPath expressions |
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [IntelliSense](context-sensitive-intellisense.md) | [Home](index.md) | [Schematron Quick Fixes](schematron-quick-fixes.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

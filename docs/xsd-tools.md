@@ -65,7 +65,7 @@ The Graphic View lets you explore and edit your schemas visually.
 
 ### Tips
 
-- **Right-click** for a context menu with common actions (**Add Element…** / **Add Attribute…** with all properties - see [Adding an Element or Attribute](#adding-an-element-or-attribute), **Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete). **Change Type…** opens a small dialog with the [type picker](unified-shell.md#type-picker), pre-filled with the current type - the same dialog as in the Tree view
+- **Right-click** for a context menu with common actions (**Add Element…** / **Add Attribute…** with all properties - see [Adding an Element or Attribute](#adding-an-element-or-attribute), **Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete). **Change Type…** opens a small dialog with the [type picker](inspector.md#type-picker), pre-filled with the current type - the same dialog as in the Tree view
 - Edit the name and every other property in the Properties pane on the right
 - Only edits that keep the schema valid are possible; see [Only Valid Changes](#only-valid-changes)
 - **Ctrl+Z** to undo, **Ctrl+Y** to redo
@@ -115,7 +115,7 @@ view) open one dialog in which you set the new node's properties right away. You
 fill them in afterwards in the Properties pane.
 
 - **Name**: pre-filled and selected, so you can type over it.
-- **Type**: the [type picker](unified-shell.md#type-picker) with built-in types and the
+- **Type**: the [type picker](inspector.md#type-picker) with built-in types and the
   schema's own types. Leave it empty for no type. Attributes are offered simple types only.
 - **Occurs** (elements): **min**, **max** and **unbounded**. A top-level element has no
   cardinality, so the row is hidden for **Add Root Element**.
@@ -284,7 +284,7 @@ For SimpleTypes, you get a 5-panel form editor:
 | **Annotation**  | Documentation and AppInfo |
 
 The **Base type**, **Item type** and **Add Member Type…** fields are the same
-[type picker](unified-shell.md#type-picker) as in the inspector, limited to what a simple type may
+[type picker](inspector.md#type-picker) as in the inspector, limited to what a simple type may
 derive from: the schema's other simple types and the built-in datatypes (complex types,
 `xs:anyType` and the type itself are left out).
 
@@ -309,7 +309,7 @@ A small dialog asks for the kind and the name. A free name is suggested (`NewCom
 
 The new type is added next to the schema's other types of the same kind, appears in the
 Type Library and opens in its own Type Editor tab. The diagram itself shows global elements
-only; assign the new type to an element with the [type picker](unified-shell.md#type-picker).
+only; assign the new type to an element with the [type picker](inspector.md#type-picker).
 One **Undo** removes the type again.
 
 ### How to Use
@@ -371,7 +371,7 @@ For the selected schema node you can edit:
   included and imported ones, with their namespace prefix) and every XSD built-in datatype,
   filters as you type and explains the highlighted type in a side pane; free text is still
   accepted for references it does not know. See [Choosing a type with the type
-  picker](unified-shell.md#type-picker) for the keyboard shortcuts and what the side pane shows.
+  picker](inspector.md#type-picker) for the keyboard shortcuts and what the side pane shows.
   Compositors (`xs:sequence`, `xs:choice`, `xs:all`), group references and `xs:any` also show
   editable minOccurs/maxOccurs and their Order in **CARDINALITY & USE**.
 - **Facets** - Add, edit, and remove facets such as patterns, enumerations, and length limits.
@@ -395,7 +395,7 @@ of the node in its parent compositor
 (e.g. *2 of 5 · sequence*), and **USED IN** - for a global type, element or group every place
 that references it (click an entry to select the referring node), for a local declaration the
 global component that contains it. Editable values look like plain text until you point at
-them. See [Unified Shell - Properties Inspector](unified-shell.md#properties-inspector) for the
+them. See [Unified Shell - Properties Inspector](inspector.md#properties-inspector) for the
 full layout.
 
 In the Tree/Graphic view, the **Copy XPath** and **Copy Node** buttons in NODE & XPATH copy the
@@ -403,7 +403,7 @@ schema XPath and the XSD source of the selected node.
 
 > **Tip:** You can also edit a declaration from an XML document that uses this schema: select
 > the element there and change type, cardinality, facets or documentation in its inspector - see
-> [Unified Shell - Editing the bound schema](unified-shell.md#editing-the-bound-schema).
+> [Unified Shell - Editing the bound schema](inspector.md#editing-the-bound-schema).
 
 > **Note:** Structural editing (adding, deleting, and moving nodes) remains a **Tree** and
 > **Graphic** capability via the right-click context menu. The **Text** view provides
@@ -868,25 +868,7 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 
 ## Keyboard Shortcuts
 
-| Shortcut       | Action                                        |
-|----------------|-----------------------------------------------|
-| `Ctrl+S`       | Save file                                     |
-| `Ctrl+Shift+S` | Save As                                       |
-| `Ctrl+Z`       | Undo                                          |
-| `Ctrl+Y` / `Ctrl+Shift+Z` | Redo                               |
-| `Ctrl+F`       | Find                                          |
-| `Ctrl+H`       | Find & Replace                                |
-| `Ctrl+Shift+X` | Toggle the Query Console                      |
-| `Shift+Alt+F`  | Format document                               |
-| `Delete`       | Delete the selected node (Tree / Graphic view) |
-| `F8`           | Validate                                      |
+The complete list is on the **[Keyboard Shortcuts](keyboard-shortcuts.md)** page (and in the app under **Help → Keyboard Shortcuts**).
 
----
-
-## Navigation
-
-| Previous                                      | Home             | Next                                |
-|-----------------------------------------------|------------------|-------------------------------------|
-| [XML Editor Features](xml-editor-features.md) | [Home](index.md) | [Profiled XML Generation](profiled-xml-generation.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)
+In the XSD Tree and Graphic views, **Delete** removes the selected node, and **Ctrl+Z** /
+**Ctrl+Y** undo and redo every schema edit.

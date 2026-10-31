@@ -192,7 +192,7 @@ Convert XML into other formats:
 | **Multi-File Batch Processing** | Process multiple XML files with one XQuery using `collection()` |
 | **XProc 3.0 Pipelines** | Run multi-step processing pipelines (`.xpl`) with the built-in XML Calabash engine |
 
-Learn more: [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [XProc Pipelines](unified-shell.md#xproc-pipelines)
+Learn more: [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [XProc Pipelines](xproc.md#xproc-pipelines)
 
 ### PDF Generation
 
@@ -318,39 +318,20 @@ If the interface appears blurry or animations are slow, your system may be using
 
 ## Keyboard Shortcuts
 
+The most important ones (on macOS use **Cmd** instead of Ctrl):
+
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+N` | New file |
-| `Ctrl+O` | Open file |
-| `Ctrl+W` | Close the active tab |
-| `Ctrl+Tab` / `Ctrl+Shift+Tab` | Next / previous tab |
-| `Ctrl+Q` | Quit (`Cmd+Q` on macOS) |
-| `Ctrl+S` / `Ctrl+Shift+S` | Save / Save As |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Y` (or `Ctrl+Shift+Z`) | Redo |
-| `Ctrl+F` | Find text |
-| `Ctrl+H` | Find and replace |
-| `Ctrl+Shift+F` | Find in Files (search across a folder) |
-| `Ctrl+Shift+H` | Replace in Files |
-| `Shift+Alt+F` | Format (pretty-print) the document |
+| `Ctrl+N` / `Ctrl+O` / `Ctrl+S` | New / Open / Save |
+| `Ctrl+F` / `Ctrl+Shift+F` | Find / Find in Files |
+| `Shift+Alt+F` | Format the document |
 | `F8` | Validate the current document |
-| `F9` | Toggle the breakpoint on the caret line (XSLT) |
-| `Ctrl+Enter` | Run the current transformation / query |
-| `F5` | Run the active XQuery / XPath / XSLT / XProc document |
-| `Shift+F5` | Debug with XSLT (the active XSLT document, or the Transform / PDF panel's stylesheet) |
-| `F5` / `F7` / `F8` / `Shift+F8` | While the XSLT debugger is paused: Continue / Step Into / Step Over / Step Out |
+| `F5` / `Ctrl+Enter` | Run the active XQuery / XPath / XSLT / XProc document |
+| `Shift+F5` | Start the debugger |
+| `Ctrl+K` | Open the Query Console |
 | `F1` | Show the Help menu |
-| `F11` | Toggle full screen |
-| `Ctrl+T` | Insert a template |
-| `Ctrl+Shift+X` | Toggle the Query Console |
-| `Ctrl+D` / `Ctrl+Shift+D` | Add current file to Favorites / show the Favorites panel |
-| `Ctrl+K` | Open the Query Console (same as the header search field) |
-| `Ctrl+L` / `Ctrl+Shift+P` | Show/hide the left side panel / the Properties inspector |
-| `Ctrl+E` | Spreadsheet Converter (Excel / CSV ↔ XML) |
-| `Alt+Enter` (or `Ctrl+.`) | Apply a Schematron Quick Fix |
-| `<` | Open auto-completion |
-| `Enter` | Accept suggestion |
-| `Escape` | Close popup |
+
+The complete list is on the **[Keyboard Shortcuts](keyboard-shortcuts.md)** page (and in the app under **Help → Keyboard Shortcuts**).
 
 ---
 

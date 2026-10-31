@@ -237,13 +237,3 @@ close the current one and type `<` after it.
 Prefixes are taken from the `xmlns` declarations of your document. If the namespace of the
 suggested element is not declared at all, the prefix used inside the schema is inserted -
 add the matching `xmlns:` declaration to the root element.
-
----
-
-## Navigation
-
-| Previous                                    | Home             | Next                                        |
-|---------------------------------------------|------------------|---------------------------------------------|
-| [Digital Signatures](digital-signatures.md) | [Home](index.md) | [Schematron Support](schematron-support.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

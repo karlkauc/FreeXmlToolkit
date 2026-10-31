@@ -100,11 +100,3 @@ The Schematron editor's IntelliSense completes the SQF vocabulary
 - Text nodes in heavily mixed content (text interleaved with comments/CDATA)
   may not be addressable for `sqf:stringReplace`; the fix then reports a clear
   error instead of guessing.
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [Schematron](schematron-support.md) | [Home](index.md) | [Schema Support](schema-support.md) |

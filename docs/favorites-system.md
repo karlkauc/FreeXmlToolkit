@@ -161,13 +161,3 @@ These categories are created **automatically**: right after you enable
 the FundsXML feature (the content downloads in the background - no manual download step
 needed) and again on every application start, when they are re-registered from the on-disk
 cache.
-
----
-
-## Navigation
-
-| Previous | Home | Next |
-|----------|------|------|
-| [Schema Support](schema-support.md) | [Home](index.md) | [Templates](template-management.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)

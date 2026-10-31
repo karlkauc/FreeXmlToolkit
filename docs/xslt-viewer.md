@@ -79,7 +79,7 @@ dropdown to override the detection.
 |-------------------------------|------------------------------------------------------------------------------|
 | **Run Transform**             | Runs the transformation with the current stylesheet and input                |
 | **Run automatically**         | (Checkbox next to Run Transform, on by default) Runs as soon as a stylesheet or input is dropped, picked from favorites or browsed with ◀ / ▶ |
-| **Debug**                     | (Next to Run Transform, also `Shift+F5`) Runs the stylesheet in the interactive debugger - breakpoints (toggle them in the saved stylesheet's gutter at any time, before or during a session; they are remembered per file), stepping, variables - in a DEBUG dock below the editor; see [XSLT Developer](xslt-developer.md#interactive-live-debugger) |
+| **Debug**                     | (Next to Run Transform, also `Shift+F5`) Runs the stylesheet in the interactive debugger - breakpoints (toggle them in the saved stylesheet's gutter at any time, before or during a session; they are remembered per file), stepping, variables - in a DEBUG dock below the editor; see [XSLT Developer](debugger.md#interactive-live-debugger) |
 | **Transform with XSLT…**      | (Editor toolbar / Tools menu, XML documents) Opens this panel on the active document, asks for a stylesheet if none is set, and runs it |
 | **Open result as editor tab** | (OUTPUT panel) Opens the result as an editable, savable document. HTML/XHTML results open as an HTML document rendered in the editor's read-only [Preview view](unified-shell.md#html-preview); re-running the transform updates the open tab |
 | **Open in browser**           | (OUTPUT panel) Opens the result in your default web browser                  |
@@ -392,13 +392,3 @@ the next run also opens a read-only Profile tool tab.
 
 - [XSLT Developer](xslt-developer.md) - Advanced XSLT/XQuery development: parameters, debugger, batch processing
 - [PDF Generator (FOP)](pdf-generator.md) - Generate PDFs from XSL-FO stylesheets
-
----
-
-## Navigation
-
-| Previous                            | Home             | Next                                |
-|-------------------------------------|------------------|-------------------------------------|
-| [XSD Validation](xsd-validation.md) | [Home](index.md) | [XSLT Developer](xslt-developer.md) |
-
-**All Pages:** [Unified Shell](unified-shell.md) | [XML Editor](xml-editor.md) | [XML Features](xml-editor-features.md) | [JSON Editor](json-editor.md) | [XSD Tools](xsd-tools.md) | [Profiled XML Generation](profiled-xml-generation.md) | [XSD Validation](xsd-validation.md) | [XSLT Viewer](xslt-viewer.md) | [XSLT Developer](xslt-developer.md) | [FOP/PDF](pdf-generator.md) | [Signatures](digital-signatures.md) | [IntelliSense](context-sensitive-intellisense.md) | [Schematron](schematron-support.md) | [FundsXML Extensions](fundsxml-extensions.md) | [Favorites](favorites-system.md) | [Templates](template-management.md) | [Tech Stack](technology-stack.md) | [Security](SECURITY.md) | [Licenses](licenses.md)
