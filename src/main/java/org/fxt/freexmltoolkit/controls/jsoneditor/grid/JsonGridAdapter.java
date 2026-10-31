@@ -128,6 +128,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
             return rows;
         }
         flattenChildren(container, 0, anchor, rows, groupAsTable);
+        FlatRow.openSoleContainer(rows, anchor);
         return rows;
     }
 

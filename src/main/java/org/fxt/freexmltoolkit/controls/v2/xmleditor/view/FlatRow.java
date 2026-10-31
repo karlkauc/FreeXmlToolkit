@@ -688,7 +688,9 @@ public class FlatRow {
      * belongs to {@code record} and holds {@code members} — the record's children of one name:
      * <ul>
      *   <li>one member: its attributes and children (a repeating group among them becomes a table
-     *       or numbered rows, as {@code groupAsTable} decides);</li>
+     *       or numbered rows, as {@code groupAsTable} decides); a member that only wraps one
+     *       element — whose name the cell's summary already shows — contributes that element's
+     *       content instead;</li>
      *   <li>several members (e.g. four {@code Position}s of one {@code Waehrung}): the group itself,
      *       as one table row or as numbered rows {@code <1>…<n>}.</li>
      * </ul>
@@ -707,6 +709,10 @@ public class FlatRow {
         }
         if (members.size() == 1) {
             XmlElement element = members.getFirst();
+            XmlElement sole = soleWrappedChild(element);
+            if (sole != null) {
+                element = sole; // the summary already names it: show its content, not a second level
+            }
             FlatRow anchor = new FlatRow(RowType.ELEMENT, -1, element, null, element.getName(), null, 0);
             int attrIdx = 0;
             for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
@@ -716,6 +722,7 @@ public class FlatRow {
                 rows.add(attrRow);
             }
             flattenChildren(element, -1, anchor, rows, groupAsTable, null);
+            openSoleContainer(rows, anchor);
         } else {
             FlatRow anchor = new FlatRow(RowType.ELEMENT, -1, record, null, record.getName(), null, 0);
             flattenChildren(record, -1, anchor, rows, groupAsTable, members.getFirst().getName());
@@ -913,6 +920,59 @@ public class FlatRow {
      */
     public static String groupKey(String parentPath, String name) {
         return ("/".equals(parentPath) ? "" : parentPath) + "/" + name;
+    }
+
+    /**
+     * @return the only child of {@code element} when {@code element} merely wraps it — no attributes,
+     *         no text, comments or other children — and that child has content of its own (attributes
+     *         or child elements); otherwise {@code null}
+     */
+    static XmlElement soleWrappedChild(XmlElement element) {
+        if (!element.getAttributes().isEmpty()) {
+            return null;
+        }
+        XmlElement sole = null;
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof XmlText text && text.isWhitespace()) {
+                continue;
+            }
+            if (!(child instanceof XmlElement childElement) || sole != null) {
+                return null;
+            }
+            sole = childElement;
+        }
+        if (sole == null || !sole.getAttributes().isEmpty()) {
+            return sole;
+        }
+        for (XmlNode child : sole.getChildren()) {
+            if (child instanceof XmlElement) {
+                return sole;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * When a cell's content is a single container (an {@code AssetDetails} holding just a
+     * {@code Bond}), that container starts expanded: opening the cell shows its children at once
+     * instead of one more row to open.
+     *
+     * @param rows   the cell's rows
+     * @param anchor the virtual parent of the cell's top rows
+     */
+    public static void openSoleContainer(List<FlatRow> rows, FlatRow anchor) {
+        FlatRow sole = null;
+        for (FlatRow row : rows) {
+            if (row.getParentRow() == anchor) {
+                if (sole != null) {
+                    return; // more than one top row
+                }
+                sole = row;
+            }
+        }
+        if (sole != null && sole.isExpandable()) {
+            sole.setExpanded(true);
+        }
     }
 
     /** The opened table cell's grid this row belongs to; {@code null} for the root grid. */

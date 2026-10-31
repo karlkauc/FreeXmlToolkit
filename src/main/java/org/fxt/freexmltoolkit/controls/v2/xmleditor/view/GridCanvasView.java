@@ -2140,9 +2140,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         RepeatingElementsTable.CellRect rect = table.cellRect(rowIdx, cell.columnIndex());
         double cellLeft = rect.x();
 
-        // Click on a complex cell's expand arrow (first ~16px of the cell)
+        // Click on a complex cell's expand arrow (first ~16px of the cell's summary line; below it
+        // lies the opened cell's grid, whose own expand arrows sit in the same x range)
+        RepeatingElementsTable.CellLayout summaryLayout = table.getCellLayout(row, colName);
+        double summaryBottom = tableScreenTop + rect.y()
+                + (summaryLayout != null ? summaryLayout.summaryHeight() : ROW_HEIGHT);
         if (event.getClickCount() == 1 && row.hasComplexChild(colName)
-                && mx >= cellLeft && mx <= cellLeft + 16) {
+                && mx >= cellLeft && mx <= cellLeft + 16 && my < summaryBottom) {
             row.toggleColumnExpanded(colName);
             table.recalculateColumnWidths();
             recalculateVisibleRows();

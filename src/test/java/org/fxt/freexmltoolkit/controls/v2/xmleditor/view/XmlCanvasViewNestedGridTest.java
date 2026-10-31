@@ -369,4 +369,42 @@ class XmlCanvasViewNestedGridTest {
         assertTrue(hit.isVisible(), "its collapsed <3> was opened");
         assertEquals(3, hit.getParentRow().getInstanceIndex());
     }
+
+    private static final String ASSETS = "<AssetMasterData>"
+            + "<Asset><Name>A</Name><AssetDetails><Bond><Issuer>X</Issuer>"
+            + "<Coupon><Type>f</Type><Rate>1</Rate></Coupon></Bond></AssetDetails></Asset>"
+            + "<Asset><Name>B</Name><AssetDetails><Bond><Issuer>Y</Issuer>"
+            + "<Coupon><Type>v</Type><Rate>2</Rate></Coupon></Bond></AssetDetails></Asset>"
+            + "</AssetMasterData>";
+
+    @Test
+    void aCellWrappingOneElementShowsItsContentAndNestedArrowsToggleRowsNotTheCell() {
+        load(ASSETS);
+        FlatRow owner = fx(() -> rootOwner("Asset"));
+        RepeatingElementsTable assets = fx(owner::getRepeatingTable);
+        double tableTop = fx(() -> view.rowTopAt(view.visibleRowList().indexOf(owner)));
+        int col = fx(() -> assets.getColumns().indexOf(assets.getColumn("AssetDetails")));
+        RepeatingElementsTable.CellRect cell = fx(() -> assets.cellRect(1, col));
+
+        // Open the cell with its arrow: AssetDetails only wraps Bond (named by the summary),
+        // so the cell shows Bond's children directly — no second "Bond" level
+        click(cell.x() + 6, tableTop + cell.y() + GridMetrics.ROW_HEIGHT / 2);
+        GridBlock grid = fx(() -> assets.getRows().get(1).getCellGrid("AssetDetails"));
+        assertNotNull(grid, "the cell opened");
+        assertEquals("Issuer", topRow(grid).getLabel());
+        assertTrue(grid.rows().stream().noneMatch(r -> "Bond".equals(r.getLabel())));
+        FlatRow coupon = grid.rows().stream().filter(r -> "Coupon".equals(r.getLabel())).findFirst().orElseThrow();
+        assertFalse(coupon.isExpanded());
+
+        // Coupon's arrow (inside the cell, in the x range of the cell's arrow) toggles Coupon only
+        double summary = fx(() -> assets.getCellLayout(assets.getRows().get(1), "AssetDetails").summaryHeight());
+        double couponTop = fx(() -> grid.geometry().y()[grid.geometry().index().get(coupon)]);
+        double x = cell.x() + RepeatingElementsTable.CELL_PADDING + coupon.getLabelX() + 4;
+        double y = tableTop + cell.y() + summary + couponTop + GridMetrics.ROW_HEIGHT / 2;
+        click(x, y);
+        assertNotNull(fx(() -> assets.getRows().get(1).getCellGrid("AssetDetails")), "the cell stays open");
+        assertTrue(fx(coupon::isExpanded), "Coupon opened");
+        click(x, y);
+        assertFalse(fx(coupon::isExpanded), "and closes again");
+    }
 }
