@@ -17,11 +17,19 @@
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/debugger/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/digital-signatures/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/execution-statistics/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/faq/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
@@ -37,7 +45,23 @@
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/grid/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/inspector/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/installation/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/json-editor/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/keyboard-shortcuts/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
@@ -50,6 +74,10 @@
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/profiled-xml-generation/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/query-console/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
@@ -69,6 +97,10 @@
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/settings/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/technology-stack/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
@@ -81,7 +113,19 @@
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/transform-panel/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/unified-shell/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/validation-panel/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/whats-new/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
@@ -90,6 +134,10 @@
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/xml-editor/</loc>
+         <lastmod>2026-10-31</lastmod>
+    </url>
+    <url>
+         <loc>https://karlkauc.github.io/FreeXmlToolkit/xproc/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
     <url>
@@ -106,10 +154,6 @@
     </url>
     <url>
          <loc>https://karlkauc.github.io/FreeXmlToolkit/xslt-viewer/</loc>
-         <lastmod>2026-10-31</lastmod>
-    </url>
-    <url>
-         <loc>https://karlkauc.github.io/FreeXmlToolkit/superpowers/reports/2026-09-10-sample-xml-generator-real-world-audit/</loc>
          <lastmod>2026-10-31</lastmod>
     </url>
 </urlset>
