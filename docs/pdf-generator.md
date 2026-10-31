@@ -78,12 +78,15 @@ rendered in the background - the application stays responsive throughout.
 
 ### Step 5: Preview
 
-The generated PDF opens in the built-in **PDF preview**. You can:
-- Scroll through pages
-- Review the layout
-- Check formatting
+The generated PDF opens in the built-in **PDF preview**, a tab next to your documents. You can:
+- Page through the document with the arrow buttons in its toolbar (*Page 1 / 2*)
+- Scroll within a page; it is fitted to the tab's width
+- Review the layout and formatting without leaving the app
 
-The **Preview** and **Open PDF** buttons re-open the last result at any time.
+The **Preview PDF** and **Open PDF** buttons re-open the last result at any time.
+
+![PDF preview tab](img/fop-pdf-preview.png)
+*The generated factsheet in the preview tab; the RESULT section lists the follow-up actions*
 
 ### Step 6: Understand what FOP did
 

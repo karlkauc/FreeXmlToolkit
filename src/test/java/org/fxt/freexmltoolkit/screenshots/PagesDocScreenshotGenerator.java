@@ -379,6 +379,20 @@ class PagesDocScreenshotGenerator {
             shot("fop-pdf");
         });
 
+        scene("fop-pdf-preview", () -> {
+            // Generate with the inputs of the previous scene; a successful run opens the preview tab.
+            if (shell.lookup(".fxt-fop-panel")
+                    instanceof org.fxt.freexmltoolkit.controls.shell.editor.FopPanel panel) {
+                File pdf = new File(Files.createTempDirectory("fxt-fop").toFile(), "FundsXML_Factsheet.pdf");
+                pdf.deleteOnExit();
+                onFx(() -> panel.generateTo(pdf));
+                waitUntilFx(60, () -> root.lookup(".fxt-pdf-page")
+                        instanceof javafx.scene.image.ImageView page && page.getImage() != null);
+                settle(800);
+                shot("fop-pdf-preview");
+            }
+        });
+
         // ---------------------------------------------------------------- Signature
         scene("signature scenes", () -> {
             openAndWait(signedXml, "FundsXML4");
