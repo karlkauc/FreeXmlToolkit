@@ -4625,7 +4625,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   <strong>embedded table beside the group's name cell</strong>: one row per element (numbered in the
   first column), one column per attribute (<code>=</code>) and child element (<code>&lt;&gt;</code>). Click the small
   <strong>arrow at the right of a column header</strong> to <strong>sort</strong> the group (also: <strong>Sort Column</strong> in the
-  context menu); cells with nested structure expand inline.</li>
+  context menu); cells with nested structure expand inline. <strong>Right-click a cell</strong> that is an
+  element of its own (e.g. <code>Identifiers</code> of an <code>Asset</code> row): the node actions of the context menu
+  (Add Child Element / Attribute, Rename, Copy, Delete, Move, …) act on that element; whole-row
+  actions are in the <strong>Table</strong> submenu (<strong>Insert Row Before/After</strong>, <strong>Append Row</strong>, <strong>Delete Row</strong>).</li>
 <li><strong>Every node looks like a root node, at any depth.</strong> An opened table cell shows its content as
   a grid of its own: expandable rows, blocks and - for repeating children - a <strong>table again</strong>
   (or numbered rows <code>&lt;1&gt;</code>, <code>&lt;2&gt;</code>, … after a click on the table glyph), whose cells open the same
@@ -4691,7 +4694,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   <strong>Collapse Unselected</strong> (<strong>Ctrl+Shift+−</strong>) folds every container except the path to the
   selection. Both, plus <strong>Expand All / Collapse All</strong>, are in the context menu. The expanded
   state and the selection survive edits, undo and sorting (rows are tracked by their XPath).</li>
-<li><strong>Editing every node kind.</strong> Double-click a value to edit it - also comments, CDATA sections
+<li><strong>Editing every node kind.</strong> Double-click a value to edit it - with a bound schema the editor
+  follows the declared type: a <strong>dropdown</strong> for enumerations (elements and attributes, in tree rows,
+  table columns and opened cells), date pickers, number spinners, length/pattern checks - also comments, CDATA sections
   and processing instructions; double-click the name of an attribute or a processing
   instruction to rename it. <strong>Click the type icon</strong> of a row (or press <strong>Ctrl+Alt+T</strong>) to
   change the node's type - element, attribute, text, CDATA, comment or processing instruction;
