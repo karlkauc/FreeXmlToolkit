@@ -1481,6 +1481,14 @@ public class XsdNodeRenderer {
                 return xsdNode.getChildren().size() + " items";
             }
 
+            // Handle wildcards - what they admit, and how it gets validated
+            if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAny any) {
+                return any.getNamespace() + " · " + any.getProcessContents().getValue();
+            }
+            if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAnyAttribute any) {
+                return any.getNamespace() + " · " + any.getProcessContents().getValue();
+            }
+
             // Default: empty detail
             return "";
         }

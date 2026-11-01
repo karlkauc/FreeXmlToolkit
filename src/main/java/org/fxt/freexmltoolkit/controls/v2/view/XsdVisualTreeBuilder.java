@@ -9,10 +9,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAny;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAnyAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComment;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexContent;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
@@ -651,6 +654,8 @@ public class XsdVisualTreeBuilder {
                 parentNode.addChild(createGroupRefNode(group, parentNode, visitedTypes, localVisitedElements));
             } else if (child instanceof XsdAttributeGroup group) {
                 parentNode.addChild(createAttributeGroupRefNode(group, parentNode, visitedTypes));
+            } else if (child instanceof XsdAnyAttribute any) {
+                parentNode.addChild(createWildcardNode(any, NodeWrapperType.ATTRIBUTE, parentNode));
             } else if (child instanceof XsdComment comment) {
                 VisualNode commentNode = createCommentNode(comment, parentNode);
                 parentNode.addChild(commentNode);
@@ -709,6 +714,8 @@ public class XsdVisualTreeBuilder {
                 node.addChild(nestedNode);
             } else if (child instanceof XsdGroup group) {
                 node.addChild(createGroupRefNode(group, node, visitedTypes, visitedElements));
+            } else if (child instanceof XsdAny any) {
+                node.addChild(createWildcardNode(any, NodeWrapperType.ELEMENT, node));
             } else if (child instanceof XsdComment comment) {
                 VisualNode commentNode = createCommentNode(comment, node);
                 node.addChild(commentNode);
@@ -807,9 +814,26 @@ public class XsdVisualTreeBuilder {
                     node.addChild(createAttributeNode(attribute, node));
                 } else if (child instanceof XsdAttributeGroup nested) {
                     node.addChild(createAttributeGroupRefNode(nested, node, localVisitedTypes));
+                } else if (child instanceof XsdAnyAttribute any) {
+                    node.addChild(createWildcardNode(any, NodeWrapperType.ATTRIBUTE, node));
                 }
             }
         }
+    }
+
+    /**
+     * Creates the card of an {@code xs:any} or {@code xs:anyAttribute} wildcard.
+     *
+     * @param wildcard the wildcard
+     * @param type     element or attribute card
+     * @param parent   the parent visual node
+     * @return the created visual node
+     */
+    private VisualNode createWildcardNode(XsdNode wildcard, NodeWrapperType type, VisualNode parent) {
+        VisualNode node = new VisualNode(wildcard.getName(), "", type, wildcard, parent,
+                wildcard.getMinOccurs(), wildcard.getMaxOccurs(), onModelChangeCallback);
+        nodeMap.put(wildcard.getId(), node);
+        return node;
     }
 
     private VisualNode createGroupCard(XsdNode reference, VisualNode parent) {
@@ -969,8 +993,12 @@ public class XsdVisualTreeBuilder {
                                       Set<String> visitedTypes, Set<String> visitedElements) {
         // SimpleContent contains either extension or restriction; both only add attributes
         for (XsdNode child : simpleContent.getChildren()) {
-            if (child instanceof XsdExtension || child instanceof XsdRestriction) {
-                addDerivationContent(child, parentNode, visitedTypes, visitedElements);
+            if (child instanceof XsdExtension extension) {
+                addInheritedAttributes(extension.getBase(), extension, parentNode, visitedTypes);
+                addDerivationContent(extension, parentNode, visitedTypes, visitedElements);
+            } else if (child instanceof XsdRestriction restriction) {
+                addInheritedAttributes(restriction.getBase(), restriction, parentNode, visitedTypes);
+                addDerivationContent(restriction, parentNode, visitedTypes, visitedElements);
             }
         }
     }
@@ -999,6 +1027,79 @@ public class XsdVisualTreeBuilder {
                 // A restriction restates the whole content model: the base's particles do not add to it
                 logger.debug("Processing restriction in complexContent, base='{}'", restriction.getBase());
                 addDerivationContent(restriction, parentNode, visitedTypes, visitedElements);
+                addInheritedAttributes(restriction.getBase(), restriction, parentNode, visitedTypes);
+            }
+        }
+    }
+
+    /**
+     * Adds the attributes a derivation takes from its base type. Only {@code xs:extension} under
+     * complexContent gets them by unfolding the base; a restriction restates just the particles
+     * and simpleContent has no particles to unfold.
+     *
+     * @param baseRef      the base type reference
+     * @param derivation   the extension or restriction
+     * @param parentNode   the parent visual node
+     * @param visitedTypes set of visited type names
+     */
+    private void addInheritedAttributes(String baseRef, XsdNode derivation, VisualNode parentNode,
+                                        Set<String> visitedTypes) {
+        addBaseAttributes(baseRef, declaredAttributes(derivation), parentNode, visitedTypes);
+    }
+
+    /** Names a derivation declares itself: redeclared or prohibited, so the base's version is gone. */
+    private static Set<String> declaredAttributes(XsdNode derivation) {
+        Set<String> names = new HashSet<>();
+        for (XsdNode child : derivation.getChildren()) {
+            if (child instanceof XsdAttribute attribute && attribute.getName() != null) {
+                names.add(attribute.getName());
+            }
+        }
+        return names;
+    }
+
+    private void addBaseAttributes(String baseRef, Set<String> hidden, VisualNode parentNode, Set<String> visitedTypes) {
+        if (baseRef == null || baseRef.isEmpty()) {
+            return;
+        }
+        TypeKind kind = classify(baseRef);
+        if (kind == TypeKind.UNRESOLVED) {
+            addPlaceholder(parentNode, "Unresolved type: " + baseRef, "Type definition not loaded");
+            return;
+        }
+        String typeName = localName(baseRef);
+        if (kind != TypeKind.COMPLEX || visitedTypes.contains("attributes:" + typeName)) {
+            return;
+        }
+        Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
+        localVisitedTypes.add("attributes:" + typeName);
+
+        XsdComplexType type = index.types().get(typeName);
+        for (XsdNode child : type.getChildren()) {
+            if (child instanceof XsdSimpleContent || child instanceof XsdComplexContent) {
+                for (XsdNode derivation : child.getChildren()) {
+                    String derivationBase = derivation instanceof XsdExtension extension ? extension.getBase()
+                            : derivation instanceof XsdRestriction restriction ? restriction.getBase() : null;
+                    Set<String> derivationHidden = new HashSet<>(hidden);
+                    derivationHidden.addAll(declaredAttributes(derivation));
+                    addBaseAttributes(derivationBase, derivationHidden, parentNode, localVisitedTypes);
+                    addAttributeUses(derivation, hidden, parentNode, localVisitedTypes);
+                }
+            }
+        }
+        addAttributeUses(type, hidden, parentNode, localVisitedTypes);
+    }
+
+    private void addAttributeUses(XsdNode owner, Set<String> hidden, VisualNode parentNode, Set<String> visitedTypes) {
+        for (XsdNode child : owner.getChildren()) {
+            if (child instanceof XsdAttribute attribute) {
+                if (!hidden.contains(attribute.getName()) && !"prohibited".equals(attribute.getUse())) {
+                    parentNode.addChild(createAttributeNode(attribute, parentNode));
+                }
+            } else if (child instanceof XsdAttributeGroup group) {
+                parentNode.addChild(createAttributeGroupRefNode(group, parentNode, visitedTypes));
+            } else if (child instanceof XsdAnyAttribute any) {
+                parentNode.addChild(createWildcardNode(any, NodeWrapperType.ATTRIBUTE, parentNode));
             }
         }
     }
@@ -1026,6 +1127,8 @@ public class XsdVisualTreeBuilder {
                 parentNode.addChild(createGroupRefNode(group, parentNode, visitedTypes, visitedElements));
             } else if (child instanceof XsdAttributeGroup group) {
                 parentNode.addChild(createAttributeGroupRefNode(group, parentNode, visitedTypes));
+            } else if (child instanceof XsdAnyAttribute any) {
+                parentNode.addChild(createWildcardNode(any, NodeWrapperType.ATTRIBUTE, parentNode));
             }
         }
     }

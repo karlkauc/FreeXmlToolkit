@@ -109,6 +109,10 @@ public class XsdContextMenuFactory {
         if (node.getModelObject() == null) {
             return new ContextMenu(); // A placeholder for something unresolved: nothing to edit
         }
+        if (node.getModelObject() instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAny
+                || node.getModelObject() instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAnyAttribute) {
+            return createReferenceMenu(node); // A wildcard has no name or type to edit
+        }
 
         ContextMenu menu = switch (node.getType()) {
             case ELEMENT -> createElementMenu(node);
@@ -117,7 +121,7 @@ public class XsdContextMenuFactory {
             case SIMPLE_TYPE -> createSimpleTypeMenu(node);
             case SEQUENCE, CHOICE, ALL -> createCompositorMenu(node);
             case SCHEMA -> createSchemaMenu(node);
-            case GROUP -> createGroupMenu(node);
+            case GROUP -> createReferenceMenu(node);
             case ENUMERATION -> createEnumerationMenu(node);
             case COMMENT -> createCommentMenu(node);
             default -> createDefaultMenu(node);
@@ -447,10 +451,10 @@ public class XsdContextMenuFactory {
     }
 
     /**
-     * Creates a context menu for group cards. They are references: only the reference itself can go,
-     * the content belongs to the shared definition.
+     * Creates a context menu for cards with nothing to edit in place. Group cards are references: only
+     * the reference itself can go, the content belongs to the shared definition.
      */
-    private ContextMenu createGroupMenu(VisualNode node) {
+    private ContextMenu createReferenceMenu(VisualNode node) {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
