@@ -74,33 +74,65 @@ public class XsdVisualTreeBuilder {
      */
     static final int DEFAULT_NODE_BUDGET = 2000;
 
-    /**
-     * Static cache for type indexes per schema.
-     * Key: Schema identity hash code (System.identityHashCode)
-     * Value: Map of type name → XsdComplexType
-     *
-     * This cache persists across tree rebuilds for the same schema,
-     * significantly improving performance for large schemas where
-     * type resolution is called frequently.
-     */
-    private static final Map<Integer, Map<String, XsdComplexType>> TYPE_INDEX_CACHE = new ConcurrentHashMap<>();
+    private static final String XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
+
+    /** What a type reference points at, which decides what its card can show. */
+    private enum TypeKind {
+        /** A type of the XSD namespace: no content of its own. */
+        BUILTIN,
+        /** A global complexType: its content unfolds under the card. */
+        COMPLEX,
+        /** A global simpleType: text only, nothing to unfold. */
+        SIMPLE,
+        /** Found nowhere, e.g. it lives in an include or import that could not be loaded. */
+        UNRESOLVED
+    }
 
     /**
-     * Static cache for global element indexes per schema.
-     * Key: Schema identity hash code
-     * Value: Map of element name → XsdElement
+     * The global components of a schema, by local name. Includes are part of the schema they are
+     * flattened into; imported schemas are merged in with {@link #merge}.
      */
-    private static final Map<Integer, Map<String, XsdElement>> ELEMENT_INDEX_CACHE = new ConcurrentHashMap<>();
+    private record SchemaIndex(Map<String, XsdComplexType> types, Set<String> simpleTypes,
+                               Map<String, XsdElement> elements) {
+
+        SchemaIndex() {
+            this(new HashMap<>(), new HashSet<>(), new HashMap<>());
+        }
+
+        static SchemaIndex of(XsdSchema schema) {
+            SchemaIndex index = new SchemaIndex();
+            for (XsdNode child : schema.getChildren()) {
+                if (child instanceof XsdComplexType type && hasName(type)) {
+                    index.types.put(type.getName(), type);
+                } else if (child instanceof XsdSimpleType type && hasName(type)) {
+                    index.simpleTypes.add(type.getName());
+                } else if (child instanceof XsdElement element && hasName(element) && element.getRef() == null) {
+                    index.elements.put(element.getName(), element);
+                }
+            }
+            return index;
+        }
+
+        private static boolean hasName(XsdNode node) {
+            return node.getName() != null && !node.getName().isEmpty();
+        }
+
+        void merge(SchemaIndex other) {
+            types.putAll(other.types);
+            simpleTypes.addAll(other.simpleTypes);
+            elements.putAll(other.elements);
+        }
+    }
 
     /**
-     * Tracks which schemas have been indexed (by identity hash code).
-     * This allows us to skip re-indexing if the schema hasn't changed.
+     * Indexes per schema, by identity hash code. They persist across tree rebuilds for the same
+     * schema, which saves re-scanning large schemas; structural edits invalidate them.
      */
-    private static final Set<Integer> INDEXED_SCHEMAS = ConcurrentHashMap.newKeySet();
+    private static final Map<Integer, SchemaIndex> INDEX_CACHE = new ConcurrentHashMap<>();
 
     private final Map<String, VisualNode> nodeMap = new HashMap<>();
-    private final Map<String, XsdComplexType> typeIndex = new HashMap<>();
-    private final Map<String, XsdElement> globalElementIndex = new HashMap<>();
+    /** Main schema merged with its imports; read-only once built, shared with lazy loaders. */
+    private SchemaIndex index = new SchemaIndex();
     private Map<String, XsdSchema> importedSchemas = new HashMap<>(); // Imported schemas from XsdNodeFactory
     private Runnable onModelChangeCallback;
 
@@ -123,14 +155,12 @@ public class XsdVisualTreeBuilder {
     private int elementNodeCount = 0;
 
     /**
-     * Clears the static type and element caches.
+     * Clears the static index cache.
      * Call this when a schema is modified structurally to ensure
      * fresh index data is used on next build.
      */
     public static void invalidateCache() {
-        TYPE_INDEX_CACHE.clear();
-        ELEMENT_INDEX_CACHE.clear();
-        INDEXED_SCHEMAS.clear();
+        INDEX_CACHE.clear();
         logger.debug("Type resolution cache invalidated");
     }
 
@@ -142,9 +172,7 @@ public class XsdVisualTreeBuilder {
     public static void invalidateCacheFor(XsdSchema schema) {
         if (schema != null) {
             int schemaId = System.identityHashCode(schema);
-            TYPE_INDEX_CACHE.remove(schemaId);
-            ELEMENT_INDEX_CACHE.remove(schemaId);
-            INDEXED_SCHEMAS.remove(schemaId);
+            INDEX_CACHE.remove(schemaId);
             logger.debug("Type resolution cache invalidated for schema: {}", schemaId);
         }
     }
@@ -223,8 +251,7 @@ public class XsdVisualTreeBuilder {
         this.importedSchemas = importedSchemas != null ? importedSchemas : new HashMap<>();
         this.currentSchema = schema;  // Store for lazy loading context
         nodeMap.clear();
-        typeIndex.clear();
-        globalElementIndex.clear();
+        index = new SchemaIndex();
         currentDepth = 0; // Reset depth counter for fresh build
 
         if (schema == null) {
@@ -235,78 +262,11 @@ public class XsdVisualTreeBuilder {
         logger.info("Schema has {} children", schema.getChildren().size());
         logger.info("Imported schemas: {}", this.importedSchemas.size());
 
-        // Use static cache for type and element indexes
-        int schemaId = System.identityHashCode(schema);
-        boolean usedCache = false;
-
-        if (INDEXED_SCHEMAS.contains(schemaId)) {
-            // Use cached indexes
-            Map<String, XsdComplexType> cachedTypes = TYPE_INDEX_CACHE.get(schemaId);
-            Map<String, XsdElement> cachedElements = ELEMENT_INDEX_CACHE.get(schemaId);
-            if (cachedTypes != null && cachedElements != null) {
-                typeIndex.putAll(cachedTypes);
-                globalElementIndex.putAll(cachedElements);
-                usedCache = true;
-                logger.info("Used cached indexes for schema {} ({} types, {} elements)",
-                        schemaId, typeIndex.size(), globalElementIndex.size());
-            }
+        index.merge(cachedIndex(schema));
+        for (XsdSchema importedSchema : this.importedSchemas.values()) {
+            index.merge(cachedIndex(importedSchema));
         }
-
-        if (!usedCache) {
-            // Build type index for fast lookups (main schema)
-            buildTypeIndex(schema);
-            logger.info("Built type index with {} types from main schema", typeIndex.size());
-
-            // Build global element index for fast ref lookups (main schema)
-            buildGlobalElementIndex(schema);
-            logger.info("Built global element index with {} elements from main schema", globalElementIndex.size());
-
-            // Store in static cache for future rebuilds
-            TYPE_INDEX_CACHE.put(schemaId, new HashMap<>(typeIndex));
-            ELEMENT_INDEX_CACHE.put(schemaId, new HashMap<>(globalElementIndex));
-            INDEXED_SCHEMAS.add(schemaId);
-            logger.info("Cached indexes for schema {}", schemaId);
-        }
-
-        // Index types and elements from imported schemas (always check cache first)
-        for (Map.Entry<String, XsdSchema> entry : this.importedSchemas.entrySet()) {
-            String namespace = entry.getKey();
-            XsdSchema importedSchema = entry.getValue();
-            int importedSchemaId = System.identityHashCode(importedSchema);
-
-            if (INDEXED_SCHEMAS.contains(importedSchemaId)) {
-                // Use cached indexes for imported schema
-                Map<String, XsdComplexType> cachedTypes = TYPE_INDEX_CACHE.get(importedSchemaId);
-                Map<String, XsdElement> cachedElements = ELEMENT_INDEX_CACHE.get(importedSchemaId);
-                if (cachedTypes != null) {
-                    typeIndex.putAll(cachedTypes);
-                }
-                if (cachedElements != null) {
-                    globalElementIndex.putAll(cachedElements);
-                }
-                logger.info("Used cached indexes for imported schema: namespace='{}'", namespace);
-            } else {
-                // Build and cache indexes for imported schema
-                logger.info("Indexing imported schema: namespace='{}'", namespace);
-                buildTypeIndex(importedSchema);
-                buildGlobalElementIndex(importedSchema);
-
-                // Extract and cache only the new entries from this imported schema
-                Map<String, XsdComplexType> importedTypes = new HashMap<>();
-                Map<String, XsdElement> importedElements = new HashMap<>();
-                for (XsdNode child : importedSchema.getChildren()) {
-                    if (child instanceof XsdComplexType ct && ct.getName() != null) {
-                        importedTypes.put(ct.getName(), ct);
-                    } else if (child instanceof XsdElement el && el.getName() != null && el.getRef() == null) {
-                        importedElements.put(el.getName(), el);
-                    }
-                }
-                TYPE_INDEX_CACHE.put(importedSchemaId, importedTypes);
-                ELEMENT_INDEX_CACHE.put(importedSchemaId, importedElements);
-                INDEXED_SCHEMAS.add(importedSchemaId);
-            }
-        }
-        logger.info("Total indexed types: {}, Total indexed elements: {}", typeIndex.size(), globalElementIndex.size());
+        logger.info("Total indexed types: {}, Total indexed elements: {}", index.types().size(), index.elements().size());
 
         // Find global elements (direct children of schema that are elements)
         java.util.List<XsdElement> globalElements = schema.getChildren().stream()
@@ -372,6 +332,10 @@ public class XsdVisualTreeBuilder {
             logger.debug("Visual tree built with {} global elements", rootNode.getChildren().size());
             return rootNode;
         }
+    }
+
+    private static SchemaIndex cachedIndex(XsdSchema schema) {
+        return INDEX_CACHE.computeIfAbsent(System.identityHashCode(schema), id -> SchemaIndex.of(schema));
     }
 
     /**
@@ -482,8 +446,7 @@ public class XsdVisualTreeBuilder {
                 lazyBuilder.currentSchema = this.currentSchema;
                 lazyBuilder.onModelChangeCallback = this.onModelChangeCallback;
                 lazyBuilder.importedSchemas = this.importedSchemas;
-                lazyBuilder.typeIndex.putAll(this.typeIndex);
-                lazyBuilder.globalElementIndex.putAll(this.globalElementIndex);
+                lazyBuilder.index = this.index;
                 lazyBuilder.currentDepth = capturedDepth;
 
                 // The eager path fills the card itself, so a deferred card matches an eager one.
@@ -536,21 +499,12 @@ public class XsdVisualTreeBuilder {
             // If no inline type definition and element has a type reference, try to resolve it
             // This handles cases like <xs:element name="ControlData" type="ControlDataType"/>
             String elementType = element.getType();
-            logger.info("Element '{}': hasInlineComplexType={}, type='{}', startsWithXs={}",
-                    element.getName(), hasInlineComplexType, elementType,
-                    (elementType != null && elementType.startsWith("xs:")));
-
-            if (!hasInlineComplexType && elementType != null && !elementType.isEmpty() && !elementType.startsWith("xs:")) {
-                logger.info("Calling resolveTypeReference for element '{}' with type '{}'", element.getName(), elementType);
+            if (!hasInlineComplexType && elementType != null && !elementType.isEmpty()) {
                 resolveTypeReference(elementType, node, element, visitedTypes, visitedElements);
-            } else if (!hasInlineComplexType && (elementType == null || elementType.isEmpty())) {
-                // Element has no type attribute and no inline type definition
-                // According to XSD spec, this means type="xs:anyType" (allows any content)
-                logger.debug("Element '{}' has no type attribute and no inline type definition. " +
-                        "This is treated as xs:anyType (allows any content). " +
-                        "The element will have no structured visual children.", element.getName());
-            } else {
-                logger.info("NOT resolving type reference for element '{}' (type='{}')", element.getName(), elementType);
+            } else if (!hasInlineComplexType) {
+                // No type attribute and no inline type definition: according to the XSD spec this
+                // means xs:anyType (allows any content), so there is no structure to show.
+                logger.debug("Element '{}' is treated as xs:anyType", element.getName());
             }
 
             logger.info("After processing, element '{}' node has {} children", element.getName(), node.getChildren().size());
@@ -560,8 +514,8 @@ public class XsdVisualTreeBuilder {
     }
 
     /**
-     * Checks if an element has complex content (children that would need to be visualized).
-     * Used to determine if lazy loading is beneficial for this element.
+     * Checks if an element will have something to unfold, which is what earns a card its expand
+     * button before its children exist. An unresolved type counts: its placeholder says so.
      *
      * @param element the element to check
      * @return true if the element has complex content
@@ -574,10 +528,62 @@ public class XsdVisualTreeBuilder {
             }
         }
 
-        // A non-builtin type reference (ComplexType) would have children, as would an element reference.
+        if (element.getRef() != null && !element.getRef().isEmpty()) {
+            return true;
+        }
         String elementType = element.getType();
-        return (elementType != null && !elementType.isEmpty() && !elementType.startsWith("xs:"))
-                || (element.getRef() != null && !element.getRef().isEmpty());
+        if (elementType == null || elementType.isEmpty()) {
+            return false;
+        }
+        TypeKind kind = classify(elementType);
+        return kind == TypeKind.COMPLEX || kind == TypeKind.UNRESOLVED;
+    }
+
+    /**
+     * Classifies a type reference through the schema's prefix declarations, so any prefix bound to
+     * the XSD namespace works and a user type named like a built-in one is not mistaken for it.
+     * A prefixless reference prefers an indexed type, since schemas with XSD as their default
+     * namespace and no target namespace reference their own types that way.
+     *
+     * @param typeRef the QName as written in the schema
+     * @return what the reference points at
+     */
+    private TypeKind classify(String typeRef) {
+        int colon = typeRef.indexOf(':');
+        String prefix = colon < 0 ? "" : typeRef.substring(0, colon);
+        String localName = localName(typeRef);
+        String namespace = currentSchema != null ? currentSchema.getNamespaces().get(prefix) : null;
+        boolean xsdNamespace = namespace != null
+                ? XSD_NAMESPACE.equals(namespace)
+                : "xs".equals(prefix) || "xsd".equals(prefix);
+        boolean indexed = index.types().containsKey(localName) || index.simpleTypes().contains(localName);
+
+        if (xsdNamespace && (colon >= 0 || !indexed)) {
+            return TypeKind.BUILTIN;
+        }
+        if (index.types().containsKey(localName)) {
+            return TypeKind.COMPLEX;
+        }
+        return indexed ? TypeKind.SIMPLE : TypeKind.UNRESOLVED;
+    }
+
+    private static String localName(String qName) {
+        return qName.substring(qName.indexOf(':') + 1);
+    }
+
+    /**
+     * Adds a card that names something the schema refers to but the diagram cannot show.
+     *
+     * @param parentNode the card it belongs to
+     * @param anchor     the model node that holds the reference
+     * @param label      the card's title
+     * @param detail     the card's second line
+     */
+    private void addPlaceholder(VisualNode parentNode, XsdNode anchor, String label, String detail) {
+        VisualNode placeholder = new VisualNode(label, detail, NodeWrapperType.ELEMENT, anchor, parentNode,
+                1, 1, onModelChangeCallback);
+        placeholder.setPlaceholderText(label, detail);
+        parentNode.addChild(placeholder);
     }
 
     /**
@@ -724,88 +730,30 @@ public class XsdVisualTreeBuilder {
      *
      * @param typeRef      the type reference (e.g., "ControlDataType")
      * @param parentNode   the visual node to add children to
-     * @param element      the element that references this type
+     * @param anchor       the element or derivation that holds the reference
      * @param visitedTypes set of type names currently being processed (to prevent circular references)
      * @param visitedElements set of element IDs currently being processed (to prevent circular references)
      */
-    private void resolveTypeReference(String typeRef, VisualNode parentNode, XsdElement element, Set<String> visitedTypes, Set<String> visitedElements) {
-        logger.debug("resolveTypeReference called: typeRef='{}', element='{}', parentNode.children={}",
-                typeRef, element.getName(), parentNode.getChildren().size());
-
+    private void resolveTypeReference(String typeRef, VisualNode parentNode, XsdNode anchor,
+                                      Set<String> visitedTypes, Set<String> visitedElements) {
         if (typeRef == null || typeRef.isEmpty()) {
-            logger.debug("Type reference is null or empty, skipping");
             return;
         }
 
-        // Skip built-in XML Schema types (they don't have children)
-        if (typeRef.startsWith("xs:") || typeRef.startsWith("xsd:")) {
-            logger.debug("Skipping built-in XSD type: {}", typeRef);
-            return;
-        }
-
-        // Remove namespace prefix if present
-        String typeName = typeRef;
-        if (typeName.contains(":")) {
-            typeName = typeName.substring(typeName.indexOf(":") + 1);
-        }
-        logger.debug("Type name after prefix removal: '{}'", typeName);
-
-        // Check for circular reference - if this type is already being processed, skip it
-        if (visitedTypes.contains(typeName)) {
-            logger.debug("Circular reference detected: type '{}' is already being processed for element '{}'. Skipping to prevent infinite recursion.",
-                    typeName, element.getName());
-            return;
-        }
-
-        logger.debug("Resolving type reference '{}' for element '{}'", typeName, element.getName());
-
-        // Use type index for fast lookup. It needs no schema root, so the detached placeholder
-        // elements of complexContent base types resolve too.
-        XsdComplexType complexType = typeIndex.get(typeName);
-        if (complexType != null) {
-            logger.info("Found complexType '{}' for element '{}' (from index), processing with {} children",
-                    typeName, element.getName(), complexType.getChildren().size());
-
-            // Create a new visitedTypes set that includes the current type
-            // This prevents circular references within this type resolution chain
-            // but allows the same type to be used in parallel branches
-            Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
-            localVisitedTypes.add(typeName);
-
-            processComplexType(complexType, parentNode, localVisitedTypes, visitedElements);
-            logger.info("After processing, parentNode '{}' has {} children",
-                    parentNode.getLabel(), parentNode.getChildren().size());
-        } else {
-            logger.warn("Type '{}' not found in type index (has {} types)", typeName, typeIndex.size());
-        }
-    }
-
-    /**
-     * Builds an index of complex types for fast lookup.
-     *
-     * @param schema the schema to index
-     */
-    private void buildTypeIndex(XsdSchema schema) {
-        for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdComplexType complexType
-                    && complexType.getName() != null && !complexType.getName().isEmpty()) {
-                typeIndex.put(complexType.getName(), complexType);
-            }
-        }
-    }
-
-    /**
-     * Builds an index of global elements for fast ref lookup.
-     *
-     * @param schema the schema to index
-     */
-    private void buildGlobalElementIndex(XsdSchema schema) {
-        for (XsdNode child : schema.getChildren()) {
-            // Only index elements with name (not refs)
-            if (child instanceof XsdElement element
-                    && element.getName() != null && !element.getName().isEmpty() && element.getRef() == null) {
-                globalElementIndex.put(element.getName(), element);
-                logger.debug("Indexed global element: {}", element.getName());
+        switch (classify(typeRef)) {
+            case BUILTIN, SIMPLE -> logger.trace("Type '{}' has no structure to show", typeRef);
+            case UNRESOLVED -> addPlaceholder(parentNode, anchor, "Unresolved type: " + typeRef,
+                    "Type definition not loaded");
+            case COMPLEX -> {
+                String typeName = localName(typeRef);
+                // The same type may repeat in parallel branches, just not within its own chain
+                if (visitedTypes.contains(typeName)) {
+                    logger.debug("Circular reference detected: type '{}' is already being processed", typeName);
+                    return;
+                }
+                Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
+                localVisitedTypes.add(typeName);
+                processComplexType(index.types().get(typeName), parentNode, localVisitedTypes, visitedElements);
             }
         }
     }
@@ -830,14 +778,11 @@ public class XsdVisualTreeBuilder {
         }
 
         // Remove namespace prefix if present (e.g., "ds:Signature" -> "Signature")
-        String elementName = ref;
-        if (elementName.contains(":")) {
-            elementName = elementName.substring(elementName.indexOf(":") + 1);
-        }
+        String elementName = localName(ref);
         logger.debug("Element name after prefix removal: '{}'", elementName);
 
         // Look up the global element in the index
-        XsdElement referencedElement = globalElementIndex.get(elementName);
+        XsdElement referencedElement = index.elements().get(elementName);
         if (referencedElement != null) {
             logger.info("Found global element '{}' for ref='{}', processing structure", elementName, ref);
 
@@ -854,7 +799,7 @@ public class XsdVisualTreeBuilder {
 
             // Process the referenced element's type if it has one
             String referencedType = referencedElement.getType();
-            if (referencedType != null && !referencedType.isEmpty() && !referencedType.startsWith("xs:")) {
+            if (referencedType != null && !referencedType.isEmpty()) {
                 logger.info("Referenced element '{}' has type='{}', resolving", elementName, referencedType);
                 resolveTypeReference(referencedType, parentNode, referencedElement, visitedTypes, localVisitedElements);
             }
@@ -871,7 +816,7 @@ public class XsdVisualTreeBuilder {
         } else {
             logger.warn("Referenced element '{}' not found in global element index (has {} elements). " +
                     "This may be because the element is defined in an imported schema that hasn't been loaded.",
-                    elementName, globalElementIndex.size());
+                    elementName, index.elements().size());
 
             // Create a placeholder child node for unresolved external references
             // This allows the user to see that there is a reference and expand the node
@@ -880,17 +825,7 @@ public class XsdVisualTreeBuilder {
                     ? "External: " + ref + " (from " + namespacePrefix + " namespace)"
                     : "External: " + ref + " (unresolved)";
 
-            VisualNode placeholderNode = new VisualNode(
-                    placeholderLabel,
-                    "Referenced element not loaded",
-                    NodeWrapperType.ELEMENT,
-                    referencingElement,  // Use the referencing element as the model
-                    parentNode,
-                    1, 1,
-                    onModelChangeCallback
-            );
-            placeholderNode.setPlaceholderText(placeholderLabel, "Referenced element not loaded");
-            parentNode.addChild(placeholderNode);
+            addPlaceholder(parentNode, referencingElement, placeholderLabel, "Referenced element not loaded");
             logger.info("Created placeholder for unresolved reference '{}', parentNode '{}' now has {} children",
                     ref, parentNode.getLabel(), parentNode.getChildren().size());
         }
@@ -951,13 +886,7 @@ public class XsdVisualTreeBuilder {
 
                 // An extension appends to the base type's content, so that comes first
                 String baseType = extension.getBase();
-                if (baseType != null && !baseType.isEmpty() && !baseType.startsWith("xs:")) {
-                    logger.debug("Resolving base type '{}' for complexContent extension", baseType);
-                    // Create a dummy element to pass to resolveTypeReference
-                    XsdElement dummyElement = new XsdElement("extension");
-                    dummyElement.setType(baseType);
-                    resolveTypeReference(baseType, parentNode, dummyElement, visitedTypes, visitedElements);
-                }
+                resolveTypeReference(baseType, parentNode, extension, visitedTypes, visitedElements);
                 addDerivationContent(extension, parentNode, visitedTypes, visitedElements);
             } else if (child instanceof XsdRestriction restriction) {
                 // A restriction restates the whole content model: the base's particles do not add to it
