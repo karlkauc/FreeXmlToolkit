@@ -72,6 +72,30 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Ctrl+S** to save (a backup is created automatically - **Settings → Schemas & Validation → XSD** lets you turn this off or change the number of kept versions, 3 by default)
 - The toolbar's **Save ▾** split button saves the schema; its arrow menu offers **Save As…** (Ctrl+Shift+S, save under a new name) and **Save All** (saves every open tab)
 
+### What the Diagram Shows {#what-the-diagram-shows}
+
+- **Expanding cards.** Click a card's expand button to open it. In a large schema the diagram
+  draws the first 2000 elements up front; the rest loads when you open the card that holds it.
+  Simple types and built-in types have no content to open, so they have no expand button.
+- **Inherited content.** A type built with `xs:extension` also shows the content of its base
+  type. A type built with `xs:restriction` shows only what the restriction itself declares.
+- **Group references.** `xs:group` and `xs:attributeGroup` references appear as their own cards,
+  labelled `group: Name` and `attributeGroup: Name`. Attribute group cards stay closed until you
+  open them. The right-click menu of these cards offers only **Delete** and **Copy XPath**:
+  **Delete** removes the reference, not the shared definition.
+- **Placeholder cards.** When the diagram cannot show something, a card names it, and it has no
+  right-click actions:
+    - `Unresolved type: X`, `Unresolved group: X`, `Unresolved attribute group: X`: the definition
+      was not found, often because it is in a file that could not be loaded.
+    - `External: ...`: a referenced element was not found. It usually belongs to another
+      namespace whose schema is not loaded.
+- **Warning bar for missing schemas.** A bar above the diagram names the includes and imports that
+  could not be loaded, also those inside imported schemas and nested includes. Circular includes
+  are not failures. **Dismiss** hides the bar until the set of failures changes. A schema you have
+  not saved yet has no file location, so it cannot resolve its includes: save it first.
+
+For what the diagram leaves out, see [Supported XSD Features](#supported-xsd-features).
+
 ### Moving and Copying by Drag and Drop {#drag-and-drop-in-the-diagram}
 
 In the Graphic view you can rearrange the schema by dragging its cards: elements, compositors
@@ -198,6 +222,8 @@ A few things to know:
   namespace (step 5).
 - `xs:include` references are resolved relative to the including file, or through an XML
   catalog / Schema Library entry for their location - they are not looked up by namespace.
+- If an include or import still cannot be loaded, the Graphic view
+  [names it in a bar above the diagram](#what-the-diagram-shows).
 - Internal and private network addresses are never contacted - see
   [Security Features](SECURITY.md#ssrf-server-side-request-forgery-protection).
 - Clearing the cache (**Settings → Files & Cache → TEMP & CACHE**, or the Schema Library's Cache tab) is safe:
@@ -863,6 +889,7 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 | **References**  | Import, Include (resolved, also transitively); Redefine and Override are parsed but not resolved |
 | **XSD 1.1**     | Assertions (`xs:assert`) are loaded, shown and analysed; `xs:alternative` and `xs:openContent` are honored by the XSD 1.1 validator but not shown in the graphical views |
 | **Identity**    | Key, KeyRef, Unique                                                      |
+| **Diagram limits** | Inherited attributes of restrictions and `xs:anyAttribute` are not shown in the Graphic view |
 
 ---
 
