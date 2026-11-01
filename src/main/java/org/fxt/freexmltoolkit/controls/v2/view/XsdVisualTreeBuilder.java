@@ -75,11 +75,13 @@ public class XsdVisualTreeBuilder {
     private static final int MAX_DEPTH = 30;
 
     /**
-     * Element cards one build creates eagerly. A type used in several places is unfolded at every use,
-     * so a small schema with nested reuse can expand into millions of cards (seconds to minutes on the
-     * FX thread); past this budget, elements with content get a lazy loader and unfold when expanded.
+     * Cards one build creates eagerly, of any kind. A type used in several places is unfolded at every
+     * use, so a small schema with nested reuse can expand into millions of cards (seconds to minutes on
+     * the FX thread); past this budget, elements and groups with content get a lazy loader and unfold
+     * when expanded. Most of a build is never shown, so the budget mainly bounds the rebuild after an
+     * edit.
      */
-    static final int DEFAULT_NODE_BUDGET = 2000;
+    static final int DEFAULT_NODE_BUDGET = 4000;
 
     private static final String XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
 
@@ -225,11 +227,11 @@ public class XsdVisualTreeBuilder {
     /** Reference to the schema for lazy loading context */
     private XsdSchema currentSchema;
 
-    /** Eager element cards allowed in one build (a lazy expansion starts a fresh budget). */
+    /** Eager cards allowed in one build (a lazy expansion starts a fresh budget). */
     private int nodeBudget = DEFAULT_NODE_BUDGET;
 
-    /** Element cards created so far in this build. */
-    private int elementNodeCount = 0;
+    /** Cards created so far in this build. */
+    private int cardCount = 0;
 
     /**
      * Clears the static index cache.
@@ -274,9 +276,9 @@ public class XsdVisualTreeBuilder {
     }
 
     /**
-     * Sets how many element cards a build creates before it defers the rest to lazy loaders.
+     * Sets how many cards a build creates before it defers the rest to lazy loaders.
      *
-     * @param budget eager element cards per build (at least 1)
+     * @param budget eager cards per build (at least 1)
      * @return this builder for method chaining
      */
     public XsdVisualTreeBuilder withNodeBudget(int budget) {
@@ -513,9 +515,9 @@ public class XsdVisualTreeBuilder {
 
         // Check if we should defer child loading (lazy loading optimization)
         // Elements with potential children beyond the lazy threshold get lazy loaders
-        elementNodeCount++;
+        cardCount++;
         boolean shouldLazyLoad = (buildMode != BuildMode.FULL && currentDepth >= lazyLoadDepthThreshold)
-                || elementNodeCount > nodeBudget;
+                || cardCount > nodeBudget;
         boolean hasComplexContent = hasComplexContent(element);
 
         if (shouldLazyLoad && hasComplexContent) {
@@ -771,6 +773,7 @@ public class XsdVisualTreeBuilder {
         };
 
         VisualNode node = new VisualNode(label, detail, nodeType, compositorNode, parent, 1, 1, onModelChangeCallback);
+        cardCount++;
 
         // Expand compositors by default so their children are visible
         node.setExpanded(true);
@@ -825,7 +828,7 @@ public class XsdVisualTreeBuilder {
     private VisualNode createGroupRefNode(XsdGroup group, VisualNode parent,
                                           Set<String> visitedTypes, Set<String> visitedElements) {
         VisualNode node = createGroupCard(group, parent);
-        if (elementNodeCount > nodeBudget) {
+        if (cardCount > nodeBudget) {
             Set<String> capturedVisitedTypes = new HashSet<>(visitedTypes);
             Set<String> capturedVisitedElements = new HashSet<>(visitedElements);
             int capturedDepth = currentDepth;
@@ -918,6 +921,7 @@ public class XsdVisualTreeBuilder {
     private VisualNode createWildcardNode(XsdNode wildcard, NodeWrapperType type, VisualNode parent) {
         VisualNode node = new VisualNode(wildcard.getName(), "", type, wildcard, parent,
                 wildcard.getMinOccurs(), wildcard.getMaxOccurs(), onModelChangeCallback);
+        cardCount++;
         nodeMap.put(wildcard.getId(), node);
         return node;
     }
@@ -925,6 +929,7 @@ public class XsdVisualTreeBuilder {
     private VisualNode createGroupCard(XsdNode reference, VisualNode parent) {
         VisualNode node = new VisualNode(reference.getName(), "", NodeWrapperType.GROUP, reference, parent,
                 reference.getMinOccurs(), reference.getMaxOccurs(), onModelChangeCallback);
+        cardCount++;
         node.setExpanded(true);
         nodeMap.put(reference.getId(), node);
         return node;
@@ -938,6 +943,7 @@ public class XsdVisualTreeBuilder {
 
         // Detail string will be built by VisualNode.buildDetailString() from model properties
         VisualNode node = new VisualNode(label, "", NodeWrapperType.ATTRIBUTE, attribute, parent, 1, 1, onModelChangeCallback);
+        cardCount++;
 
         // Add to nodeMap for later lookup
         nodeMap.put(attribute.getId(), node);
