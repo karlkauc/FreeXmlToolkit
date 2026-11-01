@@ -108,6 +108,24 @@ public class XsdDocumentationImageService {
     static final int borderRadius = 8;
     static final int plusIconApproxWidth = 24;
 
+    /** Font size of the page's own (root) element name, larger than the child names. */
+    static final int ROOT_FONT_SIZE = 16;
+    /** Font size of the attribute rows listed inside an element box. */
+    static final int ATTRIBUTE_FONT_SIZE = 12;
+    /** Height of one attribute row inside an element box. */
+    static final int ATTRIBUTE_ROW_HEIGHT = 18;
+    /** Space above the attribute rows (holds the separator line). */
+    static final int ATTRIBUTE_SECTION_TOP = 8;
+    /** Space below the last attribute row. */
+    static final int ATTRIBUTE_SECTION_BOTTOM = 2;
+
+    /** Centre of the {@code #sequence-icon} path (bbox 2..22 x 5..19). */
+    static final double SEQUENCE_ICON_CENTER_X = 12;
+    static final double SEQUENCE_ICON_CENTER_Y = 12;
+    /** Centre of the {@code #choice-icon} path (bbox 2..20 x 8..16). */
+    static final double CHOICE_ICON_CENTER_X = 11;
+    static final double CHOICE_ICON_CENTER_Y = 12;
+
     // Colors matching XsdDiagramView styles
     private static final String COLOR_BG = "#f0f8ff";                    // Background matching XsdDiagramView
     private static final String COLOR_BOX_FILL_ELEMENT = "#f0f8ff";      // Element background
@@ -124,6 +142,7 @@ public class XsdDocumentationImageService {
     private static final String COLOR_STROKE_SEPARATOR = "#dee2e6";      // Separator lines
     private static final String COLOR_TEXT_PRIMARY = "#2c5aa0";          // Element text
     private static final String COLOR_TEXT_SECONDARY = "#6c757d";        // Secondary text
+    private static final String COLOR_TEXT_ATTRIBUTE = "#8a6116";        // Attribute names inside element boxes
     private static final String COLOR_SHADOW = "rgba(0, 0, 0, 0.2)";     // Drop shadow
 
     // Type-specific colors from XsdDiagramView
@@ -146,6 +165,8 @@ public class XsdDocumentationImageService {
     static final String ELEMENT_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);";
     static final String ELEMENT_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; stroke-dasharray: 5, 2; fill: url(#elementGradient); filter: url(#dropShadow);";
     static final String ELEMENT_REPEATABLE_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 2; fill: url(#elementGradient); filter: url(#dropShadow);";
+    static final String ROOT_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 3; fill: url(#elementGradient); filter: url(#dropShadow);";
+    static final String ROOT_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_ELEMENT + "; stroke-width: 3; stroke-dasharray: 5, 2; fill: url(#elementGradient); filter: url(#dropShadow);";
     static final String ATTRIBUTE_MANDATORY_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1.5; fill: url(#attributeGradient); filter: url(#dropShadow);";
     static final String ATTRIBUTE_OPTIONAL_FORMAT = "stroke: " + COLOR_STROKE_ATTRIBUTE + "; stroke-width: 1; stroke-dasharray: 5, 2; fill: url(#attributeGradient); filter: url(#dropShadow);";
     static final String SEQUENCE_FORMAT = "stroke: " + COLOR_STROKE_SEQUENCE + "; stroke-width: 2; fill: url(#sequenceGradient); filter: url(#dropShadow);";
@@ -420,15 +441,10 @@ public class XsdDocumentationImageService {
             return document;
         }
 
-        // Collect child elements (including compositor containers)
-        List<XsdExtendedElement> childElements = new ArrayList<>();
-        if (rootElement.getChildren() != null) {
-            for (String temp : rootElement.getChildren()) {
-                if (extendedXsdElements.get(temp) != null) {
-                    childElements.add(extendedXsdElements.get(temp));
-                }
-            }
-        }
+        // Collect child elements (including compositor containers); attributes are listed
+        // inside the root box instead of being drawn as separate nodes
+        List<XsdExtendedElement> childElements = resolveChildren(rootElement, false);
+        List<XsdExtendedElement> rootAttributes = resolveChildren(rootElement, true);
 
         // Check if there is exactly one child and it's a compositor container
         // In that case, we'll draw the compositor symbol and use its children
@@ -508,9 +524,13 @@ public class XsdDocumentationImageService {
         // Calculate symmetric sizes - AFTER compositor flattening
         double maxChildWidth = calculateMaxChildWidth(childElements);
 
-        var rootElementBounds = font.getStringBounds(rootElement.getElementName(), frc);
-        var rootElementHeight = rootElementBounds.getBounds2D().getHeight();
-        var rootElementWidth = rootElementBounds.getBounds2D().getWidth();
+        // The root (the page's own element) is set in a larger bold font so it stands out
+        Font rootFont = font.deriveFont(Font.BOLD, (float) ROOT_FONT_SIZE);
+        var rootElementBounds = rootFont.getStringBounds(rootElement.getElementName(), frc);
+        double rootNameHeight = rootElementBounds.getBounds2D().getHeight();
+        var rootElementHeight = rootNameHeight + attributeSectionHeight(rootAttributes);
+        var rootElementWidth = Math.max(rootElementBounds.getBounds2D().getWidth(),
+                attributeSectionWidth(rootAttributes));
 
         // Calculate the actual total height of child elements (with flattened compositor children)
         double totalChildElementsHeight = calculateTotalChildElementsHeight(childElements);
@@ -532,17 +552,21 @@ public class XsdDocumentationImageService {
                 rootElementHeight, rootElementWidth,
                 String.valueOf(rootStartX), String.valueOf(rootStartY));
         rect1.setAttribute("filter", "url(#dropShadow)");
-        rect1.setAttribute("style", rootElement.isMandatory() ? ELEMENT_MANDATORY_FORMAT : ELEMENT_OPTIONAL_FORMAT);
+        rect1.setAttribute("style", rootElement.isMandatory() ? ROOT_MANDATORY_FORMAT : ROOT_OPTIONAL_FORMAT);
         rect1.setAttribute("class", "hoverable-rect");
+        rect1.setAttribute("data-root", "true");
 
         Element text1 = createSvgTextElement(document, rootElement.getElementName(),
                 String.valueOf(rootStartX + boxPadding),
-                String.valueOf(rootStartY + boxPadding + rootElementHeight),
-                COLOR_TEXT_PRIMARY, font.getSize());
+                String.valueOf(rootStartY + boxPadding + rootNameHeight),
+                COLOR_TEXT_PRIMARY, ROOT_FONT_SIZE);
+        text1.setAttribute("font-weight", "700");
 
         leftRootLink.appendChild(rect1);
         leftRootLink.appendChild(text1);
         svgRoot.appendChild(leftRootLink);
+        drawAttributeSection(document, svgRoot, rootAttributes,
+                rootStartX + boxPadding, rootStartY + boxPadding + rootNameHeight, rootElementWidth);
         updateMaxRightEdge(maxRightEdge, rootStartX + boxPadding * 2 + rootElementWidth);
 
         // Add documentation (only if showDocumentation is enabled)
@@ -682,7 +706,8 @@ public class XsdDocumentationImageService {
 
             double nameHeight = nameBounds.getBounds2D().getHeight();
             double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
-            double totalContentHeight = nameHeight + typeHeight;
+            double totalContentHeight = nameHeight + typeHeight
+                    + attributeSectionHeight(resolveChildren(childElement, true));
 
             totalHeight += boxPadding * 2 + totalContentHeight + margin * 2;
         }
@@ -724,6 +749,7 @@ public class XsdDocumentationImageService {
             }
 
             maxWidth = Math.max(maxWidth, Math.max(nameWidth, secondLineWidth));
+            maxWidth = Math.max(maxWidth, attributeSectionWidth(resolveChildren(childElement, true)));
         }
         return maxWidth + boxPadding * 2;
     }
@@ -812,9 +838,9 @@ public class XsdDocumentationImageService {
 
             Element seqIconUse = document.createElementNS(svgNS, "use");
             seqIconUse.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#sequence-icon");
-            // Center the sequence icon (~16x16) within the rectangle
-            seqIconUse.setAttribute("x", String.valueOf(symbolCenterX - 8));
-            seqIconUse.setAttribute("y", String.valueOf(symbolCenterY - 8));
+            // Center the sequence icon (24x24 path) within the rectangle
+            seqIconUse.setAttribute("x", String.valueOf(symbolCenterX - SEQUENCE_ICON_CENTER_X));
+            seqIconUse.setAttribute("y", String.valueOf(symbolCenterY - SEQUENCE_ICON_CENTER_Y));
             seqGroup.appendChild(seqIconUse);
 
             svgRoot.appendChild(seqGroup);
@@ -837,8 +863,8 @@ public class XsdDocumentationImageService {
 
             Element choiceIconUse = document.createElementNS(svgNS, "use");
             choiceIconUse.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#choice-icon");
-            choiceIconUse.setAttribute("x", String.valueOf(symbolCenterX - symbolWidth / 2 + 6));
-            choiceIconUse.setAttribute("y", String.valueOf(symbolCenterY - 8));
+            choiceIconUse.setAttribute("x", String.valueOf(symbolCenterX - CHOICE_ICON_CENTER_X));
+            choiceIconUse.setAttribute("y", String.valueOf(symbolCenterY - CHOICE_ICON_CENTER_Y));
             choiceGroup.appendChild(choiceIconUse);
 
             svgRoot.appendChild(choiceGroup);
@@ -1169,7 +1195,11 @@ public class XsdDocumentationImageService {
             if (id != null && !id.isEmpty()) {
                 // Find the corresponding element in our data to determine if it's optional
                 XsdExtendedElement element = extendedXsdElements.get(id);
-                if (element != null) {
+                if ("true".equals(rect.getAttribute("data-root"))) {
+                    boolean optional = element != null ? !element.isMandatory()
+                            : rect.getAttribute("style").contains("stroke-dasharray");
+                    rect.setAttribute("style", optional ? ROOT_OPTIONAL_FORMAT : ROOT_MANDATORY_FORMAT);
+                } else if (element != null) {
                     if (!element.isMandatory()) {
                         rect.setAttribute("style", ELEMENT_OPTIONAL_FORMAT);
                     } else {
@@ -1192,7 +1222,8 @@ public class XsdDocumentationImageService {
         for (int i = 0; i < paths.getLength(); i++) {
             Element path = (Element) paths.item(i);
             String d = path.getAttribute("d");
-            if (d != null && !d.isEmpty()) {
+            // Icon paths in <defs> keep their own fill; only connection lines are restyled
+            if (d != null && !d.isEmpty() && !isInsideDefs(path)) {
                 // Check if this path has the optional connection style class
                 String currentStyle = path.getAttribute("style");
                 if (currentStyle != null && currentStyle.contains("stroke-dasharray")) {
@@ -1612,7 +1643,12 @@ public class XsdDocumentationImageService {
                                          double[] maxRightEdge,
                                          boolean useElbowConnections,
                                          String connectionStrokeColor) {
-        if (children == null || children.isEmpty()) {
+        if (children == null) {
+            return 0;
+        }
+        // Attributes are listed inside their element's box, never as separate nodes
+        children = children.stream().filter(c -> !isAttribute(c)).toList();
+        if (children.isEmpty()) {
             return 0;
         }
 
@@ -1708,7 +1744,8 @@ public class XsdDocumentationImageService {
 
                 double nameHeight = nameBounds.getBounds2D().getHeight();
                 double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
-                double totalContentHeight = nameHeight + typeHeight;
+                List<XsdExtendedElement> attributes = resolveChildren(child, true);
+                double totalContentHeight = nameHeight + typeHeight + attributeSectionHeight(attributes);
 
                 // Draw the element box
                 Element elementBox = createModernSvgRect(document, child.getCurrentXpath(), totalContentHeight,
@@ -1806,7 +1843,7 @@ public class XsdDocumentationImageService {
 
                 // Modern plus icon for elements with children
                 Element useIcon = null;
-                if (child.hasChildren()) {
+                if (!resolveChildren(child, false).isEmpty()) {
                     useIcon = document.createElementNS(svgNS, "use");
                     useIcon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#modern-plus-icon");
                     useIcon.setAttribute("x", String.valueOf(startX + boxPadding + maxWidth + margin));
@@ -1831,6 +1868,8 @@ public class XsdDocumentationImageService {
                         svgRoot.appendChild(useIcon);
                     }
                 }
+                drawAttributeSection(document, svgRoot, attributes,
+                        startX + boxPadding, textY + typeHeight, maxWidth);
 
                 double elementRightEdge = startX + boxPadding * 2 + maxWidth;
                 updateMaxRightEdge(maxRightEdge, elementRightEdge);
@@ -1874,6 +1913,150 @@ public class XsdDocumentationImageService {
         }
 
         return currentY - startY;
+    }
+
+    private static boolean isInsideDefs(Node node) {
+        for (Node parent = node.getParentNode(); parent != null; parent = parent.getParentNode()) {
+            if ("defs".equals(parent.getLocalName()) || "defs".equals(parent.getNodeName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isAttribute(XsdExtendedElement element) {
+        return element.getElementName() != null && element.getElementName().startsWith("@");
+    }
+
+    /**
+     * Resolves the children of an element, either only its attributes or only the
+     * non-attribute children (elements and compositor containers). Prohibited attributes are skipped.
+     */
+    private List<XsdExtendedElement> resolveChildren(XsdExtendedElement element, boolean attributes) {
+        List<XsdExtendedElement> result = new ArrayList<>();
+        if (element == null || element.getChildren() == null) {
+            return result;
+        }
+        for (String childXpath : element.getChildren()) {
+            XsdExtendedElement child = extendedXsdElements.get(childXpath);
+            if (child == null || isAttribute(child) != attributes) {
+                continue;
+            }
+            if (attributes && "prohibited".equals(getAttributeValue(attributeUseNode(child), "use", "optional"))) {
+                continue;
+            }
+            result.add(child);
+        }
+        return result;
+    }
+
+    private static Node attributeUseNode(XsdExtendedElement attribute) {
+        Node node = attribute.getCardinalityNode();
+        return node != null ? node : attribute.getCurrentNode();
+    }
+
+    private boolean isAttributeRequired(XsdExtendedElement attribute) {
+        return "required".equals(getAttributeValue(attributeUseNode(attribute), "use", "optional"));
+    }
+
+    private static String attributeType(XsdExtendedElement attribute) {
+        return attribute.getElementType() != null ? attribute.getElementType() : "";
+    }
+
+    /** Height of the attribute rows listed inside an element box (0 without attributes). */
+    private double attributeSectionHeight(List<XsdExtendedElement> attributes) {
+        if (attributes.isEmpty()) {
+            return 0;
+        }
+        return ATTRIBUTE_SECTION_TOP + attributes.size() * ATTRIBUTE_ROW_HEIGHT + ATTRIBUTE_SECTION_BOTTOM;
+    }
+
+    private double attributeNameColumnWidth(List<XsdExtendedElement> attributes) {
+        Font attributeFont = font.deriveFont((float) ATTRIBUTE_FONT_SIZE);
+        double width = 0;
+        for (XsdExtendedElement attribute : attributes) {
+            width = Math.max(width, attributeFont.getStringBounds(attribute.getElementName(), frc).getWidth());
+        }
+        return width;
+    }
+
+    /** Width needed by the attribute rows: name column, type column and cardinality badge. */
+    private double attributeSectionWidth(List<XsdExtendedElement> attributes) {
+        if (attributes.isEmpty()) {
+            return 0;
+        }
+        Font attributeFont = font.deriveFont((float) ATTRIBUTE_FONT_SIZE);
+        double typeWidth = 0;
+        double badgeWidth = 0;
+        for (XsdExtendedElement attribute : attributes) {
+            typeWidth = Math.max(typeWidth, attributeFont.getStringBounds(attributeType(attribute), frc).getWidth());
+            String cardinality = isAttributeRequired(attribute) ? "[1]" : "[0..1]";
+            badgeWidth = Math.max(badgeWidth, font.getStringBounds(cardinality, frc).getWidth() + 8);
+        }
+        return attributeNameColumnWidth(attributes) + 12 + typeWidth + 16 + badgeWidth;
+    }
+
+    /**
+     * Lists the attributes of an element inside its box: a separator line, then one row per
+     * attribute with name, type and a right-aligned cardinality badge ([1] = required). Each row
+     * links to the attribute's detail page.
+     *
+     * @param x     left edge of the box content
+     * @param y     top of the attribute section (below name/type)
+     * @param width width of the box content
+     */
+    private void drawAttributeSection(Document document, Element parent, List<XsdExtendedElement> attributes,
+                                      double x, double y, double width) {
+        if (attributes.isEmpty()) {
+            return;
+        }
+        Element separator = document.createElementNS(svgNS, "line");
+        separator.setAttribute("x1", String.valueOf(x));
+        separator.setAttribute("y1", String.valueOf(y + ATTRIBUTE_SECTION_TOP / 2.0));
+        separator.setAttribute("x2", String.valueOf(x + width));
+        separator.setAttribute("y2", String.valueOf(y + ATTRIBUTE_SECTION_TOP / 2.0));
+        separator.setAttribute("stroke", "#e0e0e0");
+        separator.setAttribute("stroke-width", "1");
+        parent.appendChild(separator);
+
+        double typeX = x + attributeNameColumnWidth(attributes) + 12;
+        for (int i = 0; i < attributes.size(); i++) {
+            XsdExtendedElement attribute = attributes.get(i);
+            double rowTop = y + ATTRIBUTE_SECTION_TOP + i * ATTRIBUTE_ROW_HEIGHT;
+            boolean required = isAttributeRequired(attribute);
+
+            Element row = document.createElementNS(svgNS, "g");
+            row.setAttribute("class", "attribute-row");
+
+            Element nameText = createSvgTextElement(document, attribute.getElementName(),
+                    String.valueOf(x), String.valueOf(rowTop + 13), COLOR_TEXT_ATTRIBUTE, ATTRIBUTE_FONT_SIZE);
+            nameText.setAttribute("font-weight", "500");
+            if (!required) {
+                nameText.setAttribute("font-style", "italic");
+            }
+            row.appendChild(nameText);
+
+            String type = attributeType(attribute);
+            if (!type.isBlank()) {
+                row.appendChild(createSvgTextElement(document, type,
+                        String.valueOf(typeX), String.valueOf(rowTop + 13), COLOR_TEXT_SECONDARY, ATTRIBUTE_FONT_SIZE));
+            }
+
+            String cardinality = required ? "[1]" : "[0..1]";
+            double badgeWidth = font.getStringBounds(cardinality, frc).getBounds2D().getWidth() + 8;
+            row.appendChild(createCardinalityBadge(document, cardinality,
+                    String.valueOf(x + width - badgeWidth), String.valueOf(rowTop + 1)));
+
+            String pageName = attribute.getPageName();
+            if (pageName != null && !pageName.isEmpty()) {
+                Element link = document.createElementNS(svgNS, "a");
+                link.setAttribute("href", pageName);
+                link.appendChild(row);
+                parent.appendChild(link);
+            } else {
+                parent.appendChild(row);
+            }
+        }
     }
 
     /**
@@ -2133,8 +2316,8 @@ public class XsdDocumentationImageService {
 
             Element icon = document.createElementNS(svgNS, "use");
             icon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#sequence-icon");
-            icon.setAttribute("x", String.valueOf(x - width / 2 + 8));
-            icon.setAttribute("y", String.valueOf(y + 5));
+            icon.setAttribute("x", String.valueOf(x - SEQUENCE_ICON_CENTER_X));
+            icon.setAttribute("y", String.valueOf(y + height / 2 - SEQUENCE_ICON_CENTER_Y));
             group.appendChild(icon);
 
         } else if (compositorType.equals("choice")) {
@@ -2154,8 +2337,8 @@ public class XsdDocumentationImageService {
 
             Element icon = document.createElementNS(svgNS, "use");
             icon.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", "#choice-icon");
-            icon.setAttribute("x", String.valueOf(x - width / 2 + 6));
-            icon.setAttribute("y", String.valueOf(y + 7));
+            icon.setAttribute("x", String.valueOf(x - CHOICE_ICON_CENTER_X));
+            icon.setAttribute("y", String.valueOf(y + height / 2 - CHOICE_ICON_CENTER_Y));
             group.appendChild(icon);
 
         } else { // "all"
