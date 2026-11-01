@@ -46,6 +46,8 @@ class PagesDocScreenshotGenerator {
 
     private static final File EXAMPLES = new File("release/examples");
     private static final File IMG_DIR = new File("docs/img");
+    /** Typed into the demo document to open the completion popup; removed again afterwards. */
+    private static final String INTELLISENSE_PROBE = "\n            <";
 
     private Parent root;
     private UnifiedShellView shell;
@@ -153,13 +155,15 @@ class PagesDocScreenshotGenerator {
             var editor = (org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2) parent;
             var offset = new java.util.concurrent.atomic.AtomicInteger(-1);
             onFx(() -> {
-                // Simulate the user having typed '<' right before </navigation>, then ask
+                // Simulate the user having typed '<' on a new line after </h1>, then ask
                 // the engine for completions directly (robot key events are unreliable for
                 // '<' on a headless X layout).
-                int pos = area.getText().indexOf("</navigation>");
+                // After the first section's <h1>: h2, h3 and p are valid here (completion
+                // follows the sequence order, so in front of <h1> nothing would be offered).
+                int pos = area.getText().indexOf("</h1>") + "</h1>".length();
                 offset.set(pos);
-                area.moveTo(pos);
-                area.insertText(pos, "<");
+                area.insertText(pos, INTELLISENSE_PROBE);
+                area.moveTo(pos + INTELLISENSE_PROBE.length());
                 area.requestFocus();
             });
             settle(300);
@@ -171,7 +175,7 @@ class PagesDocScreenshotGenerator {
             copyShot("intellisense-overview", "xml-editor-intellisense");
             copyShot("intellisense-overview", "xml-editor-intellisense-popup");
             robot.push(javafx.scene.input.KeyCode.ESCAPE);
-            onFx(() -> area.deleteText(offset.get(), offset.get() + 1)); // undo the '<'
+            onFx(() -> area.deleteText(offset.get(), offset.get() + INTELLISENSE_PROBE.length()));
             settle();
         });
 

@@ -7,6 +7,8 @@ The **Graphic** view of an XML or JSON document is an editable, XMLSpy-style gri
 When an XML-instance document (XML, XSLT, or Schematron) is in the **Graphic** view, the editor
 shows the editable grid, laid out like XMLSpy's Grid View:
 
+![An XML document in the Graphic (grid) view, everything expanded](img/unified-shell-xml-grid.png)
+
 - A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
   grids"* and offers the **zoom pill** (`− 100% +`), **Optimal widths**, the **Wrap** toggle,
   **Expand all** / **Collapse all**, and a **⋯** menu with the cell-height limit.

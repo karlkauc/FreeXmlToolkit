@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.screenshots;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
@@ -131,9 +132,6 @@ class ShellDocScreenshotGenerator {
             onFx(() -> shell.getSelectionModel().select(Activity.SCHEMA));
             settle();
             shot("unified-shell-type-library");
-            onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
-            settle(900);
-            shot("unified-shell-schema-graphic");
             onFx(() -> host.setActiveViewMode(ViewMode.TREE));
             settle();
             shot("unified-shell-schema-tree");
@@ -400,6 +398,32 @@ class ShellDocScreenshotGenerator {
             settle();
         }
 
+        // --- A real-world schema in the Graphic view, one card selected so the
+        // Properties inspector shows what it offers (FundsXML4: ControlData/DataSupplier) ---
+        File fundsXsd = new File(EXAMPLES, "xsd/FundsXML4.xsd");
+        if (fundsXsd.exists()) {
+            onFx(() -> shell.getSelectionModel().select(Activity.SCHEMA));
+            onFx(() -> host.openFile(fundsXsd.toPath()));
+            WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("FundsXML4")).orElse(false));
+            onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
+            WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> host.getActiveSchema().isPresent());
+            settle(1500);
+            var schema = host.getActiveSchema().orElseThrow();
+            var root = namedElement(schema, "FundsXML4");
+            var controlData = namedElement(root, "ControlData");
+            var controlDataType = schema.getChildren().stream()
+                    .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType
+                            && "ControlDataType".equals(n.getName()))
+                    .findFirst().orElseThrow();
+            var dataSupplier = namedElement(controlDataType, "DataSupplier");
+            onFx(() -> host.revealPathInActiveGraph(List.of(root, controlData, dataSupplier)));
+            settle(1500);
+            shot("unified-shell-schema-graphic");
+            onFx(host::closeActiveTab);
+            settle();
+        }
+
         // --- XML document in the Grid (XMLSpy-style) view ---
         if (xml.exists()) {
             onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
@@ -550,6 +574,24 @@ class ShellDocScreenshotGenerator {
         Files.createDirectories(target.getParent());
         Files.copy(source.toPath(), target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         return target;
+    }
+
+    /** @return the first element named {@code name} in {@code from}'s subtree (depth-first, no type lookups). */
+    private static org.fxt.freexmltoolkit.controls.v2.model.XsdNode namedElement(
+            org.fxt.freexmltoolkit.controls.v2.model.XsdNode from, String name) {
+        var stack = new java.util.ArrayDeque<org.fxt.freexmltoolkit.controls.v2.model.XsdNode>();
+        stack.push(from);
+        while (!stack.isEmpty()) {
+            var n = stack.pop();
+            if (n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement && name.equals(n.getName())) {
+                return n;
+            }
+            var children = n.getChildren();
+            for (int i = children.size() - 1; i >= 0; i--) {
+                stack.push(children.get(i));
+            }
+        }
+        throw new IllegalStateException("no element " + name);
     }
 
     private void onFx(Runnable action) {

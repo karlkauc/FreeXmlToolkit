@@ -664,7 +664,7 @@ You can add structured technical information directly in your XSD files:
 
 !!! info "Full tag reference"
     All supported tags, their semantics and examples are listed in the
-    [XsdDoc Tags reference](xsddoc-tags.html).
+    [XsdDoc Tags reference](xsddoc-tags.md).
 
 The tag goes into the `source` attribute of an `xs:appinfo`, its value into the element's text
 content.
