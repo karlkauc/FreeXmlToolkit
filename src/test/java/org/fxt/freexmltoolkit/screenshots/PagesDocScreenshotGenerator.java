@@ -498,11 +498,43 @@ class PagesDocScreenshotGenerator {
         settle();
     }
 
-    /** Polls {@code condition} on the FX thread until it holds (panel state is FX-owned). */
+    /**
+     * Polls {@code condition} on the FX thread until it holds (panel state is FX-owned). A poll
+     * the FX thread does not answer within 5 s counts as "not yet" - the thread can be busy for a
+     * while (FOP's first initialisation, a GC) - so only the overall deadline fails the wait. On
+     * that failure the FX and worker stacks are printed to show what held the FX thread.
+     */
     private void waitUntilFx(long seconds, java.util.concurrent.Callable<Boolean> condition)
             throws Exception {
-        WaitForAsyncUtils.waitFor(seconds, TimeUnit.SECONDS,
-                () -> Boolean.TRUE.equals(WaitForAsyncUtils.waitForAsyncFx(5000, condition)));
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(seconds);
+        while (System.nanoTime() < deadline) {
+            try {
+                if (Boolean.TRUE.equals(WaitForAsyncUtils.waitForAsyncFx(5000, condition))) {
+                    return;
+                }
+            } catch (RuntimeException e) {
+                if (!(e.getCause() instanceof java.util.concurrent.TimeoutException)) {
+                    throw e;
+                }
+                System.out.println("[pages-screenshot] FX thread busy for 5 s, still waiting");
+            }
+            WaitForAsyncUtils.sleep(100, TimeUnit.MILLISECONDS);
+        }
+        printThreadStacks();
+        throw new java.util.concurrent.TimeoutException("condition not met within " + seconds + " s");
+    }
+
+    /** Prints the stacks of the FX, worker and AWT threads (diagnostics for a failed wait). */
+    private static void printThreadStacks() {
+        Thread.getAllStackTraces().forEach((t, stack) -> {
+            if (t.getName().startsWith("JavaFX Application") || t.getName().startsWith("FxtGui-Worker")
+                    || t.getName().startsWith("AWT")) {
+                System.out.println("[pages-screenshot] STACK " + t.getName() + " " + t.getState());
+                for (StackTraceElement el : stack) {
+                    System.out.println("[pages-screenshot]     at " + el);
+                }
+            }
+        });
     }
 
     private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel() {
