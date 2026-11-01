@@ -3,6 +3,9 @@ package org.fxt.freexmltoolkit.controls.v2.editor.intellisense.ui;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
@@ -25,6 +28,9 @@ import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.model.CompletionIt
 public class IntelliSensePopup {
 
     private static final Logger logger = LogManager.getLogger(IntelliSensePopup.class);
+
+    /** Height of the list when the suggestions do not fit; a shorter list shrinks to its rows. */
+    static final double MAX_LIST_HEIGHT = 300;
 
     private final Popup popup;
     private final ListView<CompletionItem> listView;
@@ -127,6 +133,7 @@ public class IntelliSensePopup {
             listView.requestFocus();
             logger.debug("Popup shown with {} items at ({}, {})", items.size(), x, y);
         }
+        fitHeightToItems();
     }
 
     /**
@@ -192,7 +199,46 @@ public class IntelliSensePopup {
             listView.getSelectionModel().selectFirst();
         }
 
+        if (popup.isShowing()) {
+            fitHeightToItems();
+        }
         logger.debug("Updated popup items: {} items", items.size());
+    }
+
+    /**
+     * Shrinks the list to its rows when all suggestions fit, so a short list shows no empty rows.
+     * Rows differ in height (an optional second line), so the rendered cells are measured.
+     * The height is set as an inline style: the stylesheet's {@code -fx-pref-height} would
+     * override a plain {@code setPrefHeight}.
+     */
+    void fitHeightToItems() {
+        listView.setStyle("-fx-pref-height: " + MAX_LIST_HEIGHT + "px;");
+        listView.applyCss();
+        // Measure at full height: at a previously shrunk height only some rows would be rendered.
+        listView.resize(listView.getWidth(), MAX_LIST_HEIGHT);
+        listView.layout();
+        double rows = 0;
+        int filled = 0;
+        for (Node node : listView.lookupAll(".list-cell")) {
+            if (node instanceof ListCell<?> cell && cell.isVisible() && !cell.isEmpty()) {
+                rows += cell.getHeight();
+                filled++;
+            }
+        }
+        if (filled == 0 || filled < listView.getItems().size()) {
+            return; // more suggestions than fit: keep the full height and scroll
+        }
+        Insets insets = listView.getInsets();
+        double height = Math.ceil(rows + insets.getTop() + insets.getBottom()) + 2;
+        if (height < MAX_LIST_HEIGHT) {
+            listView.setStyle("-fx-pref-height: " + height + "px;");
+            listView.applyCss();
+        }
+    }
+
+    /** @return the list's current preferred height (for tests). */
+    double listPrefHeight() {
+        return listView.prefHeight(-1);
     }
 
     /**

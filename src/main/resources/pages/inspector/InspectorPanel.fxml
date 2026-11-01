@@ -83,14 +83,14 @@
         </HBox>
 
         <!-- Node header: kind icon tile, name (editable in place when the node has one), subtitle, badge -->
-        <HBox alignment="CENTER_LEFT" spacing="11" styleClass="fxt-inspector-node-header">
+        <HBox fx:id="nodeHeader" alignment="CENTER_LEFT" spacing="11" styleClass="fxt-inspector-node-header">
             <children>
                 <StackPane styleClass="fxt-inspector-tile" minWidth="34" minHeight="34" prefWidth="34" prefHeight="34" maxWidth="34" maxHeight="34">
                     <children>
                         <IconifyIcon fx:id="nodeIcon" iconLiteral="bi-code-slash" iconSize="17"/>
                     </children>
                 </StackPane>
-                <VBox spacing="2" minWidth="0" HBox.hgrow="ALWAYS">
+                <VBox fx:id="nodeTitleBox" spacing="2" minWidth="0" HBox.hgrow="ALWAYS">
                     <children>
                         <StackPane alignment="CENTER_LEFT">
                             <children>
@@ -111,7 +111,8 @@
                         </HBox>
                     </children>
                 </VBox>
-                <Label fx:id="validationBadge" id="inspector-validation-badge" visible="false" managed="false" minWidth="-Infinity"/>
+                <!-- Shrinks (with "…") before the node name does: InspectorPanel sizes the title box. -->
+                <Label fx:id="validationBadge" id="inspector-validation-badge" visible="false" managed="false" minWidth="60"/>
             </children>
         </HBox>
 

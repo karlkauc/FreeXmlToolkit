@@ -190,8 +190,11 @@ public class UnifiedShellView extends BorderPane {
         menuBarHost.getChildren().setAll(menuBar);
         viewSwitchHost.getChildren().setAll(editorHost.getViewSwitch());
         // Inspector below the chevron (chevron stays on top of the StackPane).
-        inspectorWrapper.getChildren().add(0,
-                new org.fxt.freexmltoolkit.controls.shell.inspector.InspectorPanel(editorHost));
+        var inspector = new org.fxt.freexmltoolkit.controls.shell.inspector.InspectorPanel(editorHost);
+        // Never wider than its column: a centred, too-wide panel would be cut off on the left.
+        inspector.setMinWidth(0);
+        StackPane.setAlignment(inspector, javafx.geometry.Pos.TOP_LEFT);
+        inspectorWrapper.getChildren().add(0, inspector);
         // PROBLEMS panel below the editor (hides itself while empty).
         editorCenter.getChildren().add(
                 new org.fxt.freexmltoolkit.controls.shell.editor.ProblemsPanel(editorHost));

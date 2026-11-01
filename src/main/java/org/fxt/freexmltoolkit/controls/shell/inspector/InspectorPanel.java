@@ -97,6 +97,8 @@ public class InspectorPanel extends VBox {
     @FXML private Label subtitleDot;
     @FXML private Label nodeHeaderType;
     @FXML private Label validationBadge;
+    @FXML private HBox nodeHeader;
+    @FXML private javafx.scene.layout.VBox nodeTitleBox;
 
     // Read-only values
     @FXML private Label kindValue;
@@ -303,6 +305,12 @@ public class InspectorPanel extends VBox {
      * The top bar's favourite star follows the active file (and favourites changed elsewhere).
      */
     private void initHeader() {
+        // An HBox shrinks all children alike; the name should keep the width it needs (as far as
+        // the header can spare it) and the validation badge give way first.
+        nodeTitleBox.minWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(
+                this::titleMinWidth, nodeHeader.widthProperty(), validationBadge.managedProperty(),
+                nameField.textProperty(), nameField.visibleProperty(), nodeHeaderName.textProperty(),
+                nodeHeaderKind.textProperty(), nodeHeaderType.textProperty()));
         org.fxt.freexmltoolkit.service.FavoritesService.getInstance().addChangeListener(() -> {
             if (javafx.application.Platform.isFxApplicationThread()) {
                 updateFavoriteStar();
@@ -316,6 +324,28 @@ public class InspectorPanel extends VBox {
         javafx.scene.control.Tooltip nsTip = new javafx.scene.control.Tooltip();
         nsTip.textProperty().bind(namespaceValue.textProperty());
         namespaceValue.setTooltip(nsTip);
+    }
+
+    /** @return the width the node name and subtitle need, capped at what the header leaves them. */
+    private double titleMinWidth() {
+        Label shown = nodeHeaderName;
+        String name = nameField.isVisible() ? nameField.getText() : nodeHeaderName.getText();
+        javafx.scene.text.Font font = nameField.isVisible() ? nameField.getFont() : shown.getFont();
+        javafx.scene.text.Text probe = new javafx.scene.text.Text(name == null ? "" : name);
+        probe.setFont(font);
+        double nameWidth = probe.getLayoutBounds().getWidth() + (nameField.isVisible() ? 20 : 4);
+        double needed = Math.max(nameWidth, subtitleBox.prefWidth(-1));
+        double others = 0;
+        int gaps = 0;
+        for (javafx.scene.Node child : nodeHeader.getChildren()) {
+            if (child != nodeTitleBox && child.isManaged()) {
+                others += child == validationBadge ? validationBadge.getMinWidth() : child.prefWidth(-1);
+                gaps++;
+            }
+        }
+        double room = nodeHeader.getWidth() - nodeHeader.snappedLeftInset() - nodeHeader.snappedRightInset()
+                - others - gaps * nodeHeader.getSpacing();
+        return Math.max(0, Math.min(needed, room));
     }
 
     /** @return the active document's file, or {@code null} for none / an unsaved buffer */
