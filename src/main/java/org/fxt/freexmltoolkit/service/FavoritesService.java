@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,9 @@ public class FavoritesService {
     private final Path xpathDir;
     private final Path xqueryDir;
     private final Gson gson;
-    private List<FileFavorite> favorites;
+    // Read on the FX thread (favourite stars, menus) while other threads load or change them:
+    // copy-on-write lists and a concurrent map, so a reader never sees a list mid-change.
+    private volatile List<FileFavorite> favorites;
     private final Map<String, List<FileFavorite>> favoritesByFolder;
     
     private FavoritesService() {
@@ -73,8 +74,8 @@ public class FavoritesService {
             .setPrettyPrinting()
             .create();
 
-        this.favorites = new ArrayList<>();
-        this.favoritesByFolder = new HashMap<>();
+        this.favorites = new java.util.concurrent.CopyOnWriteArrayList<>();
+        this.favoritesByFolder = new java.util.concurrent.ConcurrentHashMap<>();
 
         loadFavorites();
     }
@@ -113,18 +114,15 @@ public class FavoritesService {
         try {
             String json = Files.readString(favoritesFile);
             Type listType = new TypeToken<List<FileFavorite>>(){}.getType();
-            favorites = gson.fromJson(json, listType);
-            
-            if (favorites == null) {
-                favorites = new ArrayList<>();
-            }
+            List<FileFavorite> loaded = gson.fromJson(json, listType);
+            favorites = new java.util.concurrent.CopyOnWriteArrayList<>(loaded != null ? loaded : List.of());
             
             organizeFavoritesByFolder();
             logger.info("Loaded {} favorites", favorites.size());
             
         } catch (Exception e) {
             logger.error("Failed to load favorites", e);
-            favorites = new ArrayList<>();
+            favorites = new java.util.concurrent.CopyOnWriteArrayList<>();
         }
     }
     
@@ -198,7 +196,7 @@ public class FavoritesService {
         favoritesByFolder.clear();
         for (FileFavorite favorite : favorites) {
             String folder = favorite.getFolderName() != null ? favorite.getFolderName() : "Uncategorized";
-            favoritesByFolder.computeIfAbsent(folder, k -> new ArrayList<>()).add(favorite);
+            favoritesByFolder.computeIfAbsent(folder, k -> new java.util.concurrent.CopyOnWriteArrayList<>()).add(favorite);
         }
     }
     
@@ -515,7 +513,7 @@ public class FavoritesService {
      */
     public void createFolder(String folderName) {
         if (folderName != null && !folderName.isEmpty()) {
-            favoritesByFolder.putIfAbsent(folderName, new ArrayList<>());
+            favoritesByFolder.putIfAbsent(folderName, new java.util.concurrent.CopyOnWriteArrayList<>());
             logger.info("Created folder: {}", folderName);
         }
     }
