@@ -543,31 +543,42 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
-        // Position canvas
-        double canvasW = w - SCROLLBAR_WIDTH;
-        double canvasH = h - SCROLLBAR_WIDTH;
+        // Scroll bars only where the content overflows; the canvas takes the space otherwise.
+        boolean[] needed = neededScrollBars(w, h);
+        double canvasW = w - (needed[0] ? SCROLLBAR_WIDTH : 0);
+        double canvasH = h - (needed[1] ? SCROLLBAR_WIDTH : 0);
 
         canvas.setWidth(canvasW);
         canvas.setHeight(canvasH);
         canvas.setLayoutX(0);
         canvas.setLayoutY(0);
+        canvasContainer.resizeRelocate(0, 0, canvasW, canvasH);
 
-        canvasContainer.setPrefWidth(canvasW);
-        canvasContainer.setPrefHeight(canvasH);
-
-        // Position vertical scrollbar
-        vScrollBar.setLayoutX(w - SCROLLBAR_WIDTH);
-        vScrollBar.setLayoutY(0);
-        vScrollBar.setPrefHeight(h - SCROLLBAR_WIDTH);
-
-        // Position horizontal scrollbar
-        hScrollBar.setLayoutX(0);
-        hScrollBar.setLayoutY(h - SCROLLBAR_WIDTH);
-        hScrollBar.setPrefWidth(w - SCROLLBAR_WIDTH);
+        // Pane does not size children whose layout is overridden: resize the bars explicitly.
+        vScrollBar.setVisible(needed[0]);
+        hScrollBar.setVisible(needed[1]);
+        vScrollBar.resizeRelocate(w - SCROLLBAR_WIDTH, 0, SCROLLBAR_WIDTH, canvasH);
+        hScrollBar.resizeRelocate(0, h - SCROLLBAR_WIDTH, canvasW, SCROLLBAR_WIDTH);
 
         // Update scroll bars
         updateScrollBars();
         render();
+    }
+
+    /**
+     * Decides which scroll bars the content needs in a {@code w × h} view. A vertical bar
+     * narrows the viewport and may make a horizontal one necessary, and vice versa.
+     *
+     * @return {vertical, horizontal}
+     */
+    private boolean[] neededScrollBars(double w, double h) {
+        double z = getZoom();
+        boolean vertical = totalHeight > h / z;
+        boolean horizontal = totalWidth > (w - (vertical ? SCROLLBAR_WIDTH : 0)) / z;
+        if (horizontal && !vertical) {
+            vertical = totalHeight > (h - SCROLLBAR_WIDTH) / z;
+        }
+        return new boolean[]{vertical, horizontal};
     }
 
     private void onResize() {
@@ -576,6 +587,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     private void updateScrollBars() {
+        if (getWidth() > 0 && getHeight() > 0) {
+            boolean[] needed = neededScrollBars(getWidth(), getHeight());
+            if (needed[0] != vScrollBar.isVisible() || needed[1] != hScrollBar.isVisible()) {
+                requestLayout(); // a bar appears or goes away: the canvas changes size
+            }
+        }
         double viewportWidth = viewportWidthModel();
         double viewportHeight = viewportHeightModel();
 
@@ -5143,6 +5160,16 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** @return the horizontal scroll range, 0 when the content fits (test hook) */
     double hScrollBarMax() {
         return hScrollBar.isDisabled() ? 0 : hScrollBar.getMax();
+    }
+
+    /** @return whether the vertical / horizontal scroll bar is shown (test hook) */
+    boolean[] scrollBarsShown() {
+        return new boolean[]{vScrollBar.isVisible(), hScrollBar.isVisible()};
+    }
+
+    /** @return the vertical / horizontal scroll bar (test hook) */
+    ScrollBar[] scrollBarsForTest() {
+        return new ScrollBar[]{vScrollBar, hScrollBar};
     }
 
     /** @return the vertical scroll offset in model units (test hook) */
