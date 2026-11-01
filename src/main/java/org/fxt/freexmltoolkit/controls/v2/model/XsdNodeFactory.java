@@ -48,6 +48,7 @@ public class XsdNodeFactory {
     private static final Logger logger = LogManager.getLogger(XsdNodeFactory.class);
 
     private static final String CIRCULAR_INCLUDE = "Circular include detected";
+    private static final String REMOTE_NOT_DOWNLOADED = "Remote schema not downloaded yet";
     private static final String XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
 
     /**
@@ -63,7 +64,7 @@ public class XsdNodeFactory {
      * of the file that declared it (main schema or an xs:include'd file), so relative
      * schemaLocations resolve against the declaring file rather than the root schema.
      */
-    record PendingImport(XsdImport node, Path declaringBaseDir) {
+    record PendingImport(XsdImport node, Path declaringBaseDir, String declaringBaseUrl) {
     }
 
     private final java.util.List<PendingImport> pendingImports = new java.util.ArrayList<>();
@@ -74,6 +75,18 @@ public class XsdNodeFactory {
      * root's context (and a depth &gt; 0) before parsing.
      */
     private ImportResolutionContext importContext;
+
+    /**
+     * URL of the remote schema file being parsed, null for a local one. Its file on disk is a cache
+     * entry named after a hash, so relative locations must resolve against this URL instead.
+     */
+    private String remoteBaseUrl;
+
+    /** Remote includes found while the root is parsed, before its resolution context exists. */
+    private final java.util.Set<String> deferredIncludeUrls = new java.util.LinkedHashSet<>();
+
+    /** Replaces the shared schema cache; set by tests, which must not reach the network. */
+    private org.fxt.freexmltoolkit.service.SchemaResourceCache schemaCacheOverride;
     private int importDepth;
 
     /**
@@ -204,6 +217,15 @@ public class XsdNodeFactory {
     }
 
     /**
+     * Uses the given schema cache instead of the shared one.
+     *
+     * @param cache the cache to use
+     */
+    void setSchemaCache(org.fxt.freexmltoolkit.service.SchemaResourceCache cache) {
+        this.schemaCacheOverride = cache;
+    }
+
+    /**
      * Injects the downloader used for the namespace-URL fallback (used by tests).
      *
      * @param downloader the downloader to use, or null to create one lazily on first use
@@ -319,6 +341,7 @@ public class XsdNodeFactory {
         processedIncludes.clear();
         pendingImports.clear();
         importedSchemas.clear();
+        deferredIncludeUrls.clear();
         if (currentSchemaFile != null) {
             processedIncludes.add(currentSchemaFile);
         }
@@ -343,6 +366,10 @@ public class XsdNodeFactory {
         if (importDepth == 0) {
             importContext = new ImportResolutionContext(schema, remoteNamespaceFallbackEnabled,
                     remoteDownloadsAllowed, namespaceSchemaDownloader);
+            if (schemaCacheOverride != null) {
+                importContext.useSchemaCache(schemaCacheOverride);
+            }
+            deferredIncludeUrls.forEach(importContext::deferRemoteLookup);
             if (currentSchemaFile != null) {
                 // Seed the resolution stack with the root schema itself so an import chain
                 // leading back to the root file is detected as a circular import.
@@ -472,7 +499,7 @@ public class XsdNodeFactory {
                 Path declaringBaseDir = baseDirectory != null
                         ? baseDirectory
                         : (currentSchemaFile != null ? currentSchemaFile.getParent() : null);
-                pendingImports.add(new PendingImport(xsdImport, declaringBaseDir));
+                pendingImports.add(new PendingImport(xsdImport, declaringBaseDir, remoteBaseUrl));
             } else if (isXsdElement(childElement, "include")) {
                 XsdInclude xsdInclude = parseInclude(childElement);
                 tagNodeWithSourceInfo(xsdInclude);
@@ -544,7 +571,7 @@ public class XsdNodeFactory {
      */
     private void inlineSchemaReference(Element directiveElement, Path baseDirectory, XsdSchema targetSchema,
                                        DocumentBuilderFactory factory, XsdInclude xsdInclude) {
-        if (baseDirectory == null || factory == null) {
+        if ((baseDirectory == null && remoteBaseUrl == null) || factory == null) {
             if (xsdInclude != null) {
                 xsdInclude.markResolutionFailed("the schema has no file location to resolve it against");
             }
@@ -561,16 +588,39 @@ public class XsdNodeFactory {
         }
 
         Path resolvedPath;
-        if (schemaLocation.contains("://")) {
-            resolvedPath = resolveIncludeViaLibrary(schemaLocation, baseDirectory);
-            if (resolvedPath == null) {
-                logger.debug("Skipping remote schema include '{}'", schemaLocation);
+        String includeUrl = null;
+        if (schemaLocation.contains("://") || remoteBaseUrl != null) {
+            String url;
+            try {
+                url = remoteLocation(schemaLocation, remoteBaseUrl);
+            } catch (IllegalArgumentException e) {
+                logger.warn("Refusing include '{}': {}", schemaLocation, e.getMessage());
                 if (xsdInclude != null) {
-                    xsdInclude.markResolutionFailed("Remote schemas not supported");
+                    xsdInclude.markResolutionFailed(e.getMessage());
                 }
                 return;
             }
-            logger.info("Resolved include '{}' via Schema Library: {}", schemaLocation, resolvedPath);
+            resolvedPath = resolveIncludeViaLibrary(url, baseDirectory);
+            if (resolvedPath == null) {
+                try {
+                    resolvedPath = cachedRemoteInclude(url);
+                } catch (Exception e) {
+                    logger.warn("Could not load remote include '{}': {}", url, e.getMessage());
+                    if (xsdInclude != null) {
+                        xsdInclude.markResolutionFailed("Download failed: " + e.getMessage());
+                    }
+                    return;
+                }
+                if (resolvedPath == null) {
+                    if (xsdInclude != null) {
+                        xsdInclude.markResolutionFailed(REMOTE_NOT_DOWNLOADED);
+                    }
+                    return;
+                }
+                includeUrl = url;
+            } else {
+                logger.info("Resolved include '{}' via Schema Library: {}", url, resolvedPath);
+            }
         } else {
             resolvedPath = baseDirectory.resolve(schemaLocation).normalize();
             if (!Files.exists(resolvedPath)) {
@@ -643,6 +693,8 @@ public class XsdNodeFactory {
                 includeTracker.pushContext(xsdInclude, realPath);
             }
 
+            String outerBaseUrl = remoteBaseUrl;
+            remoteBaseUrl = includeUrl;
             try {
                 Path nextBaseDir = realPath.getParent();
 
@@ -679,6 +731,7 @@ public class XsdNodeFactory {
                         realPath, targetSchema.getChildren().size() - childCountBefore);
 
             } finally {
+                remoteBaseUrl = outerBaseUrl;
                 // Pop include context
                 if (includeTracker != null && preserveIncludeStructure && xsdInclude != null) {
                     includeTracker.popContext();
@@ -692,6 +745,54 @@ public class XsdNodeFactory {
         } finally {
             includeStack.remove(realPath);
         }
+    }
+
+    /**
+     * Resolves a location found in a remote schema to the URL it names. A schema from the network
+     * reaches other network files only: never a local file, whatever the location says.
+     *
+     * @param location the schemaLocation as written
+     * @param baseUrl  URL of the declaring file, null if the location itself must be absolute
+     * @return the absolute http(s) URL
+     * @throws IllegalArgumentException if the location names anything else
+     */
+    private static String remoteLocation(String location, String baseUrl) {
+        java.net.URI target;
+        try {
+            target = baseUrl != null ? java.net.URI.create(baseUrl).resolve(location.trim())
+                    : java.net.URI.create(location.trim());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid schema location: " + location);
+        }
+        String scheme = target.getScheme();
+        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+            throw new IllegalArgumentException("Only http(s) locations are supported here: " + location);
+        }
+        return target.toString();
+    }
+
+    /**
+     * The local copy of a remote include, downloaded under the same rule as remote imports.
+     *
+     * @param url the include's URL
+     * @return the cached file, or null if it is not cached and downloads are not allowed now
+     * @throws java.io.IOException if the download fails
+     */
+    private Path cachedRemoteInclude(String url) throws java.io.IOException {
+        org.fxt.freexmltoolkit.service.SchemaResourceCache cache = importContext != null
+                ? importContext.schemaCache()
+                : schemaCacheOverride != null ? schemaCacheOverride
+                : org.fxt.freexmltoolkit.service.SchemaResourceCache.shared();
+        boolean allowed = importContext != null ? importContext.isRemoteDownloadsAllowed() : remoteDownloadsAllowed;
+        if (!allowed && !cache.isCached(url)) {
+            if (importContext != null) {
+                importContext.deferRemoteLookup(url);
+            } else {
+                deferredIncludeUrls.add(url);
+            }
+            return null;
+        }
+        return cache.getOrDownload(url, remoteBaseUrl);
     }
 
     /**
@@ -2021,9 +2122,22 @@ public class XsdNodeFactory {
             schemaLocation = fromLibrary.toString();
         }
 
+        // Inside a remote schema a location names a network file, relative to that schema's URL.
+        if (pending.declaringBaseUrl() != null && xsdImport.getSchemaLocation() != null
+                && !xsdImport.getSchemaLocation().isEmpty()) {
+            try {
+                schemaLocation = remoteLocation(schemaLocation, pending.declaringBaseUrl());
+            } catch (IllegalArgumentException e) {
+                logger.warn("Refusing import '{}': {}", schemaLocation, e.getMessage());
+                xsdImport.markResolutionFailed(e.getMessage());
+                return;
+            }
+        }
+
         logger.info("Loading imported schema: namespace='{}', location='{}'", namespace, schemaLocation);
 
         try {
+            String sourceUrl = null;
             boolean remote = schemaLocation.startsWith("http://") || schemaLocation.startsWith("https://");
             Path resolvedPath = null;
             String canonicalKey = null;
@@ -2077,6 +2191,7 @@ public class XsdNodeFactory {
                     if (remoteSchema != null) {
                         schemaContent = remoteSchema.content();
                         resolvedPath = remoteSchema.cachedPath();
+                        sourceUrl = schemaLocation;
                     }
                 } else {
                     context.deferRemoteLookup(schemaLocation);
@@ -2100,6 +2215,7 @@ public class XsdNodeFactory {
                 if (namespaceResolved.isPresent()) {
                     schemaContent = namespaceResolved.get().content();
                     resolvedPath = namespaceResolved.get().cachedPath();
+                    sourceUrl = namespaceResolved.get().sourceUrl();
                     logger.info("Resolved import for namespace {} via namespace URL: {}",
                             namespace, namespaceResolved.get().sourceUrl());
                     // The canonical identity may only now be known — re-run the checks.
@@ -2116,7 +2232,7 @@ public class XsdNodeFactory {
             if (schemaContent == null || schemaContent.isEmpty()) {
                 if (deferred) {
                     logger.info("Remote schema not in the local cache, download deferred: {}", schemaLocation);
-                    xsdImport.markResolutionFailed("Remote schema not downloaded yet");
+                    xsdImport.markResolutionFailed(REMOTE_NOT_DOWNLOADED);
                 } else {
                     logger.warn("Failed to load schema content from: {}", schemaLocation);
                     xsdImport.markResolutionFailed("Failed to load schema content");
@@ -2137,6 +2253,7 @@ public class XsdNodeFactory {
                 XsdNodeFactory importFactory = new XsdNodeFactory();
                 importFactory.importContext = context;
                 importFactory.importDepth = importDepth + 1;
+                importFactory.remoteBaseUrl = sourceUrl;
                 importedSchema = resolvedPath != null
                         ? importFactory.fromStringWithSchemaFile(schemaContent, resolvedPath, resolvedPath.getParent())
                         : importFactory.fromString(schemaContent);

@@ -78,6 +78,10 @@ final class ImportResolutionContext {
         return downloader;
     }
 
+    void useSchemaCache(SchemaResourceCache cache) {
+        schemaCache = cache;
+    }
+
     SchemaResourceCache schemaCache() {
         if (schemaCache == null) {
             schemaCache = SchemaResourceCache.shared();
