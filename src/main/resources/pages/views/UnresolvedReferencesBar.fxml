@@ -17,6 +17,6 @@
         <Label fx:id="message" id="unresolved-references-message" wrapText="true" minWidth="0" maxWidth="Infinity"
                styleClass="fxt-hint-bar-text" HBox.hgrow="ALWAYS"/>
         <Button id="unresolved-references-dismiss" text="Dismiss" styleClass="fxt-tool-button, fxt-tool-neutral"
-                onAction="#onDismiss"/>
+                minWidth="-Infinity" onAction="#onDismiss"/>
     </children>
 </fx:root>

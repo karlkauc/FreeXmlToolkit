@@ -75,10 +75,14 @@ The Graphic View lets you explore and edit your schemas visually.
 ### What the Diagram Shows {#what-the-diagram-shows}
 
 - **Expanding cards.** Click a card's expand button to open it. In a large schema the diagram
-  draws the first 2000 elements up front; the rest loads when you open the card that holds it.
+  builds the first few thousand cards up front; the rest loads when you open the card that holds it.
   Simple types and built-in types have no content to open, so they have no expand button.
 - **Inherited content.** A type built with `xs:extension` also shows the content of its base
-  type. A type built with `xs:restriction` shows only what the restriction itself declares.
+  type. A type built with `xs:restriction` shows its own elements, because a restriction restates
+  the content model, plus the attributes of its base type, except those it redeclares or prohibits.
+- **Wildcards.** `xs:any` and `xs:anyAttribute` appear as cards named `any` and `anyAttribute`, with
+  the allowed namespace and the validation mode. Their right-click menu offers **Delete** and
+  **Copy XPath**.
 - **Group references.** `xs:group` and `xs:attributeGroup` references appear as their own cards,
   labelled `group: Name` and `attributeGroup: Name`. Attribute group cards stay closed until you
   open them. The right-click menu of these cards offers only **Delete** and **Copy XPath**:
@@ -889,7 +893,7 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 | **References**  | Import, Include (resolved, also transitively); Redefine and Override are parsed but not resolved |
 | **XSD 1.1**     | Assertions (`xs:assert`) are loaded, shown and analysed; `xs:alternative` and `xs:openContent` are honored by the XSD 1.1 validator but not shown in the graphical views |
 | **Identity**    | Key, KeyRef, Unique                                                      |
-| **Diagram limits** | Inherited attributes of restrictions and `xs:anyAttribute` are not shown in the Graphic view |
+| **Diagram limits** | A restriction that prohibits an attribute from an inherited attribute group still shows that attribute inside the group's card |
 
 ---
 

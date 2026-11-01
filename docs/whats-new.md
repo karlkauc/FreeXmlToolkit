@@ -21,8 +21,9 @@ Already on `main`, not yet released:
 - **XSD documentation:** type definitions, SVG overview and metadata are on by default; the
   Data Dictionary Excel export has the look of the HTML documentation.
 - **XSD Graphic view:** cards open in large schemas too; inherited `xs:extension` content, group
-  and attribute group references and placeholder cards are shown; a bar names includes and imports
-  that could not be loaded. See [XSD Tools](xsd-tools.md#what-the-diagram-shows).
+  and attribute group references, wildcards, inherited attributes and placeholder cards are shown;
+  a bar names includes and imports that could not be loaded; relative references inside schemas
+  loaded over HTTP now resolve. See [XSD Tools](xsd-tools.md#what-the-diagram-shows).
 
 ## 2.7.0 (2026-10-29)
 
