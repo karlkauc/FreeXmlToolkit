@@ -1806,8 +1806,9 @@ public class XsdNodeRenderer {
                     && py >= expandBtnY && py <= expandBtnY + expandBtnH;
         }
 
+        /** Flips the expanded state; expanding loads deferred children, see {@link #setExpanded}. */
         public void toggleExpanded() {
-            expanded = !expanded;
+            setExpanded(!expanded);
         }
 
         // Getters and setters

@@ -924,26 +924,8 @@ public class XsdVisualTreeBuilder {
 
         logger.debug("Resolving type reference '{}' for element '{}'", typeName, element.getName());
 
-        // Find the schema root
-        XsdNode current = element;
-        while (current != null && !(current instanceof XsdSchema)) {
-            current = current.getParent();
-        }
-
-        if (!(current instanceof XsdSchema)) {
-            logger.warn("Cannot resolve type '{}': schema root not found", typeName);
-            return;
-        }
-
-        logger.debug("Found schema root, searching for type '{}'", typeName);
-
-        // Check for circular reference - if this type is already in the chain, skip it
-        if (visitedTypes.contains(typeName)) {
-            logger.debug("Type '{}' already in processing chain, skipping to prevent circular reference", typeName);
-            return;
-        }
-
-        // Use type index for fast lookup
+        // Use type index for fast lookup. It needs no schema root, so the detached placeholder
+        // elements of complexContent base types resolve too.
         XsdComplexType complexType = typeIndex.get(typeName);
         if (complexType != null) {
             logger.info("Found complexType '{}' for element '{}' (from index), processing with {} children",

@@ -1262,6 +1262,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             // Check if expand button was clicked
             if (clickedNode.expandButtonContainsPoint(x, y)) {
                 clickedNode.toggleExpanded();
+                // Cards a deferred subtree just loaded are not in the builder's map yet.
+                indexLoadedNodes(clickedNode);
                 redraw();
             } else {
                 // Node body clicked - select it via SelectionModel
