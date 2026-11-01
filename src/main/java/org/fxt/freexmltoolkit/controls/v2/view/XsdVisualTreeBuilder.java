@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -95,30 +96,93 @@ public class XsdVisualTreeBuilder {
     }
 
     /**
-     * The global components of a schema, by local name. Includes are part of the schema they are
-     * flattened into; imported schemas are merged in with {@link #merge}.
+     * A QName as resolved from where it was written.
+     *
+     * @param namespace     the namespace, null if nothing assigns one
+     * @param local         the local name
+     * @param context       target namespace of the schema it was written in
+     * @param defaultIsXsd  an unprefixed name under a default namespace of XSD itself
+     * @param unknownPrefix it has a prefix that nothing declares
      */
-    private record SchemaIndex(Map<String, XsdComplexType> types, Set<String> simpleTypes,
-                               Map<String, XsdElement> elements, Map<String, XsdGroup> groups,
-                               Map<String, XsdAttributeGroup> attributeGroups) {
+    private record QName(String namespace, String local, String context,
+                         boolean defaultIsXsd, boolean unknownPrefix) {
+    }
+
+    /**
+     * Global components of one kind. A name with a namespace matches exactly, so equal local names in
+     * two namespaces stay apart. A name without one is tried in its schema's target namespace, then
+     * by local name if that is unique: that keeps chameleon includes and schemas that reference
+     * their own types without a prefix working.
+     */
+    private static final class Lookup<T> {
+        private final Map<String, T> qualified = new HashMap<>();
+        private final Map<String, T> byLocalName = new HashMap<>();
+        private final Set<String> ambiguous = new HashSet<>();
+
+        private static String key(String namespace, String local) {
+            return "{" + (namespace != null ? namespace : "") + "}" + local;
+        }
+
+        void put(String namespace, String local, T value) {
+            qualified.put(key(namespace, local), value);
+            addLocal(local, value);
+        }
+
+        private void addLocal(String local, T value) {
+            T previous = byLocalName.put(local, value);
+            if (previous != null && previous != value) {
+                ambiguous.add(local);
+            }
+        }
+
+        void merge(Lookup<T> other) {
+            qualified.putAll(other.qualified);
+            other.byLocalName.forEach(this::addLocal);
+            ambiguous.addAll(other.ambiguous);
+        }
+
+        T find(QName name) {
+            if (name.namespace() != null) {
+                return qualified.get(key(name.namespace(), name.local()));
+            }
+            T inContext = qualified.get(key(name.context(), name.local()));
+            if (inContext != null || ambiguous.contains(name.local())) {
+                return inContext;
+            }
+            return byLocalName.get(name.local());
+        }
+
+        int size() {
+            return qualified.size();
+        }
+    }
+
+    /**
+     * The global components of a schema. Includes are part of the schema they are flattened into;
+     * imported schemas are merged in with {@link #merge}.
+     */
+    private record SchemaIndex(Lookup<XsdComplexType> types, Lookup<Boolean> simpleTypes,
+                               Lookup<XsdElement> elements, Lookup<XsdGroup> groups,
+                               Lookup<XsdAttributeGroup> attributeGroups) {
 
         SchemaIndex() {
-            this(new HashMap<>(), new HashSet<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+            this(new Lookup<>(), new Lookup<>(), new Lookup<>(), new Lookup<>(), new Lookup<>());
         }
 
         static SchemaIndex of(XsdSchema schema) {
             SchemaIndex index = new SchemaIndex();
+            String namespace = schema.getTargetNamespace();
             for (XsdNode child : schema.getChildren()) {
                 if (child instanceof XsdComplexType type && hasName(type)) {
-                    index.types.put(type.getName(), type);
+                    index.types.put(namespace, type.getName(), type);
                 } else if (child instanceof XsdSimpleType type && hasName(type)) {
-                    index.simpleTypes.add(type.getName());
+                    index.simpleTypes.put(namespace, type.getName(), Boolean.TRUE);
                 } else if (child instanceof XsdElement element && hasName(element) && element.getRef() == null) {
-                    index.elements.put(element.getName(), element);
+                    index.elements.put(namespace, element.getName(), element);
                 } else if (child instanceof XsdGroup group && hasName(group) && !group.isReference()) {
-                    index.groups.put(group.getName(), group);
+                    index.groups.put(namespace, group.getName(), group);
                 } else if (child instanceof XsdAttributeGroup group && hasName(group) && !group.isReference()) {
-                    index.attributeGroups.put(group.getName(), group);
+                    index.attributeGroups.put(namespace, group.getName(), group);
                 }
             }
             return index;
@@ -129,11 +193,11 @@ public class XsdVisualTreeBuilder {
         }
 
         void merge(SchemaIndex other) {
-            types.putAll(other.types);
-            simpleTypes.addAll(other.simpleTypes);
-            elements.putAll(other.elements);
-            groups.putAll(other.groups);
-            attributeGroups.putAll(other.attributeGroups);
+            types.merge(other.types);
+            simpleTypes.merge(other.simpleTypes);
+            elements.merge(other.elements);
+            groups.merge(other.groups);
+            attributeGroups.merge(other.attributeGroups);
         }
     }
 
@@ -518,7 +582,7 @@ public class XsdVisualTreeBuilder {
             // This handles cases like <xs:element name="ControlData" type="ControlDataType"/>
             String elementType = element.getType();
             if (!hasInlineComplexType && elementType != null && !elementType.isEmpty()) {
-                resolveTypeReference(elementType, node, visitedTypes, visitedElements);
+                resolveTypeReference(elementType, node, element, visitedTypes, visitedElements);
             } else if (!hasInlineComplexType) {
                 // No type attribute and no inline type definition: according to the XSD spec this
                 // means xs:anyType (allows any content), so there is no structure to show.
@@ -553,40 +617,62 @@ public class XsdVisualTreeBuilder {
         if (elementType == null || elementType.isEmpty()) {
             return false;
         }
-        TypeKind kind = classify(elementType);
+        TypeKind kind = classify(resolveName(elementType, element));
         return kind == TypeKind.COMPLEX || kind == TypeKind.UNRESOLVED;
     }
 
     /**
-     * Classifies a type reference through the schema's prefix declarations, so any prefix bound to
-     * the XSD namespace works and a user type named like a built-in one is not mistaken for it.
-     * A prefixless reference prefers an indexed type, since schemas with XSD as their default
-     * namespace and no target namespace reference their own types that way.
+     * Resolves a QName through the prefix declarations of the file it was written in.
      *
-     * @param typeRef the QName as written in the schema
-     * @return what the reference points at
+     * @param ref   the QName as written in the schema
+     * @param owner the node that holds it
+     * @return the resolved name
      */
-    private TypeKind classify(String typeRef) {
-        int colon = typeRef.indexOf(':');
-        String prefix = colon < 0 ? "" : typeRef.substring(0, colon);
-        String localName = localName(typeRef);
-        String namespace = currentSchema != null ? currentSchema.getNamespaces().get(prefix) : null;
-        boolean xsdNamespace = namespace != null
-                ? XSD_NAMESPACE.equals(namespace)
-                : "xs".equals(prefix) || "xsd".equals(prefix);
-        boolean indexed = index.types().containsKey(localName) || index.simpleTypes().contains(localName);
+    private QName resolveName(String ref, XsdNode owner) {
+        Path file = null;
+        XsdNode root = owner;
+        for (XsdNode node = owner; node != null; node = node.getParent()) {
+            if (file == null && node.getSourceInfo() != null) {
+                file = node.getSourceInfo().getSourceFile();
+            }
+            root = node;
+        }
+        XsdSchema schema = root instanceof XsdSchema own ? own : currentSchema;
 
-        if (xsdNamespace && (colon >= 0 || !indexed)) {
+        int colon = ref.indexOf(':');
+        String prefix = colon < 0 ? "" : ref.substring(0, colon);
+        String local = localName(ref);
+        String context = schema != null ? schema.getTargetNamespace() : null;
+        String namespace = schema != null ? schema.namespaceFor(file, prefix) : null;
+
+        if (namespace == null && ("xs".equals(prefix) || "xsd".equals(prefix))) {
+            namespace = XSD_NAMESPACE;
+        }
+        // Under a default namespace of XSD, schemas without a target reference their own types unprefixed
+        boolean defaultIsXsd = colon < 0 && XSD_NAMESPACE.equals(namespace);
+        return new QName(defaultIsXsd ? null : namespace, local, context, defaultIsXsd,
+                colon >= 0 && namespace == null);
+    }
+
+    /**
+     * Classifies a resolved type name. Any prefix bound to the XSD namespace is built in, and a
+     * user type named like a built-in one is not mistaken for it.
+     *
+     * @param name the resolved name
+     * @return what it points at
+     */
+    private TypeKind classify(QName name) {
+        if (XSD_NAMESPACE.equals(name.namespace())) {
             return TypeKind.BUILTIN;
         }
-        if (index.types().containsKey(localName)) {
+        if (index.types().find(name) != null) {
             return TypeKind.COMPLEX;
         }
-        if (indexed) {
+        if (index.simpleTypes().find(name) != null) {
             return TypeKind.SIMPLE;
         }
-        // An included file may declare a prefix the main file does not know
-        return namespace == null && colon >= 0 && XsdBuiltinTypeCatalog.isBuiltin(localName)
+        // A name from a file whose declarations are not known may still be a built-in one
+        return name.defaultIsXsd() || (name.unknownPrefix() && XsdBuiltinTypeCatalog.isBuiltin(name.local()))
                 ? TypeKind.BUILTIN : TypeKind.UNRESOLVED;
     }
 
@@ -755,8 +841,8 @@ public class XsdVisualTreeBuilder {
     }
 
     private void fillGroupCard(XsdGroup group, VisualNode node, Set<String> visitedTypes, Set<String> visitedElements) {
-        String name = localName(group.getRef());
-        XsdGroup definition = index.groups().get(name);
+        QName name = resolveName(group.getRef(), group);
+        XsdGroup definition = index.groups().find(name);
         String visitKey = "group:" + name;
 
         if (definition == null) {
@@ -799,8 +885,8 @@ public class XsdVisualTreeBuilder {
     }
 
     private void fillAttributeGroupCard(XsdAttributeGroup group, VisualNode node, Set<String> visitedTypes) {
-        String name = localName(group.getRef());
-        XsdAttributeGroup definition = index.attributeGroups().get(name);
+        QName name = resolveName(group.getRef(), group);
+        XsdAttributeGroup definition = index.attributeGroups().find(name);
         String visitKey = "attributeGroup:" + name;
 
         if (definition == null) {
@@ -880,29 +966,32 @@ public class XsdVisualTreeBuilder {
      *
      * @param typeRef      the type reference (e.g., "ControlDataType")
      * @param parentNode   the visual node to add children to
+     * @param owner        the element or derivation that holds the reference
      * @param visitedTypes set of type names currently being processed (to prevent circular references)
      * @param visitedElements set of element IDs currently being processed (to prevent circular references)
      */
-    private void resolveTypeReference(String typeRef, VisualNode parentNode,
+    private void resolveTypeReference(String typeRef, VisualNode parentNode, XsdNode owner,
                                       Set<String> visitedTypes, Set<String> visitedElements) {
         if (typeRef == null || typeRef.isEmpty()) {
             return;
         }
 
-        switch (classify(typeRef)) {
+        QName name = resolveName(typeRef, owner);
+        switch (classify(name)) {
             case BUILTIN, SIMPLE -> logger.trace("Type '{}' has no structure to show", typeRef);
             case UNRESOLVED -> addPlaceholder(parentNode, "Unresolved type: " + typeRef,
                     "Type definition not loaded");
             case COMPLEX -> {
-                String typeName = localName(typeRef);
                 // The same type may repeat in parallel branches, just not within its own chain
-                if (visitedTypes.contains(typeName)) {
-                    logger.debug("Circular reference detected: type '{}' is already being processed", typeName);
+                XsdComplexType type = index.types().find(name);
+                String visitKey = "type:" + type.getId();
+                if (visitedTypes.contains(visitKey)) {
+                    logger.debug("Circular reference detected: type '{}' is already being processed", typeRef);
                     return;
                 }
                 Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
-                localVisitedTypes.add(typeName);
-                processComplexType(index.types().get(typeName), parentNode, localVisitedTypes, visitedElements);
+                localVisitedTypes.add(visitKey);
+                processComplexType(type, parentNode, localVisitedTypes, visitedElements);
             }
         }
     }
@@ -928,10 +1017,11 @@ public class XsdVisualTreeBuilder {
 
         // Remove namespace prefix if present (e.g., "ds:Signature" -> "Signature")
         String elementName = localName(ref);
+        QName elementQName = resolveName(ref, referencingElement);
         logger.debug("Element name after prefix removal: '{}'", elementName);
 
         // Look up the global element in the index
-        XsdElement referencedElement = index.elements().get(elementName);
+        XsdElement referencedElement = index.elements().find(elementQName);
         if (referencedElement != null) {
             logger.info("Found global element '{}' for ref='{}', processing structure", elementName, ref);
 
@@ -950,7 +1040,7 @@ public class XsdVisualTreeBuilder {
             String referencedType = referencedElement.getType();
             if (referencedType != null && !referencedType.isEmpty()) {
                 logger.info("Referenced element '{}' has type='{}', resolving", elementName, referencedType);
-                resolveTypeReference(referencedType, parentNode, visitedTypes, localVisitedElements);
+                resolveTypeReference(referencedType, parentNode, referencedElement, visitedTypes, localVisitedElements);
             }
 
             // Process the referenced element's inline children (complexType, etc.)
@@ -1021,7 +1111,7 @@ public class XsdVisualTreeBuilder {
 
                 // An extension appends to the base type's content, so that comes first
                 String baseType = extension.getBase();
-                resolveTypeReference(baseType, parentNode, visitedTypes, visitedElements);
+                resolveTypeReference(baseType, parentNode, extension, visitedTypes, visitedElements);
                 addDerivationContent(extension, parentNode, visitedTypes, visitedElements);
             } else if (child instanceof XsdRestriction restriction) {
                 // A restriction restates the whole content model: the base's particles do not add to it
@@ -1044,7 +1134,7 @@ public class XsdVisualTreeBuilder {
      */
     private void addInheritedAttributes(String baseRef, XsdNode derivation, VisualNode parentNode,
                                         Set<String> visitedTypes) {
-        addBaseAttributes(baseRef, declaredAttributes(derivation), parentNode, visitedTypes);
+        addBaseAttributes(baseRef, derivation, declaredAttributes(derivation), parentNode, visitedTypes);
     }
 
     /** Names a derivation declares itself: redeclared or prohibited, so the base's version is gone. */
@@ -1058,23 +1148,28 @@ public class XsdVisualTreeBuilder {
         return names;
     }
 
-    private void addBaseAttributes(String baseRef, Set<String> hidden, VisualNode parentNode, Set<String> visitedTypes) {
+    private void addBaseAttributes(String baseRef, XsdNode owner, Set<String> hidden, VisualNode parentNode,
+                                   Set<String> visitedTypes) {
         if (baseRef == null || baseRef.isEmpty()) {
             return;
         }
-        TypeKind kind = classify(baseRef);
+        QName name = resolveName(baseRef, owner);
+        TypeKind kind = classify(name);
         if (kind == TypeKind.UNRESOLVED) {
             addPlaceholder(parentNode, "Unresolved type: " + baseRef, "Type definition not loaded");
             return;
         }
-        String typeName = localName(baseRef);
-        if (kind != TypeKind.COMPLEX || visitedTypes.contains("attributes:" + typeName)) {
+        if (kind != TypeKind.COMPLEX) {
+            return;
+        }
+        XsdComplexType type = index.types().find(name);
+        String visitKey = "attributes:" + type.getId();
+        if (visitedTypes.contains(visitKey)) {
             return;
         }
         Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
-        localVisitedTypes.add("attributes:" + typeName);
+        localVisitedTypes.add(visitKey);
 
-        XsdComplexType type = index.types().get(typeName);
         for (XsdNode child : type.getChildren()) {
             if (child instanceof XsdSimpleContent || child instanceof XsdComplexContent) {
                 for (XsdNode derivation : child.getChildren()) {
@@ -1082,7 +1177,7 @@ public class XsdVisualTreeBuilder {
                             : derivation instanceof XsdRestriction restriction ? restriction.getBase() : null;
                     Set<String> derivationHidden = new HashSet<>(hidden);
                     derivationHidden.addAll(declaredAttributes(derivation));
-                    addBaseAttributes(derivationBase, derivationHidden, parentNode, localVisitedTypes);
+                    addBaseAttributes(derivationBase, derivation, derivationHidden, parentNode, localVisitedTypes);
                     addAttributeUses(derivation, hidden, parentNode, localVisitedTypes);
                 }
             }

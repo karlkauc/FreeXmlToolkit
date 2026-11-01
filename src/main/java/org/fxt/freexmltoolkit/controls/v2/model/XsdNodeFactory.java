@@ -687,6 +687,7 @@ public class XsdNodeFactory {
             if (xsdInclude != null) {
                 xsdInclude.setResolvedPath(realPath);
             }
+            targetSchema.addFileNamespaces(realPath, declaredNamespaces(includedRoot));
 
             // Push include context for source tracking
             if (includeTracker != null && preserveIncludeStructure && xsdInclude != null) {
@@ -745,6 +746,22 @@ public class XsdNodeFactory {
         } finally {
             includeStack.remove(realPath);
         }
+    }
+
+    /** The xmlns declarations of an element, the default namespace under the empty prefix. */
+    private static java.util.Map<String, String> declaredNamespaces(Element element) {
+        java.util.Map<String, String> declared = new java.util.HashMap<>();
+        NamedNodeMap attributes = element.getAttributes();
+        for (int i = 0; i < attributes.getLength(); i++) {
+            Node attribute = attributes.item(i);
+            String name = attribute.getNodeName();
+            if (name.startsWith("xmlns:")) {
+                declared.put(name.substring(6), attribute.getNodeValue());
+            } else if (name.equals("xmlns")) {
+                declared.put("", attribute.getNodeValue());
+            }
+        }
+        return declared;
     }
 
     /**

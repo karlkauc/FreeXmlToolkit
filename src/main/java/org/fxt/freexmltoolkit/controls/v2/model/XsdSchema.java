@@ -32,6 +32,7 @@ public class XsdSchema extends XsdNode {
     private final Set<Path> allIncludedFiles = new HashSet<>();
     private final Map<String, XsdSchema> importedSchemas = new HashMap<>();
     private final Map<String, String> nestedIncludeFailures = new LinkedHashMap<>();
+    private final Map<Path, Map<String, String>> namespacesByFile = new HashMap<>();
 
     /**
      * Creates a new XSD schema.
@@ -40,6 +41,39 @@ public class XsdSchema extends XsdNode {
         super("schema");
         // Default namespace for XSD
         namespaces.put("xs", "http://www.w3.org/2001/XMLSchema");
+    }
+
+    /**
+     * Records the prefix declarations of an included file. Its components are flattened into this
+     * schema, but a QName inside them still means what that file's declarations say.
+     *
+     * @param file       the included file
+     * @param namespaces its prefixes, the default namespace under the empty prefix
+     */
+    public void addFileNamespaces(Path file, Map<String, String> namespaces) {
+        namespacesByFile.put(file, Map.copyOf(namespaces));
+    }
+
+    /**
+     * Resolves a prefix as seen from a file of this schema: its own declaration first, then the
+     * main file's, then any file's, for nodes whose origin is not known precisely.
+     *
+     * @param file   the file the QName was written in, may be null
+     * @param prefix the prefix, empty for the default namespace
+     * @return the namespace, or null if nothing declares the prefix
+     */
+    public String namespaceFor(Path file, String prefix) {
+        Map<String, String> own = file != null ? namespacesByFile.get(file) : null;
+        if (own != null && own.containsKey(prefix)) {
+            return own.get(prefix);
+        }
+        if (namespaces.containsKey(prefix)) {
+            return namespaces.get(prefix);
+        }
+        return namespacesByFile.values().stream()
+                .filter(declared -> declared.containsKey(prefix))
+                .map(declared -> declared.get(prefix))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -482,6 +516,7 @@ public class XsdSchema extends XsdNode {
         }
 
         copy.nestedIncludeFailures.putAll(this.nestedIncludeFailures);
+        copy.namespacesByFile.putAll(this.namespacesByFile);
 
         // Copy leading comments
         for (String comment : this.leadingComments) {
