@@ -31,6 +31,7 @@ public class XsdSchema extends XsdNode {
     private final Map<String, XsdInclude> includeMap = new HashMap<>();
     private final Set<Path> allIncludedFiles = new HashSet<>();
     private final Map<String, XsdSchema> importedSchemas = new HashMap<>();
+    private final Map<String, String> nestedIncludeFailures = new LinkedHashMap<>();
 
     /**
      * Creates a new XSD schema.
@@ -39,6 +40,26 @@ public class XsdSchema extends XsdNode {
         super("schema");
         // Default namespace for XSD
         namespaces.put("xs", "http://www.w3.org/2001/XMLSchema");
+    }
+
+    /**
+     * Records an include inside an included file that failed. Unlike the schema's own includes it
+     * has no {@link XsdInclude} node, since only the main file's directives appear in the tree.
+     *
+     * @param schemaLocation the location as written in the included file
+     * @param error          why it failed
+     */
+    public void addNestedIncludeFailure(String schemaLocation, String error) {
+        nestedIncludeFailures.put(schemaLocation, error);
+    }
+
+    /**
+     * Gets the failed includes nested in included files.
+     *
+     * @return read-only map of schemaLocation to error, in discovery order
+     */
+    public Map<String, String> getNestedIncludeFailures() {
+        return java.util.Collections.unmodifiableMap(nestedIncludeFailures);
     }
 
     /**
@@ -459,6 +480,8 @@ public class XsdSchema extends XsdNode {
         for (var entry : this.additionalAttributes.entrySet()) {
             copy.setAdditionalAttribute(entry.getKey(), entry.getValue());
         }
+
+        copy.nestedIncludeFailures.putAll(this.nestedIncludeFailures);
 
         // Copy leading comments
         for (String comment : this.leadingComments) {

@@ -4359,6 +4359,16 @@
     -fx-font-size: 12px;
 }
 
+/* Something is missing rather than on offer, e.g. a schema that could not be loaded. */
+.fxt-hint-bar.fxt-hint-bar-warning {
+    -fx-background-color: -fxt-tool-warning-bg;
+    -fx-border-color: -fxt-tool-warning-border;
+}
+
+.fxt-hint-bar.fxt-hint-bar-warning .fxt-hint-bar-icon {
+    -fx-icon-color: -fxt-tool-warning-fg;
+}
+
 /* Labelled actions in the OUTPUT dock header (UX plan 7): icon + short text. */
 .fxt-output-action {
     -fx-content-display: left;

@@ -31,6 +31,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
@@ -265,6 +266,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
         // Build visual tree
         buildVisualTree();
+        unresolvedBar.setEntries(UnresolvedSchemaReferences.of(xsdSchema));
 
         // Draw initial state
         redraw();
@@ -425,10 +427,12 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      */
     private void setupLayout() {
         // Toolbar with caching enabled (static content)
-        ToolBar toolbar = createToolbar();
+        toolbar = createToolbar();
         toolbar.setCache(true);
         toolbar.setCacheHint(CacheHint.SPEED);
-        setTop(toolbar);
+        unresolvedBar = new UnresolvedReferencesBar();
+        unresolvedBar.visibleProperty().addListener((obs, was, is) -> updateTop());
+        updateTop();
 
         // NOTE: Do NOT enable node caching on the canvas or the scroll pane.
         // The diagram canvas can grow very large (up to MAX_CANVAS_SIZE) for big schemas such
@@ -457,6 +461,15 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     /**
      * Creates the toolbar.
      */
+    /** Top of the view: the toolbar (gone in minimal chrome) and the bar for unloaded schemas. */
+    private void updateTop() {
+        if (toolbar != null && unresolvedBar.isVisible()) {
+            setTop(new VBox(toolbar, unresolvedBar));
+        } else {
+            setTop(unresolvedBar.isVisible() ? unresolvedBar : toolbar);
+        }
+    }
+
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
 
@@ -625,6 +638,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             restoreExpansionState(rootNode, collapsedNodeIds, expandedNodeIds);
             // Subtrees the restore loaded lazily are not in the builder's map yet.
             indexLoadedNodes(rootNode);
+            unresolvedBar.setEntries(UnresolvedSchemaReferences.of(xsdSchema));
             logger.trace("Restored expansion state (single pass O(n))");
 
             // 5. Restore selection using nodeMap for O(1) lookup instead of O(n) findNodeById
@@ -658,6 +672,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     }
 
     private boolean isRebuilding = false;
+
+    /** The action toolbar; null in minimal chrome. */
+    private ToolBar toolbar;
+
+    private UnresolvedReferencesBar unresolvedBar;
 
     /**
      * Recursively collects IDs of all COLLAPSED nodes (nodes that have children but are not expanded).
@@ -924,7 +943,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      */
     public void useMinimalChrome() {
         // 1. Drop the top action toolbar (Expand/Collapse/Fit/zoom buttons).
-        setTop(null);
+        toolbar = null;
+        updateTop();
 
         javafx.scene.Node center = getCenter();
         if (center == null) {
@@ -1309,6 +1329,11 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         contextMenu.show(canvas, event.getScreenX(), event.getScreenY());
 
         logger.debug("Context menu shown for node: {}", clickedNode != null ? clickedNode.getLabel() : "empty canvas");
+    }
+
+    /** Scene coordinates of a diagram point, the inverse of the mapping in the mouse handlers. */
+    javafx.geometry.Point2D scenePointOf(double x, double y) {
+        return canvas.localToScene(x * zoomLevel - viewportX, y * zoomLevel - viewportY);
     }
 
     /**

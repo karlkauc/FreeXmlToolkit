@@ -46,6 +46,8 @@ import org.xml.sax.SAXParseException;
 public class XsdNodeFactory {
 
     private static final Logger logger = LogManager.getLogger(XsdNodeFactory.class);
+
+    private static final String CIRCULAR_INCLUDE = "Circular include detected";
     private static final String XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
 
     /**
@@ -480,6 +482,12 @@ public class XsdNodeFactory {
                 }
                 // Always process (inline) the include, regardless of whether it's added as a node
                 inlineSchemaReference(childElement, baseDirectory, schema, factory, xsdInclude);
+                // The node of a nested include leaves with this loop, so its failure stays on the schema.
+                // A cycle is legal XSD: the file's content is on its way in, nothing is missing.
+                if (!addSchemaDirectivesAsNodes && xsdInclude.getResolutionError() != null
+                        && !CIRCULAR_INCLUDE.equals(xsdInclude.getResolutionError())) {
+                    schema.addNestedIncludeFailure(xsdInclude.getSchemaLocation(), xsdInclude.getResolutionError());
+                }
             } else if (isXsdElement(childElement, "redefine")) {
                 XsdRedefine xsdRedefine = parseRedefine(childElement);
                 tagNodeWithSourceInfo(xsdRedefine);
@@ -537,7 +545,10 @@ public class XsdNodeFactory {
     private void inlineSchemaReference(Element directiveElement, Path baseDirectory, XsdSchema targetSchema,
                                        DocumentBuilderFactory factory, XsdInclude xsdInclude) {
         if (baseDirectory == null || factory == null) {
-            return; // Cannot resolve without file context
+            if (xsdInclude != null) {
+                xsdInclude.markResolutionFailed("the schema has no file location to resolve it against");
+            }
+            return;
         }
 
         String schemaLocation = directiveElement.getAttribute("schemaLocation");
@@ -603,7 +614,7 @@ public class XsdNodeFactory {
         if (!includeStack.add(realPath)) {
             logger.warn("Circular include detected for '{}'. Skipping to prevent infinite recursion.", realPath);
             if (xsdInclude != null) {
-                xsdInclude.markResolutionFailed("Circular include detected");
+                xsdInclude.markResolutionFailed(CIRCULAR_INCLUDE);
             }
             return;
         }

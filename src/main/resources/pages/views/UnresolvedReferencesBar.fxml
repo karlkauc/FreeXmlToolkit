@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Names the includes and imports of a schema that could not be loaded, above the XSD diagram.
+  Loaded by UnresolvedReferencesBar via the fx:root pattern (FxmlViews.load).
+-->
+<fx:root type="javafx.scene.layout.HBox" id="unresolved-references" spacing="10" alignment="CENTER_LEFT"
+         styleClass="fxt-hint-bar, fxt-hint-bar-warning" xmlns="http://javafx.com/javafx/17"
+         xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <IconifyIcon iconLiteral="bi-exclamation-triangle" iconSize="16" styleClass="fxt-hint-bar-icon"/>
+        <Label fx:id="message" id="unresolved-references-message" wrapText="true" minWidth="0" maxWidth="Infinity"
+               styleClass="fxt-hint-bar-text" HBox.hgrow="ALWAYS"/>
+        <Button id="unresolved-references-dismiss" text="Dismiss" styleClass="fxt-tool-button, fxt-tool-neutral"
+                onAction="#onDismiss"/>
+    </children>
+</fx:root>

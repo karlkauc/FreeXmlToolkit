@@ -25,6 +25,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
+import org.fxt.freexmltoolkit.domain.XsdBuiltinTypeCatalog;
 
 /**
  * Builds a visual tree from the XsdNode-based model (XsdSchema).
@@ -578,7 +579,12 @@ public class XsdVisualTreeBuilder {
         if (index.types().containsKey(localName)) {
             return TypeKind.COMPLEX;
         }
-        return indexed ? TypeKind.SIMPLE : TypeKind.UNRESOLVED;
+        if (indexed) {
+            return TypeKind.SIMPLE;
+        }
+        // An included file may declare a prefix the main file does not know
+        return namespace == null && colon >= 0 && XsdBuiltinTypeCatalog.isBuiltin(localName)
+                ? TypeKind.BUILTIN : TypeKind.UNRESOLVED;
     }
 
     private static String localName(String qName) {
