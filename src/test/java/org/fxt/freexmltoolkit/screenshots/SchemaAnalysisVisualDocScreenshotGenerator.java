@@ -181,10 +181,7 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
     }
 
     private void onFx(Runnable action) {
-        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
-            action.run();
-            return null;
-        });
+        ScreenshotFx.run("analysis-screenshot", action);
         WaitForAsyncUtils.waitForFxEvents();
     }
 
@@ -194,7 +191,7 @@ class SchemaAnalysisVisualDocScreenshotGenerator {
     }
 
     private void shot(String name) throws Exception {
-        var img = WaitForAsyncUtils.waitForAsyncFx(8000, () -> shell.snapshot(new SnapshotParameters(), null));
+        var img = ScreenshotFx.call("analysis-screenshot", () -> shell.snapshot(new SnapshotParameters(), null));
         File out = new File(OUT_DIR, name + ".png");
         ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", out);
         System.out.println("[visual] wrote " + out.getAbsolutePath());

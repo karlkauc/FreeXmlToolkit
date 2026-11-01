@@ -595,10 +595,7 @@ class ShellDocScreenshotGenerator {
     }
 
     private void onFx(Runnable action) {
-        WaitForAsyncUtils.waitForAsyncFx(3000, () -> {
-            action.run();
-            return null;
-        });
+        ScreenshotFx.run("shell-screenshot", action);
         WaitForAsyncUtils.waitForFxEvents();
     }
 
@@ -631,7 +628,7 @@ class ShellDocScreenshotGenerator {
     }
 
     private void shot(String name) throws Exception {
-        var img = WaitForAsyncUtils.waitForAsyncFx(8000, () -> {
+        var img = ScreenshotFx.call("shell-screenshot", () -> {
             Node target = shell != null ? shell : root;
             return target.snapshot(new SnapshotParameters(), null);
         });

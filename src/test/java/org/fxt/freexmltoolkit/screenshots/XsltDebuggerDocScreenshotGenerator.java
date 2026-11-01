@@ -171,10 +171,7 @@ class XsltDebuggerDocScreenshotGenerator {
     }
 
     private void onFx(Runnable action) {
-        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
-            action.run();
-            return null;
-        });
+        ScreenshotFx.run("debugger-screenshot", action);
         WaitForAsyncUtils.waitForFxEvents();
     }
 
@@ -188,7 +185,7 @@ class XsltDebuggerDocScreenshotGenerator {
     }
 
     private void shot(Node target, String name) throws Exception {
-        var img = WaitForAsyncUtils.waitForAsyncFx(8000, () -> target.snapshot(new SnapshotParameters(), null));
+        var img = ScreenshotFx.call("debugger-screenshot", () -> target.snapshot(new SnapshotParameters(), null));
         File out = new File(IMG_DIR, name + ".png");
         ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", out);
         System.out.println("[debugger-screenshot] wrote " + out.getAbsolutePath()

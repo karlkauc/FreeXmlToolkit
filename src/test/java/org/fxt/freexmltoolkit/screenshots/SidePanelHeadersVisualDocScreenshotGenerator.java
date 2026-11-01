@@ -62,12 +62,12 @@ class SidePanelHeadersVisualDocScreenshotGenerator {
         order.remove(Activity.EXPLORER);
         order.add(Activity.EXPLORER);
         for (Activity activity : order) {
-            WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
+            ScreenshotFx.call("visual", () -> {
                 shell.getSelectionModel().select(activity);
                 return null;
             });
             settle(700);
-            var img = WaitForAsyncUtils.waitForAsyncFx(8000, () -> {
+            var img = ScreenshotFx.call("visual", () -> {
                 var title = shell.lookup(".fxt-side-panel-title");
                 Bounds b = title.localToScene(title.getBoundsInLocal());
                 Bounds h = title.getParent().localToScene(title.getParent().getBoundsInLocal());

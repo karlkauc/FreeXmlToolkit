@@ -147,10 +147,7 @@ class ExecutionStatsDocScreenshotGenerator {
     }
 
     private void onFx(Runnable action) {
-        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
-            action.run();
-            return null;
-        });
+        ScreenshotFx.run("stats-screenshot", action);
         WaitForAsyncUtils.waitForFxEvents();
     }
 
@@ -164,7 +161,7 @@ class ExecutionStatsDocScreenshotGenerator {
     }
 
     private void shot(String name) throws Exception {
-        var img = WaitForAsyncUtils.waitForAsyncFx(8000, () -> {
+        var img = ScreenshotFx.call("stats-screenshot", () -> {
             Node target = shell != null ? shell : root;
             return target.snapshot(new SnapshotParameters(), null);
         });

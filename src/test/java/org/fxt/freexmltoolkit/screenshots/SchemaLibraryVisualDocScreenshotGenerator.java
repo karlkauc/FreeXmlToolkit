@@ -248,7 +248,7 @@ class SchemaLibraryVisualDocScreenshotGenerator {
     }
 
     private void onFx(Runnable action) {
-        WaitForAsyncUtils.waitForAsyncFx(5000, () -> { action.run(); return null; });
+        ScreenshotFx.run("visual", action);
         WaitForAsyncUtils.waitForFxEvents();
     }
 
@@ -258,7 +258,7 @@ class SchemaLibraryVisualDocScreenshotGenerator {
     }
 
     private void shot(String name) throws Exception {
-        var img = WaitForAsyncUtils.waitForAsyncFx(8000, () -> {
+        var img = ScreenshotFx.call("visual", () -> {
             Node target = shell != null ? shell : root;
             return target.snapshot(new SnapshotParameters(), null);
         });

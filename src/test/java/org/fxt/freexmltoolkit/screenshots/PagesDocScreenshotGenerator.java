@@ -520,21 +520,8 @@ class PagesDocScreenshotGenerator {
             }
             WaitForAsyncUtils.sleep(100, TimeUnit.MILLISECONDS);
         }
-        printThreadStacks();
+        ScreenshotFx.printThreadStacks("pages-screenshot");
         throw new java.util.concurrent.TimeoutException("condition not met within " + seconds + " s");
-    }
-
-    /** Prints the stacks of the FX, worker and AWT threads (diagnostics for a failed wait). */
-    private static void printThreadStacks() {
-        Thread.getAllStackTraces().forEach((t, stack) -> {
-            if (t.getName().startsWith("JavaFX Application") || t.getName().startsWith("FxtGui-Worker")
-                    || t.getName().startsWith("AWT")) {
-                System.out.println("[pages-screenshot] STACK " + t.getName() + " " + t.getState());
-                for (StackTraceElement el : stack) {
-                    System.out.println("[pages-screenshot]     at " + el);
-                }
-            }
-        });
     }
 
     private org.fxt.freexmltoolkit.controls.shell.editor.ValidationPanel validationPanel() {
@@ -553,10 +540,7 @@ class PagesDocScreenshotGenerator {
     }
 
     private void onFx(Runnable action) {
-        WaitForAsyncUtils.waitForAsyncFx(5000, () -> {
-            action.run();
-            return null;
-        });
+        ScreenshotFx.run("pages-screenshot", action);
         WaitForAsyncUtils.waitForFxEvents();
     }
 
@@ -574,7 +558,7 @@ class PagesDocScreenshotGenerator {
     }
 
     private void shotNode(Node target, String name) throws Exception {
-        var img = WaitForAsyncUtils.waitForAsyncFx(8000,
+        var img = ScreenshotFx.call("pages-screenshot",
                 () -> target.snapshot(new SnapshotParameters(), null));
         File out = new File(IMG_DIR, name + ".png");
         ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", out);
