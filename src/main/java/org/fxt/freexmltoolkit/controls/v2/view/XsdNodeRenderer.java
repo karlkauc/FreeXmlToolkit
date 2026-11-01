@@ -976,6 +976,8 @@ public class XsdNodeRenderer {
         private java.util.function.Supplier<java.util.List<VisualNode>> lazyChildrenLoader;  // Loader for lazy children
         private boolean loadingChildren;  // True while children are being loaded
 
+        private boolean placeholder;  // Stands for something unresolved: its text does not follow the model
+
         // New properties for improved visual representation
         private String iconLiteral;             // Bootstrap icon code (e.g., "bi-diagram-3")
         private Color headerColor;              // Header background color
@@ -1342,8 +1344,8 @@ public class XsdNodeRenderer {
          * making the editor more efficient and preserving UI state (selection, expansion).
          */
         private void updateFromModel() {
-            if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode)) {
-                return;  // Not an XsdNode, cannot update
+            if (placeholder || !(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode)) {
+                return;  // Fixed text, or not an XsdNode: nothing to update
             }
 
             // Update name/label
@@ -1958,7 +1960,8 @@ public class XsdNodeRenderer {
          * Sets up lazy loading for this node's children.
          * The loader will be called when the node is first expanded.
          *
-         * @param loader function that creates and returns the child nodes
+         * @param loader function that creates the child nodes; it may also add them to this card
+         *               directly and return nothing
          */
         public void setLazyChildrenLoader(java.util.function.Supplier<java.util.List<VisualNode>> loader) {
             this.lazyChildrenLoader = loader;
@@ -1989,6 +1992,20 @@ public class XsdNodeRenderer {
             this.expandBtnY = y;
             this.expandBtnW = w;
             this.expandBtnH = h;
+        }
+
+        /**
+         * Turns this card into a placeholder for something unresolved. Its model node only anchors
+         * selection and context menu, so the text stays when the model changes.
+         *
+         * @param label  the card's title
+         * @param detail the card's second line
+         */
+        public void setPlaceholderText(String label, String detail) {
+            this.placeholder = true;
+            this.label = label;
+            this.detail = detail;
+            initializeVisualProperties();
         }
 
         public boolean isSelected() {
