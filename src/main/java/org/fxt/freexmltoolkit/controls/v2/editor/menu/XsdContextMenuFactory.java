@@ -106,6 +106,9 @@ public class XsdContextMenuFactory {
         if (node == null) {
             return createEmptyCanvasMenu();
         }
+        if (node.getModelObject() == null) {
+            return new ContextMenu(); // A placeholder for something unresolved: nothing to edit
+        }
 
         ContextMenu menu = switch (node.getType()) {
             case ELEMENT -> createElementMenu(node);
@@ -444,15 +447,13 @@ public class XsdContextMenuFactory {
     }
 
     /**
-     * Creates a context menu for group nodes.
+     * Creates a context menu for group cards. They are references: only the reference itself can go,
+     * the content belongs to the shared definition.
      */
     private ContextMenu createGroupMenu(VisualNode node) {
         ContextMenu menu = new ContextMenu();
 
         menu.getItems().addAll(
-                createMenuItem("Add Element", "bi-plus", ActionColor.CREATE, () -> handleAddElement(node)),
-                new SeparatorMenuItem(),
-                createMenuItem("Rename", "bi-pencil", ActionColor.MODIFY, () -> handleRename(node)),
                 createMenuItem("Delete", "bi-trash", ActionColor.DELETE, () -> handleDelete(node)),
                 new SeparatorMenuItem(),
                 createMenuItemAlwaysEnabled("Copy XPath", "bi-signpost-2", ActionColor.NEUTRAL, () -> handleCopyXPath(node))

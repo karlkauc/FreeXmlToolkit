@@ -10,11 +10,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComment;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
@@ -93,10 +95,11 @@ public class XsdVisualTreeBuilder {
      * flattened into; imported schemas are merged in with {@link #merge}.
      */
     private record SchemaIndex(Map<String, XsdComplexType> types, Set<String> simpleTypes,
-                               Map<String, XsdElement> elements) {
+                               Map<String, XsdElement> elements, Map<String, XsdGroup> groups,
+                               Map<String, XsdAttributeGroup> attributeGroups) {
 
         SchemaIndex() {
-            this(new HashMap<>(), new HashSet<>(), new HashMap<>());
+            this(new HashMap<>(), new HashSet<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
         }
 
         static SchemaIndex of(XsdSchema schema) {
@@ -108,6 +111,10 @@ public class XsdVisualTreeBuilder {
                     index.simpleTypes.add(type.getName());
                 } else if (child instanceof XsdElement element && hasName(element) && element.getRef() == null) {
                     index.elements.put(element.getName(), element);
+                } else if (child instanceof XsdGroup group && hasName(group) && !group.isReference()) {
+                    index.groups.put(group.getName(), group);
+                } else if (child instanceof XsdAttributeGroup group && hasName(group) && !group.isReference()) {
+                    index.attributeGroups.put(group.getName(), group);
                 }
             }
             return index;
@@ -121,6 +128,8 @@ public class XsdVisualTreeBuilder {
             types.putAll(other.types);
             simpleTypes.addAll(other.simpleTypes);
             elements.putAll(other.elements);
+            groups.putAll(other.groups);
+            attributeGroups.putAll(other.attributeGroups);
         }
     }
 
@@ -334,6 +343,19 @@ public class XsdVisualTreeBuilder {
         }
     }
 
+    /** A builder for one lazy load: separate state and a fresh budget, sharing this build's index. */
+    private XsdVisualTreeBuilder lazyBuilder(int depth) {
+        XsdVisualTreeBuilder lazyBuilder = new XsdVisualTreeBuilder();
+        lazyBuilder.buildMode = BuildMode.FULL;
+        lazyBuilder.nodeBudget = this.nodeBudget;
+        lazyBuilder.currentSchema = this.currentSchema;
+        lazyBuilder.onModelChangeCallback = this.onModelChangeCallback;
+        lazyBuilder.importedSchemas = this.importedSchemas;
+        lazyBuilder.index = this.index;
+        lazyBuilder.currentDepth = depth;
+        return lazyBuilder;
+    }
+
     private static SchemaIndex cachedIndex(XsdSchema schema) {
         return INDEX_CACHE.computeIfAbsent(System.identityHashCode(schema), id -> SchemaIndex.of(schema));
     }
@@ -439,15 +461,7 @@ public class XsdVisualTreeBuilder {
             final int capturedDepth = currentDepth;
 
             node.setLazyChildrenLoader(() -> {
-                // Create a new builder instance for lazy loading to avoid state conflicts
-                XsdVisualTreeBuilder lazyBuilder = new XsdVisualTreeBuilder();
-                lazyBuilder.buildMode = BuildMode.FULL;  // Build fully when expanding, within a fresh budget
-                lazyBuilder.nodeBudget = this.nodeBudget;
-                lazyBuilder.currentSchema = this.currentSchema;
-                lazyBuilder.onModelChangeCallback = this.onModelChangeCallback;
-                lazyBuilder.importedSchemas = this.importedSchemas;
-                lazyBuilder.index = this.index;
-                lazyBuilder.currentDepth = capturedDepth;
+                XsdVisualTreeBuilder lazyBuilder = lazyBuilder(capturedDepth);
 
                 // The eager path fills the card itself, so a deferred card matches an eager one.
                 lazyBuilder.buildChildrenInto(capturedElement, node, capturedVisitedTypes, capturedVisitedElements);
@@ -500,7 +514,7 @@ public class XsdVisualTreeBuilder {
             // This handles cases like <xs:element name="ControlData" type="ControlDataType"/>
             String elementType = element.getType();
             if (!hasInlineComplexType && elementType != null && !elementType.isEmpty()) {
-                resolveTypeReference(elementType, node, element, visitedTypes, visitedElements);
+                resolveTypeReference(elementType, node, visitedTypes, visitedElements);
             } else if (!hasInlineComplexType) {
                 // No type attribute and no inline type definition: according to the XSD spec this
                 // means xs:anyType (allows any content), so there is no structure to show.
@@ -572,18 +586,16 @@ public class XsdVisualTreeBuilder {
     }
 
     /**
-     * Adds a card that names something the schema refers to but the diagram cannot show.
+     * Adds a card that names something the schema refers to but the diagram cannot show. It has no
+     * model node, so selection, delete and drag cannot touch the reference it stands for.
      *
      * @param parentNode the card it belongs to
-     * @param anchor     the model node that holds the reference
      * @param label      the card's title
      * @param detail     the card's second line
      */
-    private void addPlaceholder(VisualNode parentNode, XsdNode anchor, String label, String detail) {
-        VisualNode placeholder = new VisualNode(label, detail, NodeWrapperType.ELEMENT, anchor, parentNode,
-                1, 1, onModelChangeCallback);
-        placeholder.setPlaceholderText(label, detail);
-        parentNode.addChild(placeholder);
+    private void addPlaceholder(VisualNode parentNode, String label, String detail) {
+        parentNode.addChild(new VisualNode(label, detail, NodeWrapperType.ELEMENT, null, parentNode,
+                1, 1, onModelChangeCallback));
     }
 
     /**
@@ -629,6 +641,10 @@ public class XsdVisualTreeBuilder {
                 // Process complexContent (base type + content model from extension/restriction)
                 logger.debug("Processing complexContent with {} children", complexContent.getChildren().size());
                 processComplexContent(complexContent, parentNode, visitedTypes, localVisitedElements);
+            } else if (child instanceof XsdGroup group) {
+                parentNode.addChild(createGroupRefNode(group, parentNode, visitedTypes, localVisitedElements));
+            } else if (child instanceof XsdAttributeGroup group) {
+                parentNode.addChild(createAttributeGroupRefNode(group, parentNode, visitedTypes));
             } else if (child instanceof XsdComment comment) {
                 VisualNode commentNode = createCommentNode(comment, parentNode);
                 parentNode.addChild(commentNode);
@@ -685,12 +701,116 @@ public class XsdVisualTreeBuilder {
                         child instanceof XsdChoice ? "choice" : "all";
                 VisualNode nestedNode = createCompositorNode(child, node, nestedType, visitedTypes, visitedElements);
                 node.addChild(nestedNode);
+            } else if (child instanceof XsdGroup group) {
+                node.addChild(createGroupRefNode(group, node, visitedTypes, visitedElements));
             } else if (child instanceof XsdComment comment) {
                 VisualNode commentNode = createCommentNode(comment, node);
                 node.addChild(commentNode);
             }
         }
 
+        return node;
+    }
+
+    /**
+     * Creates the card of an {@code xs:group} reference, holding the referenced group's content.
+     * The card's model is the reference, so deleting it never touches the shared definition, while
+     * the cards below edit the definition as cards of a referenced type do.
+     *
+     * @param group           the reference
+     * @param parent          the parent visual node
+     * @param visitedTypes    set of names currently being processed (to prevent circular references)
+     * @param visitedElements set of element IDs currently being processed
+     * @return the created visual node
+     */
+    private VisualNode createGroupRefNode(XsdGroup group, VisualNode parent,
+                                          Set<String> visitedTypes, Set<String> visitedElements) {
+        VisualNode node = createGroupCard(group, parent);
+        if (elementNodeCount > nodeBudget) {
+            Set<String> capturedVisitedTypes = new HashSet<>(visitedTypes);
+            Set<String> capturedVisitedElements = new HashSet<>(visitedElements);
+            int capturedDepth = currentDepth;
+            node.setExpanded(false);
+            node.setLazyChildrenLoader(() -> {
+                lazyBuilder(capturedDepth).fillGroupCard(group, node, capturedVisitedTypes, capturedVisitedElements);
+                return java.util.List.of();
+            });
+            return node;
+        }
+        fillGroupCard(group, node, visitedTypes, visitedElements);
+        return node;
+    }
+
+    private void fillGroupCard(XsdGroup group, VisualNode node, Set<String> visitedTypes, Set<String> visitedElements) {
+        String name = localName(group.getRef());
+        XsdGroup definition = index.groups().get(name);
+        String visitKey = "group:" + name;
+
+        if (definition == null) {
+            addPlaceholder(node, "Unresolved group: " + group.getRef(), "Group definition not loaded");
+        } else if (!visitedTypes.contains(visitKey)) {
+            Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
+            localVisitedTypes.add(visitKey);
+            for (XsdNode child : definition.getChildren()) {
+                if (child instanceof XsdSequence) {
+                    node.addChild(createCompositorNode(child, node, "sequence", localVisitedTypes, visitedElements));
+                } else if (child instanceof XsdChoice) {
+                    node.addChild(createCompositorNode(child, node, "choice", localVisitedTypes, visitedElements));
+                } else if (child instanceof XsdAll) {
+                    node.addChild(createCompositorNode(child, node, "all", localVisitedTypes, visitedElements));
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates the card of an {@code xs:attributeGroup} reference. Its attributes load when it is
+     * opened: schemas such as JATS repeat attribute groups on every element, and building them
+     * eagerly costs six times the cards without adding to what a reader sees first.
+     *
+     * @param group        the reference
+     * @param parent       the parent visual node
+     * @param visitedTypes set of names currently being processed (to prevent circular references)
+     * @return the created visual node
+     */
+    private VisualNode createAttributeGroupRefNode(XsdAttributeGroup group, VisualNode parent,
+                                                   Set<String> visitedTypes) {
+        VisualNode node = createGroupCard(group, parent);
+        node.setExpanded(false);
+        Set<String> capturedVisitedTypes = new HashSet<>(visitedTypes);
+        node.setLazyChildrenLoader(() -> {
+            fillAttributeGroupCard(group, node, capturedVisitedTypes);
+            return java.util.List.of();
+        });
+        return node;
+    }
+
+    private void fillAttributeGroupCard(XsdAttributeGroup group, VisualNode node, Set<String> visitedTypes) {
+        String name = localName(group.getRef());
+        XsdAttributeGroup definition = index.attributeGroups().get(name);
+        String visitKey = "attributeGroup:" + name;
+
+        if (definition == null) {
+            addPlaceholder(node, "Unresolved attribute group: " + group.getRef(),
+                    "Attribute group definition not loaded");
+        } else if (!visitedTypes.contains(visitKey)) {
+            Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
+            localVisitedTypes.add(visitKey);
+            for (XsdNode child : definition.getChildren()) {
+                if (child instanceof XsdAttribute attribute) {
+                    node.addChild(createAttributeNode(attribute, node));
+                } else if (child instanceof XsdAttributeGroup nested) {
+                    node.addChild(createAttributeGroupRefNode(nested, node, localVisitedTypes));
+                }
+            }
+        }
+    }
+
+    private VisualNode createGroupCard(XsdNode reference, VisualNode parent) {
+        VisualNode node = new VisualNode(reference.getName(), "", NodeWrapperType.GROUP, reference, parent,
+                reference.getMinOccurs(), reference.getMaxOccurs(), onModelChangeCallback);
+        node.setExpanded(true);
+        nodeMap.put(reference.getId(), node);
         return node;
     }
 
@@ -730,11 +850,10 @@ public class XsdVisualTreeBuilder {
      *
      * @param typeRef      the type reference (e.g., "ControlDataType")
      * @param parentNode   the visual node to add children to
-     * @param anchor       the element or derivation that holds the reference
      * @param visitedTypes set of type names currently being processed (to prevent circular references)
      * @param visitedElements set of element IDs currently being processed (to prevent circular references)
      */
-    private void resolveTypeReference(String typeRef, VisualNode parentNode, XsdNode anchor,
+    private void resolveTypeReference(String typeRef, VisualNode parentNode,
                                       Set<String> visitedTypes, Set<String> visitedElements) {
         if (typeRef == null || typeRef.isEmpty()) {
             return;
@@ -742,7 +861,7 @@ public class XsdVisualTreeBuilder {
 
         switch (classify(typeRef)) {
             case BUILTIN, SIMPLE -> logger.trace("Type '{}' has no structure to show", typeRef);
-            case UNRESOLVED -> addPlaceholder(parentNode, anchor, "Unresolved type: " + typeRef,
+            case UNRESOLVED -> addPlaceholder(parentNode, "Unresolved type: " + typeRef,
                     "Type definition not loaded");
             case COMPLEX -> {
                 String typeName = localName(typeRef);
@@ -801,7 +920,7 @@ public class XsdVisualTreeBuilder {
             String referencedType = referencedElement.getType();
             if (referencedType != null && !referencedType.isEmpty()) {
                 logger.info("Referenced element '{}' has type='{}', resolving", elementName, referencedType);
-                resolveTypeReference(referencedType, parentNode, referencedElement, visitedTypes, localVisitedElements);
+                resolveTypeReference(referencedType, parentNode, visitedTypes, localVisitedElements);
             }
 
             // Process the referenced element's inline children (complexType, etc.)
@@ -825,7 +944,7 @@ public class XsdVisualTreeBuilder {
                     ? "External: " + ref + " (from " + namespacePrefix + " namespace)"
                     : "External: " + ref + " (unresolved)";
 
-            addPlaceholder(parentNode, referencingElement, placeholderLabel, "Referenced element not loaded");
+            addPlaceholder(parentNode, placeholderLabel, "Referenced element not loaded");
             logger.info("Created placeholder for unresolved reference '{}', parentNode '{}' now has {} children",
                     ref, parentNode.getLabel(), parentNode.getChildren().size());
         }
@@ -840,30 +959,12 @@ public class XsdVisualTreeBuilder {
      * @param visitedTypes    set of visited type names
      * @param visitedElements set of visited element IDs
      */
-    private void processSimpleContent(org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent simpleContent,
-                                     VisualNode parentNode, Set<String> _visitedTypes, Set<String> _visitedElements) {
-        // SimpleContent contains either extension or restriction
+    private void processSimpleContent(XsdSimpleContent simpleContent, VisualNode parentNode,
+                                      Set<String> visitedTypes, Set<String> visitedElements) {
+        // SimpleContent contains either extension or restriction; both only add attributes
         for (XsdNode child : simpleContent.getChildren()) {
-            if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdExtension extension) {
-                logger.debug("Processing extension in simpleContent, base='{}'", extension.getBase());
-                // Process attributes from the extension
-                for (XsdNode extChild : extension.getChildren()) {
-                    if (extChild instanceof XsdAttribute attribute) {
-                        VisualNode attributeNode = createAttributeNode(attribute, parentNode);
-                        parentNode.addChild(attributeNode);
-                        logger.debug("Added attribute '{}' from simpleContent extension", attribute.getName());
-                    }
-                }
-            } else if (child instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction) {
-                logger.debug("Processing restriction in simpleContent, base='{}'", restriction.getBase());
-                // Process attributes from the restriction (if any)
-                for (XsdNode restChild : restriction.getChildren()) {
-                    if (restChild instanceof XsdAttribute attribute) {
-                        VisualNode attributeNode = createAttributeNode(attribute, parentNode);
-                        parentNode.addChild(attributeNode);
-                        logger.debug("Added attribute '{}' from simpleContent restriction", attribute.getName());
-                    }
-                }
+            if (child instanceof XsdExtension || child instanceof XsdRestriction) {
+                addDerivationContent(child, parentNode, visitedTypes, visitedElements);
             }
         }
     }
@@ -886,7 +987,7 @@ public class XsdVisualTreeBuilder {
 
                 // An extension appends to the base type's content, so that comes first
                 String baseType = extension.getBase();
-                resolveTypeReference(baseType, parentNode, extension, visitedTypes, visitedElements);
+                resolveTypeReference(baseType, parentNode, visitedTypes, visitedElements);
                 addDerivationContent(extension, parentNode, visitedTypes, visitedElements);
             } else if (child instanceof XsdRestriction restriction) {
                 // A restriction restates the whole content model: the base's particles do not add to it
@@ -915,6 +1016,10 @@ public class XsdVisualTreeBuilder {
                 parentNode.addChild(createCompositorNode(child, parentNode, "all", visitedTypes, visitedElements));
             } else if (child instanceof XsdAttribute attribute) {
                 parentNode.addChild(createAttributeNode(attribute, parentNode));
+            } else if (child instanceof XsdGroup group) {
+                parentNode.addChild(createGroupRefNode(group, parentNode, visitedTypes, visitedElements));
+            } else if (child instanceof XsdAttributeGroup group) {
+                parentNode.addChild(createAttributeGroupRefNode(group, parentNode, visitedTypes));
             }
         }
     }

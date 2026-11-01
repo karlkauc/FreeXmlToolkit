@@ -840,7 +840,7 @@ public class XsdNodeRenderer {
         return switch (type) {
             case ELEMENT -> Color.rgb(74, 144, 226);          // #4a90e2 - XMLSpy element border
             case ATTRIBUTE -> Color.rgb(212, 161, 71);        // #d4a147 - XMLSpy attribute border
-            case COMPLEX_TYPE, SCHEMA -> Color.rgb(108, 117, 125);  // #6c757d - XMLSpy structural border
+            case COMPLEX_TYPE, SCHEMA, GROUP -> Color.rgb(108, 117, 125);  // #6c757d - XMLSpy structural border
             case SIMPLE_TYPE -> Color.rgb(5, 150, 105);       // Green
             case SEQUENCE -> Color.rgb(8, 145, 178);          // Cyan
             case CHOICE -> Color.rgb(245, 158, 11);           // Amber
@@ -976,8 +976,6 @@ public class XsdNodeRenderer {
         private java.util.function.Supplier<java.util.List<VisualNode>> lazyChildrenLoader;  // Loader for lazy children
         private boolean loadingChildren;  // True while children are being loaded
 
-        private boolean placeholder;  // Stands for something unresolved: its text does not follow the model
-
         // New properties for improved visual representation
         private String iconLiteral;             // Bootstrap icon code (e.g., "bi-diagram-3")
         private Color headerColor;              // Header background color
@@ -1051,7 +1049,7 @@ public class XsdNodeRenderer {
                 case SCHEMA -> Color.rgb(111, 66, 193);            // #6f42c1 - Purple
                 case ELEMENT -> Color.rgb(0, 123, 255);             // #007bff - Blue
                 case ATTRIBUTE -> Color.rgb(32, 201, 151);          // #20c997 - Teal
-                case COMPLEX_TYPE -> Color.rgb(108, 117, 125);      // #6c757d - Gray
+                case COMPLEX_TYPE, GROUP -> Color.rgb(108, 117, 125);  // #6c757d - Gray
                 case SIMPLE_TYPE -> Color.rgb(40, 167, 69);         // #28a745 - Green
                 case SEQUENCE -> Color.rgb(23, 162, 184);           // #17a2b8 - Cyan
                 case CHOICE -> Color.rgb(253, 126, 20);             // #fd7e14 - Orange
@@ -1344,12 +1342,12 @@ public class XsdNodeRenderer {
          * making the editor more efficient and preserving UI state (selection, expansion).
          */
         private void updateFromModel() {
-            if (placeholder || !(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode)) {
-                return;  // Fixed text, or not an XsdNode: nothing to update
+            if (!(modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode)) {
+                return;  // Not an XsdNode, cannot update
             }
 
             // Update name/label
-            this.label = xsdNode.getName() != null ? xsdNode.getName() : "(unnamed)";
+            this.label = labelOf(xsdNode);
 
             // Update cardinality
             this.minOccurs = xsdNode.getMinOccurs();
@@ -1360,6 +1358,18 @@ public class XsdNodeRenderer {
 
             // Re-initialize visual properties (icon, colors, etc.) based on updated detail
             initializeVisualProperties();
+        }
+
+        /** A group reference has no name of its own: it shows what it refers to. */
+        private static String labelOf(org.fxt.freexmltoolkit.controls.v2.model.XsdNode xsdNode) {
+            if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdGroup group && group.isReference()) {
+                return "group: " + group.getRef();
+            }
+            if (xsdNode instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup group
+                    && group.isReference()) {
+                return "attributeGroup: " + group.getRef();
+            }
+            return xsdNode.getName() != null ? xsdNode.getName() : "(unnamed)";
         }
 
         /**
@@ -1992,20 +2002,6 @@ public class XsdNodeRenderer {
             this.expandBtnY = y;
             this.expandBtnW = w;
             this.expandBtnH = h;
-        }
-
-        /**
-         * Turns this card into a placeholder for something unresolved. Its model node only anchors
-         * selection and context menu, so the text stays when the model changes.
-         *
-         * @param label  the card's title
-         * @param detail the card's second line
-         */
-        public void setPlaceholderText(String label, String detail) {
-            this.placeholder = true;
-            this.label = label;
-            this.detail = detail;
-            initializeVisualProperties();
         }
 
         public boolean isSelected() {

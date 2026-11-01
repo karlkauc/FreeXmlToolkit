@@ -1063,6 +1063,8 @@ public class XsdNodeFactory {
             } else if (isXsdElement(childElement, "all")) {
                 XsdAll all = parseAll(childElement);
                 complexType.addChild(all);
+            } else if (isXsdElement(childElement, "group")) {
+                complexType.addChild(parseGroupRef(childElement));
             } else if (isXsdElement(childElement, "attribute")) {
                 XsdAttribute attribute = parseAttribute(childElement);
                 complexType.addChild(attribute);
@@ -1454,6 +1456,10 @@ public class XsdNodeFactory {
                 } else if (isXsdElement(childElement, "attribute")) {
                     XsdAttribute attribute = parseAttribute(childElement);
                     attributeGroup.addChild(attribute);
+                } else if (isXsdElement(childElement, "attributeGroup")) {
+                    attributeGroup.addChild(parseAttributeGroupRef(childElement));
+                } else if (isXsdElement(childElement, "anyAttribute")) {
+                    attributeGroup.addChild(parseAnyAttribute(childElement));
                 }
             }
         }
