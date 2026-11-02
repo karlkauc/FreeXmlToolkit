@@ -498,8 +498,8 @@ The sections appear from top to bottom in this order:
   Only XML-family and JSON files are shown. While no folder is open, the section shows a
   short hint (*"No folder open. Open a folder to browse its XML, XSD and stylesheet files
   here."*) and an **Open folder…** button.
-- **TOOLS** - a collapsible section below the files with the **Open file…** and
-  **Clear recent** rows. It is **collapsed by default**; whether you leave it open or closed
+- **TOOLS** - a collapsible section above the files with the **Open file…** and
+  **Clear recent** rows. It is **open by default**; whether you leave it open or closed
   is remembered. Transforming and Schematron-validating the selected files is done from the
   workspace tree's [context menu](#explorer-context-menu).
 - **RECENT** - at the bottom, the recently opened files; click one to reopen it (drag the

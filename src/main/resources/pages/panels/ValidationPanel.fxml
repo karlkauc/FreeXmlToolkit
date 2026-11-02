@@ -21,10 +21,10 @@
 
 <!--
   Validation activity side panel (Figma "Redesign · Unified — Validation", node 40:48): the
-  bound sources, the Single-file/Batch toggle with "Run Validation", the status line and the
-  TOOLS rows. Loaded by ValidationPanel via the fx:root pattern (FxmlViews.load);
+  TOOLS rows, the bound sources, the Single-file/Batch toggle with "Run Validation" and the
+  status line. Loaded by ValidationPanel via the fx:root pattern (FxmlViews.load);
   ValidationPanel is root and controller.
-  Added in code: the favourites menus of the source rows, and - below the TOOLS section - the
+  Added in code: the favourites menus of the source rows, and - below the status line - the
   collapsible RESULTS and PROBLEMS sections with their data-driven lists. Only the source rows
   matching the active document type are shown; "Validate against FundsXML" is removed when the
   extension is switched off.
@@ -64,6 +64,52 @@
                 </MenuButton>
             </children>
         </SidePanelHeader>
+
+        <!-- TOOLS in two groups (UX plan 2.4), both open at the top: results/reports of a run, and the
+             Schematron authoring tools (needed also without a run, so they stay in this panel). -->
+        <SidePanelSection id="validation-reports-section" title="REPORTS &amp; CHECKS">
+            <children>
+                <PanelActionList fx:id="tools" id="validation-tools">
+                    <children>
+                        <!-- Enabled after a validation run with a bound Schematron -->
+                        <PanelActionButton fx:id="schematronReportButton" id="validation-schematron-report"
+                                           iconLiteral="bi-journal-check" text="Validation Report" color="NAVIGATE"
+                                           disable="true" onAction="#openSchematronReport">
+                            <tooltip>
+                                <Tooltip text="Detailed report of the last Schematron run"/>
+                            </tooltip>
+                        </PanelActionButton>
+                        <PanelActionButton fx:id="exportProblems" id="validation-export-problems"
+                                           iconLiteral="bi-file-earmark-excel" text="Export Problems to Excel"
+                                           color="TOOL" onAction="#exportProblemsToExcel"/>
+                        <PanelActionButton fx:id="batchReportButton" id="validation-tool-batch-report"
+                                           iconLiteral="bi-file-earmark-text" text="Open Last Batch Report"
+                                           color="NAVIGATE" onAction="#onOpenBatchReport"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
+        <SidePanelSection id="validation-authoring-section" title="SCHEMATRON AUTHORING">
+            <children>
+                <PanelActionList fx:id="authoringTools" id="validation-authoring-tools">
+                    <children>
+                        <PanelActionButton id="validation-tool-templates" iconLiteral="bi-journal-code"
+                                           text="Rule Templates" color="NAVIGATE"
+                                           onAction="#openSchematronTemplates"/>
+                        <PanelActionButton id="validation-tool-tester" iconLiteral="bi-flask"
+                                           text="Schematron Tester" color="NAVIGATE"
+                                           onAction="#openSchematronTester"/>
+                        <PanelActionButton id="validation-tool-builder" iconLiteral="bi-tools" text="Rule Builder"
+                                           color="NAVIGATE" onAction="#openSchematronBuilder"/>
+                        <PanelActionButton id="validation-tool-check" iconLiteral="bi-check2-square"
+                                           text="Check Rules" color="CREATE" onAction="#openSchematronCheck"/>
+                        <PanelActionButton id="validation-tool-documentation" iconLiteral="bi-book"
+                                           text="Schematron Documentation" color="NAVIGATE"
+                                           onAction="#openSchematronDocumentation"/>
+                    </children>
+                </PanelActionList>
+            </children>
+        </SidePanelSection>
 
         <!-- SOURCES -->
         <HBox spacing="6" alignment="CENTER_LEFT" styleClass="fxt-vp-section-header">
@@ -115,51 +161,5 @@
         </VBox>
 
         <Label fx:id="status" text="Not validated" styleClass="fxt-vp-status"/>
-
-        <!-- TOOLS in two groups (UX plan 2.4), both collapsed: results/reports of a run, and the
-             Schematron authoring tools (needed also without a run, so they stay in this panel). -->
-        <SidePanelSection id="validation-reports-section" title="REPORTS &amp; CHECKS" collapsed="true">
-            <children>
-                <PanelActionList fx:id="tools" id="validation-tools">
-                    <children>
-                        <!-- Enabled after a validation run with a bound Schematron -->
-                        <PanelActionButton fx:id="schematronReportButton" id="validation-schematron-report"
-                                           iconLiteral="bi-journal-check" text="Validation Report" color="NAVIGATE"
-                                           disable="true" onAction="#openSchematronReport">
-                            <tooltip>
-                                <Tooltip text="Detailed report of the last Schematron run"/>
-                            </tooltip>
-                        </PanelActionButton>
-                        <PanelActionButton fx:id="exportProblems" id="validation-export-problems"
-                                           iconLiteral="bi-file-earmark-excel" text="Export Problems to Excel"
-                                           color="TOOL" onAction="#exportProblemsToExcel"/>
-                        <PanelActionButton fx:id="batchReportButton" id="validation-tool-batch-report"
-                                           iconLiteral="bi-file-earmark-text" text="Open Last Batch Report"
-                                           color="NAVIGATE" onAction="#onOpenBatchReport"/>
-                    </children>
-                </PanelActionList>
-            </children>
-        </SidePanelSection>
-        <SidePanelSection id="validation-authoring-section" title="SCHEMATRON AUTHORING" collapsed="true">
-            <children>
-                <PanelActionList fx:id="authoringTools" id="validation-authoring-tools">
-                    <children>
-                        <PanelActionButton id="validation-tool-templates" iconLiteral="bi-journal-code"
-                                           text="Rule Templates" color="NAVIGATE"
-                                           onAction="#openSchematronTemplates"/>
-                        <PanelActionButton id="validation-tool-tester" iconLiteral="bi-flask"
-                                           text="Schematron Tester" color="NAVIGATE"
-                                           onAction="#openSchematronTester"/>
-                        <PanelActionButton id="validation-tool-builder" iconLiteral="bi-tools" text="Rule Builder"
-                                           color="NAVIGATE" onAction="#openSchematronBuilder"/>
-                        <PanelActionButton id="validation-tool-check" iconLiteral="bi-check2-square"
-                                           text="Check Rules" color="CREATE" onAction="#openSchematronCheck"/>
-                        <PanelActionButton id="validation-tool-documentation" iconLiteral="bi-book"
-                                           text="Schematron Documentation" color="NAVIGATE"
-                                           onAction="#openSchematronDocumentation"/>
-                    </children>
-                </PanelActionList>
-            </children>
-        </SidePanelSection>
     </children>
 </fx:root>

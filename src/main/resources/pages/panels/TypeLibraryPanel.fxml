@@ -25,8 +25,7 @@
             <content>
                 <VBox>
                     <children>
-                        <!-- Tools for the open schema: at the top and open by default, by the owner's choice
-                             (differs from the panel schema in STYLE_GUIDE.jsonc).
+                        <!-- Tools for the open schema: at the top and open by default, as in every side panel.
                              Generating an XSD from XML lives in the toolbar's Schema ▾ and the Tools menu. -->
                         <SidePanelSection fx:id="toolsSection" id="schema-tools-section" title="TOOLS">
                             <children>

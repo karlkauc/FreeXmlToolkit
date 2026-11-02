@@ -26,16 +26,16 @@ XML Data + XSL-FO Stylesheet = PDF Document
 ## The PDF / FOP Panel
 
 In the [Unified Shell](unified-shell.md), open the **PDF / FOP** activity from the activity
-bar. The panel is organized into three sections plus the primary action:
+bar. The panel is organized into these sections plus the primary action:
 
 | Section | Contents |
 |---------|----------|
+| **TOOLS** | **Debug stylesheet…** runs the XSL-FO stylesheet in the [XSLT debugger](debugger.md#interactive-live-debugger); **Render PDF from FO…** renders the FO of the latest run (e.g. of a debug run) to a PDF |
 | **INPUT** | The **XML** (follows the active editor; *Change* fixes it to a file) and the **XSL-FO stylesheet**. Each slot shows the file name on its own line (full path as tooltip); an empty slot shows a hint such as *"No stylesheet — choose or drop a file"* and works like *Change* when clicked |
 | **METADATA** | PDF **Title**, **Author** (pre-filled from your user name), **Subject** |
 | **OPTIONS** | **PDF/A-1b compliant** toggle and the **Page size** dropdown (A4/Letter · Portrait/Landscape) |
 | **Generate PDF** | Asks for the output file and renders off the UI thread (XSLT → XSL-FO → PDF) |
 | **RESULT** | **Preview PDF**, **Open PDF**, **Show intermediate FO** (the XSL-FO the stylesheet produced, as an editor tab) and **Messages & events (n)** (the stylesheet's `xsl:message` output and every event Apache FOP raised, in the OUTPUT panel) |
-| **TOOLS** | **Debug stylesheet…** runs the XSL-FO stylesheet in the [XSLT debugger](debugger.md#interactive-live-debugger); **Render PDF from FO…** renders the FO of the latest run (e.g. of a debug run) to a PDF |
 
 ---
 

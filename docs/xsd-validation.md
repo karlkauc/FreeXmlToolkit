@@ -197,6 +197,8 @@ Save frequently used XML and XSD files to favorites for quick access:
 
 | Control | Description |
 |---------|-------------|
+| **REPORTS & CHECKS** | Section at the top of the panel: **Validation Report** (enabled after a run with a bound Schematron), **Export Problems to Excel**, **Open Last Batch Report**. (FundsXML validation lives in the FundsXML panel.) |
+| **SCHEMATRON AUTHORING** | Section at the top of the panel: **Rule Templates**, **Schematron Tester**, **Rule Builder**, **Check Rules**, **Schematron Documentation**. |
 | **SOURCES · XSD row** | Two lines: icon, caption **XSD**, **★** and **Change** on the first; the bound file's name on the second (shortened in the middle, full path as tooltip). While nothing is bound it reads *"No XSD bound — choose or drop a file"* and a click acts like **Change**. Click the name to open the schema in the editor, **★** to pick a favorite, **Change** to browse; drop an `.xsd` onto the row to bind it. |
 | **SOURCES · Schematron row** | The bound Schematron (`.sch`), with the same layout and name / ★ / Change / drop behavior (*"No Schematron — choose or drop a file"* while empty). |
 | **SOURCES · JSON Schema row** | Shown instead of the two rows above while a JSON document is active. |
@@ -206,8 +208,6 @@ Save frequently used XML and XSD files to favorites for quick access:
 | **"N problems — show below the editor"** | *(Single file mode.)* Expands and focuses the PROBLEMS panel below the editor. |
 | **RESULTS** | *(Batch mode only.)* Per-file rows of the last batch run (collapsible section). |
 | **PROBLEMS** | *(Batch mode only.)* The problems of the file selected in RESULTS (collapsible). |
-| **REPORTS & CHECKS** | Collapsed section: **Validation Report** (enabled after a run with a bound Schematron), **Export Problems to Excel**, **Open Last Batch Report**. (FundsXML validation lives in the FundsXML panel.) |
-| **SCHEMATRON AUTHORING** | Collapsed section: **Rule Templates**, **Schematron Tester**, **Rule Builder**, **Check Rules**, **Schematron Documentation**. |
 | **⋮ menu** | **Validate while typing**. |
 
 ### Editor toolbar and status bar

@@ -87,8 +87,8 @@ public class ExplorerPanel extends VBox {
         });
 
         // --- collapsible section headers, each in front of the content it toggles ----
-        // Panel schema (UX plan 2.1/2.2): the files the panel is opened for come first
-        // (OPEN EDITORS, WORKSPACE); the TOOLS sit below them, collapsed by default.
+        // Panel schema: the TOOLS come first, open by default, then the files the panel is
+        // opened for (OPEN EDITORS, WORKSPACE).
         HBox openHeader = SidePanelLayout.sectionHeader(new Label("OPEN EDITORS"), openEditorsScroll, openEditorsBox);
         openHeader.setId("explorer-open-editors-header");
         workspaceTitle.getStyleClass().add("fxt-sp-section-label");
@@ -186,7 +186,7 @@ public class ExplorerPanel extends VBox {
         return Math.max(FAV_RECENT_MIN_HEIGHT, Math.min(FAV_RECENT_MAX_HEIGHT, height));
     }
 
-    /** @return whether TOOLS starts collapsed (the default; the user's last choice is kept). */
+    /** @return whether TOOLS starts collapsed (open by default; the user's last choice is kept). */
     private boolean loadToolsCollapsed() {
         if (propertiesService != null) {
             try {
@@ -198,7 +198,7 @@ public class ExplorerPanel extends VBox {
                 // unreadable - fall back to the default
             }
         }
-        return true;
+        return false;
     }
 
     private void saveToolsCollapsed(boolean collapsed) {

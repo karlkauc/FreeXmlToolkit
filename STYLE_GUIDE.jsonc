@@ -1304,15 +1304,15 @@
     "sidePanel": {
       "example": "<fx:root type=\"javafx.scene.layout.VBox\" ...><SidePanelHeader title=\"PDF / FOP\"/><SidePanelSection title=\"INPUT\">…</SidePanelSection><SidePanelSection title=\"OPTIONS\" collapsed=\"true\">…</SidePanelSection></fx:root>",
       "notes": "Every side panel starts with SidePanelHeader (children = trailing controls) followed by collapsible SidePanelSections. Loaded with FxmlViews.load(this, …); no stylesheets attribute.",
-      // Panel schema (UX rework 2.1, reference: PDF / FOP). Top to bottom, never in another order:
+      // Panel schema (reference: PDF / FOP). Top to bottom, never in another order:
       "schema": [
-        "1. Main content or sources: what the panel is opened for (files, type lists, SOURCES/INPUT slots).",
-        "2. The primary action (one filled button, e.g. Run Validation / Run Transform / Generate PDF) with its status line.",
-        "3. Results of that action, if the panel shows any (e.g. batch RESULTS).",
-        "4. Secondary options and tools, in collapsed SidePanelSections (TOOLS, OPTIONS & TOOLS, REPORTS & CHECKS)."
+        "1. Tools and their options, in open SidePanelSections (TOOLS, OPTIONS & TOOLS, REPORTS & CHECKS).",
+        "2. Main content or sources: what the panel is opened for (files, type lists, SOURCES/INPUT slots).",
+        "3. The primary action (one filled button, e.g. Run Validation / Run Transform / Generate PDF) with its status line.",
+        "4. Results of that action, if the panel shows any (e.g. batch RESULTS)."
       ],
       "rules": [
-        "Tools never sit above the content the panel is opened for. Exception: the Schema panel keeps its TOOLS on top, open by default.",
+        "Tools always sit above the content the panel is opened for.",
         "Options and tools live in one place: no ⋮ menu next to a TOOLS section (a ⋮ menu may only hold toggles when the panel has no tools section).",
         "Source slots use SourceRow: two lines, the name over the full width; an empty slot shows emptyText ('No XSD bound — choose or drop a file') and is clickable.",
         "Long lists that share the panel with other sections get a capped height and scroll (e.g. OPEN EDITORS).",

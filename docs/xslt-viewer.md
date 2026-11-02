@@ -88,8 +88,8 @@ dropdown to override the detection.
 | **Live preview**              | (OPTIONS & TOOLS checkbox) Re-runs automatically (debounced) while you edit the input document |
 | **Auto-open result tab**      | (OPTIONS & TOOLS checkbox) Also opens every successful result as an editor tab (off by default) |
 
-The **OPTIONS & TOOLS** section sits below **Run Transform** and is collapsed by default -
-click its header to expand it.
+The **OPTIONS & TOOLS** section sits at the top of the panel and is open by default -
+click its header to collapse it.
 
 ---
 

@@ -4,8 +4,8 @@
 > (STYLESHEET, INPUT, OUTPUT METHOD, PARAMETERS) with a single primary
 > **Run Transform** button and a **Run automatically** checkbox next to it. Results do not open as an editor tab -
 > they appear in the **[OUTPUT panel](#the-output-panel-results)** docked below the
-> editor. The run options (checkboxes) and the advanced tools share the collapsed
-> **OPTIONS & TOOLS** section below the run button.
+> editor. The run options (checkboxes) and the advanced tools share the
+> **OPTIONS & TOOLS** section at the top of the panel.
 
 The **Transform** panel (open it from the **Transform** icon in the activity bar on the
 left) runs XSLT transformations. XPath, XQuery and JSONPath queries against the open
@@ -188,8 +188,8 @@ open document and offers the saved queries (**Snippets** menu) and the XQuery **
 
 ## OPTIONS & TOOLS {#the-transform-menu}
 
-The collapsible **OPTIONS & TOOLS** section below the **Run Transform** button (collapsed by
-default - click its header to expand it) holds everything secondary. First the run
+The collapsible **OPTIONS & TOOLS** section at the top of the panel (open by default - click
+its header to collapse it) holds everything secondary. First the run
 **options**, as checkboxes:
 
 | Option | What it does |

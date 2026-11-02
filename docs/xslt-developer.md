@@ -6,7 +6,7 @@
 > **Debug** button next to **Run Transform** (the interactive debugger with breakpoints,
 > stepping, variables, call stack, watches and live messages in a dock below the editor;
 > also **Tools → Debug with XSLT…** / **Shift+F5**), and the run options and advanced tools
-> in the panel's collapsed **OPTIONS & TOOLS** section — **Batch Transform…**,
+> in the panel's **OPTIONS & TOOLS** section — **Batch Transform…**,
 > **Profile run**, and **Trace run**. This page describes how to do XSLT and XQuery
 > development in the shell, plus a collection of ready-to-use XSLT and XQuery patterns.
 > XPath / XQuery queries against the open document run in the
@@ -48,7 +48,7 @@ XSLT/XQuery development in the Unified Shell provides:
 | **Parameters, output method** | The Transform panel's **PARAMETERS** and **OUTPUT METHOD** sections |
 | **XPath / XQuery queries** | The bottom [Query Console](query-console.md#query-console) (`Ctrl+Shift+X`, or the Transform panel's **Open Query Console** button) |
 | **Debugger** | The **Debug** button next to **Run Transform** (also **Tools → Debug with XSLT…**, `Shift+F5`) - see [Interactive Live Debugger](debugger.md#interactive-live-debugger) |
-| **Batch, profile, trace** | The Transform panel's **OPTIONS & TOOLS** section (below **Run Transform**, collapsed by default; it lists **Debug XSLT…** again) |
+| **Batch, profile, trace** | The Transform panel's **OPTIONS & TOOLS** section (at the top of the panel, open by default; it lists **Debug XSLT…** again) |
 
 ---
 

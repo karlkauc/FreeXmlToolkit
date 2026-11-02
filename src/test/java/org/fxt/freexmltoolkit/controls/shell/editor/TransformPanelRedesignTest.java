@@ -50,12 +50,14 @@ class TransformPanelRedesignTest {
     }
 
     @Test
-    void optionsAndToolsShareOneCollapsedSection() {
+    void optionsAndToolsShareOneOpenSectionAtTheTop() {
         WaitForAsyncUtils.waitForFxEvents();
         assertNull(panel.lookup("#transform-overflow"), "no hidden ⋮ menu: options and tools are one section");
         var section = (SidePanelSection) panel.lookup("#transform-options-section");
         assertNotNull(section, "OPTIONS & TOOLS must exist");
-        assertTrue(section.isCollapsed(), "secondary options start collapsed below the run");
+        assertFalse(section.isCollapsed(), "options and tools start open");
+        assertTrue(section.localToScene(0, 0).getY() < panel.lookup("#transform-xslt-row").localToScene(0, 0).getY(),
+                "options and tools come before the stylesheet");
         for (String id : new String[]{"#transform-live-preview", "#transform-watch-xslt", "#transform-profile",
                 "#transform-trace", "#transform-auto-open"}) {
             assertInstanceOf(javafx.scene.control.CheckBox.class, panel.lookup(id), id + " must be a visible switch");

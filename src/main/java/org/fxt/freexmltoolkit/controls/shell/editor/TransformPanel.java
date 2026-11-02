@@ -37,12 +37,11 @@ import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
  * The Transform activity side panel, laid out after the Figma mockup
- * "Redesign · Unified — Transform (XSLT)" (node 46:48): collapsible STYLESHEET
- * and INPUT sections with "Change" links, a segmented OUTPUT METHOD control, a
- * PARAMETERS section (name = value rows), and a primary "Run Transform" button.
- * XPath/JSONPath and XQuery consoles live in collapsed sections below; secondary
- * toggles (live preview, watch file, profile, trace, auto-open result tab) and
- * the Debug/Batch tools live in the header's overflow (⋮) menu.
+ * "Redesign · Unified — Transform (XSLT)" (node 46:48): an open OPTIONS &amp; TOOLS
+ * section on top (live preview, watch file, profile, trace, auto-open result tab,
+ * Debug/Batch tools), then collapsible STYLESHEET and INPUT sections with "Change"
+ * links, a segmented OUTPUT METHOD control, a PARAMETERS section (name = value rows),
+ * and a primary "Run Transform" button. Queries live in the Query Console.
  * <p>
  * Results are shown in the {@link TransformOutputPanel} docked below the editor
  * (source on top, output underneath — per the mockup). Transformation runs off

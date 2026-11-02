@@ -160,8 +160,8 @@ report:
 
 ## The Tool Sections and the ⋮ Menu
 
-The tools are labelled rows (icon + name) in two collapsible sections below the status
-line. Both start collapsed so the results keep their space; click a header to expand it.
+The tools are labelled rows (icon + name) in two collapsible sections at the top of
+the panel. Both start open; click a header to collapse it.
 
 **REPORTS & CHECKS** - results and exports of a run:
 

@@ -22,9 +22,8 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
 
 /**
- * The shared panel schema of UX plan phase 2: content first, then the primary action,
- * then results, and the secondary tools collapsed at the bottom. The Schema panel is the
- * exception: its tools come first and start open.
+ * The shared panel schema: the tools first and open, then the content, the primary action
+ * and its results.
  */
 @ExtendWith(ApplicationExtension.class)
 class PanelSchemaLayoutTest {
@@ -53,15 +52,15 @@ class PanelSchemaLayoutTest {
     }
 
     @Test
-    void explorerShowsTheFilesBeforeTheCollapsedTools() {
+    void explorerShowsItsOpenToolsBeforeTheFiles() {
         WaitForAsyncUtils.waitForFxEvents();
         int open = indexIn(explorer, "#explorer-open-editors-header");
         int workspace = indexIn(explorer, "#explorer-workspace-header");
         int tools = indexIn(explorer, "#explorer-tools-header");
-        assertTrue(open < workspace && workspace < tools,
-                "order must be OPEN EDITORS, WORKSPACE, TOOLS: " + open + "/" + workspace + "/" + tools);
-        Node transformRow = explorer.lookup("#explorer-open-file");
-        assertFalse(isShowing(transformRow), "TOOLS starts collapsed");
+        assertTrue(tools < open && open < workspace,
+                "order must be TOOLS, OPEN EDITORS, WORKSPACE: " + tools + "/" + open + "/" + workspace);
+        Node openFileRow = explorer.lookup("#explorer-open-file");
+        assertTrue(isShowing(openFileRow), "TOOLS starts open");
         assertNotNull(explorer.lookup("#explorer-open-editors-scroll"), "OPEN EDITORS scrolls inside a capped height");
     }
 
@@ -114,15 +113,34 @@ class PanelSchemaLayoutTest {
     }
 
     @Test
-    void validationToolsComeInTwoCollapsedGroups() {
+    void validationToolsComeInTwoOpenGroupsAboveTheSources() {
         WaitForAsyncUtils.waitForFxEvents();
         var reports = (SidePanelSection) validation.lookup("#validation-reports-section");
         var authoring = (SidePanelSection) validation.lookup("#validation-authoring-section");
         assertNotNull(reports);
         assertNotNull(authoring);
-        assertTrue(reports.isCollapsed() && authoring.isCollapsed());
+        assertFalse(reports.isCollapsed() || authoring.isCollapsed());
+        Node sources = validation.lookup("#validation-xsd-row");
+        assertTrue(reports.localToScene(0, 0).getY() < authoring.localToScene(0, 0).getY());
+        assertTrue(authoring.localToScene(0, 0).getY() < sources.localToScene(0, 0).getY(),
+                "the tools come before the sources");
         assertNotNull(authoring.lookup("#validation-tool-builder"), "Rule Builder is a Schematron authoring tool");
         assertNotNull(reports.lookup("#validation-export-problems"), "the export is a report");
+    }
+
+    @Test
+    void validationKeepsItsRunButtonInsideThePanel(@TempDir Path tmp) throws Exception {
+        // A document shows its source rows, the tallest state of the fixed part of the panel.
+        Path xml = tmp.resolve("sample.xml");
+        Files.writeString(xml, "<root/>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForFxEvents();
+        Node run = validation.lookup("#validation-run");
+        double bottom = validation.sceneToLocal(run.localToScene(run.getBoundsInLocal())).getMaxY();
+        assertTrue(bottom <= validation.getHeight(),
+                "Run Validation ends at " + bottom + " of " + validation.getHeight());
     }
 
     @Test

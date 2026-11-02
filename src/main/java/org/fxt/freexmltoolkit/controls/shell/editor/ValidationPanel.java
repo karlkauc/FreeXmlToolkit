@@ -236,7 +236,7 @@ public class ValidationPanel extends VBox {
         batchMode.selectedProperty().addListener((obs, oldV, newV) -> syncJump.run());
         syncJump.run();
         getChildren().add(getChildren().indexOf(status) + 1, problemsJump);
-        // Sections are inserted before the TOOLS groups: results belong to the run above them.
+        // Results belong to the run above them.
         getChildren().addAll(getChildren().indexOf(status) + 2, java.util.List.of(resultsSection, problemsSection));
     }
 

@@ -84,7 +84,7 @@ expression before putting it into a rule. See
 ## Schematron Tools in the Unified Shell
 
 The **Validation** activity panel offers the Schematron tools as labelled rows in two
-collapsible sections (both collapsed at first - click a header to expand it). Each tool
+collapsible sections at the top of the panel (both open at first - click a header to collapse it). Each tool
 opens as a closable tool tab in the editor area:
 
 | Tool | Section | What It Does |

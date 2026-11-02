@@ -55,19 +55,7 @@
             </children>
         </SidePanelHeader>
 
-        <!-- OPEN EDITORS: a plain VBox of rows (see ExplorerPanel), rebuilt in code. Capped at about
-             six rows and scrolling beyond, so the workspace tree below keeps its space. -->
-        <ScrollPane fx:id="openEditorsScroll" id="explorer-open-editors-scroll" fitToWidth="true"
-                    hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" maxHeight="176" minHeight="0"
-                    styleClass="fxt-open-editors-scroll">
-            <content>
-                <VBox fx:id="openEditorsBox" styleClass="fxt-open-editors-box"/>
-            </content>
-        </ScrollPane>
-
-        <!-- WORKSPACE header + tree are inserted here in code (they need the tree instance). -->
-
-        <!-- TOOLS (below the files, collapsed by default, state remembered). Transform / validate
+        <!-- TOOLS (above the files, open by default, state remembered). Transform / validate
              the selected files from the workspace context menu (UX plan 3.1/3.2). -->
         <VBox fx:id="toolsBody">
             <children>
@@ -81,6 +69,18 @@
                 </PanelActionList>
             </children>
         </VBox>
+
+        <!-- OPEN EDITORS: a plain VBox of rows (see ExplorerPanel), rebuilt in code. Capped at about
+             six rows and scrolling beyond, so the workspace tree below keeps its space. -->
+        <ScrollPane fx:id="openEditorsScroll" id="explorer-open-editors-scroll" fitToWidth="true"
+                    hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" maxHeight="176" minHeight="0"
+                    styleClass="fxt-open-editors-scroll">
+            <content>
+                <VBox fx:id="openEditorsBox" styleClass="fxt-open-editors-box"/>
+            </content>
+        </ScrollPane>
+
+        <!-- WORKSPACE header + tree are inserted here in code (they need the tree instance). -->
 
 
         <!-- Drag to resize the pane below; fixed size so the VBox never squeezes the grip away -->

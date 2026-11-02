@@ -24,9 +24,9 @@
 <?import org.fxt.freexmltoolkit.controls.shell.editor.SourceRow?>
 
 <!--
-  Transform activity side panel (Figma "Redesign · Unified — Transform (XSLT)"): stylesheet and
-  input rows, output method, parameters, "Run Transform", the TOOLS rows and the collapsed
-  XPath/JSONPath and XQuery sections. The result lives in the editor-docked TransformOutputPanel.
+  Transform activity side panel (Figma "Redesign · Unified — Transform (XSLT)"): the OPTIONS &amp; TOOLS
+  section, stylesheet and input rows, output method, parameters, "Run Transform" and the Query
+  Console hint. The result lives in the editor-docked TransformOutputPanel.
   Loaded by TransformPanel via the fx:root pattern (FxmlViews.load); TransformPanel is root and
   controller. Added in code: the recent/favourites menus and ◀/▶ browse controls of the source
   rows, the output-method segments (one per FormatChoice), the parameter rows with their
@@ -52,6 +52,36 @@
             <content>
                 <VBox>
                     <children>
+                        <!-- One place for everything secondary (UX plan 2.5): the run options (formerly
+                             in the ⋮ menu) and the tools, open at the top of the panel. -->
+                        <SidePanelSection id="transform-options-section" title="OPTIONS &amp; TOOLS">
+                            <children>
+                                <VBox spacing="6" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <CheckBox fx:id="livePreview" id="transform-live-preview" text="Live preview"
+                                                  onAction="#onLivePreviewToggled"/>
+                                        <CheckBox fx:id="watchXslt" id="transform-watch-xslt" text="Watch stylesheet file"/>
+                                        <CheckBox fx:id="profileCheck" id="transform-profile" text="Profile run"/>
+                                        <CheckBox fx:id="traceCheck" id="transform-trace" text="Trace run"/>
+                                        <CheckBox fx:id="autoOpenResultTab" id="transform-auto-open"
+                                                  text="Auto-open result tab"/>
+                                    </children>
+                                </VBox>
+                                <PanelActionList fx:id="tools" id="transform-tools">
+                                    <children>
+                                        <PanelActionButton id="transform-tool-debug" iconLiteral="bi-bug"
+                                                           text="Debug XSLT…" color="TOOL" onAction="#startDebug"/>
+                                        <PanelActionButton id="transform-tool-batch" iconLiteral="bi-collection"
+                                                           text="Batch Transform…" color="TOOL"
+                                                           onAction="#openBatch"/>
+                                        <PanelActionButton id="transform-tool-stats" iconLiteral="bi-speedometer2"
+                                                           text="Execution Statistics" color="NAVIGATE"
+                                                           onAction="#onOpenExecutionStats"/>
+                                    </children>
+                                </PanelActionList>
+                            </children>
+                        </SidePanelSection>
+
                         <SidePanelSection title="STYLESHEET">
                             <children>
                                 <SourceRow fx:id="xsltRow" id="transform-xslt-row" iconLiteral="bi-arrow-repeat"
@@ -135,36 +165,6 @@
                                 <PanelProgress fx:id="progress"/>
                             </children>
                         </VBox>
-
-                        <!-- One place for everything secondary (UX plan 2.5): the run options (formerly
-                             in the ⋮ menu) and the tools, collapsed below the run. -->
-                        <SidePanelSection id="transform-options-section" title="OPTIONS &amp; TOOLS" collapsed="true">
-                            <children>
-                                <VBox spacing="6" styleClass="fxt-tp-section-body">
-                                    <children>
-                                        <CheckBox fx:id="livePreview" id="transform-live-preview" text="Live preview"
-                                                  onAction="#onLivePreviewToggled"/>
-                                        <CheckBox fx:id="watchXslt" id="transform-watch-xslt" text="Watch stylesheet file"/>
-                                        <CheckBox fx:id="profileCheck" id="transform-profile" text="Profile run"/>
-                                        <CheckBox fx:id="traceCheck" id="transform-trace" text="Trace run"/>
-                                        <CheckBox fx:id="autoOpenResultTab" id="transform-auto-open"
-                                                  text="Auto-open result tab"/>
-                                    </children>
-                                </VBox>
-                                <PanelActionList fx:id="tools" id="transform-tools">
-                                    <children>
-                                        <PanelActionButton id="transform-tool-debug" iconLiteral="bi-bug"
-                                                           text="Debug XSLT…" color="TOOL" onAction="#startDebug"/>
-                                        <PanelActionButton id="transform-tool-batch" iconLiteral="bi-collection"
-                                                           text="Batch Transform…" color="TOOL"
-                                                           onAction="#openBatch"/>
-                                        <PanelActionButton id="transform-tool-stats" iconLiteral="bi-speedometer2"
-                                                           text="Execution Statistics" color="NAVIGATE"
-                                                           onAction="#onOpenExecutionStats"/>
-                                    </children>
-                                </PanelActionList>
-                            </children>
-                        </SidePanelSection>
 
                         <!-- Queries against the open document live in the Query Console (UX plan 3.3, E4) -->
                         <VBox styleClass="fxt-tp-section-body">

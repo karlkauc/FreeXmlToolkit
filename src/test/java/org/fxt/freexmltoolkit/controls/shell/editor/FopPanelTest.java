@@ -211,6 +211,9 @@ class FopPanelTest {
     void offersIntermediateFoMessagesAndDebugger(@TempDir Path tmp) throws Exception {
         WaitForAsyncUtils.waitForFxEvents();
         assertNotNull(panel.lookup("#fop-tool-debug"), "TOOLS offers Debug stylesheet…");
+        assertTrue(panel.lookup("#fop-tool-debug").localToScene(0, 0).getY()
+                        < panel.lookup("#fop-xml-row").localToScene(0, 0).getY(),
+                "TOOLS come before the input");
         var showFo = panel.lookup("#fop-show-fo");
         var messages = panel.lookup("#fop-messages");
         var renderFo = panel.lookup("#fop-render-fo");
