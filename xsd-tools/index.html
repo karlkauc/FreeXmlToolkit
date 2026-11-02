@@ -3612,10 +3612,13 @@ available in the <strong>Text</strong> view as well as the Graphic and Tree view
 </li>
 <li><strong>Files changed on disk.</strong> The schema's own file and every local file it pulls in are watched:
   includes at any depth, imports and the targets of <code>xs:redefine</code>/<code>xs:override</code>. When such a file
-  changes, is deleted or appears, one question names the files for each schema tab. <strong>Reload</strong>
+  changes, is deleted or appears, one question names the files for each schema tab. A file with a
+  new date but the same content asks nothing. <strong>Reload</strong>
   rebuilds the schema from the current editor text, so unsaved text stays, but the undo history of
   diagram edits is cleared. <strong>Ignore</strong> keeps the current view until the file changes again. Open
-  and closed cards, zoom and scroll position survive any rebuild.</li>
+  and closed cards, zoom and scroll position survive any rebuild.
+  An XML document watches the schema bound to it the same way, also without a tab for that schema.
+  Its schema facts and IntelliSense then refresh without asking, because the document stays as it is.</li>
 <li>
 <p><strong>Warning bar for missing schemas.</strong> A bar above the diagram names the includes and imports that
   could not be loaded, also those inside imported schemas and nested includes. Circular includes
@@ -3982,7 +3985,8 @@ when you switch between Text, Tree, and Graphic.</p>
   editable minOccurs/maxOccurs and their Order in <strong>CARDINALITY &amp; USE</strong>.</li>
 <li><strong>Facets</strong> - Add, edit, and remove facets such as patterns, enumerations, and length limits.
   In the facet list, click a value to edit it (<strong>Enter</strong> saves, <strong>Esc</strong> cancels), point at a row
-  and click the trash icon to delete it, and use the row below the list to add one. Facets
+  and click the trash icon to delete it, and use the row below the list to add one, which offers
+  only the facets the base type allows, also through named, list and union types. Facets
   inherited from a base type appear in <em>italics</em> and are read-only. When all facets come from a
   named type, the add row is replaced by <em>"Facets come from T – click to edit them there."</em>;
   click it to select that type.</li>
@@ -4641,7 +4645,7 @@ against, so nothing is merged and nothing is marked.</p>
 </tr>
 <tr>
 <td><strong>References</strong></td>
-<td>Import, Include, Redefine and Override (resolved, also transitively). The Graphic view shows redefined and overridden definitions; the Type Library, statistics and quality checks list the target file's definitions unchanged next to them. Redefines declared inside an included file are not resolved</td>
+<td>Import, Include, Redefine and Override (resolved, also transitively). Redefined and overridden definitions replace the originals in the Graphic view, the Type Library, statistics, quality checks and the Inspector of an XML document.</td>
 </tr>
 <tr>
 <td><strong>XSD 1.1</strong></td>
