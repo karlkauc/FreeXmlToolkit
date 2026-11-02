@@ -97,6 +97,12 @@ The Graphic View lets you explore and edit your schemas visually.
       was not found, often because it is in a file that could not be loaded.
     - `External: ...`: a referenced element was not found. It usually belongs to another
       namespace whose schema is not loaded.
+- **Files changed on disk.** The schema's own file and every local file it pulls in are watched:
+  includes at any depth, imports and the targets of `xs:redefine`/`xs:override`. When such a file
+  changes, is deleted or appears, one question names the files for each schema tab. **Reload**
+  rebuilds the schema from the current editor text, so unsaved text stays, but the undo history of
+  diagram edits is cleared. **Ignore** keeps the current view until the file changes again. Open
+  and closed cards, zoom and scroll position survive any rebuild.
 - **Warning bar for missing schemas.** A bar above the diagram names the includes and imports that
   could not be loaded, also those inside imported schemas and nested includes. Circular includes
   are not failures. **Dismiss** hides the bar until the set of failures changes. A schema you have

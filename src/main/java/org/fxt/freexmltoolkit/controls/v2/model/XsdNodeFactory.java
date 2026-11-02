@@ -633,6 +633,9 @@ public class XsdNodeFactory {
                 if (fromLibrary != null) resolvedPath = fromLibrary;
             }
         }
+        if (includeUrl == null) {
+            targetSchema.addDependencyFile(resolvedPath); // a missing file too: it may appear later
+        }
         if (!Files.exists(resolvedPath)) {
             logger.warn("Included schema '{}' not found relative to '{}'", schemaLocation, baseDirectory);
             if (xsdInclude != null) {

@@ -6021,6 +6021,11 @@ public class EditorHost extends BorderPane {
             if (tab instanceof EditorTab et && !et.document.isUntitled() && !et.loading && et.saving == 0) {
                 watched.add(new ExternalChangeMonitor.Watched(
                         et.document, et.document.getPath(), et.document.getDiskStamp()));
+                // A model behind the text gets parsed anew anyway, and then reads the files as they are.
+                if (et.editorContext != null && et.isModelCurrent()) {
+                    et.dependencyStamps.forEach((file, stamp) -> watched.add(
+                            new ExternalChangeMonitor.Watched(et.document, file, stamp, true)));
+                }
             }
         }
         return watched;
@@ -6030,17 +6035,20 @@ public class EditorHost extends BorderPane {
      * Handles files that were changed or deleted on disk by another program: asks the user,
      * one document after the other, whether to reload/ignore (changed) or keep/close (deleted).
      * Results that were overtaken meanwhile - tab closed, saved, reloaded, saved under another
-     * name - are dropped; the next check re-evaluates them.
+     * name - are dropped; the next check re-evaluates them. Changes to files a document's model
+     * pulls in come last, one question per document; a document just asked about waits for the
+     * next check, because reloading it reads those files anyway.
      */
     private void handleExternalChanges(java.util.List<ExternalChangeMonitor.Change> changes) {
+        java.util.Set<OpenDocument> asked = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        java.util.Map<OpenDocument, java.util.List<ExternalChangeMonitor.Change>> dependencyChanges =
+                new java.util.LinkedHashMap<>();
         for (ExternalChangeMonitor.Change change : changes) {
-            EditorTab tab = null;
-            for (Tab candidate : tabPane.getTabs()) {
-                if (candidate instanceof EditorTab et && et.document == change.document()) {
-                    tab = et;
-                    break;
-                }
+            if (change.dependency()) {
+                dependencyChanges.computeIfAbsent(change.document(), d -> new java.util.ArrayList<>()).add(change);
+                continue;
             }
+            EditorTab tab = editorTabOf(change.document());
             if (tab == null || tab.loading || tab.saving > 0 || !change.path().equals(tab.document.getPath())
                     || !java.util.Objects.equals(change.known(), tab.document.getDiskStamp())) {
                 continue;
@@ -6051,6 +6059,7 @@ public class EditorHost extends BorderPane {
                 continue;
             }
             if (change.deleted()) {
+                asked.add(document);
                 tabPane.getSelectionModel().select(tab);
                 if (externalChangePrompt.fileDeleted(document, document.isDirty())
                         == ExternalChangePrompt.DeletedChoice.CLOSE) {
@@ -6067,6 +6076,7 @@ public class EditorHost extends BorderPane {
                 document.setDirty(false);
                 continue;
             }
+            asked.add(document);
             tabPane.getSelectionModel().select(tab);
             ExternalChangePrompt.ChangedChoice choice =
                     externalChangePrompt.fileChanged(document, document.isDirty());
@@ -6076,6 +6086,49 @@ public class EditorHost extends BorderPane {
                 reloadFromDisk(tab, change.path());
             } else {
                 document.setDirty(true); // editor and disk differ; saving overwrites the disk
+            }
+        }
+        dependencyChanges.forEach((document, files) -> {
+            if (!asked.contains(document)) {
+                handleDependencyChanges(document, files);
+            }
+        });
+    }
+
+    /**
+     * Asks once whether to rebuild a schema's model from files it pulls in that changed. Asked
+     * rather than done silently because a new model drops the undo history. Either answer
+     * settles this state of the files; only a further change asks again.
+     */
+    private void handleDependencyChanges(OpenDocument document,
+                                         java.util.List<ExternalChangeMonitor.Change> changes) {
+        EditorTab tab = editorTabOf(document);
+        if (tab == null || tab.loading || tab.saving > 0) {
+            return;
+        }
+        java.util.List<ExternalChangeMonitor.Change> pending = new java.util.ArrayList<>();
+        for (ExternalChangeMonitor.Change change : changes) {
+            if (!tab.dependencyStamps.containsKey(change.path())
+                    || !java.util.Objects.equals(change.known(), tab.dependencyStamps.get(change.path()))) {
+                continue; // a newer model has read the file meanwhile
+            }
+            if (change.known() == null) {
+                tab.dependencyStamps.put(change.path(), change.current()); // first known state
+            } else {
+                pending.add(change);
+            }
+        }
+        if (pending.isEmpty()) {
+            return;
+        }
+        tabPane.getSelectionModel().select(tab);
+        ExternalChangePrompt.ChangedChoice choice = externalChangePrompt.dependencyChanged(document,
+                pending.stream().map(ExternalChangeMonitor.Change::path).toList());
+        pending.forEach(change -> tab.dependencyStamps.replace(change.path(), change.current()));
+        if (choice == ExternalChangePrompt.ChangedChoice.RELOAD && !isAbandoned(tab)) {
+            tab.reparseFromDependencies();
+            if (!document.isUntitled()) {
+                reloadXmlSchemasBoundTo(document.getPath()); // XML tabs validate against those files too
             }
         }
     }
@@ -6393,6 +6446,8 @@ public class EditorHost extends BorderPane {
         private Runnable remoteImportsCallback;
         /** Host callback after a background parse installed a fresh model (FX thread). */
         private Runnable modelInstalledCallback = () -> { };
+        /** The files the current XSD model pulls in and their state when it read them. */
+        private java.util.Map<Path, DiskStamp> dependencyStamps = new java.util.LinkedHashMap<>();
         /** Host callback after a view switch that waited for a background parse has been applied. */
         private Runnable viewModeAppliedCallback = () -> { };
         /** Shared XML-instance model+command context across Text/Tree/Grid (mirrors {@link #editorContext}). */
@@ -6692,6 +6747,7 @@ public class EditorHost extends BorderPane {
                 lastParsedText = parsedText;
                 lastParsedRevision = textRevision;
                 remoteImportsMissing = parsed.remoteImportsMissing();
+                dependencyStamps = new java.util.LinkedHashMap<>(parsed.dependencyStamps());
                 // A new context means a new schema: ensureCanvasGraphic() rebuilds the
                 // Graphic view (it compares getEditorContext() and discards the stale one).
             } catch (Exception e) {
@@ -6700,6 +6756,28 @@ public class EditorHost extends BorderPane {
                 lastParsedRevision = -1;
                 failedXsdParseRevision = textRevision; // the same text fails again: do not re-parse it
                 remoteImportsMissing = false;
+                dependencyStamps = new java.util.LinkedHashMap<>();
+            }
+        }
+
+        /**
+         * Rebuilds the model because files it pulls in changed. The text is the same, so unlike a
+         * reload of the document itself unsaved edits survive; pending diagram edits are written
+         * to the text first. A large schema parses in the background through the usual path.
+         */
+        void reparseFromDependencies() {
+            flushPendingRoundTrip();
+            lastParsedText = null;
+            lastParsedRevision = -1;
+            failedXsdParseRevision = -1;
+            if (viewMode == ViewMode.TEXT) {
+                ensureModelParsedAsync(() -> { });
+                return;
+            }
+            setViewMode(viewMode);
+            if (isModelCurrent()) { // otherwise the background parse reports it when done
+                modelInstalledCallback.run();
+                viewModeAppliedCallback.run();
             }
         }
 
@@ -6831,6 +6909,7 @@ public class EditorHost extends BorderPane {
                             lastParsedText = text;
                             lastParsedRevision = revision;
                             remoteImportsMissing = result.remoteImportsMissing();
+                            dependencyStamps = new java.util.LinkedHashMap<>(result.dependencyStamps());
                         } else {
                             failedXsdParseRevision = revision;
                         }
@@ -7898,8 +7977,9 @@ public class EditorHost extends BorderPane {
             if (xsdGraphView != null && xsdGraphView.getEditorContext() == editorContext) {
                 return; // already bound to the current model
             }
-            if (xsdGraphView != null) {
-                contentStack.getChildren().remove(xsdGraphView);
+            org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView previous = xsdGraphView;
+            if (previous != null) {
+                contentStack.getChildren().remove(previous);
             }
             editorContext.setEditMode(true);
             org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView built =
@@ -7930,6 +8010,9 @@ public class EditorHost extends BorderPane {
             });
             xsdGraphView = built;
             contentStack.getChildren().add(xsdGraphView);
+            if (previous != null) {
+                built.adoptViewState(previous);
+            }
         }
 
         /** Editing actions shared by the Tree and Graphic views: run a command, then refresh selection. */

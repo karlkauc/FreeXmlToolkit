@@ -44,8 +44,14 @@ final class ExternalChangeMonitor {
      * @param document the open document
      * @param path     its file
      * @param known    the stamp recorded at the last load/save ({@code null} = none yet)
+     * @param dependency whether {@code path} is not the document's own file but one its model
+     *                 pulls in, which only needs the stamp compared
      */
-    record Watched(OpenDocument document, Path path, DiskStamp known) { }
+    record Watched(OpenDocument document, Path path, DiskStamp known, boolean dependency) {
+        Watched(OpenDocument document, Path path, DiskStamp known) {
+            this(document, path, known, false);
+        }
+    }
 
     /**
      * A document whose file no longer matches its recorded stamp.
@@ -54,9 +60,11 @@ final class ExternalChangeMonitor {
      * @param path     the file that was checked
      * @param known    the stamp the check started from
      * @param current  the stamp found on disk
-     * @param diskText the file's current text, or {@code null} when deleted or unreadable
+     * @param diskText the file's current text, or {@code null} when deleted, unreadable or a dependency
+     * @param dependency whether {@code path} is a file the document's model pulls in
      */
-    record Change(OpenDocument document, Path path, DiskStamp known, DiskStamp current, String diskText) {
+    record Change(OpenDocument document, Path path, DiskStamp known, DiskStamp current, String diskText,
+                  boolean dependency) {
         boolean deleted() {
             return !current.exists();
         }
@@ -170,7 +178,7 @@ final class ExternalChangeMonitor {
                 continue; // undeterminable right now, or unchanged
             }
             String diskText = null;
-            if (current.exists()) {
+            if (current.exists() && !w.dependency()) {
                 try {
                     diskText = Files.readString(w.path(), StandardCharsets.UTF_8);
                 } catch (IOException | RuntimeException | OutOfMemoryError e) {
@@ -180,7 +188,7 @@ final class ExternalChangeMonitor {
                     }
                 }
             }
-            changes.add(new Change(w.document(), w.path(), w.known(), current, diskText));
+            changes.add(new Change(w.document(), w.path(), w.known(), current, diskText, w.dependency()));
         }
         return changes;
     }

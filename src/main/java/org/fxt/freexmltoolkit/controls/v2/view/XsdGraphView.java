@@ -673,6 +673,66 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
     private boolean isRebuilding = false;
 
+    /**
+     * Takes over what the user arranged in the view of the same document before its model was
+     * parsed anew: open and closed cards, zoom and scroll position. Node ids do not survive a
+     * parse, so cards are matched by their path of labels from the root; a card that no longer
+     * exists is skipped and a new one keeps its default. Opening a deferred card loads it.
+     *
+     * @param previous the view being replaced
+     */
+    public void adoptViewState(XsdGraphView previous) {
+        if (previous.rootNode != null && rootNode != null) {
+            Map<String, Boolean> expansion = new HashMap<>();
+            collectExpansion(previous.rootNode, "", expansion);
+            applyExpansion(rootNode, "", expansion);
+            indexLoadedNodes(rootNode);
+        }
+        double hvalue = previous.scrollPane.getHvalue();
+        double vvalue = previous.scrollPane.getVvalue();
+        setZoom(previous.zoomLevel);
+        redraw();
+        javafx.application.Platform.runLater(() -> { // after the layout sized the scrollable area
+            scrollPane.setHvalue(hvalue);
+            scrollPane.setVvalue(vvalue);
+        });
+    }
+
+    /** Test seam: the current zoom factor. */
+    double zoomForTest() {
+        return zoomLevel;
+    }
+
+    /** Test seam: the scrolled pane. */
+    ScrollPane scrollPaneForTest() {
+        return scrollPane;
+    }
+
+    private static void collectExpansion(VisualNode node, String path, Map<String, Boolean> expansion) {
+        if (node.hasChildren()) {
+            expansion.put(path, node.isExpanded());
+        }
+        forEachChildWithPath(node, path, (child, childPath) -> collectExpansion(child, childPath, expansion));
+    }
+
+    private static void applyExpansion(VisualNode node, String path, Map<String, Boolean> expansion) {
+        Boolean expanded = expansion.get(path);
+        if (expanded != null && node.hasChildren()) {
+            node.setExpanded(expanded);
+        }
+        forEachChildWithPath(node, path, (child, childPath) -> applyExpansion(child, childPath, expansion));
+    }
+
+    /** Visits the children with their path; siblings of the same label are told apart by a counter. */
+    private static void forEachChildWithPath(VisualNode node, String path,
+                                             java.util.function.BiConsumer<VisualNode, String> visitor) {
+        Map<String, Integer> seen = new HashMap<>();
+        for (VisualNode child : java.util.List.copyOf(node.getChildren())) {
+            String label = String.valueOf(child.getLabel());
+            visitor.accept(child, path + "/" + label + "#" + seen.merge(label, 1, Integer::sum));
+        }
+    }
+
     /** The action toolbar; null in minimal chrome. */
     private ToolBar toolbar;
 
@@ -2036,7 +2096,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     /**
      * Sets the zoom level and updates the canvas.
      */
-    private void setZoom(double zoom) {
+    void setZoom(double zoom) {
         zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoom));
 
         // Update zoom label

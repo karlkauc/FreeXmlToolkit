@@ -1,6 +1,8 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -37,8 +39,10 @@ final class XsdUiParser {
      *
      * @param schema               the parsed schema
      * @param remoteImportsMissing {@code true} when at least one remote import was left out
+     * @param dependencyStamps     the state of each file the schema pulls in, as just parsed; a
+     *                             value is {@code null} when the file's state is undeterminable
      */
-    record Result(XsdSchema schema, boolean remoteImportsMissing) {
+    record Result(XsdSchema schema, boolean remoteImportsMissing, Map<Path, DiskStamp> dependencyStamps) {
     }
 
     private XsdUiParser() {
@@ -84,7 +88,15 @@ final class XsdUiParser {
         if (anyNew) {
             FxtGui.executorService.submit(() -> download(text, path, deferred, onRemoteAvailable, factories));
         }
-        return new Result(schema, !deferred.isEmpty());
+        return new Result(schema, !deferred.isEmpty(), dependencyStamps(schema));
+    }
+
+    private static Map<Path, DiskStamp> dependencyStamps(XsdSchema schema) {
+        Map<Path, DiskStamp> stamps = new LinkedHashMap<>();
+        for (Path file : schema.getDependencyFiles()) {
+            stamps.put(file, DiskStamp.of(file));
+        }
+        return stamps;
     }
 
     private static void download(String text, Path path, Set<String> deferred, Runnable onRemoteAvailable,

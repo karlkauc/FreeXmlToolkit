@@ -47,6 +47,11 @@ class EditorHostEncodingTest {
             public DeletedChoice fileDeleted(OpenDocument document, boolean dirty) {
                 return DeletedChoice.KEEP;
             }
+
+            @Override
+            public ChangedChoice dependencyChanged(OpenDocument document, java.util.List<java.nio.file.Path> files) {
+                return ChangedChoice.IGNORE;
+            }
         });
         stage.setScene(new Scene(host, 800, 600));
         stage.show();

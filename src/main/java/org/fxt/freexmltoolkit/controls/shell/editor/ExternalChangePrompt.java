@@ -1,6 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
@@ -14,6 +17,9 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
  * another program. An interface so tests can answer without a blocking dialog.
  */
 interface ExternalChangePrompt {
+
+    /** How many file names a question lists before it only counts the rest. */
+    int MAX_NAMED_FILES = 3;
 
     /** Answer to "the file changed on disk". */
     enum ChangedChoice { RELOAD, IGNORE }
@@ -34,6 +40,33 @@ interface ExternalChangePrompt {
      * @return the user's choice; dismissing the prompt counts as {@link DeletedChoice#KEEP}
      */
     DeletedChoice fileDeleted(OpenDocument document, boolean dirty);
+
+    /**
+     * Files the document's model pulls in (includes, imports) were changed or deleted. Reloading
+     * rebuilds the model from the document's current text, so unsaved text is kept.
+     *
+     * @param document the document using the files
+     * @param files    the changed files, one question for all of them
+     * @return the user's choice; dismissing the prompt counts as {@link ChangedChoice#IGNORE}
+     */
+    ChangedChoice dependencyChanged(OpenDocument document, List<Path> files);
+
+    /**
+     * @param document the document using the files
+     * @param files    the changed files
+     * @return the sentence naming them, e.g. "core.xsd, used by main.xsd, was changed on disk."
+     */
+    static String dependencySummary(OpenDocument document, List<Path> files) {
+        int shown = Math.min(files.size(), MAX_NAMED_FILES);
+        String names = files.subList(0, shown).stream()
+                .map(file -> file.getFileName().toString())
+                .collect(Collectors.joining(", "));
+        if (files.size() > shown) {
+            names += " and " + (files.size() - shown) + " more";
+        }
+        return names + ", used by " + document.getDisplayName() + ", "
+                + (files.size() == 1 ? "was" : "were") + " changed on disk.";
+    }
 
     /**
      * The default prompt: a modal alert owned by the given window.
@@ -67,6 +100,19 @@ interface ExternalChangePrompt {
                         keep, close);
                 return alert.showAndWait().filter(close::equals).isPresent()
                         ? DeletedChoice.CLOSE : DeletedChoice.KEEP;
+            }
+
+            @Override
+            public ChangedChoice dependencyChanged(OpenDocument document, List<Path> files) {
+                ButtonType reload = new ButtonType("Reload", ButtonBar.ButtonData.YES);
+                ButtonType ignore = new ButtonType("Ignore", ButtonBar.ButtonData.CANCEL_CLOSE);
+                Alert alert = alert(owner.get(), "Schema Files Changed on Disk",
+                        dependencySummary(document, files),
+                        "Do you want to reload the schema? Your text stays as it is, "
+                                + "but the undo history of diagram edits is cleared.",
+                        reload, ignore);
+                return alert.showAndWait().filter(reload::equals).isPresent()
+                        ? ChangedChoice.RELOAD : ChangedChoice.IGNORE;
             }
         };
     }

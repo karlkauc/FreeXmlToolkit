@@ -30,6 +30,7 @@ public class XsdSchema extends XsdNode {
     private final Map<String, List<XsdNode>> nodesByInclude = new LinkedHashMap<>();
     private final Map<String, XsdInclude> includeMap = new HashMap<>();
     private final Set<Path> allIncludedFiles = new HashSet<>();
+    private final Set<Path> dependencyFiles = new java.util.LinkedHashSet<>();
     private final Map<String, XsdSchema> importedSchemas = new HashMap<>();
     private final Map<String, String> nestedIncludeFailures = new LinkedHashMap<>();
     private final Map<Path, Map<String, String>> namespacesByFile = new HashMap<>();
@@ -359,6 +360,48 @@ public class XsdSchema extends XsdNode {
     }
 
     /**
+     * Records a local file this schema pulls in. Unlike {@link #getAllInvolvedFiles()} this also
+     * knows nested includes, whose xs:include is not kept as a node, and files that are missing
+     * right now, so that their appearing can be noticed.
+     *
+     * @param file the file, as resolved by the factory
+     */
+    public void addDependencyFile(Path file) {
+        dependencyFiles.add(file);
+    }
+
+    /**
+     * Gets every local file the content of this schema depends on, without its own file:
+     * includes at any depth, imports and the targets of xs:redefine and xs:override, the ones
+     * reached through them too. Imported schemas can form cycles, each is visited once.
+     *
+     * @return the files, in the order they were found
+     */
+    public Set<Path> getDependencyFiles() {
+        Set<Path> files = new java.util.LinkedHashSet<>();
+        collectDependencyFiles(Collections.newSetFromMap(new java.util.IdentityHashMap<>()), files);
+        if (mainSchemaPath != null) {
+            Path own = mainSchemaPath.toAbsolutePath().normalize();
+            files.removeIf(file -> file.toAbsolutePath().normalize().equals(own));
+        }
+        return files;
+    }
+
+    private void collectDependencyFiles(Set<XsdSchema> visited, Set<Path> files) {
+        if (!visited.add(this)) {
+            return;
+        }
+        files.addAll(allIncludedFiles);
+        files.addAll(dependencyFiles);
+        for (XsdSchema imported : importedSchemas.values()) {
+            if (imported.mainSchemaPath != null) {
+                files.add(imported.mainSchemaPath);
+            }
+            imported.collectDependencyFiles(visited, files);
+        }
+    }
+
+    /**
      * Checks if this schema has any includes.
      *
      * @return true if at least one xs:include is present
@@ -399,6 +442,7 @@ public class XsdSchema extends XsdNode {
         nodesByInclude.clear();
         includeMap.clear();
         allIncludedFiles.clear();
+        dependencyFiles.clear();
         importedSchemas.clear();
     }
 

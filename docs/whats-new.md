@@ -24,7 +24,8 @@ Already on `main`, not yet released:
   and attribute group references, wildcards, inherited attributes and placeholder cards are shown;
   a bar names includes and imports that could not be loaded; relative references inside schemas
   loaded over HTTP now resolve; `xs:redefine` and `xs:override` are resolved, and every file of a
-  namespace split over several `xs:import`s is loaded. See
+  namespace split over several `xs:import`s is loaded; changes to included and imported files on
+  disk are noticed, and open cards stay open when the schema is rebuilt. See
   [XSD Tools](xsd-tools.md#what-the-diagram-shows).
 
 ## 2.7.0 (2026-10-29)
