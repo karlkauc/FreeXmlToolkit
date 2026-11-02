@@ -78,6 +78,62 @@ class XsdVisualTreeBuilderInheritedAttributesTest {
         assertEquals(1, labels(RESTRICTION, 2000).stream().filter("dropped"::equals).count());
     }
 
+    private static final String GROUPED = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <xs:element name="root"><xs:complexType><xs:sequence>
+                <xs:element name="narrow" type="T"/>
+                <xs:element name="plain" type="Other"/>
+              </xs:sequence></xs:complexType></xs:element>
+              <xs:attributeGroup name="Inner"><xs:attribute name="deep" type="xs:string"/></xs:attributeGroup>
+              <xs:attributeGroup name="Shared">
+                <xs:attribute name="kept" type="xs:string"/>
+                <xs:attribute name="dropped" type="xs:string"/>
+                <xs:attribute name="changed" type="xs:string"/>
+                <xs:attributeGroup ref="Inner"/>
+              </xs:attributeGroup>
+              <xs:complexType name="Base"><xs:attributeGroup ref="Shared"/></xs:complexType>
+              <xs:complexType name="Other"><xs:attributeGroup ref="Shared"/></xs:complexType>
+              <xs:complexType name="T"><xs:complexContent><xs:restriction base="Base">
+                <xs:attribute name="dropped" use="prohibited"/>
+                <xs:attribute name="deep" use="prohibited"/>
+                <xs:attribute name="changed" type="xs:token"/>
+              </xs:restriction></xs:complexContent></xs:complexType>
+            </xs:schema>
+            """;
+
+    /** @return the labels inside the attribute group cards below the named element */
+    private static List<String> groupContent(String element, int budget) throws Exception {
+        VisualNode owner = cards(GROUPED, budget).stream()
+                .filter(card -> element.equals(card.getLabel())).findFirst().orElseThrow();
+        List<String> labels = new ArrayList<>();
+        Deque<VisualNode> pending = new ArrayDeque<>(owner.getChildren().stream()
+                .filter(card -> card.getLabel().startsWith("attributeGroup: ")).toList());
+        while (!pending.isEmpty()) {
+            VisualNode card = pending.pop();
+            card.setExpanded(true);
+            labels.add(card.getLabel());
+            card.getChildren().forEach(pending::push);
+        }
+        return labels;
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2000})
+    void aDerivationHidesAttributesInsideAnInheritedGroup(int budget) throws Exception {
+        List<String> labels = groupContent("narrow", budget);
+
+        assertTrue(labels.contains("kept"), labels.toString());
+        assertFalse(labels.contains("dropped"), "prohibited: " + labels);
+        assertFalse(labels.contains("changed"), "shown as the redeclaration: " + labels);
+        assertFalse(labels.contains("deep"), "hidden in a nested group too: " + labels);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2000})
+    void anotherTypeStillSeesTheWholeGroup(int budget) throws Exception {
+        assertTrue(groupContent("plain", budget).containsAll(List.of("kept", "dropped", "changed", "deep")));
+    }
+
     @Test
     void inheritanceRunsThroughAChain() throws Exception {
         List<String> labels = labels(schema("""

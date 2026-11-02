@@ -877,17 +877,29 @@ public class XsdVisualTreeBuilder {
      */
     private VisualNode createAttributeGroupRefNode(XsdAttributeGroup group, VisualNode parent,
                                                    Set<String> visitedTypes) {
+        return createAttributeGroupRefNode(group, Set.of(), parent, visitedTypes);
+    }
+
+    /**
+     * Creates the card of an inherited {@code xs:attributeGroup} reference.
+     *
+     * @param hidden names a derivation redeclared or prohibited: they go from this card only, since
+     *               other types use the same group definition
+     */
+    private VisualNode createAttributeGroupRefNode(XsdAttributeGroup group, Set<String> hidden, VisualNode parent,
+                                                   Set<String> visitedTypes) {
         VisualNode node = createGroupCard(group, parent);
         node.setExpanded(false);
         Set<String> capturedVisitedTypes = new HashSet<>(visitedTypes);
         node.setLazyChildrenLoader(() -> {
-            fillAttributeGroupCard(group, node, capturedVisitedTypes);
+            fillAttributeGroupCard(group, hidden, node, capturedVisitedTypes);
             return java.util.List.of();
         });
         return node;
     }
 
-    private void fillAttributeGroupCard(XsdAttributeGroup group, VisualNode node, Set<String> visitedTypes) {
+    private void fillAttributeGroupCard(XsdAttributeGroup group, Set<String> hidden, VisualNode node,
+                                        Set<String> visitedTypes) {
         QName name = resolveName(group.getRef(), group);
         XsdAttributeGroup definition = index.attributeGroups().find(name);
         String visitKey = "attributeGroup:" + name;
@@ -900,9 +912,11 @@ public class XsdVisualTreeBuilder {
             localVisitedTypes.add(visitKey);
             for (XsdNode child : definition.getChildren()) {
                 if (child instanceof XsdAttribute attribute) {
-                    node.addChild(createAttributeNode(attribute, node));
+                    if (!hidden.contains(attribute.getName())) {
+                        node.addChild(createAttributeNode(attribute, node));
+                    }
                 } else if (child instanceof XsdAttributeGroup nested) {
-                    node.addChild(createAttributeGroupRefNode(nested, node, localVisitedTypes));
+                    node.addChild(createAttributeGroupRefNode(nested, hidden, node, localVisitedTypes));
                 } else if (child instanceof XsdAnyAttribute any) {
                     node.addChild(createWildcardNode(any, NodeWrapperType.ATTRIBUTE, node));
                 }
@@ -1198,7 +1212,7 @@ public class XsdVisualTreeBuilder {
                     parentNode.addChild(createAttributeNode(attribute, parentNode));
                 }
             } else if (child instanceof XsdAttributeGroup group) {
-                parentNode.addChild(createAttributeGroupRefNode(group, parentNode, visitedTypes));
+                parentNode.addChild(createAttributeGroupRefNode(group, hidden, parentNode, visitedTypes));
             } else if (child instanceof XsdAnyAttribute any) {
                 parentNode.addChild(createWildcardNode(any, NodeWrapperType.ATTRIBUTE, parentNode));
             }

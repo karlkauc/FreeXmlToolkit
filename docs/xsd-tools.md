@@ -893,7 +893,6 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 | **References**  | Import, Include (resolved, also transitively); Redefine and Override are parsed but not resolved |
 | **XSD 1.1**     | Assertions (`xs:assert`) are loaded, shown and analysed; `xs:alternative` and `xs:openContent` are honored by the XSD 1.1 validator but not shown in the graphical views |
 | **Identity**    | Key, KeyRef, Unique                                                      |
-| **Diagram limits** | A restriction that prohibits an attribute from an inherited attribute group still shows that attribute inside the group's card |
 
 ---
 
