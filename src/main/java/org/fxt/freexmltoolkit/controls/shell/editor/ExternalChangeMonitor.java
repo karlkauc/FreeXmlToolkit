@@ -11,6 +11,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 import javafx.animation.Animation;
@@ -37,6 +38,10 @@ final class ExternalChangeMonitor {
 
     /** How often the open documents are checked while the window is focused. */
     static final Duration POLL_INTERVAL = Duration.seconds(2);
+    /** A check taking longer than this pauses the timer. */
+    static final long SLOW_CHECK_MILLIS = 1000;
+    /** How many times the duration of a slow check the timer then pauses. */
+    static final int SLOW_CHECK_PAUSE_FACTOR = 5;
 
     /**
      * A document to check.
@@ -85,6 +90,9 @@ final class ExternalChangeMonitor {
     /** True from the start of a check until its result has been handled (incl. open prompts). */
     private final AtomicBoolean busy = new AtomicBoolean(false);
     private final Timeline timeline;
+    private final LongSupplier clock;
+    /** Clock time before which the timer does not check. Regaining focus always checks. */
+    private volatile long pausedUntil;
     /** Held in a field: the flat-mapped binding is only weakly reachable otherwise. */
     private ObservableValue<Boolean> windowFocused;
 
@@ -94,15 +102,39 @@ final class ExternalChangeMonitor {
      * @param executor  runs the disk access off the FX thread
      */
     ExternalChangeMonitor(Supplier<List<Watched>> watched, Consumer<List<Change>> onChanges, Executor executor) {
+        this(watched, onChanges, executor, System::currentTimeMillis);
+    }
+
+    /** As above, with the clock injectable for tests. */
+    ExternalChangeMonitor(Supplier<List<Watched>> watched, Consumer<List<Change>> onChanges, Executor executor,
+                          LongSupplier clock) {
         this.watched = watched;
         this.onChanges = onChanges;
         this.executor = executor;
+        this.clock = clock;
         this.timeline = new Timeline(new KeyFrame(POLL_INTERVAL, e -> {
             if (Boolean.TRUE.equals(windowFocused.getValue())) {
-                checkNow();
+                pollIfDue();
             }
         }));
         timeline.setCycleCount(Animation.INDEFINITE);
+    }
+
+    /** A timer tick: checks unless the last check was slow enough to pause for. */
+    void pollIfDue() {
+        if (clock.getAsLong() >= pausedUntil) {
+            checkNow();
+        }
+    }
+
+    /** Runs {@link #probe} and pauses the polling after a slow run, as on a sluggish network drive. */
+    private List<Change> timedProbe(List<Watched> snapshot) {
+        long start = clock.getAsLong();
+        List<Change> changes = probe(snapshot);
+        long end = clock.getAsLong();
+        long took = end - start;
+        pausedUntil = took > SLOW_CHECK_MILLIS ? end + took * SLOW_CHECK_PAUSE_FACTOR : 0;
+        return changes;
     }
 
     /**
@@ -145,7 +177,7 @@ final class ExternalChangeMonitor {
             executor.execute(() -> {
                 List<Change> changes;
                 try {
-                    changes = probe(snapshot);
+                    changes = timedProbe(snapshot);
                 } catch (RuntimeException e) {
                     busy.set(false);
                     return;
