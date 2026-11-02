@@ -3594,6 +3594,10 @@ available in the <strong>Text</strong> view as well as the Graphic and Tree view
 <li><strong>Wildcards.</strong> <code>xs:any</code> and <code>xs:anyAttribute</code> appear as cards named <code>any</code> and <code>anyAttribute</code>, with
   the allowed namespace and the validation mode. Their right-click menu offers <strong>Delete</strong> and
   <strong>Copy XPath</strong>.</li>
+<li><strong>Redefined files.</strong> The file named by <code>xs:redefine</code> or <code>xs:override</code> is loaded, and its global
+  elements appear like those of an include. Its definitions are shown in their changed form: a
+  redefined type builds on the original, an overridden one replaces it. They are read-only, and saving
+  leaves the file and your <code>xs:redefine</code> as they are.</li>
 <li><strong>Group references.</strong> <code>xs:group</code> and <code>xs:attributeGroup</code> references appear as their own cards,
   labelled <code>group: Name</code> and <code>attributeGroup: Name</code>. Attribute group cards stay closed until you
   open them. The right-click menu of these cards offers only <strong>Delete</strong> and <strong>Copy XPath</strong>:
@@ -3606,10 +3610,13 @@ available in the <strong>Text</strong> view as well as the Graphic and Tree view
   namespace whose schema is not loaded.</li>
 </ul>
 </li>
-<li><strong>Warning bar for missing schemas.</strong> A bar above the diagram names the includes and imports that
+<li>
+<p><strong>Warning bar for missing schemas.</strong> A bar above the diagram names the includes and imports that
   could not be loaded, also those inside imported schemas and nested includes. Circular includes
   are not failures. <strong>Dismiss</strong> hides the bar until the set of failures changes. A schema you have
-  not saved yet has no file location, so it cannot resolve its includes: save it first.</li>
+  not saved yet has no file location, so it cannot resolve its includes: save it first.</p>
+<p><img alt="Warning bar, a group card and an unresolved type in the Graphic view" src="../img/unified-shell-schema-missing-include.png" /></p>
+</li>
 </ul>
 <p>For what the diagram leaves out, see <a href="#supported-xsd-features">Supported XSD Features</a>.</p>
 <h3 id="drag-and-drop-in-the-diagram">Moving and Copying by Drag and Drop<a class="headerlink" href="#drag-and-drop-in-the-diagram" title="Permanent link">&para;</a></h3>
@@ -4628,7 +4635,7 @@ against, so nothing is merged and nothing is marked.</p>
 </tr>
 <tr>
 <td><strong>References</strong></td>
-<td>Import, Include (resolved, also transitively); Redefine and Override are parsed but not resolved</td>
+<td>Import, Include, Redefine and Override (resolved, also transitively). The Graphic view shows redefined and overridden definitions; the Type Library, statistics and quality checks list the target file's definitions unchanged next to them. Redefines declared inside an included file are not resolved</td>
 </tr>
 <tr>
 <td><strong>XSD 1.1</strong></td>
@@ -4637,10 +4644,6 @@ against, so nothing is merged and nothing is marked.</p>
 <tr>
 <td><strong>Identity</strong></td>
 <td>Key, KeyRef, Unique</td>
-</tr>
-<tr>
-<td><strong>Diagram limits</strong></td>
-<td>A restriction that prohibits an attribute from an inherited attribute group still shows that attribute inside the group's card</td>
 </tr>
 </tbody>
 </table>
