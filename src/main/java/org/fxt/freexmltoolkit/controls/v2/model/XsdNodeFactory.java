@@ -515,19 +515,15 @@ public class XsdNodeFactory {
             } else if (isXsdElement(childElement, "redefine")) {
                 XsdRedefine xsdRedefine = parseRedefine(childElement);
                 tagNodeWithSourceInfo(xsdRedefine);
-                // Only add redefine directives as nodes for the main schema
-                if (addSchemaDirectivesAsNodes) {
-                    schema.addChild(xsdRedefine);
-                    pendingImports.add(new PendingImport(xsdRedefine, declaringBaseDir(baseDirectory), remoteBaseUrl));
-                }
+                // Unlike an include's other directives this one stays a node inside an included
+                // file too: its definitions take effect, and the node's source keeps it out of saves.
+                schema.addChild(xsdRedefine);
+                pendingImports.add(new PendingImport(xsdRedefine, declaringBaseDir(baseDirectory), remoteBaseUrl));
             } else if (isXsdElement(childElement, "override")) {
                 XsdOverride xsdOverride = parseOverride(childElement);
                 tagNodeWithSourceInfo(xsdOverride);
-                // Only add override directives as nodes for the main schema
-                if (addSchemaDirectivesAsNodes) {
-                    schema.addChild(xsdOverride);
-                    pendingImports.add(new PendingImport(xsdOverride, declaringBaseDir(baseDirectory), remoteBaseUrl));
-                }
+                schema.addChild(xsdOverride); // as for xs:redefine above
+                pendingImports.add(new PendingImport(xsdOverride, declaringBaseDir(baseDirectory), remoteBaseUrl));
             }
         }
     }

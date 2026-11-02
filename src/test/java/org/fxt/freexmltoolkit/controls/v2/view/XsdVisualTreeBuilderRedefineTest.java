@@ -75,6 +75,94 @@ class XsdVisualTreeBuilderRedefineTest {
         return labels;
     }
 
+    /** Writes {@code name} as a part of namespace {@code urn:t} with {@code body} as its content. */
+    private void writePart(String name, String body) throws Exception {
+        Files.writeString(dir.resolve(name), """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:t" xmlns:t="urn:t">
+                """ + body + "</xs:schema>");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2000})
+    void aRedefineInsideAnIncludedFileTakesEffect(int budget) throws Exception {
+        writeBase(false);
+        writePart("part.xsd", EXTENDED);
+
+        List<String> shown = labels(load("<xs:include schemaLocation=\"part.xsd\"/>"), budget);
+
+        assertTrue(shown.contains("country"), shown.toString());
+        assertTrue(shown.contains("street"), "the original is still the base: " + shown);
+    }
+
+    @Test
+    void aRedefineInANestedIncludeResolvesAgainstItsOwnFolder() throws Exception {
+        Files.createDirectory(dir.resolve("sub"));
+        Files.writeString(dir.resolve("sub/base.xsd"), BASE.formatted(NAMESPACED, "t:"));
+        writePart("sub/part.xsd", EXTENDED);
+        writePart("outer.xsd", "<xs:include schemaLocation=\"sub/part.xsd\"/>");
+
+        XsdSchema schema = load("<xs:include schemaLocation=\"outer.xsd\"/>");
+
+        assertTrue(labels(schema, 2000).contains("country"));
+        assertTrue(schema.getDependencyFiles().stream().anyMatch(file -> file.endsWith(Path.of("sub", "base.xsd"))),
+                schema.getDependencyFiles().toString());
+    }
+
+    @Test
+    void anOverrideInsideAnIncludedFileTakesEffect() throws Exception {
+        writeBase(false);
+        writePart("part.xsd", """
+                <xs:override schemaLocation="base.xsd">
+                  <xs:complexType name="Address">
+                    <xs:sequence><xs:element name="replaced" type="xs:string"/></xs:sequence>
+                  </xs:complexType>
+                </xs:override>
+                <xs:element name="home" type="t:Address"/>
+                """);
+
+        List<String> shown = labels(load("<xs:include schemaLocation=\"part.xsd\"/>"), 2000);
+
+        assertTrue(shown.contains("replaced"), shown.toString());
+        assertFalse(shown.contains("street"), shown.toString());
+    }
+
+    @Test
+    void aMissingTargetInsideAnIncludedFileIsReported() throws Exception {
+        writePart("part.xsd", "<xs:redefine schemaLocation=\"gone.xsd\"/>");
+
+        XsdSchema schema = load("<xs:include schemaLocation=\"part.xsd\"/>");
+
+        assertTrue(UnresolvedSchemaReferences.of(schema).stream()
+                .anyMatch(entry -> entry.toString().contains("gone.xsd")),
+                UnresolvedSchemaReferences.of(schema).toString());
+    }
+
+    @Test
+    void aCycleThroughAnIncludedRedefineTerminates() throws Exception {
+        writePart("part.xsd", "<xs:redefine schemaLocation=\"main.xsd\"/>");
+
+        XsdSchema schema = load("<xs:include schemaLocation=\"part.xsd\"/><xs:element name=\"home\"/>");
+
+        assertTrue(labels(schema, 2000).contains("home"));
+    }
+
+    @Test
+    void savingLeavesARedefineFromAnIncludedFileWhereItIs() throws Exception {
+        writeBase(false);
+        writePart("part.xsd", EXTENDED);
+        XsdSchema schema = load("<xs:include schemaLocation=\"part.xsd\"/><xs:element name=\"own\"/>");
+        assertTrue(schema.getChildren().stream().anyMatch(XsdRedefine.class::isInstance));
+
+        XsdSerializer serializer = new XsdSerializer();
+        serializer.setExcludeIncludedNodes(true); // as the editor saves
+        String saved = serializer.serialize(schema);
+
+        assertFalse(saved.contains("redefine"), saved);
+        assertFalse(saved.contains("country"), saved);
+        assertTrue(saved.contains("part.xsd"), saved);
+        assertTrue(saved.contains("own"), saved);
+    }
+
     private static final String EXTENDED = """
             <xs:redefine schemaLocation="base.xsd">
               <xs:complexType name="Address"><xs:complexContent><xs:extension base="t:Address">

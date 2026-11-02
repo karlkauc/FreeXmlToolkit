@@ -905,7 +905,7 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 | **Types**       | ComplexTypes, SimpleTypes (restriction, list, union), simple/complex content with extension and restriction |
 | **Compositors** | Sequence, Choice, All                                                    |
 | **Constraints** | Facets: patterns, enumerations, length limits, value ranges, digits, whiteSpace, assertion / explicitTimezone (XSD 1.1) |
-| **References**  | Import, Include, Redefine and Override (resolved, also transitively). The Graphic view shows redefined and overridden definitions; the Type Library, statistics and quality checks list the target file's definitions unchanged next to them. Redefines declared inside an included file are not resolved |
+| **References**  | Import, Include, Redefine and Override (resolved, also transitively). The Graphic view shows redefined and overridden definitions; the Type Library, statistics and quality checks list the target file's definitions unchanged next to them. |
 | **XSD 1.1**     | Assertions (`xs:assert`) are loaded, shown and analysed; `xs:alternative` and `xs:openContent` are honored by the XSD 1.1 validator but not shown in the graphical views |
 | **Identity**    | Key, KeyRef, Unique                                                      |
 
