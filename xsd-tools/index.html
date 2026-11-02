@@ -3610,6 +3610,12 @@ available in the <strong>Text</strong> view as well as the Graphic and Tree view
   namespace whose schema is not loaded.</li>
 </ul>
 </li>
+<li><strong>Files changed on disk.</strong> The schema's own file and every local file it pulls in are watched:
+  includes at any depth, imports and the targets of <code>xs:redefine</code>/<code>xs:override</code>. When such a file
+  changes, is deleted or appears, one question names the files for each schema tab. <strong>Reload</strong>
+  rebuilds the schema from the current editor text, so unsaved text stays, but the undo history of
+  diagram edits is cleared. <strong>Ignore</strong> keeps the current view until the file changes again. Open
+  and closed cards, zoom and scroll position survive any rebuild.</li>
 <li>
 <p><strong>Warning bar for missing schemas.</strong> A bar above the diagram names the includes and imports that
   could not be loaded, also those inside imported schemas and nested includes. Circular includes
