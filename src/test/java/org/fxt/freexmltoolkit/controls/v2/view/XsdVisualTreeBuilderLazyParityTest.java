@@ -31,6 +31,7 @@ class XsdVisualTreeBuilderLazyParityTest {
                 <xs:complexContent><xs:extension base="EmptyBase">
                   <xs:all><xs:element name="inAll" type="xs:string"/></xs:all>
                   <xs:attribute name="fromExtension" type="xs:string"/>
+                  <xs:assert test="count(*) gt 0"/>
                 </xs:extension></xs:complexContent>
               </xs:complexType>
               <xs:complexType name="Restricted">
@@ -60,7 +61,7 @@ class XsdVisualTreeBuilderLazyParityTest {
 
     private static void outline(VisualNode node, int depth, List<String> lines) {
         node.setExpanded(true);
-        lines.add("  ".repeat(depth) + node.getType() + " " + node.getLabel());
+        lines.add("  ".repeat(depth) + node.getConstraints() + " " + node.getType() + " " + node.getLabel());
         for (VisualNode child : node.getChildren()) {
             outline(child, depth + 1, lines);
         }

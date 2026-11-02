@@ -35,9 +35,29 @@ public class XsdNodeRenderer {
     private static final double CORNER_RADIUS = 6;  // Updated to 6px for modern look
     private static final double PADDING = 30; // Increased padding for better text spacing
 
+    /** Rows a card lists before the rest collapse into a "+N more" line. */
+    static final int MAX_CONSTRAINT_ROWS = 4;
+    private static final double CONSTRAINT_ROW_HEIGHT = 18;
+    private static final double CONSTRAINT_SECTION_PADDING = 6;
+    private static final double CONSTRAINT_LABEL_WIDTH = 42;
+    private static final double CONSTRAINT_LABEL_HEIGHT = 14;
+    private static final double CONSTRAINT_LABEL_GAP = 6;
+    private static final double CONSTRAINT_LEFT = 8;
+    /** Keeps a row clear of the connection point on the card's right edge. */
+    private static final double CONSTRAINT_RIGHT = 14;
+    /** The expand button sits at mid-height, where the rows of a tall card pass. */
+    private static final double CONSTRAINT_RIGHT_WITH_BUTTON = EXPAND_BUTTON_SIZE + 16;
+    /** Room for the include badge in a card's bottom-left corner. */
+    private static final double INCLUDE_BADGE_CLEARANCE = 14;
+
     private final Font nodeFont;
     private final Font detailFont;
+    private final Font constraintFont = Font.font("Consolas", 10);
+    private final Font constraintLabelFont = Font.font("Consolas", FontWeight.BOLD, 9);
     private final javafx.scene.text.Text textMeasurer;
+
+    /** Whether cards list their constraints; off, they are drawn as if they had none. */
+    private boolean showConstraints = true;
 
     // Text width cache: key = "fontName:fontSize:text", value = measured width
     // Avoids expensive Text.getBoundsInLocal() calls on repeated rendering (zoom, scroll, redraw)
@@ -62,6 +82,15 @@ public class XsdNodeRenderer {
     /** Switches the renderer between the light and dark drawing palette. */
     public void setDarkMode(boolean darkMode) {
         this.darkMode = darkMode;
+    }
+
+    /**
+     * Sets whether cards list their identity constraints and assertions.
+     *
+     * @param show true to list them; takes effect at the next layout
+     */
+    public void setShowConstraints(boolean show) {
+        this.showConstraints = show;
     }
 
     /** Card surface color node bodies, badges and header gradients are built on. */
@@ -136,7 +165,7 @@ public class XsdNodeRenderer {
         }
 
         // Take maximum of header and detail, use header as minimum
-        double requiredWidth = Math.max(headerWidth, detailWidth);
+        double requiredWidth = Math.max(Math.max(headerWidth, detailWidth), constraintRowsWidth(node));
 
         // Use minimum width but allow expansion for longer text (no hard upper limit)
         return Math.max(MIN_NODE_WIDTH, requiredWidth);
@@ -148,6 +177,16 @@ public class XsdNodeRenderer {
      * For compositors, only 1 line (child count).
      */
     public double calculateBodyHeight(VisualNode node) {
+        int lines = constraintLines(node);
+        if (lines == 0) {
+            return propertiesHeight(node);
+        }
+        double height = constraintSectionTop(node) + lines * CONSTRAINT_ROW_HEIGHT + CONSTRAINT_SECTION_PADDING * 2;
+        return height + (node.isFromInclude() ? INCLUDE_BADGE_CLEARANCE : 0);
+    }
+
+    /** Height of the type and occurs lines. */
+    private double propertiesHeight(VisualNode node) {
         // Comments have no type/occurs body
         if (node.getType() == NodeWrapperType.COMMENT) {
             return MIN_BODY_HEIGHT;
@@ -163,6 +202,49 @@ public class XsdNodeRenderer {
 
         // Compositors and other nodes need only 1 line
         return PROPERTY_LINE_HEIGHT;  // 20px for 1 line
+    }
+
+    /** @return the lines a card's constraint section needs: its rows, plus one for "+N more" */
+    private int constraintLines(VisualNode node) {
+        if (!showConstraints || isCompositorNode(node)) {
+            return 0;
+        }
+        int rows = node.getConstraints().size();
+        return rows > MAX_CONSTRAINT_ROWS ? MAX_CONSTRAINT_ROWS + 1 : rows;
+    }
+
+    /** @return where the constraint section starts in the body; without type lines, at its top */
+    private double constraintSectionTop(VisualNode node) {
+        return node.getDetail() == null || node.getDetail().isEmpty() ? 0 : propertiesHeight(node);
+    }
+
+    private double constraintRowsWidth(VisualNode node) {
+        if (constraintLines(node) == 0) {
+            return 0;
+        }
+        double widest = 0;
+        for (ConstraintRow row : node.getConstraints().subList(0,
+                Math.min(MAX_CONSTRAINT_ROWS, node.getConstraints().size()))) {
+            widest = Math.max(widest, estimateTextWidth(row.text(), constraintFont));
+        }
+        return CONSTRAINT_LEFT + CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP + widest
+                + (node.hasChildren() ? CONSTRAINT_RIGHT_WITH_BUTTON : CONSTRAINT_RIGHT);
+    }
+
+    /**
+     * The details of a card's constraints, for a pointer over its constraint section.
+     *
+     * @param node the card under the pointer, or null
+     * @param y    the pointer's position in diagram space
+     * @return the text to show, or null if the pointer is not over a constraint section
+     */
+    String constraintTooltipAt(VisualNode node, double y) {
+        if (node == null || constraintLines(node) == 0
+                || y < node.getY() + HEADER_HEIGHT + constraintSectionTop(node)) {
+            return null;
+        }
+        return node.getConstraints().stream().map(ConstraintRow::tooltip)
+                .collect(java.util.stream.Collectors.joining("\n\n"));
     }
 
     /**
@@ -490,6 +572,65 @@ public class XsdNodeRenderer {
                 gc.fillText(occursValue, x + PADDING + 50, secondLineY);
             }
         }
+
+        renderConstraintRows(gc, node, x, y, width);
+    }
+
+    /** Draws the section that lists a card's constraints below its type lines. */
+    private void renderConstraintRows(GraphicsContext gc, VisualNode node, double x, double bodyY, double width) {
+        int lines = constraintLines(node);
+        if (lines == 0) {
+            return;
+        }
+        double top = bodyY + constraintSectionTop(node);
+        if (constraintSectionTop(node) > 0) {
+            gc.setStroke(bodyLabelColor().deriveColor(0, 1, 1, 0.35));
+            gc.setLineWidth(1);
+            gc.strokeLine(x + CONSTRAINT_LEFT, top, x + width - CONSTRAINT_LEFT, top);
+        }
+
+        gc.setTextBaseline(VPos.CENTER);
+        double rowY = top + CONSTRAINT_SECTION_PADDING;
+        java.util.List<ConstraintRow> rows = node.getConstraints();
+        for (int i = 0; i < Math.min(MAX_CONSTRAINT_ROWS, rows.size()); i++) {
+            renderConstraintRow(gc, rows.get(i), x + CONSTRAINT_LEFT, rowY);
+            rowY += CONSTRAINT_ROW_HEIGHT;
+        }
+        if (rows.size() > MAX_CONSTRAINT_ROWS) {
+            gc.setFill(bodyLabelColor());
+            gc.setFont(constraintFont);
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.fillText("+" + (rows.size() - MAX_CONSTRAINT_ROWS) + " more", x + CONSTRAINT_LEFT,
+                    rowY + CONSTRAINT_ROW_HEIGHT / 2);
+        }
+        gc.setTextBaseline(VPos.TOP);
+    }
+
+    private void renderConstraintRow(GraphicsContext gc, ConstraintRow row, double x, double rowY) {
+        Color color = constraintColor(row.kind());
+        double labelY = rowY + (CONSTRAINT_ROW_HEIGHT - CONSTRAINT_LABEL_HEIGHT) / 2;
+        gc.setFill(color.deriveColor(0, 1, 1, darkMode ? 0.2 : 0.12));
+        gc.fillRoundRect(x, labelY, CONSTRAINT_LABEL_WIDTH, CONSTRAINT_LABEL_HEIGHT, 4, 4);
+
+        gc.setFill(color);
+        gc.setFont(constraintLabelFont);
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.fillText(row.kind().label(), x + CONSTRAINT_LABEL_WIDTH / 2, rowY + CONSTRAINT_ROW_HEIGHT / 2);
+
+        gc.setFill(bodyValueColor());
+        gc.setFont(constraintFont);
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.fillText(row.text(), x + CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP, rowY + CONSTRAINT_ROW_HEIGHT / 2);
+    }
+
+    /** Label color per kind, readable on the card surface of either theme. */
+    private Color constraintColor(ConstraintRow.Kind kind) {
+        return switch (kind) {
+            case KEY -> darkMode ? Color.rgb(251, 191, 36) : Color.rgb(180, 83, 9);
+            case UNIQUE -> darkMode ? Color.rgb(196, 170, 255) : Color.rgb(111, 66, 193);
+            case KEYREF -> darkMode ? Color.rgb(125, 196, 255) : Color.rgb(8, 102, 171);
+            case ASSERT -> darkMode ? Color.rgb(94, 234, 212) : Color.rgb(15, 118, 110);
+        };
     }
 
     /**
@@ -1000,6 +1141,10 @@ public class XsdNodeRenderer {
         private String cardinalityBadge;        // Formatted cardinality (e.g., "1..1", "0..*", "ROOT")
         private boolean showConnectionPoints;   // Whether to show connection circles
 
+        // Identity constraints and assertions the card lists
+        private java.util.function.Supplier<java.util.List<ConstraintRow>> constraintSource;
+        private java.util.List<ConstraintRow> constraints = java.util.List.of();
+
         // PropertyChangeListener for model updates
         private final java.beans.PropertyChangeListener modelListener;
 
@@ -1374,6 +1519,30 @@ public class XsdNodeRenderer {
 
             // Re-initialize visual properties (icon, colors, etc.) based on updated detail
             initializeVisualProperties();
+
+            // "assertions" and "type" change no children, so no rebuild refreshes these
+            refreshConstraints();
+        }
+
+        /**
+         * Sets where this card gets the constraints it lists.
+         *
+         * @param source computes the rows; asked now and whenever the card's model changes
+         */
+        public void setConstraintSource(java.util.function.Supplier<java.util.List<ConstraintRow>> source) {
+            this.constraintSource = source;
+            refreshConstraints();
+        }
+
+        private void refreshConstraints() {
+            if (constraintSource != null) {
+                constraints = constraintSource.get();
+            }
+        }
+
+        /** @return the identity constraints and assertions this card lists */
+        public java.util.List<ConstraintRow> getConstraints() {
+            return constraints;
         }
 
         /** A group reference has no name of its own: it shows what it refers to. */

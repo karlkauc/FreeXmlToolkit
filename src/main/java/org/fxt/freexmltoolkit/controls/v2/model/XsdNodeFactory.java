@@ -1317,7 +1317,9 @@ public class XsdNodeFactory {
 
             // Try to parse as a facet
             XsdFacetType facetType = XsdFacetType.fromXmlName(localName);
-            if (facetType != null && childElement.hasAttribute("value")) {
+            if (facetType == XsdFacetType.ASSERTION && childElement.hasAttribute("test")) {
+                restriction.addFacet(parseAssertionFacet(childElement));
+            } else if (facetType != null && childElement.hasAttribute("value")) {
                 String value = childElement.getAttribute("value");
                 boolean fixed = childElement.hasAttribute("fixed") &&
                         Boolean.parseBoolean(childElement.getAttribute("fixed"));
@@ -1625,6 +1627,21 @@ public class XsdNodeFactory {
         parseIdentityConstraintChildren(keyElement, key);
 
         return key;
+    }
+
+    /**
+     * Parses an XSD 1.1 {@code xs:assertion} facet. Unlike every other facet it has a {@code test}
+     * XPath instead of a {@code value}; the facet keeps that XPath as its value.
+     */
+    private XsdFacet parseAssertionFacet(Element assertionElement) {
+        XsdFacet facet = new XsdFacet(XsdFacetType.ASSERTION, assertionElement.getAttribute("test"));
+        NodeList children = assertionElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            if (children.item(i) instanceof Element child && isXsdElement(child, "annotation")) {
+                parseAnnotation(child, facet);
+            }
+        }
+        return facet;
     }
 
     /**

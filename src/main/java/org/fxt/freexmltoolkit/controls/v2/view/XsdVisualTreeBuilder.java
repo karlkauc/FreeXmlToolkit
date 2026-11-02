@@ -3,15 +3,19 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAll;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAny;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAnyAttribute;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdAssert;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAttributeGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdChoice;
@@ -20,7 +24,10 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexContent;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdIdentityConstraint;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
@@ -175,7 +182,7 @@ public class XsdVisualTreeBuilder {
      * The global components of a schema. Includes are part of the schema they are flattened into;
      * imported schemas are merged in with {@link #merge}.
      */
-    private record SchemaIndex(Lookup<XsdComplexType> types, Lookup<Boolean> simpleTypes,
+    private record SchemaIndex(Lookup<XsdComplexType> types, Lookup<XsdSimpleType> simpleTypes,
                                Lookup<XsdElement> elements, Lookup<XsdGroup> groups,
                                Lookup<XsdAttributeGroup> attributeGroups) {
 
@@ -190,7 +197,7 @@ public class XsdVisualTreeBuilder {
                 if (child instanceof XsdComplexType type && hasName(type)) {
                     index.types.put(namespace, type.getName(), type);
                 } else if (child instanceof XsdSimpleType type && hasName(type)) {
-                    index.simpleTypes.put(namespace, type.getName(), Boolean.TRUE);
+                    index.simpleTypes.put(namespace, type.getName(), type);
                 } else if (child instanceof XsdElement element && hasName(element) && element.getRef() == null) {
                     index.elements.put(namespace, element.getName(), element);
                 } else if (child instanceof XsdGroup group && hasName(group) && !group.isReference()) {
@@ -208,7 +215,7 @@ public class XsdVisualTreeBuilder {
                 if (child instanceof XsdComplexType type && hasName(type)) {
                     types.replace(namespace, type.getName(), type);
                 } else if (child instanceof XsdSimpleType type && hasName(type)) {
-                    simpleTypes.replace(namespace, type.getName(), Boolean.TRUE);
+                    simpleTypes.replace(namespace, type.getName(), type);
                 } else if (child instanceof XsdElement element && hasName(element) && element.getRef() == null) {
                     elements.replace(namespace, element.getName(), element);
                 } else if (child instanceof XsdGroup group && hasName(group) && !group.isReference()) {
@@ -552,8 +559,8 @@ public class XsdVisualTreeBuilder {
         if (currentDepth > MAX_DEPTH) {
             logger.debug("Maximum depth ({}) exceeded for element '{}'. Truncating tree.", MAX_DEPTH, element.getName());
             String label = element.getName() != null ? element.getName() : "(unnamed)";
-            return new VisualNode(label + " (max depth)", "", NodeWrapperType.ELEMENT, element, parent,
-                    element.getMinOccurs(), element.getMaxOccurs(), onModelChangeCallback);
+            return withConstraints(element, new VisualNode(label + " (max depth)", "", NodeWrapperType.ELEMENT,
+                    element, parent, element.getMinOccurs(), element.getMaxOccurs(), onModelChangeCallback));
         }
 
         // Check for circular reference at element level
@@ -562,8 +569,8 @@ public class XsdVisualTreeBuilder {
                     element.getName(), element.getId());
             // Return a placeholder node without children
             String label = element.getName() != null ? element.getName() : "(unnamed)";
-            return new VisualNode(label + " (circular ref)", "", NodeWrapperType.ELEMENT, element, parent,
-                    element.getMinOccurs(), element.getMaxOccurs(), onModelChangeCallback);
+            return withConstraints(element, new VisualNode(label + " (circular ref)", "", NodeWrapperType.ELEMENT,
+                    element, parent, element.getMinOccurs(), element.getMaxOccurs(), onModelChangeCallback));
         }
 
         String label = element.getName() != null ? element.getName() : "(unnamed)";
@@ -611,6 +618,8 @@ public class XsdVisualTreeBuilder {
         // Create VisualNode with extracted type detail
         VisualNode node = new VisualNode(label, detail, NodeWrapperType.ELEMENT, element, parent,
                 minOccurs, maxOccurs, onModelChangeCallback);
+        // Before a lazy loader takes over: a card's height must not depend on its loaded children
+        withConstraints(element, node);
 
         // Add to nodeMap for later lookup
         nodeMap.put(element.getId(), node);
@@ -648,6 +657,127 @@ public class XsdVisualTreeBuilder {
 
         buildChildrenInto(element, node, visitedTypes, visitedElements);
         return node;
+    }
+
+    private VisualNode withConstraints(XsdElement element, VisualNode node) {
+        node.setConstraintSource(() -> constraintsOf(element));
+        return node;
+    }
+
+    /**
+     * What a card of this element lists: the identity constraints of its declaration, which for a
+     * reference is the global element, and the assertions of its type.
+     *
+     * @param element the element
+     * @return its rows, in declaration order, own ones before inherited ones
+     */
+    private List<ConstraintRow> constraintsOf(XsdElement element) {
+        XsdElement declaration = element;
+        String origin = null;
+        if (element.getRef() != null && !element.getRef().isEmpty()) {
+            declaration = index.elements().find(resolveName(element.getRef(), element));
+            if (declaration == null) {
+                return List.of();
+            }
+            origin = "from element " + declaration.getName();
+        }
+
+        Map<String, ConstraintRow> rows = new LinkedHashMap<>();
+        for (SchemaConstraints.ConstraintInfo info : SchemaConstraints.collect(declaration)) {
+            if (info.node() instanceof XsdIdentityConstraint) {
+                rows.put(info.node().getId(), ConstraintRow.identity(info, origin));
+            }
+        }
+        addTypeAssertions(declaration, declaration.getType(), origin, rows);
+        for (String test : declaration.getAssertions()) {
+            addAssertion(test, origin, rows);
+        }
+        return List.copyOf(rows.values());
+    }
+
+    /**
+     * What a card of this attribute lists: the assertions of its simple type.
+     *
+     * @param attribute the attribute
+     * @return its rows
+     */
+    private List<ConstraintRow> constraintsOf(XsdAttribute attribute) {
+        Map<String, ConstraintRow> rows = new LinkedHashMap<>();
+        addTypeAssertions(attribute, attribute.getType(), null, rows);
+        return List.copyOf(rows.values());
+    }
+
+    /** Adds the assertions of a declaration's inline type and of the type it names. */
+    private void addTypeAssertions(XsdNode declaration, String typeRef, String origin, Map<String, ConstraintRow> rows) {
+        Set<String> visited = new HashSet<>();
+        for (XsdNode child : declaration.getChildren()) {
+            if (child instanceof XsdComplexType || child instanceof XsdSimpleType) {
+                addAssertionsOfType(child, origin, visited, rows);
+            }
+        }
+        addAssertionsOfNamedType(typeRef, declaration, visited, rows);
+    }
+
+    private void addAssertionsOfNamedType(String typeRef, XsdNode owner, Set<String> visited,
+                                          Map<String, ConstraintRow> rows) {
+        if (typeRef == null || typeRef.isEmpty()) {
+            return;
+        }
+        QName name = resolveName(typeRef, owner);
+        TypeKind kind = classify(name);
+        XsdNode type = kind == TypeKind.COMPLEX ? indexFor(owner, name).types().find(name)
+                : kind == TypeKind.SIMPLE ? indexFor(owner, name).simpleTypes().find(name) : null;
+        if (type != null) {
+            addAssertionsOfType(type, "from type " + type.getName(), visited, rows);
+        }
+    }
+
+    /** Adds what a type asserts itself, then what it inherits: assertions hold along the whole chain. */
+    private void addAssertionsOfType(XsdNode type, String origin, Set<String> visited, Map<String, ConstraintRow> rows) {
+        if (!visited.add(type.getId())) {
+            return; // a circular base chain
+        }
+        for (XsdNode child : type.getChildren()) {
+            if (child instanceof XsdAssert assertion) {
+                addAssertion(assertion.getTest(), origin, rows);
+            } else if (child instanceof XsdSimpleContent || child instanceof XsdComplexContent) {
+                child.getChildren().forEach(derivation -> addDerivationAssertions(derivation, origin, visited, rows));
+            } else if (child instanceof XsdRestriction) {
+                addDerivationAssertions(child, origin, visited, rows);
+            }
+        }
+    }
+
+    private void addDerivationAssertions(XsdNode derivation, String origin, Set<String> visited,
+                                         Map<String, ConstraintRow> rows) {
+        String base = null;
+        if (derivation instanceof XsdExtension extension) {
+            base = extension.getBase();
+        } else if (derivation instanceof XsdRestriction restriction) {
+            base = restriction.getBase();
+            for (XsdFacet facet : restriction.getFacets()) {
+                if (facet.getFacetType() == XsdFacetType.ASSERTION) {
+                    addAssertion(facet.getValue(), origin, rows);
+                }
+            }
+        } else {
+            return;
+        }
+        for (XsdNode child : derivation.getChildren()) {
+            if (child instanceof XsdAssert assertion) {
+                addAssertion(assertion.getTest(), origin, rows);
+            } else if (child instanceof XsdSimpleType inlineBase) {
+                addAssertionsOfType(inlineBase, origin, visited, rows);
+            }
+        }
+        addAssertionsOfNamedType(base, derivation, visited, rows);
+    }
+
+    /** An assertion may be known twice: the model copies those of an inline simple type to the element. */
+    private static void addAssertion(String test, String origin, Map<String, ConstraintRow> rows) {
+        if (test != null && !test.isBlank()) {
+            rows.putIfAbsent("assert:" + ConstraintRow.normalize(test), ConstraintRow.assertion(test, origin));
+        }
     }
 
     /**
@@ -1061,6 +1191,7 @@ public class XsdVisualTreeBuilder {
         // Detail string will be built by VisualNode.buildDetailString() from model properties
         VisualNode node = new VisualNode(label, "", NodeWrapperType.ATTRIBUTE, attribute, parent, 1, 1, onModelChangeCallback);
         cardCount++;
+        node.setConstraintSource(() -> constraintsOf(attribute));
 
         // Add to nodeMap for later lookup
         nodeMap.put(attribute.getId(), node);

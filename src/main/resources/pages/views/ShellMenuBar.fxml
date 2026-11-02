@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import org.fxt.freexmltoolkit.controls.shell.ShellMenuItem?>
@@ -84,6 +85,9 @@
                 <ShellMenuItem id="menu-view-favorites" text="Favorites Panel" iconLiteral="bi-star"
                                color="NEUTRAL" accelerator="Shortcut+Shift+D" onAction="#onToggleFavorites"/>
                 <Menu fx:id="activitiesMenu" id="menu-view-activities" text="Activities"/>
+                <SeparatorMenuItem/>
+                <CheckMenuItem fx:id="showConstraintsItem" id="menu-view-show-constraints"
+                               text="Show Constraints in Diagram"/>
                 <SeparatorMenuItem/>
                 <ShellMenuItem id="menu-view-theme" text="Toggle Light / Dark Theme" iconLiteral="bi-moon-stars"
                                color="NEUTRAL" onAction="#onToggleTheme"/>

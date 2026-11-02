@@ -78,6 +78,14 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     // backing texture small (a few MB) regardless of schema size, avoiding GPU VRAM exhaustion.
     private final Pane viewportSpacer;
     private final XsdNodeRenderer renderer;
+
+    /** Details of the constraint rows under the pointer; on the canvas only while it is over them. */
+    private final Tooltip constraintTooltip = new Tooltip();
+    private boolean constraintTooltipInstalled;
+
+    /** A strong reference: the option outlives this view and holds its listener only weakly. */
+    private final javafx.beans.value.ChangeListener<Boolean> showConstraintsListener =
+            (obs, old, show) -> applyShowConstraints(show);
     private final SelectionModel selectionModel;
     private XsdEditorContext editorContext;
     private XsdContextMenuFactory contextMenuFactory;
@@ -182,6 +190,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         // so seeding from the schema itself covers nested imports too.
         this.importedSchemas = new HashMap<>(xsdSchema.getImportedSchemas());
         this.renderer = new XsdNodeRenderer();
+        renderer.setShowConstraints(XsdDiagramOptions.showConstraintsProperty().get());
+        XsdDiagramOptions.showConstraintsProperty().addListener(
+                new javafx.beans.value.WeakChangeListener<>(showConstraintsListener));
         this.selectionModel = context.getSelectionModel();
 
         // Create a viewport-sized canvas floating inside a virtual-sized spacer (see field doc).
@@ -822,6 +833,33 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         incrementalUpdateDebounce.playFromStart();
     }
 
+    /** The cards keep their rows, so only the layout changes: expanded cards stay as they are. */
+    private void applyShowConstraints(boolean show) {
+        renderer.setShowConstraints(show);
+        showConstraintTooltip(null);
+        if (rootNode != null) {
+            redraw();
+        }
+    }
+
+    private void showConstraintTooltip(String text) {
+        if (text == null) {
+            if (constraintTooltipInstalled) {
+                Tooltip.uninstall(canvas, constraintTooltip);
+                constraintTooltipInstalled = false;
+            }
+            return;
+        }
+        constraintTooltip.setText(text);
+        if (!constraintTooltipInstalled) {
+            constraintTooltip.setShowDelay(Duration.millis(300));
+            constraintTooltip.setWrapText(true);
+            constraintTooltip.setMaxWidth(520);
+            Tooltip.install(canvas, constraintTooltip);
+            constraintTooltipInstalled = true;
+        }
+    }
+
     private void redraw() {
         if (rootNode == null) {
             logger.warn("redraw() aborted: rootNode is null");
@@ -1293,6 +1331,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         double y = (event.getY() + viewportY) / zoomLevel;
 
         VisualNode nodeAtPosition = findNodeAt(rootNode, x, y);
+        showConstraintTooltip(renderer.constraintTooltipAt(nodeAtPosition, y));
 
         // Update hover state
         if (nodeAtPosition != hoveredNode) {

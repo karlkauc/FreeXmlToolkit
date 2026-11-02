@@ -57,6 +57,20 @@ class ShellMenuBarTest {
     }
 
     @Test
+    void theConstraintsItemFollowsAndChangesTheDiagramOption() {
+        var option = org.fxt.freexmltoolkit.controls.v2.view.XsdDiagramOptions.showConstraintsProperty();
+        var item = assertInstanceOf(javafx.scene.control.CheckMenuItem.class, item("menu-view-show-constraints"));
+        boolean before = option.get();
+        try {
+            assertEquals(before, item.isSelected());
+            item.setSelected(!before);
+            assertEquals(!before, option.get());
+        } finally {
+            option.set(before);
+        }
+    }
+
+    @Test
     void documentItemsAreDisabledWithoutADocumentAndEnabledWithOne() {
         String[] documentItems = {"menu-file-save", "menu-file-save-as", "menu-edit-undo", "menu-edit-find",
                 "menu-edit-format", "menu-tools-validate", "menu-file-close-tab"};

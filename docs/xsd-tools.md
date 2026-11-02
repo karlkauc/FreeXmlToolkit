@@ -44,6 +44,7 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Visual Tree**: See your XSD as an interactive, hierarchical tree
 - **Easy Navigation**: Click on elements to explore their structure
 - **Edit Documentation**: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)
+- **Constraints on the Cards**: Element and attribute cards list their `key`, `keyref` and `unique` constraints and the assertions of their type, including inherited ones - see [Constraints on the Cards](#constraints-on-the-cards)
 - **Type Picker**: Choose an element's or attribute's type from a list of the schema's own types and all XSD built-in datatypes, each explained in a side pane
 - **Add Examples**: Include example values for elements
 - **Drag and Drop**: Move or copy elements, compositors, group references and attributes by dragging their cards - see [Moving and Copying by Drag and Drop](#drag-and-drop-in-the-diagram)
@@ -62,6 +63,28 @@ The Graphic View lets you explore and edit your schemas visually.
 > **Editing properties from any view:** The same Properties pane is
 > available in the **Text** view as well as the Graphic and Tree views. See
 > [Editing Schema Properties from Any View](#editing-schema-properties-from-any-view) below.
+
+### Constraints on the Cards
+
+A card lists what limits its node below the type lines, one row per constraint:
+
+| Label    | Meaning                          | Row shows                  |
+|----------|----------------------------------|----------------------------|
+| `KEY`    | `xs:key`                         | Name and fields            |
+| `UNIQ`   | `xs:unique`                      | Name and fields            |
+| `REF`    | `xs:keyref`                      | Name and the key it refers to |
+| `ASSERT` | `xs:assert` or `xs:assertion`    | The test, shortened        |
+
+An element reference shows the constraints of the global element. Assertions come from the
+card's type and its base types. A card shows up to four rows, followed by **+N more**.
+
+Hover over the rows to see every constraint in full: selector, fields, the complete test, and
+the type it was declared in. To add or delete a constraint, use the **CONSTRAINTS** section of
+the Properties pane; it lists what is declared directly on the selected node, so an assertion
+inherited from a type is changed in that type.
+
+To hide the rows, turn off **View → Show Constraints in Diagram**. The setting applies to all
+open diagrams and is remembered.
 
 ### Tips
 
@@ -907,7 +930,7 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 | **Compositors** | Sequence, Choice, All                                                    |
 | **Constraints** | Facets: patterns, enumerations, length limits, value ranges, digits, whiteSpace, assertion / explicitTimezone (XSD 1.1) |
 | **References**  | Import, Include, Redefine and Override (resolved, also transitively). Redefined and overridden definitions replace the originals in the Graphic view, the Type Library, statistics, quality checks and the Inspector of an XML document. |
-| **XSD 1.1**     | Assertions (`xs:assert`) are loaded, shown and analysed; `xs:alternative` and `xs:openContent` are honored by the XSD 1.1 validator but not shown in the graphical views |
+| **XSD 1.1**     | Assertions (`xs:assert`, `xs:assertion`) are loaded, shown and analysed; `xs:alternative` and `xs:openContent` are honored by the XSD 1.1 validator but not shown in the graphical views |
 | **Identity**    | Key, KeyRef, Unique                                                      |
 
 ---

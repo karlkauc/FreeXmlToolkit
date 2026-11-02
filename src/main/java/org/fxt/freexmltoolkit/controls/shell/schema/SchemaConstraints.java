@@ -17,6 +17,9 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
  */
 public final class SchemaConstraints {
 
+    /** Separates the parts of {@link ConstraintInfo#detail()}. */
+    public static final String DETAIL_SEPARATOR = "  ·  ";
+
     private SchemaConstraints() {
     }
 
@@ -65,7 +68,7 @@ public final class SchemaConstraints {
 
     private static void append(StringBuilder sb, String part) {
         if (sb.length() > 0) {
-            sb.append("  ·  ");
+            sb.append(DETAIL_SEPARATOR);
         }
         sb.append(part);
     }

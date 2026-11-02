@@ -10,6 +10,7 @@ import java.util.Set;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -30,6 +31,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
 import org.fxt.freexmltoolkit.controls.shell.editor.UpdateActionRunner;
 import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.v2.view.XsdDiagramOptions;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.ApplicationLauncherLocator;
 import org.fxt.freexmltoolkit.service.PropertiesService;
@@ -86,6 +88,7 @@ public final class ShellMenuBar extends MenuBar {
     @FXML private ShellMenuItem settingsItem;
     @FXML private ShellMenuItem exitItem;
     @FXML private ShellMenuItem replaceItem;
+    @FXML private CheckMenuItem showConstraintsItem;
     @FXML private ShellMenuItem fullScreenItem;
     @FXML private ShellMenuItem reportProblemItem;
     @FXML private SeparatorMenuItem fundsSeparator;
@@ -106,6 +109,8 @@ public final class ShellMenuBar extends MenuBar {
 
         openRecentMenu.setGraphic(ShellMenuItem.icon("bi-clock-history", ActionColor.NAVIGATE));
         activitiesMenu.setGraphic(ShellMenuItem.icon("bi-grid", ActionColor.NAVIGATE));
+        showConstraintsItem.setGraphic(ShellMenuItem.icon("bi-shield-check", ActionColor.NEUTRAL));
+        showConstraintsItem.selectedProperty().bindBidirectional(XsdDiagramOptions.showConstraintsProperty());
         buildViewModeItems();
         buildActivityItems();
         rebuildRecentFiles();

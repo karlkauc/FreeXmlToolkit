@@ -25,6 +25,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdField;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdImport;
@@ -807,9 +808,12 @@ public class XsdSerializer {
         String facetName = facet.getFacetType().getXmlName();
         sb.append(indentation).append("<xs:").append(facetName);
 
+        // xs:assertion holds an XPath in test, every other facet a value
+        boolean assertion = facet.getFacetType() == XsdFacetType.ASSERTION;
+
         // Add value attribute - always output, even for empty values (valid XSD)
         if (facet.getValue() != null) {
-            sb.append(" value=\"").append(escapeXml(facet.getValue())).append("\"");
+            sb.append(assertion ? " test=\"" : " value=\"").append(escapeXml(facet.getValue())).append("\"");
         }
 
         // Add fixed attribute if true
@@ -817,7 +821,15 @@ public class XsdSerializer {
             sb.append(" fixed=\"true\"");
         }
 
-        sb.append("/>\n");
+        boolean hasAnnotation = !facet.getDocumentations().isEmpty() || facet.getDocumentation() != null
+                || facet.getAppinfo() != null;
+        if (assertion && hasAnnotation) {
+            sb.append(">\n");
+            serializeAnnotation(facet, sb, indentation + indentString, 0);
+            sb.append(indentation).append("</xs:").append(facetName).append(">\n");
+        } else {
+            sb.append("/>\n");
+        }
     }
 
     /**
