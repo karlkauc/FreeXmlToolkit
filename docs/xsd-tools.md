@@ -98,6 +98,8 @@ The Graphic View lets you explore and edit your schemas visually.
   are not failures. **Dismiss** hides the bar until the set of failures changes. A schema you have
   not saved yet has no file location, so it cannot resolve its includes: save it first.
 
+    ![Warning bar, a group card and an unresolved type in the Graphic view](img/unified-shell-schema-missing-include.png)
+
 For what the diagram leaves out, see [Supported XSD Features](#supported-xsd-features).
 
 ### Moving and Copying by Drag and Drop {#drag-and-drop-in-the-diagram}

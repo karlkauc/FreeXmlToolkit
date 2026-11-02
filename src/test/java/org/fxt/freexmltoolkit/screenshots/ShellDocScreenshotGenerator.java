@@ -424,6 +424,42 @@ class ShellDocScreenshotGenerator {
             settle();
         }
 
+        // --- A schema with a file that cannot be loaded: warning bar, placeholder and group cards ---
+        var missingInclude = java.nio.file.Files.createTempDirectory("fxt-shot").resolve("order.xsd");
+        java.nio.file.Files.writeString(missingInclude, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:include schemaLocation="common-types.xsd"/>
+                  <xs:element name="order">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:group ref="OrderHeader"/>
+                        <xs:element name="customer" type="Customer"/>
+                        <xs:element name="note" type="xs:string" minOccurs="0"/>
+                      </xs:sequence>
+                      <xs:attributeGroup ref="AuditInfo"/>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:group name="OrderHeader">
+                    <xs:sequence>
+                      <xs:element name="number" type="xs:string"/>
+                      <xs:element name="date" type="xs:date"/>
+                    </xs:sequence>
+                  </xs:group>
+                  <xs:attributeGroup name="AuditInfo">
+                    <xs:attribute name="createdBy" type="xs:string"/>
+                  </xs:attributeGroup>
+                </xs:schema>
+                """);
+        onFx(() -> host.openFile(missingInclude));
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("OrderHeader")).orElse(false));
+        onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> host.getActiveSchema().isPresent());
+        settle(1500);
+        shot("unified-shell-schema-missing-include");
+        onFx(host::closeActiveTab);
+        settle();
+
         // --- XML document in the Grid (XMLSpy-style) view ---
         if (xml.exists()) {
             onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
