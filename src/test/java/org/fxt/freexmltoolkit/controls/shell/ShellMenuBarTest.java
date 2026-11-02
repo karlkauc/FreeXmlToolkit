@@ -93,6 +93,19 @@ class ShellMenuBarTest {
     }
 
     @Test
+    void xsdGenerationIsReachableWithoutTheToolbarsSchemaMenu() {
+        assertTrue(item("menu-tools-generate-xsd").isDisable(), "there is no XML document to read yet");
+        assertFalse(item("menu-tools-generate-xsd-batch").isDisable(), "the batch asks for its files itself");
+
+        onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XML));
+        assertFalse(item("menu-tools-generate-xsd").isDisable());
+
+        onFx(() -> shell.getEditorHost().newDocument(EditorFileType.XSD));
+        assertTrue(item("menu-tools-generate-xsd").isDisable(), "a schema is no input for the generator");
+        assertFalse(item("menu-tools-generate-xsd-batch").isDisable());
+    }
+
+    @Test
     void panelItemsToggleThePanels() {
         boolean inspector = shell.isInspectorOpen();
         fire("menu-view-inspector");

@@ -215,6 +215,8 @@ public final class ShellMenuBar extends MenuBar {
                 item.setDisable(!hasDocument);
             } else if (TYPE_ITEMS.containsKey(id)) {
                 item.setDisable(!EditorActions.applicableFor(type, TYPE_ITEMS.get(id)));
+            } else if ("menu-tools-generate-xsd".equals(id)) {
+                item.setDisable(type != EditorFileType.XML);
             } else if ("menu-tools-add-favorite".equals(id)) {
                 item.setDisable(document.map(OpenDocument::getPath).isEmpty());
             } else if ("menu-tools-toggle-breakpoint".equals(id)) {
@@ -363,6 +365,8 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onGenerateDocs() { run("generate_docs", shell::onGenerateDocs); }
     @FXML public void onTypeEditor() { run("type_editor", shell::onTypeEditor); }
     @FXML public void onGenerateSample() { run("generate_sample", shell::onGenerateSample); }
+    @FXML public void onGenerateXsdFromXml() { run("generate_xsd", shell::onGenerateXsdFromXml); }
+    @FXML public void onGenerateXsdBatch() { run("generate_xsd_batch", shell::onGenerateXsdBatch); }
     @FXML public void onCompare() { run("compare", shell::onCompare); }
     @FXML public void onSpreadsheet() { run("spreadsheet", shell::onSpreadsheet); }
     @FXML public void onAddToFavorites() { run("add_favorite", shell::addActiveDocumentToFavorites); }

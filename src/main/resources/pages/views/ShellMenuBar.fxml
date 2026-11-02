@@ -122,6 +122,10 @@
                                iconLiteral="bi-file-earmark-richtext" color="CREATE" onAction="#onGenerateDocs"/>
                 <ShellMenuItem id="menu-tools-generate-sample" text="Generate Sample XML…"
                                iconLiteral="bi-file-earmark-play" color="CREATE" onAction="#onGenerateSample"/>
+                <ShellMenuItem id="menu-tools-generate-xsd" text="Generate XSD from XML"
+                               iconLiteral="bi-magic" color="CREATE" onAction="#onGenerateXsdFromXml"/>
+                <ShellMenuItem id="menu-tools-generate-xsd-batch" text="Generate XSD from XML Files…"
+                               iconLiteral="bi-files" color="CREATE" onAction="#onGenerateXsdBatch"/>
                 <ShellMenuItem id="menu-tools-type-editor" text="Type Editor" iconLiteral="bi-diagram-3"
                                color="NAVIGATE" onAction="#onTypeEditor"/>
                 <SeparatorMenuItem/>
