@@ -296,7 +296,7 @@ top-level declarations so you can browse, find, and open every type in the schem
 | **Open Type Editor**  | Double-click a type to open it in its own [Type Editor](#3-type-editor) tab |
 | **Find Usage**        | Right-click a type to find the places where it is used              |
 | **New type**          | The **+** button in the COMPLEX TYPES / SIMPLE TYPES header (or right-click → **New Complex Type…** / **New Simple Type…**) declares a new top-level type - see [Creating a New Type](#creating-a-new-type) |
-| **Schema tools**      | Labelled rows in the **TOOLS** section below the type lists (collapsed by default): Generate Sample XML…, Sample XML with Options…, Flatten Schema…, Schema Analysis, and Generate Documentation… |
+| **Schema tools**      | Labelled rows in the **TOOLS** section at the top of the panel, above the filter field (open by default): Generate Sample XML…, Sample XML with Options…, Flatten Schema…, Schema Analysis, and Generate Documentation… |
 | **Generate XSD from XML** | Not in the Schema panel: **Generate XSD from XML** and **Generate XSD from XML Files…** are in the editor toolbar's **Schema ▾** split menu |
 
 ### How to Use
@@ -482,7 +482,7 @@ schema XPath and the XSD source of the selected node.
 
 ## 5. Schema Analysis
 
-The **Schema Analysis** row in the **Schema** panel's **TOOLS** section (below the type lists; expand it if collapsed) analyzes the active XSD
+The **Schema Analysis** row in the **Schema** panel's **TOOLS** section (at the top of the panel; expand it if collapsed) analyzes the active XSD
 and opens the report as a tool tab in the editor area. The analysis runs in the background on
 the current editor text (unsaved changes included); imports and includes are resolved relative
 to the file. The header shows the document, the quality score, the number of issues, the
@@ -805,7 +805,7 @@ For simple use cases, you can generate sample XML in seconds:
 
 1. Load your XSD file
 2. Choose **Generate Sample XML…** in the toolbar's **Schema ▾** menu or under **Tools**
-   (or in the **Schema** panel's **TOOLS** section below the type lists). If the schema has
+   (or in the **Schema** panel's **TOOLS** section at the top of the panel). If the schema has
    unsaved changes, choose **Save and Continue** or **Use Saved Version** when asked
 3. Choose your options:
     - **Only mandatory elements**: Include only required elements

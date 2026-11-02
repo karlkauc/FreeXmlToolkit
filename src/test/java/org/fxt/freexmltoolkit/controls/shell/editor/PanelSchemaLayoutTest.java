@@ -23,7 +23,8 @@ import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * The shared panel schema of UX plan phase 2: content first, then the primary action,
- * then results, and the secondary tools collapsed at the bottom.
+ * then results, and the secondary tools collapsed at the bottom. The Schema panel is the
+ * exception: its tools come first and start open.
  */
 @ExtendWith(ApplicationExtension.class)
 class PanelSchemaLayoutTest {
@@ -65,14 +66,14 @@ class PanelSchemaLayoutTest {
     }
 
     @Test
-    void schemaPanelListsTypesFirstAndKeepsXsdGenerationOutOfThePanel() {
+    void schemaPanelShowsItsToolsFirstAndKeepsXsdGenerationOutOfThePanel() {
         WaitForAsyncUtils.waitForFxEvents();
         var tools = (SidePanelSection) schema.lookup("#schema-tools-section");
         assertNotNull(tools);
-        assertTrue(tools.isCollapsed(), "the schema TOOLS start collapsed");
+        assertFalse(tools.isCollapsed(), "the schema TOOLS start open");
         Node filter = schema.lookup("#schema-filter");
-        assertTrue(filter.localToScene(0, 0).getY() < tools.localToScene(0, 0).getY(),
-                "the type filter and lists come before the tools");
+        assertTrue(tools.localToScene(0, 0).getY() < filter.localToScene(0, 0).getY(),
+                "the tools come before the type filter and lists");
         assertNull(schema.lookup("#schema-tool-generate"), "Generate XSD from XML moved to the Schema ▾ menu");
     }
 

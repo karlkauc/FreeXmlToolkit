@@ -1312,7 +1312,7 @@
         "4. Secondary options and tools, in collapsed SidePanelSections (TOOLS, OPTIONS & TOOLS, REPORTS & CHECKS)."
       ],
       "rules": [
-        "Tools never sit above the content the panel is opened for.",
+        "Tools never sit above the content the panel is opened for. Exception: the Schema panel keeps its TOOLS on top, open by default.",
         "Options and tools live in one place: no ⋮ menu next to a TOOLS section (a ⋮ menu may only hold toggles when the panel has no tools section).",
         "Source slots use SourceRow: two lines, the name over the full width; an empty slot shows emptyText ('No XSD bound — choose or drop a file') and is clickable.",
         "Long lists that share the panel with other sections get a capped height and scroll (e.g. OPEN EDITORS).",

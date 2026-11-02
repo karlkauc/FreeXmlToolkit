@@ -25,6 +25,37 @@
             <content>
                 <VBox>
                     <children>
+                        <!-- Tools for the open schema: at the top and open by default, by the owner's choice
+                             (differs from the panel schema in STYLE_GUIDE.jsonc).
+                             Generating an XSD from XML lives in the toolbar's Schema ▾ and the Tools menu. -->
+                        <SidePanelSection fx:id="toolsSection" id="schema-tools-section" title="TOOLS">
+                            <children>
+                                <PanelActionList fx:id="tools" id="schema-tools">
+                                    <children>
+                                        <PanelActionButton id="schema-tool-sample" iconLiteral="bi-filetype-xml"
+                                                           text="Generate Sample XML…" color="CREATE"
+                                                           onAction="#generateSampleXmlForActive"/>
+                                        <PanelActionButton id="schema-tool-sample-advanced" iconLiteral="bi-sliders"
+                                                           text="Sample XML with Options…" color="CREATE"
+                                                           onAction="#generateProfiledSampleForActive"/>
+                                        <PanelActionButton id="schema-tool-flatten" iconLiteral="bi-layers"
+                                                           text="Flatten Schema…" color="TOOL"
+                                                           onAction="#onFlatten"/>
+                                        <PanelActionButton id="schema-tool-analysis" text="Schema Analysis"
+                                                           color="NAVIGATE" onAction="#analyzeActive">
+                                            <iconLiteral>
+                                                <SchemaAnalysisView fx:constant="ICON"/>
+                                            </iconLiteral>
+                                        </PanelActionButton>
+                                        <PanelActionButton id="schema-tool-documentation"
+                                                           iconLiteral="bi-file-earmark-text"
+                                                           text="Generate Documentation…" color="CREATE"
+                                                           onAction="#generateDocumentationForActive"/>
+                                    </children>
+                                </PanelActionList>
+                            </children>
+                        </SidePanelSection>
+
                         <VBox styleClass="fxt-tp-section-body">
                             <children>
                                 <TextField fx:id="filter" id="schema-filter" promptText="Filter types…"/>
@@ -60,35 +91,6 @@
                                         <Label text="None"/>
                                     </placeholder>
                                 </ListView>
-                            </children>
-                        </SidePanelSection>
-                        <!-- Tools for the open schema: below the type lists, collapsed by default (UX plan 2.3).
-                             Generating an XSD from XML lives in the toolbar's Schema ▾ menu. -->
-                        <SidePanelSection fx:id="toolsSection" id="schema-tools-section" title="TOOLS" collapsed="true">
-                            <children>
-                                <PanelActionList fx:id="tools" id="schema-tools">
-                                    <children>
-                                        <PanelActionButton id="schema-tool-sample" iconLiteral="bi-filetype-xml"
-                                                           text="Generate Sample XML…" color="CREATE"
-                                                           onAction="#generateSampleXmlForActive"/>
-                                        <PanelActionButton id="schema-tool-sample-advanced" iconLiteral="bi-sliders"
-                                                           text="Sample XML with Options…" color="CREATE"
-                                                           onAction="#generateProfiledSampleForActive"/>
-                                        <PanelActionButton id="schema-tool-flatten" iconLiteral="bi-layers"
-                                                           text="Flatten Schema…" color="TOOL"
-                                                           onAction="#onFlatten"/>
-                                        <PanelActionButton id="schema-tool-analysis" text="Schema Analysis"
-                                                           color="NAVIGATE" onAction="#analyzeActive">
-                                            <iconLiteral>
-                                                <SchemaAnalysisView fx:constant="ICON"/>
-                                            </iconLiteral>
-                                        </PanelActionButton>
-                                        <PanelActionButton id="schema-tool-documentation"
-                                                           iconLiteral="bi-file-earmark-text"
-                                                           text="Generate Documentation…" color="CREATE"
-                                                           onAction="#generateDocumentationForActive"/>
-                                    </children>
-                                </PanelActionList>
                             </children>
                         </SidePanelSection>
                     </children>
