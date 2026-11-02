@@ -2351,20 +2351,30 @@ public class XsdNodeFactory {
      */
     private void registerImportedSchema(XsdSchema owningSchema, String namespace, String schemaLocation,
                                         XsdSchema importedSchema, ImportResolutionContext context) {
-        String importKey = namespace != null ? namespace : schemaLocation;
+        String importKey = importKey(owningSchema, namespace, schemaLocation, importedSchema);
         importedSchemas.put(importKey, importedSchema);
         owningSchema.addImportedSchema(importKey, importedSchema);
 
         XsdSchema root = context.rootSchema();
         if (root != owningSchema) {
-            XsdSchema alreadyRegistered = root.getImportedSchemas().get(importKey);
-            if (alreadyRegistered == null) {
-                root.addImportedSchema(importKey, importedSchema);
-            } else if (alreadyRegistered != importedSchema) {
-                logger.warn("Import key '{}' already registered on the root schema from a different file; "
-                        + "keeping the first one", importKey);
+            root.addImportedSchema(importKey(root, namespace, schemaLocation, importedSchema), importedSchema);
+        }
+    }
+
+    /**
+     * Picks the key of an imported schema. The namespace goes to the first file; a namespace can be
+     * spread over several files, and a further one gets a key of its own so that all of them stay
+     * in {@link XsdSchema#getImportedSchemas()}. A file already registered keeps its key.
+     */
+    private static String importKey(XsdSchema target, String namespace, String schemaLocation,
+                                    XsdSchema importedSchema) {
+        for (var entry : target.getImportedSchemas().entrySet()) {
+            if (entry.getValue() == importedSchema) {
+                return entry.getKey();
             }
         }
+        String key = namespace != null ? namespace : schemaLocation;
+        return target.getImportedSchemas().containsKey(key) ? key + "#" + schemaLocation : key;
     }
 
     /**
