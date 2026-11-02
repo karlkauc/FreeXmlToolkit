@@ -4384,14 +4384,14 @@ schema files are never modified. See
 <h3 id="the-schema-panel">The Schema Panel<a class="headerlink" href="#the-schema-panel" title="Permanent link">&para;</a></h3>
 <p>The <strong>Schema</strong> activity's side panel lists the active schema's top-level declarations,
 grouped into <strong>GLOBAL ELEMENTS</strong>, <strong>COMPLEX TYPES</strong>, and <strong>SIMPLE TYPES</strong> (collapsible
-sections), with a <strong>filter field</strong> on top. Click a declaration to reveal it in the Tree
+sections), with a <strong>filter field</strong> above them. Click a declaration to reveal it in the Tree
 view; double-click a type to open it in its dedicated <strong>Type Editor</strong> tab; right-click for
 <strong>Reveal in Tree / Open Type Editor / Find Usage</strong>. The <strong>+</strong> button in the COMPLEX TYPES and
 SIMPLE TYPES headers declares a new type and opens it in its Type Editor
 (see <a href="../xsd-tools/#creating-a-new-type">Creating a New Type</a>). The schema tools (Generate Sample XML…, Sample XML with Options…, Flatten Schema…,
-Schema Analysis, Generate Documentation…) are <strong>labelled rows in the TOOLS section below
-the type lists</strong> - each row shows an icon and the tool's name, so nothing hides behind a
-tooltip. TOOLS starts collapsed; click its header to expand it.</p>
+Schema Analysis, Generate Documentation…) are <strong>labelled rows in the TOOLS section at the top
+of the panel</strong> - each row shows an icon and the tool's name, so nothing hides behind a
+tooltip. TOOLS starts open; click its header to collapse it.</p>
 <p><strong>Generate XSD from XML</strong> (infer a schema from the active XML document) and <strong>Generate XSD
 from XML Files…</strong> (infer one schema from several XML files) are not in the Schema panel -
 they are in the editor toolbar's <strong>Schema ▾</strong> split menu.</p>
@@ -4463,8 +4463,8 @@ The sections appear from top to bottom in this order:</p>
   Only XML-family and JSON files are shown. While no folder is open, the section shows a
   short hint (<em>"No folder open. Open a folder to browse its XML, XSD and stylesheet files
   here."</em>) and an <strong>Open folder…</strong> button.</li>
-<li><strong>TOOLS</strong> - a collapsible section below the files with the <strong>Open file…</strong> and
-  <strong>Clear recent</strong> rows. It is <strong>collapsed by default</strong>; whether you leave it open or closed
+<li><strong>TOOLS</strong> - a collapsible section above the files with the <strong>Open file…</strong> and
+  <strong>Clear recent</strong> rows. It is <strong>open by default</strong>; whether you leave it open or closed
   is remembered. Transforming and Schematron-validating the selected files is done from the
   workspace tree's <a href="#explorer-context-menu">context menu</a>.</li>
 <li><strong>RECENT</strong> - at the bottom, the recently opened files; click one to reopen it (drag the

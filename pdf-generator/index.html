@@ -2768,7 +2768,7 @@
 <hr />
 <h2 id="the-pdf-fop-panel">The PDF / FOP Panel<a class="headerlink" href="#the-pdf-fop-panel" title="Permanent link">&para;</a></h2>
 <p>In the <a href="../unified-shell/">Unified Shell</a>, open the <strong>PDF / FOP</strong> activity from the activity
-bar. The panel is organized into three sections plus the primary action:</p>
+bar. The panel is organized into these sections plus the primary action:</p>
 <table>
 <thead>
 <tr>
@@ -2777,6 +2777,10 @@ bar. The panel is organized into three sections plus the primary action:</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><strong>TOOLS</strong></td>
+<td><strong>Debug stylesheet…</strong> runs the XSL-FO stylesheet in the <a href="../debugger/#interactive-live-debugger">XSLT debugger</a>; <strong>Render PDF from FO…</strong> renders the FO of the latest run (e.g. of a debug run) to a PDF</td>
+</tr>
 <tr>
 <td><strong>INPUT</strong></td>
 <td>The <strong>XML</strong> (follows the active editor; <em>Change</em> fixes it to a file) and the <strong>XSL-FO stylesheet</strong>. Each slot shows the file name on its own line (full path as tooltip); an empty slot shows a hint such as <em>"No stylesheet — choose or drop a file"</em> and works like <em>Change</em> when clicked</td>
@@ -2796,10 +2800,6 @@ bar. The panel is organized into three sections plus the primary action:</p>
 <tr>
 <td><strong>RESULT</strong></td>
 <td><strong>Preview PDF</strong>, <strong>Open PDF</strong>, <strong>Show intermediate FO</strong> (the XSL-FO the stylesheet produced, as an editor tab) and <strong>Messages &amp; events (n)</strong> (the stylesheet's <code>xsl:message</code> output and every event Apache FOP raised, in the OUTPUT panel)</td>
-</tr>
-<tr>
-<td><strong>TOOLS</strong></td>
-<td><strong>Debug stylesheet…</strong> runs the XSL-FO stylesheet in the <a href="../debugger/#interactive-live-debugger">XSLT debugger</a>; <strong>Render PDF from FO…</strong> renders the FO of the latest run (e.g. of a debug run) to a PDF</td>
 </tr>
 </tbody>
 </table>
