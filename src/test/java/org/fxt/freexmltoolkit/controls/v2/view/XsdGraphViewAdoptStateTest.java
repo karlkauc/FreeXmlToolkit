@@ -62,13 +62,15 @@ class XsdGraphViewAdoptStateTest {
         XsdGraphView before = view();
         XsdGraphView after = view();
         show(before);
+        WaitForAsyncUtils.waitForAsyncFx(10_000, () -> before.setZoom(1.5));
+        WaitForAsyncUtils.waitForFxEvents(); // the pane rescales its position to the larger content
         WaitForAsyncUtils.waitForAsyncFx(10_000, () -> {
-            before.setZoom(1.5);
+            before.applyCss();
+            before.layout();
             before.scrollPaneForTest().setVvalue(0.75);
             before.scrollPaneForTest().setHvalue(0.25);
+            after.adoptViewState(before);
         });
-
-        WaitForAsyncUtils.waitForAsyncFx(10_000, () -> after.adoptViewState(before));
         show(after);
 
         assertEquals(1.5, after.zoomForTest(), 0.001);
