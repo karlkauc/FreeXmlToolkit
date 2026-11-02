@@ -28,6 +28,8 @@ public class XsdNodeRenderer {
     private static final double NODE_HEIGHT = HEADER_HEIGHT + MIN_BODY_HEIGHT;  // 52px minimum
     private static final double COMPOSITOR_SIZE = 28;  // Small square for compositors
     private static final double EXPAND_BUTTON_SIZE = 16;
+    private static final double BADGE_RIGHT_MARGIN = 10;
+    private static final double BADGE_BUTTON_GAP = 4;
     private static final double HORIZONTAL_SPACING = 80; // Increased spacing
     private static final double VERTICAL_SPACING = 40;   // Increased spacing
     private static final double CORNER_RADIUS = 6;  // Updated to 6px for modern look
@@ -298,7 +300,7 @@ public class XsdNodeRenderer {
             double badgeHeight = 18.0;
             double badgePadding = 6.0;
             double badgeWidth = estimateTextWidth(cardinityBadge, Font.font("Consolas", FontWeight.BOLD, 10)) + badgePadding * 2;
-            double badgeX = x + width - badgeWidth - PADDING;
+            double badgeX = badgeX(x, width, badgeWidth, node.hasChildren());
             double badgeY = y + (HEADER_HEIGHT - badgeHeight) / 2;
 
             // Draw badge background (surface-toned with partial transparency)
@@ -315,6 +317,20 @@ public class XsdNodeRenderer {
             gc.setTextBaseline(VPos.CENTER);
             gc.fillText(cardinityBadge, badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
         }
+    }
+
+    /** @return the left edge of a card's expand button, at the right end of the card */
+    static double expandButtonX(double x, double width) {
+        return x + width - EXPAND_BUTTON_SIZE - 8;
+    }
+
+    /**
+     * @return the left edge of a card's cardinality badge: at the right end of the card, or left of
+     *         the expand button, whose room {@code calculateNodeWidth} has already reserved
+     */
+    static double badgeX(double x, double width, double badgeWidth, boolean hasExpandButton) {
+        double right = hasExpandButton ? expandButtonX(x, width) - BADGE_BUTTON_GAP : x + width - BADGE_RIGHT_MARGIN;
+        return right - badgeWidth;
     }
 
     /**
@@ -747,7 +763,7 @@ public class XsdNodeRenderer {
      * Shows different indicators based on whether the node has unloaded children or is loading.
      */
     private void drawExpandButton(GraphicsContext gc, VisualNode node, double x, double y, double nodeWidth, double nodeHeight) {
-        double btnX = x + nodeWidth - EXPAND_BUTTON_SIZE - 8;
+        double btnX = expandButtonX(x, nodeWidth);
         double btnY = y + (nodeHeight - EXPAND_BUTTON_SIZE) / 2;
 
         node.setExpandButtonBounds(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE);
