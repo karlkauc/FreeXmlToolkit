@@ -52,7 +52,8 @@ public final class IncludeSourceInfo {
      * @param importNode     the XsdImport node that brought this node in
      * @return source info indicating imported schema origin
      */
-    public static IncludeSourceInfo forImportedSchema(Path sourceFile, String schemaLocation, XsdImport importNode) {
+    public static IncludeSourceInfo forImportedSchema(Path sourceFile, String schemaLocation,
+                                                      XsdSchemaReference importNode) {
         String importId = importNode != null ? importNode.getId() : null;
         return new IncludeSourceInfo(sourceFile, schemaLocation, importId, false);
     }

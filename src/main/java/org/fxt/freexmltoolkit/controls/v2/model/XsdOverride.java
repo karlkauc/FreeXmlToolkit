@@ -12,9 +12,9 @@ import java.util.List;
  *
  * @since 2.0
  */
-public class XsdOverride extends XsdNode {
+public class XsdOverride extends XsdSchemaReference {
 
-    private String schemaLocation; // URI of the schema to override
+    private XsdSchema referencedSchema; // The file this replaces parts of, kept apart from the overriding schema
 
     /**
      * Creates a new XSD override element with default name.
@@ -31,26 +31,6 @@ public class XsdOverride extends XsdNode {
     public XsdOverride(String schemaLocation) {
         super("override");
         this.schemaLocation = schemaLocation;
-    }
-
-    /**
-     * Gets the schemaLocation attribute.
-     *
-     * @return the schema location URI, or null
-     */
-    public String getSchemaLocation() {
-        return schemaLocation;
-    }
-
-    /**
-     * Sets the schemaLocation attribute.
-     *
-     * @param schemaLocation the URI of the schema to override
-     */
-    public void setSchemaLocation(String schemaLocation) {
-        String oldValue = this.schemaLocation;
-        this.schemaLocation = schemaLocation;
-        pcs.firePropertyChange("schemaLocation", oldValue, schemaLocation);
     }
 
     /**
@@ -129,6 +109,22 @@ public class XsdOverride extends XsdNode {
     }
 
     @Override
+    public XsdSchema getReferencedSchema() {
+        return referencedSchema;
+    }
+
+    @Override
+    public void setReferencedSchema(XsdSchema schema) {
+        this.referencedSchema = schema;
+        this.resolved = schema != null;
+    }
+
+    @Override
+    protected void clearReferencedSchema() {
+        this.referencedSchema = null;
+    }
+
+    @Override
     public XsdNode deepCopy(String suffix) {
         XsdOverride copy = new XsdOverride(this.schemaLocation);
 
@@ -139,6 +135,12 @@ public class XsdOverride extends XsdNode {
 
         // Copy base properties and children (propagate suffix to children)
         copyBasicPropertiesTo(copy, suffix);
+
+        // The target is the same file for the copy, like the imported schema of an XsdImport
+        copy.referencedSchema = this.referencedSchema;
+        copy.resolved = this.resolved;
+        copy.resolvedPath = this.resolvedPath;
+        copy.resolutionError = this.resolutionError;
 
         return copy;
     }

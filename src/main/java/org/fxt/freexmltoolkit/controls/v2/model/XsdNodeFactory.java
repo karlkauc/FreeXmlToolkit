@@ -64,7 +64,7 @@ public class XsdNodeFactory {
      * of the file that declared it (main schema or an xs:include'd file), so relative
      * schemaLocations resolve against the declaring file rather than the root schema.
      */
-    record PendingImport(XsdImport node, Path declaringBaseDir, String declaringBaseUrl) {
+    record PendingImport(XsdSchemaReference node, Path declaringBaseDir, String declaringBaseUrl) {
     }
 
     private final java.util.List<PendingImport> pendingImports = new java.util.ArrayList<>();
@@ -496,10 +496,7 @@ public class XsdNodeFactory {
                 // Always queue the import for resolution — including imports declared inside
                 // xs:include'd files. The declaring file's base directory is remembered so
                 // relative schemaLocations resolve against it, not against the root schema.
-                Path declaringBaseDir = baseDirectory != null
-                        ? baseDirectory
-                        : (currentSchemaFile != null ? currentSchemaFile.getParent() : null);
-                pendingImports.add(new PendingImport(xsdImport, declaringBaseDir, remoteBaseUrl));
+                pendingImports.add(new PendingImport(xsdImport, declaringBaseDir(baseDirectory), remoteBaseUrl));
             } else if (isXsdElement(childElement, "include")) {
                 XsdInclude xsdInclude = parseInclude(childElement);
                 tagNodeWithSourceInfo(xsdInclude);
@@ -521,6 +518,7 @@ public class XsdNodeFactory {
                 // Only add redefine directives as nodes for the main schema
                 if (addSchemaDirectivesAsNodes) {
                     schema.addChild(xsdRedefine);
+                    pendingImports.add(new PendingImport(xsdRedefine, declaringBaseDir(baseDirectory), remoteBaseUrl));
                 }
             } else if (isXsdElement(childElement, "override")) {
                 XsdOverride xsdOverride = parseOverride(childElement);
@@ -528,9 +526,16 @@ public class XsdNodeFactory {
                 // Only add override directives as nodes for the main schema
                 if (addSchemaDirectivesAsNodes) {
                     schema.addChild(xsdOverride);
+                    pendingImports.add(new PendingImport(xsdOverride, declaringBaseDir(baseDirectory), remoteBaseUrl));
                 }
             }
         }
+    }
+
+    /** @return the directory relative locations of the file being parsed resolve against */
+    private Path declaringBaseDir(Path baseDirectory) {
+        return baseDirectory != null ? baseDirectory
+                : currentSchemaFile != null ? currentSchemaFile.getParent() : null;
     }
 
     /**
@@ -2108,8 +2113,8 @@ public class XsdNodeFactory {
             try {
                 loadAndMergeImportedSchema(pending, schema);
             } catch (Exception e) {
-                logger.error("Failed to process import: namespace='{}', schemaLocation='{}', error: {}",
-                        pending.node().getNamespace(), pending.node().getSchemaLocation(), e.getMessage(), e);
+                logger.error("Failed to process schema reference: schemaLocation='{}', error: {}",
+                        pending.node().getSchemaLocation(), e.getMessage(), e);
             }
         }
     }
@@ -2124,9 +2129,9 @@ public class XsdNodeFactory {
      * @throws Exception if loading or parsing fails
      */
     private void loadAndMergeImportedSchema(PendingImport pending, XsdSchema owningSchema) throws Exception {
-        XsdImport xsdImport = pending.node();
+        XsdSchemaReference xsdImport = pending.node();
         String schemaLocation = xsdImport.getSchemaLocation();
-        String namespace = xsdImport.getNamespace();
+        String namespace = xsdImport instanceof XsdImport anImport ? anImport.getNamespace() : null;
         ImportResolutionContext context = importContext;
 
         if (schemaLocation == null || schemaLocation.isEmpty()) {
@@ -2281,8 +2286,8 @@ public class XsdNodeFactory {
             context.registerResolved(canonicalKey, importedSchema);
             registerImportedSchema(owningSchema, namespace, schemaLocation, importedSchema, context);
 
-            // Update XsdImport with resolution info
-            xsdImport.setImportedSchema(importedSchema);
+            // Update the reference with resolution info
+            linkTarget(xsdImport, importedSchema, owningSchema);
             xsdImport.setResolvedPath(resolvedPath);
 
             logger.info("Successfully loaded imported schema with {} children", importedSchema.getChildren().size());
@@ -2322,7 +2327,7 @@ public class XsdNodeFactory {
      * @return true when the import was fully handled (cycle error set, or an already-parsed
      *         schema instance was reused) and no further loading is needed
      */
-    private boolean handleCycleOrDuplicate(XsdImport xsdImport, XsdSchema owningSchema, String canonicalKey,
+    private boolean handleCycleOrDuplicate(XsdSchemaReference xsdImport, XsdSchema owningSchema, String canonicalKey,
                                            Path resolvedPath, String namespace, String schemaLocation,
                                            ImportResolutionContext context) {
         if (context.isOnStack(canonicalKey)) {
@@ -2335,13 +2340,28 @@ public class XsdNodeFactory {
         if (existing != null) {
             logger.debug("Reusing already parsed imported schema for '{}'", canonicalKey);
             registerImportedSchema(owningSchema, namespace, schemaLocation, existing, context);
-            xsdImport.setImportedSchema(existing);
+            linkTarget(xsdImport, existing, owningSchema);
             xsdImport.setResolvedPath(resolvedPath);
             // Intentionally no mergeSchemaComponents here: the first import keeps the
             // source-info attribution of the shared schema instance.
             return true;
         }
         return false;
+    }
+
+    /**
+     * Links a reference to its loaded file. The target of a redefine or override belongs to the
+     * referring schema's namespace, so a file without one takes it (chameleon).
+     */
+    private static void linkTarget(XsdSchemaReference reference, XsdSchema target, XsdSchema owningSchema) {
+        if (reference instanceof XsdImport anImport) {
+            anImport.setImportedSchema(target);
+            return;
+        }
+        if (target.getTargetNamespace() == null) {
+            target.setTargetNamespace(owningSchema.getTargetNamespace());
+        }
+        reference.setReferencedSchema(target);
     }
 
     /**
@@ -2480,11 +2500,11 @@ public class XsdNodeFactory {
      * @param resolvedPath the resolved path of the imported schema file
      */
     private void mergeSchemaComponents(XsdSchema importedSchema, XsdSchema _mainSchema,
-                                        XsdImport xsdImport, Path resolvedPath) {
+                                        XsdSchemaReference xsdImport, Path resolvedPath) {
         int taggedElements = 0;
         int taggedTypes = 0;
         int taggedGroups = 0;
-        String namespace = xsdImport.getNamespace();
+        String namespace = xsdImport instanceof XsdImport anImport ? anImport.getNamespace() : null;
         String schemaLocation = xsdImport.getSchemaLocation();
 
         // Create source info for imported nodes

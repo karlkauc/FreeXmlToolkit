@@ -15,6 +15,8 @@ import java.util.List;
  */
 public class XsdRedefine extends XsdSchemaReference {
 
+    private XsdSchema referencedSchema; // The file this builds on, kept apart from the redefining schema
+
     /**
      * Creates a new XSD redefine element with default name.
      */
@@ -94,20 +96,18 @@ public class XsdRedefine extends XsdSchemaReference {
 
     @Override
     public XsdSchema getReferencedSchema() {
-        // Redefine does not maintain a reference to the included schema
-        return null;
+        return referencedSchema;
     }
 
     @Override
     public void setReferencedSchema(XsdSchema schema) {
-        // Redefine does not maintain a reference to the included schema
-        // This is a no-op
+        this.referencedSchema = schema;
+        this.resolved = schema != null;
     }
 
     @Override
     protected void clearReferencedSchema() {
-        // Redefine does not maintain a reference to the included schema
-        // This is a no-op
+        this.referencedSchema = null;
     }
 
     @Override
@@ -126,6 +126,12 @@ public class XsdRedefine extends XsdSchemaReference {
 
         // Copy base properties and children (propagate suffix to children)
         copyBasicPropertiesTo(copy, suffix);
+
+        // The target is the same file for the copy, like the imported schema of an XsdImport
+        copy.referencedSchema = this.referencedSchema;
+        copy.resolved = this.resolved;
+        copy.resolvedPath = this.resolvedPath;
+        copy.resolutionError = this.resolutionError;
 
         return copy;
     }

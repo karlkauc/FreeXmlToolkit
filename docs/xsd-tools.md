@@ -83,6 +83,10 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Wildcards.** `xs:any` and `xs:anyAttribute` appear as cards named `any` and `anyAttribute`, with
   the allowed namespace and the validation mode. Their right-click menu offers **Delete** and
   **Copy XPath**.
+- **Redefined files.** The file named by `xs:redefine` or `xs:override` is loaded, and its global
+  elements appear like those of an include. Its definitions are shown in their changed form: a
+  redefined type builds on the original, an overridden one replaces it. They are read-only, and saving
+  leaves the file and your `xs:redefine` as they are.
 - **Group references.** `xs:group` and `xs:attributeGroup` references appear as their own cards,
   labelled `group: Name` and `attributeGroup: Name`. Attribute group cards stay closed until you
   open them. The right-click menu of these cards offers only **Delete** and **Copy XPath**:
@@ -892,7 +896,7 @@ When saving schemas from the graphical editor, `xs:include` and `xs:import` decl
 | **Types**       | ComplexTypes, SimpleTypes (restriction, list, union), simple/complex content with extension and restriction |
 | **Compositors** | Sequence, Choice, All                                                    |
 | **Constraints** | Facets: patterns, enumerations, length limits, value ranges, digits, whiteSpace, assertion / explicitTimezone (XSD 1.1) |
-| **References**  | Import, Include (resolved, also transitively); Redefine and Override are parsed but not resolved |
+| **References**  | Import, Include, Redefine and Override (resolved, also transitively). The Graphic view shows redefined and overridden definitions; the Type Library, statistics and quality checks list the target file's definitions unchanged next to them. Redefines declared inside an included file are not resolved |
 | **XSD 1.1**     | Assertions (`xs:assert`) are loaded, shown and analysed; `xs:alternative` and `xs:openContent` are honored by the XSD 1.1 validator but not shown in the graphical views |
 | **Identity**    | Key, KeyRef, Unique                                                      |
 

@@ -22,8 +22,11 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdOverride;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefine;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaReference;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
@@ -130,6 +133,16 @@ public class XsdVisualTreeBuilder {
             addLocal(local, value);
         }
 
+        /** Replaces a definition, which leaves the name as unique as it was. */
+        void replace(String namespace, String local, T value) {
+            boolean known = qualified.put(key(namespace, local), value) != null;
+            if (known) {
+                byLocalName.put(local, value);
+            } else {
+                addLocal(local, value);
+            }
+        }
+
         private void addLocal(String local, T value) {
             T previous = byLocalName.put(local, value);
             if (previous != null && previous != value) {
@@ -190,6 +203,23 @@ public class XsdVisualTreeBuilder {
             return index;
         }
 
+        /** Lets the definitions inside an {@code xs:redefine} or {@code xs:override} win. */
+        void replaceWith(XsdSchemaReference redefinition, String namespace) {
+            for (XsdNode child : redefinition.getChildren()) {
+                if (child instanceof XsdComplexType type && hasName(type)) {
+                    types.replace(namespace, type.getName(), type);
+                } else if (child instanceof XsdSimpleType type && hasName(type)) {
+                    simpleTypes.replace(namespace, type.getName(), Boolean.TRUE);
+                } else if (child instanceof XsdElement element && hasName(element) && element.getRef() == null) {
+                    elements.replace(namespace, element.getName(), element);
+                } else if (child instanceof XsdGroup group && hasName(group) && !group.isReference()) {
+                    groups.replace(namespace, group.getName(), group);
+                } else if (child instanceof XsdAttributeGroup group && hasName(group) && !group.isReference()) {
+                    attributeGroups.replace(namespace, group.getName(), group);
+                }
+            }
+        }
+
         private static boolean hasName(XsdNode node) {
             return node.getName() != null && !node.getName().isEmpty();
         }
@@ -212,6 +242,8 @@ public class XsdVisualTreeBuilder {
     private final Map<String, VisualNode> nodeMap = new HashMap<>();
     /** Main schema merged with its imports; read-only once built, shared with lazy loaders. */
     private SchemaIndex index = new SchemaIndex();
+    /** The definitions before {@code xs:redefine}: a redefinition builds on what it replaces. */
+    private SchemaIndex originals = index;
     private Map<String, XsdSchema> importedSchemas = new HashMap<>(); // Imported schemas from XsdNodeFactory
     private Runnable onModelChangeCallback;
 
@@ -345,13 +377,11 @@ public class XsdVisualTreeBuilder {
         for (XsdSchema importedSchema : this.importedSchemas.values()) {
             index.merge(cachedIndex(importedSchema));
         }
+        applyRedefinitions(schema);
         logger.info("Total indexed types: {}, Total indexed elements: {}", index.types().size(), index.elements().size());
 
         // Find global elements (direct children of schema that are elements)
-        java.util.List<XsdElement> globalElements = schema.getChildren().stream()
-                .filter(node -> node instanceof XsdElement)
-                .map(node -> (XsdElement) node)
-                .toList();
+        java.util.List<XsdElement> globalElements = globalElements(schema);
 
         if (globalElements.isEmpty()) {
             // No global elements - create empty schema node
@@ -413,6 +443,92 @@ public class XsdVisualTreeBuilder {
         }
     }
 
+    /**
+     * Adds the files of {@code xs:redefine} and {@code xs:override}, then the definitions these
+     * replace them with, also those declared inside imported schemas.
+     */
+    private void applyRedefinitions(XsdSchema schema) {
+        originals = index;
+        java.util.List<XsdSchema> schemas = new java.util.ArrayList<>(this.importedSchemas.values());
+        schemas.addFirst(schema);
+        java.util.List<Redefinition> redefinitions = new java.util.ArrayList<>();
+        for (XsdSchema candidate : schemas) {
+            for (XsdNode child : candidate.getChildren()) {
+                if (child instanceof XsdSchemaReference reference && isRedefinition(reference)) {
+                    redefinitions.add(new Redefinition(reference, candidate.getTargetNamespace()));
+                    if (reference.getReferencedSchema() != null) {
+                        index.merge(cachedIndex(reference.getReferencedSchema()));
+                    }
+                }
+            }
+        }
+        if (redefinitions.isEmpty()) {
+            return;
+        }
+        originals = new SchemaIndex();
+        originals.merge(index);
+        redefinitions.forEach(found -> index.replaceWith(found.reference(), found.namespace()));
+    }
+
+    /** An {@code xs:redefine} or {@code xs:override} with the namespace of the schema declaring it. */
+    private record Redefinition(XsdSchemaReference reference, String namespace) {
+    }
+
+    private static boolean isRedefinition(XsdSchemaReference reference) {
+        return reference instanceof XsdRedefine || reference instanceof XsdOverride;
+    }
+
+    /**
+     * The global elements of a schema. A redefined file adds its own, in their redefined form,
+     * as an include would.
+     */
+    private java.util.List<XsdElement> globalElements(XsdSchema schema) {
+        Set<XsdElement> elements = new java.util.LinkedHashSet<>();
+        for (XsdNode child : schema.getChildren()) {
+            if (child instanceof XsdElement element) {
+                elements.add(element);
+            } else if (child instanceof XsdSchemaReference reference && isRedefinition(reference)
+                    && reference.getReferencedSchema() != null) {
+                String namespace = reference.getReferencedSchema().getTargetNamespace();
+                reference.getReferencedSchema().getChildren().stream()
+                        .filter(XsdElement.class::isInstance).map(XsdElement.class::cast)
+                        .map(element -> {
+                            QName name = new QName(namespace, element.getName(), namespace, false, false);
+                            XsdElement current = index.elements().find(name);
+                            return current != null ? current : element;
+                        })
+                        .forEach(elements::add);
+            }
+        }
+        return java.util.List.copyOf(elements);
+    }
+
+    /**
+     * Picks the index for a reference: inside {@code xs:redefine} a type's base or a group's
+     * reference with the component's own name means the definition it replaces.
+     *
+     * @param reference the node that holds the reference
+     * @param name      the name it refers to
+     * @return the index to look the name up in
+     */
+    private SchemaIndex indexFor(XsdNode reference, QName name) {
+        if (originals == index) {
+            return index;
+        }
+        XsdNode component = reference;
+        while (component.getParent() != null && !(component.getParent() instanceof XsdRedefine)) {
+            component = component.getParent();
+        }
+        if (component.getParent() == null || !name.local().equals(component.getName())) {
+            return index;
+        }
+        boolean isType = component instanceof XsdComplexType || component instanceof XsdSimpleType;
+        boolean sameKind = isType
+                ? reference instanceof XsdExtension || reference instanceof XsdRestriction
+                : component.getClass() == reference.getClass();
+        return sameKind ? originals : index;
+    }
+
     /** A builder for one lazy load: separate state and a fresh budget, sharing this build's index. */
     private XsdVisualTreeBuilder lazyBuilder(int depth) {
         XsdVisualTreeBuilder lazyBuilder = new XsdVisualTreeBuilder();
@@ -422,6 +538,7 @@ public class XsdVisualTreeBuilder {
         lazyBuilder.onModelChangeCallback = this.onModelChangeCallback;
         lazyBuilder.importedSchemas = this.importedSchemas;
         lazyBuilder.index = this.index;
+        lazyBuilder.originals = this.originals;
         lazyBuilder.currentDepth = depth;
         return lazyBuilder;
     }
@@ -845,14 +962,13 @@ public class XsdVisualTreeBuilder {
 
     private void fillGroupCard(XsdGroup group, VisualNode node, Set<String> visitedTypes, Set<String> visitedElements) {
         QName name = resolveName(group.getRef(), group);
-        XsdGroup definition = index.groups().find(name);
-        String visitKey = "group:" + name;
+        XsdGroup definition = indexFor(group, name).groups().find(name);
 
         if (definition == null) {
             addPlaceholder(node, "Unresolved group: " + group.getRef(), "Group definition not loaded");
-        } else if (!visitedTypes.contains(visitKey)) {
+        } else if (!visitedTypes.contains("group:" + definition.getId())) {
             Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
-            localVisitedTypes.add(visitKey);
+            localVisitedTypes.add("group:" + definition.getId());
             for (XsdNode child : definition.getChildren()) {
                 if (child instanceof XsdSequence) {
                     node.addChild(createCompositorNode(child, node, "sequence", localVisitedTypes, visitedElements));
@@ -901,15 +1017,14 @@ public class XsdVisualTreeBuilder {
     private void fillAttributeGroupCard(XsdAttributeGroup group, Set<String> hidden, VisualNode node,
                                         Set<String> visitedTypes) {
         QName name = resolveName(group.getRef(), group);
-        XsdAttributeGroup definition = index.attributeGroups().find(name);
-        String visitKey = "attributeGroup:" + name;
+        XsdAttributeGroup definition = indexFor(group, name).attributeGroups().find(name);
 
         if (definition == null) {
             addPlaceholder(node, "Unresolved attribute group: " + group.getRef(),
                     "Attribute group definition not loaded");
-        } else if (!visitedTypes.contains(visitKey)) {
+        } else if (!visitedTypes.contains("attributeGroup:" + definition.getId())) {
             Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
-            localVisitedTypes.add(visitKey);
+            localVisitedTypes.add("attributeGroup:" + definition.getId());
             for (XsdNode child : definition.getChildren()) {
                 if (child instanceof XsdAttribute attribute) {
                     if (!hidden.contains(attribute.getName())) {
@@ -1003,7 +1118,7 @@ public class XsdVisualTreeBuilder {
                     "Type definition not loaded");
             case COMPLEX -> {
                 // The same type may repeat in parallel branches, just not within its own chain
-                XsdComplexType type = index.types().find(name);
+                XsdComplexType type = indexFor(owner, name).types().find(name);
                 String visitKey = "type:" + type.getId();
                 if (visitedTypes.contains(visitKey)) {
                     logger.debug("Circular reference detected: type '{}' is already being processed", typeRef);
@@ -1182,7 +1297,7 @@ public class XsdVisualTreeBuilder {
         if (kind != TypeKind.COMPLEX) {
             return;
         }
-        XsdComplexType type = index.types().find(name);
+        XsdComplexType type = indexFor(owner, name).types().find(name);
         String visitKey = "attributes:" + type.getId();
         if (visitedTypes.contains(visitKey)) {
             return;
