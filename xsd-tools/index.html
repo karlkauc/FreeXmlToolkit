@@ -1364,6 +1364,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#what-the-diagram-shows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the Diagram Shows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#drag-and-drop-in-the-diagram" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2926,6 +2937,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#what-the-diagram-shows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the Diagram Shows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#drag-and-drop-in-the-diagram" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3561,6 +3583,35 @@ available in the <strong>Text</strong> view as well as the Graphic and Tree view
 <li><strong>Ctrl+S</strong> to save (a backup is created automatically - <strong>Settings → Schemas &amp; Validation → XSD</strong> lets you turn this off or change the number of kept versions, 3 by default)</li>
 <li>The toolbar's <strong>Save ▾</strong> split button saves the schema; its arrow menu offers <strong>Save As…</strong> (Ctrl+Shift+S, save under a new name) and <strong>Save All</strong> (saves every open tab)</li>
 </ul>
+<h3 id="what-the-diagram-shows">What the Diagram Shows<a class="headerlink" href="#what-the-diagram-shows" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Expanding cards.</strong> Click a card's expand button to open it. In a large schema the diagram
+  builds the first few thousand cards up front; the rest loads when you open the card that holds it.
+  Simple types and built-in types have no content to open, so they have no expand button.</li>
+<li><strong>Inherited content.</strong> A type built with <code>xs:extension</code> also shows the content of its base
+  type. A type built with <code>xs:restriction</code> shows its own elements, because a restriction restates
+  the content model, plus the attributes of its base type, except those it redeclares or prohibits.</li>
+<li><strong>Wildcards.</strong> <code>xs:any</code> and <code>xs:anyAttribute</code> appear as cards named <code>any</code> and <code>anyAttribute</code>, with
+  the allowed namespace and the validation mode. Their right-click menu offers <strong>Delete</strong> and
+  <strong>Copy XPath</strong>.</li>
+<li><strong>Group references.</strong> <code>xs:group</code> and <code>xs:attributeGroup</code> references appear as their own cards,
+  labelled <code>group: Name</code> and <code>attributeGroup: Name</code>. Attribute group cards stay closed until you
+  open them. The right-click menu of these cards offers only <strong>Delete</strong> and <strong>Copy XPath</strong>:
+  <strong>Delete</strong> removes the reference, not the shared definition.</li>
+<li><strong>Placeholder cards.</strong> When the diagram cannot show something, a card names it, and it has no
+  right-click actions:<ul>
+<li><code>Unresolved type: X</code>, <code>Unresolved group: X</code>, <code>Unresolved attribute group: X</code>: the definition
+  was not found, often because it is in a file that could not be loaded.</li>
+<li><code>External: ...</code>: a referenced element was not found. It usually belongs to another
+  namespace whose schema is not loaded.</li>
+</ul>
+</li>
+<li><strong>Warning bar for missing schemas.</strong> A bar above the diagram names the includes and imports that
+  could not be loaded, also those inside imported schemas and nested includes. Circular includes
+  are not failures. <strong>Dismiss</strong> hides the bar until the set of failures changes. A schema you have
+  not saved yet has no file location, so it cannot resolve its includes: save it first.</li>
+</ul>
+<p>For what the diagram leaves out, see <a href="#supported-xsd-features">Supported XSD Features</a>.</p>
 <h3 id="drag-and-drop-in-the-diagram">Moving and Copying by Drag and Drop<a class="headerlink" href="#drag-and-drop-in-the-diagram" title="Permanent link">&para;</a></h3>
 <p>In the Graphic view you can rearrange the schema by dragging its cards: elements, compositors
 (sequence, choice, all), group references and attributes.</p>
@@ -3681,6 +3732,8 @@ are followed too, with circular imports detected and a nesting depth cap of 10.<
   namespace (step 5).</li>
 <li><code>xs:include</code> references are resolved relative to the including file, or through an XML
   catalog / Schema Library entry for their location - they are not looked up by namespace.</li>
+<li>If an include or import still cannot be loaded, the Graphic view
+  <a href="#what-the-diagram-shows">names it in a bar above the diagram</a>.</li>
 <li>Internal and private network addresses are never contacted - see
   <a href="../SECURITY/#ssrf-server-side-request-forgery-protection">Security Features</a>.</li>
 <li>Clearing the cache (<strong>Settings → Files &amp; Cache → TEMP &amp; CACHE</strong>, or the Schema Library's Cache tab) is safe:
@@ -4584,6 +4637,10 @@ against, so nothing is merged and nothing is marked.</p>
 <tr>
 <td><strong>Identity</strong></td>
 <td>Key, KeyRef, Unique</td>
+</tr>
+<tr>
+<td><strong>Diagram limits</strong></td>
+<td>A restriction that prohibits an attribute from an inherited attribute group still shows that attribute inside the group's card</td>
 </tr>
 </tbody>
 </table>
