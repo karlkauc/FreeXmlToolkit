@@ -1353,6 +1353,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#constraints-on-the-cards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints on the Cards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2926,6 +2937,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#constraints-on-the-cards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints on the Cards
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#tips" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3554,6 +3576,7 @@ document, and use XSD files effectively.</p>
 <li><strong>Visual Tree</strong>: See your XSD as an interactive, hierarchical tree</li>
 <li><strong>Easy Navigation</strong>: Click on elements to explore their structure</li>
 <li><strong>Edit Documentation</strong>: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)</li>
+<li><strong>Constraints on the Cards</strong>: Element and attribute cards list their <code>key</code>, <code>keyref</code> and <code>unique</code> constraints and the assertions of their type, including inherited ones - see <a href="#constraints-on-the-cards">Constraints on the Cards</a></li>
 <li><strong>Type Picker</strong>: Choose an element's or attribute's type from a list of the schema's own types and all XSD built-in datatypes, each explained in a side pane</li>
 <li><strong>Add Examples</strong>: Include example values for elements</li>
 <li><strong>Drag and Drop</strong>: Move or copy elements, compositors, group references and attributes by dragging their cards - see <a href="#drag-and-drop-in-the-diagram">Moving and Copying by Drag and Drop</a></li>
@@ -3574,6 +3597,47 @@ document, and use XSD files effectively.</p>
 available in the <strong>Text</strong> view as well as the Graphic and Tree views. See
 <a href="#editing-schema-properties-from-any-view">Editing Schema Properties from Any View</a> below.</p>
 </blockquote>
+<h3 id="constraints-on-the-cards">Constraints on the Cards<a class="headerlink" href="#constraints-on-the-cards" title="Permanent link">&para;</a></h3>
+<p>A card lists what limits its node below the type lines, one row per constraint:</p>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Meaning</th>
+<th>Row shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>KEY</code></td>
+<td><code>xs:key</code></td>
+<td>Name and fields</td>
+</tr>
+<tr>
+<td><code>UNIQ</code></td>
+<td><code>xs:unique</code></td>
+<td>Name and fields</td>
+</tr>
+<tr>
+<td><code>REF</code></td>
+<td><code>xs:keyref</code></td>
+<td>Name and the key it refers to</td>
+</tr>
+<tr>
+<td><code>ASSERT</code></td>
+<td><code>xs:assert</code> or <code>xs:assertion</code></td>
+<td>The test, shortened</td>
+</tr>
+</tbody>
+</table>
+<p>An element reference shows the constraints of the global element. Assertions come from the
+card's type and its base types. A card shows up to four rows, followed by <strong>+N more</strong>.</p>
+<p>Hover over the rows to see every constraint in full: selector, fields, the complete test, and
+the type it was declared in. To add or delete a constraint, use the <strong>CONSTRAINTS</strong> section of
+the Properties pane; it lists what is declared directly on the selected node, so an assertion
+inherited from a type is changed in that type.</p>
+<p>To hide the rows, turn off <strong>View → Show Constraints in Diagram</strong>. The setting applies to all
+open diagrams and is remembered.</p>
 <h3 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Right-click</strong> for a context menu with common actions (<strong>Add Element…</strong> / <strong>Add Attribute…</strong> with all properties - see <a href="#adding-an-element-or-attribute">Adding an Element or Attribute</a>, <strong>Rename…</strong>, <strong>Change Type…</strong>, <strong>Change Cardinality…</strong>, add/move/delete). <strong>Change Type…</strong> opens a small dialog with the <a href="../inspector/#type-picker">type picker</a>, pre-filled with the current type - the same dialog as in the Tree view</li>
@@ -4649,7 +4713,7 @@ against, so nothing is merged and nothing is marked.</p>
 </tr>
 <tr>
 <td><strong>XSD 1.1</strong></td>
-<td>Assertions (<code>xs:assert</code>) are loaded, shown and analysed; <code>xs:alternative</code> and <code>xs:openContent</code> are honored by the XSD 1.1 validator but not shown in the graphical views</td>
+<td>Assertions (<code>xs:assert</code>, <code>xs:assertion</code>) are loaded, shown and analysed; <code>xs:alternative</code> and <code>xs:openContent</code> are honored by the XSD 1.1 validator but not shown in the graphical views</td>
 </tr>
 <tr>
 <td><strong>Identity</strong></td>
