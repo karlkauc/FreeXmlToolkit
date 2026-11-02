@@ -58,17 +58,16 @@ class XmlCanvasViewScrollHeaderTest {
         List<String> chain = view.scrollHeaderRows().stream().map(FlatRow::getLabel).toList();
         assertEquals(List.of("root", "section", "body"), chain);
 
-        // Click the "section" segment (second): root occupies the first ~60 px
+        // Aim at the segment itself: a click on another one scrolls away and empties the header.
+        fx(view::render);
+        double x = WaitForAsyncUtils.waitForAsyncFx(5000,
+                () -> view.scrollHeaderSegmentMiddleForTest(view.scrollHeaderRows().get(1)));
+        assertTrue(x > 0, "the header paints a segment for 'section'");
         double y = GridCanvasView.SCROLL_HEADER_HEIGHT / 2;
-        for (double x = 8; x < 400; x += 4) {
-            double fx = x;
-            fx(() -> Event.fireEvent(view.canvasNode(), new MouseEvent(MouseEvent.MOUSE_CLICKED, fx, y, fx, y,
-                    MouseButton.PRIMARY, 1, false, false, false, false,
-                    true, false, false, true, false, true, null)));
-            if (view.getSelectedNode() instanceof XmlElement el && "section".equals(el.getName())) {
-                return;
-            }
-        }
-        throw new AssertionError("clicking the header never selected 'section'");
+        fx(() -> Event.fireEvent(view.canvasNode(), new MouseEvent(MouseEvent.MOUSE_CLICKED, x, y, x, y,
+                MouseButton.PRIMARY, 1, false, false, false, false,
+                true, false, false, true, false, true, null)));
+        assertTrue(view.getSelectedNode() instanceof XmlElement el && "section".equals(el.getName()),
+                "clicking the header selects 'section'");
     }
 }

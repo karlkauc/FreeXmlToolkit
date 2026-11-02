@@ -1308,6 +1308,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     private List<HeaderSegment> headerSegments = List.of();
 
+    /** @return the middle of the row's segment in the painted scroll header, or -1 if it has none */
+    double scrollHeaderSegmentMiddleForTest(FlatRow row) {
+        return headerSegments.stream().filter(segment -> segment.row() == row)
+                .mapToDouble(segment -> (segment.x0() + segment.x1()) / 2)
+                .findFirst().orElse(-1);
+    }
+
     /**
      * @return the rows the scroll header shows: the containers whose name cell starts above the
      *         viewport but reaches into it (the first visible row's ancestors, outermost first,

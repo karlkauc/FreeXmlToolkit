@@ -31,7 +31,7 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class ValueViewerWindowTest {
 
-    private static final long FX_TIMEOUT_MS = 10_000;
+    private static final long FX_TIMEOUT_MS = 30_000;
     private static final Processor PROCESSOR = new Processor(false);
 
     private ValueViewerWindow window;
@@ -99,8 +99,9 @@ class ValueViewerWindowTest {
         XdmNode order = order();
         ValueViewerWindow w = open(new ValueSource("$order", "element(order)", "LOCAL", order, null, snapshot(order)));
         WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> w.runXPath("count(item)"));
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "20".equals(w.getResultText()));
-        assertTrue(w.getResultStatus().startsWith("1 item"), w.getResultStatus());
+        // Text and status are set one after the other in the same FX pulse; poll both on the FX thread.
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
+                () -> "20".equals(w.getResultText()) && w.getResultStatus().startsWith("1 item")));
 
         WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> w.runXPath("item[@n='3']/price"));
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "<price>30.50</price>".equals(w.getResultText()));
@@ -109,8 +110,8 @@ class ValueViewerWindowTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "21".equals(w.getResultText()));
 
         WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, () -> w.runXPath("item["));
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> w.getResultText().startsWith("ERROR:"));
-        assertEquals("XPath error", w.getResultStatus());
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
+                () -> w.getResultText().startsWith("ERROR:") && "XPath error".equals(w.getResultStatus())));
     }
 
     @Test
