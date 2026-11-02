@@ -35,6 +35,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdImport;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdInclude;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
@@ -94,6 +95,7 @@ public class XsdStatisticsCollector {
 
         // Traverse tree and collect node statistics (main schema and includes)
         Set<String> visitedIds = new HashSet<>();
+        XsdRedefinitions.replacedNodes(schema).forEach(replaced -> visitedIds.add(replaced.getId()));
         Complexity complexity = new Complexity();
         traverseAndCollect(schema, builder, visitedIds, complexity, 0);
 

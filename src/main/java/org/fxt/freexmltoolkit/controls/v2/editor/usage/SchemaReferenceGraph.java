@@ -24,10 +24,10 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdList;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdOverride;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefine;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaReference;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
 
@@ -138,6 +138,8 @@ public final class SchemaReferenceGraph {
     private final Map<ComponentKey, List<Reference>> incoming;
     private final Map<String, List<Reference>> byTargetName;
     private final boolean redefineOrOverride;
+    /** A redefined file did not load, so any name may be defined there. */
+    private final boolean redefinitionTargetMissing;
     /** Prefix → namespace URI as declared on {@code xs:schema}. */
     private final Map<String, String> prefixMap;
     private final String targetNamespace;
@@ -146,12 +148,14 @@ public final class SchemaReferenceGraph {
                                  Map<ComponentKey, XsdNode> importedComponents,
                                  List<Reference> references,
                                  boolean redefineOrOverride,
+                                 boolean redefinitionTargetMissing,
                                  Map<String, String> prefixMap,
                                  String targetNamespace) {
         this.components = Collections.unmodifiableMap(components);
         this.importedComponents = Collections.unmodifiableMap(importedComponents);
         this.references = Collections.unmodifiableList(references);
         this.redefineOrOverride = redefineOrOverride;
+        this.redefinitionTargetMissing = redefinitionTargetMissing;
         this.prefixMap = prefixMap;
         this.targetNamespace = targetNamespace;
         Map<ComponentKey, List<Reference>> in = new HashMap<>();
@@ -171,20 +175,31 @@ public final class SchemaReferenceGraph {
         Objects.requireNonNull(schema, "Schema cannot be null");
         Map<ComponentKey, Component> components = new LinkedHashMap<>();
         boolean redefine = false;
+        boolean targetMissing = false;
         for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdRedefine || child instanceof XsdOverride) {
+            if (XsdRedefinitions.isRedefinition(child)) {
                 redefine = true;
+                targetMissing |= ((XsdSchemaReference) child).getReferencedSchema() == null;
+                for (XsdNode definition : child.getChildren()) {
+                    ComponentKey key = keyOf(definition);
+                    if (key != null) { // takes the place of the definition in the target file
+                        components.put(key, new Component(key, definition, definition.isFromInclude(),
+                                definition.getSourceFile()));
+                    }
+                }
+                continue;
             }
             ComponentKey key = keyOf(child);
             if (key != null) {
                 components.putIfAbsent(key, new Component(key, child, child.isFromInclude(), child.getSourceFile()));
             }
         }
+        Set<XsdNode> replaced = XsdRedefinitions.replacedNodes(schema);
         Map<ComponentKey, XsdNode> imported = new LinkedHashMap<>();
         for (XsdSchema importedSchema : schema.getImportedSchemas().values()) {
             for (XsdNode child : importedSchema.getChildren()) {
                 ComponentKey key = keyOf(child);
-                if (key != null) {
+                if (key != null && !replaced.contains(child)) {
                     imported.putIfAbsent(key, child);
                 }
             }
@@ -196,6 +211,12 @@ public final class SchemaReferenceGraph {
         List<Reference> references = new ArrayList<>();
         Set<String> visited = new HashSet<>();
         for (XsdNode child : schema.getChildren()) {
+            if (XsdRedefinitions.isRedefinition(child)) {
+                for (XsdNode definition : child.getChildren()) {
+                    collectReferences(definition, keyOf(definition), false, components, references, visited);
+                }
+                continue;
+            }
             collectReferences(child, keyOf(child), false, components, references, visited);
         }
         for (XsdSchema importedSchema : schema.getImportedSchemas().values()) {
@@ -204,7 +225,7 @@ public final class SchemaReferenceGraph {
             }
             collectReferences(importedSchema, null, true, components, references, visited);
         }
-        return new SchemaReferenceGraph(components, imported, references, redefine, prefixMap,
+        return new SchemaReferenceGraph(components, imported, references, redefine, targetMissing, prefixMap,
                 schema.getTargetNamespace());
     }
 
@@ -305,6 +326,9 @@ public final class SchemaReferenceGraph {
             return;
         }
         String local = stripPrefix(rawName.trim());
+        if (XsdRedefinitions.refersToOriginal(referrer, local)) {
+            return; // means the replaced definition in the target file, which no longer is a component
+        }
         ComponentKey target = null;
         for (ComponentKind kind : candidates) {
             ComponentKey candidate = new ComponentKey(kind, local);
@@ -459,11 +483,11 @@ public final class SchemaReferenceGraph {
     /**
      * References naming a component that exists nowhere: not in the main tree, not in a loaded
      * imported schema, not an XML Schema built-in, and not in a foreign namespace prefix (those
-     * belong to imports that may not be loaded). Empty when the schema uses
-     * {@code xs:redefine}/{@code xs:override}, whose components are not modeled.
+     * belong to imports that may not be loaded). Empty when the target of an
+     * {@code xs:redefine}/{@code xs:override} did not load: the name may be defined there.
      */
     public List<Reference> unresolvedReferences() {
-        if (redefineOrOverride) {
+        if (redefinitionTargetMissing) {
             return List.of();
         }
         List<Reference> result = new ArrayList<>();

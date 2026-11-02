@@ -39,6 +39,11 @@ public final class TypeLibrary {
                     : xsdSchema.getImportedSchemas().values()) {
                 collectInto(imported, result, nodeTypes);
             }
+            // A redefinition takes the place of the definition it replaces.
+            for (var redefinition : org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions.of(xsdSchema)) {
+                collectInto(redefinition, result, nodeTypes);
+            }
+            result.removeAll(org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions.replacedNodes(xsdSchema));
         }
         return result;
     }

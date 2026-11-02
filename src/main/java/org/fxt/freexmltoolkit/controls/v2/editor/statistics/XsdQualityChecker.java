@@ -31,6 +31,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
@@ -380,6 +381,7 @@ public class XsdQualityChecker {
 
         // Traverse main schema (includes are already inlined as children)
         Set<String> visitedIds = new HashSet<>();
+        XsdRedefinitions.replacedNodes(schema).forEach(replaced -> visitedIds.add(replaced.getId()));
         traverseAndCheck(schema, namingByConvention, issues, deprecatedIssues, visitedIds, 0);
 
         // Also traverse imported schemas (they are NOT children of main schema)
@@ -1157,6 +1159,7 @@ public class XsdQualityChecker {
      */
     private void checkDuplicateElementsInContainers(List<QualityIssue> issues) {
         Set<String> visitedIds = new HashSet<>();
+        XsdRedefinitions.replacedNodes(schema).forEach(replaced -> visitedIds.add(replaced.getId()));
         checkDuplicateElementsInContainersRecursive(schema, issues, visitedIds);
 
         // Also check imported schemas

@@ -22,8 +22,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdOverride;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefine;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaReference;
@@ -475,7 +474,7 @@ public class XsdVisualTreeBuilder {
     }
 
     private static boolean isRedefinition(XsdSchemaReference reference) {
-        return reference instanceof XsdRedefine || reference instanceof XsdOverride;
+        return XsdRedefinitions.isRedefinition(reference);
     }
 
     /**
@@ -515,18 +514,7 @@ public class XsdVisualTreeBuilder {
         if (originals == index) {
             return index;
         }
-        XsdNode component = reference;
-        while (component.getParent() != null && !(component.getParent() instanceof XsdRedefine)) {
-            component = component.getParent();
-        }
-        if (component.getParent() == null || !name.local().equals(component.getName())) {
-            return index;
-        }
-        boolean isType = component instanceof XsdComplexType || component instanceof XsdSimpleType;
-        boolean sameKind = isType
-                ? reference instanceof XsdExtension || reference instanceof XsdRestriction
-                : component.getClass() == reference.getClass();
-        return sameKind ? originals : index;
+        return XsdRedefinitions.refersToOriginal(reference, name.local()) ? originals : index;
     }
 
     /** A builder for one lazy load: separate state and a fresh budget, sharing this build's index. */

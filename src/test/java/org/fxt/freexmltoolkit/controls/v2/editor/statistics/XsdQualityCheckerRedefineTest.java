@@ -38,7 +38,9 @@ class XsdQualityCheckerRedefineTest {
 
         var result = new XsdQualityChecker(schema).check();
 
-        assertFalse(result.issues().stream().anyMatch(issue -> issue.message().contains("Address")),
+        // Suggestions such as a missing documentation are fair remarks about the type.
+        assertFalse(result.issues().stream().anyMatch(issue -> issue.message().contains("Address")
+                        && issue.severity() != XsdQualityChecker.IssueSeverity.SUGGESTION),
                 result.issues().toString());
     }
 }

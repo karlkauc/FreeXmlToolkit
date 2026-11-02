@@ -21,6 +21,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdIdentityConstraint;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdKey;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdKeyRef;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSelector;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnique;
@@ -282,6 +283,7 @@ public class XsdIdentityConstraintAnalyzer {
         List<IdentityConstraintInfo> asserts = new ArrayList<>();
 
         Set<String> visitedIds = new HashSet<>();
+        XsdRedefinitions.replacedNodes(schema).forEach(replaced -> visitedIds.add(replaced.getId()));
 
         // Collect all key/unique names for KeyRef validation (main schema and imports)
         Set<String> keyAndUniqueNames = new HashSet<>();

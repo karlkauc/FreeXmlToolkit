@@ -14,6 +14,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdExtension;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdGroup;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
@@ -115,7 +116,8 @@ public final class XsdInstanceLocator {
             }
         }
         XsdNode namedType = namedTypeOf(declaration, schemas);
-        boolean global = declaration.getParent() instanceof XsdSchema;
+        boolean global = declaration.getParent() instanceof XsdSchema
+                || XsdRedefinitions.isRedefinition(declaration.getParent());
         boolean foreign = isForeign(declaration, schema) || isForeign(particle, schema);
         return Optional.of(new Located(particle, declaration, namedType, global, foreign, particlePath));
     }
@@ -178,7 +180,7 @@ public final class XsdInstanceLocator {
                 case SEQUENCE, CHOICE, ALL, COMPLEX_CONTENT, RESTRICTION -> collectParticles(child, schemas, out, visited);
                 case EXTENSION -> {
                     // Base content comes first, then the extension's own particles.
-                    XsdNode base = findGlobal(schemas, XsdNodeType.COMPLEX_TYPE, local(((XsdExtension) child).getBase()));
+                    XsdNode base = definition(child, schemas, XsdNodeType.COMPLEX_TYPE, ((XsdExtension) child).getBase());
                     if (base != null) {
                         collectParticles(base, schemas, out, visited);
                     }
@@ -188,7 +190,7 @@ public final class XsdInstanceLocator {
                     XsdNode group = child;
                     String ref = ((XsdGroup) child).getRef();
                     if (ref != null && !ref.isBlank()) {
-                        group = findGlobal(schemas, XsdNodeType.GROUP, local(ref));
+                        group = definition(child, schemas, XsdNodeType.GROUP, ref);
                     }
                     if (group != null) {
                         collectParticles(group, schemas, out, visited);
@@ -220,7 +222,7 @@ public final class XsdInstanceLocator {
                 case ATTRIBUTE -> out.add(child);
                 case SIMPLE_CONTENT, COMPLEX_CONTENT, RESTRICTION -> collectAttributes(child, schemas, out, visited);
                 case EXTENSION -> {
-                    XsdNode base = findGlobal(schemas, XsdNodeType.COMPLEX_TYPE, local(((XsdExtension) child).getBase()));
+                    XsdNode base = definition(child, schemas, XsdNodeType.COMPLEX_TYPE, ((XsdExtension) child).getBase());
                     if (base != null) {
                         collectAttributes(base, schemas, out, visited);
                     }
@@ -230,7 +232,7 @@ public final class XsdInstanceLocator {
                     XsdNode group = child;
                     String ref = ((XsdAttributeGroup) child).getRef();
                     if (ref != null && !ref.isBlank()) {
-                        group = findGlobal(schemas, XsdNodeType.ATTRIBUTE_GROUP, local(ref));
+                        group = definition(child, schemas, XsdNodeType.ATTRIBUTE_GROUP, ref);
                     }
                     if (group != null) {
                         collectAttributes(group, schemas, out, visited);
@@ -279,10 +281,36 @@ public final class XsdInstanceLocator {
         return type.startsWith("xs:") || type.startsWith("xsd:");
     }
 
-    /** @return the top-level component of the given kind and local name in any of the schemas */
+    /** What {@code referrer}'s reference names; inside xs:redefine its own name means the original. */
+    private static XsdNode definition(XsdNode referrer, List<XsdSchema> schemas, XsdNodeType kind, String reference) {
+        String name = local(reference);
+        if (XsdRedefinitions.refersToOriginal(referrer, name)) {
+            XsdNode original = XsdRedefinitions.originalOf(referrer);
+            if (original != null) {
+                return original;
+            }
+        }
+        return findGlobal(schemas, kind, name);
+    }
+
+    /**
+     * @return the top-level component of the given kind and local name in any of the schemas;
+     *         a definition inside {@code xs:redefine}/{@code xs:override} replaces the target file's
+     */
     private static XsdNode findGlobal(List<XsdSchema> schemas, XsdNodeType kind, String name) {
         if (name == null || name.isBlank()) {
             return null;
+        }
+        for (XsdSchema schema : schemas) {
+            for (XsdNode child : schema.getChildren()) {
+                if (XsdRedefinitions.isRedefinition(child)) {
+                    for (XsdNode definition : child.getChildren()) {
+                        if (definition.getNodeType() == kind && name.equals(definition.getName())) {
+                            return definition;
+                        }
+                    }
+                }
+            }
         }
         for (XsdSchema schema : schemas) {
             for (XsdNode child : schema.getChildren()) {
