@@ -421,7 +421,8 @@ For the selected schema node you can edit:
   editable minOccurs/maxOccurs and their Order in **CARDINALITY & USE**.
 - **Facets** - Add, edit, and remove facets such as patterns, enumerations, and length limits.
   In the facet list, click a value to edit it (**Enter** saves, **Esc** cancels), point at a row
-  and click the trash icon to delete it, and use the row below the list to add one. Facets
+  and click the trash icon to delete it, and use the row below the list to add one, which offers
+  only the facets the base type allows, also through named, list and union types. Facets
   inherited from a base type appear in *italics* and are read-only. When all facets come from a
   named type, the add row is replaced by *"Facets come from T – click to edit them there."*;
   click it to select that type.

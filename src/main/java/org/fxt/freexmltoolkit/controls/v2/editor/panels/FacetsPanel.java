@@ -22,6 +22,7 @@ import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddFacetCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteFacetCommand;
@@ -219,6 +220,19 @@ public class FacetsPanel extends VBox {
      *
      * @param baseType the base type (e.g., "xs:string", "xs:integer")
      */
+    private static XsdNode rootOf(XsdNode node) {
+        XsdNode root = node;
+        while (root.getParent() != null) {
+            root = root.getParent();
+        }
+        return root;
+    }
+
+    /** @return the facets the panel currently offers fields for */
+    Set<XsdFacetType> offeredFacets() {
+        return Set.copyOf(facetControls.keySet());
+    }
+
     private void updateFacetsGrid(String baseType) {
         updating = true;
         try {
@@ -234,7 +248,9 @@ public class FacetsPanel extends VBox {
             }
 
             // Get applicable facets for this base type (create mutable copy)
-            Set<XsdFacetType> applicableFacets = new HashSet<>(XsdDatatypeFacets.getApplicableFacets(baseType));
+            Set<XsdFacetType> applicableFacets = new HashSet<>(currentRestriction != null
+                    ? SchemaFacets.applicableFacets(currentRestriction, rootOf(currentRestriction))
+                    : XsdDatatypeFacets.getApplicableFacets(baseType));
 
             if (applicableFacets.isEmpty()) {
                 noFacetsLabel.setText("No applicable facets for datatype: " + baseType);

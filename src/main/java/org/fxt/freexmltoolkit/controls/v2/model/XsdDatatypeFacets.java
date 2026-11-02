@@ -61,6 +61,9 @@ public class XsdDatatypeFacets {
             // QName and NOTATION
             case "QName", "NOTATION" -> QNAME_FACETS;
 
+            // Built-in list types
+            case "NMTOKENS", "IDREFS", "ENTITIES" -> LIST_FACETS;
+
             default -> Collections.emptySet();
         };
     }
@@ -261,6 +264,24 @@ public class XsdDatatypeFacets {
     }
 
     // Facet sets for different datatype categories
+
+    /** The facets a restriction of a list type may use. */
+    public static final Set<XsdFacetType> LIST_FACETS = Set.of(
+            XsdFacetType.LENGTH,
+            XsdFacetType.MIN_LENGTH,
+            XsdFacetType.MAX_LENGTH,
+            XsdFacetType.PATTERN,
+            XsdFacetType.ENUMERATION,
+            XsdFacetType.WHITE_SPACE,
+            XsdFacetType.ASSERTION
+    );
+
+    /** The facets a restriction of a union type may use. */
+    public static final Set<XsdFacetType> UNION_FACETS = Set.of(
+            XsdFacetType.PATTERN,
+            XsdFacetType.ENUMERATION,
+            XsdFacetType.ASSERTION
+    );
 
     private static final Set<XsdFacetType> STRING_FACETS = Set.of(
             XsdFacetType.LENGTH,

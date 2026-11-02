@@ -27,6 +27,13 @@ Already on `main`, not yet released:
   namespace split over several `xs:import`s is loaded; changes to included and imported files on
   disk are noticed, and open cards stay open when the schema is rebuilt. See
   [XSD Tools](xsd-tools.md#what-the-diagram-shows).
+- **Schema files on disk:** a changed date alone no longer asks to reload, and an XML document
+  follows the schema bound to it even without a tab for that schema. The check pauses on a slow
+  drive.
+- **`xs:redefine` and `xs:override`** also work inside included files, and they now count in the
+  Type Library, statistics, quality checks and the Inspector of an XML document.
+- **Facets:** a restriction of a named type offers the facets of what that type comes down to,
+  and restrictions of list and union types offer only the facets XML Schema allows there.
 
 ## 2.7.0 (2026-10-29)
 

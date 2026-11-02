@@ -1,11 +1,18 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
+import org.fxt.freexmltoolkit.controls.v2.model.XsdDatatypeFacets;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacet;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdRedefinitions;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 
 /**
  * UI-free collection of the inline facets of a node (element / simple type with
@@ -93,10 +100,30 @@ public final class SchemaFacets {
         if (typeName == null || !visited.add(typeName)) {
             return; // unknown/builtin, or already visited (circular reference guard)
         }
+        XsdNode named = namedSimpleType(schemaRoot, typeName);
+        if (named == null) {
+            return;
+        }
+        out.addAll(collect(named));
+        collectBaseChain(named, schemaRoot, out, visited);
+        collectListUnion(named, schemaRoot, out, visited);
+    }
+
+    /**
+     * @return the simple type {@code typeName} as it applies: a redefinition first, then the main
+     *         schema (xs:include inlines types as its children), then the imported schemas
+     */
+    private static XsdNode namedSimpleType(XsdNode schemaRoot, String typeName) {
+        if (schemaRoot instanceof XsdSchema xsdSchema) {
+            for (var redefinition : XsdRedefinitions.of(xsdSchema)) {
+                XsdNode redefined = findSimpleType(redefinition, typeName);
+                if (redefined != null) {
+                    return redefined;
+                }
+            }
+        }
         XsdNode named = findSimpleType(schemaRoot, typeName);
-        // xs:include inlines types as children of the main schema (found above); xs:import keeps
-        // them in separate imported schemas, so search those too.
-        if (named == null && schemaRoot instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema xsdSchema) {
+        if (named == null && schemaRoot instanceof XsdSchema xsdSchema) {
             for (var imported : xsdSchema.getImportedSchemas().values()) {
                 named = findSimpleType(imported, typeName);
                 if (named != null) {
@@ -104,12 +131,64 @@ public final class SchemaFacets {
                 }
             }
         }
-        if (named == null) {
-            return;
+        return named;
+    }
+
+    /**
+     * The facets a restriction may use, following its base through named types to a built-in type
+     * or a list/union. A base that cannot be resolved, as in a file that did not load, limits nothing.
+     *
+     * @param node       a restriction, or a node bearing one
+     * @param schemaRoot the schema root holding the global named types
+     * @return the facet types that are allowed
+     */
+    public static Set<XsdFacetType> applicableFacets(XsdNode node, XsdNode schemaRoot) {
+        XsdRestriction restriction = node instanceof XsdRestriction own ? own : findRestriction(node);
+        Set<XsdFacetType> facets = restriction == null
+                ? Set.of() : applicableFacets(restriction, schemaRoot, new java.util.HashSet<>());
+        return facets.isEmpty() ? EnumSet.allOf(XsdFacetType.class) : facets;
+    }
+
+    /** @return the allowed facets, empty when the base cannot be resolved */
+    private static Set<XsdFacetType> applicableFacets(XsdRestriction restriction, XsdNode schemaRoot,
+            Set<XsdNode> visited) {
+        for (XsdNode child : restriction.getChildren()) {
+            if (child.getNodeType() == XsdNodeType.SIMPLE_TYPE) {
+                return applicableToType(child, schemaRoot, visited); // the base is declared inline
+            }
         }
-        out.addAll(collect(named));
-        collectBaseChain(named, schemaRoot, out, visited);
-        collectListUnion(named, schemaRoot, out, visited);
+        String base = restriction.getBase();
+        String local = localTypeName(base);
+        if (local == null) {
+            return XsdDatatypeFacets.getApplicableFacets(base); // an xs: built-in
+        }
+        XsdNode named = XsdRedefinitions.refersToOriginal(restriction, local)
+                ? XsdRedefinitions.originalOf(restriction) : namedSimpleType(schemaRoot, local);
+        return named != null ? applicableToType(named, schemaRoot, visited)
+                : XsdDatatypeFacets.getApplicableFacets(base); // a default-namespace built-in, or unknown
+    }
+
+    private static Set<XsdFacetType> applicableToType(XsdNode type, XsdNode schemaRoot, Set<XsdNode> visited) {
+        if (!visited.add(type)) {
+            return Set.of(); // circular base chain
+        }
+        for (XsdNode child : type.getChildren()) {
+            switch (child.getNodeType()) {
+                case LIST -> {
+                    return XsdDatatypeFacets.LIST_FACETS;
+                }
+                case UNION -> {
+                    return XsdDatatypeFacets.UNION_FACETS;
+                }
+                case RESTRICTION -> {
+                    return applicableFacets((XsdRestriction) child, schemaRoot, visited);
+                }
+                default -> {
+                    // annotations
+                }
+            }
+        }
+        return Set.of();
     }
 
     /** @return the direct {@code xs:simpleType} child of {@code schema} with the given name. */
@@ -130,9 +209,19 @@ public final class SchemaFacets {
     private static void collectBaseChain(XsdNode node, XsdNode schemaRoot,
             List<XsdFacet> out, java.util.Set<String> visited) {
         XsdRestriction restriction = findRestriction(node);
-        if (restriction != null) {
-            addNamedTypeFacets(localTypeName(restriction.getBase()), schemaRoot, out, visited);
+        if (restriction == null) {
+            return;
         }
+        String base = localTypeName(restriction.getBase());
+        if (XsdRedefinitions.refersToOriginal(restriction, base)) {
+            XsdNode original = XsdRedefinitions.originalOf(restriction);
+            if (original != null) {
+                out.addAll(collect(original));
+                collectBaseChain(original, schemaRoot, out, visited);
+            }
+            return;
+        }
+        addNamedTypeFacets(base, schemaRoot, out, visited);
     }
 
     /** Descends simple-type constructs and resolves named list item / union member type facets. */

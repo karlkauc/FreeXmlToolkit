@@ -2030,6 +2030,7 @@ public class InspectorPanel extends VBox {
         inherited.addAll(SchemaFacets.resolveListUnionFacets(node, schemaRoot));
         inheritedFacets.addAll(inherited);
         facets.addAll(inherited);
+        offerFacets(SchemaFacets.applicableFacets(node, schemaRoot));
         List<InspectorKeyValueList.Entry<XsdFacet>> rows = new ArrayList<>();
         for (XsdFacet facet : facets) {
             boolean readOnly = inheritedFacets.contains(facet);
@@ -2037,6 +2038,15 @@ public class InspectorPanel extends VBox {
                     readOnly, readOnly ? "inherited from the referenced named type" : null));
         }
         facetList.setItems(rows);
+    }
+
+    /** Limits the add row to the facets the node's base type allows. */
+    private void offerFacets(java.util.Set<org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType> allowed) {
+        var selected = facetTypeCombo.getValue();
+        facetTypeCombo.getItems().setAll(
+                java.util.Arrays.stream(org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType.values())
+                        .filter(allowed::contains).toList());
+        facetTypeCombo.setValue(selected != null && allowed.contains(selected) ? selected : null);
     }
 
     /**
@@ -2261,6 +2271,11 @@ public class InspectorPanel extends VBox {
     /** @return the number of example values listed (for tests/observers). */
     public int getExampleValueCount() {
         return exampleValuesPane.getChildren().size();
+    }
+
+    /** @return the facet types the add row currently offers (for tests/observers). */
+    public List<org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType> getOfferedFacetTypes() {
+        return List.copyOf(facetTypeCombo.getItems());
     }
 
     /** @return the number of facets currently shown (for tests/observers). */

@@ -1694,38 +1694,13 @@ public class XsdPropertiesPanel extends BorderPane {
 
             if (current instanceof XsdSchema schema) {
                 // Search for the type definition
-                facets.putAll(findFacetsInType(schema, typeName));
+                // The nearest definition of a facet comes first in the chain and wins.
+                org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets.resolveReferencedTypeFacets(element, schema)
+                        .forEach(facet -> facets.putIfAbsent(facet.getFacetType(), facet.getValue()));
                 if (!facets.isEmpty()) {
                     facetsFromReferencedType = true; // Referenced type facets are read-only
                     logger.debug("Found {} facets in referenced type '{}' (read-only)", facets.size(), typeName);
                 }
-            }
-        }
-
-        return facets;
-    }
-
-    /**
-     * Finds facets in a named type definition within the schema.
-     *
-     * @param schema the schema to search
-     * @param typeName the name of the type to find
-     * @return map of facets found in the type
-     */
-    private java.util.Map<XsdFacetType, String> findFacetsInType(XsdSchema schema, String typeName) {
-        java.util.Map<XsdFacetType, String> facets = new java.util.HashMap<>();
-
-        for (XsdNode child : schema.getChildren()) {
-            if (child instanceof XsdSimpleType simpleType && typeName.equals(simpleType.getName())) {
-                // Found the type, now extract facets from restriction
-                for (XsdNode typeChild : simpleType.getChildren()) {
-                    if (typeChild instanceof XsdRestriction restriction) {
-                        for (org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet : restriction.getFacets()) {
-                            facets.put(facet.getFacetType(), facet.getValue());
-                        }
-                    }
-                }
-                break;
             }
         }
 

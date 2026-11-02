@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
@@ -12,6 +13,7 @@ import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +42,12 @@ class InspectorListUnionFacetsTest {
               </xs:simpleType>
               <xs:simpleType name="CodeOrAmount">
                 <xs:union memberTypes="Code Amount"/>
+              </xs:simpleType>
+              <xs:simpleType name="SomeIds">
+                <xs:restriction base="CodeOrAmount"/>
+              </xs:simpleType>
+              <xs:simpleType name="ManyAmounts">
+                <xs:restriction base="Amount"/>
               </xs:simpleType>
             </xs:schema>
             """;
@@ -88,6 +96,31 @@ class InspectorListUnionFacetsTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
                 () -> inspector.getFacetCount() == 2 && inspector.getInheritedFacetCount() == 2);
         assertEquals(2, inspector.getInheritedFacetCount(), "both union member facets are inherited");
+    }
+
+    @Test
+    void theAddRowOffersWhatTheBaseAllows(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("SomeIds")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        XsdNode root = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveSchemaRoot().orElseThrow());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.selectNodeInActiveTree(find(root, "SomeIds")));
+        Set<XsdFacetType> union = Set.of(XsdFacetType.PATTERN, XsdFacetType.ENUMERATION, XsdFacetType.ASSERTION);
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> union.equals(Set.copyOf(inspector.getOfferedFacetTypes()))));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.selectNodeInActiveTree(find(root, "ManyAmounts")));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> inspector.getOfferedFacetTypes().contains(XsdFacetType.TOTAL_DIGITS)));
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> inspector.getOfferedFacetTypes().contains(XsdFacetType.MAX_LENGTH)));
     }
 
     private XsdNode find(XsdNode node, String name) {
