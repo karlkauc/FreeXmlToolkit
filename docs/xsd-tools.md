@@ -104,6 +104,8 @@ The Graphic View lets you explore and edit your schemas visually.
   rebuilds the schema from the current editor text, so unsaved text stays, but the undo history of
   diagram edits is cleared. **Ignore** keeps the current view until the file changes again. Open
   and closed cards, zoom and scroll position survive any rebuild.
+  An XML document watches the schema bound to it the same way, also without a tab for that schema.
+  Its schema facts and IntelliSense then refresh without asking, because the document stays as it is.
 - **Warning bar for missing schemas.** A bar above the diagram names the includes and imports that
   could not be loaded, also those inside imported schemas and nested includes. Circular includes
   are not failures. **Dismiss** hides the bar until the set of failures changes. A schema you have

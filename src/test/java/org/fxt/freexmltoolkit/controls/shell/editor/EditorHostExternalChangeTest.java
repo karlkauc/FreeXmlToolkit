@@ -254,6 +254,91 @@ class EditorHostExternalChangeTest {
     }
 
     @Test
+    void aBoundSchemaWithoutATabIsRefreshedWithoutAsking(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("bound.xsd");
+        Files.writeString(xsd, schemaWithChild("first"));
+        openBoundXml(tmp, xsd);
+
+        writeExternally(xsd, schemaWithChild("second"));
+        checkUntil(() -> validChildren().contains("second"));
+
+        assertFalse(validChildren().contains("first"), "IntelliSense and schema facts come from the new file");
+        assertEquals(List.of(), prompt.asked);
+        assertFalse(host.getActiveDocument().orElseThrow().isDirty());
+    }
+
+    @Test
+    void anIncludeOfABoundSchemaIsWatchedToo(@TempDir Path tmp) throws Exception {
+        Path core = tmp.resolve("core.xsd");
+        Files.writeString(core, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:group name="kids"><xs:sequence><xs:element name="first"/></xs:sequence></xs:group>
+                </xs:schema>
+                """);
+        Path xsd = tmp.resolve("bound.xsd");
+        Files.writeString(xsd, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:include schemaLocation="core.xsd"/>
+                  <xs:element name="root"><xs:complexType><xs:group ref="kids"/></xs:complexType></xs:element>
+                </xs:schema>
+                """);
+        openBoundXml(tmp, xsd);
+
+        writeExternally(core, Files.readString(core).replace("first", "second"));
+        checkUntil(() -> validChildren().contains("second"));
+        assertEquals(List.of(), prompt.asked);
+    }
+
+    @Test
+    void aDeletedBoundSchemaKeepsTheTabUsableAndARestoreIsNoticed(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("bound.xsd");
+        Files.writeString(xsd, schemaWithChild("first"));
+        openBoundXml(tmp, xsd);
+
+        Files.delete(xsd);
+        checkUntil(() -> host.activeSchemaStatusProperty().get() == EditorHost.SchemaStatus.ERROR);
+        assertEquals("<root/>", activeText());
+        assertEquals(List.of(), prompt.asked);
+
+        writeExternally(xsd, schemaWithChild("restored"));
+        checkUntil(() -> validChildren().contains("restored"));
+        assertEquals(EditorHost.SchemaStatus.READY, host.activeSchemaStatusProperty().get());
+    }
+
+    @Test
+    void aSchemaNoLongerBoundIsNoLongerWatched(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("bound.xsd");
+        Files.writeString(xsd, schemaWithChild("first"));
+        openBoundXml(tmp, xsd);
+        int revision = host.xmlSchemaProviderRevisionProperty().get();
+        bind(null);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        writeExternally(xsd, schemaWithChild("second"));
+        check();
+        check();
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(revision, host.xmlSchemaProviderRevisionProperty().get(), "nothing was read again");
+    }
+
+    @Test
+    void aBoundSchemaInItsOwnTabStillAsksThere(@TempDir Path tmp) throws Exception {
+        Path xsd = open(tmp, "bound.xsd", schemaWithChild("first"));
+        openBoundXml(tmp, xsd);
+        prompt.changedAnswer = ExternalChangePrompt.ChangedChoice.RELOAD;
+
+        writeExternally(xsd, schemaWithChild("second"));
+        checkUntil(() -> !prompt.asked.isEmpty());
+
+        assertEquals(List.of("changed:bound.xsd:false"), prompt.asked);
+        // The question brought the schema's tab to the front; the XML tab refreshed behind it.
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(tmp.resolve("doc.xml")));
+        checkUntil(() -> validChildren().contains("second"));
+        assertEquals(1, prompt.asked.size());
+    }
+
+    @Test
     void aTouchedIncludeAsksNothingAndALaterChangeStillAsks(@TempDir Path tmp) throws Exception {
         Path core = tmp.resolve("core.xsd");
         Files.writeString(core, schemaWithElement("oldCard", ""));
@@ -684,6 +769,32 @@ class EditorHostExternalChangeTest {
                   <xs:complexType name="%s"><xs:sequence/></xs:complexType>
                 </xs:schema>
                 """.formatted(name);
+    }
+
+    private void openBoundXml(Path dir, Path xsd) throws Exception {
+        open(dir, "doc.xml", "<root/>");
+        bind(xsd.toFile());
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> !validChildren().isEmpty());
+        // The stamps follow the schema facts on the same thread; one check takes them as they are.
+        check();
+    }
+
+    private void bind(java.io.File xsd) throws Exception {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setSchemaForActiveDocument(xsd)).get(30, TimeUnit.SECONDS);
+    }
+
+    private List<String> validChildren() {
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.resolveValidChildren("/root"));
+    }
+
+    private static String schemaWithChild(String child) {
+        return """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="root">
+                    <xs:complexType><xs:sequence><xs:element name="%s"/></xs:sequence></xs:complexType>
+                  </xs:element>
+                </xs:schema>
+                """.formatted(child);
     }
 
     private Path open(Path dir, String name, String content) throws Exception {

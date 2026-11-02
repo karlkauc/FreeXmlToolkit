@@ -5177,6 +5177,12 @@ public class EditorHost extends BorderPane {
             return;
         }
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            // Stamped first and kept on failure: repairing a broken schema must be noticed too.
+            Path schemaPath = xsd.toPath().toAbsolutePath().normalize();
+            java.util.Map<Path, DiskStamp> stamps = new java.util.LinkedHashMap<>();
+            java.util.Map<Path, Long> checksums = new java.util.HashMap<>();
+            stamps.put(schemaPath, DiskStamp.of(schemaPath));
+            checksums.put(schemaPath, DiskStamp.checksum(schemaPath));
             try {
                 // The editor view has usually just parsed this very XSD for IntelliSense: share that
                 // model (read-only) instead of running the whole schema pipeline a second time.
@@ -5194,8 +5200,11 @@ public class EditorHost extends BorderPane {
                 // own tab, edit) the declaration behind an element. Best-effort like the provider.
                 org.fxt.freexmltoolkit.controls.v2.model.XsdSchema model = null;
                 try {
-                    model = XsdUiParser.parse(Files.readString(xsd.toPath(), StandardCharsets.UTF_8),
-                            xsd.toPath(), null);
+                    XsdUiParser.Result parsed = XsdUiParser.parseDetailed(
+                            Files.readString(xsd.toPath(), StandardCharsets.UTF_8), xsd.toPath(), null);
+                    model = parsed.schema();
+                    stamps.putAll(parsed.dependencyStamps());
+                    checksums.putAll(parsed.dependencyChecksums());
                 } catch (Exception | LinkageError e) {
                     model = null; // a schema that does not parse is the user's; a parser bug is counted
                     org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_bound_xsd");
@@ -5217,6 +5226,8 @@ public class EditorHost extends BorderPane {
                 });
             } catch (Exception e) {
                 // schema-derived info is best-effort; ignore failures
+            } finally {
+                Platform.runLater(() -> tab.boundSchemaWatch = new BoundSchemaWatch(xsd, stamps, checksums));
             }
         });
     }
@@ -5741,9 +5752,41 @@ public class EditorHost extends BorderPane {
         for (Tab tab : tabPane.getTabs()) {
             if (tab instanceof EditorTab et && et.schemaFile != null
                     && saved.equals(et.schemaFile.toPath().toAbsolutePath().normalize())) {
-                loadXmlSchemaProviderAsync(et, et.schemaFile);
+                refreshBoundSchema(et);
             }
         }
+    }
+
+    /**
+     * Reads a tab's bound schema anew, for the view's IntelliSense first because the schema
+     * provider shares what the view has loaded. A newer binding wins over this refresh.
+     */
+    private void refreshBoundSchema(EditorTab tab) {
+        File xsd = tab.schemaFile;
+        if (xsd == null) {
+            return;
+        }
+        long request = tab.schemaBindRequest.get();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            if (!acquireSchemaDetection(tab, () -> tab.schemaBindRequest.get() != request)) {
+                return;
+            }
+            boolean loaded = false;
+            try {
+                loaded = tab.schemaBindRequest.get() == request && loadSchemaSafely(tab, xsd);
+            } finally {
+                tab.schemaDetecting.set(false);
+            }
+            boolean applied = loaded;
+            Platform.runLater(() -> {
+                if (isAbandoned(tab) || tab.schemaBindRequest.get() != request || !xsd.equals(tab.schemaFile)) {
+                    return;
+                }
+                tab.view.invalidateIntelliSenseCache();
+                publishSchemaStatus(tab, applied ? SchemaStatus.READY : SchemaStatus.ERROR);
+                loadXmlSchemaProviderAsync(tab, xsd);
+            });
+        });
     }
 
     /** A place a schema component is used: the referring node and a short description. */
@@ -6014,6 +6057,18 @@ public class EditorHost extends BorderPane {
 
     // ----- external changes ------------------------------------------------
 
+    /**
+     * The files behind the schema facts of an XML document.
+     *
+     * @param schema    the bound schema these belong to; a different binding makes them obsolete
+     * @param stamps    the schema file and the files it pulls in, as read; a value can be
+     *                  {@code null} when the file's state is undeterminable
+     * @param checksums the content checksums of those files
+     */
+    private record BoundSchemaWatch(File schema, java.util.Map<Path, DiskStamp> stamps,
+                                    java.util.Map<Path, Long> checksums) {
+    }
+
     /** The titled, fully loaded documents whose files are watched for external changes. */
     private java.util.List<ExternalChangeMonitor.Watched> watchedDocuments() {
         java.util.List<ExternalChangeMonitor.Watched> watched = new java.util.ArrayList<>();
@@ -6026,9 +6081,36 @@ public class EditorHost extends BorderPane {
                     et.dependencyStamps.forEach((file, stamp) -> watched.add(ExternalChangeMonitor.Watched.dependency(
                             et.document, file, stamp, et.dependencyChecksums.get(file))));
                 }
+                BoundSchemaWatch bound = et.boundSchemaWatch;
+                if (bound != null && bound.schema().equals(et.schemaFile)) {
+                    bound.stamps().forEach((file, stamp) -> watched.add(ExternalChangeMonitor.Watched.dependency(
+                            et.document, file, stamp, bound.checksums().get(file))));
+                }
             }
         }
         return watched;
+    }
+
+    /**
+     * Refreshes the schema an XML tab is bound to when it or a file it pulls in changed. Nothing
+     * is asked: only the schema facts change, the text and the undo history stay.
+     */
+    private void handleBoundSchemaChanges(EditorTab tab, java.util.List<ExternalChangeMonitor.Change> changes) {
+        BoundSchemaWatch bound = tab.boundSchemaWatch;
+        if (bound == null || !bound.schema().equals(tab.schemaFile)) {
+            return;
+        }
+        boolean refresh = false;
+        for (ExternalChangeMonitor.Change change : changes) {
+            if (bound.stamps().containsKey(change.path())
+                    && java.util.Objects.equals(change.known(), bound.stamps().get(change.path()))) {
+                bound.stamps().put(change.path(), change.current());
+                refresh |= change.known() != null && !change.sameContent();
+            }
+        }
+        if (refresh) {
+            refreshBoundSchema(tab);
+        }
     }
 
     /**
@@ -6104,6 +6186,10 @@ public class EditorHost extends BorderPane {
                                          java.util.List<ExternalChangeMonitor.Change> changes) {
         EditorTab tab = editorTabOf(document);
         if (tab == null || tab.loading || tab.saving > 0) {
+            return;
+        }
+        if (document.getFileType() == EditorFileType.XML) {
+            handleBoundSchemaChanges(tab, changes);
             return;
         }
         java.util.List<ExternalChangeMonitor.Change> pending = new java.util.ArrayList<>();
@@ -6450,6 +6536,8 @@ public class EditorHost extends BorderPane {
         private java.util.Map<Path, DiskStamp> dependencyStamps = new java.util.LinkedHashMap<>();
         /** The content checksums of those files, to tell a touched file from a changed one. */
         private java.util.Map<Path, Long> dependencyChecksums = new java.util.HashMap<>();
+        /** For an XML document: the bound schema's files as its schema facts were read. */
+        private BoundSchemaWatch boundSchemaWatch;
         /** Host callback after a view switch that waited for a background parse has been applied. */
         private Runnable viewModeAppliedCallback = () -> { };
         /** Shared XML-instance model+command context across Text/Tree/Grid (mirrors {@link #editorContext}). */
