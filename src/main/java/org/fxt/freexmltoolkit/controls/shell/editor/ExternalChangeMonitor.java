@@ -45,11 +45,18 @@ final class ExternalChangeMonitor {
      * @param path     its file
      * @param known    the stamp recorded at the last load/save ({@code null} = none yet)
      * @param dependency whether {@code path} is not the document's own file but one its model
-     *                 pulls in, which only needs the stamp compared
+     *                 pulls in, whose text nobody needs
+     * @param checksum the content checksum of a dependency when its model read it, {@code null}
+     *                 when there is none to compare with
      */
-    record Watched(OpenDocument document, Path path, DiskStamp known, boolean dependency) {
+    record Watched(OpenDocument document, Path path, DiskStamp known, boolean dependency, Long checksum) {
         Watched(OpenDocument document, Path path, DiskStamp known) {
-            this(document, path, known, false);
+            this(document, path, known, false, null);
+        }
+
+        /** A file the document's model pulls in. */
+        static Watched dependency(OpenDocument document, Path path, DiskStamp known, Long checksum) {
+            return new Watched(document, path, known, true, checksum);
         }
     }
 
@@ -62,9 +69,11 @@ final class ExternalChangeMonitor {
      * @param current  the stamp found on disk
      * @param diskText the file's current text, or {@code null} when deleted, unreadable or a dependency
      * @param dependency whether {@code path} is a file the document's model pulls in
+     * @param sameContent whether a dependency only got a new stamp and still has the content its
+     *                 model read
      */
     record Change(OpenDocument document, Path path, DiskStamp known, DiskStamp current, String diskText,
-                  boolean dependency) {
+                  boolean dependency, boolean sameContent) {
         boolean deleted() {
             return !current.exists();
         }
@@ -188,7 +197,9 @@ final class ExternalChangeMonitor {
                     }
                 }
             }
-            changes.add(new Change(w.document(), w.path(), w.known(), current, diskText, w.dependency()));
+            boolean sameContent = w.dependency() && current.exists() && w.checksum() != null
+                    && w.checksum().equals(DiskStamp.checksum(w.path()));
+            changes.add(new Change(w.document(), w.path(), w.known(), current, diskText, w.dependency(), sameContent));
         }
         return changes;
     }

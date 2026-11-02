@@ -41,8 +41,11 @@ final class XsdUiParser {
      * @param remoteImportsMissing {@code true} when at least one remote import was left out
      * @param dependencyStamps     the state of each file the schema pulls in, as just parsed; a
      *                             value is {@code null} when the file's state is undeterminable
+     * @param dependencyChecksums  the content checksum of each of those files; a value is
+     *                             {@code null} when the file is missing or unreadable
      */
-    record Result(XsdSchema schema, boolean remoteImportsMissing, Map<Path, DiskStamp> dependencyStamps) {
+    record Result(XsdSchema schema, boolean remoteImportsMissing, Map<Path, DiskStamp> dependencyStamps,
+                  Map<Path, Long> dependencyChecksums) {
     }
 
     private XsdUiParser() {
@@ -88,15 +91,13 @@ final class XsdUiParser {
         if (anyNew) {
             FxtGui.executorService.submit(() -> download(text, path, deferred, onRemoteAvailable, factories));
         }
-        return new Result(schema, !deferred.isEmpty(), dependencyStamps(schema));
-    }
-
-    private static Map<Path, DiskStamp> dependencyStamps(XsdSchema schema) {
         Map<Path, DiskStamp> stamps = new LinkedHashMap<>();
+        Map<Path, Long> checksums = new LinkedHashMap<>();
         for (Path file : schema.getDependencyFiles()) {
-            stamps.put(file, DiskStamp.of(file));
+            stamps.put(file, DiskStamp.of(file)); // before the read: a later write then shows as a change
+            checksums.put(file, DiskStamp.checksum(file));
         }
-        return stamps;
+        return new Result(schema, !deferred.isEmpty(), stamps, checksums);
     }
 
     private static void download(String text, Path path, Set<String> deferred, Runnable onRemoteAvailable,

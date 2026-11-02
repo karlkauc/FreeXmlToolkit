@@ -6023,8 +6023,8 @@ public class EditorHost extends BorderPane {
                         et.document, et.document.getPath(), et.document.getDiskStamp()));
                 // A model behind the text gets parsed anew anyway, and then reads the files as they are.
                 if (et.editorContext != null && et.isModelCurrent()) {
-                    et.dependencyStamps.forEach((file, stamp) -> watched.add(
-                            new ExternalChangeMonitor.Watched(et.document, file, stamp, true)));
+                    et.dependencyStamps.forEach((file, stamp) -> watched.add(ExternalChangeMonitor.Watched.dependency(
+                            et.document, file, stamp, et.dependencyChecksums.get(file))));
                 }
             }
         }
@@ -6112,8 +6112,8 @@ public class EditorHost extends BorderPane {
                     || !java.util.Objects.equals(change.known(), tab.dependencyStamps.get(change.path()))) {
                 continue; // a newer model has read the file meanwhile
             }
-            if (change.known() == null) {
-                tab.dependencyStamps.put(change.path(), change.current()); // first known state
+            if (change.known() == null || change.sameContent()) {
+                tab.dependencyStamps.put(change.path(), change.current()); // nothing to compare, or to tell
             } else {
                 pending.add(change);
             }
@@ -6448,6 +6448,8 @@ public class EditorHost extends BorderPane {
         private Runnable modelInstalledCallback = () -> { };
         /** The files the current XSD model pulls in and their state when it read them. */
         private java.util.Map<Path, DiskStamp> dependencyStamps = new java.util.LinkedHashMap<>();
+        /** The content checksums of those files, to tell a touched file from a changed one. */
+        private java.util.Map<Path, Long> dependencyChecksums = new java.util.HashMap<>();
         /** Host callback after a view switch that waited for a background parse has been applied. */
         private Runnable viewModeAppliedCallback = () -> { };
         /** Shared XML-instance model+command context across Text/Tree/Grid (mirrors {@link #editorContext}). */
@@ -6748,6 +6750,7 @@ public class EditorHost extends BorderPane {
                 lastParsedRevision = textRevision;
                 remoteImportsMissing = parsed.remoteImportsMissing();
                 dependencyStamps = new java.util.LinkedHashMap<>(parsed.dependencyStamps());
+                dependencyChecksums = new java.util.HashMap<>(parsed.dependencyChecksums());
                 // A new context means a new schema: ensureCanvasGraphic() rebuilds the
                 // Graphic view (it compares getEditorContext() and discards the stale one).
             } catch (Exception e) {
@@ -6757,6 +6760,7 @@ public class EditorHost extends BorderPane {
                 failedXsdParseRevision = textRevision; // the same text fails again: do not re-parse it
                 remoteImportsMissing = false;
                 dependencyStamps = new java.util.LinkedHashMap<>();
+                dependencyChecksums = new java.util.HashMap<>();
             }
         }
 
@@ -6910,6 +6914,7 @@ public class EditorHost extends BorderPane {
                             lastParsedRevision = revision;
                             remoteImportsMissing = result.remoteImportsMissing();
                             dependencyStamps = new java.util.LinkedHashMap<>(result.dependencyStamps());
+                            dependencyChecksums = new java.util.HashMap<>(result.dependencyChecksums());
                         } else {
                             failedXsdParseRevision = revision;
                         }

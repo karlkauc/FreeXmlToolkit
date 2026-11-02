@@ -254,6 +254,39 @@ class EditorHostExternalChangeTest {
     }
 
     @Test
+    void aTouchedIncludeAsksNothingAndALaterChangeStillAsks(@TempDir Path tmp) throws Exception {
+        Path core = tmp.resolve("core.xsd");
+        Files.writeString(core, schemaWithElement("oldCard", ""));
+        open(tmp, "main.xsd", schemaIncluding("core.xsd"));
+        showGraphic();
+        waitForCard("oldCard");
+        prompt.changedAnswer = ExternalChangePrompt.ChangedChoice.RELOAD;
+
+        writeExternally(core, schemaWithElement("oldCard", ""));
+        check();
+        check();
+        assertEquals(List.of(), prompt.asked, "the same content, only a new modification time");
+
+        writeExternally(core, schemaWithElement("newCard", ""));
+        checkUntil(() -> hasCard("newCard"));
+        assertEquals(List.of("dependency:main.xsd:[core.xsd]"), prompt.asked);
+    }
+
+    @Test
+    void aChangeOfTheSameSizeIsNoticed(@TempDir Path tmp) throws Exception {
+        Path core = tmp.resolve("core.xsd");
+        Files.writeString(core, schemaWithElement("cardA", ""));
+        open(tmp, "main.xsd", schemaIncluding("core.xsd"));
+        showGraphic();
+        waitForCard("cardA");
+        prompt.changedAnswer = ExternalChangePrompt.ChangedChoice.RELOAD;
+
+        writeExternally(core, schemaWithElement("cardB", ""));
+        checkUntil(() -> hasCard("cardB"));
+        assertEquals(List.of("dependency:main.xsd:[core.xsd]"), prompt.asked);
+    }
+
+    @Test
     void aLargeSchemaReparsesItsChangedIncludeInTheBackground(@TempDir Path tmp) throws Exception {
         Files.writeString(tmp.resolve("core.xsd"), schemaWithElement("oldCard", ""));
         String padding = "<!-- " + "x".repeat(300 * 1024) + " -->";

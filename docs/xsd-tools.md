@@ -99,7 +99,8 @@ The Graphic View lets you explore and edit your schemas visually.
       namespace whose schema is not loaded.
 - **Files changed on disk.** The schema's own file and every local file it pulls in are watched:
   includes at any depth, imports and the targets of `xs:redefine`/`xs:override`. When such a file
-  changes, is deleted or appears, one question names the files for each schema tab. **Reload**
+  changes, is deleted or appears, one question names the files for each schema tab. A file with a
+  new date but the same content asks nothing. **Reload**
   rebuilds the schema from the current editor text, so unsaved text stays, but the undo history of
   diagram edits is cleared. **Ignore** keeps the current view until the file changes again. Open
   and closed cards, zoom and scroll position survive any rebuild.

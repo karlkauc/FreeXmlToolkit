@@ -6,6 +6,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.zip.CRC32C;
 
 /**
  * What the editor last knew about a document's file on disk. Two stamps that differ mean the
@@ -34,6 +35,22 @@ public record DiskStamp(boolean exists, long lastModifiedMillis, long size) {
         } catch (NoSuchFileException | NotDirectoryException e) {
             return MISSING;
         } catch (IOException | RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * The checksum of a file's content. Tells a file that was only touched or rewritten unchanged
+     * from a changed one when the stamps differ. Blocking; never throws.
+     *
+     * @return the checksum, or {@code null} when the file is missing or unreadable
+     */
+    public static Long checksum(Path path) {
+        try {
+            CRC32C crc = new CRC32C();
+            crc.update(Files.readAllBytes(path));
+            return crc.getValue();
+        } catch (IOException | RuntimeException | OutOfMemoryError e) {
             return null;
         }
     }
