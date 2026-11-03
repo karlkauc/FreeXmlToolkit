@@ -151,7 +151,6 @@ public class XsdDocumentationImageService {
     }
 
     // Colors matching XsdDiagramView styles
-    private static final String COLOR_BG = "#f0f8ff";                    // Background matching XsdDiagramView
     private static final String COLOR_BOX_FILL_ELEMENT = "#f0f8ff";      // Element background
     private static final String COLOR_BOX_FILL_ATTRIBUTE = "#f9f5e7";    // Attribute background
     private static final String COLOR_BOX_FILL_SEQUENCE = "#e9ecef";     // Sequence background
@@ -692,7 +691,7 @@ public class XsdDocumentationImageService {
                 finalRightStartX + boxPadding * 2 + maxChildWidth + margin * 3,
                 maxRightEdge[0] + margin * 2);
         svgRoot.setAttribute("width", String.valueOf(computedWidth));
-        svgRoot.setAttribute("style", "background-color: " + COLOR_BG);
+        // No background: the diagram takes the colour of whatever page or document it is placed on.
 
         return document;
     }
