@@ -49,6 +49,7 @@ import org.apache.batik.transcoder.image.JPEGTranscoder;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.domain.IdentityConstraint;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -407,7 +408,9 @@ public class XsdDocumentationImageService {
                 ".connection-line:hover { stroke-width: 2.5; } " +
                 ".cardinality-text { font-weight: 600; font-size: 10px; } " +
                 ".element-icon { fill: " + COLOR_ICON + "; } " +
-                ".attribute-icon { fill: " + COLOR_STROKE_ATTRIBUTE + "; }";
+                ".attribute-icon { fill: " + COLOR_STROKE_ATTRIBUTE + "; } " +
+                ".constraint-link { cursor: pointer; } " +
+                ".constraint-link:hover { text-decoration: underline; }";
         styleElement.appendChild(document.createTextNode(css));
         defs.appendChild(styleElement);
 
@@ -616,7 +619,7 @@ public class XsdDocumentationImageService {
         svgRoot.appendChild(leftRootLink);
         drawAttributeSection(document, svgRoot, rootAttributes,
                 rootStartX + boxPadding, rootStartY + boxPadding + rootNameHeight, rootElementWidth);
-        drawConstraintSection(document, svgRoot, rootConstraints, rootStartX + boxPadding,
+        drawConstraintSection(document, svgRoot, rootElement, rootConstraints, rootStartX + boxPadding,
                 rootStartY + boxPadding + rootNameHeight + attributeSectionHeight(rootAttributes), rootElementWidth);
         updateMaxRightEdge(maxRightEdge, rootStartX + boxPadding * 2 + rootElementWidth);
 
@@ -2014,7 +2017,7 @@ public class XsdDocumentationImageService {
                 }
                 drawAttributeSection(document, svgRoot, attributes,
                         startX + boxPadding, nameRowBottom + typeHeight, maxWidth);
-                drawConstraintSection(document, svgRoot, constraints, startX + boxPadding,
+                drawConstraintSection(document, svgRoot, child, constraints, startX + boxPadding,
                         nameRowBottom + typeHeight + attributeSectionHeight(attributes), maxWidth);
 
                 double elementRightEdge = startX + boxPadding * 2 + maxWidth;
@@ -2256,7 +2259,8 @@ public class XsdDocumentationImageService {
      * @param y     top of the constraint section (below name, type and attributes)
      * @param width width of the box content
      */
-    private void drawConstraintSection(Document document, Element parent, List<DiagramConstraint> rows,
+    private void drawConstraintSection(Document document, Element parent, XsdExtendedElement owner,
+                                       List<DiagramConstraint> rows,
                                        double x, double y, double width) {
         if (rows.isEmpty()) {
             return;
@@ -2303,11 +2307,12 @@ public class XsdDocumentationImageService {
             labelText.setAttribute("text-anchor", "middle");
             group.appendChild(labelText);
 
-            Element text = createSvgTextElement(document, row.text(),
+            Element text = createSvgTextElement(document, "",
                     String.valueOf(x + CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP),
                     String.valueOf(centredBaseline(textFont, row.text(), rowTop, CONSTRAINT_ROW_HEIGHT)),
                     COLOR_TEXT_PRIMARY, CONSTRAINT_FONT_SIZE);
             text.setAttribute("font-family", CONSTRAINT_FONT_FAMILY);
+            appendSegments(document, text, owner, row);
             group.appendChild(text);
             parent.appendChild(group);
         }
@@ -2325,6 +2330,84 @@ public class XsdDocumentationImageService {
             moreText.appendChild(title);
             parent.appendChild(moreText);
         }
+    }
+
+    /** Link colour of the HTML documentation pages. */
+    private static final String COLOR_LINK = "#0284c7";
+
+    /**
+     * Writes a constraint line into its text element: plain parts as text, the selector, the fields
+     * and the key a keyref refers to as links to the pages of what they select, where that can be
+     * found. The parts flow as one text, so no widths need measuring.
+     */
+    private void appendSegments(Document document, Element text, XsdExtendedElement owner, DiagramConstraint row) {
+        String selected = null; // first element the selector selects; fields are relative to it
+        for (DiagramConstraint.Segment segment : row.segments()) {
+            String href = switch (segment.role()) {
+                case TEXT -> null;
+                case SELECTOR -> {
+                    selected = firstMatch(owner == null ? null : owner.getCurrentXpath(), segment.path());
+                    yield pageOf(selected, null);
+                }
+                case FIELD -> pageOf(firstMatch(selected, segment.path()), null);
+                case REFER -> pageOf(xpathOfKey(segment.path()), "#identity-constraints");
+            };
+            // Mixed content (text and <a> only): the indenting serializer adds no whitespace inside
+            // it, which a browser would render as extra spaces.
+            if (href == null) {
+                text.appendChild(document.createTextNode(segment.text()));
+                continue;
+            }
+            Element link = document.createElementNS(svgNS, "a");
+            link.setAttribute("href", href);
+            link.setAttribute("class", "constraint-link");
+            link.setAttribute("fill", COLOR_LINK);
+            link.setTextContent(segment.text());
+            text.appendChild(link);
+        }
+    }
+
+    /** @return the first element map entry {@code path} selects from {@code baseXpath}, or null */
+    private String firstMatch(String baseXpath, String path) {
+        if (baseXpath == null || path == null || extendedXsdElements == null) {
+            return null;
+        }
+        List<String> matches = IdentityConstraintPaths.resolve(baseXpath, path, extendedXsdElements);
+        return matches.isEmpty() ? null : matches.getFirst();
+    }
+
+    /** @return the page of the element at {@code xpath} plus {@code anchor}, or null without one */
+    private String pageOf(String xpath, String anchor) {
+        if (xpath == null) {
+            return null;
+        }
+        XsdExtendedElement target = extendedXsdElements.get(xpath);
+        if (target == null || target.getPageName() == null || target.getPageName().isEmpty()) {
+            return null;
+        }
+        return anchor == null ? target.getPageName() : target.getPageName() + anchor;
+    }
+
+    /** @return the XPath of an element that declares the key or unique constraint {@code name}, or null */
+    private String xpathOfKey(String name) {
+        if (name == null || extendedXsdElements == null) {
+            return null;
+        }
+        String local = name.substring(name.indexOf(':') + 1);
+        String found = null;
+        for (Map.Entry<String, XsdExtendedElement> entry : extendedXsdElements.entrySet()) {
+            List<IdentityConstraint> constraints = entry.getValue().getIdentityConstraints();
+            if (constraints == null) {
+                continue;
+            }
+            for (IdentityConstraint constraint : constraints) {
+                if (constraint.getType() != IdentityConstraint.Type.KEYREF && local.equals(constraint.getName())
+                        && (found == null || entry.getKey().length() < found.length())) {
+                    found = entry.getKey(); // the shallowest declaration, stable whatever the map order
+                }
+            }
+        }
+        return found;
     }
 
     /**

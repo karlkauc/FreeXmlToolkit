@@ -24,7 +24,7 @@ class XsdDocumentationImageConstraintsTest {
     @TempDir
     Path tempDir;
 
-    private static final String LONG_FIELD = "a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z";
+    private static final String LONG_FIELD = "aFieldNameMuchLongerThanTheLimitOfOneDiagramLine";
 
     private static final String XSD = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -76,7 +76,10 @@ class XsdDocumentationImageConstraintsTest {
                                 </xs:complexType>
                             </xs:element>
                             <xs:element name="Measure" type="DerivedType"/>
-                            <xs:element name="Price" type="PriceType"/>
+                            <xs:element name="Price" type="PriceType">
+                                <xs:unique name="CcyOnce"><xs:selector xpath="."/><xs:field xpath="@ccy"/></xs:unique>
+                                <xs:unique name="Ghost"><xs:selector xpath="Missing"/><xs:field xpath="x"/></xs:unique>
+                            </xs:element>
                             <xs:element name="Busy">
                                 <xs:complexType>
                                     <xs:sequence>
@@ -130,9 +133,10 @@ class XsdDocumentationImageConstraintsTest {
         assertTrue(svg.contains(">KEY</text>"), "key label");
         assertTrue(svg.contains(">UNIQ</text>"), "unique label");
         assertTrue(svg.contains(">REF</text>"), "keyref label");
-        assertTrue(svg.contains(">BookKey  ISBN</text>"), "key text: name and fields");
-        assertTrue(svg.contains(">LoanUnique  BookRef</text>"), "unique text: name and fields");
-        assertTrue(svg.contains(">LoanBook → BookKey</text>"), "keyref text: name → refer");
+        List<String> rows = rowTexts(svg);
+        assertTrue(rows.contains("BookKey  Book / ISBN"), "key: name, selector and field: " + rows);
+        assertTrue(rows.contains("LoanUnique  Loan / BookRef"), "unique: name, selector and field: " + rows);
+        assertTrue(rows.contains("LoanBook  Loan / BookRef → BookKey"), "keyref: … → refer: " + rows);
         assertTrue(svg.contains("selector: Book"), "the tooltip has the details");
     }
 
@@ -153,10 +157,10 @@ class XsdDocumentationImageConstraintsTest {
         String svg = imageService.generateSvgString(element("Library"));
 
         assertTrue(svg.contains(">+2 more"), "6 constraints: 4 rows and +2 more");
-        Matcher u1 = Pattern.compile(">(U1  [^<]*)</text>").matcher(svg);
-        assertTrue(u1.find(), "U1 row expected");
-        assertEquals(44, u1.group(1).length(), u1.group(1));
-        assertTrue(u1.group(1).endsWith("…"), u1.group(1));
+        String u1 = rowTexts(svg).stream().filter(t -> t.startsWith("U1  ")).findFirst()
+                .orElseThrow(() -> new AssertionError("U1 row expected"));
+        assertEquals(44, u1.length(), u1);
+        assertTrue(u1.endsWith("…"), u1);
     }
 
     @Test
@@ -185,6 +189,62 @@ class XsdDocumentationImageConstraintsTest {
         assertFalse(svg.contains("constraint-row"), "no constraint rows");
         assertFalse(svg.contains(" more"), "no +N more line");
         assertFalse(svg.contains(">KEY</text>"), "no labels");
+    }
+
+    @Test
+    void selectorFieldsAndReferencedKeyLinkToTheirPages() {
+        String svg = imageService.generateSvgString(element("Library"));
+
+        assertLink(svg, "Book", element("Book").getPageName());
+        assertLink(svg, "ISBN", element("ISBN").getPageName());
+        assertLink(svg, "Loan", element("Loan").getPageName());
+        assertLink(svg, "BookRef", element("BookRef").getPageName());
+        assertLink(svg, "BookKey", element("Library").getPageName() + "#identity-constraints");
+    }
+
+    @Test
+    void attributeFieldsLinkAndUnknownPathsStayText() {
+        String svg = imageService.generateSvgString(element("Library"));
+
+        assertLink(svg, ".", element("Price").getPageName());
+        XsdExtendedElement ccy = service.xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> "@ccy".equals(e.getElementName())).findFirst().orElseThrow();
+        assertLink(svg, "@ccy", ccy.getPageName());
+        assertTrue(rowTexts(svg).contains("Ghost  Missing / x"), "the selector is still shown: " + rowTexts(svg));
+        assertFalse(svg.contains(">Missing</a>"), "a path that selects nothing gets no link");
+    }
+
+    @Test
+    void longPathsShowTheirLastStepBeforeTheLineIsCut() {
+        var segments = DiagramConstraint.shorten(List.of(
+                new DiagramConstraint.Segment("benchmarkID  ", DiagramConstraint.Role.TEXT, null),
+                new DiagramConstraint.Segment("FundStaticData/Benchmarks/Benchmark", DiagramConstraint.Role.SELECTOR,
+                        "FundStaticData/Benchmarks/Benchmark"),
+                new DiagramConstraint.Segment(" / ", DiagramConstraint.Role.TEXT, null),
+                new DiagramConstraint.Segment("BenchmarkID", DiagramConstraint.Role.FIELD, "BenchmarkID")));
+
+        assertEquals("…/Benchmark", segments.get(1).text());
+        assertEquals("FundStaticData/Benchmarks/Benchmark", segments.get(1).path(), "the link keeps the full path");
+        assertEquals("BenchmarkID", segments.get(3).text(), "the field stays visible");
+    }
+
+    private static void assertLink(String svg, String text, String href) {
+        assertNotNull(href, text + ": the target has no page");
+        Pattern link = Pattern.compile("<a[^>]*href=\"" + Pattern.quote(href) + "\"[^>]*>"
+                + Pattern.quote(text) + "</a>", Pattern.DOTALL);
+        assertTrue(link.matcher(svg).find(), text + " should link to " + href);
+    }
+
+    /** @return the visible text of every constraint line (the kind label excluded) */
+    private static List<String> rowTexts(String svg) {
+        List<String> texts = new java.util.ArrayList<>();
+        // The line text is set in 10px, its kind label in 9px
+        Matcher row = Pattern.compile("<text[^>]*font-size=\"10\"[^>]*>(.*?)</text>", Pattern.DOTALL).matcher(svg);
+        while (row.find()) {
+            texts.add(row.group(1).replaceAll("<[^>]+>", "")
+                    .replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&").strip());
+        }
+        return texts;
     }
 
     @Test
