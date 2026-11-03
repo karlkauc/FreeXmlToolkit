@@ -1714,6 +1714,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pdf-element-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PDF element reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#markdown-rendering" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3298,6 +3309,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pdf-element-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PDF element reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#markdown-rendering" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -4408,7 +4430,11 @@ the generator never modifies your schema file or writes into its folder.</p>
 </tr>
 <tr>
 <td><strong>PDF / Word options</strong></td>
-<td>Cover page, table of contents, data dictionary, schema diagram, element diagrams, page numbers, PDF bookmarks</td>
+<td>Cover page, table of contents, data dictionary, schema diagram, element diagrams (on by default), page numbers, PDF bookmarks</td>
+</tr>
+<tr>
+<td><strong>Element reference</strong> <em>(PDF)</em></td>
+<td><em>One section per declaration</em> (default), <em>Every occurrence</em> or <em>Off</em> - see below</td>
 </tr>
 <tr>
 <td><strong>Open the generated documentation after creation</strong></td>
@@ -4416,6 +4442,24 @@ the generator never modifies your schema file or writes into its folder.</p>
 </tr>
 </tbody>
 </table>
+<h4 id="pdf-element-reference">PDF element reference<a class="headerlink" href="#pdf-element-reference" title="Permanent link">&para;</a></h4>
+<p>The PDF has an <strong>Element Reference</strong>: one section per element and attribute with what the HTML
+detail page shows:</p>
+<ul>
+<li>the diagram, with <strong>Element diagrams</strong> on;</li>
+<li>the properties: type, cardinality or use, namespace, default / fixed / nillable;</li>
+<li>the documentation in every selected language;</li>
+<li>the restrictions with their values, including the full enumeration list;</li>
+<li>the children and attributes;</li>
+<li>identity constraints (selector, fields, refers to), assertions, type alternatives, wildcards
+  and open content;</li>
+<li>appinfo.</li>
+</ul>
+<p><strong>One section per declaration</strong> describes an element once, however many paths its type is used at.
+The section lists the other paths, and they link to it. <strong>Every occurrence</strong> gives each path its own
+section, as the HTML documentation does; for large schemas this makes the PDF much longer.</p>
+<p>Paths in the data dictionary, names in the index and in the children tables link to their section,
+and the PDF bookmarks list every section under <em>Element Reference</em>.</p>
 <h4 id="markdown-rendering">Markdown rendering<a class="headerlink" href="#markdown-rendering" title="Permanent link">&para;</a></h4>
 <p><code>xs:documentation</code> text can be rendered as Markdown, so <code>**bold**</code>, lists and links show up
 formatted on the generated pages. The choice has three settings:</p>
