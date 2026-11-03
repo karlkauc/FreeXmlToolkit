@@ -162,6 +162,37 @@ public class DialogHelperTest {
     }
 
     @Test
+    @DisplayName("notifyActionFailure meldet höchstens einmal - und gar nicht, wenn die Aktion es selbst erfasst")
+    void actionFailureDialogsReportAtMostOnce() {
+        var telemetry = new org.fxt.freexmltoolkit.service.telemetry.RecordingTelemetryService();
+        org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset(); // drop reports buffered by earlier tests
+        org.fxt.freexmltoolkit.service.telemetry.Telemetry.install(telemetry);
+        // The dialog is really "shown" (the display path is where the second report came from),
+        // but recorded instead of opened modally
+        String previous = System.clearProperty("fxt.suppressErrorDialogs");
+        var presenter = DialogHelper.alertPresenter;
+        List<String> shown = new ArrayList<>();
+        DialogHelper.alertPresenter = alert -> shown.add(alert.getTitle());
+        try {
+            runAndWait(() -> {
+                DialogHelper.notifyActionFailure("Transform failed", "SXXP0003", false);
+                assertTrue(telemetry.errorReports().isEmpty(),
+                        "a failure the action already recorded (invalid_input) is no app error");
+                DialogHelper.notifyActionFailure("PDF generation failed", "message");
+                assertEquals(List.of("dialog.PDF generation failed"), telemetry.errorReports(),
+                        "reported once, not as ui.action_failed and ui.error_dialog");
+            });
+            assertEquals(List.of("Transform failed", "PDF generation failed"), shown, "both dialogs are shown");
+        } finally {
+            DialogHelper.alertPresenter = presenter;
+            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reset();
+            if (previous != null) {
+                System.setProperty("fxt.suppressErrorDialogs", previous);
+            }
+        }
+    }
+
+    @Test
     @DisplayName("showError meldet jeden Fehlerdialog, mit Ursache wenn bekannt")
     void plainErrorDialogsAreCounted() {
         var telemetry = new org.fxt.freexmltoolkit.service.telemetry.RecordingTelemetryService();

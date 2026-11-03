@@ -92,6 +92,18 @@ class UpdateFunnelTest {
     }
 
     @Test
+    void aFailedDownloadIsOneErrorNotThree() {
+        IOException failure = new IOException("Connection reset", new java.net.SocketException("reset"));
+        UpdateFunnel.downloaded("2.7.0", "2.8.0", System.nanoTime(), -1, failure, false);
+
+        // AutoUpdateServiceImpl logs the same exception right after ("Update failed", e)
+        Telemetry.reportLogged(failure, "log.autoupdateserviceimpl");
+
+        assertEquals(1, telemetry.events("update_download").size());
+        assertTrue(telemetry.errorReports().isEmpty(), "the log line does not count it again: " + telemetry.errorReports());
+    }
+
+    @Test
     void cancelledDownloadIsNotAnError() {
         UpdateFunnel.downloaded("2.5.0", "2.6.0", 0, -1, (String) null, true);
         TelemetryEvent e = single("update_download");

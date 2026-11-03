@@ -1139,32 +1139,24 @@ public class XmlServiceImpl implements XmlService {
 
         var temp = schemaLocation.trim();
 
-        // Check if it's a file:// URL first (before URL validation)
-        if (temp.startsWith("file://") || temp.startsWith("file:")) {
-            logger.debug("Detected file URL: {}", temp);
-            try {
-                URI uri = new URI(temp);
-                File localFile = new File(uri);
-                logger.debug("Attempting to load local XSD file: {}", localFile.getAbsolutePath());
-
-                if (localFile.exists()) {
-                    if (isSchemaValid(localFile)) {
-                        logger.info("Loading local XSD schema: {}", localFile.getAbsolutePath());
-                        this.setCurrentXsdFile(localFile);
-                        this.remoteXsdLocation = temp;
-                        return true;
-                    } else {
-                        logger.error("Local schema file is not a valid XSD: {}", localFile.getAbsolutePath());
-                        return false;
-                    }
-                } else {
-                    logger.warn("Local schema file does not exist: {}", localFile.getAbsolutePath());
-                    return false;
-                }
-            } catch (URISyntaxException | IllegalArgumentException e) {
-                logger.error("Error parsing file URL '{}': {}", temp, e.getMessage());
+        // A local file: a file: URL (also with spaces or as file://C:/…) or a plain absolute path
+        // (C:\…, \\server\share\…, /…). Plain absolute paths used to fall through to the URL check
+        // and never bound, even when the file existed.
+        if (temp.regionMatches(true, 0, "file:", 0, 5) || isAbsoluteSchemaPath(temp)) {
+            File localFile = temp.regionMatches(true, 0, "file:", 0, 5) ? fileUrlToFile(temp) : new File(temp);
+            logger.debug("Attempting to load local XSD file: {}", localFile.getAbsolutePath());
+            if (!localFile.isFile()) {
+                logger.warn("Local schema file does not exist: {}", localFile.getAbsolutePath());
                 return false;
             }
+            if (!isSchemaValid(localFile)) {
+                logger.error("Local schema file is not a valid XSD: {}", localFile.getAbsolutePath());
+                return false;
+            }
+            logger.info("Loading local XSD schema: {}", localFile.getAbsolutePath());
+            this.setCurrentXsdFile(localFile);
+            this.remoteXsdLocation = temp;
+            return true;
         }
 
         var validUrl = urlValidator.isValid(temp);
@@ -1381,23 +1373,22 @@ public class XmlServiceImpl implements XmlService {
      */
     static Optional<String> interpretSchemaLocationAttributes(
             String schemaLocationAttr, String noNamespaceAttr, String xmlnsAttr, File baseDir) {
-        String schemaLocationPair = schemaLocationAttr == null ? "" : schemaLocationAttr;
-        if (schemaLocationPair.contains(" ")) {
+        // Pairs "namespace location", separated by any whitespace (also leading, tabs, newlines)
+        String[] pairs = schemaLocationAttr == null || schemaLocationAttr.isBlank()
+                ? new String[0] : schemaLocationAttr.strip().split("\\s+");
+        if (pairs.length >= 2) {
             // e.g. xsi:schemaLocation="http://www.fundsxml.org/XMLSchema/3.0.6 FundsXML3.0.6.xsd"
-            String[] splitStr = schemaLocationPair.split(" +");
-            String possibleFileName = splitStr[1];
+            String possibleFileName = pairs[1];
 
             if (possibleFileName.startsWith("http://") || possibleFileName.startsWith("https://")) {
                 logger.debug("Found remote Schema URL: {}", possibleFileName);
                 return Optional.of(possibleFileName.trim());
             }
 
-            if (baseDir != null) {
-                File localSchemaFile = new File(baseDir, possibleFileName.trim());
-                if (localSchemaFile.exists()) {
-                    logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
-                    return Optional.of(localSchemaFile.toURI().toString());
-                }
+            File localSchemaFile = localSchemaFile(possibleFileName, baseDir);
+            if (localSchemaFile != null && localSchemaFile.isFile()) {
+                logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
+                return Optional.of(localSchemaFile.toURI().toString());
             }
             // Only return if it looks like a URL or path, not just a bare name
             if (possibleFileName.contains(".")) {
@@ -1412,12 +1403,10 @@ public class XmlServiceImpl implements XmlService {
             if (noNamespace.startsWith("http://") || noNamespace.startsWith("https://")) {
                 return Optional.of(noNamespace);
             }
-            if (baseDir != null) {
-                File localSchemaFile = new File(baseDir, noNamespace);
-                if (localSchemaFile.exists()) {
-                    logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
-                    return Optional.of(localSchemaFile.toURI().toString());
-                }
+            File localSchemaFile = localSchemaFile(noNamespace, baseDir);
+            if (localSchemaFile != null && localSchemaFile.isFile()) {
+                logger.debug("Found local Schema at: {}", localSchemaFile.getAbsolutePath());
+                return Optional.of(localSchemaFile.toURI().toString());
             }
             // Return the raw value anyway, it might be a URL or absolute path
             return Optional.of(noNamespace);
@@ -1429,6 +1418,77 @@ public class XmlServiceImpl implements XmlService {
             return Optional.of(xmlns);
         }
         return Optional.empty();
+    }
+
+    /**
+     * The local file a declared schema location names: a {@code file:} URL, an absolute path
+     * (used as is, never appended to {@code baseDir}) or a path relative to the document.
+     *
+     * @param location the declared location
+     * @param baseDir  the document's directory (nullable)
+     * @return the file (it may not exist), or null for a remote / non-path location or a relative
+     *         one without a base directory
+     */
+    static File localSchemaFile(String location, File baseDir) {
+        String l = location == null ? "" : location.strip();
+        if (l.isEmpty()) {
+            return null;
+        }
+        if (l.regionMatches(true, 0, "file:", 0, 5)) {
+            return fileUrlToFile(l);
+        }
+        if (isAbsoluteSchemaPath(l)) {
+            return new File(l);
+        }
+        if (l.matches("^[A-Za-z][A-Za-z0-9+.-]+:.*")) {
+            return null; // http:, urn:, … (a single letter before ':' is a drive, handled above)
+        }
+        return baseDir != null ? new File(baseDir, l) : null;
+    }
+
+    /** @return whether a location is an absolute file path: {@code /…}, {@code \\server\…} or {@code C:\…} / {@code C:/…} */
+    static boolean isAbsoluteSchemaPath(String location) {
+        return location.startsWith("/") || location.startsWith("\\\\")
+                || location.matches("^[A-Za-z]:[\\\\/].*");
+    }
+
+    /**
+     * Turns a {@code file:} URL into a file, also the forms {@link File#File(URI)} rejects:
+     * unencoded spaces or backslashes ({@code file:///C:/My Schemas/a.xsd}), a drive in the
+     * authority ({@code file://C:/a.xsd}), {@code file://localhost/…} and UNC hosts
+     * ({@code file://server/share/a.xsd} → {@code //server/share/a.xsd}).
+     */
+    static File fileUrlToFile(String url) {
+        try {
+            URI uri = new URI(url);
+            if (uri.getAuthority() == null || uri.getAuthority().isEmpty()) {
+                return new File(uri);
+            }
+        } catch (URISyntaxException | IllegalArgumentException e) {
+            // not a strict URI: read it leniently below
+        }
+        String rest = url.substring("file:".length()).replace('\\', '/');
+        try {
+            // Percent escapes only; a literal '+' stays a plus
+            rest = java.net.URLDecoder.decode(rest.replace("+", "%2B"), StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException e) {
+            // a stray '%': keep the text as written
+        }
+        if (rest.startsWith("///")) {
+            rest = rest.substring(2);
+        } else if (rest.startsWith("//")) {
+            String authority = rest.substring(2);
+            if (authority.matches("^[A-Za-z]:/.*")) {
+                rest = authority;
+            } else if (authority.regionMatches(true, 0, "localhost/", 0, 10)) {
+                rest = authority.substring("localhost".length());
+            }
+            // otherwise a UNC host: "//server/share/…" as it is
+        }
+        if (rest.matches("^/[A-Za-z]:/.*")) {
+            rest = rest.substring(1); // "/C:/…" → "C:/…"
+        }
+        return new File(rest);
     }
 
     @Override

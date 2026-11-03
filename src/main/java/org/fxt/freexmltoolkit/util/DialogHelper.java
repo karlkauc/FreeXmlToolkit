@@ -255,7 +255,25 @@ public class DialogHelper {
         if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
             return;
         }
-        showError(title, null, message);
+        // Not showError: that reports every alert itself, which made reportError=false count user
+        // errors as app errors (ui.error_dialog next to an invalid_input event) and reportError=true
+        // count the same failure twice (ui.action_failed + ui.error_dialog).
+        showErrorAlert(title, null, message);
+    }
+
+    /**
+     * Shows an error alert without reporting it, for failures whose telemetry is already recorded
+     * (by the action's own usage event, or by the caller).
+     *
+     * @param title   the alert title
+     * @param header  the alert header text (nullable)
+     * @param content the alert content text
+     */
+    public static void showErrorAlert(String title, String header, String content) {
+        if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
+            return;
+        }
+        showAlert(Alert.AlertType.ERROR, title, header, content, "bi-x-circle");
     }
 
     /**
@@ -764,8 +782,11 @@ public class DialogHelper {
     private static void showAlert(Alert.AlertType type, String title, String header,
                                  String content, String iconLiteral) {
         Alert alert = createAlert(type, title, header, content, iconLiteral);
-        alert.showAndWait();
+        alertPresenter.accept(alert);
     }
+
+    /** Shows a plain alert; tests replace it to run the display path without a modal dialog. */
+    static java.util.function.Consumer<Alert> alertPresenter = Alert::showAndWait;
 
     /**
      * Creates a standard alert with icon and themed styling.

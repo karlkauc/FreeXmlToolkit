@@ -155,13 +155,16 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
      * Updates the state of all menu items based on current context.
      */
     private void updateMenuState() {
-        boolean hasSelection = !codeArea.getSelectedText().isEmpty();
-        boolean hasText = !codeArea.getText().isEmpty();
+        // No clipboard query here: on Windows it blocks the FX thread while the owning app renders
+        // large or delayed clipboard content (6.7 s on a right-click in the field). Paste stays
+        // enabled; an empty clipboard pastes nothing. getLength(), not getText(): getText() copies
+        // the whole document on every right-click.
+        boolean hasSelection = codeArea.getSelection().getLength() > 0;
+        boolean hasText = codeArea.getLength() > 0;
         boolean isXmlContent = isContentXml();
         boolean canUndo = codeArea.isUndoAvailable();
         boolean canRedo = codeArea.isRedoAvailable();
         boolean hasSchema = editorContext.hasSchema();
-        boolean clipboardHasText = Clipboard.getSystemClipboard().hasString();
         boolean foldingEnabled = foldingManager != null && !foldingManager.getFoldableRegions().isEmpty();
 
         // Update Undo/Redo state
@@ -174,7 +177,7 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
 
         // Update other menu items
         updateAdditionalMenuItems(hasSelection, hasText, isXmlContent,
-                hasSchema, clipboardHasText, foldingEnabled);
+                hasSchema, foldingEnabled);
 
         logger.debug("Menu state updated: selection={}, xml={}, undo={}, redo={}",
                 hasSelection, isXmlContent, canUndo, canRedo);
@@ -185,7 +188,7 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
      */
     private void updateAdditionalMenuItems(boolean hasSelection, boolean hasText,
                                            boolean isXmlContent, boolean hasSchema,
-                                           boolean clipboardHasText, boolean foldingEnabled) {
+                                           boolean foldingEnabled) {
         ContextMenu menu = contextMenuManager.getContextMenu();
         if (menu == null) {
             return;
@@ -205,9 +208,9 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
                     menuItem.setDisable(!hasSelection);
                 }
 
-                // Paste requires clipboard content
+                // Paste is always available (see updateMenuState: no clipboard query on showing)
                 if (text.startsWith("Paste")) {
-                    menuItem.setDisable(!clipboardHasText);
+                    menuItem.setDisable(false);
                 }
 
                 // Copy XPath / Copy Node require XML content (they use the element at the caret)
@@ -233,14 +236,19 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
         }
     }
 
+    /** Characters from the start of the document that decide whether it is XML. */
+    private static final int XML_SNIFF_CHARS = 64 * 1024;
+
     /**
      * Checks if the current content is XML.
      */
     private boolean isContentXml() {
-        String text = codeArea.getText();
-        if (text == null || text.isEmpty()) {
+        int length = codeArea.getLength();
+        if (length == 0) {
             return false;
         }
+        // The start decides; copying and scanning the whole document ran on every right-click
+        String text = codeArea.getText(0, Math.min(length, XML_SNIFF_CHARS));
 
         String trimmed = text.trim();
         return trimmed.startsWith("<?xml") ||
@@ -322,9 +330,9 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
 
     @Override
     public void pasteFromClipboard() {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasString()) {
-            String clipboardText = clipboard.getString();
+        // One read instead of hasString() + getString(): each one asks the system clipboard
+        String clipboardText = Clipboard.getSystemClipboard().getString();
+        if (clipboardText != null) {
             codeArea.replaceSelection(clipboardText);
             logger.debug("Pasted from clipboard: {} chars", clipboardText.length());
         }

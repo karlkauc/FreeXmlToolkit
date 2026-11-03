@@ -55,6 +55,8 @@ public final class UpdateFunnel {
      */
     public static void downloaded(String from, String to, long startNanos, long bytes,
                                   Throwable failure, boolean cancelled) {
+        // The event carries the failure: the "Update failed" log line that follows must not count it again
+        Telemetry.markReported(failure);
         downloaded(from, to, startNanos, bytes, failure == null ? null : failure.getClass().getSimpleName(), cancelled);
     }
 

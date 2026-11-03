@@ -1126,12 +1126,14 @@ public final class UsageEvents {
      * reference that failed.
      *
      * @param refKind {@link #referenceKind} of the declared location (nullable; only sent on failure).
-     *                An unresolved {@code relative} reference names a file that does not exist next to the
-     *                document - the document's mistake, reported as {@code invalid_input}, not as an error.
+     *                An unresolved {@code relative} or {@code file} reference names a local file that does
+     *                not exist (next to the document, or at an absolute path written on another machine) -
+     *                the document's mistake, reported as {@code invalid_input}, not as an error.
      */
     public static void schemaBound(DocKind kind, String source, boolean ok, String failure, String refKind,
                                    long startNanos) {
-        boolean missingLocalFile = !ok && "unresolved".equals(failure) && "relative".equals(refKind);
+        boolean missingLocalFile = !ok && "unresolved".equals(failure)
+                && ("relative".equals(refKind) || "file".equals(refKind));
         action("schema_bind", b -> {
             b.docKind(kind).status(missingLocalFile ? TelemetryEvent.Status.INVALID_INPUT : status(ok))
                     .meta("source", source);

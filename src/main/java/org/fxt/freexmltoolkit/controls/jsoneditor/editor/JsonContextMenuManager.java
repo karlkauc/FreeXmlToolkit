@@ -204,17 +204,20 @@ public class JsonContextMenuManager {
      * Updates menu item states based on current context.
      */
     private void updateMenuState() {
-        boolean hasSelection = !codeArea.getSelectedText().isEmpty();
-        boolean hasText = !codeArea.getText().isEmpty();
+        // No clipboard query here: on Windows it blocks the FX thread while the owning app renders
+        // large or delayed clipboard content (6.7 s on a right-click in the field). Paste stays
+        // enabled; an empty clipboard pastes nothing. getLength(), not getText(): getText() copies
+        // the whole document on every right-click.
+        boolean hasSelection = codeArea.getSelection().getLength() > 0;
+        boolean hasText = codeArea.getLength() > 0;
         boolean canUndo = codeArea.isUndoAvailable();
         boolean canRedo = codeArea.isRedoAvailable();
-        boolean clipboardHasText = Clipboard.getSystemClipboard().hasString();
 
         undoMenuItem.setDisable(!canUndo);
         redoMenuItem.setDisable(!canRedo);
         cutMenuItem.setDisable(!hasSelection);
         copyMenuItem.setDisable(!hasSelection);
-        pasteMenuItem.setDisable(!clipboardHasText);
+        pasteMenuItem.setDisable(false);
         copyJsonPathMenuItem.setDisable(!hasText);
 
         logger.trace("Menu state updated: selection={}, text={}, undo={}, redo={}",
@@ -274,9 +277,9 @@ public class JsonContextMenuManager {
      * Pastes text from clipboard.
      */
     private void pasteFromClipboard() {
-        Clipboard clipboard = Clipboard.getSystemClipboard();
-        if (clipboard.hasString()) {
-            String clipboardText = clipboard.getString();
+        // One read instead of hasString() + getString(): each one asks the system clipboard
+        String clipboardText = Clipboard.getSystemClipboard().getString();
+        if (clipboardText != null) {
             codeArea.replaceSelection(clipboardText);
             logger.debug("Pasted from clipboard: {} chars", clipboardText.length());
         }

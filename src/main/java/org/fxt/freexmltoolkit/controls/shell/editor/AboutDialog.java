@@ -263,7 +263,8 @@ public final class AboutDialog {
                     logger.info("Auto-update initiated successfully. Application will restart.");
                 } else {
                     logger.warn("Auto-update failed: {}", result.errorMessage());
-                    Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
+                    // update_download / update_apply already carry the failure: show, don't report again
+                    Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showErrorAlert(
                             "Update Failed", "Could not complete the update",
                             result.errorMessage()
                                     + "\n\nYou can try again or download the update manually from GitHub."));

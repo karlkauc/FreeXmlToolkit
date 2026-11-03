@@ -159,6 +159,15 @@ class UsageEventsTest {
     }
 
     @Test
+    void missingAbsoluteSchemaFileIsInvalidInput() {
+        // e.g. C:\Users\colleague\schemas\x.xsd, written on another machine
+        UsageEvents.schemaBound(DocKind.XML, "declared", false, "unresolved", "file", 0);
+        TelemetryEvent e = single("schema_bind");
+        assertEquals(TelemetryEvent.Status.INVALID_INPUT, e.status());
+        assertEquals("file", e.meta().get("ref_kind"));
+    }
+
+    @Test
     void unreachableRemoteSchemaStaysAnError() {
         UsageEvents.schemaBound(DocKind.XML, "declared", false, "unresolved", "http", 0);
         assertEquals(TelemetryEvent.Status.ERROR, single("schema_bind").status());
