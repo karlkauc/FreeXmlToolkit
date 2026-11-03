@@ -3151,6 +3151,9 @@ results collected so far are kept.</p>
 </tbody>
 </table>
 <p>The validation engine uses Xerces 2.12.2 with full XSD 1.1 support.</p>
+<p>A schema may start with a <code>&lt;!DOCTYPE …&gt;</code> naming a DTD, as the W3C's own schemas do
+(<code>XMLSchema.dtd</code>). The DTD plays no part in validation and is never loaded, neither from
+disk nor from the network, so a missing DTD file does no harm.</p>
 <hr />
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
 <ul>
