@@ -11,7 +11,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
 
 - A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
   grids"* and offers the **zoom pill** (`− 100% +`), **Optimal widths**, the **Wrap** toggle,
-  **Expand all** / **Collapse all**, and a **⋯** menu with the cell-height limit.
+  **Expand all** / **Collapse all**, and a **⋯** menu with the cell-height limit. In a narrow
+  editor column the strip first shows the tool buttons as icons only (hover for their names) and
+  then moves them into the **⋯** menu, so every action stays reachable.
 - **Nested containers.** Every element is a row with a **name cell** (expand arrow, type icon,
   bold name) and, to its right, either its **value cell** or the **block** of its children. A
   child block is docked at the parent's value column, so the structure reads as nested boxes;

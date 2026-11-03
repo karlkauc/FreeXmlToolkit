@@ -3,8 +3,15 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 import java.util.Locale;
 
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 
@@ -17,8 +24,40 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridCanvasView;
  * the ⋯ menu with the cell-height limit, all acting on one {@link GridCanvasView}. The layout
  * lives in {@code /pages/views/GridViewHeader.fxml}; word wrap and the cell-height limit are
  * persisted through {@link GridDisplayPreferences}.
+ * <p>
+ * In a narrow editor column the bar adapts in stages ({@link Mode}) so every action stays
+ * reachable: first the subtitle goes and the tool buttons show only their icons, then the tool
+ * buttons move into the ⋯ menu. What does not fit even then is clipped.
  */
 final class GridViewHeader extends HBox {
+
+    /** How much of the bar is shown, from wide to narrow. */
+    enum Mode {
+        /** Everything with text. */
+        FULL,
+        /** No subtitle, icon-only tool buttons. */
+        COMPACT,
+        /** Title icon, zoom pill and ⋯; the tool buttons are entries of the ⋯ menu. */
+        MINIMAL
+    }
+
+    /** Room for the zoom percentage growing ("100%" → "1000%") after the widths were measured. */
+    private static final double SLACK = 12;
+
+    @FXML private Label title;
+    @FXML private Button optimalWidthsButton;
+    @FXML private Button expandAllButton;
+    @FXML private Button collapseAllButton;
+    @FXML private MenuItem overflowOptimalWidths;
+    @FXML private CheckMenuItem overflowWordWrap;
+    @FXML private MenuItem overflowExpandAll;
+    @FXML private MenuItem overflowCollapseAll;
+    @FXML private CheckMenuItem overflowSidePanel;
+    @FXML private SeparatorMenuItem overflowSeparator;
+    private boolean sidePanelSupported;
+    private Mode mode = Mode.FULL;
+    /** Width each mode needs, measured once per scene / configuration; null = measure again. */
+    private double[] modeWidths;
 
     private final GridCanvasView<?> view;
     @FXML private Label subtitle;
@@ -58,6 +97,9 @@ final class GridViewHeader extends HBox {
         clip.widthProperty().bind(widthProperty());
         clip.heightProperty().bind(heightProperty());
         setClip(clip);
+        sceneProperty().addListener((obs, oldScene, newScene) -> modeWidths = null);
+        overflowWordWrap.selectedProperty().bindBidirectional(wordWrapButton.selectedProperty());
+        overflowSidePanel.selectedProperty().bindBidirectional(sidePanelButton.selectedProperty());
         subtitle.setText(subtitleText);
         zoomLabel.setText(percent(view.getZoom()));
         view.zoomProperty().addListener((obs, oldZoom, newZoom) -> zoomLabel.setText(percent(newZoom.doubleValue())));
@@ -82,10 +124,86 @@ final class GridViewHeader extends HBox {
      * @param handler   receives the new state
      */
     void configureSidePanel(boolean supported, boolean shown, java.util.function.Consumer<Boolean> handler) {
-        sidePanelButton.setVisible(supported);
-        sidePanelButton.setManaged(supported);
+        sidePanelSupported = supported;
         sidePanelButton.setSelected(shown);
         sidePanelHandler = handler;
+        modeWidths = null;
+        applyMode(mode);
+        requestLayout();
+    }
+
+    /** @return the stage the bar is shown in (tests) */
+    Mode mode() {
+        return mode;
+    }
+
+    @Override
+    protected void layoutChildren() {
+        double width = getWidth();
+        if (width > 0 && getScene() != null) {
+            if (modeWidths == null) {
+                modeWidths = measureModes();
+            }
+            Mode fit = Mode.MINIMAL;
+            for (Mode candidate : Mode.values()) {
+                if (modeWidths[candidate.ordinal()] + SLACK <= width) {
+                    fit = candidate;
+                    break;
+                }
+            }
+            if (fit != mode) {
+                applyMode(fit);
+            }
+        }
+        super.layoutChildren();
+    }
+
+    /**
+     * Measures the width every mode needs by showing it once. Runs only after a scene or
+     * configuration change, so a resize just compares numbers and never flips the children.
+     */
+    private double[] measureModes() {
+        Mode shown = mode;
+        double[] widths = new double[Mode.values().length];
+        for (Mode candidate : Mode.values()) {
+            applyMode(candidate);
+            applyCss();
+            double sum = snappedLeftInset() + snappedRightInset();
+            int managed = 0;
+            for (Node child : getChildren()) {
+                if (child.isManaged()) {
+                    sum += child.prefWidth(-1);
+                    managed++;
+                }
+            }
+            widths[candidate.ordinal()] = sum + Math.max(0, managed - 1) * getSpacing();
+        }
+        applyMode(shown);
+        return widths;
+    }
+
+    private void applyMode(Mode next) {
+        mode = next;
+        boolean full = next == Mode.FULL;
+        boolean inBar = next != Mode.MINIMAL;
+
+        subtitle.setVisible(full);
+        subtitle.setManaged(full);
+        title.setContentDisplay(inBar ? ContentDisplay.LEFT : ContentDisplay.GRAPHIC_ONLY);
+        ContentDisplay tools = full ? ContentDisplay.LEFT : ContentDisplay.GRAPHIC_ONLY;
+        for (Labeled tool : new Labeled[]{optimalWidthsButton, wordWrapButton, expandAllButton, collapseAllButton}) {
+            tool.setContentDisplay(tools);
+            tool.setVisible(inBar);
+            tool.setManaged(inBar);
+        }
+        sidePanelButton.setVisible(inBar && sidePanelSupported);
+        sidePanelButton.setManaged(inBar && sidePanelSupported);
+
+        for (MenuItem item : new MenuItem[]{overflowOptimalWidths, overflowWordWrap, overflowExpandAll,
+                overflowCollapseAll, overflowSeparator}) {
+            item.setVisible(!inBar);
+        }
+        overflowSidePanel.setVisible(!inBar && sidePanelSupported);
     }
 
     @FXML

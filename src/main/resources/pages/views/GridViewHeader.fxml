@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
@@ -15,7 +17,8 @@
 <!--
   Header bar of the shell's Grid views (XML and JSON): table icon · "Grid view" · subtitle ·…·
   zoom pill [ − 100% + ] · Optimal widths · Word wrap · Expand all · Collapse all · ⋯ (cell
-  height limit). Loaded by GridViewHeader via the fx:root pattern (FxmlViews.load);
+  height limit). In a narrow column the header compacts (icon-only tool buttons) and then moves the
+  tool buttons into the ⋯ menu (the "overflow" items below), see GridViewHeader.Mode. Loaded by GridViewHeader via the fx:root pattern (FxmlViews.load);
   GridViewHeader is root and controller and forwards the actions to the grid canvas. The
   subtitle, the zoom percentage and the toggle states are set in code.
 -->
@@ -27,7 +30,7 @@
         <ToggleGroup fx:id="splitGroup"/>
     </fx:define>
     <children>
-        <Label text="Grid view" styleClass="fxt-grid-title" minWidth="-Infinity">
+        <Label fx:id="title" text="Grid view" styleClass="fxt-grid-title" minWidth="-Infinity">
             <graphic>
                 <IconifyIcon iconLiteral="bi-table" iconSize="15"/>
             </graphic>
@@ -59,7 +62,7 @@
             </children>
         </HBox>
 
-        <Button id="grid-optimal-widths" minWidth="-Infinity" text="Optimal widths" styleClass="fxt-tool-button" focusTraversable="false"
+        <Button fx:id="optimalWidthsButton" id="grid-optimal-widths" minWidth="-Infinity" text="Optimal widths" styleClass="fxt-tool-button" focusTraversable="false"
                 onAction="#onOptimalWidths">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-angle-expand" iconSize="13"/>
@@ -77,15 +80,21 @@
                 <Tooltip text="Word wrap: long values wrap onto further lines"/>
             </tooltip>
         </ToggleButton>
-        <Button id="grid-expand-all" minWidth="-Infinity" text="Expand all" styleClass="fxt-tool-button" onAction="#onExpandAll">
+        <Button fx:id="expandAllButton" id="grid-expand-all" minWidth="-Infinity" text="Expand all" styleClass="fxt-tool-button" onAction="#onExpandAll">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-expand" iconSize="13"/>
             </graphic>
+            <tooltip>
+                <Tooltip text="Expand all nodes"/>
+            </tooltip>
         </Button>
-        <Button id="grid-collapse-all" minWidth="-Infinity" text="Collapse all" styleClass="fxt-tool-button" onAction="#onCollapseAll">
+        <Button fx:id="collapseAllButton" id="grid-collapse-all" minWidth="-Infinity" text="Collapse all" styleClass="fxt-tool-button" onAction="#onCollapseAll">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="13"/>
             </graphic>
+            <tooltip>
+                <Tooltip text="Collapse all nodes"/>
+            </tooltip>
         </Button>
         <ToggleButton fx:id="sidePanelButton" id="grid-entry-helpers-toggle" minWidth="-Infinity" styleClass="fxt-tool-button"
                       focusTraversable="false" visible="false" managed="false" onAction="#onSidePanel">
@@ -104,6 +113,38 @@
                 <Tooltip text="Grid settings"/>
             </tooltip>
             <items>
+                <!-- Overflow: the tool buttons of the bar, shown here only while the bar is too narrow for them -->
+                <MenuItem fx:id="overflowOptimalWidths" id="grid-more-optimal-widths" text="Optimal widths"
+                          visible="false" onAction="#onOptimalWidths">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-arrows-angle-expand" iconSize="16"/>
+                    </graphic>
+                </MenuItem>
+                <CheckMenuItem fx:id="overflowWordWrap" id="grid-more-word-wrap" text="Word wrap"
+                               visible="false" onAction="#onWordWrap">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-text-wrap" iconSize="16"/>
+                    </graphic>
+                </CheckMenuItem>
+                <MenuItem fx:id="overflowExpandAll" id="grid-more-expand-all" text="Expand all"
+                          visible="false" onAction="#onExpandAll">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-arrows-expand" iconSize="16"/>
+                    </graphic>
+                </MenuItem>
+                <MenuItem fx:id="overflowCollapseAll" id="grid-more-collapse-all" text="Collapse all"
+                          visible="false" onAction="#onCollapseAll">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="16"/>
+                    </graphic>
+                </MenuItem>
+                <CheckMenuItem fx:id="overflowSidePanel" id="grid-more-entry-helpers" text="Entry helpers"
+                               visible="false" onAction="#onSidePanel">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-layout-sidebar-reverse" iconSize="16"/>
+                    </graphic>
+                </CheckMenuItem>
+                <SeparatorMenuItem fx:id="overflowSeparator" visible="false"/>
                 <RadioMenuItem fx:id="cellLinesOff" id="grid-cell-lines-off" text="Cell height: unlimited"
                                toggleGroup="$cellLinesGroup" onAction="#onCellLinesOff"/>
                 <RadioMenuItem fx:id="cellLines3" id="grid-cell-lines-3" text="Cell height: 3 lines"
