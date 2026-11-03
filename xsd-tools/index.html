@@ -1714,10 +1714,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pdf-element-reference" class="md-nav__link">
+  <a href="#element-reference-pdf-and-word" class="md-nav__link">
     <span class="md-ellipsis">
       
-        PDF element reference
+        Element reference (PDF and Word)
       
     </span>
   </a>
@@ -3309,10 +3309,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#pdf-element-reference" class="md-nav__link">
+  <a href="#element-reference-pdf-and-word" class="md-nav__link">
     <span class="md-ellipsis">
       
-        PDF element reference
+        Element reference (PDF and Word)
       
     </span>
   </a>
@@ -4433,7 +4433,7 @@ the generator never modifies your schema file or writes into its folder.</p>
 <td>Cover page, table of contents, data dictionary, schema diagram, element diagrams (on by default), page numbers, PDF bookmarks</td>
 </tr>
 <tr>
-<td><strong>Element reference</strong> <em>(PDF)</em></td>
+<td><strong>Element reference</strong> <em>(PDF, Word)</em></td>
 <td><em>One section per declaration</em> (default), <em>Every occurrence</em> or <em>Off</em> - see below</td>
 </tr>
 <tr>
@@ -4442,8 +4442,8 @@ the generator never modifies your schema file or writes into its folder.</p>
 </tr>
 </tbody>
 </table>
-<h4 id="pdf-element-reference">PDF element reference<a class="headerlink" href="#pdf-element-reference" title="Permanent link">&para;</a></h4>
-<p>The PDF has an <strong>Element Reference</strong>: one section per element and attribute with what the HTML
+<h4 id="element-reference-pdf-and-word">Element reference (PDF and Word)<a class="headerlink" href="#element-reference-pdf-and-word" title="Permanent link">&para;</a></h4>
+<p>The PDF and the Word document have an <strong>Element Reference</strong>: one section per element and attribute with what the HTML
 detail page shows:</p>
 <ul>
 <li>the diagram, with <strong>Element diagrams</strong> on;</li>
@@ -4473,8 +4473,14 @@ each type its own section:</p>
 </ul>
 <p>Type names link to these sections wherever they appear: overview tables, data dictionary, element
 properties, children tables and index.</p>
-<p><strong>Deduplicate data dictionary by type</strong> also applies to the PDF: each named type is listed once in
-the data dictionary.</p>
+<p><strong>Deduplicate data dictionary by type</strong> also applies to PDF and Word: each named type is listed once
+in the data dictionary.</p>
+<p>The <strong>Word</strong> document has the same element and type sections as the PDF:
+- each section is a bookmark;
+- names in the data dictionary, the index and the tables are links to it;
+- section headings appear in the navigation pane, while the table of contents lists the chapters
+  (Word fills it when the document is opened);
+- diagrams are embedded as sharp PNG images in their own proportions.</p>
 <p>More in the PDF:</p>
 <ul>
 <li><strong>Diagrams</strong> follow <strong>Diagram image format</strong>. With <em>SVG</em> (the default) they are vector graphics:
@@ -4485,7 +4491,7 @@ the data dictionary.</p>
 <li>The <strong>Schema Diagram</strong> chapter adds an <strong>overview of the whole schema</strong>, as on the HTML overview
   page. Schemas with more than 400 elements get a note instead, because the overview would not be
   legible on one page.</li>
-<li><strong>XSD source in each section</strong> (PDF option, off by default) shows the XSD source of every element
+<li><strong>XSD source in each section</strong> (PDF and Word, off by default) shows the XSD source of every element
   and type. Leaf elements and attributes show a <strong>Sample</strong> value.</li>
 </ul>
 <h4 id="markdown-rendering">Markdown rendering<a class="headerlink" href="#markdown-rendering" title="Permanent link">&para;</a></h4>
