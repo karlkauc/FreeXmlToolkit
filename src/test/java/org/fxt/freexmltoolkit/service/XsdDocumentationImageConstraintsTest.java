@@ -24,7 +24,7 @@ class XsdDocumentationImageConstraintsTest {
     @TempDir
     Path tempDir;
 
-    private static final String LONG_FIELD = "aFieldNameMuchLongerThanTheLimitOfOneDiagramLine";
+    private static final String LONG_FIELD = "aFieldNameMuchLongerThanTheLimitOfOneDiagramLineEvenInTheDocumentation";
 
     private static final String XSD = """
             <?xml version="1.0" encoding="UTF-8"?>
@@ -159,7 +159,7 @@ class XsdDocumentationImageConstraintsTest {
         assertTrue(svg.contains(">+2 more"), "6 constraints: 4 rows and +2 more");
         String u1 = rowTexts(svg).stream().filter(t -> t.startsWith("U1  ")).findFirst()
                 .orElseThrow(() -> new AssertionError("U1 row expected"));
-        assertEquals(44, u1.length(), u1);
+        assertEquals(DiagramConstraint.MAX_TEXT_LENGTH, u1.length(), u1);
         assertTrue(u1.endsWith("…"), u1);
     }
 

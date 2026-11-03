@@ -20,7 +20,8 @@ public record ConstraintRow(Kind kind, String text, String tooltip) {
 
     /**
      * Longer lines would widen a card without limit, and an XPath can run to hundreds of characters.
-     * The documentation diagrams use the same limit ({@code service.DiagramConstraint}).
+     * The documentation diagrams have more room and their own, larger limit
+     * ({@code service.DiagramConstraint.MAX_TEXT_LENGTH}).
      */
     public static final int MAX_TEXT_LENGTH = 44;
 
@@ -86,7 +87,16 @@ public record ConstraintRow(Kind kind, String text, String tooltip) {
      * @return the line, cut to {@link #MAX_TEXT_LENGTH} characters with an ellipsis
      */
     public static String shorten(String text) {
-        return text.length() <= MAX_TEXT_LENGTH ? text : text.substring(0, MAX_TEXT_LENGTH - 1) + "…";
+        return shorten(text, MAX_TEXT_LENGTH);
+    }
+
+    /**
+     * @param text      a line
+     * @param maxLength the most characters it may have
+     * @return the line, cut to {@code maxLength} characters with an ellipsis
+     */
+    public static String shorten(String text, int maxLength) {
+        return text.length() <= maxLength ? text : text.substring(0, maxLength - 1) + "…";
     }
 
     private static String fieldsOf(XsdIdentityConstraint constraint) {

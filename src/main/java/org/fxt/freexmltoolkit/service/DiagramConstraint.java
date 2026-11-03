@@ -11,14 +11,20 @@ import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 /**
  * One line an element box of the documentation diagram shows for an identity constraint or an
  * assertion. The documentation counterpart of the Graphic view's {@link ConstraintRow}: same
- * labels, same length limit. An identity constraint's line names its selector and fields, which
+ * labels, a larger length limit ({@link #MAX_TEXT_LENGTH}). An identity constraint's line names its selector and fields, which
  * the diagram turns into links, so it is made of {@link Segment segments}.
  *
  * @param kind     what it is
- * @param segments the parts of the line, already shortened to {@link ConstraintRow#MAX_TEXT_LENGTH}
+ * @param segments the parts of the line, already shortened to {@link #MAX_TEXT_LENGTH}
  * @param tooltip  the full details
  */
 public record DiagramConstraint(ConstraintRow.Kind kind, List<Segment> segments, String tooltip) {
+
+    /**
+     * Most characters of a line. Larger than the Graphic view's {@link ConstraintRow#MAX_TEXT_LENGTH}:
+     * a line here also names the selector, and a documentation page has more room than a card.
+     */
+    public static final int MAX_TEXT_LENGTH = 60;
 
     /** What a part of the line stands for. */
     public enum Role {
@@ -78,7 +84,7 @@ public record DiagramConstraint(ConstraintRow.Kind kind, List<Segment> segments,
             for (XsdAssertion assertion : element.getAssertions()) {
                 if (assertion.getTest() != null && !assertion.getTest().isBlank()) {
                     rows.add(new DiagramConstraint(ConstraintRow.Kind.ASSERT,
-                            List.of(Segment.text(ConstraintRow.shorten(ConstraintRow.normalize(assertion.getTest())))),
+                            List.of(Segment.text(ConstraintRow.shorten(ConstraintRow.normalize(assertion.getTest()), MAX_TEXT_LENGTH))),
                             "assert\n" + assertion.getTest().strip()));
                 }
             }
@@ -151,21 +157,21 @@ public record DiagramConstraint(ConstraintRow.Kind kind, List<Segment> segments,
     }
 
     /**
-     * Cuts the line to {@link ConstraintRow#MAX_TEXT_LENGTH} characters: the segment that crosses
+     * Cuts the line to {@link #MAX_TEXT_LENGTH} characters: the segment that crosses
      * the limit ends in an ellipsis, later ones are dropped.
      */
     static List<Segment> shorten(List<Segment> segments) {
-        if (length(segments) <= ConstraintRow.MAX_TEXT_LENGTH) {
+        if (length(segments) <= MAX_TEXT_LENGTH) {
             return segments;
         }
         // First show long paths by their last step ("…/Benchmark"): the link still goes to the
         // full path's target, the tooltip names it, and the fields stay visible.
         segments = segments.stream().map(DiagramConstraint::lastStep).toList();
-        if (length(segments) <= ConstraintRow.MAX_TEXT_LENGTH) {
+        if (length(segments) <= MAX_TEXT_LENGTH) {
             return segments;
         }
         List<Segment> result = new ArrayList<>();
-        int room = ConstraintRow.MAX_TEXT_LENGTH - 1; // one character for the ellipsis
+        int room = MAX_TEXT_LENGTH - 1; // one character for the ellipsis
         for (Segment segment : segments) {
             if (segment.text().length() < room) {
                 result.add(segment);
