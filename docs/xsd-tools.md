@@ -712,6 +712,19 @@ properties, children tables and index.
 **Deduplicate data dictionary by type** also applies to the PDF: each named type is listed once in
 the data dictionary.
 
+More in the PDF:
+
+- **Diagrams** follow **Diagram image format**. With *SVG* (the default) they are vector graphics:
+  sharp at any zoom and searchable. *PNG* and *JPG* embed images.
+- The **Namespace Overview** lists the prefixes the schema declares (target namespace, XML Schema,
+  imported, declared), plus a table of its imports, includes, redefines and overrides with their
+  locations.
+- The **Schema Diagram** chapter adds an **overview of the whole schema**, as on the HTML overview
+  page. Schemas with more than 400 elements get a note instead, because the overview would not be
+  legible on one page.
+- **XSD source in each section** (PDF option, off by default) shows the XSD source of every element
+  and type. Leaf elements and attributes show a **Sample** value.
+
 #### Markdown rendering
 
 `xs:documentation` text can be rendered as Markdown, so `**bold**`, lists and links show up

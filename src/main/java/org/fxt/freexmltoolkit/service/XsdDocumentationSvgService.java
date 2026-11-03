@@ -185,6 +185,20 @@ public class XsdDocumentationSvgService {
         }
     }
 
+    /**
+     * The overview diagram of the whole schema as a standalone SVG for print: as on the HTML
+     * overview page, without its hover styles and the drop-shadow filter (an SVG 2 filter that
+     * print renderers do not support).
+     *
+     * @return the SVG markup
+     */
+    String printOverviewSvg() {
+        return generateCompleteSvgDiagram()
+                .replaceAll("(?s)<filter id='dropShadow'.*?</filter>", "")
+                .replace("filter: url(#dropShadow);", "")
+                .replaceAll("[^{}]*:hover\\s*\\{[^}]*}", "");
+    }
+
     private String generateCompleteSvgDiagram() {
         StringBuilder svgBuilder = new StringBuilder();
 

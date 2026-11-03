@@ -73,12 +73,12 @@ public class DocumentationView extends BorderPane {
     record FormatOptions(String pageSize, boolean landscape, boolean coverPage, boolean toc,
                          boolean dataDictionary, boolean schemaDiagram, boolean elementDiagrams,
                          String colorScheme, String watermark, boolean pageNumbers, boolean bookmarks,
-                         String elementReference) {
+                         String elementReference, boolean sourceCode) {
 
         static FormatOptions defaults() {
             return new FormatOptions("A4", false, false, true, true, true, true,
                     "Blue", "None", true, true,
-                    PdfDocumentationConfig.ElementReference.DECLARATIONS.getDisplayName());
+                    PdfDocumentationConfig.ElementReference.DECLARATIONS.getDisplayName(), false);
         }
     }
 
@@ -121,6 +121,7 @@ public class DocumentationView extends BorderPane {
     @FXML private ComboBox<String> pdfColorScheme;
     @FXML private ComboBox<String> pdfWatermark;
     @FXML private ComboBox<String> pdfElementReference;
+    @FXML private CheckBox pdfSourceCode;
     @FXML private CheckBox pageNumbers;
     @FXML private CheckBox pdfBookmarks;
     @FXML private CheckBox openAfter;
@@ -229,7 +230,8 @@ public class DocumentationView extends BorderPane {
                 landscape.isSelected(), coverPage.isSelected(), tableOfContents.isSelected(),
                 dataDictionary.isSelected(), schemaDiagram.isSelected(), elementDiagrams.isSelected(),
                 pdfColorScheme.getValue(), pdfWatermark.getValue(),
-                pageNumbers.isSelected(), pdfBookmarks.isSelected(), pdfElementReference.getValue());
+                pageNumbers.isSelected(), pdfBookmarks.isSelected(), pdfElementReference.getValue(),
+                pdfSourceCode.isSelected());
         return new DocOptions(xsdFile, outputTarget, selectedFormat(),
                 selectedMarkdownMode(), includeTypeDefs.isSelected(), showDocInSvg.isSelected(),
                 showConstraintsInSvg.isSelected(), showRootConstraintsInSvg.isSelected(),
@@ -479,7 +481,10 @@ public class DocumentationView extends BorderPane {
                 if (options.languages() != null && !options.languages().isEmpty()) {
                     pdfService.setIncludedLanguages(options.languages());
                 }
-                pdfService.setConfig(pdfConfig(options.formatOptions()));
+                PdfDocumentationConfig pdfConfig = pdfConfig(options.formatOptions());
+                // The diagram format chosen for HTML: SVG stays vector graphics in the PDF too
+                pdfConfig.setVectorDiagrams(!"PNG".equals(options.imageFormat()) && !"JPG".equals(options.imageFormat()));
+                pdfService.setConfig(pdfConfig);
                 pdfService.setDeduplicateDataDictionaryByType(options.deduplicateDataDictionaryByType());
                 XsdDocumentationImageService imageService = new XsdDocumentationImageService(
                         service.xsdDocumentationData.getExtendedXsdElementMap());
@@ -546,6 +551,7 @@ public class DocumentationView extends BorderPane {
                 config.setElementReference(scope);
             }
         }
+        config.setIncludeSourceCode(options.sourceCode());
         return config;
     }
 

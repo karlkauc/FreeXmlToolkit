@@ -143,79 +143,197 @@
                 </fo:page-sequence>
             </xsl:if>
 
-            <!-- Content Pages -->
-            <fo:page-sequence master-reference="content-page">
-                <!-- Running header (if not NONE) -->
-                <xsl:if test="$headerStyle != 'NONE'">
-                    <fo:static-content flow-name="xsl-region-before">
-                        <xsl:call-template name="page-header"/>
-                    </fo:static-content>
-                </xsl:if>
+            <!-- Content pages: one page-sequence per chapter, and the long chapters in blocks.
+                 FOP breaks pages per page-sequence and keeps a whole sequence in memory, so one
+                 sequence for thousands of pages runs out of memory on large schemas. -->
+            <xsl:variable name="doc" select="xsd-documentation"/>
 
-                <!-- Running footer (if not NONE) -->
-                <xsl:if test="$footerStyle != 'NONE'">
-                    <fo:static-content flow-name="xsl-region-after">
-                        <xsl:call-template name="page-footer"/>
-                    </fo:static-content>
-                </xsl:if>
-
-                <!-- Main content -->
-                <fo:flow flow-name="xsl-region-body">
-                    <!-- Watermark on content pages if enabled -->
-                    <xsl:if test="$hasWatermark = 'true' and string-length($watermarkText) > 0">
-                        <xsl:call-template name="watermark"/>
-                    </xsl:if>
-
-                    <!-- Table of Contents -->
-                    <xsl:if test="$includeToc = 'true'">
+            <xsl:if test="$includeToc = 'true'">
+                <fo:page-sequence master-reference="content-page">
+                    <xsl:call-template name="page-statics"/>
+                    <fo:flow flow-name="xsl-region-body">
+                        <xsl:call-template name="flow-start"/>
                         <xsl:call-template name="table-of-contents"/>
-                    </xsl:if>
+                    </fo:flow>
+                </fo:page-sequence>
+            </xsl:if>
 
-                    <!-- Schema Overview -->
-                    <xsl:if test="$includeSchemaOverview = 'true'">
+            <xsl:if test="$includeSchemaOverview = 'true'">
+                <fo:page-sequence master-reference="content-page">
+                    <xsl:call-template name="page-statics"/>
+                    <fo:flow flow-name="xsl-region-body">
+                        <xsl:call-template name="flow-start"/>
                         <xsl:call-template name="schema-overview"/>
-                    </xsl:if>
+                    </fo:flow>
+                </fo:page-sequence>
+            </xsl:if>
 
-                    <!-- Namespace Overview (if present in XML) -->
-                    <xsl:if test="xsd-documentation/namespace-overview">
+            <xsl:if test="$doc/namespace-overview">
+                <fo:page-sequence master-reference="content-page">
+                    <xsl:call-template name="page-statics"/>
+                    <fo:flow flow-name="xsl-region-body">
+                        <xsl:call-template name="flow-start"/>
                         <xsl:call-template name="namespace-overview"/>
-                    </xsl:if>
+                    </fo:flow>
+                </fo:page-sequence>
+            </xsl:if>
 
-                    <!-- Schema Diagram -->
-                    <xsl:if test="$includeSchemaDiagram = 'true'">
+            <xsl:if test="$includeSchemaDiagram = 'true' and $doc/schema-diagram/image-path">
+                <fo:page-sequence master-reference="content-page">
+                    <xsl:call-template name="page-statics"/>
+                    <fo:flow flow-name="xsl-region-body">
+                        <xsl:call-template name="flow-start"/>
                         <xsl:call-template name="schema-diagram-section"/>
-                    </xsl:if>
+                    </fo:flow>
+                </fo:page-sequence>
+            </xsl:if>
 
-                    <!-- Complex Types -->
-                    <xsl:if test="$includeComplexTypes = 'true'">
+            <xsl:if test="$includeComplexTypes = 'true' and $doc/complex-types/complex-type">
+                <fo:page-sequence master-reference="content-page">
+                    <xsl:call-template name="page-statics"/>
+                    <fo:flow flow-name="xsl-region-body">
+                        <xsl:call-template name="flow-start"/>
                         <xsl:call-template name="complex-types-section"/>
-                    </xsl:if>
+                    </fo:flow>
+                </fo:page-sequence>
+                <xsl:call-template name="section-sequences">
+                    <xsl:with-param name="sections" select="$doc/complex-types/complex-type/section"/>
+                </xsl:call-template>
+            </xsl:if>
 
-                    <!-- Simple Types -->
-                    <xsl:if test="$includeSimpleTypes = 'true'">
+            <xsl:if test="$includeSimpleTypes = 'true' and $doc/simple-types/simple-type">
+                <fo:page-sequence master-reference="content-page">
+                    <xsl:call-template name="page-statics"/>
+                    <fo:flow flow-name="xsl-region-body">
+                        <xsl:call-template name="flow-start"/>
                         <xsl:call-template name="simple-types-section"/>
-                    </xsl:if>
+                    </fo:flow>
+                </fo:page-sequence>
+                <xsl:call-template name="section-sequences">
+                    <xsl:with-param name="sections" select="$doc/simple-types/simple-type/section"/>
+                </xsl:call-template>
+            </xsl:if>
 
-                    <!-- Data Dictionary -->
-                    <xsl:if test="$includeDataDictionary = 'true'">
-                        <xsl:call-template name="data-dictionary-section"/>
-                    </xsl:if>
+            <xsl:if test="$includeDataDictionary = 'true'">
+                <xsl:choose>
+                    <xsl:when test="$doc/data-dictionary/element">
+                        <xsl:for-each select="$doc/data-dictionary/element[position() mod $dictionaryChunk = 1]">
+                            <fo:page-sequence master-reference="content-page">
+                                <xsl:call-template name="page-statics"/>
+                                <fo:flow flow-name="xsl-region-body">
+                                    <xsl:call-template name="flow-start"/>
+                                    <xsl:call-template name="data-dictionary-section">
+                                        <xsl:with-param name="first" select="position() = 1"/>
+                                        <xsl:with-param name="rows" select=". | following-sibling::element[position() &lt; $dictionaryChunk]"/>
+                                    </xsl:call-template>
+                                </fo:flow>
+                            </fo:page-sequence>
+                        </xsl:for-each>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <fo:page-sequence master-reference="content-page">
+                            <xsl:call-template name="page-statics"/>
+                            <fo:flow flow-name="xsl-region-body">
+                                <xsl:call-template name="flow-start"/>
+                                <xsl:call-template name="data-dictionary-section">
+                                    <xsl:with-param name="first" select="true()"/>
+                                    <xsl:with-param name="rows" select="/.."/>
+                                </xsl:call-template>
+                            </fo:flow>
+                        </fo:page-sequence>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:if>
 
-                    <!-- Element Reference (one section per element, with its diagram) -->
-                    <xsl:if test="$includeElementReference = 'true'">
-                        <xsl:call-template name="element-reference-section"/>
-                    </xsl:if>
+            <xsl:if test="$includeElementReference = 'true' and $doc/element-reference/section">
+                <xsl:for-each select="$doc/element-reference/section[position() mod $sectionChunk = 1]">
+                    <fo:page-sequence master-reference="content-page">
+                        <xsl:call-template name="page-statics"/>
+                        <fo:flow flow-name="xsl-region-body">
+                            <xsl:call-template name="flow-start"/>
+                            <xsl:if test="position() = 1">
+                                <xsl:call-template name="element-reference-heading"/>
+                            </xsl:if>
+                            <xsl:for-each select=". | following-sibling::section[position() &lt; $sectionChunk]">
+                                <xsl:call-template name="reference-entry"/>
+                            </xsl:for-each>
+                        </fo:flow>
+                    </fo:page-sequence>
+                </xsl:for-each>
+            </xsl:if>
 
-                    <!-- Index (if present in XML) -->
-                    <xsl:if test="xsd-documentation/index">
-                        <xsl:call-template name="index-section"/>
-                    </xsl:if>
+            <!-- Index, last: it carries the last-page marker for "Page x of y" -->
+            <xsl:choose>
+                <xsl:when test="$doc/index/entry">
+                    <xsl:for-each select="$doc/index/entry[position() mod $indexChunk = 1]">
+                        <fo:page-sequence master-reference="content-page">
+                            <xsl:call-template name="page-statics"/>
+                            <fo:flow flow-name="xsl-region-body">
+                                <xsl:call-template name="flow-start"/>
+                                <xsl:call-template name="index-section">
+                                    <xsl:with-param name="first" select="position() = 1"/>
+                                    <xsl:with-param name="entries" select=". | following-sibling::entry[position() &lt; $indexChunk]"/>
+                                </xsl:call-template>
+                                <xsl:if test="position() = last()">
+                                    <fo:block id="last-page"/>
+                                </xsl:if>
+                            </fo:flow>
+                        </fo:page-sequence>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <fo:page-sequence master-reference="content-page">
+                        <xsl:call-template name="page-statics"/>
+                        <fo:flow flow-name="xsl-region-body">
+                            <fo:block id="last-page"/>
+                        </fo:flow>
+                    </fo:page-sequence>
+                </xsl:otherwise>
+            </xsl:choose>
+        </fo:root>
+    </xsl:template>
 
-                    <!-- Last page marker for page count -->
-                    <fo:block id="last-page"/>
+    <!-- Items per page-sequence of the long chapters (see the root template) -->
+    <xsl:variable name="sectionChunk" select="40"/>
+    <xsl:variable name="dictionaryChunk" select="500"/>
+    <xsl:variable name="indexChunk" select="1000"/>
+
+    <!-- Running header and footer of a content page-sequence -->
+    <xsl:template name="page-statics">
+        <xsl:if test="$headerStyle != 'NONE'">
+            <fo:static-content flow-name="xsl-region-before">
+                <xsl:call-template name="page-header"/>
+            </fo:static-content>
+        </xsl:if>
+        <xsl:if test="$footerStyle != 'NONE'">
+            <fo:static-content flow-name="xsl-region-after">
+                <xsl:call-template name="page-footer"/>
+            </fo:static-content>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- What every content flow starts with -->
+    <xsl:template name="flow-start">
+        <xsl:if test="$hasWatermark = 'true' and string-length($watermarkText) > 0">
+            <xsl:call-template name="watermark"/>
+        </xsl:if>
+    </xsl:template>
+
+    <!-- Type or element sections in blocks of $sectionChunk, one page-sequence each -->
+    <xsl:template name="section-sequences">
+        <xsl:param name="sections"/>
+        <xsl:for-each select="$sections[position() mod $sectionChunk = 1]">
+            <xsl:variable name="from" select="(position() - 1) * $sectionChunk + 1"/>
+            <fo:page-sequence master-reference="content-page">
+                <xsl:call-template name="page-statics"/>
+                <fo:flow flow-name="xsl-region-body">
+                    <xsl:call-template name="flow-start"/>
+                    <xsl:for-each select="$sections[position() &gt;= $from and position() &lt; $from + $sectionChunk]">
+                        <xsl:call-template name="reference-entry"/>
+                    </xsl:for-each>
                 </fo:flow>
             </fo:page-sequence>
-        </fo:root>
+        </xsl:for-each>
     </xsl:template>
 
     <!-- ============================================== -->
@@ -517,7 +635,6 @@
             </fo:block>
         </xsl:if>
 
-        <fo:block break-after="page"/>
     </xsl:template>
 
     <!-- ============================================== -->
@@ -604,7 +721,6 @@
             </fo:table-body>
         </fo:table>
 
-        <fo:block break-after="page"/>
     </xsl:template>
 
     <!-- Helper template for overview table rows -->
@@ -685,7 +801,37 @@
             </fo:table>
         </xsl:if>
 
-        <fo:block break-after="page"/>
+        <xsl:if test="xsd-documentation/namespace-overview/schema-reference">
+            <fo:block font-size="14pt" font-weight="bold" space-before="10mm" space-after="4mm">
+                <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
+                Imports and Includes
+            </fo:block>
+            <fo:table table-layout="fixed" width="100%" border="0.5pt solid">
+                <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
+                <fo:table-column column-width="15%"/>
+                <fo:table-column column-width="40%"/>
+                <fo:table-column column-width="45%"/>
+                <fo:table-header>
+                    <fo:table-row>
+                        <xsl:attribute name="background-color"><xsl:value-of select="$tableHeaderBg"/></xsl:attribute>
+                        <fo:table-cell padding="3mm"><fo:block font-weight="bold">Kind</fo:block></fo:table-cell>
+                        <fo:table-cell padding="3mm"><fo:block font-weight="bold">Namespace</fo:block></fo:table-cell>
+                        <fo:table-cell padding="3mm"><fo:block font-weight="bold">Schema location</fo:block></fo:table-cell>
+                    </fo:table-row>
+                </fo:table-header>
+                <fo:table-body>
+                    <xsl:for-each select="xsd-documentation/namespace-overview/schema-reference">
+                        <fo:table-row>
+                            <xsl:call-template name="apply-table-row-style"/>
+                            <fo:table-cell padding="2mm"><fo:block font-size="9pt"><xsl:value-of select="kind"/></fo:block></fo:table-cell>
+                            <fo:table-cell padding="2mm"><fo:block font-size="9pt" wrap-option="wrap"><xsl:value-of select="namespace"/></fo:block></fo:table-cell>
+                            <fo:table-cell padding="2mm"><fo:block font-size="9pt" wrap-option="wrap"><xsl:value-of select="location"/></fo:block></fo:table-cell>
+                        </fo:table-row>
+                    </xsl:for-each>
+                </fo:table-body>
+            </fo:table>
+        </xsl:if>
+
     </xsl:template>
 
     <!-- ============================================== -->
@@ -753,12 +899,8 @@
                 </fo:table-body>
             </fo:table>
 
-            <xsl:for-each select="xsd-documentation/complex-types/complex-type/section">
-                <xsl:call-template name="reference-entry"/>
-            </xsl:for-each>
-
-            <fo:block break-after="page"/>
-        </xsl:if>
+            
+            </xsl:if>
     </xsl:template>
 
     <!-- ============================================== -->
@@ -826,18 +968,17 @@
                 </fo:table-body>
             </fo:table>
 
-            <xsl:for-each select="xsd-documentation/simple-types/simple-type/section">
-                <xsl:call-template name="reference-entry"/>
-            </xsl:for-each>
-
-            <fo:block break-after="page"/>
-        </xsl:if>
+            
+            </xsl:if>
     </xsl:template>
 
     <!-- ============================================== -->
     <!-- DATA DICTIONARY SECTION                       -->
     <!-- ============================================== -->
     <xsl:template name="data-dictionary-section">
+        <xsl:param name="first" select="true()"/>
+        <xsl:param name="rows"/>
+        <xsl:if test="$first">
         <fo:block id="data-dictionary" font-size="20pt" space-before="5mm" space-after="10mm">
             <xsl:attribute name="font-weight"><xsl:value-of select="$headingBold"/></xsl:attribute>
             <xsl:attribute name="text-decoration"><xsl:value-of select="$headingUnderlined"/></xsl:attribute>
@@ -849,8 +990,9 @@
             <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
             Complete listing of all elements in the schema with their types and cardinality.
         </fo:block>
+        </xsl:if>
 
-        <xsl:if test="xsd-documentation/data-dictionary/element">
+        <xsl:if test="$rows">
             <fo:table table-layout="fixed" width="100%" border="0.5pt solid">
                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
                 <fo:table-column column-width="30%"/>
@@ -884,7 +1026,7 @@
                     </fo:table-row>
                 </fo:table-header>
                 <fo:table-body>
-                    <xsl:for-each select="xsd-documentation/data-dictionary/element">
+                    <xsl:for-each select="$rows">
                         <fo:table-row>
                             <xsl:call-template name="apply-table-row-style"/>
                             <fo:table-cell padding="2mm" border="0.5pt solid">
@@ -928,7 +1070,6 @@
     <!-- ============================================== -->
     <xsl:template name="schema-diagram-section">
         <xsl:if test="xsd-documentation/schema-diagram/image-path">
-            <fo:block break-before="page"/>
             <fo:block id="schema-diagram" font-size="20pt" space-before="5mm" space-after="10mm">
                 <xsl:attribute name="font-weight"><xsl:value-of select="$headingBold"/></xsl:attribute>
                 <xsl:attribute name="text-decoration"><xsl:value-of select="$headingUnderlined"/></xsl:attribute>
@@ -959,8 +1100,30 @@
                 Figure: Complete Schema Structure
             </fo:block>
 
-            <fo:block break-after="page"/>
-        </xsl:if>
+            <!-- The whole schema at a glance (vector, can be zoomed in the PDF viewer) -->
+            <xsl:if test="xsd-documentation/overview-diagram/image-path">
+                <fo:block break-before="page" font-size="14pt" font-weight="bold" space-after="4mm">
+                    <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
+                    Overview of the Whole Schema
+                </fo:block>
+                <fo:block text-align="center">
+                    <fo:external-graphic src="{xsd-documentation/overview-diagram/image-path}">
+                        <xsl:for-each select="xsd-documentation/overview-diagram/image-path">
+                            <xsl:call-template name="image-size"/>
+                        </xsl:for-each>
+                    </fo:external-graphic>
+                </fo:block>
+            </xsl:if>
+            <xsl:if test="xsd-documentation/overview-diagram/@skipped">
+                <fo:block font-size="9pt" font-style="italic" space-before="4mm">
+                    <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
+                    <xsl:text>No overview of the whole schema: with </xsl:text>
+                    <xsl:value-of select="xsd-documentation/overview-diagram/@skipped"/>
+                    <xsl:text> elements it would not be legible on a page. The Element Reference shows every element with its diagram.</xsl:text>
+                </fo:block>
+            </xsl:if>
+
+            </xsl:if>
     </xsl:template>
 
     <!-- Size of an external graphic from @width-mm / @height-mm of the image-path context node:
@@ -1018,25 +1181,18 @@
     <!-- ============================================== -->
     <!-- ELEMENT REFERENCE SECTION                     -->
     <!-- ============================================== -->
-    <xsl:template name="element-reference-section">
-        <xsl:if test="xsd-documentation/element-reference/section">
-            <fo:block break-before="page"/>
-            <fo:block id="element-reference" font-size="20pt" space-before="5mm" space-after="10mm">
-                <xsl:attribute name="font-weight"><xsl:value-of select="$headingBold"/></xsl:attribute>
-                <xsl:attribute name="text-decoration"><xsl:value-of select="$headingUnderlined"/></xsl:attribute>
-                <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
-                Element Reference
-            </fo:block>
+    <xsl:template name="element-reference-heading">
+        <fo:block id="element-reference" font-size="20pt" space-before="5mm" space-after="10mm">
+            <xsl:attribute name="font-weight"><xsl:value-of select="$headingBold"/></xsl:attribute>
+            <xsl:attribute name="text-decoration"><xsl:value-of select="$headingUnderlined"/></xsl:attribute>
+            <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
+            Element Reference
+        </fo:block>
 
-            <fo:block font-size="11pt" space-after="8mm">
-                <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
-                Every element and attribute with its diagram, documentation, restrictions, children and constraints.
-            </fo:block>
-
-            <xsl:for-each select="xsd-documentation/element-reference/section">
-                <xsl:call-template name="reference-entry"/>
-            </xsl:for-each>
-        </xsl:if>
+        <fo:block font-size="11pt" space-after="8mm">
+            <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
+            Every element and attribute with its diagram, documentation, restrictions, children and constraints.
+        </fo:block>
     </xsl:template>
 
     <xsl:template name="reference-subheading">
@@ -1411,6 +1567,20 @@
                 </xsl:if>
             </xsl:if>
 
+            <!-- XSD source -->
+            <xsl:if test="source">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'XSD Source'"/>
+                </xsl:call-template>
+                <fo:block font-size="7pt" font-family="Courier" padding="2mm" border="0.5pt solid"
+                          linefeed-treatment="preserve" white-space-treatment="preserve"
+                          white-space-collapse="false" wrap-option="wrap">
+                    <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
+                    <xsl:attribute name="background-color"><xsl:value-of select="$lightBackground"/></xsl:attribute>
+                    <xsl:value-of select="source"/>
+                </fo:block>
+            </xsl:if>
+
             <!-- Appinfo -->
             <xsl:if test="appinfo">
                 <xsl:call-template name="reference-subheading">
@@ -1430,7 +1600,9 @@
     <!-- INDEX SECTION                                 -->
     <!-- ============================================== -->
     <xsl:template name="index-section">
-        <fo:block break-before="page"/>
+        <xsl:param name="first" select="true()"/>
+        <xsl:param name="entries"/>
+        <xsl:if test="$first">
         <fo:block id="index-section" font-size="20pt" space-before="5mm" space-after="10mm">
             <xsl:attribute name="font-weight"><xsl:value-of select="$headingBold"/></xsl:attribute>
             <xsl:attribute name="text-decoration"><xsl:value-of select="$headingUnderlined"/></xsl:attribute>
@@ -1442,8 +1614,9 @@
             <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
             Alphabetical listing of all elements, types, and attributes.
         </fo:block>
+        </xsl:if>
 
-        <xsl:if test="xsd-documentation/index/entry">
+        <xsl:if test="$entries">
             <fo:table table-layout="fixed" width="100%" border="0.5pt solid">
                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
                 <fo:table-column column-width="40%"/>
@@ -1467,7 +1640,7 @@
                     </fo:table-row>
                 </fo:table-header>
                 <fo:table-body>
-                    <xsl:for-each select="xsd-documentation/index/entry">
+                    <xsl:for-each select="$entries">
                         <fo:table-row>
                             <xsl:call-template name="apply-table-row-style"/>
                             <fo:table-cell padding="3mm" border="0.5pt solid">

@@ -401,6 +401,49 @@ public class XsdDocumentationImageService {
      * @param rootElement
      * @return the SVG string representation
      */
+    /**
+     * Writes the diagram of an element as an SVG file for print (PDF): styled the way the PNG export
+     * is (no interactive CSS, Batik-safe fonts, explicit styles) and without drop-shadow filters,
+     * which a PDF renderer would turn into bitmaps. The result stays vector graphics.
+     *
+     * @param rootElement the element the diagram starts from
+     * @param file        the SVG file to write
+     * @return the file's path, or null when there was nothing to draw or it could not be written
+     */
+    public String generatePrintSvg(XsdExtendedElement rootElement, File file) {
+        if (rootElement == null) {
+            return null;
+        }
+        Document svgDocument = generateSvgDocument(rootElement);
+        if (svgDocument.getDocumentElement() == null || !svgDocument.getDocumentElement().hasChildNodes()) {
+            return null;
+        }
+        Document print = optimizeSvgForPngRendering(svgDocument);
+        removeFilters(print.getDocumentElement());
+        try {
+            java.nio.file.Files.writeString(file.toPath(), asString(print.getDocumentElement()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            return file.getAbsolutePath();
+        } catch (IOException e) {
+            logger.error("Failed to write SVG diagram '{}'", file.getAbsolutePath(), e);
+            return null;
+        }
+    }
+
+    /** Drops {@code filter} attributes and {@code filter:} style declarations below {@code element}. */
+    private static void removeFilters(Element element) {
+        element.removeAttribute("filter");
+        String style = element.getAttribute("style");
+        if (style.contains("filter")) {
+            element.setAttribute("style", style.replaceAll("filter\\s*:[^;]*;?", "").trim());
+        }
+        for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+            if (child instanceof Element childElement) {
+                removeFilters(childElement);
+            }
+        }
+    }
+
     public String generateSvgString(XsdExtendedElement rootElement) {
         Document svgDocument = generateSvgDocument(rootElement);
         return asString(svgDocument.getDocumentElement());

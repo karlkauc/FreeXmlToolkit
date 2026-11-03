@@ -180,6 +180,9 @@ final class PdfElementReferenceBuilder {
             writeOpenContent(doc, section, element);
         }
         writeAssertions(doc, section, element);
+        if (config.isIncludeSourceCode()) {
+            addSource(doc, section, element.getSourceCode());
+        }
         for (String appInfo : nonNull(element.getGenericAppInfos())) {
             if (appInfo != null && !appInfo.isBlank()) {
                 add(doc, section, "appinfo", appInfo.strip());
@@ -205,6 +208,13 @@ final class PdfElementReferenceBuilder {
             }
         }
         property(doc, properties, "Level", String.valueOf(element.getLevel()));
+        // A value a leaf element or attribute could take, as on the HTML detail page
+        if (flattenedChildren(element).isEmpty()) {
+            String sample = element.getDisplaySampleData();
+            if (sample != null && !sample.isBlank() && !"...".equals(sample.strip())) {
+                property(doc, properties, "Sample", sample.strip());
+            }
+        }
     }
 
     private String typeDisplay(XsdExtendedElement element) {
@@ -227,9 +237,19 @@ final class PdfElementReferenceBuilder {
         if (!worthDrawing) {
             return false;
         }
+        return addDiagram(doc, section, element, sectionIdOf(element.getCurrentXpath()));
+    }
+
+    /**
+     * Draws the diagram of {@code element} into the image directory (SVG or PNG, as configured) and
+     * adds it to {@code section} with its print size.
+     *
+     * @return whether a diagram was added
+     */
+    boolean addDiagram(Document doc, Element section, XsdExtendedElement element, String fileName) {
         try {
-            Path image = imageDir.resolve(sectionIdOf(element.getCurrentXpath()) + ".png");
-            if (imageService.generateImage(element, image.toFile()) != null) {
+            Path image = drawDiagram(imageService, config, element, imageDir.resolve(fileName));
+            if (image != null) {
                 Element img = add(doc, section, "image-path", image.toUri().toString());
                 setImageSize(img, image, config, REFERENCE_DIAGRAM_MAX_HEIGHT_MM);
                 return true;
@@ -238,6 +258,21 @@ final class PdfElementReferenceBuilder {
             logger.warn("Failed to draw the diagram of {}: {}", element.getCurrentXpath(), e.getMessage());
         }
         return false;
+    }
+
+    /**
+     * Draws a diagram as {@code base}.svg (vector) or {@code base}.png, as the config says.
+     *
+     * @return the written file, or null when nothing was drawn
+     */
+    static Path drawDiagram(XsdDocumentationImageService imageService, PdfDocumentationConfig config,
+                            XsdExtendedElement element, Path base) {
+        if (config.isVectorDiagrams()) {
+            Path svg = base.resolveSibling(base.getFileName() + ".svg");
+            return imageService.generatePrintSvg(element, svg.toFile()) != null ? svg : null;
+        }
+        Path png = base.resolveSibling(base.getFileName() + ".png");
+        return imageService.generateImage(element, png.toFile()) != null ? png : null;
     }
 
     private void writeDocumentation(Document doc, Element section, XsdExtendedElement element) {
@@ -430,6 +465,9 @@ final class PdfElementReferenceBuilder {
     }
 
     private static int[] pixelSize(Path image) {
+        if (image.getFileName().toString().endsWith(".svg")) {
+            return svgSize(image);
+        }
         try (javax.imageio.stream.ImageInputStream in = javax.imageio.ImageIO.createImageInputStream(image.toFile())) {
             if (in == null) {
                 return null;
@@ -451,6 +489,29 @@ final class PdfElementReferenceBuilder {
         }
     }
 
+    /** The width and height of an SVG from its root element's {@code width}/{@code height} (user units = px). */
+    private static int[] svgSize(Path svg) {
+        try (java.io.BufferedReader reader = java.nio.file.Files.newBufferedReader(svg)) {
+            char[] head = new char[4096];
+            int read = reader.read(head);
+            String start = read <= 0 ? "" : new String(head, 0, read);
+            java.util.regex.Matcher root = java.util.regex.Pattern.compile("<svg[^>]*>", java.util.regex.Pattern.DOTALL)
+                    .matcher(start);
+            if (!root.find()) {
+                return null;
+            }
+            java.util.regex.Matcher w = java.util.regex.Pattern.compile("\\swidth=\"([0-9.]+)").matcher(root.group());
+            java.util.regex.Matcher h = java.util.regex.Pattern.compile("\\sheight=\"([0-9.]+)").matcher(root.group());
+            if (!w.find() || !h.find()) {
+                return null;
+            }
+            return new int[]{(int) Math.ceil(Double.parseDouble(w.group(1))), (int) Math.ceil(Double.parseDouble(h.group(1)))};
+        } catch (java.io.IOException | NumberFormatException e) {
+            logger.debug("Could not read the size of {}: {}", svg, e.getMessage());
+            return null;
+        }
+    }
+
     /** @return a length such as {@code 210mm}, {@code 8.5in}, {@code 2cm} or {@code 12pt} in millimetres */
     static double toMm(String length) {
         String value = length == null ? "" : length.strip();
@@ -465,6 +526,13 @@ final class PdfElementReferenceBuilder {
             return number * 25.4 / 72;
         }
         return number;
+    }
+
+    /** Adds the XSD source of a section, if there is one. */
+    static void addSource(Document doc, Element section, String source) {
+        if (source != null && !source.isBlank()) {
+            add(doc, section, "source", source.stripTrailing());
+        }
     }
 
     private static boolean isAttribute(XsdExtendedElement element) {

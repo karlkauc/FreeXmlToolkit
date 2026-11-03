@@ -199,22 +199,7 @@ public class XsdDocumentationPdfService {
         Element namespaceOverview = doc.createElement("namespace-overview");
         root.appendChild(namespaceOverview);
 
-        // Add target namespace
-        String targetNs = documentationData.getTargetNamespace();
-        if (targetNs != null && !targetNs.isEmpty()) {
-            Element ns = doc.createElement("namespace");
-            namespaceOverview.appendChild(ns);
-            addElement(doc, ns, "prefix", "tns");
-            addElement(doc, ns, "uri", targetNs);
-            addElement(doc, ns, "description", "Target Namespace");
-        }
-
-        // Add XSD namespace
-        Element xsdNs = doc.createElement("namespace");
-        namespaceOverview.appendChild(xsdNs);
-        addElement(doc, xsdNs, "prefix", "xs/xsd");
-        addElement(doc, xsdNs, "uri", "http://www.w3.org/2001/XMLSchema");
-        addElement(doc, xsdNs, "description", "XML Schema Definition");
+        writeNamespaces(doc, namespaceOverview);
 
         // Schema Diagram section (if configured)
         if (config.isIncludeSchemaDiagram() && imageService != null && tempImageDir != null) {
@@ -225,11 +210,11 @@ public class XsdDocumentationPdfService {
 
             if (rootElement != null) {
                 try {
-                    // Generate PNG image
-                    Path imagePath = tempImageDir.resolve("schema-diagram.png");
-                    String generatedPath = imageService.generateImage(rootElement, imagePath.toFile());
+                    // SVG (vector) or PNG, as configured
+                    Path imagePath = PdfElementReferenceBuilder.drawDiagram(imageService, config, rootElement,
+                            tempImageDir.resolve("schema-diagram"));
 
-                    if (generatedPath != null) {
+                    if (imagePath != null) {
                         addElement(doc, schemaDiagramSection, "image-path", imagePath.toUri().toString());
                         PdfElementReferenceBuilder.setImageSize(
                                 (Element) schemaDiagramSection.getLastChild(), imagePath, config, 200);
@@ -248,6 +233,8 @@ public class XsdDocumentationPdfService {
         PdfTypeReferenceBuilder types = new PdfTypeReferenceBuilder(this, documentationData, config,
                 imageService, tempImageDir, includedLanguages, reference);
         reference.setTypeSections(types::sectionIdOf);
+
+        writeOverviewDiagram(doc, root);
 
         // ComplexTypes section
         Element complexTypes = doc.createElement("complex-types");
@@ -419,6 +406,9 @@ public class XsdDocumentationPdfService {
 
         // Configure FOP
         FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
+        // Large schemas give thousands of pages: let FOP write finished pages out instead of
+        // holding them all in memory
+        foUserAgent.setConserveMemoryPolicy(true);
         foUserAgent.setProducer("FreeXmlToolkit");
         foUserAgent.setCreator("FreeXmlToolkit");
 
@@ -1149,6 +1139,141 @@ public class XsdDocumentationPdfService {
 
     // ================= Helper Methods =================
 
+    /** Schemas with more elements than this get no overview diagram: it would not be legible on a page. */
+    static final int OVERVIEW_MAX_ELEMENTS = 400;
+
+    /**
+     * Adds the overview diagram of the whole schema (as on the HTML overview page) as vector
+     * graphics, when the schema diagram is on and the schema is small enough to read on one page.
+     */
+    private void writeOverviewDiagram(Document doc, Element root) {
+        if (!config.isIncludeSchemaDiagram() || tempImageDir == null) {
+            return;
+        }
+        long elements = documentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> !isContainerElement(e)).count();
+        Element overview = doc.createElement("overview-diagram");
+        root.appendChild(overview);
+        if (elements > OVERVIEW_MAX_ELEMENTS) {
+            overview.setAttribute("skipped", String.valueOf(elements));
+            return;
+        }
+        try {
+            XsdDocumentationSvgService svgService = new XsdDocumentationSvgService();
+            svgService.setDocumentationData(documentationData);
+            Path svg = tempImageDir.resolve("overview.svg");
+            Files.writeString(svg, svgService.printOverviewSvg(), java.nio.charset.StandardCharsets.UTF_8);
+            addElement(doc, overview, "image-path", svg.toUri().toString());
+            double pageHeight = PdfElementReferenceBuilder.toMm(config.getPageHeight())
+                    - 2 * PdfElementReferenceBuilder.toMm(config.getMarginSize()) - 60;
+            PdfElementReferenceBuilder.setImageSize((Element) overview.getLastChild(), svg, config, pageHeight);
+        } catch (IOException | RuntimeException e) {
+            logger.warn("Failed to draw the overview diagram: {}", e.getMessage());
+            root.removeChild(overview);
+        }
+    }
+
+    /**
+     * Lists the namespaces the schema declares (prefix, URI and what they are: target namespace,
+     * XML Schema, imported, or only declared) and the schema's imports, includes, redefines and
+     * overrides with their locations.
+     */
+    private void writeNamespaces(Document doc, Element overview) {
+        org.w3c.dom.Element schema = schemaElement();
+        String targetNs = documentationData.getTargetNamespace();
+        Map<String, String> importLocations = new java.util.LinkedHashMap<>();
+        List<String[]> references = new ArrayList<>();
+        if (schema != null) {
+            for (Node child = schema.getFirstChild(); child != null; child = child.getNextSibling()) {
+                if (child instanceof org.w3c.dom.Element reference
+                        && javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(reference.getNamespaceURI())
+                        && List.of("import", "include", "redefine", "override").contains(reference.getLocalName())) {
+                    String namespace = reference.getAttribute("namespace");
+                    String location = reference.getAttribute("schemaLocation");
+                    references.add(new String[]{reference.getLocalName(), namespace, location});
+                    if ("import".equals(reference.getLocalName())) {
+                        importLocations.put(namespace, location);
+                    }
+                }
+            }
+        }
+
+        // The declared prefixes, then namespaces only imported
+        Map<String, String> declared = new java.util.LinkedHashMap<>();
+        if (schema != null) {
+            var attributes = schema.getAttributes();
+            for (int i = 0; i < attributes.getLength(); i++) {
+                Node attribute = attributes.item(i);
+                if (javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attribute.getNamespaceURI())) {
+                    String prefix = "xmlns".equals(attribute.getNodeName()) ? "(default)" : attribute.getLocalName();
+                    declared.put(prefix, attribute.getNodeValue());
+                }
+            }
+        }
+        if (declared.isEmpty()) {
+            declared.put("xs", javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        }
+        java.util.Set<String> listed = new java.util.HashSet<>();
+        for (Map.Entry<String, String> entry : declared.entrySet()) {
+            String uri = entry.getValue();
+            namespaceRow(doc, overview, entry.getKey(), uri, namespaceKind(uri, targetNs, importLocations));
+            listed.add(uri);
+        }
+        if (targetNs != null && !targetNs.isEmpty() && !listed.contains(targetNs)) {
+            namespaceRow(doc, overview, "-", targetNs, "Target namespace");
+            listed.add(targetNs);
+        }
+        for (String imported : importLocations.keySet()) {
+            if (!listed.contains(imported)) {
+                namespaceRow(doc, overview, "-", imported.isEmpty() ? "(no namespace)" : imported, "Imported");
+            }
+        }
+        for (String[] reference : references) {
+            Element row = doc.createElement("schema-reference");
+            overview.appendChild(row);
+            addElement(doc, row, "kind", reference[0]);
+            addElement(doc, row, "namespace", reference[1].isEmpty() ? "-" : reference[1]);
+            addElement(doc, row, "location", breakable(reference[2].isEmpty() ? "-" : reference[2]));
+        }
+    }
+
+    private static String namespaceKind(String uri, String targetNs, Map<String, String> imports) {
+        if (javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(uri)) {
+            return "XML Schema";
+        }
+        if (uri != null && uri.equals(targetNs)) {
+            return "Target namespace";
+        }
+        if ("http://www.w3.org/2001/XMLSchema-instance".equals(uri)) {
+            return "XML Schema instance";
+        }
+        if ("http://www.w3.org/XML/1998/namespace".equals(uri)) {
+            return "XML";
+        }
+        return imports.containsKey(uri) ? "Imported" : "Declared";
+    }
+
+    private void namespaceRow(Document doc, Element overview, String prefix, String uri, String kind) {
+        Element ns = doc.createElement("namespace");
+        overview.appendChild(ns);
+        addElement(doc, ns, "prefix", prefix);
+        addElement(doc, ns, "uri", breakable(uri));
+        addElement(doc, ns, "type", kind);
+    }
+
+    /** @return the {@code xs:schema} element of the documented schema, or null */
+    private org.w3c.dom.Element schemaElement() {
+        List<Node> declarations = new ArrayList<>(documentationData.getGlobalElements());
+        declarations.addAll(documentationData.getGlobalComplexTypes());
+        declarations.addAll(documentationData.getGlobalSimpleTypes());
+        for (Node declaration : declarations) {
+            if (declaration.getOwnerDocument() != null && declaration.getOwnerDocument().getDocumentElement() != null) {
+                return declaration.getOwnerDocument().getDocumentElement();
+            }
+        }
+        return null;
+    }
+
     /**
      * Lists each named complex or simple type once, at its first occurrence in document order, as
      * the HTML data dictionary does with the same option. Elements of a built-in type or without a
@@ -1373,6 +1498,24 @@ public class XsdDocumentationPdfService {
             }
         }
         return bases;
+    }
+
+    /** @return a schema component as indented XML text (its XSD source), empty if it cannot be written */
+    static String serialize(Node node) {
+        try {
+            javax.xml.transform.Transformer transformer = javax.xml.transform.TransformerFactory
+                    .newDefaultInstance().newTransformer();
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            java.io.StringWriter out = new java.io.StringWriter();
+            transformer.transform(new DOMSource(node), new javax.xml.transform.stream.StreamResult(out));
+            // Drop the blank lines the identity transform leaves from the source's whitespace
+            return out.toString().replaceAll("(?m)^[ \\t]*\\r?\\n", "").strip();
+        } catch (javax.xml.transform.TransformerException e) {
+            logger.debug("Could not write the source of {}: {}", node.getNodeName(), e.getMessage());
+            return "";
+        }
     }
 
     static String localName(String qName) {

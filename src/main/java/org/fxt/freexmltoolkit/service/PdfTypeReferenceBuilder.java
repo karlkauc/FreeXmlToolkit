@@ -121,6 +121,9 @@ final class PdfTypeReferenceBuilder {
             }
         }
         writeUsage(doc, section, usage);
+        if (config.isIncludeSourceCode()) {
+            PdfElementReferenceBuilder.addSource(doc, section, XsdDocumentationPdfService.serialize(type));
+        }
     }
 
     /**
@@ -194,6 +197,9 @@ final class PdfTypeReferenceBuilder {
             }
         }
         writeUsage(doc, section, usage);
+        if (config.isIncludeSourceCode()) {
+            PdfElementReferenceBuilder.addSource(doc, section, XsdDocumentationPdfService.serialize(type));
+        }
     }
 
     /** Usage of a type, with the users reduced to one per element section. */
@@ -233,16 +239,7 @@ final class PdfTypeReferenceBuilder {
                 || elements.flattenedChildren(representative).isEmpty()) {
             return;
         }
-        try {
-            Path image = imageDir.resolve(section.getAttribute("id") + ".png");
-            if (imageService.generateImage(representative, image.toFile()) != null) {
-                Element img = add(doc, section, "image-path", image.toUri().toString());
-                PdfElementReferenceBuilder.setImageSize(img, image, config,
-                        PdfElementReferenceBuilder.REFERENCE_DIAGRAM_MAX_HEIGHT_MM);
-            }
-        } catch (RuntimeException e) {
-            logger.warn("Failed to draw the content model of {}: {}", section.getAttribute("name"), e.getMessage());
-        }
+        elements.addDiagram(doc, section, representative, section.getAttribute("id"));
     }
 
     private void writeChildren(Document doc, Element section, XsdExtendedElement representative) {

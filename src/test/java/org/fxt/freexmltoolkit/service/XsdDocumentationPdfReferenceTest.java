@@ -85,7 +85,7 @@ class XsdDocumentationPdfReferenceTest {
 
     private static String text;
     private static int linkCount;
-    private static int imageCount;
+    private static int pngImagesWithoutReference;
     private static List<String> referenceBookmarks;
     private static String textWithoutReference;
 
@@ -107,11 +107,6 @@ class XsdDocumentationPdfReferenceTest {
                         linkCount++;
                     }
                 }
-                for (COSName name : page.getResources().getXObjectNames()) {
-                    if (page.getResources().getXObject(name) instanceof PDImageXObject) {
-                        imageCount++;
-                    }
-                }
             }
             referenceBookmarks = new ArrayList<>();
             for (PDOutlineItem item : document.getDocumentCatalog().getDocumentOutline().children()) {
@@ -123,10 +118,18 @@ class XsdDocumentationPdfReferenceTest {
 
         PdfDocumentationConfig off = new PdfDocumentationConfig();
         off.setElementReference(PdfDocumentationConfig.ElementReference.OFF);
+        off.setVectorDiagrams(false); // the schema diagram as PNG
         File plain = tmp.resolve("plain.pdf").toFile();
         render(service, off, plain);
         try (PDDocument document = Loader.loadPDF(plain)) {
             textWithoutReference = new PDFTextStripper().getText(document);
+            for (PDPage page : document.getPages()) {
+                for (COSName name : page.getResources().getXObjectNames()) {
+                    if (page.getResources().getXObject(name) instanceof PDImageXObject) {
+                        pngImagesWithoutReference++;
+                    }
+                }
+            }
         }
     }
 
@@ -170,7 +173,9 @@ class XsdDocumentationPdfReferenceTest {
 
     @Test
     void sectionsHaveDiagramsLinksAndBookmarks() {
-        assertTrue(imageCount >= 3, "the schema diagram and diagrams of the sections: " + imageCount);
+        // Diagrams are vector graphics by default; their text is real text, e.g. the cardinality badges
+        assertTrue(text.contains("[1..*]"), "the diagrams are in the PDF");
+        assertTrue(pngImagesWithoutReference >= 1, "as PNG, the schema diagram is an image: " + pngImagesWithoutReference);
         assertTrue(linkCount > 10, "the table of contents, data dictionary, index and child tables link: " + linkCount);
         assertTrue(referenceBookmarks.contains("Library") && referenceBookmarks.contains("ISBN"),
                 "a bookmark per section: " + referenceBookmarks);

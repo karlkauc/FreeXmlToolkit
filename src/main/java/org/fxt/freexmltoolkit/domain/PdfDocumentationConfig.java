@@ -775,6 +775,10 @@ public class PdfDocumentationConfig {
     /** Diagrams in the element reference sections (formerly a separate "Element Diagrams" section). */
     private boolean includeElementDiagrams = true;
     private ElementReference elementReference = ElementReference.DECLARATIONS;
+    /** Diagrams as SVG (vector, sharp at any zoom) instead of PNG. */
+    private boolean vectorDiagrams = true;
+    /** The XSD source of each element and type in its section. */
+    private boolean includeSourceCode = false;
     private boolean includeComplexTypes = true;
     private boolean includeSimpleTypes = true;
     private boolean includeDataDictionary = true;
@@ -827,6 +831,8 @@ public class PdfDocumentationConfig {
         this.includeSchemaDiagram = other.includeSchemaDiagram;
         this.includeElementDiagrams = other.includeElementDiagrams;
         this.elementReference = other.elementReference;
+        this.vectorDiagrams = other.vectorDiagrams;
+        this.includeSourceCode = other.includeSourceCode;
         this.includeComplexTypes = other.includeComplexTypes;
         this.includeSimpleTypes = other.includeSimpleTypes;
         this.includeDataDictionary = other.includeDataDictionary;
@@ -1085,6 +1091,34 @@ public class PdfDocumentationConfig {
      */
     public void setIncludeElementDiagrams(boolean includeElementDiagrams) {
         this.includeElementDiagrams = includeElementDiagrams;
+    }
+
+    /** @return whether diagrams are embedded as SVG (vector) rather than PNG */
+    public boolean isVectorDiagrams() {
+        return vectorDiagrams;
+    }
+
+    /**
+     * Sets whether diagrams are embedded as SVG (vector graphics, sharp at any zoom) or as PNG.
+     *
+     * @param vectorDiagrams true for SVG
+     */
+    public void setVectorDiagrams(boolean vectorDiagrams) {
+        this.vectorDiagrams = vectorDiagrams;
+    }
+
+    /** @return whether the sections show the XSD source of their element or type */
+    public boolean isIncludeSourceCode() {
+        return includeSourceCode;
+    }
+
+    /**
+     * Sets whether each element and type section shows its XSD source.
+     *
+     * @param includeSourceCode true to show the source
+     */
+    public void setIncludeSourceCode(boolean includeSourceCode) {
+        this.includeSourceCode = includeSourceCode;
     }
 
     /** @return which elements get a section in the element reference */

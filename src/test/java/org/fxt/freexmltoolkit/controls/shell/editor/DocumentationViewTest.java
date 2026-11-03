@@ -149,7 +149,7 @@ class DocumentationViewTest {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "PDF",
                     XsdDocumentationService.MarkdownMode.ALL, false, false, true, true, false, false, false, "SVG", Set.of(), null, false, null,
                     new DocumentationView.FormatOptions("Letter", true, false, true, true,
-                            false, false, "Professional", "Draft", true, true, "Off")));
+                            false, false, "Professional", "Draft", true, true, "Off", false)));
             return null;
         });
         WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS,
