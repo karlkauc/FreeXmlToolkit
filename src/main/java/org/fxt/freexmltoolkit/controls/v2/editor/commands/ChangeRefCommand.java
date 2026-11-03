@@ -46,10 +46,7 @@ public class ChangeRefCommand extends AbstractNodePropertyCommand<String> {
     @Override
     public boolean execute() {
         String ref = normalize(newRef);
-        if (XsdEditRules.changeRef(node, ref).isBlocked()) {
-            return false;
-        }
-        return super.execute();
+        return !XsdEditRules.changeRef(node, ref).isBlocked() && super.execute();
     }
 
     @Override

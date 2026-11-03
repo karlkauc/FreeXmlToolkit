@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javafx.scene.control.*;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;

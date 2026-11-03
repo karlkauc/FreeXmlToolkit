@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.List;
 
 import javafx.scene.Scene;
-import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;

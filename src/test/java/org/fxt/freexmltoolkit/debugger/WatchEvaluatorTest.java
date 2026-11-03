@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Test;
 
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.XPathCompiler;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
-import net.sf.saxon.s9api.XPathCompiler;
 
 /** Watches evaluate against the paused context item and the variables in scope. */
 class WatchEvaluatorTest {

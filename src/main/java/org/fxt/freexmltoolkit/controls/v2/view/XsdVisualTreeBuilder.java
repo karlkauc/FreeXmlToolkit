@@ -1247,6 +1247,7 @@ public class XsdVisualTreeBuilder {
                 localVisitedTypes.add(visitKey);
                 processComplexType(type, parentNode, localVisitedTypes, visitedElements);
             }
+            default -> { }
         }
     }
 

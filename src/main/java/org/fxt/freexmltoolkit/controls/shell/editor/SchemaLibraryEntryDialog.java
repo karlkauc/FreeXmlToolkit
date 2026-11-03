@@ -5,7 +5,12 @@ import java.nio.file.Path;
 import java.util.UUID;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;

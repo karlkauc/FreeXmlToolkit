@@ -116,18 +116,18 @@ public final class EditRuleDialogs {
     /**
      * Runs the dialog matching {@code check}.
      *
-     * @return {@code null} when the edit must not run, {@code false} to run it as is,
+     * @return empty when the edit must not run, {@code false} to run it as is,
      * {@code true} to run its replacing variant
      */
-    public static Boolean resolve(Window owner, String title, EditCheck check) {
+    public static java.util.Optional<Boolean> resolve(Window owner, String title, EditCheck check) {
         if (check.isBlocked()) {
             showBlocked(owner, title, check);
-            return null;
+            return java.util.Optional.empty();
         }
         if (check.needsConfirmation()) {
-            return confirmReplace(owner, title, check) ? Boolean.TRUE : null;
+            return confirmReplace(owner, title, check) ? java.util.Optional.of(Boolean.TRUE) : java.util.Optional.empty();
         }
-        return Boolean.FALSE;
+        return java.util.Optional.of(Boolean.FALSE);
     }
 
     private static void style(Alert alert, Window owner) {

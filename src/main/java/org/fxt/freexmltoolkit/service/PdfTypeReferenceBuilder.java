@@ -9,8 +9,6 @@ import java.util.Set;
 
 import javax.xml.XMLConstants;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdAssertion;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
@@ -27,8 +25,6 @@ import org.w3c.dom.Node;
  * ({@link PdfElementReferenceBuilder}), so the template renders both alike.
  */
 final class PdfTypeReferenceBuilder {
-
-    private static final Logger logger = LogManager.getLogger(PdfTypeReferenceBuilder.class);
 
     /** Users of a type a section lists by path; the rest are counted. */
     static final int MAX_LISTED_USERS = 20;

@@ -125,7 +125,6 @@ final class GridBlockLayout {
             maxWidth = Math.max(maxWidth, valueX + MIN_VALUE_COL_WIDTH + RIGHT_MARGIN);
 
             double rowHeight;
-            GridModelAdapter.FormulaView formula;
             if (row.hasRepeatingTable() && row.isExpanded()) {
                 // Table owner: the embedded table sits beside the name cell, at the value column
                 RepeatingElementsTable table = row.getRepeatingTable();
@@ -137,33 +136,36 @@ final class GridBlockLayout {
             } else if (row.isExpandable() && row.isExpanded() && lastDescendant[i] > i) {
                 // Expanded container: no own line, the name cell spans the child block
                 rowHeight = 0;
-            } else if ((formula = m.formula(row)) != null) {
-                // Formula: the expression, then the result ("= …") below it
-                TextBlock expr = TextBlock.of(metrics, formula.expression().isEmpty() ? " " : formula.expression(),
-                        GridFont.ROW, metrics.wrapWidth());
-                String resultText = formula.error() != null ? "Error: " + formula.error() : "= " + formula.result();
-                TextBlock result = TextBlock.of(metrics, resultText, GridFont.ROW, metrics.wrapWidth());
-                row.setValueBlock(expr);
-                row.setResultBlock(result);
-                rowHeight = expr.height() + result.lineCount() * GridMetrics.LINE_HEIGHT;
-                maxWidth = Math.max(maxWidth, valueX + VALUE_PADDING
-                        + Math.max(expr.width(), result.width()) + NAME_VALUE_GAP + RIGHT_MARGIN);
-            } else if (row.getValue() != null) {
-                String text = row.isLeafWithValue() ? m.leafValueText(row) : row.getValue();
-                TextBlock block = TextBlock.of(metrics, text, GridFont.ROW, metrics.wrapWidth());
-                row.setValueBlock(block);
-                rowHeight = block.height();
-                maxWidth = Math.max(maxWidth, valueX + VALUE_PADDING + block.width() + NAME_VALUE_GAP + RIGHT_MARGIN);
-            } else if (row.isExpandable() && !row.isExpanded()) {
-                // Collapsed container: one grey preview line (never wrapped)
-                String preview = m.preview(row);
-                if (preview != null && !preview.isEmpty()) {
-                    double width = metrics.width(preview, GridFont.ROW);
-                    row.setValueBlock(new TextBlock(List.of(preview), width, GridMetrics.ROW_HEIGHT));
-                }
-                rowHeight = GridMetrics.ROW_HEIGHT;
             } else {
-                rowHeight = GridMetrics.ROW_HEIGHT;
+                GridModelAdapter.FormulaView formula = m.formula(row);
+                if (formula != null) {
+                    // Formula: the expression, then the result ("= …") below it
+                    TextBlock expr = TextBlock.of(metrics, formula.expression().isEmpty() ? " " : formula.expression(),
+                            GridFont.ROW, metrics.wrapWidth());
+                    String resultText = formula.error() != null ? "Error: " + formula.error() : "= " + formula.result();
+                    TextBlock result = TextBlock.of(metrics, resultText, GridFont.ROW, metrics.wrapWidth());
+                    row.setValueBlock(expr);
+                    row.setResultBlock(result);
+                    rowHeight = expr.height() + result.lineCount() * GridMetrics.LINE_HEIGHT;
+                    maxWidth = Math.max(maxWidth, valueX + VALUE_PADDING
+                            + Math.max(expr.width(), result.width()) + NAME_VALUE_GAP + RIGHT_MARGIN);
+                } else if (row.getValue() != null) {
+                    String text = row.isLeafWithValue() ? m.leafValueText(row) : row.getValue();
+                    TextBlock block = TextBlock.of(metrics, text, GridFont.ROW, metrics.wrapWidth());
+                    row.setValueBlock(block);
+                    rowHeight = block.height();
+                    maxWidth = Math.max(maxWidth, valueX + VALUE_PADDING + block.width() + NAME_VALUE_GAP + RIGHT_MARGIN);
+                } else if (row.isExpandable() && !row.isExpanded()) {
+                    // Collapsed container: one grey preview line (never wrapped)
+                    String preview = m.preview(row);
+                    if (preview != null && !preview.isEmpty()) {
+                        double width = metrics.width(preview, GridFont.ROW);
+                        row.setValueBlock(new TextBlock(List.of(preview), width, GridMetrics.ROW_HEIGHT));
+                    }
+                    rowHeight = GridMetrics.ROW_HEIGHT;
+                } else {
+                    rowHeight = GridMetrics.ROW_HEIGHT;
+                }
             }
             height[i] = rowHeight;
             currentY += rowHeight;

@@ -10,8 +10,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -35,12 +35,12 @@ import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.AddElementCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.CompositeXmlCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.DeleteNodeCommand;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.WrapInElementCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.MoveNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.RenameNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetAttributeCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SetElementTextCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.SortElementsCommand;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.WrapInElementCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument;
@@ -485,12 +485,12 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         sortMenu.setVisible(canSort);
 
         // Table display toggles (canvas state): only while the selection belongs to a repeating group
-        Boolean tableState = viewActions.tableDisplayState().get();
-        displayAsTableItem.setVisible(tableState != null);
-        displayAsTableItem.setSelected(Boolean.TRUE.equals(tableState));
-        Boolean flipState = viewActions.flipState().get();
-        flipTableItem.setVisible(flipState != null);
-        flipTableItem.setSelected(Boolean.TRUE.equals(flipState));
+        java.util.Optional<Boolean> tableState = viewActions.tableDisplayState().get();
+        displayAsTableItem.setVisible(tableState.isPresent());
+        displayAsTableItem.setSelected(tableState.orElse(false));
+        java.util.Optional<Boolean> flipState = viewActions.flipState().get();
+        flipTableItem.setVisible(flipState.isPresent());
+        flipTableItem.setSelected(flipState.orElse(false));
         copyTableTsvItem.setVisible(clickedTable != null);
 
         // Whole-row / whole-column operations: only with a table context

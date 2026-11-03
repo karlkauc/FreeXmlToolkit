@@ -2,7 +2,6 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -125,6 +124,6 @@ class XmlCanvasViewTableToggleTest {
 
         click(items().get(0).getRepeatingTable().getX() + 5, view.rowTopAt(idx) + 5);
         assertFalse(items().get(0).getRepeatingTable().isFlipped());
-        assertNull(view.flipStateOfSelection() == null ? null : Boolean.FALSE, "no selection in a table");
+        assertTrue(view.flipStateOfSelection().isEmpty(), "no selection in a table");
     }
 }

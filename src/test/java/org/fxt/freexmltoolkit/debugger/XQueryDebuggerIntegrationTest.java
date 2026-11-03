@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import net.sf.saxon.s9api.QName;
-
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.junit.jupiter.api.Test;
+
+import net.sf.saxon.s9api.QName;
 
 /** The debugger on an XQuery: breakpoints, variables, functions, trace(), errors, stop. */
 class XQueryDebuggerIntegrationTest {

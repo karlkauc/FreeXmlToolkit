@@ -511,27 +511,27 @@ public class XsdSampleDataGenerator {
 
             // If exact length is specified, use it
             if (exactLength != null) {
-                return generateWithLengthHint(sampler,exactLength, exactLength, patternValue);
+                return generateWithLengthHint(sampler, exactLength, exactLength, patternValue);
             }
 
             // If min and max length are specified, use them
             if (minLength != null && maxLength != null) {
-                return generateWithLengthHint(sampler,minLength, maxLength, patternValue);
+                return generateWithLengthHint(sampler, minLength, maxLength, patternValue);
             }
 
             // If only minLength is specified
             if (minLength != null) {
-                return generateWithLengthHint(sampler,minLength, minLength + 20, patternValue);
+                return generateWithLengthHint(sampler, minLength, minLength + 20, patternValue);
             }
 
             // If only maxLength is specified
             if (maxLength != null) {
-                return generateWithLengthHint(sampler,1, maxLength, patternValue);
+                return generateWithLengthHint(sampler, 1, maxLength, patternValue);
             }
 
             // No length restrictions - still use validation and fallback logic
             // Use 1-50 as reasonable default range
-            return generateWithLengthHint(sampler,1, 50, patternValue);
+            return generateWithLengthHint(sampler, 1, 50, patternValue);
 
         } catch (StackOverflowError e) {
             // Generex can cause StackOverflowError on complex patterns with recursive structures

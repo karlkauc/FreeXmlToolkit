@@ -54,7 +54,8 @@ class TypeEditorTabManagerTest {
                 latch.countDown();
             }
         });
-        latch.await(5, TimeUnit.SECONDS);
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "the tab manager must be set up on the FX thread");
+        assertNotNull(manager, "the tab manager could not be created");
     }
 
     @Test

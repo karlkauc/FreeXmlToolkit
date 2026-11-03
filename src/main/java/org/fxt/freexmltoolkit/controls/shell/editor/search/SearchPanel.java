@@ -9,8 +9,8 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 
 /**
  * The Search activity side panel (VS-Code-style "Find in Files"). Hosts two

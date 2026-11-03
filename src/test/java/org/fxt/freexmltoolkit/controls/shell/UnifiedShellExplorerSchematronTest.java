@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.stage.Stage;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel;

@@ -4592,6 +4592,7 @@ public class EditorHost extends BorderPane {
                                     + ", files up to about " + LargeFileGuard.formatSize(LargeFileGuard.largestOpenable(maxHeap))
                                     + " can be opened.\n\nRaise the limit under Settings > Memory and restart the application.");
                 });
+                default -> { }
             }
         });
     }
@@ -4907,6 +4908,7 @@ public class EditorHost extends BorderPane {
                     });
                     return xsd;
                 }
+                default -> { }
             }
             return tab.schemaFile; // unreachable
         } finally {
@@ -7678,11 +7680,12 @@ public class EditorHost extends BorderPane {
             if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
                 return false;
             }
-            Boolean replace = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Add " + capitalize(kind),
+            var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Add " + capitalize(kind),
                     org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addCompositor(element, kind));
-            if (replace == null) {
+            if (resolved.isEmpty()) {
                 return false;
             }
+            boolean replace = resolved.get();
             var command = switch (kind) {
                 case "choice" -> org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand.choice(element);
                 case "all" -> org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand.all(element);
@@ -7747,11 +7750,9 @@ public class EditorHost extends BorderPane {
                 return false;
             }
             String type = newType.trim();
-            Boolean replace = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Change Type", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, type));
-            if (replace == null) {
-                return false;
-            }
-            return executeAndApply(replace
+            var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Change Type",
+                    org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, type));
+            return resolved.isPresent() && executeAndApply(resolved.get()
                     ? org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand.replacingInlineType(editorContext, node, type)
                     : new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand(editorContext, node, type));
         }
@@ -7785,18 +7786,14 @@ public class EditorHost extends BorderPane {
             if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
                 // The Inspector shows "fixed" for attributes too; nillable/abstract do not apply there.
                 // Leaving the field unchanged must not add an undo step.
-                if (java.util.Objects.equals(attribute.getFixed(),
-                        org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFixedValueCommand.normalize(fixed))) {
-                    return true;
-                }
-                return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFixedValueCommand(
-                        editorContext, node, fixed));
+                return java.util.Objects.equals(attribute.getFixed(),
+                        org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFixedValueCommand.normalize(fixed))
+                        || executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFixedValueCommand(
+                                editorContext, node, fixed));
             }
-            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement)) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeConstraintsCommand(
-                    editorContext, node, nillable, abstractFlag, fixed));
+            return node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement
+                    && executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeConstraintsCommand(
+                            editorContext, node, nillable, abstractFlag, fixed));
         }
 
         boolean changeSubstitutionGroup(XsdNode node, String substitutionGroup) {

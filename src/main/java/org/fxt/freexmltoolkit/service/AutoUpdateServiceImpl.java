@@ -44,9 +44,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.fxt.freexmltoolkit.service.telemetry.UpdateFunnel;
 import org.fxt.freexmltoolkit.service.update.InstallSource;
 import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
-import org.fxt.freexmltoolkit.service.telemetry.UpdateFunnel;
 import org.fxt.freexmltoolkit.service.update.MacBundleUpdater;
 
 /**

@@ -46,7 +46,6 @@ import org.fxt.freexmltoolkit.controls.v2.editor.menu.XsdContextMenuFactory;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdPropertiesPanel;
 import org.fxt.freexmltoolkit.controls.v2.editor.selection.SelectionModel;
 import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;

@@ -393,7 +393,7 @@ class DebugSessionTest {
         session.updateBreakpoint("h.xsl", 7, bp -> bp.withCondition("odd")
                 .withHit(new HitCondition(HitCondition.Mode.EQUAL, 2)));
         java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
-        session.setConditionEvaluator((condition, snap) -> calls.incrementAndGet() % 2 == 1); // passes 1, 3, 5
+        session.setConditionEvaluator((condition, snap) -> calls.incrementAndGet() % 2 != 0); // passes 1, 3, 5
         assertEquals(List.of(3), passesThatPause(session, 6), "the 2nd true pass is pass 3");
         assertEquals(3, session.hitCount("h.xsl", 7));
     }

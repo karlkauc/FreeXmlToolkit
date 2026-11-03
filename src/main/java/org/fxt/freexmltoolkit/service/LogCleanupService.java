@@ -68,6 +68,9 @@ public final class LogCleanupService {
     }
 
     /** @return the files the logging system currently writes (absolute, normalized) */
+    // The LoggerContext is the application's running logging context, only read here: closing it
+    // would shut logging down for the whole app.
+    @SuppressWarnings("PMD.CloseResource")
     static Set<Path> activeLogFiles() {
         Set<Path> files = new HashSet<>();
         try {

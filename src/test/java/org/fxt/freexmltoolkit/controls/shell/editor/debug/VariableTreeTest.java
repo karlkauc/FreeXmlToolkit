@@ -8,6 +8,12 @@ import java.util.Map;
 
 import javax.xml.transform.stream.StreamSource;
 
+import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
+import org.fxt.freexmltoolkit.debugger.VariableBinding;
+import org.fxt.freexmltoolkit.debugger.VariableScope;
+import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
+import org.junit.jupiter.api.Test;
+
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.XdmArray;
@@ -15,12 +21,6 @@ import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmMap;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
-
-import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
-import org.fxt.freexmltoolkit.debugger.VariableBinding;
-import org.fxt.freexmltoolkit.debugger.VariableScope;
-import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
-import org.junit.jupiter.api.Test;
 
 /** How variable values unfold, and that every row's XPath really reaches that row's value. */
 class VariableTreeTest {

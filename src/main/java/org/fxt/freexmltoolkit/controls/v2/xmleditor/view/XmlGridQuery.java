@@ -11,6 +11,9 @@ import java.util.Set;
 
 import javax.xml.transform.stream.StreamSource;
 
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
+
 import net.sf.saxon.s9api.Axis;
 import net.sf.saxon.s9api.DocumentBuilder;
 import net.sf.saxon.s9api.Processor;
@@ -22,9 +25,6 @@ import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmNodeKind;
 import net.sf.saxon.s9api.XdmSequenceIterator;
 import net.sf.saxon.s9api.XdmValue;
-
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 
 /**
  * Evaluates the XQuery 3.1 expressions of the grid's filters and formulas against the XML

@@ -36,8 +36,8 @@ import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
-import org.fxt.freexmltoolkit.service.ExecutionStats;
 import org.fxt.freexmltoolkit.service.DeveloperPropertyKeys;
+import org.fxt.freexmltoolkit.service.ExecutionStats;
 import org.fxt.freexmltoolkit.service.ExecutionStatsService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.util.FormattingUtils;

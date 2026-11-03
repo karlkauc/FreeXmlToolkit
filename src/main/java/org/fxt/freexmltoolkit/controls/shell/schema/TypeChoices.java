@@ -144,10 +144,9 @@ public final class TypeChoices {
         }
         String best = null;
         for (Map.Entry<String, String> e : root.getNamespaces().entrySet()) {
-            if (ns.equals(e.getValue()) && e.getKey() != null && !e.getKey().isBlank()) {
-                if (best == null || e.getKey().compareTo(best) < 0) {
-                    best = e.getKey();
-                }
+            if (ns.equals(e.getValue()) && e.getKey() != null && !e.getKey().isBlank()
+                    && (best == null || e.getKey().compareTo(best) < 0)) {
+                best = e.getKey();
             }
         }
         return best;

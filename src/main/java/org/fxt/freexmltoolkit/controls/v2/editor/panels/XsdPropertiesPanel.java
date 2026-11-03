@@ -981,11 +981,11 @@ public class XsdPropertiesPanel extends BorderPane {
             // on a reference is refused (XsdEditRules); either way one undo step.
             org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck check =
                     org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, newType);
-            Boolean replace = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(
+            var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(
                     getScene() == null ? null : getScene().getWindow(), "Change Type", check);
-            ChangeTypeCommand command = replace == null ? null : replace
+            ChangeTypeCommand command = resolved.map(replace -> replace
                     ? ChangeTypeCommand.replacingInlineType(editorContext, node, newType)
-                    : new ChangeTypeCommand(editorContext, node, newType);
+                    : new ChangeTypeCommand(editorContext, node, newType)).orElse(null);
             if (command == null || !editorContext.getCommandManager().executeCommand(command)) {
                 logger.debug("Type change of '{}' not applied", node.getName());
                 updating = true;

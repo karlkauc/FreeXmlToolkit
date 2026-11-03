@@ -3,9 +3,6 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
-import org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken;
-
 import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -14,6 +11,9 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
+
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken;
 
 /**
  * Renders the cards of the graphic XSD view: one rounded surface per node with a kind-tinted

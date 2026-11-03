@@ -2,8 +2,8 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors;
+import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 
 /**

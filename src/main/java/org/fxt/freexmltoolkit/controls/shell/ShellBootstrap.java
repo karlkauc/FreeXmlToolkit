@@ -141,6 +141,7 @@ public final class ShellBootstrap {
             case REGISTER_ONLY -> coordinator.runRegisterOnly();
             // Even with the feature off, stale seeded entries must be cleaned up.
             case NONE -> coordinator.runCleanupOnly();
+            default -> { }
         }
     }
 

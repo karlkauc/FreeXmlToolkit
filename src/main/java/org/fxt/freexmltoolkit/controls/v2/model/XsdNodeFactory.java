@@ -783,7 +783,7 @@ public class XsdNodeFactory {
             target = baseUrl != null ? java.net.URI.create(baseUrl).resolve(location.trim())
                     : java.net.URI.create(location.trim());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid schema location: " + location);
+            throw new IllegalArgumentException("Invalid schema location: " + location, e);
         }
         String scheme = target.getScheme();
         if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {

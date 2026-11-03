@@ -94,6 +94,7 @@ public class ChangeSchemaPropertyCommand implements XsdCommand {
             case VERSION -> schema.setVersion(value);
             case ELEMENT_FORM_DEFAULT -> schema.setElementFormDefault(value);
             case ATTRIBUTE_FORM_DEFAULT -> schema.setAttributeFormDefault(value);
+            default -> { }
         }
         editorContext.markNodeDirty(schema);
     }

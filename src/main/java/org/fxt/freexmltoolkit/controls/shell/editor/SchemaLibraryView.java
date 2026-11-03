@@ -10,9 +10,23 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.layout.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
@@ -20,8 +34,15 @@ import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.*;
-import org.fxt.freexmltoolkit.service.*;
+import org.fxt.freexmltoolkit.domain.EntrySource;
+import org.fxt.freexmltoolkit.domain.SchemaCatalogRef;
+import org.fxt.freexmltoolkit.domain.SchemaEntryStatus;
+import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
+import org.fxt.freexmltoolkit.service.SchemaCacheEntry;
+import org.fxt.freexmltoolkit.service.SchemaLibraryService;
+import org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl;
+import org.fxt.freexmltoolkit.service.SchemaResourceCache;
+import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
@@ -352,8 +373,9 @@ public class SchemaLibraryView extends VBox {
     public void onRevealCacheFolder() {
         var s = cacheTable.getSelectionModel().getSelectedItem();
         if (s != null) org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            try { java.awt.Desktop.getDesktop().open(cache.getCacheDirectory().toFile()); }
-            catch (Exception e) {
+            try {
+                java.awt.Desktop.getDesktop().open(cache.getCacheDirectory().toFile());
+            } catch (Exception e) {
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("reveal", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
                 Platform.runLater(() -> setStatus("Cannot open folder: " + e.getMessage()));
             }
@@ -369,7 +391,8 @@ public class SchemaLibraryView extends VBox {
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             var result = cache.refresh(remote);
             // a remote that cannot be fetched is the environment, not the app
-            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("refresh", result.isPresent() ? null : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("refresh", result.isPresent() ? null
+                    : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
             Platform.runLater(() -> { setStatus(result.isPresent() ? "Refreshed " + remote : "Refresh failed for " + remote); refreshCache(); });
         });
     }
@@ -539,8 +562,12 @@ public class SchemaLibraryView extends VBox {
     @FXML
     public void addEntry() {
         new SchemaLibraryEntryDialog(library, null).showAndWait().ifPresent(e -> {
-            try { library.addEntry(e); setStatus("Added mapping for " + display(e)); }
-            catch (IllegalArgumentException ex) { setStatus(ex.getMessage()); }
+            try {
+                library.addEntry(e);
+                setStatus("Added mapping for " + display(e));
+            } catch (IllegalArgumentException ex) {
+                setStatus(ex.getMessage());
+            }
         });
     }
 
@@ -549,8 +576,12 @@ public class SchemaLibraryView extends VBox {
         SchemaLibraryEntry s = mappings.getSelectionModel().getSelectedItem();
         if (s == null || s.source() != EntrySource.USER) return;
         new SchemaLibraryEntryDialog(library, s).showAndWait().ifPresent(e -> {
-            try { library.updateEntry(e); setStatus("Updated mapping for " + display(e)); }
-            catch (IllegalArgumentException ex) { setStatus(ex.getMessage()); }
+            try {
+                library.updateEntry(e);
+                setStatus("Updated mapping for " + display(e));
+            } catch (IllegalArgumentException ex) {
+                setStatus(ex.getMessage());
+            }
         });
     }
 
@@ -596,8 +627,12 @@ public class SchemaLibraryView extends VBox {
         if (xsd == null) return;
         library.entryFromFile(xsd.toPath()).ifPresent(pre ->
                 new SchemaLibraryEntryDialog(library, pre, true).showAndWait().ifPresent(e -> {
-                    try { library.addEntry(e); setStatus("Added mapping for " + display(e)); }
-                    catch (IllegalArgumentException ex) { setStatus(ex.getMessage()); }
+                    try {
+                        library.addEntry(e);
+                        setStatus("Added mapping for " + display(e));
+                    } catch (IllegalArgumentException ex) {
+                        setStatus(ex.getMessage());
+                    }
                 }));
     }
 
@@ -609,7 +644,8 @@ public class SchemaLibraryView extends VBox {
         setStatus("Checking " + s.location() + "…");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             var result = library.materialize(s);
-            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("materialize", result.isPresent() ? null : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("materialize", result.isPresent() ? null
+                    : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
             Platform.runLater(() -> {
                 setStatus(result.map(p -> "Available: " + p).orElse("Failed: " + library.lastError(s).orElse("unknown error")));
                 mappings.refresh();
@@ -621,7 +657,8 @@ public class SchemaLibraryView extends VBox {
         setStatus("Opening " + display(e) + "…");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             var file = library.materialize(e);
-            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("open", file.isPresent() ? null : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
+            org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("open", file.isPresent() ? null
+                    : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
             Platform.runLater(() -> file.ifPresentOrElse(p -> { editorHost.openFile(p.toFile()); setStatus(""); },
                     () -> setStatus("Cannot open: " + library.lastError(e).orElse("schema not available"))));
         });

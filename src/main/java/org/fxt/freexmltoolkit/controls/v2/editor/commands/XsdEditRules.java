@@ -219,7 +219,7 @@ public final class XsdEditRules {
                 return EditCheck.blocked("A top-level element has no minOccurs or maxOccurs: set the "
                         + "cardinality where the element is referenced.");
             }
-            for (XsdNode child : ((XsdSchema) parent).getChildren()) {
+            for (XsdNode child : parent.getChildren()) {
                 if (child instanceof XsdElement && spec.name().trim().equals(child.getName())) {
                     return EditCheck.blocked("The schema already has a top-level element named '"
                             + spec.name().trim() + "'.");

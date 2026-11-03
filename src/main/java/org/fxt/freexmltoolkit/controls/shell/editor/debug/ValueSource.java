@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import net.sf.saxon.s9api.XdmValue;
-
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
+
+import net.sf.saxon.s9api.XdmValue;
 
 /**
  * What the value viewer shows: a variable or watch with its full XDM value from the pause, or —

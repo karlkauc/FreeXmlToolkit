@@ -560,6 +560,7 @@ public class SignatureView extends ScrollPane {
                     "Check that the file is well-formed XML and readable, then try again. "
                             + "The technical details below show the underlying cause.",
                     outcome.cause(), false); // verify_signature carries the failure
+            default -> { }
         }
     }
 

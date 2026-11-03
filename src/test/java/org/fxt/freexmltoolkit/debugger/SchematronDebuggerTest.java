@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-
 import org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController;
 import org.fxt.freexmltoolkit.service.SchematronDebugCompiler;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;

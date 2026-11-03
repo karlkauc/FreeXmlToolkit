@@ -56,7 +56,6 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
-import org.fxt.freexmltoolkit.util.MarkdownSupport;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;

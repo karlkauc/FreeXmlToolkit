@@ -1,5 +1,22 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_CANVAS;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SUBTLE;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SURFACE;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SURFACE_2;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BORDER_DEFAULT;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_ATTR;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_ELEM;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_TEXT;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_VAL;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.INDIGO;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PRIMARY;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PURPLE;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEAL;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_MUTED;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.WF_FAVORITES_BG;
+import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.WF_TRANSFORM_FG;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,23 +47,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
-
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_CANVAS;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SUBTLE;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SURFACE;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SURFACE_2;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BORDER_DEFAULT;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_ATTR;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_ELEM;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_TEXT;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_VAL;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.INDIGO;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PRIMARY;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PURPLE;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEAL;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_MUTED;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.WF_FAVORITES_BG;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.WF_TRANSFORM_FG;
 
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
@@ -123,14 +123,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     private static final double ROW_HEIGHT = GridMetrics.ROW_HEIGHT;
     private static final double LINE_HEIGHT = GridMetrics.LINE_HEIGHT;
-    private static final double INDENT = GridMetrics.INDENT;
     private static final double ICON_AREA_WIDTH = GridMetrics.ICON_AREA_WIDTH;
     private static final double EXPAND_BAR_WIDTH = GridMetrics.EXPAND_BAR_WIDTH;
     private static final double SCROLLBAR_WIDTH = 14;
     private static final double LEFT_MARGIN = 8;
-    /** Breathing room right of the widest content (keeps the last frame line inside the view). */
-    private static final double RIGHT_MARGIN = 8;
-    private static final double NAME_VALUE_GAP = GridBlockLayout.NAME_VALUE_GAP;
     private static final double MIN_NAME_COL_WIDTH = GridBlockLayout.MIN_NAME_COL_WIDTH;
     private static final double MIN_VALUE_COL_WIDTH = GridBlockLayout.MIN_VALUE_COL_WIDTH;
     /** Horizontal padding of a value cell's text. */
@@ -309,7 +305,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // ==================== Highlight State ====================
 
     private FlatRow highlightedRow = null;
-    private Color HIGHLIGHT_COLOR;  // Yellow highlight (theme-dependent, see applyPalette)
+    private Color highlightColor;  // Yellow highlight (theme-dependent, see applyPalette)
 
     // ==================== Status Bar & Toast ====================
 
@@ -326,119 +322,105 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // the DesignTokens so the grid follows the application palette.
 
     // Backgrounds
-    private Color ROW_BG_EVEN;
-    private Color ROW_BG_ODD;
+    private Color rowBgEven;
 
     // Selection/Hover
-    private Color SELECTED_BG;
-    private Color SELECTED_BORDER;
-    private Color HOVERED_BG;
+    private Color selectedBg;
+    private Color selectedBorder;
+    private Color hoveredBg;
 
     // Text colors
-    private Color TEXT_ELEMENT;
-    private Color TEXT_ATTRIBUTE_NAME;
-    private Color TEXT_ATTRIBUTE_VALUE;
-    private Color TEXT_CONTENT;
-    private Color TEXT_SECONDARY;
-    private Color TEXT_COMMENT;
-    private Color TEXT_CDATA;
-    private Color TEXT_PI;
+    private Color textElement;
+    private Color textAttributeName;
+    private Color textAttributeValue;
+    private Color textContent;
+    private Color textSecondary;
+    private Color textComment;
+    private Color textCdata;
+    private Color textPi;
 
-    // JSON value colors (keys reuse TEXT_ELEMENT, containers reuse TEXT_ELEMENT/ACCENT)
-    private Color TEXT_JSON_STRING;
-    private Color TEXT_JSON_NUMBER;
-    private Color TEXT_JSON_BOOLEAN;
-    private Color TEXT_JSON_NULL;
+    // JSON value colors (keys reuse textElement, containers reuse textElement/accent)
+    private Color textJsonString;
+    private Color textJsonNumber;
+    private Color textJsonBoolean;
+    private Color textJsonNull;
 
     // Cell frames, tree lines (cell sub-trees) & expand arrows
-    private Color FRAME_LINE;
-    private Color TREE_LINE_COLOR;
-    private Color EXPAND_BAR_COLOR;
-    private Color EXPAND_BAR_HOVER;
-    private Color EXPAND_BAR_ARROW;
-
-    // Row separator
-    private Color ROW_SEPARATOR;
+    private Color frameLine;
+    private Color expandBarHover;
+    private Color expandBarArrow;
 
     // Child count, instance index, collapsed preview
-    private Color CHILD_COUNT_COLOR;
-    private Color INSTANCE_INDEX;
-    private Color PREVIEW_TEXT;
+    private Color childCountColor;
+    private Color instanceIndex;
+    private Color previewText;
 
     // Accent (the design system's primary)
-    private Color ACCENT;
+    private Color accent;
 
     // Table colors
-    private Color TABLE_HEADER_BG;
-    private Color TABLE_HEADER_TEXT;
-    private Color TABLE_HEADER_SELECTED;
-    private Color TABLE_BORDER;
-    private Color TABLE_ROW_EVEN;
-    private Color TABLE_ROW_ODD;
-    private Color TABLE_ROW_HOVER;
-    private Color TABLE_ROW_SELECTED;
-    private Color TABLE_MISSING_BG;
-    private Color DANGER;
-    private Color NAMESPACE_PREFIX;
+    private Color tableHeaderBg;
+    private Color tableHeaderText;
+    private Color tableHeaderSelected;
+    private Color tableBorder;
+    private Color tableRowHover;
+    private Color tableRowSelected;
+    private Color tableMissingBg;
+    private Color danger;
+    private Color namespacePrefix;
 
     /**
      * Assigns the light or dark grid palette from the {@link org.fxt.freexmltoolkit.controls.theme.DesignTokens}
      * so the canvas renders in the application's colours in both themes.
      */
     private void applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
-        ROW_BG_EVEN = BG_SURFACE.color(theme);
-        ROW_BG_ODD = ROW_BG_EVEN;
+        rowBgEven = BG_SURFACE.color(theme);
 
-        SELECTED_BG = BG_SUBTLE.color(theme);
-        SELECTED_BORDER = PRIMARY.color(theme);
-        HOVERED_BG = BG_SURFACE_2.color(theme);
-        HIGHLIGHT_COLOR = WF_FAVORITES_BG.color(theme);
+        selectedBg = BG_SUBTLE.color(theme);
+        selectedBorder = PRIMARY.color(theme);
+        hoveredBg = BG_SURFACE_2.color(theme);
+        highlightColor = WF_FAVORITES_BG.color(theme);
 
-        TEXT_ELEMENT = CODE_ELEM.color(theme);
-        TEXT_ATTRIBUTE_NAME = CODE_ATTR.color(theme);
-        TEXT_ATTRIBUTE_VALUE = CODE_VAL.color(theme);
-        TEXT_CONTENT = CODE_TEXT.color(theme);
-        TEXT_SECONDARY = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_SECONDARY.color(theme);
-        TEXT_COMMENT = TEAL.color(theme);
-        TEXT_CDATA = INDIGO.color(theme);
-        TEXT_PI = PURPLE.color(theme);
+        textElement = CODE_ELEM.color(theme);
+        textAttributeName = CODE_ATTR.color(theme);
+        textAttributeValue = CODE_VAL.color(theme);
+        textContent = CODE_TEXT.color(theme);
+        textSecondary = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_SECONDARY.color(theme);
+        textComment = TEAL.color(theme);
+        textCdata = INDIGO.color(theme);
+        textPi = PURPLE.color(theme);
 
-        TEXT_JSON_STRING = CODE_VAL.color(theme);
-        TEXT_JSON_NUMBER = WF_TRANSFORM_FG.color(theme);
-        TEXT_JSON_BOOLEAN = TEAL.color(theme);
-        TEXT_JSON_NULL = TEXT_MUTED.color(theme);
+        textJsonString = CODE_VAL.color(theme);
+        textJsonNumber = WF_TRANSFORM_FG.color(theme);
+        textJsonBoolean = TEAL.color(theme);
+        textJsonNull = TEXT_MUTED.color(theme);
 
-        FRAME_LINE = BORDER_DEFAULT.color(theme);
-        TREE_LINE_COLOR = FRAME_LINE;
-        EXPAND_BAR_COLOR = FRAME_LINE;
-        EXPAND_BAR_HOVER = PRIMARY.color(theme);
-        EXPAND_BAR_ARROW = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_SECONDARY.color(theme);
+        frameLine = BORDER_DEFAULT.color(theme);
+        expandBarHover = PRIMARY.color(theme);
+        expandBarArrow = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_SECONDARY.color(theme);
 
-        ROW_SEPARATOR = FRAME_LINE;
-        CHILD_COUNT_COLOR = TEXT_MUTED.color(theme);
-        INSTANCE_INDEX = CHILD_COUNT_COLOR;
-        PREVIEW_TEXT = CHILD_COUNT_COLOR;
-        ACCENT = PRIMARY.color(theme);
+        childCountColor = TEXT_MUTED.color(theme);
+        instanceIndex = childCountColor;
+        previewText = childCountColor;
+        accent = PRIMARY.color(theme);
 
-        TABLE_HEADER_BG = BG_SURFACE_2.color(theme);
-        TABLE_HEADER_TEXT = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_SECONDARY.color(theme);
-        TABLE_HEADER_SELECTED = BG_SUBTLE.color(theme);
-        TABLE_BORDER = FRAME_LINE;
-        TABLE_ROW_EVEN = ROW_BG_EVEN;
-        TABLE_ROW_ODD = ROW_BG_EVEN;
-        TABLE_ROW_HOVER = HOVERED_BG;
-        TABLE_ROW_SELECTED = SELECTED_BG;
-        TABLE_MISSING_BG = BG_CANVAS.color(theme);
+        tableHeaderBg = BG_SURFACE_2.color(theme);
+        tableHeaderText = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_SECONDARY.color(theme);
+        tableHeaderSelected = BG_SUBTLE.color(theme);
+        tableBorder = frameLine;
+        tableRowHover = hoveredBg;
+        tableRowSelected = selectedBg;
+        tableMissingBg = BG_CANVAS.color(theme);
 
         // User-configurable cell colours (Settings → Grid table colours) win over the tokens
-        TABLE_HEADER_BG = GridColors.resolve(theme, GridColors.Slot.TABLE_HEADER);
-        TABLE_MISSING_BG = GridColors.resolve(theme, GridColors.Slot.MISSING_CELL);
-        TABLE_HEADER_SELECTED = GridColors.resolve(theme, GridColors.Slot.SELECTION);
-        TABLE_ROW_SELECTED = TABLE_HEADER_SELECTED;
-        SELECTED_BG = TABLE_HEADER_SELECTED;
-        SELECTED_BORDER = GridColors.resolve(theme, GridColors.Slot.FOCUS);
-        DANGER = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.DANGER.color(theme);
-        NAMESPACE_PREFIX = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_DECL.color(theme);
+        tableHeaderBg = GridColors.resolve(theme, GridColors.Slot.TABLE_HEADER);
+        tableMissingBg = GridColors.resolve(theme, GridColors.Slot.MISSING_CELL);
+        tableHeaderSelected = GridColors.resolve(theme, GridColors.Slot.SELECTION);
+        tableRowSelected = tableHeaderSelected;
+        selectedBg = tableHeaderSelected;
+        selectedBorder = GridColors.resolve(theme, GridColors.Slot.FOCUS);
+        danger = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.DANGER.color(theme);
+        namespacePrefix = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_DECL.color(theme);
     }
 
     /**
@@ -1056,7 +1038,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         // Clear canvas
-        gc.setFill(ROW_BG_EVEN);
+        gc.setFill(rowBgEven);
         gc.fillRect(0, 0, w, h);
 
         if (visibleRows.isEmpty()) {
@@ -1178,10 +1160,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         FlatRow ancestor = row.getParentRow();
         while (ancestor != null) {
             java.util.function.Predicate<Object> p = predicates.get(ancestor);
-            if (p != null) {
-                if (row.getType().isAttribute() && row.getParentRow() == ancestor) {
-                    // the filtered element's own attributes stay
-                } else if (row.isTableGroupOwner()) {
+            // the filtered element's own attributes stay
+            boolean ownAttribute = row.getType().isAttribute() && row.getParentRow() == ancestor;
+            if (p != null && !ownAttribute) {
+                if (row.isTableGroupOwner()) {
                     List<Object> kept = new ArrayList<>();
                     for (Object member : row.getTableMembers()) {
                         if (p.test(member)) {
@@ -1318,9 +1300,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private void drawProblemMarker(double rightX, double cy) {
         double r = 6;
         double cx = rightX - r - 4;
-        gc.setFill(DANGER);
+        gc.setFill(danger);
         gc.fillOval(cx - r, cy - r, 2 * r, 2 * r);
-        gc.setFill(ROW_BG_EVEN);
+        gc.setFill(rowBgEven);
         gc.setFont(ICON_FONT);
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setTextBaseline(VPos.CENTER);
@@ -1378,9 +1360,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         gc.save();
         gc.scale(z, z);
         double width = viewportWidthModel();
-        gc.setFill(TABLE_HEADER_BG);
+        gc.setFill(tableHeaderBg);
         gc.fillRect(0, 0, width, SCROLL_HEADER_HEIGHT);
-        gc.setStroke(FRAME_LINE);
+        gc.setStroke(frameLine);
         gc.setLineWidth(1);
         gc.strokeLine(0, SCROLL_HEADER_HEIGHT - 0.5, width, SCROLL_HEADER_HEIGHT - 0.5);
 
@@ -1393,7 +1375,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             FlatRow row = chain.get(i);
             if (i > 0) {
                 gc.setFont(SMALL_FONT);
-                gc.setFill(TEXT_SECONDARY);
+                gc.setFill(textSecondary);
                 gc.fillText("\u203A", x, cy);
                 x += 12;
             }
@@ -1407,7 +1389,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             x += metrics.width(label, GridFont.ROW_BOLD);
             if (row.getInstanceIndex() > 0) {
                 gc.setFont(SMALL_FONT);
-                gc.setFill(INSTANCE_INDEX);
+                gc.setFill(instanceIndex);
                 String idx = " " + instanceIndexText(row);
                 gc.fillText(idx, x, cy);
                 x += metrics.width(idx, GridFont.SMALL);
@@ -1491,11 +1473,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         // -- Background (name cell; the value cell too while the row has one) --
         Color bgColor = null;
         if (row == highlightedRow) {
-            bgColor = HIGHLIGHT_COLOR;
+            bgColor = highlightColor;
         } else if (row.isSelected()) {
-            bgColor = SELECTED_BG;
+            bgColor = selectedBg;
         } else if (row.isHovered()) {
-            bgColor = HOVERED_BG;
+            bgColor = hoveredBg;
         }
         if (bgColor != null) {
             gc.setFill(bgColor);
@@ -1506,7 +1488,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         // -- Cell frames (hairlines): the name cell, and the bottom edge of the value cell --
-        gc.setStroke(FRAME_LINE);
+        gc.setStroke(frameLine);
         gc.setLineWidth(1);
         gc.strokeRect(labelX + 0.5, top + 0.5, valueX - labelX, span);
         if (hasValueCell) {
@@ -1515,7 +1497,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // -- Selection border --
         if (row.isSelected()) {
-            gc.setStroke(SELECTED_BORDER);
+            gc.setStroke(selectedBorder);
             gc.setLineWidth(1);
             gc.strokeRect(labelX + 0.5, top + 0.5, valueX - labelX, span);
             if (hasValueCell) {
@@ -1541,7 +1523,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         double afterLabelX = textX;
         if (displayLabel(row) != null && !isEditingThisRowName) {
             gc.setFont(ROW_FONT_BOLD);
-            gc.setFill(formulaOf(row) != null ? ACCENT : getRowLabelColor(row.getType()));
+            gc.setFill(formulaOf(row) != null ? accent : getRowLabelColor(row.getType()));
             fillName(displayLabel(row), textX, lineCenterY, GridFont.ROW_BOLD);
             afterLabelX += labelTextWidth(row);
         }
@@ -1550,14 +1532,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         gc.setFont(SMALL_FONT);
         if (row.getInstanceIndex() > 0) {
             afterLabelX += GridMetrics.CHILD_COUNT_GAP;
-            gc.setFill(INSTANCE_INDEX);
+            gc.setFill(instanceIndex);
             String text = instanceIndexText(row);
             gc.fillText(text, afterLabelX, lineCenterY);
             afterLabelX += metrics.width(text, GridFont.SMALL);
         }
         if (row.isExpandable()) {
             afterLabelX += GridMetrics.CHILD_COUNT_GAP;
-            gc.setFill(CHILD_COUNT_COLOR);
+            gc.setFill(childCountColor);
             String text = childCountText(row);
             gc.fillText(text, afterLabelX, lineCenterY);
             afterLabelX += metrics.width(text, GridFont.SMALL);
@@ -1584,29 +1566,29 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             gc.setFont(ROW_FONT);
             if (row.getType() == FlatRow.RowType.FILTER) {
                 String key = keyOf(row.getParentRow());
-                gc.setFill(filterErrors.containsKey(key) ? DANGER
-                        : viewState.isFilterActive(key) ? ACCENT : TEXT_SECONDARY);
+                gc.setFill(filterErrors.containsKey(key) ? danger
+                        : viewState.isFilterActive(key) ? accent : textSecondary);
             } else if (problems != null && !showsPreview(row)) {
-                gc.setFill(DANGER);
+                gc.setFill(danger);
             } else if (showsPreview(row)) {
-                gc.setFill(PREVIEW_TEXT);
+                gc.setFill(previewText);
             } else if (row.isLeafWithValue()) {
-                gc.setFill(row.getType().isJson() ? getRowValueColor(row.getType()) : TEXT_CONTENT);
+                gc.setFill(row.getType().isJson() ? getRowValueColor(row.getType()) : textContent);
             } else {
                 gc.setFill(getRowValueColor(row.getType()));
             }
             GridModelAdapter.FormulaView formula = formulaOf(row);
             if (formula != null) {
-                gc.setFill(TEXT_PI);
+                gc.setFill(textPi);
             }
             drawTextBlock(row.getValueBlock(), valueX + VALUE_PADDING, lineCenterY);
             if (formula != null && row.getResultBlock() != null) {
-                gc.setFill(formula.error() != null ? DANGER : TEXT_CONTENT);
+                gc.setFill(formula.error() != null ? danger : textContent);
                 drawTextBlock(row.getResultBlock(), valueX + VALUE_PADDING,
                         lineCenterY + row.getValueBlock().lineCount() * LINE_HEIGHT);
                 if (formula.stored()) {
                     gc.setFont(SMALL_FONT);
-                    gc.setFill(TEXT_SECONDARY);
+                    gc.setFill(textSecondary);
                     gc.setTextAlign(TextAlignment.RIGHT);
                     gc.fillText("stored", right - 8, lineCenterY);
                     gc.setTextAlign(TextAlignment.LEFT);
@@ -1627,7 +1609,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
         javafx.scene.paint.Paint fill = gc.getFill();
-        gc.setFill(NAMESPACE_PREFIX);
+        gc.setFill(namespacePrefix);
         gc.fillText(prefix, x, y);
         gc.setFill(fill);
         gc.fillText(name.substring(prefix.length()), x + metrics.width(prefix, font), y);
@@ -1642,7 +1624,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** Draws the ▶ / ▼ expand arrow in the arrow area left of the icon. */
     private void drawExpandArrow(FlatRow row, double labelX, double cy) {
         boolean hovered = row == hoveredExpandBar;
-        gc.setFill(hovered ? EXPAND_BAR_HOVER : EXPAND_BAR_ARROW);
+        gc.setFill(hovered ? expandBarHover : expandBarArrow);
         double cx = labelX + EXPAND_BAR_WIDTH / 2 + 1;
         double size = 4;
         if (row.isExpanded()) {
@@ -1657,7 +1639,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** Draws the small 3x3 table glyph that marks a repeating group; filled when its table is shown. */
     private void drawTableGlyph(double x, double y, boolean active) {
         double s = TABLE_ICON_SIZE;
-        gc.setStroke(active ? ACCENT : TABLE_HEADER_TEXT);
+        gc.setStroke(active ? accent : tableHeaderText);
         gc.setLineWidth(1);
         gc.strokeRect(x + 0.5, y + 0.5, s, s);
         gc.strokeLine(x + 0.5, y + s / 3 + 0.5, x + s + 0.5, y + s / 3 + 0.5);
@@ -1680,18 +1662,18 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         switch (type) {
             case ELEMENT -> {
                 // <> angle brackets in the element colour
-                gc.setStroke(TEXT_ELEMENT);
+                gc.setStroke(textElement);
                 gc.strokeLine(cx - size, cy, cx - size / 2, cy - size);
                 gc.strokeLine(cx - size, cy, cx - size / 2, cy + size);
                 gc.strokeLine(cx + size, cy, cx + size / 2, cy - size);
                 gc.strokeLine(cx + size, cy, cx + size / 2, cy + size);
             }
-            case ATTRIBUTE -> iconGlyph("=", cx, cy, TEXT_ATTRIBUTE_NAME, ICON_FONT);
-            case TEXT -> iconGlyph("Abc", cx, cy, TEXT_CONTENT, SMALL_FONT);
-            case COMMENT -> iconGlyph("<!", cx, cy, TEXT_COMMENT, ICON_FONT);
+            case ATTRIBUTE -> iconGlyph("=", cx, cy, textAttributeName, ICON_FONT);
+            case TEXT -> iconGlyph("Abc", cx, cy, textContent, SMALL_FONT);
+            case COMMENT -> iconGlyph("<!", cx, cy, textComment, ICON_FONT);
             case CDATA -> {
                 // [ ] square brackets
-                gc.setStroke(TEXT_CDATA);
+                gc.setStroke(textCdata);
                 gc.strokeLine(cx - size, cy - size, cx - size + 2, cy - size);
                 gc.strokeLine(cx - size, cy - size, cx - size, cy + size);
                 gc.strokeLine(cx - size, cy + size, cx - size + 2, cy + size);
@@ -1701,21 +1683,21 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
             case PROCESSING_INSTRUCTION -> {
                 if (formulaOf(row) != null) {
-                    iconGlyph("\u0192", cx, cy, ACCENT, ICON_FONT);
+                    iconGlyph("\u0192", cx, cy, accent, ICON_FONT);
                 } else {
-                    iconGlyph("<?", cx, cy, TEXT_PI, ICON_FONT);
+                    iconGlyph("<?", cx, cy, textPi, ICON_FONT);
                 }
             }
-            case DOCUMENT -> iconGlyph("XML", cx, cy, TEXT_SECONDARY, SMALL_FONT);
-            case GROUP -> iconGlyph("\u2026", cx, cy, TEXT_SECONDARY, ICON_FONT);
+            case DOCUMENT -> iconGlyph("XML", cx, cy, textSecondary, SMALL_FONT);
+            case GROUP -> iconGlyph("\u2026", cx, cy, textSecondary, ICON_FONT);
             case FILTER -> {
                 boolean active = viewState.isFilterActive(keyOf(row.getParentRow()));
-                iconGlyph(active ? "\u25BC" : "\u25BD", cx, cy, active ? ACCENT : TEXT_SECONDARY, ICON_FONT);
+                iconGlyph(active ? "\u25BC" : "\u25BD", cx, cy, active ? accent : textSecondary, ICON_FONT);
             }
             case JSON_OBJECT, JSON_ARRAY, JSON_STRING, JSON_NUMBER, JSON_BOOLEAN, JSON_NULL -> {
                 // JSON glyphs: {} [] " # T/F ∅ in the type colour
                 Color color = (type == FlatRow.RowType.JSON_OBJECT || type == FlatRow.RowType.JSON_ARRAY)
-                        ? TEXT_ELEMENT : getRowValueColor(type);
+                        ? textElement : getRowValueColor(type);
                 iconGlyph(jsonGlyph(row), cx, cy, color, ICON_FONT);
             }
             default -> { /* other row types draw no icon */ }
@@ -1770,7 +1752,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     private void drawEmptyState() {
-        gc.setFill(TEXT_SECONDARY);
+        gc.setFill(textSecondary);
         gc.setFont(Font.font("Monospaced", FontWeight.NORMAL, 14));
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setTextBaseline(VPos.CENTER);
@@ -1784,7 +1766,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         String info = String.format("%d rows (%.0f x %.0f px)", visibleRows.size(), totalWidth, totalHeight);
 
-        gc.setFill(TEXT_SECONDARY);
+        gc.setFill(textSecondary);
         gc.setFont(SMALL_FONT);
         gc.setTextAlign(TextAlignment.RIGHT);
         gc.setTextBaseline(VPos.BOTTOM);
@@ -1911,12 +1893,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     }
                     case DATA -> drawDataCell(table, cell.rowIndex(), cell.columnIndex(),
                             colX, rowTop, colWidth, rowHeight);
+                    default -> { }
                 }
             }
         }
 
         // -- Table outer border --
-        gc.setStroke(TABLE_BORDER);
+        gc.setStroke(tableBorder);
         gc.setLineWidth(1);
         gc.strokeRect(tableX + 0.5, tableY + 0.5, tableWidth, tableHeight);
     }
@@ -1924,15 +1907,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private void drawHeaderCellFrame(double x, double y, double w, double h, Color fill) {
         gc.setFill(fill);
         gc.fillRect(x, y, w, h);
-        gc.setStroke(TABLE_BORDER);
+        gc.setStroke(tableBorder);
         gc.setLineWidth(1);
         gc.strokeRect(x + 0.5, y + 0.5, w, h);
     }
 
     /** The top-left cell: the flip toggle glyph. */
     private void drawCornerCell(double x, double y, double w, double h) {
-        drawHeaderCellFrame(x, y, w, h, TABLE_HEADER_BG);
-        iconGlyph("⇄", x + w / 2, y + ROW_HEIGHT / 2, TABLE_HEADER_TEXT, ICON_FONT);
+        drawHeaderCellFrame(x, y, w, h, tableHeaderBg);
+        iconGlyph("⇄", x + w / 2, y + ROW_HEIGHT / 2, tableHeaderText, ICON_FONT);
     }
 
     /**
@@ -1943,7 +1926,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                                       double x, double y, double w, double h) {
         boolean sorted = col != null && table.isSortedBy(col.getName());
         boolean selected = col != null && isWholeColumnSelected(table, table.getColumns().indexOf(col));
-        drawHeaderCellFrame(x, y, w, h, sorted || selected ? TABLE_HEADER_SELECTED : TABLE_HEADER_BG);
+        drawHeaderCellFrame(x, y, w, h, sorted || selected ? tableHeaderSelected : tableHeaderBg);
         if (col == null) {
             return;
         }
@@ -1953,14 +1936,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         gc.clip();
         double centerY = y + ROW_HEIGHT / 2;
         drawColumnTypeIcon(col, x + RepeatingElementsTable.CELL_PADDING + 6, centerY);
-        gc.setFill(TABLE_HEADER_TEXT);
+        gc.setFill(tableHeaderText);
         gc.setFont(ROW_FONT_BOLD);
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.CENTER);
         fillName(col.getName(), x + RepeatingElementsTable.CELL_PADDING + HEADER_ICON_WIDTH, centerY, GridFont.ROW_BOLD);
         gc.setFont(SMALL_FONT);
         gc.setTextAlign(TextAlignment.CENTER);
-        gc.setFill(sorted ? TABLE_HEADER_TEXT : PREVIEW_TEXT);
+        gc.setFill(sorted ? tableHeaderText : previewText);
         gc.fillText(sorted && !table.isSortAscending() ? "▼" : "▲",
                 x + w - RepeatingElementsTable.SORT_ZONE / 2 - 2, centerY);
         gc.setTextAlign(TextAlignment.LEFT);
@@ -1972,9 +1955,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                                    double x, double y, double w, double h) {
         boolean selected = selAnchorRow >= 0 ? isWholeRowSelected(table, rowIndex)
                 : rowIndex == table.getSelectedRowIndex();
-        drawHeaderCellFrame(x, y, w, h, selected ? TABLE_HEADER_SELECTED : TABLE_HEADER_BG);
+        drawHeaderCellFrame(x, y, w, h, selected ? tableHeaderSelected : tableHeaderBg);
         gc.setFont(SMALL_FONT);
-        gc.setFill(TABLE_HEADER_TEXT);
+        gc.setFill(tableHeaderText);
         gc.setTextAlign(TextAlignment.RIGHT);
         gc.setTextBaseline(VPos.CENTER);
         gc.fillText(String.valueOf(rowIndex + 1), x + w - RepeatingElementsTable.CELL_PADDING, y + ROW_HEIGHT / 2);
@@ -1996,23 +1979,23 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         Color bg = null;
         boolean inRange = inCellRange(table, rowIndex, columnIndex);
         if (inRange) {
-            bg = SELECTED_BG;
+            bg = selectedBg;
         } else if (rowIndex == table.getSelectedRowIndex() && selAnchorRow < 0) {
-            bg = TABLE_ROW_SELECTED;
+            bg = tableRowSelected;
         } else if (rowIndex == hoveredTableRowIndex && table == hoveredTable) {
-            bg = TABLE_ROW_HOVER;
+            bg = tableRowHover;
         } else if (missing) {
-            bg = TABLE_MISSING_BG;
+            bg = tableMissingBg;
         }
         if (bg != null) {
             gc.setFill(bg);
             gc.fillRect(cellX, rowTop, colWidth, rowHeight);
         }
-        gc.setStroke(TABLE_BORDER);
+        gc.setStroke(tableBorder);
         gc.setLineWidth(1);
         gc.strokeRect(cellX + 0.5, rowTop + 0.5, colWidth, rowHeight);
         if (inRange && rowIndex == selFocusRow && columnIndex == selFocusCol) {
-            gc.setStroke(SELECTED_BORDER);
+            gc.setStroke(selectedBorder);
             gc.strokeRect(cellX + 1, rowTop + 1, colWidth - 1, rowHeight - 1);
         }
 
@@ -2022,7 +2005,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (isComplex) {
             double arrowX = cellX + 8;
             double arrowSize = 3;
-            gc.setFill(TEXT_SECONDARY);
+            gc.setFill(textSecondary);
             if (row.isColumnExpanded(colName)) {
                 gc.fillPolygon(
                         new double[]{arrowX - arrowSize, arrowX, arrowX + arrowSize},
@@ -2052,18 +2035,18 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         gc.clip();
 
         if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
-            gc.setFill(TEXT_ATTRIBUTE_VALUE);
+            gc.setFill(textAttributeValue);
         } else if (isComplex) {
-            gc.setFill(TEXT_SECONDARY);
+            gc.setFill(textSecondary);
         } else {
-            gc.setFill(TEXT_CONTENT);
+            gc.setFill(textContent);
         }
         drawTextBlock(layout.summary(), textX, cellCenterY);
 
         // The cell element's own attributes (display-only, e.g. ccy=EUR) in the
         // attribute color, right after the value or wrapped on their own lines.
         if (layout.suffix() != null) {
-            gc.setFill(TEXT_ATTRIBUTE_NAME);
+            gc.setFill(textAttributeName);
             double lastLineY = cellCenterY + (layout.summary().lineCount() - 1) * LINE_HEIGHT;
             if (layout.suffixOnNewLine()) {
                 drawTextBlock(layout.suffix(), textX, lastLineY + LINE_HEIGHT);
@@ -2087,17 +2070,18 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /** Draws the {@code =} / {@code <>} / {@code Abc} type icon of a column header. */
     private void drawColumnTypeIcon(RepeatingElementsTable.TableColumn col, double cx, double cy) {
         switch (col.getType()) {
-            case ATTRIBUTE -> iconGlyph("=", cx, cy, TEXT_ATTRIBUTE_NAME, ICON_FONT);
-            case TEXT_CONTENT -> iconGlyph("Abc", cx, cy, TEXT_CONTENT, SMALL_FONT);
+            case ATTRIBUTE -> iconGlyph("=", cx, cy, textAttributeName, ICON_FONT);
+            case TEXT_CONTENT -> iconGlyph("Abc", cx, cy, textContent, SMALL_FONT);
             case CHILD_ELEMENT -> {
                 double size = 3.5;
-                gc.setStroke(TEXT_ELEMENT);
+                gc.setStroke(textElement);
                 gc.setLineWidth(1.5);
                 gc.strokeLine(cx - size, cy, cx - size / 2, cy - size);
                 gc.strokeLine(cx - size, cy, cx - size / 2, cy + size);
                 gc.strokeLine(cx + size, cy, cx + size / 2, cy - size);
                 gc.strokeLine(cx + size, cy, cx + size / 2, cy + size);
             }
+            default -> { }
         }
     }
 
@@ -2180,6 +2164,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 return;
             }
             case DATA -> { /* handled below */ }
+            default -> { }
         }
 
         int rowIdx = cell.rowIndex();
@@ -2569,11 +2554,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /**
      * @return {@code TRUE}/{@code FALSE} when the selection belongs to a repeating group shown
-     *         as table / as rows, {@code null} when it belongs to none
+     *         as table / as rows, empty when it belongs to none
      */
-    public Boolean tableDisplayStateOfSelection() {
+    public java.util.Optional<Boolean> tableDisplayStateOfSelection() {
         String key = groupKeyOf(selectedRowOrTableOwner());
-        return key == null ? null : viewState.isTable(key);
+        return key == null ? java.util.Optional.empty() : java.util.Optional.of(viewState.isTable(key));
     }
 
     /**
@@ -2603,13 +2588,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
     }
 
-    /** @return the flip state of the selection's table, {@code null} when the selection is in none */
-    public Boolean flipStateOfSelection() {
+    /** @return the flip state of the selection's table, empty when the selection is in none */
+    public java.util.Optional<Boolean> flipStateOfSelection() {
         FlatRow owner = selectedRowOrTableOwner();
         if (owner == null || !owner.hasRepeatingTable() || owner.getTableGroupKey() == null) {
-            return null;
+            return java.util.Optional.empty();
         }
-        return viewState.isFlipped(owner.getTableGroupKey());
+        return java.util.Optional.of(viewState.isFlipped(owner.getTableGroupKey()));
     }
 
     /** @return the selected tree row, or the owner row of the table whose row is selected */
@@ -2639,30 +2624,30 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     private Color getRowLabelColor(FlatRow.RowType type) {
         return switch (type) {
-            case ELEMENT, JSON_OBJECT, JSON_ARRAY, JSON_STRING, JSON_NUMBER, JSON_BOOLEAN, JSON_NULL -> TEXT_ELEMENT;
-            case ATTRIBUTE -> TEXT_ATTRIBUTE_NAME;
-            case TEXT -> TEXT_CONTENT;
-            case COMMENT -> TEXT_COMMENT;
-            case CDATA -> TEXT_CDATA;
-            case PROCESSING_INSTRUCTION -> TEXT_PI;
-            case DOCUMENT -> TEXT_SECONDARY;
-            case GROUP -> TEXT_SECONDARY;
-            case FILTER -> ACCENT;
+            case ELEMENT, JSON_OBJECT, JSON_ARRAY, JSON_STRING, JSON_NUMBER, JSON_BOOLEAN, JSON_NULL -> textElement;
+            case ATTRIBUTE -> textAttributeName;
+            case TEXT -> textContent;
+            case COMMENT -> textComment;
+            case CDATA -> textCdata;
+            case PROCESSING_INSTRUCTION -> textPi;
+            case DOCUMENT -> textSecondary;
+            case GROUP -> textSecondary;
+            case FILTER -> accent;
         };
     }
 
     private Color getRowValueColor(FlatRow.RowType type) {
         return switch (type) {
-            case ATTRIBUTE -> TEXT_ATTRIBUTE_VALUE;
-            case ELEMENT -> TEXT_CONTENT;
-            case COMMENT -> TEXT_COMMENT;
-            case CDATA -> TEXT_CDATA;
-            case PROCESSING_INSTRUCTION -> TEXT_PI;
-            case JSON_STRING -> TEXT_JSON_STRING;
-            case JSON_NUMBER -> TEXT_JSON_NUMBER;
-            case JSON_BOOLEAN -> TEXT_JSON_BOOLEAN;
-            case JSON_NULL -> TEXT_JSON_NULL;
-            default -> TEXT_CONTENT;
+            case ATTRIBUTE -> textAttributeValue;
+            case ELEMENT -> textContent;
+            case COMMENT -> textComment;
+            case CDATA -> textCdata;
+            case PROCESSING_INSTRUCTION -> textPi;
+            case JSON_STRING -> textJsonString;
+            case JSON_NUMBER -> textJsonNumber;
+            case JSON_BOOLEAN -> textJsonBoolean;
+            case JSON_NULL -> textJsonNull;
+            default -> textContent;
         };
     }
 
@@ -2912,7 +2897,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         RepeatingElementsTable.CellRect rect = table.cellRect(0, drag.target);
         double x = origin[0] + (drag.before ? rect.x() : rect.x() + rect.width());
         double top = origin[1];
-        gc.setStroke(ACCENT);
+        gc.setStroke(accent);
         gc.setLineWidth(2);
         gc.strokeLine(x, top, x, top + table.getHeight());
     }
@@ -3083,7 +3068,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         double right = box.right();
         double labelX = box.ox() + row.getLabelX();
         double valueX = box.ox() + row.getValueX();
-        gc.setStroke(ACCENT);
+        gc.setStroke(accent);
         gc.setLineWidth(2);
         switch (dropPosition) {
             case BEFORE -> gc.strokeLine(labelX, top + 1, right, top + 1);
@@ -3093,6 +3078,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
             case INTO -> gc.strokeRect(labelX + 1, top + 1, valueX - labelX - 2, Math.max(ROW_HEIGHT, box.span()) - 2);
             case VALUE -> gc.strokeRect(valueX + 1, top + 1, right - valueX - 2, Math.max(ROW_HEIGHT, box.own()) - 2);
+            default -> { }
         }
     }
 
@@ -3992,7 +3978,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             selectedTable.setSelectedRowIndex(-1);
             selectedTable = null;
         }
-        selAnchorRow = selAnchorCol = selFocusRow = selFocusCol = -1;
+        selAnchorRow = -1;
+        selAnchorCol = -1;
+        selFocusRow = -1;
+        selFocusCol = -1;
     }
 
     private void selectRow(FlatRow row) {
@@ -5166,7 +5155,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** @return the colour the table headers are drawn in (test hook) */
     Color tableHeaderColorForTest() {
-        return TABLE_HEADER_BG;
+        return tableHeaderBg;
     }
 
     /** Scrolls to the given content y immediately (test hook). */

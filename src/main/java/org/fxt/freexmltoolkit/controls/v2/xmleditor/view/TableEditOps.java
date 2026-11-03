@@ -59,6 +59,7 @@ public final class TableEditOps {
                 case ATTRIBUTE -> fresh.setAttribute(col.getName(), "");
                 case CHILD_ELEMENT -> fresh.addChild(new XmlElement(col.getName()));
                 case TEXT_CONTENT -> { /* text is typed into the cell later */ }
+                default -> { }
             }
         }
         int index = parentElement.indexOf(reference) + (placement == Placement.BEFORE ? 0 : 1);
@@ -166,6 +167,7 @@ public final class TableEditOps {
                         case ATTRIBUTE -> member.setAttribute(col.getName(), "");
                         case CHILD_ELEMENT -> member.addChild(new XmlElement(col.getName()));
                         case TEXT_CONTENT -> { /* set below */ }
+                        default -> { }
                     }
                 }
                 XmlElement last = members.get(members.size() - 1);
@@ -200,6 +202,7 @@ public final class TableEditOps {
                                     member, value));
                         }
                     }
+                    default -> { }
                 }
             }
         }

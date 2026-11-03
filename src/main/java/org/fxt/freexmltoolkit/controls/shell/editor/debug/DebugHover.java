@@ -12,9 +12,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 
-import net.sf.saxon.s9api.SaxonApiException;
-import net.sf.saxon.s9api.XdmValue;
-
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.event.MouseOverTextEvent;
 import org.fxt.freexmltoolkit.FxtGui;
@@ -22,6 +19,9 @@ import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
 import org.fxt.freexmltoolkit.debugger.HoverExpressions;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
+
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XdmValue;
 
 /**
  * Value tooltips in a stylesheet editor while the debugger is paused: resting the mouse on a

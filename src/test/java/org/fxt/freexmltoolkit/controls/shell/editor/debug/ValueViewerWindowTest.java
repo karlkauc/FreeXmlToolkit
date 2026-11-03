@@ -12,12 +12,6 @@ import javax.xml.transform.stream.StreamSource;
 import javafx.scene.input.Clipboard;
 import javafx.stage.Stage;
 
-import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.QName;
-import net.sf.saxon.s9api.XdmAtomicValue;
-import net.sf.saxon.s9api.XdmNode;
-import net.sf.saxon.s9api.XdmValue;
-
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
 import org.junit.jupiter.api.AfterEach;
@@ -26,6 +20,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
+
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XdmNode;
+import net.sf.saxon.s9api.XdmValue;
 
 /** The value viewer shows the full value, highlights it, copies it and runs XPath against it. */
 @ExtendWith(ApplicationExtension.class)

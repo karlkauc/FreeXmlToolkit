@@ -10,10 +10,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import net.sf.saxon.s9api.Processor;
-import net.sf.saxon.s9api.QName;
-import net.sf.saxon.s9api.XdmAtomicValue;
-
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
@@ -22,6 +18,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.util.WaitForAsyncUtils;
+
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.XdmAtomicValue;
 
 /** Hover values: what is evaluated under the mouse and what the popup shows. */
 @ExtendWith(ApplicationExtension.class)

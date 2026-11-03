@@ -3,13 +3,13 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
-import org.fxt.freexmltoolkit.controls.v2.view.UnresolvedSchemaReferences.Entry;
-
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+
+import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.controls.v2.view.UnresolvedSchemaReferences.Entry;
 
 /**
  * Bar above the diagram naming the includes and imports that could not be loaded, which is why

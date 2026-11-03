@@ -7,9 +7,6 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 

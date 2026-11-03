@@ -15,20 +15,20 @@ import javafx.scene.input.ClipboardContent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
-import org.fxt.freexmltoolkit.controls.shell.schema.TypeChoices;
 import org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs;
 import org.fxt.freexmltoolkit.controls.shell.schema.NewNodeDialog;
 import org.fxt.freexmltoolkit.controls.shell.schema.NewTypeDialog;
+import org.fxt.freexmltoolkit.controls.shell.schema.TypeChoices;
 import org.fxt.freexmltoolkit.controls.shell.schema.TypePickerDialog;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand;
-import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCommentCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeUseCommand;
@@ -689,12 +689,12 @@ public class XsdContextMenuFactory {
                 Object modelObject = node.getModelObject();
                 if (modelObject instanceof XsdNode xsdNode) {
                     String type = newType.trim();
-                    Boolean replace = EditRuleDialogs.resolve(null, "Change Type",
+                    var resolved = EditRuleDialogs.resolve(null, "Change Type",
                             XsdEditRules.changeType(xsdNode, type));
-                    if (replace == null) {
+                    if (resolved.isEmpty()) {
                         return;
                     }
-                    ChangeTypeCommand command = replace
+                    ChangeTypeCommand command = resolved.get()
                             ? ChangeTypeCommand.replacingInlineType(editorContext, xsdNode, type)
                             : new ChangeTypeCommand(editorContext, xsdNode, type);
                     editorContext.getCommandManager().executeCommand(command);
@@ -868,10 +868,11 @@ public class XsdContextMenuFactory {
      * @return whether the command ran
      */
     private boolean runCompositor(XsdElement element, String kind) {
-        Boolean replace = EditRuleDialogs.resolve(null, "Add " + kind, XsdEditRules.addCompositor(element, kind));
-        if (replace == null) {
+        var resolved = EditRuleDialogs.resolve(null, "Add " + kind, XsdEditRules.addCompositor(element, kind));
+        if (resolved.isEmpty()) {
             return false;
         }
+        boolean replace = resolved.get();
         AddCompositorCommand<?> command = switch (kind) {
             case "choice" -> AddCompositorCommand.choice(element);
             case "all" -> AddCompositorCommand.all(element);

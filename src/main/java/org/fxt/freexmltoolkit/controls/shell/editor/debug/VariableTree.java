@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.fxt.freexmltoolkit.debugger.VariableBinding;
+import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
+
+import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.XdmArray;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmItem;
@@ -12,10 +16,6 @@ import net.sf.saxon.s9api.XdmMap;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmNodeKind;
 import net.sf.saxon.s9api.XdmValue;
-import net.sf.saxon.s9api.QName;
-
-import org.fxt.freexmltoolkit.debugger.VariableBinding;
-import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
 
 /**
  * The structure behind the Variables tree: a row ({@link Node}) and how it unfolds — a sequence

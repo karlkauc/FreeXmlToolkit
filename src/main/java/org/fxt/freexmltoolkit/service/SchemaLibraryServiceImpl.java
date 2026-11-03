@@ -1,13 +1,25 @@
 package org.fxt.freexmltoolkit.service;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import javafx.collections.FXCollections;
@@ -16,7 +28,11 @@ import javafx.collections.ObservableList;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.domain.*;
+import org.fxt.freexmltoolkit.domain.EntrySource;
+import org.fxt.freexmltoolkit.domain.SchemaCatalogRef;
+import org.fxt.freexmltoolkit.domain.SchemaEntryStatus;
+import org.fxt.freexmltoolkit.domain.SchemaKind;
+import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
 import org.fxt.freexmltoolkit.util.PathValidator;
 
 import com.google.gson.Gson;
@@ -117,8 +133,11 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
         } catch (Exception e) {
             Path backup = storageFile.resolveSibling(storageFile.getFileName() + ".broken-" + Instant.now().toEpochMilli());
             logger.error("Schema library file {} is unreadable ({}); moving it to {}", storageFile, e.getMessage(), backup);
-            try { Files.move(storageFile, backup, StandardCopyOption.REPLACE_EXISTING); }
-            catch (IOException io) { logger.warn("Could not back up broken library file: {}", io.getMessage()); }
+            try {
+                Files.move(storageFile, backup, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException io) {
+                logger.warn("Could not back up broken library file: {}", io.getMessage());
+            }
             userEntries.clear(); catalogs.clear(); disabledBundled.clear();
         }
     }
@@ -197,8 +216,11 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
         if (javafx.application.Platform.isFxApplicationThread()) {
             observable.setAll(copy);
         } else {
-            try { javafx.application.Platform.runLater(() -> observable.setAll(copy)); }
-            catch (IllegalStateException toolkitNotRunning) { observable.setAll(copy); }
+            try {
+                javafx.application.Platform.runLater(() -> observable.setAll(copy));
+            } catch (IllegalStateException toolkitNotRunning) {
+                observable.setAll(copy);
+            }
         }
         onSnapshotRebuilt();
     }
@@ -459,15 +481,21 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
     private static URI normalizeFileUri(URI u) {
         if ("file".equalsIgnoreCase(u.getScheme()) && u.getAuthority() == null
                 && u.getPath() != null && u.getPath().startsWith("/")) {
-            try { return new URI(u.getScheme(), "", u.getPath(), u.getQuery(), u.getFragment()); }
-            catch (java.net.URISyntaxException e) { return u; }
+            try {
+                return new URI(u.getScheme(), "", u.getPath(), u.getQuery(), u.getFragment());
+            } catch (java.net.URISyntaxException e) {
+                return u;
+            }
         }
         return u;
     }
 
     private static URI locationUri(SchemaLibraryEntry e) {
-        try { return e.isRemote() ? URI.create(e.location()) : Path.of(e.location()).toUri(); }
-        catch (RuntimeException ex) { return null; }
+        try {
+            return e.isRemote() ? URI.create(e.location()) : Path.of(e.location()).toUri();
+        } catch (RuntimeException ex) {
+            return null;
+        }
     }
 
     /** file: URIs become plain paths (entries show paths); other URIs stay as-is. */

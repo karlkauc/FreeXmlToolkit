@@ -88,6 +88,7 @@ public final class XPathReplacePlanner {
                 case COMPUTE_VALUE -> edits.add(valueEdit(match,
                         computeValue(computeSelector, match)));
                 case REPLACE_FRAGMENT -> edits.add(fragmentEdit(xml, match, argument));
+                default -> { }
             }
         }
         try {

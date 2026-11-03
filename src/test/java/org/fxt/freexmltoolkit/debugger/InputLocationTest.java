@@ -6,11 +6,11 @@ import java.io.StringReader;
 
 import javax.xml.transform.stream.StreamSource;
 
+import org.junit.jupiter.api.Test;
+
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XdmNode;
-
-import org.junit.jupiter.api.Test;
 
 /** The input line of a context node, as the debugger marks it in the input document. */
 class InputLocationTest {

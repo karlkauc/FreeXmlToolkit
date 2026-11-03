@@ -29,14 +29,15 @@ public interface GridContextMenu<N> {
      * @param filterSupported    whether the selection can carry a filter
      */
     record ViewActions(Runnable expandAll, Runnable collapseAll, Runnable expandFully, Runnable collapseUnselected,
-                       Runnable toggleTableDisplay, java.util.function.Supplier<Boolean> tableDisplayState,
-                       Runnable flipTable, java.util.function.Supplier<Boolean> flipState,
+                       Runnable toggleTableDisplay, java.util.function.Supplier<java.util.Optional<Boolean>> tableDisplayState,
+                       Runnable flipTable, java.util.function.Supplier<java.util.Optional<Boolean>> flipState,
                        Runnable editFilter, Runnable filterToFocus, java.util.function.BooleanSupplier filterSupported,
                        Runnable expandOneLevel, Runnable collapseOneLevel) {
         /** @return actions that do nothing (for menus built without a canvas, e.g. in tests) */
         public static ViewActions none() {
             return new ViewActions(() -> { }, () -> { }, () -> { }, () -> { },
-                    () -> { }, () -> null, () -> { }, () -> null, () -> { }, () -> { }, () -> false,
+                    () -> { }, java.util.Optional::empty, () -> { }, java.util.Optional::empty, () -> { }, () -> { },
+                    () -> false,
                     () -> { }, () -> { });
         }
     }

@@ -108,12 +108,13 @@ final class GridViewHeader extends HBox {
         (currentSplit == null ? splitOff
                 : currentSplit == javafx.geometry.Orientation.VERTICAL ? splitTopBottom : splitSideBySide)
                 .setSelected(true);
-        (switch (view.getSiblingGroupSize()) {
+        RadioMenuItem siblingGroupsItem = switch (view.getSiblingGroupSize()) {
             case 100 -> siblingGroups100;
             case 1000 -> siblingGroups1000;
             case 10000 -> siblingGroups10000;
             default -> siblingGroupsOff;
-        }).setSelected(true);
+        };
+        siblingGroupsItem.setSelected(true);
     }
 
     /**
