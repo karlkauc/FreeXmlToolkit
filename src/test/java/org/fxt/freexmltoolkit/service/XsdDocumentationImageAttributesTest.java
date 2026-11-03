@@ -122,6 +122,25 @@ class XsdDocumentationImageAttributesTest {
     }
 
     @Test
+    void childNameIsCentredVerticallyInItsRow() {
+        String svg = imageService.generateSvgString(element("Total"));
+
+        Matcher rect = Pattern.compile("<rect[^>]*\\sid=\"[^\"]*/Amount\"[^>]*>", Pattern.DOTALL).matcher(svg);
+        assertTrue(rect.find(), "Amount box expected");
+        double rowTop = attr(rect.group(), "y") + XsdDocumentationImageService.boxPadding;
+        double rowBottom = rowTop + imageService.font.getStringBounds("Amount", imageService.frc)
+                .getBounds2D().getHeight();
+        Matcher text = Pattern.compile("<text[^>]*>Amount</text>", Pattern.DOTALL).matcher(svg);
+        assertTrue(text.find(), "Amount name text expected");
+        double baseline = attr(text.group(), "y");
+
+        java.awt.font.LineMetrics metrics = imageService.font.getLineMetrics("Amount", imageService.frc);
+        double above = baseline - metrics.getAscent() - rowTop;
+        double below = rowBottom - baseline - metrics.getDescent();
+        assertEquals(above, below, 0.5, "name sits " + (above - below) + " px low");
+    }
+
+    @Test
     void sequenceIconIsCentredInItsSymbol() {
         String svg = imageService.generateSvgString(element("Total"));
 

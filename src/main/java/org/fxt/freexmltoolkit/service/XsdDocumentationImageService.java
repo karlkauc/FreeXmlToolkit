@@ -1814,7 +1814,10 @@ public class XsdDocumentationImageService {
 
                 // Text group - XMLSpy style with vertical layout
                 Element textGroup = document.createElementNS(svgNS, "g");
-                double textY = currentY + boxPadding + nameHeight;
+                // Rows: name, then (after an 8px gap holding the separator) type, then attributes.
+                // Each text is centred in its row; the badges follow the text they belong to.
+                double nameRowBottom = currentY + boxPadding + nameHeight;
+                double textY = centredBaseline(font, elementName2, currentY + boxPadding, nameHeight);
 
                 // Element name (bold, dark blue) - first line
                 Element nameTextNode = createSvgTextElement(document, elementName2,
@@ -1827,15 +1830,16 @@ public class XsdDocumentationImageService {
                 if (!elementType.isBlank()) {
                     Element separatorLine = document.createElementNS(svgNS, "line");
                     separatorLine.setAttribute("x1", String.valueOf(startX + boxPadding));
-                    separatorLine.setAttribute("y1", String.valueOf(textY + 4));
+                    separatorLine.setAttribute("y1", String.valueOf(nameRowBottom + 4));
                     separatorLine.setAttribute("x2", String.valueOf(startX + boxPadding + maxWidth));
-                    separatorLine.setAttribute("y2", String.valueOf(textY + 4));
+                    separatorLine.setAttribute("y2", String.valueOf(nameRowBottom + 4));
                     separatorLine.setAttribute("stroke", "#e0e0e0");
                     separatorLine.setAttribute("stroke-width", "1");
                     textGroup.appendChild(separatorLine);
 
                     // Type information (normal, gray) - second line below separator
-                    double typeY = textY + typeHeight;
+                    double typeY = centredBaseline(font.deriveFont((float) (font.getSize() - 1)), elementType,
+                            nameRowBottom + 8, typeHeight - 8);
                     Element typeTextNode = createSvgTextElement(document, elementType,
                             String.valueOf(startX + boxPadding), String.valueOf(typeY),
                             COLOR_TEXT_SECONDARY, font.getSize() - 1);
@@ -1886,7 +1890,7 @@ public class XsdDocumentationImageService {
                     }
                 }
                 drawAttributeSection(document, svgRoot, attributes,
-                        startX + boxPadding, textY + typeHeight, maxWidth);
+                        startX + boxPadding, nameRowBottom + typeHeight, maxWidth);
 
                 double elementRightEdge = startX + boxPadding * 2 + maxWidth;
                 updateMaxRightEdge(maxRightEdge, elementRightEdge);
