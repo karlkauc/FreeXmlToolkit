@@ -158,6 +158,57 @@ class XsdDocumentationImageAttributesTest {
     }
 
     @Test
+    void nestedChoiceKeepsTheGapsAndTheRightEdgeOfItsLevel() throws Exception {
+        File xsdFile = tempDir.resolve("nested.xsd").toFile();
+        Files.writeString(xsdFile.toPath(), """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                    <xs:element name="Fund">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="Before" type="xs:string"/>
+                                <xs:choice>
+                                    <xs:element name="A" type="xs:string"/>
+                                    <xs:element name="B" type="xs:string"/>
+                                </xs:choice>
+                                <xs:element name="AfterWithAMuchLongerName" type="xs:string"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:schema>
+                """);
+        XsdDocumentationService nestedService = new XsdDocumentationService();
+        nestedService.setXsdFilePath(xsdFile.getAbsolutePath());
+        nestedService.processXsd(false);
+        XsdDocumentationImageService nestedImages =
+                new XsdDocumentationImageService(nestedService.xsdDocumentationData.getExtendedXsdElementMap());
+        XsdExtendedElement fund = nestedService.xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> "Fund".equals(e.getElementName())).findFirst().orElseThrow();
+        String svg = nestedImages.generateSvgString(fund);
+
+        double[] before = box(svg, "Before");
+        double[] a = box(svg, "A");
+        double[] b = box(svg, "B");
+        double[] after = box(svg, "AfterWithAMuchLongerName");
+        double gapAB = b[1] - (a[1] + a[3]);
+        assertEquals(gapAB, a[1] - (before[1] + before[3]), 0.01, "gap above the choice's first child");
+        assertEquals(gapAB, after[1] - (b[1] + b[3]), 0.01, "gap below the choice's last child");
+
+        double right = before[0] + before[2];
+        assertEquals(right, a[0] + a[2], 0.01, "the choice's children end at the level's right edge");
+        assertEquals(right, b[0] + b[2], 0.01);
+        assertEquals(right, after[0] + after[2], 0.01);
+        assertTrue(a[0] > before[0], "the choice's children are indented");
+    }
+
+    /** @return x, y, width, height of the box of the element whose XPath ends with {@code name} */
+    private static double[] box(String svg, String name) {
+        Matcher rect = Pattern.compile("<rect[^>]*\\sid=\"[^\"]*/" + name + "\"[^>]*>", Pattern.DOTALL).matcher(svg);
+        assertTrue(rect.find(), name + " box expected");
+        String tag = rect.group();
+        return new double[]{attr(tag, "x"), attr(tag, "y"), attr(tag, "width"), attr(tag, "height")};
+    }
+
+    @Test
     void diagramHasATransparentBackground() {
         String svg = imageService.generateSvgString(element("Total"));
 

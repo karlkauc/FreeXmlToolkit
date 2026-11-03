@@ -144,6 +144,12 @@ public class XsdDocumentationImageService {
     static final double COMPOSITOR_SYMBOL_HEIGHT = 30;
     /** Width of the (iconless) all symbol. */
     static final double ALL_SYMBOL_WIDTH = 40;
+    /** Centre of a nested compositor symbol, measured from the left edge of its level's boxes. */
+    static final double COMPOSITOR_SYMBOL_OFFSET_X = 60;
+    /** Top of a nested compositor symbol below the top of its first child box. */
+    static final double COMPOSITOR_SYMBOL_OFFSET_Y = 20;
+    /** Gap between a nested compositor symbol and the boxes of its children. */
+    static final double COMPOSITOR_CHILDREN_GAP = 40;
 
     /** @return the width of the symbol of a compositor */
     static double compositorSymbolWidth(boolean all) {
@@ -563,7 +569,6 @@ public class XsdDocumentationImageService {
         // The recursive drawing method will handle nested compositors automatically
 
         // Calculate symmetric sizes - AFTER compositor flattening
-        double maxChildWidth = calculateMaxChildWidth(childElements);
 
         // The root (the page's own element) is set in a larger bold font so it stands out
         Font rootFont = font.deriveFont(Font.BOLD, (float) ROOT_FONT_SIZE);
@@ -672,8 +677,10 @@ public class XsdDocumentationImageService {
             childConnectionColor = COLOR_STROKE_ELEMENT;
         }
 
+        // Every box of the right side ends at the same right edge, also those under a nested compositor
+        final double childrenRightEdge = requiredRightEdge(childElements, finalRightStartX);
         double childrenHeight = drawChildrenRecursive(document, svgRoot, childElements,
-                actualHeight, finalRightStartX,
+                actualHeight, finalRightStartX, childrenRightEdge,
                 connectionStartX, connectionStartY, maxRightEdge,
                 hasCompositor,
                 childConnectionColor);
@@ -688,7 +695,7 @@ public class XsdDocumentationImageService {
         var imageHeight = Math.max(rootElementTotalHeight + margin, actualHeight);
         svgRoot.setAttribute("height", String.valueOf(imageHeight + margin));
         double computedWidth = Math.max(
-                finalRightStartX + boxPadding * 2 + maxChildWidth + margin * 3,
+                childrenRightEdge + margin * 3,
                 maxRightEdge[0] + margin * 2);
         svgRoot.setAttribute("width", String.valueOf(computedWidth));
         // No background: the diagram takes the colour of whatever page or document it is placed on.
@@ -1712,6 +1719,61 @@ public class XsdDocumentationImageService {
         }
     }
 
+    /** @return whether this entry is a compositor container (CHOICE/SEQUENCE/ALL), drawn as a symbol */
+    private static boolean isCompositorContainer(XsdExtendedElement element) {
+        String name = element.getElementName();
+        return name != null && (name.startsWith("CHOICE") || name.startsWith("SEQUENCE") || name.startsWith("ALL"));
+    }
+
+    /** @return "choice", "sequence" or "all" for a compositor container */
+    private static String compositorType(XsdExtendedElement container) {
+        String name = container.getElementName();
+        return name.startsWith("CHOICE") ? "choice" : (name.startsWith("SEQUENCE") ? "sequence" : "all");
+    }
+
+    private List<XsdExtendedElement> compositorChildrenOf(XsdExtendedElement container) {
+        List<XsdExtendedElement> result = new ArrayList<>();
+        if (container.getChildren() != null) {
+            for (String childXpath : container.getChildren()) {
+                XsdExtendedElement child = extendedXsdElements.get(childXpath);
+                if (child != null) {
+                    result.add(child);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns the right edge all boxes of a level end at: wide enough for the widest box of the
+     * level, including the boxes under nested compositors, which start further right. So the
+     * boxes of a level line up on the right however deep a compositor nests them.
+     *
+     * @param children the entries of the level (elements and compositor containers)
+     * @param startX   left edge of the level's boxes
+     * @return the right edge
+     */
+    double requiredRightEdge(List<XsdExtendedElement> children, double startX) {
+        List<XsdExtendedElement> boxes = new ArrayList<>();
+        double right = startX;
+        for (XsdExtendedElement child : children) {
+            if (isAttribute(child)) {
+                continue;
+            }
+            if (isCompositorContainer(child)) {
+                double symbolWidth = compositorSymbolWidth(compositorType(child).equals("all"));
+                double nestedStartX = startX + COMPOSITOR_SYMBOL_OFFSET_X + symbolWidth / 2 + COMPOSITOR_CHILDREN_GAP;
+                right = Math.max(right, requiredRightEdge(compositorChildrenOf(child), nestedStartX));
+            } else {
+                boxes.add(child);
+            }
+        }
+        if (!boxes.isEmpty()) {
+            right = Math.max(right, startX + boxPadding * 2 + calculateMaxChildWidth(boxes));
+        }
+        return right;
+    }
+
     /**
      * Recursively draws children elements, including compositor containers (CHOICE/SEQUENCE/ALL).
      * Compositor containers are drawn as symbols with their children nested beneath them.
@@ -1721,6 +1783,7 @@ public class XsdDocumentationImageService {
      * @param children         List of child elements to draw
      * @param startY           Starting Y position
      * @param startX           Starting X position for elements
+     * @param rightEdge        Right edge all boxes of this level end at (see {@link #requiredRightEdge})
      * @param connectionStartX X position where connections start from
      * @param connectionStartY Y position where connections start from
      * @param maxRightEdge     Mutable tracker for the rightmost X coordinate drawn so far
@@ -1730,7 +1793,7 @@ public class XsdDocumentationImageService {
      */
     private double drawChildrenRecursive(Document document, Element svgRoot,
                                          List<XsdExtendedElement> children,
-                                         double startY, double startX,
+                                         double startY, double startX, double rightEdge,
                                          double connectionStartX, double connectionStartY,
                                          double[] maxRightEdge,
                                          boolean useElbowConnections,
@@ -1745,36 +1808,18 @@ public class XsdDocumentationImageService {
         }
 
         double currentY = startY;
-        double maxWidth = calculateMaxChildWidth(children);
+        // Content width of the boxes: they all end at the level's right edge
+        double maxWidth = rightEdge - startX - boxPadding * 2;
 
         for (XsdExtendedElement child : children) {
-            String childName = child.getElementName();
-
-            // Check if this is a compositor container
-            boolean isCompositor = childName != null &&
-                    (childName.startsWith("CHOICE") ||
-                            childName.startsWith("SEQUENCE") ||
-                            childName.startsWith("ALL"));
-
-            if (isCompositor) {
+            if (isCompositorContainer(child)) {
                 // Draw compositor symbol and its children
-                String compositorType = childName.startsWith("CHOICE") ? "choice" :
-                        (childName.startsWith("SEQUENCE") ? "sequence" : "all");
+                String compositorType = compositorType(child);
+                List<XsdExtendedElement> compositorChildren = compositorChildrenOf(child);
 
-                // Get compositor's children
-                List<XsdExtendedElement> compositorChildren = new ArrayList<>();
-                if (child.getChildren() != null) {
-                    for (String compositorChildXpath : child.getChildren()) {
-                        XsdExtendedElement compositorChild = extendedXsdElements.get(compositorChildXpath);
-                        if (compositorChild != null) {
-                            compositorChildren.add(compositorChild);
-                        }
-                    }
-                }
-
-                // Draw compositor symbol
-                double symbolX = startX + 60; // Position for the symbol
-                double symbolY = currentY + 20;
+                // Draw compositor symbol, next to its first child
+                double symbolX = startX + COMPOSITOR_SYMBOL_OFFSET_X;
+                double symbolY = currentY + COMPOSITOR_SYMBOL_OFFSET_Y;
                 double symbolWidth = compositorSymbolWidth(compositorType.equals("all"));
                 double symbolHeight = COMPOSITOR_SYMBOL_HEIGHT;
 
@@ -1812,13 +1857,14 @@ public class XsdDocumentationImageService {
                 // Recursively draw compositor's children starting from the symbol's right edge
                 double compositorConnectionStartX = symbolX + symbolWidth / 2.0;
                 double compositorConnectionStartY = symbolY + symbolHeight / 2.0;
-                double compositorChildrenStartX = compositorConnectionStartX + 40;
+                double compositorChildrenStartX = compositorConnectionStartX + COMPOSITOR_CHILDREN_GAP;
 
                 String childStrokeColor = compositorType.equals("choice") ? COLOR_STROKE_CHOICE :
                         (compositorType.equals("sequence") ? COLOR_STROKE_SEQUENCE : COLOR_STROKE_ANY);
 
+                // The children start where a box would: the gaps above and below stay those of every box
                 double childrenHeight = drawChildrenRecursive(document, svgRoot, compositorChildren,
-                        symbolY, compositorChildrenStartX,
+                        currentY, compositorChildrenStartX, rightEdge,
                         compositorConnectionStartX, compositorConnectionStartY, maxRightEdge,
                         true,
                         childStrokeColor);
