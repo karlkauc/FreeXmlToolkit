@@ -157,6 +157,58 @@ class XsdDocumentationImageAttributesTest {
         assertEquals(y + h / 2 - 12, attr(use.group(), "y"), 0.01);
     }
 
+    @Test
+    void choiceSymbolMatchesSequenceAndCentresItsIcon() throws Exception {
+        File xsdFile = tempDir.resolve("choice.xsd").toFile();
+        Files.writeString(xsdFile.toPath(), """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                    <xs:element name="Payment">
+                        <xs:complexType>
+                            <xs:choice>
+                                <xs:element name="Card" type="xs:string"/>
+                                <xs:element name="Transfer" type="xs:string"/>
+                            </xs:choice>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:schema>
+                """);
+        XsdDocumentationService choiceService = new XsdDocumentationService();
+        choiceService.setXsdFilePath(xsdFile.getAbsolutePath());
+        choiceService.processXsd(false);
+        XsdDocumentationImageService choiceImages =
+                new XsdDocumentationImageService(choiceService.xsdDocumentationData.getExtendedXsdElementMap());
+        XsdExtendedElement payment = choiceService.xsdDocumentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> "Payment".equals(e.getElementName())).findFirst().orElseThrow();
+        String svg = choiceImages.generateSvgString(payment);
+
+        Matcher rect = Pattern.compile("<rect[^>]*fill=\"url\\(#choiceGradient\\)\"[^>]*/>", Pattern.DOTALL).matcher(svg);
+        assertTrue(rect.find(), "choice symbol expected");
+        double x = attr(rect.group(), "x");
+        double y = attr(rect.group(), "y");
+        double w = attr(rect.group(), "width");
+        double h = attr(rect.group(), "height");
+        assertEquals(XsdDocumentationImageService.COMPOSITOR_SYMBOL_WIDTH, w, 0.01, "as wide as a sequence");
+        assertEquals(XsdDocumentationImageService.COMPOSITOR_SYMBOL_HEIGHT, h, 0.01, "as high as a sequence");
+
+        Matcher use = Pattern.compile("<use[^>]*#choice-icon\"[^>]*/>", Pattern.DOTALL).matcher(svg);
+        assertTrue(use.find(), "choice icon expected");
+        assertEquals(x + w / 2 - XsdDocumentationImageService.CHOICE_ICON_CENTER_X, attr(use.group(), "x"), 0.01);
+        assertEquals(y + h / 2 - XsdDocumentationImageService.CHOICE_ICON_CENTER_Y, attr(use.group(), "y"), 0.01);
+
+        assertTrue(svg.contains("id=\"choice-icon\""), "the switch icon is defined");
+        // Connectors are elbow paths ("M x y …") or straight lines (x1=…)
+        Matcher connector = Pattern.compile("<path[^>]*\\sd=\"M ([0-9.]+) |<line[^>]*\\sx1=\"([0-9.]+)\"", Pattern.DOTALL)
+                .matcher(svg);
+        int fromChoice = 0;
+        while (connector.find()) {
+            String startX = connector.group(1) != null ? connector.group(1) : connector.group(2);
+            if (Math.abs(Double.parseDouble(startX) - (x + w)) < 0.01) {
+                fromChoice++;
+            }
+        }
+        assertEquals(2, fromChoice, "both connectors start at the choice's right edge");
+    }
+
     private static double attr(String tag, String name) {
         Matcher m = Pattern.compile("\\s" + name + "=\"([^\"]+)\"").matcher(tag);
         assertTrue(m.find(), name + " missing in " + tag);

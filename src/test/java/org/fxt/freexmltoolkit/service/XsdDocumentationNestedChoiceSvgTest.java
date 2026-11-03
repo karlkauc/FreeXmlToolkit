@@ -101,19 +101,19 @@ class XsdDocumentationNestedChoiceSvgTest {
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document doc = db.parse(new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8)));
 
-        // Find the choice rectangle: stroke="#ff8c00" and width="30.0" (or "30")
+        // Find the choice rectangle: stroke="#ff8c00" and width="50.0", the size of a sequence
         NodeList rects = doc.getElementsByTagName("rect");
         Element choiceRect = null;
         for (int i = 0; i < rects.getLength(); i++) {
             Element r = (Element) rects.item(i);
             String stroke = r.getAttribute("stroke");
             String width = r.getAttribute("width");
-            if ("#ff8c00".equalsIgnoreCase(stroke) && (width.startsWith("30"))) {
+            if ("#ff8c00".equalsIgnoreCase(stroke) && (width.startsWith("50"))) {
                 choiceRect = r;
                 break;
             }
         }
-        assertNotNull(choiceRect, "Choice rectangle with orange stroke (#ff8c00) and width 30 should exist");
+        assertNotNull(choiceRect, "Choice rectangle with orange stroke (#ff8c00) and width 50 should exist");
 
         double choiceX = Double.parseDouble(choiceRect.getAttribute("x"));
         double choiceWidth = Double.parseDouble(choiceRect.getAttribute("width"));

@@ -135,9 +135,20 @@ public class XsdDocumentationImageService {
     /** Centre of the {@code #sequence-icon} path (bbox 2..22 x 5..19). */
     static final double SEQUENCE_ICON_CENTER_X = 12;
     static final double SEQUENCE_ICON_CENTER_Y = 12;
-    /** Centre of the {@code #choice-icon} path (bbox 2..20 x 8..16). */
-    static final double CHOICE_ICON_CENTER_X = 11;
+    /** Centre of the {@code #choice-icon} switch (bbox 2..22 x 4..20). */
+    static final double CHOICE_ICON_CENTER_X = 12;
     static final double CHOICE_ICON_CENTER_Y = 12;
+
+    /** Size of the sequence and choice symbols; the two look alike apart from icon and border. */
+    static final double COMPOSITOR_SYMBOL_WIDTH = 50;
+    static final double COMPOSITOR_SYMBOL_HEIGHT = 30;
+    /** Width of the (iconless) all symbol. */
+    static final double ALL_SYMBOL_WIDTH = 40;
+
+    /** @return the width of the symbol of a compositor */
+    static double compositorSymbolWidth(boolean all) {
+        return all ? ALL_SYMBOL_WIDTH : COMPOSITOR_SYMBOL_WIDTH;
+    }
 
     // Colors matching XsdDiagramView styles
     private static final String COLOR_BG = "#f0f8ff";                    // Background matching XsdDiagramView
@@ -640,7 +651,7 @@ public class XsdDocumentationImageService {
         double connectionStartX, connectionStartY;
         if (hasCompositor) {
             // Start from the RIGHT EDGE of the compositor symbol
-            connectionStartX = finalSymbolCenterX + (finalIsSequence ? 25 : (finalIsChoice ? 15 : 20));
+            connectionStartX = finalSymbolCenterX + compositorSymbolWidth(!finalIsSequence && !finalIsChoice) / 2;
             connectionStartY = finalSymbolCenterY;
         } else {
             // Start from root element
@@ -800,8 +811,8 @@ public class XsdDocumentationImageService {
                                                 List<XsdExtendedElement> childElements, Element svgRoot,
                                                 double[] maxRightEdge) {
 
-        final double symbolWidth = isSequence ? 50 : (isChoice ? 30 : 40);
-        final double symbolHeight = 30;
+        final double symbolWidth = compositorSymbolWidth(!isSequence && !isChoice);
+        final double symbolHeight = COMPOSITOR_SYMBOL_HEIGHT;
         final double symbolCenterX = rootPathEndX + (gapBetweenSides / 2);
         final double symbolCenterY = rootPathCenterY;
 
@@ -1630,14 +1641,42 @@ public class XsdDocumentationImageService {
         sequenceIcon.appendChild(sequencePath);
         defs.appendChild(sequenceIcon);
 
-        // Choice structural icon (option)
+        // Choice structural icon: a switch that connects the input to one of three outputs
+        // (as in XMLSpy). Stroke and fill sit on the group, so nothing in it reads as a connector.
         Element choiceIcon = document.createElementNS(svgNS, "g");
         choiceIcon.setAttribute("id", "choice-icon");
-        Element choicePath = document.createElementNS(svgNS, "path");
-        choicePath.setAttribute("d", "M8,10V12H16V10H8M8,14V16H16V14H8M18,8C19.11,8 20,8.9 20,10V14C20,15.11 19.11,16 18,16H16V14H18V10H16V8H18M6,8V10H4V14H6V16H4C2.89,16 2,15.11 2,14V10C2,8.9 2.89,8 4,8H6Z");
-        choicePath.setAttribute("fill", COLOR_STROKE_CHOICE);
-        choiceIcon.appendChild(choicePath);
+        choiceIcon.setAttribute("stroke", COLOR_STROKE_CHOICE);
+        choiceIcon.setAttribute("stroke-width", "1.8");
+        choiceIcon.setAttribute("stroke-linecap", "round");
+        choiceIcon.setAttribute("fill", "none");
+        choiceIcon.appendChild(svgLine(document, 2, 12, 7, 12));      // input
+        choiceIcon.appendChild(svgLine(document, 8.5, 11.2, 16.6, 6.6)); // lever, closed on the top output
+        choiceIcon.appendChild(svgCircle(document, 7.5, 12, 1.6, true)); // pivot
+        choiceIcon.appendChild(svgCircle(document, 19, 5.5, 2, true));   // connected output
+        choiceIcon.appendChild(svgCircle(document, 19, 12, 2, false));   // open outputs
+        choiceIcon.appendChild(svgCircle(document, 19, 18.5, 2, false));
         defs.appendChild(choiceIcon);
+    }
+
+    private Element svgLine(Document document, double x1, double y1, double x2, double y2) {
+        Element line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", String.valueOf(x1));
+        line.setAttribute("y1", String.valueOf(y1));
+        line.setAttribute("x2", String.valueOf(x2));
+        line.setAttribute("y2", String.valueOf(y2));
+        return line;
+    }
+
+    /** A circle that inherits its stroke; {@code filled} paints it in the stroke colour. */
+    private Element svgCircle(Document document, double cx, double cy, double r, boolean filled) {
+        Element circle = document.createElementNS(svgNS, "circle");
+        circle.setAttribute("cx", String.valueOf(cx));
+        circle.setAttribute("cy", String.valueOf(cy));
+        circle.setAttribute("r", String.valueOf(r));
+        if (filled) {
+            circle.setAttribute("fill", COLOR_STROKE_CHOICE);
+        }
+        return circle;
     }
 
     /**
@@ -1737,8 +1776,8 @@ public class XsdDocumentationImageService {
                 // Draw compositor symbol
                 double symbolX = startX + 60; // Position for the symbol
                 double symbolY = currentY + 20;
-                double symbolWidth = compositorType.equals("choice") ? 30 : (compositorType.equals("sequence") ? 50 : 40);
-                double symbolHeight = 30;
+                double symbolWidth = compositorSymbolWidth(compositorType.equals("all"));
+                double symbolHeight = COMPOSITOR_SYMBOL_HEIGHT;
 
                 // Draw the symbol
                 drawCompositorSymbolInline(document, svgRoot, compositorType, symbolX, symbolY, symbolWidth, symbolHeight, maxRightEdge);
