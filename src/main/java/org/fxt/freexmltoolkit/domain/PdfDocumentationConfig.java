@@ -779,6 +779,8 @@ public class PdfDocumentationConfig {
     private boolean vectorDiagrams = true;
     /** The XSD source of each element and type in its section. */
     private boolean includeSourceCode = false;
+    /** Pixels per diagram unit of PNG diagrams; above 1 they stay sharp when shown at their size. */
+    private float rasterScale = 1f;
     private boolean includeComplexTypes = true;
     private boolean includeSimpleTypes = true;
     private boolean includeDataDictionary = true;
@@ -833,6 +835,7 @@ public class PdfDocumentationConfig {
         this.elementReference = other.elementReference;
         this.vectorDiagrams = other.vectorDiagrams;
         this.includeSourceCode = other.includeSourceCode;
+        this.rasterScale = other.rasterScale;
         this.includeComplexTypes = other.includeComplexTypes;
         this.includeSimpleTypes = other.includeSimpleTypes;
         this.includeDataDictionary = other.includeDataDictionary;
@@ -1105,6 +1108,21 @@ public class PdfDocumentationConfig {
      */
     public void setVectorDiagrams(boolean vectorDiagrams) {
         this.vectorDiagrams = vectorDiagrams;
+    }
+
+    /** @return pixels per diagram unit of PNG diagrams (1 = natural size) */
+    public float getRasterScale() {
+        return rasterScale;
+    }
+
+    /**
+     * Sets how many pixels per diagram unit PNG diagrams are rendered at; they are shown at their
+     * natural size, so values above 1 make them sharper.
+     *
+     * @param rasterScale the scale, at least 1
+     */
+    public void setRasterScale(float rasterScale) {
+        this.rasterScale = Math.max(1f, rasterScale);
     }
 
     /** @return whether the sections show the XSD source of their element or type */

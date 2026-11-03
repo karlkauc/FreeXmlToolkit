@@ -131,7 +131,11 @@ public class WordDocumentationConfig {
     private boolean includeToc = true;
     private boolean includeDataDictionary = true;
     private boolean includeSchemaDiagram = true;
-    private boolean includeElementDiagrams = false;
+    private boolean includeElementDiagrams = true;
+    /** Which elements get a section in the element reference (as for the PDF). */
+    private PdfDocumentationConfig.ElementReference elementReference = PdfDocumentationConfig.ElementReference.DECLARATIONS;
+    /** The XSD source of each element and type in its section. */
+    private boolean includeSourceCode = false;
 
     // Styling
     private HeaderStyle headerStyle = HeaderStyle.PROFESSIONAL;
@@ -158,6 +162,8 @@ public class WordDocumentationConfig {
         this.includeDataDictionary = other.includeDataDictionary;
         this.includeSchemaDiagram = other.includeSchemaDiagram;
         this.includeElementDiagrams = other.includeElementDiagrams;
+        this.elementReference = other.elementReference;
+        this.includeSourceCode = other.includeSourceCode;
         this.headerStyle = other.headerStyle;
     }
 
@@ -287,6 +293,35 @@ public class WordDocumentationConfig {
      */
     public void setIncludeElementDiagrams(boolean includeElementDiagrams) {
         this.includeElementDiagrams = includeElementDiagrams;
+    }
+
+    /** @return which elements get a section in the element reference */
+    public PdfDocumentationConfig.ElementReference getElementReference() {
+        return elementReference;
+    }
+
+    /**
+     * Sets which elements get a section in the element reference.
+     *
+     * @param elementReference the scope, null for the default
+     */
+    public void setElementReference(PdfDocumentationConfig.ElementReference elementReference) {
+        this.elementReference = elementReference == null
+                ? PdfDocumentationConfig.ElementReference.DECLARATIONS : elementReference;
+    }
+
+    /** @return whether the sections show the XSD source of their element or type */
+    public boolean isIncludeSourceCode() {
+        return includeSourceCode;
+    }
+
+    /**
+     * Sets whether each element and type section shows its XSD source.
+     *
+     * @param includeSourceCode true to show the source
+     */
+    public void setIncludeSourceCode(boolean includeSourceCode) {
+        this.includeSourceCode = includeSourceCode;
     }
 
     /**

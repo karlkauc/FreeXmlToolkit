@@ -229,9 +229,9 @@ public class XsdDocumentationPdfService {
         }
 
         // Element and type reference: decided first, so every table can link to them
-        PdfElementReferenceBuilder reference = new PdfElementReferenceBuilder(this, documentationData, config,
+        PdfElementReferenceBuilder reference = new PdfElementReferenceBuilder(support(), documentationData, config,
                 imageService, tempImageDir, includedLanguages, this::reportProgress);
-        PdfTypeReferenceBuilder types = new PdfTypeReferenceBuilder(this, documentationData, config,
+        PdfTypeReferenceBuilder types = new PdfTypeReferenceBuilder(support(), documentationData, config,
                 imageService, tempImageDir, includedLanguages, reference);
         reference.setTypeSections(types::sectionIdOf);
 
@@ -1187,11 +1187,9 @@ public class XsdDocumentationPdfService {
         parent.appendChild(element);
     }
 
-    /** Zero-width space: lets FOP break a long value (an XPath, a pattern) inside a table cell. */
-    private static final char BREAK_OPPORTUNITY = '\u200B';
-
-    /** Tokens longer than this get break opportunities every so many characters. */
-    private static final int MAX_UNBROKEN = 24;
+    static String breakable(String text) {
+        return XsdDocumentationExportSupport.breakable(text);
+    }
 
     private void reportProgress(String message) {
         if (progressListener != null) {
@@ -1199,33 +1197,6 @@ public class XsdDocumentationPdfService {
                     TaskProgressListener.ProgressUpdate.Status.RUNNING, 0));
         }
         logger.debug("PDF generation progress: {}", message);
-    }
-
-    /**
-     * Returns the text with break opportunities after path and list separators and inside very
-     * long tokens, so a cell wraps it instead of letting it run over the column. The text itself
-     * is unchanged.
-     */
-    static String breakable(String text) {
-        if (text == null || text.isEmpty()) {
-            return "";
-        }
-        StringBuilder out = new StringBuilder(text.length() + 16);
-        int run = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            out.append(c);
-            if (Character.isWhitespace(c)) {
-                run = 0;
-            } else if (c == '/' || c == '|' || c == ',' || c == ';') {
-                out.append(BREAK_OPPORTUNITY);
-                run = 0;
-            } else if (++run >= MAX_UNBROKEN) {
-                out.append(BREAK_OPPORTUNITY);
-                run = 0;
-            }
-        }
-        return out.toString();
     }
 
     /**

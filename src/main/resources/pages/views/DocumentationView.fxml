@@ -198,6 +198,18 @@
                                                           selected="true"/>
                                                 <CheckBox fx:id="schemaDiagram" text="Schema diagram" selected="true"/>
                                                 <CheckBox fx:id="elementDiagrams" text="Element diagrams" selected="true"/>
+                                                <Label text="Element reference" styleClass="fxt-sig-field-label"/>
+                                                <ComboBox fx:id="pdfElementReference" id="docgen-element-reference">
+                                                    <tooltip>
+                                                        <Tooltip text="A section per element with its diagram, documentation, restrictions, children and constraints. &quot;One section per declaration&quot; describes an element declared once but used at many paths once; its other paths link to it."/>
+                                                    </tooltip>
+                                                </ComboBox>
+                                                <CheckBox fx:id="pdfSourceCode" id="docgen-pdf-source"
+                                                          text="XSD source in each section">
+                                                    <tooltip>
+                                                        <Tooltip text="Shows the XSD source of every element and type in its section. Makes the document considerably longer."/>
+                                                    </tooltip>
+                                                </CheckBox>
                                                 <!-- PDF only -->
                                                 <VBox fx:id="pdfOnlyBox" id="docgen-pdf-only" spacing="8">
                                                     <children>
@@ -205,18 +217,6 @@
                                                         <ComboBox fx:id="pdfColorScheme" id="docgen-color-scheme"/>
                                                         <Label text="Watermark" styleClass="fxt-sig-field-label"/>
                                                         <ComboBox fx:id="pdfWatermark" id="docgen-watermark"/>
-                                                        <Label text="Element reference" styleClass="fxt-sig-field-label"/>
-                                                        <ComboBox fx:id="pdfElementReference" id="docgen-element-reference">
-                                                            <tooltip>
-                                                                <Tooltip text="A section per element with its diagram, documentation, restrictions, children and constraints. &quot;One section per declaration&quot; describes an element declared once but used at many paths once; its other paths link to it."/>
-                                                            </tooltip>
-                                                        </ComboBox>
-                                                        <CheckBox fx:id="pdfSourceCode" id="docgen-pdf-source"
-                                                                  text="XSD source in each section">
-                                                            <tooltip>
-                                                                <Tooltip text="Shows the XSD source of every element and type in its section. Makes the PDF considerably longer."/>
-                                                            </tooltip>
-                                                        </CheckBox>
                                                         <CheckBox fx:id="pageNumbers" text="Page numbers"
                                                                   selected="true"/>
                                                         <CheckBox fx:id="pdfBookmarks" text="PDF bookmarks"

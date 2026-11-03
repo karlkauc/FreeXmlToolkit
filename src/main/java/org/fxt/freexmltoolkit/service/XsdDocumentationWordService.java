@@ -51,6 +51,7 @@ import org.apache.poi.xwpf.usermodel.XWPFStyles;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.fxt.freexmltoolkit.domain.PdfDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.WordDocumentationConfig;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
@@ -99,6 +100,18 @@ public class XsdDocumentationWordService {
     private TaskProgressListener progressListener;
     private WordDocumentationConfig config = new WordDocumentationConfig();
 
+    /** List each named type only once in the data dictionary, as the HTML and PDF option of the same name. */
+    private boolean deduplicateDataDictionaryByType;
+
+    /**
+     * Sets whether the data dictionary lists each named complex or simple type only once.
+     *
+     * @param deduplicate true to collapse repeated named types
+     */
+    public void setDeduplicateDataDictionaryByType(boolean deduplicate) {
+        this.deduplicateDataDictionaryByType = deduplicate;
+    }
+
     /** What PDF and Word read alike (root element, types, usage, paths, namespaces), per document. */
     private XsdDocumentationExportSupport support;
 
@@ -124,21 +137,21 @@ public class XsdDocumentationWordService {
     /**
      * Gets the primary color for headings based on the configured HeaderStyle.
      */
-    private String getColorPrimary() {
+    String getColorPrimary() {
         return STYLE_COLORS[getStyleIndex()][0];
     }
 
     /**
      * Gets the secondary color for captions and metadata based on the configured HeaderStyle.
      */
-    private String getColorSecondary() {
+    String getColorSecondary() {
         return STYLE_COLORS[getStyleIndex()][1];
     }
 
     /**
      * Gets the header background color for tables based on the configured HeaderStyle.
      */
-    private String getColorHeaderBg() {
+    String getColorHeaderBg() {
         return STYLE_COLORS[getStyleIndex()][2];
     }
 
@@ -159,8 +172,11 @@ public class XsdDocumentationWordService {
     public void generateWordDocumentation(File outputFile, XsdDocumentationData documentationData) throws IOException {
         this.documentationData = documentationData;
         this.support = new XsdDocumentationExportSupport(documentationData, includedLanguages);
+        Path imageDir = config.isIncludeElementDiagrams() && imageService != null
+                ? Files.createTempDirectory("xsd-word-images-") : null;
 
         try (XWPFDocument document = new XWPFDocument()) {
+            prepareSections(document, imageDir);
             // Real heading styles: without them headings are plain paragraphs, and the table of
             // contents, the navigation pane and the outline find nothing
             createHeadingStyles(document);
@@ -216,11 +232,9 @@ public class XsdDocumentationWordService {
                 createDataDictionarySection(document);
             }
 
-            // Create Element Diagrams section if configured
-            if (config.isIncludeElementDiagrams() && imageService != null) {
-                reportProgress("Creating Element Diagrams");
-                createElementDiagramsSection(document);
-            }
+            // Element reference: a section per element (declaration) with its diagram
+            reportProgress("Creating Element Reference");
+            createElementReferenceSection(document);
 
             // Create Index section at the end
             reportProgress("Creating Index");
@@ -233,6 +247,111 @@ public class XsdDocumentationWordService {
             }
 
             logger.info("Word documentation generated successfully: {}", outputFile.getAbsolutePath());
+        } finally {
+            deleteDirectory(imageDir);
+        }
+    }
+
+    // ================= Element and type sections =================
+
+    /** The sections' content, built as for the PDF ({@link PdfElementReferenceBuilder}). */
+    private org.w3c.dom.Document sectionXml;
+    private PdfElementReferenceBuilder elementSections;
+    private PdfTypeReferenceBuilder typeSections;
+    private WordSectionRenderer sectionRenderer;
+
+    private void prepareSections(XWPFDocument document, Path imageDir) throws IOException {
+        try {
+            sectionXml = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        } catch (javax.xml.parsers.ParserConfigurationException e) {
+            throw new IOException("Cannot build the section content", e);
+        }
+        sectionXml.appendChild(sectionXml.createElement("sections"));
+        PdfDocumentationConfig sectionConfig = sectionConfig();
+        elementSections = new PdfElementReferenceBuilder(support, documentationData, sectionConfig, imageService,
+                imageDir, includedLanguages, this::reportProgress);
+        typeSections = new PdfTypeReferenceBuilder(support, documentationData, sectionConfig, imageService,
+                imageDir, includedLanguages, elementSections);
+        elementSections.setTypeSections(typeSections::sectionIdOf);
+        sectionRenderer = new WordSectionRenderer(this, document);
+    }
+
+    /** The section options of this Word export, in the form the section builders take. */
+    private PdfDocumentationConfig sectionConfig() {
+        PdfDocumentationConfig sectionConfig = new PdfDocumentationConfig();
+        sectionConfig.setElementReference(config.getElementReference());
+        sectionConfig.setIncludeElementDiagrams(config.isIncludeElementDiagrams());
+        sectionConfig.setIncludeSourceCode(config.isIncludeSourceCode());
+        sectionConfig.setVectorDiagrams(false); // Word gets PNG, rendered sharp
+        sectionConfig.setRasterScale(DIAGRAM_SCALE);
+        sectionConfig.setPageSize(switch (config.getPageSize()) {
+            case LETTER -> PdfDocumentationConfig.PageSize.LETTER;
+            case LEGAL -> PdfDocumentationConfig.PageSize.LEGAL;
+            default -> PdfDocumentationConfig.PageSize.A4;
+        });
+        sectionConfig.setOrientation(config.getOrientation() == WordDocumentationConfig.Orientation.LANDSCAPE
+                ? PdfDocumentationConfig.Orientation.LANDSCAPE : PdfDocumentationConfig.Orientation.PORTRAIT);
+        return sectionConfig;
+    }
+
+    /** The element reference: one section per element (declaration), each with its diagram. */
+    private void createElementReferenceSection(XWPFDocument document) {
+        if (!elementSections.isEnabled()) {
+            return;
+        }
+        org.w3c.dom.Element root = sectionXml.getDocumentElement();
+        elementSections.write(sectionXml, root);
+        org.w3c.dom.Element reference = firstChild(root, "element-reference");
+        if (reference == null) {
+            return;
+        }
+        XWPFParagraph breakPara = document.createParagraph();
+        breakPara.createRun().addBreak(BreakType.PAGE);
+        createHeading(document, "Element Reference", 1);
+        XWPFParagraph intro = document.createParagraph();
+        XWPFRun introRun = intro.createRun();
+        introRun.setText("Every element and attribute with its diagram, documentation, restrictions, children and constraints.");
+        introRun.setFontSize(10);
+        introRun.setColor(getColorSecondary());
+        for (Node node = reference.getFirstChild(); node != null; node = node.getNextSibling()) {
+            if (node instanceof org.w3c.dom.Element section) {
+                sectionRenderer.render(section);
+            }
+        }
+        root.removeChild(reference); // rendered: the XML may go
+    }
+
+    /** Renders the detail section the type builder added to {@code entry}. */
+    private void renderTypeSection(org.w3c.dom.Element entry) {
+        org.w3c.dom.Element section = firstChild(entry, "section");
+        if (section != null) {
+            sectionRenderer.render(section);
+        }
+    }
+
+    private static org.w3c.dom.Element firstChild(org.w3c.dom.Element parent, String name) {
+        for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
+            if (node instanceof org.w3c.dom.Element element && name.equals(element.getNodeName())) {
+                return element;
+            }
+        }
+        return null;
+    }
+
+    private static void deleteDirectory(Path directory) {
+        if (directory == null) {
+            return;
+        }
+        try (var paths = Files.walk(directory)) {
+            paths.sorted(Comparator.reverseOrder()).forEach(path -> {
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException e) {
+                    logger.debug("Could not delete {}", path);
+                }
+            });
+        } catch (IOException e) {
+            logger.debug("Could not clean up {}: {}", directory, e.getMessage());
         }
     }
 
@@ -431,7 +550,7 @@ public class XsdDocumentationWordService {
         // Word will prompt user to update TOC on first open
         XWPFParagraph tocPara = document.createParagraph();
         CTSimpleField toc = tocPara.getCTP().addNewFldSimple();
-        toc.setInstr("TOC \\o \"1-3\" \\h \\z \\u");
+        toc.setInstr("TOC \\o \"1-2\" \\h \\z \\u");
 
         XWPFParagraph instrPara = document.createParagraph();
         XWPFRun instrRun = instrPara.createRun();
@@ -619,10 +738,19 @@ public class XsdDocumentationWordService {
                 String baseType = support.getBaseType(element);
                 int usageCount = support.typeUsage(typeName).count();
 
-                setTableCell(summaryTable.getRow(row), 0, typeName, false);
+                setTableCellLink(summaryTable.getRow(row), 0, typeName, typeSections.sectionIdOf(typeName), null);
                 setTableCell(summaryTable.getRow(row), 1, baseType != null ? baseType : "-", false);
                 setTableCell(summaryTable.getRow(row), 2, String.valueOf(usageCount), false);
                 row++;
+            }
+        }
+
+        // A section per type: content model, documentation, where it is used
+        for (Node typeNode : complexTypes) {
+            if (typeNode instanceof Element element && !element.getAttribute("name").isEmpty()) {
+                org.w3c.dom.Element entry = sectionXml.createElement("complex-type");
+                typeSections.writeComplexType(sectionXml, entry, element);
+                renderTypeSection(entry);
             }
         }
 
@@ -664,10 +792,19 @@ public class XsdDocumentationWordService {
                 String baseType = support.getSimpleTypeBase(element);
                 String facets = support.getSimpleTypeFacetsSummary(element);
 
-                setTableCell(summaryTable.getRow(row), 0, typeName, false);
+                setTableCellLink(summaryTable.getRow(row), 0, typeName, typeSections.sectionIdOf(typeName), null);
                 setTableCell(summaryTable.getRow(row), 1, baseType != null ? baseType : "-", false);
                 setTableCell(summaryTable.getRow(row), 2, facets, false);
                 row++;
+            }
+        }
+
+        // A section per type: facets with their values, enumerations, where it is used
+        for (Node typeNode : simpleTypes) {
+            if (typeNode instanceof Element element && !element.getAttribute("name").isEmpty()) {
+                org.w3c.dom.Element entry = sectionXml.createElement("simple-type");
+                typeSections.writeSimpleType(sectionXml, entry, element);
+                renderTypeSection(entry);
             }
         }
 
@@ -696,6 +833,9 @@ public class XsdDocumentationWordService {
         List<XsdExtendedElement> sortedElements = new ArrayList<>(elementMap.values());
         // Filter out container elements (SEQUENCE, CHOICE, ALL) - they are internal structures
         sortedElements.removeIf(XsdDocumentationExportSupport::isContainerElement);
+        if (deduplicateDataDictionaryByType) {
+            sortedElements = support.deduplicateByType(sortedElements);
+        }
         sortedElements.sort(Comparator.comparing(support::getCleanXPath));
 
         int totalElements = sortedElements.size();
@@ -732,8 +872,9 @@ public class XsdDocumentationWordService {
             }
 
             // Use zebra striping for better readability
-            setTableCellWithZebra(dictTable.getRow(row), 0, path != null ? path : "-", row);
-            setTableCellWithZebra(dictTable.getRow(row), 1, type, row);
+            setTableCellLinkWithZebra(dictTable.getRow(row), 0, path != null ? path : "-",
+                    elementSections.sectionIdOf(element.getCurrentXpath()), row);
+            setTableCellLinkWithZebra(dictTable.getRow(row), 1, type, typeSections.sectionIdOf(type), row);
             setTableCellWithZebra(dictTable.getRow(row), 2, cardinality != null ? cardinality : "1", row);
             setTableCellWithZebra(dictTable.getRow(row), 3, restrictions != null ? restrictions : "-", row);
             setTableCellWithZebra(dictTable.getRow(row), 4, description != null ? description : "-", row);
@@ -749,113 +890,6 @@ public class XsdDocumentationWordService {
     }
 
     /**
-     * Creates the Element Diagrams section with SVG diagrams for each significant element.
-     * Only includes elements that have child elements (to avoid trivial diagrams).
-     */
-    private void createElementDiagramsSection(XWPFDocument document) {
-        createHeading(document, "Element Diagrams", 1);
-
-        Map<String, XsdExtendedElement> elementMap = documentationData.getExtendedXsdElementMap();
-
-        // Filter elements that have children (diagrams make sense for these)
-        List<XsdExtendedElement> elementsWithDiagrams = new ArrayList<>();
-        for (XsdExtendedElement element : elementMap.values()) {
-            // Skip container elements
-            if (XsdDocumentationExportSupport.isContainerElement(element)) {
-                continue;
-            }
-            // Only include elements that have children or are at level 0-2
-            if (element.getLevel() <= 2 && hasSignificantContent(element, elementMap)) {
-                elementsWithDiagrams.add(element);
-            }
-        }
-
-        // Sort by level then by path
-        elementsWithDiagrams.sort(Comparator
-                .comparingInt(XsdExtendedElement::getLevel)
-                .thenComparing(support::getCleanXPath));
-
-        if (elementsWithDiagrams.isEmpty()) {
-            XWPFParagraph emptyPara = document.createParagraph();
-            XWPFRun emptyRun = emptyPara.createRun();
-            emptyRun.setText("No element diagrams available.");
-            emptyRun.setItalic(true);
-            return;
-        }
-
-        logger.info("Generating {} element diagrams for Word document", elementsWithDiagrams.size());
-
-        int diagramCount = 0;
-        int progressInterval = Math.max(1, elementsWithDiagrams.size() / 10);
-
-        for (int i = 0; i < elementsWithDiagrams.size(); i++) {
-            XsdExtendedElement element = elementsWithDiagrams.get(i);
-
-            try {
-                // Create element heading
-                createHeading(document, element.getElementName(), 2);
-
-                // Add element info
-                XWPFParagraph infoPara = document.createParagraph();
-                XWPFRun infoRun = infoPara.createRun();
-                infoRun.setText("Path: " + support.getCleanXPath(element));
-                infoRun.setFontSize(10);
-                infoRun.setColor(getColorSecondary());
-
-                if (element.getElementType() != null) {
-                    infoPara = document.createParagraph();
-                    infoRun = infoPara.createRun();
-                    infoRun.setText("Type: " + support.declaredType(element));
-                    infoRun.setFontSize(10);
-                    infoRun.setColor(getColorSecondary());
-                }
-
-                if (addDiagram(document, element, element.getElementName() + "-diagram", 400)) {
-                    diagramCount++;
-                    XWPFParagraph captionPara = document.createParagraph();
-                    captionPara.setAlignment(ParagraphAlignment.CENTER);
-                    XWPFRun captionRun = captionPara.createRun();
-                    captionRun.setText("Figure: Structure of " + element.getElementName());
-                    captionRun.setItalic(true);
-                    captionRun.setFontSize(9);
-                    captionRun.setColor(getColorSecondary());
-                }
-
-                // Add some spacing
-                document.createParagraph();
-
-            } catch (Exception e) {
-                logger.warn("Failed to generate diagram for element {}: {}", element.getElementName(), e.getMessage());
-            }
-
-            // Report progress
-            if (i > 0 && i % progressInterval == 0) {
-                reportProgress("Generating diagram " + i + " of " + elementsWithDiagrams.size());
-            }
-        }
-
-        logger.info("Word element diagrams completed: {} diagrams generated", diagramCount);
-    }
-
-    /**
-     * Checks if an element has significant content (children or attributes) worth showing in a diagram.
-     */
-    private boolean hasSignificantContent(XsdExtendedElement element, Map<String, XsdExtendedElement> elementMap) {
-        String elementXpath = element.getCurrentXpath();
-        if (elementXpath == null) {
-            return false;
-        }
-
-        // Check if any element has this element as parent
-        for (XsdExtendedElement child : elementMap.values()) {
-            if (elementXpath.equals(child.getParentXpath())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Creates an alphabetical index of all types and elements at the end of the document.
      */
     private void createIndexSection(XWPFDocument document) {
@@ -866,23 +900,26 @@ public class XsdDocumentationWordService {
         createHeading(document, "Index", 1);
 
         // Every element and attribute (path without SEQUENCE/CHOICE/ALL), then the global types
-        record IndexEntry(String name, String kind, String location) {
+        record IndexEntry(String name, String kind, String location, String ref) {
         }
         List<IndexEntry> entries = new ArrayList<>();
         for (XsdExtendedElement element : documentationData.getExtendedXsdElementMap().values()) {
             if (!XsdDocumentationExportSupport.isContainerElement(element) && element.getElementName() != null) {
                 String kind = element.getElementName().startsWith("@") ? "Attribute" : "Element";
-                entries.add(new IndexEntry(element.getElementName(), kind, support.getCleanXPath(element)));
+                entries.add(new IndexEntry(element.getElementName(), kind, support.getCleanXPath(element),
+                        elementSections.sectionIdOf(element.getCurrentXpath())));
             }
         }
         for (Node node : documentationData.getGlobalComplexTypes()) {
             if (node instanceof Element elem && !elem.getAttribute("name").isEmpty()) {
-                entries.add(new IndexEntry(elem.getAttribute("name"), "ComplexType", "Global"));
+                entries.add(new IndexEntry(elem.getAttribute("name"), "ComplexType", "Global",
+                        typeSections.sectionIdOf(elem.getAttribute("name"))));
             }
         }
         for (Node node : documentationData.getGlobalSimpleTypes()) {
             if (node instanceof Element elem && !elem.getAttribute("name").isEmpty()) {
-                entries.add(new IndexEntry(elem.getAttribute("name"), "SimpleType", "Global"));
+                entries.add(new IndexEntry(elem.getAttribute("name"), "SimpleType", "Global",
+                        typeSections.sectionIdOf(elem.getAttribute("name"))));
             }
         }
         entries.sort(Comparator.comparing(IndexEntry::name, String.CASE_INSENSITIVE_ORDER)
@@ -904,7 +941,7 @@ public class XsdDocumentationWordService {
         setTableCellWithZebra(indexTable.getRow(0), 2, "Location", 0);
         int row = 1;
         for (IndexEntry entry : entries) {
-            setTableCellWithZebra(indexTable.getRow(row), 0, entry.name(), row);
+            setTableCellLinkWithZebra(indexTable.getRow(row), 0, entry.name(), entry.ref(), row);
             setTableCellWithZebra(indexTable.getRow(row), 1, entry.kind(), row);
             setTableCellWithZebra(indexTable.getRow(row), 2, entry.location(), row);
             row++;
@@ -915,7 +952,7 @@ public class XsdDocumentationWordService {
 
     // ================= Helper Methods =================
 
-    private void createHeading(XWPFDocument document, String text, int level) {
+    void createHeading(XWPFDocument document, String text, int level) {
         XWPFParagraph para = document.createParagraph();
         para.setStyle("Heading" + level);
         para.setSpacingBefore(200);
@@ -941,7 +978,7 @@ public class XsdDocumentationWordService {
         }
     }
 
-    private void setTableStyle(XWPFTable table) {
+    void setTableStyle(XWPFTable table) {
         table.setWidth("100%");
         CTTblPr tblPr = table.getCTTbl().getTblPr();
         if (tblPr == null) {
@@ -982,7 +1019,7 @@ public class XsdDocumentationWordService {
         border.setColor(getColorTableBorder());
     }
 
-    private void setColumnWidths(XWPFTable table, int[] widths) {
+    void setColumnWidths(XWPFTable table, int[] widths) {
         for (XWPFTableRow row : table.getRows()) {
             for (int i = 0; i < widths.length && i < row.getTableCells().size(); i++) {
                 XWPFTableCell cell = row.getCell(i);
@@ -1001,7 +1038,7 @@ public class XsdDocumentationWordService {
         setTableCell(row, cellIndex, text, isHeader, null);
     }
 
-    private void setTableCell(XWPFTableRow row, int cellIndex, String text, boolean isHeader, String bgColor) {
+    void setTableCell(XWPFTableRow row, int cellIndex, String text, boolean isHeader, String bgColor) {
         XWPFTableCell cell = row.getCell(cellIndex);
         cell.removeParagraph(0);
         XWPFParagraph para = cell.addParagraph();
@@ -1036,6 +1073,52 @@ public class XsdDocumentationWordService {
      * @param text      the text to set
      * @param rowIndex  the row index (0-based, where 0 is the header row)
      */
+    /**
+     * Fills a table cell like {@link #setTableCell(XWPFTableRow, int, String, boolean, String)}, with
+     * the text as a link to the bookmark {@code anchor} (a section id), if there is one.
+     */
+    void setTableCellLink(XWPFTableRow row, int cellIndex, String text, String anchor, String bgColor) {
+        setTableCell(row, cellIndex, anchor == null ? text : "", false, bgColor);
+        if (anchor != null) {
+            XWPFParagraph para = row.getCell(cellIndex).getParagraphs().getFirst();
+            addLink(para, text, anchor, 10);
+        }
+    }
+
+    /** As {@link #setTableCellLink}, with the zebra background of {@code rowIndex}. */
+    void setTableCellLinkWithZebra(XWPFTableRow row, int cellIndex, String text, String anchor, int rowIndex) {
+        setTableCellLink(row, cellIndex, text, anchor, rowIndex % 2 == 0 && rowIndex > 0 ? getZebraStripeColor() : null);
+    }
+
+    /** @return a section id as a Word bookmark name (letters, digits and underscores only) */
+    static String bookmarkName(String id) {
+        return "s_" + id.replaceAll("[^A-Za-z0-9]", "_");
+    }
+
+    private final java.util.concurrent.atomic.AtomicInteger bookmarkIds = new java.util.concurrent.atomic.AtomicInteger();
+
+    /** Puts the bookmark of section {@code id} around the paragraph, so links can jump there. */
+    void addBookmark(XWPFParagraph paragraph, String id) {
+        java.math.BigInteger number = java.math.BigInteger.valueOf(bookmarkIds.incrementAndGet());
+        var start = paragraph.getCTP().insertNewBookmarkStart(0);
+        start.setName(bookmarkName(id));
+        start.setId(number);
+        paragraph.getCTP().addNewBookmarkEnd().setId(number);
+    }
+
+    /** Appends {@code text} to the paragraph as an internal link to the bookmark of section {@code anchor}. */
+    void addLink(XWPFParagraph paragraph, String text, String anchor, int fontSize) {
+        var link = paragraph.getCTP().addNewHyperlink();
+        link.setAnchor(bookmarkName(anchor));
+        var run = link.addNewR();
+        var properties = run.addNewRPr();
+        properties.addNewColor().setVal(getColorPrimary());
+        properties.addNewU().setVal(org.openxmlformats.schemas.wordprocessingml.x2006.main.STUnderline.SINGLE);
+        properties.addNewSz().setVal(java.math.BigInteger.valueOf(fontSize * 2L));
+        properties.addNewSzCs().setVal(java.math.BigInteger.valueOf(fontSize * 2L));
+        run.addNewT().setStringValue(text == null ? "" : text);
+    }
+
     private void setTableCellWithZebra(XWPFTableRow row, int cellIndex, String text, int rowIndex) {
         // Header row (index 0) gets header background
         // Data rows: even indices get very light background, odd get white
@@ -1120,7 +1203,7 @@ public class XsdDocumentationWordService {
     }
 
     /** @return the width of the text area in points: the page width less Word's default margins of 1 inch */
-    private double textWidthPt() {
+    double textWidthPt() {
         double pageWidthTwips = switch (config.getPageSize()) {
             case LETTER, LEGAL -> config.getOrientation() == WordDocumentationConfig.Orientation.LANDSCAPE
                     ? (config.getPageSize() == WordDocumentationConfig.PageSize.LEGAL ? 20160 : 15840) : 12240;

@@ -671,12 +671,12 @@ Create professional documentation from your XSD file automatically.
 | **Image format**                                | SVG (default), PNG or JPG for the diagrams                         |
 | **Favicon**                                     | A custom icon file for the HTML output                             |
 | **PDF / Word options**                          | Cover page, table of contents, data dictionary, schema diagram, element diagrams (on by default), page numbers, PDF bookmarks |
-| **Element reference** *(PDF)*                   | *One section per declaration* (default), *Every occurrence* or *Off* - see below |
+| **Element reference** *(PDF, Word)*             | *One section per declaration* (default), *Every occurrence* or *Off* - see below |
 | **Open the generated documentation after creation** | Opens `index.html` (HTML) or the generated file in your system viewer |
 
-#### PDF element reference
+#### Element reference (PDF and Word)
 
-The PDF has an **Element Reference**: one section per element and attribute with what the HTML
+The PDF and the Word document have an **Element Reference**: one section per element and attribute with what the HTML
 detail page shows:
 
 - the diagram, with **Element diagrams** on;
@@ -709,8 +709,15 @@ each type its own section:
 Type names link to these sections wherever they appear: overview tables, data dictionary, element
 properties, children tables and index.
 
-**Deduplicate data dictionary by type** also applies to the PDF: each named type is listed once in
-the data dictionary.
+**Deduplicate data dictionary by type** also applies to PDF and Word: each named type is listed once
+in the data dictionary.
+
+The **Word** document has the same element and type sections as the PDF:
+- each section is a bookmark;
+- names in the data dictionary, the index and the tables are links to it;
+- section headings appear in the navigation pane, while the table of contents lists the chapters
+  (Word fills it when the document is opened);
+- diagrams are embedded as sharp PNG images in their own proportions.
 
 More in the PDF:
 
@@ -722,7 +729,7 @@ More in the PDF:
 - The **Schema Diagram** chapter adds an **overview of the whole schema**, as on the HTML overview
   page. Schemas with more than 400 elements get a note instead, because the overview would not be
   legible on one page.
-- **XSD source in each section** (PDF option, off by default) shows the XSD source of every element
+- **XSD source in each section** (PDF and Word, off by default) shows the XSD source of every element
   and type. Leaf elements and attributes show a **Sample** value.
 
 #### Markdown rendering

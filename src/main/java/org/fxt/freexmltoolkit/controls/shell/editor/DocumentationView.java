@@ -502,6 +502,7 @@ public class DocumentationView extends BorderPane {
                     wordService.setIncludedLanguages(options.languages());
                 }
                 wordService.setConfig(wordConfig(options.formatOptions()));
+                wordService.setDeduplicateDataDictionaryByType(options.deduplicateDataDictionaryByType());
                 XsdDocumentationImageService imageService = new XsdDocumentationImageService(
                         service.xsdDocumentationData.getExtendedXsdElementMap());
                 imageService.setShowDocumentation(options.showDocInSvg());
@@ -574,6 +575,12 @@ public class DocumentationView extends BorderPane {
         config.setIncludeDataDictionary(options.dataDictionary());
         config.setIncludeSchemaDiagram(options.schemaDiagram());
         config.setIncludeElementDiagrams(options.elementDiagrams());
+        for (PdfDocumentationConfig.ElementReference scope : PdfDocumentationConfig.ElementReference.values()) {
+            if (scope.getDisplayName().equals(options.elementReference())) {
+                config.setElementReference(scope);
+            }
+        }
+        config.setIncludeSourceCode(options.sourceCode());
         return config;
     }
 

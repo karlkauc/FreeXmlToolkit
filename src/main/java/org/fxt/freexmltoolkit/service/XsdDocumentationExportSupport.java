@@ -571,4 +571,36 @@ final class XsdDocumentationExportSupport {
         return null;
     }
 
+    /** Zero-width space: lets PDF and Word break a long value (an XPath, a pattern) inside a table cell. */
+    private static final char BREAK_OPPORTUNITY = '\u200B';
+
+    /** Tokens longer than this get break opportunities every so many characters. */
+    private static final int MAX_UNBROKEN = 24;
+
+    /**
+     * Returns the text with break opportunities after path and list separators and inside very
+     * long tokens, so a cell wraps it instead of letting it run over the column. The text itself
+     * is unchanged.
+     */
+    static String breakable(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder(text.length() + 16);
+        int run = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            out.append(c);
+            if (Character.isWhitespace(c)) {
+                run = 0;
+            } else if (c == '/' || c == '|' || c == ',' || c == ';') {
+                out.append(BREAK_OPPORTUNITY);
+                run = 0;
+            } else if (++run >= MAX_UNBROKEN) {
+                out.append(BREAK_OPPORTUNITY);
+                run = 0;
+            }
+        }
+        return out.toString();
+    }
 }

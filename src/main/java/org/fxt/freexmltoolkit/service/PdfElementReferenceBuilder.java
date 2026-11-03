@@ -41,7 +41,7 @@ final class PdfElementReferenceBuilder {
     /** Other paths a declaration occurs at that its section lists by name; the rest are counted. */
     static final int MAX_LISTED_OCCURRENCES = 10;
 
-    private final XsdDocumentationPdfService pdf;
+    private final XsdDocumentationExportSupport support;
     private final XsdDocumentationData data;
     private final PdfDocumentationConfig config;
     private final XsdDocumentationImageService imageService;
@@ -57,10 +57,10 @@ final class PdfElementReferenceBuilder {
     /** The elements that get a section, each with the paths it stands for. */
     private final Map<XsdExtendedElement, List<XsdExtendedElement>> sections = new LinkedHashMap<>();
 
-    PdfElementReferenceBuilder(XsdDocumentationPdfService pdf, XsdDocumentationData data, PdfDocumentationConfig config,
+    PdfElementReferenceBuilder(XsdDocumentationExportSupport support, XsdDocumentationData data, PdfDocumentationConfig config,
                                XsdDocumentationImageService imageService, Path imageDir, Set<String> languages,
                                Consumer<String> progress) {
-        this.pdf = pdf;
+        this.support = support;
         this.data = data;
         this.config = config;
         this.imageService = imageService;
@@ -98,8 +98,8 @@ final class PdfElementReferenceBuilder {
             return;
         }
         List<XsdExtendedElement> elements = new ArrayList<>(data.getExtendedXsdElementMap().values());
-        elements.removeIf(pdf::isContainerElement);
-        elements.sort(Comparator.comparing(pdf::getCleanXPath));
+        elements.removeIf(XsdDocumentationExportSupport::isContainerElement);
+        elements.sort(Comparator.comparing(support::getCleanXPath));
 
         boolean perDeclaration = config.getElementReference() == PdfDocumentationConfig.ElementReference.DECLARATIONS;
         Map<Node, XsdExtendedElement> byDeclaration = new IdentityHashMap<>();
@@ -133,6 +133,7 @@ final class PdfElementReferenceBuilder {
         }
         Element reference = doc.createElement("element-reference");
         root.appendChild(reference);
+        prerenderDiagrams();
         int total = sections.size();
         int step = Math.max(1, total / 10);
         int done = 0;
@@ -157,7 +158,7 @@ final class PdfElementReferenceBuilder {
         section.setAttribute("id", sectionIdOf(element.getCurrentXpath()));
         section.setAttribute("name", element.getElementName());
         section.setAttribute("kind", attribute ? "Attribute" : "Element");
-        add(doc, section, "path", XsdDocumentationPdfService.breakable(pdf.getCleanXPath(element)));
+        add(doc, section, "path", XsdDocumentationExportSupport.breakable(support.getCleanXPath(element)));
 
         // Other places this declaration is used
         if (occurrences.size() > 1) {
@@ -165,7 +166,7 @@ final class PdfElementReferenceBuilder {
             others.setAttribute("count", String.valueOf(occurrences.size()));
             section.appendChild(others);
             occurrences.stream().filter(o -> o != element).limit(MAX_LISTED_OCCURRENCES)
-                    .forEach(o -> add(doc, others, "path", XsdDocumentationPdfService.breakable(pdf.getCleanXPath(o))));
+                    .forEach(o -> add(doc, others, "path", XsdDocumentationExportSupport.breakable(support.getCleanXPath(o))));
         }
 
         writeProperties(doc, section, element, attribute);
@@ -195,9 +196,9 @@ final class PdfElementReferenceBuilder {
         Element properties = doc.createElement("properties");
         section.appendChild(properties);
         Element type = property(doc, properties, "Type", typeDisplay(element));
-        setRef(type, typeSections.apply(pdf.declaredType(element)));
+        setRef(type, typeSections.apply(support.declaredType(element)));
         property(doc, properties, attribute ? "Use" : "Cardinality",
-                attribute ? (isRequiredAttribute(element) ? "required" : "optional") : pdf.getCardinality(element));
+                attribute ? (isRequiredAttribute(element) ? "required" : "optional") : support.getCardinality(element));
         String namespace = element.getSourceNamespace() != null ? element.getSourceNamespace() : data.getTargetNamespace();
         property(doc, properties, "Namespace", namespace == null || namespace.isBlank() ? "(no namespace)" : namespace);
         if (element.getCurrentNode() instanceof Element declaration) {
@@ -224,20 +225,63 @@ final class PdfElementReferenceBuilder {
         if (element.isUnionType() && element.getUnionMemberTypes() != null && !element.getUnionMemberTypes().isEmpty()) {
             return "Union of " + String.join(" | ", element.getUnionMemberTypes());
         }
-        return pdf.declaredType(element);
+        return support.declaredType(element);
     }
 
     private boolean writeDiagram(Document doc, Element section, XsdExtendedElement element) {
-        if (!config.isIncludeElementDiagrams() || imageService == null || imageDir == null) {
+        if (!drawsDiagrams() || !worthDrawing(element)) {
             return false;
         }
-        boolean worthDrawing = !flattenedChildren(element).isEmpty()
-                || !nonNull(element.getIdentityConstraints()).isEmpty()
-                || !nonNull(element.getAssertions()).isEmpty();
-        if (!worthDrawing) {
-            return false;
+        Path drawn = prerendered.get(element);
+        if (drawn != null) {
+            Element img = add(doc, section, "image-path", drawn.toUri().toString());
+            setImageSize(img, drawn, config, REFERENCE_DIAGRAM_MAX_HEIGHT_MM);
+            return true;
         }
         return addDiagram(doc, section, element, sectionIdOf(element.getCurrentXpath()));
+    }
+
+    /** Diagrams drawn ahead of writing, by element. */
+    private final Map<XsdExtendedElement, Path> prerendered = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private boolean drawsDiagrams() {
+        return config.isIncludeElementDiagrams() && imageService != null && imageDir != null;
+    }
+
+    /** Elements whose box would show nothing but their name get no diagram. */
+    private boolean worthDrawing(XsdExtendedElement element) {
+        return !isAttribute(element) && (!flattenedChildren(element).isEmpty()
+                || !nonNull(element.getIdentityConstraints()).isEmpty()
+                || !nonNull(element.getAssertions()).isEmpty());
+    }
+
+    /**
+     * Draws the diagrams of all sections in parallel before they are written: drawing is by far
+     * the slowest part (seconds per hundred diagrams), the image service is used in parallel by
+     * the HTML documentation too, and writing the sections stays in order.
+     */
+    private void prerenderDiagrams() {
+        if (!drawsDiagrams()) {
+            return;
+        }
+        List<XsdExtendedElement> toDraw = sections.keySet().stream().filter(this::worthDrawing).toList();
+        java.util.concurrent.atomic.AtomicInteger drawn = new java.util.concurrent.atomic.AtomicInteger();
+        int step = Math.max(1, toDraw.size() / 10);
+        toDraw.parallelStream().forEach(element -> {
+            try {
+                Path image = drawDiagram(imageService, config, element,
+                        imageDir.resolve(sectionIdOf(element.getCurrentXpath())));
+                if (image != null) {
+                    prerendered.put(element, image);
+                }
+            } catch (RuntimeException e) {
+                logger.warn("Failed to draw the diagram of {}: {}", element.getCurrentXpath(), e.getMessage());
+            }
+            if (drawn.incrementAndGet() % step == 0) {
+                progress.accept("Drawing diagrams: " + drawn.get() + " of " + toDraw.size());
+            }
+        });
+        logger.info("Drew {} diagrams in parallel", prerendered.size());
     }
 
     /**
@@ -272,7 +316,10 @@ final class PdfElementReferenceBuilder {
             return imageService.generatePrintSvg(element, svg.toFile()) != null ? svg : null;
         }
         Path png = base.resolveSibling(base.getFileName() + ".png");
-        return imageService.generateImage(element, png.toFile()) != null ? png : null;
+        String written = config.getRasterScale() > 1f
+                ? imageService.generateImage(element, png.toFile(), config.getRasterScale())
+                : imageService.generateImage(element, png.toFile());
+        return written != null ? png : null;
     }
 
     private void writeDocumentation(Document doc, Element section, XsdExtendedElement element) {
@@ -283,7 +330,7 @@ final class PdfElementReferenceBuilder {
         for (Map.Entry<String, String> entry : docs.entrySet()) {
             String lang = entry.getKey();
             boolean wanted = languages == null || languages.isEmpty() || languages.contains(lang) || "default".equals(lang);
-            String text = entry.getValue() == null ? "" : pdf.stripHtml(entry.getValue()).strip();
+            String text = entry.getValue() == null ? "" : support.stripHtml(entry.getValue()).strip();
             if (wanted && !text.isEmpty()) {
                 Element d = add(doc, section, "documentation", text);
                 d.setAttribute("lang", "default".equals(lang) ? "" : lang);
@@ -305,7 +352,7 @@ final class PdfElementReferenceBuilder {
                 if ("enumeration".equals(facet.getKey())) {
                     add(doc, restrictions, "enumeration", value);
                 } else {
-                    Element f = add(doc, restrictions, "facet", XsdDocumentationPdfService.breakable(value));
+                    Element f = add(doc, restrictions, "facet", XsdDocumentationExportSupport.breakable(value));
                     f.setAttribute("name", facet.getKey());
                 }
             }
@@ -336,12 +383,12 @@ final class PdfElementReferenceBuilder {
         c.setAttribute("name", child.getElementName());
         c.setAttribute("kind", isAttribute(child) ? "Attribute" : "Element");
         setRef(c, sectionIdOf(child.getCurrentXpath()));
-        String type = pdf.declaredType(child);
+        String type = support.declaredType(child);
         Element t = add(doc, c, "type", type);
         setRef(t, typeSections.apply(type));
         add(doc, c, "cardinality", isAttribute(child)
-                ? (isRequiredAttribute(child) ? "1" : "0..1") : pdf.getCardinality(child));
-        add(doc, c, "description", pdf.getFirstDocumentation(child));
+                ? (isRequiredAttribute(child) ? "1" : "0..1") : support.getCardinality(child));
+        add(doc, c, "description", support.getFirstDocumentation(child));
         return c;
     }
 
@@ -361,9 +408,9 @@ final class PdfElementReferenceBuilder {
                 default -> "Unique";
             });
             c.setAttribute("name", nullToEmpty(constraint.getName()));
-            add(doc, c, "selector", XsdDocumentationPdfService.breakable(nullToEmpty(constraint.getSelector())));
+            add(doc, c, "selector", XsdDocumentationExportSupport.breakable(nullToEmpty(constraint.getSelector())));
             for (String field : nonNull(constraint.getFields())) {
-                add(doc, c, "field", XsdDocumentationPdfService.breakable(field));
+                add(doc, c, "field", XsdDocumentationExportSupport.breakable(field));
             }
             if (constraint.getRefer() != null && !constraint.getRefer().isBlank()) {
                 add(doc, c, "refer", constraint.getRefer());
@@ -377,7 +424,7 @@ final class PdfElementReferenceBuilder {
             Element a = doc.createElement("assertion");
             section.appendChild(a);
             a.setAttribute("kind", assertion.getType() == XsdAssertion.Type.ASSERTION ? "Assertion (simpleType)" : "Assert");
-            add(doc, a, "test", XsdDocumentationPdfService.breakable(nullToEmpty(assertion.getTest()).strip()));
+            add(doc, a, "test", XsdDocumentationExportSupport.breakable(nullToEmpty(assertion.getTest()).strip()));
             addIfPresent(doc, a, "documentation", assertion.getDocumentation());
         }
     }
@@ -387,7 +434,7 @@ final class PdfElementReferenceBuilder {
             Element a = doc.createElement("alternative");
             section.appendChild(a);
             add(doc, a, "test", alternative.isDefault() ? "(otherwise)"
-                    : XsdDocumentationPdfService.breakable(nullToEmpty(alternative.getTest())));
+                    : XsdDocumentationExportSupport.breakable(nullToEmpty(alternative.getTest())));
             add(doc, a, "type", nullToEmpty(alternative.getType()));
             addIfPresent(doc, a, "documentation", alternative.getDocumentation());
         }
@@ -434,7 +481,7 @@ final class PdfElementReferenceBuilder {
             if (child == null) {
                 continue;
             }
-            if (pdf.isContainerElement(child)) {
+            if (XsdDocumentationExportSupport.isContainerElement(child)) {
                 collectChildren(child, result, depth + 1);
             } else {
                 result.add(child);
@@ -456,8 +503,10 @@ final class PdfElementReferenceBuilder {
         if (pixels == null) {
             return;
         }
-        double widthMm = pixels[0] * 25.4 / 96;
-        double heightMm = pixels[1] * 25.4 / 96;
+        // A PNG rendered at a raster scale above 1 is shown at its natural size
+        double perUnit = image.getFileName().toString().endsWith(".svg") ? 1 : config.getRasterScale();
+        double widthMm = pixels[0] / perUnit * 25.4 / 96;
+        double heightMm = pixels[1] / perUnit * 25.4 / 96;
         double maxWidthMm = toMm(config.getPageWidth()) - 2 * toMm(config.getMarginSize());
         double scale = Math.min(1, Math.min(maxWidthMm / widthMm, maxHeightMm / heightMm));
         imagePath.setAttribute("width-mm", String.format(java.util.Locale.ROOT, "%.1f", widthMm * scale));
@@ -552,7 +601,7 @@ final class PdfElementReferenceBuilder {
     }
 
     private static Element property(Document doc, Element properties, String name, String value) {
-        Element p = add(doc, properties, "property", XsdDocumentationPdfService.breakable(value));
+        Element p = add(doc, properties, "property", XsdDocumentationExportSupport.breakable(value));
         p.setAttribute("name", name);
         return p;
     }

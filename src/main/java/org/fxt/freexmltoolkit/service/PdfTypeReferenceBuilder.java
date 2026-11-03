@@ -35,7 +35,7 @@ final class PdfTypeReferenceBuilder {
 
     private static final String XSD_NS = XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
-    private final XsdDocumentationPdfService pdf;
+    private final XsdDocumentationExportSupport support;
     private final PdfDocumentationConfig config;
     private final XsdDocumentationImageService imageService;
     private final Path imageDir;
@@ -45,10 +45,10 @@ final class PdfTypeReferenceBuilder {
     /** Section id per global type local name. */
     private final Map<String, String> sectionIds = new HashMap<>();
 
-    PdfTypeReferenceBuilder(XsdDocumentationPdfService pdf, XsdDocumentationData data, PdfDocumentationConfig config,
+    PdfTypeReferenceBuilder(XsdDocumentationExportSupport support, XsdDocumentationData data, PdfDocumentationConfig config,
                             XsdDocumentationImageService imageService, Path imageDir, Set<String> languages,
                             PdfElementReferenceBuilder elements) {
-        this.pdf = pdf;
+        this.support = support;
         this.config = config;
         this.imageService = imageService;
         this.imageDir = imageDir;
@@ -72,7 +72,7 @@ final class PdfTypeReferenceBuilder {
         if (typeName == null || typeName.isBlank()) {
             return null;
         }
-        return sectionIds.get(XsdDocumentationPdfService.localName(typeName.strip()));
+        return sectionIds.get(XsdDocumentationExportSupport.localName(typeName.strip()));
     }
 
     /**
@@ -122,7 +122,7 @@ final class PdfTypeReferenceBuilder {
         }
         writeUsage(doc, section, usage);
         if (config.isIncludeSourceCode()) {
-            PdfElementReferenceBuilder.addSource(doc, section, XsdDocumentationPdfService.serialize(type));
+            PdfElementReferenceBuilder.addSource(doc, section, XsdDocumentationExportSupport.serialize(type));
         }
     }
 
@@ -187,7 +187,7 @@ final class PdfTypeReferenceBuilder {
                             documentationText(facet));
                     default -> {
                         Element f = add(doc, restrictions, "facet",
-                                XsdDocumentationPdfService.breakable(facet.getAttribute("value")));
+                                XsdDocumentationExportSupport.breakable(facet.getAttribute("value")));
                         f.setAttribute("name", facetName);
                     }
                 }
@@ -198,13 +198,13 @@ final class PdfTypeReferenceBuilder {
         }
         writeUsage(doc, section, usage);
         if (config.isIncludeSourceCode()) {
-            PdfElementReferenceBuilder.addSource(doc, section, XsdDocumentationPdfService.serialize(type));
+            PdfElementReferenceBuilder.addSource(doc, section, XsdDocumentationExportSupport.serialize(type));
         }
     }
 
     /** Usage of a type, with the users reduced to one per element section. */
     private TypeUsage usageOf(String name) {
-        return new TypeUsage(pdf.typeUsage(name));
+        return new TypeUsage(support.typeUsage(name));
     }
 
     private Element section(Document doc, Element entry, String name, String kind, String path) {
@@ -227,7 +227,7 @@ final class PdfTypeReferenceBuilder {
         for (Element documentation : children(annotation, "documentation")) {
             String lang = documentation.getAttributeNS(XMLConstants.XML_NS_URI, "lang");
             boolean wanted = lang.isEmpty() || languages == null || languages.isEmpty() || languages.contains(lang);
-            String text = pdf.stripHtml(documentation.getTextContent()).strip();
+            String text = support.stripHtml(documentation.getTextContent()).strip();
             if (wanted && !text.isEmpty()) {
                 add(doc, section, "documentation", text).setAttribute("lang", lang);
             }
@@ -260,7 +260,7 @@ final class PdfTypeReferenceBuilder {
             usedIn.setAttribute("count", String.valueOf(usage.users.size()));
             section.appendChild(usedIn);
             usage.users.stream().limit(MAX_LISTED_USERS).forEach(user -> {
-                Element u = add(doc, usedIn, "user", XsdDocumentationPdfService.breakable(pdf.getCleanXPath(user)));
+                Element u = add(doc, usedIn, "user", XsdDocumentationExportSupport.breakable(support.getCleanXPath(user)));
                 String ref = elements.sectionIdOf(user.getCurrentXpath());
                 if (ref != null) {
                     u.setAttribute("ref", ref);
@@ -280,14 +280,14 @@ final class PdfTypeReferenceBuilder {
         Element a = doc.createElement("assertion");
         section.appendChild(a);
         a.setAttribute("kind", kind);
-        add(doc, a, "test", XsdDocumentationPdfService.breakable(test == null ? "" : test.strip()));
+        add(doc, a, "test", XsdDocumentationExportSupport.breakable(test == null ? "" : test.strip()));
         if (documentation != null && !documentation.isBlank()) {
             add(doc, a, "documentation", documentation.strip());
         }
     }
 
     private static void property(Document doc, Element properties, String name, String value, String ref) {
-        Element p = add(doc, properties, "property", XsdDocumentationPdfService.breakable(value));
+        Element p = add(doc, properties, "property", XsdDocumentationExportSupport.breakable(value));
         p.setAttribute("name", name);
         if (ref != null) {
             p.setAttribute("ref", ref);
@@ -302,7 +302,7 @@ final class PdfTypeReferenceBuilder {
         }
         String fallback = null;
         for (Element documentation : children(annotation, "documentation")) {
-            String text = pdf.stripHtml(documentation.getTextContent()).strip();
+            String text = support.stripHtml(documentation.getTextContent()).strip();
             if (text.isEmpty()) {
                 continue;
             }
