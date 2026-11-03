@@ -866,7 +866,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             return;
         }
         // Layout nodes in (unscaled) diagram space and record the diagram bounds.
-        layoutNode(rootNode, 50, 50);
+        layoutNode(rootNode, 50, 50, 0);
         double[] bounds = calculateCanvasBounds(rootNode);
         diagramWidth = Math.max(bounds[0] + 100, 800);
         diagramHeight = Math.max(bounds[1] + 100, 600);
@@ -1124,25 +1124,18 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     }
 
     /**
-     * Recursively layouts nodes in a tree structure.
-     * Uses dynamic node heights calculated from content.
-     * Uses harmonized spacing proportional to node height.
+     * Recursively lays out the tree: children form one column right of their parent, the parent is
+     * centred on them, and all cards of a sibling group share the width of the widest one.
+     *
+     * @param presetWidth the width of the node's sibling group, or 0 to use its own width
+     * @return the height of the laid-out subtree
      */
-    private double layoutNode(VisualNode node, double x, double y) {
-        double vSpacing = renderer.getVerticalSpacing();
-        double hSpacing = renderer.getHorizontalSpacing();
+    private double layoutNode(VisualNode node, double x, double y, double presetWidth) {
+        boolean isCompositor = isCompositor(node);
+        double actualWidth = isCompositor ? renderer.getCompositorSize()
+                : Math.max(presetWidth, renderer.calculateNodeWidth(node));
+        double actualHeight = renderer.calculateNodeHeight(node);
 
-        // Check if this is a compositor node (sequence, choice, all)
-        boolean isCompositor = node.getType() == XsdNodeRenderer.NodeWrapperType.SEQUENCE ||
-                node.getType() == XsdNodeRenderer.NodeWrapperType.CHOICE ||
-                node.getType() == XsdNodeRenderer.NodeWrapperType.ALL;
-
-        // Use actual node dimensions (compositor symbols are smaller)
-        double compositorSize = renderer.getCompositorSize();
-        double actualWidth = isCompositor ? compositorSize : renderer.calculateNodeWidth(node);
-        double actualHeight = isCompositor ? compositorSize : renderer.calculateNodeHeight(node);
-
-        // Position this node and set dimensions
         node.setX(x);
         node.setY(y);
         node.setWidth(actualWidth);
@@ -1152,54 +1145,33 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             return actualHeight;
         }
 
-        // Calculate maximum width among all children for uniform sizing
-        double maxChildWidth = 0;
+        // One column for all children: the widest gap any of them needs keeps a single connector bus
+        double groupWidth = 0;
+        double gap = 0;
         for (VisualNode child : node.getChildren()) {
-            double childWidth = renderer.calculateNodeWidth(child);
-            maxChildWidth = Math.max(maxChildWidth, childWidth);
+            if (!isCompositor(child)) {
+                groupWidth = Math.max(groupWidth, renderer.calculateNodeWidth(child));
+            }
+            gap = Math.max(gap, renderer.horizontalGap(node, child));
         }
 
-        // Layout children - use actual width for positioning
-        double childX = x + actualWidth + hSpacing;
+        double childX = x + actualWidth + gap;
+        double siblingGap = renderer.siblingGap(node);
         double childY = y;
-        double totalHeight = 0;
-
         for (VisualNode child : node.getChildren()) {
-            // Pre-set uniform width for all siblings before layout
-            boolean isChildCompositor = child.getType() == XsdNodeRenderer.NodeWrapperType.SEQUENCE ||
-                    child.getType() == XsdNodeRenderer.NodeWrapperType.CHOICE ||
-                    child.getType() == XsdNodeRenderer.NodeWrapperType.ALL;
-
-            if (!isChildCompositor) {
-                child.setWidth(maxChildWidth);
-            }
-
-            double childHeight = layoutNode(child, childX, childY);
-
-            // Calculate harmonized spacing based on node height
-            // Compositor symbols use minimal spacing, regular nodes use proportional spacing
-            double spacingToUse;
-            if (isCompositor) {
-                spacingToUse = vSpacing / 4;  // 5px for compositor symbols
-            } else {
-                // For regular nodes: use base spacing + proportional extra spacing
-                // This harmonizes spacing between elements and attributes
-                spacingToUse = vSpacing + 12.0;  // 32px total spacing (20 + 12)
-            }
-
-            childY += childHeight + spacingToUse;
-            totalHeight += childHeight + spacingToUse;
+            childY += layoutNode(child, childX, childY, isCompositor(child) ? 0 : groupWidth) + siblingGap;
         }
-
-        // Remove spacing from last child
-        double finalSpacing = isCompositor ? vSpacing / 4 : (vSpacing + 12.0);
-        totalHeight = Math.max(totalHeight - finalSpacing, actualHeight);
+        double totalHeight = Math.max(childY - y - siblingGap, actualHeight);
 
         // Center parent vertically with children
-        double centerOffset = (totalHeight - actualHeight) / 2;
-        node.setY(y + centerOffset);
-
+        node.setY(y + (totalHeight - actualHeight) / 2);
         return totalHeight;
+    }
+
+    private static boolean isCompositor(VisualNode node) {
+        return node.getType() == XsdNodeRenderer.NodeWrapperType.SEQUENCE
+                || node.getType() == XsdNodeRenderer.NodeWrapperType.CHOICE
+                || node.getType() == XsdNodeRenderer.NodeWrapperType.ALL;
     }
 
     /**

@@ -3,37 +3,67 @@ package org.fxt.freexmltoolkit.controls.v2.view;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
+import org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken;
+
 import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
 /**
- * Renders individual XSD nodes as rectangular boxes with expand/collapse controls.
- * Provides XMLSpy-style visual representation of schema elements.
+ * Renders the cards of the graphic XSD view: one rounded surface per node with a kind-tinted
+ * icon tile, the name, the type line and a cardinality pill (Figma "07.6b"), compositors as small
+ * symbol boxes, and orthogonal "comb" connectors between them.
+ * <p>
+ * Occurrence information stays visible in the outline: optional cards are dashed, repeating cards
+ * carry a second, offset outline behind them.
  *
  * @since 2.0
  */
 public class XsdNodeRenderer {
 
-    private static final double MIN_NODE_WIDTH = 200;  // Minimum width
-    private static final double HEADER_HEIGHT = 32.0;  // Reduced header height for less dominance
-    private static final double MIN_BODY_HEIGHT = 20.0;  // Minimum body height (no content)
-    private static final double PROPERTY_LINE_HEIGHT = 20.0;  // Height per property line
-    private static final double NODE_HEIGHT = HEADER_HEIGHT + MIN_BODY_HEIGHT;  // 52px minimum
-    private static final double COMPOSITOR_SIZE = 28;  // Small square for compositors
-    private static final double EXPAND_BUTTON_SIZE = 16;
+    /** Height of a card without constraint rows. */
+    static final double CARD_HEIGHT = 52;
+    private static final double MIN_NODE_WIDTH = 160;
+    private static final double CARD_RADIUS = 8;
+    private static final double TILE_SIZE = 24;
+    private static final double TILE_RADIUS = 6;
+    private static final double TILE_X = 10;
+    private static final double TILE_ICON_SIZE = 13;
+    private static final double TEXT_X = 44;
+    private static final double NAME_Y = 11;
+    private static final double TYPE_Y = 28;
+    private static final double TEXT_RIGHT_PADDING = 12;
+    private static final double PILL_HEIGHT = 16;
+    private static final double PILL_PADDING = 6;
+    private static final double PILL_GAP = 8;
+    /** Offset of the second outline that marks a repeating card. */
+    private static final double STACK_OFFSET = 3;
+
+    private static final double COMPOSITOR_SIZE = 30;
+    private static final double COMPOSITOR_RADIUS = 7;
+    private static final double COMPOSITOR_ICON_SIZE = 16;
+
+    private static final double EXPAND_BUTTON_SIZE = 18;
+    private static final double EXPAND_BUTTON_RIGHT = 6;
     private static final double BADGE_RIGHT_MARGIN = 10;
-    private static final double BADGE_BUTTON_GAP = 4;
-    private static final double HORIZONTAL_SPACING = 80; // Increased spacing
-    private static final double VERTICAL_SPACING = 40;   // Increased spacing
-    private static final double CORNER_RADIUS = 6;  // Updated to 6px for modern look
-    private static final double PADDING = 30; // Increased padding for better text spacing
+    private static final double BADGE_BUTTON_GAP = 6;
+
+    private static final double CONNECTOR_WIDTH = 2;
+    /** Distance of the vertical connector bus from the left edge of the children. */
+    private static final double BUS_TO_CHILD = 24;
+    /** Horizontal gap card → compositor, compositor → cards, card → card. */
+    private static final double GAP_TO_COMPOSITOR = 28;
+    private static final double GAP_FROM_COMPOSITOR = 38;
+    private static final double GAP_CARD_TO_CARD = 44;
+    /** Vertical gap between the children of a compositor, and between the children of a card. */
+    private static final double GAP_IN_COMPOSITOR = 14;
+    private static final double GAP_IN_CARD = 20;
 
     /** Rows a card lists before the rest collapse into a "+N more" line. */
     static final int MAX_CONSTRAINT_ROWS = 4;
@@ -42,19 +72,35 @@ public class XsdNodeRenderer {
     private static final double CONSTRAINT_LABEL_WIDTH = 42;
     private static final double CONSTRAINT_LABEL_HEIGHT = 14;
     private static final double CONSTRAINT_LABEL_GAP = 6;
-    private static final double CONSTRAINT_LEFT = 8;
-    /** Keeps a row clear of the connection point on the card's right edge. */
+    private static final double CONSTRAINT_LEFT = 10;
     private static final double CONSTRAINT_RIGHT = 14;
-    /** The expand button sits at mid-height, where the rows of a tall card pass. */
-    private static final double CONSTRAINT_RIGHT_WITH_BUTTON = EXPAND_BUTTON_SIZE + 16;
     /** Room for the include badge in a card's bottom-left corner. */
     private static final double INCLUDE_BADGE_CLEARANCE = 14;
 
-    private final Font nodeFont;
-    private final Font detailFont;
-    private final Font constraintFont = Font.font("Consolas", 10);
-    private final Font constraintLabelFont = Font.font("Consolas", FontWeight.BOLD, 9);
-    private final javafx.scene.text.Text textMeasurer;
+    private final Font nameFont = weighted(DesignTokens.FONT_FAMILY_UI, "SemiBold", FontWeight.BOLD, 12.5);
+    private final Font typeFont = Font.font(DesignTokens.FONT_FAMILY_MONO, 10.5);
+    private final Font pillFont = weighted(DesignTokens.FONT_FAMILY_MONO, "Medium", FontWeight.BOLD, 10);
+    private final Font compositorLabelFont = Font.font(DesignTokens.FONT_FAMILY_MONO, 9);
+    private final Font constraintFont = Font.font(DesignTokens.FONT_FAMILY_MONO, 10);
+    private final Font constraintLabelFont = Font.font(DesignTokens.FONT_FAMILY_MONO, FontWeight.BOLD, 9);
+    private final Font badgeFont = Font.font(DesignTokens.FONT_FAMILY_UI, FontWeight.BOLD, 7);
+    private final javafx.scene.text.Text textMeasurer = new javafx.scene.text.Text();
+
+    /**
+     * A font in an intermediate weight. The bundled Inter / JetBrains Mono files register their
+     * SemiBold and Medium cuts as families of their own ("Inter SemiBold"), so
+     * {@code Font.font("Inter", FontWeight.SEMI_BOLD, …)} silently falls back to Regular.
+     *
+     * @param family   the base family
+     * @param cut      the cut's family suffix, e.g. "SemiBold"
+     * @param fallback the weight to use on the base family when the cut is not installed
+     */
+    static Font weighted(String family, String cut, FontWeight fallback, double size) {
+        String cutFamily = family + " " + cut;
+        return Font.getFamilies().contains(cutFamily)
+                ? Font.font(cutFamily, size)
+                : Font.font(family, fallback, size);
+    }
 
     /** Whether cards list their constraints; off, they are drawn as if they had none. */
     private boolean showConstraints = true;
@@ -64,20 +110,10 @@ public class XsdNodeRenderer {
     private final Map<String, Double> textWidthCache = new ConcurrentHashMap<>();
 
     /**
-     * Dark-mode flag: the per-type accent colors (headers, borders) are theme-independent,
-     * but every surface/text derivation drawn from them flips with this flag. Initialized
-     * from the current theme; owners with a lifecycle (XsdGraphView) update it on switches.
+     * Dark-mode flag: every color is a design token resolved for this theme. Initialized from the
+     * current theme; owners with a lifecycle (XsdGraphView) update it on switches.
      */
-    private boolean darkMode =
-            org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme()
-                    == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK;
-
-    public XsdNodeRenderer() {
-        // XMLSpy uses Segoe UI font family
-        this.nodeFont = Font.font("Segoe UI", 12); // Slightly larger for readability
-        this.detailFont = Font.font("Segoe UI", 10);
-        this.textMeasurer = new javafx.scene.text.Text();
-    }
+    private boolean darkMode = DesignTokens.currentTheme() == DesignTokens.Theme.DARK;
 
     /** Switches the renderer between the light and dark drawing palette. */
     public void setDarkMode(boolean darkMode) {
@@ -93,21 +129,6 @@ public class XsdNodeRenderer {
         this.showConstraints = show;
     }
 
-    /** Card surface color node bodies, badges and header gradients are built on. */
-    private Color surface() {
-        return darkMode ? Color.rgb(28, 35, 44) : Color.WHITE;
-    }
-
-    /** Muted label color inside node bodies ("Type:", "Occurs:"). */
-    private Color bodyLabelColor() {
-        return darkMode ? Color.rgb(155, 166, 179) : Color.rgb(108, 117, 125);
-    }
-
-    /** Strong value color inside node bodies. */
-    private Color bodyValueColor() {
-        return darkMode ? Color.rgb(230, 234, 240) : Color.rgb(33, 37, 41);
-    }
-
     /**
      * Clears the text width cache. Call when fonts change or schema is reloaded.
      */
@@ -115,93 +136,134 @@ public class XsdNodeRenderer {
         textWidthCache.clear();
     }
 
+    // ------------------------------------------------------------------ palette
+
+    private Color token(ColorToken token) {
+        return token.color(darkMode ? DesignTokens.Theme.DARK : DesignTokens.Theme.LIGHT);
+    }
+
+    private Color surface() {
+        return token(ColorToken.BG_SURFACE);
+    }
+
+    private Color border() {
+        return token(ColorToken.BORDER_DEFAULT);
+    }
+
+    /** The accent of a node kind: icon, pill and selected tile take it. */
+    Color kindTint(NodeWrapperType type) {
+        return token(switch (type) {
+            case ELEMENT -> ColorToken.PRIMARY;
+            case ATTRIBUTE -> ColorToken.TEAL;
+            case SIMPLE_TYPE -> ColorToken.SUCCESS;
+            case SCHEMA -> ColorToken.PURPLE;
+            case ENUMERATION -> ColorToken.INDIGO;
+            case COMMENT -> ColorToken.TEXT_MUTED;
+            default -> ColorToken.NEUTRAL;
+        });
+    }
+
+    /** The tile behind a card's icon: the subtle primary background for elements, else the tint, faint. */
+    private Color tileFill(NodeWrapperType type) {
+        if (type == NodeWrapperType.ELEMENT) {
+            return token(ColorToken.BG_SUBTLE);
+        }
+        return withAlpha(kindTint(type), darkMode ? 0.18 : 0.12);
+    }
+
+    private static Color withAlpha(Color color, double alpha) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
+    }
+
+    // ------------------------------------------------------------------ card content
+
     /**
-     * Calculates the required width for a node based on all header elements:
-     * - Icon (16px) + spacing
-     * - Node name text
-     * - Cardinality badge (60px)
-     * - Expand button (16px) + spacing (8px) if has children
-     * - Plus detail text from body
+     * The symbol of a card: by structure, not by datatype — a card with content of its own
+     * (children) shows the hierarchy symbol, a card with simple content the code symbol.
+     */
+    static String cardIcon(VisualNode node) {
+        return switch (node.getType()) {
+            case ELEMENT -> node.hasChildren() ? "bi-diagram-3" : "bi-code-slash";
+            case ATTRIBUTE -> "bi-at";
+            case COMPLEX_TYPE -> "bi-diagram-3";
+            case SIMPLE_TYPE -> "bi-code-slash";
+            case GROUP -> "bi-folder";
+            case SCHEMA -> "bi-hdd-stack";
+            case ENUMERATION -> "bi-list-check";
+            case COMMENT -> "bi-chat-left-quote";
+            case SEQUENCE -> "bi-list-nested";
+            case CHOICE -> "bi-signpost-split";
+            case ALL -> "bi-collection";
+        };
+    }
+
+    /** The second line of a card: the type, or what kind of node it is when it has none. */
+    static String typeLine(VisualNode node) {
+        String detail = node.getDetail();
+        if (detail != null && !detail.isBlank()) {
+            return detail;
+        }
+        return switch (node.getType()) {
+            case ELEMENT -> "element";
+            case ATTRIBUTE -> "attribute";
+            case COMPLEX_TYPE -> "complexType";
+            case SIMPLE_TYPE -> "simpleType";
+            case GROUP -> "group";
+            case SCHEMA -> "schema";
+            case ENUMERATION -> "enumeration";
+            case COMMENT -> "comment";
+            case SEQUENCE -> "sequence";
+            case CHOICE -> "choice";
+            case ALL -> "all";
+        };
+    }
+
+    /** Optional cards are drawn dashed: minOccurs 0, or an attribute that is not required. */
+    static boolean isOptional(VisualNode node) {
+        if (node.getType() == NodeWrapperType.ATTRIBUTE) {
+            return node.getModelObject() instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute
+                    && !"required".equals(attribute.getUse());
+        }
+        if (node.getType() != NodeWrapperType.ELEMENT && node.getType() != NodeWrapperType.GROUP) {
+            return false;
+        }
+        return node.getMinOccurs() == 0;
+    }
+
+    /** Repeating cards get a second outline behind them: maxOccurs above 1 or unbounded. */
+    static boolean isRepeating(VisualNode node) {
+        if (node.getType() != NodeWrapperType.ELEMENT && node.getType() != NodeWrapperType.GROUP) {
+            return false;
+        }
+        return node.getMaxOccurs() > 1 || node.getMaxOccurs() == -1;
+    }
+
+    // ------------------------------------------------------------------ measuring
+
+    /**
+     * Calculates the width a card needs: the tile, the wider of name (+ pill) and type line,
+     * the constraint rows, and the expand button; at least {@value #MIN_NODE_WIDTH}.
      */
     public double calculateNodeWidth(VisualNode node) {
         if (isCompositorNode(node)) {
             return COMPOSITOR_SIZE;
         }
-
-        final double ICON_SIZE = 16.0;
-        final double ICON_SPACING = 12.0;       // Spacing after icon
-        final double BADGE_SPACING = 8.0;       // Spacing before badge
-        final double EXPAND_BTN_WIDTH = 16.0;   // Expand button width
-        final double EXPAND_BTN_SPACING = 8.0;  // Spacing for expand button
-
-        // Calculate header width components
-        double headerWidth = ICON_SIZE + ICON_SPACING;  // Icon and spacing
-
-        // Measure label text with proper font (cached)
         String label = node.getLabel() != null ? node.getLabel() : "";
-        double labelWidth = estimateTextWidth(label, nodeFont);
-        headerWidth += labelWidth;
-
-        // Add cardinality badge width
-        String cardinality = node.getCardinalityBadge();
-        if (cardinality != null && !cardinality.isEmpty()) {
-            headerWidth += BADGE_SPACING + estimateTextWidth(cardinality, Font.font("Consolas", FontWeight.BOLD, 10)) + 12;  // +12 for badge padding
+        double nameLine = estimateTextWidth(label, nameFont);
+        String pill = node.getCardinalityBadge();
+        if (pill != null && !pill.isEmpty()) {
+            nameLine += PILL_GAP + pillWidth(pill);
         }
-
-        // Add expand button width if has children
-        if (node.hasChildren()) {
-            headerWidth += EXPAND_BTN_SPACING + EXPAND_BTN_WIDTH;
-        }
-
-        // Add left and right padding
-        headerWidth += PADDING + PADDING;
-
-        // Also measure detail text width for body (cached)
-        double detailWidth = 0;
-        if (node.getDetail() != null && !node.getDetail().isEmpty()) {
-            detailWidth = estimateTextWidth(node.getDetail(), detailFont);
-            // Add "Type: " prefix width and spacing
-            detailWidth += 50;  // Estimated width of "Type: " label + spacing
-        }
-
-        // Take maximum of header and detail, use header as minimum
-        double requiredWidth = Math.max(Math.max(headerWidth, detailWidth), constraintRowsWidth(node));
-
-        // Use minimum width but allow expansion for longer text (no hard upper limit)
-        return Math.max(MIN_NODE_WIDTH, requiredWidth);
+        double typeLine = estimateTextWidth(typeLine(node), typeFont);
+        double right = node.hasChildren()
+                ? BADGE_BUTTON_GAP + EXPAND_BUTTON_SIZE + EXPAND_BUTTON_RIGHT
+                : TEXT_RIGHT_PADDING;
+        double content = TEXT_X + Math.max(nameLine, typeLine) + right;
+        return Math.max(MIN_NODE_WIDTH, Math.max(content, constraintRowsWidth(node)));
     }
 
-    /**
-     * Calculates the required body height based on the content lines to display.
-     * For elements/attributes with type info, reserves 2 property lines plus extra padding.
-     * For compositors, only 1 line (child count).
-     */
-    public double calculateBodyHeight(VisualNode node) {
-        int lines = constraintLines(node);
-        if (lines == 0) {
-            return propertiesHeight(node);
-        }
-        double height = constraintSectionTop(node) + lines * CONSTRAINT_ROW_HEIGHT + CONSTRAINT_SECTION_PADDING * 2;
-        return height + (node.isFromInclude() ? INCLUDE_BADGE_CLEARANCE : 0);
-    }
-
-    /** Height of the type and occurs lines. */
-    private double propertiesHeight(VisualNode node) {
-        // Comments have no type/occurs body
-        if (node.getType() == NodeWrapperType.COMMENT) {
-            return MIN_BODY_HEIGHT;
-        }
-        if (node.getDetail() == null || node.getDetail().isEmpty()) {
-            return MIN_BODY_HEIGHT;
-        }
-
-        // Elements and attributes need 2 property lines (Type and Occurs/Use) with extra padding
-        if (node.getType() == NodeWrapperType.ELEMENT || node.getType() == NodeWrapperType.ATTRIBUTE) {
-            return PROPERTY_LINE_HEIGHT * 2 + 10;  // 50px for 2 lines with padding
-        }
-
-        // Compositors and other nodes need only 1 line
-        return PROPERTY_LINE_HEIGHT;  // 20px for 1 line
+    private double pillWidth(String pill) {
+        return estimateTextWidth(pill, pillFont) + PILL_PADDING * 2;
     }
 
     /** @return the lines a card's constraint section needs: its rows, plus one for "+N more" */
@@ -213,11 +275,6 @@ public class XsdNodeRenderer {
         return rows > MAX_CONSTRAINT_ROWS ? MAX_CONSTRAINT_ROWS + 1 : rows;
     }
 
-    /** @return where the constraint section starts in the body; without type lines, at its top */
-    private double constraintSectionTop(VisualNode node) {
-        return node.getDetail() == null || node.getDetail().isEmpty() ? 0 : propertiesHeight(node);
-    }
-
     private double constraintRowsWidth(VisualNode node) {
         if (constraintLines(node) == 0) {
             return 0;
@@ -227,8 +284,7 @@ public class XsdNodeRenderer {
                 Math.min(MAX_CONSTRAINT_ROWS, node.getConstraints().size()))) {
             widest = Math.max(widest, estimateTextWidth(row.text(), constraintFont));
         }
-        return CONSTRAINT_LEFT + CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP + widest
-                + (node.hasChildren() ? CONSTRAINT_RIGHT_WITH_BUTTON : CONSTRAINT_RIGHT);
+        return CONSTRAINT_LEFT + CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP + widest + CONSTRAINT_RIGHT;
     }
 
     /**
@@ -239,8 +295,7 @@ public class XsdNodeRenderer {
      * @return the text to show, or null if the pointer is not over a constraint section
      */
     String constraintTooltipAt(VisualNode node, double y) {
-        if (node == null || constraintLines(node) == 0
-                || y < node.getY() + HEADER_HEIGHT + constraintSectionTop(node)) {
+        if (node == null || constraintLines(node) == 0 || y < node.getY() + CARD_HEIGHT) {
             return null;
         }
         return node.getConstraints().stream().map(ConstraintRow::tooltip)
@@ -248,171 +303,25 @@ public class XsdNodeRenderer {
     }
 
     /**
-     * Calculates the complete node height (header + body).
-     * This is the total height needed to render the node with all its content.
+     * Calculates the complete card height: the two text lines, plus the constraint section and
+     * the include badge's room when the card lists constraints.
      */
     public double calculateNodeHeight(VisualNode node) {
-        double bodyHeight = calculateBodyHeight(node);
-        return HEADER_HEIGHT + bodyHeight;
+        if (isCompositorNode(node)) {
+            return COMPOSITOR_SIZE;
+        }
+        int lines = constraintLines(node);
+        if (lines == 0) {
+            return CARD_HEIGHT;
+        }
+        return CARD_HEIGHT + lines * CONSTRAINT_ROW_HEIGHT + CONSTRAINT_SECTION_PADDING * 2
+                + (node.isFromInclude() ? INCLUDE_BADGE_CLEARANCE : 0);
     }
 
-    private boolean isCompositorNode(VisualNode node) {
-        return node.getType() == NodeWrapperType.SEQUENCE ||
-                node.getType() == NodeWrapperType.CHOICE ||
-                node.getType() == NodeWrapperType.ALL;
-    }
-
-    /**
-     * Renders a visual node for an XSD element.
-     *
-     * @param gc   Graphics context
-     * @param node The visual node to render
-     * @param x    X position
-     * @param y    Y position
-     */
-    public void renderNode(GraphicsContext gc, VisualNode node, double x, double y) {
-        // Check if this is a compositor node (sequence, choice, all)
-        boolean isCompositor = node.getType() == NodeWrapperType.SEQUENCE ||
-                node.getType() == NodeWrapperType.CHOICE ||
-                node.getType() == NodeWrapperType.ALL;
-
-        if (isCompositor) {
-            renderCompositorSymbol(gc, node, x, y);
-        } else {
-            renderRegularNode(gc, node, x, y);
-        }
-    }
-
-    /**
-     * Renders the header section of a node (32px height with icon, name, and cardinality badge).
-     *
-     * @param gc        Graphics context
-     * @param node      The visual node
-     * @param x         X position
-     * @param y         Y position
-     * @param width     Node width
-     */
-    private void renderNodeHeader(GraphicsContext gc, VisualNode node, double x, double y, double width) {
-        final double ICON_SIZE = 16.0;
-        final double PADDING = 10.0;
-        final double HEADER_CORNER_RADIUS = 4.0;
-
-        // Validate dimensions
-        if (width <= 0 || width > 2000) {
-            return;  // Skip invalid width
-        }
-
-        // Get colors and properties for this node
-        Color headerColor = node.getHeaderColor();
-        Color borderColor = node.getBorderColor();
-
-        // Determine icon: use cached value OR compute dynamically based on model type
-        String iconLiteral = node.getIconLiteral();
-        if ("bi-question-circle".equals(iconLiteral) || iconLiteral == null) {
-            // Icon wasn't properly set, try to determine it from model object
-            iconLiteral = node.determineIconFromModelObject();
-            if (iconLiteral == null) {
-                iconLiteral = node.getIconLiteral();  // Fallback to whatever we have
-            }
-        }
-        String cardinityBadge = node.getCardinalityBadge();
-
-        // Apply fallback colors if null
-        if (headerColor == null) {
-            headerColor = Color.LIGHTGRAY;
-        }
-        if (borderColor == null) {
-            borderColor = Color.GRAY;
-        }
-
-        // Create gradient background for header (very light)
-        LinearGradient headerGradient = createHeaderGradient(headerColor, y, HEADER_HEIGHT);
-
-        // Draw header background
-        gc.setFill(headerGradient);
-        gc.setStroke(borderColor);
-
-        // Determine line width: thicker (3.0) for unbounded/multiple, normal (1.5) for single
-        double lineWidth = (node.maxOccurs > 1 || node.maxOccurs == -1) ? 3.0 : 1.5;
-        gc.setLineWidth(lineWidth);
-
-        // Set line dashes for optional fields: dashed if minOccurs == 0, solid otherwise
-        if (node.minOccurs == 0) {
-            gc.setLineDashes(6, 4);  // Dashed pattern
-        }
-
-        gc.fillRoundRect(x, y, width, HEADER_HEIGHT, HEADER_CORNER_RADIUS, HEADER_CORNER_RADIUS);
-
-        // Don't stroke the bottom (it connects to body)
-        gc.setLineWidth(lineWidth);
-        gc.strokeLine(x, y, x + width, y);  // Top
-        gc.strokeLine(x, y, x, y + HEADER_HEIGHT);  // Left
-        gc.strokeLine(x + width, y, x + width, y + HEADER_HEIGHT);  // Right
-
-        // Reset line dashes
-        gc.setLineDashes();
-
-        // Draw icon (left side, no box)
-        double iconX = x + PADDING;
-        double iconY = y + (HEADER_HEIGHT - ICON_SIZE) / 2;
-
-        // Render the icon using the strong header color
-        SvgIconRenderer.renderIcon(gc, iconLiteral,
-                iconX,
-                iconY,
-                ICON_SIZE,
-                headerColor);
-
-        // Draw node name (center area)
-        double nameX = iconX + ICON_SIZE + PADDING;
-        double nameY = y + HEADER_HEIGHT / 2;  // Vertically center in header
-
-        // Contrast-derived header text: darker on light cards, brightened on dark cards
-        Color textColor = darkMode ? headerColor.interpolate(Color.WHITE, 0.45) : headerColor.darker();
-        gc.setFill(textColor);
-        gc.setFont(Font.font("Roboto", FontWeight.BOLD, 12)); // Slightly smaller font
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-
-        // Display the full node name without truncation - let node width accommodate it
-        gc.fillText(node.getLabel(), nameX, nameY);
-
-        // Draw cardinality badge (right side)
-        if (cardinityBadge != null && !cardinityBadge.isEmpty()) {
-            double badgeHeight = 18.0;
-            double badgePadding = 6.0;
-            double badgeWidth = estimateTextWidth(cardinityBadge, Font.font("Consolas", FontWeight.BOLD, 10)) + badgePadding * 2;
-            double badgeX = badgeX(x, width, badgeWidth, node.hasChildren());
-            double badgeY = y + (HEADER_HEIGHT - badgeHeight) / 2;
-
-            // Draw badge background (surface-toned with partial transparency)
-            gc.setFill(darkMode ? Color.rgb(22, 27, 34, 0.8) : Color.rgb(255, 255, 255, 0.8));
-            gc.setStroke(borderColor);
-            gc.setLineWidth(1.0);
-            gc.fillRoundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4, 4);
-            gc.strokeRoundRect(badgeX, badgeY, badgeWidth, badgeHeight, 4, 4);
-
-            // Draw badge text (cardinality)
-            gc.setFill(borderColor);
-            gc.setFont(Font.font("Consolas", FontWeight.BOLD, 10));
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.setTextBaseline(VPos.CENTER);
-            gc.fillText(cardinityBadge, badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
-        }
-    }
-
-    /** @return the left edge of a card's expand button, at the right end of the card */
-    static double expandButtonX(double x, double width) {
-        return x + width - EXPAND_BUTTON_SIZE - 8;
-    }
-
-    /**
-     * @return the left edge of a card's cardinality badge: at the right end of the card, or left of
-     *         the expand button, whose room {@code calculateNodeWidth} has already reserved
-     */
-    static double badgeX(double x, double width, double badgeWidth, boolean hasExpandButton) {
-        double right = hasExpandButton ? expandButtonX(x, width) - BADGE_BUTTON_GAP : x + width - BADGE_RIGHT_MARGIN;
-        return right - badgeWidth;
+    private static boolean isCompositorNode(VisualNode node) {
+        return node.getType() == NodeWrapperType.SEQUENCE
+                || node.getType() == NodeWrapperType.CHOICE
+                || node.getType() == NodeWrapperType.ALL;
     }
 
     /**
@@ -427,167 +336,197 @@ public class XsdNodeRenderer {
         });
     }
 
+    // ------------------------------------------------------------------ layout metrics
+
+    /** @return the horizontal gap between a card and its children's column */
+    public double horizontalGap(VisualNode parent, VisualNode child) {
+        if (isCompositorNode(parent)) {
+            return GAP_FROM_COMPOSITOR;
+        }
+        return isCompositorNode(child) ? GAP_TO_COMPOSITOR : GAP_CARD_TO_CARD;
+    }
+
+    /** @return the vertical gap between two children of the given node */
+    public double siblingGap(VisualNode parent) {
+        return isCompositorNode(parent) ? GAP_IN_COMPOSITOR : GAP_IN_CARD;
+    }
+
+    public double getCompositorSize() {
+        return COMPOSITOR_SIZE;
+    }
+
+    /** @return where connectors meet a card: the middle of its two text lines */
+    static double anchorY(VisualNode node) {
+        double height = node.getHeight();
+        return node.getY() + (isCompositorNode(node) ? height : Math.min(height, CARD_HEIGHT)) / 2;
+    }
+
+    // ------------------------------------------------------------------ rendering
+
     /**
-     * Renders connection point circles on the node edges.
+     * Renders a visual node for an XSD element.
      *
-     * @param gc     Graphics context
-     * @param node   The visual node
-     * @param x      X position of node
-     * @param y      Y position of node
-     * @param width  Node width
-     * @param height Node height
+     * @param gc   Graphics context
+     * @param node The visual node to render
+     * @param x    X position
+     * @param y    Y position
      */
-    private void renderConnectionPoints(GraphicsContext gc, VisualNode node, double x, double y, double width, double height) {
-        final double CIRCLE_DIAMETER = 12.0;
-        final double CIRCLE_RADIUS = CIRCLE_DIAMETER / 2.0;
-
-        // Validate dimensions
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-
-        Color borderColor = node.getBorderColor();
-        if (borderColor == null) {
-            borderColor = Color.GRAY;
-        }
-
-        // Vertical center of the node
-        double centerY = y + height / 2.0;
-
-        // Left connection point (if node has parent)
-        if (node.getParent() != null) {
-            double leftCircleX = x - CIRCLE_RADIUS;
-            double leftCircleY = centerY - CIRCLE_RADIUS;
-
-            try {
-                gc.setFill(surface());
-                gc.setStroke(borderColor);
-                gc.setLineWidth(2.0);
-                gc.fillOval(leftCircleX, leftCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
-                gc.strokeOval(leftCircleX, leftCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
-            } catch (Exception e) {
-                // Skip on error
-            }
-        }
-
-        // Right connection point (if node has children or can be expanded)
-        if (node.hasChildren()) {
-            double rightCircleX = x + width - CIRCLE_RADIUS;
-            double rightCircleY = centerY - CIRCLE_RADIUS;
-
-            try {
-                gc.setFill(surface());
-                gc.setStroke(borderColor);
-                gc.setLineWidth(2.0);
-                gc.fillOval(rightCircleX, rightCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
-                gc.strokeOval(rightCircleX, rightCircleY, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
-            } catch (Exception e) {
-                // Skip on error
-            }
+    public void renderNode(GraphicsContext gc, VisualNode node, double x, double y) {
+        if (isCompositorNode(node)) {
+            renderCompositorSymbol(gc, node, x, y);
+        } else {
+            renderRegularNode(gc, node, x, y);
         }
     }
 
+    /** @return the left edge of a card's expand button, at the right end of the card */
+    static double expandButtonX(double x, double width) {
+        return x + width - EXPAND_BUTTON_SIZE - EXPAND_BUTTON_RIGHT;
+    }
+
     /**
-     * Renders the body section of a node (white background with property information).
-     *
-     * @param gc         Graphics context
-     * @param node       The visual node
-     * @param x          X position
-     * @param y          Y position (should be below the header)
-     * @param width      Node width
-     * @param bodyHeight Body height
+     * @return the left edge of a card's cardinality pill: at the right end of the card, or left of
+     *         the expand button, whose room {@code calculateNodeWidth} has already reserved
      */
-    private void renderNodeBody(GraphicsContext gc, VisualNode node, double x, double y, double width, double bodyHeight) {
-        final double PADDING = 8.0;
-        final double BODY_CORNER_RADIUS = 4.0;
-        final double PROPERTY_LINE_HEIGHT = 20.0;
+    static double badgeX(double x, double width, double badgeWidth, boolean hasExpandButton) {
+        double right = hasExpandButton ? expandButtonX(x, width) - BADGE_BUTTON_GAP : x + width - BADGE_RIGHT_MARGIN;
+        return right - badgeWidth;
+    }
 
-        // Validate dimensions
-        if (width <= 0 || bodyHeight <= 0) {
-            return;  // Skip if dimensions are invalid
+    /**
+     * Renders a card: shadow, stack outline (repeating), surface with border (dashed when optional),
+     * icon tile, name, pill, type line, constraint rows, expand button and the state overlays.
+     */
+    private void renderRegularNode(GraphicsContext gc, VisualNode node, double x, double y) {
+        double width = node.getWidth();
+        double height = node.getHeight();
+        if (width <= 0 || height <= 0 || width > 4000) {
+            return;
         }
+        boolean selected = node.isSelected();
+        Color tint = kindTint(node.getType());
+        Color strokeColor = selected ? token(ColorToken.PRIMARY)
+                : node.isHovered() ? withAlpha(token(ColorToken.PRIMARY), 0.55) : border();
+        double strokeWidth = selected ? 2 : 1;
 
-        // Get border color for consistency
-        Color borderColor = node.getBorderColor();
-        if (borderColor == null) {
-            borderColor = Color.GRAY;  // Fallback color
+        gc.save();
+        if (isRepeating(node)) {
+            // A stronger stroke than the card's own: the stack must read as "more than one" at a glance
+            drawCardShape(gc, x + STACK_OFFSET, y + STACK_OFFSET, width, height, surface(),
+                    withAlpha(token(ColorToken.TEXT_MUTED), 0.7), 1, false);
         }
+        // Soft shadow: a darker shape one pixel below (a DropShadow effect costs too much per card)
+        gc.setFill(Color.rgb(0, 0, 0, darkMode ? 0.18 : 0.06));
+        gc.fillRoundRect(x, y + 1, width, height + 1, CARD_RADIUS * 2, CARD_RADIUS * 2);
+        drawCardShape(gc, x, y, width, height,
+                selected ? token(ColorToken.BG_SUBTLE) : surface(), strokeColor, strokeWidth, isOptional(node));
 
-        // Draw body background (card surface)
-        gc.setFill(surface());
-        gc.setStroke(borderColor);
+        // Icon tile
+        double tileY = y + (CARD_HEIGHT - TILE_SIZE) / 2;
+        gc.setFill(selected ? tint : tileFill(node.getType()));
+        gc.fillRoundRect(x + TILE_X, tileY, TILE_SIZE, TILE_SIZE, TILE_RADIUS * 2, TILE_RADIUS * 2);
+        double iconOffset = (TILE_SIZE - TILE_ICON_SIZE) / 2;
+        SvgIconRenderer.renderIcon(gc, cardIcon(node), x + TILE_X + iconOffset, tileY + iconOffset,
+                TILE_ICON_SIZE, selected ? token(ColorToken.ON_PRIMARY) : tint);
 
-        // Determine line width: thicker (3.0) for unbounded/multiple, normal (1.5) for single
-        double lineWidth = (node.maxOccurs > 1 || node.maxOccurs == -1) ? 3.0 : 1.5;
-        gc.setLineWidth(lineWidth);
+        // Name and type line
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.TOP);
+        gc.setFont(nameFont);
+        gc.setFill(selected ? token(ColorToken.PRIMARY) : token(ColorToken.TEXT_PRIMARY));
+        gc.fillText(node.getLabel() != null ? node.getLabel() : "", x + TEXT_X, y + NAME_Y);
+        gc.setFont(typeFont);
+        gc.setFill(token(ColorToken.TEXT_MUTED));
+        gc.fillText(typeLine(node), x + TEXT_X, y + TYPE_Y);
 
-        // Set line dashes for optional fields: dashed if minOccurs == 0, solid otherwise
-        if (node.minOccurs == 0) {
-            gc.setLineDashes(6, 4);  // Dashed pattern
-        }
-
-        gc.fillRoundRect(x, y, width, bodyHeight, BODY_CORNER_RADIUS, BODY_CORNER_RADIUS);
-
-        // Only stroke sides and bottom (top connects to header)
-        gc.setLineWidth(lineWidth);
-        gc.strokeLine(x, y + bodyHeight, x + width, y + bodyHeight);  // Bottom
-        gc.strokeLine(x, y, x, y + bodyHeight);  // Left
-        gc.strokeLine(x + width, y, x + width, y + bodyHeight);  // Right
-
-        // Reset line dashes
-        gc.setLineDashes();
-
-        // Draw detail/type information in the body
-        if (node.getDetail() != null && !node.getDetail().isEmpty()) {
-            double propertyY = y + PADDING;
-
-            // Label: "Type"
-            gc.setFill(bodyLabelColor());
-            gc.setFont(Font.font("Segoe UI", 11));
-            gc.setTextAlign(TextAlignment.LEFT);
-            gc.setTextBaseline(VPos.TOP);
-            gc.fillText("Type:", x + PADDING, propertyY);
-
-            // Value: actual type (display fully without truncation)
-            gc.setFill(bodyValueColor());
-            gc.setFont(Font.font("Consolas", 11));
-            // Display detail text without truncation - let node width accommodate it
-            gc.fillText(node.getDetail(), x + PADDING + 50, propertyY);
-
-            // Additional property line: Occurs (for elements)
-            if (node.getType() == NodeWrapperType.ELEMENT || node.getType() == NodeWrapperType.ATTRIBUTE) {
-                double secondLineY = propertyY + PROPERTY_LINE_HEIGHT;
-
-                String occursLabel = node.getType() == NodeWrapperType.ATTRIBUTE ? "Use:" : "Occurs:";
-                String occursValue = node.getMinOccurs() > 0 ? "required" : "optional";
-
-                // Label
-                gc.setFill(bodyLabelColor());
-                gc.setFont(Font.font("Segoe UI", 11));
-                gc.fillText(occursLabel, x + PADDING, secondLineY);
-
-                // Value
-                gc.setFill(bodyValueColor());
-                gc.setFont(Font.font("Consolas", 11));
-                gc.fillText(occursValue, x + PADDING + 50, secondLineY);
-            }
+        // Cardinality pill
+        String pill = node.getCardinalityBadge();
+        if (pill != null && !pill.isEmpty()) {
+            double pillWidth = pillWidth(pill);
+            double pillX = badgeX(x, width, pillWidth, node.hasChildren());
+            double pillY = y + NAME_Y - 1;
+            gc.setFill(withAlpha(tint, darkMode ? 0.2 : 0.12));
+            gc.fillRoundRect(pillX, pillY, pillWidth, PILL_HEIGHT, PILL_HEIGHT, PILL_HEIGHT);
+            gc.setFill(tint);
+            gc.setFont(pillFont);
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.setTextBaseline(VPos.CENTER);
+            gc.fillText(pill, pillX + pillWidth / 2, pillY + PILL_HEIGHT / 2);
         }
 
         renderConstraintRows(gc, node, x, y, width);
+        gc.restore();
+
+        if (node.isFocused()) {
+            gc.setStroke(token(ColorToken.INDIGO));
+            gc.setLineWidth(2);
+            gc.setLineDashes(4, 4);
+            gc.strokeRoundRect(x - 4, y - 4, width + 8, height + 8, (CARD_RADIUS + 4) * 2, (CARD_RADIUS + 4) * 2);
+            gc.setLineDashes(null);
+        }
+        if (node.isDropTarget()) {
+            renderDropIndicator(gc, node, x, y, width, height);
+        }
+        if (node.isDragging()) {
+            gc.setGlobalAlpha(0.45);
+            gc.setFill(token(ColorToken.BG_SUBTLE));
+            gc.fillRoundRect(x, y, width, height, CARD_RADIUS * 2, CARD_RADIUS * 2);
+            gc.setGlobalAlpha(1.0);
+        }
+        if (node.isInEditMode()) {
+            double size = 8;
+            double badgeX = x + width - size - 4;
+            double badgeY = y + 4;
+            gc.setFill(token(ColorToken.WARNING));
+            gc.fillOval(badgeX, badgeY, size, size);
+            gc.setStroke(Color.WHITE);
+            gc.setLineWidth(1.5);
+            double cx = badgeX + size / 2;
+            double cy = badgeY + size / 2;
+            gc.strokeLine(cx - 2, cy + 2, cx + 2, cy - 2);
+        }
+        if (node.isFromInclude()) {
+            double size = 10;
+            double badgeX = x + 4;
+            double badgeY = y + height - size - 4;
+            gc.setFill(token(ColorToken.INFO));
+            gc.fillRoundRect(badgeX, badgeY, size, size, 3, 3);
+            gc.setFill(Color.WHITE);
+            gc.setFont(badgeFont);
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.setTextBaseline(VPos.CENTER);
+            gc.fillText("I", badgeX + size / 2, badgeY + size / 2);
+            gc.setTextAlign(TextAlignment.LEFT);
+            gc.setTextBaseline(VPos.TOP);
+        }
+        if (node.hasChildren()) {
+            drawExpandButton(gc, node, x, y, width);
+        }
     }
 
-    /** Draws the section that lists a card's constraints below its type lines. */
-    private void renderConstraintRows(GraphicsContext gc, VisualNode node, double x, double bodyY, double width) {
+    private void drawCardShape(GraphicsContext gc, double x, double y, double width, double height,
+                               Color fill, Color stroke, double strokeWidth, boolean dashed) {
+        gc.setFill(fill);
+        gc.fillRoundRect(x, y, width, height, CARD_RADIUS * 2, CARD_RADIUS * 2);
+        gc.setStroke(stroke);
+        gc.setLineWidth(strokeWidth);
+        gc.setLineDashes(dashed ? new double[]{4, 3} : null);
+        double inset = strokeWidth / 2;
+        gc.strokeRoundRect(x + inset, y + inset, width - strokeWidth, height - strokeWidth,
+                CARD_RADIUS * 2 - strokeWidth, CARD_RADIUS * 2 - strokeWidth);
+        gc.setLineDashes(null);
+    }
+
+    /** Draws the section that lists a card's constraints below its text lines. */
+    private void renderConstraintRows(GraphicsContext gc, VisualNode node, double x, double y, double width) {
         int lines = constraintLines(node);
         if (lines == 0) {
             return;
         }
-        double top = bodyY + constraintSectionTop(node);
-        if (constraintSectionTop(node) > 0) {
-            gc.setStroke(bodyLabelColor().deriveColor(0, 1, 1, 0.35));
-            gc.setLineWidth(1);
-            gc.strokeLine(x + CONSTRAINT_LEFT, top, x + width - CONSTRAINT_LEFT, top);
-        }
+        double top = y + CARD_HEIGHT;
+        gc.setStroke(border());
+        gc.setLineWidth(1);
+        gc.strokeLine(x + CONSTRAINT_LEFT, top, x + width - CONSTRAINT_LEFT, top);
 
         gc.setTextBaseline(VPos.CENTER);
         double rowY = top + CONSTRAINT_SECTION_PADDING;
@@ -597,7 +536,7 @@ public class XsdNodeRenderer {
             rowY += CONSTRAINT_ROW_HEIGHT;
         }
         if (rows.size() > MAX_CONSTRAINT_ROWS) {
-            gc.setFill(bodyLabelColor());
+            gc.setFill(token(ColorToken.TEXT_MUTED));
             gc.setFont(constraintFont);
             gc.setTextAlign(TextAlignment.LEFT);
             gc.fillText("+" + (rows.size() - MAX_CONSTRAINT_ROWS) + " more", x + CONSTRAINT_LEFT,
@@ -609,7 +548,7 @@ public class XsdNodeRenderer {
     private void renderConstraintRow(GraphicsContext gc, ConstraintRow row, double x, double rowY) {
         Color color = constraintColor(row.kind());
         double labelY = rowY + (CONSTRAINT_ROW_HEIGHT - CONSTRAINT_LABEL_HEIGHT) / 2;
-        gc.setFill(color.deriveColor(0, 1, 1, darkMode ? 0.2 : 0.12));
+        gc.setFill(withAlpha(color, darkMode ? 0.2 : 0.12));
         gc.fillRoundRect(x, labelY, CONSTRAINT_LABEL_WIDTH, CONSTRAINT_LABEL_HEIGHT, 4, 4);
 
         gc.setFill(color);
@@ -617,7 +556,7 @@ public class XsdNodeRenderer {
         gc.setTextAlign(TextAlignment.CENTER);
         gc.fillText(row.kind().label(), x + CONSTRAINT_LABEL_WIDTH / 2, rowY + CONSTRAINT_ROW_HEIGHT / 2);
 
-        gc.setFill(bodyValueColor());
+        gc.setFill(token(ColorToken.TEXT_SECONDARY));
         gc.setFont(constraintFont);
         gc.setTextAlign(TextAlignment.LEFT);
         gc.fillText(row.text(), x + CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP, rowY + CONSTRAINT_ROW_HEIGHT / 2);
@@ -626,136 +565,12 @@ public class XsdNodeRenderer {
     /** Label color per kind, readable on the card surface of either theme. */
     private Color constraintColor(ConstraintRow.Kind kind) {
         return switch (kind) {
-            case KEY -> darkMode ? Color.rgb(251, 191, 36) : Color.rgb(180, 83, 9);
-            case UNIQUE -> darkMode ? Color.rgb(196, 170, 255) : Color.rgb(111, 66, 193);
-            case KEYREF -> darkMode ? Color.rgb(125, 196, 255) : Color.rgb(8, 102, 171);
-            case ASSERT -> darkMode ? Color.rgb(94, 234, 212) : Color.rgb(15, 118, 110);
+            case KEY -> token(ColorToken.WARNING);
+            case UNIQUE -> token(ColorToken.PURPLE);
+            case KEYREF -> token(ColorToken.PRIMARY);
+            case ASSERT -> token(ColorToken.TEAL);
         };
     }
-
-    /**
-     * Renders a regular node (element, attribute, etc.)
-     */
-    private void renderRegularNode(GraphicsContext gc, VisualNode node, double x, double y) {
-        // Use the width and height already set during layout
-        double width = node.getWidth();
-        double height = node.getHeight();
-
-        // Ensure valid dimensions (prevent negative or zero values)
-        if (width <= 0 || height <= 0) {
-            return;  // Skip rendering invalid nodes
-        }
-
-        // Calculate body height dynamically based on content
-        double bodyHeight = calculateBodyHeight(node);
-        double actualHeight = HEADER_HEIGHT + bodyHeight;
-        final double BODY_HEIGHT = bodyHeight;
-
-        // Render the header section (colored background with icon, name, cardinality)
-        if (node.getHeaderColor() != null && node.getBorderColor() != null) {
-            try {
-                renderNodeHeader(gc, node, x, y, width);
-            } catch (Exception e) {
-                // Skip header rendering on error and continue with visual states
-            }
-        }
-
-        // Render the body section (white background with type/detail info)
-        if (BODY_HEIGHT > 0 && node.getBorderColor() != null) {
-            try {
-                renderNodeBody(gc, node, x, y + HEADER_HEIGHT, width, BODY_HEIGHT);
-            } catch (Exception e) {
-                // Skip body rendering on error and continue
-            }
-        }
-
-        // Render connection point circles on node edges
-        if (node.getBorderColor() != null) {
-            try {
-                renderConnectionPoints(gc, node, x, y, width, actualHeight);
-            } catch (Exception e) {
-                // Skip connection points on error
-            }
-        }
-
-        // Draw selection highlight (outer border)
-        if (node.isSelected()) {
-            gc.setStroke(Color.rgb(59, 130, 246));  // Blue highlight
-            gc.setLineWidth(3);
-            gc.strokeRoundRect(x - 2, y - 2, width + 4, height + 4, CORNER_RADIUS + 2, CORNER_RADIUS + 2);
-        }
-
-        // Draw focus indicator (dashed outline)
-        if (node.isFocused()) {
-            gc.setStroke(Color.rgb(139, 92, 246));  // Purple for focus
-            gc.setLineWidth(2);
-            gc.setLineDashes(4, 4);
-            gc.strokeRoundRect(x - 3, y - 3, width + 6, height + 6, CORNER_RADIUS + 3, CORNER_RADIUS + 3);
-            gc.setLineDashes(null);  // Reset to solid
-        }
-
-        // Draw drop target indicator: insertion line before/after, frame for "into", red when refused
-        if (node.isDropTarget()) {
-            renderDropIndicator(gc, node, x, y, width, height);
-        }
-
-        // Draw dragging indicator (semi-transparent overlay)
-        if (node.isDragging()) {
-            gc.setGlobalAlpha(0.5);
-            gc.setFill(Color.rgb(147, 197, 253));  // Light blue overlay
-            gc.fillRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
-            gc.setGlobalAlpha(1.0);  // Reset
-        }
-
-        // Draw edit mode indicator (small badge in top-right corner)
-        if (node.isInEditMode()) {
-            double badgeSize = 8;
-            double badgeX = x + width - badgeSize - 4;
-            double badgeY = y + 4;
-
-            // Draw badge circle
-            gc.setFill(Color.rgb(234, 179, 8));  // Amber color
-            gc.fillOval(badgeX, badgeY, badgeSize, badgeSize);
-
-            // Draw pencil symbol
-            gc.setStroke(Color.WHITE);
-            gc.setLineWidth(1.5);
-            double pencilX = badgeX + badgeSize / 2;
-            double pencilY = badgeY + badgeSize / 2;
-            gc.strokeLine(pencilX - 2, pencilY + 2, pencilX + 2, pencilY - 2);
-        }
-
-        // Draw include file indicator (small colored badge in bottom-left corner)
-        if (node.isFromInclude()) {
-            double badgeSize = 10;
-            double badgeX = x + 4;
-            double badgeY = y + height - badgeSize - 4;
-
-            // Draw badge background (cyan/teal color for include indicator)
-            gc.setFill(Color.rgb(14, 165, 233));  // sky-500 color
-            gc.fillRoundRect(badgeX, badgeY, badgeSize, badgeSize, 3, 3);
-
-            // Draw "I" symbol for include
-            gc.setFill(Color.WHITE);
-            gc.setFont(Font.font("Segoe UI", FontWeight.BOLD, 7));
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.setTextBaseline(VPos.CENTER);
-            gc.fillText("I", badgeX + badgeSize / 2, badgeY + badgeSize / 2);
-
-            // Reset text alignment
-            gc.setTextAlign(TextAlignment.LEFT);
-            gc.setTextBaseline(VPos.TOP);
-        }
-
-        // Draw expand/collapse button if node has children
-        if (node.hasChildren()) {
-            drawExpandButton(gc, node, x, y, width, height);
-        }
-    }
-
-    private static final Color DROP_INTO_COLOR = Color.rgb(34, 197, 94);      // green: drop into
-    private static final Color DROP_LINE_COLOR = Color.rgb(19, 115, 217);     // primary blue: insertion line
-    private static final Color DROP_BLOCKED_COLOR = Color.rgb(220, 53, 69);   // red: drop refused
 
     /**
      * Draws the drop feedback of a card: an insertion line above (before) or below (after) it,
@@ -764,315 +579,162 @@ public class XsdNodeRenderer {
     private void renderDropIndicator(GraphicsContext gc, VisualNode node, double x, double y,
                                      double width, double height) {
         XsdDropPlanner.Position position = node.getDropPosition();
+        Color into = token(ColorToken.SUCCESS);
         if (node.isDropBlocked() || position == null || position == XsdDropPlanner.Position.INTO) {
-            gc.setStroke(node.isDropBlocked() ? DROP_BLOCKED_COLOR : DROP_INTO_COLOR);
+            gc.setStroke(node.isDropBlocked() ? token(ColorToken.DANGER) : into);
             gc.setLineWidth(3);
-            gc.strokeRoundRect(x - 4, y - 4, width + 8, height + 8, CORNER_RADIUS + 4, CORNER_RADIUS + 4);
+            gc.strokeRoundRect(x - 4, y - 4, width + 8, height + 8, (CARD_RADIUS + 4) * 2, (CARD_RADIUS + 4) * 2);
             if (!node.isDropBlocked()) {
                 gc.setGlobalAlpha(0.12);
-                gc.setFill(DROP_INTO_COLOR);
-                gc.fillRoundRect(x, y, width, height, CORNER_RADIUS, CORNER_RADIUS);
+                gc.setFill(into);
+                gc.fillRoundRect(x, y, width, height, CARD_RADIUS * 2, CARD_RADIUS * 2);
                 gc.setGlobalAlpha(1.0);
             }
             return;
         }
+        Color line = token(ColorToken.PRIMARY);
         double lineY = position == XsdDropPlanner.Position.BEFORE ? y - 6 : y + height + 6;
-        gc.setStroke(DROP_LINE_COLOR);
-        gc.setFill(DROP_LINE_COLOR);
+        gc.setStroke(line);
+        gc.setFill(line);
         gc.setLineWidth(2.5);
         gc.strokeLine(x + 4, lineY, x + width, lineY);
         gc.fillOval(x - 1, lineY - 4, 8, 8);
     }
 
     /**
-     * Renders a small compositor symbol (sequence, choice, all).
+     * Renders a compositor (sequence, choice, all) as a small rounded box with its symbol; a
+     * cardinality other than 1..1 is written below the box.
      */
     private void renderCompositorSymbol(GraphicsContext gc, VisualNode node, double x, double y) {
-        // Use the width and height already set during layout (should be COMPOSITOR_SIZE)
         double size = node.getWidth();
+        boolean selected = node.isSelected();
+        double strokeWidth = selected ? 2 : 1.5;
+        Color stroke = selected ? token(ColorToken.PRIMARY)
+                : node.isHovered() ? withAlpha(token(ColorToken.PRIMARY), 0.55) : border();
+        double arc = COMPOSITOR_RADIUS * 2;
 
-        Color borderColor = getXMLSpyBorderColor(node.getType());
+        gc.setFill(selected ? token(ColorToken.BG_SUBTLE) : surface());
+        gc.fillRoundRect(x, y, size, size, arc, arc);
+        gc.setStroke(stroke);
+        gc.setLineWidth(strokeWidth);
+        double inset = strokeWidth / 2;
+        gc.strokeRoundRect(x + inset, y + inset, size - strokeWidth, size - strokeWidth, arc, arc);
 
-        // Apply same line width logic as regular nodes
-        double lineWidth;
-        if (node.isSelected()) {
-            lineWidth = 4.0;  // Thicker border for selected nodes
-        } else if (node.getMaxOccurs() > 1 || node.getMaxOccurs() == Integer.MAX_VALUE || node.getMaxOccurs() == -1) {
-            lineWidth = 3.0;  // Thicker border for multiple occurrences
-        } else {
-            lineWidth = 1.5;  // Normal border for single occurrence
+        double iconOffset = (size - COMPOSITOR_ICON_SIZE) / 2;
+        SvgIconRenderer.renderIcon(gc, cardIcon(node), x + iconOffset, y + iconOffset, COMPOSITOR_ICON_SIZE,
+                selected ? token(ColorToken.PRIMARY) : token(ColorToken.TEXT_SECONDARY));
+
+        String cardinality = getCardinalityString(node);
+        if (!cardinality.isEmpty()) {
+            gc.setFont(compositorLabelFont);
+            gc.setFill(token(ColorToken.TEXT_MUTED));
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.setTextBaseline(VPos.TOP);
+            gc.fillText(cardinality, x + size / 2, y + size + 2);
+            gc.setTextAlign(TextAlignment.LEFT);
         }
 
-        // Draw small filled circle/diamond based on type
-        gc.setStroke(borderColor);
-        gc.setLineWidth(lineWidth);
-
-        switch (node.getType()) {
-            case SEQUENCE -> {
-                // Draw rounded square for sequence
-                gc.setFill(darkMode ? Color.rgb(21, 45, 52, 0.8) : Color.rgb(207, 250, 254, 0.8));
-                gc.fillRoundRect(x, y, size, size, 4, 4);
-                gc.strokeRoundRect(x, y, size, size, 4, 4);
-
-                // Draw "SEQ" or lines symbol with cardinality
-                gc.setFill(borderColor);
-                gc.setFont(Font.font("Segoe UI", 7));  // Smaller font for cardinality
-                gc.setTextAlign(TextAlignment.CENTER);
-                gc.setTextBaseline(VPos.CENTER);
-                
-                String cardinalityText = getCardinalityString(node);
-                if (!cardinalityText.isEmpty()) {
-                    gc.fillText(cardinalityText, x + size / 2, y + size / 2);
-                } else {
-                    gc.fillText("=", x + size / 2, y + size / 2);
-                }
-            }
-            case CHOICE -> {
-                // Draw diamond for choice
-                gc.setFill(darkMode ? Color.rgb(56, 48, 20, 0.8) : Color.rgb(254, 243, 199, 0.8));
-                double centerX = x + size / 2;
-                double centerY = y + size / 2;
-                double halfSize = size / 2;
-                gc.fillPolygon(
-                        new double[]{centerX, centerX + halfSize, centerX, centerX - halfSize},
-                        new double[]{centerY - halfSize, centerY, centerY + halfSize, centerY},
-                        4
-                );
-                gc.strokePolygon(
-                        new double[]{centerX, centerX + halfSize, centerX, centerX - halfSize},
-                        new double[]{centerY - halfSize, centerY, centerY + halfSize, centerY},
-                        4
-                );
-
-                // Draw "?" symbol with cardinality
-                gc.setFill(borderColor);
-                gc.setFont(Font.font("Segoe UI", 7));  // Smaller font for cardinality
-                gc.setTextAlign(TextAlignment.CENTER);
-                gc.setTextBaseline(VPos.CENTER);
-                
-                String cardinalityText = getCardinalityString(node);
-                if (!cardinalityText.isEmpty()) {
-                    gc.fillText(cardinalityText, centerX, centerY);
-                } else {
-                    gc.fillText("?", centerX, centerY);
-                }
-            }
-            case ALL -> {
-                // Draw circle for all
-                gc.setFill(darkMode ? Color.rgb(42, 36, 66, 0.8) : Color.rgb(237, 233, 254, 0.8));
-                gc.fillOval(x, y, size, size);
-                gc.strokeOval(x, y, size, size);
-
-                // Draw "*" symbol with cardinality
-                gc.setFill(borderColor);
-                gc.setFont(Font.font("Segoe UI", 7));  // Smaller font for cardinality
-                gc.setTextAlign(TextAlignment.CENTER);
-                gc.setTextBaseline(VPos.CENTER);
-
-                String cardinalityText = getCardinalityString(node);
-                if (!cardinalityText.isEmpty()) {
-                    gc.fillText(cardinalityText, x + size / 2, y + size / 2);
-                } else {
-                    gc.fillText("*", x + size / 2, y + size / 2);
-                }
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + node.getType());
+        if (node.isFocused()) {
+            gc.setStroke(token(ColorToken.INDIGO));
+            gc.setLineWidth(2);
+            gc.setLineDashes(4, 4);
+            gc.strokeRoundRect(x - 3, y - 3, size + 6, size + 6, arc + 6, arc + 6);
+            gc.setLineDashes(null);
         }
-
-        // Draw drop target indicator (compositors only take drops into them)
+        // Compositors only take drops into them
         if (node.isDropTarget()) {
-            gc.setStroke(node.isDropBlocked() ? DROP_BLOCKED_COLOR : DROP_INTO_COLOR);
+            gc.setStroke(node.isDropBlocked() ? token(ColorToken.DANGER) : token(ColorToken.SUCCESS));
             gc.setLineWidth(3);
-            gc.strokeOval(x - 4, y - 4, size + 8, size + 8);
+            gc.strokeRoundRect(x - 4, y - 4, size + 8, size + 8, arc + 8, arc + 8);
         }
-
-        // Draw dragging indicator (semi-transparent overlay)
         if (node.isDragging()) {
-            gc.setGlobalAlpha(0.5);
-            gc.setFill(Color.rgb(147, 197, 253));  // Light blue overlay
-            gc.fillOval(x, y, size, size);
-            gc.setGlobalAlpha(1.0);  // Reset
+            gc.setGlobalAlpha(0.45);
+            gc.setFill(token(ColorToken.BG_SUBTLE));
+            gc.fillRoundRect(x, y, size, size, arc, arc);
+            gc.setGlobalAlpha(1.0);
         }
-
-        // Draw cardinality indicator next to compositor symbol if it's not default (1..1)\n        String cardinality = getCardinalityString(node);\n        if (!cardinality.isEmpty() && cardinality.length() > 3) { // Only show if it doesn't fit in symbol\n            gc.setFont(Font.font(\"Segoe UI\", 8));\n            gc.setFill(Color.rgb(67, 56, 202));  // Indigo color for cardinality\n            gc.setTextAlign(TextAlignment.LEFT);\n            gc.setTextBaseline(VPos.CENTER);\n            \n            // Position to the right of the compositor symbol\n            double cardinalityX = x + size + 4;\n            double cardinalityY = y + size / 2;\n            gc.fillText(cardinality, cardinalityX, cardinalityY);\n        }\n        \n        // Apply selection highlight for compositor nodes\n        if (node.isSelected()) {\n            gc.setStroke(Color.rgb(59, 130, 246));  // Blue highlight\n            gc.setLineWidth(3);\n            switch (node.getType()) {\n                case SEQUENCE -> {\n                    gc.strokeRoundRect(x - 2, y - 2, size + 4, size + 4, 6, 6);\n                }\n                case CHOICE -> {\n                    double centerX = x + size / 2;\n                    double centerY = y + size / 2;\n                    double halfSize = (size + 4) / 2;\n                    gc.strokePolygon(\n                            new double[]{centerX, centerX + halfSize, centerX, centerX - halfSize},\n                            new double[]{centerY - halfSize, centerY, centerY + halfSize, centerY},\n                            4\n                    );\n                }\n                case ALL -> {\n                    gc.strokeOval(x - 2, y - 2, size + 4, size + 4);\n                }\n            }\n        }\n        \n        // Apply focus indicator for compositor nodes\n        if (node.isFocused()) {\n            gc.setStroke(Color.rgb(139, 92, 246));  // Purple for focus\n            gc.setLineWidth(2);\n            gc.setLineDashes(4, 4);\n            switch (node.getType()) {\n                case SEQUENCE -> {\n                    gc.strokeRoundRect(x - 3, y - 3, size + 6, size + 6, 7, 7);\n                }\n                case CHOICE -> {\n                    double centerX = x + size / 2;\n                    double centerY = y + size / 2;\n                    double halfSize = (size + 6) / 2;\n                    gc.strokePolygon(\n                            new double[]{centerX, centerX + halfSize, centerX, centerX - halfSize},\n                            new double[]{centerY - halfSize, centerY, centerY + halfSize, centerY},\n                            4\n                    );\n                }\n                case ALL -> {\n                    gc.strokeOval(x - 3, y - 3, size + 6, size + 6);\n                }\n            }\n            gc.setLineDashes(null);  // Reset to solid\n        }
-
         // No expand button for compositor symbols - they auto-expand
     }
 
     /**
-     * Draws the expand/collapse button (+/-) with visual feedback for lazy loading state.
-     * Shows different indicators based on whether the node has unloaded children or is loading.
+     * Draws the expand/collapse button: a chevron pointing right (collapsed) or left (expanded),
+     * a dot for children not loaded yet, three dots while they load.
      */
-    private void drawExpandButton(GraphicsContext gc, VisualNode node, double x, double y, double nodeWidth, double nodeHeight) {
+    private void drawExpandButton(GraphicsContext gc, VisualNode node, double x, double y, double nodeWidth) {
         double btnX = expandButtonX(x, nodeWidth);
-        double btnY = y + (nodeHeight - EXPAND_BUTTON_SIZE) / 2;
-
+        double btnY = y + (CARD_HEIGHT - EXPAND_BUTTON_SIZE) / 2;
         node.setExpandButtonBounds(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE);
 
-        // Determine button style based on lazy loading state
-        boolean isLoadingChildren = node.isLoadingChildren();
-        boolean hasUnloadedChildren = node.hasUnloadedChildren();
-
-        // Draw button background - different colors for lazy loading states
-        if (isLoadingChildren) {
-            gc.setFill(darkMode ? Color.rgb(64, 54, 22) : Color.rgb(255, 243, 205));  // Yellow-toned for loading
-        } else if (hasUnloadedChildren && !node.isExpanded()) {
-            gc.setFill(darkMode ? Color.rgb(28, 42, 58) : Color.rgb(231, 243, 255));  // Blue-toned for unloaded children
-        } else {
-            gc.setFill(surface());
-        }
-
-        gc.setStroke(isLoadingChildren ? Color.rgb(255, 193, 7) : Color.DARKGRAY);
+        boolean loading = node.isLoadingChildren();
+        gc.setFill(surface());
+        gc.fillRoundRect(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE, 8, 8);
+        gc.setStroke(loading ? token(ColorToken.WARNING) : border());
         gc.setLineWidth(1);
-        gc.fillRect(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE);
-        gc.strokeRect(btnX, btnY, EXPAND_BUTTON_SIZE, EXPAND_BUTTON_SIZE);
+        gc.strokeRoundRect(btnX + 0.5, btnY + 0.5, EXPAND_BUTTON_SIZE - 1, EXPAND_BUTTON_SIZE - 1, 7, 7);
 
-        double centerX = btnX + EXPAND_BUTTON_SIZE / 2;
-        double centerY = btnY + EXPAND_BUTTON_SIZE / 2;
-
-        if (isLoadingChildren) {
-            // Draw loading indicator (three dots)
-            gc.setFill(Color.rgb(133, 100, 4));
-            double dotSize = 2.5;
-            double dotSpacing = 3.5;
-            gc.fillOval(centerX - dotSpacing - dotSize / 2, centerY - dotSize / 2, dotSize, dotSize);
-            gc.fillOval(centerX - dotSize / 2, centerY - dotSize / 2, dotSize, dotSize);
-            gc.fillOval(centerX + dotSpacing - dotSize / 2, centerY - dotSize / 2, dotSize, dotSize);
-        } else if (hasUnloadedChildren && !node.isExpanded()) {
-            // Draw "lazy" indicator (plus with a small circle)
-            gc.setStroke(Color.rgb(0, 102, 204));  // Blue color
-            gc.setLineWidth(2);
-
-            // Draw plus sign
-            gc.strokeLine(centerX - 5, centerY, centerX + 5, centerY);
-            gc.strokeLine(centerX, centerY - 5, centerX, centerY + 5);
-
-            // Draw small dot in corner to indicate lazy loading
-            gc.setFill(Color.rgb(0, 123, 255));
-            gc.fillOval(btnX + EXPAND_BUTTON_SIZE - 5, btnY + 1, 4, 4);
-        } else {
-            // Draw standard +/- symbol
-            gc.setStroke(darkMode ? Color.rgb(230, 234, 240) : Color.BLACK);
-            gc.setLineWidth(2);
-
-            // Horizontal line (always present)
-            gc.strokeLine(centerX - 5, centerY, centerX + 5, centerY);
-
-            // Vertical line (only if collapsed)
-            if (!node.isExpanded()) {
-                gc.strokeLine(centerX, centerY - 5, centerX, centerY + 5);
+        double cx = btnX + EXPAND_BUTTON_SIZE / 2;
+        double cy = btnY + EXPAND_BUTTON_SIZE / 2;
+        if (loading) {
+            gc.setFill(token(ColorToken.WARNING));
+            double dot = 2.5;
+            for (int i = -1; i <= 1; i++) {
+                gc.fillOval(cx + i * 4 - dot / 2, cy - dot / 2, dot, dot);
             }
+            return;
+        }
+        double iconSize = 11;
+        SvgIconRenderer.renderIcon(gc, node.isExpanded() ? "bi-chevron-left" : "bi-chevron-right",
+                cx - iconSize / 2, cy - iconSize / 2, iconSize, token(ColorToken.TEXT_SECONDARY));
+        if (node.hasUnloadedChildren() && !node.isExpanded()) {
+            gc.setFill(token(ColorToken.PRIMARY));
+            gc.fillOval(btnX + EXPAND_BUTTON_SIZE - 5, btnY + 1, 4, 4);
         }
     }
 
     /**
-     * Draws a connection line between parent and child nodes.
-     * Creates an L-shaped connector from the right side of parent to the left side of child.
+     * Draws the connector between a node and one of its children: from the parent's right edge to
+     * a vertical bus just left of the children, along the bus, and into the child — the comb shape
+     * all siblings share.
      */
     public void renderConnection(GraphicsContext gc, VisualNode parent, VisualNode child) {
-        gc.setStroke(Color.GRAY);
-        gc.setLineWidth(1);
-
-        // Start at right side of parent node (vertical center)
         double startX = parent.getX() + parent.getWidth();
-        double startY = parent.getY() + parent.getHeight() / 2;
-
-        // End at left side of child node (vertical center)
+        double startY = anchorY(parent);
         double endX = child.getX();
-        double endY = child.getY() + child.getHeight() / 2;
-
-        // Draw L-shaped connection: horizontal → vertical → horizontal
-        double midX = startX + (endX - startX) / 2;
-
-        // Three line segments forming an L-shape
-        gc.strokeLine(startX, startY, midX, startY);    // Horizontal from parent to midpoint
-        gc.strokeLine(midX, startY, midX, endY);        // Vertical from parent level to child level
-        gc.strokeLine(midX, endY, endX, endY);          // Horizontal from midpoint to child
-    }
-
-    /**
-     * Gets the border color for a node based on its type (XMLSpy style).
-     */
-    private Color getXMLSpyBorderColor(NodeWrapperType type) {
-        return switch (type) {
-            case ELEMENT -> Color.rgb(74, 144, 226);          // #4a90e2 - XMLSpy element border
-            case ATTRIBUTE -> Color.rgb(212, 161, 71);        // #d4a147 - XMLSpy attribute border
-            case COMPLEX_TYPE, SCHEMA, GROUP -> Color.rgb(108, 117, 125);  // #6c757d - XMLSpy structural border
-            case SIMPLE_TYPE -> Color.rgb(5, 150, 105);       // Green
-            case SEQUENCE -> Color.rgb(8, 145, 178);          // Cyan
-            case CHOICE -> Color.rgb(245, 158, 11);           // Amber
-            case ALL -> Color.rgb(139, 92, 246);              // Violet
-            default -> Color.LIGHTGRAY;
-        };
-    }
-
-    /**
-     * Creates a header gradient from a base color.
-     * Returns a gradient from lighter tint to darker tint.
-     */
-    private LinearGradient createHeaderGradient(Color baseColor, double y, double height) {
-        // Subtle gradient toward the card surface: pale tint in light mode, dark tint in dark mode
-        Color towards = surface();
-        Color lighter = baseColor.interpolate(towards, 0.92);  // 92% towards surface
-        Color darker = baseColor.interpolate(towards, 0.82);   // 82% towards surface
-
-        return new LinearGradient(0, y, 0, y + height, false, CycleMethod.NO_CYCLE,
-                new Stop(0, lighter),
-                new Stop(1, darker)
-        );
-    }
-
-    public double getNodeWidth() {
-        return MIN_NODE_WIDTH;  // Return minimum width for backwards compatibility
-    }
-
-    public double getNodeHeight() {
-        return NODE_HEIGHT;
-    }
-
-    public double getHorizontalSpacing() {
-        return HORIZONTAL_SPACING;
-    }
-
-    public double getVerticalSpacing() {
-        return VERTICAL_SPACING;
-    }
-
-    public double getCompositorSize() {
-        return COMPOSITOR_SIZE;
+        double endY = anchorY(child);
+        double busX = endX - BUS_TO_CHILD;
+        if (busX <= startX) {
+            busX = startX + (endX - startX) / 2;
+        }
+        gc.setStroke(border());
+        gc.setLineWidth(CONNECTOR_WIDTH);
+        gc.setLineCap(StrokeLineCap.BUTT);
+        gc.setLineJoin(StrokeLineJoin.MITER);
+        if (Math.abs(startY - endY) < 0.5) {
+            gc.strokeLine(startX, startY, endX, endY);
+        } else {
+            gc.strokePolyline(new double[]{startX, busX, busX, endX}, new double[]{startY, startY, endY, endY}, 4);
+        }
     }
 
     /**
      * Generates the cardinality string for display based on minOccurs and maxOccurs.
-     * 
-     * Examples:
-     * - minOccurs=1, maxOccurs=1 -> "" (no display, default)
-     * - minOccurs=0, maxOccurs=1 -> "0..1"
-     * - minOccurs=1, maxOccurs=unbounded -> "1..*"
-     * - minOccurs=0, maxOccurs=unbounded -> "0..*" 
-     * - minOccurs=2, maxOccurs=5 -> "2..5"
+     * <p>
+     * Examples: 1..1 → "" (default, not shown), 0..1 → "0..1", 1..unbounded → "1..*",
+     * 0..unbounded → "0..*", 2..5 → "2..5", 3..3 → "3".
      */
-    private String getCardinalityString(VisualNode node) {
+    static String getCardinalityString(VisualNode node) {
         int minOccurs = node.getMinOccurs();
         int maxOccurs = node.getMaxOccurs();
-        
-        // Default case (1..1) - don't display
         if (minOccurs == 1 && maxOccurs == 1) {
             return "";
         }
-        
-        // Build cardinality string
         StringBuilder cardinality = new StringBuilder();
         cardinality.append(minOccurs);
-        
-        // Handle unbounded (can be Integer.MAX_VALUE or -1)
         if (maxOccurs == Integer.MAX_VALUE || maxOccurs == -1) {
             cardinality.append("..*");
         } else if (maxOccurs != minOccurs) {
             cardinality.append("..").append(maxOccurs);
         }
-        // If min equals max (and not 1..1), just show the number
-        
         return cardinality.toString();
     }
 
@@ -1134,12 +796,7 @@ public class XsdNodeRenderer {
         private boolean loadingChildren;  // True while children are being loaded
 
         // New properties for improved visual representation
-        private String iconLiteral;             // Bootstrap icon code (e.g., "bi-diagram-3")
-        private Color headerColor;              // Header background color
-        private Color borderColor;              // Border and connection point color
-        private Color iconBackgroundColor;      // Icon box background color
-        private String cardinalityBadge;        // Formatted cardinality (e.g., "1..1", "0..*", "ROOT")
-        private boolean showConnectionPoints;   // Whether to show connection circles
+        private String cardinalityBadge;        // Cardinality pill text (e.g., "0..1", "1..*", "req"); "" = none
 
         // Identity constraints and assertions the card lists
         private java.util.function.Supplier<java.util.List<ConstraintRow>> constraintSource;
@@ -1197,302 +854,30 @@ public class XsdNodeRenderer {
         }
 
         /**
-         * Initializes visual properties (colors, icons, cardinality badge) based on node type.
-         * This method is called once during construction and can be called to refresh visual properties.
+         * Refreshes the derived display properties (the cardinality pill) from the node's state.
+         * Called on construction and after every model change.
          */
         public void initializeVisualProperties() {
-            // Set icon literal based on type and content
-            this.iconLiteral = determineIconLiteral();
-
-
-            // Set header color (semantic colors from style guide)
-            this.headerColor = switch (type) {
-                case SCHEMA -> Color.rgb(111, 66, 193);            // #6f42c1 - Purple
-                case ELEMENT -> Color.rgb(0, 123, 255);             // #007bff - Blue
-                case ATTRIBUTE -> Color.rgb(32, 201, 151);          // #20c997 - Teal
-                case COMPLEX_TYPE, GROUP -> Color.rgb(108, 117, 125);  // #6c757d - Gray
-                case SIMPLE_TYPE -> Color.rgb(40, 167, 69);         // #28a745 - Green
-                case SEQUENCE -> Color.rgb(23, 162, 184);           // #17a2b8 - Cyan
-                case CHOICE -> Color.rgb(253, 126, 20);             // #fd7e14 - Orange
-                case ALL -> Color.rgb(111, 66, 193);                // #6f42c1 - Purple
-                case COMMENT -> Color.rgb(108, 117, 125, 0.5);      // Semi-transparent gray
-                default -> Color.LIGHTGRAY;
-            };
-
-            // Icon background color is the same as header color
-            this.iconBackgroundColor = this.headerColor;
-
-            // Border color matches header color
-            this.borderColor = this.headerColor;
-
-            // Set cardinality badge
             this.cardinalityBadge = formatCardinalityBadge();
-
-            // Connection points are always shown
-            this.showConnectionPoints = true;
         }
 
         /**
-         * Formats the cardinality badge text.
+         * The text of the cardinality pill: empty for the default 1..1, "req"/"opt"/"prohibited"
+         * for attributes, "ROOT" for the schema, otherwise {@code min..max} with {@code *}.
          */
         private String formatCardinalityBadge() {
-            // Special case for SCHEMA - show "ROOT"
-            if (type == NodeWrapperType.SCHEMA) {
-                return "ROOT";
-            }
-            // Comments have no cardinality
-            if (type == NodeWrapperType.COMMENT) {
-                return "";
-            }
-
-            // Format minOccurs..maxOccurs
-            String maxStr = maxOccurs == Integer.MAX_VALUE || maxOccurs == -1 ? "*" : String.valueOf(maxOccurs);
-            return minOccurs + ".." + maxStr;
-        }
-
-        /** The type name in a detail string, without trailing flags such as {@code [N]} (no regex: runs per card). */
-        private static String typeNameOf(String detail) {
-            int bracket = detail.indexOf('[');
-            return (bracket >= 0 ? detail.substring(0, bracket) : detail).trim();
-        }
-
-        /**
-         * Determines the appropriate icon literal based on node type and datatype.
-         * Uses different icons for primitive types vs complex types.
-         */
-        private String determineIconLiteral() {
-            switch (type) {
-                case SCHEMA:
-                    return "bi-hdd-stack";  // Database/schema symbol
-                case ELEMENT:
-                    // Try to detect element datatype from detail string
-                    if (detail != null && !detail.isEmpty()) {
-                        // Extract just the type name (remove flags like [N], [A], etc.)
-                        String typeName = typeNameOf(detail);
-                        return getDataTypeIcon(typeName);
+            return switch (type) {
+                case SCHEMA -> "ROOT";
+                case COMMENT, SEQUENCE, CHOICE, ALL, ENUMERATION, COMPLEX_TYPE, SIMPLE_TYPE -> "";
+                case ATTRIBUTE -> {
+                    if (modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
+                        String use = attribute.getUse();
+                        yield "required".equals(use) ? "req" : "prohibited".equals(use) ? "prohibited" : "opt";
                     }
-                    return "bi-file-earmark";  // Generic document
-                case ATTRIBUTE:
-                    // Try to detect attribute datatype from detail string
-                    if (detail != null && !detail.isEmpty()) {
-                        // Extract just the type name (remove flags like [Q], [U])
-                        String typeName = typeNameOf(detail);
-                        String icon = getDataTypeIcon(typeName);
-                        if (!"bi-code".equals(icon)) {
-                            return icon;
-                        }
-                    }
-                    return "bi-at";  // @ symbol
-                case COMPLEX_TYPE:
-                    // Use the custom ComplexType icon showing hierarchical structure
-                    return "xsd-complex-type";
-                case SIMPLE_TYPE:
-                    // Use custom SimpleType icons with "S" badge based on base type
-                    if (detail != null && !detail.isEmpty()) {
-                        // Extract just the type name (remove flags if any)
-                        String typeName = typeNameOf(detail);
-                        return getSimpleTypeIcon(typeName);
-                    }
-                    return "xsd-simple-generic";  // Generic SimpleType with "S" badge
-                case SEQUENCE:
-                    return "bi-list-ol";  // Ordered list
-                case CHOICE:
-                    return "bi-signpost-split";  // Branch/choice
-                case ALL:
-                    return "bi-collection";  // Unordered collection
-                case GROUP:
-                    return "bi-folder";  // Folder for grouping
-                case ENUMERATION:
-                    return "bi-list-check";  // Checklist
-                case COMMENT:
-                    return "bi-chat-left-quote";  // Comment icon
-                default:
-                    return "bi-question-circle";  // Unknown type
-            }
-        }
-
-        /**
-         * Maps specific XSD datatype strings to unique Bootstrap icons.
-         * Each common datatype has its own distinct icon for visual differentiation.
-         */
-        private String getDataTypeIcon(String datatype) {
-            if (datatype == null || datatype.isEmpty()) {
-                return "bi-code";  // Default generic code symbol
-            }
-
-            String lower = datatype.toLowerCase();
-
-            // ID / Keys - Highest priority
-            if (lower.endsWith(":id") || lower.equals("id") || lower.endsWith("idref")) {
-                return "bi-key";  // Key symbol for identifiers
-            }
-
-            // String & Text types
-            if (lower.endsWith("string")) {
-                return "bi-type";  // Typography symbol for text
-            }
-            if (lower.endsWith("token") || lower.endsWith("normalizedstring")) {
-                return "bi-chat-quote";  // Quote symbol for tokens
-            }
-            if (lower.endsWith("name") || lower.endsWith("ncname")) {
-                return "bi-tag";  // Tag symbol for names
-            }
-            if (lower.endsWith("language")) {
-                return "bi-globe2";  // Globe symbol for language
-            }
-
-            // Numeric types
-            // Integers
-            if (lower.endsWith("integer") || lower.endsWith("int") || lower.endsWith("short") || 
-                lower.endsWith("long") || lower.endsWith("byte") || lower.endsWith("unsignedint")) {
-                return "bi-calculator";  // Calculator for numbers
-            }
-            // Floating point / Decimals
-            if (lower.endsWith("decimal") || lower.endsWith("float") || lower.endsWith("double")) {
-                return "bi-calculator";  // Calculator for precise math
-            }
-
-            // Date & Time
-            if (lower.endsWith("datetime") || lower.endsWith("date") || 
-                lower.endsWith("gyear") || lower.endsWith("gmonth") || 
-                lower.endsWith("time") || lower.endsWith("duration")) {
-                return "bi-calendar";  // Calendar for all date/time
-            }
-
-            // Boolean
-            if (lower.endsWith("boolean")) {
-                return "bi-toggle-on";  // Toggle switch
-            }
-
-            // Binary Data
-            if (lower.endsWith("base64binary") || lower.endsWith("hexbinary")) {
-                return "bi-file-earmark-binary";  // Binary file symbol
-            }
-
-            // URIs & Web
-            if (lower.endsWith("anyuri") || lower.endsWith("uri")) {
-                return "bi-link";  // Link symbol
-            }
-
-            // XML Specific
-            if (lower.endsWith("qname") || lower.endsWith("notation")) {
-                return "bi-braces";  // Braces for technical types
-            }
-
-            // List types
-            if (lower.endsWith("list")) {
-                return "bi-list-ul";  // List symbol
-            }
-
-            // Union types
-            if (lower.endsWith("union")) {
-                return "bi-intersect";  // Intersection/Union symbol
-            }
-
-            // ComplexType references - types ending with "Type" that aren't primitive
-            // e.g., "ControlDataType", "PersonType", "AddressType"
-            if (lower.endsWith("type") && !isPrimitiveType(datatype)) {
-                return "xsd-element-complex";  // Element with complex content
-            }
-
-            // Any other custom type name (likely a ComplexType reference)
-            // If it contains namespace prefix and doesn't match primitives
-            if (datatype.contains(":") && !isPrimitiveType(datatype)) {
-                return "xsd-element-complex";
-            }
-
-            // Default fallback - use generic complex element icon
-            return "xsd-element-complex";
-        }
-
-        /**
-         * Maps specific XSD datatype strings to SimpleType icons with "S" badge.
-         * These icons look like their base type but are visually distinct as type definitions.
-         *
-         * @param datatype the base type string (e.g., "xs:string", "integer")
-         * @return the icon literal for the SimpleType (e.g., "xsd-simple-string")
-         */
-        private String getSimpleTypeIcon(String datatype) {
-            if (datatype == null || datatype.isEmpty()) {
-                return "xsd-simple-generic";
-            }
-
-            String lower = datatype.toLowerCase();
-
-            // ID / Keys
-            if (lower.endsWith(":id") || lower.equals("id") || lower.endsWith("idref")) {
-                return "xsd-simple-id";
-            }
-
-            // String & Text types
-            if (lower.endsWith("string")) {
-                return "xsd-simple-string";
-            }
-            if (lower.endsWith("token") || lower.endsWith("normalizedstring")) {
-                return "xsd-simple-token";
-            }
-            if (lower.endsWith("name") || lower.endsWith("ncname")) {
-                return "xsd-simple-name";
-            }
-            if (lower.endsWith("language")) {
-                return "xsd-simple-language";
-            }
-
-            // Numeric types - Integers
-            if (lower.endsWith("integer") || lower.endsWith("int") || lower.endsWith("short") ||
-                lower.endsWith("long") || lower.endsWith("byte") || lower.endsWith("unsignedint") ||
-                lower.endsWith("positiveinteger") || lower.endsWith("negativeinteger") ||
-                lower.endsWith("nonpositiveinteger") || lower.endsWith("nonnegativeinteger")) {
-                return "xsd-simple-number";
-            }
-
-            // Numeric types - Decimals / Floating point
-            if (lower.endsWith("decimal") || lower.endsWith("float") || lower.endsWith("double")) {
-                return "xsd-simple-decimal";
-            }
-
-            // Date & Time
-            if (lower.endsWith("datetime") || lower.endsWith("date") ||
-                lower.endsWith("gyear") || lower.endsWith("gmonth") || lower.endsWith("gday") ||
-                lower.endsWith("gyearmonth") || lower.endsWith("gmonthday")) {
-                return "xsd-simple-date";
-            }
-            if (lower.endsWith("time") || lower.endsWith("duration")) {
-                return "xsd-simple-time";
-            }
-
-            // Boolean
-            if (lower.endsWith("boolean")) {
-                return "xsd-simple-boolean";
-            }
-
-            // Binary Data
-            if (lower.endsWith("base64binary") || lower.endsWith("hexbinary")) {
-                return "xsd-simple-binary";
-            }
-
-            // URIs & Web
-            if (lower.endsWith("anyuri") || lower.endsWith("uri")) {
-                return "xsd-simple-uri";
-            }
-
-            // XML Specific types - use generic
-            if (lower.endsWith("qname") || lower.endsWith("notation")) {
-                return "xsd-simple-generic";
-            }
-
-            // List types - use generic
-            if (lower.endsWith("list")) {
-                return "xsd-simple-generic";
-            }
-
-            // Union types - use generic
-            if (lower.endsWith("union")) {
-                return "xsd-simple-generic";
-            }
-
-            // Default fallback - generic SimpleType
-            return "xsd-simple-generic";
+                    yield "";
+                }
+                default -> XsdNodeRenderer.getCardinalityString(this);
+            };
         }
 
         /**
@@ -1911,80 +1296,6 @@ public class XsdNodeRenderer {
             return null;
         }
 
-        /**
-         * Determines icon literal based on the actual model object type.
-         * This is a fallback when the cached icon is not properly set.
-         * Directly analyzes the modelObject to determine the appropriate icon.
-         *
-         * @return the icon literal, or null if cannot determine
-         */
-        public String determineIconFromModelObject() {
-            if (this.modelObject == null) {
-                return null;
-            }
-
-            // Handle based on actual model object type
-            if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType) {
-                // SimpleType: extract base type and determine icon with S-badge
-                org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType =
-                    (org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType) this.modelObject;
-                String baseType = extractBaseTypeFromSimpleType(simpleType);
-                if (baseType != null) {
-                    // Use getSimpleTypeIcon for SimpleType definitions (with S-badge)
-                    return getSimpleTypeIcon(baseType);
-                }
-                return "xsd-simple-generic";  // Fallback for SimpleType with generic S-badge
-            } else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType) {
-                // ComplexType: use the custom ComplexType icon
-                return "xsd-complex-type";
-            } else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement) {
-                // Element: extract type and determine icon
-                org.fxt.freexmltoolkit.controls.v2.model.XsdElement element =
-                    (org.fxt.freexmltoolkit.controls.v2.model.XsdElement) this.modelObject;
-                String type = element.getType();
-                if (type != null) {
-                    String baseType = resolveBaseTypeToPrimitive(type, 0, new java.util.HashSet<>());
-                    String icon = getDataTypeIcon(baseType);
-                    if (!"bi-code".equals(icon)) {
-                        return icon;
-                    }
-                }
-                return "bi-file-earmark";  // Fallback for Element
-            } else if (this.modelObject instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute) {
-                // Attribute: extract type and determine icon
-                org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute =
-                    (org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute) this.modelObject;
-                String type = attribute.getType();
-                if (type != null) {
-                    String baseType = resolveBaseTypeToPrimitive(type, 0, new java.util.HashSet<>());
-                    String icon = getDataTypeIcon(baseType);
-                    if (!"bi-code".equals(icon)) {
-                        return icon;
-                    }
-                }
-                return "bi-at";  // Fallback for Attribute
-            }
-
-            return null;
-        }
-
-        /**
-         * Extracts the primitive base type from an XsdSimpleType.
-         * Follows the type chain up to 5 levels.
-         *
-         * @param simpleType the simple type to extract from
-         * @return the base type, or null if not found
-         */
-        private String extractBaseTypeFromSimpleType(org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType simpleType) {
-            for (org.fxt.freexmltoolkit.controls.v2.model.XsdNode child : simpleType.getChildren()) {
-                String base = extractBaseType(child);
-                if (base != null) {
-                    return resolveBaseTypeToPrimitive(base, 0, new java.util.HashSet<>());
-                }
-            }
-            return null;
-        }
-
         public void addChild(VisualNode child) {
             children.add(child);
         }
@@ -2081,29 +1392,8 @@ public class XsdNodeRenderer {
             return maxOccurs;
         }
 
-        // Getters for new visual properties
-        public String getIconLiteral() {
-            return iconLiteral;
-        }
-
-        public Color getHeaderColor() {
-            return headerColor;
-        }
-
-        public Color getBorderColor() {
-            return borderColor;
-        }
-
-        public Color getIconBackgroundColor() {
-            return iconBackgroundColor;
-        }
-
         public String getCardinalityBadge() {
             return cardinalityBadge;
-        }
-
-        public boolean isShowConnectionPoints() {
-            return showConnectionPoints;
         }
 
         public void setX(double x) {

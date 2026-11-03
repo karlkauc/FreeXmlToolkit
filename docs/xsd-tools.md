@@ -64,6 +64,27 @@ The Graphic View lets you explore and edit your schemas visually.
 > available in the **Text** view as well as the Graphic and Tree views. See
 > [Editing Schema Properties from Any View](#editing-schema-properties-from-any-view) below.
 
+### Reading a Card {#reading-a-card}
+
+Every node is a card with two lines: the **name** and, below it in a monospace font, the
+**type** (`xs:string`, `DataSupplierType`) - or the kind of node when it has no type
+(`element`, `group`). The cards of one sequence, choice or all share the width of the widest one.
+
+| What you see | Meaning |
+|--------------|---------|
+| Symbol `</>` | Simple content (a simple type, no children) |
+| Symbol of a small tree | Content of its own: a complex type, or an element with children |
+| Symbol `@` | Attribute |
+| Folder symbol | Group or attribute group reference |
+| Symbol colour | Kind of node: blue element, teal attribute, green simple type, grey complex type or group |
+| Pill `0..1`, `1..*`, `2..5` | Cardinality; none is shown for the default `1..1` |
+| Pill `req` / `opt` | Attribute use: required or optional |
+| **Dashed** outline | Optional (`minOccurs="0"`, or an attribute that is not required) |
+| A second outline behind the card | Repeats (`maxOccurs` above 1 or `unbounded`) |
+| Button with `›` / `‹` | Opens / closes the card; a blue dot means its children load when you open it |
+| Small box with lines, signpost or stack | `xs:sequence`, `xs:choice`, `xs:all`; a cardinality other than `1..1` is written below it |
+| Small blue `I` in the corner | The node comes from an included file |
+
 ### Constraints on the Cards
 
 A card lists what limits its node below the type lines, one row per constraint:

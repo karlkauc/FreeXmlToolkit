@@ -54,7 +54,7 @@ public final class DesignTokens {
         BG_CANVAS("-fxt-bg-canvas", "#f5f7fa", "#0f1419"),
         BG_SURFACE("-fxt-bg-surface", "#ffffff", "#161b22"),
         BG_SURFACE_2("-fxt-bg-surface-2", "#f2f4f8", "#1c232c"),
-        BG_SUBTLE("-fxt-bg-subtle", "#e7ecfd", "#20305c"),
+        BG_SUBTLE("-fxt-bg-subtle", "#e8f1fc", "#14304f"),
         BORDER_DEFAULT("-fxt-border", "#dde1e7", "#2a323d"),
 
         TEXT_PRIMARY("-fxt-text-primary", "#1a1d21", "#e6eaf0"),

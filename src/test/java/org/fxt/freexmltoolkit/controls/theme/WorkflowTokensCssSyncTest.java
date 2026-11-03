@@ -50,6 +50,20 @@ class WorkflowTokensCssSyncTest {
         }
     }
 
+    /** Canvas views (XSD diagram, grids) draw with the Java values, so they must match the CSS too. */
+    @Test
+    void everyColorTokenMatchesJavaInBothThemes() throws IOException {
+        String css = Files.readString(CSS);
+        String light = block(css, ".root");
+        String dark = block(css, ".root.fxt-theme-dark");
+        for (DesignTokens.ColorToken t : DesignTokens.ColorToken.values()) {
+            assertEquals(t.color(DesignTokens.Theme.LIGHT), Color.web(value(light, t.cssVariable())),
+                    () -> t.cssVariable() + " light differs between CSS and Java");
+            assertEquals(t.color(DesignTokens.Theme.DARK), Color.web(value(dark, t.cssVariable())),
+                    () -> t.cssVariable() + " dark differs between CSS and Java");
+        }
+    }
+
     @Test
     void actionAliasesPointAtSemanticTokens() throws IOException {
         String css = Files.readString(CSS);
