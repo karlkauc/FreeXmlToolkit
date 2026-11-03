@@ -664,6 +664,7 @@ Create professional documentation from your XSD file automatically.
 | **Include type definitions in source code**     | Show the type's XSD source on the detail pages (on by default)     |
 | **Show documentation in diagrams**              | Print the documentation text inside the SVG element boxes (off by default) |
 | **Show constraints in diagrams**                | List keys, unique and keyref constraints and assertions inside the element boxes, as in the Graphic view: a coloured label (KEY / UNIQ / REF / ASSERT) and the text, at most four lines plus "+N more", full details as tooltip; assertions include those of derived and base types (on by default, also for PDF and Word) |
+| **Also in the page's own element box**         | Off: only the child boxes list constraints; the page's own ones are in the sections below the diagram (on by default) |
 | **Generate SVG overview page**                  | Interactive full-schema SVG (on by default)                        |
 | **Add metadata in output**                      | Generator name, date and schema information in the output (on by default) |
 | **Deduplicate data dictionary by type**         | List each type once in the Data Dictionary instead of per usage    |

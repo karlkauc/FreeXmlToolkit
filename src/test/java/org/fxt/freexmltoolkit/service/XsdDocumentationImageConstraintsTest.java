@@ -215,6 +215,29 @@ class XsdDocumentationImageConstraintsTest {
     }
 
     @Test
+    void rootConstraintsCanBeLeftToTheChildBoxes() {
+        imageService.setShowConstraints(false);
+        double plainRoot = rootBoxHeight(imageService.generateSvgString(element("Library")));
+
+        imageService.setShowConstraints(true);
+        imageService.setShowRootConstraints(false);
+        String svg = imageService.generateSvgString(element("Library"));
+
+        List<String> rows = rowTexts(svg);
+        assertTrue(rows.stream().noneMatch(r -> r.startsWith("BookKey") || r.startsWith("LoanUnique")
+                || r.startsWith("LoanBook")), "the page's own box lists nothing: " + rows);
+        assertTrue(svg.contains(">not(w) or w &lt; 100</text>"), "the child boxes keep their rows");
+        assertTrue(rows.stream().anyMatch(r -> r.startsWith("CcyOnce")), "the child boxes keep their rows: " + rows);
+        assertEquals(plainRoot, rootBoxHeight(svg), 0.01, "the page's own box is drawn as without constraints");
+    }
+
+    private static double rootBoxHeight(String svg) {
+        Matcher rect = Pattern.compile("<rect[^>]*data-root=\"true\"[^>]*>", Pattern.DOTALL).matcher(svg);
+        assertTrue(rect.find(), "root box expected");
+        return attr(rect.group(), "height");
+    }
+
+    @Test
     void longPathsShowTheirLastStepBeforeTheLineIsCut() {
         var segments = DiagramConstraint.shorten(List.of(
                 new DiagramConstraint.Segment("benchmarkID  ", DiagramConstraint.Role.TEXT, null),

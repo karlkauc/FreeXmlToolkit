@@ -256,6 +256,25 @@ public class XsdDocumentationImageService {
         return showConstraints;
     }
 
+    /** Whether the page's own element box (left) lists its constraints too (default true). */
+    private boolean showRootConstraints = true;
+
+    /**
+     * Sets whether the box of the page's own element lists its constraints as well. Off, only the
+     * child boxes list theirs; the page's own constraints are in the sections below the diagram.
+     * Without {@link #setShowConstraints constraints} no box lists any.
+     *
+     * @param showRootConstraints false to leave the constraints to the child boxes
+     */
+    public void setShowRootConstraints(boolean showRootConstraints) {
+        this.showRootConstraints = showRootConstraints;
+    }
+
+    /** @return whether the box of the page's own element lists its constraints too */
+    public boolean isShowRootConstraints() {
+        return showRootConstraints;
+    }
+
     /**
      * Constructs a new XsdDocumentationImageService with the given extended XSD elements.
      *
@@ -577,7 +596,7 @@ public class XsdDocumentationImageService {
         Font rootFont = font.deriveFont(Font.BOLD, (float) ROOT_FONT_SIZE);
         var rootElementBounds = rootFont.getStringBounds(rootElement.getElementName(), frc);
         double rootNameHeight = rootElementBounds.getBounds2D().getHeight();
-        List<DiagramConstraint> rootConstraints = constraintRows(rootElement);
+        List<DiagramConstraint> rootConstraints = showRootConstraints ? constraintRows(rootElement) : List.of();
         var rootElementHeight = rootNameHeight + attributeSectionHeight(rootAttributes)
                 + constraintSectionHeight(rootConstraints);
         var rootElementWidth = Math.max(Math.max(rootElementBounds.getBounds2D().getWidth(),

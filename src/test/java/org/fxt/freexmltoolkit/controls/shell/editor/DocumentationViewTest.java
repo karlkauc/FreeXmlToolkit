@@ -60,7 +60,7 @@ class DocumentationViewTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "HTML",
-                    XsdDocumentationService.MarkdownMode.ALL, false, false, true, false, false, false, "SVG", Set.of(), null, false, null, null));
+                    XsdDocumentationService.MarkdownMode.ALL, false, false, true, true, false, false, false, "SVG", Set.of(), null, false, null, null));
             return null;
         });
         WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS,
@@ -91,6 +91,21 @@ class DocumentationViewTest {
         assertTrue(options.addMetadata(), "metadata in the output defaults to on");
         assertFalse(options.showDocInSvg(), "documentation in the diagrams defaults to off");
         assertTrue(options.showConstraintsInSvg(), "constraints in the diagrams default to on");
+        assertTrue(options.showRootConstraintsInSvg(), "also in the page's own box by default");
+        javafx.scene.control.CheckBox constraints = (javafx.scene.control.CheckBox) view.lookup("#docgen-show-constraints");
+        javafx.scene.control.CheckBox rootConstraints =
+                (javafx.scene.control.CheckBox) view.lookup("#docgen-show-root-constraints");
+        assertNotNull(rootConstraints, "the option is on the form");
+        assertFalse(rootConstraints.isDisabled());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            constraints.setSelected(false);
+            return null;
+        });
+        assertTrue(rootConstraints.isDisabled(), "no say over the page's own box while no box lists constraints");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            constraints.setSelected(true);
+            return null;
+        });
         assertNotNull(view.lookup("#docgen-show-constraints"), "the option is on the form");
         assertEquals("SVG", options.imageFormat());
         assertEquals(xsd.toFile(), options.xsd());
@@ -115,10 +130,11 @@ class DocumentationViewTest {
             view.scanLanguages();
             return null;
         });
-        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
-                () -> !view.currentOptions().languages().isEmpty());
+        // Read the form on the FX thread: the scan fills the language list there
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> !view.currentOptions().languages().isEmpty()));
 
-        Set<String> languages = view.currentOptions().languages();
+        Set<String> languages = WaitForAsyncUtils.waitForAsyncFx(2000, () -> view.currentOptions().languages());
         assertTrue(languages.contains("en") && languages.contains("de"),
                 "both documentation languages must be discovered: " + languages);
     }
@@ -131,7 +147,7 @@ class DocumentationViewTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "PDF",
-                    XsdDocumentationService.MarkdownMode.ALL, false, false, true, false, false, false, "SVG", Set.of(), null, false, null,
+                    XsdDocumentationService.MarkdownMode.ALL, false, false, true, true, false, false, false, "SVG", Set.of(), null, false, null,
                     new DocumentationView.FormatOptions("Letter", true, false, true, true,
                             false, false, "Professional", "Draft", true, true)));
             return null;
@@ -194,7 +210,7 @@ class DocumentationViewTest {
         Files.writeString(xsd, XSD);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), null, "HTML",
-                    XsdDocumentationService.MarkdownMode.ALL, false, false, true, false, false, false, "SVG", Set.of(), null, false, null, null));
+                    XsdDocumentationService.MarkdownMode.ALL, false, false, true, true, false, false, false, "SVG", Set.of(), null, false, null, null));
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

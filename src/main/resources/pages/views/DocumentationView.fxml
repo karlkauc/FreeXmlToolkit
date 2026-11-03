@@ -127,6 +127,15 @@
                                                         <Tooltip text="Lists keys, unique and keyref constraints and assertions inside the element boxes, as in the Graphic view."/>
                                                     </tooltip>
                                                 </CheckBox>
+                                                <CheckBox fx:id="showRootConstraintsInSvg" id="docgen-show-root-constraints"
+                                                          text="Also in the page's own element box" selected="true">
+                                                    <padding>
+                                                        <Insets left="24"/>
+                                                    </padding>
+                                                    <tooltip>
+                                                        <Tooltip text="Off: only the child boxes list constraints; the page's own ones are in the sections below the diagram."/>
+                                                    </tooltip>
+                                                </CheckBox>
                                                 <CheckBox fx:id="svgOverview" text="Generate SVG overview page" selected="true"/>
                                                 <CheckBox fx:id="addMetadata" text="Add metadata in output" selected="true"/>
                                                 <CheckBox fx:id="dedupDataDictionary"

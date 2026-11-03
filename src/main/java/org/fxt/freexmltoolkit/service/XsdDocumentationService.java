@@ -265,6 +265,7 @@ public class XsdDocumentationService {
     // SVG documentation display configuration
     private boolean showDocumentationInSvg = true; // Whether to show documentation in SVG diagrams
     private boolean showConstraintsInSvg = true; // Whether element boxes list constraints and assertions
+    private boolean showRootConstraintsInSvg = true; // ... the page's own element box as well
     private boolean generateSvgOverviewPage = true; // Whether to generate the schema-svg.html overview page
     private boolean addMetadataInOutput = false; // Whether to add metadata comments to generated HTML files
     private String faviconPath = null; // Optional path to custom favicon for HTML documentation
@@ -546,6 +547,21 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Sets whether the box of a page's own element lists its constraints as well; off, only the
+     * child boxes do.
+     *
+     * @param showRootConstraints true to list them there too (the default)
+     */
+    public void setShowRootConstraintsInSvg(boolean showRootConstraints) {
+        this.showRootConstraintsInSvg = showRootConstraints;
+    }
+
+    /** @return whether the box of a page's own element lists its constraints too */
+    public boolean isShowRootConstraintsInSvg() {
+        return showRootConstraintsInSvg;
+    }
+
+    /**
      * Returns whether documentation is displayed in SVG diagrams.
      *
      * @return true if documentation is shown, false otherwise
@@ -574,6 +590,7 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
         xsdDocumentationHtmlService.xsdDocumentationImageService.setShowDocumentation(this.showDocumentationInSvg);
         xsdDocumentationHtmlService.xsdDocumentationImageService.setShowConstraints(this.showConstraintsInSvg);
+        xsdDocumentationHtmlService.xsdDocumentationImageService.setShowRootConstraints(this.showRootConstraintsInSvg);
 
         executeAndTrack("Copying resources", xsdDocumentationHtmlService::copyResources);
         executeAndTrack("Generating root page", xsdDocumentationHtmlService::generateRootPage);
