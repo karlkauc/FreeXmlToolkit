@@ -353,17 +353,25 @@ The Type Editor provides dedicated editing for ComplexTypes and SimpleTypes.
 | Feature                | Description                                         |
 |------------------------|-----------------------------------------------------|
 | **Tab-Based Editing**  | Each type opens in its own tab in the editor area   |
-| **ComplexType Editor** | Graphical editing with element tree                 |
+| **ComplexType Editor** | Graphical editing in the card diagram of the Graphic view |
 | **SimpleType Editor**  | Form-based editing with facet panels                |
 
 ### ComplexType Editor
 
-For ComplexTypes, you get a graphical editor similar to the main schema view:
+For ComplexTypes, the tab shows the same card diagram as the [Graphic view](#1-graphic-view) -
+see [Reading a Card](#reading-a-card) for what each card shows:
 
-- Type name appears as the root node
-- Add, delete, modify elements graphically
-- Supports Sequence, Choice, and All compositors
-- Save/Discard with dirty tracking
+- The type is the root card of the diagram, with its compositors, child elements and attributes
+  below it
+- A **title chip** at the top left names the selected card (or the type), and the **zoom
+  control** at the bottom right zooms out, in, or back to 100%
+- A bar above the diagram edits the type's **Name**, **Abstract** and **Mixed** settings. These
+  apply to the schema right away and can be undone there (**Ctrl+Z** in the schema's tab)
+- Add, delete and modify elements, attributes and Sequence / Choice / All compositors through the
+  cards' context menus, as in the Graphic view; the properties pane beside the diagram edits the
+  selected node
+- Changes to the diagram are kept in the tab until you click **Save to schema** (or press
+  Ctrl+S); they are then written into the schema. Close the tab with **Close**, **Esc** or its **×**
 
 ### SimpleType Editor
 
@@ -695,17 +703,43 @@ Create professional documentation from your XSD file automatically.
 | **Add metadata in output**                      | Generator name, date and schema information in the output (on by default) |
 | **Deduplicate data dictionary by type**         | List each type once in the Data Dictionary instead of per usage    |
 | **Image format**                                | SVG (default), PNG or JPG for the diagrams                         |
-| **Favicon**                                     | A custom icon file for the HTML output                             |
-| **PDF / Word options**                          | Cover page, table of contents, data dictionary, schema diagram, element diagrams (on by default), page numbers, PDF bookmarks |
-| **Element reference** *(PDF, Word)*             | *One section per declaration* (default), *Every occurrence* or *Off* - see below |
+| **Favicon (HTML)**                              | A custom icon file for the HTML output                             |
 | **Open the generated documentation after creation** | Opens `index.html` (HTML) or the generated file in your system viewer |
 
+When you pick **PDF** or **Word**, a **PDF OPTIONS** / **WORD OPTIONS** section appears below the
+general options:
+
+| Option                              | Formats    | Description |
+|-------------------------------------|------------|-------------|
+| **Page size**                       | PDF, Word  | A4 (default), Letter or Legal; the PDF also offers A3 |
+| **Orientation**                     | PDF, Word  | **Portrait** (default) or **Landscape** |
+| **Cover page**                      | PDF, Word  | A title page in front of the document (off by default) |
+| **Table of contents**               | PDF, Word  | A table of contents listing the chapters (on by default) |
+| **Data dictionary**                 | PDF, Word  | The table of every element and attribute path with its type, cardinality and description (on by default) |
+| **Schema diagram**                  | PDF, Word  | A chapter with the diagram of the root element; the PDF adds an overview of the whole schema for schemas up to 400 elements (on by default) |
+| **Element diagrams**                | PDF, Word  | A diagram in every element and type section (on by default) |
+| **Element reference**               | PDF, Word  | *One section per declaration* (default), *Every occurrence* or *Off* - see [Element reference](#element-reference-pdf-and-word) below |
+| **XSD source in each section**      | PDF, Word  | Shows the XSD source of every element and type in its section (off by default; makes the document considerably longer) |
+| **Color scheme**                    | PDF        | The accent colour of the document: Blue (default), Green, Purple, Grayscale or Professional |
+| **Watermark**                       | PDF        | None (default), Draft, Confidential or Internal Use Only, printed across every page |
+| **Page numbers**                    | PDF        | Page numbers in the footer (on by default) |
+| **PDF bookmarks**                   | PDF        | A bookmark tree for the chapters and every element and type section (on by default) |
+
 #### Element reference (PDF and Word)
+
+The PDF and the Word document are built from the same chapters, each one switched by the options
+above: cover page, table of contents, **Schema Overview**, **Namespace Overview**,
+**Schema Diagram**, **Complex Types**, **Simple Types**, **Data Dictionary**,
+**Element Reference** and **Index**. The schema diagram starts at the schema's root element. The
+index lists every element and attribute with its path (without sequence/choice containers) and
+says which of the two it is. Restrictions are written as plain text (for example
+*Base: xs:string; MaxLength: 256*), and long paths, restrictions and descriptions wrap in their
+column instead of being cut off. Type usage counts include derived types.
 
 The PDF and the Word document have an **Element Reference**: one section per element and attribute with what the HTML
 detail page shows:
 
-- the diagram, with **Element diagrams** on;
+- the diagram (all levels), with **Element diagrams** on;
 - the properties: type, cardinality or use, namespace, default / fixed / nillable;
 - the documentation in every selected language;
 - the restrictions with their values, including the full enumeration list;
@@ -739,11 +773,15 @@ properties, children tables and index.
 in the data dictionary.
 
 The **Word** document has the same element and type sections as the PDF:
+
 - each section is a bookmark;
-- names in the data dictionary, the index and the tables are links to it;
-- section headings appear in the navigation pane, while the table of contents lists the chapters
-  (Word fills it when the document is opened);
-- diagrams are embedded as sharp PNG images in their own proportions.
+- paths and types in the data dictionary, names in the index, the type tables, children tables
+  and **Used In** lists are links to it;
+- chapters use real Word headings (Heading 1 to 3), so the table of contents, the navigation pane
+  and the outline view work. Section headings appear in the navigation pane, while the table of
+  contents lists the chapters (Word fills it when the document is opened);
+- the **Namespace Overview** says what each namespace is and lists the imports and includes;
+- diagrams are embedded as sharp PNG images in their own proportions, fitted to the text width.
 
 More in the PDF:
 

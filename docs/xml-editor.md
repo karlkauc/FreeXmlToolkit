@@ -319,6 +319,23 @@ The binding applies to the active document and drives **both** features at once:
 - **IntelliSense** - auto-completion suggests the elements and attributes the schema allows.
 - **Schema validation** - Validate (F8) and continuous validation check against the bound XSD.
 
+### Go to Definition {#go-to-definition}
+
+Jump from an element in your XML document to the place in the bound XSD that declares it:
+
+- **Graphic view (grid)** and **Tree view:** right-click an element → **Go to Definition**
+- **Text view:** right-click inside an element → **Go to Definition (Ctrl+Click)**, or hold
+  **Ctrl** and click the element
+
+The XSD opens in front (in its own tab, if it was not open yet) in the **Graphic** view. The
+diagram is expanded along the element's path from the document root, and the card of the
+declaration is selected. Because the path is followed, elements with the same name in different
+places - for example a `Name` inside `Customer` and a `Name` inside `Product` - each lead to their
+own declaration. If the path cannot be found in the schema (for example an element allowed by a
+wildcard), the first declaration with that name is selected instead.
+
+The entry is available for elements only, and only when a schema is bound to the document.
+
 ---
 
 ## Formatting Tools
@@ -507,7 +524,9 @@ Learn more: [Template Management](template-management.md)
 
 With the XML document active, open the editor toolbar's **Schema ▾** menu (click the small
 arrow next to the **Schema** button) and choose **Generate XSD from XML** (or **Generate XSD
-from XML Files…** for several files) to generate an XSD schema from your XML:
+from XML Files…** for several files) to generate an XSD schema from your XML. Both entries are
+also in the menu bar's **Tools** menu; **Generate XSD from XML Files…** works there even without
+an open document, because it asks for its files itself:
 
 - Analyze XML structure
 - Generate matching XSD schema
@@ -541,6 +560,7 @@ Especially useful while editing XML:
 | F8 | Validate |
 | Ctrl+T | Insert a template |
 | Ctrl+Alt+X / Ctrl+Alt+C | Grid view: copy the XPath / the node as XML |
+| Ctrl+Click | Text view: [Go to Definition](#go-to-definition) in the bound XSD |
 | Ctrl+mouse wheel, Ctrl+0 | Zoom (Text: font size, Graphic: the grid) / reset |
 
 ---

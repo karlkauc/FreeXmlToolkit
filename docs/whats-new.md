@@ -4,22 +4,14 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
-## Next release (in development)
+## 2.9.0 (upcoming)
 
-Already on `main`, not yet released:
-
-- **Grid:** opened table cells are full grids at any depth (select, edit, navigate, search,
-  resize and drag & drop inside them); select whole table rows/columns and open nested cells
-  with **+** / **−**; the **entry helpers** panel (Siblings / Children / Values) beside the XML
-  grid. JSON grid: change a value's type via its type icon, drag & drop, Table submenu. See
-  [Grid View](grid.md).
-- **Network:** complete proxy settings (system / manual / none, exceptions, authentication incl.
-  NTLM/Kerberos, timeouts, Test Connection); every HTTP connection uses them. See
-  [Settings](settings.md).
-- **Settings:** old log files are deleted automatically (**LOG FILES** card); the clear buttons
-  show the space in use.
-- **XSD documentation:** type definitions, SVG overview and metadata are on by default; the
-  Data Dictionary Excel export has the look of the HTML documentation.
+- **XSD Graphic view, new card layout:** every node is one card with a symbol, name and type
+  line; cardinality and attribute use are pills, optional cards are dashed and repeating ones have
+  a second outline. A **title chip** (top left) names the selected card, a **zoom control** sits
+  at the bottom right, and the light theme has more contrast. Element and attribute cards list
+  their **constraints and assertions** (**View → Show Constraints in Diagram**). The ComplexType
+  editor tab shows the same cards. See [XSD Tools](xsd-tools.md#reading-a-card).
 - **XSD Graphic view:** cards open in large schemas too; inherited `xs:extension` content, group
   and attribute group references, wildcards, inherited attributes and placeholder cards are shown;
   a bar names includes and imports that could not be loaded; relative references inside schemas
@@ -34,6 +26,44 @@ Already on `main`, not yet released:
   Type Library, statistics, quality checks and the Inspector of an XML document.
 - **Facets:** a restriction of a named type offers the facets of what that type comes down to,
   and restrictions of list and union types offer only the facets XML Schema allows there.
+- **XSD documentation (PDF and Word):** an **Element Reference** with a section per element and
+  attribute (diagram, properties, documentation, restrictions, children, constraints) and a
+  section per complex and simple type, all linked from the data dictionary, the index and the
+  tables, with bookmarks; a namespace overview that names each namespace, the option **XSD
+  source in each section**; in the PDF vector (SVG) diagrams and
+  an overview diagram of the whole schema; in Word real headings, so the table of contents and
+  the navigation pane work. Large schemas no longer run out of memory.
+  Fixed: wrong root in the schema diagram, HTML in restrictions, cut-off text, usage counts.
+  See [XSD Tools](xsd-tools.md#generation-options).
+- **XSD documentation diagrams:** element boxes list constraints and assertions (option **Show
+  constraints in diagrams**, with **Also in the page's own element box**); constraint rows link
+  their selector, fields and key; the choice symbol is drawn as a switch. **Show documentation in
+  diagrams** is now off by default.
+- **Go to Definition** from an XML document (Graphic, Tree and Text view, Ctrl+Click in text)
+  opens the bound XSD in the Graphic view, expanded along the element's path with its card
+  selected. See [XML Editor](xml-editor.md#go-to-definition).
+- **Grid:** the header adapts to a narrow column (icon-only buttons, then the tools move into
+  the **⋯** menu); the scroll range follows tables whose cells are opened.
+- **Side panels** list their tools first; the **Tools** menu has **Generate XSD from XML** and
+  **Generate XSD from XML Files…** (batch, always available).
+- **Fixes:** schemas whose `DOCTYPE` names a missing DTD (such as `XMLSchema.xsd`) load
+  everywhere; absolute schema locations in `xsi:schemaLocation` bind; right-clicking in the
+  editor no longer stalls on a large clipboard; user errors are no longer reported as app errors.
+
+## 2.8.0 (2026-11-01)
+
+- **Grid:** opened table cells are full grids at any depth (select, edit, navigate, search,
+  resize and drag & drop inside them); select whole table rows/columns and open nested cells
+  with **+** / **−**; the **entry helpers** panel (Siblings / Children / Values) beside the XML
+  grid. JSON grid: change a value's type via its type icon, drag & drop, Table submenu. See
+  [Grid View](grid.md).
+- **Network:** complete proxy settings (system / manual / none, exceptions, authentication incl.
+  NTLM/Kerberos, timeouts, Test Connection); every HTTP connection uses them. See
+  [Settings](settings.md).
+- **Settings:** old log files are deleted automatically (**LOG FILES** card); the clear buttons
+  show the space in use.
+- **XSD documentation:** type definitions, SVG overview and metadata are on by default; the
+  Data Dictionary Excel export has the look of the HTML documentation.
 
 ## 2.7.0 (2026-10-29)
 

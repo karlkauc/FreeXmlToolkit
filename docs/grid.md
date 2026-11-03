@@ -12,8 +12,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:
 - A **header strip** at the top reads *"Grid view · nested · repeating elements as embedded
   grids"* and offers the **zoom pill** (`− 100% +`), **Optimal widths**, the **Wrap** toggle,
   **Expand all** / **Collapse all**, and a **⋯** menu with the cell-height limit. In a narrow
-  editor column the strip first shows the tool buttons as icons only (hover for their names) and
-  then moves them into the **⋯** menu, so every action stays reachable.
+  editor column the strip first drops its subtitle and shows the tool buttons as icons only
+  (hover for their names); narrower still, only the title icon, the zoom pill and **⋯** remain,
+  and **Optimal widths**, **Wrap**, **Expand all** / **Collapse all** and the entry helpers toggle
+  become entries of the **⋯** menu, so every action stays reachable.
 - **Nested containers.** Every element is a row with a **name cell** (expand arrow, type icon,
   bold name) and, to its right, either its **value cell** or the **block** of its children. A
   child block is docked at the parent's value column, so the structure reads as nested boxes;
@@ -171,6 +173,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
   shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query
   Console everywhere, including while the grid has focus.
+- **Go to Definition**: right-click an element → **Go to Definition** opens the bound XSD in the
+  Graphic view, expanded along the element's path, with the card of its declaration selected - see
+  [Go to Definition](xml-editor.md#go-to-definition). The entry is disabled while no schema is bound.
 
 ## The Grid (Graphic view for JSON) {#json-grid}
 
