@@ -315,4 +315,36 @@ class XercesXmlValidationServiceTest {
 
         assertFalse(errors.isEmpty(), "Malformed XML should have errors even without schema");
     }
+
+    /** W3C's own schemas name a DTD that is never shipped beside them, as in XMLSchema.xsd. */
+    private Path schemaNamingAMissingDtd() throws Exception {
+        Path schema = tempDir.resolve("with-doctype.xsd");
+        Files.writeString(schema, """
+                <?xml version="1.0"?>
+                <!DOCTYPE xs:schema PUBLIC "-//W3C//DTD XMLSCHEMA 200102//EN" "XMLSchema.dtd" [
+                <!ATTLIST xs:schema id ID #IMPLIED>
+                ]>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                    <xs:element name="root" type="xs:int"/>
+                </xs:schema>
+                """);
+        return schema;
+    }
+
+    @Test
+    void validatesAgainstASchemaWhoseDoctypeNamesAMissingDtd() throws Exception {
+        Path schema = schemaNamingAMissingDtd();
+
+        assertTrue(validationService.validateText("<root>1</root>", schema.toFile()).isEmpty());
+    }
+
+    @Test
+    void stillReportsInstanceErrorsWithSuchASchema() throws Exception {
+        Path schema = schemaNamingAMissingDtd();
+
+        List<SAXParseException> errors = validationService.validateText("<root>x</root>", schema.toFile());
+
+        assertFalse(errors.isEmpty());
+        assertTrue(errors.stream().noneMatch(e -> e.getMessage().contains("schema_reference")), errors.toString());
+    }
 }

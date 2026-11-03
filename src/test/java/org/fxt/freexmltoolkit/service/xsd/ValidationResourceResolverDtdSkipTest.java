@@ -1,16 +1,21 @@
 package org.fxt.freexmltoolkit.service.xsd;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.ls.LSInput;
 
 /**
- * Tests that ValidationResourceResolver skips DTD resources.
- * DTDs (e.g. XMLSchema.dtd, datatypes.dtd) are not needed for XSD validation
- * and should not trigger remote downloads from w3.org.
+ * Tests that ValidationResourceResolver answers DTD requests with an empty DTD.
+ * DTDs (e.g. XMLSchema.dtd, datatypes.dtd) are not needed for XSD validation and should not
+ * trigger remote downloads from w3.org. Answering null would leave them to the parser, which
+ * fetches them itself and rejects the whole schema if that fails.
  */
 class ValidationResourceResolverDtdSkipTest {
 
@@ -23,7 +28,7 @@ class ValidationResourceResolverDtdSkipTest {
     }
 
     @Test
-    void shouldSkipXmlSchemaDtd() {
+    void shouldSkipXmlSchemaDtd() throws IOException {
         var result = resolver.resolveResource(
                 "http://www.w3.org/2001/XMLSchema",
                 null,
@@ -31,11 +36,11 @@ class ValidationResourceResolverDtdSkipTest {
                 "http://www.w3.org/2001/XMLSchema.dtd",
                 null
         );
-        assertNull(result, "XMLSchema.dtd should be skipped");
+        assertEmpty(result);
     }
 
     @Test
-    void shouldSkipDatatypesDtd() {
+    void shouldSkipDatatypesDtd() throws IOException {
         var result = resolver.resolveResource(
                 "http://www.w3.org/2001/XMLSchema",
                 null,
@@ -43,11 +48,11 @@ class ValidationResourceResolverDtdSkipTest {
                 "datatypes.dtd",
                 null
         );
-        assertNull(result, "datatypes.dtd should be skipped");
+        assertEmpty(result);
     }
 
     @Test
-    void shouldSkipAnyDtdSystemId() {
+    void shouldSkipAnyDtdSystemId() throws IOException {
         var result = resolver.resolveResource(
                 null,
                 null,
@@ -55,7 +60,24 @@ class ValidationResourceResolverDtdSkipTest {
                 "http://example.com/some-schema.dtd",
                 null
         );
-        assertNull(result, "Any .dtd systemId should be skipped");
+        assertEmpty(result);
+    }
+
+    @Test
+    void shouldSkipADtdWithoutTheUsualSuffix() throws IOException {
+        var result = resolver.resolveResource(
+                javax.xml.XMLConstants.XML_DTD_NS_URI,
+                null,
+                null,
+                "http://example.com/doctype",
+                null
+        );
+        assertEmpty(result);
+    }
+
+    private static void assertEmpty(LSInput result) throws IOException {
+        assertNotNull(result, "an empty DTD keeps the parser from fetching one");
+        assertEquals(0, result.getByteStream().readAllBytes().length);
     }
 
     @Test

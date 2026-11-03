@@ -998,12 +998,13 @@ public class SchemaResolver {
                 return null;
             }
 
-            // Skip DTD resources - not needed for XSD validation
-            // W3C DTDs (XMLSchema.dtd, datatypes.dtd) are referenced by some schemas
-            // but Xerces handles DTD processing internally
-            if (systemId.endsWith(".dtd")) {
+            // A schema's DOCTYPE plays no part in validation, but W3C schemas name DTDs that are
+            // not shipped beside them (XMLSchema.dtd, datatypes.dtd). Returning null here would
+            // make the parser fetch the DTD itself and give up on the whole schema without it,
+            // so it gets an empty one. Nothing is read from disk or the network.
+            if (javax.xml.XMLConstants.XML_DTD_NS_URI.equals(type) || systemId.endsWith(".dtd")) {
                 logger.debug("Skipping DTD resource resolution: {}", systemId);
-                return null;
+                return new LSInputImpl(publicId, systemId, baseURI, java.io.InputStream.nullInputStream());
             }
 
             // Check for circular imports: a cycle exists only if the requested schema is
