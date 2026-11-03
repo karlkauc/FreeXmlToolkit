@@ -788,6 +788,37 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         render();
     }
 
+    /** Whether a coalesced re-layout is already queued. */
+    private boolean relayoutScheduled;
+    /** True while the queued re-layout runs: invalidations it causes itself start no new one. */
+    private boolean relayingOut;
+
+    /**
+     * Queues one re-layout of the whole grid for the next pulse, however many tables report a
+     * change until then. Tables report from inside a layout or a paint (opened cells build their
+     * grids while drawn), so the re-layout never runs synchronously.
+     */
+    private void scheduleRelayout() {
+        if (relayoutScheduled || relayingOut) {
+            return;
+        }
+        relayoutScheduled = true;
+        javafx.application.Platform.runLater(() -> {
+            relayoutScheduled = false;
+            relayingOut = true;
+            try {
+                markLayoutDirty();
+            } finally {
+                relayingOut = false;
+            }
+        });
+    }
+
+    /** @return whether a re-layout is queued (tests) */
+    boolean relayoutPendingForTest() {
+        return relayoutScheduled;
+    }
+
     /**
      * Recalculates which rows are visible based on the expand/collapse state.
      * Delegates to {@link FlatRow#applyVisibility(List)}, which keeps direct
@@ -4777,7 +4808,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         table.setCellMeasure(cellMeasure);
         table.setCellGridFactory(this::createCellGrid);
         GridBlock holder = owner.getBlock();
-        table.setParentInvalidator(holder == null ? null : holder::invalidate);
+        // A table in an opened cell invalidates the grid holding it; a table of the root grid
+        // invalidates the canvas itself. Without that, a root table that grew (a cell opened or
+        // restored after a rebuild, a row expanded inside a cell, a nested table) kept the old
+        // scroll range: the grid ran behind the next pane and the scroll bars could not reach it.
+        table.setParentInvalidator(holder == null ? this::scheduleRelayout : holder::invalidate);
         restoreCellExpansion(table, viewState.cellExpansion(owner.getTableGroupKey()));
     }
 
