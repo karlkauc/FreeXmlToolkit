@@ -91,7 +91,7 @@ class DocumentationViewTest {
         assertTrue(options.addMetadata(), "metadata in the output defaults to on");
         assertFalse(options.showDocInSvg(), "documentation in the diagrams defaults to off");
         assertTrue(options.showConstraintsInSvg(), "constraints in the diagrams default to on");
-        assertTrue(options.showRootConstraintsInSvg(), "also in the page's own box by default");
+        assertFalse(options.showRootConstraintsInSvg(), "by default only the child boxes list constraints");
         javafx.scene.control.CheckBox constraints = (javafx.scene.control.CheckBox) view.lookup("#docgen-show-constraints");
         javafx.scene.control.CheckBox rootConstraints =
                 (javafx.scene.control.CheckBox) view.lookup("#docgen-show-root-constraints");

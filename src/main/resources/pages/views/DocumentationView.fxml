@@ -128,7 +128,7 @@
                                                     </tooltip>
                                                 </CheckBox>
                                                 <CheckBox fx:id="showRootConstraintsInSvg" id="docgen-show-root-constraints"
-                                                          text="Also in the page's own element box" selected="true">
+                                                          text="Also in the page's own element box">
                                                     <padding>
                                                         <Insets left="24"/>
                                                     </padding>
