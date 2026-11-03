@@ -4460,6 +4460,21 @@ The section lists the other paths, and they link to it. <strong>Every occurrence
 section, as the HTML documentation does; for large schemas this makes the PDF much longer.</p>
 <p>Paths in the data dictionary, names in the index and in the children tables link to their section,
 and the PDF bookmarks list every section under <em>Element Reference</em>.</p>
+<p>The <strong>Complex Types</strong> and <strong>Simple Types</strong> chapters list every global type in a table, then give
+each type its own section:</p>
+<ul>
+<li>documentation;</li>
+<li>base and derivation;</li>
+<li>the content model of a complex type: diagram plus children and attributes;</li>
+<li>the facets of a simple type with their values, and each enumeration value with its documentation;</li>
+<li>assertions;</li>
+<li><strong>Used In</strong>: the elements and attributes of this type, with links;</li>
+<li>the types derived from it.</li>
+</ul>
+<p>Type names link to these sections wherever they appear: overview tables, data dictionary, element
+properties, children tables and index.</p>
+<p><strong>Deduplicate data dictionary by type</strong> also applies to the PDF: each named type is listed once in
+the data dictionary.</p>
 <h4 id="markdown-rendering">Markdown rendering<a class="headerlink" href="#markdown-rendering" title="Permanent link">&para;</a></h4>
 <p><code>xs:documentation</code> text can be rendered as Markdown, so <code>**bold**</code>, lists and links show up
 formatted on the generated pages. The choice has three settings:</p>
