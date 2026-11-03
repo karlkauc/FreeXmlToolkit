@@ -1168,8 +1168,7 @@ public class EditorHost extends BorderPane {
         }
         installInputNodeBreakpointMenu(tab);
         // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
-        tab.view.setGoToDefinitionHandler(req ->
-                openXsdAndReveal(req.xsdFile().toPath(), req.elementName()));
+        tab.view.setGoToDefinitionHandler(this::goToDefinition);
         loadAsync(tab, path);
     }
 
@@ -5695,16 +5694,7 @@ public class EditorHost extends BorderPane {
         }
         java.util.List<String> path =
                 org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(elementXPath);
-        withSchemaTab(xmlTab.schemaFile.toPath(), schemaTab -> {
-            tabPane.getSelectionModel().select(schemaTab);
-            setActiveViewMode(ViewMode.GRAPHIC);
-            if (schemaTab.editorContext == null) {
-                return;
-            }
-            org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.locate(
-                    schemaTab.editorContext.getSchema(), path, attributeName)
-                    .ifPresent(l -> revealPathInActiveGraph(l.particlePath()));
-        });
+        revealSchemaDeclaration(xmlTab.schemaFile.toPath(), path, attributeName, null);
     }
 
     /** @return the open editor tab of {@code path}, or {@code null} */
@@ -5740,8 +5730,7 @@ public class EditorHost extends BorderPane {
         EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
                 this::openNamedTypeEditor, this::goToXmlDefinition);
         addTab(tab, false);
-        tab.view.setGoToDefinitionHandler(req ->
-                openXsdAndReveal(req.xsdFile().toPath(), req.elementName()));
+        tab.view.setGoToDefinitionHandler(this::goToDefinition);
         tab.afterLoad = () -> action.accept(tab);
         loadAsync(tab, path);
     }
@@ -5891,9 +5880,80 @@ public class EditorHost extends BorderPane {
             return;
         }
         String xpath = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(node);
-        org.fxt.freexmltoolkit.domain.XsdExtendedElement el = activeXsdElement(xpath);
-        String elementName = (el != null) ? el.getElementName() : element.getName();
-        openXsdAndReveal(et.schemaFile.toPath(), elementName);
+        revealSchemaDeclaration(et.schemaFile.toPath(),
+                org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(xpath),
+                null, element.getName());
+    }
+
+    /**
+     * The Text view's "Go to Definition": by the element's instance path when the request carries
+     * one (the very declaration, expanded and selected in the Graphic view), else by name.
+     */
+    private void goToDefinition(org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest req) {
+        if (req.instanceXPath() != null && !req.instanceXPath().isBlank()) {
+            revealSchemaDeclaration(req.xsdFile().toPath(),
+                    org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(req.instanceXPath()),
+                    null, req.elementName());
+        } else {
+            openXsdAndReveal(req.xsdFile().toPath(), req.elementName());
+        }
+    }
+
+    /**
+     * Opens {@code xsd} in front, in the Graphic view, expanded along {@code instancePath} down to
+     * the card of that declaration (or its attribute), and selects it. Found by structure, so
+     * same-named local declarations and the occurrences of a named type's children are told apart.
+     * Waits for the parse and the diagram of a freshly opened schema; when the path is not in the
+     * schema (wildcards, substitution groups), the first declaration named {@code fallbackName} is
+     * selected instead.
+     *
+     * @param xsd           the schema file
+     * @param instancePath  element local names from the document root
+     * @param attributeName an attribute of the last element, or null
+     * @param fallbackName  the name to look for when the path finds nothing (nullable)
+     */
+    void revealSchemaDeclaration(Path xsd, java.util.List<String> instancePath, String attributeName,
+                                 String fallbackName) {
+        withSchemaTab(xsd, schemaTab -> {
+            tabPane.getSelectionModel().select(schemaTab);
+            setActiveViewMode(ViewMode.GRAPHIC);
+            revealWhenGraphReady(schemaTab, instancePath, attributeName, fallbackName, REVEAL_ATTEMPTS);
+        });
+    }
+
+    /** Retries of {@link #revealWhenGraphReady} 50 ms apart: the parse and the diagram are built asynchronously. */
+    private static final int REVEAL_ATTEMPTS = 100;
+
+    private void revealWhenGraphReady(EditorTab schemaTab, java.util.List<String> instancePath,
+                                      String attributeName, String fallbackName, int attemptsLeft) {
+        if (isAbandoned(schemaTab) || !schemaTab.isSelected()) {
+            return; // closed, or the user moved on to another tab meanwhile
+        }
+        var graph = schemaTab.xsdGraphView;
+        var context = schemaTab.editorContext;
+        boolean ready = schemaTab.viewMode == ViewMode.GRAPHIC && context != null && graph != null
+                && graph.getEditorContext() == context;
+        if (!ready) {
+            if (attemptsLeft > 0) {
+                javafx.animation.PauseTransition pause =
+                        new javafx.animation.PauseTransition(javafx.util.Duration.millis(50));
+                pause.setOnFinished(e -> revealWhenGraphReady(
+                        schemaTab, instancePath, attributeName, fallbackName, attemptsLeft - 1));
+                pause.play();
+            }
+            return;
+        }
+        var located = instancePath == null || instancePath.isEmpty() ? java.util.Optional
+                .<org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.Located>empty()
+                : org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.locate(
+                        context.getSchema(), instancePath, attributeName);
+        if (located.isPresent() && graph.revealModelPath(located.get().particlePath())) {
+            return;
+        }
+        XsdNode byName = located.isPresent() ? null : findNodeByName(context.getSchema(), fallbackName);
+        if (byName != null) {
+            selectNodeInActiveTree(byName);
+        }
     }
 
     /** @return the local element name from an XPath/child reference (last segment, no prefix/predicate). */

@@ -423,7 +423,9 @@ public class EventHandlerManager {
         if (handler != null && xsdFilePath != null) {
             java.io.File xsdFile = new java.io.File(xsdFilePath);
             if (xsdFile.exists()) {
-                handler.accept(new NavigationRequest(xsdFile, elementInfo.getElementName()));
+                // The path lets the XSD view find this very declaration, not the first of that name
+                handler.accept(new NavigationRequest(xsdFile, elementInfo.getElementName(),
+                        elementInfo.getCurrentXpath()));
                 return;
             }
         }
