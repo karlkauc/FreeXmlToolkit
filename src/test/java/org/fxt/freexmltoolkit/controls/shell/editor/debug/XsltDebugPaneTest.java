@@ -539,8 +539,11 @@ class XsltDebugPaneTest {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> pane.getVariablesView().getRowCount() > 0);
 
         WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS, pane::onContinue);
-        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> pane.getStatusText().startsWith("Error"));
-        assertSame(pane.getMessagesTab(), pane.getRightTabs().getSelectionModel().getSelectedItem(),
+        // Status and tab change in one runLater; polling only the status could read between them.
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> pane.getStatusText().startsWith("Error")
+                && pane.getRightTabs().getSelectionModel().getSelectedItem() == pane.getMessagesTab());
+        assertSame(pane.getMessagesTab(), WaitForAsyncUtils.waitForAsyncFx(FX_TIMEOUT_MS,
+                () -> pane.getRightTabs().getSelectionModel().getSelectedItem()),
                 "after Continue the run fails as before");
     }
 
