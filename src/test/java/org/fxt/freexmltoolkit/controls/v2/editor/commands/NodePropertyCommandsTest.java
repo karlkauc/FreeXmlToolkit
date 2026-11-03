@@ -93,6 +93,18 @@ class NodePropertyCommandsTest {
     }
 
     @Test
+    void changeAbstract_togglesAndUndoesOnlyOnComplexTypes() {
+        XsdComplexType ct = new XsdComplexType("ct");
+        ChangeAbstractCommand cmd = new ChangeAbstractCommand(context, ct, true);
+        assertTrue(cmd.execute());
+        assertTrue(ct.isAbstract());
+        assertTrue(cmd.undo());
+        assertFalse(ct.isAbstract());
+        assertThrows(IllegalArgumentException.class,
+                () -> new ChangeAbstractCommand(context, new org.fxt.freexmltoolkit.controls.v2.model.XsdElement("e"), true));
+    }
+
+    @Test
     void changeRef_onElement() {
         XsdElement el = new XsdElement("e");
         ChangeRefCommand cmd = new ChangeRefCommand(context, el, "ns:Global");

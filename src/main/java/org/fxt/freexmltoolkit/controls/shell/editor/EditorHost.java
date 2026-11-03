@@ -1330,10 +1330,15 @@ public class EditorHost extends BorderPane {
             view.setOnFindUsageCallback(() -> revealTypeByName(typeName));
             tab = openToolTab("Type: " + typeName, "bi-braces-asterisk", view);
             Tab created = tab;
-            view.setOnCloseCallback(() -> tabPane.getTabs().remove(created));
+            view.setOnCloseCallback(() -> closeTypeTab(created));
         } else if (type instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
-            tab = openToolTab("Type: " + typeName, "bi-diagram-3",
-                    buildComplexTypeEditor(complexType, ctx.getSchema(), et));
+            // Name, abstract and mixed are commands of the schema document (its undo stack)
+            var view = new org.fxt.freexmltoolkit.controls.v2.editor.views.ComplexTypeEditorView(
+                    complexType, ctx.getSchema(), ctx);
+            tab = openToolTab("Type: " + typeName, "bi-diagram-3", buildComplexTypeEditor(view, et));
+            Tab created = tab;
+            view.setOnCloseCallback(() -> closeTypeTab(created));
+            created.addEventHandler(Tab.CLOSED_EVENT, e -> view.dispose());
         } else {
             return null;
         }
@@ -1380,10 +1385,18 @@ public class EditorHost extends BorderPane {
      * isolated virtual schema; Save merges its changes back into the main schema (which then
      * round-trips to text via the tab's shared-schema listener).
      */
+    /**
+     * Closes a type editor tab the way its × does: the tab's close handlers run (they detach the
+     * round-trip listener and forget the tab), which {@code getTabs().remove} alone skips.
+     */
+    private void closeTypeTab(Tab tab) {
+        if (tabPane.getTabs().remove(tab)) {
+            javafx.event.Event.fireEvent(tab, new javafx.event.Event(Tab.CLOSED_EVENT));
+        }
+    }
+
     private javafx.scene.layout.Region buildComplexTypeEditor(
-            org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType,
-            org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema, EditorTab et) {
-        var view = new org.fxt.freexmltoolkit.controls.v2.editor.views.ComplexTypeEditorView(complexType, schema);
+            org.fxt.freexmltoolkit.controls.v2.editor.views.ComplexTypeEditorView view, EditorTab et) {
         // Slim the embedded graph to the shell's minimal chrome (breadcrumb + zoom pill) — the
         // embedded properties panel stays (it edits the type's nodes; the shell inspector is for
         // the document, not this tool tab).

@@ -55,6 +55,16 @@ final class XsdGraphTitleChip extends HBox {
      * @param color    the node kind's accent colour for the symbol
      */
     void show(VisualNode node, String fallback, Color color) {
+        show(node, fallback, color, null);
+    }
+
+    /**
+     * Same as {@link #show(VisualNode, String, Color)}, naming the node's kind explicitly.
+     *
+     * @param kind the kind to show instead of the card's own (e.g. "complexType" for the root of a
+     *             type editor, which is a stand-in element), or null
+     */
+    void show(VisualNode node, String fallback, Color color, String kind) {
         tint.set(color);
         if (node == null) {
             icon.setIconLiteral("bi-hdd-stack");
@@ -63,7 +73,7 @@ final class XsdGraphTitleChip extends HBox {
         } else {
             icon.setIconLiteral(XsdNodeRenderer.cardIcon(node));
             name.setText(node.getLabel() != null ? node.getLabel() : "");
-            meta.setText(metaOf(node));
+            meta.setText(metaOf(node, kind));
         }
         meta.setManaged(!meta.getText().isEmpty());
         meta.setVisible(meta.isManaged());
@@ -82,11 +92,20 @@ final class XsdGraphTitleChip extends HBox {
      * node's content, joined with " · ".
      */
     static String metaOf(VisualNode node) {
+        return metaOf(node, null);
+    }
+
+    /**
+     * @param kindOverride the kind to name instead of the card's own; the type line is then left out
+     *                     when it only repeats the name (a type editor's root names its own type)
+     */
+    static String metaOf(VisualNode node, String kindOverride) {
         List<String> parts = new ArrayList<>();
-        String kind = XsdNodeRenderer.kindName(node.getType());
+        String kind = kindOverride != null ? kindOverride : XsdNodeRenderer.kindName(node.getType());
         parts.add(kind);
         String type = XsdNodeRenderer.typeLine(node);
-        if (!type.equals(kind)) {
+        boolean repeatsName = kindOverride != null && type.equals(node.getLabel());
+        if (!type.equals(XsdNodeRenderer.kindName(node.getType())) && !repeatsName) {
             parts.add(type);
         }
         for (VisualNode child : node.getChildren()) {

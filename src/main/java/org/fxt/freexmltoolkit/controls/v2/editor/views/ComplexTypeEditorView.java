@@ -14,6 +14,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.VirtualSchemaFactory;
+import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAbstractCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeMixedCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.RenameNodeCommand;
+import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView;
@@ -37,6 +42,13 @@ public class ComplexTypeEditorView extends BorderPane {
 
     private final XsdComplexType complexType;
     private final XsdSchema mainSchema;
+    /**
+     * The schema document's context: name, abstract and mixed act on the type in the main schema,
+     * so they run as commands on its undo stack. Null (standalone use): they are set directly.
+     */
+    private final XsdEditorContext mainContext;
+    /** Keeps the toolbar in step with the type; removed by {@link #dispose()}. */
+    private java.beans.PropertyChangeListener typeListener;
     private XsdSchema virtualSchema;
     private XsdGraphView graphView;
     private Runnable onChangeCallback;
@@ -49,9 +61,39 @@ public class ComplexTypeEditorView extends BorderPane {
      * @param mainSchema the main schema (for merging changes back)
      */
     public ComplexTypeEditorView(XsdComplexType complexType, XsdSchema mainSchema) {
+        this(complexType, mainSchema, null);
+    }
+
+    /**
+     * Creates a new ComplexType editor view whose type-level changes (name, abstract, mixed) are
+     * commands of the schema document, undoable there.
+     *
+     * @param complexType the complex type to edit
+     * @param mainSchema  the main schema (for merging changes back)
+     * @param mainContext the schema document's editor context (nullable)
+     */
+    public ComplexTypeEditorView(XsdComplexType complexType, XsdSchema mainSchema, XsdEditorContext mainContext) {
         this.complexType = complexType;
         this.mainSchema = mainSchema;
+        this.mainContext = mainContext;
         initializeUI();
+    }
+
+    /** Detaches from the edited type (call when the editor tab closes). */
+    public void dispose() {
+        if (typeListener != null) {
+            complexType.removePropertyChangeListener(typeListener);
+            typeListener = null;
+        }
+    }
+
+    /** Runs a change of the type in the main schema: as a command when the document's context is known. */
+    private void apply(XsdCommand command, Runnable direct) {
+        if (mainContext != null) {
+            mainContext.getCommandManager().executeCommand(command);
+        } else {
+            direct.run();
+        }
     }
 
     /**
@@ -73,6 +115,7 @@ public class ComplexTypeEditorView extends BorderPane {
 
             // Create XsdGraphView with virtual schema
             graphView = new XsdGraphView(virtualSchema);
+            graphView.setRootKind("complexType"); // the root card is a stand-in element for the type
             logger.info("XsdGraphView created successfully");
 
             // Setup change tracking for dirty flag
@@ -129,7 +172,11 @@ public class ComplexTypeEditorView extends BorderPane {
         abstractCheck.setSelected(complexType.isAbstract());
         abstractCheck.setTooltip(new Tooltip("Abstract types cannot be used directly"));
         abstractCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            complexType.setAbstract(newVal);
+            if (newVal == complexType.isAbstract()) {
+                return; // follows the model (undo / redo), nothing to change
+            }
+            apply(mainContext == null ? null : new ChangeAbstractCommand(mainContext, complexType, newVal),
+                    () -> complexType.setAbstract(newVal));
             logger.info("ComplexType abstract changed to: {}", newVal);
             if (onChangeCallback != null) {
                 onChangeCallback.run();
@@ -141,12 +188,31 @@ public class ComplexTypeEditorView extends BorderPane {
         mixedCheck.setSelected(complexType.isMixed());
         mixedCheck.setTooltip(new Tooltip("Mixed content allows text between elements"));
         mixedCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            complexType.setMixed(newVal);
+            if (newVal == complexType.isMixed()) {
+                return; // follows the model (undo / redo), nothing to change
+            }
+            apply(mainContext == null ? null : new ChangeMixedCommand(mainContext, complexType, newVal),
+                    () -> complexType.setMixed(newVal));
             logger.info("ComplexType mixed changed to: {}", newVal);
             if (onChangeCallback != null) {
                 onChangeCallback.run();
             }
         });
+
+        // Undo / redo in the schema document change the type: the controls follow
+        typeListener = evt -> javafx.application.Platform.runLater(() -> {
+            switch (evt.getPropertyName()) {
+                case "abstract" -> abstractCheck.setSelected(complexType.isAbstract());
+                case "mixed" -> mixedCheck.setSelected(complexType.isMixed());
+                case "name" -> {
+                    if (!nameField.isFocused()) {
+                        nameField.setText(complexType.getName());
+                    }
+                }
+                default -> { }
+            }
+        });
+        complexType.addPropertyChangeListener(typeListener);
 
         // Close button
         Button closeBtn = new Button("Close");
@@ -176,7 +242,8 @@ public class ComplexTypeEditorView extends BorderPane {
     private void handleNameChange(String newName) {
         if (newName != null && !newName.trim().isEmpty() && !newName.equals(complexType.getName())) {
             String oldName = complexType.getName();
-            complexType.setName(newName.trim());
+            String name = newName.trim();
+            apply(new RenameNodeCommand(complexType, name), () -> complexType.setName(name));
             logger.info("ComplexType name changed: {} -> {}", oldName, newName.trim());
 
             // Trigger change callback
@@ -277,6 +344,7 @@ public class ComplexTypeEditorView extends BorderPane {
 
             // Recreate XsdGraphView with new virtual schema
             graphView = new XsdGraphView(virtualSchema);
+            graphView.setRootKind("complexType");
             setupChangeTracking();
 
             // Replace view

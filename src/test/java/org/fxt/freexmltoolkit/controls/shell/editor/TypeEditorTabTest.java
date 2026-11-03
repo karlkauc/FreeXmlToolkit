@@ -93,4 +93,68 @@ class TypeEditorTabTest {
         assertTrue(names.contains("Code") && names.contains("PersonType"),
                 "named types must stay listed while a type tab is focused, was: " + names);
     }
+
+    private Tab openComplex(Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, XSD);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("PersonType")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openTypeEditorTab("PersonType"));
+    }
+
+    private static <T extends javafx.scene.control.Labeled> T labeled(Tab tab, Class<T> type, String text) {
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> tab.getContent().lookupAll("*").stream()
+                .filter(type::isInstance).map(type::cast)
+                .filter(n -> text.equals(n.getText())).findFirst().orElseThrow());
+    }
+
+    private org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType personType() {
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveNamedTypes().stream()
+                .filter(t -> "PersonType".equals(t.getName()))
+                .map(org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType.class::cast)
+                .findFirst().orElseThrow());
+    }
+
+    @Test
+    void theCloseButtonClosesTheComplexTypeTabSoItOpensAgain(@TempDir Path tmp) throws Exception {
+        Tab complex = openComplex(tmp);
+        // The title chip names the root as the complex type it stands for, not as an element
+        String meta = WaitForAsyncUtils.waitForAsyncFx(2000, () ->
+                ((javafx.scene.control.Label) complex.getContent().lookup("#graph-title-meta")).getText());
+        assertTrue(meta.startsWith("complexType"), meta);
+        javafx.scene.control.Button close = labeled(complex, javafx.scene.control.Button.class, "Close");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, close::fire);
+
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> complex.getTabPane() != null
+                && complex.getTabPane().getTabs().contains(complex)), "Close removes the tab");
+        Tab again = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openTypeEditorTab("PersonType"));
+        assertNotNull(again);
+        assertNotSame(complex, again, "the closed tab was forgotten, a new one opens");
+    }
+
+    @Test
+    void abstractIsACommandOfTheSchemaThatCanBeUndone(@TempDir Path tmp) throws Exception {
+        Tab complex = openComplex(tmp);
+        var type = personType();
+        javafx.scene.control.CheckBox abstractBox = labeled(complex, javafx.scene.control.CheckBox.class, "Abstract");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> abstractBox.setSelected(true));
+        assertTrue(type.isAbstract(), "the type in the schema is abstract");
+
+        // Undo in the schema document reverts it, and the checkbox follows
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.openFile(tmp.resolve("schema.xsd"));
+            host.undoActive();
+            return null;
+        });
+        WaitForAsyncUtils.waitForFxEvents();
+        assertFalse(type.isAbstract(), "undone through the schema's command stack");
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, abstractBox::isSelected), "the checkbox follows the model");
+    }
 }

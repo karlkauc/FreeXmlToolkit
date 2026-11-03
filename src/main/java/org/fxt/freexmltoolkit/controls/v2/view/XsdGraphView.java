@@ -1084,7 +1084,22 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         }
         String fallback = xsdSchema != null && xsdSchema.getName() != null ? xsdSchema.getName() : "Schema";
         titleChip.show(node, fallback,
-                renderer.kindTint(node != null ? node.getType() : XsdNodeRenderer.NodeWrapperType.SCHEMA));
+                renderer.kindTint(node != null ? node.getType() : XsdNodeRenderer.NodeWrapperType.SCHEMA),
+                node != null && node == rootNode ? rootKind : null);
+    }
+
+    /** What the root card stands for, when it is not what its card says (null = the card's kind). */
+    private String rootKind;
+
+    /**
+     * Names the kind the root card stands for in the title chip, e.g. {@code "complexType"} in a type
+     * editor, whose root is a stand-in element named after the type.
+     *
+     * @param kind the kind, or null for the card's own
+     */
+    public void setRootKind(String kind) {
+        this.rootKind = kind;
+        updateTitleChip();
     }
 
     /** A new tree has a new root: the chip shows it when nothing is selected. */
