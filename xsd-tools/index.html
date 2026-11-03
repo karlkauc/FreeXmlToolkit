@@ -1353,6 +1353,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#reading-a-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading a Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#constraints-on-the-cards" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2948,6 +2959,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#reading-a-card" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading a Card
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#constraints-on-the-cards" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3619,6 +3641,68 @@ document, and use XSD files effectively.</p>
 available in the <strong>Text</strong> view as well as the Graphic and Tree views. See
 <a href="#editing-schema-properties-from-any-view">Editing Schema Properties from Any View</a> below.</p>
 </blockquote>
+<h3 id="reading-a-card">Reading a Card<a class="headerlink" href="#reading-a-card" title="Permanent link">&para;</a></h3>
+<p>Every node is a card with two lines: the <strong>name</strong> and, below it in a monospace font, the
+<strong>type</strong> (<code>xs:string</code>, <code>DataSupplierType</code>) - or the kind of node when it has no type
+(<code>element</code>, <code>group</code>). The cards of one sequence, choice or all share the width of the widest one.</p>
+<table>
+<thead>
+<tr>
+<th>What you see</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Symbol <code>&lt;/&gt;</code></td>
+<td>Simple content (a simple type, no children)</td>
+</tr>
+<tr>
+<td>Symbol of a small tree</td>
+<td>Content of its own: a complex type, or an element with children</td>
+</tr>
+<tr>
+<td>Symbol <code>@</code></td>
+<td>Attribute</td>
+</tr>
+<tr>
+<td>Folder symbol</td>
+<td>Group or attribute group reference</td>
+</tr>
+<tr>
+<td>Symbol colour</td>
+<td>Kind of node: blue element, teal attribute, green simple type, grey complex type or group</td>
+</tr>
+<tr>
+<td>Pill <code>0..1</code>, <code>1..*</code>, <code>2..5</code></td>
+<td>Cardinality; none is shown for the default <code>1..1</code></td>
+</tr>
+<tr>
+<td>Pill <code>req</code> / <code>opt</code></td>
+<td>Attribute use: required or optional</td>
+</tr>
+<tr>
+<td><strong>Dashed</strong> outline</td>
+<td>Optional (<code>minOccurs="0"</code>, or an attribute that is not required)</td>
+</tr>
+<tr>
+<td>A second outline behind the card</td>
+<td>Repeats (<code>maxOccurs</code> above 1 or <code>unbounded</code>)</td>
+</tr>
+<tr>
+<td>Button with <code>›</code> / <code>‹</code></td>
+<td>Opens / closes the card; a blue dot means its children load when you open it</td>
+</tr>
+<tr>
+<td>Small box with lines, signpost or stack</td>
+<td><code>xs:sequence</code>, <code>xs:choice</code>, <code>xs:all</code>; a cardinality other than <code>1..1</code> is written below it</td>
+</tr>
+<tr>
+<td>Small blue <code>I</code> in the corner</td>
+<td>The node comes from an included file</td>
+</tr>
+</tbody>
+</table>
 <h3 id="constraints-on-the-cards">Constraints on the Cards<a class="headerlink" href="#constraints-on-the-cards" title="Permanent link">&para;</a></h3>
 <p>A card lists what limits its node below the type lines, one row per constraint:</p>
 <table>
