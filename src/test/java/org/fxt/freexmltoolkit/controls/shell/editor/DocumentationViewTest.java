@@ -89,6 +89,7 @@ class DocumentationViewTest {
         assertTrue(options.includeTypeDefs(), "type definitions in source code default to on");
         assertTrue(options.svgOverview(), "the SVG overview page defaults to on");
         assertTrue(options.addMetadata(), "metadata in the output defaults to on");
+        assertFalse(options.showDocInSvg(), "documentation in the diagrams defaults to off");
         assertTrue(options.showConstraintsInSvg(), "constraints in the diagrams default to on");
         assertNotNull(view.lookup("#docgen-show-constraints"), "the option is on the form");
         assertEquals("SVG", options.imageFormat());

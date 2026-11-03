@@ -120,8 +120,7 @@
                                                 </ComboBox>
                                                 <CheckBox fx:id="includeTypeDefs"
                                                           text="Include type definitions in source code" selected="true"/>
-                                                <CheckBox fx:id="showDocInSvg" text="Show documentation in diagrams"
-                                                          selected="true"/>
+                                                <CheckBox fx:id="showDocInSvg" text="Show documentation in diagrams"/>
                                                 <CheckBox fx:id="showConstraintsInSvg" id="docgen-show-constraints"
                                                           text="Show constraints in diagrams" selected="true">
                                                     <tooltip>
