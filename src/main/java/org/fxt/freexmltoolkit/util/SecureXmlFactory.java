@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.util;
 
+import java.io.InputStream;
 import java.net.URI;
 
 import javax.xml.XMLConstants;
@@ -15,6 +16,8 @@ import javax.xml.validation.SchemaFactory;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.service.LSInputImpl;
+import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
 
 /**
@@ -280,7 +283,7 @@ public final class SecureXmlFactory {
      * <p>The returned factory has:
      * <ul>
      *   <li>{@code FEATURE_SECURE_PROCESSING} enabled (entity-expansion limits, etc.)</li>
-     *   <li>External DTD access fully blocked ({@code ACCESS_EXTERNAL_DTD = ""})</li>
+     *   <li>DTDs named by a schema's DOCTYPE are never loaded: they resolve to an empty document</li>
      *   <li>External schema access restricted to {@value #DEFAULT_ALLOWED_SCHEMA_PROTOCOLS},
      *       which permits local {@code xs:import}/{@code xs:include} while blocking network
      *       protocols (http/https/ftp) to prevent SSRF.</li>
@@ -316,8 +319,9 @@ public final class SecureXmlFactory {
     /**
      * Applies secure XXE / SSRF settings to an existing {@link SchemaFactory}.
      *
-     * <p>Always enables {@code FEATURE_SECURE_PROCESSING} and fully blocks external DTD access
-     * (DTDs in schemas are essentially never legitimate and are a pure attack vector). The set
+     * <p>Always enables {@code FEATURE_SECURE_PROCESSING} and never loads a DTD named by a schema:
+     * the installed resolver answers every DTD request with an empty document (the JAXP
+     * {@code ACCESS_EXTERNAL_DTD} property is set too, but the bundled Xerces ignores it). The set
      * of protocols permitted for external schema references ({@code xs:import}/{@code xs:include}/
      * {@code xs:redefine}) is caller-controlled via {@code allowedSchemaProtocols}.
      *
@@ -335,29 +339,70 @@ public final class SecureXmlFactory {
         } catch (Exception e) {
             logger.warn("Could not enable secure processing on SchemaFactory: {}", e.getMessage());
         }
-        try {
-            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, allowedSchemaProtocols);
-            logger.trace("SchemaFactory configured with XXE/SSRF protection (schema protocols: {})", allowedSchemaProtocols);
-        } catch (Exception e) {
-            // Some SchemaFactory implementations may not support these properties
-            logger.debug("SchemaFactory does not support external access restrictions: {}", e.getMessage());
-        }
+        // Each property on its own: the bundled (exist-db) Xerces fork rejects ACCESS_EXTERNAL_DTD,
+        // and that must not cost the schema protocol restriction.
+        setPropertyIfSupported(factory, XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        setPropertyIfSupported(factory, XMLConstants.ACCESS_EXTERNAL_SCHEMA, allowedSchemaProtocols);
 
-        // The bundled (exist-db) Xerces fork does not reliably enforce ACCESS_EXTERNAL_SCHEMA, so
-        // when remote protocols are not explicitly allowed we additionally install a resolver that
-        // actively blocks network references. Callers that need remote schema resolution pass a
-        // protocol list containing "http"/"https" and manage their own resolver.
-        if (!allowedSchemaProtocols.toLowerCase().contains("http")) {
-            factory.setResourceResolver(createLocalOnlySchemaResolver());
-        }
+        // The resolver is the control that actually holds on that Xerces: DTDs named by a schema's
+        // DOCTYPE get an empty document, and without remote protocols network references are
+        // blocked. Callers that need remote schema resolution pass a protocol list containing
+        // "http"/"https" and usually install their own resolver, which must treat DTDs the same way
+        // (see emptyDtd).
+        factory.setResourceResolver(allowedSchemaProtocols.toLowerCase().contains("http")
+                ? createDtdSkippingResolver()
+                : createLocalOnlySchemaResolver());
         return factory;
+    }
+
+    private static void setPropertyIfSupported(SchemaFactory factory, String name, String value) {
+        try {
+            factory.setProperty(name, value);
+        } catch (Exception e) {
+            logger.debug("SchemaFactory does not support {}: {}", name, e.getMessage());
+        }
+    }
+
+    /**
+     * Answers a request for a DTD with an empty document.
+     *
+     * <p>A schema's DOCTYPE plays no part in building the schema, but W3C schemas name DTDs that
+     * are not shipped beside them ({@code XMLSchema.dtd}, {@code datatypes.dtd}). A resolver that
+     * returns {@code null} for one makes the parser fetch the DTD itself: a missing file fails the
+     * whole schema ({@code schema_reference.4}), and a remote one is downloaded. Every schema
+     * resolver asks this first.
+     *
+     * @param type     the resource type passed to the resolver
+     * @param publicId the public identifier, may be {@code null}
+     * @param systemId the system identifier, may be {@code null}
+     * @param baseURI  the base URI, may be {@code null}
+     * @return an empty input for a DTD, or {@code null} for any other resource
+     */
+    public static LSInput emptyDtd(String type, String publicId, String systemId, String baseURI) {
+        boolean dtd = XMLConstants.XML_DTD_NS_URI.equals(type)
+                || (systemId != null && systemId.strip().toLowerCase(java.util.Locale.ROOT).endsWith(".dtd"));
+        if (!dtd) {
+            return null;
+        }
+        logger.debug("Skipping DTD named by a schema: {}", systemId);
+        return new LSInputImpl(publicId, systemId, baseURI, InputStream.nullInputStream());
+    }
+
+    /**
+     * Creates a resolver that only answers DTD requests (with an empty document, see
+     * {@link #emptyDtd}) and leaves every other reference to the processor.
+     *
+     * @return the resolver
+     */
+    public static LSResourceResolver createDtdSkippingResolver() {
+        return (type, namespaceURI, publicId, systemId, baseURI) -> emptyDtd(type, publicId, systemId, baseURI);
     }
 
     /**
      * Creates an {@link LSResourceResolver} that blocks schema references over network protocols
      * (http/https/ftp) while delegating local (file / classpath) resolution to the processor's
-     * default handling (by returning {@code null}).
+     * default handling (by returning {@code null}). DTDs get an empty document wherever they are
+     * ({@link #emptyDtd}), so they are neither fetched nor blocked.
      *
      * <p>This is the effective SSRF control for schema resolution, independent of whether the
      * underlying parser honours the JAXP {@code ACCESS_EXTERNAL_SCHEMA} property.
@@ -366,6 +411,10 @@ public final class SecureXmlFactory {
      */
     public static LSResourceResolver createLocalOnlySchemaResolver() {
         return (type, namespaceURI, publicId, systemId, baseURI) -> {
+            LSInput dtd = emptyDtd(type, publicId, systemId, baseURI);
+            if (dtd != null) {
+                return dtd;
+            }
             String scheme = resolveScheme(systemId, baseURI);
             if (scheme != null && (scheme.equals("http") || scheme.equals("https") || scheme.equals("ftp"))) {
                 throw new SecurityException(

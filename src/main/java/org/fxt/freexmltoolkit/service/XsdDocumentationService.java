@@ -3423,12 +3423,16 @@ public class XsdDocumentationService {
             File schemaFile = new File(xsdFilePath);
             File schemaDir = schemaFile.getParentFile();
             // SECURITY: block remote (http/https/ftp) schema references to prevent SSRF; this guard
-            // throws on a remote reference and is a no-op (returns null) for local references.
+            // throws on a remote reference, answers a DTD with an empty document and returns null
+            // for other local references.
             final org.w3c.dom.ls.LSResourceResolver remoteGuard = SecureXmlFactory.createLocalOnlySchemaResolver();
             factory.setResourceResolver(new org.w3c.dom.ls.LSResourceResolver() {
                 @Override
                 public org.w3c.dom.ls.LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI) {
-                    remoteGuard.resolveResource(type, namespaceURI, publicId, systemId, baseURI);
+                    org.w3c.dom.ls.LSInput guarded = remoteGuard.resolveResource(type, namespaceURI, publicId, systemId, baseURI);
+                    if (guarded != null) {
+                        return guarded;
+                    }
                     if (systemId != null && schemaDir != null) {
                         // SECURITY: Validate systemId before resolving
                         int traversalCount = PathValidator.countParentTraversals(systemId);

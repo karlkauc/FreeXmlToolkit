@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.ConnectionService;
 import org.fxt.freexmltoolkit.util.PathValidator;
+import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -998,13 +999,9 @@ public class SchemaResolver {
                 return null;
             }
 
-            // A schema's DOCTYPE plays no part in validation, but W3C schemas name DTDs that are
-            // not shipped beside them (XMLSchema.dtd, datatypes.dtd). Returning null here would
-            // make the parser fetch the DTD itself and give up on the whole schema without it,
-            // so it gets an empty one. Nothing is read from disk or the network.
-            if (javax.xml.XMLConstants.XML_DTD_NS_URI.equals(type) || systemId.endsWith(".dtd")) {
-                logger.debug("Skipping DTD resource resolution: {}", systemId);
-                return new LSInputImpl(publicId, systemId, baseURI, java.io.InputStream.nullInputStream());
+            org.w3c.dom.ls.LSInput emptyDtd = SecureXmlFactory.emptyDtd(type, publicId, systemId, baseURI);
+            if (emptyDtd != null) {
+                return emptyDtd;
             }
 
             // Check for circular imports: a cycle exists only if the requested schema is

@@ -230,6 +230,10 @@ Save frequently used XML and XSD files to favorites for quick access:
 
 The validation engine uses Xerces 2.12.2 with full XSD 1.1 support.
 
+A schema may start with a `<!DOCTYPE …>` naming a DTD, as the W3C's own schemas do
+(`XMLSchema.dtd`). The DTD plays no part in validation and is never loaded, neither from
+disk nor from the network, so a missing DTD file does no harm.
+
 ---
 
 ## Tips
