@@ -4475,6 +4475,19 @@ each type its own section:</p>
 properties, children tables and index.</p>
 <p><strong>Deduplicate data dictionary by type</strong> also applies to the PDF: each named type is listed once in
 the data dictionary.</p>
+<p>More in the PDF:</p>
+<ul>
+<li><strong>Diagrams</strong> follow <strong>Diagram image format</strong>. With <em>SVG</em> (the default) they are vector graphics:
+  sharp at any zoom and searchable. <em>PNG</em> and <em>JPG</em> embed images.</li>
+<li>The <strong>Namespace Overview</strong> lists the prefixes the schema declares (target namespace, XML Schema,
+  imported, declared), plus a table of its imports, includes, redefines and overrides with their
+  locations.</li>
+<li>The <strong>Schema Diagram</strong> chapter adds an <strong>overview of the whole schema</strong>, as on the HTML overview
+  page. Schemas with more than 400 elements get a note instead, because the overview would not be
+  legible on one page.</li>
+<li><strong>XSD source in each section</strong> (PDF option, off by default) shows the XSD source of every element
+  and type. Leaf elements and attributes show a <strong>Sample</strong> value.</li>
+</ul>
 <h4 id="markdown-rendering">Markdown rendering<a class="headerlink" href="#markdown-rendering" title="Permanent link">&para;</a></h4>
 <p><code>xs:documentation</code> text can be rendered as Markdown, so <code>**bold**</code>, lists and links show up
 formatted on the generated pages. The choice has three settings:</p>
