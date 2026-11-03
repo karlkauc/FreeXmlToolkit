@@ -670,8 +670,30 @@ Create professional documentation from your XSD file automatically.
 | **Deduplicate data dictionary by type**         | List each type once in the Data Dictionary instead of per usage    |
 | **Image format**                                | SVG (default), PNG or JPG for the diagrams                         |
 | **Favicon**                                     | A custom icon file for the HTML output                             |
-| **PDF / Word options**                          | Cover page, table of contents, data dictionary, schema diagram, element diagrams, page numbers, PDF bookmarks |
+| **PDF / Word options**                          | Cover page, table of contents, data dictionary, schema diagram, element diagrams (on by default), page numbers, PDF bookmarks |
+| **Element reference** *(PDF)*                   | *One section per declaration* (default), *Every occurrence* or *Off* - see below |
 | **Open the generated documentation after creation** | Opens `index.html` (HTML) or the generated file in your system viewer |
+
+#### PDF element reference
+
+The PDF has an **Element Reference**: one section per element and attribute with what the HTML
+detail page shows:
+
+- the diagram, with **Element diagrams** on;
+- the properties: type, cardinality or use, namespace, default / fixed / nillable;
+- the documentation in every selected language;
+- the restrictions with their values, including the full enumeration list;
+- the children and attributes;
+- identity constraints (selector, fields, refers to), assertions, type alternatives, wildcards
+  and open content;
+- appinfo.
+
+**One section per declaration** describes an element once, however many paths its type is used at.
+The section lists the other paths, and they link to it. **Every occurrence** gives each path its own
+section, as the HTML documentation does; for large schemas this makes the PDF much longer.
+
+Paths in the data dictionary, names in the index and in the children tables link to their section,
+and the PDF bookmarks list every section under *Element Reference*.
 
 #### Markdown rendering
 

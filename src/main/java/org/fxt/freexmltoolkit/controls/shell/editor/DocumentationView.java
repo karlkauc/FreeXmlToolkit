@@ -72,11 +72,13 @@ public class DocumentationView extends BorderPane {
      */
     record FormatOptions(String pageSize, boolean landscape, boolean coverPage, boolean toc,
                          boolean dataDictionary, boolean schemaDiagram, boolean elementDiagrams,
-                         String colorScheme, String watermark, boolean pageNumbers, boolean bookmarks) {
+                         String colorScheme, String watermark, boolean pageNumbers, boolean bookmarks,
+                         String elementReference) {
 
         static FormatOptions defaults() {
-            return new FormatOptions("A4", false, false, true, true, true, false,
-                    "Blue", "None", true, true);
+            return new FormatOptions("A4", false, false, true, true, true, true,
+                    "Blue", "None", true, true,
+                    PdfDocumentationConfig.ElementReference.DECLARATIONS.getDisplayName());
         }
     }
 
@@ -118,6 +120,7 @@ public class DocumentationView extends BorderPane {
     @FXML private CheckBox elementDiagrams;
     @FXML private ComboBox<String> pdfColorScheme;
     @FXML private ComboBox<String> pdfWatermark;
+    @FXML private ComboBox<String> pdfElementReference;
     @FXML private CheckBox pageNumbers;
     @FXML private CheckBox pdfBookmarks;
     @FXML private CheckBox openAfter;
@@ -173,6 +176,10 @@ public class DocumentationView extends BorderPane {
             pdfWatermark.getItems().add(mark.getDisplayName());
         }
         pdfWatermark.getSelectionModel().selectFirst();
+        for (PdfDocumentationConfig.ElementReference scope : PdfDocumentationConfig.ElementReference.values()) {
+            pdfElementReference.getItems().add(scope.getDisplayName());
+        }
+        pdfElementReference.getSelectionModel().selectFirst();
         refreshFormatOptions();
 
         // Where the constraints go only matters while they are shown at all
@@ -222,7 +229,7 @@ public class DocumentationView extends BorderPane {
                 landscape.isSelected(), coverPage.isSelected(), tableOfContents.isSelected(),
                 dataDictionary.isSelected(), schemaDiagram.isSelected(), elementDiagrams.isSelected(),
                 pdfColorScheme.getValue(), pdfWatermark.getValue(),
-                pageNumbers.isSelected(), pdfBookmarks.isSelected());
+                pageNumbers.isSelected(), pdfBookmarks.isSelected(), pdfElementReference.getValue());
         return new DocOptions(xsdFile, outputTarget, selectedFormat(),
                 selectedMarkdownMode(), includeTypeDefs.isSelected(), showDocInSvg.isSelected(),
                 showConstraintsInSvg.isSelected(), showRootConstraintsInSvg.isSelected(),
@@ -533,6 +540,11 @@ public class DocumentationView extends BorderPane {
         }
         config.setIncludePageNumbers(options.pageNumbers());
         config.setGenerateBookmarks(options.bookmarks());
+        for (PdfDocumentationConfig.ElementReference scope : PdfDocumentationConfig.ElementReference.values()) {
+            if (scope.getDisplayName().equals(options.elementReference())) {
+                config.setElementReference(scope);
+            }
+        }
         return config;
     }
 

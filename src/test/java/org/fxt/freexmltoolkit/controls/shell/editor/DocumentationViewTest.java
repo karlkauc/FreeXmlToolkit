@@ -149,7 +149,7 @@ class DocumentationViewTest {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "PDF",
                     XsdDocumentationService.MarkdownMode.ALL, false, false, true, true, false, false, false, "SVG", Set.of(), null, false, null,
                     new DocumentationView.FormatOptions("Letter", true, false, true, true,
-                            false, false, "Professional", "Draft", true, true)));
+                            false, false, "Professional", "Draft", true, true, "Off")));
             return null;
         });
         WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS,
@@ -202,6 +202,8 @@ class DocumentationViewTest {
         assertEquals("A4", format.pageSize());
         assertEquals("None", format.watermark());
         assertTrue(format.pageNumbers() && format.bookmarks(), "PDF extras default to on");
+        assertTrue(format.elementDiagrams(), "element diagrams default to on");
+        assertEquals("One section per declaration", format.elementReference(), "the element reference defaults to declarations");
     }
 
     @Test

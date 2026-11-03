@@ -228,6 +228,8 @@ public class XsdDocumentationPdfService {
 
                     if (generatedPath != null) {
                         addElement(doc, schemaDiagramSection, "image-path", imagePath.toUri().toString());
+                        PdfElementReferenceBuilder.setImageSize(
+                                (Element) schemaDiagramSection.getLastChild(), imagePath, config, 200);
                         addElement(doc, schemaDiagramSection, "root-element", rootElement.getElementName());
                         logger.info("Schema diagram generated for PDF document");
                     }
@@ -269,6 +271,10 @@ public class XsdDocumentationPdfService {
             }
         }
 
+        // Element reference: decided first, so the data dictionary and the index can link to it
+        PdfElementReferenceBuilder reference = new PdfElementReferenceBuilder(this, documentationData, config,
+                imageService, tempImageDir, includedLanguages, this::reportProgress);
+
         // Data Dictionary section
         Element dataDictionary = doc.createElement("data-dictionary");
         root.appendChild(dataDictionary);
@@ -287,6 +293,7 @@ public class XsdDocumentationPdfService {
             XsdExtendedElement xsdElement = sortedElements.get(i);
             Element entry = doc.createElement("element");
             dataDictionary.appendChild(entry);
+            setRef(entry, reference.sectionIdOf(xsdElement.getCurrentXpath()));
 
             // Use clean XPath without container elements; nothing is cut, long values wrap
             addElement(doc, entry, "path", breakable(getCleanXPath(xsdElement)));
@@ -306,66 +313,20 @@ public class XsdDocumentationPdfService {
 
         logger.info("PDF data dictionary completed with {} elements", totalElements);
 
-        // Element Diagrams section (if configured)
-        if (config.isIncludeElementDiagrams() && imageService != null && tempImageDir != null) {
-            Element elementDiagrams = doc.createElement("element-diagrams");
-            root.appendChild(elementDiagrams);
-
-            // Filter elements that have children (diagrams make sense for these)
-            List<XsdExtendedElement> elementsWithDiagrams = new ArrayList<>();
-            for (XsdExtendedElement element : elementMap.values()) {
-                if (isContainerElement(element)) {
-                    continue;
-                }
-                // Only include elements at level 0-2 that have children
-                if (element.getLevel() <= 2 && hasSignificantContent(element, elementMap)) {
-                    elementsWithDiagrams.add(element);
-                }
-            }
-
-            // Sort by level then by path
-            elementsWithDiagrams.sort(Comparator
-                    .comparingInt(XsdExtendedElement::getLevel)
-                    .thenComparing(this::getCleanXPath));
-
-            logger.info("Generating {} element diagrams for PDF document", elementsWithDiagrams.size());
-            int diagramCount = 0;
-
-            for (XsdExtendedElement element : elementsWithDiagrams) {
-                try {
-                    // Generate PNG image
-                    String safeName = element.getElementName().replaceAll("[^a-zA-Z0-9]", "_");
-                    Path imagePath = tempImageDir.resolve(safeName + "-" + diagramCount + ".png");
-                    String generatedPath = imageService.generateImage(element, imagePath.toFile());
-
-                    if (generatedPath != null) {
-                        Element diagramEntry = doc.createElement("diagram");
-                        elementDiagrams.appendChild(diagramEntry);
-
-                        addElement(doc, diagramEntry, "element-name", element.getElementName());
-                        addElement(doc, diagramEntry, "path", getCleanXPath(element));
-                        addElement(doc, diagramEntry, "type", declaredType(element));
-                        addElement(doc, diagramEntry, "image-path", imagePath.toUri().toString());
-
-                        diagramCount++;
-                    }
-                } catch (Exception e) {
-                    logger.warn("Failed to generate diagram for element {}: {}", element.getElementName(), e.getMessage());
-                }
-            }
-
-            logger.info("PDF element diagrams prepared: {} diagrams", diagramCount);
-        }
+        // Element reference: one section per element (declaration) with its diagram and details
+        reference.write(doc, root);
 
         // Index section - alphabetically sorted list of all types and elements
         Element index = doc.createElement("index");
         root.appendChild(index);
 
         // Use a record to store index entry data
-        record IndexEntry(String name, String entryType, String location) implements Comparable<IndexEntry> {
+        record IndexEntry(String name, String entryType, String location, String ref) implements Comparable<IndexEntry> {
             @Override
             public int compareTo(IndexEntry other) {
-                return String.CASE_INSENSITIVE_ORDER.compare(this.name, other.name);
+                // Same names at different places are different entries
+                int byName = String.CASE_INSENSITIVE_ORDER.compare(this.name, other.name);
+                return byName != 0 ? byName : this.location.compareTo(other.location);
             }
         }
 
@@ -376,7 +337,8 @@ public class XsdDocumentationPdfService {
         for (XsdExtendedElement element : elementMap.values()) {
             if (!isContainerElement(element) && element.getElementName() != null) {
                 String kind = element.getElementName().startsWith("@") ? "Attribute" : "Element";
-                indexEntries.add(new IndexEntry(element.getElementName(), kind, breakable(getCleanXPath(element))));
+                indexEntries.add(new IndexEntry(element.getElementName(), kind, breakable(getCleanXPath(element)),
+                        reference.sectionIdOf(element.getCurrentXpath())));
             }
         }
 
@@ -385,7 +347,7 @@ public class XsdDocumentationPdfService {
             if (typeNode instanceof org.w3c.dom.Element typeElement) {
                 String name = typeElement.getAttribute("name");
                 if (name != null && !name.isEmpty()) {
-                    indexEntries.add(new IndexEntry(name, "ComplexType", "Global"));
+                    indexEntries.add(new IndexEntry(name, "ComplexType", "Global", null));
                 }
             }
         }
@@ -395,7 +357,7 @@ public class XsdDocumentationPdfService {
             if (typeNode instanceof org.w3c.dom.Element typeElement) {
                 String name = typeElement.getAttribute("name");
                 if (name != null && !name.isEmpty()) {
-                    indexEntries.add(new IndexEntry(name, "SimpleType", "Global"));
+                    indexEntries.add(new IndexEntry(name, "SimpleType", "Global", null));
                 }
             }
         }
@@ -403,6 +365,7 @@ public class XsdDocumentationPdfService {
         // Create structured index entries
         for (IndexEntry entry : indexEntries) {
             Element entryElement = doc.createElement("entry");
+            setRef(entryElement, entry.ref());
             addElement(doc, entryElement, "name", entry.name());
             addElement(doc, entryElement, "entry-type", entry.entryType());
             addElement(doc, entryElement, "location", entry.location());
@@ -412,23 +375,6 @@ public class XsdDocumentationPdfService {
         logger.info("PDF index created with {} entries", indexEntries.size());
 
         return doc;
-    }
-
-    /**
-     * Checks if an element has significant content (children) worth showing in a diagram.
-     */
-    private boolean hasSignificantContent(XsdExtendedElement element, Map<String, XsdExtendedElement> elementMap) {
-        String elementXpath = element.getCurrentXpath();
-        if (elementXpath == null) {
-            return false;
-        }
-
-        for (XsdExtendedElement child : elementMap.values()) {
-            if (elementXpath.equals(child.getParentXpath())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -519,6 +465,8 @@ public class XsdDocumentationPdfService {
             transformer.setParameter("includeSimpleTypes", config.isIncludeSimpleTypes() ? "true" : "false");
             transformer.setParameter("includeDataDictionary", config.isIncludeDataDictionary() ? "true" : "false");
             transformer.setParameter("includeElementDiagrams", config.isIncludeElementDiagrams() ? "true" : "false");
+            transformer.setParameter("includeElementReference",
+                    config.getElementReference() != PdfDocumentationConfig.ElementReference.OFF ? "true" : "false");
 
             // Header & Footer parameters
             transformer.setParameter("headerStyle", config.getHeaderStyle().name());
@@ -1188,6 +1136,13 @@ public class XsdDocumentationPdfService {
 
     // ================= Helper Methods =================
 
+    /** Marks an entry as linking to the element reference section {@code ref} (if there is one). */
+    private static void setRef(Element entry, String ref) {
+        if (ref != null) {
+            entry.setAttribute("ref", ref);
+        }
+    }
+
     private void addElement(Document doc, Element parent, String name, String value) {
         Element element = doc.createElement(name);
         element.setTextContent(value != null ? value : "");
@@ -1263,7 +1218,7 @@ public class XsdDocumentationPdfService {
      * keeps the base type for elements of a simpleContent type (sample data needs it), which is
      * not what a reader looks for.
      */
-    private String declaredType(XsdExtendedElement element) {
+    String declaredType(XsdExtendedElement element) {
         String declared = declaredTypeAttribute(element);
         if (declared != null) {
             return declared;
@@ -1432,7 +1387,7 @@ public class XsdDocumentationPdfService {
         return facets.isEmpty() ? "-" : String.join(", ", facets);
     }
 
-    private String getFirstDocumentation(XsdExtendedElement element) {
+    String getFirstDocumentation(XsdExtendedElement element) {
         Map<String, String> docs = element.getLanguageDocumentation();
         if (docs == null || docs.isEmpty()) {
             return "";
@@ -1458,7 +1413,7 @@ public class XsdDocumentationPdfService {
     /**
      * Strips HTML tags from a string.
      */
-    private String stripHtml(String text) {
+    String stripHtml(String text) {
         return MarkdownSupport.toPlainText(text);
     }
 
@@ -1509,7 +1464,7 @@ public class XsdDocumentationPdfService {
     /**
      * Gets cardinality string from minOccurs/maxOccurs attributes.
      */
-    private String getCardinality(XsdExtendedElement element) {
+    String getCardinality(XsdExtendedElement element) {
         Node cardNode = element.getCardinalityNode();
         if (cardNode == null) {
             cardNode = element.getCurrentNode();
@@ -1534,7 +1489,7 @@ public class XsdDocumentationPdfService {
      * Checks if an element is a compositor container (CHOICE, SEQUENCE, ALL).
      * These container elements are internal structures and should not appear in PDF documentation.
      */
-    private boolean isContainerElement(XsdExtendedElement element) {
+    boolean isContainerElement(XsdExtendedElement element) {
         if (element == null || element.getElementName() == null) {
             return false;
         }
@@ -1548,7 +1503,7 @@ public class XsdDocumentationPdfService {
      * Returns the XPath of an element without container elements (CHOICE, SEQUENCE, ALL).
      * This produces a clean XPath for display in documentation.
      */
-    private String getCleanXPath(XsdExtendedElement element) {
+    String getCleanXPath(XsdExtendedElement element) {
         if (element == null) {
             return "";
         }

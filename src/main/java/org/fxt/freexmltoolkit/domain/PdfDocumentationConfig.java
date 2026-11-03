@@ -686,6 +686,27 @@ public class PdfDocumentationConfig {
      * Watermark options for PDF pages.
      * Adds semi-transparent diagonal text across each page to indicate document status.
      */
+    /** Which elements get a section in the PDF's element reference. */
+    public enum ElementReference {
+        /** One section per element declaration; its other occurrences link to it (default). */
+        DECLARATIONS("One section per declaration"),
+        /** One section per occurrence, as the HTML documentation has one page per path. */
+        ALL_OCCURRENCES("Every occurrence"),
+        /** No element reference. */
+        OFF("Off");
+
+        private final String displayName;
+
+        ElementReference(String displayName) {
+            this.displayName = displayName;
+        }
+
+        /** @return the human-readable name of the option */
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
     public enum Watermark {
         /** No watermark displayed on pages. */
         NONE("None", ""),
@@ -751,7 +772,9 @@ public class PdfDocumentationConfig {
     private boolean includeToc = true;
     private boolean includeSchemaOverview = true;
     private boolean includeSchemaDiagram = true;
-    private boolean includeElementDiagrams = false;
+    /** Diagrams in the element reference sections (formerly a separate "Element Diagrams" section). */
+    private boolean includeElementDiagrams = true;
+    private ElementReference elementReference = ElementReference.DECLARATIONS;
     private boolean includeComplexTypes = true;
     private boolean includeSimpleTypes = true;
     private boolean includeDataDictionary = true;
@@ -803,6 +826,7 @@ public class PdfDocumentationConfig {
         this.includeSchemaOverview = other.includeSchemaOverview;
         this.includeSchemaDiagram = other.includeSchemaDiagram;
         this.includeElementDiagrams = other.includeElementDiagrams;
+        this.elementReference = other.elementReference;
         this.includeComplexTypes = other.includeComplexTypes;
         this.includeSimpleTypes = other.includeSimpleTypes;
         this.includeDataDictionary = other.includeDataDictionary;
@@ -1061,6 +1085,20 @@ public class PdfDocumentationConfig {
      */
     public void setIncludeElementDiagrams(boolean includeElementDiagrams) {
         this.includeElementDiagrams = includeElementDiagrams;
+    }
+
+    /** @return which elements get a section in the element reference */
+    public ElementReference getElementReference() {
+        return elementReference;
+    }
+
+    /**
+     * Sets which elements get a section in the element reference.
+     *
+     * @param elementReference the scope, null for the default
+     */
+    public void setElementReference(ElementReference elementReference) {
+        this.elementReference = elementReference == null ? ElementReference.DECLARATIONS : elementReference;
     }
 
     /**

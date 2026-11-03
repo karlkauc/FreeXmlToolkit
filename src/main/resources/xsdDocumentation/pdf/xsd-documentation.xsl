@@ -49,6 +49,7 @@
     <xsl:param name="includeSimpleTypes">true</xsl:param>
     <xsl:param name="includeDataDictionary">true</xsl:param>
     <xsl:param name="includeElementDiagrams">false</xsl:param>
+    <xsl:param name="includeElementReference">true</xsl:param>
 
     <!-- Header & Footer parameters -->
     <xsl:param name="headerStyle">STANDARD</xsl:param>
@@ -200,9 +201,9 @@
                         <xsl:call-template name="data-dictionary-section"/>
                     </xsl:if>
 
-                    <!-- Element Diagrams -->
-                    <xsl:if test="$includeElementDiagrams = 'true'">
-                        <xsl:call-template name="element-diagrams-section"/>
+                    <!-- Element Reference (one section per element, with its diagram) -->
+                    <xsl:if test="$includeElementReference = 'true'">
+                        <xsl:call-template name="element-reference-section"/>
                     </xsl:if>
 
                     <!-- Index (if present in XML) -->
@@ -344,9 +345,14 @@
                 </fo:bookmark>
             </xsl:if>
 
-            <xsl:if test="$includeElementDiagrams = 'true' and xsd-documentation/element-diagrams/diagram">
-                <fo:bookmark internal-destination="element-diagrams">
-                    <fo:bookmark-title>Element Diagrams</fo:bookmark-title>
+            <xsl:if test="$includeElementReference = 'true' and xsd-documentation/element-reference/section">
+                <fo:bookmark internal-destination="element-reference" starting-state="hide">
+                    <fo:bookmark-title>Element Reference</fo:bookmark-title>
+                    <xsl:for-each select="xsd-documentation/element-reference/section">
+                        <fo:bookmark internal-destination="{@id}">
+                            <fo:bookmark-title><xsl:value-of select="@name"/></fo:bookmark-title>
+                        </fo:bookmark>
+                    </xsl:for-each>
                 </fo:bookmark>
             </xsl:if>
 
@@ -481,12 +487,12 @@
             </fo:block>
         </xsl:if>
 
-        <xsl:if test="$includeElementDiagrams = 'true' and xsd-documentation/element-diagrams/diagram">
+        <xsl:if test="$includeElementReference = 'true' and xsd-documentation/element-reference/section">
             <fo:block font-size="{$toc-font-size}" space-after="5mm">
-                <fo:basic-link internal-destination="element-diagrams">
-                    Element Diagrams
+                <fo:basic-link internal-destination="element-reference">
+                    Element Reference
                     <fo:leader leader-pattern="dots"/>
-                    <fo:page-number-citation ref-id="element-diagrams"/>
+                    <fo:page-number-citation ref-id="element-reference"/>
                 </fo:basic-link>
             </fo:block>
         </xsl:if>
@@ -855,7 +861,11 @@
                             <xsl:call-template name="apply-table-row-style"/>
                             <fo:table-cell padding="2mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
-                                <fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="path"/></fo:block>
+                                <fo:block font-size="8pt" wrap-option="wrap">
+                                    <xsl:call-template name="reference-link">
+                                        <xsl:with-param name="text" select="path"/>
+                                    </xsl:call-template>
+                                </fo:block>
                             </fo:table-cell>
                             <fo:table-cell padding="2mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
@@ -903,14 +913,10 @@
 
             <!-- Diagram image - scale based on page size -->
             <fo:block text-align="center" space-before="5mm">
-                <fo:external-graphic
-                    src="{xsd-documentation/schema-diagram/image-path}"
-                    content-width="scale-to-fit"
-                    content-height="scale-to-fit"
-                    scaling="uniform">
-                    <!-- Use 80% of available width for diagram -->
-                    <xsl:attribute name="max-width">90%</xsl:attribute>
-                    <xsl:attribute name="max-height">200mm</xsl:attribute>
+                <fo:external-graphic src="{xsd-documentation/schema-diagram/image-path}">
+                    <xsl:for-each select="xsd-documentation/schema-diagram/image-path">
+                        <xsl:call-template name="image-size"/>
+                    </xsl:for-each>
                 </fo:external-graphic>
             </fo:block>
 
@@ -924,61 +930,389 @@
         </xsl:if>
     </xsl:template>
 
+    <!-- Size of an external graphic from @width-mm / @height-mm of the image-path context node:
+         FOP does not bound an image by max-height, so the size is computed beforehand -->
+    <xsl:template name="image-size">
+        <xsl:choose>
+            <xsl:when test="@width-mm and @height-mm">
+                <xsl:attribute name="content-width"><xsl:value-of select="@width-mm"/>mm</xsl:attribute>
+                <xsl:attribute name="content-height"><xsl:value-of select="@height-mm"/>mm</xsl:attribute>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:attribute name="content-width">scale-down-to-fit</xsl:attribute>
+                <xsl:attribute name="width">100%</xsl:attribute>
+                <xsl:attribute name="scaling">uniform</xsl:attribute>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- ============================================== -->
-    <!-- ELEMENT DIAGRAMS SECTION                      -->
+    <!-- LINK TO THE ELEMENT REFERENCE                 -->
     <!-- ============================================== -->
-    <xsl:template name="element-diagrams-section">
-        <xsl:if test="xsd-documentation/element-diagrams/diagram">
+    <!-- The text, as a link to the element reference section in @ref of the context node, if any -->
+    <xsl:template name="reference-link">
+        <xsl:param name="text"/>
+        <xsl:choose>
+            <xsl:when test="@ref and $includeElementReference = 'true'">
+                <fo:basic-link internal-destination="{@ref}">
+                    <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
+                    <xsl:value-of select="$text"/>
+                </fo:basic-link>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$text"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- ============================================== -->
+    <!-- ELEMENT REFERENCE SECTION                     -->
+    <!-- ============================================== -->
+    <xsl:template name="element-reference-section">
+        <xsl:if test="xsd-documentation/element-reference/section">
             <fo:block break-before="page"/>
-            <fo:block id="element-diagrams" font-size="20pt" space-before="5mm" space-after="10mm">
+            <fo:block id="element-reference" font-size="20pt" space-before="5mm" space-after="10mm">
                 <xsl:attribute name="font-weight"><xsl:value-of select="$headingBold"/></xsl:attribute>
                 <xsl:attribute name="text-decoration"><xsl:value-of select="$headingUnderlined"/></xsl:attribute>
                 <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
-                Element Diagrams
+                Element Reference
             </fo:block>
 
-            <fo:block font-size="11pt" space-after="10mm">
+            <fo:block font-size="11pt" space-after="8mm">
                 <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
-                Detailed visual representation of individual elements and their structure.
+                Every element and attribute with its diagram, documentation, restrictions, children and constraints.
             </fo:block>
 
-            <xsl:for-each select="xsd-documentation/element-diagrams/diagram">
-                <fo:block space-before="8mm" space-after="4mm">
-                    <!-- Element name heading -->
-                    <fo:block font-size="16pt" font-weight="bold" space-after="2mm">
-                        <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
-                        <xsl:value-of select="element-name"/>
-                    </fo:block>
-
-                    <!-- Element info -->
-                    <fo:block font-size="10pt" space-after="1mm">
-                        <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
-                        Path: <xsl:value-of select="path"/>
-                    </fo:block>
-                    <fo:block font-size="10pt" space-after="3mm">
-                        <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
-                        Type: <xsl:value-of select="type"/>
-                    </fo:block>
-
-                    <!-- Diagram image -->
-                    <fo:block text-align="center">
-                        <fo:external-graphic
-                            src="{image-path}"
-                            content-width="scale-to-fit"
-                            content-height="scale-to-fit"
-                            max-width="90%"
-                            max-height="100mm"
-                            scaling="uniform"/>
-                    </fo:block>
-
-                    <!-- Caption -->
-                    <fo:block font-size="9pt" font-style="italic" text-align="center" space-before="2mm">
-                        <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
-                        Figure: Structure of <xsl:value-of select="element-name"/>
-                    </fo:block>
-                </fo:block>
+            <xsl:for-each select="xsd-documentation/element-reference/section">
+                <xsl:call-template name="reference-entry"/>
             </xsl:for-each>
         </xsl:if>
+    </xsl:template>
+
+    <xsl:template name="reference-subheading">
+        <xsl:param name="title"/>
+        <fo:block font-size="10pt" font-weight="bold" space-before="4mm" space-after="1.5mm" keep-with-next="always">
+            <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
+            <xsl:value-of select="$title"/>
+        </fo:block>
+    </xsl:template>
+
+    <!-- A two-column label/value table -->
+    <xsl:template name="reference-row">
+        <xsl:param name="label"/>
+        <xsl:param name="value"/>
+        <xsl:param name="mono" select="'false'"/>
+        <fo:table-row>
+            <fo:table-cell padding="1.2mm" border="0.5pt solid">
+                <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
+                <xsl:attribute name="background-color"><xsl:value-of select="$lightBackground"/></xsl:attribute>
+                <fo:block font-size="8pt" font-weight="bold"><xsl:value-of select="$label"/></fo:block>
+            </fo:table-cell>
+            <fo:table-cell padding="1.2mm" border="0.5pt solid">
+                <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
+                <fo:block font-size="8pt" wrap-option="wrap">
+                    <xsl:if test="$mono = 'true'">
+                        <xsl:attribute name="font-family">Courier</xsl:attribute>
+                    </xsl:if>
+                    <xsl:value-of select="$value"/>
+                </fo:block>
+            </fo:table-cell>
+        </fo:table-row>
+    </xsl:template>
+
+    <xsl:template name="reference-entry">
+        <fo:block space-before="8mm" padding-top="3mm" border-top="0.5pt solid">
+            <xsl:attribute name="border-top-color"><xsl:value-of select="$color-border"/></xsl:attribute>
+
+            <!-- Name and kind -->
+            <fo:block id="{@id}" font-size="14pt" font-weight="bold" keep-with-next="always">
+                <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
+                <xsl:value-of select="@name"/>
+                <fo:inline font-size="9pt" font-weight="normal">
+                    <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
+                    <xsl:text>  </xsl:text><xsl:value-of select="@kind"/>
+                </fo:inline>
+            </fo:block>
+            <fo:block font-size="8pt" space-after="2mm" keep-with-next="always" wrap-option="wrap">
+                <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
+                <xsl:value-of select="path"/>
+            </fo:block>
+
+            <!-- Other paths of the same declaration -->
+            <xsl:if test="occurrences">
+                <fo:block font-size="8pt" space-after="2mm">
+                    <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
+                    <xsl:text>Used at </xsl:text><xsl:value-of select="occurrences/@count"/><xsl:text> paths. Also at:</xsl:text>
+                    <xsl:for-each select="occurrences/path">
+                        <fo:block margin-left="4mm" wrap-option="wrap"><xsl:value-of select="."/></fo:block>
+                    </xsl:for-each>
+                    <xsl:if test="occurrences/@count - 1 > count(occurrences/path)">
+                        <fo:block margin-left="4mm">
+                            <xsl:text>… and </xsl:text>
+                            <xsl:value-of select="occurrences/@count - 1 - count(occurrences/path)"/>
+                            <xsl:text> more</xsl:text>
+                        </fo:block>
+                    </xsl:if>
+                </fo:block>
+            </xsl:if>
+
+            <!-- Properties -->
+            <xsl:if test="properties/property">
+                <fo:table table-layout="fixed" width="100%" space-after="2mm">
+                    <fo:table-column column-width="25%"/>
+                    <fo:table-column column-width="75%"/>
+                    <fo:table-body>
+                        <xsl:for-each select="properties/property">
+                            <xsl:call-template name="reference-row">
+                                <xsl:with-param name="label" select="@name"/>
+                                <xsl:with-param name="value" select="."/>
+                            </xsl:call-template>
+                        </xsl:for-each>
+                    </fo:table-body>
+                </fo:table>
+            </xsl:if>
+
+            <!-- Diagram -->
+            <xsl:if test="image-path">
+                <fo:block text-align="center" space-before="3mm" space-after="3mm">
+                    <fo:external-graphic src="{image-path}">
+                        <xsl:call-template name="image-size"/>
+                    </fo:external-graphic>
+                </fo:block>
+            </xsl:if>
+
+            <!-- Documentation, every selected language -->
+            <xsl:if test="documentation">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'Documentation'"/>
+                </xsl:call-template>
+                <xsl:for-each select="documentation">
+                    <fo:block font-size="9pt" space-after="1.5mm" linefeed-treatment="preserve" wrap-option="wrap">
+                        <xsl:if test="string-length(@lang) > 0">
+                            <fo:inline font-weight="bold">
+                                <xsl:text>[</xsl:text><xsl:value-of select="@lang"/><xsl:text>] </xsl:text>
+                            </fo:inline>
+                        </xsl:if>
+                        <xsl:value-of select="."/>
+                    </fo:block>
+                </xsl:for-each>
+            </xsl:if>
+
+            <!-- Restrictions -->
+            <xsl:if test="restrictions">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'Restrictions'"/>
+                </xsl:call-template>
+                <fo:table table-layout="fixed" width="100%" space-after="2mm">
+                    <fo:table-column column-width="25%"/>
+                    <fo:table-column column-width="75%"/>
+                    <fo:table-body>
+                        <xsl:if test="restrictions/@base">
+                            <xsl:call-template name="reference-row">
+                                <xsl:with-param name="label" select="'Base'"/>
+                                <xsl:with-param name="value" select="restrictions/@base"/>
+                            </xsl:call-template>
+                        </xsl:if>
+                        <xsl:for-each select="restrictions/facet">
+                            <xsl:call-template name="reference-row">
+                                <xsl:with-param name="label" select="@name"/>
+                                <xsl:with-param name="value" select="."/>
+                                <xsl:with-param name="mono" select="'true'"/>
+                            </xsl:call-template>
+                        </xsl:for-each>
+                        <xsl:if test="restrictions/enumeration">
+                            <fo:table-row>
+                                <fo:table-cell padding="1.2mm" border="0.5pt solid">
+                                    <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
+                                    <xsl:attribute name="background-color"><xsl:value-of select="$lightBackground"/></xsl:attribute>
+                                    <fo:block font-size="8pt" font-weight="bold">
+                                        <xsl:text>Values (</xsl:text>
+                                        <xsl:value-of select="count(restrictions/enumeration)"/>
+                                        <xsl:text>)</xsl:text>
+                                    </fo:block>
+                                </fo:table-cell>
+                                <fo:table-cell padding="1.2mm" border="0.5pt solid">
+                                    <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
+                                    <fo:block font-size="8pt" font-family="Courier" wrap-option="wrap">
+                                        <xsl:for-each select="restrictions/enumeration">
+                                            <xsl:value-of select="."/>
+                                            <xsl:if test="position() != last()"><xsl:text>, </xsl:text></xsl:if>
+                                        </xsl:for-each>
+                                    </fo:block>
+                                </fo:table-cell>
+                            </fo:table-row>
+                        </xsl:if>
+                    </fo:table-body>
+                </fo:table>
+            </xsl:if>
+
+            <!-- Children and attributes -->
+            <xsl:if test="children/child">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'Children and Attributes'"/>
+                </xsl:call-template>
+                <fo:table table-layout="fixed" width="100%" space-after="2mm" border="0.5pt solid">
+                    <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
+                    <fo:table-column column-width="25%"/>
+                    <fo:table-column column-width="22%"/>
+                    <fo:table-column column-width="10%"/>
+                    <fo:table-column column-width="43%"/>
+                    <fo:table-header>
+                        <fo:table-row>
+                            <xsl:attribute name="background-color"><xsl:value-of select="$tableHeaderBg"/></xsl:attribute>
+                            <fo:table-cell padding="1.2mm"><fo:block font-size="8pt" font-weight="bold">Name</fo:block></fo:table-cell>
+                            <fo:table-cell padding="1.2mm"><fo:block font-size="8pt" font-weight="bold">Type</fo:block></fo:table-cell>
+                            <fo:table-cell padding="1.2mm"><fo:block font-size="8pt" font-weight="bold">Card.</fo:block></fo:table-cell>
+                            <fo:table-cell padding="1.2mm"><fo:block font-size="8pt" font-weight="bold">Description</fo:block></fo:table-cell>
+                        </fo:table-row>
+                    </fo:table-header>
+                    <fo:table-body>
+                        <xsl:for-each select="children/child">
+                            <fo:table-row>
+                                <xsl:call-template name="apply-table-row-style"/>
+                                <fo:table-cell padding="1.2mm">
+                                    <fo:block font-size="8pt" wrap-option="wrap">
+                                        <xsl:call-template name="reference-link">
+                                            <xsl:with-param name="text" select="@name"/>
+                                        </xsl:call-template>
+                                    </fo:block>
+                                </fo:table-cell>
+                                <fo:table-cell padding="1.2mm"><fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="type"/></fo:block></fo:table-cell>
+                                <fo:table-cell padding="1.2mm"><fo:block font-size="8pt"><xsl:value-of select="cardinality"/></fo:block></fo:table-cell>
+                                <fo:table-cell padding="1.2mm"><fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="description"/></fo:block></fo:table-cell>
+                            </fo:table-row>
+                        </xsl:for-each>
+                    </fo:table-body>
+                </fo:table>
+            </xsl:if>
+
+            <!-- Identity constraints -->
+            <xsl:if test="constraint">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'Identity Constraints'"/>
+                </xsl:call-template>
+                <xsl:for-each select="constraint">
+                    <fo:table table-layout="fixed" width="100%" space-after="2mm">
+                        <fo:table-column column-width="25%"/>
+                        <fo:table-column column-width="75%"/>
+                        <fo:table-body>
+                            <xsl:call-template name="reference-row">
+                                <xsl:with-param name="label" select="@kind"/>
+                                <xsl:with-param name="value" select="@name"/>
+                            </xsl:call-template>
+                            <xsl:call-template name="reference-row">
+                                <xsl:with-param name="label" select="'Selector'"/>
+                                <xsl:with-param name="value" select="selector"/>
+                                <xsl:with-param name="mono" select="'true'"/>
+                            </xsl:call-template>
+                            <xsl:for-each select="field">
+                                <xsl:call-template name="reference-row">
+                                    <xsl:with-param name="label" select="'Field'"/>
+                                    <xsl:with-param name="value" select="."/>
+                                    <xsl:with-param name="mono" select="'true'"/>
+                                </xsl:call-template>
+                            </xsl:for-each>
+                            <xsl:if test="refer">
+                                <xsl:call-template name="reference-row">
+                                    <xsl:with-param name="label" select="'Refers to'"/>
+                                    <xsl:with-param name="value" select="refer"/>
+                                </xsl:call-template>
+                            </xsl:if>
+                            <xsl:if test="documentation">
+                                <xsl:call-template name="reference-row">
+                                    <xsl:with-param name="label" select="'Documentation'"/>
+                                    <xsl:with-param name="value" select="documentation"/>
+                                </xsl:call-template>
+                            </xsl:if>
+                        </fo:table-body>
+                    </fo:table>
+                </xsl:for-each>
+            </xsl:if>
+
+            <!-- Assertions -->
+            <xsl:if test="assertion">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'Assertions (XSD 1.1)'"/>
+                </xsl:call-template>
+                <fo:table table-layout="fixed" width="100%" space-after="2mm">
+                    <fo:table-column column-width="25%"/>
+                    <fo:table-column column-width="75%"/>
+                    <fo:table-body>
+                        <xsl:for-each select="assertion">
+                            <xsl:call-template name="reference-row">
+                                <xsl:with-param name="label" select="@kind"/>
+                                <xsl:with-param name="value" select="test"/>
+                                <xsl:with-param name="mono" select="'true'"/>
+                            </xsl:call-template>
+                            <xsl:if test="documentation">
+                                <xsl:call-template name="reference-row">
+                                    <xsl:with-param name="label" select="'Documentation'"/>
+                                    <xsl:with-param name="value" select="documentation"/>
+                                </xsl:call-template>
+                            </xsl:if>
+                        </xsl:for-each>
+                    </fo:table-body>
+                </fo:table>
+            </xsl:if>
+
+            <!-- Type alternatives -->
+            <xsl:if test="alternative">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'Type Alternatives (XSD 1.1)'"/>
+                </xsl:call-template>
+                <fo:table table-layout="fixed" width="100%" space-after="2mm">
+                    <fo:table-column column-width="25%"/>
+                    <fo:table-column column-width="75%"/>
+                    <fo:table-body>
+                        <xsl:for-each select="alternative">
+                            <xsl:call-template name="reference-row">
+                                <xsl:with-param name="label" select="type"/>
+                                <xsl:with-param name="value" select="test"/>
+                                <xsl:with-param name="mono" select="'true'"/>
+                            </xsl:call-template>
+                        </xsl:for-each>
+                    </fo:table-body>
+                </fo:table>
+            </xsl:if>
+
+            <!-- Wildcards and open content -->
+            <xsl:if test="wildcard or open-content">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'Wildcards and Open Content'"/>
+                </xsl:call-template>
+                <fo:table table-layout="fixed" width="100%" space-after="2mm">
+                    <fo:table-column column-width="25%"/>
+                    <fo:table-column column-width="75%"/>
+                    <fo:table-body>
+                        <xsl:for-each select="wildcard">
+                            <xsl:call-template name="reference-row">
+                                <xsl:with-param name="label" select="@kind"/>
+                                <xsl:with-param name="value" select="concat(namespace, ' (processContents: ', process-contents, ')')"/>
+                            </xsl:call-template>
+                        </xsl:for-each>
+                        <xsl:for-each select="open-content">
+                            <xsl:call-template name="reference-row">
+                                <xsl:with-param name="label" select="'Open content'"/>
+                                <xsl:with-param name="value" select="concat(mode, ', ', namespace)"/>
+                            </xsl:call-template>
+                        </xsl:for-each>
+                    </fo:table-body>
+                </fo:table>
+            </xsl:if>
+
+            <!-- Appinfo -->
+            <xsl:if test="appinfo">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'Additional Information'"/>
+                </xsl:call-template>
+                <xsl:for-each select="appinfo">
+                    <fo:block font-size="8pt" font-family="Courier" space-after="1mm" wrap-option="wrap"
+                              linefeed-treatment="preserve">
+                        <xsl:value-of select="."/>
+                    </fo:block>
+                </xsl:for-each>
+            </xsl:if>
+        </fo:block>
     </xsl:template>
 
     <!-- ============================================== -->
@@ -1027,7 +1361,11 @@
                             <xsl:call-template name="apply-table-row-style"/>
                             <fo:table-cell padding="3mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
-                                <fo:block font-size="10pt"><xsl:value-of select="name"/></fo:block>
+                                <fo:block font-size="10pt">
+                                    <xsl:call-template name="reference-link">
+                                        <xsl:with-param name="text" select="name"/>
+                                    </xsl:call-template>
+                                </fo:block>
                             </fo:table-cell>
                             <fo:table-cell padding="3mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
