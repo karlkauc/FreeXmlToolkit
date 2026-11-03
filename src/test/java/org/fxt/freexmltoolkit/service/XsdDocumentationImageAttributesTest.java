@@ -100,6 +100,28 @@ class XsdDocumentationImageAttributesTest {
     }
 
     @Test
+    void rootNameIsCentredVerticallyInItsBox() {
+        String svg = imageService.generateSvgString(element("Total"));
+
+        Matcher rect = Pattern.compile("<rect[^>]*data-root=\"true\"[^>]*/>", Pattern.DOTALL).matcher(svg);
+        assertTrue(rect.find(), "root box expected");
+        double top = attr(rect.group(), "y");
+        double bottom = top + attr(rect.group(), "height");
+        Matcher text = Pattern.compile("<text[^>]*>Total</text>", Pattern.DOTALL).matcher(svg);
+        assertTrue(text.find(), "root name text expected");
+        double baseline = attr(text.group(), "y");
+
+        // Total has no attributes, so the name is the box's only line: the space above the
+        // ascent and below the descent must match.
+        java.awt.font.LineMetrics metrics = imageService.font
+                .deriveFont(java.awt.Font.BOLD, (float) XsdDocumentationImageService.ROOT_FONT_SIZE)
+                .getLineMetrics("Total", imageService.frc);
+        double above = baseline - metrics.getAscent() - top;
+        double below = bottom - baseline - metrics.getDescent();
+        assertEquals(above, below, 0.5, "name sits " + (above - below) + " px low");
+    }
+
+    @Test
     void sequenceIconIsCentredInItsSymbol() {
         String svg = imageService.generateSvgString(element("Total"));
 

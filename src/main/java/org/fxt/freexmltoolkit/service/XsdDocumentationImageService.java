@@ -558,7 +558,8 @@ public class XsdDocumentationImageService {
 
         Element text1 = createSvgTextElement(document, rootElement.getElementName(),
                 String.valueOf(rootStartX + boxPadding),
-                String.valueOf(rootStartY + boxPadding + rootNameHeight),
+                String.valueOf(centredBaseline(rootFont, rootElement.getElementName(),
+                        rootStartY + boxPadding, rootNameHeight)),
                 COLOR_TEXT_PRIMARY, ROOT_FONT_SIZE);
         text1.setAttribute("font-weight", "700");
 
@@ -955,6 +956,22 @@ public class XsdDocumentationImageService {
     /**
      * Creates an SVG text element in the correct namespace.
      */
+    /**
+     * Returns the baseline that centres a line of text vertically in a row. Placing the baseline at
+     * the bottom of the row's string bounds leaves the descent and leading below it, so the
+     * glyphs would sit low.
+     *
+     * @param lineFont  the font the text is set in
+     * @param text      the text
+     * @param rowTop    top of the row
+     * @param rowHeight height of the row
+     * @return the y of the baseline
+     */
+    double centredBaseline(Font lineFont, String text, double rowTop, double rowHeight) {
+        java.awt.font.LineMetrics metrics = lineFont.getLineMetrics(text, frc);
+        return rowTop + (rowHeight + metrics.getAscent() - metrics.getDescent()) / 2;
+    }
+
     private Element createSvgTextElement(Document document, String textContent, String x, String y, String fill, int fontSize) {
         Element textElement = document.createElementNS(svgNS, "text");
         textElement.setAttribute("fill", fill);
