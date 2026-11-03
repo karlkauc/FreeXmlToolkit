@@ -114,9 +114,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     // Source file indicator for include support
     private Label currentSourceFileLabel;
 
-    // Minimal (shell) chrome: a top-left breadcrumb shown instead of the action toolbar,
+    // Minimal (shell) chrome: a top-left title chip shown instead of the action toolbar,
     // matching the Figma "Schema (graphical)" frame. Null in the default toolbar chrome.
-    private Label breadcrumbLabel;
+    private XsdGraphTitleChip titleChip;
 
     // Drag & Drop state
     private boolean isDragging = false;
@@ -221,12 +221,14 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     private final java.util.function.Consumer<org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme>
             themeListener = theme -> {
                 applyTheme(theme);
+                updateTitleChip();
                 repaint();
             };
 
     private void applyTheme(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
         boolean dark = theme == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK;
-        pageBackground = dark ? Color.rgb(15, 20, 25) : Color.WHITE;
+        // The canvas token, not white: white cards on a white page had no separation at all
+        pageBackground = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_CANVAS.color(theme);
         renderer.setDarkMode(dark);
     }
 
@@ -265,7 +267,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             }
             // Update source file indicator + minimal-chrome breadcrumb
             updateSourceFileIndicator();
-            updateBreadcrumb();
+            updateTitleChip();
             // Selection does not affect layout: repaint only the affected node regions (P4).
             java.util.List<VisualNode> affected = new java.util.ArrayList<>(oldSelection);
             affected.addAll(newSelection);
@@ -579,6 +581,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             disposeVisualTree();
             rootNode = builder.buildFromSchema(xsdSchema, this::requestRedraw, importedSchemas);
             nodeMap.putAll(builder.getNodeMap());
+            refreshTitleChipLater();
             logger.debug("Visual tree built from XsdSchema with {} nodes (with redraw callback for property changes)", nodeMap.size());
         } finally {
             isRebuilding = false;
@@ -642,6 +645,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             rootNode = builder.buildFromSchema(xsdSchema, this::requestRedraw, importedSchemas);
             nodeMap.clear();
             nodeMap.putAll(builder.getNodeMap());
+            refreshTitleChipLater();
             logger.debug("Visual tree rebuilt with {} nodes", nodeMap.size());
             logger.debug("Root node has {} children", rootNode.getChildren().size());
 
@@ -1035,9 +1039,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     /**
      * Switches to the minimal "shell" chrome that matches the Figma
      * "Redesign · Unified — Schema (graphical)" frame: the bulky top action toolbar is
-     * removed (the unified shell provides the editor toolbar above), a slim breadcrumb is
-     * shown at the top-left of the canvas, and zoom moves to a small pill at the
-     * bottom-centre. Expand/collapse stay reachable via node chevrons and the context menu.
+     * removed (the unified shell provides the editor toolbar above), a title chip (Figma 07.6b)
+     * is shown at the top-left of the canvas, and zoom moves to a small control at the
+     * bottom-right. Expand/collapse stay reachable via node chevrons and the context menu.
      */
     public void useMinimalChrome() {
         // 1. Drop the top action toolbar (Expand/Collapse/Fit/zoom buttons).
@@ -1049,59 +1053,52 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             return;
         }
 
-        // 2. Breadcrumb (top-left), updated from the current selection.
-        breadcrumbLabel = new Label();
-        breadcrumbLabel.getStyleClass().add("fxt-graph-breadcrumb");
-        breadcrumbLabel.setMouseTransparent(true);
-        StackPane.setAlignment(breadcrumbLabel, Pos.TOP_LEFT);
-        StackPane.setMargin(breadcrumbLabel, new Insets(8, 0, 0, 10));
-        updateBreadcrumb();
+        // 2. Title chip (top-left), following the selection (else the diagram root).
+        titleChip = new XsdGraphTitleChip();
+        StackPane.setAlignment(titleChip, Pos.TOP_LEFT);
+        StackPane.setMargin(titleChip, new Insets(16, 0, 0, 20));
+        updateTitleChip();
 
-        // 3. Zoom pill (bottom-centre): [ - 100% + ].
-        Button zoomOutPill = new Button("-");
-        zoomOutPill.getStyleClass().add("fxt-graph-zoom-button");
-        zoomOutPill.setTooltip(new Tooltip("Zoom Out (Ctrl -)"));
-        zoomOutPill.setOnAction(e -> zoomOut());
+        // 3. Zoom control (bottom-right): [⊟] 100% [⊞]; the label is re-pointed (the old one
+        //    went away with the toolbar).
+        XsdGraphZoomControl zoomControl = new XsdGraphZoomControl(this::zoomOut, this::zoomIn, this::zoomReset);
+        zoomLabel = zoomControl.percentLabel();
+        zoomLabel.setText(String.format("%.0f%%", zoomLevel * 100));
+        StackPane.setAlignment(zoomControl, Pos.BOTTOM_RIGHT);
+        // Clear of the scroll bars of the canvas
+        StackPane.setMargin(zoomControl, new Insets(0, 24, 24, 0));
 
-        Button zoomInPill = new Button("+");
-        zoomInPill.getStyleClass().add("fxt-graph-zoom-button");
-        zoomInPill.setTooltip(new Tooltip("Zoom In (Ctrl +)"));
-        zoomInPill.setOnAction(e -> zoomIn());
-
-        // Re-point the live zoom label (the old one went away with the toolbar).
-        zoomLabel = new Label(String.format("%.0f%%", zoomLevel * 100));
-        zoomLabel.getStyleClass().add("fxt-graph-zoom-label");
-        zoomLabel.setTooltip(new Tooltip("Reset Zoom to 100% (Ctrl 0)"));
-        zoomLabel.setOnMouseClicked(e -> zoomReset());
-
-        HBox zoomPill = new HBox(zoomOutPill, zoomLabel, zoomInPill);
-        zoomPill.getStyleClass().add("fxt-graph-zoom-pill");
-        zoomPill.setAlignment(Pos.CENTER);
-        zoomPill.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        StackPane.setAlignment(zoomPill, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(zoomPill, new Insets(0, 0, 12, 0));
-
-        // 4. Overlay the breadcrumb and pill on top of the canvas.
-        StackPane overlay = new StackPane(center, breadcrumbLabel, zoomPill);
+        // 4. Overlay the chip and the zoom control on top of the canvas.
+        StackPane overlay = new StackPane(center, titleChip, zoomControl);
         setCenter(overlay);
     }
 
-    /** Updates the breadcrumb text from the primary selection (or the schema root). */
-    private void updateBreadcrumb() {
-        if (breadcrumbLabel == null) {
+    /** Updates the title chip from the primary selection (or the diagram root). */
+    private void updateTitleChip() {
+        if (titleChip == null) {
             return;
         }
-        VisualNode primary = getSelectionModel().getPrimarySelection();
-        String text;
-        if (primary != null) {
-            String detail = primary.getDetail();
-            text = primary.getLabel() + (detail != null && !detail.isBlank() ? "  ·  " + detail : "");
-        } else if (xsdSchema != null && xsdSchema.getName() != null) {
-            text = xsdSchema.getName();
-        } else {
-            text = "Schema";
+        VisualNode node = getSelectionModel().getPrimarySelection();
+        if (node == null) {
+            node = rootNode;
         }
-        breadcrumbLabel.setText(text);
+        String fallback = xsdSchema != null && xsdSchema.getName() != null ? xsdSchema.getName() : "Schema";
+        titleChip.show(node, fallback,
+                renderer.kindTint(node != null ? node.getType() : XsdNodeRenderer.NodeWrapperType.SCHEMA));
+    }
+
+    /** A new tree has a new root: the chip shows it when nothing is selected. */
+    private void refreshTitleChipLater() {
+        if (Platform.isFxApplicationThread()) {
+            updateTitleChip();
+        } else {
+            Platform.runLater(this::updateTitleChip);
+        }
+    }
+
+    /** @return the title chip of the minimal chrome, or null without it (tests) */
+    XsdGraphTitleChip getTitleChip() {
+        return titleChip;
     }
 
     /**

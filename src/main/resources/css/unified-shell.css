@@ -2031,20 +2031,71 @@
 }
 
 /* ----- Canvas XSD editor: minimal (shell) chrome — Figma "Schema (graphical)" ----- */
-/* Breadcrumb shown at the top-left of the diagram instead of an action toolbar. */
-.fxt-graph-breadcrumb {
-    -fx-font-family: "Inter", sans-serif;
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-text-fill: -fxt-text-secondary;
-    -fx-padding: 3 10 3 10;
+/* Title chip at the top-left of the diagram (Figma 07.6b): symbol, name, kind · type · content.
+   The bundled SemiBold cut is a family of its own ("Inter SemiBold"); weight 600 on "Inter" falls back to Regular. */
+.fxt-graph-title-chip {
     -fx-background-color: -fxt-bg-surface;
-    -fx-background-radius: 6;
+    -fx-background-radius: 8;
     -fx-border-color: -fxt-border;
-    -fx-border-radius: 6;
+    -fx-border-radius: 8;
+    -fx-padding: 7 13 7 11;
+    -fx-spacing: 8;
 }
 
-/* Small floating zoom pill at the bottom-centre of the diagram: [ - 100% + ]. */
+.fxt-graph-title-name {
+    -fx-font-family: "Inter SemiBold", "Inter", sans-serif;
+    /* picks the SemiBold face when installed, else bold Inter (not Regular) */
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-graph-title-meta {
+    -fx-font-family: "Inter", sans-serif;
+    -fx-font-size: 11.5px;
+    /* secondary in light: the muted token is only 3:1 on white */
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.root.fxt-theme-dark .fxt-graph-title-meta {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+/* Zoom control at the bottom-right of the diagram (Figma 07.6b): [⊟] 100% [⊞]. */
+.fxt-graph-zoom-control {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-background-radius: 8;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 8;
+    -fx-padding: 6 10 6 10;
+    -fx-spacing: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+}
+
+.fxt-graph-zoom-icon-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.fxt-graph-zoom-icon-button .iconify-icon {
+    -fx-icon-color: -fxt-text-secondary;
+}
+
+.fxt-graph-zoom-icon-button:hover .iconify-icon {
+    -fx-icon-color: -fxt-primary;
+}
+
+.fxt-graph-zoom-percent {
+    -fx-font-family: "Inter Medium", "Inter", sans-serif;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-min-width: 32;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+}
+
+/* Zoom pill inline in the Grid view header: [ - 100% + ]. */
 .fxt-graph-zoom-pill {
     -fx-background-color: -fxt-bg-surface;
     -fx-background-radius: 18;

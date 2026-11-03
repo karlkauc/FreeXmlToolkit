@@ -49,6 +49,15 @@ final class GridViewHeader extends HBox {
         this.view = view;
         this.splitHandler = splitHandler;
         FxmlViews.load(this, "/pages/views/GridViewHeader.fxml");
+        // The buttons keep their size (minWidth USE_PREF), but the strip itself must not: its summed
+        // minimum (~760 px) made the whole grid wider than a narrow editor column, so the grid ran
+        // under the Properties pane and the right end of its scroll bar was out of reach. The strip
+        // shrinks and clips what no longer fits.
+        setMinWidth(0);
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+        clip.widthProperty().bind(widthProperty());
+        clip.heightProperty().bind(heightProperty());
+        setClip(clip);
         subtitle.setText(subtitleText);
         zoomLabel.setText(percent(view.getZoom()));
         view.zoomProperty().addListener((obs, oldZoom, newZoom) -> zoomLabel.setText(percent(newZoom.doubleValue())));

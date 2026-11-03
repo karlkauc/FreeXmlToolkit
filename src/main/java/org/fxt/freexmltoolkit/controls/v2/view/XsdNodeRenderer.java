@@ -146,8 +146,23 @@ public class XsdNodeRenderer {
         return token(ColorToken.BG_SURFACE);
     }
 
+    /**
+     * Card, compositor, button and connector outlines. Dark keeps the Figma border token; on the
+     * light canvas that token is nearly invisible (1.3:1), so light mixes the muted text colour in.
+     */
     private Color border() {
-        return token(ColorToken.BORDER_DEFAULT);
+        return darkMode ? token(ColorToken.BORDER_DEFAULT)
+                : token(ColorToken.TEXT_MUTED).interpolate(surface(), 0.45);
+    }
+
+    /** The type line and other secondary text: muted in dark (Figma), secondary in light (contrast). */
+    private Color secondaryText() {
+        return token(darkMode ? ColorToken.TEXT_MUTED : ColorToken.TEXT_SECONDARY);
+    }
+
+    /** An accent used as text on a faint tint of itself: darkened in light mode to stay readable. */
+    private Color accentText(Color tint) {
+        return darkMode ? tint : tint.interpolate(Color.BLACK, 0.28);
     }
 
     /** The accent of a node kind: icon, pill and selected tile take it. */
@@ -168,7 +183,7 @@ public class XsdNodeRenderer {
         if (type == NodeWrapperType.ELEMENT) {
             return token(ColorToken.BG_SUBTLE);
         }
-        return withAlpha(kindTint(type), darkMode ? 0.18 : 0.12);
+        return withAlpha(kindTint(type), darkMode ? 0.18 : 0.14);
     }
 
     private static Color withAlpha(Color color, double alpha) {
@@ -200,10 +215,12 @@ public class XsdNodeRenderer {
     /** The second line of a card: the type, or what kind of node it is when it has none. */
     static String typeLine(VisualNode node) {
         String detail = node.getDetail();
-        if (detail != null && !detail.isBlank()) {
-            return detail;
-        }
-        return switch (node.getType()) {
+        return detail != null && !detail.isBlank() ? detail : kindName(node.getType());
+    }
+
+    /** The XSD name of a node kind, as the type line and the title chip show it. */
+    static String kindName(NodeWrapperType type) {
+        return switch (type) {
             case ELEMENT -> "element";
             case ATTRIBUTE -> "attribute";
             case COMPLEX_TYPE -> "complexType";
@@ -416,7 +433,7 @@ public class XsdNodeRenderer {
                     withAlpha(token(ColorToken.TEXT_MUTED), 0.7), 1, false);
         }
         // Soft shadow: a darker shape one pixel below (a DropShadow effect costs too much per card)
-        gc.setFill(Color.rgb(0, 0, 0, darkMode ? 0.18 : 0.06));
+        gc.setFill(Color.rgb(0, 0, 0, darkMode ? 0.18 : 0.08));
         gc.fillRoundRect(x, y + 1, width, height + 1, CARD_RADIUS * 2, CARD_RADIUS * 2);
         drawCardShape(gc, x, y, width, height,
                 selected ? token(ColorToken.BG_SUBTLE) : surface(), strokeColor, strokeWidth, isOptional(node));
@@ -427,7 +444,7 @@ public class XsdNodeRenderer {
         gc.fillRoundRect(x + TILE_X, tileY, TILE_SIZE, TILE_SIZE, TILE_RADIUS * 2, TILE_RADIUS * 2);
         double iconOffset = (TILE_SIZE - TILE_ICON_SIZE) / 2;
         SvgIconRenderer.renderIcon(gc, cardIcon(node), x + TILE_X + iconOffset, tileY + iconOffset,
-                TILE_ICON_SIZE, selected ? token(ColorToken.ON_PRIMARY) : tint);
+                TILE_ICON_SIZE, selected ? token(ColorToken.ON_PRIMARY) : accentText(tint));
 
         // Name and type line
         gc.setTextAlign(TextAlignment.LEFT);
@@ -436,7 +453,7 @@ public class XsdNodeRenderer {
         gc.setFill(selected ? token(ColorToken.PRIMARY) : token(ColorToken.TEXT_PRIMARY));
         gc.fillText(node.getLabel() != null ? node.getLabel() : "", x + TEXT_X, y + NAME_Y);
         gc.setFont(typeFont);
-        gc.setFill(token(ColorToken.TEXT_MUTED));
+        gc.setFill(secondaryText());
         gc.fillText(typeLine(node), x + TEXT_X, y + TYPE_Y);
 
         // Cardinality pill
@@ -445,9 +462,9 @@ public class XsdNodeRenderer {
             double pillWidth = pillWidth(pill);
             double pillX = badgeX(x, width, pillWidth, node.hasChildren());
             double pillY = y + NAME_Y - 1;
-            gc.setFill(withAlpha(tint, darkMode ? 0.2 : 0.12));
+            gc.setFill(withAlpha(tint, darkMode ? 0.2 : 0.14));
             gc.fillRoundRect(pillX, pillY, pillWidth, PILL_HEIGHT, PILL_HEIGHT, PILL_HEIGHT);
-            gc.setFill(tint);
+            gc.setFill(accentText(tint));
             gc.setFont(pillFont);
             gc.setTextAlign(TextAlignment.CENTER);
             gc.setTextBaseline(VPos.CENTER);
@@ -536,7 +553,7 @@ public class XsdNodeRenderer {
             rowY += CONSTRAINT_ROW_HEIGHT;
         }
         if (rows.size() > MAX_CONSTRAINT_ROWS) {
-            gc.setFill(token(ColorToken.TEXT_MUTED));
+            gc.setFill(secondaryText());
             gc.setFont(constraintFont);
             gc.setTextAlign(TextAlignment.LEFT);
             gc.fillText("+" + (rows.size() - MAX_CONSTRAINT_ROWS) + " more", x + CONSTRAINT_LEFT,
@@ -551,7 +568,7 @@ public class XsdNodeRenderer {
         gc.setFill(withAlpha(color, darkMode ? 0.2 : 0.12));
         gc.fillRoundRect(x, labelY, CONSTRAINT_LABEL_WIDTH, CONSTRAINT_LABEL_HEIGHT, 4, 4);
 
-        gc.setFill(color);
+        gc.setFill(accentText(color));
         gc.setFont(constraintLabelFont);
         gc.setTextAlign(TextAlignment.CENTER);
         gc.fillText(row.kind().label(), x + CONSTRAINT_LABEL_WIDTH / 2, rowY + CONSTRAINT_ROW_HEIGHT / 2);
@@ -627,7 +644,7 @@ public class XsdNodeRenderer {
         String cardinality = getCardinalityString(node);
         if (!cardinality.isEmpty()) {
             gc.setFont(compositorLabelFont);
-            gc.setFill(token(ColorToken.TEXT_MUTED));
+            gc.setFill(secondaryText());
             gc.setTextAlign(TextAlignment.CENTER);
             gc.setTextBaseline(VPos.TOP);
             gc.fillText(cardinality, x + size / 2, y + size + 2);

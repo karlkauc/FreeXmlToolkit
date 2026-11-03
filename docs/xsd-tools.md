@@ -85,6 +85,11 @@ Every node is a card with two lines: the **name** and, below it in a monospace f
 | Small box with lines, signpost or stack | `xs:sequence`, `xs:choice`, `xs:all`; a cardinality other than `1..1` is written below it |
 | Small blue `I` in the corner | The node comes from an included file |
 
+The **title chip** at the top-left names the selected card (or the diagram's root when nothing is
+selected) with its kind, type and content model, e.g. `DataSupplier  element · DataSupplierType · sequence`.
+The **zoom control** at the bottom-right zooms out and in; click the percentage to return to 100 %
+(also **Ctrl −**, **Ctrl +**, **Ctrl 0**).
+
 ### Constraints on the Cards
 
 A card lists what limits its node below the type lines, one row per constraint:
