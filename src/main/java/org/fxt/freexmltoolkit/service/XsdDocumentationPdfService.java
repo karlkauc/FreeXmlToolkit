@@ -78,6 +78,9 @@ public class XsdDocumentationPdfService {
     private TaskProgressListener progressListener;
     private PdfDocumentationConfig config = new PdfDocumentationConfig();
 
+    /** List each named type only once in the data dictionary, as the HTML option of the same name. */
+    private boolean deduplicateDataDictionaryByType;
+
     // Cached FopFactory for performance
     private static final FopFactory fopFactory;
 
@@ -239,6 +242,13 @@ public class XsdDocumentationPdfService {
             }
         }
 
+        // Element and type reference: decided first, so every table can link to them
+        PdfElementReferenceBuilder reference = new PdfElementReferenceBuilder(this, documentationData, config,
+                imageService, tempImageDir, includedLanguages, this::reportProgress);
+        PdfTypeReferenceBuilder types = new PdfTypeReferenceBuilder(this, documentationData, config,
+                imageService, tempImageDir, includedLanguages, reference);
+        reference.setTypeSections(types::sectionIdOf);
+
         // ComplexTypes section
         Element complexTypes = doc.createElement("complex-types");
         root.appendChild(complexTypes);
@@ -251,7 +261,8 @@ public class XsdDocumentationPdfService {
                 String typeName = typeElement.getAttribute("name");
                 addElement(doc, type, "name", typeName);
                 addElement(doc, type, "base-type", getBaseType(typeElement));
-                addElement(doc, type, "usage-count", String.valueOf(typeUsageCounts().getOrDefault(typeName, 0)));
+                addElement(doc, type, "usage-count", String.valueOf(typeUsage(typeName).count()));
+                types.writeComplexType(doc, type, typeElement);
             }
         }
 
@@ -268,12 +279,9 @@ public class XsdDocumentationPdfService {
                 addElement(doc, type, "name", typeName);
                 addElement(doc, type, "base-type", getSimpleTypeBase(typeElement));
                 addElement(doc, type, "facets", getSimpleTypeFacetsSummary(typeElement));
+                types.writeSimpleType(doc, type, typeElement);
             }
         }
-
-        // Element reference: decided first, so the data dictionary and the index can link to it
-        PdfElementReferenceBuilder reference = new PdfElementReferenceBuilder(this, documentationData, config,
-                imageService, tempImageDir, includedLanguages, this::reportProgress);
 
         // Data Dictionary section
         Element dataDictionary = doc.createElement("data-dictionary");
@@ -283,6 +291,9 @@ public class XsdDocumentationPdfService {
         List<XsdExtendedElement> sortedElements = new ArrayList<>(elementMap.values());
         // Filter out container elements (SEQUENCE, CHOICE, ALL) - they are internal structures
         sortedElements.removeIf(this::isContainerElement);
+        if (deduplicateDataDictionaryByType) {
+            sortedElements = deduplicateByType(sortedElements);
+        }
         sortedElements.sort(Comparator.comparing(this::getCleanXPath));
 
         int totalElements = sortedElements.size();
@@ -298,7 +309,9 @@ public class XsdDocumentationPdfService {
             // Use clean XPath without container elements; nothing is cut, long values wrap
             addElement(doc, entry, "path", breakable(getCleanXPath(xsdElement)));
             addElement(doc, entry, "name", xsdElement.getElementName());
-            addElement(doc, entry, "type", declaredType(xsdElement));
+            String declaredType = declaredType(xsdElement);
+            addElement(doc, entry, "type", declaredType);
+            setRef((Element) entry.getLastChild(), types.sectionIdOf(declaredType));
             addElement(doc, entry, "cardinality", getCardinality(xsdElement));
             addElement(doc, entry, "level", String.valueOf(xsdElement.getLevel()));
 
@@ -347,7 +360,7 @@ public class XsdDocumentationPdfService {
             if (typeNode instanceof org.w3c.dom.Element typeElement) {
                 String name = typeElement.getAttribute("name");
                 if (name != null && !name.isEmpty()) {
-                    indexEntries.add(new IndexEntry(name, "ComplexType", "Global", null));
+                    indexEntries.add(new IndexEntry(name, "ComplexType", "Global", types.sectionIdOf(name)));
                 }
             }
         }
@@ -357,7 +370,7 @@ public class XsdDocumentationPdfService {
             if (typeNode instanceof org.w3c.dom.Element typeElement) {
                 String name = typeElement.getAttribute("name");
                 if (name != null && !name.isEmpty()) {
-                    indexEntries.add(new IndexEntry(name, "SimpleType", "Global", null));
+                    indexEntries.add(new IndexEntry(name, "SimpleType", "Global", types.sectionIdOf(name)));
                 }
             }
         }
@@ -1136,6 +1149,27 @@ public class XsdDocumentationPdfService {
 
     // ================= Helper Methods =================
 
+    /**
+     * Lists each named complex or simple type once, at its first occurrence in document order, as
+     * the HTML data dictionary does with the same option. Elements of a built-in type or without a
+     * type are always kept.
+     */
+    private List<XsdExtendedElement> deduplicateByType(List<XsdExtendedElement> elements) {
+        List<XsdExtendedElement> inOrder = new ArrayList<>(elements);
+        inOrder.sort(Comparator.comparingInt(XsdExtendedElement::getCounter));
+        Set<String> seenTypes = new java.util.HashSet<>();
+        List<XsdExtendedElement> kept = new ArrayList<>();
+        for (XsdExtendedElement element : inOrder) {
+            String type = element.getElementType();
+            if (type == null || type.isBlank() || type.startsWith("xs:") || type.startsWith("xsd:")
+                    || seenTypes.add(localName(type))) {
+                kept.add(element);
+            }
+        }
+        logger.info("PDF data dictionary deduplicated by type: {} -> {} rows", elements.size(), kept.size());
+        return kept;
+    }
+
     /** Marks an entry as linking to the element reference section {@code ref} (if there is one). */
     private static void setRef(Element entry, String ref) {
         if (ref != null) {
@@ -1235,41 +1269,79 @@ public class XsdDocumentationPdfService {
         return null;
     }
 
-    /** How often each global type is used, built once per document, see {@link #typeUsageCounts()}. */
-    private Map<String, Integer> typeUsageCounts;
+    /**
+     * Who uses a global type.
+     *
+     * @param users        the elements and attributes that declare it as their type or whose inline
+     *                     type derives from it, by path
+     * @param derivedTypes the global types that derive from it ({@code base=})
+     */
+    record TypeUsage(List<XsdExtendedElement> users, List<String> derivedTypes) {
+        static final TypeUsage NONE = new TypeUsage(List.of(), List.of());
+
+        /** @return how often the type is used */
+        int count() {
+            return users.size() + derivedTypes.size();
+        }
+    }
+
+    /** The usage of every global type by local name, built once per document. */
+    private Map<String, TypeUsage> typeUsages;
 
     /**
-     * Counts, per global type name (without prefix), the element and attribute occurrences that
-     * declare it as their type plus the types and inline types that derive from it ({@code base=}).
+     * @param typeName a type name, with or without prefix
+     * @return who uses the global type of that name
      */
-    private Map<String, Integer> typeUsageCounts() {
-        if (typeUsageCounts != null) {
-            return typeUsageCounts;
+    TypeUsage typeUsage(String typeName) {
+        return typeName == null ? TypeUsage.NONE : typeUsages().getOrDefault(localName(typeName), TypeUsage.NONE);
+    }
+
+    private Map<String, TypeUsage> typeUsages() {
+        if (typeUsages != null) {
+            return typeUsages;
         }
-        Map<String, Integer> counts = new java.util.HashMap<>();
+        Map<String, List<XsdExtendedElement>> users = new java.util.HashMap<>();
+        Map<String, List<String>> derived = new java.util.HashMap<>();
         for (XsdExtendedElement element : documentationData.getExtendedXsdElementMap().values()) {
             if (isContainerElement(element)) {
                 continue;
             }
             String declared = declaredTypeAttribute(element);
             if (declared != null) {
-                counts.merge(localName(declared), 1, Integer::sum);
+                users.computeIfAbsent(localName(declared), k -> new ArrayList<>()).add(element);
             } else if (element.getCurrentNode() != null) {
                 // An inline type that derives from a named one uses it as well
                 for (String base : derivationBases(element.getCurrentNode(), false)) {
-                    counts.merge(localName(base), 1, Integer::sum);
+                    users.computeIfAbsent(localName(base), k -> new ArrayList<>()).add(element);
+                }
+            }
+            // So do the types of its XSD 1.1 type alternatives
+            for (Node child = element.getCurrentNode() == null ? null : element.getCurrentNode().getFirstChild();
+                 child != null; child = child.getNextSibling()) {
+                if (child instanceof org.w3c.dom.Element alternative && "alternative".equals(alternative.getLocalName())
+                        && alternative.hasAttribute("type")) {
+                    users.computeIfAbsent(localName(alternative.getAttribute("type")), k -> new ArrayList<>()).add(element);
                 }
             }
         }
         List<Node> globalTypes = new ArrayList<>(documentationData.getGlobalComplexTypes());
         globalTypes.addAll(documentationData.getGlobalSimpleTypes());
         for (Node type : globalTypes) {
+            String name = type instanceof org.w3c.dom.Element typeElement ? typeElement.getAttribute("name") : "";
             for (String base : derivationBases(type, true)) {
-                counts.merge(localName(base), 1, Integer::sum);
+                derived.computeIfAbsent(localName(base), k -> new ArrayList<>()).add(name);
             }
         }
-        typeUsageCounts = counts;
-        return counts;
+        Map<String, TypeUsage> result = new java.util.HashMap<>();
+        java.util.Set<String> names = new java.util.HashSet<>(users.keySet());
+        names.addAll(derived.keySet());
+        for (String name : names) {
+            List<XsdExtendedElement> typeUsers = new ArrayList<>(users.getOrDefault(name, List.of()));
+            typeUsers.sort(Comparator.comparing(this::getCleanXPath));
+            result.put(name, new TypeUsage(typeUsers, derived.getOrDefault(name, List.of())));
+        }
+        typeUsages = result;
+        return result;
     }
 
     /**
@@ -1303,7 +1375,7 @@ public class XsdDocumentationPdfService {
         return bases;
     }
 
-    private static String localName(String qName) {
+    static String localName(String qName) {
         return qName.substring(qName.indexOf(':') + 1);
     }
 
@@ -1561,6 +1633,15 @@ public class XsdDocumentationPdfService {
 
     public void setProgressListener(TaskProgressListener progressListener) {
         this.progressListener = progressListener;
+    }
+
+    /**
+     * Sets whether the data dictionary lists each named complex or simple type only once.
+     *
+     * @param deduplicate true to collapse repeated named types (the HTML option of the same name)
+     */
+    public void setDeduplicateDataDictionaryByType(boolean deduplicate) {
+        this.deduplicateDataDictionaryByType = deduplicate;
     }
 
     public void setConfig(PdfDocumentationConfig config) {

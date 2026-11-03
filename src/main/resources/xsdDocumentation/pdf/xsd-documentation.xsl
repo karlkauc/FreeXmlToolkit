@@ -328,14 +328,24 @@
             </xsl:if>
 
             <xsl:if test="$includeComplexTypes = 'true' and xsd-documentation/complex-types/complex-type">
-                <fo:bookmark internal-destination="complex-types">
+                <fo:bookmark internal-destination="complex-types" starting-state="hide">
                     <fo:bookmark-title>Complex Types</fo:bookmark-title>
+                    <xsl:for-each select="xsd-documentation/complex-types/complex-type/section">
+                        <fo:bookmark internal-destination="{@id}">
+                            <fo:bookmark-title><xsl:value-of select="@name"/></fo:bookmark-title>
+                        </fo:bookmark>
+                    </xsl:for-each>
                 </fo:bookmark>
             </xsl:if>
 
             <xsl:if test="$includeSimpleTypes = 'true' and xsd-documentation/simple-types/simple-type">
-                <fo:bookmark internal-destination="simple-types">
+                <fo:bookmark internal-destination="simple-types" starting-state="hide">
                     <fo:bookmark-title>Simple Types</fo:bookmark-title>
+                    <xsl:for-each select="xsd-documentation/simple-types/simple-type/section">
+                        <fo:bookmark internal-destination="{@id}">
+                            <fo:bookmark-title><xsl:value-of select="@name"/></fo:bookmark-title>
+                        </fo:bookmark>
+                    </xsl:for-each>
                 </fo:bookmark>
             </xsl:if>
 
@@ -723,7 +733,12 @@
                             <xsl:call-template name="apply-table-row-style"/>
                             <fo:table-cell padding="3mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
-                                <fo:block font-size="10pt"><xsl:value-of select="name"/></fo:block>
+                                <fo:block font-size="10pt">
+                                    <xsl:call-template name="link-to">
+                                        <xsl:with-param name="text" select="name"/>
+                                        <xsl:with-param name="target" select="string(@ref)"/>
+                                    </xsl:call-template>
+                                </fo:block>
                             </fo:table-cell>
                             <fo:table-cell padding="3mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
@@ -737,6 +752,10 @@
                     </xsl:for-each>
                 </fo:table-body>
             </fo:table>
+
+            <xsl:for-each select="xsd-documentation/complex-types/complex-type/section">
+                <xsl:call-template name="reference-entry"/>
+            </xsl:for-each>
 
             <fo:block break-after="page"/>
         </xsl:if>
@@ -787,7 +806,12 @@
                             <xsl:call-template name="apply-table-row-style"/>
                             <fo:table-cell padding="3mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
-                                <fo:block font-size="10pt"><xsl:value-of select="name"/></fo:block>
+                                <fo:block font-size="10pt">
+                                    <xsl:call-template name="link-to">
+                                        <xsl:with-param name="text" select="name"/>
+                                        <xsl:with-param name="target" select="string(@ref)"/>
+                                    </xsl:call-template>
+                                </fo:block>
                             </fo:table-cell>
                             <fo:table-cell padding="3mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
@@ -801,6 +825,10 @@
                     </xsl:for-each>
                 </fo:table-body>
             </fo:table>
+
+            <xsl:for-each select="xsd-documentation/simple-types/simple-type/section">
+                <xsl:call-template name="reference-entry"/>
+            </xsl:for-each>
 
             <fo:block break-after="page"/>
         </xsl:if>
@@ -869,7 +897,12 @@
                             </fo:table-cell>
                             <fo:table-cell padding="2mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
-                                <fo:block font-size="8pt"><xsl:value-of select="type"/></fo:block>
+                                <fo:block font-size="8pt">
+                                    <xsl:call-template name="link-to">
+                                        <xsl:with-param name="text" select="type"/>
+                                        <xsl:with-param name="target" select="string(type/@ref)"/>
+                                    </xsl:call-template>
+                                </fo:block>
                             </fo:table-cell>
                             <fo:table-cell padding="2mm" border="0.5pt solid">
                                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
@@ -949,11 +982,28 @@
     <!-- ============================================== -->
     <!-- LINK TO THE ELEMENT REFERENCE                 -->
     <!-- ============================================== -->
+    <!-- The text, as a link to the section $target (a reference or type section id), if any -->
+    <xsl:template name="link-to">
+        <xsl:param name="text"/>
+        <xsl:param name="target"/>
+        <xsl:choose>
+            <xsl:when test="string-length($target) > 0">
+                <fo:basic-link internal-destination="{$target}">
+                    <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
+                    <xsl:value-of select="$text"/>
+                </fo:basic-link>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$text"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
     <!-- The text, as a link to the element reference section in @ref of the context node, if any -->
     <xsl:template name="reference-link">
         <xsl:param name="text"/>
         <xsl:choose>
-            <xsl:when test="@ref and $includeElementReference = 'true'">
+            <xsl:when test="@ref">
                 <fo:basic-link internal-destination="{@ref}">
                     <xsl:attribute name="color"><xsl:value-of select="$primaryColor"/></xsl:attribute>
                     <xsl:value-of select="$text"/>
@@ -1002,6 +1052,7 @@
         <xsl:param name="label"/>
         <xsl:param name="value"/>
         <xsl:param name="mono" select="'false'"/>
+        <xsl:param name="ref" select="''"/>
         <fo:table-row>
             <fo:table-cell padding="1.2mm" border="0.5pt solid">
                 <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
@@ -1014,7 +1065,10 @@
                     <xsl:if test="$mono = 'true'">
                         <xsl:attribute name="font-family">Courier</xsl:attribute>
                     </xsl:if>
-                    <xsl:value-of select="$value"/>
+                    <xsl:call-template name="link-to">
+                        <xsl:with-param name="text" select="$value"/>
+                        <xsl:with-param name="target" select="$ref"/>
+                    </xsl:call-template>
                 </fo:block>
             </fo:table-cell>
         </fo:table-row>
@@ -1066,6 +1120,7 @@
                             <xsl:call-template name="reference-row">
                                 <xsl:with-param name="label" select="@name"/>
                                 <xsl:with-param name="value" select="."/>
+                                <xsl:with-param name="ref" select="string(@ref)"/>
                             </xsl:call-template>
                         </xsl:for-each>
                     </fo:table-body>
@@ -1133,12 +1188,27 @@
                                 </fo:table-cell>
                                 <fo:table-cell padding="1.2mm" border="0.5pt solid">
                                     <xsl:attribute name="border-color"><xsl:value-of select="$color-border"/></xsl:attribute>
-                                    <fo:block font-size="8pt" font-family="Courier" wrap-option="wrap">
-                                        <xsl:for-each select="restrictions/enumeration">
-                                            <xsl:value-of select="."/>
-                                            <xsl:if test="position() != last()"><xsl:text>, </xsl:text></xsl:if>
-                                        </xsl:for-each>
-                                    </fo:block>
+                                    <xsl:choose>
+                                        <xsl:when test="restrictions/enumeration/@documentation">
+                                            <!-- One value per line with its documentation -->
+                                            <xsl:for-each select="restrictions/enumeration">
+                                                <fo:block font-size="8pt" wrap-option="wrap" space-after="0.8mm">
+                                                    <fo:inline font-family="Courier"><xsl:value-of select="."/></fo:inline>
+                                                    <xsl:if test="@documentation">
+                                                        <xsl:text> - </xsl:text><xsl:value-of select="@documentation"/>
+                                                    </xsl:if>
+                                                </fo:block>
+                                            </xsl:for-each>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <fo:block font-size="8pt" font-family="Courier" wrap-option="wrap">
+                                                <xsl:for-each select="restrictions/enumeration">
+                                                    <xsl:value-of select="."/>
+                                                    <xsl:if test="position() != last()"><xsl:text>, </xsl:text></xsl:if>
+                                                </xsl:for-each>
+                                            </fo:block>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
                                 </fo:table-cell>
                             </fo:table-row>
                         </xsl:if>
@@ -1177,7 +1247,14 @@
                                         </xsl:call-template>
                                     </fo:block>
                                 </fo:table-cell>
-                                <fo:table-cell padding="1.2mm"><fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="type"/></fo:block></fo:table-cell>
+                                <fo:table-cell padding="1.2mm">
+                                    <fo:block font-size="8pt" wrap-option="wrap">
+                                        <xsl:call-template name="link-to">
+                                            <xsl:with-param name="text" select="type"/>
+                                            <xsl:with-param name="target" select="string(type/@ref)"/>
+                                        </xsl:call-template>
+                                    </fo:block>
+                                </fo:table-cell>
                                 <fo:table-cell padding="1.2mm"><fo:block font-size="8pt"><xsl:value-of select="cardinality"/></fo:block></fo:table-cell>
                                 <fo:table-cell padding="1.2mm"><fo:block font-size="8pt" wrap-option="wrap"><xsl:value-of select="description"/></fo:block></fo:table-cell>
                             </fo:table-row>
@@ -1298,6 +1375,40 @@
                         </xsl:for-each>
                     </fo:table-body>
                 </fo:table>
+            </xsl:if>
+
+            <!-- Where a type is used, and which types derive from it -->
+            <xsl:if test="used-in or derived-type">
+                <xsl:call-template name="reference-subheading">
+                    <xsl:with-param name="title" select="'Used In'"/>
+                </xsl:call-template>
+                <xsl:for-each select="used-in/user">
+                    <fo:block font-size="8pt" margin-left="2mm" wrap-option="wrap">
+                        <xsl:call-template name="reference-link">
+                            <xsl:with-param name="text" select="."/>
+                        </xsl:call-template>
+                    </fo:block>
+                </xsl:for-each>
+                <xsl:if test="used-in/@count > count(used-in/user)">
+                    <fo:block font-size="8pt" margin-left="2mm">
+                        <xsl:attribute name="color"><xsl:value-of select="$color-secondary"/></xsl:attribute>
+                        <xsl:text>… and </xsl:text>
+                        <xsl:value-of select="used-in/@count - count(used-in/user)"/>
+                        <xsl:text> more</xsl:text>
+                    </fo:block>
+                </xsl:if>
+                <xsl:if test="derived-type">
+                    <fo:block font-size="8pt" margin-left="2mm" space-before="1mm" wrap-option="wrap">
+                        <xsl:text>Derived types: </xsl:text>
+                        <xsl:for-each select="derived-type">
+                            <xsl:call-template name="link-to">
+                                <xsl:with-param name="text" select="."/>
+                                <xsl:with-param name="target" select="string(@ref)"/>
+                            </xsl:call-template>
+                            <xsl:if test="position() != last()"><xsl:text>, </xsl:text></xsl:if>
+                        </xsl:for-each>
+                    </fo:block>
+                </xsl:if>
             </xsl:if>
 
             <!-- Appinfo -->

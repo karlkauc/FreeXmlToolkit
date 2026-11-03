@@ -480,6 +480,7 @@ public class DocumentationView extends BorderPane {
                     pdfService.setIncludedLanguages(options.languages());
                 }
                 pdfService.setConfig(pdfConfig(options.formatOptions()));
+                pdfService.setDeduplicateDataDictionaryByType(options.deduplicateDataDictionaryByType());
                 XsdDocumentationImageService imageService = new XsdDocumentationImageService(
                         service.xsdDocumentationData.getExtendedXsdElementMap());
                 imageService.setShowDocumentation(options.showDocInSvg());

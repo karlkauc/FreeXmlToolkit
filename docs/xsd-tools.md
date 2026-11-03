@@ -695,6 +695,23 @@ section, as the HTML documentation does; for large schemas this makes the PDF mu
 Paths in the data dictionary, names in the index and in the children tables link to their section,
 and the PDF bookmarks list every section under *Element Reference*.
 
+The **Complex Types** and **Simple Types** chapters list every global type in a table, then give
+each type its own section:
+
+- documentation;
+- base and derivation;
+- the content model of a complex type: diagram plus children and attributes;
+- the facets of a simple type with their values, and each enumeration value with its documentation;
+- assertions;
+- **Used In**: the elements and attributes of this type, with links;
+- the types derived from it.
+
+Type names link to these sections wherever they appear: overview tables, data dictionary, element
+properties, children tables and index.
+
+**Deduplicate data dictionary by type** also applies to the PDF: each named type is listed once in
+the data dictionary.
+
 #### Markdown rendering
 
 `xs:documentation` text can be rendered as Markdown, so `**bold**`, lists and links show up

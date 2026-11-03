@@ -49,6 +49,9 @@ final class PdfElementReferenceBuilder {
     private final Set<String> languages;
     private final Consumer<String> progress;
 
+    /** Section id of a global type by its name as written (null for none), for links to the type sections. */
+    private java.util.function.Function<String, String> typeSections = name -> null;
+
     /** Section id per element XPath (map key), for links. */
     private final Map<String, String> sectionIds = new HashMap<>();
     /** The elements that get a section, each with the paths it stands for. */
@@ -65,6 +68,15 @@ final class PdfElementReferenceBuilder {
         this.languages = languages;
         this.progress = progress;
         planSections();
+    }
+
+    /**
+     * Sets where the names of global types link to.
+     *
+     * @param typeSections the section id of a type by its name as written, null where there is none
+     */
+    void setTypeSections(java.util.function.Function<String, String> typeSections) {
+        this.typeSections = typeSections;
     }
 
     /** @return whether there is a reference at all */
@@ -179,7 +191,8 @@ final class PdfElementReferenceBuilder {
     private void writeProperties(Document doc, Element section, XsdExtendedElement element, boolean attribute) {
         Element properties = doc.createElement("properties");
         section.appendChild(properties);
-        property(doc, properties, "Type", typeDisplay(element));
+        Element type = property(doc, properties, "Type", typeDisplay(element));
+        setRef(type, typeSections.apply(pdf.declaredType(element)));
         property(doc, properties, attribute ? "Use" : "Cardinality",
                 attribute ? (isRequiredAttribute(element) ? "required" : "optional") : pdf.getCardinality(element));
         String namespace = element.getSourceNamespace() != null ? element.getSourceNamespace() : data.getTargetNamespace();
@@ -275,18 +288,31 @@ final class PdfElementReferenceBuilder {
         Element list = doc.createElement("children");
         section.appendChild(list);
         for (XsdExtendedElement child : children) {
-            Element c = doc.createElement("child");
-            list.appendChild(c);
-            c.setAttribute("name", child.getElementName());
-            c.setAttribute("kind", isAttribute(child) ? "Attribute" : "Element");
-            String ref = sectionIdOf(child.getCurrentXpath());
-            if (ref != null) {
-                c.setAttribute("ref", ref);
-            }
-            add(doc, c, "type", pdf.declaredType(child));
-            add(doc, c, "cardinality", isAttribute(child)
-                    ? (isRequiredAttribute(child) ? "1" : "0..1") : pdf.getCardinality(child));
-            add(doc, c, "description", pdf.getFirstDocumentation(child));
+            list.appendChild(childEntry(doc, child));
+        }
+    }
+
+    /**
+     * @return the row of a child or attribute in a "Children and Attributes" table, linking to its
+     *         section and to the section of its type
+     */
+    Element childEntry(Document doc, XsdExtendedElement child) {
+        Element c = doc.createElement("child");
+        c.setAttribute("name", child.getElementName());
+        c.setAttribute("kind", isAttribute(child) ? "Attribute" : "Element");
+        setRef(c, sectionIdOf(child.getCurrentXpath()));
+        String type = pdf.declaredType(child);
+        Element t = add(doc, c, "type", type);
+        setRef(t, typeSections.apply(type));
+        add(doc, c, "cardinality", isAttribute(child)
+                ? (isRequiredAttribute(child) ? "1" : "0..1") : pdf.getCardinality(child));
+        add(doc, c, "description", pdf.getFirstDocumentation(child));
+        return c;
+    }
+
+    private static void setRef(Element element, String ref) {
+        if (ref != null) {
+            element.setAttribute("ref", ref);
         }
     }
 
@@ -457,9 +483,10 @@ final class PdfElementReferenceBuilder {
         };
     }
 
-    private static void property(Document doc, Element properties, String name, String value) {
+    private static Element property(Document doc, Element properties, String name, String value) {
         Element p = add(doc, properties, "property", XsdDocumentationPdfService.breakable(value));
         p.setAttribute("name", name);
+        return p;
     }
 
     private static Element add(Document doc, Element parent, String name, String text) {
