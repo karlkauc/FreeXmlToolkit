@@ -104,8 +104,8 @@ public class XsdDocumentationPdfService {
         this.documentationData = documentationData;
 
         try {
-            // Create temp directory for images if element diagrams are enabled
-            if (config.isIncludeElementDiagrams() && imageService != null) {
+            // Create the temp directory for images if any diagram is enabled
+            if ((config.isIncludeSchemaDiagram() || config.isIncludeElementDiagrams()) && imageService != null) {
                 tempImageDir = Files.createTempDirectory("xsd-pdf-images-");
                 reportProgress("Generating element diagrams");
             }
@@ -218,20 +218,7 @@ public class XsdDocumentationPdfService {
             Element schemaDiagramSection = doc.createElement("schema-diagram");
             root.appendChild(schemaDiagramSection);
 
-            // Find root element (same logic as Word service)
-            var elementMap = documentationData.getExtendedXsdElementMap();
-            XsdExtendedElement rootElement = null;
-
-            for (var element : elementMap.values()) {
-                if (element.getLevel() == 0) {
-                    rootElement = element;
-                    break;
-                }
-            }
-
-            if (rootElement == null && !elementMap.isEmpty()) {
-                rootElement = elementMap.values().iterator().next();
-            }
+            XsdExtendedElement rootElement = findRootElement();
 
             if (rootElement != null) {
                 try {
@@ -262,7 +249,7 @@ public class XsdDocumentationPdfService {
                 String typeName = typeElement.getAttribute("name");
                 addElement(doc, type, "name", typeName);
                 addElement(doc, type, "base-type", getBaseType(typeElement));
-                addElement(doc, type, "usage-count", String.valueOf(getTypeUsageCount(typeName)));
+                addElement(doc, type, "usage-count", String.valueOf(typeUsageCounts().getOrDefault(typeName, 0)));
             }
         }
 
@@ -301,18 +288,15 @@ public class XsdDocumentationPdfService {
             Element entry = doc.createElement("element");
             dataDictionary.appendChild(entry);
 
-            // Use clean XPath without container elements
-            addElement(doc, entry, "path", truncateString(getCleanXPath(xsdElement), 80));
+            // Use clean XPath without container elements; nothing is cut, long values wrap
+            addElement(doc, entry, "path", breakable(getCleanXPath(xsdElement)));
             addElement(doc, entry, "name", xsdElement.getElementName());
-            addElement(doc, entry, "type", xsdElement.getElementType() != null ? xsdElement.getElementType() : "-");
+            addElement(doc, entry, "type", declaredType(xsdElement));
             addElement(doc, entry, "cardinality", getCardinality(xsdElement));
             addElement(doc, entry, "level", String.valueOf(xsdElement.getLevel()));
 
-            String restrictions = getRestrictionsSummary(xsdElement);
-            addElement(doc, entry, "restrictions", truncateString(restrictions, 50));
-
-            String doc1 = getFirstDocumentation(xsdElement);
-            addElement(doc, entry, "description", truncateString(doc1, 100));
+            addElement(doc, entry, "restrictions", breakable(getRestrictionsSummary(xsdElement)));
+            addElement(doc, entry, "description", breakable(getFirstDocumentation(xsdElement)));
 
             // Report progress for large documents
             if (i > 0 && i % progressInterval == 0) {
@@ -360,7 +344,7 @@ public class XsdDocumentationPdfService {
 
                         addElement(doc, diagramEntry, "element-name", element.getElementName());
                         addElement(doc, diagramEntry, "path", getCleanXPath(element));
-                        addElement(doc, diagramEntry, "type", element.getElementType() != null ? element.getElementType() : "-");
+                        addElement(doc, diagramEntry, "type", declaredType(element));
                         addElement(doc, diagramEntry, "image-path", imagePath.toUri().toString());
 
                         diagramCount++;
@@ -388,12 +372,11 @@ public class XsdDocumentationPdfService {
         // Collect all index entries with their type and location
         Set<IndexEntry> indexEntries = new TreeSet<>();
 
-        // Add element names with their XPath location
+        // Add element and attribute names with their location (path without SEQUENCE/CHOICE/ALL)
         for (XsdExtendedElement element : elementMap.values()) {
             if (!isContainerElement(element) && element.getElementName() != null) {
-                String xpath = element.getCurrentXpath();
-                String location = xpath != null ? xpath : "Global";
-                indexEntries.add(new IndexEntry(element.getElementName(), "Element", location));
+                String kind = element.getElementName().startsWith("@") ? "Attribute" : "Element";
+                indexEntries.add(new IndexEntry(element.getElementName(), kind, breakable(getCleanXPath(element))));
             }
         }
 
@@ -1211,14 +1194,162 @@ public class XsdDocumentationPdfService {
         parent.appendChild(element);
     }
 
-    private String truncateString(String str, int maxLength) {
-        if (str == null) {
+    /** Zero-width space: lets FOP break a long value (an XPath, a pattern) inside a table cell. */
+    private static final char BREAK_OPPORTUNITY = '\u200B';
+
+    /** Tokens longer than this get break opportunities every so many characters. */
+    private static final int MAX_UNBROKEN = 24;
+
+    /**
+     * Returns the text with break opportunities after path and list separators and inside very
+     * long tokens, so a cell wraps it instead of letting it run over the column. The text itself
+     * is unchanged.
+     */
+    static String breakable(String text) {
+        if (text == null || text.isEmpty()) {
             return "";
         }
-        if (str.length() <= maxLength) {
-            return str;
+        StringBuilder out = new StringBuilder(text.length() + 16);
+        int run = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            out.append(c);
+            if (Character.isWhitespace(c)) {
+                run = 0;
+            } else if (c == '/' || c == '|' || c == ',' || c == ';') {
+                out.append(BREAK_OPPORTUNITY);
+                run = 0;
+            } else if (++run >= MAX_UNBROKEN) {
+                out.append(BREAK_OPPORTUNITY);
+                run = 0;
+            }
         }
-        return str.substring(0, maxLength - 3) + "...";
+        return out.toString();
+    }
+
+    /**
+     * Turns the HTML restriction string of an element ({@code Base: xs:string<br />MaxLength: 256})
+     * into one line of text ({@code Base: xs:string; MaxLength: 256}).
+     */
+    static String restrictionText(String html) {
+        if (html == null || html.isBlank()) {
+            return "";
+        }
+        String text = html.replaceAll("(?i)<br\\s*/?>", "; ")
+                .replaceAll("<[^>]+>", "")
+                .replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
+                .replace("&#39;", "'").replace("&amp;", "&")
+                .replaceAll("\\s+", " ")
+                .replaceAll("(;\\s*)+", "; ")
+                .trim();
+        return text.endsWith(";") ? text.substring(0, text.length() - 1).trim() : text;
+    }
+
+    /**
+     * The global element the schema diagram starts from: the first global element of the schema
+     * itself (not a SEQUENCE/CHOICE/ALL container), as on the root page of the HTML documentation.
+     */
+    private XsdExtendedElement findRootElement() {
+        return documentationData.getExtendedXsdElementMap().values().stream()
+                .filter(e -> e.getLevel() == 0)
+                .filter(e -> !isContainerElement(e))
+                .min(Comparator.comparing((XsdExtendedElement e) -> e.getSourceNamespace() != null)
+                        .thenComparingInt(XsdExtendedElement::getCounter))
+                .orElse(null);
+    }
+
+    /**
+     * The type an element declares: its {@code type} attribute where it has one. The element map
+     * keeps the base type for elements of a simpleContent type (sample data needs it), which is
+     * not what a reader looks for.
+     */
+    private String declaredType(XsdExtendedElement element) {
+        String declared = declaredTypeAttribute(element);
+        if (declared != null) {
+            return declared;
+        }
+        return element.getElementType() != null && !element.getElementType().isEmpty() ? element.getElementType() : "-";
+    }
+
+    private static String declaredTypeAttribute(XsdExtendedElement element) {
+        Node node = element.getCurrentNode();
+        if (node instanceof org.w3c.dom.Element declaration && declaration.hasAttribute("type")) {
+            String type = declaration.getAttribute("type").trim();
+            return type.isEmpty() ? null : type;
+        }
+        return null;
+    }
+
+    /** How often each global type is used, built once per document, see {@link #typeUsageCounts()}. */
+    private Map<String, Integer> typeUsageCounts;
+
+    /**
+     * Counts, per global type name (without prefix), the element and attribute occurrences that
+     * declare it as their type plus the types and inline types that derive from it ({@code base=}).
+     */
+    private Map<String, Integer> typeUsageCounts() {
+        if (typeUsageCounts != null) {
+            return typeUsageCounts;
+        }
+        Map<String, Integer> counts = new java.util.HashMap<>();
+        for (XsdExtendedElement element : documentationData.getExtendedXsdElementMap().values()) {
+            if (isContainerElement(element)) {
+                continue;
+            }
+            String declared = declaredTypeAttribute(element);
+            if (declared != null) {
+                counts.merge(localName(declared), 1, Integer::sum);
+            } else if (element.getCurrentNode() != null) {
+                // An inline type that derives from a named one uses it as well
+                for (String base : derivationBases(element.getCurrentNode(), false)) {
+                    counts.merge(localName(base), 1, Integer::sum);
+                }
+            }
+        }
+        List<Node> globalTypes = new ArrayList<>(documentationData.getGlobalComplexTypes());
+        globalTypes.addAll(documentationData.getGlobalSimpleTypes());
+        for (Node type : globalTypes) {
+            for (String base : derivationBases(type, true)) {
+                counts.merge(localName(base), 1, Integer::sum);
+            }
+        }
+        typeUsageCounts = counts;
+        return counts;
+    }
+
+    /**
+     * The {@code base} attributes of the extensions and restrictions of a type definition. For an
+     * element, only its own inline type is looked at, not nested element declarations.
+     */
+    private static List<String> derivationBases(Node node, boolean isType) {
+        List<String> bases = new ArrayList<>();
+        java.util.ArrayDeque<Node> pending = new java.util.ArrayDeque<>();
+        pending.push(node);
+        while (!pending.isEmpty()) {
+            Node current = pending.pop();
+            for (Node child = current.getFirstChild(); child != null; child = child.getNextSibling()) {
+                if (!(child instanceof org.w3c.dom.Element childElement)) {
+                    continue;
+                }
+                String name = childElement.getLocalName();
+                if ("element".equals(name) || "attribute".equals(name)) {
+                    continue; // nested declarations count for themselves
+                }
+                if (("extension".equals(name) || "restriction".equals(name)) && childElement.hasAttribute("base")) {
+                    bases.add(childElement.getAttribute("base"));
+                }
+                if (isType || "complexType".equals(name) || "simpleType".equals(name)
+                        || "complexContent".equals(name) || "simpleContent".equals(name)
+                        || "extension".equals(name) || "restriction".equals(name)) {
+                    pending.push(childElement);
+                }
+            }
+        }
+        return bases;
+    }
+
+    private static String localName(String qName) {
+        return qName.substring(qName.indexOf(':') + 1);
     }
 
     private String extractSchemaName() {
@@ -1301,14 +1432,6 @@ public class XsdDocumentationPdfService {
         return facets.isEmpty() ? "-" : String.join(", ", facets);
     }
 
-    private int getTypeUsageCount(String typeName) {
-        var usageMap = documentationData.getTypeUsageMap();
-        if (usageMap != null && usageMap.containsKey(typeName)) {
-            return usageMap.get(typeName).size();
-        }
-        return 0;
-    }
-
     private String getFirstDocumentation(XsdExtendedElement element) {
         Map<String, String> docs = element.getLanguageDocumentation();
         if (docs == null || docs.isEmpty()) {
@@ -1347,11 +1470,10 @@ public class XsdDocumentationPdfService {
             return "";
         }
 
-        // Get the restriction string from the element
-        String restrictionString = element.getXsdRestrictionString();
-        if (restrictionString != null && !restrictionString.isEmpty()) {
-            // Clean up and format the restriction string
-            return restrictionString.replaceAll("\\s+", " ").trim();
+        // The restriction string is HTML (lines separated by <br />): make it text
+        String restrictionString = restrictionText(element.getXsdRestrictionString());
+        if (!restrictionString.isEmpty()) {
+            return restrictionString;
         }
 
         // Check for identity constraints
