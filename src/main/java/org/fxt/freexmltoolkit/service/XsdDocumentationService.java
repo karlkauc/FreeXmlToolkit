@@ -264,6 +264,7 @@ public class XsdDocumentationService {
 
     // SVG documentation display configuration
     private boolean showDocumentationInSvg = true; // Whether to show documentation in SVG diagrams
+    private boolean showConstraintsInSvg = true; // Whether element boxes list constraints and assertions
     private boolean generateSvgOverviewPage = true; // Whether to generate the schema-svg.html overview page
     private boolean addMetadataInOutput = false; // Whether to add metadata comments to generated HTML files
     private String faviconPath = null; // Optional path to custom favicon for HTML documentation
@@ -530,6 +531,21 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Sets whether the element boxes of the diagrams list their identity constraints and
+     * assertions, as the cards of the Graphic view do.
+     *
+     * @param showConstraints true to list them (the default)
+     */
+    public void setShowConstraintsInSvg(boolean showConstraints) {
+        this.showConstraintsInSvg = showConstraints;
+    }
+
+    /** @return whether the element boxes of the diagrams list constraints and assertions */
+    public boolean isShowConstraintsInSvg() {
+        return showConstraintsInSvg;
+    }
+
+    /**
      * Returns whether documentation is displayed in SVG diagrams.
      *
      * @return true if documentation is shown, false otherwise
@@ -557,6 +573,7 @@ public class XsdDocumentationService {
         // The ImageService is now centrally initialized here so it's ready for pre-creation.
         xsdDocumentationHtmlService.xsdDocumentationImageService = new XsdDocumentationImageService(xsdDocumentationData.getExtendedXsdElementMap());
         xsdDocumentationHtmlService.xsdDocumentationImageService.setShowDocumentation(this.showDocumentationInSvg);
+        xsdDocumentationHtmlService.xsdDocumentationImageService.setShowConstraints(this.showConstraintsInSvg);
 
         executeAndTrack("Copying resources", xsdDocumentationHtmlService::copyResources);
         executeAndTrack("Generating root page", xsdDocumentationHtmlService::generateRootPage);
@@ -4704,9 +4721,31 @@ public class XsdDocumentationService {
             return;
         }
 
-        List<XsdAssertion> assertions = new ArrayList<>();
+        // Added to what an earlier call found: a simple type's xs:assertion and a complex type's
+        // xs:assert can both apply to one element.
+        List<XsdAssertion> assertions = new ArrayList<>(extendedElem.getAssertions() == null
+                ? List.of() : extendedElem.getAssertions());
+        collectAssertions(typeNode, extendedElem, assertions, new HashSet<>());
 
-        for (Node child : getDirectChildElements(typeNode)) {
+        if (!assertions.isEmpty()) {
+            extendedElem.setAssertions(assertions);
+        }
+    }
+
+    /**
+     * Collects the assertions of a type: its own (also inside complexContent / simpleContent
+     * extension and restriction), then those of the named base types it derives from. Cycle-safe.
+     *
+     * @param node    a complexType, simpleType, content model or derivation node
+     * @param visited the nodes already looked at
+     */
+    private void collectAssertions(Node node, XsdExtendedElement extendedElem, List<XsdAssertion> assertions,
+                                   Set<Node> visited) {
+        if (node == null || !visited.add(node)) {
+            return;
+        }
+        List<Node> derivations = new ArrayList<>();
+        for (Node child : getDirectChildElements(node)) {
             String localName = child.getLocalName();
             XsdAssertion.Type type = null;
 
@@ -4715,6 +4754,9 @@ public class XsdDocumentationService {
                 type = XsdAssertion.Type.ASSERT;  // xs:assert on complexType
             } else if ("assertion".equals(localName)) {
                 type = XsdAssertion.Type.ASSERTION;  // xs:assertion on simpleType restriction
+            } else if ("complexContent".equals(localName) || "simpleContent".equals(localName)
+                    || "extension".equals(localName) || "restriction".equals(localName)) {
+                derivations.add(child);
             }
 
             if (type != null) {
@@ -4732,14 +4774,35 @@ public class XsdDocumentationService {
                     }
                 }
 
-                assertions.add(assertion);
-                logger.debug("Found {} assertion with test: {} on element {}",
-                        type, assertion.getTest(), extendedElem.getElementName());
+                // The restriction of a simpleContent type is reached from the element's
+                // restriction and from its complex type: list each assertion once.
+                boolean known = assertions.stream().anyMatch(a -> a.getType() == assertion.getType()
+                        && Objects.equals(a.getTest(), assertion.getTest()));
+                if (!known) {
+                    assertions.add(assertion);
+                    logger.debug("Found {} assertion with test: {} on element {}",
+                            type, assertion.getTest(), extendedElem.getElementName());
+                }
             }
         }
 
-        if (!assertions.isEmpty()) {
-            extendedElem.setAssertions(assertions);
+        for (Node derivation : derivations) {
+            collectAssertions(derivation, extendedElem, assertions, visited);
+        }
+        // Inherited assertions after the type's own ones
+        String localName = node.getLocalName();
+        if ("extension".equals(localName) || "restriction".equals(localName)) {
+            String base = getAttributeValue(node, "base");
+            String basePrefix = base == null || !base.contains(":") ? null : base.substring(0, base.indexOf(':'));
+            boolean builtIn = javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(node.lookupNamespaceURI(basePrefix));
+            if (base != null && !base.isBlank() && !builtIn) {
+                String baseName = base.contains(":") ? base.substring(base.indexOf(':') + 1) : base;
+                Node baseType = complexTypeMap.get(baseName);
+                if (baseType == null) {
+                    baseType = simpleTypeMap.get(baseName);
+                }
+                collectAssertions(baseType, extendedElem, assertions, visited);
+            }
         }
     }
 

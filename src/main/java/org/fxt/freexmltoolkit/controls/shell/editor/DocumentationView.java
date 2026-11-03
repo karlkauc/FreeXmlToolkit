@@ -58,7 +58,7 @@ public class DocumentationView extends BorderPane {
     /** All generation options (captured from the form; also built directly by tests). */
     record DocOptions(File xsd, File output, String format,
                       XsdDocumentationService.MarkdownMode markdown,
-                      boolean includeTypeDefs, boolean showDocInSvg,
+                      boolean includeTypeDefs, boolean showDocInSvg, boolean showConstraintsInSvg,
                       boolean svgOverview, boolean addMetadata, boolean deduplicateDataDictionaryByType,
                       String imageFormat,
                       Set<String> languages, String fallbackLanguage, boolean openAfter,
@@ -93,6 +93,7 @@ public class DocumentationView extends BorderPane {
     @FXML private ComboBox<String> markdownMode;
     @FXML private CheckBox includeTypeDefs;
     @FXML private CheckBox showDocInSvg;
+    @FXML private CheckBox showConstraintsInSvg;
     @FXML private CheckBox svgOverview;
     @FXML private CheckBox addMetadata;
     @FXML private CheckBox dedupDataDictionary;
@@ -219,6 +220,7 @@ public class DocumentationView extends BorderPane {
                 pageNumbers.isSelected(), pdfBookmarks.isSelected());
         return new DocOptions(xsdFile, outputTarget, selectedFormat(),
                 selectedMarkdownMode(), includeTypeDefs.isSelected(), showDocInSvg.isSelected(),
+                showConstraintsInSvg.isSelected(),
                 svgOverview.isSelected(), addMetadata.isSelected(), dedupDataDictionary.isSelected(),
                 imageFormat.getValue(),
                 languages, fallbackLanguage.getValue(), openAfter.isSelected(), faviconFile, format);
@@ -435,6 +437,7 @@ public class DocumentationView extends BorderPane {
         service.setMarkdownMode(options.markdown());
         service.setIncludeTypeDefinitionsInSourceCode(options.includeTypeDefs());
         service.setShowDocumentationInSvg(options.showDocInSvg());
+        service.setShowConstraintsInSvg(options.showConstraintsInSvg());
         service.setGenerateSvgOverviewPage(options.svgOverview());
         service.setAddMetadataInOutput(options.addMetadata());
         service.setDeduplicateDataDictionaryByType(options.deduplicateDataDictionaryByType());
@@ -467,6 +470,7 @@ public class DocumentationView extends BorderPane {
                 XsdDocumentationImageService imageService = new XsdDocumentationImageService(
                         service.xsdDocumentationData.getExtendedXsdElementMap());
                 imageService.setShowDocumentation(options.showDocInSvg());
+                imageService.setShowConstraints(options.showConstraintsInSvg());
                 pdfService.setImageService(imageService);
                 pdfService.generatePdfDocumentation(options.output(), service.xsdDocumentationData);
             }
@@ -481,6 +485,7 @@ public class DocumentationView extends BorderPane {
                 XsdDocumentationImageService imageService = new XsdDocumentationImageService(
                         service.xsdDocumentationData.getExtendedXsdElementMap());
                 imageService.setShowDocumentation(options.showDocInSvg());
+                imageService.setShowConstraints(options.showConstraintsInSvg());
                 wordService.setImageService(imageService);
                 wordService.generateWordDocumentation(options.output(), service.xsdDocumentationData);
             }

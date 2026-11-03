@@ -119,6 +119,19 @@ public class XsdDocumentationImageService {
     /** Space below the last attribute row. */
     static final int ATTRIBUTE_SECTION_BOTTOM = 2;
 
+    /** Constraint lines a box lists before the rest collapse into a "+N more" line (as in the Graphic view). */
+    static final int MAX_CONSTRAINT_ROWS = 4;
+    /** Height of one constraint line inside an element box. */
+    static final int CONSTRAINT_ROW_HEIGHT = 18;
+    /** Font size of a constraint line's text (monospace). */
+    static final int CONSTRAINT_FONT_SIZE = 10;
+    /** Font size of a constraint line's kind label (monospace, bold). */
+    static final int CONSTRAINT_LABEL_FONT_SIZE = 9;
+    static final int CONSTRAINT_LABEL_WIDTH = 42;
+    static final int CONSTRAINT_LABEL_HEIGHT = 14;
+    static final int CONSTRAINT_LABEL_GAP = 6;
+    private static final String CONSTRAINT_FONT_FAMILY = "'JetBrains Mono', Consolas, Menlo, monospace";
+
     /** Centre of the {@code #sequence-icon} path (bbox 2..22 x 5..19). */
     static final double SEQUENCE_ICON_CENTER_X = 12;
     static final double SEQUENCE_ICON_CENTER_Y = 12;
@@ -206,6 +219,24 @@ public class XsdDocumentationImageService {
      */
     public boolean isShowDocumentation() {
         return showDocumentation;
+    }
+
+    /** Whether element boxes list their identity constraints and assertions (default true). */
+    private boolean showConstraints = true;
+
+    /**
+     * Sets whether element boxes list their identity constraints and assertions, as the cards of
+     * the Graphic view do.
+     *
+     * @param showConstraints true to list them, false to draw the boxes as if they had none
+     */
+    public void setShowConstraints(boolean showConstraints) {
+        this.showConstraints = showConstraints;
+    }
+
+    /** @return whether element boxes list their identity constraints and assertions */
+    public boolean isShowConstraints() {
+        return showConstraints;
     }
 
     /**
@@ -528,9 +559,11 @@ public class XsdDocumentationImageService {
         Font rootFont = font.deriveFont(Font.BOLD, (float) ROOT_FONT_SIZE);
         var rootElementBounds = rootFont.getStringBounds(rootElement.getElementName(), frc);
         double rootNameHeight = rootElementBounds.getBounds2D().getHeight();
-        var rootElementHeight = rootNameHeight + attributeSectionHeight(rootAttributes);
-        var rootElementWidth = Math.max(rootElementBounds.getBounds2D().getWidth(),
-                attributeSectionWidth(rootAttributes));
+        List<DiagramConstraint> rootConstraints = constraintRows(rootElement);
+        var rootElementHeight = rootNameHeight + attributeSectionHeight(rootAttributes)
+                + constraintSectionHeight(rootConstraints);
+        var rootElementWidth = Math.max(Math.max(rootElementBounds.getBounds2D().getWidth(),
+                attributeSectionWidth(rootAttributes)), constraintSectionWidth(rootConstraints));
 
         // Calculate the actual total height of child elements (with flattened compositor children)
         double totalChildElementsHeight = calculateTotalChildElementsHeight(childElements);
@@ -568,6 +601,8 @@ public class XsdDocumentationImageService {
         svgRoot.appendChild(leftRootLink);
         drawAttributeSection(document, svgRoot, rootAttributes,
                 rootStartX + boxPadding, rootStartY + boxPadding + rootNameHeight, rootElementWidth);
+        drawConstraintSection(document, svgRoot, rootConstraints, rootStartX + boxPadding,
+                rootStartY + boxPadding + rootNameHeight + attributeSectionHeight(rootAttributes), rootElementWidth);
         updateMaxRightEdge(maxRightEdge, rootStartX + boxPadding * 2 + rootElementWidth);
 
         // Add documentation (only if showDocumentation is enabled)
@@ -708,7 +743,8 @@ public class XsdDocumentationImageService {
             double nameHeight = nameBounds.getBounds2D().getHeight();
             double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
             double totalContentHeight = nameHeight + typeHeight
-                    + attributeSectionHeight(resolveChildren(childElement, true));
+                    + attributeSectionHeight(resolveChildren(childElement, true))
+                    + constraintSectionHeight(constraintRows(childElement));
 
             totalHeight += boxPadding * 2 + totalContentHeight + margin * 2;
         }
@@ -751,6 +787,7 @@ public class XsdDocumentationImageService {
 
             maxWidth = Math.max(maxWidth, Math.max(nameWidth, secondLineWidth));
             maxWidth = Math.max(maxWidth, attributeSectionWidth(resolveChildren(childElement, true)));
+            maxWidth = Math.max(maxWidth, constraintSectionWidth(constraintRows(childElement)));
         }
         return maxWidth + boxPadding * 2;
     }
@@ -1762,7 +1799,9 @@ public class XsdDocumentationImageService {
                 double nameHeight = nameBounds.getBounds2D().getHeight();
                 double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
                 List<XsdExtendedElement> attributes = resolveChildren(child, true);
-                double totalContentHeight = nameHeight + typeHeight + attributeSectionHeight(attributes);
+                List<DiagramConstraint> constraints = constraintRows(child);
+                double totalContentHeight = nameHeight + typeHeight + attributeSectionHeight(attributes)
+                        + constraintSectionHeight(constraints);
 
                 // Draw the element box
                 Element elementBox = createModernSvgRect(document, child.getCurrentXpath(), totalContentHeight,
@@ -1891,6 +1930,8 @@ public class XsdDocumentationImageService {
                 }
                 drawAttributeSection(document, svgRoot, attributes,
                         startX + boxPadding, nameRowBottom + typeHeight, maxWidth);
+                drawConstraintSection(document, svgRoot, constraints, startX + boxPadding,
+                        nameRowBottom + typeHeight + attributeSectionHeight(attributes), maxWidth);
 
                 double elementRightEdge = startX + boxPadding * 2 + maxWidth;
                 updateMaxRightEdge(maxRightEdge, elementRightEdge);
@@ -2077,6 +2118,128 @@ public class XsdDocumentationImageService {
             } else {
                 parent.appendChild(row);
             }
+        }
+    }
+
+    /** @return the constraint lines an element's box lists; none while they are switched off */
+    List<DiagramConstraint> constraintRows(XsdExtendedElement element) {
+        return showConstraints ? DiagramConstraint.of(element) : List.of();
+    }
+
+    /** @return the lines the constraint section needs: its rows, plus one for "+N more" */
+    private static int constraintLines(List<DiagramConstraint> rows) {
+        return rows.size() > MAX_CONSTRAINT_ROWS ? MAX_CONSTRAINT_ROWS + 1 : rows.size();
+    }
+
+    /** Height of the constraint lines listed inside an element box (0 without any). */
+    private double constraintSectionHeight(List<DiagramConstraint> rows) {
+        if (rows.isEmpty()) {
+            return 0;
+        }
+        return ATTRIBUTE_SECTION_TOP + constraintLines(rows) * CONSTRAINT_ROW_HEIGHT + ATTRIBUTE_SECTION_BOTTOM;
+    }
+
+    /** Width needed by the constraint lines: kind label, gap and the longest text. */
+    private double constraintSectionWidth(List<DiagramConstraint> rows) {
+        if (rows.isEmpty()) {
+            return 0;
+        }
+        Font textFont = new Font(Font.MONOSPACED, Font.PLAIN, CONSTRAINT_FONT_SIZE);
+        double textWidth = 0;
+        for (DiagramConstraint row : rows.subList(0, Math.min(MAX_CONSTRAINT_ROWS, rows.size()))) {
+            textWidth = Math.max(textWidth, textFont.getStringBounds(row.text(), frc).getWidth());
+        }
+        return CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP + textWidth;
+    }
+
+    /** Label colour per kind, the light-theme colours of the Graphic view's cards. */
+    private static String constraintColor(org.fxt.freexmltoolkit.controls.v2.view.ConstraintRow.Kind kind) {
+        return switch (kind) {
+            case KEY -> "rgb(180,83,9)";
+            case UNIQUE -> "rgb(111,66,193)";
+            case KEYREF -> "rgb(8,102,171)";
+            case ASSERT -> "rgb(15,118,110)";
+        };
+    }
+
+    /**
+     * Lists an element's identity constraints and assertions inside its box: a separator line, then
+     * one line per constraint with a coloured kind label and its text, at most
+     * {@link #MAX_CONSTRAINT_ROWS} plus a "+N more" line. Each line carries the full details as
+     * its tooltip.
+     *
+     * @param x     left edge of the box content
+     * @param y     top of the constraint section (below name, type and attributes)
+     * @param width width of the box content
+     */
+    private void drawConstraintSection(Document document, Element parent, List<DiagramConstraint> rows,
+                                       double x, double y, double width) {
+        if (rows.isEmpty()) {
+            return;
+        }
+        Element separator = document.createElementNS(svgNS, "line");
+        separator.setAttribute("x1", String.valueOf(x));
+        separator.setAttribute("y1", String.valueOf(y + ATTRIBUTE_SECTION_TOP / 2.0));
+        separator.setAttribute("x2", String.valueOf(x + width));
+        separator.setAttribute("y2", String.valueOf(y + ATTRIBUTE_SECTION_TOP / 2.0));
+        separator.setAttribute("stroke", "#e0e0e0");
+        separator.setAttribute("stroke-width", "1");
+        parent.appendChild(separator);
+
+        Font labelFont = new Font(Font.MONOSPACED, Font.BOLD, CONSTRAINT_LABEL_FONT_SIZE);
+        Font textFont = new Font(Font.MONOSPACED, Font.PLAIN, CONSTRAINT_FONT_SIZE);
+        for (int i = 0; i < Math.min(MAX_CONSTRAINT_ROWS, rows.size()); i++) {
+            DiagramConstraint row = rows.get(i);
+            double rowTop = y + ATTRIBUTE_SECTION_TOP + i * CONSTRAINT_ROW_HEIGHT;
+            String color = constraintColor(row.kind());
+
+            Element group = document.createElementNS(svgNS, "g");
+            group.setAttribute("class", "constraint-row");
+            Element title = document.createElementNS(svgNS, "title");
+            title.setTextContent(row.tooltip());
+            group.appendChild(title);
+
+            Element label = document.createElementNS(svgNS, "rect");
+            label.setAttribute("x", String.valueOf(x));
+            label.setAttribute("y", String.valueOf(rowTop + (CONSTRAINT_ROW_HEIGHT - CONSTRAINT_LABEL_HEIGHT) / 2.0));
+            label.setAttribute("width", String.valueOf(CONSTRAINT_LABEL_WIDTH));
+            label.setAttribute("height", String.valueOf(CONSTRAINT_LABEL_HEIGHT));
+            label.setAttribute("rx", "2");
+            label.setAttribute("ry", "2");
+            label.setAttribute("fill", color);
+            label.setAttribute("fill-opacity", "0.12");
+            group.appendChild(label);
+
+            Element labelText = createSvgTextElement(document, row.kind().label(),
+                    String.valueOf(x + CONSTRAINT_LABEL_WIDTH / 2.0),
+                    String.valueOf(centredBaseline(labelFont, row.kind().label(), rowTop, CONSTRAINT_ROW_HEIGHT)),
+                    color, CONSTRAINT_LABEL_FONT_SIZE);
+            labelText.setAttribute("font-family", CONSTRAINT_FONT_FAMILY);
+            labelText.setAttribute("font-weight", "700");
+            labelText.setAttribute("text-anchor", "middle");
+            group.appendChild(labelText);
+
+            Element text = createSvgTextElement(document, row.text(),
+                    String.valueOf(x + CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP),
+                    String.valueOf(centredBaseline(textFont, row.text(), rowTop, CONSTRAINT_ROW_HEIGHT)),
+                    COLOR_TEXT_PRIMARY, CONSTRAINT_FONT_SIZE);
+            text.setAttribute("font-family", CONSTRAINT_FONT_FAMILY);
+            group.appendChild(text);
+            parent.appendChild(group);
+        }
+        if (rows.size() > MAX_CONSTRAINT_ROWS) {
+            double rowTop = y + ATTRIBUTE_SECTION_TOP + MAX_CONSTRAINT_ROWS * CONSTRAINT_ROW_HEIGHT;
+            String more = "+" + (rows.size() - MAX_CONSTRAINT_ROWS) + " more";
+            Element moreText = createSvgTextElement(document, more, String.valueOf(x),
+                    String.valueOf(centredBaseline(textFont, more, rowTop, CONSTRAINT_ROW_HEIGHT)),
+                    COLOR_TEXT_SECONDARY, CONSTRAINT_FONT_SIZE);
+            moreText.setAttribute("font-family", CONSTRAINT_FONT_FAMILY);
+            moreText.setAttribute("class", "constraint-more");
+            Element title = document.createElementNS(svgNS, "title");
+            title.setTextContent(String.join("\n\n", rows.subList(MAX_CONSTRAINT_ROWS, rows.size()).stream()
+                    .map(DiagramConstraint::tooltip).toList()));
+            moreText.appendChild(title);
+            parent.appendChild(moreText);
         }
     }
 

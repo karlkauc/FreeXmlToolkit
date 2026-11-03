@@ -60,7 +60,7 @@ class DocumentationViewTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "HTML",
-                    XsdDocumentationService.MarkdownMode.ALL, false, false, false, false, false, "SVG", Set.of(), null, false, null, null));
+                    XsdDocumentationService.MarkdownMode.ALL, false, false, true, false, false, false, "SVG", Set.of(), null, false, null, null));
             return null;
         });
         WaitForAsyncUtils.waitFor(60, TimeUnit.SECONDS,
@@ -89,6 +89,8 @@ class DocumentationViewTest {
         assertTrue(options.includeTypeDefs(), "type definitions in source code default to on");
         assertTrue(options.svgOverview(), "the SVG overview page defaults to on");
         assertTrue(options.addMetadata(), "metadata in the output defaults to on");
+        assertTrue(options.showConstraintsInSvg(), "constraints in the diagrams default to on");
+        assertNotNull(view.lookup("#docgen-show-constraints"), "the option is on the form");
         assertEquals("SVG", options.imageFormat());
         assertEquals(xsd.toFile(), options.xsd());
         assertNull(options.favicon(), "no favicon by default");
@@ -128,7 +130,7 @@ class DocumentationViewTest {
 
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), out.toFile(), "PDF",
-                    XsdDocumentationService.MarkdownMode.ALL, false, false, false, false, false, "SVG", Set.of(), null, false, null,
+                    XsdDocumentationService.MarkdownMode.ALL, false, false, true, false, false, false, "SVG", Set.of(), null, false, null,
                     new DocumentationView.FormatOptions("Letter", true, false, true, true,
                             false, false, "Professional", "Draft", true, true)));
             return null;
@@ -191,7 +193,7 @@ class DocumentationViewTest {
         Files.writeString(xsd, XSD);
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             view.generate(new DocumentationView.DocOptions(xsd.toFile(), null, "HTML",
-                    XsdDocumentationService.MarkdownMode.ALL, false, false, false, false, false, "SVG", Set.of(), null, false, null, null));
+                    XsdDocumentationService.MarkdownMode.ALL, false, false, true, false, false, false, "SVG", Set.of(), null, false, null, null));
             return null;
         });
         WaitForAsyncUtils.waitForFxEvents();

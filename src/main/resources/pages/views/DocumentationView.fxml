@@ -122,6 +122,12 @@
                                                           text="Include type definitions in source code" selected="true"/>
                                                 <CheckBox fx:id="showDocInSvg" text="Show documentation in diagrams"
                                                           selected="true"/>
+                                                <CheckBox fx:id="showConstraintsInSvg" id="docgen-show-constraints"
+                                                          text="Show constraints in diagrams" selected="true">
+                                                    <tooltip>
+                                                        <Tooltip text="Lists keys, unique and keyref constraints and assertions inside the element boxes, as in the Graphic view."/>
+                                                    </tooltip>
+                                                </CheckBox>
                                                 <CheckBox fx:id="svgOverview" text="Generate SVG overview page" selected="true"/>
                                                 <CheckBox fx:id="addMetadata" text="Add metadata in output" selected="true"/>
                                                 <CheckBox fx:id="dedupDataDictionary"

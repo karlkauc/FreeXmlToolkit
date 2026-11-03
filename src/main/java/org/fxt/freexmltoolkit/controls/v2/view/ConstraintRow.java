@@ -18,8 +18,11 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdKeyRef;
  */
 public record ConstraintRow(Kind kind, String text, String tooltip) {
 
-    /** Longer lines would widen a card without limit, and an XPath can run to hundreds of characters. */
-    static final int MAX_TEXT_LENGTH = 44;
+    /**
+     * Longer lines would widen a card without limit, and an XPath can run to hundreds of characters.
+     * The documentation diagrams use the same limit ({@code service.DiagramConstraint}).
+     */
+    public static final int MAX_TEXT_LENGTH = 44;
 
     /** The kinds of constraint a card distinguishes. */
     public enum Kind {
@@ -74,18 +77,22 @@ public record ConstraintRow(Kind kind, String text, String tooltip) {
     }
 
     /** @return the XPath with its line breaks and indentation collapsed */
-    static String normalize(String xpath) {
+    public static String normalize(String xpath) {
         return xpath.strip().replaceAll("\\s+", " ");
+    }
+
+    /**
+     * @param text a line of a card
+     * @return the line, cut to {@link #MAX_TEXT_LENGTH} characters with an ellipsis
+     */
+    public static String shorten(String text) {
+        return text.length() <= MAX_TEXT_LENGTH ? text : text.substring(0, MAX_TEXT_LENGTH - 1) + "…";
     }
 
     private static String fieldsOf(XsdIdentityConstraint constraint) {
         List<String> fields = constraint.getFields().stream()
                 .map(XsdField::getXpath).filter(Objects::nonNull).toList();
         return String.join(", ", fields);
-    }
-
-    private static String shorten(String text) {
-        return text.length() <= MAX_TEXT_LENGTH ? text : text.substring(0, MAX_TEXT_LENGTH - 1) + "…";
     }
 
     private static String withOrigin(String text, String origin) {
