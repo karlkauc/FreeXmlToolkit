@@ -402,6 +402,43 @@ public class XsdDocumentationImageService {
      * @return the SVG string representation
      */
     /**
+     * Writes the diagram of an element as a PNG rendered at {@code scale} times its size, for
+     * documents that scale it back down (Word): sharp when printed or zoomed. The PNG export used
+     * elsewhere is unchanged.
+     *
+     * @param rootElement the element the diagram starts from
+     * @param file        the PNG file to write
+     * @param scale       how many pixels per diagram unit, e.g. 2
+     * @return the file's path, or null when there was nothing to draw or it could not be written
+     */
+    public String generateImage(XsdExtendedElement rootElement, File file, float scale) {
+        if (rootElement == null) {
+            return null;
+        }
+        try {
+            Document svgDocument = generateSvgDocument(rootElement);
+            Element root = svgDocument.getDocumentElement();
+            if (root == null || !root.hasChildNodes()) {
+                return null;
+            }
+            Document optimized = optimizeSvgForPngRendering(svgDocument);
+            PNGTranscoder transcoder = new PNGTranscoder();
+            transcoder.addTranscodingHint(PNGTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE);
+            String width = root.getAttribute("width");
+            if (!width.isEmpty()) {
+                transcoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, Float.parseFloat(width) * scale);
+            }
+            try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file), 65536)) {
+                transcoder.transcode(new TranscoderInput(optimized), new TranscoderOutput(out));
+            }
+            return file.getAbsolutePath();
+        } catch (IOException | TranscoderException | NumberFormatException e) {
+            logger.error("Failed to generate image for file '{}'", file.getAbsolutePath(), e);
+            return null;
+        }
+    }
+
+    /**
      * Writes the diagram of an element as an SVG file for print (PDF): styled the way the PNG export
      * is (no interactive CSS, Batik-safe fonts, explicit styles) and without drop-shadow filters,
      * which a PDF renderer would turn into bitmaps. The result stays vector graphics.

@@ -386,7 +386,7 @@ final class PdfTypeReferenceBuilder {
         private final List<String> derivedTypes;
         private final int count;
 
-        TypeUsage(XsdDocumentationPdfService.TypeUsage usage) {
+        TypeUsage(XsdDocumentationExportSupport.TypeUsage usage) {
             this.count = usage.count();
             this.derivedTypes = usage.derivedTypes();
             List<XsdExtendedElement> distinct = new ArrayList<>();

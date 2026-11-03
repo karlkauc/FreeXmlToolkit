@@ -46,6 +46,8 @@ import org.apache.poi.xwpf.usermodel.XWPFFooter;
 import org.apache.poi.xwpf.usermodel.XWPFHeader;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFStyle;
+import org.apache.poi.xwpf.usermodel.XWPFStyles;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
@@ -60,6 +62,8 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTShd;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSimpleField;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTStyle;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.STStyleType;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblBorders;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblWidth;
@@ -94,6 +98,12 @@ public class XsdDocumentationWordService {
     private Set<String> includedLanguages;
     private TaskProgressListener progressListener;
     private WordDocumentationConfig config = new WordDocumentationConfig();
+
+    /** What PDF and Word read alike (root element, types, usage, paths, namespaces), per document. */
+    private XsdDocumentationExportSupport support;
+
+    /** Diagrams are rendered at this many pixels per point and shown at their size: sharp in print. */
+    private static final float DIAGRAM_SCALE = 2f;
 
     // ================= Style Color Helpers =================
 
@@ -148,8 +158,15 @@ public class XsdDocumentationWordService {
      */
     public void generateWordDocumentation(File outputFile, XsdDocumentationData documentationData) throws IOException {
         this.documentationData = documentationData;
+        this.support = new XsdDocumentationExportSupport(documentationData, includedLanguages);
 
         try (XWPFDocument document = new XWPFDocument()) {
+            // Real heading styles: without them headings are plain paragraphs, and the table of
+            // contents, the navigation pane and the outline find nothing
+            createHeadingStyles(document);
+            // Word asks to update the fields (the table of contents) when the document is opened
+            document.enforceUpdateFields();
+
             // Set document properties
             setDocumentProperties(document);
 
@@ -286,7 +303,7 @@ public class XsdDocumentationWordService {
             headerPara.setAlignment(ParagraphAlignment.RIGHT);
 
             XWPFRun headerRun = headerPara.createRun();
-            String schemaName = extractSchemaName();
+            String schemaName = support.extractSchemaName();
             headerRun.setText("XSD Documentation: " + schemaName);
             headerRun.setFontSize(9);
             headerRun.setColor(getColorSecondary());
@@ -334,7 +351,7 @@ public class XsdDocumentationWordService {
         var props = document.getProperties();
         var coreProps = props.getCoreProperties();
 
-        String schemaName = extractSchemaName();
+        String schemaName = support.extractSchemaName();
         coreProps.setTitle("XSD Documentation: " + schemaName);
         coreProps.setCreator("FreeXmlToolkit");
         coreProps.setDescription("Auto-generated XSD schema documentation");
@@ -361,7 +378,7 @@ public class XsdDocumentationWordService {
         titleRun.setFontFamily("Calibri");
 
         // Schema name
-        String schemaName = extractSchemaName();
+        String schemaName = support.extractSchemaName();
         XWPFParagraph schemaPara = document.createParagraph();
         schemaPara.setAlignment(ParagraphAlignment.CENTER);
         schemaPara.setSpacingAfter(600);
@@ -495,42 +512,38 @@ public class XsdDocumentationWordService {
      * Creates the namespace overview section showing all namespaces used in the schema.
      */
     private void createNamespaceOverview(XWPFDocument document) {
-        Map<String, String> namespaces = documentationData.getNamespaces();
-
-        // Skip if no namespaces are defined
-        if (namespaces == null || namespaces.isEmpty()) {
-            return;
-        }
-
+        XsdDocumentationExportSupport.Namespaces namespaces = support.namespaces();
         createHeading(document, "Namespace Overview", 2);
 
-        // Create table for namespaces
-        int rowCount = namespaces.size() + 1;
-        XWPFTable nsTable = document.createTable(rowCount, 2);
+        XWPFTable nsTable = document.createTable(namespaces.rows().size() + 1, 3);
         setTableStyle(nsTable);
-        setColumnWidths(nsTable, new int[]{2500, 6500});
-
-        // Header row
+        setColumnWidths(nsTable, new int[]{1800, 5200, 2000});
         setTableCellWithZebra(nsTable.getRow(0), 0, "Prefix", 0);
         setTableCellWithZebra(nsTable.getRow(0), 1, "Namespace URI", 0);
-
-        // Sort namespaces by prefix for consistent output
-        List<Map.Entry<String, String>> sortedNamespaces = new ArrayList<>(namespaces.entrySet());
-        sortedNamespaces.sort(Map.Entry.comparingByKey());
-
+        setTableCellWithZebra(nsTable.getRow(0), 2, "Type", 0);
         int row = 1;
-        for (Map.Entry<String, String> entry : sortedNamespaces) {
-            String prefix = entry.getKey();
-            String uri = entry.getValue();
-
-            // Mark default namespace
-            if (prefix == null || prefix.isEmpty()) {
-                prefix = "(default)";
-            }
-
-            setTableCellWithZebra(nsTable.getRow(row), 0, prefix, row);
-            setTableCellWithZebra(nsTable.getRow(row), 1, uri, row);
+        for (XsdDocumentationExportSupport.NamespaceRow namespace : namespaces.rows()) {
+            setTableCellWithZebra(nsTable.getRow(row), 0, namespace.prefix(), row);
+            setTableCellWithZebra(nsTable.getRow(row), 1, namespace.uri(), row);
+            setTableCellWithZebra(nsTable.getRow(row), 2, namespace.kind(), row);
             row++;
+        }
+
+        if (!namespaces.references().isEmpty()) {
+            createHeading(document, "Imports and Includes", 3);
+            XWPFTable refTable = document.createTable(namespaces.references().size() + 1, 3);
+            setTableStyle(refTable);
+            setColumnWidths(refTable, new int[]{1500, 3700, 3800});
+            setTableCellWithZebra(refTable.getRow(0), 0, "Kind", 0);
+            setTableCellWithZebra(refTable.getRow(0), 1, "Namespace", 0);
+            setTableCellWithZebra(refTable.getRow(0), 2, "Schema location", 0);
+            row = 1;
+            for (XsdDocumentationExportSupport.SchemaReference reference : namespaces.references()) {
+                setTableCellWithZebra(refTable.getRow(row), 0, reference.kind(), row);
+                setTableCellWithZebra(refTable.getRow(row), 1, reference.namespace(), row);
+                setTableCellWithZebra(refTable.getRow(row), 2, reference.location(), row);
+                row++;
+            }
         }
 
         addParagraphSpacing(document);
@@ -542,56 +555,18 @@ public class XsdDocumentationWordService {
     private void embedSchemaDiagram(XWPFDocument document) {
         createHeading(document, "Schema Diagram", 1);
 
-        // Find the first root element to generate diagram from
-        var elementMap = documentationData.getExtendedXsdElementMap();
-        XsdExtendedElement rootElement = null;
-
-        // Find root element (level 0 or the first global element)
-        for (var element : elementMap.values()) {
-            if (element.getLevel() == 0) {
-                rootElement = element;
-                break;
-            }
-        }
-
-        if (rootElement == null && !elementMap.isEmpty()) {
-            rootElement = elementMap.values().iterator().next();
-        }
+        XsdExtendedElement rootElement = support.findRootElement();
 
         if (rootElement != null && imageService != null) {
-            try {
-                // Generate PNG to temporary file
-                Path tempPng = Files.createTempFile("xsd-diagram-", ".png");
-                String imagePath = imageService.generateImage(rootElement, tempPng.toFile());
-
-                if (imagePath != null) {
-                    // Insert image into document
-                    XWPFParagraph imgPara = document.createParagraph();
-                    imgPara.setAlignment(ParagraphAlignment.CENTER);
-                    XWPFRun imgRun = imgPara.createRun();
-
-                    try (InputStream is = Files.newInputStream(tempPng)) {
-                        // Calculate image dimensions (max width 500px)
-                        imgRun.addPicture(is, PictureType.PNG,
-                                "schema-diagram.png",
-                                Units.toEMU(450), Units.toEMU(300));
-                    }
-
-                    // Clean up temp file
-                    Files.deleteIfExists(tempPng);
-
-                    // Add caption
-                    XWPFParagraph captionPara = document.createParagraph();
-                    captionPara.setAlignment(ParagraphAlignment.CENTER);
-                    XWPFRun captionRun = captionPara.createRun();
-                    captionRun.setText("Figure 1: Schema Structure Overview");
-                    captionRun.setItalic(true);
-                    captionRun.setFontSize(10);
-                    captionRun.setColor(getColorSecondary());
-                }
-            } catch (IOException | InvalidFormatException e) {
-                logger.warn("Failed to embed schema diagram: {}", e.getMessage());
-
+            if (addDiagram(document, rootElement, "schema-diagram", 500)) {
+                XWPFParagraph captionPara = document.createParagraph();
+                captionPara.setAlignment(ParagraphAlignment.CENTER);
+                XWPFRun captionRun = captionPara.createRun();
+                captionRun.setText("Figure 1: Structure of " + rootElement.getElementName());
+                captionRun.setItalic(true);
+                captionRun.setFontSize(10);
+                captionRun.setColor(getColorSecondary());
+            } else {
                 XWPFParagraph errorPara = document.createParagraph();
                 XWPFRun errorRun = errorPara.createRun();
                 errorRun.setText("(Schema diagram could not be generated)");
@@ -641,8 +616,8 @@ public class XsdDocumentationWordService {
         for (Node typeNode : complexTypes) {
             if (typeNode instanceof Element element) {
                 String typeName = element.getAttribute("name");
-                String baseType = getBaseType(element);
-                int usageCount = getTypeUsageCount(typeName);
+                String baseType = support.getBaseType(element);
+                int usageCount = support.typeUsage(typeName).count();
 
                 setTableCell(summaryTable.getRow(row), 0, typeName, false);
                 setTableCell(summaryTable.getRow(row), 1, baseType != null ? baseType : "-", false);
@@ -686,8 +661,8 @@ public class XsdDocumentationWordService {
         for (Node typeNode : simpleTypes) {
             if (typeNode instanceof Element element) {
                 String typeName = element.getAttribute("name");
-                String baseType = getSimpleTypeBase(element);
-                String facets = getSimpleTypeFacetsSummary(element);
+                String baseType = support.getSimpleTypeBase(element);
+                String facets = support.getSimpleTypeFacetsSummary(element);
 
                 setTableCell(summaryTable.getRow(row), 0, typeName, false);
                 setTableCell(summaryTable.getRow(row), 1, baseType != null ? baseType : "-", false);
@@ -720,8 +695,8 @@ public class XsdDocumentationWordService {
         // Sort elements by clean XPath and filter out container elements
         List<XsdExtendedElement> sortedElements = new ArrayList<>(elementMap.values());
         // Filter out container elements (SEQUENCE, CHOICE, ALL) - they are internal structures
-        sortedElements.removeIf(this::isContainerElement);
-        sortedElements.sort(Comparator.comparing(this::getCleanXPath));
+        sortedElements.removeIf(XsdDocumentationExportSupport::isContainerElement);
+        sortedElements.sort(Comparator.comparing(support::getCleanXPath));
 
         int totalElements = sortedElements.size();
         logger.info("Creating Word data dictionary with {} elements (excluding container elements)", totalElements);
@@ -743,21 +718,17 @@ public class XsdDocumentationWordService {
             XsdExtendedElement element = sortedElements.get(i);
 
             // Use clean XPath without container elements
-            String path = getCleanXPath(element);
-            String type = element.getElementType() != null ? element.getElementType() : "-";
-            String cardinality = getCardinality(element);
-            String restrictions = getRestrictionsSummary(element);
-            String description = getFirstDocumentation(element);
-
-            // Truncate long values for table display
-            if (path != null && path.length() > 40) {
-                path = "..." + path.substring(path.length() - 37);
+            // Full values: the cells wrap, nothing is cut off
+            String path = support.getCleanXPath(element);
+            String type = support.declaredType(element);
+            String cardinality = support.getCardinality(element);
+            String restrictions = support.getRestrictionsSummary(element);
+            String description = support.getFirstDocumentation(element);
+            if (restrictions != null && restrictions.isEmpty()) {
+                restrictions = null;
             }
-            if (restrictions != null && restrictions.length() > 35) {
-                restrictions = restrictions.substring(0, 32) + "...";
-            }
-            if (description != null && description.length() > 40) {
-                description = description.substring(0, 37) + "...";
+            if (description != null && description.isEmpty()) {
+                description = null;
             }
 
             // Use zebra striping for better readability
@@ -790,7 +761,7 @@ public class XsdDocumentationWordService {
         List<XsdExtendedElement> elementsWithDiagrams = new ArrayList<>();
         for (XsdExtendedElement element : elementMap.values()) {
             // Skip container elements
-            if (isContainerElement(element)) {
+            if (XsdDocumentationExportSupport.isContainerElement(element)) {
                 continue;
             }
             // Only include elements that have children or are at level 0-2
@@ -802,7 +773,7 @@ public class XsdDocumentationWordService {
         // Sort by level then by path
         elementsWithDiagrams.sort(Comparator
                 .comparingInt(XsdExtendedElement::getLevel)
-                .thenComparing(this::getCleanXPath));
+                .thenComparing(support::getCleanXPath));
 
         if (elementsWithDiagrams.isEmpty()) {
             XWPFParagraph emptyPara = document.createParagraph();
@@ -827,39 +798,20 @@ public class XsdDocumentationWordService {
                 // Add element info
                 XWPFParagraph infoPara = document.createParagraph();
                 XWPFRun infoRun = infoPara.createRun();
-                infoRun.setText("Path: " + getCleanXPath(element));
+                infoRun.setText("Path: " + support.getCleanXPath(element));
                 infoRun.setFontSize(10);
                 infoRun.setColor(getColorSecondary());
 
                 if (element.getElementType() != null) {
                     infoPara = document.createParagraph();
                     infoRun = infoPara.createRun();
-                    infoRun.setText("Type: " + element.getElementType());
+                    infoRun.setText("Type: " + support.declaredType(element));
                     infoRun.setFontSize(10);
                     infoRun.setColor(getColorSecondary());
                 }
 
-                // Generate and embed diagram
-                Path tempPng = Files.createTempFile("xsd-element-", ".png");
-                String imagePath = imageService.generateImage(element, tempPng.toFile());
-
-                if (imagePath != null) {
-                    XWPFParagraph imgPara = document.createParagraph();
-                    imgPara.setAlignment(ParagraphAlignment.CENTER);
-                    XWPFRun imgRun = imgPara.createRun();
-
-                    try (InputStream is = Files.newInputStream(tempPng)) {
-                        // Insert the diagram image (max width 450px for page fit)
-                        imgRun.addPicture(is, PictureType.PNG,
-                                element.getElementName() + "-diagram.png",
-                                Units.toEMU(450), Units.toEMU(250));
-                    }
-
-                    // Clean up temp file
-                    Files.deleteIfExists(tempPng);
+                if (addDiagram(document, element, element.getElementName() + "-diagram", 400)) {
                     diagramCount++;
-
-                    // Add caption
                     XWPFParagraph captionPara = document.createParagraph();
                     captionPara.setAlignment(ParagraphAlignment.CENTER);
                     XWPFRun captionRun = captionPara.createRun();
@@ -913,43 +865,30 @@ public class XsdDocumentationWordService {
 
         createHeading(document, "Index", 1);
 
-        // Collect all items for the index
-        List<String> indexItems = new ArrayList<>();
-
-        // Add global elements
-        for (Node node : documentationData.getGlobalElements()) {
-            if (node instanceof Element elem) {
-                String name = elem.getAttribute("name");
-                if (name != null && !name.isEmpty()) {
-                    indexItems.add(name + " (Element)");
-                }
+        // Every element and attribute (path without SEQUENCE/CHOICE/ALL), then the global types
+        record IndexEntry(String name, String kind, String location) {
+        }
+        List<IndexEntry> entries = new ArrayList<>();
+        for (XsdExtendedElement element : documentationData.getExtendedXsdElementMap().values()) {
+            if (!XsdDocumentationExportSupport.isContainerElement(element) && element.getElementName() != null) {
+                String kind = element.getElementName().startsWith("@") ? "Attribute" : "Element";
+                entries.add(new IndexEntry(element.getElementName(), kind, support.getCleanXPath(element)));
             }
         }
-
-        // Add complex types
         for (Node node : documentationData.getGlobalComplexTypes()) {
-            if (node instanceof Element elem) {
-                String name = elem.getAttribute("name");
-                if (name != null && !name.isEmpty()) {
-                    indexItems.add(name + " (ComplexType)");
-                }
+            if (node instanceof Element elem && !elem.getAttribute("name").isEmpty()) {
+                entries.add(new IndexEntry(elem.getAttribute("name"), "ComplexType", "Global"));
             }
         }
-
-        // Add simple types
         for (Node node : documentationData.getGlobalSimpleTypes()) {
-            if (node instanceof Element elem) {
-                String name = elem.getAttribute("name");
-                if (name != null && !name.isEmpty()) {
-                    indexItems.add(name + " (SimpleType)");
-                }
+            if (node instanceof Element elem && !elem.getAttribute("name").isEmpty()) {
+                entries.add(new IndexEntry(elem.getAttribute("name"), "SimpleType", "Global"));
             }
         }
+        entries.sort(Comparator.comparing(IndexEntry::name, String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(IndexEntry::location));
 
-        // Sort alphabetically (case-insensitive)
-        indexItems.sort(String.CASE_INSENSITIVE_ORDER);
-
-        if (indexItems.isEmpty()) {
+        if (entries.isEmpty()) {
             XWPFParagraph emptyPara = document.createParagraph();
             XWPFRun emptyRun = emptyPara.createRun();
             emptyRun.setText("No items to index.");
@@ -957,40 +896,21 @@ public class XsdDocumentationWordService {
             return;
         }
 
-        // Create index in two columns using a table
-        int itemsPerColumn = (indexItems.size() + 1) / 2;
-        XWPFTable indexTable = document.createTable(itemsPerColumn, 2);
-        setColumnWidths(indexTable, new int[]{4500, 4500});
-
-        // Remove table borders for cleaner look
-        CTTblPr tblPr = indexTable.getCTTbl().getTblPr();
-        if (tblPr == null) {
-            tblPr = indexTable.getCTTbl().addNewTblPr();
-        }
-        CTTblBorders borders = tblPr.addNewTblBorders();
-        borders.addNewTop().setVal(STBorder.NIL);
-        borders.addNewBottom().setVal(STBorder.NIL);
-        borders.addNewLeft().setVal(STBorder.NIL);
-        borders.addNewRight().setVal(STBorder.NIL);
-        borders.addNewInsideH().setVal(STBorder.NIL);
-        borders.addNewInsideV().setVal(STBorder.NIL);
-
-        for (int i = 0; i < itemsPerColumn; i++) {
-            XWPFTableRow row = indexTable.getRow(i);
-
-            // Left column
-            if (i < indexItems.size()) {
-                setTableCell(row, 0, indexItems.get(i), false);
-            }
-
-            // Right column
-            int rightIndex = i + itemsPerColumn;
-            if (rightIndex < indexItems.size()) {
-                setTableCell(row, 1, indexItems.get(rightIndex), false);
-            }
+        XWPFTable indexTable = document.createTable(entries.size() + 1, 3);
+        setTableStyle(indexTable);
+        setColumnWidths(indexTable, new int[]{2800, 1600, 4600});
+        setTableCellWithZebra(indexTable.getRow(0), 0, "Name", 0);
+        setTableCellWithZebra(indexTable.getRow(0), 1, "Type", 0);
+        setTableCellWithZebra(indexTable.getRow(0), 2, "Location", 0);
+        int row = 1;
+        for (IndexEntry entry : entries) {
+            setTableCellWithZebra(indexTable.getRow(row), 0, entry.name(), row);
+            setTableCellWithZebra(indexTable.getRow(row), 1, entry.kind(), row);
+            setTableCellWithZebra(indexTable.getRow(row), 2, entry.location(), row);
+            row++;
         }
 
-        logger.info("Index section created with {} items", indexItems.size());
+        logger.info("Index section created with {} items", entries.size());
     }
 
     // ================= Helper Methods =================
@@ -1145,164 +1065,6 @@ public class XsdDocumentationWordService {
         para.setSpacingAfter(200);
     }
 
-    private String extractSchemaName() {
-        String filePath = documentationData.getXsdFilePath();
-        if (filePath == null) {
-            return "Unknown Schema";
-        }
-        Path path = Path.of(filePath);
-        String fileName = path.getFileName().toString();
-        if (fileName.endsWith(".xsd")) {
-            return fileName.substring(0, fileName.length() - 4);
-        }
-        return fileName;
-    }
-
-    private String getBaseType(Element complexTypeElement) {
-        // Look for xs:complexContent/xs:extension or xs:complexContent/xs:restriction
-        var childNodes = complexTypeElement.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child instanceof Element childElement) {
-                String localName = childElement.getLocalName();
-                if ("complexContent".equals(localName) || "simpleContent".equals(localName)) {
-                    var contentChildren = childElement.getChildNodes();
-                    for (int j = 0; j < contentChildren.getLength(); j++) {
-                        Node contentChild = contentChildren.item(j);
-                        if (contentChild instanceof Element contentElement) {
-                            String contentLocalName = contentElement.getLocalName();
-                            if ("extension".equals(contentLocalName) || "restriction".equals(contentLocalName)) {
-                                return contentElement.getAttribute("base");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private String getSimpleTypeBase(Element simpleTypeElement) {
-        var childNodes = simpleTypeElement.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child instanceof Element childElement) {
-                String localName = childElement.getLocalName();
-                if ("restriction".equals(localName)) {
-                    return childElement.getAttribute("base");
-                } else if ("list".equals(localName)) {
-                    return "list(" + childElement.getAttribute("itemType") + ")";
-                } else if ("union".equals(localName)) {
-                    return "union(" + childElement.getAttribute("memberTypes") + ")";
-                }
-            }
-        }
-        return null;
-    }
-
-    private String getSimpleTypeFacetsSummary(Element simpleTypeElement) {
-        List<String> facets = new ArrayList<>();
-        var childNodes = simpleTypeElement.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child instanceof Element childElement && "restriction".equals(childElement.getLocalName())) {
-                var facetNodes = childElement.getChildNodes();
-                for (int j = 0; j < facetNodes.getLength(); j++) {
-                    Node facetNode = facetNodes.item(j);
-                    if (facetNode instanceof Element facetElement) {
-                        String facetName = facetElement.getLocalName();
-                        if (facetName != null && !facetName.equals("annotation")) {
-                            String facetValue = facetElement.getAttribute("value");
-                            if (facetValue != null && !facetValue.isEmpty()) {
-                                facets.add(facetName + ": " + facetValue);
-                            } else {
-                                facets.add(facetName);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return facets.isEmpty() ? "-" : String.join(", ", facets);
-    }
-
-    private int getTypeUsageCount(String typeName) {
-        var usageMap = documentationData.getTypeUsageMap();
-        if (usageMap != null && usageMap.containsKey(typeName)) {
-            return usageMap.get(typeName).size();
-        }
-        return 0;
-    }
-
-    /**
-     * Gets a summary of restrictions/facets for an element.
-     * Uses the restriction string from the element if available.
-     */
-    private String getRestrictionsSummary(XsdExtendedElement element) {
-        if (element == null) {
-            return null;
-        }
-
-        // Get the restriction string from the element
-        String restrictionString = element.getXsdRestrictionString();
-        if (restrictionString != null && !restrictionString.isEmpty()) {
-            // Clean up and format the restriction string
-            return restrictionString.replaceAll("\\s+", " ").trim();
-        }
-
-        // Check for identity constraints
-        var constraints = element.getIdentityConstraints();
-        if (constraints != null && !constraints.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            for (var constraint : constraints) {
-                if (sb.length() > 0) {
-                    sb.append("; ");
-                }
-                sb.append(constraint.getType()).append(": ").append(constraint.getName());
-            }
-            return sb.toString();
-        }
-
-        // Check for assertions (XSD 1.1)
-        var assertions = element.getAssertions();
-        if (assertions != null && !assertions.isEmpty()) {
-            return assertions.size() + " assertion(s)";
-        }
-
-        return null;
-    }
-
-    private String getFirstDocumentation(XsdExtendedElement element) {
-        Map<String, String> docs = element.getLanguageDocumentation();
-        if (docs == null || docs.isEmpty()) {
-            return null;
-        }
-
-        String doc = null;
-
-        // If language filter is set, try to find documentation in preferred languages
-        if (includedLanguages != null && !includedLanguages.isEmpty()) {
-            for (String lang : includedLanguages) {
-                if (docs.containsKey(lang)) {
-                    doc = docs.get(lang);
-                    break;
-                }
-            }
-        }
-
-        // Fallback: prefer "default" language, then any available
-        if (doc == null) {
-            doc = docs.get("default");
-        }
-        if (doc == null) {
-            doc = docs.values().iterator().next();
-        }
-
-        // Flatten to plain text: keeps paragraphs and list items apart and decodes entities,
-        // so rendered Markdown does not run together in the Word table cell.
-        return MarkdownSupport.toPlainText(doc);
-    }
-
     private void reportProgress(String message) {
         if (progressListener != null) {
             progressListener.onProgressUpdate(new TaskProgressListener.ProgressUpdate(message,
@@ -1311,91 +1073,91 @@ public class XsdDocumentationWordService {
         logger.debug("Word generation progress: {}", message);
     }
 
-    /**
-     * Gets cardinality string from minOccurs/maxOccurs attributes.
-     */
-    private String getCardinality(XsdExtendedElement element) {
-        Node node = element.getCardinalityNode();
-        if (node == null) {
-            node = element.getCurrentNode();
-        }
-        if (node == null) {
-            return "1";
-        }
-
-        String minOccurs = getNodeAttribute(node, "minOccurs", "1");
-        String maxOccurs = getNodeAttribute(node, "maxOccurs", "1");
-
-        if (minOccurs.equals(maxOccurs)) {
-            return minOccurs;
-        }
-        if ("unbounded".equals(maxOccurs)) {
-            return minOccurs + "..*";
-        }
-        return minOccurs + ".." + maxOccurs;
-    }
+    // ================= Diagrams and styles =================
 
     /**
-     * Checks if an element is a compositor container (CHOICE, SEQUENCE, ALL).
-     * These container elements are internal structures and should not appear in Word documentation.
+     * Inserts the diagram of an element, rendered at {@link #DIAGRAM_SCALE} times its size and
+     * shown at its natural size, scaled down to the text width and {@code maxHeightPt} with its
+     * aspect ratio kept.
+     *
+     * @return whether a diagram was inserted
      */
-    private boolean isContainerElement(XsdExtendedElement element) {
-        if (element == null || element.getElementName() == null) {
+    private boolean addDiagram(XWPFDocument document, XsdExtendedElement element, String name, double maxHeightPt) {
+        Path tempPng = null;
+        try {
+            tempPng = Files.createTempFile("xsd-diagram-", ".png");
+            if (imageService.generateImage(element, tempPng.toFile(), DIAGRAM_SCALE) == null) {
+                return false;
+            }
+            int[] pixels = PdfElementReferenceBuilder.pixelSize(tempPng);
+            if (pixels == null) {
+                return false;
+            }
+            double widthPt = pixels[0] / DIAGRAM_SCALE * 0.75; // diagram units are px at 96 dpi
+            double heightPt = pixels[1] / DIAGRAM_SCALE * 0.75;
+            double scale = Math.min(1, Math.min(textWidthPt() / widthPt, maxHeightPt / heightPt));
+
+            XWPFParagraph imgPara = document.createParagraph();
+            imgPara.setAlignment(ParagraphAlignment.CENTER);
+            XWPFRun imgRun = imgPara.createRun();
+            try (InputStream is = Files.newInputStream(tempPng)) {
+                imgRun.addPicture(is, PictureType.PNG, safeFileName(name) + ".png",
+                        Units.toEMU(widthPt * scale), Units.toEMU(heightPt * scale));
+            }
+            return true;
+        } catch (IOException | InvalidFormatException | RuntimeException e) {
+            logger.warn("Failed to insert the diagram of {}: {}", element.getCurrentXpath(), e.getMessage());
             return false;
+        } finally {
+            if (tempPng != null) {
+                try {
+                    Files.deleteIfExists(tempPng);
+                } catch (IOException ignored) {
+                    // a temp file left behind does no harm
+                }
+            }
         }
-        String elementName = element.getElementName();
-        return elementName.startsWith("CHOICE") ||
-               elementName.startsWith("SEQUENCE") ||
-               elementName.startsWith("ALL");
+    }
+
+    /** @return the width of the text area in points: the page width less Word's default margins of 1 inch */
+    private double textWidthPt() {
+        double pageWidthTwips = switch (config.getPageSize()) {
+            case LETTER, LEGAL -> config.getOrientation() == WordDocumentationConfig.Orientation.LANDSCAPE
+                    ? (config.getPageSize() == WordDocumentationConfig.PageSize.LEGAL ? 20160 : 15840) : 12240;
+            default -> config.getOrientation() == WordDocumentationConfig.Orientation.LANDSCAPE ? 16838 : 11906;
+        };
+        return (pageWidthTwips - 2 * 1440) / 20.0;
+    }
+
+    private static String safeFileName(String name) {
+        return name == null ? "diagram" : name.replaceAll("[^A-Za-z0-9._-]", "_");
     }
 
     /**
-     * Returns the XPath of an element without container elements (CHOICE, SEQUENCE, ALL).
-     * This produces a clean XPath for display in documentation.
+     * Defines the styles Heading1 to Heading3 (outline levels 0 to 2), so headings are headings for
+     * the table of contents, the navigation pane and the outline. A new document has no style
+     * definitions at all.
      */
-    private String getCleanXPath(XsdExtendedElement element) {
-        if (element == null) {
-            return "";
-        }
-
-        // Reuse the cached value if it was already computed (by any exporter) in this run.
-        String cached = element.getCleanXPathCache();
-        if (cached != null) {
-            return cached;
-        }
-
-        List<String> pathParts = new ArrayList<>();
-        XsdExtendedElement current = element;
-
-        // Traverse up the hierarchy and collect only non-container elements
-        while (current != null) {
-            if (!isContainerElement(current)) {
-                pathParts.add(0, current.getElementName());
+    private void createHeadingStyles(XWPFDocument document) {
+        XWPFStyles styles = document.createStyles();
+        for (int level = 1; level <= 3; level++) {
+            String id = "Heading" + level;
+            if (styles.styleExist(id)) {
+                continue;
             }
-            String parentXpath = current.getParentXpath();
-            current = (parentXpath != null) ?
-                    documentationData.getExtendedXsdElementMap().get(parentXpath) : null;
+            CTStyle style = CTStyle.Factory.newInstance();
+            style.setStyleId(id);
+            style.setType(STStyleType.PARAGRAPH);
+            style.addNewName().setVal("heading " + level);
+            style.addNewBasedOn().setVal("Normal");
+            style.addNewNext().setVal("Normal");
+            style.addNewUiPriority().setVal(BigInteger.valueOf(9));
+            style.addNewQFormat();
+            style.addNewPPr().addNewOutlineLvl().setVal(BigInteger.valueOf(level - 1));
+            style.getPPr().addNewKeepNext();
+            styles.addStyle(new XWPFStyle(style));
         }
-
-        String cleanXPath = "/" + String.join("/", pathParts);
-        element.setCleanXPathCache(cleanXPath);
-        return cleanXPath;
     }
-
-    /**
-     * Gets attribute value from a Node with default fallback.
-     */
-    private String getNodeAttribute(Node node, String attrName, String defaultValue) {
-        if (node instanceof Element elem) {
-            String value = elem.getAttribute(attrName);
-            if (value != null && !value.isEmpty()) {
-                return value;
-            }
-        }
-        return defaultValue;
-    }
-
-    // ================= Setters =================
 
     public void setDocumentationData(XsdDocumentationData documentationData) {
         this.documentationData = documentationData;

@@ -105,6 +105,7 @@ public class XsdDocumentationPdfService {
     public void generatePdfDocumentation(File outputFile, XsdDocumentationData documentationData)
             throws FOPServiceException {
         this.documentationData = documentationData;
+        this.support = null; // built for this document on first use
 
         try {
             // Create the temp directory for images if any diagram is enabled
@@ -1173,128 +1174,6 @@ public class XsdDocumentationPdfService {
         }
     }
 
-    /**
-     * Lists the namespaces the schema declares (prefix, URI and what they are: target namespace,
-     * XML Schema, imported, or only declared) and the schema's imports, includes, redefines and
-     * overrides with their locations.
-     */
-    private void writeNamespaces(Document doc, Element overview) {
-        org.w3c.dom.Element schema = schemaElement();
-        String targetNs = documentationData.getTargetNamespace();
-        Map<String, String> importLocations = new java.util.LinkedHashMap<>();
-        List<String[]> references = new ArrayList<>();
-        if (schema != null) {
-            for (Node child = schema.getFirstChild(); child != null; child = child.getNextSibling()) {
-                if (child instanceof org.w3c.dom.Element reference
-                        && javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(reference.getNamespaceURI())
-                        && List.of("import", "include", "redefine", "override").contains(reference.getLocalName())) {
-                    String namespace = reference.getAttribute("namespace");
-                    String location = reference.getAttribute("schemaLocation");
-                    references.add(new String[]{reference.getLocalName(), namespace, location});
-                    if ("import".equals(reference.getLocalName())) {
-                        importLocations.put(namespace, location);
-                    }
-                }
-            }
-        }
-
-        // The declared prefixes, then namespaces only imported
-        Map<String, String> declared = new java.util.LinkedHashMap<>();
-        if (schema != null) {
-            var attributes = schema.getAttributes();
-            for (int i = 0; i < attributes.getLength(); i++) {
-                Node attribute = attributes.item(i);
-                if (javax.xml.XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attribute.getNamespaceURI())) {
-                    String prefix = "xmlns".equals(attribute.getNodeName()) ? "(default)" : attribute.getLocalName();
-                    declared.put(prefix, attribute.getNodeValue());
-                }
-            }
-        }
-        if (declared.isEmpty()) {
-            declared.put("xs", javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        }
-        java.util.Set<String> listed = new java.util.HashSet<>();
-        for (Map.Entry<String, String> entry : declared.entrySet()) {
-            String uri = entry.getValue();
-            namespaceRow(doc, overview, entry.getKey(), uri, namespaceKind(uri, targetNs, importLocations));
-            listed.add(uri);
-        }
-        if (targetNs != null && !targetNs.isEmpty() && !listed.contains(targetNs)) {
-            namespaceRow(doc, overview, "-", targetNs, "Target namespace");
-            listed.add(targetNs);
-        }
-        for (String imported : importLocations.keySet()) {
-            if (!listed.contains(imported)) {
-                namespaceRow(doc, overview, "-", imported.isEmpty() ? "(no namespace)" : imported, "Imported");
-            }
-        }
-        for (String[] reference : references) {
-            Element row = doc.createElement("schema-reference");
-            overview.appendChild(row);
-            addElement(doc, row, "kind", reference[0]);
-            addElement(doc, row, "namespace", reference[1].isEmpty() ? "-" : reference[1]);
-            addElement(doc, row, "location", breakable(reference[2].isEmpty() ? "-" : reference[2]));
-        }
-    }
-
-    private static String namespaceKind(String uri, String targetNs, Map<String, String> imports) {
-        if (javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(uri)) {
-            return "XML Schema";
-        }
-        if (uri != null && uri.equals(targetNs)) {
-            return "Target namespace";
-        }
-        if ("http://www.w3.org/2001/XMLSchema-instance".equals(uri)) {
-            return "XML Schema instance";
-        }
-        if ("http://www.w3.org/XML/1998/namespace".equals(uri)) {
-            return "XML";
-        }
-        return imports.containsKey(uri) ? "Imported" : "Declared";
-    }
-
-    private void namespaceRow(Document doc, Element overview, String prefix, String uri, String kind) {
-        Element ns = doc.createElement("namespace");
-        overview.appendChild(ns);
-        addElement(doc, ns, "prefix", prefix);
-        addElement(doc, ns, "uri", breakable(uri));
-        addElement(doc, ns, "type", kind);
-    }
-
-    /** @return the {@code xs:schema} element of the documented schema, or null */
-    private org.w3c.dom.Element schemaElement() {
-        List<Node> declarations = new ArrayList<>(documentationData.getGlobalElements());
-        declarations.addAll(documentationData.getGlobalComplexTypes());
-        declarations.addAll(documentationData.getGlobalSimpleTypes());
-        for (Node declaration : declarations) {
-            if (declaration.getOwnerDocument() != null && declaration.getOwnerDocument().getDocumentElement() != null) {
-                return declaration.getOwnerDocument().getDocumentElement();
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Lists each named complex or simple type once, at its first occurrence in document order, as
-     * the HTML data dictionary does with the same option. Elements of a built-in type or without a
-     * type are always kept.
-     */
-    private List<XsdExtendedElement> deduplicateByType(List<XsdExtendedElement> elements) {
-        List<XsdExtendedElement> inOrder = new ArrayList<>(elements);
-        inOrder.sort(Comparator.comparingInt(XsdExtendedElement::getCounter));
-        Set<String> seenTypes = new java.util.HashSet<>();
-        List<XsdExtendedElement> kept = new ArrayList<>();
-        for (XsdExtendedElement element : inOrder) {
-            String type = element.getElementType();
-            if (type == null || type.isBlank() || type.startsWith("xs:") || type.startsWith("xsd:")
-                    || seenTypes.add(localName(type))) {
-                kept.add(element);
-            }
-        }
-        logger.info("PDF data dictionary deduplicated by type: {} -> {} rows", elements.size(), kept.size());
-        return kept;
-    }
-
     /** Marks an entry as linking to the element reference section {@code ref} (if there is one). */
     private static void setRef(Element entry, String ref) {
         if (ref != null) {
@@ -1313,6 +1192,14 @@ public class XsdDocumentationPdfService {
 
     /** Tokens longer than this get break opportunities every so many characters. */
     private static final int MAX_UNBROKEN = 24;
+
+    private void reportProgress(String message) {
+        if (progressListener != null) {
+            progressListener.onProgressUpdate(new TaskProgressListener.ProgressUpdate(message,
+                    TaskProgressListener.ProgressUpdate.Status.RUNNING, 0));
+        }
+        logger.debug("PDF generation progress: {}", message);
+    }
 
     /**
      * Returns the text with break opportunities after path and list separators and inside very
@@ -1342,422 +1229,110 @@ public class XsdDocumentationPdfService {
     }
 
     /**
-     * Turns the HTML restriction string of an element ({@code Base: xs:string<br />MaxLength: 256})
-     * into one line of text ({@code Base: xs:string; MaxLength: 256}).
+     * Lists the namespaces the schema declares (prefix, URI and what they are: target namespace,
+     * XML Schema, imported, or only declared) and the schema's imports, includes, redefines and
+     * overrides with their locations.
      */
-    static String restrictionText(String html) {
-        if (html == null || html.isBlank()) {
-            return "";
+    private void writeNamespaces(Document doc, Element overview) {
+        XsdDocumentationExportSupport.Namespaces namespaces = support().namespaces();
+        for (XsdDocumentationExportSupport.NamespaceRow row : namespaces.rows()) {
+            namespaceRow(doc, overview, row.prefix(), row.uri(), row.kind());
         }
-        String text = html.replaceAll("(?i)<br\\s*/?>", "; ")
-                .replaceAll("<[^>]+>", "")
-                .replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
-                .replace("&#39;", "'").replace("&amp;", "&")
-                .replaceAll("\\s+", " ")
-                .replaceAll("(;\\s*)+", "; ")
-                .trim();
-        return text.endsWith(";") ? text.substring(0, text.length() - 1).trim() : text;
+        for (XsdDocumentationExportSupport.SchemaReference reference : namespaces.references()) {
+            Element row = doc.createElement("schema-reference");
+            overview.appendChild(row);
+            addElement(doc, row, "kind", reference.kind());
+            addElement(doc, row, "namespace", reference.namespace());
+            addElement(doc, row, "location", breakable(reference.location()));
+        }
     }
 
-    /**
-     * The global element the schema diagram starts from: the first global element of the schema
-     * itself (not a SEQUENCE/CHOICE/ALL container), as on the root page of the HTML documentation.
-     */
+    private void namespaceRow(Document doc, Element overview, String prefix, String uri, String kind) {
+        Element ns = doc.createElement("namespace");
+        overview.appendChild(ns);
+        addElement(doc, ns, "prefix", prefix);
+        addElement(doc, ns, "uri", breakable(uri));
+        addElement(doc, ns, "type", kind);
+    }
+
+    // ================= Shared with the Word export =================
+
+    private XsdDocumentationExportSupport support;
+
+    /** @return the reading of the schema PDF and Word share, for the current document */
+    XsdDocumentationExportSupport support() {
+        if (support == null) {
+            support = new XsdDocumentationExportSupport(documentationData, includedLanguages);
+        }
+        return support;
+    }
+
     private XsdExtendedElement findRootElement() {
-        return documentationData.getExtendedXsdElementMap().values().stream()
-                .filter(e -> e.getLevel() == 0)
-                .filter(e -> !isContainerElement(e))
-                .min(Comparator.comparing((XsdExtendedElement e) -> e.getSourceNamespace() != null)
-                        .thenComparingInt(XsdExtendedElement::getCounter))
-                .orElse(null);
+        return support().findRootElement();
     }
 
-    /**
-     * The type an element declares: its {@code type} attribute where it has one. The element map
-     * keeps the base type for elements of a simpleContent type (sample data needs it), which is
-     * not what a reader looks for.
-     */
     String declaredType(XsdExtendedElement element) {
-        String declared = declaredTypeAttribute(element);
-        if (declared != null) {
-            return declared;
-        }
-        return element.getElementType() != null && !element.getElementType().isEmpty() ? element.getElementType() : "-";
+        return support().declaredType(element);
     }
 
-    private static String declaredTypeAttribute(XsdExtendedElement element) {
-        Node node = element.getCurrentNode();
-        if (node instanceof org.w3c.dom.Element declaration && declaration.hasAttribute("type")) {
-            String type = declaration.getAttribute("type").trim();
-            return type.isEmpty() ? null : type;
-        }
-        return null;
+    XsdDocumentationExportSupport.TypeUsage typeUsage(String typeName) {
+        return support().typeUsage(typeName);
     }
 
-    /**
-     * Who uses a global type.
-     *
-     * @param users        the elements and attributes that declare it as their type or whose inline
-     *                     type derives from it, by path
-     * @param derivedTypes the global types that derive from it ({@code base=})
-     */
-    record TypeUsage(List<XsdExtendedElement> users, List<String> derivedTypes) {
-        static final TypeUsage NONE = new TypeUsage(List.of(), List.of());
-
-        /** @return how often the type is used */
-        int count() {
-            return users.size() + derivedTypes.size();
-        }
+    static String restrictionText(String html) {
+        return XsdDocumentationExportSupport.restrictionText(html);
     }
 
-    /** The usage of every global type by local name, built once per document. */
-    private Map<String, TypeUsage> typeUsages;
-
-    /**
-     * @param typeName a type name, with or without prefix
-     * @return who uses the global type of that name
-     */
-    TypeUsage typeUsage(String typeName) {
-        return typeName == null ? TypeUsage.NONE : typeUsages().getOrDefault(localName(typeName), TypeUsage.NONE);
-    }
-
-    private Map<String, TypeUsage> typeUsages() {
-        if (typeUsages != null) {
-            return typeUsages;
-        }
-        Map<String, List<XsdExtendedElement>> users = new java.util.HashMap<>();
-        Map<String, List<String>> derived = new java.util.HashMap<>();
-        for (XsdExtendedElement element : documentationData.getExtendedXsdElementMap().values()) {
-            if (isContainerElement(element)) {
-                continue;
-            }
-            String declared = declaredTypeAttribute(element);
-            if (declared != null) {
-                users.computeIfAbsent(localName(declared), k -> new ArrayList<>()).add(element);
-            } else if (element.getCurrentNode() != null) {
-                // An inline type that derives from a named one uses it as well
-                for (String base : derivationBases(element.getCurrentNode(), false)) {
-                    users.computeIfAbsent(localName(base), k -> new ArrayList<>()).add(element);
-                }
-            }
-            // So do the types of its XSD 1.1 type alternatives
-            for (Node child = element.getCurrentNode() == null ? null : element.getCurrentNode().getFirstChild();
-                 child != null; child = child.getNextSibling()) {
-                if (child instanceof org.w3c.dom.Element alternative && "alternative".equals(alternative.getLocalName())
-                        && alternative.hasAttribute("type")) {
-                    users.computeIfAbsent(localName(alternative.getAttribute("type")), k -> new ArrayList<>()).add(element);
-                }
-            }
-        }
-        List<Node> globalTypes = new ArrayList<>(documentationData.getGlobalComplexTypes());
-        globalTypes.addAll(documentationData.getGlobalSimpleTypes());
-        for (Node type : globalTypes) {
-            String name = type instanceof org.w3c.dom.Element typeElement ? typeElement.getAttribute("name") : "";
-            for (String base : derivationBases(type, true)) {
-                derived.computeIfAbsent(localName(base), k -> new ArrayList<>()).add(name);
-            }
-        }
-        Map<String, TypeUsage> result = new java.util.HashMap<>();
-        java.util.Set<String> names = new java.util.HashSet<>(users.keySet());
-        names.addAll(derived.keySet());
-        for (String name : names) {
-            List<XsdExtendedElement> typeUsers = new ArrayList<>(users.getOrDefault(name, List.of()));
-            typeUsers.sort(Comparator.comparing(this::getCleanXPath));
-            result.put(name, new TypeUsage(typeUsers, derived.getOrDefault(name, List.of())));
-        }
-        typeUsages = result;
-        return result;
-    }
-
-    /**
-     * The {@code base} attributes of the extensions and restrictions of a type definition. For an
-     * element, only its own inline type is looked at, not nested element declarations.
-     */
-    private static List<String> derivationBases(Node node, boolean isType) {
-        List<String> bases = new ArrayList<>();
-        java.util.ArrayDeque<Node> pending = new java.util.ArrayDeque<>();
-        pending.push(node);
-        while (!pending.isEmpty()) {
-            Node current = pending.pop();
-            for (Node child = current.getFirstChild(); child != null; child = child.getNextSibling()) {
-                if (!(child instanceof org.w3c.dom.Element childElement)) {
-                    continue;
-                }
-                String name = childElement.getLocalName();
-                if ("element".equals(name) || "attribute".equals(name)) {
-                    continue; // nested declarations count for themselves
-                }
-                if (("extension".equals(name) || "restriction".equals(name)) && childElement.hasAttribute("base")) {
-                    bases.add(childElement.getAttribute("base"));
-                }
-                if (isType || "complexType".equals(name) || "simpleType".equals(name)
-                        || "complexContent".equals(name) || "simpleContent".equals(name)
-                        || "extension".equals(name) || "restriction".equals(name)) {
-                    pending.push(childElement);
-                }
-            }
-        }
-        return bases;
-    }
-
-    /** @return a schema component as indented XML text (its XSD source), empty if it cannot be written */
     static String serialize(Node node) {
-        try {
-            javax.xml.transform.Transformer transformer = javax.xml.transform.TransformerFactory
-                    .newDefaultInstance().newTransformer();
-            transformer.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "yes");
-            transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-            java.io.StringWriter out = new java.io.StringWriter();
-            transformer.transform(new DOMSource(node), new javax.xml.transform.stream.StreamResult(out));
-            // Drop the blank lines the identity transform leaves from the source's whitespace
-            return out.toString().replaceAll("(?m)^[ \\t]*\\r?\\n", "").strip();
-        } catch (javax.xml.transform.TransformerException e) {
-            logger.debug("Could not write the source of {}: {}", node.getNodeName(), e.getMessage());
-            return "";
-        }
+        return XsdDocumentationExportSupport.serialize(node);
     }
 
     static String localName(String qName) {
-        return qName.substring(qName.indexOf(':') + 1);
+        return XsdDocumentationExportSupport.localName(qName);
     }
 
     private String extractSchemaName() {
-        String filePath = documentationData.getXsdFilePath();
-        if (filePath == null) {
-            return "Unknown Schema";
-        }
-        Path path = Path.of(filePath);
-        String fileName = path.getFileName().toString();
-        if (fileName.endsWith(".xsd")) {
-            return fileName.substring(0, fileName.length() - 4);
-        }
-        return fileName;
+        return support().extractSchemaName();
     }
 
     private String getBaseType(org.w3c.dom.Element complexTypeElement) {
-        var childNodes = complexTypeElement.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child instanceof org.w3c.dom.Element childElement) {
-                String localName = childElement.getLocalName();
-                if ("complexContent".equals(localName) || "simpleContent".equals(localName)) {
-                    var contentChildren = childElement.getChildNodes();
-                    for (int j = 0; j < contentChildren.getLength(); j++) {
-                        Node contentChild = contentChildren.item(j);
-                        if (contentChild instanceof org.w3c.dom.Element contentElement) {
-                            String contentLocalName = contentElement.getLocalName();
-                            if ("extension".equals(contentLocalName) || "restriction".equals(contentLocalName)) {
-                                return contentElement.getAttribute("base");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return "-";
+        return support().getBaseType(complexTypeElement);
     }
 
     private String getSimpleTypeBase(org.w3c.dom.Element simpleTypeElement) {
-        var childNodes = simpleTypeElement.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child instanceof org.w3c.dom.Element childElement) {
-                String localName = childElement.getLocalName();
-                if ("restriction".equals(localName)) {
-                    return childElement.getAttribute("base");
-                } else if ("list".equals(localName)) {
-                    return "list(" + childElement.getAttribute("itemType") + ")";
-                } else if ("union".equals(localName)) {
-                    return "union(" + childElement.getAttribute("memberTypes") + ")";
-                }
-            }
-        }
-        return "-";
+        return support().getSimpleTypeBase(simpleTypeElement);
     }
 
     private String getSimpleTypeFacetsSummary(org.w3c.dom.Element simpleTypeElement) {
-        List<String> facets = new ArrayList<>();
-        var childNodes = simpleTypeElement.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child instanceof org.w3c.dom.Element childElement && "restriction".equals(childElement.getLocalName())) {
-                var facetNodes = childElement.getChildNodes();
-                for (int j = 0; j < facetNodes.getLength(); j++) {
-                    Node facetNode = facetNodes.item(j);
-                    if (facetNode instanceof org.w3c.dom.Element facetElement) {
-                        String facetName = facetElement.getLocalName();
-                        if (facetName != null && !facetName.equals("annotation")) {
-                            String facetValue = facetElement.getAttribute("value");
-                            if (!facetValue.isEmpty()) {
-                                facets.add(facetName + ": " + facetValue);
-                            } else {
-                                facets.add(facetName);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return facets.isEmpty() ? "-" : String.join(", ", facets);
+        return support().getSimpleTypeFacetsSummary(simpleTypeElement);
     }
 
     String getFirstDocumentation(XsdExtendedElement element) {
-        Map<String, String> docs = element.getLanguageDocumentation();
-        if (docs == null || docs.isEmpty()) {
-            return "";
-        }
-
-        // Apply language filter if set
-        if (includedLanguages != null && !includedLanguages.isEmpty()) {
-            for (String lang : includedLanguages) {
-                if (docs.containsKey(lang)) {
-                    return stripHtml(docs.get(lang));
-                }
-            }
-        }
-
-        // Fallback: default or first available language
-        String doc = docs.get("default");
-        if (doc == null) {
-            doc = docs.values().iterator().next();
-        }
-        return stripHtml(doc);
+        return support().getFirstDocumentation(element);
     }
 
-    /**
-     * Strips HTML tags from a string.
-     */
     String stripHtml(String text) {
-        return MarkdownSupport.toPlainText(text);
+        return support().stripHtml(text);
     }
 
-    /**
-     * Gets a summary of restrictions for an element (facets, constraints, assertions).
-     */
     private String getRestrictionsSummary(XsdExtendedElement element) {
-        if (element == null) {
-            return "";
-        }
-
-        // The restriction string is HTML (lines separated by <br />): make it text
-        String restrictionString = restrictionText(element.getXsdRestrictionString());
-        if (!restrictionString.isEmpty()) {
-            return restrictionString;
-        }
-
-        // Check for identity constraints
-        var constraints = element.getIdentityConstraints();
-        if (constraints != null && !constraints.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            for (var constraint : constraints) {
-                if (!sb.isEmpty()) {
-                    sb.append("; ");
-                }
-                sb.append(constraint.getType()).append(": ").append(constraint.getName());
-            }
-            return sb.toString();
-        }
-
-        // Check for assertions (XSD 1.1)
-        var assertions = element.getAssertions();
-        if (assertions != null && !assertions.isEmpty()) {
-            return assertions.size() + " assertion(s)";
-        }
-
-        return "";
+        return support().getRestrictionsSummary(element);
     }
 
-    private void reportProgress(String message) {
-        if (progressListener != null) {
-            progressListener.onProgressUpdate(new TaskProgressListener.ProgressUpdate(message,
-                    TaskProgressListener.ProgressUpdate.Status.RUNNING, 0));
-        }
-        logger.debug("PDF generation progress: {}", message);
-    }
-
-    /**
-     * Gets cardinality string from minOccurs/maxOccurs attributes.
-     */
     String getCardinality(XsdExtendedElement element) {
-        Node cardNode = element.getCardinalityNode();
-        if (cardNode == null) {
-            cardNode = element.getCurrentNode();
-        }
-        if (cardNode == null) {
-            return "1";
-        }
-
-        String minOccurs = getNodeAttribute(cardNode, "minOccurs", "1");
-        String maxOccurs = getNodeAttribute(cardNode, "maxOccurs", "1");
-
-        if (minOccurs.equals(maxOccurs)) {
-            return minOccurs;
-        }
-        if ("unbounded".equals(maxOccurs)) {
-            return minOccurs + "..*";
-        }
-        return minOccurs + ".." + maxOccurs;
+        return support().getCardinality(element);
     }
 
-    /**
-     * Checks if an element is a compositor container (CHOICE, SEQUENCE, ALL).
-     * These container elements are internal structures and should not appear in PDF documentation.
-     */
     boolean isContainerElement(XsdExtendedElement element) {
-        if (element == null || element.getElementName() == null) {
-            return false;
-        }
-        String elementName = element.getElementName();
-        return elementName.startsWith("CHOICE") ||
-               elementName.startsWith("SEQUENCE") ||
-               elementName.startsWith("ALL");
+        return XsdDocumentationExportSupport.isContainerElement(element);
     }
 
-    /**
-     * Returns the XPath of an element without container elements (CHOICE, SEQUENCE, ALL).
-     * This produces a clean XPath for display in documentation.
-     */
     String getCleanXPath(XsdExtendedElement element) {
-        if (element == null) {
-            return "";
-        }
-
-        // Reuse the cached value if it was already computed (by any exporter) in this run.
-        String cached = element.getCleanXPathCache();
-        if (cached != null) {
-            return cached;
-        }
-
-        List<String> pathParts = new ArrayList<>();
-        XsdExtendedElement current = element;
-
-        // Traverse up the hierarchy and collect only non-container elements
-        while (current != null) {
-            if (!isContainerElement(current)) {
-                pathParts.addFirst(current.getElementName());
-            }
-            String parentXpath = current.getParentXpath();
-            current = (parentXpath != null) ?
-                    documentationData.getExtendedXsdElementMap().get(parentXpath) : null;
-        }
-
-        String cleanXPath = "/" + String.join("/", pathParts);
-        element.setCleanXPathCache(cleanXPath);
-        return cleanXPath;
+        return support().getCleanXPath(element);
     }
 
-    /**
-     * Gets attribute value from a Node with default fallback.
-     */
-    private String getNodeAttribute(Node node, String attrName, String defaultValue) {
-        if (node instanceof Element elem) {
-            String value = elem.getAttribute(attrName);
-            if (!value.isEmpty()) {
-                return value;
-            }
-        }
-        return defaultValue;
+    private List<XsdExtendedElement> deduplicateByType(List<XsdExtendedElement> elements) {
+        return support().deduplicateByType(elements);
     }
 
     // ================= Setters =================

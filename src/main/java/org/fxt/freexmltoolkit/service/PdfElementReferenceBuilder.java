@@ -464,7 +464,7 @@ final class PdfElementReferenceBuilder {
         imagePath.setAttribute("height-mm", String.format(java.util.Locale.ROOT, "%.1f", heightMm * scale));
     }
 
-    private static int[] pixelSize(Path image) {
+    static int[] pixelSize(Path image) {
         if (image.getFileName().toString().endsWith(".svg")) {
             return svgSize(image);
         }
