@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: User guide
+    url: https://karlkauc.github.io/FreeXmlToolkit/
+    about: The documentation for all features of FreeXmlToolkit.
+  - name: FAQ & Troubleshooting
+    url: https://karlkauc.github.io/FreeXmlToolkit/faq/
+    about: Answers to common questions and solutions for common problems.
+  - name: Report a security vulnerability
+    url: https://github.com/karlkauc/FreeXmlToolkit/security/advisories/new
+    about: Please report security issues privately, not as a public issue.

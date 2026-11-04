@@ -1,0 +1,52 @@
+name: Feature request
+description: Suggest a new feature or an improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for your idea! Please describe the problem first — that helps to find the best solution.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - XML editor (Text / Tree / Grid)
+        - XSD editor
+        - Validation / Schematron
+        - XSLT / XQuery / XProc
+        - Debugger
+        - PDF / FOP
+        - JSON editor
+        - Schema documentation / analysis
+        - Digital signatures
+        - Schema Library / catalogs
+        - User interface / settings
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to do, and what makes it hard today?
+      placeholder: I often need to ... but currently I have to ...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like it to work?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you use today, or how other tools solve it.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Sample files, mock-ups, screenshots or links.

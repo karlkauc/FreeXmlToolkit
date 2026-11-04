@@ -187,8 +187,10 @@ Inside the app you find the sponsor link under **Help → Sponsor this Project**
 
 ## Contributing
 
-Contributions are welcome - bug reports, feature ideas, documentation and code. For code, open an issue
-first for larger changes; `./gradlew test` runs the test suite.
+Contributions are welcome - bug reports, feature ideas, documentation and code. Please read the
+[Contributing Guide](CONTRIBUTING.md) for the development setup, coding guidelines and the pull request
+workflow; for larger changes, open an issue first. Everyone taking part agrees to follow our
+[Code of Conduct](CODE_OF_CONDUCT.md). Security issues: see the [Security Policy](.github/SECURITY.md).
 
 ## License
 
