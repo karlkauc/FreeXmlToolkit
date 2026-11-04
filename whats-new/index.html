@@ -2546,8 +2546,9 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
 <ul>
 <li><strong>XML → Excel:</strong> the workbook now has the same look as the Data Dictionary export. With a
   bound XSD, numbers, booleans and dates go into number, boolean and date cells instead of text.
-  Importing the workbook gives back the original values. See
-  <a href="../xml-editor/#xmlexcelcsv-converter">XML Editor</a>.</li>
+  Importing the workbook gives back the original values. The CSV export adds a <strong>Data Type</strong>
+  column and quotes only text. Values that contain the delimiter, quotes or line breaks now
+  import back correctly. See <a href="../xml-editor/#xmlexcelcsv-converter">XML Editor</a>.</li>
 <li><strong>XSD Graphic view, new card layout:</strong> every node is one card with a symbol, name and type
   line; cardinality and attribute use are pills, optional cards are dashed and repeating ones have
   a second outline. A <strong>title chip</strong> (top left) names the selected card, a <strong>zoom control</strong> sits

@@ -4052,6 +4052,18 @@ The type is followed through derived simple types, <code>xs:simpleContent</code>
 </ul>
 <p>Without a schema, every value is text. <strong>Excel to XML</strong> turns typed cells back into their XML
 form.</p>
+<p>The <strong>CSV</strong> export uses the bound XSD as well. CSV has no cell types, so the file gets an extra
+<strong>Data Type</strong> column with each value's XSD built-in type (<code>decimal</code>, <code>date</code>, <code>dateTime</code>, …).
+Values that are valid for their type are written without quotes; all text fields are quoted:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>"XPath";"Value";"Type";"Data Type"
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>"/FundsXML4/ControlData/ContentDate";2021-11-30;"element";"date"
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>"/FundsXML4/ControlData/DataSupplier/Name";"Erste Asset Management";"element";"string"
+</code></pre></div>
+<p>Values are written exactly as in the XML. A timezone or a leading zero stays as it is.
+A value that contains the delimiter, a quote or a line break is always quoted, with inner
+quotes doubled. <strong>CSV to XML</strong> reads such values back correctly, including line breaks
+inside a value, and ignores the Data Type column. Without a schema, the CSV keeps the plain
+format: no Data Type column, and quotes only where needed.</p>
 <hr />
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
 <p>Choose <strong>Edit → Insert Template…</strong> (Ctrl+T) to insert a snippet:</p>
