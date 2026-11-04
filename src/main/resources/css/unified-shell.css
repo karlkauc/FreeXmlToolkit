@@ -4512,3 +4512,50 @@
     -fx-font-size: 11px;
     -fx-text-fill: -fxt-text-muted;
 }
+
+/* ===== XSD Overview view mode (SchemaOverviewView + panes) ===== */
+.fxt-schema-overview {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.fxt-overview-header {
+    -fx-padding: 8 10 8 10;
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: transparent transparent -fxt-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.fxt-overview-key {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-overview-toolbar {
+    -fx-padding: 4 6 4 6;
+}
+
+.fxt-overview-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.fxt-overview-pane {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.table-view.fxt-analysis-table.fxt-overview-table .table-row-cell.fxt-overview-row-included .table-cell {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-style: italic;
+}
+
+.table-view.fxt-analysis-table.fxt-overview-table .table-row-cell.fxt-overview-row-comment .table-cell {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-overview-toolbar .toggle-button.fxt-tool-button:selected {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-overview-toolbar .toggle-button.fxt-tool-button:selected > .label {
+    -fx-text-fill: -fxt-primary;
+}

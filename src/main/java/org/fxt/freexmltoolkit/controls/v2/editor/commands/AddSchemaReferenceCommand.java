@@ -25,7 +25,7 @@ public class AddSchemaReferenceCommand implements XsdCommand {
 
     /** Whether to add an {@code xs:import} or an {@code xs:include}. */
     public enum Kind {
-        IMPORT, INCLUDE
+        IMPORT, INCLUDE, REDEFINE, OVERRIDE
     }
 
     private final XsdEditorContext editorContext;
@@ -70,24 +70,15 @@ public class AddSchemaReferenceCommand implements XsdCommand {
     }
 
     private XsdNode build() {
-        if (kind == Kind.IMPORT) {
-            return new XsdImport(namespace, schemaLocation);
-        }
-        return new XsdInclude(schemaLocation);
+        return switch (kind) {
+            case IMPORT -> new XsdImport(namespace, schemaLocation);
+            case INCLUDE -> new XsdInclude(schemaLocation);
+            case REDEFINE -> new XsdRedefine(schemaLocation);
+            case OVERRIDE -> new XsdOverride(schemaLocation);
+        };
     }
 
     /** @return the index just after the last import/include/redefine/override child, else 0. */
-    private int headerInsertIndex() {
-        int index = 0;
-        for (int i = 0; i < schema.getChildren().size(); i++) {
-            XsdNode child = schema.getChildren().get(i);
-            if (child instanceof XsdImport || child instanceof XsdInclude
-                    || child instanceof XsdRedefine || child instanceof XsdOverride) {
-                index = i + 1;
-            }
-        }
-        return index;
-    }
 
     @Override
     public boolean execute() {
@@ -95,7 +86,7 @@ public class AddSchemaReferenceCommand implements XsdCommand {
             if (created == null) {
                 created = build();
             }
-            insertedIndex = headerInsertIndex();
+            insertedIndex = SchemaLayoutRules.directiveInsertIndex(schema);
             schema.addChild(insertedIndex, created);
             editorContext.markNodeDirty(schema);
             return true;

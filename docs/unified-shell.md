@@ -160,7 +160,7 @@ the new document.
 > The segmented view switch offers the **Text**, **Tree**, and **Graphic** view
 > modes - each with its own icon - plus, for **HTML documents only**, a rendered read-only
 > **Preview** (eye icon) - the Preview segment only appears while an HTML document is
-> active. There is no separate **Grid** mode - the grid is part of
+> active - and, for **XSD documents only**, the **Overview** (table icon). There is no separate **Grid** mode - the grid is part of
 > **Graphic**.
 
 Every document tab offers the same view modes:
@@ -170,6 +170,7 @@ Every document tab offers the same view modes:
 | **Text** | Source code editing with syntax highlighting |
 | **Tree** | The document as a hierarchical tree |
 | **Graphic** | A visual editor that depends on the document type: for **XML**, **XSLT**, **Schematron** and **JSON** files it shows the editable XMLSpy-style **grid**; for **XSD** files it shows the **schema diagram** |
+| **Overview** | *(XSD documents only.)* All top-level components of the schema in one table - reorder, sort, add, rename, edit attributes, identity constraints, assertions and namespaces - see [XSD Tools](xsd-tools.md#overview-view) |
 | **Preview** | *(HTML documents only.)* The page rendered read-only in an embedded web view - see [HTML Preview](#html-preview) |
 
 All views share one in-memory model per document, so edits and Undo/Redo history are preserved
@@ -294,7 +295,7 @@ schemas, **Save** needs an open document).
 |------|----------|
 | **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first) |
 | **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
-| **View** | The view modes (Text / Tree / Graphic / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), **Show Constraints in Diagram**, **Show Constraints on Target Nodes**, Toggle Light / Dark Theme, Full Screen |
+| **View** | The view modes (Text / Tree / Graphic / Overview / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), **Show Constraints in Diagram**, **Show Constraints on Target Nodes**, Toggle Light / Dark Theme, Full Screen |
 | **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites |
 | **Help** | Documentation, Keyboard Shortcuts, FundsXML Website and FundsXML Schema Docs (only while the [FundsXML extension](fundsxml-extensions.md) is enabled), Report a Problem… (when error reporting is enabled), GitHub Repository, Sponsor this Project, Check for Updates…, About FreeXmlToolkit - see [Help Menu & About](#help-menu-about) |
 

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  "Details" tab of the Schema Overview: the editable properties of the selected row that the
+  Inspector does not cover (schema references, notations, schema-level annotations) and a summary
+  with navigation for the other components. Loaded by ComponentDetailsPane (fx:root); only the
+  section matching the row is shown.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="10" styleClass="fxt-overview-pane"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="10"/>
+    </padding>
+    <children>
+        <Label fx:id="titleLabel" id="overview-details-title" styleClass="fxt-overview-title"/>
+
+        <GridPane fx:id="referenceBox" id="overview-reference" hgap="8" vgap="8">
+            <children>
+                <Label fx:id="namespaceLabel" text="Namespace" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="namespaceField" id="overview-reference-namespace" onAction="#onApplyReference"
+                           GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
+                <Label text="Schema location" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <TextField fx:id="locationField" id="overview-reference-location" onAction="#onApplyReference"
+                           GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
+                <HBox spacing="6" GridPane.rowIndex="2" GridPane.columnIndex="1">
+                    <children>
+                        <Button text="Apply" id="overview-reference-apply" onAction="#onApplyReference"
+                                styleClass="btn-primary"/>
+                        <Button text="Browse…" id="overview-reference-browse" onAction="#onBrowse">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                        <Button text="Open File" id="overview-reference-open" onAction="#onOpenReference">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </children>
+                </HBox>
+                <Label fx:id="resolutionLabel" id="overview-reference-status" wrapText="true"
+                       styleClass="fxt-placeholder-text" GridPane.rowIndex="3" GridPane.columnIndex="0"
+                       GridPane.columnSpan="2"/>
+            </children>
+        </GridPane>
+
+        <GridPane fx:id="notationBox" id="overview-notation" hgap="8" vgap="8">
+            <children>
+                <Label text="Public identifier" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="publicField" id="overview-notation-public" onAction="#onApplyNotation"
+                           GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
+                <Label text="System identifier" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <TextField fx:id="systemField" id="overview-notation-system" onAction="#onApplyNotation"
+                           GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
+                <Button text="Apply" id="overview-notation-apply" onAction="#onApplyNotation"
+                        styleClass="btn-primary" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            </children>
+        </GridPane>
+
+        <VBox fx:id="annotationBox" id="overview-annotation" spacing="6" VBox.vgrow="ALWAYS">
+            <children>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Language (xml:lang)"/>
+                        <TextField fx:id="languageField" id="overview-annotation-lang" prefColumnCount="6"/>
+                    </children>
+                </HBox>
+                <TextArea fx:id="documentationArea" id="overview-annotation-text" wrapText="true" prefRowCount="5"
+                          VBox.vgrow="ALWAYS"/>
+                <Button text="Apply" id="overview-annotation-apply" onAction="#onApplyAnnotation"
+                        styleClass="btn-primary"/>
+            </children>
+        </VBox>
+
+        <VBox fx:id="summaryBox" id="overview-summary" spacing="8">
+            <children>
+                <Label fx:id="summaryLabel" id="overview-summary-text" wrapText="true"/>
+                <Label text="Edit the properties of this component in the Inspector on the right."
+                       styleClass="fxt-placeholder-text" wrapText="true"/>
+                <HBox spacing="6">
+                    <children>
+                        <Button fx:id="typeEditorButton" id="overview-open-type-editor" text="Open in Type Editor"
+                                onAction="#onOpenTypeEditor">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="graphicButton" id="overview-show-graphic" text="Show in Graphic View"
+                                onAction="#onShowInGraphic">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-diagram-2" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</fx:root>

@@ -21,7 +21,7 @@ public class XsdSchema extends XsdNode {
     private String elementFormDefault = "qualified";
     private String attributeFormDefault = "unqualified";
     private String version;
-    private final Map<String, String> namespaces = new HashMap<>();
+    private final Map<String, String> namespaces = new LinkedHashMap<>();
     private final Map<String, String> additionalAttributes = new HashMap<>();
     private final List<String> leadingComments = new ArrayList<>();
 
@@ -238,7 +238,7 @@ public class XsdSchema extends XsdNode {
      * @return the namespace map (prefix -> URI)
      */
     public Map<String, String> getNamespaces() {
-        return new HashMap<>(namespaces);
+        return new LinkedHashMap<>(namespaces);
     }
 
     /**
@@ -253,6 +253,18 @@ public class XsdSchema extends XsdNode {
     }
 
     /**
+     * Replaces all namespace mappings at once, keeping the given order.
+     *
+     * @param mappings the new prefix → URI map (the empty prefix is the default namespace)
+     */
+    public void replaceNamespaces(Map<String, String> mappings) {
+        Map<String, String> old = new LinkedHashMap<>(namespaces);
+        namespaces.clear();
+        namespaces.putAll(mappings);
+        pcs.firePropertyChange("namespaces", old, new LinkedHashMap<>(namespaces));
+    }
+
+    /**
      * Removes a namespace mapping.
      *
      * @param prefix the namespace prefix to remove
@@ -260,6 +272,132 @@ public class XsdSchema extends XsdNode {
     public void removeNamespace(String prefix) {
         namespaces.remove(prefix);
         pcs.firePropertyChange("namespaces", null, new HashMap<>(namespaces));
+    }
+
+    // ========== Schema-level annotation ==========
+    // The documentation API of the schema node reads and writes its first own
+    // xs:annotation child, so the annotation keeps its position among the components.
+
+    /**
+     * @return the first schema-level {@code xs:annotation} of this file (not one from an
+     *         included file), or null
+     */
+    public XsdAnnotation getSchemaAnnotation() {
+        for (XsdNode child : getChildren()) {
+            if (child instanceof XsdAnnotation annotation && !annotation.isFromInclude()) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    private XsdAnnotation writableAnnotation() {
+        XsdAnnotation annotation = getSchemaAnnotation();
+        if (annotation == null) {
+            annotation = new XsdAnnotation();
+            addChild(0, annotation);
+        }
+        return annotation;
+    }
+
+    private void dropIfEmpty(XsdAnnotation annotation) {
+        if (annotation != null && annotation.isEmpty()) {
+            removeChild(annotation);
+        }
+    }
+
+    private void fireAnnotationChanged() {
+        pcs.firePropertyChange("documentations", null, getDocumentations());
+    }
+
+    @Override
+    public String getDocumentation() {
+        XsdAnnotation annotation = getSchemaAnnotation();
+        return annotation != null ? annotation.getDocumentation() : null;
+    }
+
+    @Override
+    public void setDocumentation(String documentation) {
+        XsdAnnotation annotation = getSchemaAnnotation();
+        if (annotation == null && (documentation == null || documentation.isBlank())) {
+            return;
+        }
+        annotation = writableAnnotation();
+        annotation.setDocumentation(documentation);
+        dropIfEmpty(annotation);
+        fireAnnotationChanged();
+    }
+
+    @Override
+    public List<XsdDocumentation> getDocumentations() {
+        XsdAnnotation annotation = getSchemaAnnotation();
+        return annotation != null ? annotation.getDocumentations() : new ArrayList<>();
+    }
+
+    @Override
+    public void addDocumentation(XsdDocumentation doc) {
+        if (doc == null) {
+            return;
+        }
+        writableAnnotation().addDocumentation(doc);
+        fireAnnotationChanged();
+    }
+
+    @Override
+    public void setDocumentations(List<XsdDocumentation> docs) {
+        XsdAnnotation annotation = getSchemaAnnotation();
+        if (annotation == null && (docs == null || docs.isEmpty())) {
+            return;
+        }
+        annotation = writableAnnotation();
+        annotation.setDocumentations(docs);
+        dropIfEmpty(annotation);
+        fireAnnotationChanged();
+    }
+
+    @Override
+    public void clearDocumentations() {
+        XsdAnnotation annotation = getSchemaAnnotation();
+        if (annotation != null) {
+            annotation.clearDocumentations();
+            dropIfEmpty(annotation);
+            fireAnnotationChanged();
+        }
+    }
+
+    @Override
+    public boolean hasDocumentations() {
+        XsdAnnotation annotation = getSchemaAnnotation();
+        return annotation != null && annotation.hasDocumentations();
+    }
+
+    @Override
+    public XsdAppInfo getAppinfo() {
+        XsdAnnotation annotation = getSchemaAnnotation();
+        return annotation != null ? annotation.getAppinfo() : null;
+    }
+
+    @Override
+    public void setAppinfo(XsdAppInfo appinfo) {
+        XsdAnnotation annotation = getSchemaAnnotation();
+        if (annotation == null && (appinfo == null || !appinfo.hasEntries())) {
+            return;
+        }
+        annotation = writableAnnotation();
+        annotation.setAppinfo(appinfo);
+        dropIfEmpty(annotation);
+        pcs.firePropertyChange("appinfo", null, appinfo);
+    }
+
+    @Override
+    public String getAppinfoAsString() {
+        XsdAppInfo appinfo = getAppinfo();
+        return appinfo != null ? appinfo.toDisplayString() : "";
+    }
+
+    @Override
+    public void setAppinfoFromString(String appinfoString) {
+        setAppinfo(XsdAppInfo.fromDisplayString(appinfoString));
     }
 
     // ========== Multi-File Support Methods ==========

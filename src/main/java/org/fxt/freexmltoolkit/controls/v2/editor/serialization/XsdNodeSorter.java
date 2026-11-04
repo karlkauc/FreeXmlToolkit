@@ -75,6 +75,10 @@ public final class XsdNodeSorter {
             return new ArrayList<>();
         }
 
+        if (sortOrder == null || sortOrder == XsdSortOrder.PRESERVE) {
+            return new ArrayList<>(children);
+        }
+
         logger.debug("Sorting {} schema children with order: {}", children.size(), sortOrder);
 
         // Partition nodes into categories

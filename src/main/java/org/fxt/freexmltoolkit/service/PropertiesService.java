@@ -373,14 +373,14 @@ public interface PropertiesService {
      * Gets the XSD serialization sort order.
      * This determines how XSD elements are ordered when saving edited XSD files.
      *
-     * @return the sort order setting: "TYPE_BEFORE_NAME" or "NAME_BEFORE_TYPE" (default: NAME_BEFORE_TYPE)
+     * @return the sort order setting: "PRESERVE", "TYPE_BEFORE_NAME" or "NAME_BEFORE_TYPE" (default: PRESERVE)
      */
     String getXsdSortOrder();
 
     /**
      * Sets the XSD serialization sort order.
      *
-     * @param sortOrder the sort order: "TYPE_BEFORE_NAME" or "NAME_BEFORE_TYPE"
+     * @param sortOrder the sort order: "PRESERVE", "TYPE_BEFORE_NAME" or "NAME_BEFORE_TYPE"
      */
     void setXsdSortOrder(String sortOrder);
 

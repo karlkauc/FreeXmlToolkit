@@ -16,6 +16,7 @@ public enum XsdNodeType {
     ALL,
     GROUP,
     ATTRIBUTE_GROUP,
+    NOTATION,
     ANNOTATION,
     DOCUMENTATION,
     APPINFO,

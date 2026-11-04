@@ -305,6 +305,8 @@ public class XsdSerializer {
             serializeAssert(xsdAssert, sb, indentation);
         } else if (node instanceof XsdAlternative alternative) {
             serializeAlternative(alternative, sb, indentation, indent);
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdDefaultOpenContent defaultOpenContent) {
+            serializeDefaultOpenContent(defaultOpenContent, sb, indentation, indent);
         } else if (node instanceof XsdOpenContent openContent) {
             serializeOpenContent(openContent, sb, indentation, indent);
         } else if (node instanceof XsdOverride override) {
@@ -317,6 +319,10 @@ public class XsdSerializer {
             serializeExtension(extension, sb, indentation, indent);
         } else if (node instanceof XsdComment comment) {
             serializeComment(comment, sb, indentation);
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAnnotation annotation) {
+            serializeSchemaAnnotation(annotation, sb, indentation, indent);
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNotation notation) {
+            serializeNotation(notation, sb, indentation, indent);
         } else if (node instanceof XsdAny any) {
             serializeAny(any, sb, indentation);
         } else if (node instanceof XsdAnyAttribute anyAttr) {
@@ -1359,6 +1365,64 @@ public class XsdSerializer {
      * @param sb          the string builder
      * @param indentation the indentation string
      */
+    /**
+     * Serializes a schema-level xs:annotation at its position; an empty one as {@code <xs:annotation/>}.
+     */
+    private void serializeSchemaAnnotation(org.fxt.freexmltoolkit.controls.v2.model.XsdAnnotation annotation,
+                                           StringBuilder sb, String indentation, int indent) {
+        if (annotation.isEmpty()) {
+            sb.append(indentation).append("<xs:annotation/>\n");
+            return;
+        }
+        serializeAnnotation(annotation, sb, indentation, indent);
+    }
+
+    /**
+     * Serializes a global xs:notation.
+     */
+    private void serializeNotation(org.fxt.freexmltoolkit.controls.v2.model.XsdNotation notation,
+                                   StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:notation name=\"").append(escapeXml(notation.getName())).append("\"");
+        if (notation.getPublicId() != null) {
+            sb.append(" public=\"").append(escapeXml(notation.getPublicId())).append("\"");
+        }
+        if (notation.getSystemId() != null) {
+            sb.append(" system=\"").append(escapeXml(notation.getSystemId())).append("\"");
+        }
+        boolean annotated = !notation.getDocumentations().isEmpty()
+                || (notation.getAppinfo() != null && notation.getAppinfo().hasEntries());
+        if (!annotated) {
+            sb.append("/>\n");
+            return;
+        }
+        sb.append(">\n");
+        serializeAnnotation(notation, sb, indentation + indentString, indent + 1);
+        sb.append(indentation).append("</xs:notation>\n");
+    }
+
+    /**
+     * Serializes the schema-level xs:defaultOpenContent (XSD 1.1).
+     */
+    private void serializeDefaultOpenContent(org.fxt.freexmltoolkit.controls.v2.model.XsdDefaultOpenContent openContent,
+                                             StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:defaultOpenContent");
+        if (openContent.isAppliesToEmpty()) {
+            sb.append(" appliesToEmpty=\"true\"");
+        }
+        if (openContent.getMode() != null) {
+            sb.append(" mode=\"").append(openContent.getMode().getValue()).append("\"");
+        }
+        if (!openContent.hasChildren()) {
+            sb.append("/>\n");
+            return;
+        }
+        sb.append(">\n");
+        for (XsdNode child : openContent.getChildren()) {
+            serializeXsdNode(child, sb, indent + 1);
+        }
+        sb.append(indentation).append("</xs:defaultOpenContent>\n");
+    }
+
     private void serializeComment(XsdComment comment, StringBuilder sb, String indentation) {
         if (comment.getContent() != null) {
             sb.append(indentation).append("<!--").append(comment.getContent()).append("-->\n");
@@ -1479,8 +1543,8 @@ public class XsdSerializer {
             String sortOrderStr = propertiesService.getXsdSortOrder();
             return XsdSortOrder.valueOf(sortOrderStr);
         } catch (Exception e) {
-            logger.warn("Could not get sort order from settings, using default NAME_BEFORE_TYPE: {}", e.getMessage());
-            return XsdSortOrder.NAME_BEFORE_TYPE;
+            logger.warn("Could not get sort order from settings, keeping document order: {}", e.getMessage());
+            return XsdSortOrder.PRESERVE;
         }
     }
 

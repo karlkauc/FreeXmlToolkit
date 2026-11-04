@@ -16,6 +16,8 @@ public enum ViewMode {
     TEXT("Text", "bi-type"),
     TREE("Tree", "bi-list-nested"),
     GRAPHIC("Graphic", "bi-diagram-2"),
+    /** XSD only: the XMLSpy-style table of all top-level schema components. */
+    OVERVIEW("Overview", "bi-table"),
     PREVIEW("Preview", "bi-eye");
 
     private final String label;
@@ -39,6 +41,6 @@ public enum ViewMode {
      *         (Tree/Graphic) — not Text and not the read-only Preview
      */
     public boolean isStructured() {
-        return this == TREE || this == GRAPHIC;
+        return this == TREE || this == GRAPHIC || this == OVERVIEW;
     }
 }

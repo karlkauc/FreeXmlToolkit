@@ -160,6 +160,24 @@ public abstract class XsdNode {
     }
 
     /**
+     * Puts the children into a new order in one step (one {@code children} event).
+     *
+     * @param newOrder a permutation of the current children
+     * @throws IllegalArgumentException if {@code newOrder} is not a permutation of the children
+     */
+    public void reorderChildren(List<XsdNode> newOrder) {
+        if (newOrder == null || newOrder.size() != children.size()
+                || !new java.util.HashSet<>(children).equals(new java.util.HashSet<>(newOrder))) {
+            throw new IllegalArgumentException("The new order must be a permutation of the children");
+        }
+        List<XsdNode> oldChildren = new ArrayList<>(children);
+        children.clear();
+        children.addAll(newOrder);
+        pcs.firePropertyChange("children", oldChildren, new ArrayList<>(children));
+        notifyAncestors("descendantChanged");
+    }
+
+    /**
      * Bubbles property change events from children to this node.
      * This allows the root schema to be notified of changes anywhere in the tree.
      *
@@ -580,7 +598,8 @@ public abstract class XsdNode {
             case UNION -> "xs:union";
             case ASSERT -> "xs:assert";
             case ALTERNATIVE -> "xs:alternative";
-            case OPEN_CONTENT -> "xs:openContent";
+            case OPEN_CONTENT -> node instanceof XsdDefaultOpenContent ? "xs:defaultOpenContent" : "xs:openContent";
+            case NOTATION -> "xs:notation";
             case COMMENT -> "xs:comment";
         };
     }
@@ -607,7 +626,7 @@ public abstract class XsdNode {
     private boolean isNamedType(XsdNode node) {
         return switch (node.getNodeType()) {
             case ELEMENT, COMPLEX_TYPE, SIMPLE_TYPE, ATTRIBUTE, ATTRIBUTE_GROUP,
-                 GROUP, KEY, KEYREF, UNIQUE -> true;
+                 GROUP, KEY, KEYREF, UNIQUE, NOTATION -> true;
             default -> false;
         };
     }

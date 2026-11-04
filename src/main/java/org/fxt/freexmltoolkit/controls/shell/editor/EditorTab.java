@@ -231,6 +231,7 @@ final class EditorTab extends Tab {
         return switch (mode) {
             case TEXT -> true;
             case PREVIEW -> document.getFileType() == EditorFileType.HTML;
+            case OVERVIEW -> document.getFileType() == EditorFileType.XSD;
             case TREE -> switch (document.getFileType()) {
                 // Query documents are not XML — the DOM tree view cannot parse them.
                 // HTML output is often not well-formed XML (unclosed <br>, &nbsp;) either.
@@ -343,6 +344,16 @@ final class EditorTab extends Tab {
                 ensureCanvasGraphic();
                 if (xsdGraphView != null) {
                     showOnly(xsdGraphView);
+                } else {
+                    // Model did not parse: fall back to Text.
+                    viewMode = ViewMode.TEXT;
+                    showOnly(view.getNode());
+                }
+            }
+            case OVERVIEW -> {
+                ensureOverview();
+                if (schemaOverview != null && editorContext != null) {
+                    showOnly(schemaOverview);
                 } else {
                     // Model did not parse: fall back to Text.
                     viewMode = ViewMode.TEXT;
@@ -1021,6 +1032,10 @@ final class EditorTab extends Tab {
         // The Graphic view (Canvas XsdGraphView) is bound to the model at build
         // time and redraws itself from PropertyChangeEvents, so only the Tree
         // needs an explicit refresh here.
+        if (viewMode == ViewMode.OVERVIEW && schemaOverview != null) {
+            schemaOverview.setContext(editorContext);
+            return;
+        }
         if (viewMode != ViewMode.TREE || treeView == null) {
             return;
         }
@@ -1488,6 +1503,8 @@ final class EditorTab extends Tab {
             treeView.selectNode(node);
         } else if (viewMode == ViewMode.GRAPHIC && xsdGraphView != null) {
             xsdGraphView.selectModelNode(node);
+        } else if (viewMode == ViewMode.OVERVIEW && schemaOverview != null) {
+            schemaOverview.select(node);
         }
     }
 
@@ -1666,6 +1683,90 @@ final class EditorTab extends Tab {
         contentStack.getChildren().add(xsdGraphView);
         if (previous != null) {
             built.adoptViewState(previous);
+        }
+    }
+
+    /** The XSD Overview view (XMLSpy-style component table), built on first use. */
+    org.fxt.freexmltoolkit.controls.shell.schema.overview.SchemaOverviewView schemaOverview;
+    /** Host callback: switch to the Graphic view and select the node there. */
+    java.util.function.Consumer<XsdNode> showInGraphicCallback = node -> { };
+    /** Host callback: open a file in its own tab. */
+    java.util.function.Consumer<Path> openFileCallback = path -> { };
+
+    /**
+     * Builds the Overview view on first use and binds it to the current model. Its edits run on
+     * the shared {@link #editorContext}, so undo history is shared with Tree and Graphic.
+     */
+    private void ensureOverview() {
+        if (editorContext == null) {
+            return;
+        }
+        if (schemaOverview == null) {
+            schemaOverview = new org.fxt.freexmltoolkit.controls.shell.schema.overview.SchemaOverviewView(
+                    new org.fxt.freexmltoolkit.controls.shell.schema.overview.SchemaOverviewHost() {
+                        @Override
+                        public boolean execute(org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand command) {
+                            return executeAndApply(command);
+                        }
+
+                        @Override
+                        public void selectionChanged(XsdNode node) {
+                            currentSelection = node;
+                            selectionCallback.run();
+                        }
+
+                        @Override
+                        public void openTypeEditor(String typeName) {
+                            if (typeName != null && !typeName.isBlank()) {
+                                openTypeEditorCallback.accept(typeName);
+                            }
+                        }
+
+                        @Override
+                        public void showInGraphic(XsdNode node) {
+                            showInGraphicCallback.accept(node);
+                        }
+
+                        @Override
+                        public void openReferencedFile(
+                                org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaReference reference) {
+                            Path target = referencedFile(reference);
+                            if (target != null) {
+                                openFileCallback.accept(target);
+                            }
+                        }
+
+                        @Override
+                        public Path documentPath() {
+                            return document.getPath();
+                        }
+
+                        @Override
+                        public javafx.stage.Window window() {
+                            return ruleWindow();
+                        }
+                    });
+            contentStack.getChildren().add(schemaOverview);
+        }
+        schemaOverview.setContext(editorContext);
+    }
+
+    /** @return the local file an import/include points to (resolved, or relative to this document), or null */
+    private Path referencedFile(org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaReference reference) {
+        if (reference.getResolvedPath() != null) {
+            return reference.getResolvedPath();
+        }
+        String location = reference.getSchemaLocation();
+        if (location == null || location.isBlank() || location.matches("(?i)https?:.*")) {
+            return null;
+        }
+        try {
+            Path base = document.getPath() != null ? document.getPath().getParent() : null;
+            Path target = location.startsWith("file:") ? Path.of(java.net.URI.create(location))
+                    : base != null ? base.resolve(location).normalize() : Path.of(location);
+            return java.nio.file.Files.isRegularFile(target) ? target : null;
+        } catch (RuntimeException e) {
+            return null;
         }
     }
 

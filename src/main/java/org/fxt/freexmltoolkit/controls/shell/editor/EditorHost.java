@@ -831,7 +831,7 @@ public class EditorHost extends BorderPane {
             if (et.viewMode == ViewMode.TREE && et.treeView != null && et.treeView.getRoot() != null) {
                 return Optional.of(et.treeView.getRoot().getValue());
             }
-            if (et.viewMode == ViewMode.GRAPHIC && et.editorContext != null
+            if ((et.viewMode == ViewMode.GRAPHIC || et.viewMode == ViewMode.OVERVIEW) && et.editorContext != null
                     && et.editorContext.getSchema() != null) {
                 return Optional.of(et.editorContext.getSchema());
             }
@@ -1436,9 +1436,9 @@ public class EditorHost extends BorderPane {
             buttons.forEach((mode, button) -> {
                 button.setSelected(mode == active);
                 button.setDisable(!hasDoc || !activeSupportsView(mode));
-                if (mode == ViewMode.PREVIEW) {
-                    // Preview exists for HTML only: hide the segment instead of showing it
-                    // permanently disabled for every other document.
+                if (mode == ViewMode.PREVIEW || mode == ViewMode.OVERVIEW) {
+                    // Preview exists for HTML only, Overview for XSD only: hide the segment instead
+                    // of showing it permanently disabled for every other document.
                     boolean shown = hasDoc && activeSupportsView(mode);
                     button.setVisible(shown);
                     button.setManaged(shown);
@@ -2616,7 +2616,8 @@ public class EditorHost extends BorderPane {
         boolean json = et.document.getFileType() == EditorFileType.JSON;
         return switch (et.viewMode) {
             // Preview has no structured search target; Ctrl+F binds the (hidden) code area.
-            case TEXT, PREVIEW -> null;
+            // The Overview filters its rows with its own field.
+            case TEXT, PREVIEW, OVERVIEW -> null;
             case TREE -> xsd ? et.treeView : (json ? et.jsonTreeView : null);
             case GRAPHIC -> xsd ? et.xsdGraphView
                     : json ? (et.jsonGridView != null ? et.jsonGridView.getSearchTarget() : null)
@@ -3035,6 +3036,14 @@ public class EditorHost extends BorderPane {
                 activeModelRevision.set(activeModelRevision.get() + 1);
             }
         };
+        tab.showInGraphicCallback = node -> {
+            if (tabPane.getSelectionModel().getSelectedItem() == tab) {
+                setActiveViewMode(ViewMode.GRAPHIC);
+                tab.reselect(node);
+                refreshSelectedNode();
+            }
+        };
+        tab.openFileCallback = this::openFile;
         tab.viewModeAppliedCallback = () -> {
             if (tab.isSelected()) {
                 activeViewMode.set(tab.viewMode);

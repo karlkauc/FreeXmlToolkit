@@ -149,6 +149,8 @@ final class EditorSchemaLookup {
                 et.treeView.revealNode(node);
             } else if (et.viewMode == ViewMode.GRAPHIC && et.xsdGraphView != null) {
                 et.xsdGraphView.selectModelNode(node);
+            } else if (et.viewMode == ViewMode.OVERVIEW && et.schemaOverview != null) {
+                et.schemaOverview.select(node);
             }
         });
     }

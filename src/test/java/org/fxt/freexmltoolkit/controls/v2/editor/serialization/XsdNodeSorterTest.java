@@ -372,4 +372,18 @@ class XsdNodeSorterTest {
         assertEquals("apple", result.get(0).getName());
         assertEquals("Banana", result.get(1).getName());
     }
+
+    @Test
+    @DisplayName("PRESERVE returns the children in their original order")
+    void preserveKeepsDocumentOrder() {
+        XsdSimpleType zType = new XsdSimpleType("Z");
+        XsdElement aElement = new XsdElement("a");
+        XsdImport imp = new XsdImport();
+        List<XsdNode> input = List.of(zType, aElement, imp);
+
+        List<XsdNode> result = XsdNodeSorter.sortSchemaChildren(input, XsdSortOrder.PRESERVE);
+
+        assertEquals(input, result);
+        assertNotSame(input, result);
+    }
 }

@@ -59,10 +59,17 @@ class XsdSortOrderTest {
     }
 
     @Test
-    @DisplayName("Should have exactly two values")
+    @DisplayName("Should have exactly three values")
     void testEnumValuesCount() {
         XsdSortOrder[] values = XsdSortOrder.values();
-        assertEquals(2, values.length);
+        assertEquals(3, values.length);
+    }
+
+    @Test
+    @DisplayName("PRESERVE keeps document order and has a display name")
+    void testPreserveValue() {
+        assertEquals("Keep document order", XsdSortOrder.PRESERVE.getDisplayName());
+        assertEquals(XsdSortOrder.PRESERVE, XsdSortOrder.findByDisplayName("Keep document order"));
     }
 
     @Test

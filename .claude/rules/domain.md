@@ -8,6 +8,7 @@
 - `XsdInclude` - Include same-namespace schema
 - `XsdRedefine` - Redefine types (deprecated in 1.1)
 - `XsdOverride` - Override types (XSD 1.1)
+- `XsdNotation` - Global `xs:notation` (public/system identifiers)
 
 ### Type Definitions
 - `XsdComplexType` - Complex type with elements/attributes
@@ -44,10 +45,10 @@
 ### XSD 1.1 Only
 - `XsdAlternative` - Conditional type assignment
 - `XsdOpenContent` - Allow extension elements
-- `XsdDefaultOpenContent` - Schema-wide open content
+- `XsdDefaultOpenContent` - Schema-wide open content (subclass of `XsdOpenContent`, node type `OPEN_CONTENT`)
 
 ### Annotation
-- `XsdAnnotation` - Documentation container
+- `XsdAnnotation` - Documentation container; a schema-level `xs:annotation` is a positioned child of `XsdSchema` (component annotations stay in the node's documentation fields)
 - `XsdDocumentation` - Human-readable docs
 - `XsdAppInfo` - Machine-readable metadata
 

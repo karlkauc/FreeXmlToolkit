@@ -485,7 +485,19 @@ public class XsdNodeFactory {
                 tagNodeWithSourceInfo(attribute);
                 schema.addChild(attribute);
             } else if (isXsdElement(childElement, "annotation")) {
-                parseAnnotation(childElement, schema);
+                // A schema-level annotation is a positioned node of its own
+                XsdAnnotation annotation = new XsdAnnotation();
+                parseAnnotation(childElement, annotation);
+                tagNodeWithSourceInfo(annotation);
+                schema.addChild(annotation);
+            } else if (isXsdElement(childElement, "notation")) {
+                XsdNotation notation = parseNotation(childElement);
+                tagNodeWithSourceInfo(notation);
+                schema.addChild(notation);
+            } else if (isXsdElement(childElement, "defaultOpenContent")) {
+                XsdDefaultOpenContent openContent = parseDefaultOpenContent(childElement);
+                tagNodeWithSourceInfo(openContent);
+                schema.addChild(openContent);
             } else if (isXsdElement(childElement, "import")) {
                 XsdImport xsdImport = parseImport(childElement);
                 tagNodeWithSourceInfo(xsdImport);
@@ -2008,6 +2020,55 @@ public class XsdNodeFactory {
         parseOccurrenceAttributes(anyElement, any);
 
         return any;
+    }
+
+    /**
+     * Parses a global xs:notation.
+     */
+    private XsdNotation parseNotation(Element notationElement) {
+        XsdNotation notation = new XsdNotation(notationElement.getAttribute("name"));
+        if (notationElement.hasAttribute("public")) {
+            notation.setPublicId(notationElement.getAttribute("public"));
+        }
+        if (notationElement.hasAttribute("system")) {
+            notation.setSystemId(notationElement.getAttribute("system"));
+        }
+        parseChildAnnotation(notationElement, notation);
+        return notation;
+    }
+
+    /**
+     * Parses the schema-level xs:defaultOpenContent (XSD 1.1) with its xs:any wildcard.
+     */
+    private XsdDefaultOpenContent parseDefaultOpenContent(Element openContentElement) {
+        XsdOpenContent.Mode mode = openContentElement.hasAttribute("mode")
+                ? XsdOpenContent.Mode.fromValue(openContentElement.getAttribute("mode"))
+                : null;
+        XsdDefaultOpenContent openContent = new XsdDefaultOpenContent(
+                mode != null ? mode : XsdOpenContent.Mode.INTERLEAVE);
+        openContent.setAppliesToEmpty("true".equals(openContentElement.getAttribute("appliesToEmpty")));
+        NodeList children = openContentElement.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            if (children.item(i) instanceof Element child) {
+                if (isXsdElement(child, "any")) {
+                    openContent.addChild(parseAny(child));
+                } else if (isXsdElement(child, "annotation")) {
+                    parseAnnotation(child, openContent);
+                }
+            }
+        }
+        return openContent;
+    }
+
+    /** Parses the xs:annotation child of {@code element}, if any, into {@code target}. */
+    private void parseChildAnnotation(Element element, XsdNode target) {
+        NodeList children = element.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            if (children.item(i) instanceof Element child && isXsdElement(child, "annotation")) {
+                parseAnnotation(child, target);
+                return;
+            }
+        }
     }
 
     /**

@@ -655,12 +655,13 @@ public class PropertiesServiceImpl implements PropertiesService {
 
     @Override
     public String getXsdSortOrder() {
-        return properties.getProperty("xsd.sort.order", "NAME_BEFORE_TYPE");
+        return properties.getProperty("xsd.sort.order", "PRESERVE");
     }
 
     @Override
     public void setXsdSortOrder(String sortOrder) {
-        if (sortOrder != null && (sortOrder.equals("TYPE_BEFORE_NAME") || sortOrder.equals("NAME_BEFORE_TYPE"))) {
+        if (sortOrder != null && (sortOrder.equals("PRESERVE")
+                || sortOrder.equals("TYPE_BEFORE_NAME") || sortOrder.equals("NAME_BEFORE_TYPE"))) {
             properties.setProperty("xsd.sort.order", sortOrder);
             saveProperties(properties);
             logger.debug("Set XSD sort order to: {}", sortOrder);

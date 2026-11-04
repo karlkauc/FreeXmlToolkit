@@ -556,6 +556,8 @@ public class MultiFileXsdSerializer {
             serializeAssert(xsdAssert, sb, indentation);
         } else if (node instanceof XsdAlternative alternative) {
             serializeAlternative(alternative, sb, indentation, indent);
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdDefaultOpenContent defaultOpenContent) {
+            serializeDefaultOpenContent(defaultOpenContent, sb, indentation, indent);
         } else if (node instanceof XsdOpenContent openContent) {
             serializeOpenContent(openContent, sb, indentation, indent);
         } else if (node instanceof XsdRedefine redefine) {
@@ -564,6 +566,10 @@ public class MultiFileXsdSerializer {
             serializeOverride(override, sb, indentation, indent);
         } else if (node instanceof XsdComment comment) {
             serializeComment(comment, sb, indentation);
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAnnotation annotation) {
+            serializeSchemaAnnotation(annotation, sb, indentation, indent);
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdNotation notation) {
+            serializeNotation(notation, sb, indentation, indent);
         } else {
             // For truly unknown node types, log warning and output as comment
             logger.warn("Unknown node type in multi-file serialization: {}", node.getClass().getSimpleName());
@@ -720,6 +726,64 @@ public class MultiFileXsdSerializer {
             }
             sb.append(indentation).append("</xs:attributeGroup>\n");
         }
+    }
+
+    /**
+     * Serializes a schema-level xs:annotation at its position; an empty one as {@code <xs:annotation/>}.
+     */
+    private void serializeSchemaAnnotation(org.fxt.freexmltoolkit.controls.v2.model.XsdAnnotation annotation,
+                                           StringBuilder sb, String indentation, int indent) {
+        if (annotation.isEmpty()) {
+            sb.append(indentation).append("<xs:annotation/>\n");
+            return;
+        }
+        serializeAnnotationIfPresent(annotation, sb, indentation, indent);
+    }
+
+    /**
+     * Serializes a global xs:notation.
+     */
+    private void serializeNotation(org.fxt.freexmltoolkit.controls.v2.model.XsdNotation notation,
+                                   StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:notation name=\"").append(escapeXml(notation.getName())).append("\"");
+        if (notation.getPublicId() != null) {
+            sb.append(" public=\"").append(escapeXml(notation.getPublicId())).append("\"");
+        }
+        if (notation.getSystemId() != null) {
+            sb.append(" system=\"").append(escapeXml(notation.getSystemId())).append("\"");
+        }
+        boolean annotated = !notation.getDocumentations().isEmpty()
+                || (notation.getAppinfo() != null && notation.getAppinfo().hasEntries());
+        if (!annotated) {
+            sb.append("/>\n");
+            return;
+        }
+        sb.append(">\n");
+        serializeAnnotationIfPresent(notation, sb, indentation + indentString, indent + 1);
+        sb.append(indentation).append("</xs:notation>\n");
+    }
+
+    /**
+     * Serializes the schema-level xs:defaultOpenContent (XSD 1.1).
+     */
+    private void serializeDefaultOpenContent(org.fxt.freexmltoolkit.controls.v2.model.XsdDefaultOpenContent openContent,
+                                             StringBuilder sb, String indentation, int indent) {
+        sb.append(indentation).append("<xs:defaultOpenContent");
+        if (openContent.isAppliesToEmpty()) {
+            sb.append(" appliesToEmpty=\"true\"");
+        }
+        if (openContent.getMode() != null) {
+            sb.append(" mode=\"").append(openContent.getMode().getValue()).append("\"");
+        }
+        if (!openContent.hasChildren()) {
+            sb.append("/>\n");
+            return;
+        }
+        sb.append(">\n");
+        for (XsdNode child : openContent.getChildren()) {
+            serializeXsdNode(child, sb, indent + 1);
+        }
+        sb.append(indentation).append("</xs:defaultOpenContent>\n");
     }
 
     private void serializeComment(XsdComment comment, StringBuilder sb, String indentation) {
@@ -1239,8 +1303,8 @@ public class MultiFileXsdSerializer {
             String sortOrderStr = propertiesService.getXsdSortOrder();
             return XsdSortOrder.valueOf(sortOrderStr);
         } catch (Exception e) {
-            logger.warn("Could not get sort order from settings, using default NAME_BEFORE_TYPE: {}", e.getMessage());
-            return XsdSortOrder.NAME_BEFORE_TYPE;
+            logger.warn("Could not get sort order from settings, keeping document order: {}", e.getMessage());
+            return XsdSortOrder.PRESERVE;
         }
     }
 

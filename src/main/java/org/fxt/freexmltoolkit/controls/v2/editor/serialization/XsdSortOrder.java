@@ -21,13 +21,14 @@ package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
 /**
  * Defines the sorting order for XSD schema elements during serialization.
  * <p>
- * When saving XSD files, elements can be sorted in two ways:
+ * When saving XSD files, the top-level children are either kept in document order
+ * ({@link #PRESERVE}, the default) or sorted in one of two ways:
  * <ul>
  *   <li>{@link #TYPE_BEFORE_NAME} - Sort by XSD construct type (alphabetically), then by name within each type</li>
  *   <li>{@link #NAME_BEFORE_TYPE} - Sort purely by element name (alphabetically)</li>
  * </ul>
  * <p>
- * In both modes, the following fixed order is maintained at the top:
+ * In both sorting modes, the following fixed order is maintained at the top:
  * <ol>
  *   <li>xs:import (sorted alphabetically by namespace/schemaLocation)</li>
  *   <li>xs:include (sorted alphabetically by schemaLocation)</li>
@@ -37,6 +38,12 @@ package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
  * @since 2.0
  */
 public enum XsdSortOrder {
+
+    /**
+     * Keep the document order of the schema's top-level children (no sorting on save).
+     * Sorting is then an explicit, undoable action in the editor.
+     */
+    PRESERVE("Keep document order"),
 
     /**
      * Sort by XSD construct type first (alphabetically), then by name within each type.

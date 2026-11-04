@@ -6,6 +6,16 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## 2.9.0 (upcoming)
 
+- **XSD Overview view (XMLSpy style):** a new view mode for schemas lists all top-level
+  components - imports, includes, annotations, elements, types, groups, attribute groups,
+  attributes, notations - in one table. Insert, append, move (also by drag and drop), sort by
+  type or name, rename with the references, edit annotations in place, add imports and includes.
+  Tabs below edit the selected component's attributes (Default/Fixed offer the enumeration
+  values), identity constraints, XSD 1.1 assertions and the schema's namespace prefixes. See
+  [XSD Tools](xsd-tools.md#overview-view).
+- **XSD saving keeps your order:** the top-level components are no longer re-sorted on every
+  save; schema-level `xs:annotation`, `xs:notation` and `xs:defaultOpenContent` are no longer
+  lost when the schema is edited.
 - **XML → Excel:** the workbook now has the same look as the Data Dictionary export. With a
   bound XSD, numbers, booleans and dates go into number, boolean and date cells instead of text.
   Importing the workbook gives back the original values. The CSV export adds a **Data Type**
