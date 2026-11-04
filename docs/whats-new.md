@@ -9,9 +9,10 @@ running is shown under **Help → About FreeXmlToolkit**.
 - **XML → Excel:** the workbook now has the same look as the Data Dictionary export. With a
   bound XSD, numbers, booleans and dates go into number, boolean and date cells instead of text.
   Importing the workbook gives back the original values. The CSV export adds a **Data Type**
-  column and quotes only text. **Excel → XML** also reads the values with the XSD (from the new
-  **Schema (XSD)** field, or the one the sheet declares), so dates, booleans and numbers that
-  were entered by hand come out valid. Values that contain the delimiter, quotes or line breaks now
+  column and quotes only text. **Excel → XML** and **CSV → XML** also read the values with the XSD
+  (from the new **Schema (XSD)** field, or the one the file declares). Dates, booleans and
+  numbers that were entered by hand or reformatted by a spreadsheet application (`31.01.2024`,
+  `1.234,50`, `TRUE`) come out valid. Values that contain the delimiter, quotes or line breaks now
   import back correctly. See [XML Editor](xml-editor.md#xmlexcelcsv-converter).
 - **XSD Graphic view, new card layout:** every node is one card with a symbol, name and type
   line; cardinality and attribute use are pills, optional cards are dashed and repeating ones have

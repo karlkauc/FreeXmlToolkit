@@ -20,7 +20,9 @@ import org.apache.poi.ss.usermodel.DateUtil;
  * a valid value: a date cell under {@code xs:dateTime} gets a time, a plain serial number under
  * {@code xs:date} becomes a date, a date-formatted number under {@code xs:decimal} stays a number,
  * {@code 1}/{@code 0} under {@code xs:boolean} become {@code true}/{@code false}, a {@code TRUE} text
- * becomes {@code true}, blanks around a typed text value are dropped. A formula contributes its
+ * becomes {@code true}, a text cell is repaired for its type where that is unambiguous
+ * ({@link XsdLexicalNormalizer}: {@code 31.01.2024} under {@code xs:date}), blanks around a typed text
+ * value are dropped. A formula contributes its
  * cached result. Text that does not fit its type is kept as written: the validator reports it.
  */
 final class ExcelCellLexical {
@@ -53,11 +55,8 @@ final class ExcelCellLexical {
         if (kind == SpreadsheetCellKind.TEXT || text == null) {
             return text == null ? "" : text;
         }
-        String trimmed = text.strip(); // XSD collapses whitespace in numeric, boolean and date types
-        if (kind == SpreadsheetCellKind.BOOLEAN && ("true".equalsIgnoreCase(trimmed) || "false".equalsIgnoreCase(trimmed))) {
-            return trimmed.toLowerCase(Locale.ROOT);
-        }
-        return trimmed;
+        // a text cell (entered as text, or text-formatted): repaired for its type where unambiguous
+        return XsdLexicalNormalizer.normalize(kind, text, XsdLexicalNormalizer.LocaleHint.UNKNOWN);
     }
 
     private static String bool(boolean value, SpreadsheetCellKind kind) {

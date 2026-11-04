@@ -2273,7 +2273,7 @@ public class UnifiedShellView extends BorderPane {
                         ? org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .excelToXml(in, settings.config(), settings.schema())
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
-                                .csvToXml(in, settings.delimiter().config(), settings.config());
+                                .csvToXml(in, settings.delimiter().config(), settings.config(), settings.schema());
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.spreadsheetConverted("to_xml",
                         isExcel ? "xlsx" : "csv", result.telemetryStatus(), start, -1, result.error());
                 javafx.application.Platform.runLater(() -> {

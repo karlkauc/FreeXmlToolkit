@@ -179,12 +179,38 @@ public final class SpreadsheetActionRunner {
      *         schema that cannot be parsed fails the import
      */
     public static Result excelToXml(File excelFile, ConversionConfig config, File schema) {
+        return importWithSchema(excelFile, config, schema,
+                (service, typesFor) -> service.convertExcelToXml(excelFile, config, typesFor));
+    }
+
+    /**
+     * Imports a CSV file back to XML, repairing each value for its XSD type ({@code 31.01.2024} under
+     * {@code xs:date}, {@code 10,50} under {@code xs:decimal}, …); values already valid stay as written.
+     *
+     * @param schema the XSD to use; {@code null} to take the one the file's document element declares or
+     *               the Schema Library maps it to - without one the values are imported as written
+     * @return the XML and the XSD used, or the failure; an explicit schema that cannot be parsed fails it
+     */
+    public static Result csvToXml(File csvFile, CsvHandler.CsvConfig csvConfig, ConversionConfig config, File schema) {
+        return importWithSchema(csvFile, config, schema,
+                (service, typesFor) -> service.convertCsvToXml(csvFile, csvConfig, config, typesFor));
+    }
+
+    /** One spreadsheet import, given the value types for the document element it reads. */
+    @FunctionalInterface
+    private interface SchemaImport {
+        Document run(XmlSpreadsheetConverterService service,
+                     java.util.function.Function<String, SpreadsheetTypeResolver> typesFor) throws Exception;
+    }
+
+    /** Runs an import with the chosen or declared XSD; reports which one was used. */
+    private static Result importWithSchema(File source, ConversionConfig config, File schema, SchemaImport run) {
         File[] used = new File[1];
         try {
             XmlSpreadsheetConverterService service = new XmlSpreadsheetConverterService();
-            Document doc = service.convertExcelToXml(excelFile, config, rootElement -> {
+            Document doc = run.run(service, rootElement -> {
                 File xsd = schema != null ? schema
-                        : EditorSchemaBinding.declaredSchemaFile(rootElement, excelFile.getAbsoluteFile().getParentFile())
+                        : EditorSchemaBinding.declaredSchemaFile(rootElement, source.getAbsoluteFile().getParentFile())
                                 .orElse(null);
                 if (xsd == null) {
                     return SpreadsheetTypeResolver.NONE;

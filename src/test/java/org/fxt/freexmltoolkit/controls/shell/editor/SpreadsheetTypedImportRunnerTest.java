@@ -59,6 +59,25 @@ class SpreadsheetTypedImportRunnerTest {
     }
 
     @Test
+    void aCsvImportUsesTheDeclaredSchemaToo() throws Exception {
+        Files.writeString(tempDir.resolve("order.xsd"), XSD);
+        Path csv = Files.writeString(tempDir.resolve("order.csv"), """
+                XPath;Value;Type
+                /order;;element
+                /order/@xmlns:xsi;http://www.w3.org/2001/XMLSchema-instance;attribute
+                /order/@xsi:noNamespaceSchemaLocation;order.xsd;attribute
+                /order/day;31.01.2024;element
+                /order/flag;WAHR;element
+                """);
+        var result = SpreadsheetActionRunner.csvToXml(csv.toFile(),
+                org.fxt.freexmltoolkit.service.CsvHandler.CsvConfig.semicolon(), new ConversionConfig(), null);
+        assertFalse(result.isError(), result.text());
+        assertEquals(tempDir.resolve("order.xsd").toFile().getCanonicalFile(), result.schema().getCanonicalFile());
+        assertTrue(result.text().contains("<day>2024-01-31</day>"), result.text());
+        assertTrue(result.text().contains("<flag>true</flag>"), result.text());
+    }
+
+    @Test
     void anUnreadableChosenSchemaFailsTheImport() throws Exception {
         Path broken = Files.writeString(tempDir.resolve("broken.xsd"), "<xs:schema");
         var result = SpreadsheetActionRunner.excelToXml(workbook("order.xsd"), new ConversionConfig(), broken.toFile());

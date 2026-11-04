@@ -20,7 +20,7 @@ import org.fxt.freexmltoolkit.util.FileChooserHelper;
 /**
  * Collects settings for the XML &harr; spreadsheet conversion: direction
  * (XML&rarr;spreadsheet or spreadsheet&rarr;XML), format (Excel/CSV), CSV
- * delimiter, the {@link ConversionConfig} options and, for an Excel import, the XSD whose
+ * delimiter, the {@link ConversionConfig} options and, for an import, the XSD whose
  * types the values are read with (empty: the one the sheet declares). The dialog only gathers
  * settings — the caller performs the file chooser + {@link SpreadsheetActionRunner}
  * call, keeping the conversion logic UI-free and testable.
@@ -84,10 +84,9 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
         delimiter.getItems().setAll(Delimiter.values());
         delimiter.setValue(Delimiter.COMMA);
         delimiter.disableProperty().bind(format.valueProperty().isNotEqualTo(Format.CSV));
-        // the schema types an Excel import; an export takes the XSD bound to the document
-        var excelImport = toXml.selectedProperty().and(format.valueProperty().isEqualTo(Format.EXCEL));
-        schemaFile.disableProperty().bind(excelImport.not());
-        browseSchema.disableProperty().bind(excelImport.not());
+        // the schema types an import; an export takes the XSD bound to the document
+        schemaFile.disableProperty().bind(toXml.selectedProperty().not());
+        browseSchema.disableProperty().bind(toXml.selectedProperty().not());
 
         setResultConverter(button -> button == ButtonType.OK ? currentSettings() : null);
     }
@@ -103,12 +102,11 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
         Direction direction = toXml.isSelected()
                 ? Direction.SPREADSHEET_TO_XML : Direction.XML_TO_SPREADSHEET;
         String schema = schemaFile.getText() == null ? "" : schemaFile.getText().strip();
-        File schemaChoice = direction == Direction.SPREADSHEET_TO_XML && format.getValue() == Format.EXCEL
-                && !schema.isEmpty() ? new File(schema) : null;
+        File schemaChoice = direction == Direction.SPREADSHEET_TO_XML && !schema.isEmpty() ? new File(schema) : null;
         return new Settings(direction, format.getValue(), delimiter.getValue(), config, schemaChoice);
     }
 
-    /** Picks the XSD the Excel import reads its values with. */
+    /** Picks the XSD the import reads its values with. */
     @FXML
     public void onBrowseSchema() {
         FileChooser chooser = new FileChooser();
@@ -121,7 +119,7 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
         }
     }
 
-    /** Pre-selects the XSD for an Excel import (e.g. for tests or a remembered choice). */
+    /** Pre-selects the XSD for an import (e.g. for tests or a remembered choice). */
     public void setImportSchema(File xsd) {
         schemaFile.setText(xsd == null ? "" : xsd.getAbsolutePath());
     }

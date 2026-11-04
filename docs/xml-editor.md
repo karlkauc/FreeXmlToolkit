@@ -543,8 +543,28 @@ you entered or changed by hand still give valid values:
 - blanks around a number or date are removed;
 - a formula gives its result instead of the formula text (this also applies without a schema).
 
-The import takes the XSD from the **Schema (XSD)** field of the converter dialog. If you leave
-the field empty, it uses the schema the sheet declares: the root element's
+**CSV to XML** uses the XSD too. A CSV holds only text, so the import repairs values that do not
+fit their type yet. This is typical after the file went through a spreadsheet application:
+
+| In the CSV | XSD type | Imported |
+|------------|----------|----------|
+| `1.234,50` · `1,234.50` · `1 234,50` | `xs:decimal` | `1234.50` |
+| `31.01.2024` · `2024/01/31` | `xs:date` | `2024-01-31` |
+| `31.01.2024 10:15` | `xs:dateTime` | `2024-01-31T10:15:00` |
+| `9:05` | `xs:time` | `09:05:00` |
+| `TRUE` · `WAHR` · `yes` | `xs:boolean` | `true` |
+
+A value that is already valid for its type is never changed. For example, `007` under `xs:int`
+and `1.234` under `xs:decimal` stay as written. Text values are not touched.
+
+The delimiter decides ambiguous values. In a semicolon file (as European Excel writes it) a
+single comma is the decimal separator and `01/02/2024` is 1 February. In a comma file it is
+the other way round. Values that stay ambiguous (`1,234` in a tab file) are imported as
+written, and validation shows the error. Text cells in an Excel import are repaired the same
+way, as far as that is unambiguous.
+
+The import (Excel or CSV) takes the XSD from the **Schema (XSD)** field of the converter dialog. If you leave
+the field empty, it uses the schema the file declares: the root element's
 `xsi:noNamespaceSchemaLocation` / `xsi:schemaLocation`, resolved relative to the workbook's
 folder, or the Schema Library entry for its namespace. The imported document is bound to that
 XSD. Without a schema, the cells' own types and formats decide, as before. A value that does

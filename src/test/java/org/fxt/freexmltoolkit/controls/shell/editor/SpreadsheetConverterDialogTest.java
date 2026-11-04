@@ -35,7 +35,7 @@ class SpreadsheetConverterDialogTest {
     }
 
     @Test
-    void schemaIsOfferedForAnExcelImportOnly() {
+    void schemaIsOfferedForAnImportOnly() {
         var schemaField = WaitForAsyncUtils.waitForAsyncFx(2000,
                 () -> (javafx.scene.control.TextField) dialog.getDialogPane().lookup("#spreadsheet-import-schema"));
         assertTrue(schemaField.isDisabled(), "an export uses the bound XSD");

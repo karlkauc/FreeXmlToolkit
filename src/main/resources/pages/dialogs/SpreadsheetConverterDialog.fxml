@@ -16,7 +16,7 @@
   conversion options (defaults mirror the service: everything on). Loaded by
   SpreadsheetConverterDialog (FxmlViews.loadContent), which is the controller, fills the two
   choice boxes from its enums and adds title and buttons. The schema row is enabled for an
-  Excel import only.
+  import only (an export uses the XSD bound to the document).
 -->
 <GridPane hgap="10" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <fx:define>

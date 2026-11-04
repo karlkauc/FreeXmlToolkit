@@ -329,28 +329,63 @@ public class XmlSpreadsheetConverterService {
     /** @return the document element and its attributes (namespace and schema declarations) as XML */
     private String rootElementXml(Sheet sheet, ConversionConfig config) throws Exception {
         List<RowData> rootRows = new ArrayList<>();
-        readExcelSheet(sheet, rootRows, SpreadsheetTypeResolver.NONE,
-                xpath -> xpath.matches("/[^/]+(/@[^/]+)?"));
-        if (rootRows.isEmpty()) {
-            return "";
-        }
-        rootRows.removeIf(row -> !"element".equals(row.getNodeType()) && !"attribute".equals(row.getNodeType()));
-        for (RowData row : rootRows) {
-            if ("element".equals(row.getNodeType())) {
-                row.setValue(""); // only the start tag matters
+        readExcelSheet(sheet, rootRows, SpreadsheetTypeResolver.NONE, XmlSpreadsheetConverterService::isRootRow);
+        return rootElementXml(rootRows, config);
+    }
+
+    /** @return whether the XPath is the document element or one of its attributes */
+    private static boolean isRootRow(String xpath) {
+        return xpath != null && xpath.matches("/[^/]+(/@[^/]+)?");
+    }
+
+    /** @return the document element and its attributes, from the rows of a whole sheet, as XML */
+    private String rootElementXml(List<RowData> rows, ConversionConfig config) throws Exception {
+        List<RowData> rootRows = new ArrayList<>();
+        for (RowData row : rows) {
+            boolean elementOrAttribute = "element".equals(row.getNodeType()) || "attribute".equals(row.getNodeType());
+            if (elementOrAttribute && isRootRow(row.getXpath())) {
+                // copies: the element's own text does not matter, only its start tag
+                rootRows.add(new RowData(row.getXpath(), "element".equals(row.getNodeType()) ? "" : row.getValue(),
+                        row.getNodeType(), row.getOriginalIndex()));
             }
         }
-        return documentToString(buildXmlFromRows(rootRows, config), config);
+        return rootRows.isEmpty() ? "" : documentToString(buildXmlFromRows(rootRows, config), config);
     }
 
     /**
      * Converts CSV file to XML document
      */
     public Document convertCsvToXml(File csvFile, CsvHandler.CsvConfig csvConfig, ConversionConfig config) throws Exception {
+        return convertCsvToXml(csvFile, csvConfig, config, rootElement -> SpreadsheetTypeResolver.NONE);
+    }
+
+    /**
+     * Converts CSV file to XML document, repairing each value for the schema type {@code typesFor}
+     * names for it ({@link XsdLexicalNormalizer}): {@code 31.01.2024} under {@code xs:date} becomes
+     * {@code 2024-01-31}, {@code 10,50} under {@code xs:decimal} {@code 10.50}. A value already valid for
+     * its type is kept as written. The delimiter hints at the locale: a semicolon file reads {@code ,}
+     * as decimal separator and {@code 1/2/2024} as 1 February, a comma file the other way round.
+     *
+     * @param typesFor given the document element with its attributes as XML text, the value types to use;
+     *                 may return {@code null} or {@link SpreadsheetTypeResolver#NONE} for none
+     */
+    public Document convertCsvToXml(File csvFile, CsvHandler.CsvConfig csvConfig, ConversionConfig config,
+                                    java.util.function.Function<String, SpreadsheetTypeResolver> typesFor) throws Exception {
         logger.info("Converting CSV to XML: {}", csvFile.getName());
 
         CsvHandler csvHandler = new CsvHandler();
         List<RowData> rows = csvHandler.readCsv(csvFile, csvConfig, config);
+
+        SpreadsheetTypeResolver types = typesFor == null ? null : typesFor.apply(rootElementXml(rows, config));
+        if (types != null && types.isSchemaBased()) {
+            XsdLexicalNormalizer.LocaleHint hint = XsdLexicalNormalizer.LocaleHint.ofCsvDelimiter(csvConfig.getDelimiter());
+            for (RowData row : rows) {
+                String builtin = builtinTypeOf(row, types);
+                if (builtin != null) {
+                    row.setValue(XsdLexicalNormalizer.normalize(SpreadsheetCellKind.fromBuiltin(builtin), row.getValue(), hint));
+                }
+            }
+        }
 
         Document doc = buildXmlFromRows(rows, config);
         logger.info("Successfully converted CSV to XML with {} rows", rows.size());
