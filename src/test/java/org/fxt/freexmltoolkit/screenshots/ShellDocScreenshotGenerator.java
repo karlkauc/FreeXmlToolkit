@@ -460,6 +460,65 @@ class ShellDocScreenshotGenerator {
         onFx(host::closeActiveTab);
         settle();
 
+        // --- Named types in frames: the content of a named complex type (and the base of an
+        // extension) is framed and read-only; a framed node is selected, so the Inspector
+        // shows the lock note with "Edit type" ---
+        var typeFrames = java.nio.file.Files.createTempDirectory("fxt-shot").resolve("office.xsd");
+        java.nio.file.Files.writeString(typeFrames, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="Office">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="Name" type="xs:string"/>
+                        <xs:element name="Address_EU" type="EU-Address"/>
+                        <xs:element name="Branch" type="Branch-Address" minOccurs="0"/>
+                        <xs:element name="Phone" type="xs:string"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                  <xs:complexType name="EU-Address">
+                    <xs:sequence>
+                      <xs:element name="name" type="xs:string" minOccurs="0"/>
+                      <xs:element name="street" type="xs:string"/>
+                      <xs:element name="city" type="xs:string"/>
+                    </xs:sequence>
+                    <xs:attribute name="country" type="xs:string"/>
+                  </xs:complexType>
+                  <xs:complexType name="Branch-Address">
+                    <xs:complexContent>
+                      <xs:extension base="EU-Address">
+                        <xs:sequence>
+                          <xs:element name="postcode" type="xs:string"/>
+                        </xs:sequence>
+                      </xs:extension>
+                    </xs:complexContent>
+                  </xs:complexType>
+                </xs:schema>
+                """);
+        onFx(() -> shell.getSelectionModel().select(Activity.SCHEMA));
+        onFx(() -> host.openFile(typeFrames));
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("EU-Address")).orElse(false));
+        onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> host.getActiveSchema().isPresent());
+        settle(1500);
+        {
+            var schema = host.getActiveSchema().orElseThrow();
+            var office = namedElement(schema, "Office");
+            var addressEu = namedElement(office, "Address_EU");
+            var euAddress = schema.getChildren().stream()
+                    .filter(n -> n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType
+                            && "EU-Address".equals(n.getName()))
+                    .findFirst().orElseThrow();
+            var street = namedElement(euAddress, "street");
+            onFx(() -> host.revealPathInActiveGraph(List.of(office, addressEu, street)));
+        }
+        settle(1500);
+        shot("unified-shell-schema-type-frames");
+        darkShot("unified-shell-schema-type-frames-dark");
+        onFx(host::closeActiveTab);
+        settle();
+
         // --- XML document in the Grid (XMLSpy-style) view ---
         if (xml.exists()) {
             onFx(() -> shell.getSelectionModel().select(Activity.EXPLORER));
