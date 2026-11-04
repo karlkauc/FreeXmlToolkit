@@ -4006,6 +4006,52 @@ into the query panel or the <a href="../query-console/#query-console">Query Cons
 <li><strong>Excel to XML</strong>: Import Excel data as XML</li>
 <li><strong>CSV to XML</strong>: Import CSV data as XML</li>
 </ul>
+<p>The Excel workbook looks like the Data Dictionary export: a dark header row that stays in
+view while you scroll, striped rows, XPaths in a monospace font, and container elements in
+bold. It also has an AutoFilter and prints one page wide.</p>
+<p>When an <strong>XSD is bound</strong> to the document, each value goes into a cell of its schema type.
+The type is followed through derived simple types, <code>xs:simpleContent</code> and imported schemas:</p>
+<table>
+<thead>
+<tr>
+<th>Schema type</th>
+<th>Excel cell</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>xs:integer</code>, <code>xs:int</code>, <code>xs:long</code>, …</td>
+<td>Number, format <code>0</code></td>
+</tr>
+<tr>
+<td><code>xs:decimal</code></td>
+<td>Number, showing as many decimals as the XML value (<code>10.50</code> → <code>10.50</code>)</td>
+</tr>
+<tr>
+<td><code>xs:double</code>, <code>xs:float</code></td>
+<td>Number, General format</td>
+</tr>
+<tr>
+<td><code>xs:boolean</code> (<code>true</code> / <code>false</code>)</td>
+<td>TRUE / FALSE</td>
+</tr>
+<tr>
+<td><code>xs:date</code>, <code>xs:dateTime</code>, <code>xs:time</code></td>
+<td>Date / time, <code>yyyy-mm-dd</code> / <code>yyyy-mm-dd hh:mm:ss</code> / <code>hh:mm:ss</code></td>
+</tr>
+</tbody>
+</table>
+<p>Some values stay text, so that importing the workbook gives back exactly the same XML:</p>
+<ul>
+<li>values with more than 15 digits;</li>
+<li>leading zeros or <code>+</code>;</li>
+<li><code>0</code> / <code>1</code> booleans;</li>
+<li>dates with a timezone or before 1900;</li>
+<li>times more precise than milliseconds;</li>
+<li>lists, unions and values that do not match their type.</li>
+</ul>
+<p>Without a schema, every value is text. <strong>Excel to XML</strong> turns typed cells back into their XML
+form.</p>
 <hr />
 <h2 id="templates">Templates<a class="headerlink" href="#templates" title="Permanent link">&para;</a></h2>
 <p>Choose <strong>Edit → Insert Template…</strong> (Ctrl+T) to insert a snippet:</p>
