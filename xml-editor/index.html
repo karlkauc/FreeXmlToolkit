@@ -4050,8 +4050,24 @@ The type is followed through derived simple types, <code>xs:simpleContent</code>
 <li>times more precise than milliseconds;</li>
 <li>lists, unions and values that do not match their type.</li>
 </ul>
-<p>Without a schema, every value is text. <strong>Excel to XML</strong> turns typed cells back into their XML
-form.</p>
+<p>Without a schema, every value is text.</p>
+<p><strong>Excel to XML</strong> turns typed cells back into their XML form. It also uses an XSD, so that cells
+you entered or changed by hand still give valid values:</p>
+<ul>
+<li>the date cell <code>31.01.2024</code> under <code>xs:dateTime</code> becomes <code>2024-01-31T00:00:00</code>;</li>
+<li>a plain number such as <code>45322</code> under <code>xs:date</code> becomes <code>2024-01-31</code>;</li>
+<li>a date-formatted cell under <code>xs:decimal</code> stays a number;</li>
+<li><code>1</code> / <code>0</code> or the text <code>TRUE</code> under <code>xs:boolean</code> become <code>true</code> / <code>false</code>;</li>
+<li><code>42.0</code> under <code>xs:int</code> becomes <code>42</code>;</li>
+<li>blanks around a number or date are removed;</li>
+<li>a formula gives its result instead of the formula text (this also applies without a schema).</li>
+</ul>
+<p>The import takes the XSD from the <strong>Schema (XSD)</strong> field of the converter dialog. If you leave
+the field empty, it uses the schema the sheet declares: the root element's
+<code>xsi:noNamespaceSchemaLocation</code> / <code>xsi:schemaLocation</code>, resolved relative to the workbook's
+folder, or the Schema Library entry for its namespace. The imported document is bound to that
+XSD. Without a schema, the cells' own types and formats decide, as before. A value that does
+not fit its type is imported as written, and validation shows the error.</p>
 <p>The <strong>CSV</strong> export uses the bound XSD as well. CSV has no cell types, so the file gets an extra
 <strong>Data Type</strong> column with each value's XSD built-in type (<code>decimal</code>, <code>date</code>, <code>dateTime</code>, …).
 Values that are valid for their type are written without quotes; all text fields are quoted:</p>
