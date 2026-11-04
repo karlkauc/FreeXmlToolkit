@@ -2805,7 +2805,9 @@ Register <code>catalog.xml</code> in the Catalogs tab, open the documents and va
 <img alt="Schema Library - Cache" src="../img/unified-shell-schema-library-dark.png#only-dark" />
 <em>The Cache tab: remote schemas downloaded and cached under <code>~/.freeXmlToolkit/cache/schemas</code>.</em></p>
 <p>Every remote schema resolved through the library (or downloaded because a document
-referenced it directly) is cached under <code>~/.freeXmlToolkit/cache/schemas</code>. The Cache tab
+referenced it directly) is cached under <code>~/.freeXmlToolkit/cache/schemas</code>. When a schema
+imports or includes it, a copy is also saved next to that schema under its original name and
+used from then on (see <a href="../xsd-tools/#automatic-resolution-of-imported-schemas">Automatic Resolution of Imported Schemas</a>). The Cache tab
 lists <strong>URL</strong>, <strong>Target namespace</strong> and file <strong>Size</strong> by default, with a <strong>filter</strong> over
 URL/namespace, plus the <strong>Downloaded</strong> timestamp and <strong>Hits</strong> (access count) - all columns
 are visible. The labelled buttons: <strong>Open cached file</strong> opens the cached file as an editor

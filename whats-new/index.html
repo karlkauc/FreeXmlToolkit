@@ -2716,6 +2716,11 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   Tabs below edit the selected component's attributes (Default/Fixed offer the enumeration
   values), identity constraints, XSD 1.1 assertions and the schema's namespace prefixes. See
   <a href="../xsd-tools/#overview-view">XSD Tools</a>.</li>
+<li><strong>Downloaded imports are saved next to your schema:</strong> a missing <code>xs:import</code> / <code>xs:include</code>
+  (e.g. <code>xmldsig-core-schema.xsd</code> of FundsXML4) is saved under its original name in the folder
+  of the schema that references it and loaded from there - also in validation, Schema Analysis,
+  flattening and documentation - instead of an md5-named cache file. Existing files are never
+  overwritten. See <a href="../xsd-tools/#automatic-resolution-of-imported-schemas">XSD Tools</a>.</li>
 <li><strong>Flatten Schema:</strong> the dialog asks for the output file, preset to <code>&lt;name&gt;_flattened.xsd</code> next to
   the original schema; the result is written there and opened. See
   <a href="../xsd-tools/#8-xsd-flattener">XSD Tools</a>.</li>
