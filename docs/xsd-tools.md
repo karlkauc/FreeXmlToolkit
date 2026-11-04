@@ -1100,9 +1100,16 @@ Combine multiple XSD files into a single, standalone file. Useful when your sche
 
 1. Open your main XSD file in the editor
 2. In the **Schema** activity's side panel, click the **Flatten Schema…** tool button
-3. The **Flatten Schema** options dialog opens — pick which reductions you want (see below)
-4. Click **OK**
-5. The flattened schema opens as a new editor tab (`Flattened.xsd`), ready for you to review and save
+3. The **Flatten Schema** dialog opens. **Output file** is preset to the folder of your schema with
+   `_flattened.xsd` appended to its name (`FundsXML.xsd` → `FundsXML_flattened.xsd`). Change it,
+   or pick another file with **Browse…**
+4. Pick which reductions you want (see below) and click **OK**
+5. The flattened schema is written to the output file and opened in a new editor tab. If the
+   file already exists you are asked before it is overwritten; the original schema itself can
+   never be chosen as the output
+
+Leave **Output file** empty to open the result as an unsaved tab (`Flattened.xsd`) instead —
+this is also the default for a schema that has not been saved yet.
 
 ### Flatten Options
 

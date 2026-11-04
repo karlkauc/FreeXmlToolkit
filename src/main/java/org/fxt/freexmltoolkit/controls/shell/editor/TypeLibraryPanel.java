@@ -274,15 +274,30 @@ public class TypeLibraryPanel extends VBox {
         if (editorHost.getActiveDocument().isEmpty()) {
             return;
         }
-        var options = new FlattenOptionsDialog().showAndWait();
-        if (options.isEmpty()) {
+        java.nio.file.Path source = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
+        FlattenOptionsDialog dialog = new FlattenOptionsDialog(source);
+        if (getScene() != null) {
+            dialog.initOwner(getScene().getWindow());
+        }
+        var request = dialog.showAndWait();
+        if (request.isEmpty()) {
             return;
         }
-        flattenActive(options.get());
+        flattenActive(request.get().options(), request.get().outputFile());
     }
 
-    /** Flattens the active XSD with the given options, without asking (async). */
+    /** Flattens the active XSD with the given options and opens the result as an unsaved tab (async). */
     public void flattenActive(org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions options) {
+        flattenActive(options, null);
+    }
+
+    /**
+     * Flattens the active XSD with the given options, without asking (async).
+     *
+     * @param output the file to write and open, or {@code null} to open the result as an unsaved tab
+     */
+    public void flattenActive(org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions options,
+                              java.nio.file.Path output) {
         java.nio.file.Path schemaFile = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
         java.nio.file.Path baseDir = schemaFile != null ? schemaFile.getParent() : null;
         if (editorHost.getActiveDocument().isEmpty()) {
@@ -293,8 +308,18 @@ public class TypeLibraryPanel extends VBox {
             long t0 = System.nanoTime();
             ActionRun run = SchemaActionRunner.flattenResult(content, baseDir, schemaFile, options);
             UsageEvents.schemaFlattened(t0, run.failure());
-            javafx.application.Platform.runLater(() -> showResult(run.text(), "Schema Tool",
-                    EditorFileType.XSD, "Flattened.xsd"));
+            if (output == null || run.text().startsWith("ERROR:")) {
+                javafx.application.Platform.runLater(() -> showResult(run.text(), "Schema Tool",
+                        EditorFileType.XSD, "Flattened.xsd"));
+                return;
+            }
+            try {
+                java.nio.file.Files.writeString(output, run.text(), java.nio.charset.StandardCharsets.UTF_8);
+                javafx.application.Platform.runLater(() -> editorHost.openFile(output));
+            } catch (java.io.IOException | RuntimeException e) {
+                javafx.application.Platform.runLater(() -> alert(javafx.scene.control.Alert.AlertType.ERROR,
+                        "Schema Tool", "The flattened schema could not be written to " + output + ": " + e.getMessage()));
+            }
         });
     }
 

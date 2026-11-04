@@ -13,6 +13,9 @@ running is shown under **Help → About FreeXmlToolkit**.
   Tabs below edit the selected component's attributes (Default/Fixed offer the enumeration
   values), identity constraints, XSD 1.1 assertions and the schema's namespace prefixes. See
   [XSD Tools](xsd-tools.md#overview-view).
+- **Flatten Schema:** the dialog asks for the output file, preset to `<name>_flattened.xsd` next to
+  the original schema; the result is written there and opened. See
+  [XSD Tools](xsd-tools.md#8-xsd-flattener).
 - **XSD saving keeps your order:** the top-level components are no longer re-sorted on every
   save; schema-level `xs:annotation`, `xs:notation` and `xs:defaultOpenContent` are no longer
   lost when the schema is edited.

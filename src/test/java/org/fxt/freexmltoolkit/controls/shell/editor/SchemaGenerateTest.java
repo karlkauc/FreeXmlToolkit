@@ -115,4 +115,23 @@ class SchemaGenerateTest {
                         && host.getActiveText().map(t -> t.contains("schema")).orElse(false));
         assertEquals(EditorFileType.XSD, host.getActiveDocument().orElseThrow().getFileType());
     }
+
+    @Test
+    void flattenWritesChosenFile(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("schema.xsd");
+        Files.writeString(xsd, "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">"
+                + "<xs:element name=\"root\" type=\"xs:string\"/></xs:schema>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xsd));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+
+        Path output = tmp.resolve("schema_flattened.xsd");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.flattenActive(org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions.NONE, output);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(6, TimeUnit.SECONDS, () -> output.equals(
+                host.getActiveDocument().map(OpenDocument::getPath).orElse(null)));
+        assertTrue(Files.readString(output).contains("schema"));
+    }
 }

@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
 
 <!--
-  Content of the "Flatten Schema" dialog: the reduction options. Loaded by FlattenOptionsDialog
+  Content of the "Flatten Schema" dialog: the output file and the reduction options. Loaded by FlattenOptionsDialog
   (FxmlViews.loadContent), which is the controller and adds title, header and buttons.
 -->
 <GridPane hgap="10" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
@@ -15,18 +19,32 @@
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
+        <Label text="Output file" GridPane.rowIndex="0"/>
+        <HBox spacing="6" GridPane.rowIndex="1">
+            <children>
+                <TextField fx:id="outputField" id="flatten-output" prefColumnCount="40" HBox.hgrow="ALWAYS"
+                           promptText="Leave empty to open the result as an unsaved tab"/>
+                <Button text="Browse…" id="flatten-output-browse" onAction="#onBrowse">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+        <Label fx:id="outputError" id="flatten-output-error" wrapText="true" maxWidth="520" visible="false"
+               managed="false" style="-fx-text-fill: #e03131;" GridPane.rowIndex="2"/>
         <CheckBox fx:id="removeAnnotations" text="Remove annotations (documentation, appinfo)" selected="true"
-                  GridPane.rowIndex="0"/>
-        <CheckBox fx:id="removeComments" text="Remove XML comments" selected="true" GridPane.rowIndex="1"/>
+                  GridPane.rowIndex="3"/>
+        <CheckBox fx:id="removeComments" text="Remove XML comments" selected="true" GridPane.rowIndex="4"/>
         <CheckBox fx:id="removeUnusedTypes" text="Remove unused global types and groups" selected="true"
-                  GridPane.rowIndex="2"/>
-        <CheckBox fx:id="minify" text="Minified output (no indentation)" selected="true" GridPane.rowIndex="3"/>
-        <CheckBox fx:id="trackSourceFiles" text="Track source files (xs:appinfo)" GridPane.rowIndex="4">
+                  GridPane.rowIndex="5"/>
+        <CheckBox fx:id="minify" text="Minified output (no indentation)" selected="true" GridPane.rowIndex="6"/>
+        <CheckBox fx:id="trackSourceFiles" text="Track source files (xs:appinfo)" GridPane.rowIndex="7">
             <tooltip>
                 <Tooltip text="Marks every component that came from an included file with an fxt:sourceFile annotation naming that file."/>
             </tooltip>
         </CheckBox>
         <Label text="Uncheck all options for a plain flatten that keeps documentation." opacity="0.7"
-               GridPane.rowIndex="5"/>
+               GridPane.rowIndex="8"/>
     </children>
 </GridPane>

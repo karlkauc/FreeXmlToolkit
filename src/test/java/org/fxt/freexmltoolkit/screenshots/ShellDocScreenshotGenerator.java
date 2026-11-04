@@ -145,7 +145,9 @@ class ShellDocScreenshotGenerator {
             var flattenDialog = new java.util.concurrent.atomic.AtomicReference<
                     org.fxt.freexmltoolkit.controls.shell.editor.FlattenOptionsDialog>();
             onFx(() -> {
-                var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.FlattenOptionsDialog();
+                var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.FlattenOptionsDialog(
+                        host.getActiveDocument().map(
+                                org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument::getPath).orElse(null));
                 dialog.initOwner(shell.getScene().getWindow());
                 dialog.show();
                 flattenDialog.set(dialog);
