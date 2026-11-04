@@ -2372,8 +2372,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
 <li>A <strong>header strip</strong> at the top reads <em>"Grid view · nested · repeating elements as embedded
   grids"</em> and offers the <strong>zoom pill</strong> (<code>− 100% +</code>), <strong>Optimal widths</strong>, the <strong>Wrap</strong> toggle,
   <strong>Expand all</strong> / <strong>Collapse all</strong>, and a <strong>⋯</strong> menu with the cell-height limit. In a narrow
-  editor column the strip first shows the tool buttons as icons only (hover for their names) and
-  then moves them into the <strong>⋯</strong> menu, so every action stays reachable.</li>
+  editor column the strip first drops its subtitle and shows the tool buttons as icons only
+  (hover for their names); narrower still, only the title icon, the zoom pill and <strong>⋯</strong> remain,
+  and <strong>Optimal widths</strong>, <strong>Wrap</strong>, <strong>Expand all</strong> / <strong>Collapse all</strong> and the entry helpers toggle
+  become entries of the <strong>⋯</strong> menu, so every action stays reachable.</li>
 <li><strong>Nested containers.</strong> Every element is a row with a <strong>name cell</strong> (expand arrow, type icon,
   bold name) and, to its right, either its <strong>value cell</strong> or the <strong>block</strong> of its children. A
   child block is docked at the parent's value column, so the structure reads as nested boxes;
@@ -2530,7 +2532,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
 - <strong>Copy XPath / Copy Node</strong>: the grid's context menu offers <strong>Copy XPath</strong> (<strong>Ctrl+Alt+X</strong>),
   <strong>Copy Cell Content</strong> (<strong>Ctrl+Shift+C</strong>) and <strong>Copy Node (XML)</strong> (<strong>Ctrl+Alt+C</strong>); all three
   shortcuts also work directly on the selected node. <strong>Ctrl+Shift+X</strong> toggles the Query
-  Console everywhere, including while the grid has focus.</p>
+  Console everywhere, including while the grid has focus.
+- <strong>Go to Definition</strong>: right-click an element → <strong>Go to Definition</strong> opens the bound XSD in the
+  Graphic view, expanded along the element's path, with the card of its declaration selected - see
+  <a href="../xml-editor/#go-to-definition">Go to Definition</a>. The entry is disabled while no schema is bound.</p>
 <h2 id="json-grid">The Grid (Graphic view for JSON)<a class="headerlink" href="#json-grid" title="Permanent link">&para;</a></h2>
 <p>JSON documents (<code>.json</code>, <code>.jsonc</code>, <code>.json5</code>) get the <strong>same grid</strong> in the <strong>Graphic</strong> view -
 same header strip, same rows, same keyboard shortcuts and context menu - so a JSON file

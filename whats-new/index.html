@@ -2173,10 +2173,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#next-release-in-development" class="md-nav__link">
+  <a href="#290-upcoming" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next release (in development)
+        2.9.0 (upcoming)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#280-2026-11-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.8.0 (2026-11-01)
       
     </span>
   </a>
@@ -2398,10 +2409,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#next-release-in-development" class="md-nav__link">
+  <a href="#290-upcoming" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next release (in development)
+        2.9.0 (upcoming)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#280-2026-11-01" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.8.0 (2026-11-01)
       
     </span>
   </a>
@@ -2520,21 +2542,14 @@
 <p>The highlights of each release. The complete notes and all downloads are on the
 <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub Releases page</a>; the version you are
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
-<h2 id="next-release-in-development">Next release (in development)<a class="headerlink" href="#next-release-in-development" title="Permanent link">&para;</a></h2>
-<p>Already on <code>main</code>, not yet released:</p>
+<h2 id="290-upcoming">2.9.0 (upcoming)<a class="headerlink" href="#290-upcoming" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Grid:</strong> opened table cells are full grids at any depth (select, edit, navigate, search,
-  resize and drag &amp; drop inside them); select whole table rows/columns and open nested cells
-  with <strong>+</strong> / <strong>−</strong>; the <strong>entry helpers</strong> panel (Siblings / Children / Values) beside the XML
-  grid. JSON grid: change a value's type via its type icon, drag &amp; drop, Table submenu. See
-  <a href="../grid/">Grid View</a>.</li>
-<li><strong>Network:</strong> complete proxy settings (system / manual / none, exceptions, authentication incl.
-  NTLM/Kerberos, timeouts, Test Connection); every HTTP connection uses them. See
-  <a href="../settings/">Settings</a>.</li>
-<li><strong>Settings:</strong> old log files are deleted automatically (<strong>LOG FILES</strong> card); the clear buttons
-  show the space in use.</li>
-<li><strong>XSD documentation:</strong> type definitions, SVG overview and metadata are on by default; the
-  Data Dictionary Excel export has the look of the HTML documentation.</li>
+<li><strong>XSD Graphic view, new card layout:</strong> every node is one card with a symbol, name and type
+  line; cardinality and attribute use are pills, optional cards are dashed and repeating ones have
+  a second outline. A <strong>title chip</strong> (top left) names the selected card, a <strong>zoom control</strong> sits
+  at the bottom right, and the light theme has more contrast. Element and attribute cards list
+  their <strong>constraints and assertions</strong> (<strong>View → Show Constraints in Diagram</strong>). The ComplexType
+  editor tab shows the same cards. See <a href="../xsd-tools/#reading-a-card">XSD Tools</a>.</li>
 <li><strong>XSD Graphic view:</strong> cards open in large schemas too; inherited <code>xs:extension</code> content, group
   and attribute group references, wildcards, inherited attributes and placeholder cards are shown;
   a bar names includes and imports that could not be loaded; relative references inside schemas
@@ -2549,6 +2564,44 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   Type Library, statistics, quality checks and the Inspector of an XML document.</li>
 <li><strong>Facets:</strong> a restriction of a named type offers the facets of what that type comes down to,
   and restrictions of list and union types offer only the facets XML Schema allows there.</li>
+<li><strong>XSD documentation (PDF and Word):</strong> an <strong>Element Reference</strong> with a section per element and
+  attribute (diagram, properties, documentation, restrictions, children, constraints) and a
+  section per complex and simple type, all linked from the data dictionary, the index and the
+  tables, with bookmarks; a namespace overview that names each namespace, the option <strong>XSD
+  source in each section</strong>; in the PDF vector (SVG) diagrams and
+  an overview diagram of the whole schema; in Word real headings, so the table of contents and
+  the navigation pane work. Large schemas no longer run out of memory.
+  Fixed: wrong root in the schema diagram, HTML in restrictions, cut-off text, usage counts.
+  See <a href="../xsd-tools/#generation-options">XSD Tools</a>.</li>
+<li><strong>XSD documentation diagrams:</strong> element boxes list constraints and assertions (option <strong>Show
+  constraints in diagrams</strong>, with <strong>Also in the page's own element box</strong>); constraint rows link
+  their selector, fields and key; the choice symbol is drawn as a switch. <strong>Show documentation in
+  diagrams</strong> is now off by default.</li>
+<li><strong>Go to Definition</strong> from an XML document (Graphic, Tree and Text view, Ctrl+Click in text)
+  opens the bound XSD in the Graphic view, expanded along the element's path with its card
+  selected. See <a href="../xml-editor/#go-to-definition">XML Editor</a>.</li>
+<li><strong>Grid:</strong> the header adapts to a narrow column (icon-only buttons, then the tools move into
+  the <strong>⋯</strong> menu); the scroll range follows tables whose cells are opened.</li>
+<li><strong>Side panels</strong> list their tools first; the <strong>Tools</strong> menu has <strong>Generate XSD from XML</strong> and
+  <strong>Generate XSD from XML Files…</strong> (batch, always available).</li>
+<li><strong>Fixes:</strong> schemas whose <code>DOCTYPE</code> names a missing DTD (such as <code>XMLSchema.xsd</code>) load
+  everywhere; absolute schema locations in <code>xsi:schemaLocation</code> bind; right-clicking in the
+  editor no longer stalls on a large clipboard; user errors are no longer reported as app errors.</li>
+</ul>
+<h2 id="280-2026-11-01">2.8.0 (2026-11-01)<a class="headerlink" href="#280-2026-11-01" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Grid:</strong> opened table cells are full grids at any depth (select, edit, navigate, search,
+  resize and drag &amp; drop inside them); select whole table rows/columns and open nested cells
+  with <strong>+</strong> / <strong>−</strong>; the <strong>entry helpers</strong> panel (Siblings / Children / Values) beside the XML
+  grid. JSON grid: change a value's type via its type icon, drag &amp; drop, Table submenu. See
+  <a href="../grid/">Grid View</a>.</li>
+<li><strong>Network:</strong> complete proxy settings (system / manual / none, exceptions, authentication incl.
+  NTLM/Kerberos, timeouts, Test Connection); every HTTP connection uses them. See
+  <a href="../settings/">Settings</a>.</li>
+<li><strong>Settings:</strong> old log files are deleted automatically (<strong>LOG FILES</strong> card); the clear buttons
+  show the space in use.</li>
+<li><strong>XSD documentation:</strong> type definitions, SVG overview and metadata are on by default; the
+  Data Dictionary Excel export has the look of the HTML documentation.</li>
 </ul>
 <h2 id="270-2026-10-29">2.7.0 (2026-10-29)<a class="headerlink" href="#270-2026-10-29" title="Permanent link">&para;</a></h2>
 <ul>

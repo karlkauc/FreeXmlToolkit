@@ -4016,7 +4016,7 @@ it to open that schema as a document.</p>
 </tr>
 <tr>
 <td><strong>ComplexType Editor</strong></td>
-<td>Graphical editing with element tree</td>
+<td>Graphical editing in the card diagram of the Graphic view</td>
 </tr>
 <tr>
 <td><strong>SimpleType Editor</strong></td>
@@ -4025,12 +4025,20 @@ it to open that schema as a document.</p>
 </tbody>
 </table>
 <h3 id="complextype-editor">ComplexType Editor<a class="headerlink" href="#complextype-editor" title="Permanent link">&para;</a></h3>
-<p>For ComplexTypes, you get a graphical editor similar to the main schema view:</p>
+<p>For ComplexTypes, the tab shows the same card diagram as the <a href="#1-graphic-view">Graphic view</a> -
+see <a href="#reading-a-card">Reading a Card</a> for what each card shows:</p>
 <ul>
-<li>Type name appears as the root node</li>
-<li>Add, delete, modify elements graphically</li>
-<li>Supports Sequence, Choice, and All compositors</li>
-<li>Save/Discard with dirty tracking</li>
+<li>The type is the root card of the diagram, with its compositors, child elements and attributes
+  below it</li>
+<li>A <strong>title chip</strong> at the top left names the selected card (or the type), and the <strong>zoom
+  control</strong> at the bottom right zooms out, in, or back to 100%</li>
+<li>A bar above the diagram edits the type's <strong>Name</strong>, <strong>Abstract</strong> and <strong>Mixed</strong> settings. These
+  apply to the schema right away and can be undone there (<strong>Ctrl+Z</strong> in the schema's tab)</li>
+<li>Add, delete and modify elements, attributes and Sequence / Choice / All compositors through the
+  cards' context menus, as in the Graphic view; the properties pane beside the diagram edits the
+  selected node</li>
+<li>Changes to the diagram are kept in the tab until you click <strong>Save to schema</strong> (or press
+  Ctrl+S); they are then written into the schema. Close the tab with <strong>Close</strong>, <strong>Esc</strong> or its <strong>×</strong></li>
 </ul>
 <h3 id="simpletype-editor">SimpleType Editor<a class="headerlink" href="#simpletype-editor" title="Permanent link">&para;</a></h3>
 <p>For SimpleTypes, you get a 5-panel form editor:</p>
@@ -4513,16 +4521,8 @@ the generator never modifies your schema file or writes into its folder.</p>
 <td>SVG (default), PNG or JPG for the diagrams</td>
 </tr>
 <tr>
-<td><strong>Favicon</strong></td>
+<td><strong>Favicon (HTML)</strong></td>
 <td>A custom icon file for the HTML output</td>
-</tr>
-<tr>
-<td><strong>PDF / Word options</strong></td>
-<td>Cover page, table of contents, data dictionary, schema diagram, element diagrams (on by default), page numbers, PDF bookmarks</td>
-</tr>
-<tr>
-<td><strong>Element reference</strong> <em>(PDF, Word)</em></td>
-<td><em>One section per declaration</em> (default), <em>Every occurrence</em> or <em>Off</em> - see below</td>
 </tr>
 <tr>
 <td><strong>Open the generated documentation after creation</strong></td>
@@ -4530,11 +4530,97 @@ the generator never modifies your schema file or writes into its folder.</p>
 </tr>
 </tbody>
 </table>
+<p>When you pick <strong>PDF</strong> or <strong>Word</strong>, a <strong>PDF OPTIONS</strong> / <strong>WORD OPTIONS</strong> section appears below the
+general options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Formats</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Page size</strong></td>
+<td>PDF, Word</td>
+<td>A4 (default), Letter or Legal; the PDF also offers A3</td>
+</tr>
+<tr>
+<td><strong>Orientation</strong></td>
+<td>PDF, Word</td>
+<td><strong>Portrait</strong> (default) or <strong>Landscape</strong></td>
+</tr>
+<tr>
+<td><strong>Cover page</strong></td>
+<td>PDF, Word</td>
+<td>A title page in front of the document (off by default)</td>
+</tr>
+<tr>
+<td><strong>Table of contents</strong></td>
+<td>PDF, Word</td>
+<td>A table of contents listing the chapters (on by default)</td>
+</tr>
+<tr>
+<td><strong>Data dictionary</strong></td>
+<td>PDF, Word</td>
+<td>The table of every element and attribute path with its type, cardinality and description (on by default)</td>
+</tr>
+<tr>
+<td><strong>Schema diagram</strong></td>
+<td>PDF, Word</td>
+<td>A chapter with the diagram of the root element; the PDF adds an overview of the whole schema for schemas up to 400 elements (on by default)</td>
+</tr>
+<tr>
+<td><strong>Element diagrams</strong></td>
+<td>PDF, Word</td>
+<td>A diagram in every element and type section (on by default)</td>
+</tr>
+<tr>
+<td><strong>Element reference</strong></td>
+<td>PDF, Word</td>
+<td><em>One section per declaration</em> (default), <em>Every occurrence</em> or <em>Off</em> - see <a href="#element-reference-pdf-and-word">Element reference</a> below</td>
+</tr>
+<tr>
+<td><strong>XSD source in each section</strong></td>
+<td>PDF, Word</td>
+<td>Shows the XSD source of every element and type in its section (off by default; makes the document considerably longer)</td>
+</tr>
+<tr>
+<td><strong>Color scheme</strong></td>
+<td>PDF</td>
+<td>The accent colour of the document: Blue (default), Green, Purple, Grayscale or Professional</td>
+</tr>
+<tr>
+<td><strong>Watermark</strong></td>
+<td>PDF</td>
+<td>None (default), Draft, Confidential or Internal Use Only, printed across every page</td>
+</tr>
+<tr>
+<td><strong>Page numbers</strong></td>
+<td>PDF</td>
+<td>Page numbers in the footer (on by default)</td>
+</tr>
+<tr>
+<td><strong>PDF bookmarks</strong></td>
+<td>PDF</td>
+<td>A bookmark tree for the chapters and every element and type section (on by default)</td>
+</tr>
+</tbody>
+</table>
 <h4 id="element-reference-pdf-and-word">Element reference (PDF and Word)<a class="headerlink" href="#element-reference-pdf-and-word" title="Permanent link">&para;</a></h4>
+<p>The PDF and the Word document are built from the same chapters, each one switched by the options
+above: cover page, table of contents, <strong>Schema Overview</strong>, <strong>Namespace Overview</strong>,
+<strong>Schema Diagram</strong>, <strong>Complex Types</strong>, <strong>Simple Types</strong>, <strong>Data Dictionary</strong>,
+<strong>Element Reference</strong> and <strong>Index</strong>. The schema diagram starts at the schema's root element. The
+index lists every element and attribute with its path (without sequence/choice containers) and
+says which of the two it is. Restrictions are written as plain text (for example
+<em>Base: xs:string; MaxLength: 256</em>), and long paths, restrictions and descriptions wrap in their
+column instead of being cut off. Type usage counts include derived types.</p>
 <p>The PDF and the Word document have an <strong>Element Reference</strong>: one section per element and attribute with what the HTML
 detail page shows:</p>
 <ul>
-<li>the diagram, with <strong>Element diagrams</strong> on;</li>
+<li>the diagram (all levels), with <strong>Element diagrams</strong> on;</li>
 <li>the properties: type, cardinality or use, namespace, default / fixed / nillable;</li>
 <li>the documentation in every selected language;</li>
 <li>the restrictions with their values, including the full enumeration list;</li>
@@ -4563,12 +4649,17 @@ each type its own section:</p>
 properties, children tables and index.</p>
 <p><strong>Deduplicate data dictionary by type</strong> also applies to PDF and Word: each named type is listed once
 in the data dictionary.</p>
-<p>The <strong>Word</strong> document has the same element and type sections as the PDF:
-- each section is a bookmark;
-- names in the data dictionary, the index and the tables are links to it;
-- section headings appear in the navigation pane, while the table of contents lists the chapters
-  (Word fills it when the document is opened);
-- diagrams are embedded as sharp PNG images in their own proportions.</p>
+<p>The <strong>Word</strong> document has the same element and type sections as the PDF:</p>
+<ul>
+<li>each section is a bookmark;</li>
+<li>paths and types in the data dictionary, names in the index, the type tables, children tables
+  and <strong>Used In</strong> lists are links to it;</li>
+<li>chapters use real Word headings (Heading 1 to 3), so the table of contents, the navigation pane
+  and the outline view work. Section headings appear in the navigation pane, while the table of
+  contents lists the chapters (Word fills it when the document is opened);</li>
+<li>the <strong>Namespace Overview</strong> says what each namespace is and lists the imports and includes;</li>
+<li>diagrams are embedded as sharp PNG images in their own proportions, fitted to the text width.</li>
+</ul>
 <p>More in the PDF:</p>
 <ul>
 <li><strong>Diagrams</strong> follow <strong>Diagram image format</strong>. With <em>SVG</em> (the default) they are vector graphics:

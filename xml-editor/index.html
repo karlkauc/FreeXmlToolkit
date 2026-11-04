@@ -1292,6 +1292,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Binding an XSD Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#go-to-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Go to Definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3161,6 +3178,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Binding an XSD Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#go-to-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Go to Definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3750,6 +3784,20 @@ XSD by hand:</p>
 <li><strong>IntelliSense</strong> - auto-completion suggests the elements and attributes the schema allows.</li>
 <li><strong>Schema validation</strong> - Validate (F8) and continuous validation check against the bound XSD.</li>
 </ul>
+<h3 id="go-to-definition">Go to Definition<a class="headerlink" href="#go-to-definition" title="Permanent link">&para;</a></h3>
+<p>Jump from an element in your XML document to the place in the bound XSD that declares it:</p>
+<ul>
+<li><strong>Graphic view (grid)</strong> and <strong>Tree view:</strong> right-click an element → <strong>Go to Definition</strong></li>
+<li><strong>Text view:</strong> right-click inside an element → <strong>Go to Definition (Ctrl+Click)</strong>, or hold
+  <strong>Ctrl</strong> and click the element</li>
+</ul>
+<p>The XSD opens in front (in its own tab, if it was not open yet) in the <strong>Graphic</strong> view. The
+diagram is expanded along the element's path from the document root, and the card of the
+declaration is selected. Because the path is followed, elements with the same name in different
+places - for example a <code>Name</code> inside <code>Customer</code> and a <code>Name</code> inside <code>Product</code> - each lead to their
+own declaration. If the path cannot be found in the schema (for example an element allowed by a
+wildcard), the first declaration with that name is selected instead.</p>
+<p>The entry is available for elements only, and only when a schema is bound to the document.</p>
 <hr />
 <h2 id="formatting-tools">Formatting Tools<a class="headerlink" href="#formatting-tools" title="Permanent link">&para;</a></h2>
 <h3 id="pretty-print">Pretty Print<a class="headerlink" href="#pretty-print" title="Permanent link">&para;</a></h3>
@@ -3971,7 +4019,9 @@ into the query panel or the <a href="../query-console/#query-console">Query Cons
 <h2 id="schema-generator">Schema Generator<a class="headerlink" href="#schema-generator" title="Permanent link">&para;</a></h2>
 <p>With the XML document active, open the editor toolbar's <strong>Schema ▾</strong> menu (click the small
 arrow next to the <strong>Schema</strong> button) and choose <strong>Generate XSD from XML</strong> (or <strong>Generate XSD
-from XML Files…</strong> for several files) to generate an XSD schema from your XML:</p>
+from XML Files…</strong> for several files) to generate an XSD schema from your XML. Both entries are
+also in the menu bar's <strong>Tools</strong> menu; <strong>Generate XSD from XML Files…</strong> works there even without
+an open document, because it asks for its files itself:</p>
 <ul>
 <li>Analyze XML structure</li>
 <li>Generate matching XSD schema</li>
@@ -4018,6 +4068,10 @@ from XML Files…</strong> for several files) to generate an XSD schema from you
 <tr>
 <td>Ctrl+Alt+X / Ctrl+Alt+C</td>
 <td>Grid view: copy the XPath / the node as XML</td>
+</tr>
+<tr>
+<td>Ctrl+Click</td>
+<td>Text view: <a href="#go-to-definition">Go to Definition</a> in the bound XSD</td>
 </tr>
 <tr>
 <td>Ctrl+mouse wheel, Ctrl+0</td>
