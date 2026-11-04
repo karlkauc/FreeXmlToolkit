@@ -41,11 +41,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.SpreadsheetVersion;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.DataFormat;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -71,6 +66,8 @@ public class XmlSpreadsheetConverterService {
     private static final int WIDTH_SAMPLE_ROWS = 1000;
     /** Excel's maximum column width in characters. */
     private static final int MAX_COLUMN_CHARS = 255;
+    /** Widest value column in characters; longer values stay readable in the cell / formula bar. */
+    private static final int MAX_VALUE_CHARS = 80;
 
     /** Maximum rows of an .xlsx sheet; package-private and mutable so tests can use a small limit. */
     static int maxXlsxRows = SpreadsheetVersion.EXCEL2007.getMaxRows();
@@ -217,10 +214,22 @@ public class XmlSpreadsheetConverterService {
     }
 
     /**
-     * Converts XML document to Excel file
+     * Converts XML document to Excel file; every value is written as text.
      */
     public void convertXmlToExcel(Document doc, File outputFile, ConversionConfig config) throws Exception {
+        convertXmlToExcel(doc, outputFile, config, SpreadsheetTypeResolver.NONE);
+    }
+
+    /**
+     * Converts XML document to Excel file, storing each value as the cell type {@code types} names
+     * for it (number, boolean, date …) when its lexical form survives that losslessly.
+     *
+     * @param types the value types, usually from the bound XSD; {@code null} for text only
+     */
+    public void convertXmlToExcel(Document doc, File outputFile, ConversionConfig config,
+                                  SpreadsheetTypeResolver types) throws Exception {
         logger.info("Converting XML to Excel: {}", outputFile.getName());
+        SpreadsheetTypeResolver resolver = types == null ? SpreadsheetTypeResolver.NONE : types;
 
         List<RowData> rows = extractRowsFromXml(doc, config);
 
@@ -238,9 +247,14 @@ public class XmlSpreadsheetConverterService {
                 metadataService.setExcelMetadata(streaming.getXSSFWorkbook(), "XML to Excel Conversion");
             }
 
+            XmlSpreadsheetExcelStyles styles = new XmlSpreadsheetExcelStyles(workbook);
             Sheet sheet = workbook.createSheet("XML Structure");
-            createExcelHeader(sheet, config);
-            populateExcelSheet(sheet, rows, config);
+            sheet.setDisplayGridlines(false);
+            if (sheet instanceof org.apache.poi.xssf.streaming.SXSSFSheet streamingSheet) {
+                streamingSheet.setTabColor(DataDictionaryExcelStyles.color(DataDictionaryExcelStyles.ACCENT_RULE));
+            }
+            createExcelHeader(sheet, config, styles);
+            populateExcelSheet(sheet, rows, config, styles, resolver);
             formatExcelSheet(sheet, rows, config);
 
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
@@ -488,55 +502,93 @@ public class XmlSpreadsheetConverterService {
     }
 
     /**
-     * Creates Excel header row
+     * Creates Excel header row (frozen, repeated on every printed page)
      */
-    private void createExcelHeader(Sheet sheet, ConversionConfig config) {
+    private void createExcelHeader(Sheet sheet, ConversionConfig config, XmlSpreadsheetExcelStyles styles) {
         Row header = sheet.createRow(0);
-
-        CellStyle headerStyle = sheet.getWorkbook().createCellStyle();
-        headerStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
-        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        Font headerFont = sheet.getWorkbook().createFont();
-        headerFont.setBold(true);
-        headerStyle.setFont(headerFont);
-
-        Cell xpathCell = header.createCell(0);
-        xpathCell.setCellValue("XPath");
-        xpathCell.setCellStyle(headerStyle);
-
-        Cell valueCell = header.createCell(1);
-        valueCell.setCellValue("Value");
-        valueCell.setCellStyle(headerStyle);
-
+        header.setHeightInPoints(22);
+        header.createCell(0).setCellValue("XPath");
+        header.createCell(1).setCellValue("Value");
+        header.getCell(0).setCellStyle(styles.header);
+        header.getCell(1).setCellStyle(styles.header);
         if (config.isIncludeTypeColumn()) {
             Cell typeCell = header.createCell(2);
             typeCell.setCellValue("Type");
-            typeCell.setCellStyle(headerStyle);
+            typeCell.setCellStyle(styles.headerCenter);
         }
+        sheet.createFreezePane(0, 1);
     }
 
     /**
-     * Populates Excel sheet with row data
+     * Populates Excel sheet with row data. Styles are set while each row is written - a streaming
+     * sheet has flushed its earlier rows, so they cannot be styled in a second pass.
      */
-    private void populateExcelSheet(Sheet sheet, List<RowData> rows, ConversionConfig config) {
-        // XPath column as text; set while the row is written - a streaming sheet has flushed
-        // its earlier rows, so they cannot be styled in a second pass
-        CellStyle textStyle = sheet.getWorkbook().createCellStyle();
-        DataFormat format = sheet.getWorkbook().createDataFormat();
-        textStyle.setDataFormat(format.getFormat("@"));
-
+    private void populateExcelSheet(Sheet sheet, List<RowData> rows, ConversionConfig config,
+                                    XmlSpreadsheetExcelStyles styles, SpreadsheetTypeResolver types) {
         for (int i = 0; i < rows.size(); i++) {
             Row row = sheet.createRow(i + 1);
             RowData rowData = rows.get(i);
+            boolean stripe = i % 2 == 1;
+            String nodeType = rowData.getNodeType();
+            boolean container = "element".equals(nodeType) && rowData.getValue().isEmpty();
 
             Cell xpathCell = row.createCell(0);
             xpathCell.setCellValue(rowData.getXpath());
-            xpathCell.setCellStyle(textStyle);
-            row.createCell(1).setCellValue(rowData.getValue());
+            xpathCell.setCellStyle(styles.body(container
+                    ? XmlSpreadsheetExcelStyles.Role.XPATH_CONTAINER : XmlSpreadsheetExcelStyles.Role.XPATH,
+                    stripe, null));
+
+            writeValue(row.createCell(1), rowData, styles, stripe, types);
 
             if (config.isIncludeTypeColumn()) {
-                row.createCell(2).setCellValue(rowData.getNodeType());
+                Cell typeCell = row.createCell(2);
+                typeCell.setCellValue(nodeType);
+                typeCell.setCellStyle(styles.body(XmlSpreadsheetExcelStyles.Role.TYPE, stripe, null));
+            }
+        }
+    }
+
+    /** Writes the value as the schema type's cell type, or as text when it is not typed or does not fit. */
+    private static void writeValue(Cell cell, RowData rowData, XmlSpreadsheetExcelStyles styles, boolean stripe,
+                                   SpreadsheetTypeResolver types) {
+        String value = rowData.getValue();
+        SpreadsheetTypedValue typed = new SpreadsheetTypedValue.Text(value);
+        if (!value.isEmpty()) {
+            SpreadsheetCellKind kind = switch (rowData.getNodeType()) {
+                case "element" -> types.kindOf(rowData.getXpath(), null);
+                case "attribute" -> {
+                    int at = rowData.getXpath().lastIndexOf("/@");
+                    yield at < 0 ? SpreadsheetCellKind.TEXT
+                            : types.kindOf(rowData.getXpath().substring(0, at), rowData.getXpath().substring(at + 2));
+                }
+                default -> SpreadsheetCellKind.TEXT;
+            };
+            typed = SpreadsheetTypedValue.of(kind == null ? SpreadsheetCellKind.TEXT : kind, value);
+        }
+        switch (typed) {
+            case SpreadsheetTypedValue.Numeric n -> {
+                cell.setCellValue(n.value());
+                cell.setCellStyle(styles.body(XmlSpreadsheetExcelStyles.Role.NUMBER, stripe,
+                        XmlSpreadsheetExcelStyles.numberFormat(n.decimals())));
+            }
+            case SpreadsheetTypedValue.Bool b -> {
+                cell.setCellValue(b.value());
+                cell.setCellStyle(styles.body(XmlSpreadsheetExcelStyles.Role.BOOLEAN, stripe, null));
+            }
+            case SpreadsheetTypedValue.Temporal t -> {
+                if (t.date() == null) {
+                    cell.setCellValue(t.time().toNanoOfDay() / 86_400_000_000_000.0); // Excel time = day fraction
+                } else {
+                    cell.setCellValue(SpreadsheetTypedValue.dateTimeOf(t));
+                }
+                cell.setCellStyle(styles.body(XmlSpreadsheetExcelStyles.Role.TEMPORAL, stripe, t.format()));
+            }
+            case SpreadsheetTypedValue.Text text -> {
+                if (!text.value().isEmpty()) {
+                    cell.setCellValue(text.value());
+                }
+                cell.setCellStyle(styles.body("comment".equals(rowData.getNodeType())
+                        ? XmlSpreadsheetExcelStyles.Role.COMMENT : XmlSpreadsheetExcelStyles.Role.TEXT, stripe, null));
             }
         }
     }
@@ -559,7 +611,7 @@ public class XmlSpreadsheetConverterService {
             typeChars = Math.max(typeChars, length(row.getNodeType()));
         }
         sheet.setColumnWidth(0, columnWidth(xpathChars));
-        sheet.setColumnWidth(1, columnWidth(valueChars));
+        sheet.setColumnWidth(1, columnWidth(Math.min(valueChars, MAX_VALUE_CHARS)));
         if (config.isIncludeTypeColumn()) {
             sheet.setColumnWidth(2, columnWidth(typeChars));
         }
@@ -567,6 +619,12 @@ public class XmlSpreadsheetConverterService {
         // Enable autofilter
         sheet.setAutoFilter(new org.apache.poi.ss.util.CellRangeAddress(
                 0, rows.size(), 0, config.isIncludeTypeColumn() ? 2 : 1));
+
+        // Print one page wide, with the header on every page
+        sheet.setFitToPage(true);
+        sheet.getPrintSetup().setFitWidth((short) 1);
+        sheet.getPrintSetup().setFitHeight((short) 0);
+        sheet.setRepeatingRows(org.apache.poi.ss.util.CellRangeAddress.valueOf("1:1"));
     }
 
     private static int length(String s) {
@@ -625,7 +683,7 @@ public class XmlSpreadsheetConverterService {
             case STRING:
                 return cell.getStringCellValue();
             case NUMERIC:
-                return String.valueOf(cell.getNumericCellValue());
+                return numericAsLexical(cell);
             case BOOLEAN:
                 return String.valueOf(cell.getBooleanCellValue());
             case FORMULA:
@@ -633,6 +691,56 @@ public class XmlSpreadsheetConverterService {
             default:
                 return "";
         }
+    }
+
+    /**
+     * The XML lexical form of a numeric cell: a date-formatted cell as an ISO date, date-time or time
+     * (seconds fraction as the format shows it); a number with the fraction digits its format shows
+     * ({@code 10.50}), an integral number without {@code .0}.
+     */
+    static String numericAsLexical(Cell cell) {
+        String format = cell.getCellStyle() == null ? "" : cell.getCellStyle().getDataFormatString();
+        format = format == null ? "" : format.toLowerCase(java.util.Locale.ROOT);
+        double value = cell.getNumericCellValue();
+        if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
+            int fraction = fractionZeros(format, format.indexOf("ss."));
+            String timePattern = fraction == 0 ? "HH:mm:ss" : "HH:mm:ss." + "S".repeat(fraction);
+            boolean hasDate = format.indexOf('y') >= 0 || format.indexOf('d') >= 0;
+            boolean hasTime = format.indexOf('h') >= 0 || format.indexOf('s') >= 0;
+            java.time.LocalDateTime dateTime = org.apache.poi.ss.usermodel.DateUtil.getLocalDateTime(value, false, false);
+            // round to the shown precision: day fractions are not exact in binary
+            long unit = (long) Math.pow(10, 9 - fraction);
+            long nanos = Math.round((double) dateTime.getNano() / unit) * unit;
+            dateTime = dateTime.withNano(0).plusNanos(nanos);
+            java.time.format.DateTimeFormatter time = java.time.format.DateTimeFormatter.ofPattern(timePattern);
+            if (hasDate && hasTime) {
+                return dateTime.toLocalDate() + "T" + dateTime.toLocalTime().format(time);
+            }
+            return hasTime ? dateTime.toLocalTime().format(time) : dateTime.toLocalDate().toString();
+        }
+        java.math.BigDecimal number = java.math.BigDecimal.valueOf(value);
+        int dot = format.indexOf('.');
+        if (dot >= 0 && !format.contains("e")) {
+            return number.setScale(fractionZeros(format, dot), java.math.RoundingMode.HALF_UP).toPlainString();
+        }
+        if (value == Math.rint(value) && Math.abs(value) < 1e15) {
+            return Long.toString((long) value);
+        }
+        return number.stripTrailingZeros().toPlainString();
+    }
+
+    /** @return the {@code 0} digits right after the {@code .} at {@code dot} (0 when there is none) */
+    private static int fractionZeros(String format, int dot) {
+        if (dot < 0) {
+            return 0;
+        }
+        int i = format.indexOf('.', dot) + 1;
+        int count = 0;
+        while (i < format.length() && format.charAt(i) == '0') {
+            count++;
+            i++;
+        }
+        return count;
     }
 
     /**

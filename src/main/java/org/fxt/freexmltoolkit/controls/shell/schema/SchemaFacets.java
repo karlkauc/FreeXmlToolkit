@@ -191,6 +191,119 @@ public final class SchemaFacets {
         return Set.of();
     }
 
+    /**
+     * The built-in type a declaration's value is ultimately of: its {@code type=} built-in, or the
+     * built-in at the end of its simple type's {@code xs:restriction base} chain (named and inline
+     * types, redefinitions, imported schemas), also through a complex type's {@code xs:simpleContent}
+     * extension/restriction. Enumerations do not hide the base.
+     *
+     * @param declaration an element or attribute declaration (or a simple/complex type)
+     * @param schemaRoot  the schema root holding the global named types
+     * @return the built-in local name ({@code decimal}, {@code date}, …); empty for a list or union,
+     *         element-only content, an unresolvable type, or a cyclic chain
+     */
+    public static java.util.Optional<String> builtinBase(XsdNode declaration, XsdNode schemaRoot) {
+        if (declaration == null) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.ofNullable(builtinOf(declaration, schemaRoot,
+                java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>())));
+    }
+
+    /** @return the built-in of an element/attribute/type node, or {@code null} */
+    private static String builtinOf(XsdNode node, XsdNode schemaRoot, Set<XsdNode> visited) {
+        if (!visited.add(node)) {
+            return null; // circular type chain
+        }
+        String typeRef = null;
+        if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element) {
+            typeRef = element.getType();
+        } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
+            typeRef = attribute.getType();
+        }
+        if (typeRef != null && !typeRef.isBlank()) {
+            return builtinOfReference(typeRef, node, schemaRoot, visited);
+        }
+        for (XsdNode child : node.getChildren()) {
+            switch (child.getNodeType()) {
+                case SIMPLE_TYPE, COMPLEX_TYPE, SIMPLE_CONTENT -> {
+                    return builtinOf(child, schemaRoot, visited);
+                }
+                case RESTRICTION -> {
+                    for (XsdNode inline : child.getChildren()) {
+                        if (inline.getNodeType() == XsdNodeType.SIMPLE_TYPE) {
+                            return builtinOf(inline, schemaRoot, visited);
+                        }
+                    }
+                    return builtinOfReference(((XsdRestriction) child).getBase(), child, schemaRoot, visited);
+                }
+                case EXTENSION -> {
+                    return builtinOfReference(
+                            ((org.fxt.freexmltoolkit.controls.v2.model.XsdExtension) child).getBase(),
+                            child, schemaRoot, visited);
+                }
+                case LIST, UNION, COMPLEX_CONTENT, SEQUENCE, CHOICE, ALL, GROUP -> {
+                    return null; // no single built-in value type
+                }
+                default -> {
+                    // annotations, attributes, facets
+                }
+            }
+        }
+        return null;
+    }
+
+    /** @return the built-in a {@code type}/{@code base} reference names or derives from, or {@code null} */
+    private static String builtinOfReference(String reference, XsdNode owner, XsdNode schemaRoot,
+            Set<XsdNode> visited) {
+        if (reference == null || reference.isBlank()) {
+            return null;
+        }
+        int colon = reference.indexOf(':');
+        String prefix = colon >= 0 ? reference.substring(0, colon) : "";
+        String local = reference.substring(colon + 1);
+        if (prefix.equals("xs") || prefix.equals("xsd")) {
+            return local;
+        }
+        XsdNode named;
+        if (owner instanceof XsdRestriction restriction && XsdRedefinitions.refersToOriginal(restriction, local)) {
+            named = XsdRedefinitions.originalOf(restriction);
+        } else {
+            named = namedSimpleType(schemaRoot, local);
+            if (named == null) {
+                named = namedComplexType(schemaRoot, local);
+            }
+        }
+        if (named != null) {
+            return builtinOf(named, schemaRoot, visited);
+        }
+        // another prefix bound to the XSD namespace, or a default-namespace built-in
+        return org.fxt.freexmltoolkit.domain.XsdBuiltinTypeCatalog.isBuiltin(local) ? local : null;
+    }
+
+    /** @return the global complex type {@code typeName}: redefinitions, main schema, imported schemas */
+    private static XsdNode namedComplexType(XsdNode schemaRoot, String typeName) {
+        if (schemaRoot == null) {
+            return null;
+        }
+        java.util.List<XsdNode> roots = new ArrayList<>();
+        if (schemaRoot instanceof XsdSchema xsdSchema) {
+            roots.addAll(XsdRedefinitions.of(xsdSchema));
+            roots.add(xsdSchema);
+            roots.addAll(xsdSchema.getImportedSchemas().values());
+        } else {
+            roots.add(schemaRoot);
+        }
+        for (XsdNode root : roots) {
+            for (XsdNode child : root.getChildren()) {
+                if (child.getNodeType() == XsdNodeType.COMPLEX_TYPE && typeName.equals(child.getName())) {
+                    return child;
+                }
+            }
+        }
+        return null;
+    }
+
     /** @return the direct {@code xs:simpleType} child of {@code schema} with the given name. */
     private static XsdNode findSimpleType(XsdNode schema, String typeName) {
         if (schema == null) {

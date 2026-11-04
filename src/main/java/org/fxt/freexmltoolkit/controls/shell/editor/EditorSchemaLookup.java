@@ -426,6 +426,31 @@ final class EditorSchemaLookup {
     }
 
     /**
+     * @return value types for the XML → Excel export of the active XML document, from its bound
+     * schema (the open XSD tab's current model, else the model parsed at binding); empty without one
+     */
+    public java.util.Optional<org.fxt.freexmltoolkit.service.SpreadsheetTypeResolver> activeSpreadsheetTypeResolver() {
+        if (!(host.tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)
+                || et.document.getFileType() != EditorFileType.XML || et.schemaFile == null) {
+            return java.util.Optional.empty();
+        }
+        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = activeBoundSchema(et);
+        return schema == null ? java.util.Optional.empty()
+                : java.util.Optional.of(new org.fxt.freexmltoolkit.controls.shell.schema.XsdSpreadsheetTypeResolver(schema));
+    }
+
+    /** @return the schema model bound to the XML tab: the open XSD tab's current model first */
+    private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema activeBoundSchema(EditorTab et) {
+        EditorTab schemaTab = findTabFor(et.schemaFile.toPath());
+        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = et.boundSchemaModel;
+        if (schemaTab != null && !schemaTab.loading) {
+            schemaTab.ensureModelParsed();
+            schema = schemaTab.editorContext != null ? schemaTab.editorContext.getSchema() : null;
+        }
+        return schema;
+    }
+
+    /**
      * @return the XSD declaration of the element at {@code elementXPath} (or of its attribute
      * {@code attributeName}) in the active XML document's bound schema; empty without a schema or
      * when the path cannot be mapped unambiguously
@@ -436,12 +461,7 @@ final class EditorSchemaLookup {
                 || et.document.getFileType() != EditorFileType.XML || et.schemaFile == null || elementXPath == null) {
             return java.util.Optional.empty();
         }
-        EditorTab schemaTab = findTabFor(et.schemaFile.toPath());
-        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = et.boundSchemaModel;
-        if (schemaTab != null && !schemaTab.loading) {
-            schemaTab.ensureModelParsed();
-            schema = schemaTab.editorContext != null ? schemaTab.editorContext.getSchema() : null;
-        }
+        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = activeBoundSchema(et);
         if (schema == null) {
             return java.util.Optional.empty();
         }

@@ -6,6 +6,10 @@ running is shown under **Help → About FreeXmlToolkit**.
 
 ## 2.9.0 (upcoming)
 
+- **XML → Excel:** the workbook now has the same look as the Data Dictionary export. With a
+  bound XSD, numbers, booleans and dates go into number, boolean and date cells instead of text.
+  Importing the workbook gives back the original values. See
+  [XML Editor](xml-editor.md#xmlexcelcsv-converter).
 - **XSD Graphic view, new card layout:** every node is one card with a symbol, name and type
   line; cardinality and attribute use are pills, optional cards are dashed and repeating ones have
   a second outline. A **title chip** (top left) names the selected card, a **zoom control** sits

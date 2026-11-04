@@ -506,6 +506,33 @@ Choose **Tools → Spreadsheet Converter…** (Ctrl+E) to open the converter dia
 - **Excel to XML**: Import Excel data as XML
 - **CSV to XML**: Import CSV data as XML
 
+The Excel workbook looks like the Data Dictionary export: a dark header row that stays in
+view while you scroll, striped rows, XPaths in a monospace font, and container elements in
+bold. It also has an AutoFilter and prints one page wide.
+
+When an **XSD is bound** to the document, each value goes into a cell of its schema type.
+The type is followed through derived simple types, `xs:simpleContent` and imported schemas:
+
+| Schema type | Excel cell |
+|-------------|------------|
+| `xs:integer`, `xs:int`, `xs:long`, … | Number, format `0` |
+| `xs:decimal` | Number, showing as many decimals as the XML value (`10.50` → `10.50`) |
+| `xs:double`, `xs:float` | Number, General format |
+| `xs:boolean` (`true` / `false`) | TRUE / FALSE |
+| `xs:date`, `xs:dateTime`, `xs:time` | Date / time, `yyyy-mm-dd` / `yyyy-mm-dd hh:mm:ss` / `hh:mm:ss` |
+
+Some values stay text, so that importing the workbook gives back exactly the same XML:
+
+- values with more than 15 digits;
+- leading zeros or `+`;
+- `0` / `1` booleans;
+- dates with a timezone or before 1900;
+- times more precise than milliseconds;
+- lists, unions and values that do not match their type.
+
+Without a schema, every value is text. **Excel to XML** turns typed cells back into their XML
+form.
+
 ---
 
 ## Templates

@@ -6,6 +6,7 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.fxt.freexmltoolkit.service.CsvHandler;
+import org.fxt.freexmltoolkit.service.SpreadsheetTypeResolver;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.ConversionConfig;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.RowLimitExceededException;
@@ -112,9 +113,18 @@ public final class SpreadsheetActionRunner {
 
     /** Converts the XML to an Excel (.xlsx) workbook with the given conversion options. */
     public static Result exportToExcel(String xmlContent, File output, ConversionConfig config) {
+        return exportToExcel(xmlContent, output, config, SpreadsheetTypeResolver.NONE);
+    }
+
+    /**
+     * Converts the XML to an Excel (.xlsx) workbook, typing the value cells as {@code types} says
+     * (from the bound XSD; {@code null} or {@link SpreadsheetTypeResolver#NONE}: all text).
+     */
+    public static Result exportToExcel(String xmlContent, File output, ConversionConfig config,
+                                       SpreadsheetTypeResolver types) {
         try {
             Document doc = parseXml(xmlContent);
-            new XmlSpreadsheetConverterService().convertXmlToExcel(doc, output, config);
+            new XmlSpreadsheetConverterService().convertXmlToExcel(doc, output, config, types);
             return Result.ok("OK: " + output.getAbsolutePath());
         } catch (Exception e) {
             return Result.failed(e);

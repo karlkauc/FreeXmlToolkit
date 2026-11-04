@@ -3313,6 +3313,14 @@ public class EditorHost extends BorderPane {
         return schemaLookup.resolveActiveXmlAttributeInfo(elementXPath, attributeName);
     }
 
+    /**
+     * @return value types for exporting the active XML document to Excel, from its bound XSD;
+     * empty when the active document is no XML tab with a schema (FX thread)
+     */
+    public java.util.Optional<org.fxt.freexmltoolkit.service.SpreadsheetTypeResolver> activeSpreadsheetTypeResolver() {
+        return schemaLookup.activeSpreadsheetTypeResolver();
+    }
+
     /** Reveals a named type in the Tree view (switching to the XSD tab + Tree if needed). */
     public void revealTypeByName(String typeName) {
         schemaLookup.revealTypeByName(typeName);
