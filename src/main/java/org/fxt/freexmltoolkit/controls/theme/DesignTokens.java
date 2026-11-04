@@ -78,6 +78,12 @@ public final class DesignTokens {
         TEAL("-fxt-teal", "#12a594", "#38d9a9"),
         INDIGO("-fxt-indigo", "#4c5fd5", "#9775fa"),
 
+        // Type frames of the graphic XSD view: the content of a named complex type, drawn as a
+        // titled, dashed box (XMLSpy style) and read-only in place.
+        TYPE_FRAME_BG("-fxt-type-frame-bg", "#fffbe0", "#2a2614"),
+        TYPE_FRAME_BORDER("-fxt-type-frame-border", "#d4b84a", "#7a6a2e"),
+        TYPE_FRAME_FG("-fxt-type-frame-fg", "#7d6c2c", "#d9c27a"),
+
         // Workflow colour families (spec 2026-09-26 §1.3). Slots: accent (icon tint), fg (text on
         // surface), fill (filled primary action, white label), bg (tint), border, rail (= the dark
         // accent in BOTH themes because the Activity Bar is always navy). See Workflow.

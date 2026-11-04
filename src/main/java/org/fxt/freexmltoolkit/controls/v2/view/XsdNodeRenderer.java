@@ -65,6 +65,14 @@ public class XsdNodeRenderer {
     private static final double GAP_IN_COMPOSITOR = 14;
     private static final double GAP_IN_CARD = 20;
 
+    /** Inset of a type frame around its content, per nesting level. */
+    static final double FRAME_PAD = 12;
+    /** Height of a type frame's title row above its content. */
+    static final double FRAME_HEADER = 26;
+    private static final double FRAME_RADIUS = 6;
+    private static final double FRAME_TITLE_X = 10;
+    private static final double FRAME_TITLE_Y = 7;
+
     /** Rows a card lists before the rest collapse into a "+N more" line. */
     static final int MAX_CONSTRAINT_ROWS = 4;
     private static final double CONSTRAINT_ROW_HEIGHT = 18;
@@ -83,6 +91,7 @@ public class XsdNodeRenderer {
     private final Font compositorLabelFont = Font.font(DesignTokens.FONT_FAMILY_MONO, 9);
     private final Font constraintFont = Font.font(DesignTokens.FONT_FAMILY_MONO, 10);
     private final Font constraintLabelFont = Font.font(DesignTokens.FONT_FAMILY_MONO, FontWeight.BOLD, 9);
+    private final Font frameTitleFont = weighted(DesignTokens.FONT_FAMILY_UI, "SemiBold", FontWeight.BOLD, 11.5);
     private final Font badgeFont = Font.font(DesignTokens.FONT_FAMILY_UI, FontWeight.BOLD, 7);
     private final javafx.scene.text.Text textMeasurer = new javafx.scene.text.Text();
 
@@ -534,6 +543,44 @@ public class XsdNodeRenderer {
         gc.setLineDashes(null);
     }
 
+    // ------------------------------------------------------------------ type frames
+
+    /** @return the width a type frame needs for its title */
+    public double typeFrameTitleWidth(TypeFrame frame) {
+        return FRAME_TITLE_X * 2 + estimateTextWidth(frame.typeName(), frameTitleFont);
+    }
+
+    /**
+     * Draws a type frame (XMLSpy style): a light tint with a dashed outline and the type's name
+     * top left. It lies behind the content of the type, which is read-only in place.
+     */
+    public void renderTypeFrame(GraphicsContext gc, TypeFrame frame) {
+        double x = frame.getX();
+        double y = frame.getY();
+        double w = frame.getWidth();
+        double h = frame.getHeight();
+        if (w <= 0 || h <= 0) {
+            return;
+        }
+        gc.setFill(token(ColorToken.TYPE_FRAME_BG));
+        gc.fillRoundRect(x, y, w, h, FRAME_RADIUS * 2, FRAME_RADIUS * 2);
+        gc.setStroke(token(ColorToken.TYPE_FRAME_BORDER));
+        gc.setLineWidth(1.2);
+        gc.setLineDashes(5, 4);
+        gc.strokeRoundRect(x + 0.6, y + 0.6, w - 1.2, h - 1.2, FRAME_RADIUS * 2, FRAME_RADIUS * 2);
+        gc.setLineDashes(null);
+        gc.setFill(token(ColorToken.TYPE_FRAME_FG));
+        gc.setFont(frameTitleFont);
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText(frame.typeName(), x + FRAME_TITLE_X, y + FRAME_TITLE_Y);
+    }
+
+    /** @return whether the point lies on the title row of the frame (double-click opens the type) */
+    public static boolean onTypeFrameTitle(TypeFrame frame, double px, double py) {
+        return frame.containsPoint(px, py) && py <= frame.getY() + FRAME_HEADER;
+    }
+
     /** Draws the section that lists a card's constraints below its text lines. */
     private void renderConstraintRows(GraphicsContext gc, VisualNode node, double x, double y, double width) {
         int lines = constraintLines(node);
@@ -795,6 +842,8 @@ public class XsdNodeRenderer {
         private final Object modelObject;  // Can be XsdNode (new) or XsdModel objects (old)
         private final VisualNode parent;
         private final java.util.List<VisualNode> children = new java.util.ArrayList<>();
+        // Runs of children that come from named complex types (innermost first)
+        private java.util.List<TypeFrame> typeFrames = java.util.List.of();
 
         // Mutable callback - can be updated when tree is rebuilt
         private Runnable onModelChangeCallback;
@@ -1323,6 +1372,75 @@ public class XsdNodeRenderer {
 
         public void addChild(VisualNode child) {
             children.add(child);
+        }
+
+        /**
+         * Marks a run of this card's children as the content of a named complex type (see
+         * {@link TypeFrame}). Frames are added innermost first.
+         */
+        public void addTypeFrame(TypeFrame frame) {
+            if (typeFrames.isEmpty()) {
+                typeFrames = new java.util.ArrayList<>();
+            }
+            typeFrames.add(frame);
+        }
+
+        /** @return the type frames over this card's children, innermost first (never null) */
+        public java.util.List<TypeFrame> getTypeFrames() {
+            return typeFrames;
+        }
+
+        /**
+         * The frame of the named type this node belongs to: the innermost frame met walking up from
+         * this node. A node inside a frame is shown read-only; it is changed by editing that type.
+         *
+         * @return the locking frame, or null when this node can be edited in place
+         */
+        public TypeFrame lockingFrame() {
+            VisualNode child = this;
+            VisualNode owner = parent;
+            while (owner != null) {
+                if (!owner.typeFrames.isEmpty()) {
+                    int index = owner.children.indexOf(child);
+                    for (TypeFrame frame : owner.typeFrames) { // innermost first
+                        if (frame.contains(index)) {
+                            return frame;
+                        }
+                    }
+                }
+                child = owner;
+                owner = owner.parent;
+            }
+            return null;
+        }
+
+        /**
+         * The frame that keeps content from being added under this card: its own locking frame, or
+         * the frame that holds all of its content (an element with {@code type="T"}, whose new
+         * children would go into T). Deferred children are loaded first, they carry the frames.
+         *
+         * @return the frame, or null when content can be added here
+         */
+        public TypeFrame contentLockingFrame() {
+            TypeFrame own = lockingFrame();
+            if (own != null) {
+                return own;
+            }
+            if (hasUnloadedChildren()) {
+                loadChildrenIfNeeded();
+            }
+            for (int i = typeFrames.size() - 1; i >= 0; i--) { // outermost first
+                TypeFrame frame = typeFrames.get(i);
+                if (frame.from() == 0 && frame.to() == children.size()) {
+                    return frame;
+                }
+            }
+            return null;
+        }
+
+        /** @return whether this node belongs to a named type shown in a frame (read-only here) */
+        public boolean isLockedByType() {
+            return lockingFrame() != null;
         }
 
         public boolean hasChildren() {

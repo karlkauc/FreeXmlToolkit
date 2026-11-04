@@ -83,6 +83,9 @@ lists that you edit directly:
 - **Point at a row** to show its **trash** icon; click it to delete the facet or attribute.
 - **Add** a new entry with the row below the list (facet kind or attribute name, value, **Add**).
 - **Inherited facets** (from a base type) are shown in *italics* and cannot be edited here.
+- **Nodes of a named type** selected inside a type frame of the Graphic view are read-only: a
+  note above the sections names the type, and **Edit type** opens it in the type editor (see
+  [Named Types in Frames](xsd-tools.md#named-types-in-frames)).
 - **Long values wrap** onto several lines instead of being cut off. The row's tooltip shows the
   full value, plus where it comes from (*inherited from the referenced named type* or
   *defined by the schema*).

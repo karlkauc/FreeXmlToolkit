@@ -267,6 +267,8 @@ public class XsdVisualTreeBuilder {
 
     /** Eager cards allowed in one build (a lazy expansion starts a fresh budget). */
     private int nodeBudget = DEFAULT_NODE_BUDGET;
+    /** Whether the root card's own named type stays unframed (type editor), see {@link #withEditableRootType}. */
+    private boolean editableRootType;
 
     /** Cards created so far in this build. */
     private int cardCount = 0;
@@ -321,6 +323,18 @@ public class XsdVisualTreeBuilder {
      */
     public XsdVisualTreeBuilder withNodeBudget(int budget) {
         this.nodeBudget = Math.max(1, budget);
+        return this;
+    }
+
+    /**
+     * Keeps the root card's own named type editable: in a type editor the root is a stand-in
+     * element whose {@code type=} is the edited type, so its content must not be framed.
+     *
+     * @param editable true for a type editor's diagram
+     * @return this builder for method chaining
+     */
+    public XsdVisualTreeBuilder withEditableRootType(boolean editable) {
+        this.editableRootType = editable;
         return this;
     }
 
@@ -535,6 +549,7 @@ public class XsdVisualTreeBuilder {
         lazyBuilder.index = this.index;
         lazyBuilder.originals = this.originals;
         lazyBuilder.currentDepth = depth;
+        lazyBuilder.editableRootType = this.editableRootType;
         return lazyBuilder;
     }
 
@@ -1330,10 +1345,34 @@ public class XsdVisualTreeBuilder {
                 }
                 Set<String> localVisitedTypes = new HashSet<>(visitedTypes);
                 localVisitedTypes.add(visitKey);
+                int from = parentNode.getChildren().size();
                 processComplexType(type, parentNode, localVisitedTypes, visitedElements);
+                addTypeFrame(parentNode, owner, typeRef, type, from);
             }
             default -> { }
         }
+    }
+
+    /**
+     * Marks the children a named type just added to {@code card} as that type's frame, so the view
+     * draws them in a titled box and keeps them read-only. A type editor's root card stands for the
+     * edited type itself: its own content stays unframed (an extension base inside it is framed).
+     */
+    private void addTypeFrame(VisualNode card, XsdNode owner, String typeRef, XsdComplexType type, int from) {
+        int to = card.getChildren().size();
+        if (to <= from) {
+            return;
+        }
+        if (editableRootType && card.getParent() == null && card.getModelObject() == owner) {
+            return;
+        }
+        int level = 0;
+        for (TypeFrame inner : card.getTypeFrames()) {
+            if (inner.from() >= from && inner.to() <= to) {
+                level = Math.max(level, inner.level() + 1);
+            }
+        }
+        card.addTypeFrame(new TypeFrame(typeRef, type, from, to, level));
     }
 
     /**

@@ -370,14 +370,19 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * @return true if the node is visible or partially visible
      */
     private boolean isNodeInViewport(VisualNode node) {
+        return isRectInViewport(node.getX(), node.getY(), node.getWidth(), node.getHeight());
+    }
+
+    /** @return whether a rectangle in diagram coordinates meets the viewport (with margin) */
+    private boolean isRectInViewport(double x, double y, double w, double h) {
         if (!viewportCullingEnabled) {
             return true;  // Culling disabled - render everything
         }
 
-        double nodeX = node.getX() * zoomLevel;
-        double nodeY = node.getY() * zoomLevel;
-        double nodeWidth = node.getWidth() * zoomLevel;
-        double nodeHeight = node.getHeight() * zoomLevel;
+        double nodeX = x * zoomLevel;
+        double nodeY = y * zoomLevel;
+        double nodeWidth = w * zoomLevel;
+        double nodeHeight = h * zoomLevel;
 
         // Check if node intersects viewport (with margin)
         double vpLeft = viewportX - VIEWPORT_MARGIN;
@@ -576,7 +581,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         try {
             nodeMap.clear();
 
-            XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
+            XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder().withEditableRootType(rootKind != null);
             // Redraw callback for Model → View synchronization, debounced: VisualNode.updateFromModel()
             // already updates the visual properties in-place, and one edit notifies many nodes, each of
             // which used to run a full layout. Structural changes (add/delete) are handled separately
@@ -643,7 +648,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
             // 3. Rebuild tree from schema
             // Debounced redraw as callback - structural changes are handled by XsdGraphView.propertyChange()
-            XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder();
+            XsdVisualTreeBuilder builder = new XsdVisualTreeBuilder().withEditableRootType(rootKind != null);
             disposeVisualTree();
             rootNode = builder.buildFromSchema(xsdSchema, this::requestRedraw, importedSchemas);
             nodeMap.clear();
@@ -1009,6 +1014,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             renderedNodeCount++;
         }
         if (node.isExpanded() && node.hasChildren()) {
+            renderTypeFrames(gc, node, new double[]{rx, ry, rw, rh});
             for (VisualNode child : node.getChildren()) {
                 if (connectionIntersectsRegion(node, child, rx, ry, rw, rh)) {
                     renderer.renderConnection(gc, node, child);
@@ -1016,6 +1022,48 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
                 renderTreeInRegion(gc, child, rx, ry, rw, rh);
             }
         }
+    }
+
+    /**
+     * Draws the type frames over a card's children, outer ones first, behind connectors and cards.
+     *
+     * @param region the repaint region {x, y, w, h}, or null for the viewport
+     */
+    private void renderTypeFrames(GraphicsContext gc, VisualNode node, double[] region) {
+        java.util.List<TypeFrame> frames = node.getTypeFrames();
+        for (int i = frames.size() - 1; i >= 0; i--) { // stored innermost first
+            TypeFrame frame = frames.get(i);
+            boolean visible = region == null
+                    ? isRectInViewport(frame.getX(), frame.getY(), frame.getWidth(), frame.getHeight())
+                    : rectsIntersect(frame.getX(), frame.getY(), frame.getWidth(), frame.getHeight(),
+                            region[0], region[1], region[2], region[3]);
+            if (visible) {
+                renderer.renderTypeFrame(gc, frame);
+            }
+        }
+    }
+
+    /** @return the type frame whose title row lies at the point (diagram coordinates), or null */
+    TypeFrame typeFrameTitleAt(double x, double y) {
+        return rootNode == null ? null : typeFrameTitleAt(rootNode, x, y);
+    }
+
+    private TypeFrame typeFrameTitleAt(VisualNode node, double x, double y) {
+        if (!node.isExpanded()) {
+            return null;
+        }
+        for (TypeFrame frame : node.getTypeFrames()) { // innermost first
+            if (XsdNodeRenderer.onTypeFrameTitle(frame, x, y)) {
+                return frame;
+            }
+        }
+        for (VisualNode child : node.getChildren()) {
+            TypeFrame hit = typeFrameTitleAt(child, x, y);
+            if (hit != null) {
+                return hit;
+            }
+        }
+        return null;
     }
 
     /** @return whether the bounding box spanning {@code parent} and {@code child} meets the region. */
@@ -1120,8 +1168,13 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      * @param kind the kind, or null for the card's own
      */
     public void setRootKind(String kind) {
+        boolean framingChanged = (kind == null) != (rootKind == null);
         this.rootKind = kind;
         updateTitleChip();
+        if (framingChanged && rootNode != null) {
+            // The root's own type is framed (read-only) only when the root is no type stand-in
+            rebuildVisualTree();
+        }
     }
 
     /** A new tree has a new root: the chip shows it when nothing is selected. */
@@ -1151,6 +1204,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
                 double[] childBounds = calculateCanvasBounds(child);
                 maxX = Math.max(maxX, childBounds[0]);
                 maxY = Math.max(maxY, childBounds[1]);
+            }
+            for (TypeFrame frame : node.getTypeFrames()) {
+                maxX = Math.max(maxX, frame.getX() + frame.getWidth());
+                maxY = Math.max(maxY, frame.getY() + frame.getHeight());
             }
         }
 
@@ -1189,11 +1246,53 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             gap = Math.max(gap, renderer.horizontalGap(node, child));
         }
 
-        double childX = x + actualWidth + gap;
+        java.util.List<TypeFrame> frames = node.getTypeFrames();
+        int frameDepth = 0;
+        for (TypeFrame frame : frames) {
+            frameDepth = Math.max(frameDepth, frame.level() + 1);
+        }
+        double childX = x + actualWidth + gap + frameDepth * XsdNodeRenderer.FRAME_PAD;
         double siblingGap = renderer.siblingGap(node);
         double childY = y;
-        for (VisualNode child : node.getChildren()) {
-            childY += layoutNode(child, childX, childY, isCompositor(child) ? 0 : groupWidth) + siblingGap;
+        java.util.List<VisualNode> children = node.getChildren();
+        double[] frameTops = new double[frames.size()];
+        double[] frameRights = new double[frames.size()];
+        for (int i = 0; i < children.size(); i++) {
+            VisualNode child = children.get(i);
+            // Frames opening here: outer ones first, each with its title row above the content
+            for (int level = frameDepth - 1; level >= 0; level--) {
+                for (int f = 0; f < frames.size(); f++) {
+                    if (frames.get(f).from() == i && frames.get(f).level() == level) {
+                        frameTops[f] = childY;
+                        childY += XsdNodeRenderer.FRAME_HEADER;
+                    }
+                }
+            }
+            childY += layoutNode(child, childX, childY, isCompositor(child) ? 0 : groupWidth);
+            double subtreeRight = calculateCanvasBounds(child)[0];
+            // Frames closing after this child: inner ones first, each with its bottom padding
+            for (int level = 0; level < frameDepth; level++) {
+                for (int f = 0; f < frames.size(); f++) {
+                    TypeFrame frame = frames.get(f);
+                    if (frame.contains(i)) {
+                        frameRights[f] = Math.max(frameRights[f], subtreeRight);
+                    }
+                    if (frame.to() == i + 1 && frame.level() == level) {
+                        childY += XsdNodeRenderer.FRAME_PAD;
+                        double left = childX - (level + 1) * XsdNodeRenderer.FRAME_PAD;
+                        double right = Math.max(frameRights[f] + (level + 1) * XsdNodeRenderer.FRAME_PAD,
+                                left + renderer.typeFrameTitleWidth(frame));
+                        frame.setBounds(left, frameTops[f], right - left, childY - frameTops[f]);
+                        // An enclosing frame reaches at least as far right as this one
+                        for (int g = 0; g < frames.size(); g++) {
+                            if (g != f && frames.get(g).encloses(frame)) {
+                                frameRights[g] = Math.max(frameRights[g], right);
+                            }
+                        }
+                    }
+                }
+            }
+            childY += siblingGap;
         }
         double totalHeight = Math.max(childY - y - siblingGap, actualHeight);
 
@@ -1224,6 +1323,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
         // Render connections and children
         if (node.isExpanded() && node.hasChildren()) {
+            renderTypeFrames(gc, node, null);
             // Check if any children might be visible before iterating
             boolean shouldTraverseChildren = !viewportCullingEnabled || hasVisibleChildren(node);
 
@@ -1383,6 +1483,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
         VisualNode clickedNode = findNodeAt(rootNode, x, y);
 
+        if (clickedNode == null && event.getClickCount() >= 2 && openTypeOfFrame(typeFrameTitleAt(x, y))) {
+            return;
+        }
         if (clickedNode != null) {
             // Check if expand button was clicked
             if (clickedNode.expandButtonContainsPoint(x, y)) {
@@ -1676,6 +1779,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.debug("Cannot move node: no node selected");
             return;
         }
+        if (blockedByTypeFrame(selected, "Move")) {
+            return;
+        }
 
         Object modelObject = selected.getModelObject();
         if (modelObject instanceof XsdNode xsdNode) {
@@ -1706,6 +1812,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         VisualNode selected = getSelectionModel().getPrimarySelection();
         if (selected == null) {
             logger.debug("Cannot move node: no node selected");
+            return;
+        }
+        if (blockedByTypeFrame(selected, "Move")) {
             return;
         }
 
@@ -1758,6 +1867,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.debug("Cannot cut: no node selected");
             return;
         }
+        if (blockedByTypeFrame(selected, "Cut")) {
+            return;
+        }
 
         Object modelObject = selected.getModelObject();
         if (modelObject instanceof XsdNode xsdNode) {
@@ -1784,6 +1896,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         VisualNode selected = getSelectionModel().getPrimarySelection();
         if (selected == null) {
             logger.debug("Cannot paste: no target node selected");
+            return;
+        }
+        if (blockedByTypeFrame(selected, selected.contentLockingFrame(), "Paste")) {
             return;
         }
 
@@ -1817,6 +1932,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             logger.debug("Cannot delete: no node selected");
             return;
         }
+        if (blockedByTypeFrame(selected, "Delete")) {
+            return;
+        }
 
         Object modelObject = selected.getModelObject();
         if (modelObject instanceof XsdNode xsdNode) {
@@ -1824,6 +1942,56 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
             editorContext.getCommandManager().executeCommand(command);
             logger.info("Deleted node '{}' via Delete key", xsdNode.getName());
         }
+    }
+
+    /**
+     * Refuses an edit of a node that belongs to a named type shown in a frame: it is read-only in
+     * place and changed by editing the type. Explains why (blocked-edit dialog).
+     *
+     * @return true when the edit must not run
+     */
+    private boolean blockedByTypeFrame(VisualNode node, String actionTitle) {
+        return blockedByTypeFrame(node, node == null ? null : node.lockingFrame(), actionTitle);
+    }
+
+    private boolean blockedByTypeFrame(VisualNode node, TypeFrame frame, String actionTitle) {
+        if (frame == null) {
+            return false;
+        }
+        String reason = node.lockingFrame() == frame
+                ? frame.lockReason(node.getLabel()) : frame.contentLockReason(node.getLabel());
+        org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(
+                getScene() == null ? null : getScene().getWindow(), actionTitle,
+                org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck.blocked(reason));
+        return true;
+    }
+
+    /**
+     * Opens the type of a frame in its type editor (the shell's type-editor tab).
+     *
+     * @return whether a type editor was asked to open
+     */
+    boolean openTypeOfFrame(TypeFrame frame) {
+        if (frame == null || frame.type() == null || openComplexTypeEditorCallback == null) {
+            return false;
+        }
+        openComplexTypeEditorCallback.accept(frame.type());
+        return true;
+    }
+
+    /**
+     * @return the frame that keeps content from being added under the primary selection (its own,
+     *         or the named type that holds all of its content), or null
+     */
+    public TypeFrame contentLockingFrameOfSelection() {
+        VisualNode selected = getSelectionModel().getPrimarySelection();
+        return selected == null ? null : selected.contentLockingFrame();
+    }
+
+    /** @return the frame of the named type the primary selection belongs to, or null */
+    public TypeFrame lockingFrameOfSelection() {
+        VisualNode selected = getSelectionModel().getPrimarySelection();
+        return selected == null ? null : selected.lockingFrame();
     }
 
     // ==================== Drag & Drop Implementation ====================
@@ -1959,6 +2127,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
                     ? XsdDropPlanner.Position.INTO
                     : XsdDropPlanner.zone(y, newTarget.getY(), newTarget.getHeight(), into);
             newPlan = dropPlanner().plan(draggedNode.getModelNode(), targetModel, position, dragCopy);
+            newPlan = blockInsideTypeFrames(newPlan, draggedNode, newTarget);
         }
         if (newPlan == null) {
             newTarget = null; // a drop here changes nothing: no feedback
@@ -1981,6 +2150,31 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         canvas.setCursor(dropTarget == null ? javafx.scene.Cursor.CLOSED_HAND
                 : blocked ? javafx.scene.Cursor.DISAPPEAR : javafx.scene.Cursor.MOVE);
         repaintNodes(java.util.Arrays.asList(previous, dropTarget));
+    }
+
+    /**
+     * Blocks a drop that would change a named type shown in a frame: moving a node out of a frame,
+     * or dropping next to or into a node inside one. Copying a node out of a frame stays allowed.
+     */
+    static XsdDropPlanner.Plan blockInsideTypeFrames(XsdDropPlanner.Plan plan, VisualNode source, VisualNode target) {
+        if (plan == null || plan.isBlocked()) {
+            return plan;
+        }
+        // INTO adds under the target: an element whose content is a type's frame adds to that type
+        TypeFrame frame = plan.position() == XsdDropPlanner.Position.INTO
+                ? target.contentLockingFrame() : target.lockingFrame();
+        VisualNode locked = target;
+        if (frame == null && !plan.copy()) {
+            frame = source.lockingFrame();
+            locked = source;
+        }
+        if (frame == null) {
+            return plan;
+        }
+        String reason = locked.lockingFrame() == frame
+                ? frame.lockReason(locked.getLabel()) : frame.contentLockReason(locked.getLabel());
+        return new XsdDropPlanner.Plan(plan.node(), plan.target(), null, -1, plan.position(), plan.copy(),
+                org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck.blocked(reason));
     }
 
     /** Clears the drag feedback (dragging overlay, drop indicator, cursor, auto-scroll). */

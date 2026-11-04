@@ -6,6 +6,7 @@ import java.util.List;
 import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -98,6 +99,11 @@ public class InspectorPanel extends VBox {
     @FXML private IconifyIcon nodeIcon;
     @FXML private Label nodeHeaderName;
     @FXML private Label emptyHint;
+    @FXML private VBox typeLockBox;
+    @FXML private Label typeLockInfo;
+    @FXML private Button editLockedTypeButton;
+    /** The type frame the shown XSD node lies in (Graphic view), or null when it is editable here. */
+    private org.fxt.freexmltoolkit.controls.v2.view.TypeFrame typeLock;
     @FXML private HBox subtitleBox;
     @FXML private Label nodeHeaderKind;
     @FXML private Label subtitleDot;
@@ -936,6 +942,7 @@ public class InspectorPanel extends VBox {
             } else {
                 populateCaret();
             }
+            applyTypeLock(selected != null ? editorHost.activeSelectionTypeFrame().orElse(null) : null);
             updateNameDisplay();
             updatePosition();
             if (xmlDeclEdit == null || previousDecl == null
@@ -944,6 +951,44 @@ public class InspectorPanel extends VBox {
             }
         } finally {
             updating = false;
+        }
+    }
+
+    /**
+     * Shows a node of a named type's frame (Graphic view) read-only: a note names the type and
+     * "Edit type" opens it; the editing sections are disabled. Edits would be refused anyway
+     * ({@code EditorHost} checks the selection), this makes it visible.
+     *
+     * @param frame the frame the node lies in, or null to make the inspector editable again
+     */
+    private void applyTypeLock(org.fxt.freexmltoolkit.controls.v2.view.TypeFrame frame) {
+        typeLock = frame;
+        boolean locked = frame != null;
+        if (locked) {
+            typeLockInfo.setText("Part of type '" + frame.typeName() + "'. It is read-only here: "
+                    + "edit the type to change it.");
+            nameField.setEditable(false);
+        }
+        show(typeLockBox, locked);
+        editLockedTypeButton.setDisable(!locked || frame.type() == null || frame.type().getName() == null);
+        for (TitledPane section : new TitledPane[]{namespaceSection, typeFacetsSection, cardUseSection,
+                contentSection, constraintsSection, advancedSection, schemaSection}) {
+            if (section.getContent() != null) {
+                section.getContent().setDisable(locked);
+            }
+        }
+        docBox.setDisable(locked);
+    }
+
+    /** @return the type frame that keeps the shown node read-only, or null (tests) */
+    org.fxt.freexmltoolkit.controls.v2.view.TypeFrame typeLock() {
+        return typeLock;
+    }
+
+    @FXML
+    public void onEditLockedType() {
+        if (typeLock != null && typeLock.type() != null && typeLock.type().getName() != null) {
+            editorHost.openTypeEditorTab(typeLock.type().getName());
         }
     }
 

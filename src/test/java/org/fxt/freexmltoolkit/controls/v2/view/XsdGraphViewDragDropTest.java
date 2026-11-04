@@ -120,26 +120,56 @@ class XsdGraphViewDragDropTest {
     }
 
     @Test
-    void droppingIntoASharedTypeAsksFirst() throws Exception {
+    void droppingIntoAnElementOfANamedTypeIsRefused() throws Exception {
         XsdNode street = find("street");
+        List<EditCheck> blocked = new ArrayList<>();
         List<String> asked = new ArrayList<>();
-        EditRuleDialogs.setConfirmer((title, check) -> {
-            asked.add(check.reason());
-            return false;
-        });
+        EditRuleDialogs.setBlockedHandler((title, check) -> blocked.add(check));
+        EditRuleDialogs.setConfirmer((title, check) -> asked.add(check.reason()));
         reveal("a", "addr1");
 
         drag("a", "addr1", 0.5, false);
         WaitForAsyncUtils.waitForFxEvents();
 
-        assertEquals(1, asked.size());
-        assertTrue(asked.getFirst().contains("AddressType"), asked.getFirst());
-        assertEquals(List.of("street"), names(street.getParent()), "cancelled: nothing moved");
+        assertEquals(1, blocked.size(), "its content is the type's frame: it goes into the type");
+        assertTrue(blocked.getFirst().reason().contains("AddressType"), blocked.getFirst().reason());
+        assertTrue(asked.isEmpty(), "refused, not asked");
+        assertEquals(List.of("street"), names(street.getParent()), "nothing moved");
+    }
 
-        EditRuleDialogs.setConfirmer((title, check) -> true);
-        reveal("a", "addr1");
-        drag("a", "addr1", 0.5, false);
-        waitFor(() -> names(street.getParent()).equals(List.of("street", "a")));
+    @Test
+    void movingANodeOutOfATypeFrameIsRefusedButCopyingIsAllowed() throws Exception {
+        XsdNode street = find("street");
+        XsdNode a = find("a");
+        List<EditCheck> blocked = new ArrayList<>();
+        EditRuleDialogs.setBlockedHandler((title, check) -> blocked.add(check));
+        reveal("street", "a");
+
+        drag("street", "a", 0.1, false);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(1, blocked.size());
+        assertTrue(blocked.getFirst().reason().contains("AddressType"), blocked.getFirst().reason());
+        assertEquals(List.of("street"), names(street.getParent()));
+
+        reveal("street", "a");
+        drag("street", "a", 0.1, true);
+        waitFor(() -> names(a.getParent()).getFirst().equals("street"));
+        assertEquals(List.of("street"), names(street.getParent()), "the type keeps its node");
+    }
+
+    @Test
+    void droppingNextToANodeInsideATypeFrameIsRefused() throws Exception {
+        XsdNode street = find("street");
+        List<EditCheck> blocked = new ArrayList<>();
+        EditRuleDialogs.setBlockedHandler((title, check) -> blocked.add(check));
+        reveal("a", "street");
+
+        drag("a", "street", 0.9, false);
+        WaitForAsyncUtils.waitForFxEvents();
+
+        assertEquals(1, blocked.size());
+        assertEquals(List.of("street"), names(street.getParent()));
     }
 
     @Test

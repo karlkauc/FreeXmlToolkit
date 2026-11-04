@@ -49,6 +49,15 @@
       "cyan": "#17a2b8"
     },
 
+    // Type frames of the graphic XSD view (XsdNodeRenderer.renderTypeFrame): the content of a named
+    // complex type, read-only in place, drawn as a tinted box with a dashed border and the type's
+    // name top left (XMLSpy style). Tokens -fxt-type-frame-{bg,border,fg} (DesignTokens.ColorToken.TYPE_FRAME_*).
+    "typeFrame": {
+      "bgLight": "#fffbe0",     "bgDark": "#2a2614",
+      "borderLight": "#d4b84a", "borderDark": "#7a6a2e",   // dashed 5/4, 1.2px, radius 6
+      "fgLight": "#7d6c2c",     "fgDark": "#d9c27a"        // title: Inter SemiBold 11.5
+    },
+
     // Workflow colour families (spec docs/superpowers/specs/2026-09-26-workflow-colours-branding-design.md,
     // Java: controls/theme/Workflow, CSS: -fxt-wf-<id>-{accent,fg,fill,bg,border,rail} in design-tokens.css).
     // One family per Activity; it colours ONLY the chrome that names the workflow: the Activity-Bar

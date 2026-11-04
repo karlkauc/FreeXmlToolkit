@@ -120,6 +120,30 @@
         <Label fx:id="emptyHint" id="inspector-empty-hint" wrapText="true" visible="false" managed="false"
                styleClass="fxt-placeholder-text, fxt-inspector-empty-hint"/>
 
+        <!-- Graphic view: the node lies in a type frame, so it belongs to a named type and is
+             read-only here (shown by InspectorPanel.applyTypeLock). -->
+        <VBox fx:id="typeLockBox" id="inspector-type-lock" spacing="6" visible="false" managed="false"
+              styleClass="fxt-inspector-codebox, fxt-inspector-decl-box, fxt-inspector-type-lock">
+            <children>
+                <HBox spacing="6" alignment="TOP_LEFT">
+                    <children>
+                        <IconifyIcon iconLiteral="bi-lock" iconSize="14" styleClass="fxt-inspector-type-lock-icon"/>
+                        <Label fx:id="typeLockInfo" id="inspector-type-lock-info" wrapText="true" minHeight="-Infinity"
+                               HBox.hgrow="ALWAYS" styleClass="fxt-inspector-decl-text"/>
+                    </children>
+                </HBox>
+                <Button fx:id="editLockedTypeButton" id="inspector-edit-locked-type" text="Edit type"
+                        onAction="#onEditLockedType" styleClass="fxt-inspector-link-button">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-pencil-square" iconSize="12"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Open the type in its editor to change its content"/>
+                    </tooltip>
+                </Button>
+            </children>
+        </VBox>
+
         <!-- The sections can exceed the window height; the header above stays pinned. -->
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" minHeight="0"
                     styleClass="fxt-inspector-scroll" VBox.vgrow="ALWAYS">

@@ -110,7 +110,7 @@ class UnifiedShellViewTest {
         // these, so it carries fxt-inspector-subsection and is intentionally excluded.)
         assertEquals(Set.of("NODE & XPATH", "TYPE & FACETS", "NAMESPACE", "VALUE & ATTRIBUTES",
                 "CONTENT", "PROCESSING INSTRUCTION", "XML DECLARATION", "CARDINALITY & USE",
-                "ADVANCED", "SCHEMA", "CONSTRAINTS", "DOCUMENTATION & REFS"), titles,
+                "ADVANCED", "SCHEMA", "CONSTRAINTS", "DOCUMENTATION & REFS", "DISPLAY"), titles,
                 "Inspector must show the flat top-level sections");
     }
 

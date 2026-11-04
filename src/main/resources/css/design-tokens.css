@@ -52,6 +52,10 @@
     -fxt-purple: #6f42c1;
     -fxt-teal: #12a594;
     -fxt-indigo: #4c5fd5;
+    /* Type frames of the graphic XSD view (named complex type content, read-only in place) */
+    -fxt-type-frame-bg: #fffbe0;
+    -fxt-type-frame-border: #d4b84a;
+    -fxt-type-frame-fg: #7d6c2c;
 
     /* Code syntax */
     -fxt-code-text: #1a1d21;
@@ -127,6 +131,10 @@
     -fxt-purple: #b197fc;
     -fxt-teal: #38d9a9;
     -fxt-indigo: #9775fa;
+    /* Type frames of the graphic XSD view (named complex type content, read-only in place) */
+    -fxt-type-frame-bg: #2a2614;
+    -fxt-type-frame-border: #7a6a2e;
+    -fxt-type-frame-fg: #d9c27a;
 
     /* Code syntax */
     -fxt-code-text: #e6eaf0;

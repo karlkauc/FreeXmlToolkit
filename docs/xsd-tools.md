@@ -45,6 +45,7 @@ The Graphic View lets you explore and edit your schemas visually.
 - **Easy Navigation**: Click on elements to explore their structure
 - **Edit Documentation**: Add or edit documentation for schema elements using the inline tab-based editor (no modal dialogs)
 - **Constraints on the Cards**: Element and attribute cards list their `key`, `keyref` and `unique` constraints and the assertions of their type, including inherited ones - see [Constraints on the Cards](#constraints-on-the-cards)
+- **Named Types in Frames**: The content of a named complex type is drawn in a light-yellow, dashed frame titled with the type's name; it is read-only there and edited in the type's editor - see [Named Types in Frames](#named-types-in-frames)
 - **Type Picker**: Choose an element's or attribute's type from a list of the schema's own types and all XSD built-in datatypes, each explained in a side pane
 - **Add Examples**: Include example values for elements
 - **Drag and Drop**: Move or copy elements, compositors, group references and attributes by dragging their cards - see [Moving and Copying by Drag and Drop](#drag-and-drop-in-the-diagram)
@@ -125,6 +126,31 @@ Both switches are in the **DISPLAY** section at the top of the Properties pane, 
 XSD documents, and in the **View** menu (**Show Constraints on Target Nodes**). They change open
 diagrams at once and are remembered.
 
+### Named Types in Frames {#named-types-in-frames}
+
+When an element uses a named complex type (`<xs:element name="Address_EU" type="EU-Address"/>`),
+the content it gets from that type is drawn inside a **light-yellow frame with a dashed border**.
+The type's name is the frame's title, top left (as in XMLSpy's schema view). Everything inside the
+frame belongs to the type, not to the element: the same content appears wherever the type is used.
+
+- **The frame is read-only.** Renaming, deleting, moving, cutting or pasting a node inside it, and
+  adding new content to the element that holds the frame, are refused with a short explanation.
+  The context menu of such a node starts with **Edit Type '…'** and greys out the changing
+  actions; **Copy Node** and **Copy XPath** stay available. The Properties pane shows
+  *"Part of type '…'. It is read-only here"* with an **Edit type** button and disables its editors.
+- **To change the content, edit the type**: **double-click the frame title**, choose
+  **Edit Type '…'** in the context menu, or use **Edit type** in the Properties pane. The type
+  opens in its own [Type Editor](#3-type-editor) tab, where its content can be edited.
+- **The element itself stays editable**: its name, cardinality, type and documentation belong to
+  the element's declaration, so they can still be changed on its card.
+- **Extensions show the base type as a nested frame.** For a type defined by
+  `xs:complexContent/xs:extension`, the frame of the derived type contains a second frame titled
+  with the base type, holding the inherited content; the extension's own content follows below it.
+  In the type editor of the derived type only the base type's frame is shown (and read-only), its
+  own content is editable.
+- Anonymous types defined inline in an element are not framed: their content belongs to the
+  element and is edited in place.
+
 ### Tips
 
 - **Right-click** for a context menu with common actions (**Add Element…** / **Add Attribute…** with all properties - see [Adding an Element or Attribute](#adding-an-element-or-attribute), **Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete). **Change Type…** opens a small dialog with the [type picker](inspector.md#type-picker), pre-filled with the current type - the same dialog as in the Tree view
@@ -200,15 +226,21 @@ More details:
 
 - Near the edge of the visible area the diagram **scrolls automatically**.
 - Press **Esc** to cancel the drag.
-- **Shared definitions ask first.** Dropping into or out of a named global type or group that is
-  used by more than one declaration changes every place that uses it. A confirmation dialog tells
-  you how often the definition is used ("This changes a shared definition … used N times").
+- **Named types are read-only in their frames.** Dropping into an element whose content comes from
+  a named complex type, next to a node inside such a [frame](#named-types-in-frames), or moving a
+  node out of it is refused - edit the type in its type editor instead. Copying a node out of a
+  frame (**Ctrl**) is allowed.
+- **Shared definitions ask first.** Dropping into or out of a named global group, or into a named
+  type in its type editor, that is used by more than one declaration changes every place that uses
+  it. A confirmation dialog tells you how often the definition is used ("This changes a shared
+  definition … used N times").
 - **Not possible** (shown with a red frame):
     - moving a global declaration into a content model - use a reference (`ref`) instead
     - moving a local declaration to the top level of the schema
     - dropping attributes among elements, or elements among attributes
     - dropping into an element with a simple type (such as `xs:string`)
     - changing nodes that come from an imported schema
+    - changing the content of a named type inside its frame (see above)
 - **Every drop is one undo step** - **Ctrl+Z** reverts it. The **Text** view shows the change
   right away.
 - As an alternative without the mouse, use **Move Up** / **Move Down** from the context menu.

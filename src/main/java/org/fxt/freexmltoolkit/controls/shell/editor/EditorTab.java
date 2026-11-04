@@ -28,6 +28,28 @@ final class EditorTab extends Tab {
     private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
     org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
     org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView xsdGraphView;
+
+    /**
+     * The type frame the Graphic view's selection lies in: such a node belongs to a named type and
+     * is read-only in place (it is changed in the type's editor).
+     *
+     * @return the frame, or null when the selection can be edited here
+     */
+    org.fxt.freexmltoolkit.controls.v2.view.TypeFrame selectionTypeFrame() {
+        return viewMode == ViewMode.GRAPHIC && xsdGraphView != null && currentSelection != null
+                ? xsdGraphView.lockingFrameOfSelection() : null;
+    }
+
+    /**
+     * The type frame that keeps content from being added under the Graphic view's selection: an
+     * element whose content is a named type's frame adds new children to that type.
+     *
+     * @return the frame, or null when content can be added here
+     */
+    org.fxt.freexmltoolkit.controls.v2.view.TypeFrame selectionContentTypeFrame() {
+        return viewMode == ViewMode.GRAPHIC && xsdGraphView != null && currentSelection != null
+                ? xsdGraphView.contentLockingFrameOfSelection() : null;
+    }
     org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView jsonTreeView;
     org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView xmlInstanceTreeView;
     XmlGridView xmlGridView;

@@ -47,6 +47,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
+import org.fxt.freexmltoolkit.controls.v2.view.TypeFrame;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 
 /**
@@ -127,10 +128,70 @@ public class XsdContextMenuFactory {
             default -> createDefaultMenu(node);
         };
 
+        TypeFrame frame = node.lockingFrame();
+        if (frame != null) {
+            lockToType(menu, frame);
+        } else if ((frame = node.contentLockingFrame()) != null) {
+            lockContentToType(menu, frame);
+        }
+
         // Apply uniform font styling to match XML Editor
         menu.setStyle("-fx-font-family: 'Segoe UI', Arial, sans-serif;");
 
         return menu;
+    }
+
+    /** Marks a menu item that reads or navigates only: it stays enabled inside a type frame. */
+    private static final String READ_ONLY_SAFE = "fxt.readOnlySafe";
+    /** Marks a menu item that adds content under the node (Add submenu, Paste). */
+    private static final String ADDS_CONTENT = "fxt.addsContent";
+
+    /**
+     * Turns the menu of a node inside a type frame read-only: every changing item is disabled and
+     * "Edit Type 'X'" leads to the type, which is where the node is changed.
+     */
+    private void lockToType(ContextMenu menu, TypeFrame frame) {
+        disableChangingItems(menu.getItems());
+        MenuItem editType = createMenuItemAlwaysEnabled("Edit Type '" + frame.typeName() + "'",
+                "bi-pencil-square", ActionColor.MODIFY, () -> {
+                    if (openComplexTypeEditorCallback != null && frame.type() != null) {
+                        openComplexTypeEditorCallback.accept(frame.type());
+                    }
+                });
+        editType.setId("xsd-menu-edit-frame-type");
+        editType.setDisable(openComplexTypeEditorCallback == null || frame.type() == null);
+        MenuItem note = new MenuItem("Part of type '" + frame.typeName() + "' (read-only here)");
+        note.setGraphic(createColoredIcon("bi-lock", ActionColor.NEUTRAL));
+        note.setDisable(true);
+        menu.getItems().addAll(0, java.util.List.of(editType, note, new SeparatorMenuItem()));
+    }
+
+    /**
+     * The card itself is editable, but its content is a named type's frame: what would be added
+     * under it would go into that type, so adding and pasting are disabled.
+     */
+    private static void lockContentToType(ContextMenu menu, TypeFrame frame) {
+        for (MenuItem item : menu.getItems()) {
+            if (item.getProperties().containsKey(ADDS_CONTENT)) {
+                item.setDisable(true);
+                if (item instanceof Menu submenu) {
+                    submenu.getItems().forEach(child -> child.setDisable(true));
+                }
+                item.setText(item.getText() + " (in type '" + frame.typeName() + "')");
+            }
+        }
+    }
+
+    private static void disableChangingItems(java.util.List<MenuItem> items) {
+        for (MenuItem item : items) {
+            if (item instanceof SeparatorMenuItem || item.getProperties().containsKey(READ_ONLY_SAFE)) {
+                continue;
+            }
+            if (item instanceof Menu submenu) {
+                disableChangingItems(submenu.getItems());
+            }
+            item.setDisable(true);
+        }
     }
 
     /**
@@ -162,6 +223,7 @@ public class XsdContextMenuFactory {
 
         // Add submenu with icon
         Menu addMenu = new Menu("Add");
+        addMenu.getProperties().put(ADDS_CONTENT, Boolean.TRUE);
         addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
         addMenu.getItems().addAll(
                 createMenuItemConditional("Element", "bi-plus", ActionColor.CREATE,
@@ -188,6 +250,7 @@ public class XsdContextMenuFactory {
 
         // Create clipboard menu items
         MenuItem copyItem = createMenuItem("Copy Node", "bi-clipboard", ActionColor.NEUTRAL, () -> handleCopy(node));
+        copyItem.getProperties().put(READ_ONLY_SAFE, Boolean.TRUE); // copying changes nothing
         MenuItem cutItem = createMenuItem("Cut Node", "bi-scissors", ActionColor.DELETE, () -> handleCut(node));
         MenuItem pasteItem = createPasteMenuItem(node);
 
@@ -292,6 +355,7 @@ public class XsdContextMenuFactory {
 
         // Add submenu
         Menu addMenu = new Menu("Add");
+        addMenu.getProperties().put(ADDS_CONTENT, Boolean.TRUE);
         addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
         addMenu.getItems().addAll(
                 createMenuItem("Element", "bi-plus", ActionColor.CREATE, () -> handleAddElement(node)),
@@ -346,6 +410,7 @@ public class XsdContextMenuFactory {
 
         // Add Element submenu with icon
         Menu addMenu = new Menu("Add");
+        addMenu.getProperties().put(ADDS_CONTENT, Boolean.TRUE);
         addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
         addMenu.getItems().addAll(
                 createMenuItemConditional("Element", "bi-plus", ActionColor.CREATE,
@@ -547,6 +612,7 @@ public class XsdContextMenuFactory {
      */
     private MenuItem createMenuItemAlwaysEnabled(String text, String iconLiteral, ActionColor iconColor, Runnable action) {
         MenuItem item = new MenuItem(text);
+        item.getProperties().put(READ_ONLY_SAFE, Boolean.TRUE);
         item.setOnAction(e -> action.run());
         item.setGraphic(createColoredIcon(iconLiteral, iconColor));
         return item;
@@ -1149,6 +1215,7 @@ public class XsdContextMenuFactory {
     private MenuItem createPasteMenuItem(VisualNode node) {
         XsdClipboard clipboard = editorContext.getClipboard();
         MenuItem pasteItem = createMenuItem("Paste Node", "bi-clipboard-check", ActionColor.CREATE, () -> handlePaste(node));
+        pasteItem.getProperties().put(ADDS_CONTENT, Boolean.TRUE);
 
         // Disable paste if clipboard is empty or the node cannot hold the clipboard's node
         if (!clipboard.hasContent() || !(node.getModelObject() instanceof XsdNode target)

@@ -1857,7 +1857,7 @@ public class EditorHost extends BorderPane {
 
     /** Adds a child element under the selected node via the command stack. */
     public boolean addElementToActive(String name) {
-        return editActive(et -> et.addElement(et.currentSelection, name));
+        return editActiveAddingContent(et -> et.addElement(et.currentSelection, name));
     }
 
     /**
@@ -1874,7 +1874,7 @@ public class EditorHost extends BorderPane {
 
     /** Adds a container element (inline complexType + sequence) under the selected node. */
     public boolean addContainerElementToActive(String name) {
-        return editActive(et -> et.addContainerElement(et.currentSelection, name));
+        return editActiveAddingContent(et -> et.addContainerElement(et.currentSelection, name));
     }
 
     /** Renames the selected node via the command stack. */
@@ -1889,27 +1889,27 @@ public class EditorHost extends BorderPane {
 
     /** Adds an attribute to the selected node via the command stack. */
     public boolean addAttributeToActive(String name) {
-        return editActive(et -> et.addAttribute(et.currentSelection, name));
+        return editActiveAddingContent(et -> et.addAttribute(et.currentSelection, name));
     }
 
     /** Adds a sequence compositor to the selected element via the command stack. */
     public boolean addSequenceToActive() {
-        return editActive(et -> et.addSequence(et.currentSelection));
+        return editActiveAddingContent(et -> et.addSequence(et.currentSelection));
     }
 
     /** Adds a choice compositor to the selected element via the command stack. */
     public boolean addChoiceToActive() {
-        return editActive(et -> et.addChoice(et.currentSelection));
+        return editActiveAddingContent(et -> et.addChoice(et.currentSelection));
     }
 
     /** Adds an {@code <!-- … -->} comment as a child of the selected XSD node via the command stack. */
     public boolean addCommentToActive(String content) {
-        return editActive(et -> et.addComment(et.currentSelection, content));
+        return editActiveAddingContent(et -> et.addComment(et.currentSelection, content));
     }
 
     /** Adds an all compositor to the selected element via the command stack. */
     public boolean addAllToActive() {
-        return editActive(et -> et.addAll(et.currentSelection));
+        return editActiveAddingContent(et -> et.addAll(et.currentSelection));
     }
 
     /** Duplicates the selected node (as a sibling) via the command stack. */
@@ -1940,7 +1940,7 @@ public class EditorHost extends BorderPane {
     /** Cuts the selected node to the shell clipboard (the original is removed on paste). */
     public boolean cutActiveNode() {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                && et.currentSelection != null) {
+                && et.currentSelection != null && !refuseLockedSelection(et)) {
             nodeClipboard.cut(et.currentSelection);
             return true;
         }
@@ -1949,7 +1949,7 @@ public class EditorHost extends BorderPane {
 
     /** Pastes the clipboard's node under the selected node via the command stack. */
     public boolean pasteIntoActive() {
-        return editActive(et -> et.pasteNode(et.currentSelection));
+        return editActiveAddingContent(et -> et.pasteNode(et.currentSelection));
     }
 
     /** @return whether the shell clipboard currently holds a node to paste. */
@@ -2425,6 +2425,9 @@ public class EditorHost extends BorderPane {
 
     private boolean editActive(java.util.function.Predicate<EditorTab> edit) {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
+            if (refuseLockedSelection(et)) {
+                return false;
+            }
             boolean ok = edit.test(et);
             if (ok) {
                 // applyModelChange clears the selection; in the Text view re-resolve the node at the
@@ -2440,12 +2443,63 @@ public class EditorHost extends BorderPane {
     }
 
     /**
+     * Like {@link #editActive} for edits that add content under the selected node: refused when the
+     * Graphic view shows that content as a named type's frame (it would go into the type).
+     */
+    private boolean editActiveAddingContent(java.util.function.Predicate<EditorTab> edit) {
+        if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
+            var frame = et.selectionContentTypeFrame();
+            if (frame != null) {
+                String label = et.currentSelection != null ? et.currentSelection.getName() : null;
+                org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(
+                        getScene() == null ? null : getScene().getWindow(), "Add",
+                        org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck.blocked(
+                                frame.contentLockReason(label)));
+                return false;
+            }
+        }
+        return editActive(edit);
+    }
+
+    /**
+     * Refuses an edit of a node the Graphic view shows inside a type frame: it belongs to a named
+     * type and is changed in that type's editor. Explains why.
+     *
+     * @return true when the edit must not run
+     */
+    private boolean refuseLockedSelection(EditorTab et) {
+        var frame = et.selectionTypeFrame();
+        if (frame == null) {
+            return false;
+        }
+        String label = et.currentSelection != null ? et.currentSelection.getName() : null;
+        org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(
+                getScene() == null ? null : getScene().getWindow(), "Edit",
+                org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck.blocked(frame.lockReason(label)));
+        return true;
+    }
+
+    /**
+     * The named type the active document's selection belongs to when the Graphic view shows it in a
+     * type frame (read-only in place).
+     *
+     * @return the frame, or empty when the selection can be edited here
+     */
+    public Optional<org.fxt.freexmltoolkit.controls.v2.view.TypeFrame> activeSelectionTypeFrame() {
+        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                ? Optional.ofNullable(et.selectionTypeFrame()) : Optional.empty();
+    }
+
+    /**
      * Like {@link #editActive} but keeps the same node selected after the edit. Property
      * edits (rename, type, cardinality, use, …) preserve the model node, so the inspector
      * should keep showing it instead of clearing (which {@code applyModelChange} would cause).
      */
     private boolean editActivePreservingSelection(java.util.function.Predicate<EditorTab> edit) {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
+            if (refuseLockedSelection(et)) {
+                return false;
+            }
             XsdNode node = et.currentSelection;
             boolean ok = edit.test(et);
             if (ok && node != null) {
