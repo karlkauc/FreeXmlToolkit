@@ -5,6 +5,8 @@ import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.fxt.freexmltoolkit.controls.shell.schema.XsdSpreadsheetTypeResolver;
+import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeFactory;
 import org.fxt.freexmltoolkit.service.CsvHandler;
 import org.fxt.freexmltoolkit.service.SpreadsheetTypeResolver;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService;
@@ -27,10 +29,16 @@ public final class SpreadsheetActionRunner {
     /**
      * Outcome of a conversion.
      *
-     * @param text  {@code "OK: <path>"} (export), the XML (import) or {@code "ERROR: …"}
-     * @param error the failure, or null on success
+     * @param text   {@code "OK: <path>"} (export), the XML (import) or {@code "ERROR: …"}
+     * @param error  the failure, or null on success
+     * @param schema the XSD an import read its values with, or null
      */
-    public record Result(String text, Exception error) {
+    public record Result(String text, Exception error, File schema) {
+
+        /** A result without a schema. */
+        public Result(String text, Exception error) {
+            this(text, error, null);
+        }
 
         static Result ok(String text) {
             return new Result(text, null);
@@ -149,13 +157,61 @@ public final class SpreadsheetActionRunner {
         return excelToXml(excelFile, new ConversionConfig());
     }
 
-    /** Imports an Excel (.xlsx) workbook back to XML. @return the XML, or the failure. */
+    /** Imports an Excel (.xlsx) workbook back to XML, reading the values untyped. @return the XML, or the failure. */
     public static Result excelToXml(File excelFile, ConversionConfig config) {
         try {
             XmlSpreadsheetConverterService service = new XmlSpreadsheetConverterService();
             return Result.ok(service.documentToString(service.convertExcelToXml(excelFile, config), config));
         } catch (Exception e) {
             return Result.failed(e);
+        }
+    }
+
+    /**
+     * Imports an Excel (.xlsx) workbook back to XML, reading each value as its XSD type says (a date
+     * cell under {@code xs:dateTime} gets a time, {@code 1} under {@code xs:boolean} becomes
+     * {@code true}, …).
+     *
+     * @param schema the XSD to use; {@code null} to take the one the sheet's document element declares
+     *               ({@code xsi:schemaLocation}, relative to the workbook's folder) or the Schema Library
+     *               maps it to - without one the values are read untyped
+     * @return the XML and the XSD used ({@link Result#schema()}), or the failure; an explicit
+     *         schema that cannot be parsed fails the import
+     */
+    public static Result excelToXml(File excelFile, ConversionConfig config, File schema) {
+        File[] used = new File[1];
+        try {
+            XmlSpreadsheetConverterService service = new XmlSpreadsheetConverterService();
+            Document doc = service.convertExcelToXml(excelFile, config, rootElement -> {
+                File xsd = schema != null ? schema
+                        : EditorSchemaBinding.declaredSchemaFile(rootElement, excelFile.getAbsoluteFile().getParentFile())
+                                .orElse(null);
+                if (xsd == null) {
+                    return SpreadsheetTypeResolver.NONE;
+                }
+                try {
+                    var types = new XsdSpreadsheetTypeResolver(new XsdNodeFactory().fromFile(xsd.toPath()));
+                    used[0] = xsd;
+                    return types;
+                } catch (Exception e) {
+                    if (schema != null) {
+                        throw new SchemaNotReadableException(xsd, e);
+                    }
+                    return SpreadsheetTypeResolver.NONE; // a detected schema is a convenience only
+                }
+            });
+            return new Result(service.documentToString(doc, config), null, used[0]);
+        } catch (SchemaNotReadableException e) {
+            return Result.failed(new java.io.IOException(e.getMessage(), e.getCause()));
+        } catch (Exception e) {
+            return Result.failed(e);
+        }
+    }
+
+    /** The XSD chosen for an import could not be parsed. */
+    private static final class SchemaNotReadableException extends RuntimeException {
+        SchemaNotReadableException(File xsd, Exception cause) {
+            super("Cannot read the schema " + xsd.getName() + ": " + cause.getMessage(), cause);
         }
     }
 

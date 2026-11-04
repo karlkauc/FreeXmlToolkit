@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 
 <!--
   Content of the "Spreadsheet Converter" dialog: direction, format, CSV delimiter and the
   conversion options (defaults mirror the service: everything on). Loaded by
   SpreadsheetConverterDialog (FxmlViews.loadContent), which is the controller, fills the two
-  choice boxes from its enums and adds title and buttons.
+  choice boxes from its enums and adds title and buttons. The schema row is enabled for an
+  Excel import only.
 -->
 <GridPane hgap="10" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <fx:define>
@@ -31,16 +35,25 @@
         <ComboBox fx:id="format" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
         <Label text="CSV delimiter:" GridPane.rowIndex="3"/>
         <ComboBox fx:id="delimiter" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-        <Label text="Options:" GridPane.rowIndex="4"/>
+        <Label text="Schema (XSD):" GridPane.rowIndex="4"/>
+        <HBox spacing="6" GridPane.rowIndex="4" GridPane.columnIndex="1">
+            <children>
+                <TextField fx:id="schemaFile" id="spreadsheet-import-schema" prefColumnCount="28"
+                           promptText="Detect from the spreadsheet (xsi:schemaLocation)"/>
+                <Button fx:id="browseSchema" id="spreadsheet-import-schema-browse" text="Browse…"
+                        onAction="#onBrowseSchema"/>
+            </children>
+        </HBox>
+        <Label text="Options:" GridPane.rowIndex="5"/>
         <CheckBox fx:id="includeComments" text="Include comments" selected="true"
-                  GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="includeNamespaces" text="Include namespaces" selected="true"
                   GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="includeCData" text="Include CDATA" selected="true"
+        <CheckBox fx:id="includeNamespaces" text="Include namespaces" selected="true"
                   GridPane.rowIndex="6" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="includeTypeColumn" text="Include type column" selected="true"
+        <CheckBox fx:id="includeCData" text="Include CDATA" selected="true"
                   GridPane.rowIndex="7" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="prettyPrintXml" text="Pretty-print XML" selected="true"
+        <CheckBox fx:id="includeTypeColumn" text="Include type column" selected="true"
                   GridPane.rowIndex="8" GridPane.columnIndex="1"/>
+        <CheckBox fx:id="prettyPrintXml" text="Pretty-print XML" selected="true"
+                  GridPane.rowIndex="9" GridPane.columnIndex="1"/>
     </children>
 </GridPane>

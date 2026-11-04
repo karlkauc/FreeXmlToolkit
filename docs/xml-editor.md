@@ -530,8 +530,25 @@ Some values stay text, so that importing the workbook gives back exactly the sam
 - times more precise than milliseconds;
 - lists, unions and values that do not match their type.
 
-Without a schema, every value is text. **Excel to XML** turns typed cells back into their XML
-form.
+Without a schema, every value is text.
+
+**Excel to XML** turns typed cells back into their XML form. It also uses an XSD, so that cells
+you entered or changed by hand still give valid values:
+
+- the date cell `31.01.2024` under `xs:dateTime` becomes `2024-01-31T00:00:00`;
+- a plain number such as `45322` under `xs:date` becomes `2024-01-31`;
+- a date-formatted cell under `xs:decimal` stays a number;
+- `1` / `0` or the text `TRUE` under `xs:boolean` become `true` / `false`;
+- `42.0` under `xs:int` becomes `42`;
+- blanks around a number or date are removed;
+- a formula gives its result instead of the formula text (this also applies without a schema).
+
+The import takes the XSD from the **Schema (XSD)** field of the converter dialog. If you leave
+the field empty, it uses the schema the sheet declares: the root element's
+`xsi:noNamespaceSchemaLocation` / `xsi:schemaLocation`, resolved relative to the workbook's
+folder, or the Schema Library entry for its namespace. The imported document is bound to that
+XSD. Without a schema, the cells' own types and formats decide, as before. A value that does
+not fit its type is imported as written, and validation shows the error.
 
 The **CSV** export uses the bound XSD as well. CSV has no cell types, so the file gets an extra
 **Data Type** column with each value's XSD built-in type (`decimal`, `date`, `dateTime`, …).

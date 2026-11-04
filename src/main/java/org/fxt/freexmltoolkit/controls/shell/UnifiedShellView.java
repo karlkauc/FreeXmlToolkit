@@ -2271,7 +2271,7 @@ public class UnifiedShellView extends BorderPane {
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 var result = isExcel
                         ? org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
-                                .excelToXml(in, settings.config())
+                                .excelToXml(in, settings.config(), settings.schema())
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .csvToXml(in, settings.delimiter().config(), settings.config());
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.spreadsheetConverted("to_xml",
@@ -2283,6 +2283,9 @@ public class UnifiedShellView extends BorderPane {
                     } else {
                         editorHost.openGeneratedDocument(result.text(),
                                 org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XML, "Imported.xml");
+                        if (result.schema() != null) {
+                            editorHost.setSchemaForActiveDocument(result.schema()); // the XSD its values were read with
+                        }
                     }
                 });
             });

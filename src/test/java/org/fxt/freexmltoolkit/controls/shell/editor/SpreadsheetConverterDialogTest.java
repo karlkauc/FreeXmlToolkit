@@ -35,6 +35,23 @@ class SpreadsheetConverterDialogTest {
     }
 
     @Test
+    void schemaIsOfferedForAnExcelImportOnly() {
+        var schemaField = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> (javafx.scene.control.TextField) dialog.getDialogPane().lookup("#spreadsheet-import-schema"));
+        assertTrue(schemaField.isDisabled(), "an export uses the bound XSD");
+        var settings = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            dialog.getDialogPane().lookupAll(".radio-button").stream()
+                    .map(javafx.scene.control.RadioButton.class::cast)
+                    .filter(rb -> rb.getText().startsWith("Spreadsheet"))
+                    .findFirst().orElseThrow().setSelected(true);
+            dialog.setImportSchema(new java.io.File("/tmp/order.xsd"));
+            return dialog.currentSettings();
+        });
+        assertFalse(schemaField.isDisabled());
+        assertEquals(new java.io.File("/tmp/order.xsd"), settings.schema());
+    }
+
+    @Test
     void delimiterMapsToCsvConfig() {
         var settings = WaitForAsyncUtils.waitForAsyncFx(2000, () -> dialog.currentSettings());
         assertEquals(',', settings.delimiter().config().getDelimiter());

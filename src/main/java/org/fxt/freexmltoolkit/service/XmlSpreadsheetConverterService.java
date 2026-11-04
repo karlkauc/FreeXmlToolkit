@@ -291,9 +291,24 @@ public class XmlSpreadsheetConverterService {
     }
 
     /**
-     * Converts Excel file to XML document
+     * Converts Excel file to XML document; each value is read as its cell type and format suggest.
      */
     public Document convertExcelToXml(File excelFile, ConversionConfig config) throws Exception {
+        return convertExcelToXml(excelFile, config, rootElement -> SpreadsheetTypeResolver.NONE);
+    }
+
+    /**
+     * Converts Excel file to XML document, reading each value as the schema type {@code typesFor}
+     * names for it (see {@link ExcelCellLexical}): a date cell under {@code xs:dateTime} gets a time,
+     * a serial number under {@code xs:date} becomes a date, {@code 1}/{@code 0} under {@code xs:boolean}
+     * become {@code true}/{@code false}.
+     *
+     * @param typesFor given the document element with its attributes as XML text (so its
+     *                 {@code xsi:schemaLocation} can be read), the value types to use; may return
+     *                 {@code null} or {@link SpreadsheetTypeResolver#NONE} for none
+     */
+    public Document convertExcelToXml(File excelFile, ConversionConfig config,
+                                      java.util.function.Function<String, SpreadsheetTypeResolver> typesFor) throws Exception {
         logger.info("Converting Excel to XML: {}", excelFile.getName());
 
         List<RowData> rows = new ArrayList<>();
@@ -302,12 +317,30 @@ public class XmlSpreadsheetConverterService {
              Workbook workbook = WorkbookFactory.create(fis)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            readExcelSheet(sheet, rows, config);
+            SpreadsheetTypeResolver types = typesFor == null ? null : typesFor.apply(rootElementXml(sheet, config));
+            readExcelSheet(sheet, rows, types == null ? SpreadsheetTypeResolver.NONE : types);
         }
 
         Document doc = buildXmlFromRows(rows, config);
         logger.info("Successfully converted Excel to XML with {} rows", rows.size());
         return doc;
+    }
+
+    /** @return the document element and its attributes (namespace and schema declarations) as XML */
+    private String rootElementXml(Sheet sheet, ConversionConfig config) throws Exception {
+        List<RowData> rootRows = new ArrayList<>();
+        readExcelSheet(sheet, rootRows, SpreadsheetTypeResolver.NONE,
+                xpath -> xpath.matches("/[^/]+(/@[^/]+)?"));
+        if (rootRows.isEmpty()) {
+            return "";
+        }
+        rootRows.removeIf(row -> !"element".equals(row.getNodeType()) && !"attribute".equals(row.getNodeType()));
+        for (RowData row : rootRows) {
+            if ("element".equals(row.getNodeType())) {
+                row.setValue(""); // only the start tag matters
+            }
+        }
+        return documentToString(buildXmlFromRows(rootRows, config), config);
     }
 
     /**
@@ -564,15 +597,16 @@ public class XmlSpreadsheetConverterService {
      *         {@code null} for other rows and values the resolver does not type
      */
     static String builtinTypeOf(RowData rowData, SpreadsheetTypeResolver types) {
-        if (rowData.getValue().isEmpty()) {
-            return null;
-        }
-        return switch (rowData.getNodeType()) {
-            case "element" -> types.builtinTypeOf(rowData.getXpath(), null);
+        return rowData.getValue().isEmpty() ? null : builtinTypeOf(rowData.getXpath(), rowData.getNodeType(), types);
+    }
+
+    /** @return the XSD built-in type of the element text / attribute value at {@code xpath}, or {@code null} */
+    static String builtinTypeOf(String xpath, String nodeType, SpreadsheetTypeResolver types) {
+        return switch (nodeType) {
+            case "element" -> types.builtinTypeOf(xpath, null);
             case "attribute" -> {
-                int at = rowData.getXpath().lastIndexOf("/@");
-                yield at < 0 ? null
-                        : types.builtinTypeOf(rowData.getXpath().substring(0, at), rowData.getXpath().substring(at + 2));
+                int at = xpath.lastIndexOf("/@");
+                yield at < 0 ? null : types.builtinTypeOf(xpath.substring(0, at), xpath.substring(at + 2));
             }
             default -> null;
         };
@@ -659,18 +693,21 @@ public class XmlSpreadsheetConverterService {
     }
 
     /**
-     * Reads data from Excel sheet
+     * Reads data from Excel sheet, each value as its schema type says
      */
-    private void readExcelSheet(Sheet sheet, List<RowData> rows, ConversionConfig _config) {
+    private void readExcelSheet(Sheet sheet, List<RowData> rows, SpreadsheetTypeResolver types) {
+        readExcelSheet(sheet, rows, types, xpath -> true);
+    }
+
+    /** Reads the rows whose XPath {@code include} accepts. */
+    private void readExcelSheet(Sheet sheet, List<RowData> rows, SpreadsheetTypeResolver types,
+                                java.util.function.Predicate<String> include) {
         boolean hasTypeColumn = false;
 
         // Check header to determine if type column exists
         Row headerRow = sheet.getRow(0);
         if (headerRow != null && headerRow.getLastCellNum() > 2) {
-            Cell typeHeaderCell = headerRow.getCell(2);
-            if (typeHeaderCell != null && "Type".equalsIgnoreCase(typeHeaderCell.getStringCellValue())) {
-                hasTypeColumn = true;
-            }
+            hasTypeColumn = "Type".equalsIgnoreCase(getCellValueAsString(headerRow.getCell(2)).trim());
         }
 
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -680,13 +717,16 @@ public class XmlSpreadsheetConverterService {
             }
 
             Cell xpathCell = row.getCell(0);
-            Cell valueCell = row.getCell(1);
             Cell typeCell = hasTypeColumn ? row.getCell(2) : null;
 
             if (xpathCell != null) {
                 String xpath = getCellValueAsString(xpathCell);
-                String value = valueCell != null ? getCellValueAsString(valueCell) : "";
+                if (xpath.isBlank() || !include.test(xpath)) {
+                    continue;
+                }
                 String type = typeCell != null ? getCellValueAsString(typeCell) : inferTypeFromXPath(xpath);
+                String builtin = builtinTypeOf(xpath, type, types);
+                String value = ExcelCellLexical.lexical(row.getCell(1), SpreadsheetCellKind.fromBuiltin(builtin));
 
                 rows.add(new RowData(xpath, value, type, i - 1)); // i-1 because we start from row 1 (header is row 0)
             }
@@ -697,72 +737,7 @@ public class XmlSpreadsheetConverterService {
      * Gets cell value as string regardless of cell type
      */
     private String getCellValueAsString(Cell cell) {
-        if (cell == null) {
-            return "";
-        }
-
-        switch (cell.getCellType()) {
-            case STRING:
-                return cell.getStringCellValue();
-            case NUMERIC:
-                return numericAsLexical(cell);
-            case BOOLEAN:
-                return String.valueOf(cell.getBooleanCellValue());
-            case FORMULA:
-                return cell.getCellFormula();
-            default:
-                return "";
-        }
-    }
-
-    /**
-     * The XML lexical form of a numeric cell: a date-formatted cell as an ISO date, date-time or time
-     * (seconds fraction as the format shows it); a number with the fraction digits its format shows
-     * ({@code 10.50}), an integral number without {@code .0}.
-     */
-    static String numericAsLexical(Cell cell) {
-        String format = cell.getCellStyle() == null ? "" : cell.getCellStyle().getDataFormatString();
-        format = format == null ? "" : format.toLowerCase(java.util.Locale.ROOT);
-        double value = cell.getNumericCellValue();
-        if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
-            int fraction = fractionZeros(format, format.indexOf("ss."));
-            String timePattern = fraction == 0 ? "HH:mm:ss" : "HH:mm:ss." + "S".repeat(fraction);
-            boolean hasDate = format.indexOf('y') >= 0 || format.indexOf('d') >= 0;
-            boolean hasTime = format.indexOf('h') >= 0 || format.indexOf('s') >= 0;
-            java.time.LocalDateTime dateTime = org.apache.poi.ss.usermodel.DateUtil.getLocalDateTime(value, false, false);
-            // round to the shown precision: day fractions are not exact in binary
-            long unit = (long) Math.pow(10, 9 - fraction);
-            long nanos = Math.round((double) dateTime.getNano() / unit) * unit;
-            dateTime = dateTime.withNano(0).plusNanos(nanos);
-            java.time.format.DateTimeFormatter time = java.time.format.DateTimeFormatter.ofPattern(timePattern);
-            if (hasDate && hasTime) {
-                return dateTime.toLocalDate() + "T" + dateTime.toLocalTime().format(time);
-            }
-            return hasTime ? dateTime.toLocalTime().format(time) : dateTime.toLocalDate().toString();
-        }
-        java.math.BigDecimal number = java.math.BigDecimal.valueOf(value);
-        int dot = format.indexOf('.');
-        if (dot >= 0 && !format.contains("e")) {
-            return number.setScale(fractionZeros(format, dot), java.math.RoundingMode.HALF_UP).toPlainString();
-        }
-        if (value == Math.rint(value) && Math.abs(value) < 1e15) {
-            return Long.toString((long) value);
-        }
-        return number.stripTrailingZeros().toPlainString();
-    }
-
-    /** @return the {@code 0} digits right after the {@code .} at {@code dot} (0 when there is none) */
-    private static int fractionZeros(String format, int dot) {
-        if (dot < 0) {
-            return 0;
-        }
-        int i = format.indexOf('.', dot) + 1;
-        int count = 0;
-        while (i < format.length() && format.charAt(i) == '0') {
-            count++;
-            i++;
-        }
-        return count;
+        return ExcelCellLexical.lexical(cell, SpreadsheetCellKind.TEXT);
     }
 
     /**

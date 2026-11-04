@@ -568,6 +568,42 @@ final class EditorSchemaBinding {
     }
 
     /**
+     * The XSD an XML text refers to, without a tab: its {@code xsi:schemaLocation} /
+     * {@code xsi:noNamespaceSchemaLocation} (local relative to {@code baseDir}, remote downloaded and
+     * cached), redirected by the Schema Library / catalogs, else the Schema Library entry for its root
+     * namespace or element - the same order as the detection on open. Worker thread; best-effort.
+     *
+     * @param content the XML (the document element with its attributes is enough)
+     * @param baseDir the directory relative locations resolve against, may be null
+     * @return the local XSD file, empty when nothing resolves
+     */
+    static java.util.Optional<File> declaredSchemaFile(String content, File baseDir) {
+        if (content == null || content.isBlank()) {
+            return java.util.Optional.empty();
+        }
+        try {
+            org.fxt.freexmltoolkit.service.XmlService service = new org.fxt.freexmltoolkit.service.XmlServiceImpl();
+            java.util.Optional<String> declared = service.getSchemaNameFromXmlContent(content, baseDir);
+            LibraryHit hit = null;
+            if (declared.isPresent()) {
+                hit = schemaFromLibraryForDeclared(content, declared.get(), baseDir);
+                if (hit == null && service.loadSchemaFromLocation(declared.get())) {
+                    File xsd = service.getCurrentXsdFile();
+                    if (xsd != null && xsd.exists()) {
+                        return java.util.Optional.of(xsd);
+                    }
+                }
+            }
+            if (hit == null) {
+                hit = schemaFromLibrary(content);
+            }
+            return hit == null || !hit.file().exists() ? java.util.Optional.empty() : java.util.Optional.of(hit.file());
+        } catch (Exception e) {
+            return java.util.Optional.empty(); // best-effort: the import then reads the cells untyped
+        }
+    }
+
+    /**
      * Schema Library lookup for a document WITH a declared schema location: catalog
      * {@code system}/{@code rewriteSystem} entries and user mappings are matched against
      * the declared location (resolved against the document's directory), then the root
