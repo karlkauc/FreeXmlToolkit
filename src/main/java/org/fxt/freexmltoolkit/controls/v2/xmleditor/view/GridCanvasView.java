@@ -1,21 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_CANVAS;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SUBTLE;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SURFACE;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BG_SURFACE_2;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.BORDER_DEFAULT;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_ATTR;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_ELEM;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_TEXT;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_VAL;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.INDIGO;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PRIMARY;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PURPLE;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEAL;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_MUTED;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.WF_FAVORITES_BG;
-import static org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.WF_TRANSFORM_FG;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +11,7 @@ import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Orientation;
-import javafx.geometry.VPos;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ScrollBar;
@@ -43,13 +25,9 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
-import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
 
 /**
  * Flat row-based XML View (XMLSpy-style).
@@ -81,14 +59,25 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // ==================== Model adapter ====================
 
     /** Everything model-specific: flattening, tables, selection, edit commands, menu. */
-    private final GridModelAdapter<N> adapter;
+    final GridModelAdapter<N> adapter;
+
+    // ==================== Collaborators ====================
+
+    /** Draws the grid. */
+    final GridPainter<N> painter = new GridPainter<>(this);
+    /** Embedded-table interaction. */
+    final GridTableInteraction<N> tables = new GridTableInteraction<>(this);
+    /** The inline editor. */
+    final GridInlineEditor<N> editor = new GridInlineEditor<>(this);
+    /** Node, column-header and separator drags. */
+    final GridDragSupport<N> drags = new GridDragSupport<>(this);
 
     // ==================== Canvas ====================
 
-    private final Canvas canvas;
-    private final GraphicsContext gc;
-    private final Pane canvasContainer;
-    private final ScrollBar vScrollBar;
+    final Canvas canvas;
+    final GraphicsContext gc;
+    final Pane canvasContainer;
+    final ScrollBar vScrollBar;
     private final ScrollBar hScrollBar;
 
     // ==================== Flat Row Data ====================
@@ -97,10 +86,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private List<FlatRow> allRows = new ArrayList<>();
 
     /** Cached list of currently visible rows (after expand/collapse filtering). */
-    private List<FlatRow> visibleRows = new ArrayList<>();
+    List<FlatRow> visibleRows = new ArrayList<>();
 
     /** Cumulative Y offset for each visible row index, accounting for expanded tables above. */
-    private double[] rowYPositions = new double[0];
+    double[] rowYPositions = new double[0];
     /**
      * For each visible row, the index of its last visible descendant (itself if none), computed once
      * per {@link #recalculateVisibleRows()}. Rendering and hit-testing used to scan forward through all
@@ -121,16 +110,16 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     // ==================== Layout Constants ====================
 
-    private static final double ROW_HEIGHT = GridMetrics.ROW_HEIGHT;
-    private static final double LINE_HEIGHT = GridMetrics.LINE_HEIGHT;
-    private static final double ICON_AREA_WIDTH = GridMetrics.ICON_AREA_WIDTH;
-    private static final double EXPAND_BAR_WIDTH = GridMetrics.EXPAND_BAR_WIDTH;
+    static final double ROW_HEIGHT = GridMetrics.ROW_HEIGHT;
+    static final double LINE_HEIGHT = GridMetrics.LINE_HEIGHT;
+    static final double ICON_AREA_WIDTH = GridMetrics.ICON_AREA_WIDTH;
+    static final double EXPAND_BAR_WIDTH = GridMetrics.EXPAND_BAR_WIDTH;
     private static final double SCROLLBAR_WIDTH = 14;
-    private static final double LEFT_MARGIN = 8;
-    private static final double MIN_NAME_COL_WIDTH = GridBlockLayout.MIN_NAME_COL_WIDTH;
-    private static final double MIN_VALUE_COL_WIDTH = GridBlockLayout.MIN_VALUE_COL_WIDTH;
+    static final double LEFT_MARGIN = 8;
+    static final double MIN_NAME_COL_WIDTH = GridBlockLayout.MIN_NAME_COL_WIDTH;
+    static final double MIN_VALUE_COL_WIDTH = GridBlockLayout.MIN_VALUE_COL_WIDTH;
     /** Horizontal padding of a value cell's text. */
-    private static final double VALUE_PADDING = GridBlockLayout.VALUE_PADDING;
+    static final double VALUE_PADDING = GridBlockLayout.VALUE_PADDING;
     /** Soft length of the inline preview of a collapsed container. */
     static final int PREVIEW_MAX_CHARS = 200;
     /** Length of the preview shown in the hover tooltip. */
@@ -140,30 +129,25 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Measured text metrics shared with the embedded tables (real FX font measurement); replaced
      * as a whole when word wrap or the cell-line limit changes (see {@link #applyMetrics}).
      */
-    private GridMetrics metrics = new GridMetrics(TextMeasurer.fx(), GridMetrics.DEFAULT_WRAP_WIDTH);
+    GridMetrics metrics = new GridMetrics(TextMeasurer.fx(), GridMetrics.DEFAULT_WRAP_WIDTH);
 
     /** Width of the root block's name column (the test hook {@link #nameColumnWidthValue()}). */
     private double nameColumnWidth = MIN_NAME_COL_WIDTH;
-    /** The visible area in the current drawing coordinates (shifted while an opened cell's grid draws). */
-    private double cullTop;
-    private double cullBottom;
-    private double cullLeft;
-    private double cullRight;
 
     /**
      * The per-document view state (expand state, selection, name-column widths, table toggles)
      * that survives the row rebuild after every edit; keyed by the adapter's stable row keys.
      */
-    private final GridViewState viewState = new GridViewState();
+    final GridViewState viewState = new GridViewState();
 
     /**
      * Own height of each visible row: its value line(s), an embedded table's height for a table
      * owner, 0 for an expanded container (its name cell spans the child block instead).
      */
-    private double[] rowHeights = new double[0];
+    double[] rowHeights = new double[0];
 
     /** Index of each visible row in {@link #visibleRows} (identity), rebuilt per layout. */
-    private java.util.Map<FlatRow, Integer> rowIndexMap = new java.util.IdentityHashMap<>();
+    java.util.Map<FlatRow, Integer> rowIndexMap = new java.util.IdentityHashMap<>();
 
     /** The tooltip showing the full preview of a hovered collapsed container. */
     private final Tooltip previewTooltip = new Tooltip();
@@ -171,10 +155,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     // ==================== Scroll State ====================
 
-    private double scrollOffsetX = 0;
-    private double scrollOffsetY = 0;
-    private double totalHeight = 0;
-    private double totalWidth = 0;
+    double scrollOffsetX = 0;
+    double scrollOffsetY = 0;
+    double totalHeight = 0;
+    double totalWidth = 0;
 
     // ==================== Zoom ====================
 
@@ -194,7 +178,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     // ==================== Selection / Hover State ====================
 
-    private FlatRow selectedRow = null;
+    FlatRow selectedRow = null;
     /**
      * All selected rows (Ctrl+click adds/removes, Shift+click selects a sibling range); the
      * primary selection {@link #selectedRow} is always part of it. Shift+click on the expand
@@ -203,109 +187,21 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private final List<FlatRow> multiSelection = new ArrayList<>();
     private FlatRow hoveredRow = null;
     /** The row whose expand arrow is under the pointer. */
-    private FlatRow hoveredExpandBar = null;
-
-    // ==================== Inline Editing ====================
-
-    private TextField editField = null;
-    private FlatRow editingRow = null;
-    private boolean editingValue = false;
-    private boolean editingElementName = false;
-
-    // Table cell editing state (kept for repeating table integration)
-    private RepeatingElementsTable editingTable = null;
-    private int editingTableRowIndex = -1;
-    private String editingTableColumnName = null;
-
-    // Column resizing (drag a separator in an embedded table's column-header row)
-    private static final double RESIZE_HANDLE = 4;
-
-    /** An in-progress separator drag: a table column or a block's name column. */
-    private sealed interface Drag permits ColumnDrag, BlockDrag {
-        double startScreenX();
-    }
-
-    /** A column drag: which column of which table, and where it started. */
-    private record ColumnDrag(RepeatingElementsTable table, int columnIndex,
-                              double startScreenX, double startWidth) implements Drag {
-    }
-
-    /**
-     * A name-column drag of one block (its width key, the opened cell's grid holding it or
-     * {@code null} for the root grid), and where it started.
-     */
-    private record BlockDrag(String key, GridBlock grid, double startScreenX, double startWidth) implements Drag {
-    }
-
-    private Drag columnDrag = null;
-
-    // Drag & drop of nodes (and external text)
-    /** The row whose name cell was pressed (a drag candidate), or {@code null}. */
-    private FlatRow pressedDragRow = null;
-    /** The row being dragged inside the grid, or {@code null}. */
-    private FlatRow dragRow = null;
-    /** The current drop target row and position (drawn as an insertion line / box). */
-    private FlatRow dropTargetRow = null;
-    private DropPosition dropPosition = null;
-
-    /** A column-header drag that moves a table column (XMLSpy: drag a header onto another). */
-    private static final class HeaderDrag {
-        final RepeatingElementsTable table;
-        final int column;
-        final double startScreenX;
-        /** x offset of the coordinates the table lives in (0 for a root table) */
-        final double originX;
-        boolean active;
-        int target = -1;
-        boolean before;
-
-        HeaderDrag(RepeatingElementsTable table, int column, double startScreenX, double originX) {
-            this.table = table;
-            this.column = column;
-            this.startScreenX = startScreenX;
-            this.originX = originX;
-        }
-    }
-
-    private HeaderDrag headerDrag = null;
+    FlatRow hoveredExpandBar = null;
 
     /** A drop target: the row under the pointer and where the payload goes. */
     record DropTarget(FlatRow row, DropPosition position) {
     }
-    private boolean columnDragMoved = false;
-    /** Set after a drag so the MOUSE_CLICKED JavaFX fires afterwards does not sort/select. */
-    private boolean suppressNextClick = false;
-
-    // Table selection/hover state (kept for repeating table integration)
-    private RepeatingElementsTable selectedTable = null;
-    /**
-     * Cell range selected in {@link #selectedTable} (logical rows/columns, inclusive; anchor =
-     * where the selection started, focus = where Shift+click extended it). -1 = none.
-     */
-    private int selAnchorRow = -1;
-    private int selAnchorCol = -1;
-    private int selFocusRow = -1;
-    private int selFocusCol = -1;
-    private RepeatingElementsTable hoveredTable = null;
-    private int hoveredTableRowIndex = -1;
-    private int hoveredTableColumnIndex = -1;
-
-    // Type-aware widget editing
-    private TypeAwareWidgetFactory.EditWidget activeEditWidget = null;
-    private Node activeWidgetNode = null;
-
-    // Guard to prevent double commits
-    private boolean isCommitting = false;
 
     // ==================== Context Menu ====================
 
     /** Built on first use (right-click / shortcut): it costs ~20 ms of FX time per view. */
-    private GridContextMenu<N> contextMenu;
+    GridContextMenu<N> contextMenu;
 
     // ==================== Highlight State ====================
 
-    private FlatRow highlightedRow = null;
-    private Color highlightColor;  // Yellow highlight (theme-dependent, see applyPalette)
+    FlatRow highlightedRow = null;
+    Color highlightColor;  // Yellow highlight (theme-dependent, see applyPalette)
 
     // ==================== Status Bar & Toast ====================
 
@@ -315,136 +211,21 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     private java.util.function.Consumer<String> onDocumentModified;
 
-    // ==================== Colors (design tokens, theme-dependent) ====================
-    //
-    // Instance fields (kept in UPPER_SNAKE for diff-friendliness with the former
-    // constants); (re)assigned by applyPalette() for the current light/dark theme from
-    // the DesignTokens so the grid follows the application palette.
-
-    // Backgrounds
-    private Color rowBgEven;
-
-    // Selection/Hover
-    private Color selectedBg;
-    private Color selectedBorder;
-    private Color hoveredBg;
-
-    // Text colors
-    private Color textElement;
-    private Color textAttributeName;
-    private Color textAttributeValue;
-    private Color textContent;
-    private Color textSecondary;
-    private Color textComment;
-    private Color textCdata;
-    private Color textPi;
-
-    // JSON value colors (keys reuse textElement, containers reuse textElement/accent)
-    private Color textJsonString;
-    private Color textJsonNumber;
-    private Color textJsonBoolean;
-    private Color textJsonNull;
-
-    // Cell frames, tree lines (cell sub-trees) & expand arrows
-    private Color frameLine;
-    private Color expandBarHover;
-    private Color expandBarArrow;
-
-    // Child count, instance index, collapsed preview
-    private Color childCountColor;
-    private Color instanceIndex;
-    private Color previewText;
-
-    // Accent (the design system's primary)
-    private Color accent;
-
-    // Table colors
-    private Color tableHeaderBg;
-    private Color tableHeaderText;
-    private Color tableHeaderSelected;
-    private Color tableBorder;
-    private Color tableRowHover;
-    private Color tableRowSelected;
-    private Color tableMissingBg;
-    private Color danger;
-    private Color namespacePrefix;
-
-    /**
-     * Assigns the light or dark grid palette from the {@link org.fxt.freexmltoolkit.controls.theme.DesignTokens}
-     * so the canvas renders in the application's colours in both themes.
-     */
-    private void applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme theme) {
-        rowBgEven = BG_SURFACE.color(theme);
-
-        selectedBg = BG_SUBTLE.color(theme);
-        selectedBorder = PRIMARY.color(theme);
-        hoveredBg = BG_SURFACE_2.color(theme);
-        highlightColor = WF_FAVORITES_BG.color(theme);
-
-        textElement = CODE_ELEM.color(theme);
-        textAttributeName = CODE_ATTR.color(theme);
-        textAttributeValue = CODE_VAL.color(theme);
-        textContent = CODE_TEXT.color(theme);
-        textSecondary = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_SECONDARY.color(theme);
-        textComment = TEAL.color(theme);
-        textCdata = INDIGO.color(theme);
-        textPi = PURPLE.color(theme);
-
-        textJsonString = CODE_VAL.color(theme);
-        textJsonNumber = WF_TRANSFORM_FG.color(theme);
-        textJsonBoolean = TEAL.color(theme);
-        textJsonNull = TEXT_MUTED.color(theme);
-
-        frameLine = BORDER_DEFAULT.color(theme);
-        expandBarHover = PRIMARY.color(theme);
-        expandBarArrow = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_SECONDARY.color(theme);
-
-        childCountColor = TEXT_MUTED.color(theme);
-        instanceIndex = childCountColor;
-        previewText = childCountColor;
-        accent = PRIMARY.color(theme);
-
-        tableHeaderBg = BG_SURFACE_2.color(theme);
-        tableHeaderText = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.TEXT_SECONDARY.color(theme);
-        tableHeaderSelected = BG_SUBTLE.color(theme);
-        tableBorder = frameLine;
-        tableRowHover = hoveredBg;
-        tableRowSelected = selectedBg;
-        tableMissingBg = BG_CANVAS.color(theme);
-
-        // User-configurable cell colours (Settings → Grid table colours) win over the tokens
-        tableHeaderBg = GridColors.resolve(theme, GridColors.Slot.TABLE_HEADER);
-        tableMissingBg = GridColors.resolve(theme, GridColors.Slot.MISSING_CELL);
-        tableHeaderSelected = GridColors.resolve(theme, GridColors.Slot.SELECTION);
-        tableRowSelected = tableHeaderSelected;
-        selectedBg = tableHeaderSelected;
-        selectedBorder = GridColors.resolve(theme, GridColors.Slot.FOCUS);
-        danger = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.DANGER.color(theme);
-        namespacePrefix = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.CODE_DECL.color(theme);
-    }
-
     /**
      * Weakly registered with DesignTokens — the instance field keeps it alive
      * exactly as long as this view; see DesignTokens.addThemeListener.
      */
     private final java.util.function.Consumer<org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme>
             themeListener = theme -> {
-                applyPalette(theme);
+                painter.applyPalette(theme);
                 render();
             };
 
     /** Repaints when a user cell colour changes (weakly registered with {@link GridColors}). */
     private final Runnable gridColorListener = () -> {
-        applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme());
+        painter.applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme());
         render();
     };
-
-    // ==================== Fonts ====================
-
-    private static final Font ROW_FONT = GridFont.ROW.toFont();
-    private static final Font ROW_FONT_BOLD = GridFont.ROW_BOLD.toFont();
-    private static final Font SMALL_FONT = GridFont.SMALL.toFont();
-    private static final Font ICON_FONT = GridFont.ICON.toFont();
 
     // ==================== Constructor ====================
 
@@ -457,7 +238,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     protected GridCanvasView(GridModelAdapter<N> adapter) {
         this.adapter = adapter;
 
-        applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme());
+        painter.applyPalette(org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme());
         org.fxt.freexmltoolkit.controls.theme.DesignTokens.addThemeListener(themeListener);
         GridColors.addListener(gridColorListener);
 
@@ -502,7 +283,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Event handlers
         setupEventHandlers();
-        setupDragAndDrop();
+        drags.setupDragAndDrop();
 
         // Listen for document changes (document replaced / changed outside the canvas)
         adapter.addModelListener(this::onDocumentChanged);
@@ -568,7 +349,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         render();
     }
 
-    private void updateScrollBars() {
+    void updateScrollBars() {
         if (getWidth() > 0 && getHeight() > 0) {
             boolean[] needed = neededScrollBars(getWidth(), getHeight());
             if (needed[0] != vScrollBar.isVisible() || needed[1] != hScrollBar.isVisible()) {
@@ -638,7 +419,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (Math.abs(rounded - zoom.get()) < 0.0001) {
             return;
         }
-        cancelEditing();
+        editor.cancelEditing();
         zoom.set(rounded);
         updateScrollBars();
         render();
@@ -660,22 +441,22 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /** @return the viewport width in unscaled model pixels */
-    private double viewportWidthModel() {
+    double viewportWidthModel() {
         return canvas.getWidth() / getZoom();
     }
 
     /** @return the viewport height in unscaled model pixels */
-    private double viewportHeightModel() {
+    double viewportHeightModel() {
         return canvas.getHeight() / getZoom();
     }
 
     /** @return the model-space x (scroll applied) for a canvas-relative screen x */
-    private double toModelX(double screenX) {
+    double toModelX(double screenX) {
         return screenX / getZoom() + scrollOffsetX;
     }
 
     /** @return the unscaled viewport y (scroll NOT applied) for a canvas-relative screen y */
-    private double toViewportY(double screenY) {
+    double toViewportY(double screenY) {
         return screenY / getZoom();
     }
 
@@ -685,7 +466,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Rebuilds the flat row list from the document.
      * Preserves expand/collapse state across rebuilds by matching rows by label+type+depth.
      */
-    private void rebuildTree() {
+    void rebuildTree() {
         // Remember expand state (at any depth), open cells and selection by stable key
         if (selectedRow != null) {
             viewState.setSelectedKey(keyOf(selectedRow));
@@ -824,7 +605,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      *       table), and 0 for an expanded container whose name cell spans its child block.</li>
      * </ol>
      */
-    private void recalculateVisibleRows() {
+    void recalculateVisibleRows() {
         GridBlockLayout.Result layout = GridBlockLayout.layout(allRows, LEFT_MARGIN, rootMeasure);
         visibleRows = new ArrayList<>(layout.visible());
         lastDescendantIndex = layout.lastDescendant();
@@ -878,7 +659,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /** @return the stable key of a row; sibling-group rows are keyed below their parent */
-    private String keyOf(FlatRow row) {
+    String keyOf(FlatRow row) {
         if (row.getType() == FlatRow.RowType.GROUP) {
             return keyOf(row.getParentRow()) + "/#group" + row.getLabel();
         }
@@ -911,12 +692,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /** @return the stable key of the block formed by the children of {@code parent} (root block: "") */
-    private String blockKey(FlatRow parent) {
+    String blockKey(FlatRow parent) {
         return parent == null ? GridViewState.ROOT_BLOCK : keyOf(parent);
     }
 
     /** @return the evaluated formula of a formula row (cached on the row), or {@code null} */
-    private GridModelAdapter.FormulaView formulaOf(FlatRow row) {
+    GridModelAdapter.FormulaView formulaOf(FlatRow row) {
         if (row.getType() != FlatRow.RowType.PROCESSING_INSTRUCTION) {
             return null;
         }
@@ -927,7 +708,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /** @return the label a row shows: a formula's name, else the row label */
-    private String displayLabel(FlatRow row) {
+    String displayLabel(FlatRow row) {
         GridModelAdapter.FormulaView f = formulaOf(row);
         return f != null ? f.name() : row.getLabel();
     }
@@ -944,7 +725,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /** @return whether the row shows the grey inline preview (a collapsed container without a value) */
-    private boolean showsPreview(FlatRow row) {
+    boolean showsPreview(FlatRow row) {
         return row.isExpandable() && !row.isExpanded() && row.getValue() == null && row.getValueBlock() != null;
     }
 
@@ -952,13 +733,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @return the height of the row's name cell: its own line(s) plus every visible descendant
      *         row (an expanded container's cell spans its whole child block)
      */
-    private double rowSpanHeight(int i) {
+    double rowSpanHeight(int i) {
         int last = i < lastDescendantIndex.length ? lastDescendantIndex[i] : i;
         return rowYPositions[last] + rowHeights[last] - rowYPositions[i];
     }
 
     /** @return the measured width of the row's label as drawn */
-    private double labelTextWidth(FlatRow row) {
+    double labelTextWidth(FlatRow row) {
         String label = displayLabel(row);
         return label == null ? 0 : metrics.width(label, GridFont.ROW_BOLD);
     }
@@ -976,51 +757,26 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             w += GridMetrics.CHILD_COUNT_GAP + metrics.width(childCountText(row), GridFont.SMALL);
         }
         if (row.showsTableGlyph()) {
-            w += TABLE_ICON_SIZE + GridMetrics.CHILD_COUNT_GAP;
+            w += GridPainter.TABLE_ICON_SIZE + GridMetrics.CHILD_COUNT_GAP;
         }
         return w;
     }
 
-    private static String childCountText(FlatRow row) {
+    static String childCountText(FlatRow row) {
         return "(" + row.getChildCount() + ")";
     }
 
-    private static String instanceIndexText(FlatRow row) {
+    static String instanceIndexText(FlatRow row) {
         return "<" + row.getInstanceIndex() + ">";
     }
 
-    /** Size of the small table glyph drawn after a table owner's label. */
-    private static final double TABLE_ICON_SIZE = 10;
-
-    /**
-     * Draws a wrapped text block: the first line centred on {@code firstLineCenterY},
-     * every further line {@link #LINE_HEIGHT} lower. Lines outside the canvas are skipped.
-     */
-    private void drawTextBlock(TextBlock block, double x, double firstLineCenterY) {
-        if (block == null) {
-            return;
-        }
-        double canvasBottom = cullBottom + LINE_HEIGHT;
-        List<String> lines = block.lines();
-        for (int k = 0; k < lines.size(); k++) {
-            double y = firstLineCenterY + k * LINE_HEIGHT;
-            if (y < cullTop - LINE_HEIGHT) {
-                continue;
-            }
-            if (y > canvasBottom) {
-                break;
-            }
-            gc.fillText(lines.get(k), x, y);
-        }
-    }
-
     /** @return the x where the row's icon is drawn (right of the expand-arrow area) */
-    private double rowIconX(FlatRow row) {
+    double rowIconX(FlatRow row) {
         return row.getLabelX() + EXPAND_BAR_WIDTH;
     }
 
     /** @return the x where the row's label text starts */
-    private double rowTextX(FlatRow row) {
+    double rowTextX(FlatRow row) {
         return row.getLabelX() + EXPAND_BAR_WIDTH + ICON_AREA_WIDTH;
     }
 
@@ -1030,71 +786,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Main render method. Clears the canvas and draws visible rows.
      */
     public void render() {
-        double w = canvas.getWidth();
-        double h = canvas.getHeight();
-
-        if (w <= 0 || h <= 0) {
-            return;
-        }
-
-        // Clear canvas
-        gc.setFill(rowBgEven);
-        gc.fillRect(0, 0, w, h);
-
-        if (visibleRows.isEmpty()) {
-            drawEmptyState();
-            return;
-        }
-
-        // Calculate visible row range using Y positions (viewport in model units)
-        int firstVisible = findRowIndexAtY(scrollOffsetY);
-        int lastVisible = findRowIndexAtY(scrollOffsetY + viewportHeightModel());
-        if (firstVisible < 0) firstVisible = 0;
-        if (lastVisible < 0 || lastVisible >= visibleRows.size()) lastVisible = visibleRows.size() - 1;
-
-        // Save, apply the zoom, then translate for the horizontal scroll offset
-        gc.save();
-        double z = getZoom();
-        gc.scale(z, z);
-        gc.translate(-scrollOffsetX, 0);
-        cullTop = 0;
-        cullBottom = viewportHeightModel();
-        cullLeft = scrollOffsetX;
-        cullRight = scrollOffsetX + viewportWidthModel();
-
-        // The name cells of the first visible row's ancestors start above the viewport but
-        // span into it: draw them first (outermost first), then the rows in view.
-        for (int idx : ancestorIndices(firstVisible)) {
-            drawRow(idx);
-        }
-        for (int i = firstVisible; i <= lastVisible; i++) {
-            drawRow(i);
-        }
-
-        // Draw inline tables beside their owner rows
-        for (int i = firstVisible; i <= lastVisible; i++) {
-            FlatRow row = visibleRows.get(i);
-            if (row.hasRepeatingTable() && row.isExpanded()) {
-                renderInlineTable(row, rowYPositions[i] - scrollOffsetY);
-            }
-        }
-
-        drawDropIndicator();
-        drawHeaderDragIndicator();
-
-        gc.restore();
-
-        // Sticky scroll header: the ancestors of the first visible row (zoomed, not scrolled)
-        drawScrollHeader(firstVisible);
-
-        // Draw info overlay (not scrolled)
-        drawInfo();
+        painter.render();
     }
 
     // ==================== Filters ====================
 
     /** The error of a filter that could not be evaluated, by row key (shown on its filter line). */
-    private final java.util.Map<String, String> filterErrors = new java.util.HashMap<>();
+    final java.util.Map<String, String> filterErrors = new java.util.HashMap<>();
 
     /**
      * Applies the defined filters to freshly flattened rows: below a filtered container only the
@@ -1288,26 +986,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /** @return the problems of a table row's member, or {@code null} */
-    private List<String> problemsOfMember(FlatRow owner, int memberIndex) {
+    List<String> problemsOfMember(FlatRow owner, int memberIndex) {
         if (problemsByLine == null) {
             return null;
         }
         int[] lines = adapter.memberSourceLines(owner);
         return memberIndex < lines.length && lines[memberIndex] > 0 ? problemsByLine.get(lines[memberIndex]) : null;
-    }
-
-    /** Draws the red problem marker ("!" in a circle) at the right end of a name cell's first line. */
-    private void drawProblemMarker(double rightX, double cy) {
-        double r = 6;
-        double cx = rightX - r - 4;
-        gc.setFill(danger);
-        gc.fillOval(cx - r, cy - r, 2 * r, 2 * r);
-        gc.setFill(rowBgEven);
-        gc.setFont(ICON_FONT);
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText("!", cx, cy + 0.5);
-        gc.setTextAlign(TextAlignment.LEFT);
     }
 
     // ==================== Scroll header ====================
@@ -1316,10 +1000,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     static final double SCROLL_HEADER_HEIGHT = 22;
 
     /** A clickable breadcrumb segment of the scroll header (x range in unscaled viewport units). */
-    private record HeaderSegment(FlatRow row, double x0, double x1) {
+    record HeaderSegment(FlatRow row, double x0, double x1) {
     }
 
-    private List<HeaderSegment> headerSegments = List.of();
+    List<HeaderSegment> headerSegments = List.of();
 
     /** @return the middle of the row's segment in the painted scroll header, or -1 if it has none */
     double scrollHeaderSegmentMiddleForTest(FlatRow row) {
@@ -1350,60 +1034,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return chain;
     }
 
-    private void drawScrollHeader(int firstVisible) {
-        List<FlatRow> chain = scrollHeaderRows();
-        if (chain.isEmpty()) {
-            headerSegments = List.of();
-            return;
-        }
-        double z = getZoom();
-        gc.save();
-        gc.scale(z, z);
-        double width = viewportWidthModel();
-        gc.setFill(tableHeaderBg);
-        gc.fillRect(0, 0, width, SCROLL_HEADER_HEIGHT);
-        gc.setStroke(frameLine);
-        gc.setLineWidth(1);
-        gc.strokeLine(0, SCROLL_HEADER_HEIGHT - 0.5, width, SCROLL_HEADER_HEIGHT - 0.5);
-
-        List<HeaderSegment> segments = new ArrayList<>();
-        double x = LEFT_MARGIN;
-        double cy = SCROLL_HEADER_HEIGHT / 2;
-        gc.setTextBaseline(VPos.CENTER);
-        gc.setTextAlign(TextAlignment.LEFT);
-        for (int i = 0; i < chain.size(); i++) {
-            FlatRow row = chain.get(i);
-            if (i > 0) {
-                gc.setFont(SMALL_FONT);
-                gc.setFill(textSecondary);
-                gc.fillText("\u203A", x, cy);
-                x += 12;
-            }
-            double start = x;
-            drawRowIcon(row, x - 4, cy);
-            x += ICON_AREA_WIDTH - 4;
-            String label = row.getLabel() != null ? row.getLabel() : "";
-            gc.setFont(ROW_FONT_BOLD);
-            gc.setFill(getRowLabelColor(row.getType()));
-            fillName(label, x, cy, GridFont.ROW_BOLD);
-            x += metrics.width(label, GridFont.ROW_BOLD);
-            if (row.getInstanceIndex() > 0) {
-                gc.setFont(SMALL_FONT);
-                gc.setFill(instanceIndex);
-                String idx = " " + instanceIndexText(row);
-                gc.fillText(idx, x, cy);
-                x += metrics.width(idx, GridFont.SMALL);
-            }
-            segments.add(new HeaderSegment(row, start, x));
-            x += 10;
-            if (x > width) {
-                break;
-            }
-        }
-        headerSegments = segments;
-        gc.restore();
-    }
-
     /**
      * Handles a click into the scroll header: selects the clicked ancestor and scrolls it into
      * view. Any click inside the header band is consumed (rows below it are hidden).
@@ -1429,7 +1059,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /** @return the visible-row indices of the row's ancestors, outermost first */
-    private List<Integer> ancestorIndices(int rowIndex) {
+    List<Integer> ancestorIndices(int rowIndex) {
         List<Integer> indices = new ArrayList<>();
         if (rowIndex < 0 || rowIndex >= visibleRows.size()) {
             return indices;
@@ -1444,288 +1074,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             parent = parent.getParentRow();
         }
         return indices;
-    }
-
-    /**
-     * Draws one row: its name cell (spanning the child block of an expanded container), the
-     * value cell with the wrapped value or the grey preview, the cell frames and the expand arrow.
-     */
-    private void drawRow(int visibleIndex) {
-        drawRowAt(visibleRows.get(visibleIndex), rowYPositions[visibleIndex] - scrollOffsetY,
-                rowHeights[visibleIndex], rowSpanHeight(visibleIndex),
-                Math.max(totalWidth, viewportWidthModel() + scrollOffsetX));
-    }
-
-    /**
-     * Draws one row of any grid (the root or an opened cell's) in the current coordinates.
-     *
-     * @param top   the row's top
-     * @param own   its own height (0 for an expanded container)
-     * @param span  the height of its name cell (own line plus visible descendants)
-     * @param right where the value cells end
-     */
-    private void drawRowAt(FlatRow row, double top, double own, double span, double right) {
-        double labelX = row.getLabelX();
-        double valueX = row.getValueX();
-        boolean tableOwner = row.hasRepeatingTable() && row.isExpanded();
-        boolean hasValueCell = own > 0 && !tableOwner;
-
-        // -- Background (name cell; the value cell too while the row has one) --
-        Color bgColor = null;
-        if (row == highlightedRow) {
-            bgColor = highlightColor;
-        } else if (row.isSelected()) {
-            bgColor = selectedBg;
-        } else if (row.isHovered()) {
-            bgColor = hoveredBg;
-        }
-        if (bgColor != null) {
-            gc.setFill(bgColor);
-            gc.fillRect(labelX, top, valueX - labelX, span);
-            if (hasValueCell) {
-                gc.fillRect(valueX, top, right - valueX, own);
-            }
-        }
-
-        // -- Cell frames (hairlines): the name cell, and the bottom edge of the value cell --
-        gc.setStroke(frameLine);
-        gc.setLineWidth(1);
-        gc.strokeRect(labelX + 0.5, top + 0.5, valueX - labelX, span);
-        if (hasValueCell) {
-            gc.strokeLine(valueX, top + own + 0.5, right, top + own + 0.5);
-        }
-
-        // -- Selection border --
-        if (row.isSelected()) {
-            gc.setStroke(selectedBorder);
-            gc.setLineWidth(1);
-            gc.strokeRect(labelX + 0.5, top + 0.5, valueX - labelX, span);
-            if (hasValueCell) {
-                gc.strokeRect(valueX + 0.5, top + 0.5, right - valueX - 1, own);
-            }
-        }
-
-        // -- Expand arrow, icon, label --
-        double lineCenterY = top + ROW_HEIGHT / 2;
-        if (row.isExpandable()) {
-            drawExpandArrow(row, labelX, lineCenterY);
-        }
-        double iconX = rowIconX(row);
-        drawRowIcon(row, iconX, lineCenterY);
-
-        double textX = rowTextX(row);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.setTextAlign(TextAlignment.LEFT);
-
-        boolean isEditingThisRowName = (editingRow == row && editingElementName);
-        boolean isEditingThisRowValue = (editingRow == row && editingValue);
-
-        double afterLabelX = textX;
-        if (displayLabel(row) != null && !isEditingThisRowName) {
-            gc.setFont(ROW_FONT_BOLD);
-            gc.setFill(formulaOf(row) != null ? accent : getRowLabelColor(row.getType()));
-            fillName(displayLabel(row), textX, lineCenterY, GridFont.ROW_BOLD);
-            afterLabelX += labelTextWidth(row);
-        }
-
-        // <n> instance number, (n) child count, table glyph
-        gc.setFont(SMALL_FONT);
-        if (row.getInstanceIndex() > 0) {
-            afterLabelX += GridMetrics.CHILD_COUNT_GAP;
-            gc.setFill(instanceIndex);
-            String text = instanceIndexText(row);
-            gc.fillText(text, afterLabelX, lineCenterY);
-            afterLabelX += metrics.width(text, GridFont.SMALL);
-        }
-        if (row.isExpandable()) {
-            afterLabelX += GridMetrics.CHILD_COUNT_GAP;
-            gc.setFill(childCountColor);
-            String text = childCountText(row);
-            gc.fillText(text, afterLabelX, lineCenterY);
-            afterLabelX += metrics.width(text, GridFont.SMALL);
-        }
-        if (row.showsTableGlyph()) {
-            afterLabelX += GridMetrics.CHILD_COUNT_GAP;
-            row.setTableGlyphX(afterLabelX);
-            drawTableGlyph(afterLabelX, lineCenterY - TABLE_ICON_SIZE / 2, row.hasRepeatingTable());
-        } else {
-            row.setTableGlyphX(Double.NaN);
-        }
-
-        List<String> problems = problemsOf(row);
-        if (problems != null) {
-            drawProblemMarker(valueX, lineCenterY);
-        }
-
-        // -- Value text (wrapped) or the grey one-line preview, clipped to the value cell --
-        if (hasValueCell && row.getValueBlock() != null && !isEditingThisRowValue) {
-            gc.save();
-            gc.beginPath();
-            gc.rect(valueX, top, right - valueX, own);
-            gc.clip();
-            gc.setFont(ROW_FONT);
-            if (row.getType() == FlatRow.RowType.FILTER) {
-                String key = keyOf(row.getParentRow());
-                gc.setFill(filterErrors.containsKey(key) ? danger
-                        : viewState.isFilterActive(key) ? accent : textSecondary);
-            } else if (problems != null && !showsPreview(row)) {
-                gc.setFill(danger);
-            } else if (showsPreview(row)) {
-                gc.setFill(previewText);
-            } else if (row.isLeafWithValue()) {
-                gc.setFill(row.getType().isJson() ? getRowValueColor(row.getType()) : textContent);
-            } else {
-                gc.setFill(getRowValueColor(row.getType()));
-            }
-            GridModelAdapter.FormulaView formula = formulaOf(row);
-            if (formula != null) {
-                gc.setFill(textPi);
-            }
-            drawTextBlock(row.getValueBlock(), valueX + VALUE_PADDING, lineCenterY);
-            if (formula != null && row.getResultBlock() != null) {
-                gc.setFill(formula.error() != null ? danger : textContent);
-                drawTextBlock(row.getResultBlock(), valueX + VALUE_PADDING,
-                        lineCenterY + row.getValueBlock().lineCount() * LINE_HEIGHT);
-                if (formula.stored()) {
-                    gc.setFont(SMALL_FONT);
-                    gc.setFill(textSecondary);
-                    gc.setTextAlign(TextAlignment.RIGHT);
-                    gc.fillText("stored", right - 8, lineCenterY);
-                    gc.setTextAlign(TextAlignment.LEFT);
-                }
-            }
-            gc.restore();
-        }
-    }
-
-    /**
-     * Draws a node name in the current fill; a namespace prefix ({@code xsi:} in
-     * {@code xsi:type}) is drawn in the prefix colour, as XMLSpy sets prefixes apart.
-     */
-    private void fillName(String name, double x, double y, GridFont font) {
-        String prefix = namespacePrefix(name);
-        if (prefix == null) {
-            gc.fillText(name, x, y);
-            return;
-        }
-        javafx.scene.paint.Paint fill = gc.getFill();
-        gc.setFill(namespacePrefix);
-        gc.fillText(prefix, x, y);
-        gc.setFill(fill);
-        gc.fillText(name.substring(prefix.length()), x + metrics.width(prefix, font), y);
-    }
-
-    /** @return the namespace prefix of a name incl. the colon ({@code "xsi:"}), or {@code null} */
-    static String namespacePrefix(String name) {
-        int colon = name == null ? -1 : name.indexOf(':');
-        return colon > 0 && colon < name.length() - 1 ? name.substring(0, colon + 1) : null;
-    }
-
-    /** Draws the ▶ / ▼ expand arrow in the arrow area left of the icon. */
-    private void drawExpandArrow(FlatRow row, double labelX, double cy) {
-        boolean hovered = row == hoveredExpandBar;
-        gc.setFill(hovered ? expandBarHover : expandBarArrow);
-        double cx = labelX + EXPAND_BAR_WIDTH / 2 + 1;
-        double size = 4;
-        if (row.isExpanded()) {
-            gc.fillPolygon(new double[]{cx - size, cx + size, cx},
-                    new double[]{cy - size / 2, cy - size / 2, cy + size / 2 + 1}, 3);
-        } else {
-            gc.fillPolygon(new double[]{cx - size / 2, cx + size / 2 + 1, cx - size / 2},
-                    new double[]{cy - size, cy, cy + size}, 3);
-        }
-    }
-
-    /** Draws the small 3x3 table glyph that marks a repeating group; filled when its table is shown. */
-    private void drawTableGlyph(double x, double y, boolean active) {
-        double s = TABLE_ICON_SIZE;
-        gc.setStroke(active ? accent : tableHeaderText);
-        gc.setLineWidth(1);
-        gc.strokeRect(x + 0.5, y + 0.5, s, s);
-        gc.strokeLine(x + 0.5, y + s / 3 + 0.5, x + s + 0.5, y + s / 3 + 0.5);
-        gc.strokeLine(x + 0.5, y + 2 * s / 3 + 0.5, x + s + 0.5, y + 2 * s / 3 + 0.5);
-        gc.strokeLine(x + s / 3 + 0.5, y + 0.5, x + s / 3 + 0.5, y + s + 0.5);
-        gc.strokeLine(x + 2 * s / 3 + 0.5, y + 0.5, x + 2 * s / 3 + 0.5, y + s + 0.5);
-    }
-
-    /**
-     * Draws the type-specific icon for a row (XMLSpy's node-type icons): {@code <>} element,
-     * {@code =} attribute, {@code Abc} text, {@code [..]} CDATA, {@code <!} comment,
-     * {@code <?} processing instruction, {@code XML} document.
-     */
-    private void drawRowIcon(FlatRow row, double x, double cy) {
-        FlatRow.RowType type = row.getType();
-        gc.setLineWidth(1.5);
-        double size = 4;
-        double cx = x + ICON_AREA_WIDTH / 2;
-
-        switch (type) {
-            case ELEMENT -> {
-                // <> angle brackets in the element colour
-                gc.setStroke(textElement);
-                gc.strokeLine(cx - size, cy, cx - size / 2, cy - size);
-                gc.strokeLine(cx - size, cy, cx - size / 2, cy + size);
-                gc.strokeLine(cx + size, cy, cx + size / 2, cy - size);
-                gc.strokeLine(cx + size, cy, cx + size / 2, cy + size);
-            }
-            case ATTRIBUTE -> iconGlyph("=", cx, cy, textAttributeName, ICON_FONT);
-            case TEXT -> iconGlyph("Abc", cx, cy, textContent, SMALL_FONT);
-            case COMMENT -> iconGlyph("<!", cx, cy, textComment, ICON_FONT);
-            case CDATA -> {
-                // [ ] square brackets
-                gc.setStroke(textCdata);
-                gc.strokeLine(cx - size, cy - size, cx - size + 2, cy - size);
-                gc.strokeLine(cx - size, cy - size, cx - size, cy + size);
-                gc.strokeLine(cx - size, cy + size, cx - size + 2, cy + size);
-                gc.strokeLine(cx + size, cy - size, cx + size - 2, cy - size);
-                gc.strokeLine(cx + size, cy - size, cx + size, cy + size);
-                gc.strokeLine(cx + size, cy + size, cx + size - 2, cy + size);
-            }
-            case PROCESSING_INSTRUCTION -> {
-                if (formulaOf(row) != null) {
-                    iconGlyph("\u0192", cx, cy, accent, ICON_FONT);
-                } else {
-                    iconGlyph("<?", cx, cy, textPi, ICON_FONT);
-                }
-            }
-            case DOCUMENT -> iconGlyph("XML", cx, cy, textSecondary, SMALL_FONT);
-            case GROUP -> iconGlyph("\u2026", cx, cy, textSecondary, ICON_FONT);
-            case FILTER -> {
-                boolean active = viewState.isFilterActive(keyOf(row.getParentRow()));
-                iconGlyph(active ? "\u25BC" : "\u25BD", cx, cy, active ? accent : textSecondary, ICON_FONT);
-            }
-            case JSON_OBJECT, JSON_ARRAY, JSON_STRING, JSON_NUMBER, JSON_BOOLEAN, JSON_NULL -> {
-                // JSON glyphs: {} [] " # T/F ∅ in the type colour
-                Color color = (type == FlatRow.RowType.JSON_OBJECT || type == FlatRow.RowType.JSON_ARRAY)
-                        ? textElement : getRowValueColor(type);
-                iconGlyph(jsonGlyph(row), cx, cy, color, ICON_FONT);
-            }
-            default -> { /* other row types draw no icon */ }
-        }
-    }
-
-    /** Draws a centred text glyph as a row icon. */
-    private void iconGlyph(String glyph, double cx, double cy, Color color, Font font) {
-        gc.setFont(font);
-        gc.setFill(color);
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText(glyph, cx, cy);
-        gc.setTextAlign(TextAlignment.LEFT);
-    }
-
-    /** The icon glyph of a JSON row: {@code {}} object, {@code []} array, {@code "} string,
-     *  {@code #} number, {@code T}/{@code F} boolean, {@code ∅} null. */
-    private static String jsonGlyph(FlatRow row) {
-        return switch (row.getType()) {
-            case JSON_OBJECT -> "{}";
-            case JSON_ARRAY -> "[]";
-            case JSON_STRING -> "\"";
-            case JSON_NUMBER -> "#";
-            case JSON_BOOLEAN -> "true".equals(row.getValue()) ? "T" : "F";
-            case JSON_NULL -> "∅";
-            default -> "";
-        };
     }
 
     /**
@@ -1751,28 +1099,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return last;
     }
 
-    private void drawEmptyState() {
-        gc.setFill(textSecondary);
-        gc.setFont(Font.font("Monospaced", FontWeight.NORMAL, 14));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText(adapter.emptyStateText(), canvas.getWidth() / 2, canvas.getHeight() / 2);
-    }
-
-    private void drawInfo() {
-        if (visibleRows.isEmpty()) {
-            return;
-        }
-
-        String info = String.format("%d rows (%.0f x %.0f px)", visibleRows.size(), totalWidth, totalHeight);
-
-        gc.setFill(textSecondary);
-        gc.setFont(SMALL_FONT);
-        gc.setTextAlign(TextAlignment.RIGHT);
-        gc.setTextBaseline(VPos.BOTTOM);
-        gc.fillText(info, canvas.getWidth() - 5, canvas.getHeight() - 3);
-    }
-
     // ==================== Row Index Lookup ====================
 
     /**
@@ -1782,7 +1108,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @param absoluteY the Y coordinate in document space (includes scroll offset)
      * @return the visible row index, or -1 if outside bounds
      */
-    private int findRowIndexAtY(double absoluteY) {
+    int findRowIndexAtY(double absoluteY) {
         if (visibleRows.isEmpty() || rowYPositions.length == 0) {
             return -1;
         }
@@ -1830,660 +1156,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return rowHeights[visibleIndex];
         }
         return ROW_HEIGHT;
-    }
-
-    // ==================== Table Rendering ====================
-
-    /**
-     * Renders an inline repeating-elements table beside its owner row's name cell, cell by
-     * cell through the table's drawn grid (so the standard and the flipped orientation share
-     * one renderer): corner, column headers, row numbers and data cells.
-     *
-     * @param tableRow the FlatRow that owns the table
-     * @param tableY   the Y coordinate where the table starts (screen coordinates)
-     */
-    private void renderInlineTable(FlatRow tableRow, double tableY) {
-        RepeatingElementsTable table = tableRow.getRepeatingTable();
-        if (table == null) {
-            return;
-        }
-
-        double tableX = table.getX();
-        double tableWidth = table.getWidth();
-        double tableHeight = table.getHeight();
-        int drawnCols = table.drawnColumnCount();
-        int drawnRows = table.drawnRowCount();
-
-        // Cull drawn rows and columns to the view (a flipped table has one column per record)
-        double viewTop = cullTop - tableY;
-        double viewBottom = cullBottom - tableY;
-        double viewLeft = cullLeft;
-        double viewRight = cullRight;
-
-        gc.setTextBaseline(VPos.CENTER);
-        for (int dr = 0; dr < drawnRows; dr++) {
-            double rowTopRel = table.drawnRowTop(dr);
-            double rowHeight = table.drawnRowHeight(dr);
-            if (rowTopRel + rowHeight < viewTop) {
-                continue;
-            }
-            if (rowTopRel > viewBottom) {
-                break;
-            }
-            double rowTop = tableY + rowTopRel;
-            for (int dc = 0; dc < drawnCols; dc++) {
-                double colX = table.drawnColumnX(dc);
-                double colWidth = table.drawnColumnWidth(dc);
-                if (colX + colWidth < viewLeft) {
-                    continue;
-                }
-                if (colX > viewRight) {
-                    break;
-                }
-                RepeatingElementsTable.DrawnCell cell = table.cellAt(dr, dc);
-                switch (cell.kind()) {
-                    case CORNER -> drawCornerCell(colX, rowTop, colWidth, rowHeight);
-                    case COLUMN_HEADER -> drawColumnHeaderCell(table, table.getColumn(cell.columnIndex()),
-                            colX, rowTop, colWidth, rowHeight);
-                    case ROW_NUMBER -> {
-                        drawRowNumberCell(table, cell.rowIndex(), colX, rowTop, colWidth, rowHeight);
-                        if (problemsOfMember(tableRow, cell.rowIndex()) != null) {
-                            drawProblemMarker(colX + colWidth + 14, rowTop + ROW_HEIGHT / 2);
-                        }
-                    }
-                    case DATA -> drawDataCell(table, cell.rowIndex(), cell.columnIndex(),
-                            colX, rowTop, colWidth, rowHeight);
-                    default -> { }
-                }
-            }
-        }
-
-        // -- Table outer border --
-        gc.setStroke(tableBorder);
-        gc.setLineWidth(1);
-        gc.strokeRect(tableX + 0.5, tableY + 0.5, tableWidth, tableHeight);
-    }
-
-    private void drawHeaderCellFrame(double x, double y, double w, double h, Color fill) {
-        gc.setFill(fill);
-        gc.fillRect(x, y, w, h);
-        gc.setStroke(tableBorder);
-        gc.setLineWidth(1);
-        gc.strokeRect(x + 0.5, y + 0.5, w, h);
-    }
-
-    /** The top-left cell: the flip toggle glyph. */
-    private void drawCornerCell(double x, double y, double w, double h) {
-        drawHeaderCellFrame(x, y, w, h, tableHeaderBg);
-        iconGlyph("⇄", x + w / 2, y + ROW_HEIGHT / 2, tableHeaderText, ICON_FONT);
-    }
-
-    /**
-     * A column header: type icon, name and the sort arrow at the right (faint until the table is
-     * sorted by the column); highlighted when sorted by or when the whole column is selected.
-     */
-    private void drawColumnHeaderCell(RepeatingElementsTable table, RepeatingElementsTable.TableColumn col,
-                                      double x, double y, double w, double h) {
-        boolean sorted = col != null && table.isSortedBy(col.getName());
-        boolean selected = col != null && isWholeColumnSelected(table, table.getColumns().indexOf(col));
-        drawHeaderCellFrame(x, y, w, h, sorted || selected ? tableHeaderSelected : tableHeaderBg);
-        if (col == null) {
-            return;
-        }
-        gc.save();
-        gc.beginPath();
-        gc.rect(x, y, w, h);
-        gc.clip();
-        double centerY = y + ROW_HEIGHT / 2;
-        drawColumnTypeIcon(col, x + RepeatingElementsTable.CELL_PADDING + 6, centerY);
-        gc.setFill(tableHeaderText);
-        gc.setFont(ROW_FONT_BOLD);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-        fillName(col.getName(), x + RepeatingElementsTable.CELL_PADDING + HEADER_ICON_WIDTH, centerY, GridFont.ROW_BOLD);
-        gc.setFont(SMALL_FONT);
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setFill(sorted ? tableHeaderText : previewText);
-        gc.fillText(sorted && !table.isSortAscending() ? "▼" : "▲",
-                x + w - RepeatingElementsTable.SORT_ZONE / 2 - 2, centerY);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.restore();
-    }
-
-    /** A row-number cell, highlighted when its row is selected. */
-    private void drawRowNumberCell(RepeatingElementsTable table, int rowIndex,
-                                   double x, double y, double w, double h) {
-        boolean selected = selAnchorRow >= 0 ? isWholeRowSelected(table, rowIndex)
-                : rowIndex == table.getSelectedRowIndex();
-        drawHeaderCellFrame(x, y, w, h, selected ? tableHeaderSelected : tableHeaderBg);
-        gc.setFont(SMALL_FONT);
-        gc.setFill(tableHeaderText);
-        gc.setTextAlign(TextAlignment.RIGHT);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText(String.valueOf(rowIndex + 1), x + w - RepeatingElementsTable.CELL_PADDING, y + ROW_HEIGHT / 2);
-        gc.setTextAlign(TextAlignment.LEFT);
-    }
-
-    /** A data cell: background (selection, hover, missing), border, value, suffix and sub-tree. */
-    private void drawDataCell(RepeatingElementsTable table, int rowIndex, int columnIndex,
-                              double cellX, double rowTop, double colWidth, double rowHeight) {
-        RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
-        RepeatingElementsTable.TableColumn col = table.getColumn(columnIndex);
-        if (col == null) {
-            return;
-        }
-        String colName = col.getName();
-        boolean isComplex = row.hasComplexChild(colName);
-        boolean missing = !row.getValues().containsKey(colName) && !isComplex;
-
-        Color bg = null;
-        boolean inRange = inCellRange(table, rowIndex, columnIndex);
-        if (inRange) {
-            bg = selectedBg;
-        } else if (rowIndex == table.getSelectedRowIndex() && selAnchorRow < 0) {
-            bg = tableRowSelected;
-        } else if (rowIndex == hoveredTableRowIndex && table == hoveredTable) {
-            bg = tableRowHover;
-        } else if (missing) {
-            bg = tableMissingBg;
-        }
-        if (bg != null) {
-            gc.setFill(bg);
-            gc.fillRect(cellX, rowTop, colWidth, rowHeight);
-        }
-        gc.setStroke(tableBorder);
-        gc.setLineWidth(1);
-        gc.strokeRect(cellX + 0.5, rowTop + 0.5, colWidth, rowHeight);
-        if (inRange && rowIndex == selFocusRow && columnIndex == selFocusCol) {
-            gc.setStroke(selectedBorder);
-            gc.strokeRect(cellX + 1, rowTop + 1, colWidth - 1, rowHeight - 1);
-        }
-
-        double cellCenterY = rowTop + ROW_HEIGHT / 2;
-
-        // Expand arrow for complex cells (Canvas-drawn polygon)
-        if (isComplex) {
-            double arrowX = cellX + 8;
-            double arrowSize = 3;
-            gc.setFill(textSecondary);
-            if (row.isColumnExpanded(colName)) {
-                gc.fillPolygon(
-                        new double[]{arrowX - arrowSize, arrowX, arrowX + arrowSize},
-                        new double[]{cellCenterY - arrowSize / 2, cellCenterY + arrowSize, cellCenterY - arrowSize / 2},
-                        3);
-            } else {
-                gc.fillPolygon(
-                        new double[]{arrowX - arrowSize / 2, arrowX + arrowSize, arrowX - arrowSize / 2},
-                        new double[]{cellCenterY - arrowSize, cellCenterY, cellCenterY + arrowSize},
-                        3);
-            }
-        }
-
-        // Cell value (wrapped; offset for the expand arrow on complex cells)
-        RepeatingElementsTable.CellLayout layout = table.getCellLayout(row, colName);
-        gc.setFont(ROW_FONT);
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-        double textOffsetX = isComplex ? GridMetrics.COMPLEX_ARROW_OFFSET : 0;
-        double textX = cellX + RepeatingElementsTable.CELL_PADDING + textOffsetX;
-
-        // Clip to the cell: nothing (a user-narrowed column, an over-wide line) may
-        // ever run into the neighbouring cell.
-        gc.save();
-        gc.beginPath();
-        gc.rect(cellX, rowTop, colWidth, rowHeight);
-        gc.clip();
-
-        if (col.getType() == RepeatingElementsTable.ColumnType.ATTRIBUTE) {
-            gc.setFill(textAttributeValue);
-        } else if (isComplex) {
-            gc.setFill(textSecondary);
-        } else {
-            gc.setFill(textContent);
-        }
-        drawTextBlock(layout.summary(), textX, cellCenterY);
-
-        // The cell element's own attributes (display-only, e.g. ccy=EUR) in the
-        // attribute color, right after the value or wrapped on their own lines.
-        if (layout.suffix() != null) {
-            gc.setFill(textAttributeName);
-            double lastLineY = cellCenterY + (layout.summary().lineCount() - 1) * LINE_HEIGHT;
-            if (layout.suffixOnNewLine()) {
-                drawTextBlock(layout.suffix(), textX, lastLineY + LINE_HEIGHT);
-            } else {
-                gc.fillText(layout.suffix().lastLine(), textX + layout.suffixX(), lastLineY);
-            }
-        }
-
-        // An opened cell's content: a grid of its own below the summary block
-        if (layout.grid() != null) {
-            renderBlock(layout.grid(), cellX + RepeatingElementsTable.CELL_PADDING,
-                    rowTop + layout.summaryHeight(), colWidth - 2 * RepeatingElementsTable.CELL_PADDING);
-        }
-
-        gc.restore();
-    }
-
-    /** Width reserved for the type icon in a column header. */
-    private static final double HEADER_ICON_WIDTH = RepeatingElementsTable.HEADER_ICON_WIDTH;
-
-    /** Draws the {@code =} / {@code <>} / {@code Abc} type icon of a column header. */
-    private void drawColumnTypeIcon(RepeatingElementsTable.TableColumn col, double cx, double cy) {
-        switch (col.getType()) {
-            case ATTRIBUTE -> iconGlyph("=", cx, cy, textAttributeName, ICON_FONT);
-            case TEXT_CONTENT -> iconGlyph("Abc", cx, cy, textContent, SMALL_FONT);
-            case CHILD_ELEMENT -> {
-                double size = 3.5;
-                gc.setStroke(textElement);
-                gc.setLineWidth(1.5);
-                gc.strokeLine(cx - size, cy, cx - size / 2, cy - size);
-                gc.strokeLine(cx - size, cy, cx - size / 2, cy + size);
-                gc.strokeLine(cx + size, cy, cx + size / 2, cy - size);
-                gc.strokeLine(cx + size, cy, cx + size / 2, cy + size);
-            }
-            default -> { }
-        }
-    }
-
-    // ==================== Cell Tree Rendering ====================
-
-    // ==================== Table Interaction ====================
-
-    /**
-     * Handles a mouse click inside an inline repeating table, resolved through the table's
-     * drawn grid (corner, column header, row number or data cell).
-     */
-    private void handleTableClick(MouseEvent event, RepeatingElementsTable table,
-                                   double mx, double my, double tableScreenTop, FlatRow tableOwner) {
-        int dr = table.drawnRowAt(my - tableScreenTop);
-        if (dr == 0) {
-            // A resize handle in the column-header row (the last column's lies on the table's
-            // right edge, outside every drawn column): double-click returns to automatic width
-            int sepIdx = table.getColumnSeparatorAt(mx, RESIZE_HANDLE);
-            if (sepIdx >= 0) {
-                if (event.getClickCount() == 2) {
-                    table.setColumnUserWidth(table.getColumn(sepIdx).getName(), null);
-                    recalculateVisibleRows();
-                    updateScrollBars();
-                    render();
-                }
-                return;
-            }
-        }
-        int dc = table.drawnColumnAt(mx);
-        if (dr < 0 || dc < 0) {
-            return;
-        }
-        RepeatingElementsTable.DrawnCell cell = table.cellAt(dr, dc);
-
-        switch (cell.kind()) {
-            case CORNER -> {
-                // The flip toggle (rows ↔ columns)
-                if (event.getClickCount() == 1) {
-                    flipTable(tableOwner);
-                }
-                return;
-            }
-            case COLUMN_HEADER -> {
-                // Column header: a click on the arrow at the right sorts, elsewhere it selects the
-                // whole column (Shift extends); a double-click renames the column
-                RepeatingElementsTable.TableColumn col = table.getColumn(cell.columnIndex());
-                if (col == null) {
-                    return;
-                }
-                if (event.getClickCount() == 2) {
-                    contextMenu().renameColumn(table, col.getName());
-                    return;
-                }
-                if (event.getClickCount() != 1) {
-                    return;
-                }
-                double headerRight = table.drawnColumnX(dc) + table.drawnColumnWidth(dc);
-                if (mx >= headerRight - RepeatingElementsTable.SORT_ZONE) {
-                    if (table.isColumnSortable(col.getName())) {
-                        handleTableSort(table, col.getName(), tableOwner);
-                    }
-                    return;
-                }
-                selectTableColumn(table, cell.columnIndex(), event.isShiftDown());
-                render();
-                return;
-            }
-            case ROW_NUMBER -> {
-                boolean extend = event.isShiftDown() && selectedTable == table && selAnchorRow >= 0;
-                selectTableRow(table, cell.rowIndex());
-                int lastCol = Math.max(0, table.getColumns().size() - 1);
-                if (extend) {
-                    selFocusRow = cell.rowIndex();
-                    selFocusCol = lastCol;
-                    selAnchorCol = 0;
-                } else {
-                    setCellRange(cell.rowIndex(), 0, cell.rowIndex(), lastCol);
-                }
-                render();
-                return;
-            }
-            case DATA -> { /* handled below */ }
-            default -> { }
-        }
-
-        int rowIdx = cell.rowIndex();
-        if (rowIdx < 0 || rowIdx >= table.getRows().size()) {
-            return;
-        }
-        RepeatingElementsTable.TableRow row = table.getRows().get(rowIdx);
-        RepeatingElementsTable.TableColumn col = table.getColumn(cell.columnIndex());
-        if (col == null) {
-            return;
-        }
-        String colName = col.getName();
-        RepeatingElementsTable.CellRect rect = table.cellRect(rowIdx, cell.columnIndex());
-        double cellLeft = rect.x();
-
-        // Click on a complex cell's expand arrow (first ~16px of the cell's summary line; below it
-        // lies the opened cell's grid, whose own expand arrows sit in the same x range)
-        RepeatingElementsTable.CellLayout summaryLayout = table.getCellLayout(row, colName);
-        double summaryBottom = tableScreenTop + rect.y()
-                + (summaryLayout != null ? summaryLayout.summaryHeight() : ROW_HEIGHT);
-        if (event.getClickCount() == 1 && row.hasComplexChild(colName)
-                && mx >= cellLeft && mx <= cellLeft + 16 && my < summaryBottom) {
-            row.toggleColumnExpanded(colName);
-            table.recalculateColumnWidths();
-            recalculateVisibleRows();
-            updateScrollBars();
-            render();
-            return;
-        }
-
-        // A click inside an opened cell goes to its grid (rows, nested tables, their cells …)
-        RepeatingElementsTable.CellLayout cellLayout = table.getCellLayout(row, colName);
-        if (cellLayout != null && cellLayout.grid() != null) {
-            double gridTop = tableScreenTop + rect.y() + cellLayout.summaryHeight();
-            double gridLeft = cellLeft + RepeatingElementsTable.CELL_PADDING;
-            if (my >= gridTop && handleBlockClick(event, cellLayout.grid(), mx - gridLeft, my - gridTop)) {
-                return;
-            }
-        }
-
-        boolean extend = event.isShiftDown() && selectedTable == table && selAnchorRow >= 0;
-        selectTableRow(table, rowIdx);
-        if (extend) {
-            selFocusRow = rowIdx;
-            selFocusCol = cell.columnIndex();
-        } else {
-            setCellRange(rowIdx, cell.columnIndex(), rowIdx, cell.columnIndex());
-        }
-
-        // Double-click to edit cell
-        if (event.getClickCount() == 2) {
-            startEditingTableCell(table, rowIdx, colName, tableScreenTop);
-        }
-
-        render();
-    }
-
-    /**
-     * Selects a whole column of the table (all rows); with {@code extend} and a column selection
-     * of the same table already present, the range grows to this column.
-     */
-    void selectTableColumn(RepeatingElementsTable table, int columnIndex, boolean extend) {
-        int lastRow = table.getRows().size() - 1;
-        if (lastRow < 0) {
-            return;
-        }
-        boolean hadColumns = extend && selectedTable == table && selAnchorRow == 0 && selFocusRow == lastRow;
-        int anchorCol = hadColumns ? selAnchorCol : columnIndex;
-        selectTableRow(table, 0);
-        setCellRange(0, anchorCol, lastRow, columnIndex);
-    }
-
-    /** @return whether every row of the column lies in the selected range */
-    private boolean isWholeColumnSelected(RepeatingElementsTable table, int col) {
-        int rows = table.getRows().size();
-        return rows > 0 && table == selectedTable && selAnchorRow >= 0
-                && Math.min(selAnchorRow, selFocusRow) == 0 && Math.max(selAnchorRow, selFocusRow) == rows - 1
-                && col >= Math.min(selAnchorCol, selFocusCol) && col <= Math.max(selAnchorCol, selFocusCol);
-    }
-
-    /** @return whether every column of the row lies in the selected range */
-    private boolean isWholeRowSelected(RepeatingElementsTable table, int row) {
-        int cols = table.getColumns().size();
-        return cols > 0 && table == selectedTable && selAnchorRow >= 0
-                && Math.min(selAnchorCol, selFocusCol) == 0 && Math.max(selAnchorCol, selFocusCol) == cols - 1
-                && row >= Math.min(selAnchorRow, selFocusRow) && row <= Math.max(selAnchorRow, selFocusRow);
-    }
-
-    private void setCellRange(int anchorRow, int anchorCol, int focusRow, int focusCol) {
-        selAnchorRow = anchorRow;
-        selAnchorCol = anchorCol;
-        selFocusRow = focusRow;
-        selFocusCol = focusCol;
-    }
-
-    /** @return whether the logical cell lies in the selected cell range of the table */
-    private boolean inCellRange(RepeatingElementsTable table, int row, int col) {
-        if (table != selectedTable || selAnchorRow < 0) {
-            return false;
-        }
-        return row >= Math.min(selAnchorRow, selFocusRow) && row <= Math.max(selAnchorRow, selFocusRow)
-                && col >= Math.min(selAnchorCol, selFocusCol) && col <= Math.max(selAnchorCol, selFocusCol);
-    }
-
-    // ==================== TSV clipboard ====================
-
-    /**
-     * @return the selected table cells as tab-separated text (the whole table with a header
-     *         line when the selection covers every cell), or {@code null} without a cell selection
-     */
-    public String selectedCellsAsTsv() {
-        javafx.scene.input.ClipboardContent content = selectedCellsContent();
-        return content == null ? null : content.getString();
-    }
-
-    /** @return the selected table cells as clipboard content (TSV + HTML), or {@code null} without a cell selection */
-    private javafx.scene.input.ClipboardContent selectedCellsContent() {
-        if (selectedTable == null || selAnchorRow < 0) {
-            return null;
-        }
-        int rows = selectedTable.getRows().size();
-        int cols = selectedTable.getColumns().size();
-        boolean all = Math.min(selAnchorRow, selFocusRow) == 0 && Math.max(selAnchorRow, selFocusRow) == rows - 1
-                && Math.min(selAnchorCol, selFocusCol) == 0 && Math.max(selAnchorCol, selFocusCol) == cols - 1;
-        return TsvClipboard.content(selectedTable, selAnchorRow, selAnchorCol, selFocusRow, selFocusCol, all && rows > 1);
-    }
-
-    /** Selects every cell of the table (the corner-cell / Ctrl+A target). */
-    private void selectAllCells(RepeatingElementsTable table) {
-        if (table.getRows().isEmpty()) {
-            return;
-        }
-        selectTableRow(table, 0);
-        setCellRange(0, 0, table.getRows().size() - 1, Math.max(0, table.getColumns().size() - 1));
-        render();
-    }
-
-    /**
-     * Pastes a tab-separated block into the selected table, starting at the top-left selected
-     * cell (rows beyond the table become new members where the model allows it).
-     *
-     * @param text the clipboard text
-     * @return whether anything was pasted
-     */
-    public boolean pasteTsvIntoSelection(String text) {
-        if (selectedTable == null || selAnchorRow < 0 || text == null) {
-            return false;
-        }
-        List<List<String>> values = TsvClipboard.parse(text);
-        if (values.isEmpty()) {
-            return false;
-        }
-        int startRow = Math.min(selAnchorRow, selFocusRow);
-        int startCol = Math.min(selAnchorCol, selFocusCol);
-        if (!adapter.pasteCells(selectedTable, startRow, startCol, values)) {
-            return false;
-        }
-        rebuildTree();
-        notifyDocumentModified();
-        return true;
-    }
-
-    /**
-     * Ctrl+C / Ctrl+V / Ctrl+A while table cells are selected: copy them as TSV, paste a TSV
-     * block, select the whole table. Handled before the context-menu shortcuts (which would
-     * copy/paste the row's element node instead).
-     *
-     * @return whether the event was handled
-     */
-    private boolean handleTableClipboardKeys(KeyEvent event) {
-        if (!event.isShortcutDown() || event.isShiftDown() || event.isAltDown()
-                || selectedTable == null || selAnchorRow < 0) {
-            return false;
-        }
-        javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
-        switch (event.getCode()) {
-            case C -> {
-                javafx.scene.input.ClipboardContent content = selectedCellsContent();
-                if (content != null) {
-                    clipboard.setContent(content);
-                    event.consume();
-                    return true;
-                }
-                return false;
-            }
-            case V -> {
-                String text = clipboard.hasString() ? clipboard.getString() : null;
-                boolean multiCell = selAnchorRow != selFocusRow || selAnchorCol != selFocusCol;
-                if (text != null && (TsvClipboard.isBlock(text) || multiCell || !contextMenu().hasClipboard())) {
-                    pasteTsvIntoSelection(text);
-                    event.consume();
-                    return true;
-                }
-                return false;
-            }
-            case A -> {
-                selectAllCells(selectedTable);
-                event.consume();
-                return true;
-            }
-            default -> {
-                return false;
-            }
-        }
-    }
-
-    /** Selects a table row (clearing the tree-row selection) and tells the selection model. */
-    private void selectTableRow(RepeatingElementsTable table, int rowIdx) {
-        if (rowIdx < 0 || rowIdx >= table.getRows().size()) {
-            return;
-        }
-        if (selectedTable != null && selectedTable != table) {
-            selectedTable.setSelectedRowIndex(-1);
-        }
-        table.setSelectedRowIndex(rowIdx);
-        selectedTable = table;
-
-        // Clear normal row selection (visual only, to avoid dual highlight)
-        if (selectedRow != null) {
-            selectedRow.setSelected(false);
-            selectedRow = null;
-        }
-
-        // Notify SelectionModel so sidebar properties pane updates
-        adapter.select(adapter.nodeOf(table.getRows().get(rowIdx)));
-        fireSelectionChanged();
-    }
-
-    /**
-     * Handles sorting of a table column.
-     * Toggles sort direction if clicking the same column again.
-     */
-    private void handleTableSort(RepeatingElementsTable table, String columnName, FlatRow tableOwner) {
-        // Toggle direction if already sorted by this column
-        boolean ascending;
-        if (table.isSortedBy(columnName)) {
-            ascending = !table.isSortAscending();
-        } else {
-            ascending = true;
-        }
-
-        adapter.sortTable(table, columnName, ascending);
-
-        rebuildTree();
-        notifyDocumentModified();
-    }
-
-    /**
-     * Updates table hover state.
-     */
-    private void updateTableHover(RepeatingElementsTable table, double mx, double my, double tableScreenTop) {
-        if (hoveredTable != table) {
-            if (hoveredTable != null) {
-                hoveredTable.setHoveredRowIndex(-1);
-                hoveredTable.setHoveredColumnIndex(-1);
-                hoveredTable.setHovered(false);
-            }
-            hoveredTable = table;
-            table.setHovered(true);
-            hoveredTableRowIndex = -1;
-            hoveredTableColumnIndex = -1;
-        }
-
-        int dr = table.drawnRowAt(my - tableScreenTop);
-        int dc = table.drawnColumnAt(mx);
-        int rowIdx = -1;
-        int colIdx = -1;
-        if (dr >= 0 && dc >= 0) {
-            RepeatingElementsTable.DrawnCell cell = table.cellAt(dr, dc);
-            rowIdx = cell.rowIndex();
-            colIdx = cell.columnIndex();
-        }
-
-        if (rowIdx != hoveredTableRowIndex || colIdx != hoveredTableColumnIndex) {
-            hoveredTableRowIndex = rowIdx;
-            hoveredTableColumnIndex = colIdx;
-            table.setHoveredRowIndex(rowIdx);
-            table.setHoveredColumnIndex(colIdx);
-            render();
-        }
-    }
-
-    /**
-     * Starts editing a table cell.
-     */
-    private void startEditingTableCell(RepeatingElementsTable table, int rowIndex, String columnName,
-                                        double tableScreenTop) {
-        cancelEditing();
-
-        RepeatingElementsTable.TableRow row = table.getRows().get(rowIndex);
-        RepeatingElementsTable.TableColumn col = table.getColumn(columnName);
-        if (col == null) {
-            return;
-        }
-
-        // Don't edit complex children
-        if (row.hasComplexChild(columnName)) {
-            return;
-        }
-
-        editingTable = table;
-        editingTableRowIndex = rowIndex;
-        editingTableColumnName = columnName;
-
-        String currentValue = row.getValue(columnName);
-
-        // Calculate cell position from the drawn grid (works in both orientations)
-        RepeatingElementsTable.CellRect rect = table.cellRect(rowIndex, table.getColumns().indexOf(col));
-        double[] system = table.getOwnerRow() != null && table.getOwnerRow().getBlock() != null
-                ? tableOrigin(table) : new double[] {0, tableScreenTop};
-        if (system == null) {
-            return;
-        }
-        double cellX = system[0] + rect.x() - scrollOffsetX;
-        double cellY = system[1] + rect.y();
-
-        GridModelAdapter.EditSpec spec = adapter.cellEditSpec(table, rowIndex, columnName);
-        createEditField(spec != null ? spec : GridModelAdapter.EditSpec.plain(currentValue),
-                cellX, cellY, rect.width());
     }
 
     // ==================== Type change ====================
@@ -2599,9 +1271,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** @return the selected tree row, or the owner row of the table whose row is selected */
     private FlatRow selectedRowOrTableOwner() {
-        if (selectedTable != null) {
+        if (tables.selectedTable != null) {
             for (FlatRow row : allRows) {
-                if (row.isRepeatingTableBuilt() && row.getRepeatingTable() == selectedTable) {
+                if (row.isRepeatingTableBuilt() && row.getRepeatingTable() == tables.selectedTable) {
                     return row;
                 }
             }
@@ -2620,37 +1292,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return row.getStandardGroupKey();
     }
 
-    // ==================== Color Helpers ====================
-
-    private Color getRowLabelColor(FlatRow.RowType type) {
-        return switch (type) {
-            case ELEMENT, JSON_OBJECT, JSON_ARRAY, JSON_STRING, JSON_NUMBER, JSON_BOOLEAN, JSON_NULL -> textElement;
-            case ATTRIBUTE -> textAttributeName;
-            case TEXT -> textContent;
-            case COMMENT -> textComment;
-            case CDATA -> textCdata;
-            case PROCESSING_INSTRUCTION -> textPi;
-            case DOCUMENT -> textSecondary;
-            case GROUP -> textSecondary;
-            case FILTER -> accent;
-        };
-    }
-
-    private Color getRowValueColor(FlatRow.RowType type) {
-        return switch (type) {
-            case ATTRIBUTE -> textAttributeValue;
-            case ELEMENT -> textContent;
-            case COMMENT -> textComment;
-            case CDATA -> textCdata;
-            case PROCESSING_INSTRUCTION -> textPi;
-            case JSON_STRING -> textJsonString;
-            case JSON_NUMBER -> textJsonNumber;
-            case JSON_BOOLEAN -> textJsonBoolean;
-            case JSON_NULL -> textJsonNull;
-            default -> textContent;
-        };
-    }
-
     // ==================== Event Handlers ====================
 
     private void setupEventHandlers() {
@@ -2667,13 +1308,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 hoveredExpandBar = null;
                 needsRedraw = true;
             }
-            if (hoveredTable != null) {
-                hoveredTable.setHoveredRowIndex(-1);
-                hoveredTable.setHoveredColumnIndex(-1);
-                hoveredTable.setHovered(false);
-                hoveredTable = null;
-                hoveredTableRowIndex = -1;
-                hoveredTableColumnIndex = -1;
+            if (tables.hoveredTable != null) {
+                tables.hoveredTable.setHoveredRowIndex(-1);
+                tables.hoveredTable.setHoveredColumnIndex(-1);
+                tables.hoveredTable.setHovered(false);
+                tables.hoveredTable = null;
+                tables.hoveredTableRowIndex = -1;
+                tables.hoveredTableColumnIndex = -1;
                 needsRedraw = true;
             }
             if (needsRedraw) {
@@ -2686,7 +1327,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             // Ctrl + wheel zooms (like the text editor and the XSD diagram) — but never while an
             // inline edit is running: zooming cancels the editor and would drop the typed text.
             if (e.isControlDown() || e.isShortcutDown()) {
-                if (editField != null || activeWidgetNode != null) {
+                if (editor.editField != null || editor.activeWidgetNode != null) {
                     e.consume();
                     return;
                 }
@@ -2742,7 +1383,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Request focus when clicked (but not if editing)
         canvas.setOnMousePressed(e -> {
-            if (!canvas.isFocused() && editField == null && activeWidgetNode == null) {
+            if (!canvas.isFocused() && editor.editField == null && editor.activeWidgetNode == null) {
                 canvas.requestFocus();
             }
         });
@@ -2754,437 +1395,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         });
 
-        // Column resizing: press on a separator in a column-header row, drag, release
-        canvas.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
-            if (e.getButton() != MouseButton.PRIMARY || editField != null || activeWidgetNode != null) {
-                return;
-            }
-            double mx = toModelX(e.getX());
-            double my = toViewportY(e.getY());
-            // Anchor on the SCREEN x: narrowing a column can shrink the content width and
-            // pull the horizontal scroll offset back, which must not feed into the delta.
-            ColumnDrag handle = findColumnHandleAt(mx, my);
-            if (handle != null) {
-                columnDrag = new ColumnDrag(handle.table(), handle.columnIndex(), e.getX(), handle.startWidth());
-                columnDragMoved = false;
-                e.consume();
-                return;
-            }
-            BlockDrag block = findBlockSeparatorAt(mx, my);
-            if (block != null) {
-                columnDrag = new BlockDrag(block.key(), block.grid(), e.getX(), block.startWidth());
-                columnDragMoved = false;
-                e.consume();
-                return;
-            }
-            pressedDragRow = dragCandidateAt(mx, my);
-            headerDrag = headerDragAt(mx, my, e.getX());
-        });
-        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
-            if (headerDrag == null) {
-                return;
-            }
-            if (!headerDrag.active && Math.abs(e.getX() - headerDrag.startScreenX) > 6) {
-                headerDrag.active = true;
-            }
-            if (headerDrag.active) {
-                double mx = toModelX(e.getX()) - headerDrag.originX;
-                int dc = headerDrag.table.drawnColumnAt(mx);
-                RepeatingElementsTable.DrawnCell cell = dc >= 0 ? headerDrag.table.cellAt(0, dc) : null;
-                if (cell != null && cell.columnIndex() >= 0) {
-                    headerDrag.target = cell.columnIndex();
-                    headerDrag.before = mx < headerDrag.table.drawnColumnX(dc) + headerDrag.table.drawnColumnWidth(dc) / 2;
-                } else {
-                    headerDrag.target = -1;
-                }
-                render();
-                e.consume();
-            }
-        });
-        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> {
-            HeaderDrag drag = headerDrag;
-            headerDrag = null;
-            if (drag == null || !drag.active) {
-                return;
-            }
-            suppressNextClick = true; // the click after the drag must not sort
-            if (drag.target >= 0 && drag.target != drag.column
-                    && adapter.moveTableColumn(drag.table, drag.column, drag.target, drag.before)) {
-                rebuildTree();
-                notifyDocumentModified();
-            } else {
-                render();
-            }
-            e.consume();
-        });
-        canvas.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
-            if (columnDrag == null) {
-                return;
-            }
-            double delta = (e.getX() - columnDrag.startScreenX()) / getZoom();
-            if (columnDrag instanceof ColumnDrag drag) {
-                double newWidth = Math.max(RepeatingElementsTable.MIN_COLUMN_WIDTH, drag.startWidth() + delta);
-                RepeatingElementsTable.TableColumn col = drag.table().getColumn(drag.columnIndex());
-                if (col != null && Math.abs(col.getWidth() - newWidth) >= 0.5) {
-                    drag.table().setColumnUserWidth(col.getName(), newWidth);
-                    columnDragMoved = true;
-                    recalculateVisibleRows();
-                    updateScrollBars();
-                    render();
-                }
-            } else if (columnDrag instanceof BlockDrag drag) {
-                double newWidth = Math.max(MIN_NAME_COL_WIDTH, drag.startWidth() + delta);
-                Double current = viewState.nameColumnWidth(drag.key());
-                if (current == null || Math.abs(current - newWidth) >= 0.5) {
-                    viewState.setNameColumnWidth(drag.key(), newWidth);
-                    if (drag.grid() != null) {
-                        drag.grid().invalidate();
-                    }
-                    columnDragMoved = true;
-                    recalculateVisibleRows();
-                    updateScrollBars();
-                    render();
-                }
-            }
-            canvas.setCursor(Cursor.H_RESIZE);
-            e.consume();
-        });
-        canvas.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> {
-            if (columnDrag != null) {
-                suppressNextClick = columnDragMoved;
-                columnDrag = null;
-                e.consume();
-            }
-        });
-    }
-
-    // ==================== Drag & drop ====================
-
-    /** Internal drag payload: marks a drag that started in a grid canvas. */
-    private static final javafx.scene.input.DataFormat GRID_NODE_FORMAT = gridNodeFormat();
-
-    private static javafx.scene.input.DataFormat gridNodeFormat() {
-        javafx.scene.input.DataFormat existing = javafx.scene.input.DataFormat.lookupMimeType("application/x-fxt-grid-node");
-        return existing != null ? existing : new javafx.scene.input.DataFormat("application/x-fxt-grid-node");
-    }
-
-    /** @return a column-header drag candidate when the press is on a column header (not a resize handle) */
-    private HeaderDrag headerDragAt(double mx, double my, double screenX) {
-        Pointer p = pointerAt(mx, my); // tables inside opened cells too
-        RepeatingElementsTable table = p == null ? null : p.table();
-        if (table == null || table.isFlipped() || table.getColumnSeparatorAt(p.lx(), RESIZE_HANDLE) >= 0) {
-            return null;
-        }
-        int dr = table.drawnRowAt(p.ly() - p.tableTop());
-        int dc = table.drawnColumnAt(p.lx());
-        if (dr != 0 || dc < 1) {
-            return null;
-        }
-        return new HeaderDrag(table, table.cellAt(0, dc).columnIndex(), screenX, p.ox());
-    }
-
-    /** Draws the insertion line of a running column-header drag. */
-    private void drawHeaderDragIndicator() {
-        HeaderDrag drag = headerDrag;
-        if (drag == null || !drag.active || drag.target < 0) {
-            return;
-        }
-        RepeatingElementsTable table = drag.table;
-        double[] origin = tableOrigin(table);
-        if (origin == null) {
-            return;
-        }
-        RepeatingElementsTable.CellRect rect = table.cellRect(0, drag.target);
-        double x = origin[0] + (drag.before ? rect.x() : rect.x() + rect.width());
-        double top = origin[1];
-        gc.setStroke(accent);
-        gc.setLineWidth(2);
-        gc.strokeLine(x, top, x, top + table.getHeight());
-    }
-
-    /** @return the row whose name cell (first line, right of the expand arrow) is under the point, if draggable */
-    FlatRow dragCandidateAt(double mx, double my) {
-        Pointer p = pointerAt(mx, my); // rows inside opened cells too
-        if (p == null || p.table() != null) {
-            return null;
-        }
-        FlatRow row = p.row();
-        boolean inNameCell = p.lx() >= rowIconX(row) && p.lx() < row.getValueX() - RESIZE_HANDLE
-                && p.ly() >= p.rowTop() && p.ly() < p.rowTop() + ROW_HEIGHT;
-        return inNameCell && adapter.canDrag(row) ? row : null;
-    }
-
-    /**
-     * Where a drop at the point would go: in a name cell's first line the upper third means
-     * "before", the lower third "after", the middle (and the rest of a spanning container
-     * cell) "into"; a value cell means "replace the value".
-     *
-     * @param mx x in model units
-     * @param my y in unscaled viewport units
-     * @return the drop target, or {@code null} when there is no row
-     */
-    DropTarget dropTargetAt(double mx, double my) {
-        Pointer p = pointerAt(mx, my); // rows inside opened cells too
-        RowBox box = p == null ? null : rowBox(p.row());
-        if (box == null) {
-            return null;
-        }
-        FlatRow row = p.row();
-        double rel = p.ly() - p.rowTop();
-        boolean ownLine = rel < Math.max(box.own(), ROW_HEIGHT);
-        if (p.lx() >= row.getValueX() && ownLine && !(row.hasRepeatingTable() && row.isExpanded())) {
-            return new DropTarget(row, DropPosition.VALUE);
-        }
-        if (rel >= ROW_HEIGHT) {
-            return new DropTarget(row, DropPosition.INTO);
-        }
-        if (rel < ROW_HEIGHT * 0.3) {
-            return new DropTarget(row, DropPosition.BEFORE);
-        }
-        if (rel > ROW_HEIGHT * 0.7) {
-            return new DropTarget(row, DropPosition.AFTER);
-        }
-        return new DropTarget(row, row.getType().isContainer() ? DropPosition.INTO : DropPosition.AFTER);
-    }
-
-    /**
-     * Resolves the drop target for the current drag: internal drags never replace a value
-     * (a value-cell position falls back to "into"/"after" by the vertical rule).
-     */
-    private DropTarget resolveDrop(double mx, double my, boolean internal) {
-        DropTarget target = dropTargetAt(mx, my);
-        if (target == null) {
-            return null;
-        }
-        if (internal && target.position() == DropPosition.VALUE) {
-            Pointer p = pointerAt(mx, my);
-            double rel = p == null ? 0 : p.ly() - p.rowTop();
-            DropPosition pos = rel < ROW_HEIGHT * 0.3 ? DropPosition.BEFORE
-                    : rel > ROW_HEIGHT * 0.7 || !target.row().getType().isContainer() ? DropPosition.AFTER
-                    : DropPosition.INTO;
-            target = new DropTarget(target.row(), pos);
-        }
-        FlatRow dragged = internal ? dragRow : null;
-        return adapter.canDrop(dragged, target.row(), target.position()) ? target : null;
-    }
-
-    /** Installs the drag-and-drop handlers (drag a node by its name cell; drop nodes or external text). */
-    private void setupDragAndDrop() {
-        canvas.setOnDragDetected(e -> {
-            if (columnDrag != null || pressedDragRow == null || editField != null || activeWidgetNode != null) {
-                return;
-            }
-            String text = adapter.dragText(pressedDragRow);
-            javafx.scene.input.Dragboard db = canvas.startDragAndDrop(javafx.scene.input.TransferMode.COPY_OR_MOVE);
-            javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
-            content.putString(text != null ? text : "");
-            content.put(GRID_NODE_FORMAT, keyOf(pressedDragRow));
-            db.setContent(content);
-            dragRow = pressedDragRow;
-            pressedDragRow = null;
-            e.consume();
-        });
-        canvas.addEventHandler(javafx.scene.input.DragEvent.DRAG_OVER, e -> {
-            boolean internal = e.getGestureSource() == canvas && dragRow != null;
-            if (!internal && !e.getDragboard().hasString()) {
-                return;
-            }
-            autoScrollWhileDragging(toViewportY(e.getY()));
-            DropTarget target = resolveDrop(toModelX(e.getX()), toViewportY(e.getY()), internal);
-            if (target != null) {
-                e.acceptTransferModes(internal ? javafx.scene.input.TransferMode.COPY_OR_MOVE
-                        : new javafx.scene.input.TransferMode[]{javafx.scene.input.TransferMode.COPY});
-            }
-            setDropIndicator(target);
-            e.consume();
-        });
-        canvas.addEventHandler(javafx.scene.input.DragEvent.DRAG_EXITED, e -> setDropIndicator(null));
-        canvas.addEventHandler(javafx.scene.input.DragEvent.DRAG_DROPPED, e -> {
-            boolean internal = e.getGestureSource() == canvas && dragRow != null;
-            DropTarget target = resolveDrop(toModelX(e.getX()), toViewportY(e.getY()), internal);
-            boolean done = false;
-            if (target != null) {
-                if (internal) {
-                    boolean copy = e.getTransferMode() == javafx.scene.input.TransferMode.COPY;
-                    done = adapter.dropRow(dragRow, target.row(), target.position(), copy);
-                } else if (e.getDragboard().hasString()) {
-                    done = adapter.dropText(target.row(), target.position(), e.getDragboard().getString());
-                }
-            }
-            setDropIndicator(null);
-            e.setDropCompleted(done);
-            e.consume();
-            if (done) {
-                javafx.application.Platform.runLater(() -> {
-                    rebuildTree();
-                    notifyDocumentModified();
-                });
-            }
-        });
-        canvas.setOnDragDone(e -> {
-            dragRow = null;
-            setDropIndicator(null);
-        });
-    }
-
-    /** Band at the top and bottom edge where a drag scrolls the grid (unscaled pixels). */
-    private static final double DRAG_SCROLL_BAND = 24;
-
-    /** Scrolls a little while a drag is held near the top or bottom edge, so deep targets come into reach. */
-    private void autoScrollWhileDragging(double my) {
-        double height = viewportHeightModel();
-        double step = 0;
-        if (my < DRAG_SCROLL_BAND) {
-            step = -(DRAG_SCROLL_BAND - Math.max(0, my));
-        } else if (my > height - DRAG_SCROLL_BAND) {
-            step = DRAG_SCROLL_BAND - Math.max(0, height - my);
-        }
-        if (step != 0) {
-            vScrollBar.setValue(Math.max(vScrollBar.getMin(), Math.min(vScrollBar.getMax(), vScrollBar.getValue() + step)));
-        }
-    }
-
-    private void setDropIndicator(DropTarget target) {
-        FlatRow row = target != null ? target.row() : null;
-        DropPosition pos = target != null ? target.position() : null;
-        if (row != dropTargetRow || pos != dropPosition) {
-            dropTargetRow = row;
-            dropPosition = pos;
-            render();
-        }
-    }
-
-    /** Draws the drop indicator: an insertion line (before/after), a frame (into / value). */
-    private void drawDropIndicator() {
-        if (dropTargetRow == null || dropPosition == null) {
-            return;
-        }
-        FlatRow row = dropTargetRow;
-        RowBox box = rowBox(row);
-        if (box == null) {
-            return;
-        }
-        double top = box.top();
-        double right = box.right();
-        double labelX = box.ox() + row.getLabelX();
-        double valueX = box.ox() + row.getValueX();
-        gc.setStroke(accent);
-        gc.setLineWidth(2);
-        switch (dropPosition) {
-            case BEFORE -> gc.strokeLine(labelX, top + 1, right, top + 1);
-            case AFTER -> {
-                double bottom = top + box.span();
-                gc.strokeLine(labelX, bottom - 1, right, bottom - 1);
-            }
-            case INTO -> gc.strokeRect(labelX + 1, top + 1, valueX - labelX - 2, Math.max(ROW_HEIGHT, box.span()) - 2);
-            case VALUE -> gc.strokeRect(valueX + 1, top + 1, right - valueX - 2, Math.max(ROW_HEIGHT, box.own()) - 2);
-            default -> { }
-        }
-    }
-
-    /**
-     * Where a row of any grid is drawn: the x offset of its grid (content x), its top (viewport y),
-     * its own height, the height of its name cell and where its value cells end.
-     */
-    private record RowBox(double ox, double top, double own, double span, double right) {
-    }
-
-    /** @return the drawn box of a visible row of the root or of an opened cell's grid, or {@code null} */
-    private RowBox rowBox(FlatRow row) {
-        GridBlock block = row.getBlock();
-        if (block == null) {
-            Integer i = rowIndexMap.get(row);
-            return i == null ? null : new RowBox(0, rowYPositions[i] - scrollOffsetY, rowHeights[i], rowSpanHeight(i),
-                    Math.max(totalWidth, viewportWidthModel() + scrollOffsetX));
-        }
-        GridBlockLayout.Result g = block.geometry();
-        Integer i = g == null ? null : g.index().get(row);
-        double[] origin = i == null ? null : blockOrigin(block);
-        if (origin == null) {
-            return null;
-        }
-        int last = g.lastDescendant()[i];
-        return new RowBox(origin[0], origin[1] + g.y()[i], g.height()[i], g.y()[last] + g.height()[last] - g.y()[i],
-                origin[0] + g.width());
-    }
-
-    /**
-     * Finds the column separator under the pointer: the pointer must sit in the
-     * column-header row of an embedded table, within {@link #RESIZE_HANDLE}
-     * pixels of a column's right edge.
-     *
-     * @param mx x in model units
-     * @param my y in unscaled viewport units
-     * @return the drag descriptor, or {@code null} when no handle is there
-     */
-    private ColumnDrag findColumnHandleAt(double mx, double my) {
-        Pointer p = pointerAt(mx, my); // the deepest table under the point (inside opened cells too)
-        if (p == null || p.table() == null) {
-            return null;
-        }
-        RepeatingElementsTable table = p.table();
-        double headerTop = p.tableTop();
-        if (p.ly() < headerTop || p.ly() >= headerTop + ROW_HEIGHT || p.lx() < table.getX()) {
-            return null;
-        }
-        int colIdx = table.getColumnSeparatorAt(p.lx(), RESIZE_HANDLE);
-        if (colIdx < 0) {
-            return null;
-        }
-        return new ColumnDrag(table, colIdx, 0, table.getColumn(colIdx).getWidth());
-    }
-
-    /**
-     * Finds a block's name-column separator under the pointer: the hairline between a row's
-     * name cell and its value column (it spans the row's whole name cell, i.e. an expanded
-     * container's child block too), within {@link #RESIZE_HANDLE} pixels. Dragging it resizes
-     * the name column of the block the row belongs to.
-     *
-     * @param mx x in model units
-     * @param my y in unscaled viewport units
-     * @return the drag descriptor (start width = the block's current name-column width), or {@code null}
-     */
-    private BlockDrag findBlockSeparatorAt(double mx, double my) {
-        Pointer p = pointerAt(mx, my);
-        return p == null ? null : blockSeparator(p.row(), p.lx());
-    }
-
-    /** @return the drag of the block of {@code row} when {@code x} (the row's grid) is on its separator */
-    private BlockDrag blockSeparator(FlatRow row, double x) {
-        if (Math.abs(x - row.getValueX()) > RESIZE_HANDLE) {
-            return null;
-        }
-        return new BlockDrag(widthKeyOf(row), row.getBlock(), 0, row.getValueX() - row.getLabelX());
-    }
-
-    /** @return the key the name-column width of the block holding {@code row} is stored under */
-    private String widthKeyOf(FlatRow row) {
-        FlatRow parent = row.getParentRow();
-        if (row.getBlock() == null) {
-            return blockKey(parent);
-        }
-        return parent == null || parent.getDepth() < 0 ? cellBlockKey(row.getBlock()) : keyOf(parent);
-    }
-
-    /**
-     * @return the width key of an opened cell's top block: the member's positional path within its
-     *         group and the column ({@code /a/item[2]/#cell/name}), distinct from every row key
-     */
-    private static String cellBlockKey(GridBlock grid) {
-        RepeatingElementsTable.TableRow host = grid.host();
-        RepeatingElementsTable table = host == null ? null : host.getOwner();
-        FlatRow owner = table == null ? null : table.getOwnerRow();
-        String group = owner == null ? null : owner.getTableGroupKey();
-        int r = table == null ? -1 : table.getRows().indexOf(host);
-        return (group == null ? "" : group) + "[" + (r + 1) + "]/#cell/" + grid.column();
-    }
-
-    /** Returns a block to automatic (content) name-column width. */
-    private void resetBlockWidth(BlockDrag separator) {
-        viewState.setNameColumnWidth(separator.key(), null);
-        if (separator.grid() != null) {
-            separator.grid().invalidate();
-        }
+        // Column resizing, column-header moves and node-drag candidates
+        drags.installMouseHandlers();
     }
 
     // ==================== Mouse Handling ====================
@@ -3231,7 +1443,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         double tableTop = rowYPositions[rowIndex] - scrollOffsetY;
         // The right edge is inclusive (plus the handle tolerance): the last column's resize
         // separator lies exactly on it.
-        if (mx >= table.getX() && mx <= table.getX() + table.getWidth() + RESIZE_HANDLE
+        if (mx >= table.getX() && mx <= table.getX() + table.getWidth() + GridDragSupport.RESIZE_HANDLE
                 && my >= tableTop && my < tableTop + table.getHeight()) {
             return table;
         }
@@ -3239,9 +1451,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     private void handleMouseClick(MouseEvent event) {
-        if (suppressNextClick) {
+        if (drags.suppressNextClick) {
             // The click that JavaFX fires after a column drag must not sort or select.
-            suppressNextClick = false;
+            drags.suppressNextClick = false;
             return;
         }
         double mx = toModelX(event.getX());
@@ -3272,7 +1484,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         // Check if click is inside an inline table
         RepeatingElementsTable table = tableAt(rowIndex, mx, my);
         if (table != null) {
-            handleTableClick(event, table, mx, my, rowYPositions[rowIndex] - scrollOffsetY,
+            tables.handleTableClick(event, table, mx, my, rowYPositions[rowIndex] - scrollOffsetY,
                     visibleRows.get(rowIndex));
             return;
         }
@@ -3281,10 +1493,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // A click on a block's name-column separator never selects; a double-click returns the
         // block to automatic width
-        BlockDrag separator = findBlockSeparatorAt(mx, my);
+        GridDragSupport.BlockDrag separator = drags.findBlockSeparatorAt(mx, my);
         if (separator != null) {
             if (event.getClickCount() == 2) {
-                resetBlockWidth(separator);
+                drags.resetBlockWidth(separator);
                 recalculateVisibleRows();
                 updateScrollBars();
                 render();
@@ -3322,7 +1534,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Double-click handling
         if (event.getClickCount() == 2) {
-            editOnDoubleClick(clickedRow, mx >= clickedRow.getValueX());
+            editor.editOnDoubleClick(clickedRow, mx >= clickedRow.getValueX());
             return;
         }
 
@@ -3342,7 +1554,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (event.getClickCount() == 1 && clickedRow.showsTableGlyph() && !Double.isNaN(clickedRow.getTableGlyphX())) {
             double gx = clickedRow.getTableGlyphX() - 2;
             double top = rowYPositions[rowIndex] - scrollOffsetY;
-            if (mx >= gx && mx < gx + TABLE_ICON_SIZE + 4 && my >= top && my < top + ROW_HEIGHT) {
+            if (mx >= gx && mx < gx + GridPainter.TABLE_ICON_SIZE + 4 && my >= top && my < top + ROW_HEIGHT) {
                 toggleTableDisplay(clickedRow);
                 return;
             }
@@ -3435,7 +1647,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 String column = hit.cell().columnIndex() >= 0 ? hitTable.getColumn(hit.cell().columnIndex()).getName()
                         : null;
                 if (tableRow >= 0) {
-                    selectTableRow(hitTable, tableRow);
+                    tables.selectTableRow(hitTable, tableRow);
                     render();
                 }
                 N node = tableRow >= 0 ? adapter.nodeOf(hitTable.getRows().get(tableRow)) : adapter.nodeOf(hit.row());
@@ -3462,7 +1674,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         contextMenu().show(canvas, event.getScreenX(), event.getScreenY(), node);
     }
 
-    private GridContextMenu<N> contextMenu() {
+    GridContextMenu<N> contextMenu() {
         if (contextMenu == null) {
             contextMenu = adapter.createContextMenu(this::refresh, new GridContextMenu.ViewActions(
                     this::expandAll, this::collapseAll, this::expandSelectedFully, this::collapseUnselected,
@@ -3488,14 +1700,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         Pointer pointer = pointerAt(mx, my);
         RepeatingElementsTable table = pointer == null ? null : pointer.table();
         if (table != null) {
-            updateTableHover(table, pointer.lx(), pointer.ly(), pointer.tableTop());
-        } else if (hoveredTable != null) {
-            hoveredTable.setHoveredRowIndex(-1);
-            hoveredTable.setHoveredColumnIndex(-1);
-            hoveredTable.setHovered(false);
-            hoveredTable = null;
-            hoveredTableRowIndex = -1;
-            hoveredTableColumnIndex = -1;
+            tables.updateTableHover(table, pointer.lx(), pointer.ly(), pointer.tableTop());
+        } else if (tables.hoveredTable != null) {
+            tables.hoveredTable.setHoveredRowIndex(-1);
+            tables.hoveredTable.setHoveredColumnIndex(-1);
+            tables.hoveredTable.setHovered(false);
+            tables.hoveredTable = null;
+            tables.hoveredTableRowIndex = -1;
+            tables.hoveredTableColumnIndex = -1;
             needsRedraw = true;
         }
 
@@ -3521,7 +1733,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         updatePreviewTooltip(pointer != null && pointer.block() == null && table == null ? rowIndexAt(mx, my) : -1,
                 mx, my);
 
-        if (columnDrag != null || findColumnHandleAt(mx, my) != null || findBlockSeparatorAt(mx, my) != null) {
+        if (drags.columnDrag != null || drags.findColumnHandleAt(mx, my) != null || drags.findBlockSeparatorAt(mx, my) != null) {
             canvas.setCursor(Cursor.H_RESIZE);
         } else if (hoveredExpandBar != null || pointsAtToggle(pointer)) {
             canvas.setCursor(Cursor.HAND);
@@ -3594,7 +1806,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     RepeatingElementsTable nested = null;
                     if (inner.hasRepeatingTable() && inner.isExpanded()) {
                         RepeatingElementsTable t = inner.getRepeatingTable();
-                        if (x >= t.getX() && x <= t.getX() + t.getWidth() + RESIZE_HANDLE
+                        if (x >= t.getX() && x <= t.getX() + t.getWidth() + GridDragSupport.RESIZE_HANDLE
                                 && y >= innerTop && y < innerTop + t.getHeight()) {
                             nested = t;
                         }
@@ -3625,7 +1837,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (p.table() == null) {
             double glyphX = p.row().getTableGlyphX();
             return p.row().showsTableGlyph() && !Double.isNaN(glyphX)
-                    && p.lx() >= glyphX - 2 && p.lx() <= glyphX + TABLE_ICON_SIZE + 2
+                    && p.lx() >= glyphX - 2 && p.lx() <= glyphX + GridPainter.TABLE_ICON_SIZE + 2
                     && p.ly() >= p.rowTop() && p.ly() < p.rowTop() + ROW_HEIGHT;
         }
         RepeatingElementsTable.DrawnCell cell = p.cell();
@@ -3704,7 +1916,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     private void handleKeyPress(KeyEvent event) {
         // If editing, don't handle navigation keys
-        if (editField != null || activeWidgetNode != null) {
+        if (editor.editField != null || editor.activeWidgetNode != null) {
             return;
         }
 
@@ -3749,7 +1961,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
 
         // Table cell clipboard (TSV) before the node shortcuts of the context menu
-        if (handleTableClipboardKeys(event)) {
+        if (tables.handleTableClipboardKeys(event)) {
             return;
         }
 
@@ -3840,7 +2052,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                         toggleRow(selectedRow);
                     } else {
                         // Start editing
-                        startEditingElementName(selectedRow);
+                        editor.startEditingElementName(selectedRow);
                     }
                 }
                 event.consume();
@@ -3962,8 +2174,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             selectedRow.setSelected(false);
             selectedRow = null;
         }
-        selectTableRow(table, r);
-        setCellRange(r, c, r, c);
+        tables.selectTableRow(table, r);
+        tables.setCellRange(r, c, r, c);
         render();
     }
 
@@ -3974,14 +2186,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Deselects the currently selected table row and resets the selectedTable reference.
      */
     private void clearTableSelection() {
-        if (selectedTable != null) {
-            selectedTable.setSelectedRowIndex(-1);
-            selectedTable = null;
+        if (tables.selectedTable != null) {
+            tables.selectedTable.setSelectedRowIndex(-1);
+            tables.selectedTable = null;
         }
-        selAnchorRow = -1;
-        selAnchorCol = -1;
-        selFocusRow = -1;
-        selFocusCol = -1;
+        tables.selAnchorRow = -1;
+        tables.selAnchorCol = -1;
+        tables.selFocusRow = -1;
+        tables.selFocusCol = -1;
     }
 
     private void selectRow(FlatRow row) {
@@ -4021,7 +2233,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         selectionListeners.add(listener);
     }
 
-    private void fireSelectionChanged() {
+    void fireSelectionChanged() {
         for (Runnable listener : List.copyOf(selectionListeners)) {
             listener.run();
         }
@@ -4085,32 +2297,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         timeline.play();
     }
 
-    // ==================== Inline Editing ====================
-
-    /**
-     * What a double-click on a row edits: in the value column the value; in the name column a
-     * leaf's value, a container's name, an attribute's or PI's name, or a text-like node's value.
-     */
-    private void editOnDoubleClick(FlatRow row, boolean inValueColumn) {
-        if (inValueColumn) {
-            startEditingValue(row);
-        } else if (row.getType().isContainer() || row.getType().isScalarLeaf()) {
-            if (row.isLeafWithValue()) {
-                startEditingValue(row);
-            } else {
-                startEditingElementName(row);
-            }
-        } else if (adapter.canEditName(row)) {
-            startEditingElementName(row);
-        } else {
-            startEditingValue(row);
-        }
-    }
-
     // ---- Where rows, tables and opened cells are on the canvas (content x, viewport y) ----
 
     /** @return the top-left of an opened cell's grid, or {@code null} when it is not laid out */
-    private double[] blockOrigin(GridBlock grid) {
+    double[] blockOrigin(GridBlock grid) {
         RepeatingElementsTable.TableRow host = grid.host();
         RepeatingElementsTable table = host == null ? null : host.getOwner();
         double[] system = table == null ? null : tableOrigin(table);
@@ -4133,7 +2323,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @return the x offset of the coordinate system the table lives in (0 for the root) and the
      *         table's top, or {@code null} when it is not laid out
      */
-    private double[] tableOrigin(RepeatingElementsTable table) {
+    double[] tableOrigin(RepeatingElementsTable table) {
         FlatRow owner = table.getOwnerRow();
         return owner == null ? null : rowOrigin(owner);
     }
@@ -4142,7 +2332,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @return the x offset of the row's grid (0 for the root) and the row's top, or {@code null}
      *         when the row is not laid out
      */
-    private double[] rowOrigin(FlatRow row) {
+    double[] rowOrigin(FlatRow row) {
         GridBlock block = row.getBlock();
         if (block == null) {
             Integer i = rowIndexMap.get(row);
@@ -4154,259 +2344,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return origin == null ? null : new double[] {origin[0], origin[1] + g.y()[i]};
     }
 
-    private void startEditingValue(FlatRow row) {
-        cancelEditing();
-
-        if (row == null || !adapter.canEditValue(row)) {
-            return;
-        }
-
-        editingRow = row;
-        editingValue = true;
-        editingElementName = false;
-
-        double[] origin = rowOrigin(row);
-        if (origin == null) {
-            return;
-        }
-
-        double x = origin[0] + row.getValueX() - scrollOffsetX;
-        double y = origin[1] + 2;
-        double width = Math.max(viewportWidthModel() - x, MIN_VALUE_COL_WIDTH);
-
-        GridModelAdapter.EditSpec spec = adapter.editSpec(row, false);
-        createEditField(spec != null ? spec
-                : GridModelAdapter.EditSpec.plain(row.getValue() != null ? row.getValue() : ""), x, y, width);
-    }
-
-    private void startEditingElementName(FlatRow row) {
-        cancelEditing();
-
-        if (row == null || !adapter.canEditName(row)) {
-            return;
-        }
-
-        editingRow = row;
-        editingValue = false;
-        editingElementName = true;
-
-        double[] origin = rowOrigin(row);
-        if (origin == null) {
-            return;
-        }
-
-        double textX = rowTextX(row);
-        double labelX = origin[0] + textX - scrollOffsetX;
-        double y = origin[1] + 2;
-        double width = row.getValueX() - textX - 4;
-
-        GridModelAdapter.EditSpec spec = adapter.editSpec(row, true);
-        createEditField(spec != null ? spec : GridModelAdapter.EditSpec.plain(row.getLabel()), labelX, y, width);
-    }
-
-    /**
-     * Installs the inline editor described by the spec: a type-aware widget when the
-     * adapter supplied one, otherwise a plain text field (with the spec's tooltip, if any).
-     *
-     * @param spec  what to edit
-     * @param vx    x in unscaled viewport coordinates (scroll applied, zoom not)
-     * @param vy    y in unscaled viewport coordinates
-     * @param width the field width in unscaled pixels
-     */
-    private void createEditField(GridModelAdapter.EditSpec spec, double vx, double vy, double width) {
-        String currentValue = spec.currentValue();
-        // Calculate minimum width based on content
-        double contentBasedWidth = metrics.width(currentValue, GridFont.ROW) + 30;
-        double z = getZoom();
-        double effectiveWidth = Math.max(width, Math.max(contentBasedWidth, 120)) * z;
-        double x = vx * z;
-        double y = vy * z;
-        double fieldHeight = ROW_HEIGHT * z;
-
-        // Type-aware widget supplied by the adapter (schema-driven for XML, type-driven for JSON)
-        {
-            TypeAwareWidgetFactory.EditWidget widget = spec.widget();
-
-            if (widget != null) {
-                activeEditWidget = widget;
-                activeWidgetNode = widget.getNode();
-
-                double widgetMinWidth = effectiveWidth;
-                if (activeWidgetNode instanceof javafx.scene.control.DatePicker) {
-                    widgetMinWidth = Math.max(widgetMinWidth, 160 * z);
-                } else if (activeWidgetNode instanceof javafx.scene.control.ComboBox) {
-                    widgetMinWidth = Math.max(widgetMinWidth, 150 * z);
-                }
-
-                if (activeWidgetNode instanceof javafx.scene.layout.Region region) {
-                    region.setLayoutX(x);
-                    region.setLayoutY(y);
-                    region.setPrefWidth(widgetMinWidth);
-                    region.setMinWidth(widgetMinWidth);
-                    region.setPrefHeight(fieldHeight);
-                    region.setStyle(String.format(java.util.Locale.ROOT, "-fx-font-size: %.1fpx;", 12 * z));
-                } else {
-                    activeWidgetNode.setLayoutX(x);
-                    activeWidgetNode.setLayoutY(y);
-                }
-
-                activeWidgetNode.setOnKeyPressed(e -> {
-                    if (e.getCode() == KeyCode.ESCAPE) {
-                        cancelEditing();
-                    } else if (e.getCode() == KeyCode.ENTER) {
-                        commitEditing();
-                    }
-                });
-
-                activeWidgetNode.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-                    if (!isFocused && activeWidgetNode != null && !isCommitting) {
-                        javafx.application.Platform.runLater(() -> {
-                            if (activeWidgetNode != null && !activeWidgetNode.isFocused()) {
-                                commitEditing();
-                            }
-                        });
-                    }
-                });
-
-                canvasContainer.getChildren().add(activeWidgetNode);
-                widget.focus();
-                return;
-            }
-        }
-
-        // Fallback to standard TextField
-        editField = new TextField(currentValue);
-        editField.setLayoutX(x);
-        editField.setLayoutY(y);
-        editField.setPrefWidth(effectiveWidth);
-        editField.setMinWidth(effectiveWidth);
-        editField.setPrefHeight(fieldHeight);
-        editField.setStyle(String.format(java.util.Locale.ROOT,
-                "-fx-font-size: %.1fpx; -fx-font-family: 'Segoe UI'; -fx-padding: 2 6;", 12 * z));
-
-        // Add documentation tooltip if available
-        if (spec.tooltip() != null) {
-            Tooltip tooltip = new Tooltip(spec.tooltip());
-            tooltip.setWrapText(true);
-            tooltip.setMaxWidth(300);
-            Tooltip.install(editField, tooltip);
-        }
-
-        editField.setOnAction(e -> commitEditing());
-        editField.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ESCAPE) {
-                cancelEditing();
-                e.consume();
-            } else if (e.getCode() == KeyCode.ENTER) {
-                commitEditing();
-                e.consume();
-            }
-        });
-
-        editField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (!isFocused && editField != null && !isCommitting) {
-                javafx.application.Platform.runLater(() -> {
-                    if (editField != null && !editField.isFocused()) {
-                        commitEditing();
-                    }
-                });
-            }
-        });
-
-        canvasContainer.getChildren().add(editField);
-        editField.requestFocus();
-        editField.selectAll();
-    }
-
-    private void commitEditing() {
-        if (isCommitting) {
-            return;
-        }
-        isCommitting = true;
-
-        try {
-            // Get value from either widget or text field
-            String newValue;
-            if (activeEditWidget != null) {
-                newValue = activeEditWidget.getValue();
-            } else if (editField != null) {
-                newValue = editField.getText();
-            } else {
-                cancelEditing();
-                return;
-            }
-
-            // Handle table cell editing (for repeating tables integration)
-            if (editingTable != null && editingTableRowIndex >= 0 && editingTableColumnName != null) {
-                boolean accepted = adapter.commitCellEdit(editingTable, editingTableRowIndex,
-                        editingTableColumnName, newValue);
-                if (!accepted) {
-                    keepEditorOpen();
-                    return;
-                }
-                cancelEditing();
-                rebuildTree();
-                notifyDocumentModified();
-                return;
-            }
-
-            // Handle row editing
-            if (editingRow == null) {
-                cancelEditing();
-                return;
-            }
-
-            boolean accepted = adapter.commitRowEdit(editingRow, editingElementName, newValue);
-            if (!accepted) {
-                keepEditorOpen();
-                return;
-            }
-
-            cancelEditing();
-            rebuildTree();
-            notifyDocumentModified();
-        } finally {
-            isCommitting = false;
-        }
-    }
-
-    /**
-     * The adapter rejected the entered value (and told the user): keep the inline editor
-     * open and give it the focus back so the value can be corrected or the edit escaped.
-     */
-    private void keepEditorOpen() {
-        javafx.application.Platform.runLater(() -> {
-            if (editField != null) {
-                editField.requestFocus();
-                editField.selectAll();
-            } else if (activeEditWidget != null) {
-                activeEditWidget.focus();
-            }
-        });
-    }
-
-    private void cancelEditing() {
-        if (editField != null) {
-            canvasContainer.getChildren().remove(editField);
-            editField = null;
-        }
-        if (activeWidgetNode != null) {
-            canvasContainer.getChildren().remove(activeWidgetNode);
-            activeWidgetNode = null;
-            activeEditWidget = null;
-        }
-        editingRow = null;
-        editingValue = false;
-        editingElementName = false;
-        editingTable = null;
-        editingTableRowIndex = -1;
-        editingTableColumnName = null;
-    }
-
     // ==================== Event Handlers ====================
 
     private void onDocumentChanged() {
-        cancelEditing();
+        editor.cancelEditing();
         rebuildTree();
     }
 
@@ -4483,7 +2424,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /**
      * Notifies the callback that the document was modified.
      */
-    private void notifyDocumentModified() {
+    void notifyDocumentModified() {
         problemsByLine = null; // line numbers refer to the text before this edit
         if (onDocumentModified != null) {
             String serialized = adapter.serialize();
@@ -4586,14 +2527,14 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     private void stepSelection(boolean open) {
         boolean changed = false;
-        if (selectedTable != null && selAnchorRow >= 0) {
-            RepeatingElementsTable table = selectedTable;
-            for (int r = Math.min(selAnchorRow, selFocusRow); r <= Math.max(selAnchorRow, selFocusRow); r++) {
+        if (tables.selectedTable != null && tables.selAnchorRow >= 0) {
+            RepeatingElementsTable table = tables.selectedTable;
+            for (int r = Math.min(tables.selAnchorRow, tables.selFocusRow); r <= Math.max(tables.selAnchorRow, tables.selFocusRow); r++) {
                 if (r >= table.getRows().size()) {
                     break;
                 }
                 RepeatingElementsTable.TableRow row = table.getRows().get(r);
-                for (int c = Math.min(selAnchorCol, selFocusCol); c <= Math.max(selAnchorCol, selFocusCol); c++) {
+                for (int c = Math.min(tables.selAnchorCol, tables.selFocusCol); c <= Math.max(tables.selAnchorCol, tables.selFocusCol); c++) {
                     RepeatingElementsTable.TableColumn col = table.getColumn(c);
                     if (col != null && row.hasComplexChild(col.getName())) {
                         changed |= open ? openCellLevel(row, col.getName()) : closeCellLevel(row, col.getName());
@@ -4830,66 +2771,18 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /** How the rows of opened cells are measured, with the user's name-column widths of their blocks. */
-    private final GridBlockLayout.Measure cellMeasure = new BlockMeasure() {
+    final GridBlockLayout.Measure cellMeasure = new BlockMeasure() {
         @Override
         public Double nameColumnOverride(FlatRow parent) {
             if (parent == null) {
                 return null;
             }
             if (parent.getDepth() < 0) {
-                return parent.getBlock() == null ? null : viewState.nameColumnWidth(cellBlockKey(parent.getBlock()));
+                return parent.getBlock() == null ? null : viewState.nameColumnWidth(GridDragSupport.cellBlockKey(parent.getBlock()));
             }
             return viewState.nameColumnWidth(keyOf(parent));
         }
     };
-
-    /**
-     * Draws an opened cell's grid with its block origin at ({@code ox}, {@code oy}) in the current
-     * coordinates: its rows, then the embedded tables of its rows (whose cells may open grids again).
-     *
-     * @param minRight the cell's inner width: value cells reach at least that far
-     */
-    private void renderBlock(GridBlock grid, double ox, double oy, double minRight) {
-        GridBlockLayout.Result g = grid.geometry() != null ? grid.geometry() : grid.geometry(cellMeasure);
-        double top0 = cullTop;
-        double bottom0 = cullBottom;
-        double left0 = cullLeft;
-        double right0 = cullRight;
-        gc.save();
-        gc.translate(ox, oy);
-        cullTop = top0 - oy;
-        cullBottom = bottom0 - oy;
-        cullLeft = left0 - ox;
-        cullRight = right0 - ox;
-        try {
-            List<FlatRow> visible = g.visible();
-            double right = Math.max(g.width(), minRight);
-            for (int i = 0; i < visible.size(); i++) {
-                int last = g.lastDescendant()[i];
-                double top = g.y()[i];
-                double span = g.y()[last] + g.height()[last] - top;
-                if (top + span < cullTop || top > cullBottom) {
-                    continue;
-                }
-                drawRowAt(visible.get(i), top, g.height()[i], span, right);
-            }
-            for (int i = 0; i < visible.size(); i++) {
-                FlatRow row = visible.get(i);
-                if (row.hasRepeatingTable() && row.isExpanded()) {
-                    double top = g.y()[i];
-                    if (top + g.height()[i] >= cullTop && top <= cullBottom) {
-                        renderInlineTable(row, top);
-                    }
-                }
-            }
-        } finally {
-            cullTop = top0;
-            cullBottom = bottom0;
-            cullLeft = left0;
-            cullRight = right0;
-            gc.restore();
-        }
-    }
 
     /**
      * A click inside an opened cell's grid, in the grid's coordinates: a nested table gets it
@@ -4897,7 +2790,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      *
      * @return whether the click was used (otherwise it selects the host table row)
      */
-    private boolean handleBlockClick(MouseEvent event, GridBlock grid, double x, double y) {
+    boolean handleBlockClick(MouseEvent event, GridBlock grid, double x, double y) {
         int i = grid.rowIndexAt(x, y);
         GridBlockLayout.Result g = grid.geometry();
         if (i < 0 || g == null) {
@@ -4909,15 +2802,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             RepeatingElementsTable nested = row.getRepeatingTable();
             if (x >= nested.getX() && x <= nested.getX() + nested.getWidth()
                     && y >= top && y <= top + nested.getHeight()) {
-                handleTableClick(event, nested, x, y, top, row);
+                tables.handleTableClick(event, nested, x, y, top, row);
                 return true;
             }
         }
-        BlockDrag separator = blockSeparator(row, x);
+        GridDragSupport.BlockDrag separator = drags.blockSeparator(row, x);
         if (separator != null) {
             // A click on a block's separator never selects; a double-click returns it to automatic width
             if (event.getClickCount() == 2) {
-                resetBlockWidth(separator);
+                drags.resetBlockWidth(separator);
                 markLayoutDirty();
             }
             return true;
@@ -4932,7 +2825,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
             double glyphX = row.getTableGlyphX();
             if (row.showsTableGlyph() && !Double.isNaN(glyphX)
-                    && x >= glyphX - 2 && x <= glyphX + TABLE_ICON_SIZE + 2) {
+                    && x >= glyphX - 2 && x <= glyphX + GridPainter.TABLE_ICON_SIZE + 2) {
                 toggleTableDisplay(row);
                 return true;
             }
@@ -4940,7 +2833,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         // Anything else on a row selects it (the Inspector follows); a double-click edits it
         selectRow(row);
         if (event.getClickCount() == 2) {
-            editOnDoubleClick(row, x >= row.getValueX());
+            editor.editOnDoubleClick(row, x >= row.getValueX());
         }
         return true;
     }
@@ -5022,7 +2915,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** Installs new metrics on the canvas and every built table, then lays out again. */
     private void applyMetrics(GridMetrics newMetrics) {
-        cancelEditing();
+        editor.cancelEditing();
         metrics = newMetrics;
         forEachLiveRow(row -> { // the root's rows and those of opened cells, at any depth
             if (row.isRepeatingTableBuilt()) {
@@ -5066,8 +2959,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** @return the selected model node (a table row's node while a table row is selected) */
     public N getSelectedNode() {
-        if (selectedTable != null) {
-            RepeatingElementsTable.TableRow tableRow = selectedTable.getSelectedRow();
+        if (tables.selectedTable != null) {
+            RepeatingElementsTable.TableRow tableRow = tables.selectedTable.getSelectedRow();
             if (tableRow != null) {
                 N tableNode = adapter.nodeOf(tableRow);
                 if (tableNode != null) {
@@ -5106,7 +2999,43 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
     }
 
+    // ==================== TSV clipboard ====================
+
+    /**
+     * @return the selected table cells as tab-separated text (the whole table with a header
+     *         line when the selection covers every cell), or {@code null} without a cell selection
+     */
+    public String selectedCellsAsTsv() {
+        return tables.selectedCellsAsTsv();
+    }
+
+    /**
+     * Pastes a tab-separated block into the selected table, starting at the top-left selected
+     * cell (rows beyond the table become new members where the model allows it).
+     *
+     * @param text the clipboard text
+     * @return whether anything was pasted
+     */
+    public boolean pasteTsvIntoSelection(String text) {
+        return tables.pasteTsvIntoSelection(text);
+    }
+
     // ==================== Layout introspection (tests) ====================
+
+    /** @return the draggable row under the point (see {@link GridDragSupport#dragCandidateAt}) */
+    FlatRow dragCandidateAt(double mx, double my) {
+        return drags.dragCandidateAt(mx, my);
+    }
+
+    /** @return where a drop at the point would go (see {@link GridDragSupport#dropTargetAt}) */
+    DropTarget dropTargetAt(double mx, double my) {
+        return drags.dropTargetAt(mx, my);
+    }
+
+    /** @return the namespace prefix of a name incl. the colon (see {@link GridPainter#namespacePrefix}) */
+    static String namespacePrefix(String name) {
+        return GridPainter.namespacePrefix(name);
+    }
 
     /** @return the currently visible rows, in draw order (test hook) */
     List<FlatRow> visibleRowList() {
@@ -5155,7 +3084,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** @return the colour the table headers are drawn in (test hook) */
     Color tableHeaderColorForTest() {
-        return tableHeaderBg;
+        return painter.tableHeaderBg;
     }
 
     /** Scrolls to the given content y immediately (test hook). */
@@ -5167,8 +3096,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** Selects the table cell range (test hook / programmatic selection). */
     void selectCellRangeForTest(RepeatingElementsTable table, int r1, int c1, int r2, int c2) {
-        selectTableRow(table, r1);
-        setCellRange(r1, c1, r2, c2);
+        tables.selectTableRow(table, r1);
+        tables.setCellRange(r1, c1, r2, c2);
         render();
     }
 
@@ -5185,7 +3114,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** @return the open plain-text inline editor, or {@code null} (test hook) */
     TextField editFieldForTest() {
-        return editField;
+        return editor.editField;
     }
 
     /** @return the horizontal scroll range, 0 when the content fits (test hook) */
@@ -5302,8 +3231,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         revealRow(owner);
         RepeatingElementsTable table = owner.getRepeatingTable();
         if (table != null && hit.tableRow() < table.getRows().size()) {
-            selectTableRow(table, hit.tableRow());
-            setCellRange(hit.tableRow(), hit.tableColumn(), hit.tableRow(), hit.tableColumn());
+            tables.selectTableRow(table, hit.tableRow());
+            tables.setCellRange(hit.tableRow(), hit.tableColumn(), hit.tableRow(), hit.tableColumn());
             ensureCellVisible(owner, table, hit.tableRow(), hit.tableColumn());
             render();
         }
