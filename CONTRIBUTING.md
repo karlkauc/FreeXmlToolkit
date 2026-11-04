@@ -3,13 +3,13 @@
 Thank you for your interest in FreeXmlToolkit! Contributions of every kind are welcome:
 bug reports, feature ideas, documentation fixes and code.
 
-By participating you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+By participating you agree to follow our [Code of Conduct](https://github.com/karlkauc/FreeXmlToolkit/blob/main/CODE_OF_CONDUCT.md).
 
 ## Ways to Help
 
 - 🐞 **Report bugs** — see [Reporting Bugs](#reporting-bugs)
 - 💡 **Suggest features** — open a [feature request](https://github.com/karlkauc/FreeXmlToolkit/issues/new/choose)
-- 📖 **Improve the documentation** — the user guide lives in [`docs/`](docs/)
+- 📖 **Improve the documentation** — the user guide lives in [`docs/`](https://github.com/karlkauc/FreeXmlToolkit/tree/main/docs)
 - 🛠 **Contribute code** — see [Development Setup](#development-setup) and [Pull Requests](#pull-requests)
 - ❤️ **Sponsor** the project on [GitHub Sponsors](https://github.com/sponsors/karlkauc)
 
@@ -19,7 +19,8 @@ but please check the [user guide](https://karlkauc.github.io/FreeXmlToolkit/) an
 
 ## Reporting Bugs
 
-Before opening an issue, search the [existing issues](https://github.com/karlkauc/FreeXmlToolkit/issues)
+You can send a report straight from the application with **Help → Report a Problem…**, or open an
+issue on GitHub. Before opening an issue, search the [existing issues](https://github.com/karlkauc/FreeXmlToolkit/issues)
 to see whether it has already been reported. A good bug report contains:
 
 - The **version** (**Help → About FreeXmlToolkit**) and how you installed it (installer, portable,
@@ -33,7 +34,7 @@ to see whether it has already been reported. A good bug report contains:
 ### Security Vulnerabilities
 
 Please **do not** report security vulnerabilities in public issues. See the
-[Security Policy](.github/SECURITY.md) for how to report them privately.
+[Security Policy](https://github.com/karlkauc/FreeXmlToolkit/security/policy) for how to report them privately.
 
 ## Development Setup
 
@@ -60,13 +61,13 @@ while you work, and the full suite before opening a pull request.
 
 ## Coding Guidelines
 
-The project has detailed architecture notes in [`CLAUDE.md`](CLAUDE.md) and
-[`.claude/rules/`](.claude/rules/) (architecture, domain model, quick reference). The most important
+The project has detailed architecture notes in [`CLAUDE.md`](https://github.com/karlkauc/FreeXmlToolkit/blob/main/CLAUDE.md) and
+[`.claude/rules/`](https://github.com/karlkauc/FreeXmlToolkit/tree/main/.claude/rules) (architecture, domain model, quick reference). The most important
 rules:
 
 - **English everywhere** — user-facing texts, comments and JavaDoc.
 - **Tests** — add unit tests for new features and bug fixes; make sure existing tests still pass.
-- **UI styling** — consult [`STYLE_GUIDE.jsonc`](STYLE_GUIDE.jsonc) before changing or creating UI.
+- **UI styling** — consult [`STYLE_GUIDE.jsonc`](https://github.com/karlkauc/FreeXmlToolkit/blob/main/STYLE_GUIDE.jsonc) before changing or creating UI.
   Use the existing `-fxt-*` design tokens and CSS classes instead of hard-coded colors.
 - **Icons** — use the `IconifyIcon` control with Bootstrap Icon names (`bi-*`,
   [icons.getbootstrap.com](https://icons.getbootstrap.com/)). `IconifyIconCoverageTest` fails for
@@ -85,10 +86,10 @@ rules:
 
 ## Documentation
 
-The user guide is an [MkDocs](https://www.mkdocs.org/) site in [`docs/`](docs/), published at
+The user guide is an [MkDocs](https://www.mkdocs.org/) site in [`docs/`](https://github.com/karlkauc/FreeXmlToolkit/tree/main/docs), published at
 [karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/). When you change a
 feature, update the matching page. New pages need an entry in the `nav` section of
-[`mkdocs.yml`](mkdocs.yml). To preview locally:
+[`mkdocs.yml`](https://github.com/karlkauc/FreeXmlToolkit/blob/main/mkdocs.yml). To preview locally:
 
 ```bash
 pip install -r requirements-docs.txt
@@ -107,5 +108,5 @@ mkdocs serve
 
 ## License
 
-FreeXmlToolkit is licensed under the [Apache License 2.0](LICENSE.md). By submitting a contribution
+FreeXmlToolkit is licensed under the [Apache License 2.0](https://github.com/karlkauc/FreeXmlToolkit/blob/main/LICENSE.md). By submitting a contribution
 you agree that it is licensed under the same terms.

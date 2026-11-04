@@ -262,3 +262,4 @@ Inside the application the sponsor link is available in the **Help** menu (**Spo
 - Read the [FAQ & Troubleshooting](faq.md) page
 - Check the example files included with the application
 - Report issues on the project's GitHub page, or send an anonymous report from inside the app with **Help → Report a Problem…**
+- Want to contribute? Read the [Contributing Guide](contributing.md) and our [Code of Conduct](code-of-conduct.md); report security issues privately as described in the [Security Policy](security-policy.md)

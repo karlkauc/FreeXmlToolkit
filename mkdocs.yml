@@ -74,7 +74,9 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      # Community pages include the GitHub files from the repository root (single source).
+      check_paths: true
   - pymdownx.tabbed:
       alternate_style: true
   - tables
@@ -154,3 +156,7 @@ nav:
     - FAQ & Troubleshooting: faq.md
     - Technology Stack: technology-stack.md
     - Licenses: licenses.md
+  - Community:
+    - Contributing: contributing.md
+    - Code of Conduct: code-of-conduct.md
+    - Security Policy: security-policy.md

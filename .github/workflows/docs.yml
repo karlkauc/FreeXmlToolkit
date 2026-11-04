@@ -8,6 +8,9 @@ on:
       - 'docs/**'
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
+      - 'CONTRIBUTING.md'
+      - 'CODE_OF_CONDUCT.md'
+      - '.github/SECURITY.md'
   workflow_dispatch:
 
 permissions:
