@@ -120,7 +120,7 @@ class SampleXmlOccurrenceBoundsTest {
         XsdExtendedElement weight = element(service, "weight", "/shapes/");
         assertEquals("4", ((org.w3c.dom.Element) knot.getCardinalityNode()).getAttribute("minOccurs"));
         assertNull(weight.getCardinalityNode(), "content of a referenced element inherited the reference's bounds");
-        assertEquals(1, XsdDocumentationService.elementRepeatCount(weight, 2));
+        assertEquals(1, XsdSampleXmlSupport.elementRepeatCount(weight, 2));
     }
 
     private static XsdExtendedElement element(XsdDocumentationService service, String name, String xpathPrefix) {

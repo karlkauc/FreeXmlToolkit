@@ -17,8 +17,8 @@
         <property name="optional" value="true"/>
     </module>
 
-    <!-- File-level checks. The 4000 ceiling tolerates the one large generator
-         (XsdDocumentationService); splitting it is dedicated work, not a gate concern. -->
+    <!-- File-level checks. Keep classes below the 4000-line ceiling; split a file that
+         grows past it into cohesive collaborators instead of raising the limit. -->
     <module name="FileLength">
         <property name="max" value="4000"/>
     </module>

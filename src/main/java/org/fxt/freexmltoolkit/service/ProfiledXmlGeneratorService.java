@@ -71,7 +71,7 @@ public class ProfiledXmlGeneratorService {
     private long outputCharLimit = -1;
     /** XPaths whose repetitions beyond minOccurs the current document already emitted. */
     private final Set<String> repeatedXpaths = new HashSet<>();
-    /** Completeness of element map entries for the current document (XsdDocumentationService#hasCompleteContent). */
+    /** Completeness of element map entries for the current document (XsdSampleXmlSupport#hasCompleteContent). */
     private final Map<String, Boolean> completeContent = new HashMap<>();
     /** Generates the per-occurrence ID and IDREF values of the current document. */
     private XsdSampleDataGenerator identityValues;
@@ -332,12 +332,12 @@ public class ProfiledXmlGeneratorService {
 
         XsdExtendedElement rootElement;
         if (rootElementName == null) {
-            rootElement = XsdDocumentationService.findDefaultRootElement(elementMap);
+            rootElement = XsdSampleXmlSupport.findDefaultRootElement(elementMap);
             if (rootElement == null) {
                 return "<!-- No root element found in XSD -->";
             }
         } else {
-            rootElement = XsdDocumentationService.findRootElement(elementMap, rootElementName);
+            rootElement = XsdSampleXmlSupport.findRootElement(elementMap, rootElementName);
         }
 
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -350,7 +350,7 @@ public class ProfiledXmlGeneratorService {
 
         xml.append("<").append(rootName)
                 .append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
-        XsdDocumentationService.appendXsiType(xml, rootElement);
+        XsdSampleXmlSupport.appendXsiType(xml, rootElement);
 
         if (targetNamespace != null && !targetNamespace.isBlank()) {
             xml.append(" xmlns=\"").append(targetNamespace).append("\"")
@@ -385,7 +385,7 @@ public class ProfiledXmlGeneratorService {
         for (XsdExtendedElement attr : rootAttributes) {
             String attrXpath = rootElement.getCurrentXpath() + "/@" + attr.getElementName().substring(1);
             renderAttribute(xml, attr, attrXpath, profile, enabledRules, strategyFactory, context, constraintTracker,
-                    XsdDocumentationService.idForEmittedReference(attr, rootAttributes, identityValues));
+                    XsdSampleXmlSupport.idForEmittedReference(attr, rootAttributes, identityValues));
         }
 
         // Root element children
@@ -470,7 +470,7 @@ public class ProfiledXmlGeneratorService {
         }
         // Optional content a sample cannot complete (a cut recursion, a strict wildcard) is left out
         if (!element.isMandatory() && matchedRule.isEmpty() && !hasDescendantRule(xpath, rules)
-                && !XsdDocumentationService.hasCompleteContent(element, elementMap, completeContent)) {
+                && !XsdSampleXmlSupport.hasCompleteContent(element, elementMap, completeContent)) {
             return;
         }
         // A key selects it, but it cannot carry the key's field
@@ -479,11 +479,11 @@ public class ProfiledXmlGeneratorService {
             return;
         }
 
-        if (XsdDocumentationService.isWildcardPlaceholder(element)) {
-            int repeatCount = XsdDocumentationService.limitRepeatedOccurrences(element,
+        if (XsdSampleXmlSupport.isWildcardPlaceholder(element)) {
+            int repeatCount = XsdSampleXmlSupport.limitRepeatedOccurrences(element,
                     calculateElementRepeatCount(element, maxOccurrences), repeatedXpaths);
             for (int i = 0; i < repeatCount; i++) {
-                XsdDocumentationService.appendWildcardSample(sb, element, "\t".repeat(indentLevel),
+                XsdSampleXmlSupport.appendWildcardSample(sb, element, "\t".repeat(indentLevel),
                         emissionDefaultNamespace);
             }
             return;
@@ -497,7 +497,7 @@ public class ProfiledXmlGeneratorService {
                     .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
                     .toList();
             // A model group repeats as a whole, like an element (a sequence with minOccurs="2")
-            int groupRepeats = XsdDocumentationService.limitRepeatedOccurrences(element,
+            int groupRepeats = XsdSampleXmlSupport.limitRepeatedOccurrences(element,
                     calculateElementRepeatCount(element, maxOccurrences), repeatedXpaths);
             for (int repetition = 0; repetition < groupRepeats; repetition++) {
                 for (XsdExtendedElement child : containerChildren) {
@@ -531,7 +531,7 @@ public class ProfiledXmlGeneratorService {
                     repeatCount = 1;
                 }
                 List<XsdExtendedElement> selectionPool = preferred.isEmpty()
-                        ? XsdDocumentationService.completeOptions(choiceOptions, elementMap, completeContent)
+                        ? XsdSampleXmlSupport.completeOptions(choiceOptions, elementMap, completeContent)
                         : preferred;
                 for (int i = 0; i < repeatCount; i++) {
                     XsdExtendedElement selected = selectionPool.get(random.nextInt(selectionPool.size()));
@@ -550,7 +550,7 @@ public class ProfiledXmlGeneratorService {
 
         // Calculate repeat count for this element; a per-rule maxOccurrences config
         // overrides the profile's global setting for this xpath only.
-        int repeatCount = XsdDocumentationService.limitRepeatedOccurrences(element,
+        int repeatCount = XsdSampleXmlSupport.limitRepeatedOccurrences(element,
                 calculateElementRepeatCount(element, maxOccurrences), repeatedXpaths);
         int override = findRepeatOverride(xpath, rules);
         if (override >= 0) {
@@ -561,14 +561,14 @@ public class ProfiledXmlGeneratorService {
             String indent = "\t".repeat(indentLevel);
             String qualifiedName = getQualifiedName(element);
 
-            String elementDefaultNamespace = XsdDocumentationService.elementDefaultNamespace(element,
+            String elementDefaultNamespace = XsdSampleXmlSupport.elementDefaultNamespace(element,
                     emissionDefaultNamespace);
 
             sb.append(indent).append("<").append(qualifiedName);
             if (!elementDefaultNamespace.equals(emissionDefaultNamespace)) {
                 sb.append(" xmlns=\"").append(escapeXml(elementDefaultNamespace)).append('"');
             }
-            XsdDocumentationService.appendXsiType(sb, element);
+            XsdSampleXmlSupport.appendXsiType(sb, element);
 
             // Attributes
             List<XsdExtendedElement> attributes = element.getChildren().stream()
@@ -586,7 +586,7 @@ public class ProfiledXmlGeneratorService {
             for (XsdExtendedElement attr : attributes) {
                 String attrXpath = xpath + "/@" + attr.getElementName().substring(1);
                 renderAttribute(sb, attr, attrXpath, profile, rules, strategyFactory, context, constraintTracker,
-                        XsdDocumentationService.idForEmittedReference(attr, attributes, identityValues));
+                        XsdSampleXmlSupport.idForEmittedReference(attr, attributes, identityValues));
             }
 
             // Resolve value for this element
@@ -650,13 +650,13 @@ public class ProfiledXmlGeneratorService {
         }
 
         // Skip optional attributes in mandatory-only mode (unless explicitly ruled)
-        String fixedOrDefault = XsdDocumentationService.fixedOrDefaultValue(attr);
+        String fixedOrDefault = XsdSampleXmlSupport.fixedOrDefaultValue(attr);
         if (profile.isMandatoryOnly() && !attr.isMandatory() && fixedOrDefault == null && attrRule.isEmpty()
                 && !idForReference) {
             return;
         }
 
-        String attrName = XsdDocumentationService.attributeName(attr);
+        String attrName = XsdSampleXmlSupport.attributeName(attr);
         String attrValue;
 
         if (attrRule.isPresent() && attrRule.get().getStrategy() != GenerationStrategy.AUTO) {
@@ -975,7 +975,7 @@ public class ProfiledXmlGeneratorService {
         }
         visited.add(xpath);
 
-        XsdDocumentationService.declareEmissionNamespace(namespaces, element);
+        XsdSampleXmlSupport.declareEmissionNamespace(namespaces, element);
 
         List<XsdExtendedElement> children = element.getChildren().stream()
                 .map(elementMap::get)
@@ -1013,7 +1013,7 @@ public class ProfiledXmlGeneratorService {
     }
 
     /**
-     * Mirrors {@code XsdDocumentationService.processChildElementsForGeneration}'s CHOICE
+     * Mirrors {@code XsdSampleXmlWriter.processChildElementsForGeneration}'s CHOICE
      * repeat logic so the profiled generator produces the same shape as the plain one.
      * In non-mandatory mode an optional CHOICE (minOccurs=0) is randomly skipped or
      * generated up to its bounded maximum; in mandatory mode it's emitted exactly
@@ -1048,24 +1048,24 @@ public class ProfiledXmlGeneratorService {
             return 0;
         }
         if (mandatoryOnly) {
-            return Math.min(minOccurs, XsdDocumentationService.MAX_REQUIRED_REPETITIONS);
+            return Math.min(minOccurs, XsdSampleXmlSupport.MAX_REQUIRED_REPETITIONS);
         }
 
         int effectiveMax = Math.min(choiceMaxOccurs, maxOccurrences);
         if (minOccurs >= effectiveMax) {
-            return Math.min(minOccurs, XsdDocumentationService.MAX_REQUIRED_REPETITIONS); // at least minOccurs
+            return Math.min(minOccurs, XsdSampleXmlSupport.MAX_REQUIRED_REPETITIONS); // at least minOccurs
         }
         return minOccurs + random.nextInt(effectiveMax - minOccurs + 1);
     }
 
     private int calculateElementRepeatCount(XsdExtendedElement element, int maxOccurrences) {
-        return XsdDocumentationService.elementRepeatCount(element, maxOccurrences);
+        return XsdSampleXmlSupport.elementRepeatCount(element, maxOccurrences);
     }
 
     /**
      * Determines whether rendering this element would produce no content
      * (no text and no rendered children). Mirrors
-     * {@code XsdDocumentationService.wouldProduceEmptyContainer} so the profiled
+     * {@code XsdSampleXmlWriter.wouldProduceEmptyContainer} so the profiled
      * generator agrees with the plain generator on which optional elements to
      * skip — without this alignment the profiled path emits empty containers
      * like {@code <BreakDowns/>} that the plain path correctly omits, producing
@@ -1128,7 +1128,7 @@ public class ProfiledXmlGeneratorService {
     }
 
     private String getQualifiedName(XsdExtendedElement element) {
-        return XsdDocumentationService.qualifiedElementName(element);
+        return XsdSampleXmlSupport.qualifiedElementName(element);
     }
 
     String resolveFileName(String pattern, int fileNumber) {

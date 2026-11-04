@@ -18,13 +18,20 @@
 
 package org.fxt.freexmltoolkit.service;
 
+import static org.fxt.freexmltoolkit.service.XsdDomHelpers.getAttributeValue;
+import static org.fxt.freexmltoolkit.service.XsdDomHelpers.getDirectChildElement;
+import static org.fxt.freexmltoolkit.service.XsdDomHelpers.getDirectChildElements;
+import static org.fxt.freexmltoolkit.service.XsdDomHelpers.nodeListToList;
+import static org.fxt.freexmltoolkit.service.XsdSampleXmlSupport.WILDCARD_TYPE;
+import static org.fxt.freexmltoolkit.service.XsdSampleXmlSupport.findDefaultRootElement;
+import static org.fxt.freexmltoolkit.service.XsdSampleXmlSupport.findRootElement;
+import static org.fxt.freexmltoolkit.service.XsdSampleXmlSupport.findRootElements;
+import static org.fxt.freexmltoolkit.service.XsdSampleXmlSupport.isAbstractRoot;
+import static org.fxt.freexmltoolkit.service.XsdSampleXmlSupport.wildcardSampleNamespace;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -32,7 +39,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -57,29 +63,18 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
-import org.fxt.freexmltoolkit.domain.IdentityConstraint;
 import org.fxt.freexmltoolkit.domain.OpenContent;
-import org.fxt.freexmltoolkit.domain.TypeAlternative;
-import org.fxt.freexmltoolkit.domain.Wildcard;
-import org.fxt.freexmltoolkit.domain.XsdAssertion;
-import org.fxt.freexmltoolkit.domain.XsdDocInfo;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo;
@@ -87,13 +82,11 @@ import org.fxt.freexmltoolkit.domain.XsdExtendedElement.RestrictionInfo;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate;
 import org.fxt.freexmltoolkit.service.TaskProgressListener.ProgressUpdate.Status;
 import org.fxt.freexmltoolkit.util.PathValidator;
-import org.fxt.freexmltoolkit.util.SecureXmlFactory;
 import org.jspecify.annotations.NonNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.ls.LSInput;
 import org.xml.sax.InputSource;
 
 public class XsdDocumentationService {
@@ -102,8 +95,6 @@ public class XsdDocumentationService {
     private static final Logger logger = LogManager.getLogger(XsdDocumentationService.class);
     private static final String NS_PREFIX = "xs";
     private static final String NS_URI = "http://www.w3.org/2001/XMLSchema";
-    private static final String ALTOVA_NS_URI = XsdAppInfo.ALTOVA_NS;
-    private static final String FXT_EXT_NS_URI = XsdAppInfo.FXT_EXT_NS;
 
     String xsdFilePath;
     public XsdDocumentationData xsdDocumentationData = new XsdDocumentationData();
@@ -194,22 +185,24 @@ public class XsdDocumentationService {
 
     private Long sampleSeed;
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
+    /** Child element lookups ({@link #getMandatoryChildElements}, {@link #getAllChildElements}). */
+    private final XsdChildElementFinder childElementFinder = new XsdChildElementFinder(this);
+    /** Reads annotations, identity constraints, assertions, alternatives, open content and wildcards. */
+    private final XsdComponentDetailsReader componentDetails = new XsdComponentDetailsReader(this);
     XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
 
     // DOM/XPath related fields
     private XPath xpath;
     private Document doc;
-    private Map<String, Node> elementMap = new HashMap<>();
-    private Map<String, Node> complexTypeMap = new HashMap<>();
-    private Map<String, Node> simpleTypeMap = new HashMap<>();
+    Map<String, Node> elementMap = new HashMap<>();
+    Map<String, Node> complexTypeMap = new HashMap<>();
+    Map<String, Node> simpleTypeMap = new HashMap<>();
     private Map<String, Node> groupMap = new HashMap<>();
     private Map<String, Node> attributeGroupMap = new HashMap<>();
     private Map<String, Node> attributeMap = new HashMap<>();
     private static final String XML_NAMESPACE_URI = "http://www.w3.org/XML/1998/namespace";
     /** Prefix per namespace chosen for samples, so two namespaces never share a prefix. */
     private final Map<String, String> samplePrefixes = new HashMap<>();
-    /** Default namespace in scope at the element a plain sample is writing. */
-    private String emissionDefaultNamespace = "";
     /** Global type definitions keyed by kind, target namespace and local name ({@link #qualifiedKey}). */
     private final Map<String, Node> qualifiedGlobalDefs = new HashMap<>();
     /**
@@ -219,7 +212,7 @@ public class XsdDocumentationService {
      */
     private final Map<Node, String> sourceSnippetMemo = new java.util.concurrent.ConcurrentHashMap<>();
     /** Documentation entry per xs:documentation node for the current run, shared by all expanded copies. */
-    private final Map<Node, DocumentationInfo> documentationMemo = new java.util.concurrent.ConcurrentHashMap<>();
+    final Map<Node, DocumentationInfo> documentationMemo = new java.util.concurrent.ConcurrentHashMap<>();
 
     /** Global elements of included documents of the main target namespace (sample root candidates). */
     private final List<Node> includedGlobalElements = new ArrayList<>();
@@ -250,15 +243,9 @@ public class XsdDocumentationService {
     private boolean sampleExpansion;
     /** Element declarations whose optional content the current sample expansion has already expanded. */
     private final Set<Node> sampleOptionalContentExpanded = Collections.newSetFromMap(new IdentityHashMap<>());
-    /** Character limit while building a plain sample; -1 outside generation. */
-    private long outputCharLimit = -1;
-    /** XPaths whose repetitions beyond minOccurs the current plain sample already emitted. */
-    private final Set<String> repeatedXpaths = new HashSet<>();
-    /** Completeness of element map entries for the current sample document, see {@link #hasCompleteContent}. */
-    private final Map<String, Boolean> completeContent = new HashMap<>();
 
     // Language configuration for documentation generation
-    private final Set<String> discoveredLanguages = new LinkedHashSet<>();
+    final Set<String> discoveredLanguages = new LinkedHashSet<>();
     private Set<String> includedLanguages = null; // null = all languages
     private String fallbackLanguage = null; // Fallback language when "default" is not available
 
@@ -488,7 +475,7 @@ public class XsdDocumentationService {
      * @param normalizedLang lower-case language code, or "default" for untagged documentation
      * @return true if documentation in this language must be collected
      */
-    private boolean isLanguageIncluded(String normalizedLang) {
+    boolean isLanguageIncluded(String normalizedLang) {
         if (includedLanguages == null || includedLanguages.isEmpty() || "default".equals(normalizedLang)) {
             return true;
         }
@@ -1120,7 +1107,7 @@ public class XsdDocumentationService {
      * @return List of mandatory child element information
      */
     public List<MandatoryChildInfo> getMandatoryChildElements(String elementName) {
-        return getMandatoryChildElements(elementName, null);
+        return childElementFinder.getMandatoryChildElements(elementName, null);
     }
 
     /**
@@ -1131,234 +1118,9 @@ public class XsdDocumentationService {
      * @return List of mandatory child element information
      */
     public List<MandatoryChildInfo> getMandatoryChildElements(String elementName, String contextPath) {
-        List<MandatoryChildInfo> mandatoryChildren = new ArrayList<>();
-
-        try {
-            // Normalize element name (strip namespace prefix if present)
-            String cleanElementName = elementName;
-            int colonIdx = cleanElementName.indexOf(':');
-            if (colonIdx > -1 && colonIdx < cleanElementName.length() - 1) {
-                cleanElementName = cleanElementName.substring(colonIdx + 1);
-            }
-
-            // First approach: Use the already processed XsdDocumentationData with XPath context
-            if (xsdDocumentationData != null && xsdDocumentationData.getExtendedXsdElementMap() != null) {
-                // Look for the element in the processed data, prioritizing specific XPath matches
-                XsdExtendedElement targetElement = findElementByNameAndContext(cleanElementName, contextPath);
-
-                if (targetElement != null && targetElement.hasChildren()) {
-                    // Found the element, now extract its mandatory children using the correct XPath context
-                    // Flatten any SEQUENCE/CHOICE/ALL containers to get actual child elements
-                    List<XsdExtendedElement> flattenedChildren = flattenContainerChildren(targetElement);
-
-                    for (XsdExtendedElement childElement : flattenedChildren) {
-                        if (childElement != null && childElement.isMandatory()) {
-                            // Skip attributes (elements starting with @)
-                            if (childElement.getElementName().startsWith("@")) {
-                                logger.debug("Skipping attribute: {}", childElement.getElementName());
-                                continue;
-                            }
-
-                            // Skip container elements - they are structural, not actual XML elements
-                            String childName = childElement.getElementName();
-                            if (childName.startsWith("SEQUENCE") || childName.startsWith("CHOICE") || childName.startsWith("ALL")) {
-                                logger.debug("Skipping container element: {}", childName);
-                                continue;
-                            }
-
-                            // For mandatory children, only create empty elements without recursive nesting
-                            MandatoryChildInfo childInfo = new MandatoryChildInfo(
-                                    childElement.getElementName(),
-                                    1, // Default minOccurs for mandatory elements
-                                    1, // Default maxOccurs
-                                    new ArrayList<>() // No nested children - just create empty elements
-                            );
-                            mandatoryChildren.add(childInfo);
-                            logger.debug("Added mandatory child from processed data: {} (isAttribute=false)",
-                                    childElement.getElementName());
-                        }
-                    }
-                    if (!mandatoryChildren.isEmpty()) {
-                        logger.debug("Found {} mandatory children for element '{}' using processed data with XPath context",
-                                mandatoryChildren.size(), cleanElementName);
-                        return mandatoryChildren;
-                    }
-                }
-            }
-
-            // Second approach: Try to find in global element map (legacy behavior)
-            Node elementNode = elementMap.get(cleanElementName);
-            if (elementNode == null) {
-                // Fallback: try to find a global complexType with the same name and use its content model
-                Node complexTypeNode = complexTypeMap.get(cleanElementName);
-                if (complexTypeNode != null) {
-                    Node contentModel = findContentModel(complexTypeNode, null);
-                    if (contentModel != null) {
-                        extractMandatoryChildren(contentModel, mandatoryChildren);
-                        logger.debug("Found {} mandatory children for complexType '{}' (no global element)", mandatoryChildren.size(), cleanElementName);
-                        return mandatoryChildren;
-                    }
-                }
-                logger.debug("Element '{}' not found in schema (after normalization)", cleanElementName);
-                return mandatoryChildren;
-            }
-
-            // Get the type definition for the element
-            Node typeDefinition = findTypeDefinition(elementNode, getAttributeValue(elementNode, "type"));
-            Node contentModel = findContentModel(elementNode, typeDefinition);
-
-            if (contentModel != null) {
-                extractMandatoryChildren(contentModel, mandatoryChildren);
-            }
-
-            logger.debug("Found {} mandatory children for element '{}'", mandatoryChildren.size(), cleanElementName);
-
-        } catch (Exception e) {
-            logger.error("Error getting mandatory children for element '{}': {}", elementName, e.getMessage(), e);
-        }
-
-        return mandatoryChildren;
+        return childElementFinder.getMandatoryChildElements(elementName, contextPath);
     }
 
-    /**
-     * Flattens container children (SEQUENCE, CHOICE, ALL) to get actual element children.
-     * Container elements are structural and should not appear as actual XML elements.
-     *
-     * @param parentElement The parent element whose children should be flattened
-     * @return List of actual child elements (not containers)
-     */
-    private List<XsdExtendedElement> flattenContainerChildren(XsdExtendedElement parentElement) {
-        List<XsdExtendedElement> result = new ArrayList<>();
-
-        if (parentElement == null || !parentElement.hasChildren()) {
-            return result;
-        }
-
-        for (String childXPath : parentElement.getChildren()) {
-            XsdExtendedElement childElement = xsdDocumentationData.getExtendedXsdElementMap().get(childXPath);
-            if (childElement == null) {
-                continue;
-            }
-
-            String childName = childElement.getElementName();
-            if (childName == null) {
-                continue;
-            }
-
-            // Check if this is a container element (SEQUENCE, CHOICE, ALL)
-            if (childName.startsWith("SEQUENCE") || childName.startsWith("CHOICE") || childName.startsWith("ALL")) {
-                // Recursively flatten container children
-                result.addAll(flattenContainerChildren(childElement));
-            } else {
-                // Regular element - add it directly
-                result.add(childElement);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Finds an element by name and optional context path, prioritizing exact XPath matches.
-     * This helps distinguish between multiple elements with the same name in different contexts.
-     *
-     * @param elementName The name of the element to find
-     * @param contextPath Optional context path to help disambiguate (e.g. "ControlData/DataSupplier")
-     * @return The best matching XsdExtendedElement or null if not found
-     */
-    private XsdExtendedElement findElementByNameAndContext(String elementName, String contextPath) {
-        if (xsdDocumentationData == null || xsdDocumentationData.getExtendedXsdElementMap() == null) {
-            return null;
-        }
-
-        XsdExtendedElement bestMatch = null;
-        int bestScore = -1;
-
-        for (Map.Entry<String, XsdExtendedElement> entry : xsdDocumentationData.getExtendedXsdElementMap().entrySet()) {
-            String xpath = entry.getKey();
-            XsdExtendedElement element = entry.getValue();
-
-            if (elementName.equals(element.getElementName())) {
-                int score = calculateContextScore(xpath, contextPath);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMatch = element;
-                }
-            }
-        }
-
-        if (bestMatch != null) {
-            logger.debug("Found best match for element '{}': xpath='{}' (score={})",
-                    elementName, bestMatch.getCurrentXpath(), bestScore);
-        }
-
-        return bestMatch;
-    }
-
-    /**
-     * Calculates a context score for XPath matching.
-     * Higher scores indicate better matches based on context.
-     */
-    private int calculateContextScore(String xpath, String contextPath) {
-        if (xpath == null) {
-            return 0;
-        }
-
-        // Base score - prefer shorter, more specific paths
-        int score = 100 - (xpath.split("/").length * 5);
-
-        // Boost score for root-level elements
-        if (xpath.startsWith("/") && xpath.indexOf('/', 1) == -1) {
-            score += 50;
-        }
-
-        // If context is provided, significantly boost score for exact matches
-        if (contextPath != null && !contextPath.isEmpty()) {
-            // Exact context match gets highest score
-            if (xpath.contains(contextPath)) {
-                score += 200; // Strong boost for context match
-
-                // Extra bonus if the context path is at the end (more specific)
-                if (xpath.endsWith("/" + contextPath.substring(contextPath.lastIndexOf('/') + 1))) {
-                    score += 100;
-                }
-            }
-
-            // Penalty for paths that don't match the expected context
-            // This helps avoid picking wrong elements with same name
-            String[] contextParts = contextPath.split("/");
-            String[] xpathParts = xpath.split("/");
-
-            boolean hasContextMismatch = false;
-            for (String contextPart : contextParts) {
-                boolean found = false;
-                for (String xpathPart : xpathParts) {
-                    if (contextPart.equals(xpathPart)) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    hasContextMismatch = true;
-                    break;
-                }
-            }
-
-            if (hasContextMismatch) {
-                score -= 150; // Strong penalty for context mismatch
-            }
-        }
-
-        return Math.max(0, score);
-    }
-
-    /**
-     * Gets mandatory child elements for a specific XPath, ensuring we use the correct context.
-     * This method looks up children directly by their parent's XPath.
-     *
-     * @param parentXPath The XPath of the parent element
-     * @return List of mandatory child element information
-     */
     /**
      * Gets all child elements (mandatory and optional) for a given element name.
      * This method is similar to getMandatoryChildElements but returns all children regardless of minOccurs.
@@ -1367,300 +1129,7 @@ public class XsdDocumentationService {
      * @return List of all child element information
      */
     public List<MandatoryChildInfo> getAllChildElements(String elementName) {
-        List<MandatoryChildInfo> allChildren = new ArrayList<>();
-
-        try {
-            // Normalize element name (strip namespace prefix if present)
-            String cleanElementName = elementName;
-            int colonIdx = cleanElementName.indexOf(':');
-            if (colonIdx > -1 && colonIdx < cleanElementName.length() - 1) {
-                cleanElementName = cleanElementName.substring(colonIdx + 1);
-            }
-
-            // First approach: Use the already processed XsdDocumentationData
-            if (xsdDocumentationData != null && xsdDocumentationData.getExtendedXsdElementMap() != null) {
-                // Look for the element in the processed data
-                for (Map.Entry<String, XsdExtendedElement> entry : xsdDocumentationData.getExtendedXsdElementMap().entrySet()) {
-                    XsdExtendedElement element = entry.getValue();
-                    if (cleanElementName.equals(element.getElementName()) && element.hasChildren()) {
-                        // Found the element, now extract all its children (mandatory and optional)
-                        // Flatten any SEQUENCE/CHOICE/ALL containers to get actual child elements
-                        List<XsdExtendedElement> flattenedChildren = flattenContainerChildren(element);
-
-                        for (XsdExtendedElement childElement : flattenedChildren) {
-                            if (childElement == null) {
-                                continue;
-                            }
-
-                            String childName = childElement.getElementName();
-                            // Skip container elements - they are structural, not actual XML elements
-                            if (childName != null && (childName.startsWith("SEQUENCE") || childName.startsWith("CHOICE") || childName.startsWith("ALL"))) {
-                                continue;
-                            }
-
-                            // Check if this child has its own children
-                            List<MandatoryChildInfo> nestedChildren = getAllChildElements(childElement.getElementName());
-
-                            // Parse minOccurs from current node if available
-                            int minOccurs = 1; // Default
-                            if (childElement.getCurrentNode() != null) {
-                                String minOccursStr = getAttributeValue(childElement.getCurrentNode(), "minOccurs", "1");
-                                try {
-                                    minOccurs = Integer.parseInt(minOccursStr);
-                                } catch (NumberFormatException e) {
-                                    minOccurs = 1;
-                                }
-                            }
-
-                            MandatoryChildInfo childInfo = new MandatoryChildInfo(
-                                    childElement.getElementName().startsWith("@")
-                                            ? childElement.getElementName().substring(1) // Remove @ for attributes
-                                            : childElement.getElementName(),
-                                    minOccurs,
-                                    1, // Default maxOccurs
-                                    nestedChildren
-                            );
-                            allChildren.add(childInfo);
-                            logger.debug("Added child from processed data: {} (minOccurs={}, hasChildren={})",
-                                    childElement.getElementName(), minOccurs, !nestedChildren.isEmpty());
-                        }
-                        if (!allChildren.isEmpty()) {
-                            logger.debug("Found {} child elements for element '{}' using processed data",
-                                    allChildren.size(), cleanElementName);
-                            return allChildren;
-                        }
-                    }
-                }
-            }
-
-            // Second approach: Try to find in global element map (legacy behavior)
-            Node elementNode = elementMap.get(cleanElementName);
-            if (elementNode == null) {
-                // Fallback: try to find a global complexType with the same name and use its content model
-                Node complexTypeNode = complexTypeMap.get(cleanElementName);
-                if (complexTypeNode != null) {
-                    Node contentModel = findContentModel(complexTypeNode, null);
-                    if (contentModel != null) {
-                        extractAllChildren(contentModel, allChildren);
-                        logger.debug("Found {} child elements for complexType '{}' (no global element)", allChildren.size(), cleanElementName);
-                        return allChildren;
-                    }
-                }
-                logger.debug("Element '{}' not found in schema (after normalization)", cleanElementName);
-                return allChildren;
-            }
-
-            // Get the type definition for the element
-            Node typeDefinition = findTypeDefinition(elementNode, getAttributeValue(elementNode, "type"));
-            Node contentModel = findContentModel(elementNode, typeDefinition);
-
-            if (contentModel != null) {
-                extractAllChildren(contentModel, allChildren);
-            }
-
-            logger.debug("Found {} child elements for element '{}'", allChildren.size(), cleanElementName);
-
-        } catch (Exception e) {
-            logger.error("Error getting all child elements for element '{}': {}", elementName, e.getMessage(), e);
-        }
-
-        return allChildren;
-    }
-
-    /**
-     * Recursively extracts mandatory child elements from XSD content model (sequence, choice, etc.).
-     */
-    private void extractMandatoryChildren(Node contentNode, List<MandatoryChildInfo> mandatoryChildren) {
-        if (contentNode == null) {
-            return;
-        }
-
-        String localName = contentNode.getLocalName();
-
-        if ("sequence".equals(localName) || "all".equals(localName)) {
-            // For sequence and all, process all child elements
-            for (Node child : getDirectChildElements(contentNode)) {
-                if ("element".equals(child.getLocalName())) {
-                    processMandatoryElement(child, mandatoryChildren);
-                } else if ("sequence".equals(child.getLocalName()) || "choice".equals(child.getLocalName()) || "all".equals(child.getLocalName())) {
-                    // Recursively process nested compositors
-                    extractMandatoryChildren(child, mandatoryChildren);
-                }
-            }
-        } else if ("choice".equals(localName)) {
-            // For choice, we need to handle differently - usually only one child is mandatory
-            // For now, we'll add the first mandatory child from the choice
-            for (Node child : getDirectChildElements(contentNode)) {
-                if ("element".equals(child.getLocalName()) && isMandatoryElement(child)) {
-                    processMandatoryElement(child, mandatoryChildren);
-                    break; // Only take first mandatory element from choice
-                }
-            }
-        } else if ("extension".equals(localName)) {
-            // Handle extension - process base type and then current content
-            String baseType = getAttributeValue(contentNode, "base");
-            if (baseType != null) {
-                Node baseTypeNode = findGlobalType(baseType, contentNode);
-                if (baseTypeNode != null && !derivesFromItself(baseTypeNode)) {
-                    Node baseContentModel = findContentModel(baseTypeNode, null);
-                    if (baseContentModel != null) {
-                        extractMandatoryChildren(baseContentModel, mandatoryChildren);
-                    }
-                }
-            }
-
-            // Process current extension content
-            for (Node child : getDirectChildElements(contentNode)) {
-                if ("sequence".equals(child.getLocalName()) || "choice".equals(child.getLocalName()) || "all".equals(child.getLocalName())) {
-                    extractMandatoryChildren(child, mandatoryChildren);
-                }
-            }
-        }
-    }
-
-    /**
-     * Recursively extracts all child elements (mandatory and optional) from XSD content model.
-     * This is similar to extractMandatoryChildren but includes all elements regardless of minOccurs.
-     */
-    private void extractAllChildren(Node contentNode, List<MandatoryChildInfo> allChildren) {
-        if (contentNode == null) {
-            return;
-        }
-
-        String localName = contentNode.getLocalName();
-
-        if ("sequence".equals(localName) || "all".equals(localName)) {
-            // For sequence and all, process all child elements
-            for (Node child : getDirectChildElements(contentNode)) {
-                if ("element".equals(child.getLocalName())) {
-                    processAnyElement(child, allChildren);  // Process all elements, not just mandatory
-                } else if ("sequence".equals(child.getLocalName()) || "choice".equals(child.getLocalName()) || "all".equals(child.getLocalName())) {
-                    // Recursively process nested compositors
-                    extractAllChildren(child, allChildren);
-                }
-            }
-        } else if ("choice".equals(localName)) {
-            // For choice, include all options (not just first mandatory)
-            for (Node child : getDirectChildElements(contentNode)) {
-                if ("element".equals(child.getLocalName())) {
-                    processAnyElement(child, allChildren);
-                }
-            }
-        } else if ("extension".equals(localName)) {
-            // Handle extension - process base type and then current content
-            String baseType = getAttributeValue(contentNode, "base");
-            if (baseType != null) {
-                Node baseTypeNode = findGlobalType(baseType, contentNode);
-                if (baseTypeNode != null && !derivesFromItself(baseTypeNode)) {
-                    Node baseContentModel = findContentModel(baseTypeNode, null);
-                    if (baseContentModel != null) {
-                        extractAllChildren(baseContentModel, allChildren);
-                    }
-                }
-            }
-
-            // Process current extension content
-            for (Node child : getDirectChildElements(contentNode)) {
-                if ("sequence".equals(child.getLocalName()) || "choice".equals(child.getLocalName()) || "all".equals(child.getLocalName())) {
-                    extractAllChildren(child, allChildren);
-                }
-            }
-        }
-    }
-
-    /**
-     * Processes a single element to determine if it's mandatory and extract its info.
-     */
-    private void processMandatoryElement(Node elementNode, List<MandatoryChildInfo> mandatoryChildren) {
-        if (!isMandatoryElement(elementNode)) {
-            return;
-        }
-
-        String childName = getAttributeValue(elementNode, "name");
-        if (childName == null) {
-            // Handle element reference
-            childName = getAttributeValue(elementNode, "ref");
-            if (childName != null && childName.contains(":")) {
-                // Remove namespace prefix for simplicity
-                childName = childName.substring(childName.lastIndexOf(":") + 1);
-            }
-        }
-
-        if (childName != null) {
-            // Get minOccurs and maxOccurs
-            String minOccurs = getAttributeValue(elementNode, "minOccurs", "1");
-            String maxOccurs = getAttributeValue(elementNode, "maxOccurs", "1");
-
-            // Check if this element has mandatory children recursively
-            List<MandatoryChildInfo> nestedChildren = new ArrayList<>();
-            Node typeDefinition = findTypeDefinition(elementNode, getAttributeValue(elementNode, "type"));
-            Node contentModel = findContentModel(elementNode, typeDefinition);
-
-            if (contentModel != null) {
-                extractMandatoryChildren(contentModel, nestedChildren);
-            }
-
-            MandatoryChildInfo childInfo = new MandatoryChildInfo(
-                    childName,
-                    Integer.parseInt(minOccurs),
-                    maxOccurs.equals("unbounded") ? Integer.MAX_VALUE : Integer.parseInt(maxOccurs),
-                    nestedChildren
-            );
-
-            mandatoryChildren.add(childInfo);
-            logger.debug("Added mandatory child element: {} (minOccurs={}, maxOccurs={}, hasChildren={})",
-                    childName, minOccurs, maxOccurs, !nestedChildren.isEmpty());
-        }
-    }
-
-    /**
-     * Processes a single element (mandatory or optional) and extracts its info.
-     * This is similar to processMandatoryElement but processes all elements regardless of minOccurs.
-     */
-    private void processAnyElement(Node elementNode, List<MandatoryChildInfo> allChildren) {
-        String childName = getAttributeValue(elementNode, "name");
-        if (childName == null) {
-            // Handle element reference
-            childName = getAttributeValue(elementNode, "ref");
-            if (childName != null && childName.contains(":")) {
-                // Remove namespace prefix for simplicity
-                childName = childName.substring(childName.lastIndexOf(":") + 1);
-            }
-        }
-
-        if (childName != null) {
-            // Get minOccurs and maxOccurs
-            String minOccurs = getAttributeValue(elementNode, "minOccurs", "1");
-            String maxOccurs = getAttributeValue(elementNode, "maxOccurs", "1");
-
-            // Check if this element has children recursively (use getAllChildElements for consistency)
-            List<MandatoryChildInfo> nestedChildren = new ArrayList<>();
-            Node typeDefinition = findTypeDefinition(elementNode, getAttributeValue(elementNode, "type"));
-            Node contentModel = findContentModel(elementNode, typeDefinition);
-
-            if (contentModel != null) {
-                extractAllChildren(contentModel, nestedChildren);
-            }
-
-            MandatoryChildInfo childInfo = new MandatoryChildInfo(
-                    childName,
-                    Integer.parseInt(minOccurs),
-                    maxOccurs.equals("unbounded") ? Integer.MAX_VALUE : Integer.parseInt(maxOccurs),
-                    nestedChildren
-            );
-
-            allChildren.add(childInfo);
-            logger.debug("Added child element: {} (minOccurs={}, maxOccurs={}, hasChildren={})",
-                    childName, minOccurs, maxOccurs, !nestedChildren.isEmpty());
-        }
-    }
-
-    /**
-     * Checks if an element is mandatory based on its minOccurs attribute.
-     */
-    private boolean isMandatoryElement(Node elementNode) {
-        String minOccurs = getAttributeValue(elementNode, "minOccurs", "1");
-        return Integer.parseInt(minOccurs) >= 1;
+        return childElementFinder.getAllChildElements(elementName);
     }
 
     /**
@@ -2084,81 +1553,6 @@ public class XsdDocumentationService {
         return false;
     }
 
-    private static final String WILDCARD_TYPE = "(wildcard)";
-    /** Namespace of the element a sample writes for {@code ##any} and {@code ##other} wildcards. */
-    static final String WILDCARD_SAMPLE_NAMESPACE = "urn:fxt:sample:extension";
-
-    /** Whether an element map entry stands for an element wildcard of a sample expansion. */
-    static boolean isWildcardPlaceholder(XsdExtendedElement element) {
-        return WILDCARD_TYPE.equals(element.getElementType()) && element.getCurrentNode() != null
-                && "any".equals(element.getCurrentNode().getLocalName());
-    }
-
-    /**
-     * The namespace of the element a sample writes for a wildcard: the sample namespace for {@code ##any} and
-     * {@code ##other}, none ({@code ""}) for {@code ##local}, the declaring document's target namespace for
-     * {@code ##targetNamespace}, else the first listed namespace; {@code null} for {@code processContents="strict"},
-     * which needs a declaration.
-     */
-    static String wildcardSampleNamespace(Node wildcard) {
-        if (!(wildcard instanceof Element any)) {
-            return null;
-        }
-        String processContents = any.hasAttribute("processContents") ? any.getAttribute("processContents") : "strict";
-        if ("strict".equals(processContents.trim())) {
-            return null;
-        }
-        String constraint = any.hasAttribute("namespace") ? any.getAttribute("namespace").trim() : "##any";
-        for (String token : constraint.split("\\s+")) {
-            switch (token) {
-                case "##any", "##other" -> {
-                    return WILDCARD_SAMPLE_NAMESPACE;
-                }
-                case "##local" -> {
-                    return "";
-                }
-                case "##targetNamespace" -> {
-                    return any.getOwnerDocument().getDocumentElement().getAttribute("targetNamespace");
-                }
-                default -> {
-                    if (!token.isEmpty()) {
-                        return token;
-                    }
-                }
-            }
-        }
-        return WILDCARD_SAMPLE_NAMESPACE;
-    }
-
-    /**
-     * Writes the element a sample emits for a wildcard placeholder, declaring its namespace on the element itself.
-     *
-     * @param defaultNamespace the default namespace in scope
-     */
-    static void appendWildcardSample(StringBuilder sb, XsdExtendedElement wildcard, String indent,
-                                     String defaultNamespace) {
-        String namespace = wildcardSampleNamespace(wildcard.getCurrentNode());
-        String name = "sample";
-        if (wildcard.getReferencedTypeName() != null) {
-            // A strict wildcard: the expansion chose a global element the validator can look up
-            name = wildcard.getReferencedTypeName();
-            namespace = wildcard.getSourceNamespace() == null ? "" : wildcard.getSourceNamespace();
-        }
-        if (namespace == null) {
-            return;
-        }
-        sb.append(indent);
-        if (namespace.equals(defaultNamespace)) {
-            sb.append('<').append(name).append("/>\n");
-        } else if (namespace.isEmpty()) {
-            sb.append('<').append(name).append(" xmlns=\"\"/>\n");
-        } else {
-            sb.append("<ext:").append(name).append(" xmlns:ext=\"")
-                    .append(namespace.replace("&", "&amp;").replace("<", "&lt;").replace("\"", "&quot;"))
-                    .append("\"/>\n");
-        }
-    }
-
     /**
      * Whether a sample expansion reached an abstract element that nothing substitutes: KML declares
      * {@code ObjectSimpleExtensionGroup} ({@code anySimpleType}) without any member, and an instance may not contain
@@ -2192,7 +1586,7 @@ public class XsdDocumentationService {
     }
 
     /**
-     * Marks the content of a sample expansion entry incomplete (see {@link #hasCompleteContent}). A choice is never
+     * Marks the content of a sample expansion entry incomplete (see {@link XsdSampleXmlSupport#hasCompleteContent}). A choice is never
      * marked: it stays complete while one of its other options is.
      */
     private void markIncompleteContent(String parentXPath) {
@@ -2506,16 +1900,16 @@ public class XsdDocumentationService {
 
         // Process annotations from the element itself and its type definition. The element's own
         // @markdown wins; the type's annotation only supplies the fallback.
-        Boolean ownMarkdown = processAnnotations(getDirectChildElement(node, "annotation"), extendedElem);
+        Boolean ownMarkdown = componentDetails.processAnnotations(getDirectChildElement(node, "annotation"), extendedElem);
         Boolean typeMarkdown = typeDefinitionNode != null
-                ? processAnnotations(getDirectChildElement(typeDefinitionNode, "annotation"), extendedElem)
+                ? componentDetails.processAnnotations(getDirectChildElement(typeDefinitionNode, "annotation"), extendedElem)
                 : null;
         extendedElem.setUseMarkdownRenderer(
                 resolveMarkdownRendering(ownMarkdown != null ? ownMarkdown : typeMarkdown));
 
         // Process list and union types (for simpleType definitions)
         if (typeDefinitionNode != null && "simpleType".equals(typeDefinitionNode.getLocalName())) {
-            processListAndUnionTypes(typeDefinitionNode, extendedElem);
+            componentDetails.processListAndUnionTypes(typeDefinitionNode, extendedElem);
         }
 
         // Process content (children for elements, restrictions for attributes/simple types)
@@ -2563,7 +1957,7 @@ public class XsdDocumentationService {
                 extendedElem.setElementType(getAttributeValue(restrictionNode, "base"));
             }
             // Process assertions on simpleType restrictions (xs:assertion)
-            processAssertions(restrictionNode, extendedElem);
+            componentDetails.processAssertions(restrictionNode, extendedElem);
         }
 
         // Process XSD 1.0 identity constraints (key, keyref, unique) on elements.
@@ -2572,39 +1966,39 @@ public class XsdDocumentationService {
         if (!isAttribute && !isContainer) {
             XsdExtendedElement donor = identityConstraintMemo.get(node);
             if (donor != null) {
-                copyIdentityConstraints(donor, extendedElem);
+                componentDetails.copyIdentityConstraints(donor, extendedElem);
             } else {
-                processIdentityConstraints(node, extendedElem);
+                componentDetails.processIdentityConstraints(node, extendedElem);
                 identityConstraintMemo.put(node, extendedElem);
             }
         }
 
         // Process XSD 1.1 type alternatives on elements
         if (!isAttribute && !isContainer) {
-            processTypeAlternatives(node, extendedElem);
+            componentDetails.processTypeAlternatives(node, extendedElem);
         }
 
         // Process XSD 1.1 assertions on complexType (xs:assert)
         if (typeDefinitionNode != null && "complexType".equals(typeDefinitionNode.getLocalName())) {
-            processAssertions(typeDefinitionNode, extendedElem);
+            componentDetails.processAssertions(typeDefinitionNode, extendedElem);
         }
 
         // Process XSD 1.1 open content on complexType (xs:openContent)
         if (typeDefinitionNode != null && "complexType".equals(typeDefinitionNode.getLocalName())) {
-            processOpenContent(typeDefinitionNode, extendedElem);
+            componentDetails.processOpenContent(typeDefinitionNode, extendedElem);
         }
 
         // Process wildcards (xs:any, xs:anyAttribute)
         // Check in the element node itself
-        processWildcards(node, extendedElem);
+        componentDetails.processWildcards(node, extendedElem);
         // Check in the type definition (complexType)
         if (typeDefinitionNode != null) {
-            processWildcards(typeDefinitionNode, extendedElem);
+            componentDetails.processWildcards(typeDefinitionNode, extendedElem);
         }
         // Check in content model
         Node contentModel = findContentModel(node, typeDefinitionNode);
         if (contentModel != null) {
-            processWildcards(contentModel, extendedElem);
+            componentDetails.processWildcards(contentModel, extendedElem);
         }
 
         // Prefer fixed/default values where present (especially for attributes); a reference may set its own
@@ -3001,55 +2395,6 @@ public class XsdDocumentationService {
     }
 
     /**
-     * The root generated when none is chosen: the first non-abstract global element of the processed schema, the first
-     * one if all are abstract, or {@code null} if there is none.
-     *
-     * @param elementMap the XPath-keyed element map of a processed schema
-     * @return the default root element, or {@code null}
-     */
-    static XsdExtendedElement findDefaultRootElement(Map<String, XsdExtendedElement> elementMap) {
-        List<XsdExtendedElement> roots = findRootElements(elementMap);
-        return roots.stream()
-                .filter(e -> !isAbstractRoot(e))
-                .findFirst()
-                .orElse(roots.isEmpty() ? null : roots.getFirst());
-    }
-
-    /** Whether a root of a processed schema is an abstract global element. */
-    static boolean isAbstractRoot(XsdExtendedElement root) {
-        return root.getCurrentNode() instanceof org.w3c.dom.Element element
-                && "true".equals(element.getAttribute("abstract"));
-    }
-
-    /**
-     * Global elements of the processed schema, sorted by document order.
-     *
-     * @param elementMap the XPath-keyed element map of a processed schema
-     * @return the root elements
-     */
-    static List<XsdExtendedElement> findRootElements(Map<String, XsdExtendedElement> elementMap) {
-        return elementMap.values().stream()
-                .filter(e -> e.getParentXpath() == null || e.getParentXpath().equals("/"))
-                .sorted(Comparator.comparing(XsdExtendedElement::getCounter))
-                .toList();
-    }
-
-    /**
-     * Looks up a global element by its local name.
-     *
-     * @param elementMap      the XPath-keyed element map of a processed schema
-     * @param rootElementName the local name of the global element
-     * @return the root element
-     * @throws IllegalArgumentException if there is no global element with that name
-     */
-    static XsdExtendedElement findRootElement(Map<String, XsdExtendedElement> elementMap, String rootElementName) {
-        return findRootElements(elementMap).stream()
-                .filter(e -> e.getElementName().equals(rootElementName))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("No global element named '" + rootElementName + "'"));
-    }
-
-    /**
      * Loads the schema once for sample generation (see {@link #loadSchema(MarkdownMode)}).
      *
      * @return {@code null} on success, otherwise the XML comment reported to the caller
@@ -3068,365 +2413,9 @@ public class XsdDocumentationService {
     }
 
     private String generateSampleXmlFor(XsdExtendedElement rootElement, boolean mandatoryOnly, int maxOccurrences) {
-        StringBuilder xmlBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         reseedSample();
-        xsdSampleDataGenerator.startDocument();
-        repeatedXpaths.clear();
-        completeContent.clear();
-        String documentNamespace = xsdDocumentationData.getTargetNamespace();
-        emissionDefaultNamespace = documentNamespace == null || documentNamespace.isBlank() ? "" : documentNamespace;
-
-        // Add schema reference (supports namespaced and no-namespace schemas). Portable by
-        // design: the bare file name, or a path relative to a known output folder — never
-        // an absolute file: URI of this machine (see SampleSchemaLocation).
-        String targetNamespace = xsdDocumentationData.getTargetNamespace();
-        String schemaLocationUri = SampleSchemaLocation.forSample(xsdFilePath, sampleOutputDirectory);
-
-        String rootName = rootElement.getElementName();
-        xmlBuilder.append("<").append(rootName)
-                 .append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
-        appendXsiType(xmlBuilder, rootElement);
-
-        if (targetNamespace != null && !targetNamespace.isBlank()) {
-            // Default namespace and schemaLocation pair (namespace + absolute file URI)
-            xmlBuilder.append(" xmlns=\"").append(targetNamespace).append("\"")
-                     .append(" xsi:schemaLocation=\"")
-                     .append(targetNamespace).append(" ")
-                     .append(schemaLocationUri)
-                     .append("\"");
-        } else {
-            // No namespace schema
-            xmlBuilder.append(" xsi:noNamespaceSchemaLocation=\"")
-                     .append(schemaLocationUri)
-                     .append("\"");
-        }
-
-        // Collect and declare all used namespaces from imported/included schemas
-        Map<String, String> usedNamespaces = collectUsedNamespaces(rootElement, mandatoryOnly);
-        for (Map.Entry<String, String> ns : usedNamespaces.entrySet()) {
-            String prefix = ns.getKey();
-            String uri = ns.getValue();
-            if (prefix != null && !prefix.isEmpty() && uri != null && !uri.isEmpty()) {
-                xmlBuilder.append(" xmlns:").append(prefix).append("=\"").append(uri).append("\"");
-            }
-        }
-
-        // Add root element attributes (those children starting with @)
-        List<XsdExtendedElement> rootAttributes = rootElement.getChildren().stream()
-                .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                .filter(Objects::nonNull)
-                .filter(e -> e.getElementName().startsWith("@"))
-                .toList();
-
-        for (XsdExtendedElement attr : rootAttributes) {
-            // Include attribute if mandatory, or if it has a fixed/default value
-            String fixedOrDefault = fixedOrDefaultValue(attr);
-            if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null
-                    && !idForEmittedReference(attr, rootAttributes, xsdSampleDataGenerator)) {
-                continue;
-            }
-            String attrName = attributeName(attr);
-            String attrValue = (fixedOrDefault != null)
-                    ? fixedOrDefault
-                    : occurrenceValue(attr, attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
-            xmlBuilder.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
-        }
-
-        // Build the content without the root element tags (only child elements, not attributes)
-        List<XsdExtendedElement> rootChildElements = rootElement.getChildren().stream()
-                .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                .filter(Objects::nonNull)
-                .filter(e -> !e.getElementName().startsWith("@"))
-                .toList();
-
-        if (rootChildElements.isEmpty()) {
-            // Simple or empty content: the root carries its own value and no indentation whitespace
-            String rootValue = textValue(rootElement);
-            if (rootValue.isEmpty()) {
-                xmlBuilder.append("/>\n");
-            } else {
-                xmlBuilder.append(">").append(escapeXml(rootValue)).append("</").append(rootName).append(">\n");
-            }
-            return xsdSampleDataGenerator.resolveDanglingReferences(xmlBuilder.toString());
-        }
-
-        xmlBuilder.append(">\n");
-
-        // Create and populate identity constraint tracker for unique value generation
-        IdentityConstraintTracker constraintTracker = new IdentityConstraintTracker();
-        constraintTracker.setRandom(xsdSampleDataGenerator.random());
-        constraintTracker.scanConstraints(xsdDocumentationData.getExtendedXsdElementMap());
-
-        outputCharLimit = SampleXmlLimits.maxOutputChars();
-        try {
-            for (XsdExtendedElement child : rootChildElements) {
-                buildXmlElementContent(xmlBuilder, child, mandatoryOnly, maxOccurrences, 1, constraintTracker);
-            }
-        } catch (SampleXmlLimits.LimitExceededException e) {
-            return e.toXmlComment();
-        } finally {
-            outputCharLimit = -1;
-        }
-
-        xmlBuilder.append("</").append(rootName).append(">\n");
-
-        return xsdSampleDataGenerator.resolveDanglingReferences(xmlBuilder.toString());
-    }
-
-    /**
-     * The text a plain sample emits for an element: its sample data, generated anew per occurrence for an ID or IDREF
-     * (the element map holds one value per schema node). Fixed and default values stay.
-     */
-    private String textValue(XsdExtendedElement element) {
-        String value = element.getDisplaySampleData() != null ? element.getDisplaySampleData() : "";
-        if (value.isEmpty() || fixedOrDefaultValue(element) != null) {
-            return value;
-        }
-        return occurrenceValue(element, value);
-    }
-
-    /** A fresh ID or an IDREF to an emitted ID when {@code node} has such a type, else {@code value}. */
-    private String occurrenceValue(XsdExtendedElement node, String value) {
-        return switch (xsdSampleDataGenerator.identityKind(node)) {
-            case ID -> xsdSampleDataGenerator.nextId();
-            case IDREF -> xsdSampleDataGenerator.nextIdReference();
-            case NONE -> value;
-        };
-    }
-
-    /**
-     * Repetitions beyond {@code minOccurs} only decorate a sample: they are emitted the first time an XPath is emitted
-     * in a document, later emissions (inside a repeated ancestor) get {@code max(minOccurs, 1)}. UBL 2.1 references
-     * almost every element with {@code maxOccurs="unbounded"}, so repeating every level doubled the document per level.
-     *
-     * @param repeatedXpaths the XPaths of the current document that already emitted their repetitions
-     */
-    /**
-     * Whether a sample can give an element map entry valid required content: no required particle below it was cut
-     * from the sample expansion (JATS {@code fn} holding only {@code p} inside a {@code p}, datajud's strict
-     * {@code xs:any}). A choice is complete when one option is; an optional particle never makes its parent
-     * incomplete.
-     *
-     * @param memo completeness per XPath for the current document
-     */
-    static boolean hasCompleteContent(XsdExtendedElement entry, Map<String, XsdExtendedElement> map,
-                                      Map<String, Boolean> memo) {
-        Boolean known = memo.get(entry.getCurrentXpath());
-        if (known != null) {
-            return known;
-        }
-        boolean complete = !entry.isSampleContentIncomplete();
-        if (complete) {
-            List<XsdExtendedElement> particles = entry.getChildren().stream()
-                    .map(map::get)
-                    .filter(Objects::nonNull)
-                    .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
-                    .toList();
-            boolean choice = entry.getElementName() != null && entry.getElementName().startsWith("CHOICE");
-            complete = choice
-                    ? particles.stream().anyMatch(option -> !option.isMandatory()
-                            || hasCompleteContent(option, map, memo))
-                    : particles.stream().allMatch(child -> !child.isMandatory()
-                            || hasCompleteContent(child, map, memo));
-        }
-        memo.put(entry.getCurrentXpath(), complete);
-        return complete;
-    }
-
-    /**
-     * The options of a choice a sample picks from: those whose content a sample can complete, or all of them when none
-     * can (JATS {@code statement-model} offers {@code p} or a nested {@code statement}, whose expansion is cut).
-     */
-    static List<XsdExtendedElement> completeOptions(List<XsdExtendedElement> options,
-                                                    Map<String, XsdExtendedElement> map, Map<String, Boolean> memo) {
-        List<XsdExtendedElement> complete = options.stream()
-                .filter(option -> !option.isMandatory() || hasCompleteContent(option, map, memo))
-                .toList();
-        return complete.isEmpty() ? options : complete;
-    }
-
-    static int limitRepeatedOccurrences(XsdExtendedElement element, int repeatCount, Set<String> repeatedXpaths) {
-        Node bounds = element.getCardinalityNode() != null ? element.getCardinalityNode() : element.getCurrentNode();
-        int required = Math.max(1, Math.min(occurs(bounds, "minOccurs"), MAX_REQUIRED_REPETITIONS));
-        if (repeatCount <= required || repeatedXpaths.add(element.getCurrentXpath())) {
-            return repeatCount;
-        }
-        return required;
-    }
-
-    /**
-     * The fixed or default value of an element or attribute, or {@code null}: a reference's own {@code fixed} or
-     * {@code default} wins over the referenced declaration's (INSPIRE
-     * {@code <attribute ref="xlink:type" fixed="simple"/>}).
-     */
-    static String fixedOrDefaultValue(XsdExtendedElement node) {
-        for (Node holder : new Node[]{node.getCardinalityNode(), node.getCurrentNode()}) {
-            if (holder instanceof Element declaration) {
-                if (declaration.hasAttribute("fixed")) {
-                    return declaration.getAttribute("fixed");
-                }
-                if (declaration.hasAttribute("default")) {
-                    return declaration.getAttribute("default");
-                }
-            }
-        }
-        return null;
-    }
-
-    /** The name a sample writes for an element: prefixed when its namespace is not the default namespace. */
-    static String qualifiedElementName(XsdExtendedElement element) {
-        String prefix = element.getEmitNamespace() != null
-                ? element.getEmitPrefix() : element.getSourceNamespacePrefix();
-        String name = element.getElementName();
-        return prefix != null && !prefix.isEmpty() ? prefix + ":" + name : name;
-    }
-
-    /**
-     * The default namespace in scope inside an element: an unprefixed element of a known namespace makes its namespace
-     * the default (written as {@code xmlns="…"} where it differs from the inherited one, {@code xmlns=""} for an
-     * unqualified local element); a prefixed element keeps the inherited default.
-     */
-    static String elementDefaultNamespace(XsdExtendedElement element, String inherited) {
-        if (element.getEmitNamespace() == null || element.getEmitPrefix() != null) {
-            return inherited;
-        }
-        return element.getEmitNamespace();
-    }
-
-    /** The name a sample writes for an attribute: prefixed when qualified ({@code xlink:href}, {@code xml:lang}). */
-    static String attributeName(XsdExtendedElement attribute) {
-        String name = attribute.getElementName().substring(1);
-        return attribute.getEmitPrefix() != null ? attribute.getEmitPrefix() + ":" + name : name;
-    }
-
-    /** Records the prefix declarations an element or attribute needs on the root ({@code xml} is predeclared). */
-    static void declareEmissionNamespace(Map<String, String> namespaces, XsdExtendedElement element) {
-        boolean known = element.getEmitNamespace() != null;
-        String prefix = known ? element.getEmitPrefix() : element.getSourceNamespacePrefix();
-        String namespace = known ? element.getEmitNamespace() : element.getSourceNamespace();
-        if (prefix != null && !prefix.isEmpty() && !"xml".equals(prefix) && namespace != null && !namespace.isEmpty()) {
-            namespaces.put(prefix, namespace);
-        }
-        if (element.getXsiTypePrefix() != null && element.getXsiTypeNamespace() != null) {
-            namespaces.put(element.getXsiTypePrefix(), element.getXsiTypeNamespace());
-        }
-    }
-
-    /**
-     * Whether an optional attribute is emitted in mandatory-only mode after all: it is the element's ID and the element
-     * emits a required IDREF(S), which would otherwise point at nothing (JATS {@code answer} requires
-     * {@code pointer-to-question} and has an optional {@code id}).
-     */
-    static boolean idForEmittedReference(XsdExtendedElement attribute, List<XsdExtendedElement> attributes,
-                                         XsdSampleDataGenerator identityValues) {
-        return identityValues.identityKind(attribute) == XsdSampleDataGenerator.IdentityKind.ID
-                && attributes.stream().anyMatch(other -> other != attribute && other.isMandatory()
-                && fixedOrDefaultValue(other) == null
-                && identityValues.identityKind(other) == XsdSampleDataGenerator.IdentityKind.IDREF);
-    }
-
-    /** Upper bound for repeating an element or choice to reach its {@code minOccurs}. */
-    static final int MAX_REQUIRED_REPETITIONS = 10_000;
-
-    /**
-     * How often a sample repeats an element: up to {@code maxOccurrences} within its {@code maxOccurs}, and at least
-     * its {@code minOccurs} (UCI {@code Covariance} needs 6 to 120 values). The occurrence bounds of an element
-     * reference are read from the reference.
-     */
-    static int elementRepeatCount(XsdExtendedElement element, int maxOccurrences) {
-        Node bounds = element.getCardinalityNode() != null ? element.getCardinalityNode() : element.getCurrentNode();
-        return repeatCount(occurs(bounds, "minOccurs"), occurs(bounds, "maxOccurs"), maxOccurrences);
-    }
-
-    /**
-     * {@code min(maxOccurs, maxOccurrences)}, raised to {@code minOccurs} (capped at
-     * {@link #MAX_REQUIRED_REPETITIONS}).
-     *
-     * @param maxOccurs {@code -1} for unbounded
-     */
-    static int repeatCount(int minOccurs, int maxOccurs, int maxOccurrences) {
-        int upper = maxOccurs < 0 ? maxOccurrences : Math.min(maxOccurs, maxOccurrences);
-        return Math.max(upper, Math.min(minOccurs, MAX_REQUIRED_REPETITIONS));
-    }
-
-    /** An occurrence bound of a particle: 1 when absent or unparsable, -1 for {@code unbounded}. */
-    static int occurs(Node particle, String attribute) {
-        String value = particle instanceof org.w3c.dom.Element element ? element.getAttribute(attribute) : "";
-        if (value.isBlank()) {
-            return 1;
-        }
-        if ("unbounded".equalsIgnoreCase(value.trim())) {
-            return -1;
-        }
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException e) {
-            return 1;
-        }
-    }
-
-    /**
-     * Appends {@code xsi:type} for an element whose declared type is abstract.
-     *
-     * @see XsdExtendedElement#getXsiType()
-     */
-    static void appendXsiType(StringBuilder sb, XsdExtendedElement element) {
-        if (element.getXsiType() != null) {
-            sb.append(" xsi:type=\"").append(element.getXsiType()).append('"');
-        }
-    }
-
-    /**
-     * Collects all namespaces used by elements in the tree.
-     * This is needed to declare namespace prefixes for elements from imported schemas.
-     * @param element The root element to start from
-     * @param mandatoryOnly Whether to only include mandatory elements
-     * @return Map of namespace prefix to namespace URI
-     */
-    private Map<String, String> collectUsedNamespaces(XsdExtendedElement element, boolean mandatoryOnly) {
-        Map<String, String> namespaces = new HashMap<>();
-        collectNamespacesRecursive(element, mandatoryOnly, namespaces, new HashSet<>());
-        return namespaces;
-    }
-
-    /**
-     * Recursively collects namespaces from an element and its children.
-     * @param element The current element
-     * @param mandatoryOnly Whether to only include mandatory elements
-     * @param namespaces The map to collect namespaces into
-     * @param visited Set of visited element XPaths to avoid infinite loops
-     */
-    private void collectNamespacesRecursive(XsdExtendedElement element, boolean mandatoryOnly,
-                                           Map<String, String> namespaces, Set<String> visited) {
-        String elementName = element == null ? null : element.getElementName();
-        boolean attribute = elementName != null && elementName.startsWith("@");
-        // Optional attributes with a fixed or default value are emitted in mandatory-only mode too
-        if (elementName == null || (!attribute && mandatoryOnly && !element.isMandatory())) {
-            return;
-        }
-
-        String elementXpath = element.getCurrentXpath();
-        if (elementXpath != null && visited.contains(elementXpath)) {
-            return; // Avoid circular references
-        }
-        if (elementXpath != null) {
-            visited.add(elementXpath);
-        }
-
-        declareEmissionNamespace(namespaces, element);
-        if (attribute) {
-            return;
-        }
-
-        // Process children recursively
-        List<XsdExtendedElement> childElements = element.getChildren().stream()
-                .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                .filter(Objects::nonNull)
-                .toList();
-
-        for (XsdExtendedElement child : childElements) {
-            collectNamespacesRecursive(child, mandatoryOnly, namespaces, visited);
-        }
+        return new XsdSampleXmlWriter(xsdDocumentationData, xsdSampleDataGenerator, random, xsdFilePath,
+                sampleOutputDirectory).write(rootElement, mandatoryOnly, maxOccurrences);
     }
 
     /**
@@ -3436,135 +2425,7 @@ public class XsdDocumentationService {
      * @return Validation result with success status and any error messages
      */
     public ValidationResult validateXmlAgainstSchema(String xmlContent) {
-        try {
-            // Determine if schema requires XSD 1.1
-            boolean requiresXsd11 = isXsd11Schema();
-
-            // Create appropriate schema factory
-            SchemaFactory factory;
-            if (requiresXsd11) {
-                // Use Xerces XSD 1.1 factory
-                factory = SecureXmlFactory.createSecureSchemaFactory(
-                        new org.apache.xerces.jaxp.validation.XMLSchema11Factory());
-                logger.debug("Using XSD 1.1 schema factory for validation");
-            } else {
-                factory = SecureXmlFactory.createSecureSchemaFactory(
-                        javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI);
-                logger.debug("Using XSD 1.0 schema factory for validation");
-            }
-
-            // Set up resource resolver for imports/includes
-            File schemaFile = new File(xsdFilePath);
-            File schemaDir = schemaFile.getParentFile();
-            // SECURITY: block remote (http/https/ftp) schema references to prevent SSRF; this guard
-            // throws on a remote reference, answers a DTD with an empty document and returns null
-            // for other local references.
-            final org.w3c.dom.ls.LSResourceResolver remoteGuard = SecureXmlFactory.createLocalOnlySchemaResolver();
-            factory.setResourceResolver(new org.w3c.dom.ls.LSResourceResolver() {
-                @Override
-                public org.w3c.dom.ls.LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI) {
-                    org.w3c.dom.ls.LSInput guarded = remoteGuard.resolveResource(type, namespaceURI, publicId, systemId, baseURI);
-                    if (guarded != null) {
-                        return guarded;
-                    }
-                    if (systemId != null && schemaDir != null) {
-                        // SECURITY: Validate systemId before resolving
-                        int traversalCount = PathValidator.countParentTraversals(systemId);
-                        if (traversalCount > 5) {
-                            logger.warn("SECURITY: Rejected schema import with excessive traversal: {}", systemId);
-                            return null;
-                        }
-
-                        File resolvedFile = new File(schemaDir, systemId);
-                        try {
-                            File canonicalFile = resolvedFile.getCanonicalFile();
-
-                            // SECURITY: Check for system directory access
-                            if (!PathValidator.isOutputPathSafe(canonicalFile.getAbsolutePath())) {
-                                logger.warn("SECURITY: Rejected schema import targeting system directory: {}", systemId);
-                                return null;
-                            }
-
-                            if (canonicalFile.exists()) {
-                                return new LSInputImpl(publicId, systemId, canonicalFile);
-                            }
-                        } catch (Exception e) {
-                            logger.debug("Could not resolve resource: {}", systemId);
-                        }
-                    }
-                    return null;
-                }
-            });
-
-            // Load the schema
-            Source schemaSource = new StreamSource(schemaFile);
-            Schema schema = factory.newSchema(schemaSource);
-
-            // Create validator
-            Validator validator = schema.newValidator();
-
-            // Create error handler to collect validation errors
-            List<ValidationError> errors = new ArrayList<>();
-            final int[] errorCount = {0};
-            final int[] warningCount = {0};
-
-            validator.setErrorHandler(new org.xml.sax.ErrorHandler() {
-                @Override
-                public void warning(org.xml.sax.SAXParseException exception) {
-                    warningCount[0]++;
-                    errors.add(new ValidationError(
-                            exception.getLineNumber(),
-                            exception.getColumnNumber(),
-                            "Warning",
-                            exception.getMessage()
-                    ));
-                }
-
-                @Override
-                public void error(org.xml.sax.SAXParseException exception) {
-                    errorCount[0]++;
-                    errors.add(new ValidationError(
-                            exception.getLineNumber(),
-                            exception.getColumnNumber(),
-                            "Error",
-                            exception.getMessage()
-                    ));
-                }
-
-                @Override
-                public void fatalError(org.xml.sax.SAXParseException exception) {
-                    errorCount[0]++;
-                    errors.add(new ValidationError(
-                            exception.getLineNumber(),
-                            exception.getColumnNumber(),
-                            "Fatal Error",
-                            exception.getMessage()
-                    ));
-                }
-            });
-
-            // Validate the XML
-            Source xmlSource = new StreamSource(new StringReader(xmlContent));
-            validator.validate(xmlSource);
-
-            // Determine if validation passed (no errors, warnings are OK)
-            boolean isValid = errorCount[0] == 0;
-            String message;
-
-            if (isValid && warningCount[0] > 0) {
-                message = warningCount[0] + " warning(s) found";
-            } else if (!isValid) {
-                message = errorCount[0] + " error(s) found";
-            } else {
-                message = "Validation successful";
-            }
-
-            return new ValidationResult(isValid, message, errors);
-
-        } catch (Exception e) {
-            return new ValidationResult(false, "Validation failed: " + e.getMessage(),
-                    List.of(new ValidationError(0, 0, "Fatal Error", e.getMessage())));
-        }
+        return XsdSampleXmlValidator.validate(xmlContent, xsdFilePath, doc);
     }
 
     /**
@@ -3603,412 +2464,6 @@ public class XsdDocumentationService {
         public @NonNull String toString() {
             return String.format("[%s] Line %d, Column %d: %s", severity, lineNumber, columnNumber, message);
         }
-    }
-
-    /**
-     * Builds XML element content without the root element tags (for schema-referenced XML).
-     */
-    private void buildXmlElementContent(StringBuilder sb, XsdExtendedElement element, boolean mandatoryOnly, int maxOccurrences, int indentLevel, IdentityConstraintTracker constraintTracker) {
-        if (Thread.currentThread().isInterrupted()) {
-            throw new java.util.concurrent.CancellationException("XML generation cancelled");
-        }
-        if (outputCharLimit >= 0 && sb.length() > outputCharLimit) {
-            throw SampleXmlLimits.outputLimitExceeded(outputCharLimit);
-        }
-        if (element == null || (mandatoryOnly && !element.isMandatory())) {
-            return;
-        }
-        String elementName = element.getElementName();
-        if (elementName == null || elementName.startsWith("@")) {
-            return; // Attributes are handled by their parent
-        }
-        if (!element.isMandatory()
-                && !hasCompleteContent(element, xsdDocumentationData.getExtendedXsdElementMap(), completeContent)) {
-            return; // optional content a sample cannot complete (a cut recursion, a strict wildcard) is left out
-        }
-        if (!element.isMandatory() && constraintTracker != null
-                && constraintTracker.isKeylessSelection(element.getCurrentXpath())) {
-            return; // a key selects it, but it cannot carry the key's field
-        }
-
-        if (isWildcardPlaceholder(element)) {
-            int repeatCount = limitRepeatedOccurrences(element, elementRepeatCount(element, maxOccurrences),
-                    repeatedXpaths);
-            for (int i = 0; i < repeatCount; i++) {
-                appendWildcardSample(sb, element, "\t".repeat(indentLevel), emissionDefaultNamespace);
-            }
-            return;
-        }
-
-        // Skip optional container elements that would be empty
-        // This prevents generating elements like <BreakDowns></BreakDowns> when there are no children
-        if (!element.isMandatory() && wouldProduceEmptyContainer(element, mandatoryOnly, indentLevel)) {
-            return;
-        }
-
-        // Handle container elements (SEQUENCE, CHOICE, ALL) - these are structural, not actual XML elements
-        // Process their children instead of outputting the container itself
-        if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
-            List<XsdExtendedElement> containerChildren = element.getChildren().stream()
-                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                    .filter(Objects::nonNull)
-                    .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
-                    .toList();
-            // A model group repeats as a whole, like an element (a sequence with minOccurs="2")
-            int groupRepeats = limitRepeatedOccurrences(element, elementRepeatCount(element, maxOccurrences),
-                    repeatedXpaths);
-            for (int repetition = 0; repetition < groupRepeats; repetition++) {
-                for (XsdExtendedElement child : containerChildren) {
-                    buildXmlElementContent(sb, child, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
-                }
-            }
-            return;
-        }
-        if (elementName.startsWith("CHOICE")) {
-            List<XsdExtendedElement> choiceOptions = element.getChildren().stream()
-                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                    .filter(Objects::nonNull)
-                    .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
-                    .toList();
-            if (!choiceOptions.isEmpty()) {
-                // Get minOccurs and maxOccurs from the CHOICE element, or from the group reference that holds it
-                Node choiceNode = element.getCardinalityNode() != null
-                        ? element.getCardinalityNode() : element.getCurrentNode();
-                String minOccursStr = getAttributeValue(choiceNode, "minOccurs", "1");
-                String maxOccursStr = getAttributeValue(choiceNode, "maxOccurs", "1");
-
-                int minOccurs;
-                int choiceMaxOccurs;
-                try {
-                    minOccurs = Integer.parseInt(minOccursStr);
-                } catch (NumberFormatException e) {
-                    minOccurs = 1;
-                }
-                if ("unbounded".equalsIgnoreCase(maxOccursStr)) {
-                    choiceMaxOccurs = maxOccurrences;
-                } else {
-                    try {
-                        choiceMaxOccurs = Math.min(Integer.parseInt(maxOccursStr), maxOccurrences);
-                    } catch (NumberFormatException e) {
-                        choiceMaxOccurs = 1;
-                    }
-                }
-
-                // Skip optional choices in mandatory-only mode
-                if (mandatoryOnly && minOccurs == 0) {
-                    return;
-                }
-
-                // Calculate repeat count based on mode
-                int repeatCount;
-                if (mandatoryOnly) {
-                    repeatCount = Math.min(minOccurs, MAX_REQUIRED_REPETITIONS);
-                } else {
-                    int effectiveMax = Math.min(choiceMaxOccurs, maxOccurrences);
-                    if (minOccurs >= effectiveMax) {
-                        repeatCount = Math.min(minOccurs, MAX_REQUIRED_REPETITIONS); // at least minOccurs
-                    } else {
-                        repeatCount = minOccurs + random.nextInt(effectiveMax - minOccurs + 1);
-                    }
-                }
-
-                // Generate the appropriate number of selections from the options a sample can complete
-                List<XsdExtendedElement> selectable = completeOptions(choiceOptions,
-                        xsdDocumentationData.getExtendedXsdElementMap(), completeContent);
-                for (int i = 0; i < repeatCount; i++) {
-                    XsdExtendedElement selected = selectable.get(random.nextInt(selectable.size()));
-                    buildXmlElementContent(sb, selected, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
-                }
-            }
-            return;
-        }
-
-        int repeatCount = limitRepeatedOccurrences(element, elementRepeatCount(element, maxOccurrences),
-                repeatedXpaths);
-
-        for (int i = 0; i < repeatCount; i++) {
-            String indent = "\t".repeat(indentLevel);
-
-            String qualifiedName = qualifiedElementName(element);
-            String elementDefaultNamespace = elementDefaultNamespace(element, emissionDefaultNamespace);
-
-            sb.append(indent).append("<").append(qualifiedName);
-            if (!elementDefaultNamespace.equals(emissionDefaultNamespace)) {
-                sb.append(" xmlns=\"").append(escapeXml(elementDefaultNamespace)).append('"');
-            }
-            appendXsiType(sb, element);
-
-            // Find all attributes for this element by searching for elements with @ prefix in the children
-            List<XsdExtendedElement> attributes = element.getChildren().stream()
-                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                    .filter(Objects::nonNull)
-                    .filter(e -> e.getElementName().startsWith("@"))
-                    .toList();
-
-            List<XsdExtendedElement> childElements = element.getChildren().stream()
-                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                    .filter(Objects::nonNull)
-                    .filter(e -> !e.getElementName().startsWith("@"))
-                    .toList();
-
-            // Render attributes
-            for (XsdExtendedElement attr : attributes) {
-                // Include attribute if mandatory, or if it has a fixed/default value even when mandatoryOnly is true
-                String fixedOrDefault = fixedOrDefaultValue(attr);
-                if (mandatoryOnly && !attr.isMandatory() && fixedOrDefault == null
-                        && !idForEmittedReference(attr, attributes, xsdSampleDataGenerator)) {
-                    continue;
-                }
-                String attrName = attributeName(attr);
-                String attrValue = (fixedOrDefault != null)
-                        ? fixedOrDefault
-                        : occurrenceValue(attr, attr.getDisplaySampleData() != null ? attr.getDisplaySampleData() : "");
-
-                // Apply constraint tracking for attributes
-                String attrXpath = attr.getCurrentXpath() != null ? attr.getCurrentXpath()
-                        : element.getCurrentXpath() + "/@" + attrName;
-                if (constraintTracker != null && fixedOrDefault == null
-                        && (constraintTracker.isConstrainedField(attrXpath) || constraintTracker.isKeyrefField(attrXpath))) {
-                    attrValue = constraintTracker.getUniqueValue(attrXpath, attrValue, attr);
-                }
-
-                sb.append(" ").append(attrName).append("=\"").append(escapeXml(attrValue)).append("\"");
-            }
-
-            String sampleData = textValue(element);
-
-            // Apply constraint tracking for element text content
-            if (constraintTracker != null && !sampleData.isEmpty()) {
-                String elemXpath = element.getCurrentXpath();
-                if (constraintTracker.isConstrainedField(elemXpath) || constraintTracker.isKeyrefField(elemXpath)) {
-                    sampleData = constraintTracker.getUniqueValue(elemXpath, sampleData, element);
-                }
-            }
-
-            if (childElements.isEmpty() && sampleData.isEmpty()) {
-                sb.append("/>\n"); // Self-closing tag
-            } else {
-                int startTagEnd = sb.length();
-                sb.append(">");
-                sb.append(escapeXml(sampleData));
-
-                if (!childElements.isEmpty()) {
-                    int contentStart = sb.append("\n").length();
-                    // Process children, handling CHOICE elements with random selection
-                    String outerDefaultNamespace = emissionDefaultNamespace;
-                    emissionDefaultNamespace = elementDefaultNamespace;
-                    try {
-                        processChildElementsForGeneration(sb, childElements, mandatoryOnly, maxOccurrences,
-                                indentLevel + 1, constraintTracker);
-                    } finally {
-                        emissionDefaultNamespace = outerDefaultNamespace;
-                    }
-                    if (sb.length() == contentStart && sampleData.isEmpty()) {
-                        // Only structural children that produced nothing: empty content allows no whitespace
-                        sb.setLength(startTagEnd);
-                        sb.append("/>\n");
-                        continue;
-                    }
-                    sb.append(indent);
-                }
-                sb.append("</").append(qualifiedName).append(">\n");
-            }
-        }
-    }
-
-    /**
-     * Processes child elements for XML generation, handling CHOICE elements with random selection.
-     * When a child element is a CHOICE container, this method randomly selects one or more elements
-     * from the choice based on the choice's cardinality (minOccurs/maxOccurs).
-     *
-     * @param sb             StringBuilder to append the generated XML
-     * @param childElements  List of child elements to process
-     * @param mandatoryOnly  Whether to only generate mandatory elements
-     * @param maxOccurrences Maximum number of occurrences for repeating elements
-     * @param indentLevel    Current indentation level
-     */
-    private void processChildElementsForGeneration(StringBuilder sb, List<XsdExtendedElement> childElements,
-                                                   boolean mandatoryOnly, int maxOccurrences, int indentLevel, IdentityConstraintTracker constraintTracker) {
-        for (XsdExtendedElement childElement : childElements) {
-            String elementName = childElement.getElementName();
-            if (elementName == null) {
-                continue;
-            }
-            if (!childElement.isMandatory() && !hasCompleteContent(childElement,
-                    xsdDocumentationData.getExtendedXsdElementMap(), completeContent)) {
-                continue; // optional content a sample cannot complete is left out
-            }
-
-            // Check if this child is a SEQUENCE or ALL container (structural, not actual XML elements)
-            if (elementName.startsWith("SEQUENCE") || elementName.startsWith("ALL")) {
-                // An optional container is left out in mandatory-only mode, as buildXmlElementContent and the
-                // namespace collection do; emitting it declared no namespace for its foreign elements
-                if (mandatoryOnly && !childElement.isMandatory()) {
-                    continue;
-                }
-                // SEQUENCE and ALL are structural containers - just output all their children
-                // without outputting the container element itself
-                List<XsdExtendedElement> containerChildren = childElement.getChildren().stream()
-                        .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                        .filter(Objects::nonNull)
-                        .filter(e -> !e.getElementName().startsWith("@"))
-                        .toList();
-
-                if (!containerChildren.isEmpty()) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Processing {} container with {} children", elementName, containerChildren.size());
-                    }
-                    // Recursively process children (they may contain nested CHOICE/SEQUENCE); a model group repeats
-                    // as a whole, like an element
-                    int groupRepeats = limitRepeatedOccurrences(childElement,
-                            elementRepeatCount(childElement, maxOccurrences), repeatedXpaths);
-                    for (int repetition = 0; repetition < groupRepeats; repetition++) {
-                        processChildElementsForGeneration(sb, containerChildren, mandatoryOnly, maxOccurrences,
-                                indentLevel, constraintTracker);
-                    }
-                }
-            // Check if this child is a CHOICE container
-            } else if (elementName.startsWith("CHOICE")) {
-                // Get the choice's cardinality, or the cardinality of the group reference that holds it
-                Node choiceNode = childElement.getCardinalityNode() != null
-                        ? childElement.getCardinalityNode() : childElement.getCurrentNode();
-                String minOccursStr = getAttributeValue(choiceNode, "minOccurs", "1");
-                String maxOccursStr = getAttributeValue(choiceNode, "maxOccurs", "1");
-
-                int minOccurs;
-                int maxOccurs;
-                try {
-                    minOccurs = Integer.parseInt(minOccursStr);
-                } catch (NumberFormatException e) {
-                    minOccurs = 1;
-                }
-
-                if ("unbounded".equalsIgnoreCase(maxOccursStr)) {
-                    maxOccurs = maxOccurrences;
-                } else {
-                    try {
-                        maxOccurs = Math.min(Integer.parseInt(maxOccursStr), maxOccurrences);
-                    } catch (NumberFormatException e) {
-                        maxOccurs = 1;
-                    }
-                }
-
-                // Skip optional choices if generating only mandatory elements
-                if (mandatoryOnly && minOccurs == 0) {
-                    continue;
-                }
-
-                // Get the options from the choice (the children of the CHOICE element)
-                List<XsdExtendedElement> choiceOptions = childElement.getChildren().stream()
-                        .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                        .filter(Objects::nonNull)
-                        .filter(e -> !e.getElementName().startsWith("@"))
-                        .toList();
-
-                if (choiceOptions.isEmpty()) {
-                    logger.debug("CHOICE element has no valid options, skipping");
-                    continue;
-                }
-
-                // For CHOICE: select exactly ONE option per occurrence (XSD choice means pick one alternative)
-                // minOccurs/maxOccurs on the choice refers to how many times the whole choice
-                // can appear, not how many options to select from within a single choice
-                int repeatCount;
-                if (mandatoryOnly) {
-                    // In mandatory mode, generate exactly minOccurs times
-                    repeatCount = Math.min(minOccurs, MAX_REQUIRED_REPETITIONS);
-                } else {
-                    // In non-mandatory mode, generate between minOccurs and maxOccurs
-                    // Use a random value in that range, but cap at maxOccurrences
-                    int effectiveMax = Math.min(maxOccurs, maxOccurrences);
-                    if (minOccurs >= effectiveMax) {
-                        repeatCount = Math.min(minOccurs, MAX_REQUIRED_REPETITIONS); // at least minOccurs
-                    } else {
-                        repeatCount = minOccurs + random.nextInt(effectiveMax - minOccurs + 1);
-                    }
-                }
-
-                // Randomly select ONE element from the options a sample can complete
-                choiceOptions = completeOptions(choiceOptions, xsdDocumentationData.getExtendedXsdElementMap(),
-                        completeContent);
-                XsdExtendedElement selectedOption = choiceOptions.get(random.nextInt(choiceOptions.size()));
-                logger.debug("Selected element '{}' from CHOICE (1 of {} options)",
-                        selectedOption.getElementName(), choiceOptions.size());
-
-                // Generate XML for the selected option (may repeat if choice has maxOccurs > 1)
-                for (int i = 0; i < repeatCount; i++) {
-                    // For repeated choices, re-select to potentially get different options
-                    if (i > 0) {
-                        selectedOption = choiceOptions.get(random.nextInt(choiceOptions.size()));
-                    }
-                    buildXmlElementContent(sb, selectedOption, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
-                }
-            } else {
-                // Not a container element, process normally
-                buildXmlElementContent(sb, childElement, mandatoryOnly, maxOccurrences, indentLevel, constraintTracker);
-            }
-        }
-    }
-
-    /**
-     * Checks if an element would produce an empty container (no text content and no child elements).
-     * This is used to skip optional elements that would result in invalid XML like <BreakDowns></BreakDowns>.
-     *
-     * @param element The element to check
-     * @param mandatoryOnly Whether only mandatory children should be considered
-     * @param indentLevel Current recursion depth
-     * @return true if the element would be empty, false otherwise
-     */
-    private boolean wouldProduceEmptyContainer(XsdExtendedElement element, boolean mandatoryOnly, int indentLevel) {
-        // External namespace references (like ds:Signature) should never be considered empty containers
-        // They reference elements defined in imported schemas and should be generated as self-closing tags
-        if (element.isExternalNamespaceReference()) {
-            return false;
-        }
-
-        // Check if element has sample data (text content)
-        String sampleData = element.getDisplaySampleData();
-        if (sampleData != null && !sampleData.isEmpty()) {
-            return false; // Has text content, not empty
-        }
-
-        // Check if element has any children that would be generated
-        List<XsdExtendedElement> childElements = element.getChildren().stream()
-                .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                .filter(Objects::nonNull)
-                .filter(e -> e.getElementName() != null && !e.getElementName().startsWith("@"))
-                .toList();
-
-        if (childElements.isEmpty()) {
-            // No non-attribute children - check if it has attributes (which make it non-empty)
-            boolean hasAttributes = element.getChildren().stream()
-                    .map(xsdDocumentationData.getExtendedXsdElementMap()::get)
-                    .filter(Objects::nonNull)
-                    .anyMatch(e -> e.getElementName() != null && e.getElementName().startsWith("@"));
-            return !hasAttributes;
-        }
-
-        // Check if any child would actually be rendered
-        for (XsdExtendedElement child : childElements) {
-            String childName = child.getElementName();
-            if (childName == null) {
-                continue;
-            }
-
-            // Handle structural containers
-            if (childName.startsWith("SEQUENCE") || childName.startsWith("ALL") || childName.startsWith("CHOICE")) {
-                // Recursively check container children
-                if (!wouldProduceEmptyContainer(child, mandatoryOnly, indentLevel + 1)) {
-                    return false;
-                }
-            } else if (!mandatoryOnly || child.isMandatory()) {
-                // Non-container element that would be rendered
-                return false;
-            }
-        }
-
-        // All checks passed - element would be empty
-        return true;
     }
 
     /**
@@ -4449,7 +2904,7 @@ public class XsdDocumentationService {
         // XSD 1.1: Process xs:defaultOpenContent (applies to all types in schema)
         Node defaultOpenContentNode = getDirectChildElement(schemaElement, "defaultOpenContent");
         if (defaultOpenContentNode != null) {
-            OpenContent defaultOpenContent = parseOpenContentNode(defaultOpenContentNode, true);
+            OpenContent defaultOpenContent = componentDetails.parseOpenContentNode(defaultOpenContentNode, true);
             xsdDocumentationData.setDefaultOpenContent(defaultOpenContent);
         }
 
@@ -4505,546 +2960,6 @@ public class XsdDocumentationService {
 
         xsdDocumentationData.setTypeUsageMap(typeUsageMap);
         logger.debug("Type usage index built with {} types.", typeUsageMap.size());
-    }
-
-    /**
-     * Reads the example values declared by an {@code xs:appinfo}, accepting both the
-     * FreeXmlToolkit namespace and the legacy Altova one.
-     *
-     * @param appInfoNode the appinfo element
-     * @return the declared example values, empty when the appinfo declares none
-     */
-    private List<String> readExampleValues(Node appInfoNode) {
-        List<String> values = new ArrayList<>();
-        for (Node appInfoChild : getDirectChildElements(appInfoNode)) {
-            if (!isExampleValuesNamespace(appInfoChild.getNamespaceURI())
-                    || !"exampleValues".equals(appInfoChild.getLocalName())) {
-                continue;
-            }
-            for (Node exampleNode : getDirectChildElements(appInfoChild)) {
-                if (isExampleValuesNamespace(exampleNode.getNamespaceURI())
-                        && "example".equals(exampleNode.getLocalName())) {
-                    String value = getAttributeValue(exampleNode, "value");
-                    if (value != null) {
-                        values.add(value);
-                    }
-                }
-            }
-        }
-        return values;
-    }
-
-    private static boolean isExampleValuesNamespace(String namespaceUri) {
-        return ALTOVA_NS_URI.equals(namespaceUri) || FXT_EXT_NS_URI.equals(namespaceUri);
-    }
-
-    /**
-     * Reads documentation and appinfo tags of one {@code xs:annotation} into the element.
-     *
-     * @param annotationNode the annotation to read, may be null
-     * @param extendedElem   the element to populate
-     * @return the {@code @markdown} flag stated by this annotation, or null when it says nothing.
-     *         Applying it (including the element-beats-type rule) is the caller's job.
-     */
-    private Boolean processAnnotations(Node annotationNode, XsdExtendedElement extendedElem) {
-        if (annotationNode == null) {
-            return null;
-        }
-        Boolean markdownFlag = null;
-
-        // 1. Extract documentation
-        for (Node docNode : getDirectChildElements(annotationNode, "documentation")) {
-            String lang = getAttributeValue(docNode, "xml:lang", "default");
-            // Normalize language to lowercase for case-insensitive comparison
-            String normalizedLang = lang != null ? lang.toLowerCase() : "default";
-            discoveredLanguages.add(normalizedLang); // Track discovered language for UI configuration
-            if (!isLanguageIncluded(normalizedLang)) {
-                continue; // De-selected in the generator options: never reaches any output format
-            }
-            extendedElem.addDocumentation(documentationMemo.computeIfAbsent(docNode,
-                    n -> new DocumentationInfo(normalizedLang, n.getTextContent())));
-        }
-
-        // 2. Process AppInfo tags (for Javadoc and Altova examples)
-        XsdDocInfo xsdDocInfo = extendedElem.getXsdDocInfo() != null ? extendedElem.getXsdDocInfo() : new XsdDocInfo();
-        List<String> genericAppInfos = extendedElem.getGenericAppInfos() != null ? new ArrayList<>(extendedElem.getGenericAppInfos()) : new ArrayList<>();
-        List<String> exampleValues = new ArrayList<>(extendedElem.getExampleValues()); // Mutable copy for example values
-
-        for (Node appInfoNode : getDirectChildElements(annotationNode, "appinfo")) {
-            String source = getAttributeValue(appInfoNode, "source");
-
-            // Example values (fxt: or the legacy altova: convention) - independent of @source.
-            List<String> declaredExamples = readExampleValues(appInfoNode);
-            if (!declaredExamples.isEmpty()) {
-                exampleValues.addAll(declaredExamples);
-                continue;
-            }
-
-            // JavaDoc-style tags. The tag lives in @source; its value is the element's text
-            // content, falling back to the remainder of @source for the legacy encoding
-            // <xs:appinfo source="@since 4.0.0"/>.
-            String tag = XsdAppInfo.tagOf(source);
-            if (tag == null) {
-                String generic = (source != null && !source.isBlank())
-                        ? source
-                        : appInfoNode.getTextContent();
-                if (generic != null && !generic.isBlank()) {
-                    genericAppInfos.add(generic);
-                }
-                continue;
-            }
-
-            String value = XsdAppInfo.valueOf(source, appInfoNode.getTextContent());
-            switch (tag) {
-                case "@since" -> xsdDocInfo.setSince(value);
-                case "@see" -> xsdDocInfo.addSee(value);
-                case "@deprecated" -> xsdDocInfo.setDeprecated(value);
-                case "@markdown" -> {
-                    // Recorded only; OFF and the element-beats-type rule are applied by the caller.
-                    Boolean markdown = XsdAppInfo.parseBooleanFlag(value);
-                    if (markdown != null) {
-                        markdownFlag = markdown; // last explicit value within one annotation wins
-                    }
-                }
-                default -> genericAppInfos.add(value.isEmpty() ? tag : tag + " " + value);
-            }
-        }
-
-        // 3. Store collected information in the element
-        if (xsdDocInfo.hasData()) {
-            extendedElem.setXsdDocInfo(xsdDocInfo);
-        }
-        if (!genericAppInfos.isEmpty()) {
-            extendedElem.setGenericAppInfos(genericAppInfos);
-        }
-        if (!exampleValues.isEmpty()) {
-            extendedElem.setExampleValues(exampleValues);
-        }
-        return markdownFlag;
-    }
-
-    /**
-     * Processes XSD 1.0 identity constraints (xs:key, xs:keyref, xs:unique) on an element.
-     * Identity constraints define uniqueness and referential integrity rules within XML documents.
-     *
-     * @param elementNode  The element node that may contain identity constraints
-     * @param extendedElem The extended element to populate with identity constraint information
-     */
-    private void processIdentityConstraints(Node elementNode, XsdExtendedElement extendedElem) {
-        if (elementNode == null) {
-            return;
-        }
-
-        List<IdentityConstraint> identityConstraints = new ArrayList<>();
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Processing identity constraints for element: {}, node type: {}",
-                    extendedElem.getElementName(), elementNode.getLocalName());
-        }
-
-        for (Node child : getDirectChildElements(elementNode)) {
-            String localName = child.getLocalName();
-            if (logger.isDebugEnabled()) {
-                logger.debug("Checking child node: {}", localName);
-            }
-            IdentityConstraint.Type type = null;
-
-            // Determine the type of identity constraint
-            if ("key".equals(localName)) {
-                type = IdentityConstraint.Type.KEY;
-            } else if ("keyref".equals(localName)) {
-                type = IdentityConstraint.Type.KEYREF;
-            } else if ("unique".equals(localName)) {
-                type = IdentityConstraint.Type.UNIQUE;
-            }
-
-            if (type != null) {
-                IdentityConstraint constraint = new IdentityConstraint();
-                constraint.setType(type);
-                constraint.setName(getAttributeValue(child, "name"));
-
-                // For keyref, extract the referenced key/unique name
-                if (type == IdentityConstraint.Type.KEYREF) {
-                    constraint.setRefer(getAttributeValue(child, "refer"));
-                }
-
-                // Extract selector XPath
-                Node selectorNode = getDirectChildElement(child, "selector");
-                if (selectorNode != null) {
-                    constraint.setSelector(getAttributeValue(selectorNode, "xpath"));
-                }
-
-                // Extract field XPath(s)
-                List<String> fields = new ArrayList<>();
-                for (Node fieldNode : getDirectChildElements(child, "field")) {
-                    String xpath = getAttributeValue(fieldNode, "xpath");
-                    if (xpath != null) {
-                        fields.add(xpath);
-                    }
-                }
-                constraint.setFields(fields);
-
-                // Extract documentation from annotation
-                Node annotationNode = getDirectChildElement(child, "annotation");
-                if (annotationNode != null) {
-                    Node docNode = getDirectChildElement(annotationNode, "documentation");
-                    if (docNode != null) {
-                        constraint.setDocumentation(docNode.getTextContent());
-                    }
-                }
-
-                identityConstraints.add(constraint);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Found identity constraint: {} of type {} on element {}",
-                            constraint.getName(), type, extendedElem.getElementName());
-                }
-            }
-        }
-
-        if (!identityConstraints.isEmpty()) {
-            extendedElem.setIdentityConstraints(identityConstraints);
-        }
-    }
-
-    /**
-     * Copies the identity-constraint result from a previously-processed donor entry onto
-     * a new entry, instead of re-parsing the (XPath-independent) constraints from the DOM.
-     * Mirrors exactly the single field {@link #processIdentityConstraints} sets.
-     * The setter performs a defensive copy of the list, so the entries do not share state.
-     *
-     * @param from the donor element whose identity constraints were already parsed
-     * @param to   the new element to receive a copy of the constraints
-     */
-    private void copyIdentityConstraints(XsdExtendedElement from, XsdExtendedElement to) {
-        List<IdentityConstraint> constraints = from.getIdentityConstraints();
-        if (constraints != null && !constraints.isEmpty()) {
-            // setIdentityConstraints() makes a fresh ArrayList; IdentityConstraint instances
-            // are immutable metadata describing the definition, so sharing them is safe.
-            to.setIdentityConstraints(constraints);
-        }
-        // else: the donor node has no constraints — nothing to copy; the target keeps its
-        // default empty list (the common case, since most elements carry no key/keyref/unique).
-    }
-
-    /**
-     * Processes XSD 1.1 assertions (xs:assert on complexType, xs:assertion on simpleType).
-     * Assertions are XPath 2.0 boolean expressions that must evaluate to true for the instance to be valid.
-     *
-     * @param typeNode     The type node (complexType or simpleType) that may contain assertions
-     * @param extendedElem The extended element to populate with assertion information
-     */
-    private void processAssertions(Node typeNode, XsdExtendedElement extendedElem) {
-        if (typeNode == null) {
-            return;
-        }
-
-        // Added to what an earlier call found: a simple type's xs:assertion and a complex type's
-        // xs:assert can both apply to one element.
-        List<XsdAssertion> assertions = new ArrayList<>(extendedElem.getAssertions() == null
-                ? List.of() : extendedElem.getAssertions());
-        collectAssertions(typeNode, extendedElem, assertions, new HashSet<>());
-
-        if (!assertions.isEmpty()) {
-            extendedElem.setAssertions(assertions);
-        }
-    }
-
-    /**
-     * Collects the assertions of a type: its own (also inside complexContent / simpleContent
-     * extension and restriction), then those of the named base types it derives from. Cycle-safe.
-     *
-     * @param node    a complexType, simpleType, content model or derivation node
-     * @param visited the nodes already looked at
-     */
-    private void collectAssertions(Node node, XsdExtendedElement extendedElem, List<XsdAssertion> assertions,
-                                   Set<Node> visited) {
-        if (node == null || !visited.add(node)) {
-            return;
-        }
-        List<Node> derivations = new ArrayList<>();
-        for (Node child : getDirectChildElements(node)) {
-            String localName = child.getLocalName();
-            XsdAssertion.Type type = null;
-
-            // Determine the type of assertion
-            if ("assert".equals(localName)) {
-                type = XsdAssertion.Type.ASSERT;  // xs:assert on complexType
-            } else if ("assertion".equals(localName)) {
-                type = XsdAssertion.Type.ASSERTION;  // xs:assertion on simpleType restriction
-            } else if ("complexContent".equals(localName) || "simpleContent".equals(localName)
-                    || "extension".equals(localName) || "restriction".equals(localName)) {
-                derivations.add(child);
-            }
-
-            if (type != null) {
-                XsdAssertion assertion = new XsdAssertion();
-                assertion.setType(type);
-                assertion.setTest(getAttributeValue(child, "test"));
-                assertion.setXpathDefaultNamespace(getAttributeValue(child, "xpathDefaultNamespace"));
-
-                // Extract documentation from annotation
-                Node annotationNode = getDirectChildElement(child, "annotation");
-                if (annotationNode != null) {
-                    Node docNode = getDirectChildElement(annotationNode, "documentation");
-                    if (docNode != null) {
-                        assertion.setDocumentation(docNode.getTextContent());
-                    }
-                }
-
-                // The restriction of a simpleContent type is reached from the element's
-                // restriction and from its complex type: list each assertion once.
-                boolean known = assertions.stream().anyMatch(a -> a.getType() == assertion.getType()
-                        && Objects.equals(a.getTest(), assertion.getTest()));
-                if (!known) {
-                    assertions.add(assertion);
-                    logger.debug("Found {} assertion with test: {} on element {}",
-                            type, assertion.getTest(), extendedElem.getElementName());
-                }
-            }
-        }
-
-        for (Node derivation : derivations) {
-            collectAssertions(derivation, extendedElem, assertions, visited);
-        }
-        // Inherited assertions after the type's own ones
-        String localName = node.getLocalName();
-        if ("extension".equals(localName) || "restriction".equals(localName)) {
-            String base = getAttributeValue(node, "base");
-            String basePrefix = base == null || !base.contains(":") ? null : base.substring(0, base.indexOf(':'));
-            boolean builtIn = javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(node.lookupNamespaceURI(basePrefix));
-            if (base != null && !base.isBlank() && !builtIn) {
-                String baseName = base.contains(":") ? base.substring(base.indexOf(':') + 1) : base;
-                Node baseType = complexTypeMap.get(baseName);
-                if (baseType == null) {
-                    baseType = simpleTypeMap.get(baseName);
-                }
-                collectAssertions(baseType, extendedElem, assertions, visited);
-            }
-        }
-    }
-
-    /**
-     * Processes XSD 1.1 type alternatives (xs:alternative) on an element.
-     * Type alternatives provide conditional type assignment based on XPath 2.0 expressions.
-     *
-     * @param elementNode  The element node that may contain type alternatives
-     * @param extendedElem The extended element to populate with type alternative information
-     */
-    private void processTypeAlternatives(Node elementNode, XsdExtendedElement extendedElem) {
-        if (elementNode == null) {
-            return;
-        }
-
-        List<TypeAlternative> typeAlternatives = new ArrayList<>();
-
-        for (Node child : getDirectChildElements(elementNode, "alternative")) {
-            TypeAlternative alternative = new TypeAlternative();
-            alternative.setTest(getAttributeValue(child, "test"));  // null for default alternative
-            alternative.setType(getAttributeValue(child, "type"));
-            alternative.setXpathDefaultNamespace(getAttributeValue(child, "xpathDefaultNamespace"));
-
-            // Extract documentation from annotation
-            Node annotationNode = getDirectChildElement(child, "annotation");
-            if (annotationNode != null) {
-                Node docNode = getDirectChildElement(annotationNode, "documentation");
-                if (docNode != null) {
-                    alternative.setDocumentation(docNode.getTextContent());
-                }
-            }
-
-            typeAlternatives.add(alternative);
-            logger.debug("Found type alternative with test: {} and type: {} on element {}",
-                    alternative.getTest() != null ? alternative.getTest() : "default",
-                    alternative.getType(), extendedElem.getElementName());
-        }
-
-        if (!typeAlternatives.isEmpty()) {
-            extendedElem.setTypeAlternatives(typeAlternatives);
-        }
-    }
-
-    /**
-     * Processes list and union types from simpleType definitions.
-     *
-     * @param typeDefinitionNode The simpleType node
-     * @param extendedElem       The extended element to populate with list/union information
-     */
-    private void processListAndUnionTypes(Node typeDefinitionNode, XsdExtendedElement extendedElem) {
-        if (typeDefinitionNode == null || !"simpleType".equals(typeDefinitionNode.getLocalName())) {
-            return;
-        }
-
-        // Check for xs:list
-        Node listNode = getDirectChildElement(typeDefinitionNode, "list");
-        if (listNode != null) {
-            String itemType = getAttributeValue(listNode, "itemType");
-            if (itemType != null && !itemType.isEmpty()) {
-                extendedElem.setListItemType(itemType);
-                logger.debug("Found list type with itemType: {} on element {}",
-                        itemType, extendedElem.getElementName());
-            }
-        }
-
-        // Check for xs:union
-        Node unionNode = getDirectChildElement(typeDefinitionNode, "union");
-        if (unionNode != null) {
-            String memberTypes = getAttributeValue(unionNode, "memberTypes");
-            if (memberTypes != null && !memberTypes.isEmpty()) {
-                // Split by whitespace to get individual member types
-                List<String> types = Arrays.stream(memberTypes.split("\\s+"))
-                        .filter(s -> !s.isEmpty())
-                        .collect(Collectors.toList());
-                extendedElem.setUnionMemberTypes(types);
-                logger.debug("Found union type with member types: {} on element {}",
-                        types, extendedElem.getElementName());
-            }
-        }
-    }
-
-    /**
-     * Processes XSD 1.1 open content (xs:openContent) on a complexType.
-     * Open content allows a type to accept additional elements beyond those explicitly defined.
-     *
-     * @param typeNode     The complexType node
-     * @param extendedElem The extended element to populate with open content information
-     */
-    private void processOpenContent(Node typeNode, XsdExtendedElement extendedElem) {
-        if (typeNode == null || !"complexType".equals(typeNode.getLocalName())) {
-            return;
-        }
-
-        // Look for xs:openContent as direct child of complexType
-        Node openContentNode = getDirectChildElement(typeNode, "openContent");
-        if (openContentNode != null) {
-            OpenContent openContent = parseOpenContentNode(openContentNode, false);
-            if (openContent != null) {
-                extendedElem.setOpenContent(openContent);
-                logger.debug("Found openContent with mode: {} on element {}",
-                        openContent.getMode(), extendedElem.getElementName());
-            }
-        }
-    }
-
-    /**
-     * Parses an xs:openContent or xs:defaultOpenContent node.
-     *
-     * @param openContentNode The openContent or defaultOpenContent node
-     * @param isDefault       Whether this is default open content
-     * @return The parsed OpenContent object, or null if parsing failed
-     */
-    private OpenContent parseOpenContentNode(Node openContentNode, boolean isDefault) {
-        if (openContentNode == null) {
-            return null;
-        }
-
-        OpenContent openContent = new OpenContent();
-        openContent.setDefault(isDefault);
-
-        // Parse mode attribute (interleave or suffix, default is interleave)
-        String modeStr = getAttributeValue(openContentNode, "mode", "interleave");
-        try {
-            openContent.setMode(OpenContent.Mode.valueOf(modeStr.toUpperCase()));
-        } catch (IllegalArgumentException e) {
-            openContent.setMode(OpenContent.Mode.INTERLEAVE);
-            logger.warn("Invalid openContent mode: {}, defaulting to INTERLEAVE", modeStr);
-        }
-
-        // Look for nested xs:any
-        Node anyNode = getDirectChildElement(openContentNode, "any");
-        if (anyNode != null) {
-            openContent.setNamespace(getAttributeValue(anyNode, "namespace", "##any"));
-            openContent.setProcessContents(getAttributeValue(anyNode, "processContents", "strict"));
-        }
-
-        // Extract documentation from annotation
-        Node annotationNode = getDirectChildElement(openContentNode, "annotation");
-        if (annotationNode != null) {
-            Node docNode = getDirectChildElement(annotationNode, "documentation");
-            if (docNode != null) {
-                openContent.setDocumentation(docNode.getTextContent());
-            }
-        }
-
-        return openContent;
-    }
-
-    /**
-     * Processes XSD wildcards (xs:any and xs:anyAttribute).
-     * Wildcards allow elements or attributes from specified namespaces to appear in the content model.
-     *
-     * @param contextNode  The context node (element, complexType, or extension) that may contain wildcards
-     * @param extendedElem The extended element to populate with wildcard information
-     */
-    private void processWildcards(Node contextNode, XsdExtendedElement extendedElem) {
-        if (contextNode == null) {
-            return;
-        }
-
-        List<Wildcard> wildcards = new ArrayList<>();
-
-        // Process xs:any (element wildcards)
-        for (Node child : getDirectChildElements(contextNode, "any")) {
-            Wildcard wildcard = new Wildcard();
-            wildcard.setType(Wildcard.Type.ANY);
-            wildcard.setNamespace(getAttributeValue(child, "namespace", "##any"));
-            wildcard.setMinOccurs(getAttributeValue(child, "minOccurs"));
-            wildcard.setMaxOccurs(getAttributeValue(child, "maxOccurs"));
-
-            // Parse processContents attribute
-            String processContentsStr = getAttributeValue(child, "processContents", "strict");
-            try {
-                wildcard.setProcessContents(Wildcard.ProcessContents.valueOf(processContentsStr.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                wildcard.setProcessContents(Wildcard.ProcessContents.STRICT);
-                logger.warn("Invalid processContents value: {}, defaulting to STRICT", processContentsStr);
-            }
-
-            // Extract documentation from annotation
-            Node annotationNode = getDirectChildElement(child, "annotation");
-            if (annotationNode != null) {
-                Node docNode = getDirectChildElement(annotationNode, "documentation");
-                if (docNode != null) {
-                    wildcard.setDocumentation(docNode.getTextContent());
-                }
-            }
-
-            wildcards.add(wildcard);
-            logger.debug("Found xs:any wildcard with namespace: {} on element {}",
-                    wildcard.getNamespace(), extendedElem.getElementName());
-        }
-
-        // Process xs:anyAttribute (attribute wildcards)
-        for (Node child : getDirectChildElements(contextNode, "anyAttribute")) {
-            Wildcard wildcard = new Wildcard();
-            wildcard.setType(Wildcard.Type.ANY_ATTRIBUTE);
-            wildcard.setNamespace(getAttributeValue(child, "namespace", "##any"));
-
-            // Parse processContents attribute
-            String processContentsStr = getAttributeValue(child, "processContents", "strict");
-            try {
-                wildcard.setProcessContents(Wildcard.ProcessContents.valueOf(processContentsStr.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                wildcard.setProcessContents(Wildcard.ProcessContents.STRICT);
-                logger.warn("Invalid processContents value: {}, defaulting to STRICT", processContentsStr);
-            }
-
-            // Extract documentation from annotation
-            Node annotationNode = getDirectChildElement(child, "annotation");
-            if (annotationNode != null) {
-                Node docNode = getDirectChildElement(annotationNode, "documentation");
-                if (docNode != null) {
-                    wildcard.setDocumentation(docNode.getTextContent());
-                }
-            }
-
-            wildcards.add(wildcard);
-            logger.debug("Found xs:anyAttribute wildcard with namespace: {} on element {}",
-                    wildcard.getNamespace(), extendedElem.getElementName());
-        }
-
-        if (!wildcards.isEmpty()) {
-            extendedElem.setWildcards(wildcards);
-        }
     }
 
     private RestrictionInfo parseRestriction(Node restrictionNode) {
@@ -5132,7 +3047,7 @@ public class XsdDocumentationService {
         return facets;
     }
 
-    private Node findTypeDefinition(Node elementNode, String typeName) {
+    Node findTypeDefinition(Node elementNode, String typeName) {
         // Case 1: Inline definition
         if (elementNode != null) {
             Node inlineComplex = getDirectChildElement(elementNode, "complexType");
@@ -5155,7 +3070,7 @@ public class XsdDocumentationService {
      * @param contextNode the node carrying the reference, or {@code null} to look up by local name only
      * @return the type definition node, or {@code null}
      */
-    private Node findGlobalType(String typeName, Node contextNode) {
+    Node findGlobalType(String typeName, Node contextNode) {
         if (typeName == null || typeName.isEmpty()) {
             return null;
         }
@@ -5193,7 +3108,7 @@ public class XsdDocumentationService {
      * only an invalid schema can declare. Guards the recursive base-type expansion in
      * {@link #processComplexContent}.
      */
-    private boolean derivesFromItself(Node typeNode) {
+    boolean derivesFromItself(Node typeNode) {
         Set<Node> chain = Collections.newSetFromMap(new IdentityHashMap<>());
         Node current = typeNode;
         while (current != null) {
@@ -5265,7 +3180,7 @@ public class XsdDocumentationService {
         return simpleTypeMap.get(cleanTypeName);
     }
 
-    private Node findContentModel(Node elementNode, Node typeDefinitionNode) {
+    Node findContentModel(Node elementNode, Node typeDefinitionNode) {
         Node contextNode = (typeDefinitionNode != null) ? typeDefinitionNode : elementNode;
         if (contextNode == null) {
             return null;
@@ -5403,199 +3318,6 @@ public class XsdDocumentationService {
         }
     }
 
-    // --- Schema Version Detection ---
-
-    /**
-     * Checks if the loaded schema requires XSD 1.1.
-     * Looks for vc:minVersion="1.1" attribute on the schema element.
-     */
-    private boolean isXsd11Schema() {
-        // If doc is not loaded yet, try to parse the schema file to check version
-        Document schemaDoc = doc;
-        if (schemaDoc == null && xsdFilePath != null) {
-            try {
-                DocumentBuilderFactory factory = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureDocumentBuilderFactory();
-                factory.setNamespaceAware(true);
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                schemaDoc = builder.parse(new File(xsdFilePath));
-            } catch (Exception e) {
-                logger.debug("Could not parse schema file to check version: {}", e.getMessage());
-                return false;
-            }
-        }
-
-        if (schemaDoc == null) {
-            return false;
-        }
-        Element root = schemaDoc.getDocumentElement();
-        if (root == null) {
-            return false;
-        }
-
-        // Check for vc:minVersion attribute
-        String minVersion = root.getAttributeNS("http://www.w3.org/2007/XMLSchema-versioning", "minVersion");
-        if ("1.1".equals(minVersion)) {
-            return true;
-        }
-
-        // Also check without namespace (some schemas use it without proper namespace)
-        minVersion = root.getAttribute("vc:minVersion");
-        return "1.1".equals(minVersion);
-    }
-
-    /**
-         * Simple LSInput implementation for resource resolution.
-         */
-        private record LSInputImpl(String publicId, String systemId, File file) implements LSInput {
-
-        @Override
-            public Reader getCharacterStream() {
-                try {
-                    return new FileReader(file, java.nio.charset.StandardCharsets.UTF_8);
-                } catch (Exception e) {
-                    return null;
-                }
-            }
-
-            @Override
-            public void setCharacterStream(Reader characterStream) {
-            }
-
-            @Override
-            public InputStream getByteStream() {
-                try {
-                    return new FileInputStream(file);
-                } catch (Exception e) {
-                    return null;
-                }
-            }
-
-            @Override
-            public void setByteStream(InputStream byteStream) {
-            }
-
-            @Override
-            public String getStringData() {
-                return null;
-            }
-
-            @Override
-            public void setStringData(String stringData) {
-            }
-
-            @Override
-            public String getSystemId() {
-                return systemId;
-            }
-
-            @Override
-            public void setSystemId(String systemId) {
-            }
-
-            @Override
-            public String getPublicId() {
-                return publicId;
-            }
-
-            @Override
-            public void setPublicId(String publicId) {
-            }
-
-            @Override
-            public String getBaseURI() {
-                return file.toURI().toString();
-            }
-
-            @Override
-            public void setBaseURI(String baseURI) {
-            }
-
-            @Override
-            public String getEncoding() {
-                return "UTF-8";
-            }
-
-            @Override
-            public void setEncoding(String encoding) {
-            }
-
-            @Override
-            public boolean getCertifiedText() {
-                return false;
-            }
-
-            @Override
-            public void setCertifiedText(boolean certifiedText) {
-            }
-        }
-
-    // --- General DOM/String Helper Methods ---
-
-    private String getAttributeValue(Node node, String attrName) {
-        return getAttributeValue(node, attrName, null);
-    }
-
-    private String getAttributeValue(Node node, String attrName, String defaultValue) {
-        if (node == null || node.getAttributes() == null) {
-            return defaultValue;
-        }
-
-        // Special handling for namespace-qualified attributes like xml:lang
-        if ("xml:lang".equals(attrName) && node instanceof Element element) {
-            String value = element.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang");
-            return (value != null && !value.isEmpty()) ? value : defaultValue;
-        }
-
-        Node attrNode = node.getAttributes().getNamedItem(attrName);
-        return (attrNode != null) ? attrNode.getNodeValue() : defaultValue;
-    }
-
-    private Node getDirectChildElement(Node parent, String childName) {
-        if (parent == null) {
-            return null;
-        }
-        for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
-            if (child.getNodeType() == Node.ELEMENT_NODE && childName.equals(child.getLocalName())) {
-                return child;
-            }
-        }
-        return null;
-    }
-
-    private List<Node> getDirectChildElements(Node parent) {
-        if (parent == null) {
-            return Collections.emptyList();
-        }
-        List<Node> children = new ArrayList<>();
-        for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
-                children.add(child);
-            }
-        }
-        return children;
-    }
-
-    private List<Node> getDirectChildElements(Node parent, String childName) {
-        if (parent == null) {
-            return Collections.emptyList();
-        }
-        List<Node> children = new ArrayList<>();
-        for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
-            if (child.getNodeType() == Node.ELEMENT_NODE && childName.equals(child.getLocalName())) {
-                children.add(child);
-            }
-        }
-        return children;
-    }
-
-    private List<Node> nodeListToList(NodeList nodeList) {
-        List<Node> list = new ArrayList<>();
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            list.add(nodeList.item(i));
-        }
-        return list;
-    }
-
     /** The (memoized) source code snippet of a schema node; see {@link #sourceSnippetMemo}. */
     private String sourceSnippet(Node node) {
         return sourceSnippetMemo.computeIfAbsent(node, this::nodeToString);
@@ -5656,17 +3378,6 @@ public class XsdDocumentationService {
         }
         int colonIndex = value.indexOf(':');
         return (colonIndex != -1) ? value.substring(colonIndex + 1) : value;
-    }
-
-    private String escapeXml(String text) {
-        if (text == null) {
-            return "";
-        }
-        return text.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&apos;");
     }
 
     /**

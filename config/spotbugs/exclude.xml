@@ -310,7 +310,7 @@
     </Match>
     <Match>
         <Bug pattern="NP_BOOLEAN_RETURN_NULL"/>
-        <Class name="org.fxt.freexmltoolkit.service.XsdDocumentationService"/>
+        <Class name="org.fxt.freexmltoolkit.service.XsdComponentDetailsReader"/>
         <Method name="processAnnotations"/>
     </Match>
 
