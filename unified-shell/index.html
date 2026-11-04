@@ -4463,14 +4463,53 @@ The sections appear from top to bottom in this order:</p>
   Only XML-family and JSON files are shown. While no folder is open, the section shows a
   short hint (<em>"No folder open. Open a folder to browse its XML, XSD and stylesheet files
   here."</em>) and an <strong>Open folder…</strong> button.</li>
-<li><strong>TOOLS</strong> - a collapsible section above the files with the <strong>Open file…</strong> and
-  <strong>Clear recent</strong> rows. It is <strong>open by default</strong>; whether you leave it open or closed
-  is remembered. Transforming and Schematron-validating the selected files is done from the
-  workspace tree's <a href="#explorer-context-menu">context menu</a>.</li>
-<li><strong>RECENT</strong> - at the bottom, the recently opened files; click one to reopen it (drag the
+<li>
+<p><strong>TOOLS</strong> - a collapsible section above the files with the file tools. It is <strong>open by
+  default</strong>; whether you leave it open or closed is remembered. Transforming and
+  Schematron-validating the selected files is done from the workspace tree's
+  <a href="#explorer-context-menu">context menu</a>; the tools of the other workflows (validate,
+  transform, schema documentation, …) live in their own activities.</p>
+<table>
+<thead>
+<tr>
+<th>Row</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Open file…</strong></td>
+<td>Opens a file with a file chooser.</td>
+</tr>
+<tr>
+<td><strong>Open from URL…</strong></td>
+<td>Opens a file from a web address (same as <strong>File → Open from URL…</strong>).</td>
+</tr>
+<tr>
+<td><strong>Compare files…</strong></td>
+<td>With <strong>two files selected</strong> in the workspace tree: compares them side by side. With <strong>one file selected</strong>: asks for a second file and compares the two. With <strong>no selection</strong>: compares the active document with a file you pick (same as <strong>Tools → Compare with File…</strong>). Disabled while there is neither a selection nor an open document.</td>
+</tr>
+<tr>
+<td><strong>Spreadsheet Converter…</strong></td>
+<td>Converts between XML and Excel / CSV (same as <strong>Tools → Spreadsheet Converter…</strong>, Ctrl+E).</td>
+</tr>
+<tr>
+<td><strong>Generate XSD from XML files…</strong></td>
+<td>Infers one schema from the <strong>XML files selected</strong> in the workspace tree and opens it as a new tab; with no XML file selected, asks you to pick the files (same as <strong>Tools → Generate XSD from XML Files…</strong>).</td>
+</tr>
+<tr>
+<td><strong>Clear recent</strong></td>
+<td>Empties the <strong>RECENT</strong> list.</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p><strong>RECENT</strong> - at the bottom, the recently opened files; click one to reopen it (drag the
   thin grip above the list to change its height). Favorites are not listed here: manage them
   in the <a href="#favorites-panel">Favorites</a> activity (<strong>View → Favorites Panel</strong>, Ctrl+Shift+D)
-  and use them via the star menus; <strong>Ctrl+D</strong> adds the active document to your favorites.</li>
+  and use them via the star menus; <strong>Ctrl+D</strong> adds the active document to your favorites.</p>
+</li>
 <li><strong>Collapsible sections</strong> - the <strong>OPEN EDITORS</strong>, workspace and <strong>TOOLS</strong> section headers
   are clickable: click a header to collapse or expand its section (the chevron next to the
   title flips accordingly). Use this to give the file tree more room when you have many
@@ -4516,6 +4555,14 @@ to select several), then <strong>right-click</strong> them. The context menu off
 <tr>
 <td><strong>Validate with Other Schematron ▸</strong></td>
 <td>Lists your recently used Schematrons, your Schematron <strong>Favorites</strong>, <strong>Choose Schematron…</strong> and <strong>Clear recent</strong>.</td>
+</tr>
+<tr>
+<td><strong>Compare Selected Files</strong></td>
+<td>Compares the two selected files side by side (enabled with exactly two files selected).</td>
+</tr>
+<tr>
+<td><strong>Generate XSD from Selected</strong></td>
+<td>Infers one schema from the selected XML files and opens it as a new tab.</td>
 </tr>
 </tbody>
 </table>
