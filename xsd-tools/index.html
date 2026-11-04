@@ -3748,6 +3748,17 @@ the Properties pane; it lists what is declared directly on the selected node, so
 inherited from a type is changed in that type.</p>
 <p>To hide the rows, turn off <strong>View → Show Constraints in Diagram</strong>. The setting applies to all
 open diagrams and is remembered.</p>
+<p><strong>Constraints on target nodes.</strong> A key, unique or keyref is declared on one element but checks
+the values of another: its <em>field</em> target. For example, in FundsXML4 the element <code>Fund</code> declares
+the key <code>benchmarkID</code> with the selector <code>FundStaticData/Benchmarks/Benchmark</code> and the field
+<code>BenchmarkID</code>. Turn on <strong>Constraints on target nodes</strong>, and the <code>BenchmarkID</code> card also lists
+<code>← benchmarkID @ Fund</code>. The row has an outlined label and muted text, so you can tell it apart
+from the card's own constraints. An attribute field (<code>@code</code>) shows on the attribute card. A
+type used in several places matches only where its path fits the selector. Only fields count,
+not the elements the selector picks. The option is off by default.</p>
+<p>Both switches are in the <strong>DISPLAY</strong> section at the top of the Properties pane, which appears for
+XSD documents, and in the <strong>View</strong> menu (<strong>Show Constraints on Target Nodes</strong>). They change open
+diagrams at once and are remembered.</p>
 <h3 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Right-click</strong> for a context menu with common actions (<strong>Add Element…</strong> / <strong>Add Attribute…</strong> with all properties - see <a href="#adding-an-element-or-attribute">Adding an Element or Attribute</a>, <strong>Rename…</strong>, <strong>Change Type…</strong>, <strong>Change Cardinality…</strong>, add/move/delete). <strong>Change Type…</strong> opens a small dialog with the <a href="../inspector/#type-picker">type picker</a>, pre-filled with the current type - the same dialog as in the Tree view</li>
@@ -4503,6 +4514,10 @@ the generator never modifies your schema file or writes into its folder.</p>
 <tr>
 <td><strong>Also in the page's own element box</strong></td>
 <td>Off: only the child boxes list constraints; the page's own ones are in the sections below the diagram (off by default)</td>
+</tr>
+<tr>
+<td><strong>Show constraints on their target elements</strong></td>
+<td>Also list a key, unique or keyref on the element its field points to (e.g. <code>BenchmarkID</code> for a key on <code>Fund</code>). It shows as a row in that element's diagram box (with <strong>Show constraints in diagrams</strong> on) and in a <strong>Referenced by Identity Constraints</strong> section of its page, linked to the element that declares it. An attribute field shows on the attribute's element (off by default)</td>
 </tr>
 <tr>
 <td><strong>Generate SVG overview page</strong></td>
