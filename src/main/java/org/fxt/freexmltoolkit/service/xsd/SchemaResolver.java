@@ -343,7 +343,14 @@ public class SchemaResolver {
         // Schema Library lookup by systemId/catalog before falling back to plain path resolution.
         Path fromLibrary = libraryPathFor(null, schemaLocation, baseDir);
         if (fromLibrary != null) {
-            schemaLocation = fromLibrary.toString();   // local from here on
+            // A file next to the including schema wins; a library file is copied there.
+            schemaLocation = org.fxt.freexmltoolkit.service.LocalSchemaCopies
+                    .localize(baseDir, schemaLocation, fromLibrary).toString();   // local from here on
+        } else if (schemaLocation.startsWith("http://") || schemaLocation.startsWith("https://")) {
+            Path copy = localCopyOfRemote(null, schemaLocation, baseDir);
+            if (copy != null) {
+                schemaLocation = copy.toString();
+            }
         }
 
         // Skip remote schemas in this resolver (they're handled separately)
@@ -530,17 +537,22 @@ public class SchemaResolver {
             // Resolve schema location
             ParsedSchema importedSchema;
 
-            if (schemaLocation.startsWith("http://") || schemaLocation.startsWith("https://")) {
+            boolean remoteLocation = schemaLocation.startsWith("http://") || schemaLocation.startsWith("https://");
+            // A remote import is read from its local copy next to the importing schema, which
+            // is written on the first download (LocalSchemaCopies).
+            Path remoteCopy = remoteLocation ? localCopyOfRemote(namespace, schemaLocation, baseDir) : null;
+            if (remoteLocation && remoteCopy == null) {
                 // Remote import
                 importedSchema = resolveRemoteSchema(schemaLocation);
             } else {
                 // Local import
-                Path resolvedPath = resolvePath(schemaLocation, baseDir);
+                Path resolvedPath = remoteCopy != null ? remoteCopy : resolvePath(schemaLocation, baseDir);
 
                 if (!Files.exists(resolvedPath)) {
                     Path fromLibrary = libraryPathFor(namespace, schemaLocation, baseDir);
                     if (fromLibrary != null) {
-                        resolvedPath = fromLibrary;
+                        resolvedPath = org.fxt.freexmltoolkit.service.LocalSchemaCopies
+                                .localize(baseDir, schemaLocation, fromLibrary);
                     } else {
                         failedImportCount++;
                         return new ParsedSchema.ResolvedImport(
@@ -588,6 +600,29 @@ public class SchemaResolver {
             failedImportCount++;
             return new ParsedSchema.ResolvedImport(
                     namespace, schemaLocation, null, null, "Failed to load: " + e.getMessage());
+        }
+    }
+
+    /**
+     * The local copy of a remote import: an existing one, or one written from the schema cache
+     * (downloading when needed). Null when copies are off, the folder cannot be written or the
+     * download fails — the caller then reads the URL as before.
+     */
+    private Path localCopyOfRemote(String namespace, String url, Path baseDir) {
+        Path existing = org.fxt.freexmltoolkit.service.LocalSchemaCopies.existing(baseDir, url,
+                namespace == null || namespace.isBlank() ? null : namespace).orElse(null);
+        if (existing != null || !org.fxt.freexmltoolkit.service.LocalSchemaCopies.enabled() || baseDir == null
+                || !PathValidator.isUrlSafeToAccess(url)
+                || !org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared().isRemoteDownloadAllowed()) {
+            return existing;
+        }
+        try {
+            Path cached = org.fxt.freexmltoolkit.service.SchemaResourceCache.shared().getOrDownload(url);
+            Path copy = org.fxt.freexmltoolkit.service.LocalSchemaCopies.localize(baseDir, url, cached);
+            return copy.equals(cached) ? null : copy;
+        } catch (Exception e) {
+            logger.debug("No local copy for remote import '{}': {}", url, e.getMessage());
+            return null;
         }
     }
 
@@ -1016,7 +1051,29 @@ public class SchemaResolver {
             }
             parentUris.get().putIfAbsent(normalizedSystemId, normalizedBase);
 
-            // Schema Library first (user mappings → catalogs → bundled); a miss falls through.
+            boolean remoteSystemId = systemId.startsWith("http://") || systemId.startsWith("https://");
+            Path copyDir = org.fxt.freexmltoolkit.service.LocalSchemaCopies.folderOf(baseURI);
+
+            // A file next to the referencing schema wins: the referenced file itself, or the
+            // local copy of a downloaded schema (LocalSchemaCopies).
+            try {
+                if (!remoteSystemId) {
+                    Path local = resolveLocalPath(systemId, baseURI);
+                    if (local != null && java.nio.file.Files.isRegularFile(local)) {
+                        return resolveLocalForValidation(systemId, publicId, baseURI);
+                    }
+                }
+                Path copy = org.fxt.freexmltoolkit.service.LocalSchemaCopies
+                        .existing(copyDir, systemId, namespaceURI).orElse(null);
+                if (copy != null) {
+                    return serveCopy(copy, remoteSystemId ? systemId : remoteUrlFor(systemId, baseURI),
+                            publicId, normalizedBase);
+                }
+            } catch (Exception e) {
+                logger.debug("Local lookup failed for '{}': {}", systemId, e.getMessage());
+            }
+
+            // Schema Library next (user mappings → catalogs → bundled); a miss falls through.
             org.w3c.dom.ls.LSInput fromLibrary = resolveFromLibrary(namespaceURI, publicId, systemId, baseURI, normalizedBase);
             if (fromLibrary != null) {
                 return fromLibrary;
@@ -1024,8 +1081,19 @@ public class SchemaResolver {
 
             try {
                 // Handle remote URLs (HTTP/HTTPS)
-                if (systemId.startsWith("http://") || systemId.startsWith("https://")) {
-                    return resolveRemoteForValidation(systemId, publicId);
+                if (remoteSystemId) {
+                    return resolveRemoteForValidation(systemId, publicId, copyDir, systemId, normalizedBase);
+                }
+
+                // A relative reference inside a local copy of a remote schema follows the
+                // original URL when it is not on disk yet.
+                String remote = remoteUrlFor(systemId, baseURI);
+                if (remote != null) {
+                    org.w3c.dom.ls.LSInput fetched = resolveRemoteForValidation(remote, publicId, copyDir, systemId,
+                            normalizedBase);
+                    if (fetched != null) {
+                        return fetched;
+                    }
                 }
 
                 // Handle local file paths
@@ -1068,6 +1136,9 @@ public class SchemaResolver {
                 if (target == null || !java.nio.file.Files.isRegularFile(target)) {
                     return null;
                 }
+                // Keep a copy next to the referencing schema under the declared name.
+                target = org.fxt.freexmltoolkit.service.LocalSchemaCopies.localize(
+                        org.fxt.freexmltoolkit.service.LocalSchemaCopies.folderOf(baseURI), systemId, target);
                 logger.debug("Schema Library resolved '{}' (ns {}) -> {}", systemId, namespaceURI, target);
                 // Alias the served file's own URI to the same parent as the requested systemId,
                 // so a nested request whose baseURI is the served file (not the original,
@@ -1115,7 +1186,41 @@ public class SchemaResolver {
             return cache;
         }
 
-        private org.w3c.dom.ls.LSInput resolveRemoteForValidation(String systemId, String publicId) {
+        /** Local copies of downloaded schemas → the URL they were downloaded from. */
+        private final java.util.Map<String, String> copySources = new java.util.concurrent.ConcurrentHashMap<>();
+
+        /** Serves a local copy; nested references that are not on disk follow {@code sourceUrl}. */
+        private org.w3c.dom.ls.LSInput serveCopy(Path copy, String sourceUrl, String publicId, String normalizedBase)
+                throws java.io.IOException {
+            String uri = copy.toUri().toString();
+            if (sourceUrl != null) {
+                copySources.put(normalizeBaseUri(uri), sourceUrl);
+            }
+            parentUris.get().putIfAbsent(normalizeBaseUri(uri), normalizedBase);
+            logger.debug("Resolved schema from its local copy: {}", copy);
+            return new LSInputImpl(publicId, uri, uri, java.nio.file.Files.newInputStream(copy));
+        }
+
+        /** @return the URL a relative reference inside a local copy points to, or null */
+        private String remoteUrlFor(String systemId, String baseURI) {
+            String source = baseURI != null ? copySources.get(normalizeBaseUri(baseURI)) : null;
+            if (source == null) {
+                return null;
+            }
+            try {
+                return java.net.URI.create(source).resolve(systemId).toString();
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
+
+        /**
+         * Downloads (or takes from the cache) a remote schema and serves its local copy at
+         * {@code copyLocation} relative to {@code copyDir} when one can be written.
+         */
+        private org.w3c.dom.ls.LSInput resolveRemoteForValidation(String systemId, String publicId,
+                                                                  Path copyDir, String copyLocation,
+                                                                  String normalizedBase) {
             // SECURITY: Validate URL to prevent SSRF attacks
             if (!PathValidator.isUrlSafeToAccess(systemId)) {
                 logger.error("SECURITY: Blocked SSRF attempt in validation - URL targets internal/private network: {}", systemId);
@@ -1125,6 +1230,10 @@ public class SchemaResolver {
             try {
                 logger.debug("Resolving remote schema: {}", systemId);
                 Path cachedPath = cache.getOrDownload(systemId);
+                Path copy = org.fxt.freexmltoolkit.service.LocalSchemaCopies.localize(copyDir, copyLocation, cachedPath);
+                if (!copy.equals(cachedPath)) {
+                    return serveCopy(copy, systemId, publicId, normalizedBase);
+                }
                 return new LSInputImpl(
                         publicId,
                         systemId,

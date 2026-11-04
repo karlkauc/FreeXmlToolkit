@@ -324,17 +324,25 @@ import automatically, trying these sources in order:
 5. **The namespace URL** - as a last resort the schema is fetched from the import's
    namespace URL, which is how the W3C hosts the XML signature schema, for instance.
 
-Downloaded content is verified to be a real XML Schema, then stored in the cache so future
-loads work offline. Imports are resolved **transitively**: an imported schema's own
+Downloaded content is verified to be a real XML Schema, then stored in the cache **and saved
+next to the schema that references it, under its original name** - for the example above as
+`xmldsig-core-schema.xsd` in your schema's folder. From then on that file is used: it is what
+Schema Analysis shows as *Resolved path*, what **Open Referenced File** opens, and it works
+offline. A relative location keeps its folder layout (`../common/types.xsd` lands one folder
+up, in `common`); an absolute `http(s)` location is saved under its file name next to the
+referencing schema (`http://www.w3.org/2001/xml.xsd` → `xml.xsd`), and the `schemaLocation`
+in your schema stays as it is. Imports are resolved **transitively**: an imported schema's own
 `xs:import` and `xs:include` declarations (and imports declared inside an included file)
 are followed too, with circular imports detected and a nesting depth cap of 10.
 
 A few things to know:
 
-- **Your files are never touched.** Resolved and downloaded schemas go to the shared cache
-  only - nothing is written into your schema's folder, and the schema itself is never
-  rewritten. This applies everywhere imports are resolved: the schema views, validation,
-  the Type Library, Schema Analysis and documentation generation.
+- **Your files are never overwritten.** A downloaded schema is only saved next to your
+  schema when no file of that name exists there yet; the referencing schema itself is never
+  rewritten. If the folder is not writable (or the schema has not been saved yet), the
+  cached copy is used as before. This applies everywhere imports and includes are resolved:
+  the schema views, validation, the Type Library, Schema Analysis, flattening, sample
+  validation and documentation generation.
 - Only imports whose namespace is an `http://` or `https://` URL are looked up by
   namespace (step 5).
 - `xs:include` references are resolved relative to the including file, or through an XML
@@ -344,7 +352,8 @@ A few things to know:
 - Internal and private network addresses are never contacted - see
   [Security Features](SECURITY.md#ssrf-server-side-request-forgery-protection).
 - Clearing the cache (**Settings → Files & Cache → TEMP & CACHE**, or the Schema Library's Cache tab) is safe:
-  missing schemas are simply re-downloaded the next time they are needed.
+  the copies next to your schemas stay, and anything else is re-downloaded the next time it is needed.
+- *Advanced:* `-Dfxt.schema.localCopies=false` keeps downloaded schemas in the cache only.
 - *Advanced:* to turn remote downloads off entirely (for example in fully offline
   environments), start the application with the system property
   `-Dfxt.schema.namespaceFallback=false` - local files, catalog hits and already-cached

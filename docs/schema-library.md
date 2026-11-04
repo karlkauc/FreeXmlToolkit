@@ -130,7 +130,9 @@ Register `catalog.xml` in the Catalogs tab, open the documents and validate; the
 *The Cache tab: remote schemas downloaded and cached under `~/.freeXmlToolkit/cache/schemas`.*
 
 Every remote schema resolved through the library (or downloaded because a document
-referenced it directly) is cached under `~/.freeXmlToolkit/cache/schemas`. The Cache tab
+referenced it directly) is cached under `~/.freeXmlToolkit/cache/schemas`. When a schema
+imports or includes it, a copy is also saved next to that schema under its original name and
+used from then on (see [Automatic Resolution of Imported Schemas](xsd-tools.md#automatic-resolution-of-imported-schemas)). The Cache tab
 lists **URL**, **Target namespace** and file **Size** by default, with a **filter** over
 URL/namespace, plus the **Downloaded** timestamp and **Hits** (access count) - all columns
 are visible. The labelled buttons: **Open cached file** opens the cached file as an editor

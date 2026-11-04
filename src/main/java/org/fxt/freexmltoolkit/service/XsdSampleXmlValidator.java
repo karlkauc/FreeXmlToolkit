@@ -19,6 +19,7 @@
 package org.fxt.freexmltoolkit.service;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.InputStream;
@@ -92,6 +93,15 @@ final class XsdSampleXmlValidator {
             factory.setResourceResolver(new org.w3c.dom.ls.LSResourceResolver() {
                 @Override
                 public org.w3c.dom.ls.LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI) {
+                    // A local copy of a downloaded schema (LocalSchemaCopies) is served offline,
+                    // also for an http(s) reference the guard below would refuse.
+                    Path copyDir = LocalSchemaCopies.folderOf(baseURI);
+                    java.util.Optional<Path> copy = LocalSchemaCopies.existing(
+                            copyDir != null ? copyDir : schemaDir != null ? schemaDir.toPath() : null,
+                            systemId, namespaceURI);
+                    if (copy.isPresent()) {
+                        return new LSInputImpl(publicId, copy.get().toUri().toString(), copy.get().toFile());
+                    }
                     org.w3c.dom.ls.LSInput guarded = remoteGuard.resolveResource(type, namespaceURI, publicId, systemId, baseURI);
                     if (guarded != null) {
                         return guarded;

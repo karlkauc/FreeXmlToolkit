@@ -613,8 +613,12 @@ public class XsdNodeFactory {
                 }
                 return;
             }
-            resolvedPath = resolveIncludeViaLibrary(url, baseDirectory);
-            if (resolvedPath == null) {
+            Path localCopy = org.fxt.freexmltoolkit.service.LocalSchemaCopies.existing(baseDirectory, schemaLocation, null).orElse(null);
+            resolvedPath = localCopy != null ? localCopy : resolveIncludeViaLibrary(url, baseDirectory);
+            if (localCopy != null) {
+                includeUrl = url; // nested references of the copy still follow the URL
+                logger.info("Resolved include '{}' from its local copy: {}", url, localCopy);
+            } else if (resolvedPath == null) {
                 try {
                     resolvedPath = cachedRemoteInclude(url);
                 } catch (Exception e) {
@@ -630,15 +634,19 @@ public class XsdNodeFactory {
                     }
                     return;
                 }
+                resolvedPath = org.fxt.freexmltoolkit.service.LocalSchemaCopies.localize(baseDirectory, schemaLocation, resolvedPath);
                 includeUrl = url;
             } else {
+                resolvedPath = org.fxt.freexmltoolkit.service.LocalSchemaCopies.localize(baseDirectory, schemaLocation, resolvedPath);
                 logger.info("Resolved include '{}' via Schema Library: {}", url, resolvedPath);
             }
         } else {
             resolvedPath = baseDirectory.resolve(schemaLocation).normalize();
             if (!Files.exists(resolvedPath)) {
                 Path fromLibrary = resolveIncludeViaLibrary(schemaLocation, baseDirectory);
-                if (fromLibrary != null) resolvedPath = fromLibrary;
+                if (fromLibrary != null) {
+                    resolvedPath = org.fxt.freexmltoolkit.service.LocalSchemaCopies.localize(baseDirectory, schemaLocation, fromLibrary);
+                }
             }
         }
         if (includeUrl == null) {
@@ -2254,14 +2262,29 @@ public class XsdNodeFactory {
                 }
             }
 
+            // A downloaded schema is kept next to the importing one under its original name
+            // (LocalSchemaCopies); once there, it is read from that copy.
+            Path localDir = pending.declaringBaseDir();
+            String declaredLocation = xsdImport.getSchemaLocation();
+            if (resolvedPath == null) {
+                Path local = org.fxt.freexmltoolkit.service.LocalSchemaCopies.existing(localDir, declaredLocation, namespace).orElse(null);
+                if (local != null) {
+                    sourceUrl = remote ? schemaLocation : null; // nested references still follow the URL
+                    resolvedPath = local;
+                    remote = false;
+                    canonicalKey = canonicalKeyForFile(local);
+                    logger.info("Resolved import '{}' from its local copy: {}", declaredLocation, local);
+                }
+            }
+
             // Schema Library: user mappings / catalogs / bundled entries win over the declared
             // location when that location cannot be resolved locally.
             if (resolvedPath == null) {
                 Path fromLibrary = resolveImportViaLibrary(namespace, schemaLocation, pending.declaringBaseDir());
                 if (fromLibrary != null) {
-                    resolvedPath = fromLibrary;
+                    resolvedPath = org.fxt.freexmltoolkit.service.LocalSchemaCopies.localize(localDir, declaredLocation, fromLibrary);
                     remote = false;
-                    canonicalKey = canonicalKeyForFile(fromLibrary);
+                    canonicalKey = canonicalKeyForFile(resolvedPath);
                     logger.info("Resolved import namespace '{}' via Schema Library: {}", namespace, fromLibrary);
                 }
             }
@@ -2289,7 +2312,7 @@ public class XsdNodeFactory {
                     RemoteSchema remoteSchema = loadSchemaFromHTTP(schemaLocation);
                     if (remoteSchema != null) {
                         schemaContent = remoteSchema.content();
-                        resolvedPath = remoteSchema.cachedPath();
+                        resolvedPath = org.fxt.freexmltoolkit.service.LocalSchemaCopies.localize(localDir, declaredLocation, remoteSchema.cachedPath());
                         sourceUrl = schemaLocation;
                     }
                 } else {
@@ -2313,7 +2336,8 @@ public class XsdNodeFactory {
                 }
                 if (namespaceResolved.isPresent()) {
                     schemaContent = namespaceResolved.get().content();
-                    resolvedPath = namespaceResolved.get().cachedPath();
+                    resolvedPath = org.fxt.freexmltoolkit.service.LocalSchemaCopies.localize(localDir, declaredLocation,
+                            namespaceResolved.get().cachedPath());
                     sourceUrl = namespaceResolved.get().sourceUrl();
                     logger.info("Resolved import for namespace {} via namespace URL: {}",
                             namespace, namespaceResolved.get().sourceUrl());

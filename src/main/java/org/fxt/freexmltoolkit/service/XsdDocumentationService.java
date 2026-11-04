@@ -1200,6 +1200,9 @@ public class XsdDocumentationService {
                 }
                 Path mapped = libraryFileForNamespace(namespace, baseUri);
                 if (mapped != null) {
+                    // Keep a copy next to the referencing schema under the declared name.
+                    mapped = LocalSchemaCopies.localize(referencingFile.toAbsolutePath().getParent(), location, mapped)
+                            .toAbsolutePath().normalize();
                     baseUris.putIfAbsent(mapped, mapped.toUri().toString());
                     return mapped;
                 }
@@ -1215,6 +1218,15 @@ public class XsdDocumentationService {
             return null;
         }
         String target = remoteLocation;
+        // The local copy of a downloaded schema, next to the referencing one (LocalSchemaCopies).
+        // (never inside the application cache: LocalSchemaCopies refuses that folder)
+        Path copyDir = referencingFile.toAbsolutePath().getParent();
+        Path existingCopy = LocalSchemaCopies.existing(copyDir, location, namespace).orElse(null);
+        if (existingCopy != null) {
+            existingCopy = existingCopy.toAbsolutePath().normalize();
+            baseUris.putIfAbsent(existingCopy, target);
+            return existingCopy;
+        }
         java.util.Optional<Path> resolved = remoteResolutions.computeIfAbsent(target, url -> {
             try {
                 return java.util.Optional.ofNullable(resolveRemoteImport(namespace, url, baseUri))
@@ -1228,8 +1240,9 @@ public class XsdDocumentationService {
             logger.warn("Remote schema could not be resolved (offline or unreachable): {}", target);
             return null;
         }
-        baseUris.putIfAbsent(resolved.get(), target);
-        return resolved.get();
+        Path file = LocalSchemaCopies.localize(copyDir, location, resolved.get()).toAbsolutePath().normalize();
+        baseUris.putIfAbsent(file, target);
+        return file;
     }
 
     /**
@@ -3357,7 +3370,10 @@ public class XsdDocumentationService {
         if (namespace == null || namespace.isBlank() || (baseUri != null && isRemote(baseUri))) {
             return null;
         }
-        return SchemaLibraryLookup.localFileFor(SchemaLibraryServiceImpl.shared(), namespace, null, baseUri, false)
+        // Downloads are allowed (the generator runs in the background); the result is copied
+        // next to the referencing schema by the caller.
+        SchemaLibraryService library = SchemaLibraryServiceImpl.shared();
+        return SchemaLibraryLookup.localFileFor(library, namespace, null, baseUri, library.isRemoteDownloadAllowed())
                 .map(path -> path.toAbsolutePath().normalize())
                 .filter(Files::exists)
                 .orElse(null);
