@@ -185,8 +185,6 @@ public class XsdDocumentationService {
 
     private Long sampleSeed;
     XsdDocumentationHtmlService xsdDocumentationHtmlService = new XsdDocumentationHtmlService();
-    /** Child element lookups ({@link #getMandatoryChildElements}, {@link #getAllChildElements}). */
-    private final XsdChildElementFinder childElementFinder = new XsdChildElementFinder(this);
     /** Reads annotations, identity constraints, assertions, alternatives, open content and wildcards. */
     private final XsdComponentDetailsReader componentDetails = new XsdComponentDetailsReader(this);
     XsdDocumentationSvgService xsdDocumentationSvgService = new XsdDocumentationSvgService();
@@ -194,7 +192,7 @@ public class XsdDocumentationService {
     // DOM/XPath related fields
     private XPath xpath;
     private Document doc;
-    Map<String, Node> elementMap = new HashMap<>();
+    private Map<String, Node> elementMap = new HashMap<>();
     Map<String, Node> complexTypeMap = new HashMap<>();
     Map<String, Node> simpleTypeMap = new HashMap<>();
     private Map<String, Node> groupMap = new HashMap<>();
@@ -1098,60 +1096,6 @@ public class XsdDocumentationService {
                  "anysimpletype", "anytype" -> true;
             default -> false;
         };
-    }
-
-    /**
-     * Gets mandatory child elements for a given element name based on XSD schema analysis.
-     *
-     * @param elementName The name of the parent element
-     * @return List of mandatory child element information
-     */
-    public List<MandatoryChildInfo> getMandatoryChildElements(String elementName) {
-        return childElementFinder.getMandatoryChildElements(elementName, null);
-    }
-
-    /**
-     * Gets mandatory child elements for a given element name with XPath context for disambiguation.
-     *
-     * @param elementName The name of the parent element
-     * @param contextPath Optional XPath context to help find the correct element (e.g., "ControlData/DataSupplier")
-     * @return List of mandatory child element information
-     */
-    public List<MandatoryChildInfo> getMandatoryChildElements(String elementName, String contextPath) {
-        return childElementFinder.getMandatoryChildElements(elementName, contextPath);
-    }
-
-    /**
-     * Gets all child elements (mandatory and optional) for a given element name.
-     * This method is similar to getMandatoryChildElements but returns all children regardless of minOccurs.
-     *
-     * @param elementName The name of the parent element
-     * @return List of all child element information
-     */
-    public List<MandatoryChildInfo> getAllChildElements(String elementName) {
-        return childElementFinder.getAllChildElements(elementName);
-    }
-
-    /**
-     * Helper record to hold information about mandatory child elements.
-     * @param name The name of the child element
-     * @param minOccurs The minimum occurrences
-     * @param maxOccurs The maximum occurrences
-     * @param children List of nested mandatory children
-     */
-    public record MandatoryChildInfo(
-            String name,
-            int minOccurs,
-            int maxOccurs,
-            List<MandatoryChildInfo> children
-    ) {
-        public MandatoryChildInfo {
-            children = children == null ? java.util.List.of() : java.util.List.copyOf(children);
-        }
-
-        public boolean hasChildren() {
-            return children != null && !children.isEmpty();
-        }
     }
 
     /**
@@ -3047,7 +2991,7 @@ public class XsdDocumentationService {
         return facets;
     }
 
-    Node findTypeDefinition(Node elementNode, String typeName) {
+    private Node findTypeDefinition(Node elementNode, String typeName) {
         // Case 1: Inline definition
         if (elementNode != null) {
             Node inlineComplex = getDirectChildElement(elementNode, "complexType");
@@ -3070,7 +3014,7 @@ public class XsdDocumentationService {
      * @param contextNode the node carrying the reference, or {@code null} to look up by local name only
      * @return the type definition node, or {@code null}
      */
-    Node findGlobalType(String typeName, Node contextNode) {
+    private Node findGlobalType(String typeName, Node contextNode) {
         if (typeName == null || typeName.isEmpty()) {
             return null;
         }
@@ -3108,7 +3052,7 @@ public class XsdDocumentationService {
      * only an invalid schema can declare. Guards the recursive base-type expansion in
      * {@link #processComplexContent}.
      */
-    boolean derivesFromItself(Node typeNode) {
+    private boolean derivesFromItself(Node typeNode) {
         Set<Node> chain = Collections.newSetFromMap(new IdentityHashMap<>());
         Node current = typeNode;
         while (current != null) {
@@ -3180,7 +3124,7 @@ public class XsdDocumentationService {
         return simpleTypeMap.get(cleanTypeName);
     }
 
-    Node findContentModel(Node elementNode, Node typeDefinitionNode) {
+    private Node findContentModel(Node elementNode, Node typeDefinitionNode) {
         Node contextNode = (typeDefinitionNode != null) ? typeDefinitionNode : elementNode;
         if (contextNode == null) {
             return null;
