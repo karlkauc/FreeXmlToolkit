@@ -1,5 +1,6 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -142,6 +143,52 @@ class ShellGridScrollRangeTest {
         double viewH = fx(() -> canvas.canvasNode().getHeight() / canvas.getZoom());
         assertTrue(right - fx(canvas::scrollOffsetXValue) <= viewW + 0.5, "the table's right edge is reachable");
         assertTrue(bottom - fx(canvas::scrollOffsetYValue) <= viewH + 0.5, "the table's bottom is reachable");
+    }
+
+    /**
+     * JavaFX sizes a thumb as visibleAmount / (max - min). With visibleAmount = viewport the thumb
+     * filled the whole track whenever the content was less than twice the viewport, so the bar
+     * could not be dragged at all (user report on 2.9.0: a grid slightly wider and taller than the
+     * view). The thumb must cover viewport / content of the track, closed and with cells open.
+     */
+    @Test
+    void theThumbCoversTheVisibleShareOfTheContent() throws Exception {
+        XmlCanvasView canvas = openGrid();
+        assertThumbsProportional(canvas, "cells closed");
+        openAllCells(canvas, itemTable(canvas));
+        assertThumbsProportional(canvas, "cells open");
+    }
+
+    private void assertThumbsProportional(XmlCanvasView canvas, String state) {
+        ScrollBar[] bars = fx(canvas::scrollBarsForTest);
+        double[] totals = fx(() -> new double[] {canvas.contentHeight(), canvas.contentWidth()});
+        boolean anyChecked = false;
+        for (int i = 0; i < 2; i++) {
+            ScrollBar bar = bars[i];
+            if (!fx(() -> bar.isVisible() && !bar.isDisabled())) {
+                continue;
+            }
+            anyChecked = true;
+            double range = bar.getMax() - bar.getMin();
+            double expected = (totals[i] - range) / totals[i]; // viewport / content
+            assertEquals(expected, bar.getVisibleAmount() / range, 0.01, state + ": thumb share of bar " + i);
+            Region thumb = fx(() -> (Region) bar.lookup(".thumb"));
+            double thumbLength = fx(() -> bar.getOrientation() == javafx.geometry.Orientation.VERTICAL
+                    ? thumb.getHeight() : thumb.getWidth());
+            double barLength = fx(() -> bar.getOrientation() == javafx.geometry.Orientation.VERTICAL
+                    ? bar.getHeight() : bar.getWidth());
+            assertTrue(thumbLength < barLength * 0.95,
+                    state + ": thumb of bar " + i + " must leave room to move (" + thumbLength + " of " + barLength + ")");
+        }
+        assertTrue(anyChecked, state + ": the grid should need at least one scroll bar");
+    }
+
+    @Test
+    void thumbAmountScalesTheViewportToTheScrollRange() {
+        // content 1288, viewport 785 (the reported grid): the thumb covers 785/1288 of the track
+        double amount = GridCanvasView.thumbAmount(1288, 785);
+        assertEquals(785.0 / 1288, amount / (1288 - 785), 1e-9);
+        assertTrue(amount < 1288 - 785, "below the range, or the thumb fills the track");
     }
 
     @Test

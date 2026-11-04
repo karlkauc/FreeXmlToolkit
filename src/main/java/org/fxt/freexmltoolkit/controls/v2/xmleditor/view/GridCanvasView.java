@@ -368,7 +368,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             vScrollBar.setDisable(false);
             vScrollBar.setMin(0);
             vScrollBar.setMax(totalHeight - viewportHeight);
-            vScrollBar.setVisibleAmount(viewportHeight);
+            vScrollBar.setVisibleAmount(thumbAmount(totalHeight, viewportHeight));
             vScrollBar.setBlockIncrement(viewportHeight * 0.9);
             vScrollBar.setUnitIncrement(ROW_HEIGHT);
             if (scrollOffsetY > vScrollBar.getMax()) {
@@ -385,13 +385,27 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             hScrollBar.setDisable(false);
             hScrollBar.setMin(0);
             hScrollBar.setMax(totalWidth - viewportWidth);
-            hScrollBar.setVisibleAmount(viewportWidth);
+            hScrollBar.setVisibleAmount(thumbAmount(totalWidth, viewportWidth));
             hScrollBar.setBlockIncrement(100);
             hScrollBar.setUnitIncrement(20);
             if (scrollOffsetX > hScrollBar.getMax()) {
                 hScrollBar.setValue(hScrollBar.getMax());
             }
         }
+    }
+
+    /**
+     * The visible amount for a bar whose range is {@code 0 … total - viewport} (the scroll offset).
+     * JavaFX sizes the thumb as {@code visibleAmount / (max - min)}; passing the viewport itself
+     * made the thumb fill the whole track — and so unable to move — whenever the content was less
+     * than twice the viewport. Scaled like this the thumb covers {@code viewport / total} of it.
+     *
+     * @param total    the content extent (model units), larger than the viewport
+     * @param viewport the visible extent (model units)
+     * @return the visible amount to set
+     */
+    static double thumbAmount(double total, double viewport) {
+        return (total - viewport) * viewport / total;
     }
 
     // ==================== Zoom API & coordinate conversion ====================
