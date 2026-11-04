@@ -3806,6 +3806,8 @@ frame belongs to the type, not to the element: the same content appears wherever
 <li>Anonymous types defined inline in an element are not framed: their content belongs to the
   element and is edited in place.</li>
 </ul>
+<p><img alt="Named types in frames: Address_EU's content in the EU-Address frame; the selected street is read-only, the Properties pane offers Edit type" src="../img/unified-shell-schema-type-frames.png" />
+<em><code>Address_EU</code> uses the type <code>EU-Address</code>: its content is drawn in the type's frame. The selected <code>street</code> belongs to the type, so the Properties pane shows it read-only with <strong>Edit type</strong>. Expanding <code>Branch</code> (which extends <code>EU-Address</code>) shows the base type's frame nested inside the <code>Branch-Address</code> frame.</em></p>
 <h3 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Right-click</strong> for a context menu with common actions (<strong>Add Element…</strong> / <strong>Add Attribute…</strong> with all properties - see <a href="#adding-an-element-or-attribute">Adding an Element or Attribute</a>, <strong>Rename…</strong>, <strong>Change Type…</strong>, <strong>Change Cardinality…</strong>, add/move/delete). <strong>Change Type…</strong> opens a small dialog with the <a href="../inspector/#type-picker">type picker</a>, pre-filled with the current type - the same dialog as in the Tree view</li>
