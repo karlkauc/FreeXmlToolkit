@@ -251,6 +251,7 @@ public class XsdDocumentationService {
     private boolean showDocumentationInSvg = true; // Whether to show documentation in SVG diagrams
     private boolean showConstraintsInSvg = true; // Whether element boxes list constraints and assertions
     private boolean showRootConstraintsInSvg = true; // ... the page's own element box as well
+    private boolean showConstraintTargets = false; // Whether field targets list the constraints pointing to them
     private boolean generateSvgOverviewPage = true; // Whether to generate the schema-svg.html overview page
     private boolean addMetadataInOutput = false; // Whether to add metadata comments to generated HTML files
     private String faviconPath = null; // Optional path to custom favicon for HTML documentation
@@ -547,6 +548,23 @@ public class XsdDocumentationService {
     }
 
     /**
+     * Sets whether a constraint's field target (e.g. {@code BenchmarkID} for a key on {@code Fund})
+     * lists the constraint too: in its diagram box and in a "Referenced by Identity Constraints"
+     * section of its page, linked to the declaring element. The diagram rows need
+     * {@link #setShowConstraintsInSvg constraints in diagrams}.
+     *
+     * @param showConstraintTargets true to show them (default false)
+     */
+    public void setShowConstraintTargets(boolean showConstraintTargets) {
+        this.showConstraintTargets = showConstraintTargets;
+    }
+
+    /** @return whether a constraint's field target lists it too */
+    public boolean isShowConstraintTargets() {
+        return showConstraintTargets;
+    }
+
+    /**
      * Returns whether documentation is displayed in SVG diagrams.
      *
      * @return true if documentation is shown, false otherwise
@@ -576,6 +594,7 @@ public class XsdDocumentationService {
         xsdDocumentationHtmlService.xsdDocumentationImageService.setShowDocumentation(this.showDocumentationInSvg);
         xsdDocumentationHtmlService.xsdDocumentationImageService.setShowConstraints(this.showConstraintsInSvg);
         xsdDocumentationHtmlService.xsdDocumentationImageService.setShowRootConstraints(this.showRootConstraintsInSvg);
+        xsdDocumentationHtmlService.xsdDocumentationImageService.setShowConstraintTargets(this.showConstraintTargets);
 
         executeAndTrack("Copying resources", xsdDocumentationHtmlService::copyResources);
         executeAndTrack("Generating root page", xsdDocumentationHtmlService::generateRootPage);

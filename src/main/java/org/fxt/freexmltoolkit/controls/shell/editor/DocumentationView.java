@@ -59,7 +59,7 @@ public class DocumentationView extends BorderPane {
     record DocOptions(File xsd, File output, String format,
                       XsdDocumentationService.MarkdownMode markdown,
                       boolean includeTypeDefs, boolean showDocInSvg, boolean showConstraintsInSvg,
-                      boolean showRootConstraintsInSvg,
+                      boolean showRootConstraintsInSvg, boolean showConstraintTargets,
                       boolean svgOverview, boolean addMetadata, boolean deduplicateDataDictionaryByType,
                       String imageFormat,
                       Set<String> languages, String fallbackLanguage, boolean openAfter,
@@ -98,6 +98,7 @@ public class DocumentationView extends BorderPane {
     @FXML private CheckBox showDocInSvg;
     @FXML private CheckBox showConstraintsInSvg;
     @FXML private CheckBox showRootConstraintsInSvg;
+    @FXML private CheckBox showConstraintTargetsInSvg;
     @FXML private CheckBox svgOverview;
     @FXML private CheckBox addMetadata;
     @FXML private CheckBox dedupDataDictionary;
@@ -235,6 +236,7 @@ public class DocumentationView extends BorderPane {
         return new DocOptions(xsdFile, outputTarget, selectedFormat(),
                 selectedMarkdownMode(), includeTypeDefs.isSelected(), showDocInSvg.isSelected(),
                 showConstraintsInSvg.isSelected(), showRootConstraintsInSvg.isSelected(),
+                showConstraintTargetsInSvg.isSelected(),
                 svgOverview.isSelected(), addMetadata.isSelected(), dedupDataDictionary.isSelected(),
                 imageFormat.getValue(),
                 languages, fallbackLanguage.getValue(), openAfter.isSelected(), faviconFile, format);
@@ -453,6 +455,7 @@ public class DocumentationView extends BorderPane {
         service.setShowDocumentationInSvg(options.showDocInSvg());
         service.setShowConstraintsInSvg(options.showConstraintsInSvg());
         service.setShowRootConstraintsInSvg(options.showRootConstraintsInSvg());
+        service.setShowConstraintTargets(options.showConstraintTargets());
         service.setGenerateSvgOverviewPage(options.svgOverview());
         service.setAddMetadataInOutput(options.addMetadata());
         service.setDeduplicateDataDictionaryByType(options.deduplicateDataDictionaryByType());
@@ -491,6 +494,7 @@ public class DocumentationView extends BorderPane {
                 imageService.setShowDocumentation(options.showDocInSvg());
                 imageService.setShowConstraints(options.showConstraintsInSvg());
                 imageService.setShowRootConstraints(options.showRootConstraintsInSvg());
+                imageService.setShowConstraintTargets(options.showConstraintTargets());
                 pdfService.setImageService(imageService);
                 pdfService.generatePdfDocumentation(options.output(), service.xsdDocumentationData);
             }
@@ -508,6 +512,7 @@ public class DocumentationView extends BorderPane {
                 imageService.setShowDocumentation(options.showDocInSvg());
                 imageService.setShowConstraints(options.showConstraintsInSvg());
                 imageService.setShowRootConstraints(options.showRootConstraintsInSvg());
+                imageService.setShowConstraintTargets(options.showConstraintTargets());
                 wordService.setImageService(imageService);
                 wordService.generateWordDocumentation(options.output(), service.xsdDocumentationData);
             }

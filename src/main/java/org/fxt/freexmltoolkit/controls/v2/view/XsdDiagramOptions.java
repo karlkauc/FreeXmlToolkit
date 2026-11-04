@@ -8,13 +8,15 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
 
 /**
  * Display options shared by every open XSD diagram, the schema tabs as well as the type editor's.
- * Changes are stored in the application properties.
+ * Changes are stored in the application properties and reach open diagrams at once.
  */
 public final class XsdDiagramOptions {
 
     static final String SHOW_CONSTRAINTS_KEY = "xsd.diagram.showConstraints";
+    static final String SHOW_CONSTRAINT_TARGETS_KEY = "xsd.diagram.showConstraintTargets";
 
-    private static final BooleanProperty SHOW_CONSTRAINTS = createShowConstraints();
+    private static final BooleanProperty SHOW_CONSTRAINTS = create(SHOW_CONSTRAINTS_KEY, true);
+    private static final BooleanProperty SHOW_CONSTRAINT_TARGETS = create(SHOW_CONSTRAINT_TARGETS_KEY, false);
 
     private XsdDiagramOptions() {
     }
@@ -24,11 +26,20 @@ public final class XsdDiagramOptions {
         return SHOW_CONSTRAINTS;
     }
 
-    private static BooleanProperty createShowConstraints() {
-        BooleanProperty property = new SimpleBooleanProperty(readShowConstraints());
+    /**
+     * @return whether the card of a constraint's field target (e.g. {@code BenchmarkID}) also lists
+     *         the identity constraint an ancestor declares for it; off by default. Only shown while
+     *         {@link #showConstraintsProperty()} is on.
+     */
+    public static BooleanProperty showConstraintTargetsProperty() {
+        return SHOW_CONSTRAINT_TARGETS;
+    }
+
+    private static BooleanProperty create(String key, boolean fallback) {
+        BooleanProperty property = new SimpleBooleanProperty(read(key, fallback));
         property.addListener((obs, old, value) -> {
             try {
-                ServiceRegistry.get(PropertiesService.class).set(SHOW_CONSTRAINTS_KEY, Boolean.toString(value));
+                ServiceRegistry.get(PropertiesService.class).set(key, Boolean.toString(value));
             } catch (Throwable ignored) {
                 // properties service unavailable: the choice holds for this session
             }
@@ -36,12 +47,12 @@ public final class XsdDiagramOptions {
         return property;
     }
 
-    private static boolean readShowConstraints() {
+    private static boolean read(String key, boolean fallback) {
         try {
-            String value = ServiceRegistry.get(PropertiesService.class).get(SHOW_CONSTRAINTS_KEY);
-            return value == null || value.isBlank() || Boolean.parseBoolean(value.strip());
+            String value = ServiceRegistry.get(PropertiesService.class).get(key);
+            return value == null || value.isBlank() ? fallback : Boolean.parseBoolean(value.strip());
         } catch (Throwable e) {
-            return true;
+            return fallback;
         }
     }
 }

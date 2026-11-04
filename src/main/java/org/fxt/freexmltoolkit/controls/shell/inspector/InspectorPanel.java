@@ -23,6 +23,7 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
+import org.fxt.freexmltoolkit.controls.v2.view.XsdDiagramOptions;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints;
 import org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation;
@@ -81,6 +82,11 @@ public class InspectorPanel extends VBox {
             java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
     private XmlNode currentXmlNode;
     private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode currentJsonNode;
+
+    // DISPLAY section (top): view settings of XSD diagrams
+    @FXML private TitledPane displaySettingsSection;
+    @FXML private CheckBox showConstraintsCheck;
+    @FXML private CheckBox showConstraintTargetsCheck;
 
     // Top bar + node header
     @FXML private javafx.scene.control.Button favoriteButton;
@@ -276,6 +282,7 @@ public class InspectorPanel extends VBox {
         initSchemaSections();
         initConstraints();
         initDoc();
+        initDisplaySettings();
         wireEditing();
 
         debounce.setOnFinished(e -> refresh());
@@ -904,6 +911,7 @@ public class InspectorPanel extends VBox {
 
     private void refresh() {
         showEmptyHint(null);
+        updateDisplaySettings();
         XsdNode selected = editorHost.activeSelectedNodeProperty().get();
         XmlNode xmlSelected = editorHost.activeXmlNodeProperty().get();
         var jsonSelected = editorHost.activeJsonNodeProperty().get();
@@ -937,6 +945,24 @@ public class InspectorPanel extends VBox {
         } finally {
             updating = false;
         }
+    }
+
+    /**
+     * DISPLAY: view settings that change the diagrams on the fly. Bound both ways to the shared
+     * {@link XsdDiagramOptions}, so the View menu and every open diagram follow.
+     */
+    private void initDisplaySettings() {
+        showConstraintsCheck.selectedProperty().bindBidirectional(XsdDiagramOptions.showConstraintsProperty());
+        showConstraintTargetsCheck.selectedProperty().bindBidirectional(XsdDiagramOptions.showConstraintTargetsProperty());
+        showConstraintTargetsCheck.disableProperty().bind(XsdDiagramOptions.showConstraintsProperty().not());
+    }
+
+    /** The DISPLAY section only holds XSD diagram settings so far: shown for XSD documents. */
+    private void updateDisplaySettings() {
+        boolean xsd = editorHost.getActiveDocument()
+                .map(doc -> doc.getFileType() == EditorFileType.XSD).orElse(false);
+        displaySettingsSection.setVisible(xsd);
+        displaySettingsSection.setManaged(xsd);
     }
 
     /** Hides the optional read-only rows and boxes; each populate path re-shows what applies. */

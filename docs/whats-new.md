@@ -47,6 +47,13 @@ running is shown under **Help → About FreeXmlToolkit**.
   constraints in diagrams**, with **Also in the page's own element box**); constraint rows link
   their selector, fields and key; the choice symbol is drawn as a switch. **Show documentation in
   diagrams** is now off by default.
+- **Constraints on their target nodes (optional, off by default):** a key, unique or keyref can
+  also show on the node its field points to (e.g. `BenchmarkID` lists the key `Fund` declares).
+  In the Graphic view, switch it in the new **DISPLAY** section at the top of the Properties pane
+  or under **View → Show Constraints on Target Nodes**. In the XSD documentation, use **Show
+  constraints on their target elements**: it adds a row to the diagram box and a **Referenced by
+  Identity Constraints** section to the element's page. See
+  [XSD Tools](xsd-tools.md#reading-a-card).
 - **Go to Definition** from an XML document (Graphic, Tree and Text view, Ctrl+Click in text)
   opens the bound XSD in the Graphic view, expanded along the element's path with its card
   selected. See [XML Editor](xml-editor.md#go-to-definition).

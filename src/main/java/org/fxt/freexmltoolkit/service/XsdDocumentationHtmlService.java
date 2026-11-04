@@ -584,6 +584,32 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
                 !elementName.startsWith("ALL");
     }
 
+    /**
+     * The rows of the page's "Referenced by Identity Constraints" section: constraints declared on
+     * an ancestor whose field leads to this element (empty unless the option is on).
+     */
+    List<Map<String, String>> incomingConstraintsOf(XsdExtendedElement element) {
+        if (xsdDocumentationImageService == null) {
+            return List.of();
+        }
+        List<Map<String, String>> rows = new ArrayList<>();
+        for (IdentityConstraintTargetIndex.Incoming in : xsdDocumentationImageService.incomingConstraints(element)) {
+            Map<String, String> row = new java.util.LinkedHashMap<>();
+            row.put("type", in.constraint().getType().name());
+            row.put("name", in.constraint().getName());
+            row.put("owner", in.declaringName());
+            XsdExtendedElement owner = xsdDocumentationData.getExtendedXsdElementMap().get(in.declaringXpath());
+            row.put("ownerPage", owner == null || owner.getPageName() == null || owner.getPageName().isEmpty()
+                    ? null : owner.getPageName() + "#identity-constraints");
+            row.put("selector", in.constraint().getSelector());
+            row.put("field", in.field());
+            row.put("attribute", in.attribute());
+            row.put("refer", in.constraint().getRefer());
+            rows.add(row);
+        }
+        return rows;
+    }
+
     private void generateDetailPage(XsdExtendedElement element) {
         try {
             final Context context = new Context();
@@ -601,6 +627,7 @@ public class XsdDocumentationHtmlService implements org.fxt.freexmltoolkit.servi
 
             // Flattened children list (without CHOICE/SEQUENCE/ALL containers)
             context.setVariable("flattenedChildren", getFlattenedChildren(element));
+            context.setVariable("incomingConstraints", incomingConstraintsOf(element));
 
             // Existing variables (derived from other templates)
             context.setVariable("diagramType", xsdDocService.getImageOutputMethod().name());

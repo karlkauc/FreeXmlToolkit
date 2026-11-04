@@ -17,8 +17,15 @@ import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
  * @param kind     what it is
  * @param segments the parts of the line, already shortened to {@link #MAX_TEXT_LENGTH}
  * @param tooltip  the full details
+ * @param incoming true for a constraint an ancestor declares whose field leads to this element
+ *                 (only with {@code XsdDocumentationImageService.setShowConstraintTargets})
  */
-public record DiagramConstraint(ConstraintRow.Kind kind, List<Segment> segments, String tooltip) {
+public record DiagramConstraint(ConstraintRow.Kind kind, List<Segment> segments, String tooltip, boolean incoming) {
+
+    /** A line of a constraint the element itself declares. */
+    public DiagramConstraint(ConstraintRow.Kind kind, List<Segment> segments, String tooltip) {
+        this(kind, segments, tooltip, false);
+    }
 
     /**
      * Most characters of a line. Larger than the Graphic view's {@link ConstraintRow#MAX_TEXT_LENGTH}:
@@ -35,7 +42,9 @@ public record DiagramConstraint(ConstraintRow.Kind kind, List<Segment> segments,
         /** A field XPath, relative to what the selector selects. */
         FIELD,
         /** The name of the key or unique constraint a keyref refers to. */
-        REFER
+        REFER,
+        /** The element that declares a constraint pointing here; the path is its element map XPath. */
+        OWNER
     }
 
     /**
@@ -90,6 +99,59 @@ public record DiagramConstraint(ConstraintRow.Kind kind, List<Segment> segments,
             }
         }
         return rows;
+    }
+
+    /**
+     * Creates the line a field target lists for a constraint declared on an ancestor:
+     * {@code ← name [→ refer] [@attr] @ Owner}, the owner linked to its page.
+     *
+     * @param incoming the constraint and where it is declared
+     * @return its line, marked {@link #incoming()}
+     */
+    public static DiagramConstraint incoming(IdentityConstraintTargetIndex.Incoming incoming) {
+        IdentityConstraint constraint = incoming.constraint();
+        String name = constraint.getName() == null ? "" : constraint.getName();
+        ConstraintRow.Kind kind;
+        String keyword;
+        switch (constraint.getType()) {
+            case KEY -> {
+                kind = ConstraintRow.Kind.KEY;
+                keyword = "key";
+            }
+            case KEYREF -> {
+                kind = ConstraintRow.Kind.KEYREF;
+                keyword = "keyref";
+            }
+            default -> {
+                kind = ConstraintRow.Kind.UNIQUE;
+                keyword = "unique";
+            }
+        }
+        String refer = constraint.getRefer();
+        String owner = incoming.declaringName() == null ? "" : incoming.declaringName();
+
+        List<Segment> segments = new ArrayList<>();
+        segments.add(Segment.text("← " + name));
+        if (kind == ConstraintRow.Kind.KEYREF && refer != null && !refer.isBlank()) {
+            segments.add(Segment.text(" → "));
+            segments.add(new Segment(refer.strip(), Role.REFER, refer.strip()));
+        }
+        if (incoming.attribute() != null) {
+            segments.add(Segment.text(" " + incoming.attribute()));
+        }
+        segments.add(Segment.text("  @ "));
+        segments.add(new Segment(owner, Role.OWNER, incoming.declaringXpath()));
+
+        StringBuilder tooltip = new StringBuilder(keyword).append(' ').append(name)
+                .append(" (defined on ").append(owner).append(')');
+        if (constraint.getSelector() != null && !constraint.getSelector().isBlank()) {
+            tooltip.append("\nselector: ").append(constraint.getSelector().strip());
+        }
+        tooltip.append("\nfield: ").append(incoming.field());
+        if (refer != null && !refer.isBlank()) {
+            tooltip.append("\nrefer: ").append(refer);
+        }
+        return new DiagramConstraint(kind, shorten(segments), tooltip.toString(), true);
     }
 
     private static DiagramConstraint identity(IdentityConstraint constraint) {

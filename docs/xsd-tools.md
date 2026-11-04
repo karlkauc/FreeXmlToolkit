@@ -112,6 +112,19 @@ inherited from a type is changed in that type.
 To hide the rows, turn off **View → Show Constraints in Diagram**. The setting applies to all
 open diagrams and is remembered.
 
+**Constraints on target nodes.** A key, unique or keyref is declared on one element but checks
+the values of another: its *field* target. For example, in FundsXML4 the element `Fund` declares
+the key `benchmarkID` with the selector `FundStaticData/Benchmarks/Benchmark` and the field
+`BenchmarkID`. Turn on **Constraints on target nodes**, and the `BenchmarkID` card also lists
+`← benchmarkID @ Fund`. The row has an outlined label and muted text, so you can tell it apart
+from the card's own constraints. An attribute field (`@code`) shows on the attribute card. A
+type used in several places matches only where its path fits the selector. Only fields count,
+not the elements the selector picks. The option is off by default.
+
+Both switches are in the **DISPLAY** section at the top of the Properties pane, which appears for
+XSD documents, and in the **View** menu (**Show Constraints on Target Nodes**). They change open
+diagrams at once and are remembered.
+
 ### Tips
 
 - **Right-click** for a context menu with common actions (**Add Element…** / **Add Attribute…** with all properties - see [Adding an Element or Attribute](#adding-an-element-or-attribute), **Rename…**, **Change Type…**, **Change Cardinality…**, add/move/delete). **Change Type…** opens a small dialog with the [type picker](inspector.md#type-picker), pre-filled with the current type - the same dialog as in the Tree view
@@ -699,6 +712,7 @@ Create professional documentation from your XSD file automatically.
 | **Show documentation in diagrams**              | Print the documentation text inside the SVG element boxes (off by default) |
 | **Show constraints in diagrams**                | List keys, unique and keyref constraints and assertions inside the element boxes, as in the Graphic view: a coloured label (KEY / UNIQ / REF / ASSERT) and the text, at most four lines plus "+N more", full details as tooltip; assertions include those of derived and base types (on by default, also for PDF and Word) |
 | **Also in the page's own element box**         | Off: only the child boxes list constraints; the page's own ones are in the sections below the diagram (off by default) |
+| **Show constraints on their target elements**   | Also list a key, unique or keyref on the element its field points to (e.g. `BenchmarkID` for a key on `Fund`). It shows as a row in that element's diagram box (with **Show constraints in diagrams** on) and in a **Referenced by Identity Constraints** section of its page, linked to the element that declares it. An attribute field shows on the attribute's element (off by default) |
 | **Generate SVG overview page**                  | Interactive full-schema SVG (on by default)                        |
 | **Add metadata in output**                      | Generator name, date and schema information in the output (on by default) |
 | **Deduplicate data dictionary by type**         | List each type once in the Data Dictionary instead of per usage    |

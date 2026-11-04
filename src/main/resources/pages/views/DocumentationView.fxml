@@ -136,6 +136,12 @@
                                                         <Tooltip text="Off: only the child boxes list constraints; the page's own ones are in the sections below the diagram."/>
                                                     </tooltip>
                                                 </CheckBox>
+                                                <CheckBox fx:id="showConstraintTargetsInSvg" id="docgen-show-constraint-targets"
+                                                          text="Show constraints on their target elements">
+                                                    <tooltip>
+                                                        <Tooltip text="Also lists a key, unique or keyref on the element its field points to (e.g. BenchmarkID): in its diagram box and in a 'Referenced by Identity Constraints' section of its page, linked to the element that declares it."/>
+                                                    </tooltip>
+                                                </CheckBox>
                                                 <CheckBox fx:id="svgOverview" text="Generate SVG overview page" selected="true"/>
                                                 <CheckBox fx:id="addMetadata" text="Add metadata in output" selected="true"/>
                                                 <CheckBox fx:id="dedupDataDictionary"

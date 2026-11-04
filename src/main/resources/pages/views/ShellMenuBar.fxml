@@ -88,6 +88,8 @@
                 <SeparatorMenuItem/>
                 <CheckMenuItem fx:id="showConstraintsItem" id="menu-view-show-constraints"
                                text="Show Constraints in Diagram"/>
+                <CheckMenuItem fx:id="showConstraintTargetsItem" id="menu-view-show-constraint-targets"
+                               text="Show Constraints on Target Nodes"/>
                 <SeparatorMenuItem/>
                 <ShellMenuItem id="menu-view-theme" text="Toggle Light / Dark Theme" iconLiteral="bi-moon-stars"
                                color="NEUTRAL" onAction="#onToggleTheme"/>

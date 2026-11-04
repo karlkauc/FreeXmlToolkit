@@ -85,6 +85,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
     /** A strong reference: the option outlives this view and holds its listener only weakly. */
     private final javafx.beans.value.ChangeListener<Boolean> showConstraintsListener =
             (obs, old, show) -> applyShowConstraints(show);
+    private final javafx.beans.value.ChangeListener<Boolean> showConstraintTargetsListener =
+            (obs, old, show) -> applyShowConstraintTargets();
     private final SelectionModel selectionModel;
     private XsdEditorContext editorContext;
     private XsdContextMenuFactory contextMenuFactory;
@@ -192,6 +194,8 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         renderer.setShowConstraints(XsdDiagramOptions.showConstraintsProperty().get());
         XsdDiagramOptions.showConstraintsProperty().addListener(
                 new javafx.beans.value.WeakChangeListener<>(showConstraintsListener));
+        XsdDiagramOptions.showConstraintTargetsProperty().addListener(
+                new javafx.beans.value.WeakChangeListener<>(showConstraintTargetsListener));
         this.selectionModel = context.getSelectionModel();
 
         // Create a viewport-sized canvas floating inside a virtual-sized spacer (see field doc).
@@ -843,6 +847,25 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         if (rootNode != null) {
             redraw();
         }
+    }
+
+    /** Field targets gain or lose rows: every card asks its source again, expansion stays as it is. */
+    private void applyShowConstraintTargets() {
+        showConstraintTooltip(null);
+        if (rootNode == null) {
+            return;
+        }
+        java.util.ArrayDeque<VisualNode> pending = new java.util.ArrayDeque<>();
+        java.util.Set<VisualNode> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        pending.push(rootNode);
+        while (!pending.isEmpty()) {
+            VisualNode node = pending.pop();
+            if (seen.add(node)) {
+                node.refreshConstraints();
+                node.getChildren().forEach(pending::push);
+            }
+        }
+        redraw();
     }
 
     private void showConstraintTooltip(String text) {

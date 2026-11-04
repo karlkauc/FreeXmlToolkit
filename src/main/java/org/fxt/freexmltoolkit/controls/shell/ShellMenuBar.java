@@ -89,6 +89,7 @@ public final class ShellMenuBar extends MenuBar {
     @FXML private ShellMenuItem exitItem;
     @FXML private ShellMenuItem replaceItem;
     @FXML private CheckMenuItem showConstraintsItem;
+    @FXML private CheckMenuItem showConstraintTargetsItem;
     @FXML private ShellMenuItem fullScreenItem;
     @FXML private ShellMenuItem reportProblemItem;
     @FXML private SeparatorMenuItem fundsSeparator;
@@ -111,6 +112,9 @@ public final class ShellMenuBar extends MenuBar {
         activitiesMenu.setGraphic(ShellMenuItem.icon("bi-grid", ActionColor.NAVIGATE));
         showConstraintsItem.setGraphic(ShellMenuItem.icon("bi-shield-check", ActionColor.NEUTRAL));
         showConstraintsItem.selectedProperty().bindBidirectional(XsdDiagramOptions.showConstraintsProperty());
+        showConstraintTargetsItem.setGraphic(ShellMenuItem.icon("bi-bullseye", ActionColor.NEUTRAL));
+        showConstraintTargetsItem.selectedProperty().bindBidirectional(XsdDiagramOptions.showConstraintTargetsProperty());
+        showConstraintTargetsItem.disableProperty().bind(XsdDiagramOptions.showConstraintsProperty().not());
         buildViewModeItems();
         buildActivityItems();
         rebuildRecentFiles();

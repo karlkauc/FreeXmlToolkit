@@ -660,7 +660,7 @@ public class XsdVisualTreeBuilder {
     }
 
     private VisualNode withConstraints(XsdElement element, VisualNode node) {
-        node.setConstraintSource(() -> constraintsOf(element));
+        node.setConstraintSource(() -> constraintsOf(element, node));
         return node;
     }
 
@@ -669,9 +669,10 @@ public class XsdVisualTreeBuilder {
      * reference is the global element, and the assertions of its type.
      *
      * @param element the element
-     * @return its rows, in declaration order, own ones before inherited ones
+     * @param card    its card, whose ancestors may declare constraints that point to it
+     * @return its rows, in declaration order, own ones before inherited ones, incoming ones last
      */
-    private List<ConstraintRow> constraintsOf(XsdElement element) {
+    private List<ConstraintRow> constraintsOf(XsdElement element, VisualNode card) {
         XsdElement declaration = element;
         String origin = null;
         if (element.getRef() != null && !element.getRef().isEmpty()) {
@@ -692,6 +693,7 @@ public class XsdVisualTreeBuilder {
         for (String test : declaration.getAssertions()) {
             addAssertion(test, origin, rows);
         }
+        addIncomingConstraints(card, rows);
         return List.copyOf(rows.values());
     }
 
@@ -699,12 +701,95 @@ public class XsdVisualTreeBuilder {
      * What a card of this attribute lists: the assertions of its simple type.
      *
      * @param attribute the attribute
+     * @param card      its card, whose ancestors may declare constraints that point to it
      * @return its rows
      */
-    private List<ConstraintRow> constraintsOf(XsdAttribute attribute) {
+    private List<ConstraintRow> constraintsOf(XsdAttribute attribute, VisualNode card) {
         Map<String, ConstraintRow> rows = new LinkedHashMap<>();
         addTypeAssertions(attribute, attribute.getType(), null, rows);
+        addIncomingConstraints(card, rows);
         return List.copyOf(rows.values());
+    }
+
+    /** Ancestors further up than this are not searched for constraints (the diagram is never that deep). */
+    private static final int MAX_CONSTRAINT_TARGET_DEPTH = 64;
+
+    /**
+     * Adds the identity constraints of ancestor elements whose selector and a field lead to this
+     * card, while {@link XsdDiagramOptions#showConstraintTargetsProperty()} is on. Walks the card's
+     * visual ancestors, so a node of a type used in several places sees the constraints of the
+     * place it is shown in; compositor and group cards add no path step.
+     */
+    private void addIncomingConstraints(VisualNode card, Map<String, ConstraintRow> rows) {
+        if (card == null || !XsdDiagramOptions.showConstraintTargetsProperty().get()) {
+            return;
+        }
+        String ownStep = stepOf(card.getModelObject());
+        if (ownStep == null) {
+            return;
+        }
+        java.util.ArrayDeque<String> steps = new java.util.ArrayDeque<>();
+        steps.addFirst(ownStep);
+        VisualNode ancestor = card.getParent();
+        for (int depth = 0; ancestor != null && depth < MAX_CONSTRAINT_TARGET_DEPTH; depth++, ancestor = ancestor.getParent()) {
+            if (!(ancestor.getModelObject() instanceof XsdElement ancestorElement)) {
+                continue;
+            }
+            XsdElement declaration = declarationOf(ancestorElement);
+            if (declaration != null) {
+                List<String> path = List.copyOf(steps);
+                for (SchemaConstraints.ConstraintInfo info : SchemaConstraints.collect(declaration)) {
+                    if (info.node() instanceof XsdIdentityConstraint constraint && pointsTo(constraint, path)) {
+                        rows.putIfAbsent("incoming:" + constraint.getId(),
+                                ConstraintRow.incoming(info, nameOf(ancestorElement)));
+                    }
+                }
+            }
+            String step = stepOf(ancestorElement);
+            if (step == null) {
+                return;
+            }
+            steps.addFirst(step);
+        }
+    }
+
+    private static boolean pointsTo(XsdIdentityConstraint constraint, List<String> path) {
+        if (constraint.getSelector() == null || constraint.getSelector().getXpath() == null) {
+            return false;
+        }
+        String selector = constraint.getSelector().getXpath();
+        for (org.fxt.freexmltoolkit.controls.v2.model.XsdField field : constraint.getFields()) {
+            if (org.fxt.freexmltoolkit.controls.v2.editor.usage.IdentityConstraintTargets
+                    .matches(selector, field.getXpath(), path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** @return the global element a reference points to, the element itself otherwise; null if unresolved */
+    private XsdElement declarationOf(XsdElement element) {
+        if (element.getRef() == null || element.getRef().isEmpty()) {
+            return element;
+        }
+        return index.elements().find(resolveName(element.getRef(), element));
+    }
+
+    /** @return the path step a card of this model node stands for, or null if it is no element/attribute */
+    private static String stepOf(Object model) {
+        if (model instanceof XsdElement element) {
+            return nameOf(element);
+        }
+        if (model instanceof XsdAttribute attribute) {
+            String name = attribute.getRef() != null && !attribute.getRef().isEmpty()
+                    ? attribute.getRef() : attribute.getName();
+            return name == null ? null : "@" + name;
+        }
+        return null;
+    }
+
+    private static String nameOf(XsdElement element) {
+        return element.getRef() != null && !element.getRef().isEmpty() ? element.getRef() : element.getName();
     }
 
     /** Adds the assertions of a declaration's inline type and of the type it names. */
@@ -1191,7 +1276,7 @@ public class XsdVisualTreeBuilder {
         // Detail string will be built by VisualNode.buildDetailString() from model properties
         VisualNode node = new VisualNode(label, "", NodeWrapperType.ATTRIBUTE, attribute, parent, 1, 1, onModelChangeCallback);
         cardCount++;
-        node.setConstraintSource(() -> constraintsOf(attribute));
+        node.setConstraintSource(() -> constraintsOf(attribute, node));
 
         // Add to nodeMap for later lookup
         nodeMap.put(attribute.getId(), node);

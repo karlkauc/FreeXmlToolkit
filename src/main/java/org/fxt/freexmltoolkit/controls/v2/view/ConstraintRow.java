@@ -13,10 +13,17 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdKeyRef;
  *
  * @param kind    what it is
  * @param text    the shortened line, at most {@link #MAX_TEXT_LENGTH} characters
- * @param tooltip the full details
+ * @param tooltip  the full details
+ * @param incoming true for a constraint declared on an ancestor whose field leads to this card
+ *                 (shown only while {@link XsdDiagramOptions#showConstraintTargetsProperty()} is on)
  * @since 2.0
  */
-public record ConstraintRow(Kind kind, String text, String tooltip) {
+public record ConstraintRow(Kind kind, String text, String tooltip, boolean incoming) {
+
+    /** A row of a constraint the card's own declaration holds. */
+    public ConstraintRow(Kind kind, String text, String tooltip) {
+        this(kind, text, tooltip, false);
+    }
 
     /**
      * Longer lines would widen a card without limit, and an XPath can run to hundreds of characters.
@@ -63,6 +70,28 @@ public record ConstraintRow(Kind kind, String text, String tooltip) {
                 : (info.name() + "  " + fieldsOf(constraint)).strip();
         String details = info.detail().replace(SchemaConstraints.DETAIL_SEPARATOR, "\n");
         return new ConstraintRow(kind, shorten(text), withOrigin(info.kind() + " " + info.name() + "\n" + details, origin));
+    }
+
+    /**
+     * Creates the row a field target shows for a constraint declared on an ancestor element.
+     *
+     * @param info      the constraint
+     * @param ownerName the name of the element that declares it
+     * @return its row, marked {@link #incoming()}
+     */
+    static ConstraintRow incoming(SchemaConstraints.ConstraintInfo info, String ownerName) {
+        XsdIdentityConstraint constraint = (XsdIdentityConstraint) info.node();
+        Kind kind = switch (info.kind()) {
+            case "key" -> Kind.KEY;
+            case "keyref" -> Kind.KEYREF;
+            default -> Kind.UNIQUE;
+        };
+        String refer = constraint instanceof XsdKeyRef keyRef && keyRef.getRefer() != null
+                ? " → " + keyRef.getRefer() : "";
+        String text = "← " + info.name() + refer + "  @ " + ownerName;
+        String details = info.detail().replace(SchemaConstraints.DETAIL_SEPARATOR, "\n");
+        String tooltip = info.kind() + " " + info.name() + " (defined on " + ownerName + ")\n" + details;
+        return new ConstraintRow(kind, shorten(text), tooltip.strip(), true);
     }
 
     /**

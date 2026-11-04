@@ -275,6 +275,43 @@ public class XsdDocumentationImageService {
         return showRootConstraints;
     }
 
+    /** Whether a constraint's field target lists it too (default false). */
+    private boolean showConstraintTargets = false;
+
+    /** Built on first use: constraints by the element their fields point to. */
+    private IdentityConstraintTargetIndex constraintTargetIndex;
+
+    /**
+     * Sets whether the box of a constraint's field target (e.g. {@code BenchmarkID} for a key on
+     * {@code Fund}) also lists that constraint, linked to the element that declares it. Without
+     * {@link #setShowConstraints constraints} no box lists any.
+     *
+     * @param showConstraintTargets true to list them on the targets as well
+     */
+    public void setShowConstraintTargets(boolean showConstraintTargets) {
+        this.showConstraintTargets = showConstraintTargets;
+    }
+
+    /** @return whether a constraint's field target lists it too */
+    public boolean isShowConstraintTargets() {
+        return showConstraintTargets;
+    }
+
+    /**
+     * @param element an element of the map
+     * @return the constraints declared on ancestors that point to it, empty unless
+     *         {@link #setShowConstraintTargets} is on
+     */
+    public List<IdentityConstraintTargetIndex.Incoming> incomingConstraints(XsdExtendedElement element) {
+        if (!showConstraintTargets || element == null || extendedXsdElements == null) {
+            return List.of();
+        }
+        if (constraintTargetIndex == null) {
+            constraintTargetIndex = IdentityConstraintTargetIndex.build(extendedXsdElements);
+        }
+        return constraintTargetIndex.of(element.getCurrentXpath());
+    }
+
     /**
      * Constructs a new XsdDocumentationImageService with the given extended XSD elements.
      *
@@ -2337,7 +2374,17 @@ public class XsdDocumentationImageService {
 
     /** @return the constraint lines an element's box lists; none while they are switched off */
     List<DiagramConstraint> constraintRows(XsdExtendedElement element) {
-        return showConstraints ? DiagramConstraint.of(element) : List.of();
+        if (!showConstraints) {
+            return List.of();
+        }
+        List<DiagramConstraint> rows = DiagramConstraint.of(element);
+        List<IdentityConstraintTargetIndex.Incoming> incoming = incomingConstraints(element);
+        if (incoming.isEmpty()) {
+            return rows;
+        }
+        List<DiagramConstraint> all = new ArrayList<>(rows);
+        incoming.forEach(in -> all.add(DiagramConstraint.incoming(in)));
+        return all;
     }
 
     /** @return the lines the constraint section needs: its rows, plus one for "+N more" */
@@ -2421,8 +2468,16 @@ public class XsdDocumentationImageService {
             label.setAttribute("height", String.valueOf(CONSTRAINT_LABEL_HEIGHT));
             label.setAttribute("rx", "2");
             label.setAttribute("ry", "2");
-            label.setAttribute("fill", color);
-            label.setAttribute("fill-opacity", "0.12");
+            if (row.incoming()) {
+                // declared on an ancestor: an outlined label and muted text set it apart
+                group.setAttribute("class", "constraint-row constraint-incoming");
+                label.setAttribute("fill", "none");
+                label.setAttribute("stroke", color);
+                label.setAttribute("stroke-opacity", "0.6");
+            } else {
+                label.setAttribute("fill", color);
+                label.setAttribute("fill-opacity", "0.12");
+            }
             group.appendChild(label);
 
             Element labelText = createSvgTextElement(document, row.kind().label(),
@@ -2437,7 +2492,7 @@ public class XsdDocumentationImageService {
             Element text = createSvgTextElement(document, "",
                     String.valueOf(x + CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP),
                     String.valueOf(centredBaseline(textFont, row.text(), rowTop, CONSTRAINT_ROW_HEIGHT)),
-                    COLOR_TEXT_PRIMARY, CONSTRAINT_FONT_SIZE);
+                    row.incoming() ? COLOR_TEXT_SECONDARY : COLOR_TEXT_PRIMARY, CONSTRAINT_FONT_SIZE);
             text.setAttribute("font-family", CONSTRAINT_FONT_FAMILY);
             appendSegments(document, text, owner, row);
             group.appendChild(text);
@@ -2478,6 +2533,7 @@ public class XsdDocumentationImageService {
                 }
                 case FIELD -> pageOf(firstMatch(selected, segment.path()), null);
                 case REFER -> pageOf(xpathOfKey(segment.path()), "#identity-constraints");
+                case OWNER -> pageOf(segment.path(), "#identity-constraints");
             };
             // Mixed content (text and <a> only): the indenting serializer adds no whitespace inside
             // it, which a browser would render as extra spaces.

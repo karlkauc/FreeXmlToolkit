@@ -126,6 +126,38 @@
             <content>
                 <VBox styleClass="fxt-inspector-sections">
                     <children>
+                        <!-- View settings of the active document (XSD only for now); they change the
+                             display on the fly and are shared by all open diagrams. -->
+                        <TitledPane fx:id="displaySettingsSection" id="inspector-display-settings" text="DISPLAY"
+                                    expanded="true" visible="false" managed="false" styleClass="fxt-inspector-section">
+                            <content>
+                                <VBox styleClass="fxt-inspector-section-body">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Constraints on cards" minWidth="-Infinity" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-key"/>
+                                                <CheckBox fx:id="showConstraintsCheck" id="inspector-show-constraints" styleClass="fxt-inspector-check-box">
+                                                    <tooltip>
+                                                        <Tooltip text="List identity constraints and assertions on the card that declares them"/>
+                                                    </tooltip>
+                                                </CheckBox>
+                                            </children>
+                                        </HBox>
+                                        <HBox alignment="CENTER_LEFT" styleClass="fxt-inspector-row">
+                                            <children>
+                                                <Label text="Constraints on target nodes" minWidth="-Infinity" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-inspector-key"/>
+                                                <CheckBox fx:id="showConstraintTargetsCheck" id="inspector-show-constraint-targets" styleClass="fxt-inspector-check-box">
+                                                    <tooltip>
+                                                        <Tooltip text="Also list a key, unique or keyref on the node its field points to (e.g. BenchmarkID), with the element that declares it"/>
+                                                    </tooltip>
+                                                </CheckBox>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </TitledPane>
+
                         <TitledPane text="NODE &amp; XPATH" expanded="true" styleClass="fxt-inspector-section">
                             <content>
                                 <VBox styleClass="fxt-inspector-section-body">

@@ -565,15 +565,22 @@ public class XsdNodeRenderer {
     private void renderConstraintRow(GraphicsContext gc, ConstraintRow row, double x, double rowY) {
         Color color = constraintColor(row.kind());
         double labelY = rowY + (CONSTRAINT_ROW_HEIGHT - CONSTRAINT_LABEL_HEIGHT) / 2;
-        gc.setFill(withAlpha(color, darkMode ? 0.2 : 0.12));
-        gc.fillRoundRect(x, labelY, CONSTRAINT_LABEL_WIDTH, CONSTRAINT_LABEL_HEIGHT, 4, 4);
+        if (row.incoming()) {
+            // declared on an ancestor: an outlined label and muted text set it apart from own rows
+            gc.setStroke(withAlpha(color, 0.6));
+            gc.setLineWidth(1);
+            gc.strokeRoundRect(x + 0.5, labelY + 0.5, CONSTRAINT_LABEL_WIDTH - 1, CONSTRAINT_LABEL_HEIGHT - 1, 4, 4);
+        } else {
+            gc.setFill(withAlpha(color, darkMode ? 0.2 : 0.12));
+            gc.fillRoundRect(x, labelY, CONSTRAINT_LABEL_WIDTH, CONSTRAINT_LABEL_HEIGHT, 4, 4);
+        }
 
         gc.setFill(accentText(color));
         gc.setFont(constraintLabelFont);
         gc.setTextAlign(TextAlignment.CENTER);
         gc.fillText(row.kind().label(), x + CONSTRAINT_LABEL_WIDTH / 2, rowY + CONSTRAINT_ROW_HEIGHT / 2);
 
-        gc.setFill(token(ColorToken.TEXT_SECONDARY));
+        gc.setFill(token(row.incoming() ? ColorToken.TEXT_MUTED : ColorToken.TEXT_SECONDARY));
         gc.setFont(constraintFont);
         gc.setTextAlign(TextAlignment.LEFT);
         gc.fillText(row.text(), x + CONSTRAINT_LABEL_WIDTH + CONSTRAINT_LABEL_GAP, rowY + CONSTRAINT_ROW_HEIGHT / 2);
@@ -936,7 +943,8 @@ public class XsdNodeRenderer {
             refreshConstraints();
         }
 
-        private void refreshConstraints() {
+        /** Asks the constraint source again, e.g. after a display option changed what it lists. */
+        void refreshConstraints() {
             if (constraintSource != null) {
                 constraints = constraintSource.get();
             }

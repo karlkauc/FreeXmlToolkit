@@ -420,6 +420,59 @@
                 </div>
             </section>
 
+            <!-- Section: constraints declared on an ancestor whose field leads here (optional, default off) -->
+            <section th:if="${incomingConstraints != null and not #lists.isEmpty(incomingConstraints)}">
+                <h2 id="incoming-identity-constraints" class="text-lg font-semibold text-slate-800 mb-4">Referenced by Identity Constraints</h2>
+                <div class="space-y-6">
+                    <div th:each="ref: ${incomingConstraints}"
+                         class="bg-slate-50 border-2 border-slate-200 rounded-lg p-5 shadow-sm">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-300">
+                            <span th:if="${ref.type == 'KEY'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
+                                Key
+                            </span>
+                            <span th:if="${ref.type == 'KEYREF'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-300">
+                                Key Reference
+                            </span>
+                            <span th:if="${ref.type == 'UNIQUE'}"
+                                  class="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
+                                Unique
+                            </span>
+                            <span class="font-mono font-bold text-lg text-slate-900" th:text="${ref.name}">constraintName</span>
+                            <span class="text-sm text-slate-600">defined on</span>
+                            <a th:if="${ref.ownerPage != null}" th:href="${ref.ownerPage}"
+                               class="font-mono text-sm text-sky-600 hover:underline" th:text="${ref.owner}">Owner</a>
+                            <span th:unless="${ref.ownerPage != null}" class="font-mono text-sm text-slate-900"
+                                  th:text="${ref.owner}">Owner</span>
+                        </div>
+
+                        <dl class="grid grid-cols-1 gap-4 text-sm">
+                            <div th:if="${ref.attribute != null}" class="space-y-2">
+                                <dt class="font-semibold text-slate-600 uppercase text-xs tracking-wide">Attribute</dt>
+                                <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-slate-300 shadow-sm"
+                                    th:text="${ref.attribute}">@attribute</dd>
+                            </div>
+                            <div class="space-y-2">
+                                <dt class="font-semibold text-slate-600 uppercase text-xs tracking-wide">Selector</dt>
+                                <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-slate-300 shadow-sm"
+                                    th:text="${ref.selector}">xpath</dd>
+                            </div>
+                            <div class="space-y-2">
+                                <dt class="font-semibold text-slate-600 uppercase text-xs tracking-wide">Field</dt>
+                                <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-slate-300 shadow-sm"
+                                    th:text="${ref.field}">field xpath</dd>
+                            </div>
+                            <div th:if="${ref.refer != null}" class="space-y-2">
+                                <dt class="font-semibold text-slate-600 uppercase text-xs tracking-wide">Refers to</dt>
+                                <dd class="font-mono text-sm text-slate-900 bg-white px-4 py-3 rounded-md border border-slate-300 shadow-sm"
+                                    th:text="${ref.refer}">referenced key</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </section>
+
             <!-- Section: Assertions (XSD 1.1) -->
             <section th:if="${element.assertions != null and not #lists.isEmpty(element.assertions)}">
                 <h2 id="assertions" class="text-lg font-semibold text-slate-800 mb-4">Assertions (XSD 1.1)</h2>
