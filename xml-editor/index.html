@@ -4062,8 +4062,53 @@ you entered or changed by hand still give valid values:</p>
 <li>blanks around a number or date are removed;</li>
 <li>a formula gives its result instead of the formula text (this also applies without a schema).</li>
 </ul>
-<p>The import takes the XSD from the <strong>Schema (XSD)</strong> field of the converter dialog. If you leave
-the field empty, it uses the schema the sheet declares: the root element's
+<p><strong>CSV to XML</strong> uses the XSD too. A CSV holds only text, so the import repairs values that do not
+fit their type yet. This is typical after the file went through a spreadsheet application:</p>
+<table>
+<thead>
+<tr>
+<th>In the CSV</th>
+<th>XSD type</th>
+<th>Imported</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>1.234,50</code> · <code>1,234.50</code> · <code>1 234,50</code></td>
+<td><code>xs:decimal</code></td>
+<td><code>1234.50</code></td>
+</tr>
+<tr>
+<td><code>31.01.2024</code> · <code>2024/01/31</code></td>
+<td><code>xs:date</code></td>
+<td><code>2024-01-31</code></td>
+</tr>
+<tr>
+<td><code>31.01.2024 10:15</code></td>
+<td><code>xs:dateTime</code></td>
+<td><code>2024-01-31T10:15:00</code></td>
+</tr>
+<tr>
+<td><code>9:05</code></td>
+<td><code>xs:time</code></td>
+<td><code>09:05:00</code></td>
+</tr>
+<tr>
+<td><code>TRUE</code> · <code>WAHR</code> · <code>yes</code></td>
+<td><code>xs:boolean</code></td>
+<td><code>true</code></td>
+</tr>
+</tbody>
+</table>
+<p>A value that is already valid for its type is never changed. For example, <code>007</code> under <code>xs:int</code>
+and <code>1.234</code> under <code>xs:decimal</code> stay as written. Text values are not touched.</p>
+<p>The delimiter decides ambiguous values. In a semicolon file (as European Excel writes it) a
+single comma is the decimal separator and <code>01/02/2024</code> is 1 February. In a comma file it is
+the other way round. Values that stay ambiguous (<code>1,234</code> in a tab file) are imported as
+written, and validation shows the error. Text cells in an Excel import are repaired the same
+way, as far as that is unambiguous.</p>
+<p>The import (Excel or CSV) takes the XSD from the <strong>Schema (XSD)</strong> field of the converter dialog. If you leave
+the field empty, it uses the schema the file declares: the root element's
 <code>xsi:noNamespaceSchemaLocation</code> / <code>xsi:schemaLocation</code>, resolved relative to the workbook's
 folder, or the Schema Library entry for its namespace. The imported document is bound to that
 XSD. Without a schema, the cells' own types and formats decide, as before. A value that does
