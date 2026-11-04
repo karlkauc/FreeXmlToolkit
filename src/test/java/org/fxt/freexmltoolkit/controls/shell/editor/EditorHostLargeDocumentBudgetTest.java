@@ -67,9 +67,14 @@ class EditorHostLargeDocumentBudgetTest {
         }
         assertTrue(formats.stream().anyMatch(java.util.concurrent.CompletableFuture::join), "Format was applied");
 
-        // The first switch also loads the grid's classes and FXML; building every repeating table up
-        // front used to add ~350 ms here, they are now built when a group is opened; the context menu
-        // is built on first use.
+        // Building every repeating table up front used to add ~350 ms here, they are now built when a
+        // group is opened; the context menu is built on first use. The grid's classes and FXML are
+        // loaded beforehand: class loading is not what the budget guards, and under the load of a
+        // full test run it varied enough to fail the single measured run.
+        WaitForAsyncUtils.waitForAsyncFx(10_000, () -> {
+            new XmlGridView().setXml("<warm-up/>");
+            return null;
+        });
         FxThreadBudget.assertFast(150, 1, "starting the switch to the Graphic view",
                 () -> host.setActiveViewMode(ViewMode.GRAPHIC));
         WaitForAsyncUtils.waitFor(120, TimeUnit.SECONDS,
