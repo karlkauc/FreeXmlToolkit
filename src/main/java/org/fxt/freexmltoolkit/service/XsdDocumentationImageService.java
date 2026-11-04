@@ -147,7 +147,7 @@ public class XsdDocumentationImageService {
     static final double ALL_SYMBOL_WIDTH = 40;
     /** Centre of a nested compositor symbol, measured from the left edge of its level's boxes. */
     static final double COMPOSITOR_SYMBOL_OFFSET_X = 60;
-    /** Top of a nested compositor symbol below the top of its first child box. */
+    /** Top of a nested compositor symbol below its first child box's top when it has no children to centre on. */
     static final double COMPOSITOR_SYMBOL_OFFSET_Y = 20;
     /** Gap between a nested compositor symbol and the boxes of its children. */
     static final double COMPOSITOR_CHILDREN_GAP = 40;
@@ -683,7 +683,9 @@ public class XsdDocumentationImageService {
                 attributeSectionWidth(rootAttributes)), constraintSectionWidth(rootConstraints));
 
         // Calculate the actual total height of child elements (with flattened compositor children)
-        double totalChildElementsHeight = calculateTotalChildElementsHeight(childElements);
+        // (the children are drawn from margin * 2; nested compositors count with all their children)
+        double totalChildElementsHeight = childElements.isEmpty() ? 0
+                : margin * 2 + measureChildrenHeight(childElements);
 
         // Calculate documentation height before positioning (only if documentation should be shown)
         double docHeightTotal = showDocumentation
@@ -843,32 +845,58 @@ public class XsdDocumentationImageService {
     }
 
     /**
-     * Calculates the total height of all child elements for centering
+     * Measures the height {@link #drawChildrenRecursive} uses for a level, without drawing:
+     * every box plus the gap below it, and for a nested compositor the height of its children
+     * (at least the symbol's). Used to centre the root and the compositor symbols over the
+     * entries they connect to.
+     *
+     * @param children the entries of the level (elements and compositor containers)
+     * @return the height the level takes, including the gap after its last entry
      */
-    private double calculateTotalChildElementsHeight(List<XsdExtendedElement> childElements) {
-        if (childElements.isEmpty()) {
+    double measureChildrenHeight(List<XsdExtendedElement> children) {
+        if (children == null) {
             return 0;
         }
-
-        double totalHeight = margin * 2; // Starting margin
-
-        for (XsdExtendedElement childElement : childElements) {
-            String elementName = childElement.getElementName();
-            String elementType = childElement.getElementType() != null ? childElement.getElementType() : "";
-
-            var nameBounds = font.getStringBounds(elementName, frc);
-            var typeBounds = font.getStringBounds(elementType, frc);
-
-            double nameHeight = nameBounds.getBounds2D().getHeight();
-            double typeHeight = elementType.isBlank() ? 0 : typeBounds.getBounds2D().getHeight() + 8;
-            double totalContentHeight = nameHeight + typeHeight
-                    + attributeSectionHeight(resolveChildren(childElement, true))
-                    + constraintSectionHeight(constraintRows(childElement));
-
-            totalHeight += boxPadding * 2 + totalContentHeight + margin * 2;
+        double height = 0;
+        for (XsdExtendedElement child : children) {
+            if (isAttribute(child)) {
+                continue;
+            }
+            if (isCompositorContainer(child)) {
+                height += Math.max(COMPOSITOR_SYMBOL_HEIGHT + 40, measureChildrenHeight(compositorChildrenOf(child)));
+            } else {
+                height += boxPadding * 2 + elementContentHeight(child) + margin * 2;
+            }
         }
+        return height;
+    }
 
-        return totalHeight;
+    /**
+     * Top of a nested compositor symbol: vertically centred over the boxes of its children,
+     * the way the graphic view of the editor places it.
+     *
+     * @param levelTop       top of the compositor's first child box
+     * @param childrenHeight height of the children as {@link #measureChildrenHeight} reports it
+     * @return the y coordinate of the symbol's top edge
+     */
+    double compositorSymbolTop(double levelTop, double childrenHeight) {
+        double span = childrenHeight - margin * 2; // the gap below the last box is not part of it
+        if (span <= 0) {
+            return levelTop + COMPOSITOR_SYMBOL_OFFSET_Y;
+        }
+        return Math.max(levelTop, levelTop + span / 2 - COMPOSITOR_SYMBOL_HEIGHT / 2);
+    }
+
+    /** @return the height of an element box's content: name, type, attributes and constraints */
+    private double elementContentHeight(XsdExtendedElement element) {
+        String elementName = element.getElementName();
+        String elementType = element.getElementType() != null ? element.getElementType() : "";
+        double nameHeight = font.getStringBounds(elementName, frc).getBounds2D().getHeight();
+        double typeHeight = elementType.isBlank() ? 0
+                : font.getStringBounds(elementType, frc).getBounds2D().getHeight() + 8;
+        return nameHeight + typeHeight
+                + attributeSectionHeight(resolveChildren(element, true))
+                + constraintSectionHeight(constraintRows(element));
     }
 
     /**
@@ -1919,9 +1947,9 @@ public class XsdDocumentationImageService {
                 String compositorType = compositorType(child);
                 List<XsdExtendedElement> compositorChildren = compositorChildrenOf(child);
 
-                // Draw compositor symbol, next to its first child
+                // Draw compositor symbol, vertically centred over its children
                 double symbolX = startX + COMPOSITOR_SYMBOL_OFFSET_X;
-                double symbolY = currentY + COMPOSITOR_SYMBOL_OFFSET_Y;
+                double symbolY = compositorSymbolTop(currentY, measureChildrenHeight(compositorChildren));
                 double symbolWidth = compositorSymbolWidth(compositorType.equals("all"));
                 double symbolHeight = COMPOSITOR_SYMBOL_HEIGHT;
 

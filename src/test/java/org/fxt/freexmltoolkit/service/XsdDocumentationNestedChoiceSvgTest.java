@@ -152,4 +152,69 @@ class XsdDocumentationNestedChoiceSvgTest {
                 "Should have at least 2 connection paths starting at the right edge of the choice symbol (found: "
                         + outgoingChoicePathCount + ")");
     }
+
+    @Test
+    void nestedChoiceSymbolIsCentredOverItsChildren() throws Exception {
+        // A choice between other elements, like Fund in FundsXML: the symbol sits in the middle of its options
+        String xsdContent = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+                    <xs:element name="Fund">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="Names" type="xs:string"/>
+                                <xs:choice>
+                                    <xs:element name="SingleFund" type="xs:string"/>
+                                    <xs:element name="Subfunds" type="xs:string"/>
+                                    <xs:element name="Umbrella" type="xs:string"/>
+                                </xs:choice>
+                                <xs:element name="Currency" type="xs:string"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:schema>
+                """;
+        Path xsdFile = tempDir.resolve("fund-choice-centred.xsd");
+        Files.writeString(xsdFile, xsdContent);
+        service.setXsdFilePath(xsdFile.toString());
+        service.processXsd(false);
+
+        Map<String, XsdExtendedElement> elements = service.xsdDocumentationData.getExtendedXsdElementMap();
+        XsdExtendedElement fund = elements.values().stream()
+                .filter(e -> "Fund".equals(e.getElementName()) && e.getLevel() == 0)
+                .findFirst().orElseThrow();
+        String svg = new XsdDocumentationImageService(elements).generateSvgString(fund);
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        Document doc = dbf.newDocumentBuilder().parse(new ByteArrayInputStream(svg.getBytes(StandardCharsets.UTF_8)));
+
+        Element choiceRect = null;
+        Element first = null;
+        Element last = null;
+        NodeList rects = doc.getElementsByTagName("rect");
+        for (int i = 0; i < rects.getLength(); i++) {
+            Element r = (Element) rects.item(i);
+            String id = r.getAttribute("id");
+            if ("#ff8c00".equalsIgnoreCase(r.getAttribute("stroke")) && r.getAttribute("width").startsWith("50")) {
+                choiceRect = r;
+            } else if (id.endsWith("/SingleFund")) {
+                first = r;
+            } else if (id.endsWith("/Umbrella")) {
+                last = r;
+            }
+        }
+        assertNotNull(choiceRect, "choice symbol");
+        assertNotNull(first, "box of the first option");
+        assertNotNull(last, "box of the last option");
+
+        double choiceCenterY = attr(choiceRect, "y") + attr(choiceRect, "height") / 2;
+        double optionsCenterY = (attr(first, "y") + attr(last, "y") + attr(last, "height")) / 2;
+        assertEquals(optionsCenterY, choiceCenterY, 0.5,
+                "the choice symbol is vertically centred over its options");
+    }
+
+    private static double attr(Element e, String name) {
+        return Double.parseDouble(e.getAttribute(name));
+    }
 }
