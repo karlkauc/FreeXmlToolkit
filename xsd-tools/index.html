@@ -1477,6 +1477,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#overview-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview View
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview View">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#order-of-the-components-when-saving" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order of the Components When Saving
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#2-type-library" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3239,6 +3267,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#overview-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview View
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview View">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#order-of-the-components-when-saving" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Order of the Components When Saving
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#2-type-library" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3764,6 +3820,10 @@ document, and use XSD files effectively.</p>
 <td>Visual schema editor with interactive tree</td>
 </tr>
 <tr>
+<td><strong>Overview View</strong></td>
+<td>All top-level components in one table (XMLSpy style): reorder, sort, add, rename, attributes, identity constraints, assertions, namespaces</td>
+</tr>
+<tr>
 <td><strong>Type Library</strong></td>
 <td>Browse and analyze all types in your schema</td>
 </tr>
@@ -4164,6 +4224,110 @@ are followed too, with circular imports detected and a nesting depth cap of 10.<
   <code>-Dfxt.schema.namespaceFallback=false</code> - local files, catalog hits and already-cached
   copies still resolve.</li>
 </ul>
+<hr />
+<h2 id="overview-view">Overview View<a class="headerlink" href="#overview-view" title="Permanent link">&para;</a></h2>
+<p>The <strong>Overview</strong> view mode (the table icon in the view switch, or <strong>View → Overview View</strong>)
+lists every top-level component of the schema in one table, the way XMLSpy's schema overview
+does: imports, includes, redefines and overrides, schema-level annotations, global elements,
+complex and simple types, groups, attribute groups, global attributes and notations - in the
+order they have in the file. It is offered for XSD documents only.</p>
+<p><img alt="The Overview view: the components of a schema, the selected element's attributes below" src="../img/unified-shell-schema-overview.png" /></p>
+<p><strong>The component table</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kind</strong></td>
+<td><code>import</code>, <code>element</code>, <code>complexType</code>, <code>annotation</code>, … with its icon</td>
+</tr>
+<tr>
+<td><strong>Name</strong></td>
+<td>The component name, or the location of an import/include. Double-click (or F2) to rename</td>
+</tr>
+<tr>
+<td><strong>Details</strong></td>
+<td>Type of an element/attribute, base type and derivation of a type, namespace of an import, identifiers of a notation</td>
+</tr>
+<tr>
+<td><strong>Annotation</strong></td>
+<td>The first documentation line. Double-click to edit it in place</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Insert</strong> adds a new component in front of the selected row, <strong>Append</strong> at the end. The new
+  row gets a free default name (<code>NewComplexType</code>, <code>newElement</code>, …) and its name is ready to type.
+  An <strong>Annotation</strong> adds a schema-level <code>xs:annotation</code> at that position.</li>
+<li><strong>Import / Include</strong> adds an <code>xs:import</code>, <code>xs:include</code>, <code>xs:redefine</code> or <code>xs:override</code>. Choose
+  the file with <strong>Browse…</strong>: the location is made relative to the schema, and for an import the
+  chosen schema's target namespace is filled in.</li>
+<li><strong>Move up / down</strong> (Ctrl+↑ / Ctrl+↓) or drag rows to reorder them. Several selected rows move
+  together. Imports and includes always stay in front of the components - XSD requires that, so
+  a move that breaks the rule is refused with an explanation.</li>
+<li><strong>Sort</strong> orders the components <strong>Type, then Name</strong> or <strong>Name, then Type</strong>. Imports and includes
+  keep their place on top; a comment or annotation stays with the component that follows it.
+  Sorting is one step you can undo.</li>
+<li><strong>Rename</strong> a type, element, group or attribute: when the schema references it, you are asked
+  whether to update the references (<code>type</code>, <code>base</code>, <code>ref</code>, <code>substitutionGroup</code>, <code>itemType</code>,
+  <code>memberTypes</code>) as well. References inside included or imported files are not changed.</li>
+<li><strong>Delete</strong> (Del) removes the selected components. If they are still referenced, you are asked first.</li>
+<li><strong>Included</strong> also lists the components of included files - read-only and in italics.</li>
+<li>The header edits the <strong>target namespace</strong> and the <strong>elementFormDefault</strong> /
+  <strong>attributeFormDefault</strong> of the schema.</li>
+<li>Double-click a type to open it in the <a href="#3-type-editor">Type Editor</a>, an element to show it in
+  the <a href="#1-graphic-view">Graphic View</a>, an import to open its file.</li>
+</ul>
+<p><strong>The tabs below the table</strong> show the selected component:</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>For</th>
+<th>What you can do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Details</strong></td>
+<td>imports/includes, notations, annotations</td>
+<td>Edit namespace and location (Browse…, Open File), public/system identifiers, the documentation text and its language. For other components a summary with <strong>Open in Type Editor</strong> / <strong>Show in Graphic View</strong></td>
+</tr>
+<tr>
+<td><strong>Attributes</strong></td>
+<td>elements, complex types, attribute groups</td>
+<td>Edit <strong>Name</strong>, <strong>Type</strong>, <strong>Use</strong>, <strong>Default</strong> and <strong>Fixed</strong> in place. Default and Fixed offer the enumeration values of the attribute's type. Add attributes and attribute group references, delete them. For an element with a named type the attributes of that type are shown - changes apply to every use of the type</td>
+</tr>
+<tr>
+<td><strong>Identity Constraints</strong></td>
+<td>elements</td>
+<td>Add a key, unique or keyref, and edit name, selector, fields (comma-separated) and refer in place</td>
+</tr>
+<tr>
+<td><strong>Assertions</strong></td>
+<td>complex types (also an element's anonymous one)</td>
+<td>Add XSD 1.1 <code>xs:assert</code> and edit the test and <code>xpathDefaultNamespace</code></td>
+</tr>
+<tr>
+<td><strong>Namespaces</strong></td>
+<td>the schema</td>
+<td>Add, edit and remove namespace prefixes. A prefix that is still used, or the prefix of the XML Schema namespace, cannot be removed</td>
+</tr>
+</tbody>
+</table>
+<p>The selected row also drives the <strong>Properties</strong> pane on the right, so all other properties
+(cardinality, facets, documentation in several languages, …) are edited there. Every change
+is a normal edit of the document: it shows up in the Text view, and Undo/Redo is shared with
+the Tree and Graphic views.</p>
+<h3 id="order-of-the-components-when-saving">Order of the Components When Saving<a class="headerlink" href="#order-of-the-components-when-saving" title="Permanent link">&para;</a></h3>
+<p>The schema is saved in the order you see in the Overview (and in the Text view). Earlier
+versions sorted the top-level components on every save; now the order only changes when you
+<strong>Sort</strong> explicitly. Schema-level annotations, <code>xs:notation</code> and <code>xs:defaultOpenContent</code> are
+kept at their positions.</p>
 <hr />
 <h2 id="2-type-library">2. Type Library<a class="headerlink" href="#2-type-library" title="Permanent link">&para;</a></h2>
 <p>The Schema activity's side panel is your type library: it lists the active schema's
