@@ -46,19 +46,19 @@ class XmlSpreadsheetTypedExportTest {
 
     /** What a bound schema would say about the elements/attributes of {@link #XML}. */
     private static final SpreadsheetTypeResolver TYPES = (xpath, attribute) -> {
-        Map<String, SpreadsheetCellKind> kinds = new HashMap<>();
-        kinds.put("/order@id", SpreadsheetCellKind.INTEGER);
-        kinds.put("/order@paid", SpreadsheetCellKind.BOOLEAN);
-        kinds.put("/order/amount", SpreadsheetCellKind.DECIMAL);
-        kinds.put("/order/qty", SpreadsheetCellKind.INTEGER);
-        kinds.put("/order/big", SpreadsheetCellKind.INTEGER);
-        kinds.put("/order/date", SpreadsheetCellKind.DATE);
-        kinds.put("/order/stamp", SpreadsheetCellKind.DATE_TIME);
-        kinds.put("/order/stampMs", SpreadsheetCellKind.DATE_TIME);
-        kinds.put("/order/zoned", SpreadsheetCellKind.DATE_TIME);
-        kinds.put("/order/at", SpreadsheetCellKind.TIME);
-        kinds.put("/order/bad", SpreadsheetCellKind.INTEGER);
-        return kinds.getOrDefault(xpath + (attribute == null ? "" : "@" + attribute), SpreadsheetCellKind.TEXT);
+        Map<String, String> kinds = new HashMap<>();
+        kinds.put("/order@id", "int");
+        kinds.put("/order@paid", "boolean");
+        kinds.put("/order/amount", "decimal");
+        kinds.put("/order/qty", "int");
+        kinds.put("/order/big", "int");
+        kinds.put("/order/date", "date");
+        kinds.put("/order/stamp", "dateTime");
+        kinds.put("/order/stampMs", "dateTime");
+        kinds.put("/order/zoned", "dateTime");
+        kinds.put("/order/at", "time");
+        kinds.put("/order/bad", "int");
+        return kinds.get(xpath + (attribute == null ? "" : "@" + attribute));
     };
 
     @TempDir

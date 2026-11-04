@@ -266,15 +266,26 @@ public class XmlSpreadsheetConverterService {
     }
 
     /**
-     * Converts XML document to CSV file
+     * Converts XML document to CSV file; every value is text.
      */
     public void convertXmlToCsv(Document doc, File outputFile, CsvHandler.CsvConfig csvConfig, ConversionConfig config) throws Exception {
+        convertXmlToCsv(doc, outputFile, csvConfig, config, SpreadsheetTypeResolver.NONE);
+    }
+
+    /**
+     * Converts XML document to CSV file. With a schema-based {@code types}, a "Data Type" column names
+     * each value's XSD built-in type, values that fit it are written bare and every text field quoted.
+     *
+     * @param types the value types, usually from the bound XSD; {@code null} for text only
+     */
+    public void convertXmlToCsv(Document doc, File outputFile, CsvHandler.CsvConfig csvConfig, ConversionConfig config,
+                                SpreadsheetTypeResolver types) throws Exception {
         logger.info("Converting XML to CSV: {}", outputFile.getName());
 
         List<RowData> rows = extractRowsFromXml(doc, config);
 
         CsvHandler csvHandler = new CsvHandler();
-        csvHandler.writeCsv(rows, outputFile, csvConfig, config);
+        csvHandler.writeCsv(rows, outputFile, csvConfig, config, types == null ? SpreadsheetTypeResolver.NONE : types);
 
         logger.info("Successfully converted XML to CSV with {} rows", rows.size());
     }
@@ -548,23 +559,34 @@ public class XmlSpreadsheetConverterService {
         }
     }
 
+    /**
+     * @return the XSD built-in type of the row's value: element text and attribute values only,
+     *         {@code null} for other rows and values the resolver does not type
+     */
+    static String builtinTypeOf(RowData rowData, SpreadsheetTypeResolver types) {
+        if (rowData.getValue().isEmpty()) {
+            return null;
+        }
+        return switch (rowData.getNodeType()) {
+            case "element" -> types.builtinTypeOf(rowData.getXpath(), null);
+            case "attribute" -> {
+                int at = rowData.getXpath().lastIndexOf("/@");
+                yield at < 0 ? null
+                        : types.builtinTypeOf(rowData.getXpath().substring(0, at), rowData.getXpath().substring(at + 2));
+            }
+            default -> null;
+        };
+    }
+
+    /** @return the row's value typed as {@code builtin} says, or text when it does not fit losslessly */
+    static SpreadsheetTypedValue typedValue(RowData rowData, String builtin) {
+        return SpreadsheetTypedValue.of(SpreadsheetCellKind.fromBuiltin(builtin), rowData.getValue());
+    }
+
     /** Writes the value as the schema type's cell type, or as text when it is not typed or does not fit. */
     private static void writeValue(Cell cell, RowData rowData, XmlSpreadsheetExcelStyles styles, boolean stripe,
                                    SpreadsheetTypeResolver types) {
-        String value = rowData.getValue();
-        SpreadsheetTypedValue typed = new SpreadsheetTypedValue.Text(value);
-        if (!value.isEmpty()) {
-            SpreadsheetCellKind kind = switch (rowData.getNodeType()) {
-                case "element" -> types.kindOf(rowData.getXpath(), null);
-                case "attribute" -> {
-                    int at = rowData.getXpath().lastIndexOf("/@");
-                    yield at < 0 ? SpreadsheetCellKind.TEXT
-                            : types.kindOf(rowData.getXpath().substring(0, at), rowData.getXpath().substring(at + 2));
-                }
-                default -> SpreadsheetCellKind.TEXT;
-            };
-            typed = SpreadsheetTypedValue.of(kind == null ? SpreadsheetCellKind.TEXT : kind, value);
-        }
+        SpreadsheetTypedValue typed = typedValue(rowData, builtinTypeOf(rowData, types));
         switch (typed) {
             case SpreadsheetTypedValue.Numeric n -> {
                 cell.setCellValue(n.value());

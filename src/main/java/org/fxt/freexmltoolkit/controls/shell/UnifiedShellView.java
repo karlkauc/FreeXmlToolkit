@@ -2228,9 +2228,8 @@ public class UnifiedShellView extends BorderPane {
             }
             String xml = editorHost.getActiveText().orElse("");
             // read on the FX thread; the export only reads the schema model
-            var cellTypes = excel ? editorHost.activeSpreadsheetTypeResolver()
-                    .orElse(org.fxt.freexmltoolkit.service.SpreadsheetTypeResolver.NONE)
-                    : org.fxt.freexmltoolkit.service.SpreadsheetTypeResolver.NONE;
+            var cellTypes = editorHost.activeSpreadsheetTypeResolver()
+                    .orElse(org.fxt.freexmltoolkit.service.SpreadsheetTypeResolver.NONE);
             javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
             chooser.setTitle("Save spreadsheet");
             chooser.getExtensionFilters().add(excel
@@ -2248,7 +2247,7 @@ public class UnifiedShellView extends BorderPane {
                         ? org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
                                 .exportToExcel(xml, out, settings.config(), cellTypes)
                         : org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner
-                                .exportToCsv(xml, out, settings.delimiter().config(), settings.config());
+                                .exportToCsv(xml, out, settings.delimiter().config(), settings.config(), cellTypes);
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.spreadsheetConverted("to_spreadsheet", format,
                         result.telemetryStatus(), start, xml.length(), result.error());
                 javafx.application.Platform.runLater(() -> {

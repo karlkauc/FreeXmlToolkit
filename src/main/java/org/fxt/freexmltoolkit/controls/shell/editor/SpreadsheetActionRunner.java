@@ -95,9 +95,18 @@ public final class SpreadsheetActionRunner {
     /** Converts the XML to a CSV file with the given delimiter/conversion options. */
     public static Result exportToCsv(String xmlContent, File output,
                                      CsvHandler.CsvConfig csvConfig, ConversionConfig config) {
+        return exportToCsv(xmlContent, output, csvConfig, config, SpreadsheetTypeResolver.NONE);
+    }
+
+    /**
+     * Converts the XML to a CSV file; with a schema-based {@code types} it gets a "Data Type" column,
+     * typed values written bare and text quoted.
+     */
+    public static Result exportToCsv(String xmlContent, File output, CsvHandler.CsvConfig csvConfig,
+                                     ConversionConfig config, SpreadsheetTypeResolver types) {
         try {
             Document doc = parseXml(xmlContent);
-            new XmlSpreadsheetConverterService().convertXmlToCsv(doc, output, csvConfig, config);
+            new XmlSpreadsheetConverterService().convertXmlToCsv(doc, output, csvConfig, config, types);
             return Result.ok("OK: " + output.getAbsolutePath());
         } catch (Exception e) {
             return Result.failed(e);

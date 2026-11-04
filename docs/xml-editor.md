@@ -533,6 +533,22 @@ Some values stay text, so that importing the workbook gives back exactly the sam
 Without a schema, every value is text. **Excel to XML** turns typed cells back into their XML
 form.
 
+The **CSV** export uses the bound XSD as well. CSV has no cell types, so the file gets an extra
+**Data Type** column with each value's XSD built-in type (`decimal`, `date`, `dateTime`, …).
+Values that are valid for their type are written without quotes; all text fields are quoted:
+
+```
+"XPath";"Value";"Type";"Data Type"
+"/FundsXML4/ControlData/ContentDate";2021-11-30;"element";"date"
+"/FundsXML4/ControlData/DataSupplier/Name";"Erste Asset Management";"element";"string"
+```
+
+Values are written exactly as in the XML. A timezone or a leading zero stays as it is.
+A value that contains the delimiter, a quote or a line break is always quoted, with inner
+quotes doubled. **CSV to XML** reads such values back correctly, including line breaks
+inside a value, and ignores the Data Type column. Without a schema, the CSV keeps the plain
+format: no Data Type column, and quotes only where needed.
+
 ---
 
 ## Templates

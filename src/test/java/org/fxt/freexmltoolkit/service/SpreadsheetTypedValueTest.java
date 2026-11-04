@@ -57,6 +57,22 @@ class SpreadsheetTypedValueTest {
         assertEquals("hh:mm:ss", time.format());
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "INTEGER, 007, true", "INTEGER, +5, true", "INTEGER, 1.0, false",
+            "DECIMAL, .5, true", "DECIMAL, 1., true", "DECIMAL, 1e3, false",
+            "DOUBLE, -INF, true", "DOUBLE, NaN, true", "DOUBLE, inf, false",
+            "BOOLEAN, 1, true", "BOOLEAN, yes, false",
+            "DATE, 2024-01-31Z, true", "DATE, 2024-13-01, false", "DATE, 0800-01-01, true",
+            "DATE_TIME, 2024-09-26T18:37:12.1559196+02:00, true", "DATE_TIME, 2024-01-31, false",
+            "DATE_TIME, 2024-01-31T25:00:00, false",
+            "TIME, 24:00:00, true", "TIME, 10:15, false",
+            "TEXT, abc, false"
+    })
+    void lexicalValidityFollowsTheXsdLexicalSpace(SpreadsheetCellKind kind, String lexical, boolean valid) {
+        assertEquals(valid, SpreadsheetTypedValue.isLexicallyValid(kind, lexical));
+    }
+
     @Test
     void builtinNamesMapToKinds() {
         assertEquals(SpreadsheetCellKind.INTEGER, SpreadsheetCellKind.fromBuiltin("positiveInteger"));

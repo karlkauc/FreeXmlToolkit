@@ -133,6 +133,61 @@ sealed interface SpreadsheetTypedValue {
         return new Temporal(null, time, m.group(3) == null ? 0 : m.group(3).length());
     }
 
+    /** XSD lexical spaces, for formats that keep the text as is (CSV). */
+    Pattern XSD_INTEGER = Pattern.compile("[+-]?\\d+");
+    Pattern XSD_DECIMAL = Pattern.compile("[+-]?(\\d+(\\.\\d*)?|\\.\\d+)");
+    Pattern XSD_DOUBLE = Pattern.compile("[+-]?(\\d+(\\.\\d*)?|\\.\\d+)([eE][+-]?\\d+)?|[+-]?INF|NaN");
+    String XSD_ZONE = "(Z|[+-]\\d{2}:\\d{2})?";
+    String XSD_DATE_PART = "-?\\d{4,}-\\d{2}-\\d{2}";
+    String XSD_TIME_PART = "\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?";
+    Pattern XSD_DATE = Pattern.compile(XSD_DATE_PART + XSD_ZONE);
+    Pattern XSD_DATE_TIME = Pattern.compile(XSD_DATE_PART + "T" + XSD_TIME_PART + XSD_ZONE);
+    Pattern XSD_TIME = Pattern.compile(XSD_TIME_PART + XSD_ZONE);
+
+    /**
+     * Whether the text is in the lexical space of the kind's XSD types, whatever Excel could hold:
+     * {@code 007} is an integer, a date-time with timezone or nanoseconds is a date-time. Value range
+     * facets (such as {@code xs:byte}) are not checked; dates are checked for plausible month/day digits.
+     *
+     * @return {@code false} for {@link SpreadsheetCellKind#TEXT}, an empty value or a lexically wrong one
+     */
+    static boolean isLexicallyValid(SpreadsheetCellKind kind, String lexical) {
+        if (kind == null || lexical == null || lexical.isEmpty()) {
+            return false;
+        }
+        return switch (kind) {
+            case TEXT -> false;
+            case INTEGER -> XSD_INTEGER.matcher(lexical).matches();
+            case DECIMAL -> XSD_DECIMAL.matcher(lexical).matches();
+            case DOUBLE -> XSD_DOUBLE.matcher(lexical).matches();
+            case BOOLEAN -> switch (lexical) {
+                case "true", "false", "1", "0" -> true;
+                default -> false;
+            };
+            case DATE -> XSD_DATE.matcher(lexical).matches() && plausibleDate(lexical);
+            case DATE_TIME -> XSD_DATE_TIME.matcher(lexical).matches() && plausibleDate(lexical);
+            case TIME -> XSD_TIME.matcher(lexical).matches() && plausibleTime(lexical);
+        };
+    }
+
+    /** @return whether month 01–12 and day 01–31 (the date part starts after an optional {@code -}) */
+    private static boolean plausibleDate(String lexical) {
+        String date = lexical.startsWith("-") ? lexical.substring(1) : lexical;
+        int dash = date.indexOf('-');
+        int month = Integer.parseInt(date.substring(dash + 1, dash + 3));
+        int day = Integer.parseInt(date.substring(dash + 4, dash + 6));
+        return month >= 1 && month <= 12 && day >= 1 && day <= 31
+                && (date.indexOf('T') < 0 || plausibleTime(date.substring(date.indexOf('T') + 1)));
+    }
+
+    /** @return whether hours 00–24, minutes and seconds 00–59 */
+    private static boolean plausibleTime(String time) {
+        int hours = Integer.parseInt(time.substring(0, 2));
+        int minutes = Integer.parseInt(time.substring(3, 5));
+        int seconds = Integer.parseInt(time.substring(6, 8));
+        return hours <= 24 && minutes <= 59 && seconds <= 59;
+    }
+
     /** @return the date-time of a {@link Temporal} with a date part */
     static LocalDateTime dateTimeOf(Temporal temporal) {
         return temporal.date().atTime(temporal.time() == null ? LocalTime.MIDNIGHT : temporal.time());

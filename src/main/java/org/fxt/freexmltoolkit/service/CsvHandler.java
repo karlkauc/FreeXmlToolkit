@@ -230,8 +230,11 @@ public class CsvHandler {
         }
     }
 
+    /** Header of the column naming each value's XSD built-in type (only written with a schema). */
+    static final String DATA_TYPE_HEADER = "Data Type";
+
     /**
-     * Writes row data to CSV file.
+     * Writes row data to CSV file; every value is text.
      *
      * @param rows The list of rows to write.
      * @param outputFile The file to write to.
@@ -241,7 +244,23 @@ public class CsvHandler {
      */
     public void writeCsv(List<RowData> rows, File outputFile, CsvConfig csvConfig, ConversionConfig conversionConfig)
             throws IOException {
+        writeCsv(rows, outputFile, csvConfig, conversionConfig, SpreadsheetTypeResolver.NONE);
+    }
+
+    /**
+     * Writes row data to CSV file. With a schema-based {@code types}, the file gets a "Data Type" column
+     * with each value's XSD built-in type; a value in its type's lexical space is written bare (its XML
+     * lexical form, unchanged - CSV has no precision limit, so {@code 007} or a timezone stay), every other non-empty field is quoted - the "quote non-numeric" convention, so a
+     * reader can tell numbers from text. A field holding the delimiter, the quote character, a line
+     * break or surrounding blanks is always quoted, quotes inside it doubled.
+     *
+     * @param types the value types; {@link SpreadsheetTypeResolver#NONE} for the plain format
+     * @throws IOException If an I/O error occurs.
+     */
+    public void writeCsv(List<RowData> rows, File outputFile, CsvConfig csvConfig, ConversionConfig conversionConfig,
+                         SpreadsheetTypeResolver types) throws IOException {
         logger.info("Writing {} rows to CSV file: {}", rows.size(), outputFile.getName());
+        boolean typed = types != null && types.isSchemaBased();
 
         try (OutputStreamWriter writer = new OutputStreamWriter(
                 new FileOutputStream(outputFile), StandardCharsets.UTF_8);
@@ -249,15 +268,35 @@ public class CsvHandler {
 
             // Write BOM if requested
             if (csvConfig.isIncludeBOM()) {
-                writer.write('\uFEFF'); // UTF-8 BOM
+                bufferedWriter.write('\uFEFF'); // UTF-8 BOM
             }
 
-            // Write header
-            writeHeader(bufferedWriter, csvConfig, conversionConfig);
+            List<String> headers = new ArrayList<>(List.of("XPath", "Value"));
+            if (conversionConfig.isIncludeTypeColumn()) {
+                headers.add("Type");
+            }
+            if (typed) {
+                headers.add(DATA_TYPE_HEADER);
+            }
+            writeCsvLine(bufferedWriter, headers, new boolean[headers.size()], typed, csvConfig);
 
-            // Write data rows
+            boolean[] bare = new boolean[headers.size()];
+            List<String> fields = new ArrayList<>(headers.size());
             for (RowData row : rows) {
-                writeCsvRow(bufferedWriter, row, csvConfig, conversionConfig);
+                fields.clear();
+                fields.add(row.getXpath());
+                fields.add(row.getValue());
+                if (conversionConfig.isIncludeTypeColumn()) {
+                    fields.add(row.getNodeType());
+                }
+                bare[1] = false;
+                if (typed) {
+                    String builtin = XmlSpreadsheetConverterService.builtinTypeOf(row, types);
+                    fields.add(builtin == null ? "" : builtin);
+                    bare[1] = SpreadsheetTypedValue.isLexicallyValid(
+                            SpreadsheetCellKind.fromBuiltin(builtin), row.getValue());
+                }
+                writeCsvLine(bufferedWriter, fields, bare, typed, csvConfig);
             }
         }
 
@@ -265,7 +304,8 @@ public class CsvHandler {
     }
 
     /**
-     * Reads CSV file and returns row data.
+     * Reads CSV file and returns row data. Quoted fields may hold the delimiter, doubled quotes and
+     * line breaks; columns after XPath / Value / Type (such as "Data Type") are ignored.
      *
      * @param csvFile The CSV file to read.
      * @param csvConfig The CSV configuration.
@@ -279,43 +319,26 @@ public class CsvHandler {
 
         List<RowData> rows = new ArrayList<>();
 
-        try (InputStreamReader reader = new InputStreamReader(
-                new FileInputStream(csvFile), StandardCharsets.UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(reader)) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                new FileInputStream(csvFile), StandardCharsets.UTF_8))) {
 
             // Skip BOM if present
-            bufferedReader.mark(1);
-            int firstChar = bufferedReader.read();
-            if (firstChar != 0xFEFF) {
-                bufferedReader.reset();
+            reader.mark(1);
+            if (reader.read() != 0xFEFF) {
+                reader.reset();
             }
 
-            String line;
-            boolean firstLine = true;
-            boolean hasTypeColumn = false;
-            int lineIndex = 0; // Track line index for ordering
-
-            while ((line = bufferedReader.readLine()) != null) {
-                if (line.trim().isEmpty()) {
-                    continue;
-                }
-
-                List<String> fields = parseCsvLine(line, csvConfig);
-
-                if (firstLine) {
-                    // Check if we have a type column
-                    hasTypeColumn = fields.size() > 2 &&
-                            fields.get(2).trim().equalsIgnoreCase("type");
-                    firstLine = false;
-                    continue; // Skip header
-                }
-
+            List<List<String>> records = readRecords(reader, csvConfig);
+            boolean hasTypeColumn = !records.isEmpty() && records.get(0).size() > 2
+                    && records.get(0).get(2).trim().equalsIgnoreCase("type");
+            int lineIndex = 0; // Track record index for ordering
+            for (int r = 1; r < records.size(); r++) { // record 0 is the header
+                List<String> fields = records.get(r);
                 if (fields.size() >= 2) {
                     String xpath = fields.get(0);
                     String value = fields.get(1);
-                    String type = hasTypeColumn && fields.size() > 2 ?
-                            fields.get(2) : inferTypeFromXPath(xpath);
-
+                    String type = hasTypeColumn && fields.size() > 2
+                            ? fields.get(2) : inferTypeFromXPath(xpath);
                     rows.add(new RowData(xpath, value, type, lineIndex++));
                 }
             }
@@ -326,65 +349,20 @@ public class CsvHandler {
     }
 
     /**
-     * Writes CSV header
+     * Writes one record.
      *
-     * @param writer The buffered writer to write to
-     * @param csvConfig The CSV configuration
-     * @param conversionConfig The conversion configuration
-     * @throws IOException If an I/O error occurs
+     * @param bare        per field: written as is (a typed value) unless it must be quoted
+     * @param quoteText   quote every other non-empty field ("quote non-numeric")
      */
-    private void writeHeader(BufferedWriter writer, CsvConfig csvConfig, ConversionConfig conversionConfig)
-            throws IOException {
-        List<String> headers = new ArrayList<>();
-        headers.add("XPath");
-        headers.add("Value");
-
-        if (conversionConfig.isIncludeTypeColumn()) {
-            headers.add("Type");
-        }
-
-        writeCsvLine(writer, headers, csvConfig);
-    }
-
-    /**
-     * Writes a single CSV row
-     *
-     * @param writer The buffered writer to write to
-     * @param row The row data to write
-     * @param csvConfig The CSV configuration
-     * @param conversionConfig The conversion configuration
-     * @throws IOException If an I/O error occurs
-     */
-    private void writeCsvRow(BufferedWriter writer, RowData row, CsvConfig csvConfig, ConversionConfig conversionConfig)
-            throws IOException {
-        List<String> fields = new ArrayList<>();
-        fields.add(row.getXpath());
-        fields.add(row.getValue());
-
-        if (conversionConfig.isIncludeTypeColumn()) {
-            fields.add(row.getNodeType());
-        }
-
-        writeCsvLine(writer, fields, csvConfig);
-    }
-
-    /**
-     * Writes a line of CSV data
-     *
-     * @param writer The buffered writer to write to
-     * @param fields The list of fields to write
-     * @param csvConfig The CSV configuration
-     * @throws IOException If an I/O error occurs
-     */
-    private void writeCsvLine(BufferedWriter writer, List<String> fields, CsvConfig csvConfig) throws IOException {
+    private void writeCsvLine(BufferedWriter writer, List<String> fields, boolean[] bare, boolean quoteText,
+                              CsvConfig csvConfig) throws IOException {
         for (int i = 0; i < fields.size(); i++) {
             if (i > 0) {
                 writer.write(csvConfig.getDelimiter());
             }
-
             String field = fields.get(i);
-            String escapedField = escapeValue(field, csvConfig);
-            writer.write(escapedField);
+            boolean forceQuote = quoteText && !bare[i] && field != null && !field.isEmpty();
+            writer.write(escapeValue(field, csvConfig, forceQuote));
         }
         writer.write(csvConfig.getLineEnding());
     }
@@ -394,79 +372,114 @@ public class CsvHandler {
      *
      * @param value The value to escape
      * @param csvConfig The CSV configuration
+     * @param forceQuote quote it even when nothing in it requires that
      * @return The escaped value
      */
-    private String escapeValue(String value, CsvConfig csvConfig) {
+    static String escapeValue(String value, CsvConfig csvConfig, boolean forceQuote) {
         if (value == null) {
             return "";
         }
-
-        boolean needsQuoting = csvConfig.isAlwaysQuote() ||
-                value.indexOf(csvConfig.getDelimiter()) >= 0 ||
-                value.indexOf(csvConfig.getQuoteChar()) >= 0 ||
-                value.indexOf('\n') >= 0 ||
-                value.indexOf('\r') >= 0 ||
-                value.trim().length() != value.length(); // Leading/trailing whitespace
-
-        if (needsQuoting) {
-            StringBuilder escaped = new StringBuilder();
-            escaped.append(csvConfig.getQuoteChar());
-
-            for (char c : value.toCharArray()) {
-                if (c == csvConfig.getQuoteChar()) {
-                    escaped.append(csvConfig.getQuoteChar());
-                    escaped.append(csvConfig.getQuoteChar()); // Double the quote
-                } else {
-                    escaped.append(c);
-                }
-            }
-
-            escaped.append(csvConfig.getQuoteChar());
-            return escaped.toString();
+        char quote = csvConfig.getQuoteChar();
+        boolean needsQuoting = forceQuote || csvConfig.isAlwaysQuote()
+                || value.indexOf(csvConfig.getDelimiter()) >= 0
+                || value.indexOf(quote) >= 0
+                || value.indexOf('\n') >= 0
+                || value.indexOf('\r') >= 0
+                || value.trim().length() != value.length(); // Leading/trailing whitespace
+        if (!needsQuoting) {
+            return value;
         }
-
-        return value;
+        StringBuilder escaped = new StringBuilder(value.length() + 2).append(quote);
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == quote) {
+                escaped.append(quote); // Double the quote
+            }
+            escaped.append(c);
+        }
+        return escaped.append(quote).toString();
     }
 
     /**
-     * Parses a CSV line into fields
+     * Splits CSV text into records (RFC 4180): a quote opens a quoted field only at the start of a
+     * field; inside it the delimiter and CR/LF are data and a doubled quote is one quote. Records end at
+     * LF, CRLF or CR outside quotes; blank lines are skipped.
+     */
+    static List<List<String>> readRecords(java.io.Reader reader, CsvConfig csvConfig) throws IOException {
+        char quote = csvConfig.getQuoteChar();
+        char delimiter = csvConfig.getDelimiter();
+        List<List<String>> records = new ArrayList<>();
+        List<String> record = new ArrayList<>();
+        StringBuilder field = new StringBuilder();
+        boolean inQuotes = false;
+        boolean fieldStart = true;
+        int c;
+        while ((c = reader.read()) != -1) {
+            char ch = (char) c;
+            if (inQuotes) {
+                if (ch == quote) {
+                    reader.mark(1);
+                    int next = reader.read();
+                    if (next == quote) {
+                        field.append(quote);
+                    } else {
+                        inQuotes = false;
+                        if (next != -1) {
+                            reader.reset();
+                        }
+                    }
+                } else {
+                    field.append(ch);
+                }
+            } else if (ch == quote && fieldStart) {
+                inQuotes = true;
+                fieldStart = false;
+            } else if (ch == delimiter) {
+                record.add(field.toString());
+                field.setLength(0);
+                fieldStart = true;
+            } else if (ch == '\n' || ch == '\r') {
+                if (ch == '\r') {
+                    reader.mark(1);
+                    if (reader.read() != '\n') {
+                        reader.reset();
+                    }
+                }
+                endRecord(records, record, field);
+                record = new ArrayList<>();
+                fieldStart = true;
+            } else {
+                field.append(ch);
+                fieldStart = false;
+            }
+        }
+        endRecord(records, record, field);
+        return records;
+    }
+
+    private static void endRecord(List<List<String>> records, List<String> record, StringBuilder field) {
+        record.add(field.toString());
+        field.setLength(0);
+        boolean blank = record.size() == 1 && record.get(0).isEmpty();
+        if (!blank) {
+            records.add(record);
+        }
+    }
+
+    /**
+     * Parses a single CSV line into fields
      *
      * @param line The CSV line to parse
      * @param csvConfig The CSV configuration
      * @return A list of parsed fields
      */
     private List<String> parseCsvLine(String line, CsvConfig csvConfig) {
-        List<String> fields = new ArrayList<>();
-        StringBuilder currentField = new StringBuilder();
-        boolean inQuotes = false;
-
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-
-            if (c == csvConfig.getQuoteChar()) {
-                if (inQuotes) {
-                    // Check if this is an escaped quote (double quote)
-                    if (i + 1 < line.length() && line.charAt(i + 1) == csvConfig.getQuoteChar()) {
-                        currentField.append(csvConfig.getQuoteChar());
-                        i++; // Skip the next quote
-                    } else {
-                        inQuotes = false;
-                    }
-                } else {
-                    inQuotes = true;
-                }
-            } else if (c == csvConfig.getDelimiter() && !inQuotes) {
-                fields.add(currentField.toString());
-                currentField.setLength(0);
-            } else {
-                currentField.append(c);
-            }
+        try {
+            List<List<String>> records = readRecords(new java.io.StringReader(line), csvConfig);
+            return records.isEmpty() ? new ArrayList<>(List.of("")) : records.get(0);
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e); // a StringReader does not fail
         }
-
-        // Add the last field
-        fields.add(currentField.toString());
-
-        return fields;
     }
 
     /**
