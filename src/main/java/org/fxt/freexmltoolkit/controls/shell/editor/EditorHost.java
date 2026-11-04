@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -34,11 +33,17 @@ import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
  * reusing the existing editor widgets. File reads run on the shared executor so
  * the UI thread is never blocked; the active document, caret and schema are
  * observable for the Explorer panel, inspector and status bar.
+ * <p>
+ * The host keeps the public API; cohesive parts live in package-private collaborators:
+ * {@link EditorTab} (one document tab and its views), {@link EditorDebugSupport} (debugger
+ * wiring), {@link EditorSchemaBinding} (schema binding and auto-detection),
+ * {@link EditorSchemaLookup} (Inspector schema facts, Go to Definition) and
+ * {@link EditorFileSync} (reading, saving, external changes).
  */
 public class EditorHost extends BorderPane {
 
-    private static final Logger logger = LogManager.getLogger(EditorHost.class);
-    private final TabPane tabPane = new TabPane();
+    static final Logger logger = LogManager.getLogger(EditorHost.class);
+    final TabPane tabPane = new TabPane();
     /** Tab pane plus an overlaid view-mode switch pinned to the top-right of the tab header. */
     private final javafx.scene.layout.StackPane tabArea = new javafx.scene.layout.StackPane();
     /** The Text/Tree/Graphic view-mode switch; placed in the editor toolbar by the shell. */
@@ -47,18 +52,18 @@ public class EditorHost extends BorderPane {
     private final ReadOnlyIntegerWrapper activeCaret = new ReadOnlyIntegerWrapper(this, "activeCaret", 0);
     private final ReadOnlyIntegerWrapper schemaImportsRevision =
             new ReadOnlyIntegerWrapper(this, "schemaImportsRevision", 0);
-    private final ReadOnlyIntegerWrapper xmlSchemaProviderRevision =
+    final ReadOnlyIntegerWrapper xmlSchemaProviderRevision =
             new ReadOnlyIntegerWrapper(this, "xmlSchemaProviderRevision", 0);
     private final ReadOnlyIntegerWrapper activeModelRevision =
             new ReadOnlyIntegerWrapper(this, "activeModelRevision", 0);
-    private final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
+    final ReadOnlyObjectWrapper<File> activeSchema = new ReadOnlyObjectWrapper<>(this, "activeSchema", null);
     private final ReadOnlyObjectWrapper<SchemaStatus> activeSchemaStatus =
             new ReadOnlyObjectWrapper<>(this, "activeSchemaStatus", SchemaStatus.NONE);
     private final ReadOnlyObjectWrapper<SchemaSource> activeSchemaSource =
             new ReadOnlyObjectWrapper<>(this, "activeSchemaSource", SchemaSource.NONE);
     private final javafx.beans.property.ReadOnlyStringWrapper activeSchemaSourceDetail =
             new javafx.beans.property.ReadOnlyStringWrapper(this, "activeSchemaSourceDetail", null);
-    private final ReadOnlyObjectWrapper<ViewMode> activeViewMode =
+    final ReadOnlyObjectWrapper<ViewMode> activeViewMode =
             new ReadOnlyObjectWrapper<>(this, "activeViewMode", ViewMode.TEXT);
     private final ReadOnlyObjectWrapper<XsdNode> activeSelectedNode =
             new ReadOnlyObjectWrapper<>(this, "activeSelectedNode", null);
@@ -115,37 +120,6 @@ public class EditorHost extends BorderPane {
      */
     public enum SchemaSource { NONE, DECLARED, LIBRARY, CATALOG, MANUAL }
 
-    /**
-     * Outcome of a schema auto-detection run: the bound XSD (or null) plus the terminal
-     * status, how the binding was resolved, and an optional human-readable detail
-     * (catalog target / namespace / root element) for the status bar tooltip. A failed
-     * detection keeps the source that was tried and why it failed (anonymous telemetry).
-     */
-    private record SchemaDetection(File schema, SchemaStatus status, SchemaSource source, String sourceDetail,
-                                   String failure, String refKind) {
-        static final SchemaDetection NOT_FOUND = new SchemaDetection(null, SchemaStatus.NONE, SchemaSource.NONE, null);
-        /** {@link #failure} value: the referenced schema could not be resolved / reached. */
-        static final String UNRESOLVED = "unresolved";
-        /** {@link #failure} value: the schema file was found but is missing or not loadable. */
-        static final String UNLOADABLE = "unloadable";
-
-        SchemaDetection(File schema, SchemaStatus status, SchemaSource source, String sourceDetail) {
-            this(schema, status, source, sourceDetail, null, null);
-        }
-
-        static SchemaDetection failed(SchemaSource source, String failure) {
-            return failed(source, failure, null);
-        }
-
-        /** @param location the declared location, reduced to its {@link UsageEvents#referenceKind kind} */
-        static SchemaDetection failed(SchemaSource source, String failure, String location) {
-            return new SchemaDetection(null, SchemaStatus.ERROR, source, null, failure,
-                    UsageEvents.referenceKind(location));
-        }
-    }
-
-    /** A Schema Library / catalog resolution result, carrying provenance for the status bar. */
-    private record LibraryHit(File file, SchemaSource source, String detail) { }
     /** The most recently active editor tab — insertion target when a tool tab is in front. */
     private EditorTab lastEditorTab;
 
@@ -166,23 +140,17 @@ public class EditorHost extends BorderPane {
     private java.util.function.Consumer<String> welcomeActionHandler = key -> { };
 
     /** Called on the FX thread with each document read from disk and its content (e.g. the FundsXML hint). */
-    private java.util.function.BiConsumer<OpenDocument, String> documentLoadedHandler = (doc, content) -> { };
+    java.util.function.BiConsumer<OpenDocument, String> documentLoadedHandler = (doc, content) -> { };
 
     /** Optional override for "new document" requests (e.g. the shell's guided New File dialog). */
     private Runnable newDocumentOverride;
 
+    /** Reading, saving and watching the files behind the tabs. */
+    final EditorFileSync fileSync = new EditorFileSync(this);
+
     private final EditorWelcomePane welcomePane = new EditorWelcomePane(
             this::requestNewDocument, this::openFileChooser, this::openFile,
             this::clearRecentFiles, this::fireWelcomeAction);
-
-    /** Watches the open documents' files for changes made by other programs. */
-    private final ExternalChangeMonitor externalChangeMonitor = new ExternalChangeMonitor(
-            this::watchedDocuments, this::handleExternalChanges,
-            task -> org.fxt.freexmltoolkit.FxtGui.executorService.execute(task));
-
-    /** Asks what to do about an externally changed/deleted file; replaceable in tests. */
-    private ExternalChangePrompt externalChangePrompt =
-            ExternalChangePrompt.dialogs(() -> getScene() != null ? getScene().getWindow() : null);
 
     public EditorHost() {
         getStyleClass().add("fxt-editor-tabs");
@@ -203,7 +171,7 @@ public class EditorHost extends BorderPane {
         tabArea.getChildren().setAll(tabPane);
 
         setupDragAndDrop();
-        externalChangeMonitor.attachTo(this);
+        fileSync.externalChangeMonitor.attachTo(this);
         // Tabs can be dragged left/right; the skin moves a tab by removing and re-adding it.
         tabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
         // Show the welcome empty-state while no document is open; swap to the tab
@@ -764,7 +732,7 @@ public class EditorHost extends BorderPane {
                     : answer.get() == save ? SaveBeforeTool.SAVE : SaveBeforeTool.CONTINUE;
         }
         return switch (choice) {
-            case SAVE -> write(dirty, file);
+            case SAVE -> fileSync.write(dirty, file);
             case CONTINUE -> true;
             case CANCEL -> false;
         };
@@ -913,188 +881,7 @@ public class EditorHost extends BorderPane {
         return schema;
     }
 
-    /** Reveals a named type in the Tree view (switching to the XSD tab + Tree if needed). */
-    public void revealTypeByName(String typeName) {
-        if (typeName == null) {
-            return;
-        }
-        EditorTab et = resolveStructuredEditorTab();
-        if (et == null) {
-            return;
-        }
-        // A type-editor tool tab may be focused — bring the XSD document tab to the front first.
-        if (tabPane.getSelectionModel().getSelectedItem() != et) {
-            tabPane.getSelectionModel().select(et);
-        }
-        setActiveViewMode(ViewMode.TREE);
-        getActiveSchemaRoot().ifPresent(root -> {
-            for (XsdNode child : root.getChildren()) {
-                // Named types and global element declarations (the Type Library lists both).
-                boolean revealable =
-                        child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.SIMPLE_TYPE
-                        || child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.COMPLEX_TYPE
-                        || child.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.ELEMENT;
-                if (revealable && typeName.equals(child.getName())) {
-                    selectNodeInActiveTree(child);
-                    return;
-                }
-            }
-        });
-    }
-
-    /**
-     * Opens an XSD file in the shell and, once it has loaded and parsed, switches to the
-     * Graphic view and selects the named element (preferred) or type. Bridge replacing the
-     * retired legacy XSD editor's {@code navigateToElementInGraphView}, used by the XML
-     * editor's "go to schema definition". Navigation is deferred until the async load
-     * completes; if {@code elementName} is blank the file is just opened.
-     */
-    public void openXsdAndReveal(java.nio.file.Path path, String elementName) {
-        if (path == null) {
-            return;
-        }
-        openFile(path);
-        if (elementName != null && !elementName.isBlank()) {
-            revealInGraphAfterLoad(path, elementName, 80);
-        }
-    }
-
-    private void revealInGraphAfterLoad(java.nio.file.Path path, String name, int attemptsLeft) {
-        var doc = getActiveDocument();
-        boolean loaded = doc.isPresent() && path.equals(doc.get().getPath())
-                && getActiveText().map(t -> !t.isBlank()).orElse(false);
-        if (loaded) {
-            setActiveViewMode(ViewMode.GRAPHIC);
-            XsdNode node = findNodeByName(getActiveSchemaRoot().orElse(null), name);
-            if (node != null) {
-                selectNodeInActiveTree(node);
-                return;
-            }
-        }
-        if (attemptsLeft > 0) {
-            // Space out retries so the async file load + model parse can complete
-            // (a tight runLater chain would exhaust all attempts in milliseconds).
-            javafx.animation.PauseTransition pause =
-                    new javafx.animation.PauseTransition(javafx.util.Duration.millis(50));
-            pause.setOnFinished(e -> revealInGraphAfterLoad(path, name, attemptsLeft - 1));
-            pause.play();
-        }
-    }
-
-    /** Depth-first search for a named node, preferring elements over types; cycle-safe. */
-    private static XsdNode findNodeByName(XsdNode root, String name) {
-        if (root == null || name == null) {
-            return null;
-        }
-        XsdNode fallback = null;
-        java.util.Set<XsdNode> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
-        java.util.Deque<XsdNode> stack = new java.util.ArrayDeque<>();
-        stack.push(root);
-        while (!stack.isEmpty()) {
-            XsdNode n = stack.pop();
-            if (!visited.add(n)) {
-                continue;
-            }
-            if (name.equals(n.getName())) {
-                if (n.getNodeType() == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.ELEMENT) {
-                    return n;
-                }
-                if (fallback == null) {
-                    fallback = n;
-                }
-            }
-            for (XsdNode c : n.getChildren()) {
-                stack.push(c);
-            }
-        }
-        return fallback;
-    }
-
-    /**
-     * Reveals, in the active Graphic view, the card at an instance path (the model particle of
-     * every step from the global root element down, see {@code XsdInstanceLocator.Located#particlePath()}),
-     * expanding the diagram along that path; in the Tree view the last particle is revealed.
-     */
-    public void revealPathInActiveGraph(java.util.List<XsdNode> particlePath) {
-        if (particlePath == null || particlePath.isEmpty()) {
-            return;
-        }
-        withActive(et -> {
-            if (et.viewMode == ViewMode.GRAPHIC && et.xsdGraphView != null) {
-                et.xsdGraphView.revealModelPath(particlePath);
-            } else if (et.viewMode == ViewMode.TREE && et.treeView != null) {
-                et.treeView.revealNode(particlePath.get(particlePath.size() - 1));
-            }
-        });
-    }
-
-    /** Selects (reveals) the given node in the active structured view (Tree or Graphic). */
-    public void selectNodeInActiveTree(XsdNode node) {
-        withActive(et -> {
-            if (et.viewMode == ViewMode.TREE && et.treeView != null) {
-                et.treeView.revealNode(node);
-            } else if (et.viewMode == ViewMode.GRAPHIC && et.xsdGraphView != null) {
-                et.xsdGraphView.selectModelNode(node);
-            }
-        });
-    }
-
-    /**
-     * Reveals, in the Tree view, the live-model node whose schema XPath
-     * ({@link XsdNode#getXPath()}, e.g. {@code /xs:schema/xs:complexType[@name='T']/xs:sequence})
-     * equals {@code xpath}. Used by reports that analyzed a <em>fresh</em> parse of the
-     * document and therefore cannot navigate by node identity. Unnamed siblings (two
-     * {@code xs:sequence} under one parent) share an XPath; the first match wins.
-     *
-     * @return true if a node was found and selected
-     */
-    public boolean revealSchemaNodeByXPath(String xpath) {
-        if (xpath == null || xpath.isBlank()) {
-            return false;
-        }
-        EditorTab et = resolveStructuredEditorTab();
-        if (et == null) {
-            return false;
-        }
-        if (tabPane.getSelectionModel().getSelectedItem() != et) {
-            tabPane.getSelectionModel().select(et);
-        }
-        setActiveViewMode(ViewMode.TREE);
-        XsdNode root = getActiveSchemaRoot().orElse(null);
-        XsdNode match = findNodeByXPath(root, xpath);
-        if (match == null) {
-            return false;
-        }
-        selectNodeInActiveTree(match);
-        return true;
-    }
-
-    /** Depth-first search for the first node whose {@code getXPath()} equals {@code xpath}; cycle-safe. */
-    private static XsdNode findNodeByXPath(XsdNode root, String xpath) {
-        if (root == null) {
-            return null;
-        }
-        java.util.Set<XsdNode> visited = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
-        java.util.Deque<XsdNode> stack = new java.util.ArrayDeque<>();
-        stack.push(root);
-        while (!stack.isEmpty()) {
-            XsdNode n = stack.pop();
-            if (!visited.add(n)) {
-                continue;
-            }
-            if (xpath.equals(n.getXPath())) {
-                return n;
-            }
-            // Children are pushed in reverse so document order is searched first.
-            java.util.List<XsdNode> children = n.getChildren();
-            for (int i = children.size() - 1; i >= 0; i--) {
-                stack.push(children.get(i));
-            }
-        }
-        return null;
-    }
-
-    private void refreshSelectedNode() {
+    void refreshSelectedNode() {
         XsdNode selected = null;
         org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode xmlSelected = null;
         org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode jsonSelected = null;
@@ -1157,7 +944,7 @@ public class EditorHost extends BorderPane {
         }
         rememberRecentFile(path); // before addTab: open-document listeners read the list
         EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
-                this::openNamedTypeEditor, this::goToXmlDefinition);
+                this::openNamedTypeEditor, schemaLookup::goToXmlDefinition);
         addTab(tab, select);
         // HTML files open rendered; the preview fills once the async load lands.
         if (tab.document.getFileType() == EditorFileType.HTML) {
@@ -1166,10 +953,10 @@ public class EditorHost extends BorderPane {
                 activeViewMode.set(tab.viewMode); // addTab just selected this tab
             }
         }
-        installInputNodeBreakpointMenu(tab);
+        debugSupport.installInputNodeBreakpointMenu(tab);
         // Wire "Go to Definition": open the bound XSD and reveal the element (no-op for non-XML views).
-        tab.view.setGoToDefinitionHandler(this::goToDefinition);
-        loadAsync(tab, path);
+        tab.view.setGoToDefinitionHandler(schemaLookup::goToDefinition);
+        fileSync.loadAsync(tab, path);
     }
 
     /** Convenience overload of {@link #openFile(Path)} for {@link File} call sites. */
@@ -1276,7 +1063,7 @@ public class EditorHost extends BorderPane {
     private final java.util.Map<String, Tab> openTypeTabs = new java.util.HashMap<>();
 
     /** Shell-wide clipboard for copy/cut/paste of XSD nodes across the structured views. */
-    private final org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard nodeClipboard =
+    final org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard nodeClipboard =
             new org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard();
 
     /**
@@ -1294,7 +1081,7 @@ public class EditorHost extends BorderPane {
      * target, so the request is ignored. Deferred to the FX pulse so the originating context menu
      * has fully closed first.
      */
-    private void openNamedTypeEditor(String typeName) {
+    void openNamedTypeEditor(String typeName) {
         if (typeName == null || typeName.isBlank()) {
             return;
         }
@@ -1327,7 +1114,7 @@ public class EditorHost extends BorderPane {
             // The form edits the shared model live; round-trip each change to the XSD text.
             view.setOnChangeCallback(et::scheduleRoundTrip);
             view.setOnSaveCallback(et::scheduleRoundTrip);
-            view.setOnFindUsageCallback(() -> revealTypeByName(typeName));
+            view.setOnFindUsageCallback(() -> schemaLookup.revealTypeByName(typeName));
             tab = openToolTab("Type: " + typeName, "bi-braces-asterisk", view);
             Tab created = tab;
             view.setOnCloseCallback(() -> closeTypeTab(created));
@@ -1355,7 +1142,7 @@ public class EditorHost extends BorderPane {
     }
 
     /** The XSD source tab for type editing: the active one if structured, else the first such tab. */
-    private EditorTab resolveStructuredEditorTab() {
+    EditorTab resolveStructuredEditorTab() {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab active
                 && active.supportsStructuredViews()) {
             return active;
@@ -1449,7 +1236,7 @@ public class EditorHost extends BorderPane {
             if (path != null) {
                 // Through write() so the disk stamp follows; a failure surfaces via the document
                 // staying dirty (the diff view reports save errors itself).
-                write(left, path);
+                fileSync.write(left, path);
             }
         };
         return org.fxt.freexmltoolkit.controls.diff.DiffView.open(leftName, leftText, leftSave, rightFile)
@@ -1781,7 +1568,7 @@ public class EditorHost extends BorderPane {
     /** Creates an empty untitled document of the given type. */
     public OpenDocument newDocument(EditorFileType type) {
         EditorTab tab = new EditorTab(OpenDocument.untitled(untitledName(), type), this::refreshSelectedNode,
-                nodeClipboard, this::openNamedTypeEditor, this::goToXmlDefinition);
+                nodeClipboard, this::openNamedTypeEditor, schemaLookup::goToXmlDefinition);
         addTab(tab);
         tab.attachDirtyTracking();
         UsageEvents.fileOpened(type != null ? type.docKind() : null, -1, UsageEvents.SOURCE_NEW);
@@ -1805,7 +1592,7 @@ public class EditorHost extends BorderPane {
     public OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName,
                                               String usageSource) {
         EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode,
-                nodeClipboard, this::openNamedTypeEditor, this::goToXmlDefinition);
+                nodeClipboard, this::openNamedTypeEditor, schemaLookup::goToXmlDefinition);
         addTab(tab);
         tab.view.setText(content);
         tab.attachDirtyTracking();
@@ -1960,7 +1747,7 @@ public class EditorHost extends BorderPane {
     }
 
     /** Records {@code path} in the recent-files list (File → Recent, Explorer, Welcome; best-effort). */
-    private static void rememberRecentFile(Path path) {
+    static void rememberRecentFile(Path path) {
         try {
             org.fxt.freexmltoolkit.di.ServiceRegistry
                     .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
@@ -2001,77 +1788,6 @@ public class EditorHost extends BorderPane {
     }
 
     // ----- saving / editing ------------------------------------------------
-
-    /**
-     * Saves the active document to its current path (must be titled). The file is written on a worker
-     * thread (a large file on a network drive blocked the UI for seconds).
-     *
-     * @return completes on the FX thread with whether the file was written
-     */
-    public CompletableFuture<Boolean> saveActive() {
-        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                ? saveTab(et) : CompletableFuture.completedFuture(false);
-    }
-
-    /** Saves {@code et} to its current path (must be titled), written on a worker thread. */
-    private CompletableFuture<Boolean> saveTab(EditorTab et) {
-        if (et.document.isUntitled()) {
-            return CompletableFuture.completedFuture(false);
-        }
-        return writeAsync(et, et.document.getPath()).thenApply(saved -> {
-            if (saved) {
-                UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
-            }
-            return saved;
-        });
-    }
-
-    /**
-     * Saves the active document to {@code target} (Save As), written on a worker thread.
-     *
-     * @return completes on the FX thread with whether the file was written
-     */
-    public CompletableFuture<Boolean> saveActiveAs(Path target) {
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (!(tab instanceof EditorTab et)) {
-            return CompletableFuture.completedFuture(false);
-        }
-        Path normalized = withTypeExtension(et, target);
-        if (normalized == null) {
-            return CompletableFuture.completedFuture(false);
-        }
-        return writeAsync(et, relocateGeneratedSchemaReference(et, normalized)).thenApply(saved -> {
-            if (saved) {
-                et.document.setPath(normalized);
-                et.refreshIcon();
-                installBreakpointGutter(et);
-                rememberRecentFile(normalized);
-                UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
-            }
-            return saved;
-        });
-    }
-
-    /**
-     * Saves all titled, dirty documents, written on worker threads.
-     *
-     * @return completes on the FX thread with the number of files written
-     */
-    public CompletableFuture<Integer> saveAll() {
-        java.util.List<CompletableFuture<Boolean>> writes = new java.util.ArrayList<>();
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && !et.document.isUntitled() && et.document.isDirty()) {
-                writes.add(writeAsync(et, et.document.getPath()));
-            }
-        }
-        CompletableFuture<Integer> result = new CompletableFuture<>();
-        CompletableFuture.allOf(writes.toArray(CompletableFuture[]::new)).whenComplete((ignored, error) -> {
-            int saved = (int) writes.stream().filter(w -> Boolean.TRUE.equals(w.getNow(false))).count();
-            UsageEvents.fileSaved(null, saved);
-            result.complete(saved);
-        });
-        return result;
-    }
 
     /**
      * Undo: the model command stack in structured (Tree/Graphic) mode — XSD, XML instance
@@ -2784,7 +2500,7 @@ public class EditorHost extends BorderPane {
             Platform.runLater(() -> {
                 et.endLoading();
                 boolean apply = output != null && !output.isBlank() && et.textRevision == revision
-                        && !isAbandoned(et);
+                        && !EditorTab.isAbandoned(et);
                 if (apply) {
                     et.view.setText(output);
                     et.document.setDirty(true);
@@ -2843,6 +2559,11 @@ public class EditorHost extends BorderPane {
         return tab instanceof EditorTab et ? et.view : null;
     }
 
+    // ----- schema binding --------------------------------------------------
+
+    /** Schema binding, auto-detection and the XSD-derived provider of XML tabs. */
+    final EditorSchemaBinding schemaBinding = new EditorSchemaBinding(this);
+
     /**
      * Binds a schema to the active document — an XSD (schema-aware IntelliSense +
      * validation) for the XML family, a JSON Schema (validation) for JSON documents.
@@ -2850,8 +2571,7 @@ public class EditorHost extends BorderPane {
      * @return completes on the FX thread with {@code true} once bound (the schema is parsed off-thread)
      */
     public CompletableFuture<Boolean> setSchemaForActiveDocument(File xsd) {
-        return bindSchemaToActiveDocument(xsd, SchemaRebindPolicy.SchemaBindingOrigin.MANUAL,
-                SchemaSource.MANUAL, null, null);
+        return schemaBinding.setSchemaForActiveDocument(xsd);
     }
 
     /**
@@ -2866,144 +2586,40 @@ public class EditorHost extends BorderPane {
      * @return completes on the FX thread with {@code true} once bound
      */
     public CompletableFuture<Boolean> bindGeneratedSchemaToActiveDocument(File xsd) {
-        if (xsd == null) {
-            return CompletableFuture.completedFuture(false);
-        }
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (!(tab instanceof EditorTab et)) {
-            return CompletableFuture.completedFuture(false);
-        }
-        // What the reconcile will sniff from the buffer (no base directory: untitled).
-        String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
-                .get(org.fxt.freexmltoolkit.service.XmlService.class)
-                .getSchemaNameFromXmlContent(et.view.getText(), null)
-                .orElse(null);
-        return bindSchemaToActiveDocument(xsd, SchemaRebindPolicy.SchemaBindingOrigin.AUTO,
-                SchemaSource.DECLARED, xsd.getAbsolutePath(), declared);
+        return schemaBinding.bindGeneratedSchemaToActiveDocument(xsd);
     }
 
     /**
-     * Binds {@code xsd} (or clears the binding for {@code null}) on the active tab. Parsing a
-     * schema can take seconds to minutes for large XSDs, so it runs on a worker thread while
-     * the status bar shows LOADING; the FX thread only applies the result. Call on the FX thread.
-     *
-     * @return completes on the FX thread with {@code true} once the schema is bound, or
-     *         {@code false} if it failed to load, the tab was closed, or a newer bind superseded it
+     * Re-runs the schema auto-detection ({@code xsi:schemaLocation} /
+     * {@code xsi:noNamespaceSchemaLocation}, local and remote) for the active document
+     * when it has no schema bound yet — e.g. when the Validation panel opens and the
+     * reference was added after the file was opened, or an earlier remote download
+     * failed. Detection reads the live editor buffer, so unsaved (even untitled)
+     * documents work. No-op when a schema is already bound, so an explicit user choice
+     * is never overridden; the changed/removed-reference cases are handled by the
+     * validation-time reconcile in {@link #schemaForValidation(String)}.
      */
-    private CompletableFuture<Boolean> bindSchemaToActiveDocument(File xsd,
-                                                                  SchemaRebindPolicy.SchemaBindingOrigin origin,
-                                                                  SchemaSource source, String sourceDetail,
-                                                                  String declared) {
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (!(tab instanceof EditorTab et) || !et.view.supportsSchema()) {
-            return CompletableFuture.completedFuture(false);
-        }
-        long request = et.schemaBindRequest.incrementAndGet();
-        et.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
-        if (xsd == null) {
-            et.view.clearSchema(); // loadSchema(null) is a no-op failure in the views
-            et.schemaFile = null;
-            et.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.NONE;
-            applySchemaBindingUi(et, null, SchemaSource.NONE, null);
-            return CompletableFuture.completedFuture(true);
-        }
-        publishSchemaStatus(et, SchemaStatus.LOADING);
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-        long bindStart = System.nanoTime();
-        var bindKind = et.document.getFileType().docKind();
-        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            boolean bound = false;
-            // Same per-tab lock as the detections: the Xerces DOM behind the schema pipeline is
-            // not thread-safe, and holding it until the binding fields are set keeps a validation
-            // reconcile from re-detecting over the user's choice in between.
-            if (acquireSchemaDetection(et, () -> et.schemaBindRequest.get() != request)) {
-                try {
-                    if (et.schemaBindRequest.get() == request) {
-                        bound = loadSchemaSafely(et, xsd);
-                        // re-checked after the (long) parse: a newer bind or a clear may have arrived
-                        if (bound && et.schemaBindRequest.get() == request) {
-                            et.schemaFile = xsd;
-                            et.schemaOrigin = origin;
-                            if (origin == SchemaRebindPolicy.SchemaBindingOrigin.AUTO) {
-                                // Behaves like a detection result: an unchanged declaration is
-                                // KEEP-fast-pathed. Manual bindings leave the last detection alone
-                                // (MANUAL never rebinds).
-                                et.lastDetectedSchemaLocation = declared;
-                            }
-                        }
-                    }
-                } finally {
-                    et.schemaDetecting.set(false);
-                }
-            }
-            boolean applied = bound;
-            Platform.runLater(() -> {
-                if (isAbandoned(et) || et.schemaBindRequest.get() != request) {
-                    result.complete(false); // closed, or a newer bind owns the status now
-                    return;
-                }
-                if (applied) {
-                    applySchemaBindingUi(et, xsd, source, sourceDetail);
-                } else {
-                    // the user picked a schema that failed to load — surface it in the status bar
-                    publishSchemaStatus(et, SchemaStatus.ERROR);
-                }
-                if (origin == SchemaRebindPolicy.SchemaBindingOrigin.MANUAL) {
-                    // the automatic bindings report themselves when a document is opened
-                    UsageEvents.schemaBound(bindKind, "manual", applied, applied ? null : "unloadable",
-                            applied ? null : "file", bindStart);
-                }
-                result.complete(applied);
-            });
-        });
-        return result;
-    }
-
-    /** FX-thread half of a successful bind or clear: caches, active-schema mirror, status, provider. */
-    private void applySchemaBindingUi(EditorTab et, File xsd, SchemaSource source, String sourceDetail) {
-        et.view.invalidateIntelliSenseCache();
-        if (et.isSelected()) {
-            activeSchema.set(xsd);
-        }
-        publishSchemaSource(et, xsd == null ? SchemaSource.NONE : source, xsd == null ? null : sourceDetail);
-        publishSchemaStatus(et, xsd == null ? SchemaStatus.NONE : SchemaStatus.READY);
-        loadXmlSchemaProviderAsync(et, xsd);
-    }
-
-    /** {@code view.loadSchema} on a worker thread; an unexpected failure counts as "not bound". */
-    private static boolean loadSchemaSafely(EditorTab tab, File xsd) {
-        try {
-            return tab.view.loadSchema(xsd);
-        } catch (RuntimeException | StackOverflowError | OutOfMemoryError e) {
-            logger.warn("Could not load schema {}: {}", xsd, e.toString());
-            if (e instanceof OutOfMemoryError) {
-                org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError(e, "editor.schema_load");
-            }
-            return false;
-        }
+    public void redetectSchemaForActiveDocument() {
+        schemaBinding.redetectSchemaForActiveDocument();
     }
 
     /**
-     * Takes the tab's {@link EditorTab#schemaDetecting} lock on a worker thread, waiting for a
-     * running detection (bounded, like {@link #redetectSchemaForActiveDocument()}).
-     *
-     * @param giveUp checked while waiting; {@code true} means the caller has been superseded
-     * @return {@code true} if the lock is now held (release it with {@code schemaDetecting.set(false)})
+     * Reconciles the active document's XSD binding with the schema location declared in
+     * {@code content} (the live editor buffer) and returns a supplier the validation
+     * worker calls to obtain the XSD to validate against. Call this on the FX thread —
+     * it snapshots the active tab; resolve the supplier on a worker thread only, as a
+     * changed remote reference may be downloaded there. An added, changed, or removed
+     * {@code xsi:schemaLocation} / {@code xsi:noNamespaceSchemaLocation} therefore takes
+     * effect on the very validation run that observes it. Policy (see
+     * {@link SchemaRebindPolicy}): manual bindings are never overridden, and an
+     * unchanged declaration costs no I/O.
      */
-    private static boolean acquireSchemaDetection(EditorTab tab, java.util.function.BooleanSupplier giveUp) {
-        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(120);
-        while (!tab.schemaDetecting.compareAndSet(false, true)) {
-            if (giveUp.getAsBoolean() || System.nanoTime() > deadline || isAbandoned(tab)) {
-                return false;
-            }
-            try {
-                Thread.sleep(25);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return false;
-            }
-        }
-        return true;
+    public java.util.function.Supplier<File> schemaForValidation(String content) {
+        return schemaBinding.schemaForValidation(content);
+    }
+    /** @return how many schema bindings have been applied since this host was created */
+    int schemaBindingsApplied() {
+        return schemaBinding.schemaBindingsApplied();
     }
 
     // ----- navigation ------------------------------------------------------
@@ -3113,7 +2729,7 @@ public class EditorHost extends BorderPane {
      * editor's single extra-gutter slot receives the composite (or {@code null} when
      * no feature contributes, so the gutter column collapses as before).
      */
-    private static boolean setGutterContributor(EditorTab et, String key,
+    static boolean setGutterContributor(EditorTab et, String key,
             java.util.function.IntFunction<javafx.scene.Node> factory) {
         et.gutter.set(key, factory);
         return et.view.setExtraGutterFactory(et.gutter.isEmpty() ? null : et.gutter);
@@ -3127,22 +2743,6 @@ public class EditorHost extends BorderPane {
                 return;
             }
         }
-    }
-
-    /**
-     * Shows the paused values after their declaration lines on a stylesheet's editor tab
-     * ({@code null} clears): see {@link org.fxt.freexmltoolkit.debugger.InlineValues}.
-     */
-    private void setDebugInlineValuesFor(OpenDocument document,
-            org.fxt.freexmltoolkit.debugger.PausedSnapshot snapshot) {
-        EditorTab tab = editorTabOf(document);
-        if (tab == null) {
-            return;
-        }
-        java.util.Map<Integer, String> values = snapshot == null ? java.util.Map.of()
-                : org.fxt.freexmltoolkit.debugger.InlineValues.compute(
-                        getDocumentText(document).orElse(""), snapshot.lineNumber(), snapshot);
-        tab.view.setDebugInlineValues(values);
     }
 
     /** Re-renders the gutter on a specific open document's editor tab (if open). */
@@ -3181,50 +2781,17 @@ public class EditorHost extends BorderPane {
     /** Key of the DEBUG pane in the bottom dock. */
     public static final String DEBUG_DOCK_KEY = "debug";
 
-    /** A stylesheet module opened during a debug session, with its breakpoint gutter. */
-    private record DebugModule(OpenDocument document, org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory gutter) { }
-
-    /** Everything belonging to the one active debug session. */
-    private static final class XsltDebugSession {
-        final org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController controller;
-        final org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane pane;
-        final File mainFile;
-        final String mainPath;
-        /** Modules by normalised file path, the main stylesheet first. */
-        final java.util.Map<String, DebugModule> modules = new java.util.LinkedHashMap<>();
-        /** Normalised paths of the modules the main stylesheet includes/imports (static scan). */
-        final java.util.Set<String> resolvedModules;
-        /** Value popups installed on the module editors for this session. */
-        final java.util.Map<OpenDocument, org.fxt.freexmltoolkit.controls.shell.editor.debug.DebugHover> hovers =
-                new java.util.HashMap<>();
-        /** The run's input: its file (when it came from one) and/or its open document. */
-        Path inputFile;
-        OpenDocument inputDocument;
-        /** The input document whose context-node line is marked, and that line. */
-        OpenDocument markedInput;
-        int markedInputLine;
-
-        XsltDebugSession(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController controller,
-                         org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane pane, File mainFile,
-                         java.util.Set<String> resolvedModules) {
-            this.controller = controller;
-            this.pane = pane;
-            this.mainFile = mainFile;
-            this.mainPath = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(mainFile.getAbsolutePath());
-            this.resolvedModules = java.util.Set.copyOf(resolvedModules);
-        }
-    }
-
-    private XsltDebugSession activeDebug;
+    /** Debugger wiring (sessions, breakpoint gutters, inline values, launch configurations). */
+    final EditorDebugSupport debugSupport = new EditorDebugSupport(this);
 
     /** @return {@code true} while an XSLT debug session is alive (its pane is in the dock). */
     public boolean isDebugSessionActive() {
-        return activeDebug != null;
+        return debugSupport.isDebugSessionActive();
     }
 
     /** @return the DEBUG pane of the active session, or {@code null}. */
     public org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane activeDebugPane() {
-        return activeDebug == null ? null : activeDebug.pane;
+        return debugSupport.activeDebugPane();
     }
 
     /**
@@ -3233,7 +2800,7 @@ public class EditorHost extends BorderPane {
      * @return {@code true} if the key was consumed by the debugger
      */
     public boolean handleDebugShortcut(javafx.scene.input.KeyEvent event) {
-        return activeDebug != null && activeDebug.pane.handleShortcut(event);
+        return debugSupport.handleDebugShortcut(event);
     }
 
     /**
@@ -3246,7 +2813,7 @@ public class EditorHost extends BorderPane {
     public void startXsltDebug(java.io.File xsltFile, String xml,
             java.util.Map<String, Object> parameters,
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format) {
-        startXsltDebug(xsltFile, xml, parameters, format, null);
+        debugSupport.startXsltDebug(xsltFile, xml, parameters, format);
     }
 
     /**
@@ -3258,466 +2825,17 @@ public class EditorHost extends BorderPane {
             java.util.Map<String, Object> parameters,
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format,
             java.util.function.Consumer<org.fxt.freexmltoolkit.service.XsltTransformationResult> onFinished) {
-        if (activeDebug != null) {
-            endXsltDebug();
-        }
-
-        // 1. Open (or focus) the stylesheet as an editor document.
-        openFile(xsltFile);
-        OpenDocument xsltDoc = getActiveDocument().orElse(null);
-        if (xsltDoc == null) {
-            return;
-        }
-
-        // Read the stylesheet up front: if it cannot be read, surface a clear error and abort
-        // rather than silently running Saxon on an empty stylesheet.
-        try {
-            java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            // debug_run (stage start) carries the failure; the dialog explains it
-            UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("XSLT Debug", "Could not start the debugger.",
-                    "Could not read stylesheet: " + e.getMessage(), e, false);
-            return;
-        }
-
-        // 2. Controller + session: restore the persisted breakpoints — the main stylesheet's
-        //    (plus any legacy aggregate stored under it) and those set in the editor on the
-        //    modules it includes — attach the gutter to the main module and to every module
-        //    already open, and pause on entry when there is nothing to stop at.
-        var controller = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController();
-        // An .xq file is debugged as XQuery, a Schematron through its compiled XSLT (same
-        // session, dock, gutter and watches).
-        EditorFileType debugType = EditorFileType.fromFileName(xsltFile.getName());
-        if (debugType == EditorFileType.XQUERY) {
-            controller.setLanguage(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.XQUERY);
-        } else if (debugType == EditorFileType.SCHEMATRON) {
-            controller.setLanguage(org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.SCHEMATRON);
-        }
-        var session = controller.getSession();
-        for (org.fxt.freexmltoolkit.debugger.Breakpoint bp
-                : org.fxt.freexmltoolkit.debugger.BreakpointStore.load(xsltFile.getAbsolutePath())) {
-            session.addBreakpoint(bp);
-        }
-        java.util.Set<String> resolvedModules =
-                org.fxt.freexmltoolkit.debugger.StylesheetModules.resolve(xsltFile.toPath());
-        for (String module : resolvedModules) {
-            mergeStoredBreakpoints(session, module);
-        }
-        org.fxt.freexmltoolkit.debugger.WatchStore.loadSymbols(xsltFile.getAbsolutePath())
-                .forEach(session::addSymbolBreakpoint);
-        controller.setPauseOnEntry(debugForcePauseOnEntry
-                || session.getBreakpoints().isEmpty() && session.getSymbolBreakpoints().isEmpty());
-        debugForcePauseOnEntry = false;
-        if (debugRunToLine > 0) {
-            controller.setRunToOnStart(debugRunToPath, debugRunToLine);
-            debugRunToLine = 0;
-        }
-
-        Path inputFile = debugInputFile;
-        debugInputFile = null;
-        var pane = new org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugPane(controller);
-        // The Template… dialog suggests the names declared in the stylesheet and its modules.
-        pane.getBreakpointsView().setStylesheetSupplier(() -> stylesheetTexts(xsltFile, resolvedModules));
-        // Smart Step Into: the calls on the paused line, from the editor text of the paused module.
-        pane.setStepTargetSource(snap -> debugStepTargets(xsltFile, resolvedModules, snap));
-        // Watches belong to the main stylesheet and come back with its next session.
-        String watchKey = xsltFile.getAbsolutePath();
-        pane.getWatchView().setWatches(org.fxt.freexmltoolkit.debugger.WatchStore.load(watchKey));
-        pane.getWatchView().setOnWatchesChanged(
-                list -> org.fxt.freexmltoolkit.debugger.WatchStore.save(watchKey, list));
-        XsltDebugSession debug = new XsltDebugSession(controller, pane, xsltFile, resolvedModules);
-        debug.inputFile = inputFile;
-        debug.inputDocument = inputFile != null ? documentAt(inputFile) : documentWithText(xml, xsltDoc);
-        lastLaunch = new LastLaunch(xsltFile, inputFile, debug.inputDocument,
-                parameters == null ? java.util.Map.of() : new java.util.LinkedHashMap<>(parameters), format, onFinished);
-        activeDebug = debug;
-        attachDebugModule(debug, xsltDoc, debug.mainPath);
-        for (Tab tab : new java.util.ArrayList<>(tabPane.getTabs())) {
-            if (tab instanceof EditorTab et && et.document.getPath() != null) {
-                String path = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(et.document.getPath().toString());
-                if (resolvedModules.contains(path) && !debug.modules.containsKey(path)) {
-                    attachDebugModule(debug, et.document, path);
-                }
-            }
-        }
-
-        // 3. Wire the pane back to this host.
-        pane.setOnPaused(this::onDebugPaused);
-        pane.setOnShowInput(() -> showDebugInput(debug));
-        pane.setOnOpenDocument(uri -> {
-            try {
-                Path file = Path.of(java.net.URI.create(uri));
-                if (java.nio.file.Files.isRegularFile(file)) {
-                    openFile(file, true);
-                }
-            } catch (RuntimeException ignored) {
-                // not a local file
-            }
-        });
-        pane.setOnShowInEditor(() -> {
-            var snap = session.getPausedSnapshot();
-            if (snap != null) {
-                jumpToDebugLocation(snap.filePath(), snap.lineNumber());
-            } else {
-                selectDocument(xsltDoc);
-            }
-        });
-        pane.setOnJumpToBreakpoint(bp -> jumpToDebugLocation(bp.filePath(), bp.lineNumber()));
-        pane.setOnJumpToFrame(frame -> jumpToDebugLocation(frame.filePath(), frame.lineNumber()));
-        pane.setOnJumpToMessage(msg -> {
-            if (msg.getLineNumber() > 0) {
-                jumpToDebugLocation(moduleForMessage(debug, msg.getLocation()), msg.getLineNumber());
-            }
-        });
-        pane.setOnBreakpointsChanged(() -> {
-            debug.modules.values().forEach(m -> refreshGutterFor(m.document()));
-            persistDebugBreakpoints(debug);
-        });
-        pane.setOnResult(result -> {
-            showDebugResult(debug, result);
-            if (onFinished != null && result != null) {
-                onFinished.accept(result);
-            }
-        });
-        pane.setOnClose(this::endXsltDebug);
-
-        bottomDock().register(DEBUG_DOCK_KEY, pane, "DEBUG");
-        bottomDock().show(DEBUG_DOCK_KEY);
-        selectDocument(xsltDoc);
-
-        // 4. Start the run: the stylesheet is re-read from disk on every (re)start.
-        // The debugger runs what the editor shows: the open stylesheet's (and open modules')
-        // text, saved or not — read on the FX thread at every (re)start. Breakpoints follow the
-        // editor's lines, so they match.
-        controller.setModuleTexts(() -> onFxThread(this::openStylesheetTexts));
-        controller.start(xml, inputFile == null ? null : inputFile.toUri().toString(),
-                () -> onFxThread(() -> stylesheetText(xsltFile, controller)),
-                xsltFile.toURI().toString(), parameters, format);
-    }
-
-    /**
-     * The text the debugger runs for the main stylesheet: the editor's when it is open (a note
-     * goes to Messages when it has unsaved changes), else the file.
-     */
-    private String stylesheetText(File xsltFile,
-                                  org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController controller) {
-        OpenDocument doc = documentAt(xsltFile.toPath());
-        if (doc != null && controller.getLanguage()
-                == org.fxt.freexmltoolkit.controls.shell.editor.debug.XsltDebugController.Language.SCHEMATRON) {
-            // SchXslt compiles the file (and its includes) from disk
-            if (doc.isDirty()) {
-                controller.note("Debugging the saved file of " + doc.getDisplayName()
-                        + " - save it to include the unsaved changes");
-            }
-            doc = null;
-        }
-        if (doc != null) {
-            var text = getDocumentText(doc);
-            if (text.isPresent() && !text.get().isEmpty()) {
-                if (doc.isDirty()) {
-                    controller.note("Debugging the editor text of " + doc.getDisplayName()
-                            + " (unsaved changes included)");
-                }
-                return text.get();
-            }
-        }
-        try {
-            return java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new java.io.UncheckedIOException(e);
-        }
-    }
-
-    /** The editor text of every open, saved XSLT document, by normalised path (FX thread). */
-    private java.util.Map<String, String> openStylesheetTexts() {
-        java.util.Map<String, String> texts = new java.util.HashMap<>();
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && et.document.getPath() != null
-                    && et.document.getFileType() == EditorFileType.XSLT) {
-                getDocumentText(et.document).filter(t -> !t.isEmpty()).ifPresent(t -> texts.put(
-                        org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(et.document.getPath().toString()), t));
-            }
-        }
-        return texts;
-    }
-
-    /** Runs {@code work} on the FX thread and waits for it (directly when already there). */
-    private static <T> T onFxThread(java.util.concurrent.Callable<T> work) {
-        if (javafx.application.Platform.isFxApplicationThread()) {
-            try {
-                return work.call();
-            } catch (RuntimeException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new IllegalStateException(e);
-            }
-        }
-        java.util.concurrent.FutureTask<T> task = new java.util.concurrent.FutureTask<>(work);
-        javafx.application.Platform.runLater(task);
-        try {
-            return task.get(10, java.util.concurrent.TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException(e);
-        } catch (java.util.concurrent.ExecutionException e) {
-            throw new IllegalStateException(e.getCause() == null ? e.getMessage() : e.getCause().getMessage(), e);
-        } catch (java.util.concurrent.TimeoutException e) {
-            throw new IllegalStateException("The editor did not answer in time", e);
-        }
-    }
-
-    /** @return the open document of {@code file}, or {@code null}. */
-    private OpenDocument documentAt(Path file) {
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && et.document.getPath() != null
-                    && et.document.getPath().toAbsolutePath().normalize().equals(file.toAbsolutePath().normalize())) {
-                return et.document;
-            }
-        }
-        return null;
-    }
-
-    /** @return the open document (other than {@code except}) whose current text is {@code text}. */
-    private OpenDocument documentWithText(String text, OpenDocument except) {
-        if (text == null) {
-            return null;
-        }
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && et.document != except
-                    && getDocumentText(et.document).map(text::equals).orElse(false)) {
-                return et.document;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Marks the paused context node's line in its input document (blue tint) without switching
-     * tabs, and enables the pane's Show input. In-memory input maps to the open document the
-     * text came from; a file input — or a document loaded with {@code doc()} — is opened behind
-     * the stylesheet when it is not open yet.
-     */
-    private void markDebugInput(XsltDebugSession debug, org.fxt.freexmltoolkit.debugger.PausedSnapshot snapshot) {
-        if (debug.markedInput != null) {
-            setDebugInputLineFor(debug.markedInput, -1);
-            debug.markedInput = null;
-            debug.markedInputLine = 0;
-        }
-        debug.pane.setInputLocationAvailable(false);
-        if (snapshot == null) {
-            return;
-        }
-        var location = org.fxt.freexmltoolkit.debugger.InputLocation.of(snapshot.contextXdm()).orElse(null);
-        if (location == null) {
-            return;
-        }
-        OpenDocument doc = inputDocumentFor(debug, location.systemId());
-        if (doc == null) {
-            return;
-        }
-        debug.markedInput = doc;
-        debug.markedInputLine = location.line();
-        whenDocumentLoaded(doc, () -> {
-            if (debug.markedInput == doc) {
-                setDebugInputLineFor(doc, location.line());
-            }
-        }, 15);
-        debug.pane.setInputLocationAvailable(true);
-    }
-
-    /** @return the open document for an input node's system id, opening a file behind if needed. */
-    private OpenDocument inputDocumentFor(XsltDebugSession debug, String systemId) {
-        String path = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(systemId);
-        if (path.isEmpty()) {
-            return debug.inputDocument;
-        }
-        if (debug.modules.containsKey(path) || path.equals(debug.mainPath)) {
-            return null; // a node of the stylesheet itself (document('')) — not an input
-        }
-        Path file = Path.of(path);
-        OpenDocument doc = documentAt(file);
-        if (doc == null && java.nio.file.Files.isRegularFile(file)) {
-            openFile(file, false);
-            doc = documentAt(file);
-        }
-        if (doc != null && debug.inputFile != null
-                && file.toAbsolutePath().normalize().equals(debug.inputFile.toAbsolutePath().normalize())) {
-            debug.inputDocument = doc;
-        }
-        return doc;
-    }
-
-    private void setDebugInputLineFor(OpenDocument document, int line) {
-        EditorTab tab = editorTabOf(document);
-        if (tab != null) {
-            tab.view.setDebugInputLine(line);
-        }
-    }
-
-    /** Runs {@code action} once {@code document}'s text is loaded (a just-opened file loads async). */
-    private void whenDocumentLoaded(OpenDocument document, Runnable action, int attemptsLeft) {
-        boolean loaded = getDocumentText(document).map(t -> !t.isEmpty()).orElse(false);
-        if (loaded || attemptsLeft <= 0) {
-            action.run();
-            return;
-        }
-        var retry = new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
-        retry.setOnFinished(e -> whenDocumentLoaded(document, action, attemptsLeft - 1));
-        retry.play();
-    }
-
-    /** Shows the paused context node: selects its input document and moves the caret there. */
-    private void showDebugInput(XsltDebugSession debug) {
-        if (debug.markedInput == null) {
-            return;
-        }
-        selectDocument(debug.markedInput);
-        jumpWhenLoaded(debug.markedInput, debug.markedInputLine, 10);
-        setDebugInputLineFor(debug.markedInput, debug.markedInputLine);
-    }
-
-    /** @return the 1-based line marked as the paused context node in {@code document}, or 0 (tests). */
-    /** @return the inline values shown on a document's editor tab (tests). */
-    java.util.Map<Integer, String> debugInlineValuesOf(OpenDocument document) {
-        EditorTab tab = editorTabOf(document);
-        return tab == null ? java.util.Map.of() : tab.view.getDebugInlineValues();
-    }
-
-    int debugInputLineOf(OpenDocument document) {
-        XsltDebugSession debug = activeDebug;
-        return debug != null && debug.markedInput == document ? debug.markedInputLine : 0;
+        debugSupport.startXsltDebug(xsltFile, xml, parameters, format, onFinished);
     }
 
     /** Ends the active debug session: stops the run, detaches gutters/highlights, removes the pane. */
     public void endXsltDebug() {
-        XsltDebugSession debug = activeDebug;
-        if (debug == null) {
-            return;
-        }
-        activeDebug = null;
-        debug.hovers.values().forEach(org.fxt.freexmltoolkit.controls.shell.editor.debug.DebugHover::uninstall);
-        debug.hovers.clear();
-        if (debug.markedInput != null) {
-            setDebugInputLineFor(debug.markedInput, -1);
-        }
-        persistDebugBreakpoints(debug);
-        debug.controller.stop();
-        debug.controller.close();
-        debug.pane.dispose();
-        for (DebugModule module : debug.modules.values()) {
-            setDebugLineFor(module.document(), -1);
-            setDebugInlineValuesFor(module.document(), null);
-            EditorTab tab = editorTabOf(module.document());
-            if (tab != null) {
-                // The session gutter goes; the file's own (persisted) gutter takes over again.
-                setGutterContributor(tab, "xslt-debugger", null);
-                installBreakpointGutter(tab);
-                tab.view.refreshGutter();
-            }
-        }
-        bottomDock().remove(DEBUG_DOCK_KEY);
-    }
-
-    /**
-     * Gives a saved XSLT document the standalone breakpoint gutter, backed by the file's
-     * persisted breakpoints ({@link org.fxt.freexmltoolkit.debugger.FileBreakpoints}), so
-     * breakpoints can be set before the debugger starts. No-op for other file types, unsaved
-     * documents, and modules a running debug session already owns; a module of the running
-     * session that is opened now joins the session instead (its gutter talks to the run).
-     */
-    private void installBreakpointGutter(EditorTab et) {
-        EditorFileType type = et.document.getFileType();
-        if ((type != EditorFileType.XSLT && type != EditorFileType.XQUERY && type != EditorFileType.SCHEMATRON)
-                || et.document.getPath() == null) {
-            return;
-        }
-        followEditsWithBreakpoints(et); // whichever gutter the tab carries, its breakpoints follow edits
-        String path = org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(et.document.getPath().toString());
-        if (activeDebug != null) {
-            if (activeDebug.modules.containsKey(path)) {
-                return;
-            }
-            if (activeDebug.resolvedModules.contains(path)) {
-                attachDebugModule(activeDebug, et.document, path);
-                return;
-            }
-        }
-        var gutter = new org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory(
-                org.fxt.freexmltoolkit.debugger.FileBreakpoints.persistent(et.document.getPath()),
-                v -> et.view.refreshGutter());
-        gutter.setFilePath(path);
-        if (setGutterContributor(et, "xslt-debugger", gutter)) {
-            et.view.refreshGutter();
-        }
-    }
-
-    private static final String BREAKPOINT_SHIFT_KEY = "fxt.breakpointShift";
-
-    /**
-     * Lets the breakpoints of an XSLT tab follow its edits: inserted or deleted lines move the
-     * breakpoints below them, a deleted breakpoint line removes its breakpoint — in the file's
-     * own store or, during a session, in the session. Whole-text replacements (loading,
-     * reloading, reformatting) are ignored. Installed once per tab.
-     */
-    private void followEditsWithBreakpoints(EditorTab et) {
-        var area = et.view.getCodeArea();
-        if (area == null || area.getProperties().containsKey(BREAKPOINT_SHIFT_KEY)) {
-            return;
-        }
-        area.getProperties().put(BREAKPOINT_SHIFT_KEY, Boolean.TRUE);
-        area.plainTextChanges().subscribe(change -> {
-            var gutter = breakpointGutterOf(et);
-            if (gutter == null || gutter.getTarget() == null) {
-                return;
-            }
-            String removed = change.getRemoved();
-            String inserted = change.getInserted();
-            int lengthBefore = area.getLength() - inserted.length() + removed.length();
-            if (removed.length() == lengthBefore) {
-                return; // the whole text was replaced (load, reload, format): no edit to follow
-            }
-            var shift = new org.fxt.freexmltoolkit.debugger.LineShift(
-                    lineOf(area.getText(), change.getPosition()), columnOf(area.getText(), change.getPosition()),
-                    org.fxt.freexmltoolkit.debugger.LineShift.newlines(removed),
-                    org.fxt.freexmltoolkit.debugger.LineShift.newlines(inserted));
-            if (shift.isNeutral() || !gutter.getTarget().shiftLines(gutter.getFilePath(), shift)) {
-                return;
-            }
-            et.view.refreshGutter();
-            XsltDebugSession debug = activeDebug;
-            if (debug != null && gutter.getTarget() == debug.controller.getSession()) {
-                debug.pane.getBreakpointsView().refresh();
-                persistDebugBreakpoints(debug);
-            }
-        });
-    }
-
-    /** 1-based line of {@code offset} in {@code text}. */
-    static int lineOf(String text, int offset) {
-        int line = 1;
-        for (int i = 0; i < Math.min(offset, text.length()); i++) {
-            if (text.charAt(i) == '\n') {
-                line++;
-            }
-        }
-        return line;
-    }
-
-    /** 0-based column of {@code offset} in {@code text}. */
-    static int columnOf(String text, int offset) {
-        int end = Math.min(offset, text.length());
-        if (end <= 0) {
-            return 0;
-        }
-        int start = text.lastIndexOf('\n', end - 1);
-        return end - (start + 1);
+        debugSupport.endXsltDebug();
     }
 
     /** @return whether F9 / Toggle Breakpoint applies: the active tab is a saved XSLT document. */
     public boolean canToggleBreakpoint() {
-        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                && breakpointGutterOf(et) != null;
+        return debugSupport.canToggleBreakpoint();
     }
 
     /**
@@ -3727,15 +2845,7 @@ public class EditorHost extends BorderPane {
      * @return {@code true} if a breakpoint was set or removed
      */
     public boolean toggleBreakpointAtCaret() {
-        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)) {
-            return false;
-        }
-        var gutter = breakpointGutterOf(et);
-        if (gutter == null) {
-            return false;
-        }
-        gutter.toggle(et.view.getCodeArea().getCurrentParagraph() + 1);
-        return true;
+        return debugSupport.toggleBreakpointAtCaret();
     }
 
     /**
@@ -3746,41 +2856,22 @@ public class EditorHost extends BorderPane {
      *         {@link #setDebugRunToOnStart})
      */
     public boolean runToCursor() {
-        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)) {
-            return false;
-        }
-        var gutter = breakpointGutterOf(et);
-        if (gutter == null || activeDebug == null) {
-            return false;
-        }
-        var session = activeDebug.controller.getSession();
-        return session.runTo(gutter.getFilePath(), et.view.getCodeArea().getCurrentParagraph() + 1);
+        return debugSupport.runToCursor();
     }
 
     /** @return whether Run to Cursor applies: the active tab is a saved XSLT document. */
     public boolean canRunToCursor() {
-        return canToggleBreakpoint();
+        return debugSupport.canRunToCursor();
     }
 
     /** @return the caret line (1-based) of the active XSLT document, or 0. */
     public int activeCaretLine() {
-        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
-                ? et.view.getCodeArea().getCurrentParagraph() + 1 : 0;
+        return debugSupport.activeCaretLine();
     }
-
-    /** How the last debug run was started — for Re-run Last Debug (Ctrl+Shift+F5). */
-    private record LastLaunch(File xsltFile, Path inputFile, OpenDocument inputDocument,
-                              java.util.Map<String, Object> parameters,
-                              org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format,
-                              java.util.function.Consumer<org.fxt.freexmltoolkit.service.XsltTransformationResult> onFinished) { }
-
-    private LastLaunch lastLaunch;
-    /** "Pause on entry" forced by a debug configuration for the next {@link #startXsltDebug}. */
-    private boolean debugForcePauseOnEntry;
 
     /** @return whether a debug run was started in this app run (Re-run Last Debug applies). */
     public boolean canRerunLastDebug() {
-        return lastLaunch != null;
+        return debugSupport.canRerunLastDebug();
     }
 
     /**
@@ -3790,25 +2881,7 @@ public class EditorHost extends BorderPane {
      * @return an error message, or {@code null} when the debugger started
      */
     public String rerunLastDebug() {
-        LastLaunch last = lastLaunch;
-        if (last == null) {
-            return "No debug run to repeat yet.";
-        }
-        String xml;
-        if (last.inputFile() != null) {
-            try {
-                xml = java.nio.file.Files.readString(last.inputFile(), java.nio.charset.StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                return "Could not read the input " + last.inputFile() + ": " + e.getMessage();
-            }
-            setDebugInputFile(last.inputFile());
-        } else if (last.inputDocument() != null && getOpenDocuments().contains(last.inputDocument())) {
-            xml = getDocumentText(last.inputDocument()).orElse("");
-        } else {
-            return "The input document of the last debug run is no longer open.";
-        }
-        startXsltDebug(last.xsltFile(), xml, last.parameters(), last.format(), last.onFinished());
-        return null;
+        return debugSupport.rerunLastDebug();
     }
 
     /**
@@ -3819,52 +2892,8 @@ public class EditorHost extends BorderPane {
      * @return an error message, or {@code null} when the debugger started
      */
     public String debugWithConfig(File xsltFile, org.fxt.freexmltoolkit.debugger.DebugLaunchConfig config) {
-        String xslt;
-        try {
-            xslt = java.nio.file.Files.readString(xsltFile.toPath(), java.nio.charset.StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-            return "Could not read the stylesheet: " + e.getMessage();
-        }
-        String xml;
-        Path input = null;
-        if (!config.inputPath().isEmpty()) {
-            input = Path.of(config.inputPath());
-            try {
-                xml = java.nio.file.Files.readString(input, java.nio.charset.StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-                return "Could not read the input " + input + ": " + e.getMessage();
-            }
-        } else {
-            OpenDocument xsltDoc = documentAt(xsltFile.toPath());
-            var target = xsltDoc == null ? Optional.<ResolvedQueryTarget>empty() : resolveQueryTarget(xsltDoc);
-            if (target.isEmpty()) {
-                return "Open an XML document first, or set an input file in the debug configuration.";
-            }
-            try {
-                xml = target.get().loadXml();
-            } catch (IOException e) {
-                UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-                return "Could not read the input: " + e.getMessage();
-            }
-            if (target.get().file() != null) {
-                input = target.get().file().toPath();
-            }
-        }
-        var format = config.outputFormat().isEmpty()
-                ? TransformRunner.detectXsltOutputFormat(xslt)
-                : org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.valueOf(config.outputFormat());
-        if (input != null) {
-            setDebugInputFile(input);
-        }
-        debugForcePauseOnEntry = config.pauseOnEntry();
-        startXsltDebug(xsltFile, xml, new java.util.LinkedHashMap<>(config.parameters()), format);
-        return null;
+        return debugSupport.debugWithConfig(xsltFile, config);
     }
-
-    /** The input file of the next {@link #startXsltDebug} (set by callers whose input is a file). */
-    private Path debugInputFile;
 
     /**
      * Tells the next {@link #startXsltDebug} that its XML text was read from {@code file}, so the
@@ -3872,12 +2901,8 @@ public class EditorHost extends BorderPane {
      * document with the same text.
      */
     public void setDebugInputFile(Path file) {
-        this.debugInputFile = file;
+        debugSupport.setDebugInputFile(file);
     }
-
-    /** Pending "debug to cursor" target for the next {@link #startXsltDebug} (path, line). */
-    private String debugRunToPath;
-    private int debugRunToLine;
 
     /**
      * Arms the next {@link #startXsltDebug} to run to the caret line of the active XSLT
@@ -3886,152 +2911,12 @@ public class EditorHost extends BorderPane {
      * @return {@code false} when the active tab is no saved XSLT document
      */
     public boolean prepareDebugToCursor() {
-        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)) {
-            return false;
-        }
-        var gutter = breakpointGutterOf(et);
-        if (gutter == null) {
-            return false;
-        }
-        setDebugRunToOnStart(gutter.getFilePath(), et.view.getCodeArea().getCurrentParagraph() + 1);
-        return true;
+        return debugSupport.prepareDebugToCursor();
     }
 
     /** Makes the next debug start run to {@code path:line} instead of pausing on entry. */
     public void setDebugRunToOnStart(String path, int line) {
-        this.debugRunToPath = path;
-        this.debugRunToLine = line;
-    }
-
-    private static org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory breakpointGutterOf(EditorTab et) {
-        return et.gutter.get("xslt-debugger") instanceof org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory g
-                ? g : null;
-    }
-
-    /** @return the editor tab showing {@code document}, or {@code null}. */
-    private EditorTab editorTabOf(OpenDocument document) {
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && et.document == document) {
-                return et;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Adds the breakpoints stored for {@code path} (set in the editor before the session, or in
-     * an earlier session) to {@code session}; a line the session already has is left alone.
-     */
-    private static void mergeStoredBreakpoints(org.fxt.freexmltoolkit.debugger.DebugSession session, String path) {
-        java.util.Set<org.fxt.freexmltoolkit.debugger.Breakpoint> present = session.getBreakpoints();
-        for (org.fxt.freexmltoolkit.debugger.Breakpoint bp
-                : org.fxt.freexmltoolkit.debugger.BreakpointStore.load(path)) {
-            if (!bp.filePath().equals(path)) {
-                continue; // a legacy aggregate from when this module was debugged as main
-            }
-            boolean known = present.stream().anyMatch(
-                    b -> b.filePath().equals(path) && b.lineNumber() == bp.lineNumber());
-            if (!known) {
-                session.addBreakpoint(bp);
-            }
-        }
-    }
-
-    /** Attaches a breakpoint gutter for {@code path} to {@code document} and records the module. */
-    private void attachDebugModule(XsltDebugSession debug, OpenDocument document, String path) {
-        if (!path.equals(debug.mainPath)) {
-            // An include opened during the session: pick up the breakpoints set on it in the editor.
-            mergeStoredBreakpoints(debug.controller.getSession(), path);
-        }
-        var gutter = new org.fxt.freexmltoolkit.debugger.ui.BreakpointGutterFactory(
-                debug.controller.getSession(), v -> {
-                    refreshGutterFor(document);
-                    debug.pane.getBreakpointsView().refresh();
-                    persistDebugBreakpoints(debug);
-                });
-        gutter.setFilePath(path);
-        setGutterFactoryFor(document, gutter);
-        debug.modules.put(path, new DebugModule(document, gutter));
-        EditorTab tab = editorTabOf(document);
-        if (tab != null && !debug.hovers.containsKey(document)) {
-            debug.hovers.put(document, new org.fxt.freexmltoolkit.controls.shell.editor.debug.DebugHover(
-                    tab.view.getCodeArea(), debug.pane::currentScope, debug.controller::getWatchEvaluator,
-                    debug.pane::openViewer).install());
-        }
-    }
-
-    /**
-     * Adds "Break When Processed" to an XML-family editor's context menu: shown while an XSLT
-     * debug session runs (not on the session's stylesheets), it toggles an input-node
-     * breakpoint on the element at the caret.
-     */
-    private void installInputNodeBreakpointMenu(EditorTab tab) {
-        javafx.scene.control.ContextMenu menu = tab.view.getEditorContextMenu();
-        if (menu == null) {
-            return;
-        }
-        javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem("Break When Processed");
-        item.setId("editor-ctx-break-when-processed");
-        item.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
-                new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-record-circle"),
-                org.fxt.freexmltoolkit.controls.theme.ActionColor.DELETE));
-        item.setOnAction(e -> toggleInputNodeBreakpoint(tab.document,
-                tab.view.getCodeArea().getText(), tab.view.getCodeArea().getCaretPosition()));
-        menu.getItems().add(0, item);
-        javafx.scene.control.SeparatorMenuItem separator = new javafx.scene.control.SeparatorMenuItem();
-        menu.getItems().add(1, separator);
-        menu.addEventHandler(javafx.stage.WindowEvent.WINDOW_SHOWING, e -> {
-            XsltDebugSession debug = activeDebug;
-            boolean show = debug != null && !isDebugModule(debug, tab.document);
-            item.setVisible(show);
-            separator.setVisible(show);
-            if (show) {
-                item.setText(inputNodeBreakpointAt(debug, tab.document, tab.view.getCodeArea().getText(),
-                        tab.view.getCodeArea().getCaretPosition()) != null
-                        ? "Remove Break When Processed" : "Break When Processed");
-            }
-        });
-        item.setVisible(false);
-        separator.setVisible(false);
-    }
-
-    private static boolean isDebugModule(XsltDebugSession debug, OpenDocument document) {
-        return debug.modules.values().stream().anyMatch(m -> m.document() == document);
-    }
-
-    /** The input-node breakpoint for the element at {@code caret}, as it is or would be stored. */
-    private static org.fxt.freexmltoolkit.debugger.SymbolBreakpoint inputNodeAt(OpenDocument document,
-            String text, int caret) {
-        var element = org.fxt.freexmltoolkit.controls.shared.utilities.XmlElementAtCaret.at(text, caret).orElse(null);
-        if (element == null || element.startTagEnd() < 0) {
-            return null;
-        }
-        int gt = element.startTagEnd();
-        int line = 1;
-        int lineStart = 0;
-        for (int i = 0; i < gt; i++) {
-            if (text.charAt(i) == '\n') {
-                line++;
-                lineStart = i + 1;
-            }
-        }
-        int column = gt - lineStart + 2; // Saxon: the 1-based column just after the '>'
-        String path = document.getPath() == null ? ""
-                : org.fxt.freexmltoolkit.debugger.SourceLocations.normalize(document.getPath().toString());
-        return org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.inputNode(path, line, column, element.xpath());
-    }
-
-    private static org.fxt.freexmltoolkit.debugger.SymbolBreakpoint inputNodeBreakpointAt(XsltDebugSession debug,
-            OpenDocument document, String text, int caret) {
-        var wanted = inputNodeAt(document, text, caret);
-        if (wanted == null) {
-            return null;
-        }
-        return debug.controller.getSession().getSymbolBreakpoints().stream()
-                .filter(s -> s.kind() == org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind.INPUT_NODE
-                        && s.inputLine() == wanted.inputLine() && s.inputColumn() == wanted.inputColumn()
-                        && s.inputPath().equals(wanted.inputPath()))
-                .findFirst().orElse(null);
+        debugSupport.setDebugRunToOnStart(path, line);
     }
 
     /**
@@ -4041,210 +2926,32 @@ public class EditorHost extends BorderPane {
      * @return {@code true} when one was added, {@code false} when removed or no session / element
      */
     boolean toggleInputNodeBreakpoint(OpenDocument document, String text, int caret) {
-        XsltDebugSession debug = activeDebug;
-        if (debug == null || document == null || text == null) {
-            return false;
-        }
-        var session = debug.controller.getSession();
-        var existing = inputNodeBreakpointAt(debug, document, text, caret);
-        boolean added = false;
-        if (existing != null) {
-            session.removeSymbolBreakpoint(existing);
-        } else {
-            var created = inputNodeAt(document, text, caret);
-            if (created == null) {
-                return false;
-            }
-            session.addSymbolBreakpoint(created);
-            added = true;
-        }
-        debug.pane.getBreakpointsView().refresh();
-        persistDebugBreakpoints(debug);
-        return added;
+        return debugSupport.toggleInputNodeBreakpoint(document, text, caret);
     }
 
-    /** Writes the session's breakpoints back, each file under its own key (modules without any are cleared). */
-    private void persistDebugBreakpoints(XsltDebugSession debug) {
-        java.util.Set<String> files = new java.util.LinkedHashSet<>();
-        files.add(debug.mainPath);
-        files.addAll(debug.resolvedModules);
-        files.addAll(debug.modules.keySet());
-        org.fxt.freexmltoolkit.debugger.BreakpointStore.saveByFile(
-                debug.controller.getSession().getBreakpoints(), files);
-        org.fxt.freexmltoolkit.debugger.WatchStore.saveSymbols(debug.mainPath,
-                debug.controller.getSession().getSymbolBreakpoints());
+    /** @return the inline values shown on a document's editor tab (tests). */
+    java.util.Map<Integer, String> debugInlineValuesOf(OpenDocument document) {
+        return debugSupport.debugInlineValuesOf(document);
     }
 
-    /** The text of the main stylesheet and its included / imported modules (unreadable ones skipped). */
-    /** The Smart Step Into targets of the paused line (FX thread: reads the editor text). */
-    private java.util.List<org.fxt.freexmltoolkit.debugger.StepTarget> debugStepTargets(File main,
-            java.util.Set<String> modules, org.fxt.freexmltoolkit.debugger.PausedSnapshot snap) {
-        String path = snap.filePath() == null || snap.filePath().isEmpty()
-                ? main.getAbsolutePath() : snap.filePath();
-        String text = null;
-        OpenDocument doc = documentAt(Path.of(path));
-        if (doc != null) {
-            text = getDocumentText(doc).orElse(null);
-        }
-        if (text == null) {
-            try {
-                text = java.nio.file.Files.readString(Path.of(path), java.nio.charset.StandardCharsets.UTF_8);
-            } catch (IOException | RuntimeException e) {
-                return java.util.List.of();
-            }
-        }
-        java.util.List<String> functions = org.fxt.freexmltoolkit.debugger.StylesheetSymbols
-                .scan(stylesheetTexts(main, modules) + "\n" + text)
-                .getOrDefault(org.fxt.freexmltoolkit.debugger.SymbolBreakpoint.Kind.FUNCTION, java.util.List.of());
-        return org.fxt.freexmltoolkit.debugger.StepTargets.find(text, snap.lineNumber(), functions);
-    }
-
-    private static String stylesheetTexts(File main, java.util.Set<String> modules) {
-        StringBuilder sb = new StringBuilder();
-        java.util.List<Path> files = new java.util.ArrayList<>();
-        files.add(main.toPath());
-        modules.forEach(m -> files.add(Path.of(m)));
-        for (Path file : files) {
-            try {
-                sb.append(java.nio.file.Files.readString(file, java.nio.charset.StandardCharsets.UTF_8)).append('\n');
-            } catch (IOException | RuntimeException ignored) {
-                // a module that cannot be read contributes no suggestions
-            }
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Marks the paused location in the editor: the module's tab is selected (opened first
-     * when Saxon paused inside an {@code xsl:include}/{@code xsl:import}), the line gets the
-     * gutter arrow and the execution-line tint. {@code null} clears the markers (run moved on).
-     */
-    private void onDebugPaused(org.fxt.freexmltoolkit.debugger.PausedSnapshot snapshot) {
-        XsltDebugSession debug = activeDebug;
-        if (debug == null) {
-            return;
-        }
-        String path = snapshot == null ? null : debugModulePath(debug, snapshot.filePath());
-        for (java.util.Map.Entry<String, DebugModule> entry : debug.modules.entrySet()) {
-            boolean here = snapshot != null && entry.getKey().equals(path);
-            entry.getValue().gutter().setCurrentExecutionLine(here ? snapshot.lineNumber() : -1);
-            setDebugLineFor(entry.getValue().document(), here ? snapshot.lineNumber() : -1);
-            setDebugInlineValuesFor(entry.getValue().document(), here ? snapshot : null);
-            refreshGutterFor(entry.getValue().document());
-        }
-        if (snapshot != null) {
-            jumpToDebugLocation(path, snapshot.lineNumber());
-        }
-        markDebugInput(debug, snapshot);
-    }
-
-    /** @return the module path for a pause/jump location — the main stylesheet when it is unknown. */
-    private static String debugModulePath(XsltDebugSession debug, String filePath) {
-        return filePath == null || filePath.isEmpty() ? debug.mainPath : filePath;
-    }
-
-    /** @return the module whose file name appears in a message's "file:line" location, else the main one. */
-    private static String moduleForMessage(XsltDebugSession debug, String location) {
-        if (location != null) {
-            // open modules first, then included ones not open yet (e.g. a finding in an sch:include)
-            java.util.Set<String> candidates = new java.util.LinkedHashSet<>(debug.modules.keySet());
-            candidates.addAll(debug.resolvedModules);
-            for (String path : candidates) {
-                String name = org.fxt.freexmltoolkit.debugger.SourceLocations.fileName(path);
-                if (!name.isEmpty() && location.startsWith(name)) {
-                    return path;
-                }
-            }
-        }
-        return debug.mainPath;
-    }
-
-    /**
-     * Selects (opening it if needed) the module at {@code filePath} and moves the caret to
-     * {@code line}. A module opened for the first time loads asynchronously, so the jump is
-     * retried briefly until its text is in.
-     */
-    private void jumpToDebugLocation(String filePath, int line) {
-        XsltDebugSession debug = activeDebug;
-        if (debug == null) {
-            return;
-        }
-        String path = debugModulePath(debug, filePath);
-        DebugModule module = debug.modules.get(path);
-        if (module == null) {
-            File file = new File(path);
-            if (!file.isFile()) {
-                return;
-            }
-            openFile(file);
-            OpenDocument doc = getActiveDocument().orElse(null);
-            if (doc == null) {
-                return;
-            }
-            attachDebugModule(debug, doc, path);
-            module = debug.modules.get(path);
-            // A freshly opened include carries the current-line marker as well.
-            var snap = debug.controller.getSession().getPausedSnapshot();
-            if (snap != null && path.equals(debugModulePath(debug, snap.filePath()))) {
-                module.gutter().setCurrentExecutionLine(snap.lineNumber());
-                setDebugLineFor(doc, snap.lineNumber());
-                setDebugInlineValuesFor(doc, snap);
-            }
-        }
-        selectDocument(module.document());
-        if (line > 0) {
-            jumpWhenLoaded(module.document(), line, 10);
-        }
-    }
-
-    private void jumpWhenLoaded(OpenDocument document, int line, int attemptsLeft) {
-        boolean loaded = getActiveText().map(t -> !t.isEmpty()).orElse(false);
-        if (loaded || attemptsLeft <= 0) {
-            if (getActiveDocument().orElse(null) == document) {
-                goToLine(line);
-                refreshGutterFor(document);
-            }
-            return;
-        }
-        var retry = new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
-        retry.setOnFinished(e -> jumpWhenLoaded(document, line, attemptsLeft - 1));
-        retry.play();
-    }
-
-    /** Shows a debug run's result in OUTPUT without taking the DEBUG pane out of the front. */
-    private void showDebugResult(XsltDebugSession debug, org.fxt.freexmltoolkit.service.XsltTransformationResult result) {
-        if (activeDebug != debug || result == null) {
-            return;
-        }
-        boolean stopped = !result.isSuccess() && result.getErrorMessage() != null
-                && result.getErrorMessage().contains("stopped");
-        if (stopped) {
-            return;
-        }
-        TransformOutputPanel out = transformOutputPanel();
-        if (result.isSuccess()) {
-            out.showTransformResult(result.getOutputContent(), result.getOutputFormat(), result.getExecutionTime());
-        } else {
-            out.showError("ERROR: " + result.getErrorMessage());
-        }
-        bottomDock().select(DEBUG_DOCK_KEY);
-        bottomDock().markUpdated(TransformOutputPanel.DOCK_KEY);
+    int debugInputLineOf(OpenDocument document) {
+        return debugSupport.debugInputLineOf(document);
     }
 
     // ----- internals -------------------------------------------------------
 
-    private void withActive(java.util.function.Consumer<EditorTab> action) {
+    void withActive(java.util.function.Consumer<EditorTab> action) {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
             action.accept(et);
         }
     }
 
-    private void addTab(EditorTab tab) {
+    void addTab(EditorTab tab) {
         addTab(tab, true);
     }
 
     /** Adds a tab; {@code select = false} opens it behind the active one (e.g. a schema edited from XML). */
-    private void addTab(EditorTab tab, boolean select) {
+    void addTab(EditorTab tab, boolean select) {
         tab.remoteImportsCallback = this::onRemoteImportsAvailable;
         tab.modelInstalledCallback = () -> {
             if (tab.isSelected()) {
@@ -4258,7 +2965,7 @@ public class EditorHost extends BorderPane {
             }
         };
         tabPane.getTabs().add(tab);
-        installBreakpointGutter(tab);
+        debugSupport.installBreakpointGutter(tab);
         if (select) {
             tabPane.getSelectionModel().select(tab);
         }
@@ -4290,7 +2997,7 @@ public class EditorHost extends BorderPane {
         });
         openDocuments.add(tab.document);
         tab.setOnClosed(e -> disposeTab(tab));
-        tab.setOnCloseRequest(e -> confirmCloseIfDirty(tab, e));
+        tab.setOnCloseRequest(e -> fileSync.confirmCloseIfDirty(tab, e));
         tab.view.getCodeArea().caretPositionProperty().addListener((obs, oldV, newV) -> {
             if (tab.isSelected()) {
                 activeCaret.set(newV.intValue());
@@ -4316,7 +3023,7 @@ public class EditorHost extends BorderPane {
      * Closes a tab without the unsaved-changes prompt. Removing a tab from the pane does not
      * fire its {@code onClosed} handler, so the bookkeeping is dropped here.
      */
-    private void closeTabNow(EditorTab tab) {
+    void closeTabNow(EditorTab tab) {
         tabPane.getTabs().remove(tab);
         disposeTab(tab);
     }
@@ -4446,7 +3153,7 @@ public class EditorHost extends BorderPane {
         public void reload(Tab tab) {
             if (tab instanceof EditorTab et && !et.document.isUntitled() && !et.loading
                     && (!et.document.isDirty() || reloadConfirmer.test(et.document))) {
-                reloadFromDisk(et, et.document.getPath());
+                fileSync.reloadFromDisk(et, et.document.getPath());
             }
         }
 
@@ -4464,9 +3171,9 @@ public class EditorHost extends BorderPane {
         public void save(Tab tab) {
             if (tab instanceof EditorTab et) {
                 if (et.document.isUntitled()) {
-                    saveTabAs(et);
+                    fileSync.saveTabAs(et);
                 } else {
-                    saveTab(et);
+                    fileSync.saveTab(et);
                 }
             }
         }
@@ -4474,7 +3181,7 @@ public class EditorHost extends BorderPane {
         @Override
         public void saveAs(Tab tab) {
             if (tab instanceof EditorTab et) {
-                saveTabAs(et);
+                fileSync.saveTabAs(et);
             }
         }
 
@@ -4511,34 +3218,7 @@ public class EditorHost extends BorderPane {
      * when the tab is front-most. Must be called on the FX thread (same publish pattern as
      * {@link #activeSchema}).
      */
-    /**
-     * Cooperative cancellation for a tab's background schema work.
-     * <p>
-     * Cancellation is cooperative by design: a detection already inside a blocking call still
-     * runs to that call's own timeout - interrupting Xerces or a socket read mid-flight is not
-     * safe - but nothing further is started, and no result is applied.
-     *
-     * @param tab the tab whose background work is checking in
-     * @return true when that work should stop: the tab was closed, or the application is
-     *         shutting down
-     */
-    private static boolean isAbandoned(EditorTab tab) {
-        return tab.closed.get() || org.fxt.freexmltoolkit.FxtGui.executorService.isShutdown();
-    }
-
-    /**
-     * Counts schema bindings actually applied to a tab. Observable so tests can assert that a
-     * detection abandoned mid-flight applies nothing; nothing in the UI reads it.
-     */
-    private final java.util.concurrent.atomic.AtomicInteger schemaBindingsApplied =
-            new java.util.concurrent.atomic.AtomicInteger();
-
-    /** @return how many schema bindings have been applied since this host was created */
-    int schemaBindingsApplied() {
-        return schemaBindingsApplied.get();
-    }
-
-    private void publishSchemaStatus(EditorTab tab, SchemaStatus status) {
+    void publishSchemaStatus(EditorTab tab, SchemaStatus status) {
         tab.schemaStatus = status;
         if (tab.isSelected()) {
             activeSchemaStatus.set(status);
@@ -4550,7 +3230,7 @@ public class EditorHost extends BorderPane {
      * {@link #activeSchemaSource}/{@link #activeSchemaSourceDetail} when the tab is
      * front-most. Must be called on the FX thread (same publish pattern as {@link #activeSchema}).
      */
-    private void publishSchemaSource(EditorTab tab, SchemaSource source, String detail) {
+    void publishSchemaSource(EditorTab tab, SchemaSource source, String detail) {
         tab.schemaSource = source;
         tab.schemaSourceDetail = detail;
         if (tab.isSelected()) {
@@ -4559,692 +3239,10 @@ public class EditorHost extends BorderPane {
         }
     }
 
-    private void loadAsync(EditorTab tab, Path path) {
-        long openStart = System.nanoTime();
-        tab.loading = true;
-        tab.beginLoading();
-        tab.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
-        if (tab.view.supportsSchema()) {
-            publishSchemaStatus(tab, SchemaStatus.LOADING);
-        }
-        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            long size = sizeOrUnknown(path); // a stat can stall: here, not on the FX thread
-            long maxHeap = Runtime.getRuntime().maxMemory();
-            switch (LargeFileGuard.check(size, maxHeap)) {
-                case OK -> readAndShow(tab, path, openStart);
-                case WARN -> Platform.runLater(() -> {
-                    if (isAbandoned(tab)) {
-                        return;
-                    }
-                    if (confirmLargeFile(path, size)) {
-                        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> readAndShow(tab, path, openStart));
-                    } else {
-                        UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, false);
-                        closeTabNow(tab);
-                    }
-                });
-                case REFUSE -> Platform.runLater(() -> {
-                    UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, true);
-                    closeTabNow(tab);
-                    org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Open File", "File too large",
-                            path.getFileName() + " is " + LargeFileGuard.formatSize(size)
-                                    + ". With the current memory limit of " + LargeFileGuard.formatSize(maxHeap)
-                                    + ", files up to about " + LargeFileGuard.formatSize(LargeFileGuard.largestOpenable(maxHeap))
-                                    + " can be opened.\n\nRaise the limit under Settings > Memory and restart the application.");
-                });
-                default -> { }
-            }
-        });
-    }
+    // ----- schema lookups and navigation (Inspector, Go to Definition, reveal) -----
 
-    /** Asks before a large file is opened in the editor. Runs on the FX thread. */
-    private boolean confirmLargeFile(Path path, long size) {
-        return org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Open Large File",
-                path.getFileName() + " is " + LargeFileGuard.formatSize(size),
-                "Large files open slowly and make editing sluggish. Syntax highlighting, validation "
-                        + "and the structured views may take a long time.\n\nOpen it anyway?",
-                "Open Anyway", "Cancel");
-    }
-
-    /** Reads {@code path} on the calling worker thread and shows it in {@code tab}. */
-    private void readAndShow(EditorTab tab, Path path, long openStart) {
-        // Stamp taken BEFORE the read: a change landing mid-read is then caught by the
-        // next external-change check instead of being silently missed.
-        DiskStamp stamp = DiskStamp.of(path);
-        String content;
-        TextEncoding encoding;
-        try {
-            TextEncoding.Read read = TextEncoding.read(path);
-            content = read.text();
-            encoding = read.encoding();
-        } catch (IOException | RuntimeException e) {
-            // Counted (file_open with status + code: a missing / unreadable file is invalid_input,
-            // anything else an app failure) and told to the user; the tab shows the reason.
-            UsageEvents.fileOpenFailed(tab.document.getFileType().docKind(), sizeOrUnknown(path),
-                    UsageEvents.SOURCE_FILE, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-            Platform.runLater(() -> {
-                tab.view.setText("Could not read " + path + ": " + e.getMessage());
-                tab.endLoading();
-                tab.document.setDiskStamp(stamp);
-                tab.loading = false;
-                publishSchemaStatus(tab, SchemaStatus.NONE);
-                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Open failed",
-                        "Could not read " + path.getFileName() + ".",
-                        "Check that the file exists and that you may read it, then open it again.", e, false);
-            });
-            return;
-        }
-
-        long fileSize = sizeOrUnknown(path); // here, not in the FX pulse below: a stat can stall
-        // Also here: a linear scan of the text (XML family only, -1 otherwise)
-        int elementCount = UsageEvents.elementCount(tab.document.getFileType().docKind(), content);
-        // And the editor document of a large file (paragraph split + tree), seconds on the FX thread
-        var prepared = tab.view.prepareText(content);
-        // Show the document as soon as it has been read. Schema detection below can take
-        // seconds - a remote xsi:schemaLocation (or a namespace the Schema Library resolves
-        // remotely) is downloaded - and the editor must not sit empty for that long. The
-        // schema has its own status, already published as LOADING above, so the pending
-        // binding stays visible to the user.
-        Platform.runLater(() -> {
-            if (isAbandoned(tab)) {
-                return;
-            }
-            if (prepared != null) {
-                tab.view.setText(prepared);
-            } else {
-                tab.view.setText(content);
-            }
-            tab.refreshPreviewIfActive();
-            tab.endLoading();
-            tab.document.setEncoding(encoding);
-            tab.document.setDirty(false);
-            tab.document.setDiskStamp(stamp);
-            tab.loading = false;
-            tab.attachDirtyTracking();
-            UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
-                    UsageEvents.SOURCE_FILE, openStart, elementCount, encoding.charset().name());
-            if (tab.document.getFileType().isXmlFamily()) {
-                GridWarmup.start(); // the first switch to the Graphic view then skips class loading
-            }
-            documentLoadedHandler.accept(tab.document, content);
-            Runnable after = tab.afterLoad;
-            tab.afterLoad = null;
-            if (after != null) {
-                after.run();
-            }
-        });
-
-        if (isAbandoned(tab)) {
-            return; // closed (or shutting down) while the file was being read
-        }
-
-        SchemaDetection detected = null;
-        // Same per-tab guard as redetectSchemaForActiveDocument: never run two
-        // schema detections for one tab concurrently (Xerces DOM is not thread-safe).
-        if (tab.schemaDetecting.compareAndSet(false, true)) {
-            try {
-                detected = detectSchemaFor(tab, content, path);
-            } finally {
-                tab.schemaDetecting.set(false);
-            }
-        }
-        if (isAbandoned(tab)) {
-            return; // closed while detecting - binding it would parse a schema for nothing
-        }
-        SchemaDetection detection = detected;
-        Platform.runLater(() -> {
-            if (isAbandoned(tab)) {
-                return; // closed between the check above and this pulse
-            }
-            File autoXsd = detection != null ? detection.schema() : null;
-            if (autoXsd != null) {
-                tab.schemaFile = autoXsd;
-                tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
-                tab.view.invalidateIntelliSenseCache();
-                if (tab.isSelected()) {
-                    activeSchema.set(autoXsd);
-                }
-                publishSchemaSource(tab, detection.source(), detection.sourceDetail());
-                loadXmlSchemaProviderAsync(tab, autoXsd);
-                schemaBindingsApplied.incrementAndGet();
-            }
-            // Always publish a terminal status so LOADING can never stick. When the
-            // CAS was lost (a concurrent detection ran), fall back to the tab's
-            // current binding.
-            publishSchemaStatus(tab, detection != null
-                    ? detection.status()
-                    : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
-            if (detection != null && tab.view.supportsSchema()) {
-                UsageEvents.schemaBound(tab.document.getFileType().docKind(),
-                        detection.source().name().toLowerCase(java.util.Locale.ROOT),
-                        detection.status() != SchemaStatus.ERROR, detection.failure(), detection.refKind(),
-                        openStart);
-            }
-        });
-    }
-
-    /**
-     * Re-runs the schema auto-detection ({@code xsi:schemaLocation} /
-     * {@code xsi:noNamespaceSchemaLocation}, local and remote) for the active document
-     * when it has no schema bound yet — e.g. when the Validation panel opens and the
-     * reference was added after the file was opened, or an earlier remote download
-     * failed. Detection reads the live editor buffer, so unsaved (even untitled)
-     * documents work. No-op when a schema is already bound, so an explicit user choice
-     * is never overridden; the changed/removed-reference cases are handled by the
-     * validation-time reconcile in {@link #schemaForValidation(String)}.
-     */
-    public void redetectSchemaForActiveDocument() {
-        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab tab)) {
-            return;
-        }
-        if (tab.schemaFile != null || !tab.view.supportsSchema()) {
-            return;
-        }
-        String content = tab.view.getText();
-        Path path = tab.document.getPath();
-        long generation = tab.schemaBindingGen.incrementAndGet(); // supersede queued reconciles
-        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            if (isAbandoned(tab)) {
-                return;
-            }
-            // One detection at a time per tab: the open-time detection (loadAsync) or a
-            // second redetect may still be running, and the schema pipeline's Xerces
-            // deferred DOM is not thread-safe (concurrent runs corrupted it).
-            // Do NOT give up on a lost race - the holder may itself be superseded and bind
-            // nothing, and no later task would retry; wait for it, then re-check with fresh
-            // state (same rule as reconcileSchemaBinding). The wait is bounded so a stuck
-            // holder can never pin a thread of the fixed-size pool for good: giving up then is
-            // no worse than the unconditional skip this replaces. The bound has to clear the
-            // slowest realistic holder - an open-time detection whose declared location points
-            // at an unroutable host waits out the connect timeout, measured at ~35 s here.
-            long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(120);
-            while (!tab.schemaDetecting.compareAndSet(false, true)) {
-                if (tab.schemaBindingGen.get() != generation || System.nanoTime() > deadline
-                        || isAbandoned(tab)) {
-                    return; // superseded, abandoned, or the holder never released
-                }
-                try {
-                    Thread.sleep(25);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
-            if (tab.schemaBindingGen.get() != generation) {
-                // superseded: a fresher snapshot owns the binding now
-                tab.schemaDetecting.set(false);
-                return;
-            }
-            // LOADING only after the CAS succeeded — a lost CAS returns without any
-            // completion path, and a stray LOADING would stick in the status bar.
-            Platform.runLater(() -> publishSchemaStatus(tab, SchemaStatus.LOADING));
-            SchemaDetection detection;
-            try {
-                if (tab.schemaFile != null) {
-                    // the other detection won while we waited
-                    detection = new SchemaDetection(null, SchemaStatus.READY, SchemaSource.NONE, null);
-                } else {
-                    detection = detectSchemaFor(tab, content, path);
-                }
-            } finally {
-                tab.schemaDetecting.set(false);
-            }
-            if (isAbandoned(tab)) {
-                return; // closed while detecting - binding it would parse a schema for nothing
-            }
-            SchemaDetection result = detection;
-            Platform.runLater(() -> {
-                if (isAbandoned(tab)) {
-                    return; // closed between the check above and this pulse
-                }
-                File autoXsd = result.schema();
-                if (autoXsd != null) {
-                    tab.schemaFile = autoXsd;
-                    tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
-                    tab.view.invalidateIntelliSenseCache();
-                    if (tab.isSelected()) {
-                        activeSchema.set(autoXsd);
-                    }
-                    publishSchemaSource(tab, result.source(), result.sourceDetail());
-                    loadXmlSchemaProviderAsync(tab, autoXsd);
-                    schemaBindingsApplied.incrementAndGet();
-                }
-                // Terminal status in every branch, so LOADING never sticks.
-                publishSchemaStatus(tab, result.status());
-            });
-        });
-    }
-
-    /**
-     * Reconciles the active document's XSD binding with the schema location declared in
-     * {@code content} (the live editor buffer) and returns a supplier the validation
-     * worker calls to obtain the XSD to validate against. Call this on the FX thread —
-     * it snapshots the active tab; resolve the supplier on a worker thread only, as a
-     * changed remote reference may be downloaded there. An added, changed, or removed
-     * {@code xsi:schemaLocation} / {@code xsi:noNamespaceSchemaLocation} therefore takes
-     * effect on the very validation run that observes it. Policy (see
-     * {@link SchemaRebindPolicy}): manual bindings are never overridden, and an
-     * unchanged declaration costs no I/O.
-     */
-    public java.util.function.Supplier<File> schemaForValidation(String content) {
-        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab tab)
-                || !tab.view.supportsSchema()) {
-            return () -> null;
-        }
-        Path path = tab.document.getPath();
-        long generation = tab.schemaBindingGen.incrementAndGet();
-        return () -> reconcileSchemaBinding(tab, content, path, generation);
-    }
-
-    /** Worker-thread body of {@link #schemaForValidation(String)}. @return the XSD to validate with */
-    private File reconcileSchemaBinding(EditorTab tab, String content, Path path, long generation) {
-        File baseDir = path != null && path.getParent() != null ? path.getParent().toFile() : null;
-        String declared = declaredSchemaLocation(tab, content, baseDir);
-        if (SchemaRebindPolicy.decideRebind(tab.schemaOrigin, declared, tab.lastDetectedSchemaLocation)
-                == SchemaRebindPolicy.RebindAction.KEEP) {
-            return tab.schemaFile; // fast path: unchanged declaration, no lock, no I/O
-        }
-        // Rebinding needed — take the per-tab detection CAS. Do NOT give up on a lost
-        // race: the holder (e.g. a redetect) may itself be superseded and bind nothing,
-        // and no later task would retry — wait for it, then re-decide with fresh state.
-        while (!tab.schemaDetecting.compareAndSet(false, true)) {
-            if (tab.schemaBindingGen.get() != generation) {
-                return tab.schemaFile; // superseded while waiting: a fresher task owns this
-            }
-            try {
-                Thread.sleep(25);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return tab.schemaFile;
-            }
-        }
-        try {
-            if (tab.schemaBindingGen.get() != generation) {
-                return tab.schemaFile; // superseded: a fresher snapshot owns the binding now
-            }
-            // Re-decide under the lock: the previous holder may have already bound
-            // (or cleared) exactly what this snapshot declares.
-            switch (SchemaRebindPolicy.decideRebind(tab.schemaOrigin, declared, tab.lastDetectedSchemaLocation)) {
-                case KEEP -> {
-                    return tab.schemaFile;
-                }
-                case CLEAR -> {
-                    tab.lastDetectedSchemaLocation = null;
-                    tab.schemaFile = null;
-                    tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.NONE;
-                    Platform.runLater(() -> {
-                        clearSchemaBindingUi(tab);
-                        publishSchemaSource(tab, SchemaSource.NONE, null);
-                        publishSchemaStatus(tab, SchemaStatus.NONE);
-                    });
-                    return null;
-                }
-                case DETECT -> {
-                    // LOADING only after the CAS succeeded — a lost CAS has no
-                    // completion path, and a stray LOADING would stick in the status bar.
-                    Platform.runLater(() -> publishSchemaStatus(tab, SchemaStatus.LOADING));
-                    SchemaDetection detection = detectSchemaFor(tab, content, path);
-                    File xsd = detection.schema();
-                    tab.schemaFile = xsd;
-                    tab.schemaOrigin = xsd != null
-                            ? SchemaRebindPolicy.SchemaBindingOrigin.AUTO
-                            : SchemaRebindPolicy.SchemaBindingOrigin.NONE;
-                    Platform.runLater(() -> {
-                        if (xsd != null) {
-                            tab.view.invalidateIntelliSenseCache();
-                            if (tab.isSelected()) {
-                                activeSchema.set(xsd);
-                            }
-                            publishSchemaSource(tab, detection.source(), detection.sourceDetail());
-                            loadXmlSchemaProviderAsync(tab, xsd);
-                        } else {
-                            // Declared but unresolvable: drop the stale binding too —
-                            // keeping it would silently validate against the wrong schema.
-                            clearSchemaBindingUi(tab);
-                            publishSchemaSource(tab, SchemaSource.NONE, null);
-                        }
-                        // Terminal status in every branch, so LOADING never sticks.
-                        publishSchemaStatus(tab, detection.status());
-                    });
-                    return xsd;
-                }
-                default -> { }
-            }
-            return tab.schemaFile; // unreachable
-        } finally {
-            tab.schemaDetecting.set(false);
-        }
-    }
-
-    /**
-     * Sniffs the schema location the buffer declares — a top-level {@code "$schema"}
-     * member for JSON, {@code xsi:schemaLocation} / {@code xsi:noNamespaceSchemaLocation}
-     * for the XML family. When the XML family declares nothing, falls back to the Schema
-     * Library resolution ({@link #schemaFromLibrary(String)}) so a library auto-binding is
-     * treated as "declared" too and survives reconcile. Worker-thread safe (fresh,
-     * stateless service instances).
-     */
-    private String declaredSchemaLocation(EditorTab tab, String content, File baseDir) {
-        if (tab.document.getFileType() == EditorFileType.JSON) {
-            var jsonService = new org.fxt.freexmltoolkit.service.JsonService();
-            // A library-mapped raw $schema id (meta-schema ids included) is a "declaration"
-            // too — see detectJsonSchemaFor. Without this, the filtered
-            // getSchemaLocationFromJsonContent alone would report it as undeclared and the
-            // reconcile would CLEAR the library binding on the very first validation run.
-            // Gated on the auto-bind toggle (like the XML family's schemaFromLibrary), so
-            // turning auto-bind off and reconciling clears a library binding here too.
-            java.util.Optional<String> raw = jsonService.getRawSchemaIdFromJsonContent(content);
-            if (raw.isPresent() && org.fxt.freexmltoolkit.di.ServiceRegistry
-                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).isSchemaLibraryAutoBindEnabled()
-                    && org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared()
-                    .resolveJsonSchema(raw.get()).isPresent()) {
-                return raw.get();
-            }
-            return jsonService.getSchemaLocationFromJsonContent(content).orElse(null);
-        }
-        String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
-                .get(org.fxt.freexmltoolkit.service.XmlService.class)
-                .getSchemaNameFromXmlContent(content, baseDir)
-                .orElse(null);
-        if (declared == null) {
-            // No xsi:schemaLocation declared — a Schema Library auto-binding (see
-            // detectSchemaFor) is not a "declaration" the reconcile can see otherwise,
-            // so without this the very first validation would CLEAR it. Re-resolving
-            // the library lookup here is deterministic for local entries (same path
-            // every call), so it correctly short-circuits to KEEP once bound.
-            LibraryHit fromLibrary = schemaFromLibrary(content);
-            if (fromLibrary != null) {
-                declared = fromLibrary.file().getAbsolutePath();
-            }
-        }
-        return declared;
-    }
-
-    /** FX thread: clears the editor/IntelliSense side of a dropped schema binding. */
-    private void clearSchemaBindingUi(EditorTab tab) {
-        tab.view.clearSchema();
-        tab.view.invalidateIntelliSenseCache();
-        tab.xmlSchemaProvider = null;
-        if (tab.xmlEditorContext != null) {
-            tab.xmlEditorContext.setSchemaProvider(null);
-        }
-        if (tab.isSelected()) {
-            activeSchema.set(null);
-        }
-    }
-
-    /**
-     * Auto-detects and binds the XSD declared in {@code content} (the document text,
-     * usually the live editor buffer): resolves both {@code xsi:schemaLocation}
-     * (namespaced) and {@code xsi:noNamespaceSchemaLocation}, local (relative to
-     * {@code pathOrNull}'s directory when given) and remote (http/https, downloaded and
-     * cached) references via {@link org.fxt.freexmltoolkit.service.XmlService}. A fresh
-     * service instance keeps detection per-tab and stateless. Runs on a worker thread
-     * (remote download must not block the UI).
-     */
-    private SchemaDetection detectSchemaFor(EditorTab tab, String content, Path pathOrNull) {
-        if (!tab.view.supportsSchema()) {
-            return SchemaDetection.NOT_FOUND;
-        }
-        if (tab.document.getFileType() == EditorFileType.JSON) {
-            return detectJsonSchemaFor(tab, content, pathOrNull);
-        }
-        try {
-            org.fxt.freexmltoolkit.service.XmlService service =
-                    new org.fxt.freexmltoolkit.service.XmlServiceImpl();
-            File baseDir = pathOrNull != null && pathOrNull.getParent() != null
-                    ? pathOrNull.getParent().toFile() : null;
-            java.util.Optional<String> declared = service.getSchemaNameFromXmlContent(content, baseDir);
-            // Remember what the buffer declared (also on failure below) so the
-            // validation-time reconcile can short-circuit unchanged documents.
-            tab.lastDetectedSchemaLocation = declared.orElse(null);
-            if (declared.isEmpty()) {
-                // No xsi:schemaLocation — ask the Schema Library by root namespace / root element.
-                LibraryHit fromLibrary = schemaFromLibrary(content);
-                if (fromLibrary == null) {
-                    return SchemaDetection.NOT_FOUND; // the document references no schema
-                }
-                tab.lastDetectedSchemaLocation = fromLibrary.file().getAbsolutePath();
-                if (!tab.view.loadSchema(fromLibrary.file())) {
-                    return SchemaDetection.failed(fromLibrary.source(), SchemaDetection.UNLOADABLE);
-                }
-                return new SchemaDetection(fromLibrary.file(), SchemaStatus.READY,
-                        fromLibrary.source(), fromLibrary.detail());
-            }
-            // A reference exists. Schema Library / XML catalogs first: a `system` or
-            // `rewriteSystem` catalog entry (or a user mapping) may redirect the declared
-            // location to a local file, so an unreachable URL never has to be fetched.
-            LibraryHit hit = schemaFromLibraryForDeclared(content, declared.get(), baseDir);
-            File xsd;
-            SchemaSource source;
-            String detail;
-            if (hit != null) {
-                xsd = hit.file();
-                source = hit.source();
-                detail = hit.detail();
-            } else {
-                // From here on, every failure is an ERROR (the user expects IntelliSense
-                // but won't get it), not a silent "No XSD".
-                if (!service.loadSchemaFromLocation(declared.get())) {
-                    // Unreachable location: the Schema Library may still know the
-                    // document's namespace (user mapping, catalog `uri`, bundled entry).
-                    LibraryHit fallback = schemaFromLibrary(content);
-                    if (fallback == null) {
-                        // referenced, but not resolvable
-                        return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED,
-                                declared.get());
-                    }
-                    xsd = fallback.file();
-                    source = fallback.source();
-                    detail = fallback.detail();
-                } else {
-                    xsd = service.getCurrentXsdFile();
-                    source = SchemaSource.DECLARED;
-                    detail = declared.get();
-                }
-            }
-            if (xsd == null || !xsd.exists() || !tab.view.loadSchema(xsd)) {
-                return SchemaDetection.failed(source, SchemaDetection.UNLOADABLE); // resolved, but missing or unparsable
-            }
-            return new SchemaDetection(xsd, SchemaStatus.READY, source, detail);
-        } catch (Exception e) {
-            // detection is best-effort; a malformed document simply binds no schema (a detector bug is counted)
-            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.schema_detect");
-            return SchemaDetection.NOT_FOUND;
-        }
-    }
-
-    /**
-     * Schema Library lookup for a document WITH a declared schema location: catalog
-     * {@code system}/{@code rewriteSystem} entries and user mappings are matched against
-     * the declared location (resolved against the document's directory), then the root
-     * namespace is tried. Honours the auto-bind toggle and the offline rule. Returns null
-     * on a miss. Worker-thread safe.
-     */
-    private static LibraryHit schemaFromLibraryForDeclared(String content, String declared, File baseDir) {
-        try {
-            if (!org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
-                    .isSchemaLibraryAutoBindEnabled()) {
-                return null;
-            }
-            var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
-            String namespace = org.fxt.freexmltoolkit.service.XmlRootElementSniffer.sniff(content)
-                    .map(r -> r.namespace()).filter(ns -> !ns.isEmpty()).orElse(null);
-            String baseUri = baseDir != null ? baseDir.toURI().toString() : null;
-            return org.fxt.freexmltoolkit.service.SchemaLibraryLookup
-                    .lookup(library, namespace, declared, baseUri, library.isRemoteDownloadAllowed())
-                    .map(hit -> new LibraryHit(hit.file().toFile(),
-                            hit.viaCatalog() ? SchemaSource.CATALOG : SchemaSource.LIBRARY, hit.detail()))
-                    .orElse(null);
-        } catch (Exception e) {
-            return null;   // best-effort
-        }
-    }
-
-    /**
-     * Schema Library lookup for a document without a schema reference: the document
-     * element's namespace (or, without a namespace, its local name) is mapped to an XSD.
-     * Returns null when auto-binding is disabled or nothing matches. Worker-thread safe.
-     *
-     * <p>Auto-binding is a user-enabled feature, so a remote entry is downloaded on first
-     * use — but it goes through the same offline rule as the resolver hooks
-     * ({@link org.fxt.freexmltoolkit.service.SchemaLibraryLookup#materializeIfAllowed}), so
-     * disabling remote downloads ({@code -Dfxt.schema.namespaceFallback=false}, as the test
-     * suite does) restricts auto-binding to local and already-cached entries too.</p>
-     */
-    private static LibraryHit schemaFromLibrary(String content) {
-        try {
-            if (!org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
-                    .isSchemaLibraryAutoBindEnabled()) {
-                return null;
-            }
-            var root = org.fxt.freexmltoolkit.service.XmlRootElementSniffer.sniff(content).orElse(null);
-            if (root == null) return null;
-            var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
-            boolean byRootElement = root.namespace().isEmpty();
-            var entry = byRootElement
-                    ? library.resolveByRootElement(root.localName())
-                    : library.resolveNamespace(root.namespace(), org.fxt.freexmltoolkit.domain.SchemaKind.XSD);
-            if (entry.isEmpty()) return null;
-            File file = org.fxt.freexmltoolkit.service.SchemaLibraryLookup
-                    .materializeIfAllowed(library, entry.get(), library.isRemoteDownloadAllowed())
-                    .map(java.nio.file.Path::toFile).orElse(null);
-            if (file == null) return null;
-            // resolveByRootElement never consults catalogs, so a root-element match is
-            // always a plain library mapping; a namespace match may be catalog-sourced.
-            SchemaSource source = !byRootElement
-                    && entry.get().source() == org.fxt.freexmltoolkit.domain.EntrySource.CATALOG
-                    ? SchemaSource.CATALOG : SchemaSource.LIBRARY;
-            String detail = source == SchemaSource.CATALOG
-                    ? entry.get().location()
-                    : (byRootElement ? root.localName() : root.namespace());
-            return new LibraryHit(file, source, detail);
-        } catch (Exception e) {
-            return null;   // best-effort
-        }
-    }
-
-    /**
-     * JSON counterpart of the XSD detection: binds the JSON Schema a top-level
-     * {@code "$schema"} member declares — local (relative to the document's directory)
-     * or remote (http/https, downloaded and cached). Meta-schema ids (json-schema.org)
-     * are not bindings and detect as "no schema", unless the Schema Library maps them.
-     * Runs on a worker thread.
-     */
-    private SchemaDetection detectJsonSchemaFor(EditorTab tab, String content, Path pathOrNull) {
-        try {
-            var service = new org.fxt.freexmltoolkit.service.JsonService();
-            File baseDir = pathOrNull != null && pathOrNull.getParent() != null
-                    ? pathOrNull.getParent().toFile() : null;
-            // Schema Library first: a mapped $schema URI (meta-schema ids included) binds its local file.
-            java.util.Optional<String> raw = service.getRawSchemaIdFromJsonContent(content);
-            if (raw.isPresent() && org.fxt.freexmltoolkit.di.ServiceRegistry
-                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).isSchemaLibraryAutoBindEnabled()) {
-                var library = org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared();
-                var entry = library.resolveJsonSchema(raw.get());
-                File mapped = entry.flatMap(e -> org.fxt.freexmltoolkit.service.SchemaLibraryLookup
-                                .materializeIfAllowed(library, e, library.isRemoteDownloadAllowed()))
-                        .map(java.nio.file.Path::toFile).orElse(null);
-                if (mapped != null) {
-                    tab.lastDetectedSchemaLocation = raw.get();
-                    SchemaSource source = entry.get().source() == org.fxt.freexmltoolkit.domain.EntrySource.CATALOG
-                            ? SchemaSource.CATALOG : SchemaSource.LIBRARY;
-                    if (!tab.view.loadSchema(mapped)) {
-                        return SchemaDetection.failed(source, SchemaDetection.UNLOADABLE);
-                    }
-                    String detail = source == SchemaSource.CATALOG ? entry.get().location() : raw.get();
-                    return new SchemaDetection(mapped, SchemaStatus.READY, source, detail);
-                }
-            }
-            java.util.Optional<String> declared = service.getSchemaLocationFromJsonContent(content);
-            // Remember what the buffer declared (also on failure below) so the
-            // validation-time reconcile can short-circuit unchanged documents.
-            tab.lastDetectedSchemaLocation = declared.orElse(null);
-            if (declared.isEmpty()) {
-                return SchemaDetection.NOT_FOUND; // the document references no schema
-            }
-            // A reference exists — from here on, every failure is an ERROR (the user
-            // expects schema validation but won't get it), not a silent "No Schema".
-            File schema = service.resolveJsonSchemaLocation(declared.get(), baseDir);
-            if (schema == null || !schema.exists()) {
-                return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED, declared.get());
-            }
-            if (!tab.view.loadSchema(schema)) {
-                return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNLOADABLE);
-            }
-            return new SchemaDetection(schema, SchemaStatus.READY, SchemaSource.DECLARED, declared.get());
-        } catch (Exception e) {
-            // detection is best-effort; a malformed document simply binds no schema (a detector bug is counted)
-            org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.schema_detect");
-            return SchemaDetection.NOT_FOUND;
-        }
-    }
-
-    /**
-     * Builds the read-only, XSD-derived schema provider for an XML-instance document off the
-     * UI thread (parsing the XSD is expensive), then attaches it to the tab and — if the tab is
-     * front-most — refreshes the inspector so the selected element shows its declared type and
-     * documentation. Best-effort: a malformed/missing XSD simply binds no provider.
-     */
-    private void loadXmlSchemaProviderAsync(EditorTab tab, File xsd) {
-        if (xsd == null || tab.document.getFileType() != EditorFileType.XML) {
-            return;
-        }
-        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            // Stamped first and kept on failure: repairing a broken schema must be noticed too.
-            Path schemaPath = xsd.toPath().toAbsolutePath().normalize();
-            java.util.Map<Path, DiskStamp> stamps = new java.util.LinkedHashMap<>();
-            java.util.Map<Path, Long> checksums = new java.util.HashMap<>();
-            stamps.put(schemaPath, DiskStamp.of(schemaPath));
-            checksums.put(schemaPath, DiskStamp.checksum(schemaPath));
-            try {
-                // The editor view has usually just parsed this very XSD for IntelliSense: share that
-                // model (read-only) instead of running the whole schema pipeline a second time.
-                var data = tab.view instanceof XmlEditorView xmlView ? xmlView.loadedSchemaData(xsd) : null;
-                if (data == null) {
-                    var service = new org.fxt.freexmltoolkit.service.XsdDocumentationService();
-                    service.setXsdFilePath(xsd.getAbsolutePath());
-                    service.setEagerSampleData(false);
-                    service.processXsd(Boolean.TRUE);
-                    data = service.xsdDocumentationData;
-                }
-                var adapter = new org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter();
-                adapter.setXsdDocumentationData(data);
-                // The V2 model of the same XSD: lets the inspector show (and, through the schema's
-                // own tab, edit) the declaration behind an element. Best-effort like the provider.
-                org.fxt.freexmltoolkit.controls.v2.model.XsdSchema model = null;
-                try {
-                    XsdUiParser.Result parsed = XsdUiParser.parseDetailed(
-                            Files.readString(xsd.toPath(), StandardCharsets.UTF_8), xsd.toPath(), null);
-                    model = parsed.schema();
-                    stamps.putAll(parsed.dependencyStamps());
-                    checksums.putAll(parsed.dependencyChecksums());
-                } catch (Exception | LinkageError e) {
-                    model = null; // a schema that does not parse is the user's; a parser bug is counted
-                    org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_bound_xsd");
-                }
-                var boundModel = model;
-                Platform.runLater(() -> {
-                    tab.boundSchemaModel = boundModel;
-                    tab.xmlSchemaProvider = adapter;
-                    if (tab.xmlEditorContext != null) {
-                        tab.xmlEditorContext.setSchemaProvider(adapter);
-                    }
-                    // Binding the schema drops the caret-selected node; pick it up again so the
-                    // inspector shows the schema facts without the user moving the caret.
-                    tab.resolveCaretXmlNode();
-                    if (tab.isSelected()) {
-                        refreshSelectedNode();
-                    }
-                    xmlSchemaProviderRevision.set(xmlSchemaProviderRevision.get() + 1);
-                });
-            } catch (Exception e) {
-                // schema-derived info is best-effort; ignore failures
-            } finally {
-                Platform.runLater(() -> tab.boundSchemaWatch = new BoundSchemaWatch(xsd, stamps, checksums));
-            }
-        });
-    }
+    /** XSD facts for the Inspector, the bound declaration behind XML elements, schema navigation. */
+    private final EditorSchemaLookup schemaLookup = new EditorSchemaLookup(this);
 
     /**
      * @return XSD-derived type/documentation for an XML-instance element at the given XPath, if
@@ -5253,51 +3251,7 @@ public class EditorHost extends BorderPane {
     public java.util.Optional<
             org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ElementTypeInfo>
             resolveActiveXmlElementInfo(String elementXPath) {
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab instanceof EditorTab et && et.xmlSchemaProvider != null && elementXPath != null) {
-            return et.xmlSchemaProvider.getElementTypeInfo(elementXPath);
-        }
-        return java.util.Optional.empty();
-    }
-
-    /** @return the schema-allowed child element (local) names for the element at the given XPath. */
-    public java.util.List<String> resolveValidChildren(String elementXPath) {
-        var map = activeXsdElementMap();
-        var element = activeXsdElement(elementXPath);
-        if (map == null || element == null) {
-            return java.util.List.of();
-        }
-        java.util.List<String> out = new java.util.ArrayList<>();
-        collectChildElementNames(element, map, out, new java.util.HashSet<>());
-        return out.stream().distinct().toList();
-    }
-
-    /** Collects real child element names, descending through compositor nodes (sequence/choice/all). */
-    private void collectChildElementNames(org.fxt.freexmltoolkit.domain.XsdExtendedElement element,
-            java.util.Map<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> map,
-            java.util.List<String> out, java.util.Set<String> visited) {
-        if (element.getChildren() == null) {
-            return;
-        }
-        for (String childXPath : element.getChildren()) {
-            if (childXPath == null || childXPath.contains("@") || !visited.add(childXPath)) {
-                continue; // attributes / cycles
-            }
-            String local = localXmlName(childXPath);
-            if (isCompositorName(local)) {
-                var child = map.get(childXPath);
-                if (child != null) {
-                    collectChildElementNames(child, map, out, visited);
-                }
-            } else if (local != null && !local.isBlank()) {
-                out.add(local);
-            }
-        }
-    }
-
-    /** @return true for the synthetic compositor node names the documentation model inserts. */
-    private static boolean isCompositorName(String name) {
-        return name != null && name.matches("(?i)(SEQUENCE|CHOICE|ALL|GROUP)(_\\d+)?");
+        return schemaLookup.resolveActiveXmlElementInfo(elementXPath);
     }
 
     /**
@@ -5307,28 +3261,7 @@ public class EditorHost extends BorderPane {
      */
     public java.util.List<org.fxt.freexmltoolkit.domain.XsdExtendedElement.DocumentationInfo>
             resolveActiveXmlElementDocs(String elementXPath) {
-        var element = activeXsdElement(elementXPath);
-        if (element == null || element.getDocumentations() == null) {
-            return java.util.List.of();
-        }
-        return java.util.List.copyOf(element.getDocumentations());
-    }
-
-    /** @return example/allowed values for the element at the given XPath (xs:example, else enumeration). */
-    public java.util.List<String> resolveExampleValues(String elementXPath) {
-        var element = activeXsdElement(elementXPath);
-        java.util.List<String> values = new java.util.ArrayList<>();
-        if (element != null && element.getExampleValues() != null) {
-            values.addAll(element.getExampleValues());
-        }
-        if (values.isEmpty()) {
-            resolveActiveXmlElementInfo(elementXPath).ifPresent(info -> {
-                if (info.enumerationValues() != null) {
-                    values.addAll(info.enumerationValues());
-                }
-            });
-        }
-        return values.stream().filter(s -> s != null && !s.isBlank()).distinct().toList();
+        return schemaLookup.resolveActiveXmlElementDocs(elementXPath);
     }
 
     /**
@@ -5337,47 +3270,7 @@ public class EditorHost extends BorderPane {
      */
     public java.util.Optional<org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation.Derivation>
             resolveActiveXmlElementDerivation(String elementXPath) {
-        var element = activeXsdElement(elementXPath);
-        if (element == null) {
-            return java.util.Optional.empty();
-        }
-        var restriction = element.getRestrictionInfo();
-        if (restriction != null && restriction.base() != null && !restriction.base().isBlank()) {
-            return java.util.Optional.of(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation
-                    .Derivation(restriction.base(), "restriction"));
-        }
-        String extensionBase = element.getSimpleContentExtensionBase();
-        if (extensionBase != null && !extensionBase.isBlank()) {
-            return java.util.Optional.of(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation
-                    .Derivation(extensionBase, "extension"));
-        }
-        return java.util.Optional.empty();
-    }
-
-    /**
-     * @return the position of the XML element's declaration in its parent compositor
-     * ({@code "2 of 6 · sequence"}); empty when no schema is bound or the parent is no compositor
-     */
-    public java.util.Optional<String> resolveActiveXmlElementOrder(String elementXPath) {
-        var map = activeXsdElementMap();
-        var element = activeXsdElement(elementXPath);
-        if (map == null || element == null || element.getParentXpath() == null) {
-            return java.util.Optional.empty();
-        }
-        var parent = map.get(element.getParentXpath());
-        String compositor = parent == null ? null : localXmlName(parent.getCurrentXpath());
-        if (parent == null || !isCompositorName(compositor) || parent.getChildren() == null) {
-            return java.util.Optional.empty();
-        }
-        java.util.List<String> particles = parent.getChildren().stream()
-                .filter(x -> x != null && !x.contains("@")).toList();
-        int index = particles.indexOf(element.getCurrentXpath());
-        if (index < 0) {
-            return java.util.Optional.empty();
-        }
-        String kind = compositor.replaceAll("_\\d+$", "").toLowerCase(java.util.Locale.ROOT);
-        return java.util.Optional.of(org.fxt.freexmltoolkit.controls.shell.schema.SchemaDerivation
-                .format(index + 1, particles.size(), kind));
+        return schemaLookup.resolveActiveXmlElementDerivation(elementXPath);
     }
 
     /**
@@ -5388,89 +3281,138 @@ public class EditorHost extends BorderPane {
      */
     public java.util.Optional<org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult>
             validateActiveXmlElementValue(String elementXPath, String value) {
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab instanceof EditorTab et && et.xmlSchemaProvider != null && elementXPath != null) {
-            return java.util.Optional.of(et.xmlSchemaProvider.validateElementValue(elementXPath, value));
-        }
-        return java.util.Optional.empty();
-    }
-
-    /**
-     * Schema facts of an XML-instance element beyond {@code ElementTypeInfo}: nillable, the
-     * {@code @since}/{@code @deprecated} doc tags, list/union member types, raw appinfo entries and
-     * the identity constraints / assertions / type alternatives declared on it.
-     */
-    public record XmlSchemaDetails(boolean nillable, String since, String deprecated, String listItemType,
-            java.util.List<String> unionMemberTypes, java.util.List<String> appInfos,
-            java.util.List<org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo> rules) {
-    }
-
-    /** @return the extra schema facts of the XML element at the given XPath; empty without a schema */
-    public java.util.Optional<XmlSchemaDetails> resolveActiveXmlElementDetails(String elementXPath) {
-        var element = activeXsdElement(elementXPath);
-        if (element == null) {
-            return java.util.Optional.empty();
-        }
-        boolean nillable = element.getCurrentNode() instanceof org.w3c.dom.Element dom
-                && "true".equals(dom.getAttribute("nillable").trim());
-        var docInfo = element.getXsdDocInfo();
-        java.util.List<org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo> rules =
-                new java.util.ArrayList<>();
-        if (element.getIdentityConstraints() != null) {
-            for (var ic : element.getIdentityConstraints()) {
-                String detail = "selector " + ic.getSelector() + " · field " + String.join(", ", ic.getFields())
-                        + (ic.getRefer() != null && !ic.getRefer().isBlank() ? " · refer " + ic.getRefer() : "");
-                rules.add(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo(
-                        ic.getTypeDisplayName(), ic.getName(), detail, null));
-            }
-        }
-        if (element.getAssertions() != null) {
-            for (var as : element.getAssertions()) {
-                rules.add(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo(
-                        "Assertion", "", as.getTest(), null));
-            }
-        }
-        if (element.getTypeAlternatives() != null) {
-            for (var alt : element.getTypeAlternatives()) {
-                rules.add(new org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo(
-                        "Alternative", alt.getType(), alt.getDisplayCondition(), null));
-            }
-        }
-        return java.util.Optional.of(new XmlSchemaDetails(nillable,
-                docInfo == null ? null : docInfo.getSince(),
-                docInfo == null ? null : docInfo.getDeprecated(),
-                element.getListItemType(),
-                element.getUnionMemberTypes() == null ? java.util.List.of() : java.util.List.copyOf(element.getUnionMemberTypes()),
-                element.getGenericAppInfos() == null ? java.util.List.of() : java.util.List.copyOf(element.getGenericAppInfos()),
-                rules));
+        return schemaLookup.validateActiveXmlElementValue(elementXPath, value);
     }
 
     /** @return schema facts of an attribute of the XML element at the given XPath; empty without a schema */
     public java.util.Optional<org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.AttributeTypeInfo>
             resolveActiveXmlAttributeInfo(String elementXPath, String attributeName) {
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab instanceof EditorTab et && et.xmlSchemaProvider != null && elementXPath != null
-                && attributeName != null) {
-            try {
-                return et.xmlSchemaProvider.getAttributeTypeInfo(elementXPath, attributeName);
-            } catch (RuntimeException e) {
-                return java.util.Optional.empty();
-            }
-        }
-        return java.util.Optional.empty();
+        return schemaLookup.resolveActiveXmlAttributeInfo(elementXPath, attributeName);
+    }
+
+    /** Reveals a named type in the Tree view (switching to the XSD tab + Tree if needed). */
+    public void revealTypeByName(String typeName) {
+        schemaLookup.revealTypeByName(typeName);
+    }
+
+    /**
+     * Opens an XSD file in the shell and, once it has loaded and parsed, switches to the
+     * Graphic view and selects the named element (preferred) or type. Bridge replacing the
+     * retired legacy XSD editor's {@code navigateToElementInGraphView}, used by the XML
+     * editor's "go to schema definition". Navigation is deferred until the async load
+     * completes; if {@code elementName} is blank the file is just opened.
+     */
+    public void openXsdAndReveal(java.nio.file.Path path, String elementName) {
+        schemaLookup.openXsdAndReveal(path, elementName);
+    }
+
+    /**
+     * Reveals, in the active Graphic view, the card at an instance path (the model particle of
+     * every step from the global root element down, see {@code XsdInstanceLocator.Located#particlePath()}),
+     * expanding the diagram along that path; in the Tree view the last particle is revealed.
+     */
+    public void revealPathInActiveGraph(java.util.List<XsdNode> particlePath) {
+        schemaLookup.revealPathInActiveGraph(particlePath);
+    }
+
+    /** Selects (reveals) the given node in the active structured view (Tree or Graphic). */
+    public void selectNodeInActiveTree(XsdNode node) {
+        schemaLookup.selectNodeInActiveTree(node);
+    }
+
+    /**
+     * Reveals, in the Tree view, the live-model node whose schema XPath
+     * ({@link XsdNode#getXPath()}, e.g. {@code /xs:schema/xs:complexType[@name='T']/xs:sequence})
+     * equals {@code xpath}. Used by reports that analyzed a <em>fresh</em> parse of the
+     * document and therefore cannot navigate by node identity. Unnamed siblings (two
+     * {@code xs:sequence} under one parent) share an XPath; the first match wins.
+     *
+     * @return true if a node was found and selected
+     */
+    public boolean revealSchemaNodeByXPath(String xpath) {
+        return schemaLookup.revealSchemaNodeByXPath(xpath);
+    }
+
+    /** @return the schema-allowed child element (local) names for the element at the given XPath. */
+    public java.util.List<String> resolveValidChildren(String elementXPath) {
+        return schemaLookup.resolveValidChildren(elementXPath);
+    }
+
+    /** @return example/allowed values for the element at the given XPath (xs:example, else enumeration). */
+    public java.util.List<String> resolveExampleValues(String elementXPath) {
+        return schemaLookup.resolveExampleValues(elementXPath);
+    }
+
+    /**
+     * @return the position of the XML element's declaration in its parent compositor
+     * ({@code "2 of 6 · sequence"}); empty when no schema is bound or the parent is no compositor
+     */
+    public java.util.Optional<String> resolveActiveXmlElementOrder(String elementXPath) {
+        return schemaLookup.resolveActiveXmlElementOrder(elementXPath);
+    }
+
+    /** @return the extra schema facts of the XML element at the given XPath; empty without a schema */
+    public java.util.Optional<XmlSchemaDetails> resolveActiveXmlElementDetails(String elementXPath) {
+        return schemaLookup.resolveActiveXmlElementDetails(elementXPath);
     }
 
     /** @return the attribute names the schema declares for the XML element at the given XPath */
     public java.util.List<String> resolveActiveXmlValidAttributes(String elementXPath) {
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab instanceof EditorTab et && et.xmlSchemaProvider != null && elementXPath != null) {
-            try {
-                return et.xmlSchemaProvider.getValidAttributes(elementXPath);
-            } catch (RuntimeException e) {
-                return java.util.List.of();
-            }
-        }
-        return java.util.List.of();
+        return schemaLookup.resolveActiveXmlValidAttributes(elementXPath);
+    }
+
+    /**
+     * @return the XSD declaration of the element at {@code elementXPath} (or of its attribute
+     * {@code attributeName}) in the active XML document's bound schema; empty without a schema or
+     * when the path cannot be mapped unambiguously
+     */
+    public java.util.Optional<XmlSchemaDeclaration> resolveActiveXmlSchemaDeclaration(String elementXPath,
+            String attributeName) {
+        return schemaLookup.resolveActiveXmlSchemaDeclaration(elementXPath, attributeName);
+    }
+
+    /**
+     * Applies {@code edit} to the bound-XSD declaration of the active XML document's element at
+     * {@code elementXPath} (or its attribute). The schema opens in a background tab first when it
+     * is not open yet, so the change lands on its undo stack and shows as unsaved there; the XML
+     * tab keeps the focus. Asynchronous when the schema still has to be loaded.
+     *
+     * @param onDone receives whether the edit was applied (on the FX thread); may be {@code null}
+     */
+    public void editActiveXmlSchemaDeclaration(String elementXPath, String attributeName, SchemaEdit edit,
+            java.util.function.Consumer<Boolean> onDone) {
+        schemaLookup.editActiveXmlSchemaDeclaration(elementXPath, attributeName, edit, onDone);
+    }
+
+    /**
+     * Opens the bound XSD of the active XML document in front, in the Graphic view, expanded along
+     * the instance path down to the card of the element at {@code elementXPath} (or its
+     * attribute), and selects it — by structure, not by name, so same-named local declarations and
+     * the several occurrences of a named type's children are told apart.
+     */
+    public void revealActiveXmlSchemaDeclaration(String elementXPath, String attributeName) {
+        schemaLookup.revealActiveXmlSchemaDeclaration(elementXPath, attributeName);
+    }
+
+    /**
+     * Where the given XSD node is used in the active schema. For a global component (named type,
+     * global element/attribute, group) these are the places that reference it; for a local
+     * declaration it is the global component that contains it. Builds a reference graph — call it
+     * off the FX thread.
+     */
+    public java.util.List<SchemaUsage> resolveSchemaUsages(org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema,
+            XsdNode node) {
+        return schemaLookup.resolveSchemaUsages(schema, node);
+    }
+
+    /**
+     * Navigates a selected XML-instance element to its definition in the active document's bound
+     * XSD: resolves the element's XPath against the schema, then opens/reveals it in the XSD editor.
+     * Shared by the Graphic and Tree context menus (parallels the Text view's "Go to Definition").
+     * No-op when no schema is bound or the node is not an element.
+     */
+    void goToXmlDefinition(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode node) {
+        schemaLookup.goToXmlDefinition(node);
     }
 
     // ----- the bound XSD declaration behind an XML element (show + edit from the XML document) -----
@@ -5490,59 +3432,6 @@ public class EditorHost extends BorderPane {
             String readOnlyReason) {
     }
 
-    /**
-     * @return the XSD declaration of the element at {@code elementXPath} (or of its attribute
-     * {@code attributeName}) in the active XML document's bound schema; empty without a schema or
-     * when the path cannot be mapped unambiguously
-     */
-    public java.util.Optional<XmlSchemaDeclaration> resolveActiveXmlSchemaDeclaration(String elementXPath,
-            String attributeName) {
-        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)
-                || et.document.getFileType() != EditorFileType.XML || et.schemaFile == null || elementXPath == null) {
-            return java.util.Optional.empty();
-        }
-        EditorTab schemaTab = findTabFor(et.schemaFile.toPath());
-        org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema = et.boundSchemaModel;
-        if (schemaTab != null && !schemaTab.loading) {
-            schemaTab.ensureModelParsed();
-            schema = schemaTab.editorContext != null ? schemaTab.editorContext.getSchema() : null;
-        }
-        if (schema == null) {
-            return java.util.Optional.empty();
-        }
-        var located = org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.locate(schema,
-                org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(elementXPath),
-                attributeName);
-        if (located.isEmpty()) {
-            return java.util.Optional.empty();
-        }
-        String reason = located.get().foreign()
-                ? "Read-only: declared in an included or imported schema."
-                : schemaReadOnlyReason(et.schemaFile);
-        return java.util.Optional.of(new XmlSchemaDeclaration(located.get(), schema, et.schemaFile.getName(),
-                reason == null, reason));
-    }
-
-    /**
-     * @return why a bound XSD must not be edited from an XML document, or {@code null}: a copy the
-     * application manages (schema cache / library under {@code ~/.freeXmlToolkit}) would be
-     * overwritten by the next download, and a read-only file cannot be saved
-     */
-    static String schemaReadOnlyReason(File xsd) {
-        if (xsd == null) {
-            return "No schema file.";
-        }
-        Path file = xsd.toPath().toAbsolutePath().normalize();
-        Path appDir = Path.of(System.getProperty("user.home"), ".freeXmlToolkit").toAbsolutePath().normalize();
-        if (file.startsWith(appDir)) {
-            return "Read-only: a cached copy from the Schema Library.";
-        }
-        if (Files.exists(file) && !Files.isWritable(file)) {
-            return "The schema file is read-only.";
-        }
-        return null;
-    }
-
     /** One edit of a bound-XSD declaration, applied to the schema's own tab. */
     @FunctionalInterface
     public interface SchemaEdit {
@@ -5559,7 +3448,7 @@ public class EditorHost extends BorderPane {
         private final EditorTab tab;
         private final org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.Located located;
 
-        private SchemaEditTarget(EditorTab tab,
+        SchemaEditTarget(EditorTab tab,
                 org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.Located located) {
             this.tab = tab;
             this.located = located;
@@ -5656,191 +3545,8 @@ public class EditorHost extends BorderPane {
         }
     }
 
-    /**
-     * Applies {@code edit} to the bound-XSD declaration of the active XML document's element at
-     * {@code elementXPath} (or its attribute). The schema opens in a background tab first when it
-     * is not open yet, so the change lands on its undo stack and shows as unsaved there; the XML
-     * tab keeps the focus. Asynchronous when the schema still has to be loaded.
-     *
-     * @param onDone receives whether the edit was applied (on the FX thread); may be {@code null}
-     */
-    public void editActiveXmlSchemaDeclaration(String elementXPath, String attributeName, SchemaEdit edit,
-            java.util.function.Consumer<Boolean> onDone) {
-        java.util.function.Consumer<Boolean> done = onDone != null ? onDone : ok -> { };
-        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab xmlTab)
-                || xmlTab.schemaFile == null || edit == null) {
-            done.accept(false);
-            return;
-        }
-        File xsd = xmlTab.schemaFile;
-        withSchemaTab(xsd.toPath(), schemaTab -> {
-            schemaTab.ensureModelParsed();
-            if (schemaTab.editorContext == null) {
-                done.accept(false);
-                return;
-            }
-            var located = org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.locate(
-                    schemaTab.editorContext.getSchema(),
-                    org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(elementXPath),
-                    attributeName);
-            if (located.isEmpty() || located.get().foreign() || schemaReadOnlyReason(xsd) != null) {
-                done.accept(false);
-                return;
-            }
-            boolean ok = edit.apply(new SchemaEditTarget(schemaTab, located.get()));
-            if (ok) {
-                // The inspector re-reads the declaration from the schema tab's live model.
-                xmlSchemaProviderRevision.set(xmlSchemaProviderRevision.get() + 1);
-            }
-            done.accept(ok);
-        });
-    }
-
-    /**
-     * Opens the bound XSD of the active XML document in front, in the Graphic view, expanded along
-     * the instance path down to the card of the element at {@code elementXPath} (or its
-     * attribute), and selects it — by structure, not by name, so same-named local declarations and
-     * the several occurrences of a named type's children are told apart.
-     */
-    public void revealActiveXmlSchemaDeclaration(String elementXPath, String attributeName) {
-        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab xmlTab)
-                || xmlTab.schemaFile == null) {
-            return;
-        }
-        java.util.List<String> path =
-                org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(elementXPath);
-        revealSchemaDeclaration(xmlTab.schemaFile.toPath(), path, attributeName, null);
-    }
-
-    /** @return the open editor tab of {@code path}, or {@code null} */
-    private EditorTab findTabFor(Path path) {
-        Path wanted = path.toAbsolutePath().normalize();
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && et.document.getPath() != null
-                    && wanted.equals(et.document.getPath().toAbsolutePath().normalize())) {
-                return et;
-            }
-        }
-        return null;
-    }
-
-    /** Runs {@code action} with the loaded tab of {@code path}, opening it behind the active tab if needed. */
-    private void withSchemaTab(Path path, java.util.function.Consumer<EditorTab> action) {
-        EditorTab open = findTabFor(path);
-        if (open != null) {
-            if (open.loading) {
-                Runnable previous = open.afterLoad;
-                open.afterLoad = () -> {
-                    if (previous != null) {
-                        previous.run();
-                    }
-                    action.accept(open);
-                };
-            } else {
-                action.accept(open);
-            }
-            return;
-        }
-        rememberRecentFile(path);
-        EditorTab tab = new EditorTab(OpenDocument.forPath(path), this::refreshSelectedNode, nodeClipboard,
-                this::openNamedTypeEditor, this::goToXmlDefinition);
-        addTab(tab, false);
-        tab.view.setGoToDefinitionHandler(this::goToDefinition);
-        tab.afterLoad = () -> action.accept(tab);
-        loadAsync(tab, path);
-    }
-
-    /** After an XSD was saved: XML tabs bound to it reload their schema facts from the new file. */
-    private void reloadXmlSchemasBoundTo(Path xsd) {
-        Path saved = xsd.toAbsolutePath().normalize();
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && et.schemaFile != null
-                    && saved.equals(et.schemaFile.toPath().toAbsolutePath().normalize())) {
-                refreshBoundSchema(et);
-            }
-        }
-    }
-
-    /**
-     * Reads a tab's bound schema anew, for the view's IntelliSense first because the schema
-     * provider shares what the view has loaded. A newer binding wins over this refresh.
-     */
-    private void refreshBoundSchema(EditorTab tab) {
-        File xsd = tab.schemaFile;
-        if (xsd == null) {
-            return;
-        }
-        long request = tab.schemaBindRequest.get();
-        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            if (!acquireSchemaDetection(tab, () -> tab.schemaBindRequest.get() != request)) {
-                return;
-            }
-            boolean loaded = false;
-            try {
-                loaded = tab.schemaBindRequest.get() == request && loadSchemaSafely(tab, xsd);
-            } finally {
-                tab.schemaDetecting.set(false);
-            }
-            boolean applied = loaded;
-            Platform.runLater(() -> {
-                if (isAbandoned(tab) || tab.schemaBindRequest.get() != request || !xsd.equals(tab.schemaFile)) {
-                    return;
-                }
-                tab.view.invalidateIntelliSenseCache();
-                publishSchemaStatus(tab, applied ? SchemaStatus.READY : SchemaStatus.ERROR);
-                loadXmlSchemaProviderAsync(tab, xsd);
-            });
-        });
-    }
-
     /** A place a schema component is used: the referring node and a short description. */
     public record SchemaUsage(XsdNode node, String name, String detail) {
-    }
-
-    /**
-     * Where the given XSD node is used in the active schema. For a global component (named type,
-     * global element/attribute, group) these are the places that reference it; for a local
-     * declaration it is the global component that contains it. Builds a reference graph — call it
-     * off the FX thread.
-     */
-    public java.util.List<SchemaUsage> resolveSchemaUsages(org.fxt.freexmltoolkit.controls.v2.model.XsdSchema schema,
-            XsdNode node) {
-        if (schema == null || node == null) {
-            return java.util.List.of();
-        }
-        var key = org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.keyOf(node);
-        boolean global = key != null && node.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
-        java.util.List<SchemaUsage> out = new java.util.ArrayList<>();
-        if (global) {
-            var graph = org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.build(schema);
-            for (var ref : graph.referencesTo(key)) {
-                if (ref.isSelfReference() || ref.referrer() == null) {
-                    continue;
-                }
-                XsdNode owner = ref.owner() != null && graph.component(ref.owner()) != null
-                        ? graph.component(ref.owner()).node() : null;
-                String name = ref.referrer().getName() != null && !ref.referrer().getName().isBlank()
-                        ? ref.referrer().getName()
-                        : owner != null ? owner.getName() : ref.referrer().getNodeType().name();
-                out.add(new SchemaUsage(ref.referrer(), name, usageDetail(ref.referrer(), owner)));
-            }
-        } else {
-            for (XsdNode n = node.getParent(); n != null; n = n.getParent()) {
-                if (n.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema
-                        && n.getName() != null && !n.getName().isBlank()) {
-                    out.add(new SchemaUsage(n, n.getName(), org.fxt.freexmltoolkit.controls.shell.schema
-                            .XsdNodeLabels.kindLabel(n.getNodeType())));
-                    break;
-                }
-            }
-        }
-        return out;
-    }
-
-    private static String usageDetail(XsdNode referrer, XsdNode owner) {
-        String kind = org.fxt.freexmltoolkit.controls.shell.schema.XsdNodeLabels.kindLabel(referrer.getNodeType());
-        return owner != null && owner != referrer && owner.getName() != null
-                ? kind + " in " + owner.getName() : kind;
     }
 
     /** Adds a new child element with the given name to the selected XML element. */
@@ -5849,285 +3555,67 @@ public class EditorHost extends BorderPane {
                 el, new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement(name)));
     }
 
-    /** @return the active document's XSD element map (xpath → extended element), or {@code null}. */
-    private java.util.Map<String, org.fxt.freexmltoolkit.domain.XsdExtendedElement> activeXsdElementMap() {
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab instanceof EditorTab et
-                && et.xmlSchemaProvider
-                        instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter adapter
-                && adapter.getXsdDocumentationData() != null) {
-            return adapter.getXsdDocumentationData().getExtendedXsdElementMap();
-        }
-        return null;
-    }
-
-    private org.fxt.freexmltoolkit.domain.XsdExtendedElement activeXsdElement(String xpath) {
-        var map = activeXsdElementMap();
-        if (map == null || xpath == null) {
-            return null;
-        }
-        // Full-path resolution lives in the adapter: predicate-free exact match, then a
-        // step-wise walk that tolerates the synthetic compositor segments (SEQUENCE_n/
-        // CHOICE_n/…) the documentation model inserts into map keys, and an
-        // unambiguous-only name fallback. Never guess among same-named declarations —
-        // two distinct elements (e.g. "Account" under AssetDetails vs. under Position)
-        // must NOT be conflated.
-        Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        if (tab instanceof EditorTab et
-                && et.xmlSchemaProvider
-                        instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XsdSchemaAdapter adapter) {
-            return adapter.resolveElement(xpath);
-        }
-        return null;
-    }
+    // ----- saving and external changes --------------------------------------
 
     /**
-     * Navigates a selected XML-instance element to its definition in the active document's bound
-     * XSD: resolves the element's XPath against the schema, then opens/reveals it in the XSD editor.
-     * Shared by the Graphic and Tree context menus (parallels the Text view's "Go to Definition").
-     * No-op when no schema is bound or the node is not an element.
-     */
-    void goToXmlDefinition(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode node) {
-        if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element)) {
-            return;
-        }
-        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) || et.schemaFile == null) {
-            return;
-        }
-        String xpath = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(node);
-        revealSchemaDeclaration(et.schemaFile.toPath(),
-                org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(xpath),
-                null, element.getName());
-    }
-
-    /**
-     * The Text view's "Go to Definition": by the element's instance path when the request carries
-     * one (the very declaration, expanded and selected in the Graphic view), else by name.
-     */
-    private void goToDefinition(org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest req) {
-        if (req.instanceXPath() != null && !req.instanceXPath().isBlank()) {
-            revealSchemaDeclaration(req.xsdFile().toPath(),
-                    org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.instancePath(req.instanceXPath()),
-                    null, req.elementName());
-        } else {
-            openXsdAndReveal(req.xsdFile().toPath(), req.elementName());
-        }
-    }
-
-    /**
-     * Opens {@code xsd} in front, in the Graphic view, expanded along {@code instancePath} down to
-     * the card of that declaration (or its attribute), and selects it. Found by structure, so
-     * same-named local declarations and the occurrences of a named type's children are told apart.
-     * Waits for the parse and the diagram of a freshly opened schema; when the path is not in the
-     * schema (wildcards, substitution groups), the first declaration named {@code fallbackName} is
-     * selected instead.
-     *
-     * @param xsd           the schema file
-     * @param instancePath  element local names from the document root
-     * @param attributeName an attribute of the last element, or null
-     * @param fallbackName  the name to look for when the path finds nothing (nullable)
-     */
-    void revealSchemaDeclaration(Path xsd, java.util.List<String> instancePath, String attributeName,
-                                 String fallbackName) {
-        withSchemaTab(xsd, schemaTab -> {
-            tabPane.getSelectionModel().select(schemaTab);
-            setActiveViewMode(ViewMode.GRAPHIC);
-            revealWhenGraphReady(schemaTab, instancePath, attributeName, fallbackName, REVEAL_ATTEMPTS);
-        });
-    }
-
-    /** Retries of {@link #revealWhenGraphReady} 50 ms apart: the parse and the diagram are built asynchronously. */
-    private static final int REVEAL_ATTEMPTS = 100;
-
-    private void revealWhenGraphReady(EditorTab schemaTab, java.util.List<String> instancePath,
-                                      String attributeName, String fallbackName, int attemptsLeft) {
-        if (isAbandoned(schemaTab) || !schemaTab.isSelected()) {
-            return; // closed, or the user moved on to another tab meanwhile
-        }
-        var graph = schemaTab.xsdGraphView;
-        var context = schemaTab.editorContext;
-        boolean ready = schemaTab.viewMode == ViewMode.GRAPHIC && context != null && graph != null
-                && graph.getEditorContext() == context;
-        if (!ready) {
-            if (attemptsLeft > 0) {
-                javafx.animation.PauseTransition pause =
-                        new javafx.animation.PauseTransition(javafx.util.Duration.millis(50));
-                pause.setOnFinished(e -> revealWhenGraphReady(
-                        schemaTab, instancePath, attributeName, fallbackName, attemptsLeft - 1));
-                pause.play();
-            }
-            return;
-        }
-        var located = instancePath == null || instancePath.isEmpty() ? java.util.Optional
-                .<org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.Located>empty()
-                : org.fxt.freexmltoolkit.controls.shell.schema.XsdInstanceLocator.locate(
-                        context.getSchema(), instancePath, attributeName);
-        if (located.isPresent() && graph.revealModelPath(located.get().particlePath())) {
-            return;
-        }
-        XsdNode byName = located.isPresent() ? null : findNodeByName(context.getSchema(), fallbackName);
-        if (byName != null) {
-            selectNodeInActiveTree(byName);
-        }
-    }
-
-    /** @return the local element name from an XPath/child reference (last segment, no prefix/predicate). */
-    private static String localXmlName(String ref) {
-        if (ref == null || ref.isBlank()) {
-            return null;
-        }
-        String last = ref.substring(ref.lastIndexOf('/') + 1);
-        int bracket = last.indexOf('[');
-        if (bracket >= 0) {
-            last = last.substring(0, bracket);
-        }
-        int colon = last.indexOf(':');
-        return colon >= 0 ? last.substring(colon + 1) : last;
-    }
-
-    /** @return the file size in bytes, or {@code -1} if it cannot be determined (call off the FX thread). */
-    private static long sizeOrUnknown(Path path) {
-        try {
-            return Files.size(path);
-        } catch (IOException | RuntimeException e) {
-            return -1;
-        }
-    }
-
-    /**
-     * {@link #write(EditorTab, Path)} off the FX thread: the text is taken now, written on a worker, and the
-     * document marked clean afterwards only if nothing was typed meanwhile. Writes of one tab run in order.
-     * While a write runs the tab is not checked for external changes, so the save itself is never
-     * reported as one.
+     * Saves the active document to its current path (must be titled). The file is written on a worker
+     * thread (a large file on a network drive blocked the UI for seconds).
      *
      * @return completes on the FX thread with whether the file was written
      */
-    private CompletableFuture<Boolean> writeAsync(EditorTab tab, Path target) {
-        String text = tab.view.getText();
-        TextEncoding encoding = tab.document.getEncoding();
-        boolean xml = tab.document.getFileType().isXmlFamily();
-        long revision = tab.textRevision;
-        tab.saving++;
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-        CompletableFuture<?> previous = tab.pendingWrite;
-        tab.pendingWrite = result;
-        previous.handle((ignored, error) -> null).thenRunAsync(() -> {
-            DiskStamp stamp = null;
-            TextEncoding saved = null;
-            Throwable failure = null;
-            try {
-                saved = encoding.write(target, text, xml);
-                stamp = DiskStamp.of(target);
-            } catch (IOException | RuntimeException | StackOverflowError | OutOfMemoryError e) {
-                failure = e;
-            }
-            DiskStamp written = stamp;
-            TextEncoding writtenEncoding = saved;
-            Throwable error = failure;
-            Platform.runLater(() -> {
-                tab.saving--;
-                if (written != null) {
-                    if (tab.textRevision == revision) {
-                        tab.document.setDirty(false);
-                    }
-                    tab.document.setDiskStamp(written);
-                    tab.document.setEncoding(writtenEncoding);
-                    if (tab.document.getFileType() == EditorFileType.XSD) {
-                        reloadXmlSchemasBoundTo(target);
-                    }
-                } else {
-                    reportSaveFailure(tab, target, error);
-                }
-                result.complete(written != null);
-            });
-        }, org.fxt.freexmltoolkit.FxtGui.executorService).whenComplete((ignored, error) -> {
-            if (error != null) {
-                // The worker itself failed (rejected, or an Error escaped): never leave the tab "saving".
-                Platform.runLater(() -> {
-                    if (!result.isDone()) {
-                        tab.saving--;
-                        reportSaveFailure(tab, target, error);
-                        result.complete(false);
-                    }
-                });
-            }
-        });
-        return result;
+    public CompletableFuture<Boolean> saveActive() {
+        return fileSync.saveActive();
     }
 
     /**
-     * A write failed: counted as {@code file_save} with status and error code, logged, and told
-     * to the user (the previous behaviour — nothing at all — lost documents silently).
+     * Saves the active document to {@code target} (Save As), written on a worker thread.
+     *
+     * @return completes on the FX thread with whether the file was written
      */
-    private void reportSaveFailure(EditorTab tab, Path target, Throwable error) {
-        Throwable cause = error;
-        while ((cause instanceof java.util.concurrent.CompletionException
-                || cause instanceof java.util.concurrent.ExecutionException) && cause.getCause() != null) {
-            cause = cause.getCause();
-        }
-        UsageEvents.fileSaveFailed(tab.document.getFileType().docKind(),
-                org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(cause),
-                tab.document.getEncoding().charset().name());
-        logger.warn("Could not save {}: {}", target, String.valueOf(cause));
-        if (cause instanceof java.nio.charset.CharacterCodingException) {
-            offerUtf8Save(tab, target);
-            return;
-        }
-        // file_save already carries the failure; the dialog must not report it a second time.
-        org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
-                "Could not save " + target.getFileName() + ".",
-                "Check that the file is not read-only or locked by another program and that the drive "
-                        + "has free space, then try again or use Save As.", cause, false);
+    public CompletableFuture<Boolean> saveActiveAs(Path target) {
+        return fileSync.saveActiveAs(target);
     }
 
     /**
-     * Asked when the text holds characters the document's charset cannot store (only outside XML, where
-     * they would otherwise become character references): {@code true} saves it as UTF-8 instead.
-     * Replaceable by tests.
+     * Saves all titled, dirty documents, written on worker threads.
+     *
+     * @return completes on the FX thread with the number of files written
      */
-    static java.util.function.Predicate<String> utf8SaveConfirmer = charset ->
-            org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Save failed",
-                    "The text contains characters that " + charset + " cannot store.",
-                    "Save the file as UTF-8 instead? Its other characters stay as they are, only their bytes "
-                            + "on disk change.",
-                    "Save as UTF-8", "Cancel");
-
-    /** Offers to save {@code tab} as UTF-8 after its own charset could not encode the text. FX thread. */
-    private void offerUtf8Save(EditorTab tab, Path target) {
-        TextEncoding current = tab.document.getEncoding();
-        if (org.fxt.freexmltoolkit.controls.shell.editor.search.EncodingSniffer.declaredEncoding(
-                tab.view.getText()) != null) {
-            // A declaration would pick the charset again on the next write: the user has to edit it.
-            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
-                    "Could not save " + target.getFileName() + ": the text contains characters that "
-                            + current.charset().name() + " cannot store.",
-                    "Change the encoding in the XML declaration (for example to UTF-8) and save again.",
-                    (String) null, false);
-            return;
-        }
-        if (utf8SaveConfirmer.test(current.charset().name())) {
-            tab.document.setEncoding(TextEncoding.DEFAULT);
-            writeAsync(tab, target);
-        }
+    public CompletableFuture<Integer> saveAll() {
+        return fileSync.saveAll();
     }
 
-    private boolean write(EditorTab tab, Path target) {
-        try {
-            TextEncoding encoding = tab.document.getEncoding();
-            tab.document.setEncoding(encoding.write(target, tab.view.getText(),
-                    tab.document.getFileType().isXmlFamily()));
-            tab.document.setDirty(false);
-            // Our own write must not be reported as an external change.
-            tab.document.setDiskStamp(DiskStamp.of(target));
-            if (tab.document.getFileType() == EditorFileType.XSD) {
-                // XML documents bound to this schema pick up the saved declarations.
-                reloadXmlSchemasBoundTo(target);
-            }
-            return true;
-        } catch (IOException | RuntimeException | StackOverflowError | OutOfMemoryError e) {
-            reportSaveFailure(tab, target, e);
-            return false;
-        }
+    /** Test seam: answers external-change prompts without a blocking dialog. */
+    void setExternalChangePrompt(ExternalChangePrompt prompt) {
+        fileSync.setExternalChangePrompt(prompt);
+    }
+
+    /** Test seam: checks the open documents' files now, regardless of window focus. */
+    void checkExternalChangesNow() {
+        fileSync.checkExternalChangesNow();
+    }
+
+    /** Test seam: whether an external-change check is running or being handled. */
+    boolean isExternalChangeCheckRunning() {
+        return fileSync.isExternalChangeCheckRunning();
+    }
+
+    /**
+     * Asks about unsaved documents before the application closes (window button, File → Exit,
+     * Ctrl/Cmd+Q, macOS Quit): one dialog listing them with Save All / Don't Save / Cancel.
+     *
+     * @return whether the application may close now
+     */
+    public boolean confirmExit() {
+        return fileSync.confirmExit();
+    }
+
+    /**
+     * @param prompter asks the user about the given unsaved documents (shown only when there are any)
+     * @return whether the application may close now
+     */
+    boolean confirmExit(java.util.function.Function<java.util.List<OpenDocument>, ExitChoice> prompter) {
+        return fileSync.confirmExit(prompter);
     }
 
     // ----- external changes ------------------------------------------------
@@ -6140,218 +3628,8 @@ public class EditorHost extends BorderPane {
      *                  {@code null} when the file's state is undeterminable
      * @param checksums the content checksums of those files
      */
-    private record BoundSchemaWatch(File schema, java.util.Map<Path, DiskStamp> stamps,
+    record BoundSchemaWatch(File schema, java.util.Map<Path, DiskStamp> stamps,
                                     java.util.Map<Path, Long> checksums) {
-    }
-
-    /** The titled, fully loaded documents whose files are watched for external changes. */
-    private java.util.List<ExternalChangeMonitor.Watched> watchedDocuments() {
-        java.util.List<ExternalChangeMonitor.Watched> watched = new java.util.ArrayList<>();
-        for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && !et.document.isUntitled() && !et.loading && et.saving == 0) {
-                watched.add(new ExternalChangeMonitor.Watched(
-                        et.document, et.document.getPath(), et.document.getDiskStamp()));
-                // A model behind the text gets parsed anew anyway, and then reads the files as they are.
-                if (et.editorContext != null && et.isModelCurrent()) {
-                    et.dependencyStamps.forEach((file, stamp) -> watched.add(ExternalChangeMonitor.Watched.dependency(
-                            et.document, file, stamp, et.dependencyChecksums.get(file))));
-                }
-                BoundSchemaWatch bound = et.boundSchemaWatch;
-                if (bound != null && bound.schema().equals(et.schemaFile)) {
-                    bound.stamps().forEach((file, stamp) -> watched.add(ExternalChangeMonitor.Watched.dependency(
-                            et.document, file, stamp, bound.checksums().get(file))));
-                }
-            }
-        }
-        return watched;
-    }
-
-    /**
-     * Refreshes the schema an XML tab is bound to when it or a file it pulls in changed. Nothing
-     * is asked: only the schema facts change, the text and the undo history stay.
-     */
-    private void handleBoundSchemaChanges(EditorTab tab, java.util.List<ExternalChangeMonitor.Change> changes) {
-        BoundSchemaWatch bound = tab.boundSchemaWatch;
-        if (bound == null || !bound.schema().equals(tab.schemaFile)) {
-            return;
-        }
-        boolean refresh = false;
-        for (ExternalChangeMonitor.Change change : changes) {
-            if (bound.stamps().containsKey(change.path())
-                    && java.util.Objects.equals(change.known(), bound.stamps().get(change.path()))) {
-                bound.stamps().put(change.path(), change.current());
-                refresh |= change.known() != null && !change.sameContent();
-            }
-        }
-        if (refresh) {
-            refreshBoundSchema(tab);
-        }
-    }
-
-    /**
-     * Handles files that were changed or deleted on disk by another program: asks the user,
-     * one document after the other, whether to reload/ignore (changed) or keep/close (deleted).
-     * Results that were overtaken meanwhile - tab closed, saved, reloaded, saved under another
-     * name - are dropped; the next check re-evaluates them. Changes to files a document's model
-     * pulls in come last, one question per document; a document just asked about waits for the
-     * next check, because reloading it reads those files anyway.
-     */
-    private void handleExternalChanges(java.util.List<ExternalChangeMonitor.Change> changes) {
-        java.util.Set<OpenDocument> asked = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
-        java.util.Map<OpenDocument, java.util.List<ExternalChangeMonitor.Change>> dependencyChanges =
-                new java.util.LinkedHashMap<>();
-        for (ExternalChangeMonitor.Change change : changes) {
-            if (change.dependency()) {
-                dependencyChanges.computeIfAbsent(change.document(), d -> new java.util.ArrayList<>()).add(change);
-                continue;
-            }
-            EditorTab tab = editorTabOf(change.document());
-            if (tab == null || tab.loading || tab.saving > 0 || !change.path().equals(tab.document.getPath())
-                    || !java.util.Objects.equals(change.known(), tab.document.getDiskStamp())) {
-                continue;
-            }
-            OpenDocument document = tab.document;
-            if (change.known() == null) {
-                document.setDiskStamp(change.current()); // first known state: nothing to compare
-                continue;
-            }
-            if (change.deleted()) {
-                asked.add(document);
-                tabPane.getSelectionModel().select(tab);
-                if (externalChangePrompt.fileDeleted(document, document.isDirty())
-                        == ExternalChangePrompt.DeletedChoice.CLOSE) {
-                    closeTabNow(tab);
-                } else {
-                    document.setDiskStamp(DiskStamp.MISSING);
-                    document.setDirty(true); // the content now only exists in the editor
-                }
-                continue;
-            }
-            if (change.diskText() != null && change.diskText().equals(tab.view.getText())) {
-                // Touched or rewritten with identical content: nothing to ask.
-                document.setDiskStamp(change.current());
-                document.setDirty(false);
-                continue;
-            }
-            asked.add(document);
-            tabPane.getSelectionModel().select(tab);
-            ExternalChangePrompt.ChangedChoice choice =
-                    externalChangePrompt.fileChanged(document, document.isDirty());
-            // Either way the user has seen this state of the file: do not ask about it again.
-            document.setDiskStamp(change.current());
-            if (choice == ExternalChangePrompt.ChangedChoice.RELOAD) {
-                reloadFromDisk(tab, change.path());
-            } else {
-                document.setDirty(true); // editor and disk differ; saving overwrites the disk
-            }
-        }
-        dependencyChanges.forEach((document, files) -> {
-            if (!asked.contains(document)) {
-                handleDependencyChanges(document, files);
-            }
-        });
-    }
-
-    /**
-     * Asks once whether to rebuild a schema's model from files it pulls in that changed. Asked
-     * rather than done silently because a new model drops the undo history. Either answer
-     * settles this state of the files; only a further change asks again.
-     */
-    private void handleDependencyChanges(OpenDocument document,
-                                         java.util.List<ExternalChangeMonitor.Change> changes) {
-        EditorTab tab = editorTabOf(document);
-        if (tab == null || tab.loading || tab.saving > 0) {
-            return;
-        }
-        if (document.getFileType() == EditorFileType.XML) {
-            handleBoundSchemaChanges(tab, changes);
-            return;
-        }
-        java.util.List<ExternalChangeMonitor.Change> pending = new java.util.ArrayList<>();
-        for (ExternalChangeMonitor.Change change : changes) {
-            if (!tab.dependencyStamps.containsKey(change.path())
-                    || !java.util.Objects.equals(change.known(), tab.dependencyStamps.get(change.path()))) {
-                continue; // a newer model has read the file meanwhile
-            }
-            if (change.known() == null || change.sameContent()) {
-                tab.dependencyStamps.put(change.path(), change.current()); // nothing to compare, or to tell
-            } else {
-                pending.add(change);
-            }
-        }
-        if (pending.isEmpty()) {
-            return;
-        }
-        tabPane.getSelectionModel().select(tab);
-        ExternalChangePrompt.ChangedChoice choice = externalChangePrompt.dependencyChanged(document,
-                pending.stream().map(ExternalChangeMonitor.Change::path).toList());
-        pending.forEach(change -> tab.dependencyStamps.replace(change.path(), change.current()));
-        if (choice == ExternalChangePrompt.ChangedChoice.RELOAD && !isAbandoned(tab)) {
-            tab.reparseFromDependencies();
-            if (!document.isUntitled()) {
-                reloadXmlSchemasBoundTo(document.getPath()); // XML tabs validate against those files too
-            }
-        }
-    }
-
-    /**
-     * Replaces a tab's content with the file's current content, discarding unsaved changes.
-     * The caret, the view mode and the schema binding are kept (a changed schema reference is
-     * picked up by the validation-time reconcile). On a read failure the editor content stays.
-     */
-    private void reloadFromDisk(EditorTab tab, Path path) {
-        tab.loading = true;
-        tab.beginLoading();
-        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            DiskStamp stamp = DiskStamp.of(path); // before the read, as in loadAsync
-            TextEncoding.Read read;
-            try {
-                read = TextEncoding.read(path);
-            } catch (IOException e) {
-                Platform.runLater(() -> {
-                    tab.endLoading();
-                    tab.loading = false;
-                    if (isAbandoned(tab)) {
-                        return;
-                    }
-                    tab.document.setDirty(true); // still the old content, which is not on disk
-                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Reload Failed",
-                            "Could not read " + path + ".",
-                            "The editor still shows the previous content.", e);
-                });
-                return;
-            }
-            Platform.runLater(() -> {
-                tab.endLoading();
-                tab.loading = false;
-                if (isAbandoned(tab)) {
-                    return;
-                }
-                tab.replaceContentFromDisk(read.text());
-                tab.document.setEncoding(read.encoding());
-                tab.document.setDirty(false);
-                tab.document.setDiskStamp(stamp);
-                if (tab.isSelected()) {
-                    activeViewMode.set(tab.viewMode);
-                    refreshSelectedNode();
-                }
-            });
-        });
-    }
-
-    /** Test seam: answers external-change prompts without a blocking dialog. */
-    void setExternalChangePrompt(ExternalChangePrompt prompt) {
-        this.externalChangePrompt = java.util.Objects.requireNonNull(prompt, "prompt");
-    }
-
-    /** Test seam: checks the open documents' files now, regardless of window focus. */
-    void checkExternalChangesNow() {
-        externalChangeMonitor.checkNow();
-    }
-
-    /** Test seam: whether an external-change check is running or being handled. */
-    boolean isExternalChangeCheckRunning() {
-        return externalChangeMonitor.isBusy();
     }
 
     private String untitledName() {
@@ -6390,2119 +3668,23 @@ public class EditorHost extends BorderPane {
     /** The user's answer to the exit prompt for unsaved documents. */
     public enum ExitChoice { SAVE_ALL, DISCARD, CANCEL }
 
-    /**
-     * Asks about unsaved documents before the application closes (window button, File → Exit,
-     * Ctrl/Cmd+Q, macOS Quit): one dialog listing them with Save All / Don't Save / Cancel.
-     *
-     * @return whether the application may close now
-     */
-    public boolean confirmExit() {
-        return confirmExit(this::promptExit);
-    }
-
-    /**
-     * @param prompter asks the user about the given unsaved documents (shown only when there are any)
-     * @return whether the application may close now
-     */
-    boolean confirmExit(java.util.function.Function<java.util.List<OpenDocument>, ExitChoice> prompter) {
-        java.util.List<EditorTab> dirty = new java.util.ArrayList<>();
+    /** @return the editor tab showing {@code document}, or {@code null}. */
+    EditorTab editorTabOf(OpenDocument document) {
         for (Tab tab : tabPane.getTabs()) {
-            if (tab instanceof EditorTab et && et.document.isDirty()) {
-                dirty.add(et);
+            if (tab instanceof EditorTab et && et.document == document) {
+                return et;
             }
         }
-        if (dirty.isEmpty()) {
-            return true;
-        }
-        tabPane.getSelectionModel().select(dirty.get(0));
-        ExitChoice choice = prompter.apply(dirty.stream().map(et -> et.document).toList());
-        if (choice == null || choice == ExitChoice.CANCEL) {
-            return false;
-        }
-        if (choice == ExitChoice.SAVE_ALL) {
-            for (EditorTab tab : dirty) {
-                tabPane.getSelectionModel().select(tab);
-                boolean ok = tab.document.isUntitled() ? saveTabAs(tab) : write(tab, tab.document.getPath());
-                if (!ok) {
-                    return false; // a cancelled Save As or a failed write keeps the application open
-                }
-            }
-        }
-        return true;
-    }
-
-    private ExitChoice promptExit(java.util.List<OpenDocument> documents) {
-        boolean one = documents.size() == 1;
-        String names = documents.stream().map(OpenDocument::getDisplayName)
-                .collect(java.util.stream.Collectors.joining("\n"));
-        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
-                one ? "Save changes to " + documents.get(0).getDisplayName() + " before quitting?"
-                        : "Save changes to " + documents.size() + " documents before quitting?",
-                (one ? "" : names + "\n\n") + "Your changes will be lost if you don't save them.");
-        javafx.scene.control.ButtonType save = new javafx.scene.control.ButtonType(
-                one ? "Save" : "Save All", javafx.scene.control.ButtonBar.ButtonData.YES);
-        javafx.scene.control.ButtonType discard =
-                new javafx.scene.control.ButtonType("Don't Save", javafx.scene.control.ButtonBar.ButtonData.NO);
-        javafx.scene.control.ButtonType cancel =
-                new javafx.scene.control.ButtonType("Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
-        alert.getButtonTypes().setAll(save, discard, cancel);
-        if (getScene() != null && getScene().getWindow() != null) {
-            alert.initOwner(getScene().getWindow());
-        }
-        var choice = alert.showAndWait();
-        if (choice.isEmpty() || choice.get() == cancel) {
-            return ExitChoice.CANCEL;
-        }
-        return choice.get() == save ? ExitChoice.SAVE_ALL : ExitChoice.DISCARD;
-    }
-
-    private void confirmCloseIfDirty(EditorTab tab, javafx.event.Event closeEvent) {
-        if (!tab.document.isDirty()) {
-            return;
-        }
-        tabPane.getSelectionModel().select(tab);
-        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
-                "Save changes to " + tab.document.getDisplayName() + "?",
-                "Your changes will be lost if you don't save them.");
-        javafx.scene.control.ButtonType save =
-                new javafx.scene.control.ButtonType("Save", javafx.scene.control.ButtonBar.ButtonData.YES);
-        javafx.scene.control.ButtonType discard =
-                new javafx.scene.control.ButtonType("Don't Save", javafx.scene.control.ButtonBar.ButtonData.NO);
-        javafx.scene.control.ButtonType cancel =
-                new javafx.scene.control.ButtonType("Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
-        alert.getButtonTypes().setAll(save, discard, cancel);
-
-        var choice = alert.showAndWait();
-        if (choice.isEmpty() || choice.get() == cancel) {
-            closeEvent.consume();
-        } else if (choice.get() == save) {
-            boolean ok = tab.document.isUntitled() ? saveTabAs(tab) : write(tab, tab.document.getPath());
-            if (!ok) {
-                closeEvent.consume();
-            }
-        }
-        // 'Don't Save' falls through and the tab closes.
-    }
-
-    private boolean saveTabAs(EditorTab tab) {
-        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Save As");
-        tab.document.getFileType().configureSaveChooser(chooser, tab.document.getDisplayName());
-        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
-        Path target = file == null ? null : withTypeExtension(tab, file.toPath());
-        if (target != null && write(tab, relocateGeneratedSchemaReference(tab, target))) {
-            tab.document.setPath(target);
-            tab.refreshIcon();
-            installBreakpointGutter(tab);
-            rememberRecentFile(target);
-            return true;
-        }
-        return false;
+        return null;
     }
 
     /**
-     * Appends the document type's extension to a Save-As target that has none (a new XML
-     * document saved as {@code foo} becomes {@code foo.xml}). The native chooser only checked
-     * the bare name for an existing file, so an appended name that already exists is confirmed
-     * here.
-     *
-     * @return the target to write, or {@code null} if the user declined to replace a file
+     * Schema facts of an XML-instance element beyond {@code ElementTypeInfo}: nillable, the
+     * {@code @since}/{@code @deprecated} doc tags, list/union member types, raw appinfo entries and
+     * the identity constraints / assertions / type alternatives declared on it.
      */
-    private Path withTypeExtension(EditorTab tab, Path target) {
-        Path normalized = tab.document.getFileType().withDefaultExtension(target);
-        if (normalized == null || normalized.equals(target) || !java.nio.file.Files.exists(normalized)) {
-            return normalized;
-        }
-        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
-                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Replace File",
-                normalized.getFileName() + " already exists.",
-                "Do you want to replace it?");
-        javafx.scene.control.ButtonType replace =
-                new javafx.scene.control.ButtonType("Replace", javafx.scene.control.ButtonBar.ButtonData.YES);
-        alert.getButtonTypes().setAll(replace, javafx.scene.control.ButtonType.CANCEL);
-        return alert.showAndWait().filter(replace::equals).isPresent() ? normalized : null;
-    }
-
-    /**
-     * First save of a generated document (Generate Sample XML): its root element references
-     * the bound schema by bare file name, which only resolves next to the schema. Saving it
-     * anywhere else rewrites that reference to a path relative to {@code target}'s folder,
-     * so the file validates from where it lands — also in other tools and after a restart.
-     * Titled documents and hand-written references are never touched
-     * (see {@link org.fxt.freexmltoolkit.service.SampleSchemaLocation#relocate}).
-     *
-     * @return {@code target}, for chaining into {@link #write(EditorTab, Path)}
-     */
-    private Path relocateGeneratedSchemaReference(EditorTab tab, Path target) {
-        File xsd = tab.schemaFile;
-        if (xsd != null && tab.document.isUntitled() && target != null && target.getParent() != null) {
-            org.fxt.freexmltoolkit.service.SampleSchemaLocation
-                    .relocate(tab.view.getText(), xsd, target.getParent())
-                    .ifPresent(tab.view::setText);
-        }
-        return target;
-    }
-
-    /** A tab bound to one {@link OpenDocument}, its editor view, and Text/Tree/Graphic modes. */
-    private static final class EditorTab extends Tab {
-        private final OpenDocument document;
-        private final EditorView view;
-        private final Runnable selectionCallback;
-        /** Opens the shell's type-editor tab for a named type (Graphic-view "Open in Type Editor"). */
-        private final java.util.function.Consumer<String> openTypeEditorCallback;
-        /** Navigates an XML-instance element to its XSD definition (Graphic/Tree "Go to Definition"). */
-        private final java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode> goToDefinitionCallback;
-        /** Shared shell clipboard (passed in because EditorTab is a static nested class). */
-        private final org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard;
-        private final javafx.scene.layout.StackPane contentStack = new javafx.scene.layout.StackPane();
-        private org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView treeView;
-        private org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView xsdGraphView;
-        private org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView jsonTreeView;
-        private org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView xmlInstanceTreeView;
-        private XmlGridView xmlGridView;
-        private JsonGridView jsonGridView;
-        /** The read-only HTML Preview (a WebView, or a text fallback without javafx.scene.web). */
-        private javafx.scene.Node htmlPreviewNode;
-        private java.util.function.Consumer<String> htmlPreviewUpdater;
-        /** Text the preview last rendered — skips redundant {@code loadContent} calls. */
-        private String lastPreviewedText;
-        private org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext editorContext;
-        private XsdNode currentSelection;
-        private org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode currentXmlSelection;
-        private org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode currentJsonSelection;
-        private ViewMode viewMode = ViewMode.TEXT;
-        private boolean dirtyTrackingAttached;
-        /** True while the file is being (re)read; the external-change check skips the tab. */
-        private boolean loading;
-        /** Writes in flight ({@link #writeAsync}); the external-change check skips the tab meanwhile. */
-        private int saving;
-        /** The last write started for this tab: the next one waits for it, so writes land in order. */
-        private CompletableFuture<?> pendingWrite = CompletableFuture.completedFuture(null);
-        /** Editor text the current {@link #editorContext} was parsed from (P2: avoid needless re-parse). */
-        private String lastParsedText;
-        /**
-         * Counts the editor's text changes. The {@code last*Revision} fields record which revision a model
-         * was parsed from, so "is the model current?" is a number comparison instead of building and
-         * comparing the whole document text on every caret move.
-         */
-        private long textRevision;
-        private long lastParsedRevision = -1;
-        private long lastParsedXmlRevision = -1;
-        private long lastParsedJsonRevision = -1;
-        private long caretMapRevision = -1;
-        /** Revision a background XSD/XML model parse is running for (-1 = none), and who waits for it. */
-        private long pendingXsdParseRevision = -1;
-        private java.util.List<Runnable> pendingXsdParseCallbacks;
-        private long pendingXmlParseRevision = -1;
-        private java.util.List<Runnable> pendingXmlParseCallbacks;
-        /** Revision whose XSD parse failed: not retried until the text changes. */
-        private long failedXsdParseRevision = -1;
-        private long failedXmlParseRevision = -1;
-        private long failedJsonParseRevision = -1;
-        /** Whether the last model parse left out remote imports that were not in the schema cache. */
-        private boolean remoteImportsMissing;
-        /** Host callback for remote imports that became available after a background download. */
-        private Runnable remoteImportsCallback;
-        /** Host callback after a background parse installed a fresh model (FX thread). */
-        private Runnable modelInstalledCallback = () -> { };
-        /** The files the current XSD model pulls in and their state when it read them. */
-        private java.util.Map<Path, DiskStamp> dependencyStamps = new java.util.LinkedHashMap<>();
-        /** The content checksums of those files, to tell a touched file from a changed one. */
-        private java.util.Map<Path, Long> dependencyChecksums = new java.util.HashMap<>();
-        /** For an XML document: the bound schema's files as its schema facts were read. */
-        private BoundSchemaWatch boundSchemaWatch;
-        /** Host callback after a view switch that waited for a background parse has been applied. */
-        private Runnable viewModeAppliedCallback = () -> { };
-        /** Shared XML-instance model+command context across Text/Tree/Grid (mirrors {@link #editorContext}). */
-        private org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext xmlEditorContext;
-        /** Shared JSON model+command context across Text/Tree/Grid (mirrors {@link #xmlEditorContext}). */
-        private org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext jsonEditorContext;
-        /** Parser message of the last failed JSON parse (shown by the grid placeholder). */
-        private String lastJsonParseError;
-        /** Coalesces bursts of model-change events into a single round-trip (P1). */
-        private final javafx.animation.PauseTransition roundTripDebounce =
-                new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
-        /** Coalesces caret movement into a single Text-view caret&rarr;node resolution. */
-        private final javafx.animation.PauseTransition xmlCaretDebounce =
-                new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
-        /** Read on validation worker threads (schema reconcile) — hence volatile. */
-        private volatile File schemaFile;
-        /** V2 model of {@link #schemaFile} for an XML tab (read-only cache; edits go to the XSD's tab). */
-        private org.fxt.freexmltoolkit.controls.v2.model.XsdSchema boundSchemaModel;
-        /** Runs once after the async file load has put the text into the editor (background tabs). */
-        private Runnable afterLoad;
-        /** How {@link #schemaFile} was bound; MANUAL bindings survive auto-redetection. */
-        private volatile SchemaRebindPolicy.SchemaBindingOrigin schemaOrigin =
-                SchemaRebindPolicy.SchemaBindingOrigin.NONE;
-        /**
-         * Raw declared location the last auto-detection saw ({@code null} = none declared).
-         * Recorded on failures too, so an unresolvable URL is not re-attempted on every
-         * validation/debounce cycle — only when the declared value actually changes.
-         */
-        private volatile String lastDetectedSchemaLocation;
-        /** Written on the loader thread, read on the FX thread (tab switch) — hence volatile. */
-        private volatile SchemaStatus schemaStatus = SchemaStatus.NONE;
-        /** How {@link #schemaFile} was resolved (declared/catalog/library/manual); status-bar detail. */
-        private volatile SchemaSource schemaSource = SchemaSource.NONE;
-        /** Tooltip detail for {@link #schemaSource} — catalog target, or matched namespace/root element. */
-        private volatile String schemaSourceDetail;
-        private File schematronFile;
-        /** Composes the debugger's and the quick-fix feature's gutter contributions. */
-        private final CompositeGutterFactory gutter = new CompositeGutterFactory();
-        /**
-         * Guards against CONCURRENT schema detections for this tab (open-time
-         * detection vs. the Validation panel's redetect): the schema pipeline
-         * (Xerces deferred DOM in XsdDocumentationService) is not thread-safe.
-         */
-        private final java.util.concurrent.atomic.AtomicBoolean schemaDetecting =
-                new java.util.concurrent.atomic.AtomicBoolean(false);
-        /**
-         * Set once the tab has been closed. Background schema work polls it so a detection that
-         * is already running stops before its next stage and never applies its result to a tab
-         * nobody can see - which would otherwise go on to parse the whole schema
-         * ({@link #loadXmlSchemaProviderAsync}) for a discarded document.
-         */
-        private final java.util.concurrent.atomic.AtomicBoolean closed =
-                new java.util.concurrent.atomic.AtomicBoolean(false);
-        /**
-         * Generation of the schema binding, bumped on the FX thread by every entry point
-         * that establishes newer truth (file open, redetect, manual bind, validation
-         * reconcile). A queued validation task whose buffer snapshot has been superseded
-         * observes a newer generation and must not rebind/clear — without this, a stale
-         * task could revert a binding that a fresher detection just established.
-         */
-        private final java.util.concurrent.atomic.AtomicLong schemaBindingGen =
-                new java.util.concurrent.atomic.AtomicLong();
-        /**
-         * Counts explicit binds ({@link #bindSchemaToActiveDocument}). Unlike
-         * {@link #schemaBindingGen}, validation reconciles do not bump it, so a bind whose schema
-         * is still parsing is only superseded by a newer bind, never by a validation run.
-         */
-        private final java.util.concurrent.atomic.AtomicLong schemaBindRequest =
-                new java.util.concurrent.atomic.AtomicLong();
-        /** XSD-derived, read-only schema info for XML-instance nodes (lazily built off-thread). */
-        private org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider xmlSchemaProvider;
-        /** Spinner overlay shown over the editor while the file is being read/schema-detected. */
-        private final javafx.scene.layout.StackPane loadingOverlay = buildLoadingOverlay();
-        /**
-         * Delays showing {@link #loadingOverlay} until loading takes longer than this, so small
-         * files that load near-instantly never flash the spinner.
-         */
-        private final javafx.animation.PauseTransition loadDelay =
-                new javafx.animation.PauseTransition(javafx.util.Duration.millis(150));
-
-        EditorTab(OpenDocument document, Runnable selectionCallback,
-                org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard clipboard,
-                java.util.function.Consumer<String> openTypeEditorCallback,
-                java.util.function.Consumer<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode> goToDefinitionCallback) {
-            this.document = document;
-            this.selectionCallback = selectionCallback;
-            this.clipboard = clipboard;
-            this.openTypeEditorCallback = openTypeEditorCallback;
-            this.goToDefinitionCallback = goToDefinitionCallback;
-            this.view = EditorViews.create(document.getFileType());
-            view.getCodeArea().plainTextChanges().subscribe(change -> textRevision++);
-            contentStack.getChildren().add(view.getNode());
-            // Overlay sits ABOVE contentStack (not inside it) so showOnly() — which toggles
-            // visibility of every contentStack child — never touches the spinner.
-            setContent(new javafx.scene.layout.StackPane(contentStack, loadingOverlay));
-            loadDelay.setOnFinished(e -> {
-                loadingOverlay.setVisible(true);
-                loadingOverlay.setManaged(true);
-            });
-            textProperty().bind(Bindings.createStringBinding(
-                    () -> (document.isDirty() ? "● " : "") + document.getDisplayName(),
-                    document.dirtyProperty(), document.displayNameProperty()));
-            roundTripDebounce.setOnFinished(e -> roundTripModelToText());
-            xmlCaretDebounce.setOnFinished(e -> {
-                if (document.getFileType() == EditorFileType.XSD) {
-                    resolveCaretXsdNode();
-                } else {
-                    resolveCaretXmlNode();
-                }
-            });
-            refreshIcon();
-        }
-
-        /** XSD-backed structured views (Tree/Graphic with the V2 model + commands). */
-        boolean supportsStructuredViews() {
-            return document.getFileType() == EditorFileType.XSD;
-        }
-
-        /**
-         * Which view modes this document offers: every recognized type has a Tree
-         * (XSD schema tree / JSON tree / XML-instance DOM tree); Graphic covers the
-         * XSD diagram for schemas and the instance grid for XML-family instances.
-         */
-        boolean supportsView(ViewMode mode) {
-            return switch (mode) {
-                case TEXT -> true;
-                case PREVIEW -> document.getFileType() == EditorFileType.HTML;
-                case TREE -> switch (document.getFileType()) {
-                    // Query documents are not XML — the DOM tree view cannot parse them.
-                    // HTML output is often not well-formed XML (unclosed <br>, &nbsp;) either.
-                    case OTHER, XQUERY, XPATH, HTML -> false;
-                    default -> true;
-                };
-                case GRAPHIC -> switch (document.getFileType()) {
-                    case XSD, XML, XSLT, SCHEMATRON, JSON -> true;
-                    default -> false;
-                };
-            };
-        }
-
-        void setViewMode(ViewMode mode) {
-            // Persist any pending (debounced) graphical edit before switching, so the
-            // text we read below — and the new view — see the latest model state.
-            flushPendingRoundTrip();
-            ViewMode target = supportsView(mode) ? mode : ViewMode.TEXT;
-            pendingViewMode = null;
-            if (needsBackgroundParse(target)) {
-                // A large document whose model is stale: parse it off the FX thread (parsing multi-MB
-                // documents here froze the UI for seconds) and finish the switch once the model is there.
-                // The loading overlay shows meanwhile; a newer switch request supersedes this one.
-                pendingViewMode = target;
-                beginLoading();
-                Runnable finish = () -> {
-                    endLoading();
-                    if (pendingViewMode == target && !isAbandoned(this)) {
-                        pendingViewMode = null;
-                        setViewMode(target);
-                        viewModeAppliedCallback.run();
-                    }
-                };
-                switch (document.getFileType()) {
-                    case XSD -> ensureModelParsedAsync(finish);
-                    case JSON -> ensureJsonModelParsedAsync(finish);
-                    default -> ensureXmlModelParsedAsync(finish);
-                }
-                return;
-            }
-            this.viewMode = target;
-            this.currentSelection = null;
-            this.currentXmlSelection = null;
-            this.currentJsonSelection = null;
-            if (target == ViewMode.TEXT) {
-                showOnly(view.getNode());
-                // The Tree/Graphic selection was just dropped: map the caret again, so the inspector
-                // shows the node at the caret instead of nothing until the caret moves.
-                if (document.getFileType() != EditorFileType.JSON) {
-                    xmlCaretDebounce.playFromStart();
-                }
-                return;
-            }
-            // HTML renders read-only in a WebView; editing happens in Text mode.
-            if (target == ViewMode.PREVIEW) {
-                ensureHtmlPreview();
-                refreshHtmlPreview();
-                showOnly(htmlPreviewNode);
-                return;
-            }
-            // JSON: Tree and Graphic share ONE JsonEditorContext (model + undo history),
-            // exactly like the XML instance views below.
-            if (document.getFileType() == EditorFileType.JSON) {
-                ensureJsonModelParsed();
-                if (target == ViewMode.GRAPHIC) {
-                    ensureJsonGrid();
-                    if (jsonEditorContext != null) {
-                        jsonGridView.setContext(jsonEditorContext);
-                    } else if (lastJsonParseError != null) {
-                        jsonGridView.showParseError(lastJsonParseError);
-                    } else {
-                        jsonGridView.setContext(null);
-                    }
-                    showOnly(jsonGridView);
-                } else {
-                    ensureJsonTree();
-                    jsonTreeView.setContext(jsonEditorContext);
-                    showOnly(jsonTreeView);
-                }
-                return;
-            }
-            // For XML-family instances, Graphic is the editable XMLSpy-style grid
-            // over the shared context (the XSD diagram below covers schemas).
-            if (target == ViewMode.GRAPHIC && document.getFileType() != EditorFileType.XSD) {
-                ensureXmlGrid();
-                ensureXmlModelParsed();
-                xmlGridView.setContext(xmlEditorContext);
-                showOnly(xmlGridView);
-                return;
-            }
-            // XML instances (incl. XSLT/Schematron) get a selectable Tree over the shared model.
-            if (document.getFileType() != EditorFileType.XSD) {
-                ensureXmlInstanceTree();
-                ensureXmlModelParsed();
-                xmlInstanceTreeView.setModel(xmlEditorContext);
-                showOnly(xmlInstanceTreeView);
-                return;
-            }
-            // XSD structured views share one model+context across Tree/Graphic; it is
-            // (re)parsed only when missing or when the text changed since the last parse
-            // (P2), so undo history survives switching modes — even via a Text detour.
-            ensureModelParsed();
-            switch (target) {
-                case TREE -> {
-                    ensureTree();
-                    renderStructured();
-                    showOnly(treeView);
-                }
-                case GRAPHIC -> {
-                    ensureCanvasGraphic();
-                    if (xsdGraphView != null) {
-                        showOnly(xsdGraphView);
-                    } else {
-                        // Model did not parse: fall back to Text.
-                        viewMode = ViewMode.TEXT;
-                        showOnly(view.getNode());
-                    }
-                }
-                default -> showOnly(view.getNode());
-            }
-        }
-
-        /** (Re)parses the model only when missing or when the text changed since the last parse (P2). */
-        private void ensureModelParsed() {
-            if (!isModelCurrent()) {
-                parseModel();
-            }
-        }
-
-        /** Whether the XSD model matches the text, or the text is known not to parse (not parsed again). */
-        private boolean isModelCurrent() {
-            return (editorContext != null && lastParsedRevision == textRevision)
-                    || failedXsdParseRevision == textRevision;
-        }
-
-        /** Above this size a structured view's stale model is parsed off the FX thread. */
-        private static final int BACKGROUND_PARSE_THRESHOLD = 256 * 1024;
-
-        /** The view mode a background parse will switch to, or {@code null}. */
-        private ViewMode pendingViewMode;
-
-        /** Whether switching to {@code target} has to parse a large document's model first. */
-        private boolean needsBackgroundParse(ViewMode target) {
-            if (target == ViewMode.TEXT || target == ViewMode.PREVIEW
-                    || view.getCodeArea().getLength() < BACKGROUND_PARSE_THRESHOLD) {
-                return false;
-            }
-            return switch (document.getFileType()) {
-                case XSD -> (editorContext == null || lastParsedRevision != textRevision)
-                        && failedXsdParseRevision != textRevision;
-                case JSON -> (jsonEditorContext == null || lastParsedJsonRevision != textRevision)
-                        && failedJsonParseRevision != textRevision;
-                default -> (xmlEditorContext == null || lastParsedXmlRevision != textRevision)
-                        && failedXmlParseRevision != textRevision;
-            };
-        }
-
-        private void parseModel() {
-            try {
-                // Resolve xs:include / xs:import relative to the file's directory when on disk, so
-                // the Type Library and facet/type resolution see externally defined types. The
-                // included nodes are tagged isFromInclude (preserveIncludeStructure) and are
-                // excluded again on round-trip so the include structure is never flattened.
-                // Remote imports come from the schema cache only (this runs on the FX thread);
-                // missing ones are downloaded in the background and trigger one re-parse.
-                String parsedText = view.getText();
-                XsdUiParser.Result parsed = XsdUiParser.parseDetailed(
-                        parsedText, document.getPath(), remoteImportsCallback);
-                editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(parsed.schema());
-                lastParsedText = parsedText;
-                lastParsedRevision = textRevision;
-                remoteImportsMissing = parsed.remoteImportsMissing();
-                dependencyStamps = new java.util.LinkedHashMap<>(parsed.dependencyStamps());
-                dependencyChecksums = new java.util.HashMap<>(parsed.dependencyChecksums());
-                // A new context means a new schema: ensureCanvasGraphic() rebuilds the
-                // Graphic view (it compares getEditorContext() and discards the stale one).
-            } catch (Exception e) {
-                editorContext = null;
-                lastParsedText = null;
-                lastParsedRevision = -1;
-                failedXsdParseRevision = textRevision; // the same text fails again: do not re-parse it
-                remoteImportsMissing = false;
-                dependencyStamps = new java.util.LinkedHashMap<>();
-                dependencyChecksums = new java.util.HashMap<>();
-            }
-        }
-
-        /**
-         * Rebuilds the model because files it pulls in changed. The text is the same, so unlike a
-         * reload of the document itself unsaved edits survive; pending diagram edits are written
-         * to the text first. A large schema parses in the background through the usual path.
-         */
-        void reparseFromDependencies() {
-            flushPendingRoundTrip();
-            lastParsedText = null;
-            lastParsedRevision = -1;
-            failedXsdParseRevision = -1;
-            if (viewMode == ViewMode.TEXT) {
-                ensureModelParsedAsync(() -> { });
-                return;
-            }
-            setViewMode(viewMode);
-            if (isModelCurrent()) { // otherwise the background parse reports it when done
-                modelInstalledCallback.run();
-                viewModeAppliedCallback.run();
-            }
-        }
-
-        /**
-         * Re-parses the model once remote imports skipped by {@link #parseModel()} are in the
-         * schema cache. Skipped when the text changed meanwhile (the next parse picks the cache
-         * up anyway) or when there is undo history a re-parse would discard.
-         */
-        private void onRemoteImportsAvailable(String parsedText) {
-            if (isAbandoned(this) || !java.util.Objects.equals(lastParsedText, parsedText)
-                    || !java.util.Objects.equals(view.getText(), parsedText)) {
-                return;
-            }
-            if (editorContext != null && editorContext.getCommandManager().canUndo()) {
-                return;
-            }
-            lastParsedText = null;
-            lastParsedRevision = -1;
-            if (viewMode != ViewMode.TEXT) {
-                setViewMode(viewMode);
-            } else {
-                // Text view: re-parse in the background now, so the listings (Type Library, inspector)
-                // pick the imported types up via activeModelRevision without waiting for a caret move.
-                ensureModelParsedAsync(() -> { });
-            }
-        }
-
-        /**
-         * (Re)parses the shared XML-instance model, only when missing or when the text changed since
-         * the last parse — so the model, its undo history and the current selection survive view
-         * switches (the XML counterpart of {@link #ensureModelParsed()}).
-         */
-        private void ensureXmlModelParsed() {
-            if ((xmlEditorContext == null || lastParsedXmlRevision != textRevision)
-                    && failedXmlParseRevision != textRevision) { // a known failure is not parsed again
-                parseXmlModel();
-            }
-        }
-
-        private void parseXmlModel() {
-            String text = view.getText();
-            if (text == null || text.isBlank()) {
-                xmlEditorContext = null;
-                lastParsedXmlRevision = -1;
-                return;
-            }
-            try {
-                installXmlModel(parseXmlDocument(text), textRevision);
-            } catch (Exception e) {
-                xmlEditorContext = null;
-                lastParsedXmlRevision = -1;
-                failedXmlParseRevision = textRevision; // the same text fails again: do not re-parse it
-            }
-        }
-
-        /** Line-aware parse (XmlElement.getSourceLineNumber is set: the Text view maps the caret line to a node). */
-        private static org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument parseXmlDocument(String text)
-                throws Exception {
-            return new org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.StreamingXmlParser().parse(text);
-        }
-
-        /** Makes {@code doc} the shared XML model (fresh context: schema provider and Go to Definition wired). */
-        private void installXmlModel(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc,
-                                     long revision) {
-            var ctx = new org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext(doc);
-            if (xmlSchemaProvider != null) {
-                ctx.setSchemaProvider(xmlSchemaProvider);
-            }
-            ctx.setGoToDefinitionHandler(goToDefinitionCallback);
-            xmlEditorContext = ctx;
-            lastParsedXmlRevision = revision;
-        }
-
-        /**
-         * Brings the XSD model up to date with the text without blocking the FX thread: when it is stale, a
-         * snapshot is parsed on a worker and installed on the FX thread if the text is still at that
-         * revision; then {@code onCurrent} runs (on the FX thread). If the text moved on meanwhile, the
-         * parse chases the newest revision. Runs {@code onCurrent} at once when the model is current or
-         * the current text is known not to parse. Must be called on the FX thread.
-         */
-        void ensureModelParsedAsync(Runnable onCurrent) {
-            if ((editorContext != null && lastParsedRevision == textRevision)
-                    || failedXsdParseRevision == textRevision) {
-                onCurrent.run();
-                return;
-            }
-            long revision = textRevision;
-            if (pendingXsdParseRevision == revision) {
-                pendingXsdParseCallbacks.add(onCurrent);
-                return;
-            }
-            java.util.List<Runnable> waiting = new java.util.ArrayList<>();
-            if (pendingXsdParseCallbacks != null) {
-                waiting.addAll(pendingXsdParseCallbacks); // an older parse is superseded by this one
-            }
-            waiting.add(onCurrent);
-            pendingXsdParseRevision = revision;
-            pendingXsdParseCallbacks = waiting;
-            String text = view.getText();
-            java.nio.file.Path path = document.getPath();
-            Runnable remoteCallback = remoteImportsCallback;
-            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                XsdUiParser.Result parsed;
-                try {
-                    parsed = XsdUiParser.parseDetailed(text, path, remoteCallback);
-                } catch (Exception | LinkageError e) {
-                    parsed = null; // the Tree/Graphic view shows a placeholder; a parser bug is counted
-                    org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_xsd");
-                }
-                XsdUiParser.Result result = parsed;
-                Platform.runLater(() -> {
-                    if (pendingXsdParseRevision != revision) {
-                        return; // superseded: the newer parse runs the callbacks
-                    }
-                    java.util.List<Runnable> callbacks = pendingXsdParseCallbacks;
-                    pendingXsdParseRevision = -1;
-                    pendingXsdParseCallbacks = null;
-                    if (isAbandoned(this)) {
-                        return;
-                    }
-                    if (textRevision != revision) {
-                        callbacks.forEach(this::ensureModelParsedAsync); // edited meanwhile: chase it
-                        return;
-                    }
-                    if (!(editorContext != null && lastParsedRevision == revision)) { // not parsed sync meanwhile
-                        if (result != null) {
-                            editorContext = new org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext(
-                                    result.schema());
-                            lastParsedText = text;
-                            lastParsedRevision = revision;
-                            remoteImportsMissing = result.remoteImportsMissing();
-                            dependencyStamps = new java.util.LinkedHashMap<>(result.dependencyStamps());
-                            dependencyChecksums = new java.util.HashMap<>(result.dependencyChecksums());
-                        } else {
-                            failedXsdParseRevision = revision;
-                        }
-                        modelInstalledCallback.run();
-                    }
-                    callbacks.forEach(Runnable::run);
-                });
-            });
-        }
-
-        /** XML counterpart of {@link #ensureModelParsedAsync(Runnable)} for the shared instance model. */
-        void ensureXmlModelParsedAsync(Runnable onCurrent) {
-            if ((xmlEditorContext != null && lastParsedXmlRevision == textRevision)
-                    || failedXmlParseRevision == textRevision) {
-                onCurrent.run();
-                return;
-            }
-            long revision = textRevision;
-            if (pendingXmlParseRevision == revision) {
-                pendingXmlParseCallbacks.add(onCurrent);
-                return;
-            }
-            java.util.List<Runnable> waiting = new java.util.ArrayList<>();
-            if (pendingXmlParseCallbacks != null) {
-                waiting.addAll(pendingXmlParseCallbacks);
-            }
-            waiting.add(onCurrent);
-            pendingXmlParseRevision = revision;
-            pendingXmlParseCallbacks = waiting;
-            String text = view.getText();
-            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument parsed;
-                try {
-                    parsed = text == null || text.isBlank() ? null : parseXmlDocument(text);
-                } catch (Exception | LinkageError e) {
-                    parsed = null;
-                    org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_xml");
-                }
-                var doc = parsed;
-                Platform.runLater(() -> {
-                    if (pendingXmlParseRevision != revision) {
-                        return;
-                    }
-                    java.util.List<Runnable> callbacks = pendingXmlParseCallbacks;
-                    pendingXmlParseRevision = -1;
-                    pendingXmlParseCallbacks = null;
-                    if (isAbandoned(this)) {
-                        return;
-                    }
-                    if (textRevision != revision) {
-                        callbacks.forEach(this::ensureXmlModelParsedAsync);
-                        return;
-                    }
-                    if (!(xmlEditorContext != null && lastParsedXmlRevision == revision)) {
-                        if (doc != null) {
-                            installXmlModel(doc, revision);
-                        } else {
-                            xmlEditorContext = null;
-                            lastParsedXmlRevision = -1;
-                            failedXmlParseRevision = revision;
-                        }
-                        modelInstalledCallback.run();
-                    }
-                    callbacks.forEach(Runnable::run);
-                });
-            });
-        }
-
-        /** Serializes the shared XML model back into the editor text via a minimal diff (caret/scroll preserved). */
-        private void roundTripXmlModelToText() {
-            if (xmlEditorContext == null) {
-                return;
-            }
-            String xml = xmlEditorContext.serializeToString();
-            String current = view.getText();
-            int[] region = TextDiff.minimalReplaceRegion(current, xml);
-            if (region[0] == region[1] && region[0] == region[2]) {
-                lastParsedXmlRevision = textRevision;
-                return;
-            }
-            view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
-            lastParsedXmlRevision = textRevision;
-            document.setDirty(true);
-        }
-
-        /**
-         * JSON counterpart of {@link #ensureXmlModelParsedAsync(Runnable)}: parses the text into a fresh
-         * {@link org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext} on a worker and installs
-         * it on the FX thread if the text is unchanged, then runs {@code onCurrent}. FX thread.
-         */
-        void ensureJsonModelParsedAsync(Runnable onCurrent) {
-            if (jsonEditorContext != null && lastParsedJsonRevision == textRevision) {
-                onCurrent.run();
-                return;
-            }
-            long revision = textRevision;
-            String text = view.getText();
-            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext ctx = null;
-                String error = null;
-                if (text != null && !text.isBlank()) {
-                    try {
-                        ctx = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext();
-                        ctx.loadDocumentFromString(text);
-                    } catch (Exception e) {
-                        ctx = null;
-                        error = e.getMessage();
-                    }
-                }
-                var parsed = ctx;
-                String parseError = error;
-                Platform.runLater(() -> {
-                    if (isAbandoned(this)) {
-                        return;
-                    }
-                    if (textRevision != revision) {
-                        ensureJsonModelParsedAsync(onCurrent); // edited meanwhile: chase it
-                        return;
-                    }
-                    if (!(jsonEditorContext != null && lastParsedJsonRevision == revision)) {
-                        jsonEditorContext = parsed;
-                        lastParsedJsonRevision = parsed != null ? revision : -1;
-                        lastJsonParseError = parseError;
-                        if (parsed == null) {
-                            failedJsonParseRevision = revision;
-                        }
-                    }
-                    onCurrent.run();
-                });
-            });
-        }
-
-        /** JSON counterpart of {@link #ensureXmlModelParsed()}: re-parses only when the text changed. */
-        private void ensureJsonModelParsed() {
-            if ((jsonEditorContext == null || lastParsedJsonRevision != textRevision)
-                    && failedJsonParseRevision != textRevision) { // a known failure is not parsed again
-                parseJsonModel();
-            }
-        }
-
-        private void parseJsonModel() {
-            String text = view.getText();
-            lastJsonParseError = null;
-            if (text == null || text.isBlank()) {
-                jsonEditorContext = null;
-                return;
-            }
-            try {
-                var ctx = new org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext();
-                ctx.loadDocumentFromString(text);
-                jsonEditorContext = ctx;
-                lastParsedJsonRevision = textRevision;
-            } catch (Exception e) {
-                // Invalid JSON while typing is expected; the views show a placeholder.
-                org.apache.logging.log4j.LogManager.getLogger(EditorHost.class)
-                        .debug("JSON structured views: could not parse current text", e);
-                jsonEditorContext = null;
-                lastParsedJsonRevision = -1;
-                failedJsonParseRevision = textRevision; // the same text fails again: do not re-parse it
-                lastJsonParseError = e.getMessage();
-            }
-        }
-
-        /** Serializes the shared JSON model back into the editor text via a minimal diff (caret/scroll preserved). */
-        private void roundTripJsonModelToText() {
-            if (jsonEditorContext == null) {
-                return;
-            }
-            String json = jsonEditorContext.serializeToString();
-            String current = view.getText();
-            int[] region = TextDiff.minimalReplaceRegion(current, json);
-            if (region[0] == region[1] && region[0] == region[2]) {
-                lastParsedJsonRevision = textRevision;
-                return;
-            }
-            view.replaceTextRegion(region[0], region[1], json.substring(region[0], region[2]));
-            lastParsedJsonRevision = textRevision;
-            document.setDirty(true);
-        }
-
-        /** Transient line-aware parse of the text at {@link #caretMapRevision}, used only to map a caret line to a node path. */
-        private org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument caretMapDoc;
-
-        /**
-         * Resolves the model element at the current text caret and publishes it as the active XML
-         * node, so the inspector shows it editable. The shared model's source line numbers go stale
-         * after a round-trip reformats the text, so the caret line is mapped against a transient
-         * line-aware parse of the CURRENT text (cached by text); the resulting structural index path
-         * is then navigated in the shared model — which keeps node identity and undo history intact.
-         * Falls back to no selection (the inspector's read-only caret/XPath view) when the document is
-         * malformed or the caret is not inside an element. XML-instance files only.
-         */
-        private void resolveCaretXmlNode() {
-            EditorFileType type = document.getFileType();
-            if (viewMode != ViewMode.TEXT || type == EditorFileType.XSD || !type.isXmlFamily()) {
-                return; // plain text, HTML, XQuery, JSON …: not an XML instance, nothing to map
-            }
-            // Both parses (shared model, caret map) run off the FX thread; the mapping below is cheap.
-            ensureXmlModelParsedAsync(() -> {
-                if (failedXmlParseRevision == textRevision) {
-                    applyCaretXmlNode(); // malformed: no node; a caret-map parse would only fail again
-                    return;
-                }
-                ensureCaretMapAsync(this::applyCaretXmlNode);
-            });
-        }
-
-        /**
-         * Parses the line-aware {@link #caretMapDoc} for the current text on a worker and installs it on
-         * the FX thread if the text is still unchanged, then runs {@code onCurrent}. Runs it at once when
-         * the caret map is already current. FX thread.
-         */
-        private void ensureCaretMapAsync(Runnable onCurrent) {
-            if (caretMapRevision == textRevision) {
-                onCurrent.run();
-                return;
-            }
-            long revision = textRevision;
-            String text = view.getText();
-            org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument parsed;
-                try {
-                    parsed = parseXmlDocument(text);
-                } catch (Exception | LinkageError e) {
-                    parsed = null;
-                    org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_xml");
-                }
-                var doc = parsed;
-                Platform.runLater(() -> {
-                    if (isAbandoned(this) || textRevision != revision) {
-                        return; // edited meanwhile: the caret debounce asks again
-                    }
-                    caretMapDoc = doc;
-                    caretMapRevision = revision;
-                    onCurrent.run();
-                });
-            });
-        }
-
-        /** FX-thread half of {@link #resolveCaretXmlNode()}: maps the caret line with current models. */
-        private void applyCaretXmlNode() {
-            if (viewMode != ViewMode.TEXT) {
-                return;
-            }
-            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode resolved = null;
-            if (xmlEditorContext != null && xmlEditorContext.getDocument() != null
-                    && caretMapDoc != null && caretMapDoc.getRootElement() != null) {
-                int line = view.getCodeArea().getCurrentParagraph() + 1;
-                var target = findElementByLine(caretMapDoc.getRootElement(), line);
-                java.util.List<Integer> path = indexPath(caretMapDoc.getRootElement(), target);
-                resolved = navigate(xmlEditorContext.getDocument().getRootElement(), path);
-            }
-            currentXmlSelection = resolved;
-            selectionCallback.run();
-        }
-
-        /**
-         * @return the child-element index path from {@code root} to {@code target} (empty list if
-         * {@code target == root}), or {@code null} if {@code target} is null or not under {@code root}.
-         */
-        private static java.util.List<Integer> indexPath(
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root,
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement target) {
-            if (target == null || root == null) {
-                return null;
-            }
-            java.util.LinkedList<Integer> path = new java.util.LinkedList<>();
-            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement cur = target;
-            while (cur != null && cur != root) {
-                if (!(cur.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement pe)) {
-                    return null;
-                }
-                int idx = pe.getChildElements().indexOf(cur);
-                if (idx < 0) {
-                    return null;
-                }
-                path.addFirst(idx);
-                cur = pe;
-            }
-            return cur == root ? path : null;
-        }
-
-        /** Navigates the child-element index {@code path} from {@code root}; {@code null} if out of range. */
-        private static org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement navigate(
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root,
-                java.util.List<Integer> path) {
-            if (root == null || path == null) {
-                return null;
-            }
-            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement cur = root;
-            for (int idx : path) {
-                var kids = cur.getChildElements();
-                if (idx < 0 || idx >= kids.size()) {
-                    return null;
-                }
-                cur = kids.get(idx);
-            }
-            return cur;
-        }
-
-        /**
-         * XSD counterpart of {@link #resolveCaretXmlNode()}: resolves the {@link XsdNode} at the
-         * current text caret and publishes it as the active selection, so the inspector shows it
-         * editable in the Text view (Tree/Graphic already do). {@code XsdNode} carries no source line,
-         * so the caret line is mapped against a transient line-aware parse of the CURRENT text (cached
-         * by text), and the resulting structural index path is navigated in the shared XSD model —
-         * keeping node identity and undo history intact. The XSD model is a 1:1 mirror of the
-         * {@code xs:*} element tree except that {@code xs:annotation} is folded (no child node), so the
-         * index path skips annotation elements on the source side and comment/annotation nodes on the
-         * model side. Falls back to no selection (read-only caret/XPath) when malformed or off-element.
-         */
-        private void resolveCaretXsdNode() {
-            if (viewMode != ViewMode.TEXT || document.getFileType() != EditorFileType.XSD) {
-                return;
-            }
-            // Both parses (XSD model, caret map) run off the FX thread; the mapping below is cheap.
-            ensureModelParsedAsync(() -> ensureCaretMapAsync(this::applyCaretXsdNode));
-        }
-
-        /** FX-thread half of {@link #resolveCaretXsdNode()}: maps the caret line with current models. */
-        private void applyCaretXsdNode() {
-            if (viewMode != ViewMode.TEXT) {
-                return;
-            }
-            XsdNode resolved = null;
-            if (editorContext != null && editorContext.getSchema() != null
-                    && caretMapDoc != null && caretMapDoc.getRootElement() != null) {
-                int line = view.getCodeArea().getCurrentParagraph() + 1;
-                var target = findElementByLine(caretMapDoc.getRootElement(), line);
-                java.util.List<Integer> path = xsdSourceIndexPath(caretMapDoc.getRootElement(), target);
-                resolved = navigateXsd(editorContext.getSchema(), path);
-            }
-            currentSelection = resolved;
-            selectionCallback.run();
-        }
-
-        /**
-         * Child-index path from {@code root} to {@code target} counting only structural {@code xs:*}
-         * elements (skipping {@code xs:annotation}/{@code documentation}/{@code appinfo}), so it aligns
-         * with the XSD model's children. {@code null} if target is null/not under root or is itself an
-         * annotation-family element (which has no model node).
-         */
-        private static java.util.List<Integer> xsdSourceIndexPath(
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root,
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement target) {
-            if (target == null || root == null) {
-                return null;
-            }
-            java.util.LinkedList<Integer> path = new java.util.LinkedList<>();
-            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement cur = target;
-            while (cur != null && cur != root) {
-                if (!(cur.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement pe)) {
-                    return null;
-                }
-                int idx = -1;
-                int i = 0;
-                for (var child : pe.getChildElements()) {
-                    if (isXsdAnnotationLike(child)) {
-                        continue;
-                    }
-                    if (child == cur) {
-                        idx = i;
-                        break;
-                    }
-                    i++;
-                }
-                if (idx < 0) {
-                    return null; // cur is an annotation-family element → no model node
-                }
-                path.addFirst(idx);
-                cur = pe;
-            }
-            return cur == root ? path : null;
-        }
-
-        private static boolean isXsdAnnotationLike(
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e) {
-            String n = e.getName();
-            return "annotation".equals(n) || "documentation".equals(n) || "appinfo".equals(n);
-        }
-
-        /** Navigates the structural-child index {@code path} from {@code root}; {@code null} if out of range. */
-        private static XsdNode navigateXsd(XsdNode root, java.util.List<Integer> path) {
-            if (root == null || path == null) {
-                return null;
-            }
-            XsdNode cur = root;
-            for (int idx : path) {
-                XsdNode next = null;
-                int i = 0;
-                for (XsdNode child : cur.getChildren()) {
-                    if (isNonStructuralXsd(child)) {
-                        continue;
-                    }
-                    if (i == idx) {
-                        next = child;
-                        break;
-                    }
-                    i++;
-                }
-                if (next == null) {
-                    return null;
-                }
-                cur = next;
-            }
-            return cur;
-        }
-
-        /** Comment/annotation-family nodes are not counted when index-aligning with the source tree. */
-        private static boolean isNonStructuralXsd(XsdNode n) {
-            org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType t = n.getNodeType();
-            return t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.COMMENT
-                    || t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.ANNOTATION
-                    || t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.DOCUMENTATION
-                    || t == org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType.APPINFO;
-        }
-
-        /**
-         * Finds the deepest element whose start tag begins on or before {@code line} (1-based) — the
-         * element with the greatest {@code sourceLineNumber <= line}. Source line numbers are
-         * populated by {@code StreamingXmlParser}. Returns {@code null} if none qualifies.
-         */
-        private static org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement findElementByLine(
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root, int line) {
-            if (root == null) {
-                return null;
-            }
-            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement[] best =
-                    new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement[1];
-            collectBestByLine(root, line, best);
-            return best[0];
-        }
-
-        private static void collectBestByLine(
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element, int line,
-                org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement[] best) {
-            int elementLine = element.getSourceLineNumber();
-            if (elementLine > 0 && elementLine <= line
-                    && (best[0] == null || elementLine >= best[0].getSourceLineNumber())) {
-                best[0] = element;
-            }
-            for (org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode child : element.getChildren()) {
-                if (child instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement childElement) {
-                    collectBestByLine(childElement, line, best);
-                }
-            }
-        }
-
-        private void renderStructured() {
-            // The Graphic view (Canvas XsdGraphView) is bound to the model at build
-            // time and redraws itself from PropertyChangeEvents, so only the Tree
-            // needs an explicit refresh here.
-            if (viewMode != ViewMode.TREE || treeView == null) {
-                return;
-            }
-            if (editorContext != null) {
-                treeView.setSchema(editorContext.getSchema());
-            } else {
-                treeView.setXsdFromText(view.getText(), document.getPath());
-            }
-        }
-
-        private boolean executeAndApply(
-                org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand command) {
-            if (editorContext == null) {
-                return false;
-            }
-            boolean ok = editorContext.getCommandManager().executeCommand(command);
-            if (ok) {
-                applyModelChange();
-            }
-            return ok;
-        }
-
-        /** Deletes the node via the command stack and round-trips the model to text. */
-        boolean deleteNode(XsdNode node) {
-            if (node == null || node.getParent() == null) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand(node));
-        }
-
-        boolean addElement(XsdNode parent, String name) {
-            if (parent == null || name == null || name.isBlank()
-                    || !permits("Add Element", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addElement(parent))) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand(parent, name.trim()));
-        }
-
-        /**
-         * Declares a new top-level type and opens it in its type editor tab.
-         *
-         * @return whether the type was added
-         */
-        boolean addGlobalType(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind kind,
-                              String name) {
-            ensureModelParsed();
-            if (editorContext == null || editorContext.getSchema() == null || kind == null
-                    || !permits("New Type", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules
-                    .addGlobalType(editorContext.getSchema(), name))) {
-                return false;
-            }
-            String typeName = name.trim();
-            boolean ok = executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand(
-                    editorContext.getSchema(), kind, typeName));
-            if (ok && openTypeEditorCallback != null) {
-                javafx.application.Platform.runLater(() -> openTypeEditorCallback.accept(typeName));
-            }
-            return ok;
-        }
-
-        /** Asks for kind and name of a new top-level type, then adds it ({@link #addGlobalType}). */
-        boolean promptGlobalType(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind kind) {
-            ensureModelParsed();
-            if (editorContext == null || editorContext.getSchema() == null) {
-                return false;
-            }
-            return org.fxt.freexmltoolkit.controls.shell.schema.NewTypeDialog
-                    .ask(ruleWindow(), editorContext.getSchema(), kind)
-                    .map(answer -> addGlobalType(answer.kind(), answer.name()))
-                    .orElse(false);
-        }
-
-        boolean addComment(XsdNode parent, String content) {
-            if (parent == null || content == null || content.isBlank()) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCommentCommand(parent, content.trim()));
-        }
-
-        boolean addContainerElement(XsdNode parent, String name) {
-            if (parent == null || name == null || name.isBlank()
-                    || !permits("Add Container Element", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addElement(parent))) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddContainerElementCommand(
-                            parent, name.trim()));
-        }
-
-        boolean renameNode(XsdNode node, String newName) {
-            if (node == null || newName == null || newName.isBlank()) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.RenameNodeCommand(node, newName.trim()));
-        }
-
-        boolean changeCardinality(XsdNode node, int min, int max) {
-            if (node == null || min < 0 || (max >= 0 && max < min)) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeCardinalityCommand(node, min, max));
-        }
-
-        boolean addElement(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewElementSpec spec) {
-            if (parent == null || spec == null
-                    || !permits("Add Element", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.newElement(parent, spec))) {
-                return false;
-            }
-            return executeAndApply(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddElementCommand.of(parent, spec));
-        }
-
-        boolean addAttribute(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewAttributeSpec spec) {
-            if (parent == null || spec == null
-                    || !permits("Add Attribute", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.newAttribute(parent, spec))) {
-                return false;
-            }
-            return executeAndApply(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand.of(parent, spec));
-        }
-
-        boolean addAttribute(XsdNode parent, String name) {
-            if (parent == null || name == null || name.isBlank()
-                    || !permits("Add Attribute", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addAttribute(parent))) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAttributeCommand(parent, name.trim()));
-        }
-
-        boolean addSequence(XsdNode node) {
-            return addCompositor(node, "sequence");
-        }
-
-        boolean addChoice(XsdNode node) {
-            return addCompositor(node, "choice");
-        }
-
-        boolean addAll(XsdNode node) {
-            return addCompositor(node, "all");
-        }
-
-        /** Adds a compositor after checking the rules; a typed element may drop its type (confirmed). */
-        private boolean addCompositor(XsdNode node, String kind) {
-            if (!(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement element)) {
-                return false;
-            }
-            var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Add " + capitalize(kind),
-                    org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.addCompositor(element, kind));
-            if (resolved.isEmpty()) {
-                return false;
-            }
-            boolean replace = resolved.get();
-            var command = switch (kind) {
-                case "choice" -> org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand.choice(element);
-                case "all" -> org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand.all(element);
-                default -> org.fxt.freexmltoolkit.controls.v2.editor.commands.AddCompositorCommand.sequence(element);
-            };
-            return executeAndApply(replace ? command.replacingType() : command);
-        }
-
-        private static String capitalize(String s) {
-            return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
-        }
-
-        /** @return whether an edit with this verdict may run as is (shows the reason when blocked). */
-        private boolean permits(String title, org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck check) {
-            if (check.isBlocked()) {
-                org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.showBlocked(ruleWindow(), title, check);
-                return false;
-            }
-            return true;
-        }
-
-        private javafx.stage.Window ruleWindow() {
-            return getTabPane() != null && getTabPane().getScene() != null
-                    ? getTabPane().getScene().getWindow() : null;
-        }
-
-        boolean duplicate(XsdNode node) {
-            if (node == null || node.getParent() == null) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.DuplicateNodeCommand(node));
-        }
-
-        /** Pastes the shell clipboard's node under {@code target} (cut originals are removed). */
-        boolean pasteNode(XsdNode target) {
-            if (target == null || !clipboard.hasContent()
-                    || !permits("Paste", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.paste(target, clipboard.getClipboardNode()))) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.PasteNodeCommand(clipboard, target));
-        }
-
-        /** Reorders a node among its siblings by {@code delta} (-1 = up, +1 = down). */
-        boolean moveNode(XsdNode node, int delta) {
-            if (node == null || node.getParent() == null) {
-                return false;
-            }
-            XsdNode parent = node.getParent();
-            int index = parent.getChildren().indexOf(node);
-            int target = index + delta;
-            if (index < 0 || target < 0 || target >= parent.getChildren().size()) {
-                return false; // already at the boundary
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.MoveNodeCommand(node, parent, target));
-        }
-
-        boolean changeType(XsdNode node, String newType) {
-            if (editorContext == null || node == null || newType == null || newType.isBlank()) {
-                return false;
-            }
-            String type = newType.trim();
-            var resolved = org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs.resolve(ruleWindow(), "Change Type",
-                    org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeType(node, type));
-            return resolved.isPresent() && executeAndApply(resolved.get()
-                    ? org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand.replacingInlineType(editorContext, node, type)
-                    : new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeTypeCommand(editorContext, node, type));
-        }
-
-        /** @return whether {@code target} accepts the clipboard's node (for the context menu's Paste). */
-        boolean canPasteInto(XsdNode target) {
-            return clipboard.hasContent()
-                    && !org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.paste(target, clipboard.getClipboardNode()).isBlocked();
-        }
-
-        boolean changeUse(XsdNode node, String use) {
-            if (editorContext == null || node == null || use == null) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeUseCommand(
-                    editorContext, node, use));
-        }
-
-        boolean changeForm(XsdNode node, String form) {
-            if (editorContext == null || node == null || form == null) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFormCommand(
-                    editorContext, node, form));
-        }
-
-        boolean changeConstraints(XsdNode node, boolean nillable, boolean abstractFlag, String fixed) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            if (node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute attribute) {
-                // The Inspector shows "fixed" for attributes too; nillable/abstract do not apply there.
-                // Leaving the field unchanged must not add an undo step.
-                return java.util.Objects.equals(attribute.getFixed(),
-                        org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFixedValueCommand.normalize(fixed))
-                        || executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFixedValueCommand(
-                                editorContext, node, fixed));
-            }
-            return node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdElement
-                    && executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeConstraintsCommand(
-                            editorContext, node, nillable, abstractFlag, fixed));
-        }
-
-        boolean changeSubstitutionGroup(XsdNode node, String substitutionGroup) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSubstitutionGroupCommand(
-                            editorContext, node, substitutionGroup));
-        }
-
-        boolean changeDefaultValue(XsdNode node, String defaultValue) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDefaultValueCommand(
-                    editorContext, node, defaultValue));
-        }
-
-        boolean changeBlock(XsdNode node, String block) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeBlockCommand(
-                    editorContext, node, block));
-        }
-
-        boolean changeFinal(XsdNode node, String finalValue) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeFinalCommand(
-                    editorContext, node, finalValue));
-        }
-
-        boolean changeMixed(XsdNode node, boolean mixed) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeMixedCommand(
-                    editorContext, node, mixed));
-        }
-
-        boolean changeRef(XsdNode node, String ref) {
-            if (editorContext == null || node == null || !permits("Change Reference", org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules.changeRef(node, ref))) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeRefCommand(
-                    editorContext, node, ref));
-        }
-
-        boolean changeWildcard(XsdNode node, String namespace,
-                org.fxt.freexmltoolkit.controls.v2.model.XsdAny.ProcessContents processContents) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeWildcardCommand(
-                    editorContext, node, namespace, processContents));
-        }
-
-        boolean changeSchemaProperty(XsdNode node,
-                org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSchemaPropertyCommand.Property property,
-                String value) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeSchemaPropertyCommand(
-                    editorContext, node, property, value));
-        }
-
-        boolean addIdentityConstraint(XsdNode node,
-                org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand.Kind kind,
-                String name, String selectorXpath, java.util.List<String> fieldXpaths, String refer) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            try {
-                return executeAndApply(
-                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddIdentityConstraintCommand(
-                                editorContext, node, kind, name, selectorXpath, fieldXpaths, refer));
-            } catch (IllegalArgumentException e) {
-                return false; // invalid input (missing name/selector/field) — ignored
-            }
-        }
-
-        boolean addSchemaReference(XsdNode node,
-                org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSchemaReferenceCommand.Kind kind,
-                String namespace, String schemaLocation) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            try {
-                return executeAndApply(
-                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSchemaReferenceCommand(
-                                editorContext, node, kind, namespace, schemaLocation));
-            } catch (IllegalArgumentException e) {
-                return false; // invalid input (missing schema location) — ignored
-            }
-        }
-
-        boolean changeDocumentation(XsdNode node, String documentation) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDocumentationCommand(
-                            editorContext, node, documentation));
-        }
-
-        boolean changeAppinfo(XsdNode node, String appinfo) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAppinfoCommand(
-                            editorContext, node, appinfo));
-        }
-
-        boolean changeAppinfo(XsdNode node, org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo appinfo) {
-            if (editorContext == null || node == null) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAppinfoCommand(
-                            editorContext, node, appinfo));
-        }
-
-        boolean changeDocumentations(XsdNode node,
-                java.util.List<org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation> docs) {
-            if (editorContext == null || node == null || docs == null) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeDocumentationsCommand(
-                            editorContext, node, docs));
-        }
-
-        boolean editComment(XsdNode node, String content) {
-            if (editorContext == null
-                    || !(node instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComment comment)) {
-                return false;
-            }
-            return executeAndApply(
-                    new org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCommentCommand(comment, content));
-        }
-
-
-        boolean editFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet, String newValue) {
-            if (editorContext == null || facet == null || newValue == null) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.EditFacetCommand(
-                    facet, newValue));
-        }
-
-        boolean deleteFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacet facet) {
-            if (editorContext == null || facet == null
-                    || !(facet.getParent()
-                            instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction)) {
-                return false;
-            }
-            return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteFacetCommand(
-                    restriction, facet));
-        }
-
-        boolean addFacet(org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType type, String value) {
-            return addFacet(currentSelection, type, value);
-        }
-
-        /** Adds a facet to {@code node}'s restriction (pattern/enumeration/assertion create one). */
-        boolean addFacet(XsdNode node, org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType type, String value) {
-            if (editorContext == null || node == null || type == null || value == null) {
-                return false;
-            }
-            XsdNode currentSelection = node;
-            org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction restriction =
-                    org.fxt.freexmltoolkit.controls.shell.schema.SchemaFacets.findRestriction(currentSelection);
-            if (restriction != null) {
-                return executeAndApply(new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddFacetCommand(
-                        restriction, type, value));
-            }
-            // No restriction yet: pattern/enumeration/assertion commands create one from the node.
-            return switch (type) {
-                case PATTERN -> executeAndApply(
-                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddPatternCommand(
-                                editorContext, currentSelection, value));
-                case ENUMERATION -> executeAndApply(
-                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddEnumerationCommand(
-                                editorContext, currentSelection, value));
-                case ASSERTION -> executeAndApply(
-                        new org.fxt.freexmltoolkit.controls.v2.editor.commands.AddAssertionCommand(
-                                editorContext, currentSelection, value));
-                default -> false;
-            };
-        }
-
-        /** Restores selection to {@code node} after a property edit (re-selects it in the view). */
-        void reselect(XsdNode node) {
-            currentSelection = node;
-            if (viewMode == ViewMode.TREE && treeView != null) {
-                treeView.selectNode(node);
-            } else if (viewMode == ViewMode.GRAPHIC && xsdGraphView != null) {
-                xsdGraphView.selectModelNode(node);
-            }
-        }
-
-        boolean undoStructured() {
-            if (editorContext != null && editorContext.getCommandManager().undo()) {
-                applyModelChange();
-                return true;
-            }
-            return false;
-        }
-
-        /** Undo on the shared XML-instance context; round-trips the reverted model to text. */
-        boolean undoXml() {
-            if (xmlEditorContext != null && xmlEditorContext.undo()) {
-                currentXmlSelection = null;
-                roundTripXmlModelToText();
-                return true;
-            }
-            return false;
-        }
-
-        /** Redo on the shared XML-instance context; round-trips the re-applied model to text. */
-        boolean redoXml() {
-            if (xmlEditorContext != null && xmlEditorContext.redo()) {
-                currentXmlSelection = null;
-                roundTripXmlModelToText();
-                return true;
-            }
-            return false;
-        }
-
-        /** Undo on the shared JSON context; round-trips the reverted model to text. */
-        boolean undoJson() {
-            if (jsonEditorContext != null && jsonEditorContext.undo()) {
-                currentJsonSelection = null;
-                roundTripJsonModelToText();
-                return true;
-            }
-            return false;
-        }
-
-        /** Redo on the shared JSON context; round-trips the re-applied model to text. */
-        boolean redoJson() {
-            if (jsonEditorContext != null && jsonEditorContext.redo()) {
-                currentJsonSelection = null;
-                roundTripJsonModelToText();
-                return true;
-            }
-            return false;
-        }
-
-        /** Executes a JSON command on the shared context and round-trips to text. */
-        boolean editJson(org.fxt.freexmltoolkit.controls.jsoneditor.commands.JsonCommand command) {
-            if (command == null) {
-                return false;
-            }
-            ensureJsonModelParsed();
-            if (jsonEditorContext == null || !jsonEditorContext.executeCommand(command)) {
-                return false;
-            }
-            roundTripJsonModelToText();
-            return true;
-        }
-
-        boolean redoStructured() {
-            if (editorContext != null && editorContext.getCommandManager().redo()) {
-                applyModelChange();
-                return true;
-            }
-            return false;
-        }
-
-        private void applyModelChange() {
-            roundTripModelToText();
-            currentSelection = null;
-            renderStructured();
-        }
-
-        /** Serializes the current model back into the editor text and marks it dirty. */
-        private void roundTripModelToText() {
-            if (editorContext == null) {
-                return;
-            }
-            roundTripDebounce.stop(); // we are doing the work now; cancel any pending run
-            var serializer = new org.fxt.freexmltoolkit.controls.v2.editor.serialization.XsdSerializer();
-            // Keep the xs:include/xs:import directives but never write back the inlined external
-            // content, so editing the main schema does not flatten its includes.
-            serializer.setExcludeIncludedNodes(true);
-            String xml = serializer.serialize(editorContext.getSchema());
-            String current = view.getText();
-            // Thin diff layer (P6): rewrite only the region that actually changed, instead of
-            // replacing the whole document — preserves the editor caret/scroll and avoids
-            // re-styling untouched text.
-            int[] region = TextDiff.minimalReplaceRegion(current, xml);
-            if (region[0] == region[1] && region[0] == region[2]) {
-                lastParsedText = current; // already in sync; nothing to write
-                lastParsedRevision = textRevision;
-                return;
-            }
-            view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
-            // The text now mirrors the model, so it must not look like an external edit (P2).
-            lastParsedText = view.getText();
-            lastParsedRevision = textRevision;
-            document.setDirty(true);
-        }
-
-        /** Coalesces a burst of model-change events into a single debounced round-trip (P1). */
-        private void scheduleRoundTrip() {
-            roundTripDebounce.playFromStart();
-        }
-
-        /** Runs a pending debounced round-trip immediately, if one is scheduled (P1). */
-        private void flushPendingRoundTrip() {
-            if (roundTripDebounce.getStatus() == javafx.animation.Animation.Status.RUNNING) {
-                roundTripModelToText();
-            }
-        }
-
-        private void ensureTree() {
-            if (treeView == null) {
-                treeView = new org.fxt.freexmltoolkit.controls.shell.schema.XsdTreeView();
-                treeView.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-                    currentSelection = newV != null ? newV.getValue() : null;
-                    selectionCallback.run();
-                });
-                treeView.setEditActions(createEditActions());
-                contentStack.getChildren().add(treeView);
-            }
-        }
-
-        /**
-         * (Re)builds the Canvas-based {@link org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView}
-         * editor over the current {@link #editorContext}, sharing its command stack and
-         * selection so graphical edits, inspector edits and undo/redo are unified. The view
-         * is rebuilt whenever the model is re-parsed (a new context) and reused otherwise.
-         */
-        private void ensureCanvasGraphic() {
-            if (editorContext == null) {
-                return;
-            }
-            if (xsdGraphView != null && xsdGraphView.getEditorContext() == editorContext) {
-                return; // already bound to the current model
-            }
-            org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView previous = xsdGraphView;
-            if (previous != null) {
-                contentStack.getChildren().remove(previous);
-            }
-            editorContext.setEditMode(true);
-            org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView built =
-                    new org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView(editorContext);
-            // The shell owns the inspector (right dock), so suppress the view's own
-            // embedded properties panel to avoid a duplicate, overlapping panel.
-            built.hideEmbeddedPropertiesPanel();
-            // Match the Figma "Schema (graphical)" frame: no bulky second toolbar — just a
-            // breadcrumb top-left and a small zoom pill at the bottom (the shell provides
-            // the editor toolbar above).
-            built.useMinimalChrome();
-            // Wire the graphic view's "Open in Type Editor" context-menu actions to the shell's
-            // type-editor tabs (named types only; anonymous inline types have no tab target).
-            built.setOpenComplexTypeEditorCallback(ct -> openTypeEditorCallback.accept(ct.getName()));
-            built.setOpenSimpleTypeEditorCallback(st -> openTypeEditorCallback.accept(st.getName()));
-            built.getSelectionModel().addSelectionListener((oldSel, newSel) -> {
-                var primary = built.getSelectionModel().getPrimarySelection();
-                currentSelection = primary != null
-                        && primary.getModelObject() instanceof XsdNode node ? node : null;
-                selectionCallback.run();
-            });
-            // Round-trip graphical/internal edits (drag, right-click, keyboard) to the
-            // text, coalescing bursts of model events into a single debounced run (P1).
-            editorContext.getSchema().addPropertyChangeListener(evt -> {
-                if (viewMode == ViewMode.GRAPHIC) {
-                    scheduleRoundTrip();
-                }
-            });
-            xsdGraphView = built;
-            contentStack.getChildren().add(xsdGraphView);
-            if (previous != null) {
-                built.adoptViewState(previous);
-            }
-        }
-
-        /** Editing actions shared by the Tree and Graphic views: run a command, then refresh selection. */
-        private org.fxt.freexmltoolkit.controls.shell.schema.NodeEditActions createEditActions() {
-            return new org.fxt.freexmltoolkit.controls.shell.schema.NodeEditActions() {
-                @Override
-                public void addElement(XsdNode parent, String name) {
-                    if (EditorTab.this.addElement(parent, name)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void newType(org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.Kind kind) {
-                    if (EditorTab.this.promptGlobalType(kind)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void addComment(XsdNode parent, String content) {
-                    if (EditorTab.this.addComment(parent, content)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void addContainerElement(XsdNode parent, String name) {
-                    if (EditorTab.this.addContainerElement(parent, name)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void addAttribute(XsdNode parent, String name) {
-                    if (EditorTab.this.addAttribute(parent, name)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void addElement(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewElementSpec spec) {
-                    if (EditorTab.this.addElement(parent, spec)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void addAttribute(XsdNode parent, org.fxt.freexmltoolkit.controls.v2.editor.commands.NewAttributeSpec spec) {
-                    if (EditorTab.this.addAttribute(parent, spec)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void addSequence(XsdNode element) {
-                    if (EditorTab.this.addSequence(element)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void addChoice(XsdNode element) {
-                    if (EditorTab.this.addChoice(element)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void addAll(XsdNode element) {
-                    if (EditorTab.this.addAll(element)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void duplicate(XsdNode node) {
-                    if (EditorTab.this.duplicate(node)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void moveUp(XsdNode node) {
-                    if (EditorTab.this.moveNode(node, -1)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void moveDown(XsdNode node) {
-                    if (EditorTab.this.moveNode(node, 1)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void copy(XsdNode node) {
-                    if (node != null) {
-                        clipboard.copy(node);
-                    }
-                }
-
-                @Override
-                public void cut(XsdNode node) {
-                    if (node != null) {
-                        clipboard.cut(node);
-                    }
-                }
-
-                @Override
-                public void paste(XsdNode target) {
-                    if (EditorTab.this.pasteNode(target)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public boolean canPaste() {
-                    return clipboard.hasContent();
-                }
-
-                @Override
-                public boolean canPasteInto(XsdNode target) {
-                    return EditorTab.this.canPasteInto(target);
-                }
-
-                @Override
-                public void rename(XsdNode node, String newName) {
-                    if (EditorTab.this.renameNode(node, newName)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void changeType(XsdNode node, String newType) {
-                    if (EditorTab.this.changeType(node, newType)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void changeCardinality(XsdNode node, int min, int max) {
-                    if (EditorTab.this.changeCardinality(node, min, max)) {
-                        selectionCallback.run();
-                    }
-                }
-
-                @Override
-                public void delete(XsdNode node) {
-                    if (EditorTab.this.deleteNode(node)) {
-                        selectionCallback.run();
-                    }
-                }
-            };
-        }
-
-        private void ensureJsonTree() {
-            if (jsonTreeView == null) {
-                jsonTreeView = new org.fxt.freexmltoolkit.controls.jsoneditor.view.JsonTreeView();
-                jsonTreeView.setOnSelectionChanged(node -> {
-                    currentJsonSelection = node;
-                    selectionCallback.run();
-                });
-                contentStack.getChildren().add(jsonTreeView);
-            }
-        }
-
-        private void ensureXmlGrid() {
-            if (xmlGridView == null) {
-                xmlGridView = new XmlGridView();
-                // Grid edits mutate the shared context directly; round-trip it via a minimal diff.
-                xmlGridView.setOnModified(xml -> roundTripXmlModelToText());
-                xmlGridView.setOnSelectionChanged(node -> {
-                    currentXmlSelection = node;
-                    selectionCallback.run();
-                });
-                contentStack.getChildren().add(xmlGridView);
-            }
-        }
-
-        private void ensureJsonGrid() {
-            if (jsonGridView == null) {
-                jsonGridView = new JsonGridView();
-                // Grid edits mutate the shared context directly; round-trip it via a minimal diff.
-                jsonGridView.setOnModified(json -> roundTripJsonModelToText());
-                jsonGridView.setOnSelectionChanged(node -> {
-                    currentJsonSelection = node;
-                    selectionCallback.run();
-                });
-                contentStack.getChildren().add(jsonGridView);
-            }
-        }
-
-        /** Executes an XML-instance command on the shared context and round-trips to text. */
-        boolean editXml(org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand command) {
-            if (command == null) {
-                return false;
-            }
-            ensureXmlModelParsed();
-            if (xmlEditorContext == null || !xmlEditorContext.executeCommand(command)) {
-                return false;
-            }
-            roundTripXmlModelToText();
-            return true;
-        }
-
-        private void ensureHtmlPreview() {
-            if (htmlPreviewNode != null) {
-                return;
-            }
-            try {
-                javafx.scene.web.WebView webView = new javafx.scene.web.WebView();
-                htmlPreviewUpdater = content ->
-                        webView.getEngine().loadContent(content == null ? "" : content);
-                htmlPreviewNode = webView;
-            } catch (Throwable t) {
-                // javafx.scene.web missing from the runtime: degrade to read-only text
-                // (same guard as TransformOutputPanel.updateHtmlPreview).
-                javafx.scene.control.TextArea fallback = new javafx.scene.control.TextArea();
-                fallback.setEditable(false);
-                htmlPreviewUpdater = fallback::setText;
-                htmlPreviewNode = fallback;
-            }
-            contentStack.getChildren().add(htmlPreviewNode);
-        }
-
-        /** Re-renders the preview if the text changed since it was last rendered. */
-        private void refreshHtmlPreview() {
-            String text = view.getText();
-            if (!java.util.Objects.equals(text, lastPreviewedText)) {
-                htmlPreviewUpdater.accept(text);
-                lastPreviewedText = text;
-            }
-        }
-
-        /** Re-renders the preview after an external text update (async load, re-run transform). */
-        void refreshPreviewIfActive() {
-            if (viewMode == ViewMode.PREVIEW && htmlPreviewNode != null) {
-                refreshHtmlPreview();
-            }
-        }
-
-        private void ensureXmlInstanceTree() {
-            if (xmlInstanceTreeView == null) {
-                xmlInstanceTreeView = new org.fxt.freexmltoolkit.controls.shell.schema.XmlInstanceTreeView();
-                xmlInstanceTreeView.setOnSelectionChanged(node -> {
-                    currentXmlSelection = node;
-                    selectionCallback.run();
-                });
-                xmlInstanceTreeView.setOnGoToDefinition(goToDefinitionCallback);
-                contentStack.getChildren().add(xmlInstanceTreeView);
-            }
-        }
-
-        /** Centered ProgressIndicator + "Loading …" label on a dimmed backdrop; hidden by default. */
-        private static javafx.scene.layout.StackPane buildLoadingOverlay() {
-            javafx.scene.control.ProgressIndicator spinner = new javafx.scene.control.ProgressIndicator();
-            spinner.setMaxSize(48, 48);
-            javafx.scene.control.Label label = new javafx.scene.control.Label("Loading …");
-            label.getStyleClass().add("fxt-editor-loading-label");
-            javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(10, spinner, label);
-            box.setAlignment(javafx.geometry.Pos.CENTER);
-            javafx.scene.layout.StackPane overlay = new javafx.scene.layout.StackPane(box);
-            overlay.getStyleClass().add("fxt-editor-loading-overlay");
-            overlay.setVisible(false);
-            overlay.setManaged(false);
-            return overlay;
-        }
-
-        /** Arm the delayed spinner; it appears only if loading outlasts {@link #loadDelay}. */
-        void beginLoading() {
-            loadDelay.playFromStart();
-        }
-
-        /** Cancel a pending spinner and hide the overlay (loading finished or failed). */
-        void endLoading() {
-            loadDelay.stop();
-            loadingOverlay.setVisible(false);
-            loadingOverlay.setManaged(false);
-        }
-
-        private void showOnly(javafx.scene.Node node) {
-            for (javafx.scene.Node child : contentStack.getChildren()) {
-                boolean visible = child == node;
-                child.setVisible(visible);
-                child.setManaged(visible);
-            }
-        }
-
-        /**
-         * Replaces the editor text with content re-read from disk: pending model edits are
-         * dropped rather than written back over the new text, the caret stays where it was
-         * (clamped), and a visible Tree/Graphic/Preview view is rebuilt from the new text.
-         */
-        void replaceContentFromDisk(String content) {
-            roundTripDebounce.stop();
-            int caret = view.getCodeArea().getCaretPosition();
-            view.setText(content);
-            view.getCodeArea().moveTo(Math.min(caret, view.getCodeArea().getLength()));
-            view.getCodeArea().requestFollowCaret();
-            lastParsedText = null;
-            lastParsedRevision = -1;
-            lastParsedXmlRevision = -1;
-            lastParsedJsonRevision = -1;
-            caretMapRevision = -1;
-            if (viewMode != ViewMode.TEXT) {
-                setViewMode(viewMode);
-            }
-            refreshPreviewIfActive();
-        }
-
-        void attachDirtyTracking() {
-            if (dirtyTrackingAttached) {
-                return;
-            }
-            dirtyTrackingAttached = true;
-            // plainTextChanges, not textProperty: a ChangeListener there builds the whole text per keystroke
-            view.getCodeArea().plainTextChanges().subscribe(change -> {
-                if (!change.getInserted().equals(change.getRemoved())) {
-                    document.setDirty(true);
-                }
-            });
-        }
-
-        void refreshIcon() {
-            setGraphic(new IconifyIcon(document.getFileType().icon()));
-        }
+    public record XmlSchemaDetails(boolean nillable, String since, String deprecated, String listItemType,
+            java.util.List<String> unionMemberTypes, java.util.List<String> appInfos,
+            java.util.List<org.fxt.freexmltoolkit.controls.shell.schema.SchemaConstraints.ConstraintInfo> rules) {
     }
 }

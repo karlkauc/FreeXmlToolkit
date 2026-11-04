@@ -1,0 +1,787 @@
+package org.fxt.freexmltoolkit.controls.shell.editor;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
+
+import javafx.application.Platform;
+import javafx.scene.control.Tab;
+
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.BoundSchemaWatch;
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.ExitChoice;
+import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus;
+import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
+
+/**
+ * Files on disk behind an {@link EditorHost}'s tabs: reading a document into its tab (large-file
+ * guard, encoding, schema auto-detection on open), saving (Save, Save As, Save All, the
+ * close/exit prompts for unsaved documents, the UTF-8 fallback) and the external-change
+ * handling of {@link ExternalChangeMonitor} (reload, deleted files, changed schema
+ * dependencies). Every editor write goes through {@link #write(EditorTab, Path)} so the disk
+ * stamp follows. File I/O runs off the FX thread; results are applied on it.
+ */
+final class EditorFileSync {
+
+    private final EditorHost host;
+
+    /** Watches the open documents' files for changes made by other programs. */
+    final ExternalChangeMonitor externalChangeMonitor = new ExternalChangeMonitor(
+            this::watchedDocuments, this::handleExternalChanges,
+            task -> org.fxt.freexmltoolkit.FxtGui.executorService.execute(task));
+
+    /** Asks what to do about an externally changed/deleted file; replaceable in tests. */
+    private ExternalChangePrompt externalChangePrompt;
+
+    EditorFileSync(EditorHost host) {
+        this.host = host;
+        this.externalChangePrompt =
+                ExternalChangePrompt.dialogs(() -> host.getScene() != null ? host.getScene().getWindow() : null);
+    }
+
+    /**
+     * Saves the active document to its current path (must be titled). The file is written on a worker
+     * thread (a large file on a network drive blocked the UI for seconds).
+     *
+     * @return completes on the FX thread with whether the file was written
+     */
+    public CompletableFuture<Boolean> saveActive() {
+        return host.tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et
+                ? saveTab(et) : CompletableFuture.completedFuture(false);
+    }
+
+    /** Saves {@code et} to its current path (must be titled), written on a worker thread. */
+    CompletableFuture<Boolean> saveTab(EditorTab et) {
+        if (et.document.isUntitled()) {
+            return CompletableFuture.completedFuture(false);
+        }
+        return writeAsync(et, et.document.getPath()).thenApply(saved -> {
+            if (saved) {
+                UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
+            }
+            return saved;
+        });
+    }
+
+    /**
+     * Saves the active document to {@code target} (Save As), written on a worker thread.
+     *
+     * @return completes on the FX thread with whether the file was written
+     */
+    public CompletableFuture<Boolean> saveActiveAs(Path target) {
+        Tab tab = host.tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et)) {
+            return CompletableFuture.completedFuture(false);
+        }
+        Path normalized = withTypeExtension(et, target);
+        if (normalized == null) {
+            return CompletableFuture.completedFuture(false);
+        }
+        return writeAsync(et, relocateGeneratedSchemaReference(et, normalized)).thenApply(saved -> {
+            if (saved) {
+                et.document.setPath(normalized);
+                et.refreshIcon();
+                host.debugSupport.installBreakpointGutter(et);
+                EditorHost.rememberRecentFile(normalized);
+                UsageEvents.fileSaved(et.document.getFileType().docKind(), 1);
+            }
+            return saved;
+        });
+    }
+
+    /**
+     * Saves all titled, dirty documents, written on worker threads.
+     *
+     * @return completes on the FX thread with the number of files written
+     */
+    public CompletableFuture<Integer> saveAll() {
+        java.util.List<CompletableFuture<Boolean>> writes = new java.util.ArrayList<>();
+        for (Tab tab : host.tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && !et.document.isUntitled() && et.document.isDirty()) {
+                writes.add(writeAsync(et, et.document.getPath()));
+            }
+        }
+        CompletableFuture<Integer> result = new CompletableFuture<>();
+        CompletableFuture.allOf(writes.toArray(CompletableFuture[]::new)).whenComplete((ignored, error) -> {
+            int saved = (int) writes.stream().filter(w -> Boolean.TRUE.equals(w.getNow(false))).count();
+            UsageEvents.fileSaved(null, saved);
+            result.complete(saved);
+        });
+        return result;
+    }
+
+    void loadAsync(EditorTab tab, Path path) {
+        long openStart = System.nanoTime();
+        tab.loading = true;
+        tab.beginLoading();
+        tab.schemaBindingGen.incrementAndGet(); // supersede queued schema reconciles
+        if (tab.view.supportsSchema()) {
+            host.publishSchemaStatus(tab, SchemaStatus.LOADING);
+        }
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            long size = sizeOrUnknown(path); // a stat can stall: here, not on the FX thread
+            long maxHeap = Runtime.getRuntime().maxMemory();
+            switch (LargeFileGuard.check(size, maxHeap)) {
+                case OK -> readAndShow(tab, path, openStart);
+                case WARN -> Platform.runLater(() -> {
+                    if (EditorTab.isAbandoned(tab)) {
+                        return;
+                    }
+                    if (confirmLargeFile(path, size)) {
+                        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> readAndShow(tab, path, openStart));
+                    } else {
+                        UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, false);
+                        host.closeTabNow(tab);
+                    }
+                });
+                case REFUSE -> Platform.runLater(() -> {
+                    UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, true);
+                    host.closeTabNow(tab);
+                    org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Open File", "File too large",
+                            path.getFileName() + " is " + LargeFileGuard.formatSize(size)
+                                    + ". With the current memory limit of " + LargeFileGuard.formatSize(maxHeap)
+                                    + ", files up to about " + LargeFileGuard.formatSize(LargeFileGuard.largestOpenable(maxHeap))
+                                    + " can be opened.\n\nRaise the limit under Settings > Memory and restart the application.");
+                });
+                default -> { }
+            }
+        });
+    }
+
+    /** Asks before a large file is opened in the editor. Runs on the FX thread. */
+    private boolean confirmLargeFile(Path path, long size) {
+        return org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Open Large File",
+                path.getFileName() + " is " + LargeFileGuard.formatSize(size),
+                "Large files open slowly and make editing sluggish. Syntax highlighting, validation "
+                        + "and the structured views may take a long time.\n\nOpen it anyway?",
+                "Open Anyway", "Cancel");
+    }
+
+    /** Reads {@code path} on the calling worker thread and shows it in {@code tab}. */
+    private void readAndShow(EditorTab tab, Path path, long openStart) {
+        // Stamp taken BEFORE the read: a change landing mid-read is then caught by the
+        // next external-change check instead of being silently missed.
+        DiskStamp stamp = DiskStamp.of(path);
+        String content;
+        TextEncoding encoding;
+        try {
+            TextEncoding.Read read = TextEncoding.read(path);
+            content = read.text();
+            encoding = read.encoding();
+        } catch (IOException | RuntimeException e) {
+            // Counted (file_open with status + code: a missing / unreadable file is invalid_input,
+            // anything else an app failure) and told to the user; the tab shows the reason.
+            UsageEvents.fileOpenFailed(tab.document.getFileType().docKind(), sizeOrUnknown(path),
+                    UsageEvents.SOURCE_FILE, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
+            Platform.runLater(() -> {
+                tab.view.setText("Could not read " + path + ": " + e.getMessage());
+                tab.endLoading();
+                tab.document.setDiskStamp(stamp);
+                tab.loading = false;
+                host.publishSchemaStatus(tab, SchemaStatus.NONE);
+                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Open failed",
+                        "Could not read " + path.getFileName() + ".",
+                        "Check that the file exists and that you may read it, then open it again.", e, false);
+            });
+            return;
+        }
+
+        long fileSize = sizeOrUnknown(path); // here, not in the FX pulse below: a stat can stall
+        // Also here: a linear scan of the text (XML family only, -1 otherwise)
+        int elementCount = UsageEvents.elementCount(tab.document.getFileType().docKind(), content);
+        // And the editor document of a large file (paragraph split + tree), seconds on the FX thread
+        var prepared = tab.view.prepareText(content);
+        // Show the document as soon as it has been read. Schema detection below can take
+        // seconds - a remote xsi:schemaLocation (or a namespace the Schema Library resolves
+        // remotely) is downloaded - and the editor must not sit empty for that long. The
+        // schema has its own status, already published as LOADING above, so the pending
+        // binding stays visible to the user.
+        Platform.runLater(() -> {
+            if (EditorTab.isAbandoned(tab)) {
+                return;
+            }
+            if (prepared != null) {
+                tab.view.setText(prepared);
+            } else {
+                tab.view.setText(content);
+            }
+            tab.refreshPreviewIfActive();
+            tab.endLoading();
+            tab.document.setEncoding(encoding);
+            tab.document.setDirty(false);
+            tab.document.setDiskStamp(stamp);
+            tab.loading = false;
+            tab.attachDirtyTracking();
+            UsageEvents.fileOpened(tab.document.getFileType().docKind(), fileSize,
+                    UsageEvents.SOURCE_FILE, openStart, elementCount, encoding.charset().name());
+            if (tab.document.getFileType().isXmlFamily()) {
+                GridWarmup.start(); // the first switch to the Graphic view then skips class loading
+            }
+            host.documentLoadedHandler.accept(tab.document, content);
+            Runnable after = tab.afterLoad;
+            tab.afterLoad = null;
+            if (after != null) {
+                after.run();
+            }
+        });
+
+        if (EditorTab.isAbandoned(tab)) {
+            return; // closed (or shutting down) while the file was being read
+        }
+
+        EditorSchemaBinding.SchemaDetection detected = null;
+        // Same per-tab guard as redetectSchemaForActiveDocument: never run two
+        // schema detections for one tab concurrently (Xerces DOM is not thread-safe).
+        if (tab.schemaDetecting.compareAndSet(false, true)) {
+            try {
+                detected = host.schemaBinding.detectSchemaFor(tab, content, path);
+            } finally {
+                tab.schemaDetecting.set(false);
+            }
+        }
+        if (EditorTab.isAbandoned(tab)) {
+            return; // closed while detecting - binding it would parse a schema for nothing
+        }
+        EditorSchemaBinding.SchemaDetection detection = detected;
+        Platform.runLater(() -> {
+            if (EditorTab.isAbandoned(tab)) {
+                return; // closed between the check above and this pulse
+            }
+            File autoXsd = detection != null ? detection.schema() : null;
+            if (autoXsd != null) {
+                tab.schemaFile = autoXsd;
+                tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
+                tab.view.invalidateIntelliSenseCache();
+                if (tab.isSelected()) {
+                    host.activeSchema.set(autoXsd);
+                }
+                host.publishSchemaSource(tab, detection.source(), detection.sourceDetail());
+                host.schemaBinding.loadXmlSchemaProviderAsync(tab, autoXsd);
+                host.schemaBinding.schemaBindingsApplied.incrementAndGet();
+            }
+            // Always publish a terminal status so LOADING can never stick. When the
+            // CAS was lost (a concurrent detection ran), fall back to the tab's
+            // current binding.
+            host.publishSchemaStatus(tab, detection != null
+                    ? detection.status()
+                    : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
+            if (detection != null && tab.view.supportsSchema()) {
+                UsageEvents.schemaBound(tab.document.getFileType().docKind(),
+                        detection.source().name().toLowerCase(java.util.Locale.ROOT),
+                        detection.status() != SchemaStatus.ERROR, detection.failure(), detection.refKind(),
+                        openStart);
+            }
+        });
+    }
+
+    /** @return the file size in bytes, or {@code -1} if it cannot be determined (call off the FX thread). */
+    private static long sizeOrUnknown(Path path) {
+        try {
+            return Files.size(path);
+        } catch (IOException | RuntimeException e) {
+            return -1;
+        }
+    }
+
+    /**
+     * {@link #write(EditorTab, Path)} off the FX thread: the text is taken now, written on a worker, and the
+     * document marked clean afterwards only if nothing was typed meanwhile. Writes of one tab run in order.
+     * While a write runs the tab is not checked for external changes, so the save itself is never
+     * reported as one.
+     *
+     * @return completes on the FX thread with whether the file was written
+     */
+    private CompletableFuture<Boolean> writeAsync(EditorTab tab, Path target) {
+        String text = tab.view.getText();
+        TextEncoding encoding = tab.document.getEncoding();
+        boolean xml = tab.document.getFileType().isXmlFamily();
+        long revision = tab.textRevision;
+        tab.saving++;
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+        CompletableFuture<?> previous = tab.pendingWrite;
+        tab.pendingWrite = result;
+        previous.handle((ignored, error) -> null).thenRunAsync(() -> {
+            DiskStamp stamp = null;
+            TextEncoding saved = null;
+            Throwable failure = null;
+            try {
+                saved = encoding.write(target, text, xml);
+                stamp = DiskStamp.of(target);
+            } catch (IOException | RuntimeException | StackOverflowError | OutOfMemoryError e) {
+                failure = e;
+            }
+            DiskStamp written = stamp;
+            TextEncoding writtenEncoding = saved;
+            Throwable error = failure;
+            Platform.runLater(() -> {
+                tab.saving--;
+                if (written != null) {
+                    if (tab.textRevision == revision) {
+                        tab.document.setDirty(false);
+                    }
+                    tab.document.setDiskStamp(written);
+                    tab.document.setEncoding(writtenEncoding);
+                    if (tab.document.getFileType() == EditorFileType.XSD) {
+                        host.schemaBinding.reloadXmlSchemasBoundTo(target);
+                    }
+                } else {
+                    reportSaveFailure(tab, target, error);
+                }
+                result.complete(written != null);
+            });
+        }, org.fxt.freexmltoolkit.FxtGui.executorService).whenComplete((ignored, error) -> {
+            if (error != null) {
+                // The worker itself failed (rejected, or an Error escaped): never leave the tab "saving".
+                Platform.runLater(() -> {
+                    if (!result.isDone()) {
+                        tab.saving--;
+                        reportSaveFailure(tab, target, error);
+                        result.complete(false);
+                    }
+                });
+            }
+        });
+        return result;
+    }
+
+    /**
+     * A write failed: counted as {@code file_save} with status and error code, logged, and told
+     * to the user (the previous behaviour — nothing at all — lost documents silently).
+     */
+    private void reportSaveFailure(EditorTab tab, Path target, Throwable error) {
+        Throwable cause = error;
+        while ((cause instanceof java.util.concurrent.CompletionException
+                || cause instanceof java.util.concurrent.ExecutionException) && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        UsageEvents.fileSaveFailed(tab.document.getFileType().docKind(),
+                org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(cause),
+                tab.document.getEncoding().charset().name());
+        EditorHost.logger.warn("Could not save {}: {}", target, String.valueOf(cause));
+        if (cause instanceof java.nio.charset.CharacterCodingException) {
+            offerUtf8Save(tab, target);
+            return;
+        }
+        // file_save already carries the failure; the dialog must not report it a second time.
+        org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
+                "Could not save " + target.getFileName() + ".",
+                "Check that the file is not read-only or locked by another program and that the drive "
+                        + "has free space, then try again or use Save As.", cause, false);
+    }
+
+    /**
+     * Asked when the text holds characters the document's charset cannot store (only outside XML, where
+     * they would otherwise become character references): {@code true} saves it as UTF-8 instead.
+     * Replaceable by tests.
+     */
+    static java.util.function.Predicate<String> utf8SaveConfirmer = charset ->
+            org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Save failed",
+                    "The text contains characters that " + charset + " cannot store.",
+                    "Save the file as UTF-8 instead? Its other characters stay as they are, only their bytes "
+                            + "on disk change.",
+                    "Save as UTF-8", "Cancel");
+
+    /** Offers to save {@code tab} as UTF-8 after its own charset could not encode the text. FX thread. */
+    private void offerUtf8Save(EditorTab tab, Path target) {
+        TextEncoding current = tab.document.getEncoding();
+        if (org.fxt.freexmltoolkit.controls.shell.editor.search.EncodingSniffer.declaredEncoding(
+                tab.view.getText()) != null) {
+            // A declaration would pick the charset again on the next write: the user has to edit it.
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
+                    "Could not save " + target.getFileName() + ": the text contains characters that "
+                            + current.charset().name() + " cannot store.",
+                    "Change the encoding in the XML declaration (for example to UTF-8) and save again.",
+                    (String) null, false);
+            return;
+        }
+        if (utf8SaveConfirmer.test(current.charset().name())) {
+            tab.document.setEncoding(TextEncoding.DEFAULT);
+            writeAsync(tab, target);
+        }
+    }
+
+    boolean write(EditorTab tab, Path target) {
+        try {
+            TextEncoding encoding = tab.document.getEncoding();
+            tab.document.setEncoding(encoding.write(target, tab.view.getText(),
+                    tab.document.getFileType().isXmlFamily()));
+            tab.document.setDirty(false);
+            // Our own write must not be reported as an external change.
+            tab.document.setDiskStamp(DiskStamp.of(target));
+            if (tab.document.getFileType() == EditorFileType.XSD) {
+                // XML documents bound to this schema pick up the saved declarations.
+                host.schemaBinding.reloadXmlSchemasBoundTo(target);
+            }
+            return true;
+        } catch (IOException | RuntimeException | StackOverflowError | OutOfMemoryError e) {
+            reportSaveFailure(tab, target, e);
+            return false;
+        }
+    }
+
+    /** The titled, fully loaded documents whose files are watched for external changes. */
+    private java.util.List<ExternalChangeMonitor.Watched> watchedDocuments() {
+        java.util.List<ExternalChangeMonitor.Watched> watched = new java.util.ArrayList<>();
+        for (Tab tab : host.tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && !et.document.isUntitled() && !et.loading && et.saving == 0) {
+                watched.add(new ExternalChangeMonitor.Watched(
+                        et.document, et.document.getPath(), et.document.getDiskStamp()));
+                // A model behind the text gets parsed anew anyway, and then reads the files as they are.
+                if (et.editorContext != null && et.isModelCurrent()) {
+                    et.dependencyStamps.forEach((file, stamp) -> watched.add(ExternalChangeMonitor.Watched.dependency(
+                            et.document, file, stamp, et.dependencyChecksums.get(file))));
+                }
+                BoundSchemaWatch bound = et.boundSchemaWatch;
+                if (bound != null && bound.schema().equals(et.schemaFile)) {
+                    bound.stamps().forEach((file, stamp) -> watched.add(ExternalChangeMonitor.Watched.dependency(
+                            et.document, file, stamp, bound.checksums().get(file))));
+                }
+            }
+        }
+        return watched;
+    }
+
+    /**
+     * Refreshes the schema an XML tab is bound to when it or a file it pulls in changed. Nothing
+     * is asked: only the schema facts change, the text and the undo history stay.
+     */
+    private void handleBoundSchemaChanges(EditorTab tab, java.util.List<ExternalChangeMonitor.Change> changes) {
+        BoundSchemaWatch bound = tab.boundSchemaWatch;
+        if (bound == null || !bound.schema().equals(tab.schemaFile)) {
+            return;
+        }
+        boolean refresh = false;
+        for (ExternalChangeMonitor.Change change : changes) {
+            if (bound.stamps().containsKey(change.path())
+                    && java.util.Objects.equals(change.known(), bound.stamps().get(change.path()))) {
+                bound.stamps().put(change.path(), change.current());
+                refresh |= change.known() != null && !change.sameContent();
+            }
+        }
+        if (refresh) {
+            host.schemaBinding.refreshBoundSchema(tab);
+        }
+    }
+
+    /**
+     * Handles files that were changed or deleted on disk by another program: asks the user,
+     * one document after the other, whether to reload/ignore (changed) or keep/close (deleted).
+     * Results that were overtaken meanwhile - tab closed, saved, reloaded, saved under another
+     * name - are dropped; the next check re-evaluates them. Changes to files a document's model
+     * pulls in come last, one question per document; a document just asked about waits for the
+     * next check, because reloading it reads those files anyway.
+     */
+    private void handleExternalChanges(java.util.List<ExternalChangeMonitor.Change> changes) {
+        java.util.Set<OpenDocument> asked = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        java.util.Map<OpenDocument, java.util.List<ExternalChangeMonitor.Change>> dependencyChanges =
+                new java.util.LinkedHashMap<>();
+        for (ExternalChangeMonitor.Change change : changes) {
+            if (change.dependency()) {
+                dependencyChanges.computeIfAbsent(change.document(), d -> new java.util.ArrayList<>()).add(change);
+                continue;
+            }
+            EditorTab tab = host.editorTabOf(change.document());
+            if (tab == null || tab.loading || tab.saving > 0 || !change.path().equals(tab.document.getPath())
+                    || !java.util.Objects.equals(change.known(), tab.document.getDiskStamp())) {
+                continue;
+            }
+            OpenDocument document = tab.document;
+            if (change.known() == null) {
+                document.setDiskStamp(change.current()); // first known state: nothing to compare
+                continue;
+            }
+            if (change.deleted()) {
+                asked.add(document);
+                host.tabPane.getSelectionModel().select(tab);
+                if (externalChangePrompt.fileDeleted(document, document.isDirty())
+                        == ExternalChangePrompt.DeletedChoice.CLOSE) {
+                    host.closeTabNow(tab);
+                } else {
+                    document.setDiskStamp(DiskStamp.MISSING);
+                    document.setDirty(true); // the content now only exists in the editor
+                }
+                continue;
+            }
+            if (change.diskText() != null && change.diskText().equals(tab.view.getText())) {
+                // Touched or rewritten with identical content: nothing to ask.
+                document.setDiskStamp(change.current());
+                document.setDirty(false);
+                continue;
+            }
+            asked.add(document);
+            host.tabPane.getSelectionModel().select(tab);
+            ExternalChangePrompt.ChangedChoice choice =
+                    externalChangePrompt.fileChanged(document, document.isDirty());
+            // Either way the user has seen this state of the file: do not ask about it again.
+            document.setDiskStamp(change.current());
+            if (choice == ExternalChangePrompt.ChangedChoice.RELOAD) {
+                reloadFromDisk(tab, change.path());
+            } else {
+                document.setDirty(true); // editor and disk differ; saving overwrites the disk
+            }
+        }
+        dependencyChanges.forEach((document, files) -> {
+            if (!asked.contains(document)) {
+                handleDependencyChanges(document, files);
+            }
+        });
+    }
+
+    /**
+     * Asks once whether to rebuild a schema's model from files it pulls in that changed. Asked
+     * rather than done silently because a new model drops the undo history. Either answer
+     * settles this state of the files; only a further change asks again.
+     */
+    private void handleDependencyChanges(OpenDocument document,
+                                         java.util.List<ExternalChangeMonitor.Change> changes) {
+        EditorTab tab = host.editorTabOf(document);
+        if (tab == null || tab.loading || tab.saving > 0) {
+            return;
+        }
+        if (document.getFileType() == EditorFileType.XML) {
+            handleBoundSchemaChanges(tab, changes);
+            return;
+        }
+        java.util.List<ExternalChangeMonitor.Change> pending = new java.util.ArrayList<>();
+        for (ExternalChangeMonitor.Change change : changes) {
+            if (!tab.dependencyStamps.containsKey(change.path())
+                    || !java.util.Objects.equals(change.known(), tab.dependencyStamps.get(change.path()))) {
+                continue; // a newer model has read the file meanwhile
+            }
+            if (change.known() == null || change.sameContent()) {
+                tab.dependencyStamps.put(change.path(), change.current()); // nothing to compare, or to tell
+            } else {
+                pending.add(change);
+            }
+        }
+        if (pending.isEmpty()) {
+            return;
+        }
+        host.tabPane.getSelectionModel().select(tab);
+        ExternalChangePrompt.ChangedChoice choice = externalChangePrompt.dependencyChanged(document,
+                pending.stream().map(ExternalChangeMonitor.Change::path).toList());
+        pending.forEach(change -> tab.dependencyStamps.replace(change.path(), change.current()));
+        if (choice == ExternalChangePrompt.ChangedChoice.RELOAD && !EditorTab.isAbandoned(tab)) {
+            tab.reparseFromDependencies();
+            if (!document.isUntitled()) {
+                host.schemaBinding.reloadXmlSchemasBoundTo(document.getPath()); // XML tabs validate against those files too
+            }
+        }
+    }
+
+    /**
+     * Replaces a tab's content with the file's current content, discarding unsaved changes.
+     * The caret, the view mode and the schema binding are kept (a changed schema reference is
+     * picked up by the validation-time reconcile). On a read failure the editor content stays.
+     */
+    void reloadFromDisk(EditorTab tab, Path path) {
+        tab.loading = true;
+        tab.beginLoading();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            DiskStamp stamp = DiskStamp.of(path); // before the read, as in loadAsync
+            TextEncoding.Read read;
+            try {
+                read = TextEncoding.read(path);
+            } catch (IOException e) {
+                Platform.runLater(() -> {
+                    tab.endLoading();
+                    tab.loading = false;
+                    if (EditorTab.isAbandoned(tab)) {
+                        return;
+                    }
+                    tab.document.setDirty(true); // still the old content, which is not on disk
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Reload Failed",
+                            "Could not read " + path + ".",
+                            "The editor still shows the previous content.", e);
+                });
+                return;
+            }
+            Platform.runLater(() -> {
+                tab.endLoading();
+                tab.loading = false;
+                if (EditorTab.isAbandoned(tab)) {
+                    return;
+                }
+                tab.replaceContentFromDisk(read.text());
+                tab.document.setEncoding(read.encoding());
+                tab.document.setDirty(false);
+                tab.document.setDiskStamp(stamp);
+                if (tab.isSelected()) {
+                    host.activeViewMode.set(tab.viewMode);
+                    host.refreshSelectedNode();
+                }
+            });
+        });
+    }
+
+    /** Test seam: answers external-change prompts without a blocking dialog. */
+    void setExternalChangePrompt(ExternalChangePrompt prompt) {
+        this.externalChangePrompt = java.util.Objects.requireNonNull(prompt, "prompt");
+    }
+
+    /** Test seam: checks the open documents' files now, regardless of window focus. */
+    void checkExternalChangesNow() {
+        externalChangeMonitor.checkNow();
+    }
+
+    /** Test seam: whether an external-change check is running or being handled. */
+    boolean isExternalChangeCheckRunning() {
+        return externalChangeMonitor.isBusy();
+    }
+
+    /**
+     * Asks about unsaved documents before the application closes (window button, File → Exit,
+     * Ctrl/Cmd+Q, macOS Quit): one dialog listing them with Save All / Don't Save / Cancel.
+     *
+     * @return whether the application may close now
+     */
+    public boolean confirmExit() {
+        return confirmExit(this::promptExit);
+    }
+
+    /**
+     * @param prompter asks the user about the given unsaved documents (shown only when there are any)
+     * @return whether the application may close now
+     */
+    boolean confirmExit(java.util.function.Function<java.util.List<OpenDocument>, ExitChoice> prompter) {
+        java.util.List<EditorTab> dirty = new java.util.ArrayList<>();
+        for (Tab tab : host.tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && et.document.isDirty()) {
+                dirty.add(et);
+            }
+        }
+        if (dirty.isEmpty()) {
+            return true;
+        }
+        host.tabPane.getSelectionModel().select(dirty.get(0));
+        ExitChoice choice = prompter.apply(dirty.stream().map(et -> et.document).toList());
+        if (choice == null || choice == ExitChoice.CANCEL) {
+            return false;
+        }
+        if (choice == ExitChoice.SAVE_ALL) {
+            for (EditorTab tab : dirty) {
+                host.tabPane.getSelectionModel().select(tab);
+                boolean ok = tab.document.isUntitled() ? saveTabAs(tab) : write(tab, tab.document.getPath());
+                if (!ok) {
+                    return false; // a cancelled Save As or a failed write keeps the application open
+                }
+            }
+        }
+        return true;
+    }
+
+    private ExitChoice promptExit(java.util.List<OpenDocument> documents) {
+        boolean one = documents.size() == 1;
+        String names = documents.stream().map(OpenDocument::getDisplayName)
+                .collect(java.util.stream.Collectors.joining("\n"));
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
+                one ? "Save changes to " + documents.get(0).getDisplayName() + " before quitting?"
+                        : "Save changes to " + documents.size() + " documents before quitting?",
+                (one ? "" : names + "\n\n") + "Your changes will be lost if you don't save them.");
+        javafx.scene.control.ButtonType save = new javafx.scene.control.ButtonType(
+                one ? "Save" : "Save All", javafx.scene.control.ButtonBar.ButtonData.YES);
+        javafx.scene.control.ButtonType discard =
+                new javafx.scene.control.ButtonType("Don't Save", javafx.scene.control.ButtonBar.ButtonData.NO);
+        javafx.scene.control.ButtonType cancel =
+                new javafx.scene.control.ButtonType("Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(save, discard, cancel);
+        if (host.getScene() != null && host.getScene().getWindow() != null) {
+            alert.initOwner(host.getScene().getWindow());
+        }
+        var choice = alert.showAndWait();
+        if (choice.isEmpty() || choice.get() == cancel) {
+            return ExitChoice.CANCEL;
+        }
+        return choice.get() == save ? ExitChoice.SAVE_ALL : ExitChoice.DISCARD;
+    }
+
+    void confirmCloseIfDirty(EditorTab tab, javafx.event.Event closeEvent) {
+        if (!tab.document.isDirty()) {
+            return;
+        }
+        host.tabPane.getSelectionModel().select(tab);
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Unsaved Changes",
+                "Save changes to " + tab.document.getDisplayName() + "?",
+                "Your changes will be lost if you don't save them.");
+        javafx.scene.control.ButtonType save =
+                new javafx.scene.control.ButtonType("Save", javafx.scene.control.ButtonBar.ButtonData.YES);
+        javafx.scene.control.ButtonType discard =
+                new javafx.scene.control.ButtonType("Don't Save", javafx.scene.control.ButtonBar.ButtonData.NO);
+        javafx.scene.control.ButtonType cancel =
+                new javafx.scene.control.ButtonType("Cancel", javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(save, discard, cancel);
+
+        var choice = alert.showAndWait();
+        if (choice.isEmpty() || choice.get() == cancel) {
+            closeEvent.consume();
+        } else if (choice.get() == save) {
+            boolean ok = tab.document.isUntitled() ? saveTabAs(tab) : write(tab, tab.document.getPath());
+            if (!ok) {
+                closeEvent.consume();
+            }
+        }
+        // 'Don't Save' falls through and the tab closes.
+    }
+
+    boolean saveTabAs(EditorTab tab) {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Save As");
+        tab.document.getFileType().configureSaveChooser(chooser, tab.document.getDisplayName());
+        File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, host.getScene() != null ? host.getScene().getWindow() : null);
+        Path target = file == null ? null : withTypeExtension(tab, file.toPath());
+        if (target != null && write(tab, relocateGeneratedSchemaReference(tab, target))) {
+            tab.document.setPath(target);
+            tab.refreshIcon();
+            host.debugSupport.installBreakpointGutter(tab);
+            EditorHost.rememberRecentFile(target);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Appends the document type's extension to a Save-As target that has none (a new XML
+     * document saved as {@code foo} becomes {@code foo.xml}). The native chooser only checked
+     * the bare name for an existing file, so an appended name that already exists is confirmed
+     * here.
+     *
+     * @return the target to write, or {@code null} if the user declined to replace a file
+     */
+    private Path withTypeExtension(EditorTab tab, Path target) {
+        Path normalized = tab.document.getFileType().withDefaultExtension(target);
+        if (normalized == null || normalized.equals(target) || !java.nio.file.Files.exists(normalized)) {
+            return normalized;
+        }
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Replace File",
+                normalized.getFileName() + " already exists.",
+                "Do you want to replace it?");
+        javafx.scene.control.ButtonType replace =
+                new javafx.scene.control.ButtonType("Replace", javafx.scene.control.ButtonBar.ButtonData.YES);
+        alert.getButtonTypes().setAll(replace, javafx.scene.control.ButtonType.CANCEL);
+        return alert.showAndWait().filter(replace::equals).isPresent() ? normalized : null;
+    }
+
+    /**
+     * First save of a generated document (Generate Sample XML): its root element references
+     * the bound schema by bare file name, which only resolves next to the schema. Saving it
+     * anywhere else rewrites that reference to a path relative to {@code target}'s folder,
+     * so the file validates from where it lands — also in other tools and after a restart.
+     * Titled documents and hand-written references are never touched
+     * (see {@link org.fxt.freexmltoolkit.service.SampleSchemaLocation#relocate}).
+     *
+     * @return {@code target}, for chaining into {@link #write(EditorTab, Path)}
+     */
+    private Path relocateGeneratedSchemaReference(EditorTab tab, Path target) {
+        File xsd = tab.schemaFile;
+        if (xsd != null && tab.document.isUntitled() && target != null && target.getParent() != null) {
+            org.fxt.freexmltoolkit.service.SampleSchemaLocation
+                    .relocate(tab.view.getText(), xsd, target.getParent())
+                    .ifPresent(tab.view::setText);
+        }
+        return target;
+    }
+}
