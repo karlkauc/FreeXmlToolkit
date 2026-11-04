@@ -5274,10 +5274,16 @@ Saving it for the first time into another folder rewrites the reference to a rel
 <ol>
 <li>Open your main XSD file in the editor</li>
 <li>In the <strong>Schema</strong> activity's side panel, click the <strong>Flatten Schema…</strong> tool button</li>
-<li>The <strong>Flatten Schema</strong> options dialog opens — pick which reductions you want (see below)</li>
-<li>Click <strong>OK</strong></li>
-<li>The flattened schema opens as a new editor tab (<code>Flattened.xsd</code>), ready for you to review and save</li>
+<li>The <strong>Flatten Schema</strong> dialog opens. <strong>Output file</strong> is preset to the folder of your schema with
+   <code>_flattened.xsd</code> appended to its name (<code>FundsXML.xsd</code> → <code>FundsXML_flattened.xsd</code>). Change it,
+   or pick another file with <strong>Browse…</strong></li>
+<li>Pick which reductions you want (see below) and click <strong>OK</strong></li>
+<li>The flattened schema is written to the output file and opened in a new editor tab. If the
+   file already exists you are asked before it is overwritten; the original schema itself can
+   never be chosen as the output</li>
 </ol>
+<p>Leave <strong>Output file</strong> empty to open the result as an unsaved tab (<code>Flattened.xsd</code>) instead —
+this is also the default for a schema that has not been saved yet.</p>
 <h3 id="flatten-options">Flatten Options<a class="headerlink" href="#flatten-options" title="Permanent link">&para;</a></h3>
 <p>Before flattening, a dialog lets you reduce the output. The four reduction options are <strong>checked by default</strong>, which produces the smallest possible schema — ideal for deploying to a validation server:</p>
 <table>
