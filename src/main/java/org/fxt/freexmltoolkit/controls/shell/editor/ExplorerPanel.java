@@ -58,6 +58,7 @@ public class ExplorerPanel extends VBox {
     private final Label workspaceTitle = new Label("WORKSPACE");
     @FXML private VBox toolsBody;
     @FXML private PanelActionList fileActions;
+    @FXML private PanelActionButton compareButton;
     @FXML private javafx.scene.layout.Region favRecentGrip;
     @FXML private VBox favRecentPane;
     /** Sticky stylesheet for the Explorer's one-click transform; shared via the recent-XSLT store. */
@@ -126,8 +127,13 @@ public class ExplorerPanel extends VBox {
                 refreshRecent();
             }
         });
-        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> syncOpenEditors());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> {
+            syncOpenEditors();
+            updateToolStates();
+        });
         syncOpenEditors();
+        workspace.addSelectionListener(this::updateToolStates);
+        updateToolStates();
 
         // The recent/favorites ListViews are built while the side panel is hidden (welcome mode,
         // width 0); refresh them once the panel gets a real width so their cells render correctly.
@@ -548,15 +554,120 @@ public class ExplorerPanel extends VBox {
         javafx.scene.control.Menu otherSch = schematronSubmenu();
         otherSch.setDisable(!hasXml);
 
+        java.util.List<Path> selected = workspace.getSelectedFiles();
         MenuItem open = menuItem("Open", () -> workspace.getSelectedFiles().forEach(this::openWorkspaceFile));
         open.setId("explorer-ctx-open");
         open.setGraphic(icon("bi-box-arrow-up-right", 16));
-        open.setDisable(workspace.getSelectedFiles().isEmpty());
+        open.setDisable(selected.isEmpty());
+
+        MenuItem compare = menuItem("Compare Selected Files", this::onCompare);
+        compare.setId("explorer-ctx-compare");
+        compare.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-file-diff", 16),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL));
+        compare.setDisable(selected.size() != 2);
+
+        boolean selectedXml = selected.stream().anyMatch(ExplorerPanel::isXmlFile);
+        MenuItem xsd = menuItem("Generate XSD from Selected", this::onGenerateXsdBatch);
+        xsd.setId("explorer-ctx-generate-xsd");
+        xsd.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-files", 16),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.CREATE));
+        xsd.setDisable(!selectedXml);
 
         items.add(open);
         items.add(new javafx.scene.control.SeparatorMenuItem());
         items.addAll(java.util.List.of(transform, otherXslt, validate, otherSch));
+        items.add(new javafx.scene.control.SeparatorMenuItem());
+        items.addAll(java.util.List.of(compare, xsd));
         return items;
+    }
+
+    // ----- file tools (TOOLS rows; the shell wires the actions that live elsewhere) ----------
+
+    /** Shell-wired Spreadsheet Converter (Tools menu action). */
+    private Runnable spreadsheetAction;
+    /** Shell-wired "active document vs. a chosen file" compare (Tools → Compare with File…). */
+    private Runnable compareAction;
+    /** Shell-wired batch schema inference; {@code null} list = let the user pick the files. */
+    private java.util.function.Consumer<java.util.List<File>> xsdBatchAction;
+
+    /** Sets the Spreadsheet Converter action (ignored if {@code null}). */
+    public void setSpreadsheetAction(Runnable action) {
+        if (action != null) {
+            this.spreadsheetAction = action;
+        }
+    }
+
+    /** Sets the "compare the active document with a file" fallback action (ignored if {@code null}). */
+    public void setCompareAction(Runnable action) {
+        if (action != null) {
+            this.compareAction = action;
+        }
+    }
+
+    /**
+     * Sets the batch XSD inference action: it receives the selected XML files, or {@code null}
+     * when nothing is selected and the user should pick the files (ignored if {@code null}).
+     */
+    public void setXsdBatchAction(java.util.function.Consumer<java.util.List<File>> action) {
+        if (action != null) {
+            this.xsdBatchAction = action;
+        }
+    }
+
+    @FXML
+    public void onOpenFromUrl() {
+        editorHost.openFromUrl();
+    }
+
+    /**
+     * Compare files…: two selected files are compared with each other; one selected file is
+     * compared with a file the user picks; without a selection the active document is compared
+     * with a chosen file (the Tools menu's Compare with File…).
+     */
+    @FXML
+    public void onCompare() {
+        java.util.List<Path> selected = workspace.getSelectedFiles();
+        if (selected.size() == 2) {
+            editorHost.openDiffOfFiles(selected.get(0).toFile(), selected.get(1).toFile());
+        } else if (selected.size() == 1) {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Compare " + selected.getFirst().getFileName() + " with…");
+            chooser.getExtensionFilters().addAll(EditorFileType.fileChooserFilters());
+            File other = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
+                    getScene() != null ? getScene().getWindow() : null);
+            if (other != null) {
+                editorHost.openDiffOfFiles(selected.getFirst().toFile(), other);
+            }
+        } else if (compareAction != null) {
+            compareAction.run();
+        }
+    }
+
+    @FXML
+    public void onSpreadsheet() {
+        if (spreadsheetAction != null) {
+            spreadsheetAction.run();
+        }
+    }
+
+    /** Infers one XSD from the tree-selected XML files, or lets the user pick files when none are selected. */
+    @FXML
+    public void onGenerateXsdBatch() {
+        if (xsdBatchAction == null) {
+            return;
+        }
+        java.util.List<File> xmls = workspace.getSelectedFiles().stream()
+                .filter(ExplorerPanel::isXmlFile)
+                .map(Path::toFile)
+                .toList();
+        xsdBatchAction.accept(xmls.isEmpty() ? null : xmls);
+    }
+
+    /** Compare needs a tree selection or an active document to compare with. */
+    private void updateToolStates() {
+        if (compareButton != null) {
+            compareButton.setDisable(!workspace.hasSelection() && editorHost.getActiveDocument().isEmpty());
+        }
     }
 
     /** The "Validate with Other Schematron" submenu: recents · Favorites · Choose… · Clear recent. */

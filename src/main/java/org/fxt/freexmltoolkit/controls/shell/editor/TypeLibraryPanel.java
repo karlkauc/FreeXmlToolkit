@@ -223,6 +223,14 @@ public class TypeLibraryPanel extends VBox {
         chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML", "*.xml"));
         java.util.List<File> files = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenMultipleDialog(chooser, 
                 getScene() != null ? getScene().getWindow() : null);
+        generateXsdBatch(files);
+    }
+
+    /**
+     * Infers a single XSD from {@code files} (e.g. the XML files selected in the Explorer) and
+     * opens the result as a new tab (async). Does nothing for a {@code null} or empty list.
+     */
+    public void generateXsdBatch(java.util.List<File> files) {
         if (files == null || files.isEmpty()) {
             return;
         }

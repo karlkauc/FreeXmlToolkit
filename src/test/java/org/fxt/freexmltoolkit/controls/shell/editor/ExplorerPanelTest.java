@@ -139,8 +139,10 @@ class ExplorerPanelTest {
         assertNull(panel.lookup("#explorer-overflow"), "no hidden ⋮ menu: every action is a visible row");
         var labels = panel.toolLabels();
         // Transform / validate the selection is a context action on the files (UX plan 3.1/3.2).
-        assertEquals(java.util.List.of("Open file…", "Clear recent"), labels);
-        for (String id : new String[]{"#explorer-open-file", "#explorer-clear-recent"}) {
+        assertEquals(java.util.List.of("Open file…", "Open from URL…", "Compare files…",
+                "Spreadsheet Converter…", "Generate XSD from XML files…", "Clear recent"), labels);
+        for (String id : new String[]{"#explorer-open-file", "#explorer-open-url", "#explorer-compare",
+                "#explorer-spreadsheet", "#explorer-generate-xsd-batch", "#explorer-clear-recent"}) {
             assertNotNull(panel.lookup(id), "TOOLS must offer the " + id + " row");
         }
     }

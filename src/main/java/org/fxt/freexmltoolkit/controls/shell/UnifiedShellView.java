@@ -1285,6 +1285,17 @@ public class UnifiedShellView extends BorderPane {
                 var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
                 explorer.setNewFileAction(this::newDocument);
                 explorer.setSchematronValidateAction(this::validateWithSchematron);
+                // File tools in the Explorer's TOOLS list reuse the Tools menu's actions.
+                explorer.setSpreadsheetAction(this::onSpreadsheet);
+                explorer.setCompareAction(this::onCompare);
+                explorer.setXsdBatchAction(files -> {
+                    if (files == null) {
+                        onGenerateXsdBatch();
+                    } else {
+                        toolbar("generate_xsd_batch");
+                        schemaTools().generateXsdBatch(files);
+                    }
+                });
                 explorerPanel = explorer;
                 yield explorer;
             }

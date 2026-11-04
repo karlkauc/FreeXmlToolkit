@@ -498,10 +498,21 @@ The sections appear from top to bottom in this order:
   Only XML-family and JSON files are shown. While no folder is open, the section shows a
   short hint (*"No folder open. Open a folder to browse its XML, XSD and stylesheet files
   here."*) and an **Open folder…** button.
-- **TOOLS** - a collapsible section above the files with the **Open file…** and
-  **Clear recent** rows. It is **open by default**; whether you leave it open or closed
-  is remembered. Transforming and Schematron-validating the selected files is done from the
-  workspace tree's [context menu](#explorer-context-menu).
+- **TOOLS** - a collapsible section above the files with the file tools. It is **open by
+  default**; whether you leave it open or closed is remembered. Transforming and
+  Schematron-validating the selected files is done from the workspace tree's
+  [context menu](#explorer-context-menu); the tools of the other workflows (validate,
+  transform, schema documentation, …) live in their own activities.
+
+    | Row | What it does |
+    |-----|--------------|
+    | **Open file…** | Opens a file with a file chooser. |
+    | **Open from URL…** | Opens a file from a web address (same as **File → Open from URL…**). |
+    | **Compare files…** | With **two files selected** in the workspace tree: compares them side by side. With **one file selected**: asks for a second file and compares the two. With **no selection**: compares the active document with a file you pick (same as **Tools → Compare with File…**). Disabled while there is neither a selection nor an open document. |
+    | **Spreadsheet Converter…** | Converts between XML and Excel / CSV (same as **Tools → Spreadsheet Converter…**, Ctrl+E). |
+    | **Generate XSD from XML files…** | Infers one schema from the **XML files selected** in the workspace tree and opens it as a new tab; with no XML file selected, asks you to pick the files (same as **Tools → Generate XSD from XML Files…**). |
+    | **Clear recent** | Empties the **RECENT** list. |
+
 - **RECENT** - at the bottom, the recently opened files; click one to reopen it (drag the
   thin grip above the list to change its height). Favorites are not listed here: manage them
   in the [Favorites](#favorites-panel) activity (**View → Favorites Panel**, Ctrl+Shift+D)
@@ -531,6 +542,8 @@ to select several), then **right-click** them. The context menu offers:
 | **Transform with Other Stylesheet ▸** | Lists your recently used stylesheets and **Choose stylesheet…**; picking one makes it the current stylesheet and runs the transform. |
 | **Validate with *&lt;Schematron&gt;*** | Validates the selection with the last-used Schematron (the entry names it). Reads **Validate with Schematron…** while none has been used yet - you are then asked to pick one. |
 | **Validate with Other Schematron ▸** | Lists your recently used Schematrons, your Schematron **Favorites**, **Choose Schematron…** and **Clear recent**. |
+| **Compare Selected Files** | Compares the two selected files side by side (enabled with exactly two files selected). |
+| **Generate XSD from Selected** | Infers one schema from the selected XML files and opens it as a new tab. |
 
 When nothing is selected in the tree, Transform and Validate use the **active editor
 document** (if it is XML).

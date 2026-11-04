@@ -103,6 +103,36 @@ public final class DiffView extends Tab {
         return result;
     }
 
+    /**
+     * Opens a diff of two files on disk; both are read on a worker thread and both sides save back
+     * to their own file (UTF-8, like the right side of {@link #open(String, String, Consumer, File)}).
+     *
+     * @return completes on the FX thread with the view
+     */
+    public static java.util.concurrent.CompletableFuture<DiffView> openFiles(File leftFile, File rightFile) {
+        java.util.concurrent.CompletableFuture<DiffView> result = new java.util.concurrent.CompletableFuture<>();
+        Consumer<String> leftSave = text -> {
+            try {
+                Files.writeString(leftFile.toPath(), text, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        };
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String leftText = readFileSafely(leftFile);
+            String rightText = readFileSafely(rightFile);
+            Platform.runLater(() -> {
+                try {
+                    result.complete(new DiffView(leftFile.getName(), leftText, leftSave, rightFile,
+                            rightText, true));
+                } catch (RuntimeException e) {
+                    result.completeExceptionally(e);
+                }
+            });
+        });
+        return result;
+    }
+
     private DiffView(String leftDisplayName, String leftInitialText, Consumer<String> leftSaveHandler,
                      File rightFile, String rightInitialText, boolean computeInBackground) {
         this.leftDisplayName = leftDisplayName;

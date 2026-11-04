@@ -1248,6 +1248,29 @@ public class EditorHost extends BorderPane {
     }
 
     /**
+     * Opens a side-by-side diff of two files (Explorer "Compare files…" with two selected files).
+     * When {@code leftFile} is open in an editor tab, that tab is the left side (unsaved edits
+     * included, saving goes through the editor); otherwise both sides are read from disk.
+     *
+     * @return completes on the FX thread with the created diff tab
+     */
+    public CompletableFuture<org.fxt.freexmltoolkit.controls.diff.DiffView> openDiffOfFiles(File leftFile, File rightFile) {
+        Path leftPath = leftFile.toPath();
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et && leftPath.equals(et.document.getPath()) && !et.loading) {
+                tabPane.getSelectionModel().select(tab);
+                return openDiffWithFile(rightFile);
+            }
+        }
+        return org.fxt.freexmltoolkit.controls.diff.DiffView.openFiles(leftFile, rightFile)
+                .thenApply(diff -> {
+                    tabPane.getTabs().add(diff);
+                    tabPane.getSelectionModel().select(diff);
+                    return diff;
+                });
+    }
+
+    /**
      * Opens an in-app preview of {@code pdf} as a new tab (lazy page rendering).
      *
      * @return completes on the FX thread with the preview control, or {@code null} if the PDF cannot be read

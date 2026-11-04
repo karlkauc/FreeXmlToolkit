@@ -78,6 +78,17 @@ public class WorkspaceTree extends VBox {
         tree.setContextMenu(menu);
     }
 
+    /** Runs {@code listener} whenever the tree selection changes (e.g. to update enable states). */
+    public void addSelectionListener(Runnable listener) {
+        tree.getSelectionModel().getSelectedItems()
+                .addListener((javafx.collections.ListChangeListener<TreeItem<Path>>) c -> listener.run());
+    }
+
+    /** @return whether any tree item is selected (no file-system access, cheap for enable states) */
+    public boolean hasSelection() {
+        return !tree.getSelectionModel().getSelectedItems().isEmpty();
+    }
+
     /** Sets the action of the empty state's "Open folder…" button. */
     public void setOnOpenFolder(Runnable action) {
         this.onOpenFolder = action;

@@ -63,6 +63,31 @@
                     <children>
                         <PanelActionButton id="explorer-open-file" iconLiteral="bi-folder2-open" text="Open file…"
                                            color="TOOL" onAction="#onOpenFile"/>
+                        <PanelActionButton id="explorer-open-url" iconLiteral="bi-globe" text="Open from URL…"
+                                           color="TOOL" onAction="#onOpenFromUrl">
+                            <tooltip>
+                                <Tooltip text="Open a file from a web address"/>
+                            </tooltip>
+                        </PanelActionButton>
+                        <PanelActionButton fx:id="compareButton" id="explorer-compare" iconLiteral="bi-file-diff"
+                                           text="Compare files…" color="TOOL" onAction="#onCompare">
+                            <tooltip>
+                                <Tooltip text="Compare the two selected files, or the active document with a file"/>
+                            </tooltip>
+                        </PanelActionButton>
+                        <PanelActionButton id="explorer-spreadsheet" iconLiteral="bi-table"
+                                           text="Spreadsheet Converter…" color="TOOL" onAction="#onSpreadsheet">
+                            <tooltip>
+                                <Tooltip text="Convert between XML and Excel / CSV"/>
+                            </tooltip>
+                        </PanelActionButton>
+                        <PanelActionButton id="explorer-generate-xsd-batch" iconLiteral="bi-files"
+                                           text="Generate XSD from XML files…" color="CREATE"
+                                           onAction="#onGenerateXsdBatch">
+                            <tooltip>
+                                <Tooltip text="Infer one schema from the selected XML files (or pick files)"/>
+                            </tooltip>
+                        </PanelActionButton>
                         <PanelActionButton id="explorer-clear-recent" iconLiteral="bi-eraser" text="Clear recent"
                                            color="DELETE" onAction="#clearRecent"/>
                     </children>
