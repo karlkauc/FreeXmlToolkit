@@ -2693,8 +2693,15 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   funnel line is the cell's first row and the record's formulas still sum all of its data. A
   filter higher up reduces the opened cells below it as well, e.g. on the root
   <code>*/Datenpunkt[starts-with(Wert_C0010PK, 'AT')]</code> for every record at once. Filters
-  only change the display, never the document; an invalid expression is reported and
-  filters nothing. Filters live while the document is open.
+  only change the display; an invalid expression is reported and filters nothing. A filter
+  lives while the document is open unless you save it: right-click it → <strong>Save Filter in
+  Document</strong> stores it in the file as <code>&lt;?fxt-filter expression="…"?&gt;</code> in the filtered element
+  (one undoable edit; its funnel line then ends in <code>· saved</code>). A saved filter always comes back
+  <strong>switched off</strong> when the file is opened, so nobody sees a filtered grid without knowing it:
+  the grey funnel line shows it, and a click on the funnel or right-click → <strong>Filter Active</strong>
+  switches it on. Editing a saved filter updates the file; <strong>Remove Filter</strong> / <strong>Remove All
+  Filters</strong> also remove it from the file, unticking <strong>Save Filter in Document</strong> only from the
+  file.
 - <strong>Formulas.</strong> Right-click an element → <strong>Add Formula…</strong>: a name and an XQuery 3.1 expression
   evaluated with that element as context (e.g. <code>avg(Month/Min)</code>). The formula row (icon <code>ƒ</code>)
   shows the expression and, below it, the live result - or the error in red; double-click the
