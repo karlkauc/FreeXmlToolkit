@@ -599,4 +599,39 @@ class FlatRowTest {
         assertTrue(row(rows, FlatRow.RowType.ATTRIBUTE, "a").isVisible(),
                 "the collapsed element keeps its own attributes visible");
     }
+
+    @Test
+    @DisplayName("Formulas are listed before their element's other children (not after a long table)")
+    void formulasComeFirstAmongTheChildren() {
+        XmlDocument document = new XmlDocument();
+        XmlElement list = new XmlElement("List");
+        document.addChild(list);
+        for (int i = 0; i < 3; i++) {
+            XmlElement point = new XmlElement("Datenpunkt");
+            point.addChild(new XmlText(String.valueOf(i)));
+            list.addChild(point);
+        }
+        var comment = new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment("note");
+        list.addChild(comment);
+        var formula = GridFormulas.create(new GridFormulas.Formula("total", "sum(Datenpunkt)", false));
+        list.addChild(formula);
+
+        List<FlatRow> rows = FlatRow.flatten(document, key -> true);
+
+        int formulaRow = indexOfNode(rows, formula);
+        int tableRow = rows.indexOf(rows.stream().filter(r -> "Datenpunkt".equals(r.getLabel())).findFirst().orElseThrow());
+        assertTrue(formulaRow >= 0 && formulaRow < tableRow, "the formula row comes before the table");
+        assertTrue(indexOfNode(rows, comment) > tableRow, "other nodes keep their document order");
+        assertEquals(1, rows.stream().filter(r -> r.getModelNode() == formula).count(), "listed once");
+        assertSame(formula, list.getChildren().getLast(), "the document order is unchanged");
+    }
+
+    private static int indexOfNode(List<FlatRow> rows, Object node) {
+        for (int i = 0; i < rows.size(); i++) {
+            if (rows.get(i).getModelNode() == node) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }

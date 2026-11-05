@@ -165,7 +165,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
 - **Formulas.** Right-click an element → **Add Formula…**: a name and an XQuery 3.1 expression
   evaluated with that element as context (e.g. `avg(Month/Min)`). The formula row (icon `ƒ`)
   shows the expression and, below it, the live result - or the error in red; double-click the
-  expression or the name to edit it. A new formula is selected and its element expanded.
+  expression or the name to edit it. Formula rows are listed first under their element, above
+  its tables and other children (in the file they stay where they are). A new formula is
+  selected and its element expanded.
   Right-clicked inside a table, the formula goes to the element that holds the table (e.g.
   `avg(Month/Min)` on the parent of the `Month` rows), since a table cell cannot show it. Formulas are saved in the file as
   `<?fxt-formula name="…" expression="…"?>` instructions. **Store Formula Result in Document**

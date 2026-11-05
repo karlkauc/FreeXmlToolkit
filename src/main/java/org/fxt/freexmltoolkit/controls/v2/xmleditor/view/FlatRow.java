@@ -859,12 +859,25 @@ public class FlatRow {
                                         java.util.function.Predicate<String> groupAsTable, String onlyName,
                                         Map<String, List<XmlElement>> elementsByName) {
         boolean hasElementChildren = !elementsByName.isEmpty();
+        // Formulas first: they summarize the element's data, and placed after a long table they
+        // would only show at its very end. Only the display order changes, never the document's.
+        if (onlyName == null) {
+            for (XmlNode child : element.getChildren()) {
+                if (child instanceof XmlProcessingInstruction pi && GridFormulas.isFormula(pi)) {
+                    rows.add(new FlatRow(RowType.PROCESSING_INSTRUCTION, depth + 1, pi, elementRow,
+                            pi.getTarget(), pi.getData(), 0));
+                }
+            }
+        }
         // Child nodes - recurse into elements, emit TEXT/COMMENT/CDATA/PI rows
         String parentPath = null; // the group key prefix, computed once and only when needed
         Map<String, Integer> instanceCounters = null;
         for (XmlNode child : element.getChildren()) {
             if (onlyName != null && !(child instanceof XmlElement only && onlyName.equals(only.getName()))) {
                 continue;
+            }
+            if (child instanceof XmlProcessingInstruction formula && GridFormulas.isFormula(formula)) {
+                continue; // already emitted above
             }
             if (child instanceof XmlElement childElement) {
                 List<XmlElement> group = elementsByName.get(childElement.getName());
