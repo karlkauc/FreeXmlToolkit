@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.shell.schema.overview.SchemaOverviewView;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.GlobalComponentKind;
 import org.junit.jupiter.api.Test;

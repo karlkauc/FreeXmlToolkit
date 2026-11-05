@@ -607,7 +607,7 @@ public class XmlSpreadsheetConverterService {
         for (int i = 0; i < rows.size(); i++) {
             Row row = sheet.createRow(i + 1);
             RowData rowData = rows.get(i);
-            boolean stripe = i % 2 == 1;
+            boolean stripe = i % 2 != 0;
             String nodeType = rowData.getNodeType();
             boolean container = "element".equals(nodeType) && rowData.getValue().isEmpty();
 

@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 import java.nio.file.Path;
 
 import javafx.stage.Window;
+
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchemaReference;

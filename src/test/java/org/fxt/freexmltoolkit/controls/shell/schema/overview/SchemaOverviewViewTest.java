@@ -12,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+
 import org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSchemaReferenceCommand;

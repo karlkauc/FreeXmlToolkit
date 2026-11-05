@@ -13,6 +13,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.stage.Stage;
+
 import org.fxt.freexmltoolkit.controls.shell.Activity;
 import org.fxt.freexmltoolkit.controls.shell.UnifiedShellView;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;

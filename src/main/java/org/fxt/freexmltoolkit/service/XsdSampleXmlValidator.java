@@ -19,12 +19,12 @@
 package org.fxt.freexmltoolkit.service;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
