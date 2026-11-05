@@ -478,7 +478,7 @@ The Type Editor provides dedicated editing for ComplexTypes and SimpleTypes.
 
 | Feature                | Description                                         |
 |------------------------|-----------------------------------------------------|
-| **Tab-Based Editing**  | Each type opens in its own tab in the editor area   |
+| **Tab-Based Editing**  | Each type opens in its own tab in the editor area; a named type used inside a Type Editor opens in a further Type Editor tab (double-click its frame title or **Edit Type '…'**) - see [Named Types in Frames](#named-types-in-frames) |
 | **ComplexType Editor** | Graphical editing in the card diagram of the Graphic view |
 | **SimpleType Editor**  | Form-based editing with facet panels                |
 

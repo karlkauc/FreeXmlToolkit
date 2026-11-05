@@ -4,7 +4,7 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
-## 2.9.0 (upcoming)
+## 2.10.0 (2026-11-05)
 
 - **XSD Overview view (XMLSpy style):** a new view mode for schemas lists all top-level
   components - imports, includes, annotations, elements, types, groups, attribute groups,
@@ -13,17 +13,30 @@ running is shown under **Help → About FreeXmlToolkit**.
   Tabs below edit the selected component's attributes (Default/Fixed offer the enumeration
   values), identity constraints, XSD 1.1 assertions and the schema's namespace prefixes. See
   [XSD Tools](xsd-tools.md#overview-view).
+- **XSD saving keeps your order:** the top-level components are no longer re-sorted on every
+  save; schema-level `xs:annotation`, `xs:notation` and `xs:defaultOpenContent` are no longer
+  lost when the schema is edited.
+- **Named types in frames (Graphic view, XMLSpy style):** the content an element gets from a
+  named complex type is drawn in a light-yellow, dashed frame titled with the type's name; the
+  base of an `xs:extension` gets a nested frame. The content is read-only there - double-click
+  the frame title or choose **Edit Type '…'** to open the type in its Type Editor. A type used
+  inside a Type Editor now opens in a further Type Editor tab, so nested types can be followed
+  level by level. See [XSD Tools](xsd-tools.md#named-types-in-frames).
+- **Constraints on their target nodes (optional, off by default):** a key, unique or keyref can
+  also show on the node its field points to (e.g. `BenchmarkID` lists the key `Fund` declares).
+  In the Graphic view, switch it in the new **DISPLAY** section at the top of the Properties pane
+  or under **View → Show Constraints on Target Nodes**. In the XSD documentation, use **Show
+  constraints on their target elements**: it adds a row to the diagram box and a **Referenced by
+  Identity Constraints** section to the element's page. See
+  [XSD Tools](xsd-tools.md#reading-a-card).
+- **Flatten Schema:** the dialog asks for the output file, preset to `<name>_flattened.xsd` next to
+  the original schema; the result is written there and opened. See
+  [XSD Tools](xsd-tools.md#8-xsd-flattener).
 - **Downloaded imports are saved next to your schema:** a missing `xs:import` / `xs:include`
   (e.g. `xmldsig-core-schema.xsd` of FundsXML4) is saved under its original name in the folder
   of the schema that references it and loaded from there - also in validation, Schema Analysis,
   flattening and documentation - instead of an md5-named cache file. Existing files are never
   overwritten. See [XSD Tools](xsd-tools.md#automatic-resolution-of-imported-schemas).
-- **Flatten Schema:** the dialog asks for the output file, preset to `<name>_flattened.xsd` next to
-  the original schema; the result is written there and opened. See
-  [XSD Tools](xsd-tools.md#8-xsd-flattener).
-- **XSD saving keeps your order:** the top-level components are no longer re-sorted on every
-  save; schema-level `xs:annotation`, `xs:notation` and `xs:defaultOpenContent` are no longer
-  lost when the schema is edited.
 - **XML → Excel:** the workbook now has the same look as the Data Dictionary export. With a
   bound XSD, numbers, booleans and dates go into number, boolean and date cells instead of text.
   Importing the workbook gives back the original values. The CSV export adds a **Data Type**
@@ -32,6 +45,27 @@ running is shown under **Help → About FreeXmlToolkit**.
   numbers that were entered by hand or reformatted by a spreadsheet application (`31.01.2024`,
   `1.234,50`, `TRUE`) come out valid. Values that contain the delimiter, quotes or line breaks now
   import back correctly. See [XML Editor](xml-editor.md#xmlexcelcsv-converter).
+- **Favorites from everywhere:** a **star in the header bar** lists every favorite on every
+  activity and page (also Settings, Schema Library and Signature); the Explorer has a star and
+  **FAVORITES | RECENT** tabs at the bottom; and the menu bar has **File → Open Favorite**. See
+  [Favorites](favorites-system.md#open-favorites-from-anywhere).
+- **Explorer TOOLS:** besides **Open file…** and **Clear recent**, the list offers **Open from
+  URL…**, **Compare files…**, **Spreadsheet Converter…** and **Generate XSD from XML files…**.
+  Compare and Generate XSD use the files selected in the workspace tree (two selected files are
+  compared with each other); the tree's context menu adds **Compare Selected Files** and
+  **Generate XSD from Selected**. See [Unified Shell](unified-shell.md#explorer-panel).
+- **Query Console:** a close button (**✕**) at the top right, and the **XPath | XQuery** mode is
+  a clear switch; the active mode is also named on the **Run** button (*Run XPath* / *Run
+  XQuery*) and in the hint below the input. See [Query Console](query-console.md#query-console).
+- **Side panels** are collapsed and re-opened only with the editor toolbar's toggle buttons
+  (or Ctrl+L / Ctrl+Shift+P), and collapsing one no longer changes the width of the other. See
+  [Unified Shell](unified-shell.md#collapsing-the-side-panels).
+- **Fixes:** the grid's scroll bars can be dragged when the content is less than twice the
+  height of the view; in the XSD documentation, nested compositor symbols are centred over
+  their children.
+
+## 2.9.0 (2026-11-04)
+
 - **XSD Graphic view, new card layout:** every node is one card with a symbol, name and type
   line; cardinality and attribute use are pills, optional cards are dashed and repeating ones have
   a second outline. A **title chip** (top left) names the selected card, a **zoom control** sits
@@ -65,13 +99,6 @@ running is shown under **Help → About FreeXmlToolkit**.
   constraints in diagrams**, with **Also in the page's own element box**); constraint rows link
   their selector, fields and key; the choice symbol is drawn as a switch. **Show documentation in
   diagrams** is now off by default.
-- **Constraints on their target nodes (optional, off by default):** a key, unique or keyref can
-  also show on the node its field points to (e.g. `BenchmarkID` lists the key `Fund` declares).
-  In the Graphic view, switch it in the new **DISPLAY** section at the top of the Properties pane
-  or under **View → Show Constraints on Target Nodes**. In the XSD documentation, use **Show
-  constraints on their target elements**: it adds a row to the diagram box and a **Referenced by
-  Identity Constraints** section to the element's page. See
-  [XSD Tools](xsd-tools.md#reading-a-card).
 - **Go to Definition** from an XML document (Graphic, Tree and Text view, Ctrl+Click in text)
   opens the bound XSD in the Graphic view, expanded along the element's path with its card
   selected. See [XML Editor](xml-editor.md#go-to-definition).

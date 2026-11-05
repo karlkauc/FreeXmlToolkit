@@ -51,7 +51,10 @@ collapsed to give the editor more room - the activity bar always stays visible.
   toggle, a sidebar icon, for the side panel; right-most toggle, a mirrored sidebar icon, for
   the inspector) - the same mechanism on both sides. Selecting any
   activity from the activity bar also re-opens the left side panel. A re-opened panel comes
-  back at its **last dragged width**.
+  back at its **last dragged width**. The toolbar toggles (or **Ctrl+L** / **Ctrl+Shift+P**)
+  are the only way to collapse a panel - there is no collapse button on the panels themselves.
+- **Collapsing one panel leaves the other alone**: hiding the side panel does not resize the
+  Properties inspector (and the other way round) - only the editor gets the freed space.
 - The collapsed/expanded state is **remembered across restarts** and can also be changed under
   **Settings → Appearance → LAYOUT** ("Show left side panel" / "Show Properties (inspector) panel").
 - **The inspector only appears next to documents.** When you switch to a tab that is not a
@@ -367,7 +370,9 @@ XProc document is active and selects the XML document the run works on. See
 ## Panel Toggles
 
 - **Side panel** (Ctrl+L) - Show/hide the left side panel (the active activity's Explorer,
-  Validation, Transform, Schema, … panel); the same as the collapse button (`|<`) at the panel's inner edge
+  Validation, Transform, Schema, … panel). The editor toolbar's toggle buttons are the only
+  way to collapse the side panel and the Properties panel - the panels have no collapse button
+  of their own
 - **Query Console** (Ctrl+Shift+X) - Show/hide the bottom XPath/XQuery query console (terminal
   icon in the editor toolbar). See [Query Console](query-console.md#query-console) below.
 - **Properties** (Ctrl+Shift+P) - Show/hide properties and validation sidebar. For XML files,
