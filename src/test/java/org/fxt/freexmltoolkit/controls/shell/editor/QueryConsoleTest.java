@@ -555,7 +555,7 @@ class QueryConsoleTest {
     }
 
     @Test
-    void closeButtonAndEscapeRequestClose() throws Exception {
+    void onlyTheCloseButtonRequestsClose() throws Exception {
         QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
         java.util.concurrent.atomic.AtomicInteger closes = new java.util.concurrent.atomic.AtomicInteger();
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
@@ -571,13 +571,14 @@ class QueryConsoleTest {
         });
         assertEquals(1, closes.get());
 
+        // Esc does not close the console (only the button does).
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             javafx.event.Event.fireEvent(console, new javafx.scene.input.KeyEvent(
                     javafx.scene.input.KeyEvent.KEY_PRESSED, "", "",
                     javafx.scene.input.KeyCode.ESCAPE, false, false, false, false));
             return null;
         });
-        assertEquals(2, closes.get());
+        assertEquals(1, closes.get());
     }
 
     @Test

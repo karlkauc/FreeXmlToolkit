@@ -103,7 +103,7 @@ public class QueryConsole extends Region {
     private XQueryTableRunner.XQueryTable lastXQueryTable;
     private long lastXQueryElapsedMs;
 
-    /** Called by the close button and Esc; the shell removes the console from its split. */
+    /** Called by the close button; the shell removes the console from its split. */
     private Runnable onCloseRequest = () -> { };
 
     public QueryConsole(EditorHost editorHost) {
@@ -126,18 +126,9 @@ public class QueryConsole extends Region {
         });
         updatePathLabel();
         fillExamplesMenu();
-
-        // Esc closes the console. A handler (not a filter): an open completion popup or
-        // menu consumes Esc first, so Esc there only dismisses the popup.
-        addEventHandler(KeyEvent.KEY_PRESSED, e -> {
-            if (e.getCode() == KeyCode.ESCAPE) {
-                onClose();
-                e.consume();
-            }
-        });
     }
 
-    /** Sets what closing the console (close button, Esc) does; {@code null} resets it to nothing. */
+    /** Sets what the close button does; {@code null} resets it to nothing. */
     public void setOnCloseRequest(Runnable handler) {
         this.onCloseRequest = handler != null ? handler : () -> { };
     }

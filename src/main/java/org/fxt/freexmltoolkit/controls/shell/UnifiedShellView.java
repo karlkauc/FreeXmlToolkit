@@ -961,7 +961,7 @@ public class UnifiedShellView extends BorderPane {
         }
     }
 
-    /** Hides the Query Console (close button, Esc) and hands the focus back to the editor. */
+    /** Hides the Query Console (close button) and hands the focus back to the editor. */
     public void closeQueryConsole() {
         if (!isQueryConsoleShown()) {
             return;

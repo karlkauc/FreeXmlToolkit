@@ -150,13 +150,13 @@
                                 <Tooltip text="Save the result to a file"/>
                             </tooltip>
                         </Button>
-                        <!-- Top right of the console: closes it (same as Esc / Ctrl+Shift+X). -->
+                        <!-- Top right of the console: closes it (same as Ctrl+Shift+X). -->
                         <Button id="query-console-close" styleClass="fxt-tool-button" onAction="#onClose">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-x-lg" iconSize="16"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Close the query console (Esc)"/>
+                                <Tooltip text="Close the query console"/>
                             </tooltip>
                         </Button>
                     </children>

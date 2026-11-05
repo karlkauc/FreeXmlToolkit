@@ -11,7 +11,7 @@ XPath, XQuery and JSONPath queries run either in the **Query Console** at the bo
 The **Query Console** is a panel that opens along the **bottom of the editor**. Toggle it with the
 **terminal icon** in the editor toolbar or with **Ctrl+Shift+X**; **Ctrl+K** (or a click on the
 header search pill) opens it and focuses the query input. Close it with the **✕** button at its
-top right or with **Escape** (an open completion popup takes the first Escape). It runs against whichever
+top right. It runs against whichever
 document is currently active, so it is the fastest way to probe an XML or JSON file while you work.
 
 ![Query Console docked at the bottom of the editor](img/unified-shell-query-console.png)
