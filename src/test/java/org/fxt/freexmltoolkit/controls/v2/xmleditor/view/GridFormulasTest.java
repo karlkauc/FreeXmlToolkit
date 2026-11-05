@@ -93,4 +93,19 @@ class GridFormulasTest {
         adapter.commitRowEdit(row, true, "Max");
         assertEquals(new GridFormulas.Formula("Max", "max(Month/Min)", false), GridFormulas.parse(pi.getData()));
     }
+
+    @Test
+    void theGermanNumberFormatIsAvailableAsDe() {
+        context.loadDocumentFromString("<List><Wert>1234567.891</Wert><Wert>0.5</Wert></List>");
+        temps = context.getDocument().getRootElement();
+        XmlProcessingInstruction de = add(new GridFormulas.Formula("Summe",
+                "format-number(sum(Wert ! xs:decimal(.)), '#.##0,00', 'de')", false));
+        assertEquals("1.234.568,39", GridFormulas.evaluate(de).result());
+        XmlProcessingInstruction en = add(new GridFormulas.Formula("Sum",
+                "format-number(sum(Wert ! xs:decimal(.)), '#,##0.00')", false));
+        assertEquals("1,234,568.39", GridFormulas.evaluate(en).result(), "the default format is unchanged");
+        XmlProcessingInstruction own = add(new GridFormulas.Formula("Own",
+                "declare decimal-format de decimal-separator='!'; format-number(1.5, '0!0', 'de')", false));
+        assertEquals("1!5", GridFormulas.evaluate(own).result(), "an own declaration of 'de' wins");
+    }
 }

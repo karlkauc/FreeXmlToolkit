@@ -36,6 +36,13 @@ public final class XmlGridQuery {
 
     private static final Processor PROCESSOR = new Processor(false);
 
+    /**
+     * The German number format, available to every expression as {@code 'de'}:
+     * {@code format-number(1234.5, '#.##0,00', 'de')} gives {@code 1.234,50}.
+     */
+    static final String GERMAN_DECIMAL_FORMAT =
+            "declare decimal-format de decimal-separator=\",\" grouping-separator=\".\";\n";
+
     private XmlGridQuery() {
     }
 
@@ -59,6 +66,10 @@ public final class XmlGridQuery {
             XdmNode root = parse(context, namespaces);
             XQueryCompiler compiler = PROCESSOR.newXQueryCompiler();
             StringBuilder prolog = new StringBuilder();
+            if (!expression.contains("decimal-format")) {
+                // An expression declaring its own decimal formats keeps full control (no duplicate 'de')
+                prolog.append(GERMAN_DECIMAL_FORMAT);
+            }
             namespaces.forEach((prefix, uri) -> {
                 if (prefix.isEmpty()) {
                     prolog.append("declare default element namespace \"").append(uri.replace("\"", "\"\""))
