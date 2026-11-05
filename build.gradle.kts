@@ -16,6 +16,7 @@
  *
  */
 
+import java.net.URLEncoder
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -1150,10 +1151,52 @@ val buildWindowsUpdateHelper = tasks.register<Exec>("buildWindowsUpdateHelper") 
     inputs.file("update-helper/Cargo.lock")
     outputs.file("update-helper/target/release/fxt-update-helper.exe")
 
+    // cargo does not read Gradle's/Java's proxy settings: a non-zero exit is reported below
+    // with a proxy hint instead of the bare cargo failure.
+    isIgnoreExitValue = true
+
     doFirst {
         println("📦 Compiling Rust update helper...")
+        // Hand the proxy from gradle.properties (systemProp.https.proxy* / http.proxy*) to cargo,
+        // unless the user already configured CARGO_HTTP_PROXY themselves.
+        if (System.getenv("CARGO_HTTP_PROXY").isNullOrBlank()) {
+            val scheme = if (!System.getProperty("https.proxyHost").isNullOrBlank()) "https" else "http"
+            val host = System.getProperty("$scheme.proxyHost")
+            if (!host.isNullOrBlank()) {
+                val port = System.getProperty("$scheme.proxyPort")?.takeIf { it.isNotBlank() } ?: "8080"
+                val user = System.getProperty("$scheme.proxyUser")
+                val password = System.getProperty("$scheme.proxyPassword")
+                fun enc(value: String) = URLEncoder.encode(value, Charsets.UTF_8).replace("+", "%20")
+                val credentials = if (!user.isNullOrBlank()) {
+                    enc(user) + (if (!password.isNullOrEmpty()) ":" + enc(password) else "") + "@"
+                } else ""
+                environment("CARGO_HTTP_PROXY", "http://$credentials$host:$port")
+                val who = if (!user.isNullOrBlank()) " (user $user)" else ""
+                println("🌐 Using proxy $host:$port$who for cargo")
+            }
+        }
     }
     doLast {
+        val exitValue = executionResult.get().exitValue
+        if (exitValue != 0) {
+            throw GradleException("""
+                cargo build failed (exit code $exitValue).
+
+                If cargo reported "CONNECT tunnel failed, response 407", your HTTP proxy needs credentials.
+                cargo does not use Gradle's proxy settings by itself; this task passes them on when they are set:
+                  %USERPROFILE%\.gradle\gradle.properties:
+                    systemProp.https.proxyHost=proxy.example.com
+                    systemProp.https.proxyPort=8080
+                    systemProp.https.proxyUser=DOMAIN\\user
+                    systemProp.https.proxyPassword=secret
+                Alternatively set CARGO_HTTP_PROXY, or in %USERPROFILE%\.cargo\config.toml:
+                    [http]
+                    proxy = "http://user:password@proxy.example.com:8080"
+                If the proxy only accepts NTLM/Kerberos (Windows domain login), cargo cannot authenticate.
+                Run a local relay proxy such as px (https://github.com/genotrance/px) and point cargo at it:
+                    set CARGO_HTTP_PROXY=http://127.0.0.1:3128
+            """.trimIndent())
+        }
         val output = file("update-helper/target/release/fxt-update-helper.exe")
         if (output.exists()) {
             println("✅ Helper built: ${output.absolutePath} (${output.length()} bytes)")
