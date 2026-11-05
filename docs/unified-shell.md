@@ -47,12 +47,9 @@ collapsed to give the editor more room - the activity bar always stays visible.
 
 **Collapsing** - each panel can also be hidden completely:
 
-- **Collapse**: click the discreet collapse button at the panel's inner edge (a chevron
-  pointing at a bar: `|<` on the left panel, `>|` on the inspector). The panel is hidden
-  completely.
-- **Re-open**: click the matching toggle button in the editor toolbar (left-most toggle, a
-  sidebar icon, for the side panel; right-most toggle, a mirrored sidebar icon, for the
-  inspector) - the same mechanism on both sides. Selecting any
+- **Collapse / re-open**: click the matching toggle button in the editor toolbar (left-most
+  toggle, a sidebar icon, for the side panel; right-most toggle, a mirrored sidebar icon, for
+  the inspector) - the same mechanism on both sides. Selecting any
   activity from the activity bar also re-opens the left side panel. A re-opened panel comes
   back at its **last dragged width**.
 - The collapsed/expanded state is **remembered across restarts** and can also be changed under

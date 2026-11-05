@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ToggleButton;
 import javafx.stage.Stage;
@@ -94,13 +93,14 @@ class CollapsibleSidePanelsTest {
     }
 
     @Test
-    void collapseChevronsExistOnBothSides() throws Exception {
+    void panelsCarryNoInEdgeCollapseChevron() throws Exception {
         openSampleAndNormalize();
-        // lookupAll must run on the FX thread (scene graph may still be mutating)
-        long chevrons = WaitForAsyncUtils.waitForAsyncFx(2000,
-                () -> shell.lookupAll(".fxt-panel-collapse").stream()
-                        .filter(Node::isVisible).count());
-        assertTrue(chevrons >= 2, "each open panel carries a collapse chevron");
+        // Collapsing is done only through the toolbar toggles, not via chevrons in the panes.
+        int chevrons = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> shell.lookupAll(".fxt-panel-collapse").size());
+        assertEquals(0, chevrons, "panels carry no in-edge collapse chevron");
+        assertNotNull(shell.lookup("#toggle-left-panel"));
+        assertNotNull(shell.lookup("#toggle-inspector"));
     }
 
     /** Opens a sample XML doc and normalizes both panels to open (independent of persisted prefs). */

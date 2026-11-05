@@ -1011,20 +1011,6 @@
 .fxt-editor-toolbar .fxt-tool-button.fxt-tool-small { -fx-font-size: 12px; }
 .fxt-editor-toolbar .fxt-tool-button.fxt-tool-large { -fx-font-size: 13px; }
 
-/* Discreet in-edge collapse chevron overlaid on each side panel ("<<" / ">>"). */
-.fxt-panel-collapse {
-    -fx-padding: 2 4 2 4;
-    -fx-opacity: 0.55;
-}
-
-.fxt-panel-collapse:hover {
-    -fx-opacity: 1.0;
-}
-
-.fxt-panel-collapse .iconify-icon {
-    -fx-icon-color: -fxt-text-muted;
-}
-
 /* Toolbar re-open toggles for the side panels — identical on both sides. */
 .fxt-panel-toggle:selected {
     -fx-background-color: -fxt-bg-subtle;

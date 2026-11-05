@@ -1639,8 +1639,6 @@ public class UnifiedShellView extends BorderPane {
     @FXML public void onSearchPillClicked() { toolbar("search_pill"); openQueryConsole(); }
     @FXML public void onToggleLeftPanel() { setLeftPanelVisible(leftPanelToggle.isSelected()); }
     @FXML public void onToggleInspector() { setInspectorVisible(inspectorToggle.isSelected()); }
-    @FXML public void onCollapseLeftPanel() { setLeftPanelVisible(false); }
-    @FXML public void onCollapseInspector() { setInspectorVisible(false); }
 
     /**
      * F5 / Tools → Run: runs the active document when its type is runnable (the Run split

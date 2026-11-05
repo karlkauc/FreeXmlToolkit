@@ -269,7 +269,7 @@
                         <SplitPane fx:id="workArea" orientation="HORIZONTAL" styleClass="fxt-work-area"
                                    SplitPane.resizableWithParent="true">
                             <items>
-                                <!-- Left side panel + in-edge collapse chevron (content set by showSidePanelFor).
+                                <!-- Left side panel (content set by showSidePanelFor; collapsed via the toolbar toggle).
                                      Width is user-draggable via the SplitPane divider (persisted by
                                      UnifiedShellView); resizableWithParent=false keeps it pixel-stable
                                      on window resize — the editor column absorbs the delta. -->
@@ -277,13 +277,6 @@
                                            SplitPane.resizableWithParent="false">
                                     <children>
                                         <StackPane fx:id="sidePanelHost" styleClass="fxt-side-panel"/>
-                                        <Button fx:id="leftCollapseChevron" focusTraversable="false"
-                                                styleClass="fxt-tool-button, fxt-panel-collapse"
-                                                onAction="#onCollapseLeftPanel" StackPane.alignment="TOP_RIGHT">
-                                            <graphic><IconifyIcon iconLiteral="bi-chevron-bar-left" iconSize="14"/></graphic>
-                                            <tooltip><Tooltip text="Collapse the side panel"/></tooltip>
-                                            <StackPane.margin><Insets top="4" right="4" bottom="4" left="4"/></StackPane.margin>
-                                        </Button>
                                     </children>
                                 </StackPane>
 
@@ -295,17 +288,10 @@
                                     </children>
                                 </VBox>
 
-                                <!-- Inspector wrapper: chevron in FXML; InspectorPanel inserted at index 0 in code. -->
+                                <!-- Inspector wrapper: InspectorPanel inserted in code; collapsed via the toolbar toggle. -->
                                 <StackPane fx:id="inspectorWrapper" minWidth="200"
                                            SplitPane.resizableWithParent="false">
                                     <children>
-                                        <Button fx:id="inspectorCollapseChevron" focusTraversable="false"
-                                                styleClass="fxt-tool-button, fxt-panel-collapse"
-                                                onAction="#onCollapseInspector" StackPane.alignment="TOP_LEFT">
-                                            <graphic><IconifyIcon iconLiteral="bi-chevron-bar-right" iconSize="14"/></graphic>
-                                            <tooltip><Tooltip text="Collapse the Properties panel"/></tooltip>
-                                            <StackPane.margin><Insets top="4" right="4" bottom="4" left="4"/></StackPane.margin>
-                                        </Button>
                                     </children>
                                 </StackPane>
                             </items>
