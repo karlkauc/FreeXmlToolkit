@@ -135,14 +135,16 @@ public final class XmlGridRecord implements GridRecord {
     @Override
     public List<FlatRow> flattenComplexChild(String columnName) {
         return complexChildren.containsKey(columnName)
-                ? FlatRow.flattenCellContent(element, cellMembers(columnName), FlatRow.CELL_GROUPS)
+                ? FlatRow.flattenCellContent(element, cellMembers(columnName), FlatRow.CELL_GROUPS,
+                        cellFormulas(columnName))
                 : List.of();
     }
 
     @Override
     public List<FlatRow> flattenCell(String columnName, java.util.function.Predicate<String> groupAsTable) {
         return complexChildren.containsKey(columnName)
-                ? FlatRow.flattenCellContent(element, cellMembers(columnName), groupAsTable)
+                ? FlatRow.flattenCellContent(element, cellMembers(columnName), groupAsTable,
+                        cellFormulas(columnName))
                 : List.of();
     }
 
@@ -195,6 +197,47 @@ public final class XmlGridRecord implements GridRecord {
 
     private static boolean contains(String text, String needle) {
         return text != null && text.toLowerCase().contains(needle);
+    }
+
+    /**
+     * The formulas of this record shown in the opened cell of a column. A record has no row of its
+     * own, so each of its formulas goes to the first complex column whose name is a step of the
+     * formula's expression ({@code sum(Datenpunkt/Wert)} → Datenpunkt); a formula naming none of
+     * them goes to the first complex column.
+     *
+     * @param columnName the column
+     * @return the record's formula instructions for this cell, in document order
+     */
+    public List<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction> cellFormulas(
+            String columnName) {
+        if (!complexChildren.containsKey(columnName)) {
+            return List.of();
+        }
+        List<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction> result = new ArrayList<>();
+        for (XmlNode child : element.getChildren()) {
+            if (child instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction pi
+                    && GridFormulas.isFormula(pi) && columnName.equals(formulaColumn(pi))) {
+                result.add(pi);
+            }
+        }
+        return result;
+    }
+
+    /** @return the complex column a formula of this record belongs to, or {@code null} without any */
+    private String formulaColumn(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction pi) {
+        if (complexChildren.isEmpty()) {
+            return null;
+        }
+        String expression = GridFormulas.parse(pi.getData()).expression();
+        if (expression != null) {
+            for (String column : complexChildren.keySet()) {
+                if (java.util.regex.Pattern.compile("(?<![\\w.:-])" + java.util.regex.Pattern.quote(column)
+                        + "(?![\\w.:-])").matcher(expression).find()) {
+                    return column;
+                }
+            }
+        }
+        return complexChildren.keySet().iterator().next();
     }
 
     /** @return every child element behind the column, in document order (empty for attributes and text) */

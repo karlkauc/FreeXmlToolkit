@@ -703,6 +703,20 @@ public class FlatRow {
      */
     public static List<FlatRow> flattenCellContent(XmlElement record, List<XmlElement> members,
                                                    java.util.function.Predicate<String> groupAsTable) {
+        return flattenCellContent(record, members, groupAsTable, List.of());
+    }
+
+    /**
+     * Like {@link #flattenCellContent(XmlElement, List, java.util.function.Predicate)}, with the
+     * formulas of the record that belong to this cell listed first. A record of a table has no
+     * row of its own, so its formulas (children of the record) show in the opened cell they
+     * summarize; they are still evaluated against the record.
+     *
+     * @param formulas the record's formula instructions shown in this cell, in document order
+     */
+    public static List<FlatRow> flattenCellContent(XmlElement record, List<XmlElement> members,
+                                                   java.util.function.Predicate<String> groupAsTable,
+                                                   List<XmlProcessingInstruction> formulas) {
         List<FlatRow> rows = new ArrayList<>();
         if (members == null || members.isEmpty()) {
             return rows;
@@ -714,6 +728,7 @@ public class FlatRow {
                 element = sole; // the summary already names it: show its content, not a second level
             }
             FlatRow anchor = new FlatRow(RowType.ELEMENT, -1, element, null, element.getName(), null, 0);
+            addCellFormulas(formulas, element, anchor, rows);
             int attrIdx = 0;
             for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
                 FlatRow attrRow = new FlatRow(RowType.ATTRIBUTE, 0, element, anchor,
@@ -725,12 +740,30 @@ public class FlatRow {
             openSoleContainer(rows, anchor);
         } else {
             FlatRow anchor = new FlatRow(RowType.ELEMENT, -1, record, null, record.getName(), null, 0);
+            addCellFormulas(formulas, null, anchor, rows);
             flattenChildren(record, -1, anchor, rows, groupAsTable, members.getFirst().getName());
             if (!rows.isEmpty() && rows.getFirst().getTableMembers() != null) {
                 rows.getFirst().setExpanded(true); // the cell IS the group: show its table at once
             }
         }
         return rows;
+    }
+
+    /**
+     * Adds the record formulas of a cell as rows below the cell's anchor; a formula that is a child
+     * of {@code shown} (the element whose content the cell lists) is skipped, it gets its row there.
+     */
+    private static void addCellFormulas(List<XmlProcessingInstruction> formulas, XmlElement shown,
+                                        FlatRow anchor, List<FlatRow> rows) {
+        if (formulas == null) {
+            return;
+        }
+        for (XmlProcessingInstruction pi : formulas) {
+            if (shown == null || pi.getParent() != shown) {
+                rows.add(new FlatRow(RowType.PROCESSING_INSTRUCTION, 0, pi, anchor,
+                        pi.getTarget(), pi.getData(), 0));
+            }
+        }
     }
 
     /**

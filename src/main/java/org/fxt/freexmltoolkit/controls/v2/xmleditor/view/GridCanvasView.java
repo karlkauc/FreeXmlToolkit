@@ -3021,13 +3021,18 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @return whether a row matched
      */
     public boolean selectRowMatching(java.util.function.Predicate<FlatRow> match) {
-        for (FlatRow row : allRows) {
-            if (match.test(row)) {
-                revealRow(row);
-                return true;
+        // The root's rows first, then those of opened cells (e.g. a record formula shown in its cell)
+        FlatRow[] found = new FlatRow[1];
+        forEachLiveRow(row -> {
+            if (found[0] == null && match.test(row)) {
+                found[0] = row;
             }
+        });
+        if (found[0] == null) {
+            return false;
         }
-        return false;
+        revealRow(found[0]);
+        return true;
     }
 
     /** @return the model node of the selected embedded-table row, or {@code null} */
