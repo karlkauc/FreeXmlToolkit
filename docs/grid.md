@@ -171,12 +171,17 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   only change the display; an invalid expression is reported and filters nothing. A filter
   lives while the document is open unless you save it: right-click it → **Save Filter in
   Document** stores it in the file as `<?fxt-filter expression="…"?>` in the filtered element
-  (one undoable edit; its funnel line then ends in `· saved`). A saved filter always comes back
+  (one undoable edit; its funnel line then starts with `saved ·`). A saved filter always comes back
   **switched off** when the file is opened, so nobody sees a filtered grid without knowing it:
   the grey funnel line shows it, and a click on the funnel or right-click → **Filter Active**
   switches it on. Editing a saved filter updates the file; **Remove Filter** / **Remove All
   Filters** also remove it from the file, unticking **Save Filter in Document** only from the
   file.
+
+![A saved filter after opening the file: the grey "saved ·" funnel line, the table complete](img/unified-shell-grid-saved-filter.png)
+
+![The same filter switched on: only the AT positions remain in that cell, the sums still cover all](img/unified-shell-grid-cell-filter.png)
+
 - **Formulas.** Right-click an element → **Add Formula…**: a name and an XQuery 3.1 expression
   evaluated with that element as context (e.g. `avg(Month/Min)`). The formula row (icon `ƒ`)
   shows the expression and, below it, the live result - or the error in red; double-click the
@@ -195,6 +200,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   `<?fxt-formula name="…" expression="…"?>` instructions. **Store Formula Result in Document**
   also writes the result into an element named after the formula, right after it;
   **Recalculate Stored Formula Results** refreshes all of them in one undo step.
+
+![Named sums of a table record (German number format) at the top of its opened cell](img/unified-shell-grid-cell-formulas.png)
+
 - **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables,
   including the content of cells that are still closed (nested elements, attributes such as
   `ccy="EUR"`) at any depth; a hit opens the cells and expands what hides it, then selects it.
