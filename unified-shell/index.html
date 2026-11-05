@@ -1255,6 +1255,28 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#favorites-quick-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Favorites Quick Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#favorites-activity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Favorites Activity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#manage-favorites-editor-area" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3671,6 +3693,28 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#favorites-quick-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Favorites Quick Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#favorites-activity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Favorites Activity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#manage-favorites-editor-area" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3984,7 +4028,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 </tr>
 <tr>
 <td><strong>Header bar</strong> (top)</td>
-<td>The breadcrumb (application / active file), a centered <strong>search pill</strong> (<em>"Run XPath / XQuery…"</em>, shortcut <strong>Ctrl+K</strong>) that opens the bottom <a href="../query-console/#query-console">Query Console</a> when clicked, the <strong>?</strong> button (opens the <a href="#help-menu-about">Help menu</a> as a popup - same as <strong>F1</strong>) and the Theme button.</td>
+<td>The breadcrumb (application / active file), a centered <strong>search pill</strong> (<em>"Run XPath / XQuery…"</em>, shortcut <strong>Ctrl+K</strong>) that opens the bottom <a href="../query-console/#query-console">Query Console</a> when clicked, the <strong>star</strong> button (<a href="#favorites-quick-access">Favorites quick access</a> - every favorite, from any activity or page), the <strong>?</strong> button (opens the <a href="#help-menu-about">Help menu</a> as a popup - same as <strong>F1</strong>) and the Theme button.</td>
 </tr>
 <tr>
 <td><strong>Side panel</strong></td>
@@ -4397,7 +4441,7 @@ schemas, <strong>Save</strong> needs an open document).</p>
 <tbody>
 <tr>
 <td><strong>File</strong></td>
-<td>New…, Open…, Open from URL…, <strong>Open Recent</strong> (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first)</td>
+<td>New…, Open…, Open from URL…, <strong>Open Recent</strong> (the last opened files), <strong>Open Favorite</strong> (all favorites, by folder, plus Manage Favorites…), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first)</td>
 </tr>
 <tr>
 <td><strong>Edit</strong></td>
@@ -4613,7 +4657,8 @@ a tab in the main editor area with the full option set:</p>
 <p>Open the <strong>Explorer</strong> panel from the activity bar to manage files.</p>
 <ul>
 <li>
-<p><strong>Header actions</strong> (top right): New file, Open folder, Refresh workspace. <strong>New file</strong>
+<p><strong>Header actions</strong> (top right): New file, Open folder, Refresh workspace and the <strong>star</strong>
+  (<a href="#favorites-quick-access">Favorites quick access</a>). <strong>New file</strong>
   opens the same guided <a href="#new-file-dialog">New File dialog</a> as the toolbar's <strong>New</strong> button.
 The sections appear from top to bottom in this order:</p>
 </li>
@@ -4671,10 +4716,14 @@ The sections appear from top to bottom in this order:</p>
 </table>
 </li>
 <li>
-<p><strong>RECENT</strong> - at the bottom, the recently opened files; click one to reopen it (drag the
-  thin grip above the list to change its height). Favorites are not listed here: manage them
-  in the <a href="#favorites-panel">Favorites</a> activity (<strong>View → Favorites Panel</strong>, Ctrl+Shift+D)
-  and use them via the star menus; <strong>Ctrl+D</strong> adds the active document to your favorites.</p>
+<p><strong>FAVORITES | RECENT</strong> - two tabs at the bottom (drag the thin grip above them to change
+  their height). <strong>FAVORITES</strong> lists all your favorites (uncategorized first, then by folder,
+  the folder shown in grey after the name); a favorite whose file no longer exists is shown
+  greyed out and struck through. Right-click for <strong>Open</strong>, <strong>Reveal in Workspace</strong> and
+  <strong>Remove from Favorites</strong>. <strong>RECENT</strong> lists the recently opened files. A click opens the
+  file. The chosen tab is remembered; at first start FAVORITES is shown when you have
+  favorites. <strong>Ctrl+D</strong> adds the active document to your favorites; rename them and sort
+  them into folders in the <a href="#favorites-panel">Favorites</a> activity.</p>
 </li>
 <li><strong>Collapsible sections</strong> - the <strong>OPEN EDITORS</strong>, workspace and <strong>TOOLS</strong> section headers
   are clickable: click a header to collapse or expand its section (the chevron next to the
@@ -4866,6 +4915,19 @@ replacement is <strong>one undo step</strong> (Ctrl+Z reverts it). In folder mod
 edited via the editor and all other files are written to disk atomically, with the same
 changed-on-disk staleness check as Find text mode.</p>
 <h2 id="favorites-panel">Favorites Panel<a class="headerlink" href="#favorites-panel" title="Permanent link">&para;</a></h2>
+<h3 id="favorites-quick-access">Favorites Quick Access<a class="headerlink" href="#favorites-quick-access" title="Permanent link">&para;</a></h3>
+<p>Favorites can be opened from everywhere, without switching activities:</p>
+<ul>
+<li>the <strong>star</strong> in the header bar (next to <strong>?</strong>) - available in every activity and also on
+  the Settings, Schema Library and Signature pages,</li>
+<li>the <strong>star</strong> in the Explorer header and the Explorer's <strong>FAVORITES</strong> tab,</li>
+<li><strong>File → Open Favorite</strong>.</li>
+</ul>
+<p>The star menus list every favorite (whatever its type, grouped by folder once you use
+folders, missing files left out), followed by <strong>Add Active Document</strong> (Ctrl+D) and
+<strong>Manage Favorites…</strong> (opens the Favorites activity). Opening a favorite here counts for
+the <em>Recently Used</em> / <em>Most Popular</em> collections.</p>
+<h3 id="favorites-activity">Favorites Activity<a class="headerlink" href="#favorites-activity" title="Permanent link">&para;</a></h3>
 <p>Open the <strong>Favorites</strong> panel from the star icon in the activity bar for one-click access to
 your saved files.</p>
 <ul>
