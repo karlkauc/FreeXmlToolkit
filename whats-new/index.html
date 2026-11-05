@@ -2193,10 +2193,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#290-upcoming" class="md-nav__link">
+  <a href="#2100-2026-11-05" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.9.0 (upcoming)
+        2.10.0 (2026-11-05)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#290-2026-11-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.9.0 (2026-11-04)
       
     </span>
   </a>
@@ -2574,10 +2585,21 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#290-upcoming" class="md-nav__link">
+  <a href="#2100-2026-11-05" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2.9.0 (upcoming)
+        2.10.0 (2026-11-05)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#290-2026-11-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.9.0 (2026-11-04)
       
     </span>
   </a>
@@ -2707,7 +2729,7 @@
 <p>The highlights of each release. The complete notes and all downloads are on the
 <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub Releases page</a>; the version you are
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
-<h2 id="290-upcoming">2.9.0 (upcoming)<a class="headerlink" href="#290-upcoming" title="Permanent link">&para;</a></h2>
+<h2 id="2100-2026-11-05">2.10.0 (2026-11-05)<a class="headerlink" href="#2100-2026-11-05" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>XSD Overview view (XMLSpy style):</strong> a new view mode for schemas lists all top-level
   components - imports, includes, annotations, elements, types, groups, attribute groups,
@@ -2716,17 +2738,30 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   Tabs below edit the selected component's attributes (Default/Fixed offer the enumeration
   values), identity constraints, XSD 1.1 assertions and the schema's namespace prefixes. See
   <a href="../xsd-tools/#overview-view">XSD Tools</a>.</li>
+<li><strong>XSD saving keeps your order:</strong> the top-level components are no longer re-sorted on every
+  save; schema-level <code>xs:annotation</code>, <code>xs:notation</code> and <code>xs:defaultOpenContent</code> are no longer
+  lost when the schema is edited.</li>
+<li><strong>Named types in frames (Graphic view, XMLSpy style):</strong> the content an element gets from a
+  named complex type is drawn in a light-yellow, dashed frame titled with the type's name; the
+  base of an <code>xs:extension</code> gets a nested frame. The content is read-only there - double-click
+  the frame title or choose <strong>Edit Type '…'</strong> to open the type in its Type Editor. A type used
+  inside a Type Editor now opens in a further Type Editor tab, so nested types can be followed
+  level by level. See <a href="../xsd-tools/#named-types-in-frames">XSD Tools</a>.</li>
+<li><strong>Constraints on their target nodes (optional, off by default):</strong> a key, unique or keyref can
+  also show on the node its field points to (e.g. <code>BenchmarkID</code> lists the key <code>Fund</code> declares).
+  In the Graphic view, switch it in the new <strong>DISPLAY</strong> section at the top of the Properties pane
+  or under <strong>View → Show Constraints on Target Nodes</strong>. In the XSD documentation, use <strong>Show
+  constraints on their target elements</strong>: it adds a row to the diagram box and a <strong>Referenced by
+  Identity Constraints</strong> section to the element's page. See
+  <a href="../xsd-tools/#reading-a-card">XSD Tools</a>.</li>
+<li><strong>Flatten Schema:</strong> the dialog asks for the output file, preset to <code>&lt;name&gt;_flattened.xsd</code> next to
+  the original schema; the result is written there and opened. See
+  <a href="../xsd-tools/#8-xsd-flattener">XSD Tools</a>.</li>
 <li><strong>Downloaded imports are saved next to your schema:</strong> a missing <code>xs:import</code> / <code>xs:include</code>
   (e.g. <code>xmldsig-core-schema.xsd</code> of FundsXML4) is saved under its original name in the folder
   of the schema that references it and loaded from there - also in validation, Schema Analysis,
   flattening and documentation - instead of an md5-named cache file. Existing files are never
   overwritten. See <a href="../xsd-tools/#automatic-resolution-of-imported-schemas">XSD Tools</a>.</li>
-<li><strong>Flatten Schema:</strong> the dialog asks for the output file, preset to <code>&lt;name&gt;_flattened.xsd</code> next to
-  the original schema; the result is written there and opened. See
-  <a href="../xsd-tools/#8-xsd-flattener">XSD Tools</a>.</li>
-<li><strong>XSD saving keeps your order:</strong> the top-level components are no longer re-sorted on every
-  save; schema-level <code>xs:annotation</code>, <code>xs:notation</code> and <code>xs:defaultOpenContent</code> are no longer
-  lost when the schema is edited.</li>
 <li><strong>XML → Excel:</strong> the workbook now has the same look as the Data Dictionary export. With a
   bound XSD, numbers, booleans and dates go into number, boolean and date cells instead of text.
   Importing the workbook gives back the original values. The CSV export adds a <strong>Data Type</strong>
@@ -2735,6 +2770,27 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   numbers that were entered by hand or reformatted by a spreadsheet application (<code>31.01.2024</code>,
   <code>1.234,50</code>, <code>TRUE</code>) come out valid. Values that contain the delimiter, quotes or line breaks now
   import back correctly. See <a href="../xml-editor/#xmlexcelcsv-converter">XML Editor</a>.</li>
+<li><strong>Favorites from everywhere:</strong> a <strong>star in the header bar</strong> lists every favorite on every
+  activity and page (also Settings, Schema Library and Signature); the Explorer has a star and
+  <strong>FAVORITES | RECENT</strong> tabs at the bottom; and the menu bar has <strong>File → Open Favorite</strong>. See
+  <a href="../favorites-system/#open-favorites-from-anywhere">Favorites</a>.</li>
+<li><strong>Explorer TOOLS:</strong> besides <strong>Open file…</strong> and <strong>Clear recent</strong>, the list offers <strong>Open from
+  URL…</strong>, <strong>Compare files…</strong>, <strong>Spreadsheet Converter…</strong> and <strong>Generate XSD from XML files…</strong>.
+  Compare and Generate XSD use the files selected in the workspace tree (two selected files are
+  compared with each other); the tree's context menu adds <strong>Compare Selected Files</strong> and
+  <strong>Generate XSD from Selected</strong>. See <a href="../unified-shell/#explorer-panel">Unified Shell</a>.</li>
+<li><strong>Query Console:</strong> a close button (<strong>✕</strong>) at the top right, and the <strong>XPath | XQuery</strong> mode is
+  a clear switch; the active mode is also named on the <strong>Run</strong> button (<em>Run XPath</em> / <em>Run
+  XQuery</em>) and in the hint below the input. See <a href="../query-console/#query-console">Query Console</a>.</li>
+<li><strong>Side panels</strong> are collapsed and re-opened only with the editor toolbar's toggle buttons
+  (or Ctrl+L / Ctrl+Shift+P), and collapsing one no longer changes the width of the other. See
+  <a href="../unified-shell/#collapsing-the-side-panels">Unified Shell</a>.</li>
+<li><strong>Fixes:</strong> the grid's scroll bars can be dragged when the content is less than twice the
+  height of the view; in the XSD documentation, nested compositor symbols are centred over
+  their children.</li>
+</ul>
+<h2 id="290-2026-11-04">2.9.0 (2026-11-04)<a class="headerlink" href="#290-2026-11-04" title="Permanent link">&para;</a></h2>
+<ul>
 <li><strong>XSD Graphic view, new card layout:</strong> every node is one card with a symbol, name and type
   line; cardinality and attribute use are pills, optional cards are dashed and repeating ones have
   a second outline. A <strong>title chip</strong> (top left) names the selected card, a <strong>zoom control</strong> sits
@@ -2768,13 +2824,6 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   constraints in diagrams</strong>, with <strong>Also in the page's own element box</strong>); constraint rows link
   their selector, fields and key; the choice symbol is drawn as a switch. <strong>Show documentation in
   diagrams</strong> is now off by default.</li>
-<li><strong>Constraints on their target nodes (optional, off by default):</strong> a key, unique or keyref can
-  also show on the node its field points to (e.g. <code>BenchmarkID</code> lists the key <code>Fund</code> declares).
-  In the Graphic view, switch it in the new <strong>DISPLAY</strong> section at the top of the Properties pane
-  or under <strong>View → Show Constraints on Target Nodes</strong>. In the XSD documentation, use <strong>Show
-  constraints on their target elements</strong>: it adds a row to the diagram box and a <strong>Referenced by
-  Identity Constraints</strong> section to the element's page. See
-  <a href="../xsd-tools/#reading-a-card">XSD Tools</a>.</li>
 <li><strong>Go to Definition</strong> from an XML document (Graphic, Tree and Text view, Ctrl+Click in text)
   opens the bound XSD in the Graphic view, expanded along the element's path with its card
   selected. See <a href="../xml-editor/#go-to-definition">XML Editor</a>.</li>
