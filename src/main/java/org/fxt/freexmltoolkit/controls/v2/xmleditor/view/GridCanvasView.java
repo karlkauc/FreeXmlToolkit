@@ -930,10 +930,23 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         rebuildTree();
     }
 
+    /**
+     * @return the row a filter of the current selection goes to: the selected row, or - while a
+     *         row of an embedded table is selected - the element that holds the table
+     */
+    FlatRow filterTargetRow() {
+        if (selectedRow != null) {
+            return selectedRow;
+        }
+        RepeatingElementsTable table = tables.selectedTable;
+        return table != null && table.getOwnerRow() != null ? table.getOwnerRow().getParentRow() : null;
+    }
+
     /** @return whether the selection is a container that can carry a filter */
     public boolean canFilterSelection() {
-        return selectedRow != null && selectedRow.isExpandable() && !selectedRow.isVirtual()
-                && !selectedRow.isTableGroupOwner() && filterSupported(selectedRow);
+        FlatRow target = filterTargetRow();
+        return target != null && target.isExpandable() && !target.isVirtual()
+                && !target.isTableGroupOwner() && filterSupported(target);
     }
 
     private boolean filterSupported(FlatRow row) {
@@ -945,7 +958,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (!canFilterSelection()) {
             return;
         }
-        FlatRow row = selectedRow;
+        FlatRow row = filterTargetRow();
         javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(
                 viewState.filter(keyOf(row)) != null ? viewState.filter(keyOf(row)) : "");
         dialog.setTitle("Filter");
@@ -958,7 +971,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** Filters the root so that only the selected row and its subtree remain (XMLSpy "Filter to Focus"). */
     public void filterToFocus() {
-        if (selectedRow == null || allRows.isEmpty()) {
+        // The selected row, or the selected member of an embedded table
+        Object target = selectedRow != null ? adapter.nodeOf(selectedRow) : selectedTableMember();
+        if (target == null || allRows.isEmpty()) {
             return;
         }
         FlatRow root = allRows.stream().filter(r -> r.getParentRow() == null && r.getType().isContainer())
@@ -966,7 +981,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         if (root == null) {
             return;
         }
-        String expression = adapter.focusFilterExpression(root, selectedRow);
+        String expression = adapter.focusFilterExpression(root, target);
         if (expression != null) {
             setFilter(root, expression);
         }
@@ -1660,19 +1675,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 int tableRow = hit.cell().rowIndex();
                 String column = hit.cell().columnIndex() >= 0 ? hitTable.getColumn(hit.cell().columnIndex()).getName()
                         : null;
-                if (tableRow >= 0) {
-                    tables.selectTableRow(hitTable, tableRow);
-                    render();
-                }
-                N node = tableRow >= 0 ? adapter.nodeOf(hitTable.getRows().get(tableRow)) : adapter.nodeOf(hit.row());
-                // A cell that is an element of its own (e.g. Identifiers of an Asset row) is the target
-                // of the node actions; row actions stay in the menu's Table submenu
-                N cell = tableRow >= 0 && column != null ? adapter.cellNode(hitTable.getRows().get(tableRow), column) : null;
-                if (cell != null) {
-                    node = cell;
-                    adapter.select(cell);
-                }
-                contextMenu().show(canvas, event.getScreenX(), event.getScreenY(), node, hitTable, tableRow, column);
+                showTableContextMenu(event.getScreenX(), event.getScreenY(), hit.row(), hitTable, tableRow, column);
                 return;
             }
         }
@@ -1688,6 +1691,32 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         contextMenu().show(canvas, event.getScreenX(), event.getScreenY(), node);
     }
 
+    /**
+     * Shows the table-aware context menu for a cell of an embedded table: selects the clicked
+     * table row (a cell that is an element of its own becomes the node target) and remembers the
+     * table, so table-wide actions (filter, formula) can address the element holding it.
+     *
+     * @param ownerRow the grid row the table belongs to
+     * @param tableRow the clicked table row ({@code -1} for the header)
+     * @param column   the clicked column, {@code null} for the row-number column
+     */
+    void showTableContextMenu(double screenX, double screenY, FlatRow ownerRow, RepeatingElementsTable table,
+                              int tableRow, String column) {
+        if (tableRow >= 0) {
+            tables.selectTableRow(table, tableRow);
+            render();
+        }
+        N node = tableRow >= 0 ? adapter.nodeOf(table.getRows().get(tableRow)) : adapter.nodeOf(ownerRow);
+        // A cell that is an element of its own (e.g. Identifiers of an Asset row) is the target
+        // of the node actions; row actions stay in the menu's Table submenu
+        N cell = tableRow >= 0 && column != null ? adapter.cellNode(table.getRows().get(tableRow), column) : null;
+        if (cell != null) {
+            node = cell;
+            adapter.select(cell);
+        }
+        contextMenu().show(canvas, screenX, screenY, node, table, tableRow, column);
+    }
+
     GridContextMenu<N> contextMenu() {
         if (contextMenu == null) {
             contextMenu = adapter.createContextMenu(this::refresh, new GridContextMenu.ViewActions(
@@ -1695,7 +1724,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     this::toggleTableDisplayOfSelection, this::tableDisplayStateOfSelection,
                     this::flipTableOfSelection, this::flipStateOfSelection,
                     this::editFilterOfSelection, this::filterToFocus, this::canFilterSelection,
-                    this::expandSelectionOneLevel, this::collapseSelectionOneLevel));
+                    this::expandSelectionOneLevel, this::collapseSelectionOneLevel, this::selectModelNode));
         }
         return contextMenu;
     }
@@ -2999,6 +3028,23 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         }
         return false;
+    }
+
+    /** @return the model node of the selected embedded-table row, or {@code null} */
+    private N selectedTableMember() {
+        RepeatingElementsTable table = tables.selectedTable;
+        RepeatingElementsTable.TableRow tableRow = table != null ? table.getSelectedRow() : null;
+        return tableRow != null ? adapter.nodeOf(tableRow) : null;
+    }
+
+    /**
+     * Selects and reveals the row of a model node given without its type (the context menu's
+     * view action after it inserted a node, e.g. a new formula).
+     */
+    void selectModelNode(Object node) {
+        if (node != null) {
+            selectRowMatching(row -> row.getModelNode() == node);
+        }
     }
 
     /** Selects the row of the given model node, revealing it if it is collapsed away. */

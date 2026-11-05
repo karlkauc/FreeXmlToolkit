@@ -472,7 +472,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         editRawTextItem.setDisable(!isElement);
         filterItem.setDisable(!viewActions.filterSupported().getAsBoolean());
         filterToFocusItem.setDisable(!isElement || isRoot);
-        addFormulaItem.setDisable(!isElement);
+        addFormulaItem.setDisable(formulaTarget() == null);
         boolean isFormula = GridFormulas.isFormula(node);
         storeFormulaItem.setVisible(isFormula);
         storeFormulaItem.setSelected(isFormula
@@ -553,9 +553,42 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
     // ==================== Formulas ====================
 
-    /** Asks for a formula name and expression and adds the formula as the selected element's last child. */
+    /**
+     * @return the element a new formula goes to: inside an embedded table the element that holds
+     *         the table (a formula on a single member or cell could not be shown in the table),
+     *         otherwise the selected element; {@code null} when there is none
+     */
+    XmlElement formulaTarget() {
+        if (clickedTable != null && !clickedTable.getRows().isEmpty()
+                && clickedTable.getRows().getFirst().getElement() != null
+                && clickedTable.getRows().getFirst().getElement().getParent() instanceof XmlElement holder) {
+            return holder;
+        }
+        return context.getSelectionModel().getSelectedNode() instanceof XmlElement element ? element : null;
+    }
+
+    /**
+     * Adds a formula as the element's last child and reveals its row (expanding the element when
+     * the formula is its first child to show).
+     *
+     * @return the new formula instruction, or {@code null} when the edit failed
+     */
+    org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction insertFormula(
+            XmlElement target, GridFormulas.Formula formula) {
+        var pi = GridFormulas.create(formula);
+        if (!context.executeCommand(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.InsertNodeCommand(
+                target, pi, -1))) {
+            return null;
+        }
+        refresh();
+        viewActions.revealNode().accept(pi);
+        return pi;
+    }
+
+    /** Asks for a formula name and expression and adds the formula to {@link #formulaTarget()}. */
     private void addFormula() {
-        if (!(context.getSelectionModel().getSelectedNode() instanceof XmlElement element)) {
+        XmlElement element = formulaTarget();
+        if (element == null) {
             return;
         }
         javafx.scene.control.Dialog<GridFormulas.Formula> dialog = new javafx.scene.control.Dialog<>();
@@ -579,12 +612,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 && !name.getText().isBlank() && !expression.getText().isBlank()
                 ? new GridFormulas.Formula(name.getText().strip(), expression.getText().strip(), false) : null);
         javafx.application.Platform.runLater(expression::requestFocus);
-        dialog.showAndWait().ifPresent(formula -> {
-            if (context.executeCommand(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.InsertNodeCommand(
-                    element, GridFormulas.create(formula), -1))) {
-                refresh();
-            }
-        });
+        dialog.showAndWait().ifPresent(formula -> insertFormula(element, formula));
     }
 
     /** Switches "store the result in the document" of the selected formula (stores it at once). */

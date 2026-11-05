@@ -157,13 +157,17 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   matching nodes (with their ancestors and subtrees) stay visible, repeating groups shrink to
   their matching members. A blue funnel line under the element shows the expression - click
   the funnel to switch the filter off and on, double-click the line to edit it, clear it to
-  remove the filter. **Filter to Focus** filters the root down to the selected node. Filters
+  remove the filter. **Filter to Focus** filters the root down to the selected node - on a row
+  of an embedded table, the table keeps only that row. Right-clicked inside a table, **Filter…**
+  filters the element that holds the table. Filters
   only change the display, never the document; an invalid expression is reported and
   filters nothing. Filters live while the document is open.
 - **Formulas.** Right-click an element → **Add Formula…**: a name and an XQuery 3.1 expression
   evaluated with that element as context (e.g. `avg(Month/Min)`). The formula row (icon `ƒ`)
   shows the expression and, below it, the live result - or the error in red; double-click the
-  expression or the name to edit it. Formulas are saved in the file as
+  expression or the name to edit it. A new formula is selected and its element expanded.
+  Right-clicked inside a table, the formula goes to the element that holds the table (e.g.
+  `avg(Month/Min)` on the parent of the `Month` rows), since a table cell cannot show it. Formulas are saved in the file as
   `<?fxt-formula name="…" expression="…"?>` instructions. **Store Formula Result in Document**
   also writes the result into an element named after the formula, right after it;
   **Recalculate Stored Formula Results** refreshes all of them in one undo step.

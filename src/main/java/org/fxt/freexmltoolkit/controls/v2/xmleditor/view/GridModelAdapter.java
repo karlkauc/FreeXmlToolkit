@@ -178,11 +178,11 @@ public interface GridModelAdapter<N> {
 
     /**
      * @param root   the root row
-     * @param target a row below it
+     * @param target the model node to focus (a row's node or a member of an embedded table)
      * @return the filter expression that, set on {@code root}, shows only {@code target} and its
      *         subtree (XMLSpy "Filter to Focus"), or {@code null} when not supported
      */
-    default String focusFilterExpression(FlatRow root, FlatRow target) {
+    default String focusFilterExpression(FlatRow root, Object target) {
         return null;
     }
 

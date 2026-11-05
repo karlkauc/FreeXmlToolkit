@@ -276,9 +276,9 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     }
 
     @Override
-    public String focusFilterExpression(FlatRow root, FlatRow target) {
+    public String focusFilterExpression(FlatRow root, Object target) {
         if (!(root.getModelNode() instanceof XmlElement rootElement)
-                || !(target.getModelNode() instanceof XmlNode node) || node == rootElement) {
+                || !(target instanceof XmlNode node) || node == rootElement) {
             return null;
         }
         String rootPath = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(rootElement);

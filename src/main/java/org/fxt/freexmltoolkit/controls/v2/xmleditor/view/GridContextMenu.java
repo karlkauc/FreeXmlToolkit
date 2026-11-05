@@ -27,18 +27,23 @@ public interface GridContextMenu<N> {
      * @param editFilter         asks for the filter expression of the selected container
      * @param filterToFocus      filters the root so that only the selection and its subtree remain
      * @param filterSupported    whether the selection can carry a filter
+     * @param expandOneLevel     expands the selection by one level
+     * @param collapseOneLevel   collapses the selection by one level
+     * @param revealNode         selects the row of a model node and expands its ancestors (after
+     *                           an edit inserted it, e.g. a new formula)
      */
     record ViewActions(Runnable expandAll, Runnable collapseAll, Runnable expandFully, Runnable collapseUnselected,
                        Runnable toggleTableDisplay, java.util.function.Supplier<java.util.Optional<Boolean>> tableDisplayState,
                        Runnable flipTable, java.util.function.Supplier<java.util.Optional<Boolean>> flipState,
                        Runnable editFilter, Runnable filterToFocus, java.util.function.BooleanSupplier filterSupported,
-                       Runnable expandOneLevel, Runnable collapseOneLevel) {
+                       Runnable expandOneLevel, Runnable collapseOneLevel,
+                       java.util.function.Consumer<Object> revealNode) {
         /** @return actions that do nothing (for menus built without a canvas, e.g. in tests) */
         public static ViewActions none() {
             return new ViewActions(() -> { }, () -> { }, () -> { }, () -> { },
                     () -> { }, java.util.Optional::empty, () -> { }, java.util.Optional::empty, () -> { }, () -> { },
                     () -> false,
-                    () -> { }, () -> { });
+                    () -> { }, () -> { }, node -> { });
         }
     }
 
