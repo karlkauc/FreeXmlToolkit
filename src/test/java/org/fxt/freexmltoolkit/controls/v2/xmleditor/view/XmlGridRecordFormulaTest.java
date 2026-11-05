@@ -51,6 +51,7 @@ class XmlGridRecordFormulaTest {
         assertEquals(FlatRow.RowType.PROCESSING_INSTRUCTION, rows.get(0).getType());
         assertEquals(FlatRow.RowType.PROCESSING_INSTRUCTION, rows.get(1).getType());
         assertEquals("Datenpunkt", rows.get(2).getLabel(), "then the group");
+        assertTrue(rows.get(2).isExpanded(), "the cell IS the group: its table shows at once, after the formulas");
         assertEquals(2, rows.stream().filter(r -> r.getType() == FlatRow.RowType.PROCESSING_INSTRUCTION).count());
         assertEquals("3", GridFormulas.evaluate((XmlProcessingInstruction) rows.get(0).getModelNode()).result(),
                 "evaluated against the record");

@@ -848,7 +848,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             containers.addAll(rows);
         }
         for (FlatRow row : containers) {
-            if (!row.getType().isContainer() || row.isVirtual()) {
+            // A table group's row has its first member's key: it never carries that member's filter
+            if (!row.getType().isContainer() || row.isVirtual() || row.isTableGroupOwner()) {
                 continue;
             }
             String key = keyOf(row);
@@ -1143,10 +1144,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         });
     }
 
-    /** @return the text of a filter line: the expression, marked when it is saved in the document */
+    /**
+     * @return the text of a filter line: the expression, marked in front when it is saved in the
+     *         document (so a narrow cell never cuts the mark off)
+     */
     private String filterLineText(String key) {
         String expression = viewState.filter(key);
-        return savedFilterKeys.contains(key) ? expression + "   \u00b7 saved" : expression;
+        return savedFilterKeys.contains(key) ? "saved \u00b7 " + expression : expression;
     }
 
     /** @return whether the filter of the selection's target is switched on; empty without a filter */

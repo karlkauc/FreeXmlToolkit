@@ -107,8 +107,10 @@ class XmlCanvasViewSavedFilterTest {
         GridBlock grid = openCell(0);
         FlatRow line = grid.rows().getFirst();
         assertEquals(FlatRow.RowType.FILTER, line.getType(), "the funnel line shows the saved filter");
-        assertTrue(line.getValue().endsWith("· saved"));
+        assertTrue(line.getValue().startsWith("saved · "));
         assertEquals(List.of("A", "B"), codes(grid), "inactive: nothing is filtered");
+        assertFalse(fx(() -> view.visibleRowList().stream().anyMatch(r -> r.getType() == FlatRow.RowType.FILTER)),
+                "the record's filter has no second line under the outer table's group row");
 
         rightClickCell(0);
         assertEquals(Optional.of(false), fx(view::filterActiveStateOfSelection));

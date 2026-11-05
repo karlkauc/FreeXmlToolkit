@@ -741,9 +741,10 @@ public class FlatRow {
         } else {
             FlatRow anchor = new FlatRow(RowType.ELEMENT, -1, record, null, record.getName(), null, 0);
             addCellFormulas(formulas, null, anchor, rows);
+            int group = rows.size(); // the group's row comes after the record's formulas
             flattenChildren(record, -1, anchor, rows, groupAsTable, members.getFirst().getName());
-            if (!rows.isEmpty() && rows.getFirst().getTableMembers() != null) {
-                rows.getFirst().setExpanded(true); // the cell IS the group: show its table at once
+            if (rows.size() > group && rows.get(group).getTableMembers() != null) {
+                rows.get(group).setExpanded(true); // the cell IS the group: show its table at once
             }
         }
         return rows;
