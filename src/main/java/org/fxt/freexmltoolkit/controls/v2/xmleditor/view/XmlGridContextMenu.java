@@ -103,6 +103,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private CheckMenuItem storeFormulaItem;
     private MenuItem recalculateFormulasItem;
     private MenuItem filterToFocusItem;
+    private MenuItem removeFilterItem;
+    private MenuItem removeAllFiltersItem;
 
     // Table operations (visible with a table context)
     private Menu tableMenu;
@@ -261,6 +263,12 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         filterToFocusItem = new MenuItem("Filter to Focus");
         filterToFocusItem.setGraphic(createColoredIcon("bi-bullseye", ActionColor.TOOL));
         filterToFocusItem.setOnAction(e -> viewActions.filterToFocus().run());
+        removeFilterItem = new MenuItem("Remove Filter");
+        removeFilterItem.setGraphic(createColoredIcon("bi-x-circle", ActionColor.DELETE));
+        removeFilterItem.setOnAction(e -> viewActions.removeFilter().run());
+        removeAllFiltersItem = new MenuItem("Remove All Filters");
+        removeAllFiltersItem.setGraphic(createColoredIcon("bi-x-circle", ActionColor.DELETE));
+        removeAllFiltersItem.setOnAction(e -> viewActions.removeAllFilters().run());
 
         // === Expand/Collapse (canvas actions) ===
         expandFullyItem = new MenuItem("Expand Fully");
@@ -368,7 +376,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
                 displayAsTableItem, flipTableItem, copyTableTsvItem, tableMenu, sortMenu,
-                filterItem, filterToFocusItem,
+                filterItem, filterToFocusItem, removeFilterItem, removeAllFiltersItem,
                 new SeparatorMenuItem(),
                 addFormulaItem, storeFormulaItem, recalculateFormulasItem,
                 new SeparatorMenuItem(),
@@ -472,6 +480,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         editRawTextItem.setDisable(!isElement);
         filterItem.setDisable(!viewActions.filterSupported().getAsBoolean());
         filterToFocusItem.setDisable(!isElement || isRoot);
+        removeFilterItem.setDisable(!viewActions.hasFilter().getAsBoolean());
+        removeAllFiltersItem.setDisable(!viewActions.hasAnyFilter().getAsBoolean());
         addFormulaItem.setDisable(formulaTarget() == null);
         boolean isFormula = GridFormulas.isFormula(node);
         storeFormulaItem.setVisible(isFormula);

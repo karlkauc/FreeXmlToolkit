@@ -188,4 +188,65 @@ class XmlCanvasViewCellFilterTest {
         assertEquals(List.of("B"), filtered.getRows().stream().map(r -> r.getValue("Code")).toList());
         assertEquals(2, groupRow(openCell(1)).getRepeatingTable().getRows().size(), "the other table is complete");
     }
+
+    /** Filters the first record's Datenpunkt cell from its "N × <Datenpunkt>" cell. */
+    private void filterFirstCell(String expression) {
+        fx(() -> {
+            view.expandAll();
+            view.showTableContextMenu(0, 0, listRow(), listRow().getRepeatingTable(), 0, "Datenpunkt");
+            view.contextMenu().hide();
+            view.setFilter(view.prepareFilterTarget(), expression);
+            return null;
+        });
+    }
+
+    @Test
+    void theFilterIsRemovedFromItsCellOrItsFilterLine() {
+        filterFirstCell("Datenpunkt[starts-with(Code, 'B')]");
+        assertEquals(1, groupRow(openCell(0)).getRepeatingTable().getRows().size());
+
+        // Right-click on the same cell again: Remove Filter
+        fx(() -> {
+            view.showTableContextMenu(0, 0, listRow(), listRow().getRepeatingTable(), 0, "Datenpunkt");
+            view.contextMenu().hide();
+            return null;
+        });
+        assertTrue(fx(view::hasFilterOnSelection));
+        fx(() -> {
+            view.removeFilterOfSelection();
+            return null;
+        });
+        assertEquals(3, groupRow(openCell(0)).getRepeatingTable().getRows().size(), "the table is complete again");
+        assertFalse(fx(view::hasAnyFilter));
+
+        // Right-click on the filter line inside the cell: Remove Filter
+        filterFirstCell("Datenpunkt[starts-with(Code, 'B')]");
+        FlatRow line = openCell(0).rows().getFirst();
+        assertEquals(FlatRow.RowType.FILTER, line.getType());
+        fx(() -> view.selectRowMatching(r -> r == line));
+        assertTrue(fx(view::hasFilterOnSelection), "the filter line stands for its filter");
+        fx(() -> {
+            view.removeFilterOfSelection();
+            return null;
+        });
+        assertFalse(openCell(0).rows().stream().anyMatch(r -> r.getType() == FlatRow.RowType.FILTER));
+    }
+
+    @Test
+    void removeAllFiltersClearsEveryFilter() {
+        filterFirstCell("Datenpunkt[starts-with(Code, 'B')]");
+        fx(() -> {
+            FlatRow root = view.visibleRowList().stream().filter(r -> "Meldung".equals(r.getLabel())).findFirst().orElseThrow();
+            view.setFilter(root, "*/Datenpunkt[starts-with(Code, 'B') or starts-with(Code, 'E')]");
+            return null;
+        });
+        assertTrue(fx(view::hasAnyFilter));
+        fx(() -> {
+            view.removeAllFilters();
+            return null;
+        });
+        assertFalse(fx(view::hasAnyFilter));
+        assertEquals(3, groupRow(openCell(0)).getRepeatingTable().getRows().size());
+        assertEquals(2, groupRow(openCell(1)).getRepeatingTable().getRows().size());
+    }
 }

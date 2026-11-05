@@ -156,8 +156,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   with that element as context, e.g. `Month[number(Min) > 10]`: below the element only the
   matching nodes (with their ancestors and subtrees) stay visible, repeating groups shrink to
   their matching members. A blue funnel line under the element shows the expression - click
-  the funnel to switch the filter off and on, double-click the line to edit it, clear it to
-  remove the filter. **Filter to Focus** filters the root down to the selected node - on a row
+  the funnel to switch the filter off and on, double-click the line to edit it. To remove a
+  filter, right-click its funnel line (or the element / the table cell it was set on) →
+  **Remove Filter**; **Remove All Filters** clears every filter of the view. **Filter to Focus** filters the root down to the selected node - on a row
   of an embedded table, the table keeps only that row. Right-clicked inside a table, **Filter…**
   filters the element that holds the table (on a group row too). On a cell with nested content
   (e.g. `22 × <Datenpunkt>`) it filters that cell's content only: the cell opens and the filter

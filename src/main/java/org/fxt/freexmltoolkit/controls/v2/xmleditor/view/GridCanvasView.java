@@ -998,6 +998,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return cell.anchor();
         }
         if (selectedRow != null) {
+            if (selectedRow.getType() == FlatRow.RowType.FILTER) {
+                return selectedRow.getParentRow(); // a filter line stands for its container
+            }
             // A repeating group stands for its members: the filter goes to the element holding it
             return selectedRow.isTableGroupOwner() ? selectedRow.getParentRow() : selectedRow;
         }
@@ -1053,6 +1056,36 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             render();
         }
         return filterTargetRow();
+    }
+
+    /** @return whether the selection's filter target carries a filter (on or off) */
+    public boolean hasFilterOnSelection() {
+        FlatRow target = filterTargetRow();
+        return target != null && viewState.filter(keyOf(target)) != null;
+    }
+
+    /** Removes the filter of the selection's filter target (e.g. via its filter line) and rebuilds. */
+    public void removeFilterOfSelection() {
+        FlatRow target = filterTargetRow();
+        if (target != null && viewState.filter(keyOf(target)) != null) {
+            setFilter(target, null);
+        }
+    }
+
+    /** @return whether any filter is defined in this view */
+    public boolean hasAnyFilter() {
+        return !viewState.filters().isEmpty();
+    }
+
+    /** Removes every filter of this view and rebuilds. */
+    public void removeAllFilters() {
+        if (viewState.filters().isEmpty()) {
+            return;
+        }
+        for (String key : List.copyOf(viewState.filters().keySet())) {
+            viewState.setFilter(key, null);
+        }
+        rebuildTree();
     }
 
     /** The table, row and column of the last table context menu (a complex cell filters its content). */
@@ -1851,6 +1884,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     this::toggleTableDisplayOfSelection, this::tableDisplayStateOfSelection,
                     this::flipTableOfSelection, this::flipStateOfSelection,
                     this::editFilterOfSelection, this::filterToFocus, this::canFilterSelection,
+                    this::removeFilterOfSelection, this::hasFilterOnSelection,
+                    this::removeAllFilters, this::hasAnyFilter,
                     this::expandSelectionOneLevel, this::collapseSelectionOneLevel, this::selectModelNode));
         }
         return contextMenu;
