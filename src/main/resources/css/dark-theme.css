@@ -1850,249 +1850,41 @@
    PHASE 5: Secondary CSS Files Dark Mode Overrides
    ================================================================= */
 
-/* --- xml-editor.css overrides --- */
-.xml-editor-root {
-  -fx-background-color: #1e1e1e;
-  -fx-text-fill: #d4d4d4;
-}
-
-.xml-toolbar {
-  -fx-background-color: linear-gradient(to bottom, #2d2d30, #252526);
-  -fx-border-color: #3c3c3c;
-}
-
+/* --- XML editor controls --- */
 .secondary-button {
   -fx-background-color: #3c3c3c;
   -fx-border-color: #4a4a4a;
   -fx-text-fill: #d4d4d4;
 }
 
+
 .secondary-button:hover {
   -fx-background-color: #4a4a4a;
 }
 
-.xml-split-pane .split-pane-divider {
-  -fx-background-color: #3c3c3c;
-}
-
-.xml-editor-tabs .tab {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.xml-editor-tabs .tab:selected {
-  -fx-background-color: #1e1e1e;
-}
-
-.sidebar-section > .title {
-  -fx-background-color: #3c3c3c;
-}
-
-.sidebar-section > .title .text {
-  -fx-fill: #d4d4d4;
-}
-
-.sidebar-section > .content {
-  -fx-background-color: #2d2d30;
-}
-
-.xml-main-tab-pane .tab {
-  -fx-background-color: #2d2d30;
-}
-
-.xml-main-tab-pane .tab:selected {
-  -fx-background-color: #1e1e1e;
-}
-
-.xml-sidebar {
-  -fx-background-color: #2d2d30;
-}
-
-.xml-sidebar .titled-pane > .title {
-  -fx-background-color: #3c3c3c;
-}
-
-.xml-sidebar .titled-pane > .title .text {
-  -fx-fill: #d4d4d4;
-}
-
-.xml-sidebar .titled-pane > .content {
-  -fx-background-color: #2d2d30;
-}
-
-.xml-structure-tree {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #3c3c3c;
-}
-
-.xml-properties-table {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #3c3c3c;
-}
-
-.xml-properties-table .column-header {
-  -fx-background-color: #3c3c3c;
-}
-
-.xml-list-view {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #3c3c3c;
-}
-
-.xml-text-field {
-  -fx-background-color: #3c3c3c;
-  -fx-border-color: #4a4a4a;
-  -fx-text-fill: #d4d4d4;
-}
-
-.xml-text-area {
-  -fx-background-color: #3c3c3c;
-  -fx-border-color: #4a4a4a;
-  -fx-text-fill: #d4d4d4;
-}
-
-.xml-combo-box {
-  -fx-background-color: #3c3c3c;
-  -fx-border-color: #4a4a4a;
-}
-
-.xml-tool-section {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #3c3c3c;
-}
-
-.xpath-query-container {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #3c3c3c;
-}
-
-.xpath-results-table {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #3c3c3c;
-}
-
-.xpath-results-table .table-row-cell:odd {
-  -fx-background-color: #252526;
-}
 
 .xml-code-area {
   -fx-background-color: #161b22;
 }
 
+
 .xml-code-area .paragraph-box {
   -fx-background-color: #2d2d30;
 }
+
 
 .xml-code-area .paragraph-box:hover {
   -fx-background-color: #3c3c3c;
 }
 
-.auto-completion-popup {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.xml-validation-panel {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.validation-statistics {
-  -fx-background-color: #3c3c3c;
-}
-
-.xml-validation-table {
-  -fx-background-color: #1e1e1e;
-}
-
-.xml-validation-table .column-header-background {
-  -fx-background-color: #3c3c3c;
-}
-
-.xml-validation-table .table-row-cell {
-  -fx-border-color: transparent transparent #3c3c3c transparent;
-}
-
-.xml-details-area {
-  -fx-background-color: #2d2d30;
-}
-
-.xml-search-replace-panel {
-  -fx-background-color: #2d2d30;
-}
-
-.xml-validation-panel .text-field {
-  -fx-background-color: #3c3c3c;
-  -fx-text-fill: #d4d4d4;
-}
-
-.xml-validation-panel .check-box .box {
-  -fx-background-color: #3c3c3c;
-}
-
-.sidebar-section-header {
-  -fx-background-color: linear-gradient(to bottom, #3c3c3c, #2d2d30);
-}
-
-.xml-sidebar-titled-pane > .title {
-  -fx-background-color: #2d2d30;
-}
-
-.xml-sidebar-titled-pane > .content {
-  -fx-background-color: #2d2d30;
-}
-
-.xsd-required-overlay {
-  -fx-background-color: rgba(50, 50, 50, 0.95);
-}
-
-.xml-editor-sidebar {
-  -fx-background-color: #2d2d30;
-}
-
-.sidebar-toggle-button {
-  -fx-background-color: #3c3c3c;
-}
 
 .sidebar-scroll-pane > .scroll-bar:vertical > .thumb {
   -fx-background-color: #4a4a4a;
 }
 
+
 .sidebar-scroll-pane > .scroll-bar:vertical > .thumb:hover {
   -fx-background-color: #5a5a5a;
-}
-
-.sidebar-list-view {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #3c3c3c;
-}
-
-.documentation-text-area {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.cursor-info-field {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.xml-folding-indicator {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.xml-folding-indicator:hover {
-  -fx-background-color: #3c3c3c;
-}
-
-.line-number-gutter .folding-button:hover {
-  -fx-background-color: #2d2d30;
-}
-
-.search-results-list {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #3c3c3c;
 }
 
 /* --- xml-intellisense.css overrides --- */
@@ -2141,15 +1933,6 @@
   -rtfx-background-color: rgba(100, 100, 50, 0.3);
 }
 
-/* --- popups.css overrides --- */
-.popup-container {
-  -fx-background-color: #2d2d30;
-}
-
-.popup-header {
-  -fx-background-color: #1e1e1e;
-  -fx-border-color: #3c3c3c;
-}
 
 /* --- json-editor.css overrides --- */
 .json-editor-root {
@@ -2221,138 +2004,37 @@
   -fx-background-color: #3c3c3c;
 }
 
-/* --- schematron-editor.css overrides --- */
-.schematron-toolbar {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.schematron-toolbar .button:hover {
-  -fx-background-color: #3c3c3c;
-}
-
-.schematron-toolbar .button:pressed {
-  -fx-background-color: #4a4a4a;
-}
-
-.schematron-sidebar {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.schematron-sidebar .titled-pane > .title {
-  -fx-background-color: #3c3c3c;
-}
-
-.schematron-sidebar .titled-pane > .content {
-  -fx-background-color: #1e1e1e;
-}
-
-.schematron-status {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.template-item:hover {
-  -fx-background-color: #2a3a4a;
-}
-
+/* --- Schematron editor controls --- */
 .visual-builder-section {
   -fx-background-color: #1e1e1e;
   -fx-border-color: #3c3c3c;
 }
+
 
 .testing-section {
   -fx-background-color: #1e1e1e;
   -fx-border-color: #3c3c3c;
 }
 
+
 .doc-generator-section {
   -fx-background-color: #1e1e1e;
   -fx-border-color: #3c3c3c;
 }
+
 
 .template-library-section {
   -fx-background-color: #1e1e1e;
   -fx-border-color: #3c3c3c;
 }
 
-.xpath-expression {
-  -fx-background-color: #1a3a1a;
-}
-
-.code-area .bracket-highlight {
-  -fx-background-color: #4a4a00;
-}
-
-.error-highlight {
-  -fx-background-color: #4a1a1a;
-}
-
-.warning-highlight {
-  -fx-background-color: #4a3a1a;
-}
-
-.code-area .folding-indicator {
-  -fx-background-color: #3c3c3c;
-  -fx-border-color: #4a4a4a;
-}
-
-.code-area .folding-indicator:hover {
-  -fx-background-color: #4a4a4a;
-}
-
-.autocompletion-popup {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #4a4a4a;
-}
-
-.autocompletion-popup .list-cell:hover {
-  -fx-background-color: #2a3a4a;
-}
-
-.autocompletion-popup .list-cell:selected {
-  -fx-background-color: #094771;
-}
-
-/* --- unified-editor.css overrides --- */
-.unified-tab.xml-tab {
-  -fx-background-color: linear-gradient(to bottom, #1a3a5a, #0a2a4a);
-}
-
-.unified-tab.xml-tab:selected {
-  -fx-background-color: linear-gradient(to bottom, #3794ff, #1177bb);
-}
-
-.unified-tab.xsd-tab {
-  -fx-background-color: linear-gradient(to bottom, #1a3a1a, #0a2a0a);
-}
-
-.unified-tab.xsd-tab:selected {
-  -fx-background-color: linear-gradient(to bottom, #4caf50, #388e3c);
-}
-
-.unified-tab.xslt-tab {
-  -fx-background-color: linear-gradient(to bottom, #3a2a1a, #2a1a0a);
-}
-
-.unified-tab.xslt-tab:selected {
-  -fx-background-color: linear-gradient(to bottom, #ff9800, #f57c00);
-}
-
-.unified-tab.schematron-tab {
-  -fx-background-color: linear-gradient(to bottom, #3a1a5a, #2a0a4a);
-}
-
-.unified-tab.schematron-tab:selected {
-  -fx-background-color: linear-gradient(to bottom, #ab47bc, #7b1fa2);
-}
-
+/* --- Editor tabs and panels --- */
 /* Find / Replace Search Bar (dark) */
 .search-bar {
   -fx-background-color: #252526;
   -fx-border-color: #3c3c3c;
 }
+
 
 .search-bar .search-input {
   -fx-background-color: #1e1e1e;
@@ -2361,107 +2043,89 @@
   -fx-prompt-text-fill: #6e6e6e;
 }
 
+
 .search-bar .search-input:focused {
   -fx-border-color: #3794ff;
   -fx-effect: dropshadow(gaussian, rgba(55, 148, 255, 0.35), 5, 0, 0, 0);
 }
 
+
 .search-bar .search-icon-button .iconify-icon {
   -fx-icon-color: #c5c5c5;
 }
+
 
 .search-bar .search-icon-button:hover {
   -fx-background-color: rgba(55, 148, 255, 0.20);
 }
 
+
 .search-bar .search-icon-button:hover .iconify-icon {
   -fx-icon-color: #3794ff;
 }
+
 
 .search-bar .search-icon-button:pressed {
   -fx-background-color: rgba(55, 148, 255, 0.32);
 }
 
+
 .search-bar .search-icon-button:focused {
   -fx-background-color: rgba(55, 148, 255, 0.20);
 }
+
 
 .search-bar .search-close-button:hover {
   -fx-background-color: rgba(220, 53, 69, 0.25);
 }
 
+
 .search-bar .search-close-button:hover .iconify-icon {
   -fx-icon-color: #f48771;
 }
+
 
 .search-bar .search-pill-button {
   -fx-background-color: #3794ff;
   -fx-text-fill: white;
 }
 
+
 .search-bar .search-pill-button:hover {
   -fx-background-color: #1f7fe5;
 }
+
 
 .search-bar .search-pill-button:pressed {
   -fx-background-color: #1668c0;
 }
 
+
 .search-bar .search-status {
   -fx-text-fill: #9d9d9d;
 }
 
-.linked-files-panel {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-.unified-editor .context-menu {
-  -fx-background-color: #2d2d30;
-  -fx-border-color: #3c3c3c;
-}
-
-/* --- xsd-tab-groups.css overrides --- */
-.tab-pane .tab.primary-tab {
-  -fx-background-color: linear-gradient(to bottom, #3a1f4e, #2a0a3e);
-}
-
-.tab-pane .tab.primary-tab:selected {
-  -fx-background-color: linear-gradient(to bottom, #ab47bc, #7b1fa2);
-}
-
-.tab-pane .tab.primary-tab:hover {
-  -fx-background-color: linear-gradient(to bottom, #5a2a7a, #4a1a6a);
-}
-
-.tab-pane .tab.output-tab {
-  -fx-background-color: linear-gradient(to bottom, #1a3a1a, #0a2a0a);
-}
-
-.tab-pane .tab.output-tab:selected {
-  -fx-background-color: linear-gradient(to bottom, #4caf50, #388e3c);
-}
-
-.tab-pane .tab.output-tab:hover {
-  -fx-background-color: linear-gradient(to bottom, #2a5a2a, #1a4a1a);
-}
-
+/* --- XSD editor groups --- */
 .tab-pane .tab.utility-tab {
   -fx-background-color: linear-gradient(to bottom, #1a3a5a, #0a2a4a);
 }
+
 
 .tab-pane .tab.utility-tab:selected {
   -fx-background-color: linear-gradient(to bottom, #3794ff, #1177bb);
 }
 
+
 .tab-pane .tab.utility-tab:hover {
   -fx-background-color: linear-gradient(to bottom, #3a5a7a, #2a4a6a);
 }
+
 
 .xsd-toolbar {
   -fx-background-color: linear-gradient(to bottom, #2d2d30, #252526);
   -fx-border-color: #3c3c3c;
 }
+
 
 .xsd-toolbar .button:hover {
   -fx-background-color: rgba(55, 148, 255, 0.2);
@@ -2538,10 +2202,6 @@
     -fx-opacity: 0.55;
 }
 
-.sidebar-section-label {
-    -fx-text-fill: #f0d9b5;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 0, 0, 0, 1);
-}
 
 /* Card hover - dark */
 .card:hover {

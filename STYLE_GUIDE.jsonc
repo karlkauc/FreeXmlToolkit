@@ -1244,9 +1244,10 @@
     "lightTheme": "src/main/resources/css/light-theme.css",
     "darkTheme": "src/main/resources/css/dark-theme.css",
     "dialogTheme": "src/main/resources/css/dialog-theme.css",
-    "contextMenuTheme": "src/main/resources/css/context-menu-theme.css",
-    "toolbarTheme": "src/main/resources/css/toolbar-theme.css",
-    "xsdTabGroups": "src/main/resources/css/xsd-tab-groups.css"
+    "jsonEditor": "src/main/resources/css/json-editor.css",
+    "xmlIntelliSense": "src/main/resources/css/xml-intellisense.css",
+    "xmlHighlighting": "src/main/resources/scss/xml-highlighting.css",
+    "splashScreen": "src/main/resources/css/splash-screen.css"
   },
 
   // ============================================================================
