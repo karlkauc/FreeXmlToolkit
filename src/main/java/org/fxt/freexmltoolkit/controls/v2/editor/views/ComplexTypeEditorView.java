@@ -53,6 +53,8 @@ public class ComplexTypeEditorView extends BorderPane {
     private XsdGraphView graphView;
     private Runnable onChangeCallback;
     private Runnable onCloseCallback;
+    /** Opens a named type (one framed inside this type) in its own type editor; may be null. */
+    private java.util.function.Consumer<String> openTypeEditorCallback;
 
     /**
      * Creates a new ComplexType editor view.
@@ -345,6 +347,7 @@ public class ComplexTypeEditorView extends BorderPane {
             // Recreate XsdGraphView with new virtual schema
             graphView = new XsdGraphView(virtualSchema);
             graphView.setRootKind("complexType");
+            wireTypeCallbacks();
             setupChangeTracking();
 
             // Replace view
@@ -365,6 +368,33 @@ public class ComplexTypeEditorView extends BorderPane {
      */
     public void setOnChangeCallback(Runnable callback) {
         this.onChangeCallback = callback;
+    }
+
+    /**
+     * Sets how a named type used inside this type is opened in its own type editor (context menu
+     * "Edit Type", "Open in Type Editor", double-click on a type frame's title). Anonymous types
+     * have no name and are ignored.
+     *
+     * @param callback receives the type's name
+     */
+    public void setOpenTypeEditorCallback(java.util.function.Consumer<String> callback) {
+        this.openTypeEditorCallback = callback;
+        wireTypeCallbacks();
+    }
+
+    /** Hands the open-type callback to the (possibly recreated) graph view. */
+    private void wireTypeCallbacks() {
+        if (graphView == null || openTypeEditorCallback == null) {
+            return;
+        }
+        graphView.setOpenComplexTypeEditorCallback(ct -> openNamed(ct == null ? null : ct.getName()));
+        graphView.setOpenSimpleTypeEditorCallback(st -> openNamed(st == null ? null : st.getName()));
+    }
+
+    private void openNamed(String typeName) {
+        if (openTypeEditorCallback != null && typeName != null && !typeName.isBlank()) {
+            openTypeEditorCallback.accept(typeName);
+        }
     }
 
     /**

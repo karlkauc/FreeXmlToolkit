@@ -1971,7 +1971,7 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
      *
      * @return whether a type editor was asked to open
      */
-    boolean openTypeOfFrame(TypeFrame frame) {
+    public boolean openTypeOfFrame(TypeFrame frame) {
         if (frame == null || frame.type() == null || openComplexTypeEditorCallback == null) {
             return false;
         }

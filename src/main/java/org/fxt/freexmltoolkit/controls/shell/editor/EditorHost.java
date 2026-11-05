@@ -1059,22 +1059,17 @@ public class EditorHost extends BorderPane {
         }
     }
 
-    /** Open type-editor tabs, keyed by type name, so a type is edited in at most one tab. */
-    private final java.util.Map<String, Tab> openTypeTabs = new java.util.HashMap<>();
+    /** Open type-editor tabs, keyed by schema document and type name: one tab per type. */
+    private final java.util.Map<TypeTabKey, Tab> openTypeTabs = new java.util.HashMap<>();
+
+    /** A type of one schema document (equal type names of two schemas are different types). */
+    private record TypeTabKey(EditorTab source, String typeName) {
+    }
 
     /** Shell-wide clipboard for copy/cut/paste of XSD nodes across the structured views. */
     final org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard nodeClipboard =
             new org.fxt.freexmltoolkit.controls.v2.editor.clipboard.XsdClipboard();
 
-    /**
-     * Opens a named XSD type in a dedicated editor tab: a 5-panel form for a simple type, a
-     * focused graphical editor for a complex type. Both are backed by the active document's live
-     * {@link org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext}; edits round-trip to the
-     * XSD text (the simple-type form edits the shared model directly; the complex-type editor
-     * merges its changes back on Save). Re-opening a type re-selects its existing tab.
-     *
-     * @return the opened (or re-selected) tab, or {@code null} if no such named type exists
-     */
     /**
      * Opens the type-editor tab for a named type, triggered from a Graphic-view context-menu
      * action ("Open in Type Editor"). Anonymous inline types have no name and therefore no tab
@@ -1088,19 +1083,43 @@ public class EditorHost extends BorderPane {
         javafx.application.Platform.runLater(() -> openTypeEditorTab(typeName));
     }
 
+    /**
+     * Opens a named XSD type in a dedicated editor tab: a 5-panel form for a simple type, a
+     * focused graphical editor for a complex type. Both are backed by the active document's live
+     * {@link org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext}; edits round-trip to the
+     * XSD text (the simple-type form edits the shared model directly; the complex-type editor
+     * merges its changes back on Save). Re-opening a type re-selects its existing tab.
+     *
+     * @return the opened (or re-selected) tab, or {@code null} if no such named type exists
+     */
     public Tab openTypeEditorTab(String typeName) {
         if (typeName == null) {
             return null;
         }
-        // Re-select an already-open tab for this type — works even when a tool tab is active.
-        Tab existing = openTypeTabs.get(typeName);
+        // A type tab in front: its type belongs to that tab's schema document
+        Tab selected = tabPane.getSelectionModel().getSelectedItem();
+        EditorTab et = openTypeTabs.entrySet().stream()
+                .filter(e -> e.getValue() == selected)
+                .map(e -> e.getKey().source())
+                .filter(source -> tabPane.getTabs().contains(source))
+                .findFirst().orElseGet(this::resolveStructuredEditorTab);
+        return et == null ? null : openTypeEditorTab(et, typeName);
+    }
+
+    /**
+     * Opens a named type of the given schema document in its type-editor tab (or re-selects it).
+     * Types used inside a complex type's editor open through here with that editor's document, so
+     * the lookup stays in the right schema when several are open.
+     */
+    Tab openTypeEditorTab(EditorTab et, String typeName) {
+        if (et == null || typeName == null) {
+            return null;
+        }
+        TypeTabKey key = new TypeTabKey(et, typeName);
+        Tab existing = openTypeTabs.get(key);
         if (existing != null && tabPane.getTabs().contains(existing)) {
             tabPane.getSelectionModel().select(existing);
             return existing;
-        }
-        EditorTab et = resolveStructuredEditorTab();
-        if (et == null) {
-            return null;
         }
         et.ensureModelParsed();
         var ctx = et.editorContext;
@@ -1125,6 +1144,10 @@ public class EditorHost extends BorderPane {
             tab = openToolTab("Type: " + typeName, "bi-diagram-3", buildComplexTypeEditor(view, et));
             Tab created = tab;
             view.setOnCloseCallback(() -> closeTypeTab(created));
+            // Types used inside this type open in their own tabs (deferred: the context menu
+            // that asked must close first)
+            view.setOpenTypeEditorCallback(name ->
+                    javafx.application.Platform.runLater(() -> openTypeEditorTab(et, name)));
             created.addEventHandler(Tab.CLOSED_EVENT, e -> view.dispose());
         } else {
             return null;
@@ -1135,9 +1158,9 @@ public class EditorHost extends BorderPane {
         ctx.getSchema().addPropertyChangeListener(roundTrip);
         tab.setOnClosed(e -> {
             ctx.getSchema().removePropertyChangeListener(roundTrip);
-            openTypeTabs.remove(typeName);
+            openTypeTabs.remove(key);
         });
-        openTypeTabs.put(typeName, tab);
+        openTypeTabs.put(key, tab);
         return tab;
     }
 

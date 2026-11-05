@@ -157,4 +157,112 @@ class TypeEditorTabTest {
         assertFalse(type.isAbstract(), "undone through the schema's command stack");
         assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, abstractBox::isSelected), "the checkbox follows the model");
     }
+
+    // ---- Types used inside a type editor open in their own type editor ----
+
+    private static String nestedXsd(String innerChild) {
+        return """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:complexType name="OuterType">
+                    <xs:sequence>
+                      <xs:element name="inner" type="InnerType"/>
+                    </xs:sequence>
+                  </xs:complexType>
+                  <xs:complexType name="InnerType">
+                    <xs:sequence>
+                      <xs:element name="%s" type="xs:string"/>
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:schema>
+                """.formatted(innerChild);
+    }
+
+    private Path openSchema(Path file, String text, String marker) throws Exception {
+        Files.writeString(file, text);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(file));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains(marker)).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TREE);
+            return null;
+        });
+        return file;
+    }
+
+    private static ComplexTypeEditorView complexView(Tab tab) {
+        return (ComplexTypeEditorView) ((BorderPane) tab.getContent()).getCenter();
+    }
+
+    /** The first type frame in the type editor's diagram (the frame of a type used inside it). */
+    private static org.fxt.freexmltoolkit.controls.v2.view.TypeFrame firstFrame(Tab tab) {
+        return WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            var root = complexView(tab).getGraphView().getRootNode();
+            java.util.ArrayDeque<org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode> todo =
+                    new java.util.ArrayDeque<>(java.util.List.of(root));
+            while (!todo.isEmpty()) {
+                var node = todo.poll();
+                if (!node.getTypeFrames().isEmpty()) {
+                    return node.getTypeFrames().getFirst();
+                }
+                todo.addAll(node.getChildren());
+            }
+            throw new AssertionError("no type frame in the type editor");
+        });
+    }
+
+    /** Asks the type editor's diagram to open the type of a frame, as the frame menu / double-click do. */
+    private Tab openFrameType(Tab typeTab) {
+        var frame = firstFrame(typeTab);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> complexView(typeTab).getGraphView().openTypeOfFrame(frame)),
+                "the type editor's diagram can open the framed type");
+        WaitForAsyncUtils.waitForFxEvents();
+        return WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> typeTab.getTabPane().getSelectionModel().getSelectedItem());
+    }
+
+    @Test
+    void aTypeUsedInsideATypeEditorOpensInItsOwnTypeEditor(@TempDir Path tmp) throws Exception {
+        openSchema(tmp.resolve("nested.xsd"), nestedXsd("value"), "OuterType");
+        Tab outer = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openTypeEditorTab("OuterType"));
+        assertNotNull(outer);
+
+        Tab inner = openFrameType(outer);
+        assertNotSame(outer, inner, "a new tab opened");
+        assertEquals("Type: InnerType", inner.getText());
+        assertEquals("InnerType", WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> complexView(inner).getGraphView().getRootNode().getLabel()));
+
+        // Asking again re-selects the same tab
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> outer.getTabPane().getSelectionModel().select(outer));
+        assertSame(inner, openFrameType(outer), "an open type tab is re-used");
+
+        // Discarding the outer editor's changes rebuilds its diagram; opening still works
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            complexView(outer).reload();
+            outer.getTabPane().getSelectionModel().select(outer);
+        });
+        assertSame(inner, openFrameType(outer), "still wired after reload");
+    }
+
+    @Test
+    void aNestedTypeIsLookedUpInTheSchemaOfItsTypeEditor(@TempDir Path tmp) throws Exception {
+        openSchema(tmp.resolve("a.xsd"), nestedXsd("fromA"), "fromA");
+        openSchema(tmp.resolve("b.xsd"), nestedXsd("fromB"), "fromB");
+        Tab outerB = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openTypeEditorTab("OuterType"));
+
+        // The first XSD tab (a.xsd) would be the fallback; the type must come from b.xsd
+        Tab innerB = openFrameType(outerB);
+        String child = WaitForAsyncUtils.waitForAsyncFx(2000, () -> complexView(innerB).getGraphView()
+                .getRootNode().getChildren().stream()
+                .flatMap(n -> java.util.stream.Stream.concat(java.util.stream.Stream.of(n), n.getChildren().stream()))
+                .map(org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode::getLabel)
+                .filter(l -> l.startsWith("from")).findFirst().orElse(""));
+        assertEquals("fromB", child, "InnerType of b.xsd, not of a.xsd");
+
+        // a.xsd's OuterType is a different type and gets its own tab
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(tmp.resolve("a.xsd")));
+        Tab outerA = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openTypeEditorTab("OuterType"));
+        assertNotSame(outerB, outerA, "equal type names of two schemas are different tabs");
+    }
 }

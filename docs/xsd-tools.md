@@ -142,6 +142,9 @@ frame belongs to the type, not to the element: the same content appears wherever
 - **To change the content, edit the type**: **double-click the frame title**, choose
   **Edit Type '…'** in the context menu, or use **Edit type** in the Properties pane. The type
   opens in its own [Type Editor](#3-type-editor) tab, where its content can be edited.
+  This works inside a Type Editor tab too: a type used there opens in a further Type Editor
+  tab (of the same schema), so nested types can be followed level by level. A type that is
+  already open just has its tab brought to the front.
 - **The element itself stays editable**: its name, cardinality, type and documentation belong to
   the element's declaration, so they can still be changed on its card.
 - **Extensions show the base type as a nested frame.** For a type defined by
