@@ -247,6 +247,9 @@ tasks {
             // (a hot NullPointerException is logged without any trace otherwise).
             "-XX:-OmitStackTraceInFastThrow"
         )
+        // Max heap per run, e.g. `./gradlew run -Pheap=12g`; without it the JVM default
+        // (a quarter of the physical memory) applies.
+        (findProperty("heap") as String?)?.let { maxHeapSize = it }
         // Dev runs report meta.channel=dev even when they carry a real version number
         // (TelemetryServiceImpl.channel), so they never count as release usage.
         systemProperty("fxt.telemetry.channel", "dev")

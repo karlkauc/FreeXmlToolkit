@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 ./gradlew run                    # Run the application
+./gradlew run -Pheap=12g         # Run with a larger max heap (-Xmx)
 ./gradlew test                   # Run all tests
 ./gradlew clean build            # Clean and build
 ./gradlew test --tests "ClassName.methodName"  # Single test
