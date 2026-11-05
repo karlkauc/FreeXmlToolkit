@@ -228,8 +228,23 @@ public class UnifiedShellView extends BorderPane {
             boolean leftArea = hasDocument || activityChosen;
             boolean showLeft = leftArea && leftPanelOpen;
             boolean showRight = documentTab && inspectorOpen;
-            syncWorkItem(leftPanelWrapper, showLeft, true, LEFT_WIDTH_KEY, LEFT_WIDTH_DEFAULT);
-            syncWorkItem(inspectorWrapper, showRight, false, INSPECTOR_WIDTH_KEY, INSPECTOR_WIDTH_DEFAULT);
+            // Widths of the side columns as they are now: showing or hiding one column must not
+            // change the other (the split would redistribute its dividers by fraction).
+            double leftWidth = liveOrPersistedWidth(leftPanelWrapper, LEFT_WIDTH_KEY, LEFT_WIDTH_DEFAULT);
+            double inspectorWidth = liveOrPersistedWidth(inspectorWrapper, INSPECTOR_WIDTH_KEY, INSPECTOR_WIDTH_DEFAULT);
+            // A column about to be hidden keeps its width for the next show, even a fresh drag
+            // the debounced save has not written yet
+            if (!showLeft) {
+                saveWidthPref(LEFT_WIDTH_KEY, leftPanelWrapper);
+            }
+            if (!showRight) {
+                saveWidthPref(INSPECTOR_WIDTH_KEY, inspectorWrapper);
+            }
+            boolean changed = syncWorkItem(leftPanelWrapper, showLeft, true, leftWidth);
+            changed |= syncWorkItem(inspectorWrapper, showRight, false, inspectorWidth);
+            if (changed) {
+                restoreDividers(leftWidth, inspectorWidth);
+            }
             leftPanelToggle.setDisable(!leftArea);
             leftPanelToggle.setSelected(leftPanelOpen);
             inspectorToggle.setDisable(!documentTab);
@@ -1166,33 +1181,51 @@ public class UnifiedShellView extends BorderPane {
     /**
      * Shows or hides a side column of the horizontal work split. SplitPane does not reclaim
      * the space of merely unmanaged items, so hiding removes the item from the split; the
-     * visible/managed flags are kept in sync for layout-state observers. On show, the persisted
-     * pixel width is applied as {@code prefWidth} before insertion (the skin derives the new
-     * divider position from it) and re-asserted after the next layout pass.
+     * visible/managed flags are kept in sync for layout-state observers. On show, the width is
+     * applied as {@code prefWidth} before insertion (the skin derives the new divider position
+     * from it); {@link #restoreDividers} re-asserts it after the next layout pass.
+     *
+     * @return whether the split's items changed
      */
-    private void syncWorkItem(Region node, boolean show, boolean atStart, String key, double defaultWidth) {
+    private boolean syncWorkItem(Region node, boolean show, boolean atStart, double width) {
         node.setVisible(show);
         node.setManaged(show);
-        boolean present = workArea.getItems().contains(node);
-        if (!show) {
-            if (present) {
-                workArea.getItems().remove(node);
-            }
-        } else if (!present) {
-            node.setPrefWidth(loadWidthPref(key, defaultWidth));
-            workArea.getItems().add(atStart ? 0 : workArea.getItems().size(), node);
-            restoreDivider(node, atStart, key, defaultWidth);
+        if (show) {
+            // The skin re-derives every divider from the items' preferred widths when the
+            // items change, so a column that stays must prefer the width it has now
+            node.setPrefWidth(width);
         }
+        boolean present = workArea.getItems().contains(node);
+        if (!show && present) {
+            workArea.getItems().remove(node);
+            return true;
+        }
+        if (show && !present) {
+            workArea.getItems().add(atStart ? 0 : workArea.getItems().size(), node);
+            return true;
+        }
+        return false;
     }
 
     /**
-     * Re-asserts the persisted pixel width of a just-shown side column by positioning its
-     * divider. Divider positions set before the skin has laid out are clamped/overwritten,
-     * hence the {@code runLater} plus a one-shot retry while the split has no width yet
-     * (startup). The divider index is derived from the live item list — with the left panel
-     * collapsed, the inspector's divider is index 0, not 1.
+     * @return the column's current width while it is laid out in the split (also a drag not yet
+     *         persisted), else its persisted width
      */
-    private void restoreDivider(Region node, boolean atStart, String key, double defaultWidth) {
+    private double liveOrPersistedWidth(Region node, String key, double defaultWidth) {
+        double width = node.getWidth();
+        if (workArea.getItems().contains(node) && width >= MIN_PANEL_WIDTH) {
+            return width;
+        }
+        return loadWidthPref(key, defaultWidth);
+    }
+
+    /**
+     * Positions the dividers so that every visible side column has its pixel width again after
+     * a column was shown or hidden: the left panel's divider is the first, the inspector's the
+     * last. Divider positions set before the skin has laid out are clamped/overwritten, hence
+     * the {@code runLater} plus a one-shot retry while the split has no width yet (startup).
+     */
+    private void restoreDividers(double leftWidth, double inspectorWidth) {
         javafx.application.Platform.runLater(() -> {
             double total = workArea.getWidth();
             if (total <= 0) {
@@ -1201,24 +1234,51 @@ public class UnifiedShellView extends BorderPane {
                     public void changed(javafx.beans.value.ObservableValue<? extends Number> obs,
                                         Number oldValue, Number newValue) {
                         workArea.widthProperty().removeListener(this);
-                        restoreDivider(node, atStart, key, defaultWidth);
+                        restoreDividers(leftWidth, inspectorWidth);
                     }
                 });
                 return;
             }
-            int index = workArea.getItems().indexOf(node);
-            if (index < 0) {
-                return; // hidden again before the restore ran
+            // Let the skin take in the changed items first: its own pass would otherwise
+            // re-derive the dividers after ours
+            workArea.applyCss();
+            workArea.layout();
+            var items = workArea.getItems();
+            int dividers = items.size() - 1;
+            if (dividers < 1) {
+                return;
             }
-            double width = loadWidthPref(key, defaultWidth);
+            boolean left = items.contains(leftPanelWrapper);
+            boolean inspector = items.contains(inspectorWrapper);
             restoringDividers = true;
             try {
-                workArea.setDividerPosition(atStart ? index : index - 1,
-                        atStart ? width / total : 1 - width / total);
+                // Several passes: the skin may clamp the first one against the divider of a
+                // column it has just placed, and the divider's own width comes off the column
+                // (a pixel or two, corrected by what a pass actually produced)
+                double leftPos = leftWidth / total;
+                double inspectorPos = 1 - inspectorWidth / total;
+                for (int pass = 0; pass < 3; pass++) {
+                    if (left && inspector) {
+                        workArea.setDividerPositions(leftPos, inspectorPos);
+                    } else if (left) {
+                        workArea.setDividerPosition(0, leftPos);
+                    } else if (inspector) {
+                        workArea.setDividerPosition(dividers - 1, inspectorPos);
+                    }
+                    workArea.layout();
+                    leftPos += pixelCorrection(leftWidth, leftPanelWrapper.getWidth()) / total;
+                    inspectorPos -= pixelCorrection(inspectorWidth, inspectorWrapper.getWidth()) / total;
+                }
             } finally {
                 restoringDividers = false;
             }
         });
+    }
+
+    /** @return the small difference left by divider width and rounding; 0 for a clamped pass */
+    private static double pixelCorrection(double wanted, double actual) {
+        double diff = wanted - actual;
+        return Math.abs(diff) <= 4 ? diff : 0;
     }
 
     /** Restarts the debounced width save (no-op while a divider is being restored programmatically). */

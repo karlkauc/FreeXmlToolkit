@@ -115,6 +115,52 @@ class ResizableSidePanelsTest {
                 "inspector width is pixel-stable on window resize");
     }
 
+    @Test
+    void collapsingOneSidePanelKeepsTheOtherOnesWidth() throws Exception {
+        openSampleAndNormalize();
+        SplitPane workArea = shell.getWorkArea();
+        // Drag the inspector to ~300 px and the left panel to ~260 px (no save delay awaited)
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> workArea.setDividerPositions(
+                260 / workArea.getWidth(), 1 - 300 / workArea.getWidth()));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> Math.abs(shell.getInspectorWrapper().getWidth() - 300) <= 3
+                        && Math.abs(shell.getLeftPanelWrapper().getWidth() - 260) <= 3);
+
+        // Left panel closed and opened again: the inspector keeps its width throughout
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.setLeftPanelVisible(false));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(300, shell.getInspectorWrapper().getWidth(), 3, "inspector after closing the left panel");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.setLeftPanelVisible(true));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(300, shell.getInspectorWrapper().getWidth(), 3, "inspector after reopening the left panel");
+        assertEquals(260, shell.getLeftPanelWrapper().getWidth(), 3, "left panel comes back as it was");
+
+        // And the other way round
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.setInspectorVisible(false));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(260, shell.getLeftPanelWrapper().getWidth(), 3, "left panel after closing the inspector");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.setInspectorVisible(true));
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(260, shell.getLeftPanelWrapper().getWidth(), 3, "left panel after reopening the inspector");
+        assertEquals(300, shell.getInspectorWrapper().getWidth(), 3, "inspector comes back as it was");
+
+        // Toggling again and again does not let either column creep
+        double left = shell.getLeftPanelWrapper().getWidth();
+        double inspector = shell.getInspectorWrapper().getWidth();
+        for (int i = 0; i < 5; i++) {
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.setLeftPanelVisible(false));
+            WaitForAsyncUtils.waitForFxEvents();
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.setLeftPanelVisible(true));
+            WaitForAsyncUtils.waitForFxEvents();
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.setInspectorVisible(false));
+            WaitForAsyncUtils.waitForFxEvents();
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> shell.setInspectorVisible(true));
+            WaitForAsyncUtils.waitForFxEvents();
+        }
+        assertEquals(left, shell.getLeftPanelWrapper().getWidth(), 1, "left panel after repeated toggling");
+        assertEquals(inspector, shell.getInspectorWrapper().getWidth(), 1, "inspector after repeated toggling");
+    }
+
     /** Opens a sample XML doc and normalizes both panels to open (independent of persisted prefs). */
     private void openSampleAndNormalize() throws Exception {
         Path xml = Files.createTempFile("resizable", ".xml");
