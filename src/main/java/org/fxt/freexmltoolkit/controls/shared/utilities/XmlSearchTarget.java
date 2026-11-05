@@ -48,6 +48,17 @@ public interface XmlSearchTarget {
     int findAll(String text);
 
     /**
+     * Counts all matches of the given text without navigating (the status after a
+     * "find next/previous", which must not jump back to the first match).
+     *
+     * @param text the text to find (case-insensitive)
+     * @return the number of matches, or {@code -1} if the count is unknown
+     */
+    default int countMatches(String text) {
+        return -1;
+    }
+
+    /**
      * Clears any internal search state (e.g. the cached match list).
      */
     void clearSearch();

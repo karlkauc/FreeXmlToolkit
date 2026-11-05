@@ -3231,7 +3231,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             currentMatchIndex = (currentMatchIndex - 1 + searchMatches.size()) % searchMatches.size();
         }
 
-        revealHit(searchMatches.get(currentMatchIndex));
+        revealCurrentHit(forward);
         return true;
     }
 
@@ -3244,11 +3244,32 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     @Override
     public int findAll(String searchText) {
         rebuildMatches(searchText);
-        if (!searchMatches.isEmpty()) {
-            currentMatchIndex = 0;
-            revealHit(searchMatches.get(0));
+        if (searchMatches.isEmpty()) {
+            return 0;
         }
-        return searchMatches.size();
+        int count = XmlCanvasSearch.countMatches(searchMatches);
+        currentMatchIndex = 0;
+        revealCurrentHit(true);
+        return count;
+    }
+
+    /**
+     * Counts the matches of the given text without moving to one (the search bar's status after
+     * "Find Next"). Reuses the current match list while the text is unchanged.
+     *
+     * @param searchText the text to find (case-insensitive)
+     * @return the number of matches
+     */
+    @Override
+    public int countMatches(String searchText) {
+        if (searchText == null || searchText.isEmpty()) {
+            return 0;
+        }
+        if (searchText.equals(lastSearchText)) {
+            return XmlCanvasSearch.countMatches(searchMatches);
+        }
+        java.util.List<XmlCanvasSearch.Hit> hits = XmlCanvasSearch.findHits(allRows, searchText);
+        return XmlCanvasSearch.countMatches(hits);
     }
 
     /**
@@ -3268,11 +3289,64 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     private void rebuildMatches(String searchText) {
         lastSearchText = searchText;
-        // The root's rows and those of every opened cell, at any depth
-        List<FlatRow> live = new ArrayList<>();
-        forEachLiveRow(live::add);
-        searchMatches = XmlCanvasSearch.findHits(live, searchText);
+        // The root's rows; opened cells (at any depth) are searched at their place, closed ones
+        // by their content
+        searchMatches = new ArrayList<>(XmlCanvasSearch.findHits(allRows, searchText));
         currentMatchIndex = -1;
+    }
+
+    /**
+     * Reveals the hit at {@link #currentMatchIndex}. A closed cell whose content matches is opened
+     * first and replaced in the match list by the hits inside it (the first one when searching
+     * forward, the last one backwards), down to the innermost closed cell.
+     */
+    private void revealCurrentHit(boolean forward) {
+        XmlCanvasSearch.Hit hit = searchMatches.get(currentMatchIndex);
+        while (hit.isHidden()) {
+            List<XmlCanvasSearch.Hit> inner = openHiddenCell(hit);
+            if (inner.isEmpty()) {
+                // Only its summary matched: the cell itself is the hit
+                hit = new XmlCanvasSearch.Hit(hit.row(), hit.tableRow(), hit.tableColumn());
+                searchMatches.set(currentMatchIndex, hit);
+                break;
+            }
+            searchMatches.remove(currentMatchIndex);
+            searchMatches.addAll(currentMatchIndex, inner);
+            if (!forward) {
+                currentMatchIndex += inner.size() - 1;
+            }
+            hit = searchMatches.get(currentMatchIndex);
+        }
+        revealHit(hit);
+    }
+
+    /**
+     * Opens the closed complex cell of a hidden hit (its owner rows are expanded too) and searches
+     * the cell's grid.
+     *
+     * @return the hits inside the cell, empty when it could not be opened
+     */
+    private List<XmlCanvasSearch.Hit> openHiddenCell(XmlCanvasSearch.Hit hit) {
+        FlatRow owner = hit.row();
+        RepeatingElementsTable table = owner.getRepeatingTable();
+        if (table == null || hit.tableRow() >= table.getRows().size()) {
+            return List.of();
+        }
+        RepeatingElementsTable.TableColumn column = table.getColumn(hit.tableColumn());
+        if (column == null) {
+            return List.of();
+        }
+        if (!owner.isExpanded()) {
+            owner.setExpanded(true);
+        }
+        revealRow(owner); // its ancestors open too, so the cell's grid is laid out where it is drawn
+        RepeatingElementsTable.TableRow row = table.getRows().get(hit.tableRow());
+        if (!row.isColumnExpanded(column.getName())) {
+            row.toggleColumnExpanded(column.getName());
+            table.recalculateColumnWidths();
+        }
+        GridBlock grid = row.getCellGrid(column.getName());
+        return grid == null ? List.of() : XmlCanvasSearch.findHits(grid.rows(), lastSearchText);
     }
 
     /**

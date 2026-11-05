@@ -60,4 +60,15 @@ class JsonGridRecordTest {
         assertNull(table.getRows().get(0).getElement(), "JSON rows carry no XmlElement");
         assertTrue(table.isColumnSortable("a"));
     }
+
+    @Test
+    void countsMatchesInsideNestedContainersForSearch() {
+        JsonGridRecord record = new JsonGridRecord(object(
+                "{\"id\": 1, \"o\": {\"city\": \"Vienna\", \"deep\": {\"note\": \"vienna again\"}}}"));
+
+        assertEquals(2, record.countCellMatches("o", "vienna"), "a value one and two levels down");
+        assertEquals(1, record.countCellMatches("o", "note"), "keys count too");
+        assertEquals(0, record.countCellMatches("o", "paris"));
+        assertEquals(0, record.countCellMatches("id", "1"), "a scalar column has no complex content");
+    }
 }

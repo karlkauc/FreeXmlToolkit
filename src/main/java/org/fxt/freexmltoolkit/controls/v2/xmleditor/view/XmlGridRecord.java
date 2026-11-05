@@ -146,6 +146,57 @@ public final class XmlGridRecord implements GridRecord {
                 : List.of();
     }
 
+    @Override
+    public int countCellMatches(String columnName, String needle) {
+        if (!complexChildren.containsKey(columnName)) {
+            return 0;
+        }
+        int count = 0;
+        for (XmlElement member : cellMembers(columnName)) {
+            // The member's own name is the column header; its attributes and content are the cell's
+            count += countAttributeMatches(member, needle);
+            for (XmlNode child : member.getChildren()) {
+                count += countNodeMatches(child, needle);
+            }
+        }
+        return count;
+    }
+
+    private static int countNodeMatches(XmlNode node, String needle) {
+        if (node instanceof XmlElement element) {
+            int count = contains(element.getName(), needle) ? 1 : 0;
+            count += countAttributeMatches(element, needle);
+            for (XmlNode child : element.getChildren()) {
+                count += countNodeMatches(child, needle);
+            }
+            return count;
+        }
+        if (node instanceof XmlText text) {
+            return !text.isWhitespace() && contains(text.getText(), needle) ? 1 : 0;
+        }
+        if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlCData cdata) {
+            return contains(cdata.getText(), needle) ? 1 : 0;
+        }
+        if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment comment) {
+            return contains(comment.getText(), needle) ? 1 : 0;
+        }
+        return 0;
+    }
+
+    private static int countAttributeMatches(XmlElement element, String needle) {
+        int count = 0;
+        for (Map.Entry<String, String> attribute : element.getAttributes().entrySet()) {
+            if (contains(attribute.getKey(), needle) || contains(attribute.getValue(), needle)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static boolean contains(String text, String needle) {
+        return text != null && text.toLowerCase().contains(needle);
+    }
+
     /** @return every child element behind the column, in document order (empty for attributes and text) */
     public List<XmlElement> cellMembers(String columnName) {
         List<XmlElement> members = cellMembers.get(columnName);

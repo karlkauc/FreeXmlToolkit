@@ -56,25 +56,46 @@ public final class XmlCanvasSearch {
     }
 
     /**
-     * A search hit: a row, or a cell of the embedded table of a table-owner row.
+     * A search hit: a row, a cell of the embedded table of a table-owner row, or a closed complex
+     * cell whose hidden content matches.
      *
      * @param row         the matching row, or the table owner of a cell hit
      * @param tableRow    the table row of a cell hit, -1 for a row hit
      * @param tableColumn the table column of a cell hit, -1 for a row hit
+     * @param hidden      for a closed complex cell: how many nodes inside it match (they become
+     *                    hits of their own once the cell is opened); 0 otherwise
      */
-    public record Hit(FlatRow row, int tableRow, int tableColumn) {
+    public record Hit(FlatRow row, int tableRow, int tableColumn, int hidden) {
+
+        /** A row hit ({@code tableRow < 0}) or a cell hit. */
+        public Hit(FlatRow row, int tableRow, int tableColumn) {
+            this(row, tableRow, tableColumn, 0);
+        }
+
         /** @return whether this hit is a table cell */
         public boolean isCell() {
             return tableRow >= 0;
         }
+
+        /** @return whether this hit is a closed cell whose content matches (open it to reach the hits) */
+        public boolean isHidden() {
+            return hidden > 0;
+        }
+
+        /** @return how many matches this hit stands for (1, or the matches inside a closed cell) */
+        public int weight() {
+            return Math.max(1, hidden);
+        }
     }
 
     /**
-     * Like {@link #findMatches} but also searches the cells of embedded tables (the members of
-     * a repeating group have no rows of their own): every matching cell is a hit, after the
-     * owner row itself when that matches. Builds the tables of matching groups.
+     * Like {@link #findMatches} but also searches embedded tables (the members of a repeating group
+     * have no rows of their own), in document order: after a matching owner row come its matching
+     * cells; an opened complex cell contributes the hits of its grid at its place, a closed one a
+     * single {@link Hit#isHidden() hidden} hit when anything inside it matches. Builds the tables
+     * of the groups it visits.
      *
-     * @param rows       the complete flat row list
+     * @param rows       the rows of a grid (the root's, or an opened cell's)
      * @param searchText the text to match; null/blank yields an empty result
      * @return the hits in document order (never null)
      */
@@ -83,26 +104,66 @@ public final class XmlCanvasSearch {
         if (rows == null || searchText == null || searchText.isEmpty()) {
             return hits;
         }
-        String needle = searchText.toLowerCase();
+        collectHits(rows, searchText.toLowerCase(), hits);
+        return hits;
+    }
+
+    /** @return the number of matches the hits stand for (a closed cell counts its inner matches) */
+    public static int countMatches(List<Hit> hits) {
+        int count = 0;
+        for (Hit hit : hits) {
+            count += hit.weight();
+        }
+        return count;
+    }
+
+    private static void collectHits(List<FlatRow> rows, String needle, List<Hit> hits) {
         for (FlatRow row : rows) {
             if (rowMatches(row, needle)) {
                 hits.add(new Hit(row, -1, -1));
             }
             if (row.hasRepeatingTable()) {
-                RepeatingElementsTable table = row.getRepeatingTable();
-                List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
-                for (int r = 0; r < table.getRows().size(); r++) {
-                    RepeatingElementsTable.TableRow tableRow = table.getRows().get(r);
-                    for (int c = 0; c < columns.size(); c++) {
-                        String value = tableRow.getValue(columns.get(c).getName());
-                        if (value != null && value.toLowerCase().contains(needle)) {
-                            hits.add(new Hit(row, r, c));
+                collectTableHits(row, needle, hits);
+            }
+        }
+    }
+
+    private static void collectTableHits(FlatRow owner, String needle, List<Hit> hits) {
+        RepeatingElementsTable table = owner.getRepeatingTable();
+        if (table == null) {
+            return;
+        }
+        List<RepeatingElementsTable.TableColumn> columns = table.getColumns();
+        for (int r = 0; r < table.getRows().size(); r++) {
+            RepeatingElementsTable.TableRow tableRow = table.getRows().get(r);
+            for (int c = 0; c < columns.size(); c++) {
+                String name = columns.get(c).getName();
+                boolean suffixMatches = contains(tableRow.getAttributeSuffix(name), needle);
+                if (tableRow.hasComplexChild(name)) {
+                    GridBlock grid = tableRow.getCellGrid(name);
+                    if (grid != null) {
+                        // An opened cell: its own rows are searched where they are drawn
+                        if (suffixMatches) {
+                            hits.add(new Hit(owner, r, c));
                         }
+                        collectHits(grid.rows(), needle, hits);
+                        continue;
                     }
+                    int inside = tableRow.getRecord().countCellMatches(name, needle);
+                    if (inside > 0) {
+                        hits.add(new Hit(owner, r, c, inside));
+                    } else if (suffixMatches || contains(tableRow.getValue(name), needle)) {
+                        hits.add(new Hit(owner, r, c));
+                    }
+                } else if (suffixMatches || contains(tableRow.getValue(name), needle)) {
+                    hits.add(new Hit(owner, r, c));
                 }
             }
         }
-        return hits;
+    }
+
+    private static boolean contains(String text, String needle) {
+        return text != null && text.toLowerCase().contains(needle);
     }
 
     /**

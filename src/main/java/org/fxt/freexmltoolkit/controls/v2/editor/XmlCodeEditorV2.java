@@ -965,6 +965,30 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     }
 
     /**
+     * Counts all occurrences of the search text without moving the caret.
+     *
+     * @param searchText the text to find
+     * @return the number of occurrences
+     */
+    @Override
+    public int countMatches(String searchText) {
+        if (searchText == null || searchText.isEmpty()) {
+            return 0;
+        }
+        String content = codeArea.getText();
+        if (content == null || content.isEmpty()) {
+            return 0;
+        }
+        int count = 0;
+        int pos = 0;
+        while ((pos = indexOfIgnoreCase(content, searchText, pos)) >= 0) {
+            count++;
+            pos += searchText.length();
+        }
+        return count;
+    }
+
+    /**
      * Replaces the current selection with new text.
      *
      * @param findText    the text to find

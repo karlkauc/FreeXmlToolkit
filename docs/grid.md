@@ -174,7 +174,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   also writes the result into an element named after the formula, right after it;
   **Recalculate Stored Formula Results** refreshes all of them in one undo step.
 - **Search** (Ctrl+F) finds names and values in the rows and in the cells of embedded tables,
-  including the rows and tables inside opened cells; a hit expands what hides it and selects it.
+  including the content of cells that are still closed (nested elements, attributes such as
+  `ccy="EUR"`) at any depth; a hit opens the cells and expands what hides it, then selects it.
+  Enter / Shift+Enter walk through all hits.
 - **Copy XPath / Copy Node**: the grid's context menu offers **Copy XPath** (**Ctrl+Alt+X**),
   **Copy Cell Content** (**Ctrl+Shift+C**) and **Copy Node (XML)** (**Ctrl+Alt+C**); all three
   shortcuts also work directly on the selected node. **Ctrl+Shift+X** toggles the Query

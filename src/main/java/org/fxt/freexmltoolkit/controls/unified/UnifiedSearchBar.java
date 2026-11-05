@@ -285,7 +285,7 @@ public class UnifiedSearchBar extends HBox {
             statusLabel.setText("Not found");
             SemanticStyle.style(statusLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + ";");
         } else {
-            updateSearchCount(text);
+            showMatchCount(text);
         }
     }
 
@@ -306,7 +306,7 @@ public class UnifiedSearchBar extends HBox {
             statusLabel.setText("Not found");
             SemanticStyle.style(statusLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + ";");
         } else {
-            updateSearchCount(text);
+            showMatchCount(text);
         }
     }
 
@@ -347,6 +347,20 @@ public class UnifiedSearchBar extends HBox {
 
         statusLabel.setText(count + " replaced");
         SemanticStyle.style(statusLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-text-fill: " + c + ";");
+    }
+
+    /**
+     * Shows the match count after a find next/previous. Unlike {@link #updateSearchCount} it never
+     * navigates: {@code findAll} jumps to the first match, which made "next" stick on match one.
+     */
+    private void showMatchCount(String text) {
+        if (currentSearchTarget == null) {
+            updateSearchCount(text); // the plain CodeArea path only counts
+            return;
+        }
+        int count = currentSearchTarget.countMatches(text);
+        statusLabel.setText(count >= 0 ? count + " found" : "Found");
+        statusLabel.setStyle("");
     }
 
     private void updateSearchCount(String text) {

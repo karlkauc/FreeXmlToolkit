@@ -58,4 +58,16 @@ public interface GridRecord {
     default List<FlatRow> flattenCell(String columnName, java.util.function.Predicate<String> groupAsTable) {
         return flattenComplexChild(columnName);
     }
+
+    /**
+     * Counts the nodes below the complex cell of a column whose name or value contains the
+     * needle — the texts an opened cell would show, for searching closed cells.
+     *
+     * @param columnName the column
+     * @param needle     the lowercased search text (not empty)
+     * @return the number of matching nodes, 0 when the column has no complex child
+     */
+    default int countCellMatches(String columnName, String needle) {
+        return 0;
+    }
 }

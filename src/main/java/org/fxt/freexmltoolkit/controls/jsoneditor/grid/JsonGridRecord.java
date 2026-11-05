@@ -106,6 +106,33 @@ public final class JsonGridRecord implements GridRecord {
     }
 
     @Override
+    public int countCellMatches(String columnName, String needle) {
+        Object child = complexChildren.get(columnName);
+        if (!(child instanceof JsonNode node)) {
+            return 0;
+        }
+        int count = 0;
+        for (JsonNode inner : node.getChildren()) {
+            count += countMatches(inner, needle);
+        }
+        return count;
+    }
+
+    /** Counts the nodes of a subtree whose key or (scalar) value contains the needle. */
+    private static int countMatches(JsonNode node, String needle) {
+        String key = node.getKey();
+        boolean hit = key != null && key.toLowerCase().contains(needle);
+        if (!hit && node instanceof JsonPrimitive) {
+            hit = cellText(node).toLowerCase().contains(needle);
+        }
+        int count = hit ? 1 : 0;
+        for (JsonNode child : node.getChildren()) {
+            count += countMatches(child, needle);
+        }
+        return count;
+    }
+
+    @Override
     public List<FlatRow> flattenComplexChild(String columnName) {
         Object child = complexChildren.get(columnName);
         return child instanceof JsonNode node ? JsonGridAdapter.flattenValue(node) : List.of();

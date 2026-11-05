@@ -172,6 +172,19 @@ public class XsdTreeView extends TreeView<XsdNode> implements XmlSearchTarget {
         return searchMatches.size();
     }
 
+    /** @return the number of matching nodes, without moving the selection */
+    @Override
+    public int countMatches(String searchText) {
+        if (searchText == null || searchText.isEmpty()) {
+            return 0;
+        }
+        XsdNode root = getRoot() != null ? getRoot().getValue() : null;
+        if (searchText.equals(lastSearchText) && root == searchRoot) {
+            return searchMatches.size();
+        }
+        return XsdNodeSearch.findMatches(root, searchText).size();
+    }
+
     /** Clears the cached search state. */
     @Override
     public void clearSearch() {
