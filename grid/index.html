@@ -2696,13 +2696,16 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   only change the display; an invalid expression is reported and filters nothing. A filter
   lives while the document is open unless you save it: right-click it → <strong>Save Filter in
   Document</strong> stores it in the file as <code>&lt;?fxt-filter expression="…"?&gt;</code> in the filtered element
-  (one undoable edit; its funnel line then ends in <code>· saved</code>). A saved filter always comes back
+  (one undoable edit; its funnel line then starts with <code>saved ·</code>). A saved filter always comes back
   <strong>switched off</strong> when the file is opened, so nobody sees a filtered grid without knowing it:
   the grey funnel line shows it, and a click on the funnel or right-click → <strong>Filter Active</strong>
   switches it on. Editing a saved filter updates the file; <strong>Remove Filter</strong> / <strong>Remove All
   Filters</strong> also remove it from the file, unticking <strong>Save Filter in Document</strong> only from the
-  file.
-- <strong>Formulas.</strong> Right-click an element → <strong>Add Formula…</strong>: a name and an XQuery 3.1 expression
+  file.</p>
+<p><img alt="A saved filter after opening the file: the grey &quot;saved ·&quot; funnel line, the table complete" src="../img/unified-shell-grid-saved-filter.png" /></p>
+<p><img alt="The same filter switched on: only the AT positions remain in that cell, the sums still cover all" src="../img/unified-shell-grid-cell-filter.png" /></p>
+<ul>
+<li><strong>Formulas.</strong> Right-click an element → <strong>Add Formula…</strong>: a name and an XQuery 3.1 expression
   evaluated with that element as context (e.g. <code>avg(Month/Min)</code>). The formula row (icon <code>ƒ</code>)
   shows the expression and, below it, the live result - or the error in red; double-click the
   expression or the name to edit it. Formula rows are listed first under their element, above
@@ -2719,18 +2722,22 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   <code>12.005.649,85</code>. Formulas are saved in the file as
   <code>&lt;?fxt-formula name="…" expression="…"?&gt;</code> instructions. <strong>Store Formula Result in Document</strong>
   also writes the result into an element named after the formula, right after it;
-  <strong>Recalculate Stored Formula Results</strong> refreshes all of them in one undo step.
-- <strong>Search</strong> (Ctrl+F) finds names and values in the rows and in the cells of embedded tables,
+  <strong>Recalculate Stored Formula Results</strong> refreshes all of them in one undo step.</li>
+</ul>
+<p><img alt="Named sums of a table record (German number format) at the top of its opened cell" src="../img/unified-shell-grid-cell-formulas.png" /></p>
+<ul>
+<li><strong>Search</strong> (Ctrl+F) finds names and values in the rows and in the cells of embedded tables,
   including the content of cells that are still closed (nested elements, attributes such as
   <code>ccy="EUR"</code>) at any depth; a hit opens the cells and expands what hides it, then selects it.
-  Enter / Shift+Enter walk through all hits.
-- <strong>Copy XPath / Copy Node</strong>: the grid's context menu offers <strong>Copy XPath</strong> (<strong>Ctrl+Alt+X</strong>),
+  Enter / Shift+Enter walk through all hits.</li>
+<li><strong>Copy XPath / Copy Node</strong>: the grid's context menu offers <strong>Copy XPath</strong> (<strong>Ctrl+Alt+X</strong>),
   <strong>Copy Cell Content</strong> (<strong>Ctrl+Shift+C</strong>) and <strong>Copy Node (XML)</strong> (<strong>Ctrl+Alt+C</strong>); all three
   shortcuts also work directly on the selected node. <strong>Ctrl+Shift+X</strong> toggles the Query
-  Console everywhere, including while the grid has focus.
-- <strong>Go to Definition</strong>: right-click an element → <strong>Go to Definition</strong> opens the bound XSD in the
+  Console everywhere, including while the grid has focus.</li>
+<li><strong>Go to Definition</strong>: right-click an element → <strong>Go to Definition</strong> opens the bound XSD in the
   Graphic view, expanded along the element's path, with the card of its declaration selected - see
-  <a href="../xml-editor/#go-to-definition">Go to Definition</a>. The entry is disabled while no schema is bound.</p>
+  <a href="../xml-editor/#go-to-definition">Go to Definition</a>. The entry is disabled while no schema is bound.</li>
+</ul>
 <h2 id="json-grid">The Grid (Graphic view for JSON)<a class="headerlink" href="#json-grid" title="Permanent link">&para;</a></h2>
 <p>JSON documents (<code>.json</code>, <code>.jsonc</code>, <code>.json5</code>) get the <strong>same grid</strong> in the <strong>Graphic</strong> view -
 same header strip, same rows, same keyboard shortcuts and context menu - so a JSON file
