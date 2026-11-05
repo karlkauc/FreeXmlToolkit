@@ -227,6 +227,12 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     }
 
     @Override
+    public boolean isFormulaRow(FlatRow row) {
+        return row.getType() == FlatRow.RowType.PROCESSING_INSTRUCTION
+                && row.getModelNode() instanceof XmlProcessingInstruction pi && GridFormulas.isFormula(pi);
+    }
+
+    @Override
     public FormulaView formula(FlatRow row) {
         if (row.getType() != FlatRow.RowType.PROCESSING_INSTRUCTION
                 || !(row.getModelNode() instanceof XmlProcessingInstruction pi) || !GridFormulas.isFormula(pi)) {

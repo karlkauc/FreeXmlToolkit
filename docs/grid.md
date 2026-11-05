@@ -159,7 +159,12 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   the funnel to switch the filter off and on, double-click the line to edit it, clear it to
   remove the filter. **Filter to Focus** filters the root down to the selected node - on a row
   of an embedded table, the table keeps only that row. Right-clicked inside a table, **Filter…**
-  filters the element that holds the table. Filters
+  filters the element that holds the table (on a group row too). Inside an opened cell that is
+  the cell's record: in the `Datenpunkt` table of a `PK.006…` row, **Filter…** with
+  `Datenpunkt[starts-with(Wert_C0010PK, 'AT')]` leaves only those Datenpunkte in that cell; the
+  funnel line is the cell's first row and the record's formulas still sum all of its data. A
+  filter higher up reduces the opened cells below it as well, e.g. on the root
+  `*/Datenpunkt[starts-with(Wert_C0010PK, 'AT')]` for every record at once. Filters
   only change the display, never the document; an invalid expression is reported and
   filters nothing. Filters live while the document is open.
 - **Formulas.** Right-click an element → **Add Formula…**: a name and an XQuery 3.1 expression

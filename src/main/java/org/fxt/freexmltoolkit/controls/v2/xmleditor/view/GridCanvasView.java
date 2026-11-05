@@ -817,12 +817,36 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     private List<FlatRow> applyFilters(List<FlatRow> rows) {
         filterErrors.clear();
+        activeFilters.clear();
+        return applyFilters(rows, null);
+    }
+
+    /**
+     * The evaluated active filters by the key of their container, for the opened cells below a
+     * filtered container: a filter on the root also reduces the cells inside its tables.
+     */
+    private final java.util.Map<String, java.util.function.Predicate<Object>> activeFilters = new java.util.HashMap<>();
+
+    /**
+     * Applies the filters to the rows of a grid. For an opened cell, {@code anchor} is the cell's
+     * virtual anchor (the record, or the element whose content the cell lists): a filter on it
+     * reduces the cell's rows and its line comes first in the cell.
+     *
+     * @param anchor the anchor of an opened cell's rows, {@code null} for the root grid
+     */
+    private List<FlatRow> applyFilters(List<FlatRow> rows, FlatRow anchor) {
         if (viewState.filters().isEmpty()) {
             return rows;
         }
         java.util.Map<FlatRow, java.util.function.Predicate<Object>> predicates = new java.util.IdentityHashMap<>();
         java.util.Map<FlatRow, String> filtered = new java.util.IdentityHashMap<>();
-        for (FlatRow row : rows) {
+        List<FlatRow> containers = rows;
+        if (anchor != null) {
+            containers = new ArrayList<>(rows.size() + 1);
+            containers.add(anchor);
+            containers.addAll(rows);
+        }
+        for (FlatRow row : containers) {
             if (!row.getType().isContainer() || row.isVirtual()) {
                 continue;
             }
@@ -839,17 +863,32 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 java.util.function.Predicate<Object> p = adapter.filterPredicate(row, expression);
                 if (p != null) {
                     predicates.put(row, p);
+                    activeFilters.put(key, p);
                 }
             } catch (IllegalArgumentException e) {
                 filterErrors.put(key, e.getMessage());
             }
         }
-        if (filtered.isEmpty()) {
+        // An opened cell below a filtered container (e.g. the root) is reduced by that filter too
+        List<java.util.function.Predicate<Object>> inherited = new ArrayList<>();
+        if (anchor != null) {
+            String anchorKey = keyOf(anchor);
+            activeFilters.forEach((key, p) -> {
+                if (anchorKey.startsWith(key + "/")) {
+                    inherited.add(p);
+                }
+            });
+        }
+        if (filtered.isEmpty() && inherited.isEmpty()) {
             return rows;
         }
         List<FlatRow> result = new ArrayList<>(rows.size() + filtered.size());
+        if (anchor != null && filtered.containsKey(anchor)) {
+            result.add(new FlatRow(FlatRow.RowType.FILTER, 0, anchor.getModelNode(), anchor,
+                    null, viewState.filter(filtered.get(anchor)), 0));
+        }
         for (FlatRow row : rows) {
-            if (!passesFilters(row, predicates)) {
+            if (!passesFilters(row, predicates) || !passesInherited(row, inherited)) {
                 continue;
             }
             result.add(row);
@@ -872,27 +911,46 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         FlatRow ancestor = row.getParentRow();
         while (ancestor != null) {
             java.util.function.Predicate<Object> p = predicates.get(ancestor);
-            // the filtered element's own attributes stay
-            boolean ownAttribute = row.getType().isAttribute() && row.getParentRow() == ancestor;
-            if (p != null && !ownAttribute) {
-                if (row.isTableGroupOwner()) {
-                    List<Object> kept = new ArrayList<>();
-                    for (Object member : row.getTableMembers()) {
-                        if (p.test(member)) {
-                            kept.add(member);
-                        }
-                    }
-                    if (kept.isEmpty()) {
-                        return false;
-                    }
-                    if (kept.size() < row.getTableMembers().size()) {
-                        row.setTableGroup(row.getTableGroupKey(), kept);
-                    }
-                } else if (!p.test(row.getModelNode())) {
-                    return false;
-                }
+            // the filtered element's own attributes and formulas stay (formulas summarize all its data)
+            boolean ownAttribute = (row.getType().isAttribute() || adapter.isFormulaRow(row))
+                    && row.getParentRow() == ancestor;
+            if (p != null && !ownAttribute && !keeps(row, p)) {
+                return false;
             }
             ancestor = ancestor.getParentRow();
+        }
+        return true;
+    }
+
+    /** @return whether a row of an opened cell survives the filters of containers above the cell */
+    private boolean passesInherited(FlatRow row, List<java.util.function.Predicate<Object>> inherited) {
+        if (adapter.isFormulaRow(row)) {
+            return true;
+        }
+        for (java.util.function.Predicate<Object> p : inherited) {
+            if (!keeps(row, p)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** @return whether one filter keeps the row; a table group is reduced to its kept members */
+    private static boolean keeps(FlatRow row, java.util.function.Predicate<Object> p) {
+        if (!row.isTableGroupOwner()) {
+            return p.test(row.getModelNode());
+        }
+        List<Object> kept = new ArrayList<>();
+        for (Object member : row.getTableMembers()) {
+            if (p.test(member)) {
+                kept.add(member);
+            }
+        }
+        if (kept.isEmpty()) {
+            return false;
+        }
+        if (kept.size() < row.getTableMembers().size()) {
+            row.setTableGroup(row.getTableGroupKey(), kept);
         }
         return true;
     }
@@ -936,17 +994,26 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     FlatRow filterTargetRow() {
         if (selectedRow != null) {
-            return selectedRow;
+            // A repeating group stands for its members: the filter goes to the element holding it
+            return selectedRow.isTableGroupOwner() ? selectedRow.getParentRow() : selectedRow;
         }
         RepeatingElementsTable table = tables.selectedTable;
         return table != null && table.getOwnerRow() != null ? table.getOwnerRow().getParentRow() : null;
     }
 
-    /** @return whether the selection is a container that can carry a filter */
+    /**
+     * @return whether the selection is a container that can carry a filter; inside an opened cell
+     *         that is the cell's anchor (e.g. the table record whose Datenpunkt cell is open)
+     */
     public boolean canFilterSelection() {
         FlatRow target = filterTargetRow();
-        return target != null && target.isExpandable() && !target.isVirtual()
-                && !target.isTableGroupOwner() && filterSupported(target);
+        return target != null && !target.isVirtual() && !target.isTableGroupOwner()
+                && (target.isExpandable() || isCellAnchor(target)) && filterSupported(target);
+    }
+
+    /** @return whether the row is the virtual anchor of an opened cell's rows */
+    private static boolean isCellAnchor(FlatRow row) {
+        return row.getDepth() < 0;
     }
 
     private boolean filterSupported(FlatRow row) {
@@ -955,10 +1022,13 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** Asks for the filter expression of the selected container (empty removes the filter). */
     public void editFilterOfSelection() {
-        if (!canFilterSelection()) {
-            return;
+        if (canFilterSelection()) {
+            editFilter(filterTargetRow());
         }
-        FlatRow row = filterTargetRow();
+    }
+
+    /** Asks for the filter expression of a container row (empty removes the filter). */
+    private void editFilter(FlatRow row) {
         javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(
                 viewState.filter(keyOf(row)) != null ? viewState.filter(keyOf(row)) : "");
         dialog.setTitle("Filter");
@@ -2796,6 +2866,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     private GridBlock createCellGrid(RepeatingElementsTable table, RepeatingElementsTable.TableRow row,
                                      String column) {
         List<FlatRow> rows = row.getRecord().flattenCell(column, viewState::isTable);
+        rows = applyFilters(rows, cellAnchor(rows));
         GridBlock grid = new GridBlock(rows, row, column);
         adapter.attachTables(rows, this::markLayoutDirty);
         for (FlatRow inner : rows) {
@@ -2811,6 +2882,17 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
         FlatRow.applyVisibility(rows);
         return grid;
+    }
+
+    /** @return the virtual anchor the top rows of an opened cell hang off, or {@code null} */
+    private static FlatRow cellAnchor(List<FlatRow> rows) {
+        for (FlatRow row : rows) {
+            FlatRow parent = row.getParentRow();
+            if (parent != null && parent.getDepth() < 0) {
+                return parent;
+            }
+        }
+        return null;
     }
 
     /** How the rows of opened cells are measured, with the user's name-column widths of their blocks. */
@@ -2859,6 +2941,15 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return true;
         }
         boolean onLine = y <= top + ROW_HEIGHT;
+        if (row.getType() == FlatRow.RowType.FILTER) {
+            // As in the root grid: the funnel switches the filter, a double-click edits it
+            if (event.getClickCount() == 2) {
+                editFilter(row.getParentRow());
+            } else if (x < row.getValueX()) {
+                toggleFilter(row);
+            }
+            return true;
+        }
         if (event.getClickCount() == 1 && onLine) {
             if (row.isExpandable() && x >= row.getLabelX() && x <= row.getLabelX() + EXPAND_BAR_WIDTH) {
                 FlatRow.toggleExpand(row, grid.rows());

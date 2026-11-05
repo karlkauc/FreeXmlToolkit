@@ -143,6 +143,11 @@ public interface GridModelAdapter<N> {
     record FormulaView(String name, String expression, String result, String error, boolean stored) {
     }
 
+    /** @return whether the row shows a formula (cheap: no evaluation) */
+    default boolean isFormulaRow(FlatRow row) {
+        return false;
+    }
+
     /**
      * @param row a row
      * @return the evaluated formula when the row is a formula, else {@code null}; the canvas
