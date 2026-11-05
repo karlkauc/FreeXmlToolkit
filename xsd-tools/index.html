@@ -4020,7 +4020,10 @@ frame belongs to the type, not to the element: the same content appears wherever
   <em>"Part of type '…'. It is read-only here"</em> with an <strong>Edit type</strong> button and disables its editors.</li>
 <li><strong>To change the content, edit the type</strong>: <strong>double-click the frame title</strong>, choose
   <strong>Edit Type '…'</strong> in the context menu, or use <strong>Edit type</strong> in the Properties pane. The type
-  opens in its own <a href="#3-type-editor">Type Editor</a> tab, where its content can be edited.</li>
+  opens in its own <a href="#3-type-editor">Type Editor</a> tab, where its content can be edited.
+  This works inside a Type Editor tab too: a type used there opens in a further Type Editor
+  tab (of the same schema), so nested types can be followed level by level. A type that is
+  already open just has its tab brought to the front.</li>
 <li><strong>The element itself stays editable</strong>: its name, cardinality, type and documentation belong to
   the element's declaration, so they can still be changed on its card.</li>
 <li><strong>Extensions show the base type as a nested frame.</strong> For a type defined by
