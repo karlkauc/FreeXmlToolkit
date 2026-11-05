@@ -553,4 +553,63 @@ class QueryConsoleTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> "JSONPath".equals(
                 WaitForAsyncUtils.waitForAsyncFx(2000, console::pathModeLabelForTest)));
     }
+
+    @Test
+    void closeButtonAndEscapeRequestClose() throws Exception {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        java.util.concurrent.atomic.AtomicInteger closes = new java.util.concurrent.atomic.AtomicInteger();
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            console.setOnCloseRequest(closes::incrementAndGet);
+            // SplitPane items join the scene graph only through its skin, so give it a scene.
+            new javafx.scene.Scene(console, 900, 300);
+            console.applyCss();
+            console.layout();
+            var close = (javafx.scene.control.Button) console.lookup("#query-console-close");
+            assertNotNull(close, "close button at the top right of the console");
+            close.fire();
+            return null;
+        });
+        assertEquals(1, closes.get());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            javafx.event.Event.fireEvent(console, new javafx.scene.input.KeyEvent(
+                    javafx.scene.input.KeyEvent.KEY_PRESSED, "", "",
+                    javafx.scene.input.KeyCode.ESCAPE, false, false, false, false));
+            return null;
+        });
+        assertEquals(2, closes.get());
+    }
+
+    @Test
+    void activeModeIsNamedOnRunAndHint() throws Exception {
+        QueryConsole console = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new QueryConsole(host));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            new javafx.scene.Scene(console, 900, 300);
+            console.applyCss();
+            console.layout();
+            return null;
+        });
+        assertEquals("Run XPath", WaitForAsyncUtils.waitForAsyncFx(2000, () -> runText(console)));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> hintText(console)).startsWith("XPath mode"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            ((javafx.scene.control.ToggleButton) console.lookup("#query-mode-xquery")).fire();
+            return null;
+        });
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, console::isXQueryModeForTest));
+        assertEquals("Run XQuery", WaitForAsyncUtils.waitForAsyncFx(2000, () -> runText(console)));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> hintText(console)).startsWith("XQuery mode"));
+    }
+
+    private static String runText(QueryConsole console) {
+        return console.lookupAll(".button").stream()
+                .filter(n -> n instanceof javafx.scene.control.Button b && b.getText() != null
+                        && b.getText().startsWith("Run"))
+                .map(n -> ((javafx.scene.control.Button) n).getText())
+                .findFirst().orElse(null);
+    }
+
+    private static String hintText(QueryConsole console) {
+        return ((javafx.scene.control.Label) console.lookup("#query-run-hint")).getText();
+    }
 }

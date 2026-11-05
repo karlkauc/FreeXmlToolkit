@@ -188,6 +188,7 @@ public class UnifiedShellView extends BorderPane {
         queryConsole = new org.fxt.freexmltoolkit.controls.shell.editor.QueryConsole(editorHost);
         queryConsole.setMinHeight(180);
         queryConsole.setPrefHeight(220);
+        queryConsole.setOnCloseRequest(this::closeQueryConsole);
         menuBar = new ShellMenuBar(this);
         menuBarHost.getChildren().setAll(menuBar);
         org.fxt.freexmltoolkit.controls.shell.editor.FavoritesMenu.installQuickAccess(
@@ -952,12 +953,21 @@ public class UnifiedShellView extends BorderPane {
      */
     public void toggleQueryConsole() {
         if (isQueryConsoleShown()) {
-            workSplit.getItems().remove(queryConsole);
+            closeQueryConsole();
         } else {
             workSplit.getItems().add(queryConsole);
             workSplit.setDividerPositions(0.7);
             queryConsole.focusInput();
         }
+    }
+
+    /** Hides the Query Console (close button, Esc) and hands the focus back to the editor. */
+    public void closeQueryConsole() {
+        if (!isQueryConsoleShown()) {
+            return;
+        }
+        workSplit.getItems().remove(queryConsole);
+        editorHost.focusActiveEditor();
     }
 
     /** Shows the Query Console (if hidden) and focuses its query input; used by Ctrl+K and the header search pill. */

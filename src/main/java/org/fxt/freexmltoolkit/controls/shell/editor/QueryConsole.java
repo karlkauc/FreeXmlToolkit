@@ -80,6 +80,10 @@ public class QueryConsole extends Region {
 
     /** Per-run statistics ("42 ms · 1234 chars"), shown only when execution statistics are enabled. */
     @FXML private Label statsLabel;
+    /** Empty-input hint of the path field; its text follows XPath / JSONPath. */
+    private final Label xpathPlaceholder = placeholder("");
+    /** Below the input: names the active mode and how to run it. */
+    @FXML private Label runHint;
 
     // XPath/XQuery autocompletion engines, one per input (created in buildInput()).
     private XPathIntelliSenseEngine xpathIntelliSense;
@@ -98,6 +102,9 @@ public class QueryConsole extends Region {
     private String lastXQueryResult;
     private XQueryTableRunner.XQueryTable lastXQueryTable;
     private long lastXQueryElapsedMs;
+
+    /** Called by the close button and Esc; the shell removes the console from its split. */
+    private Runnable onCloseRequest = () -> { };
 
     public QueryConsole(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -119,6 +126,26 @@ public class QueryConsole extends Region {
         });
         updatePathLabel();
         fillExamplesMenu();
+
+        // Esc closes the console. A handler (not a filter): an open completion popup or
+        // menu consumes Esc first, so Esc there only dismisses the popup.
+        addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.ESCAPE) {
+                onClose();
+                e.consume();
+            }
+        });
+    }
+
+    /** Sets what closing the console (close button, Esc) does; {@code null} resets it to nothing. */
+    public void setOnCloseRequest(Runnable handler) {
+        this.onCloseRequest = handler != null ? handler : () -> { };
+    }
+
+    /** Close button at the top right of the console. */
+    @FXML
+    public void onClose() {
+        onCloseRequest.run();
     }
 
     private void initInput() {
@@ -137,6 +164,8 @@ public class QueryConsole extends Region {
         });
 
         inputStack.getChildren().addAll(xpathField, xqueryArea);
+        xpathField.setPlaceholder(xpathPlaceholder);
+        xqueryArea.setPlaceholder(placeholder("XQuery script, e.g. for $i in //item return string($i/@id)"));
         xpathField.getStyleClass().addAll("fxt-xpath-field", "fxt-query-input");
         xpathField.setWrapText(true);
         xpathField.setPrefHeight(96);
@@ -211,6 +240,7 @@ public class QueryConsole extends Region {
     /** The XPath toggle reads "JSONPath" while a JSON document is active (it then runs JSONPath). */
     private void updatePathLabel() {
         xpathToggle.setText(isJsonActive() ? "JSONPath" : "XPath");
+        updateModeTexts();
     }
 
     /** Fills the Examples menu with the built-in XQuery examples (formerly in the Transform panel). */
@@ -254,6 +284,31 @@ public class QueryConsole extends Region {
         xqueryArea.setManaged(xquery);
         xpathField.setVisible(!xquery);
         xpathField.setManaged(!xquery);
+        updateModeTexts();
+    }
+
+    /** The active mode as the user reads it: XPath, JSONPath (JSON document) or XQuery. */
+    String modeName() {
+        if (xqueryToggle.isSelected()) {
+            return "XQuery";
+        }
+        return isJsonActive() ? "JSONPath" : "XPath";
+    }
+
+    /** Names the active mode on the Run button and in the hint, so the mode is never a guess. */
+    private void updateModeTexts() {
+        String mode = modeName();
+        runButton.setText("Run " + mode);
+        runHint.setText(mode + " mode · Ctrl+Enter runs the query · Enter adds a line");
+        xpathPlaceholder.setText(isJsonActive()
+                ? "JSONPath expression, e.g. $.items[0].id"
+                : "XPath expression, e.g. //item[@id = '1']");
+    }
+
+    private static Label placeholder(String text) {
+        Label label = new Label(text);
+        label.getStyleClass().add("fxt-placeholder-text");
+        return label;
     }
 
     /** Enables/disables Run based on whether a document is currently open. */

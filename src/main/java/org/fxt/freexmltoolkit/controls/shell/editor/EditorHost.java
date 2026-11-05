@@ -3041,6 +3041,18 @@ public class EditorHost extends BorderPane {
 
     // ----- internals -------------------------------------------------------
 
+    /** Moves the keyboard focus into the active tab's content (e.g. after a bottom panel closed). */
+    public void focusActiveEditor() {
+        var tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab != null && tab.getContent() != null) {
+            if (tab instanceof EditorTab et && et.viewMode == ViewMode.TEXT) {
+                et.view.getNode().requestFocus();
+            } else {
+                tab.getContent().requestFocus();
+            }
+        }
+    }
+
     void withActive(java.util.function.Consumer<EditorTab> action) {
         if (tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et) {
             action.accept(et);

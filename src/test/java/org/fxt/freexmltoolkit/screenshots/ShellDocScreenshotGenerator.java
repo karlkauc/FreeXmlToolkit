@@ -373,7 +373,10 @@ class ShellDocScreenshotGenerator {
                 robot.clickOn(xpathInput);
                 settle(200);
                 robot.write("//*:menuItem");
-                robot.push(javafx.scene.input.KeyCode.ESCAPE);
+                // Esc only while the popup shows: with no popup, Esc closes the console.
+                if (robot.lookup(".intellisense-list").tryQuery().isPresent()) {
+                    robot.push(javafx.scene.input.KeyCode.ESCAPE);
+                }
                 robot.push(javafx.scene.input.KeyCode.CONTROL, javafx.scene.input.KeyCode.ENTER);
                 org.fxmisc.richtext.CodeArea results =
                         robot.lookup(".fxt-query-results").queryAs(org.fxmisc.richtext.CodeArea.class);
@@ -396,7 +399,7 @@ class ShellDocScreenshotGenerator {
                 shot("unified-shell-query-console");
             }
             settle();
-            onFx(shell::toggleQueryConsole); // hide again so later shots are unaffected
+            onFx(shell::closeQueryConsole); // hide again so later shots are unaffected
             settle();
         }
 
