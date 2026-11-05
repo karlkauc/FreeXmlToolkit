@@ -67,6 +67,13 @@
                                     </children>
                                 </HBox>
                                 <Region HBox.hgrow="ALWAYS"/>
+                                <!-- Favorites quick access (every activity, also on Settings / tool pages);
+                                     the items are rebuilt in code each time it opens (FavoritesMenu) -->
+                                <MenuButton fx:id="favoritesButton" id="header-favorites"
+                                            styleClass="fxt-header-icon, fxt-fav-quick-access" focusTraversable="false">
+                                    <graphic><IconifyIcon iconLiteral="bi-star" iconSize="16"/></graphic>
+                                    <tooltip><Tooltip text="Favorites"/></tooltip>
+                                </MenuButton>
                                 <Button fx:id="helpButton" id="header-help" styleClass="fxt-header-icon" focusTraversable="false" onAction="#onHelp">
                                     <graphic><IconifyIcon iconLiteral="bi-question-circle" iconSize="16"/></graphic>
                                     <tooltip><Tooltip text="Help (F1)"/></tooltip>

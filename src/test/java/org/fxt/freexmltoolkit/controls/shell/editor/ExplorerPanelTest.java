@@ -207,10 +207,11 @@ class ExplorerPanelTest {
     }
 
     @Test
-    void bottomListShowsOnlyRecentFiles() {
+    void bottomPaneHasFavoritesAndRecentTabs() {
         WaitForAsyncUtils.waitForFxEvents();
-        assertNull(panel.lookup("#explorer-tab-favorites"), "favourites live in the Favorites activity (UX plan 3.4)");
-        assertNull(panel.lookup("#explorer-favorites-list"));
+        assertNotNull(panel.lookup("#explorer-tab-favorites"), "favorites are reachable from the Explorer");
+        assertNotNull(panel.lookup("#explorer-tab-recent"));
+        assertNotNull(panel.lookup("#explorer-favorites-list"));
         assertNotNull(panel.lookup("#explorer-recent-list"), "the pane at the bottom lists the recent files");
     }
 

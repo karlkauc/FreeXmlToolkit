@@ -8,7 +8,7 @@
 <!--
   The shell's menu bar. Loaded by ShellMenuBar via the fx:root pattern (FxmlViews.load);
   ShellMenuBar is root and controller. Every item triggers an existing shell action.
-  Data-driven parts are filled in code: the view modes at the top of "View", the "Open Recent"
+  Data-driven parts are filled in code: the view modes at the top of "View", the "Open Recent" and "Open Favorite"
   and "Activities" submenus. On macOS the bar moves into the system menu bar and
   Settings / Exit / Check for Updates / About move into the application menu
   (app/MacMenuIntegration). Accelerators use "Shortcut" (Ctrl, or Cmd on macOS).
@@ -25,6 +25,7 @@
                 <ShellMenuItem id="menu-file-open-url" text="Open from URL…" iconLiteral="bi-globe" color="TOOL"
                                onAction="#onOpenFromUrl"/>
                 <Menu fx:id="openRecentMenu" id="menu-file-open-recent" text="Open Recent"/>
+                <Menu fx:id="openFavoriteMenu" id="menu-file-open-favorite" text="Open Favorite"/>
                 <SeparatorMenuItem/>
                 <ShellMenuItem fx:id="closeTabItem" id="menu-file-close-tab" text="Close Tab" iconLiteral="bi-x-lg"
                                color="NEUTRAL" accelerator="Shortcut+W" onAction="#onCloseTab"/>

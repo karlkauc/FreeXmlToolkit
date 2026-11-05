@@ -4,8 +4,11 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
@@ -16,7 +19,8 @@
 <!--
   Explorer activity side panel (Figma "Redesign · Unified Editor (Light)", node 28:48): header
   actions, the TOOLS pickers with their action rows, OPEN EDITORS, the workspace tree and the
-  FAVORITES | RECENT tabs pinned to the bottom (resizable by the grip above them).
+  FAVORITES | RECENT tabs pinned to the bottom (resizable by the grip above them). The header's
+  star is the shell-wide Favorites quick access menu (FavoritesMenu), rebuilt each time it opens.
   Loaded by ExplorerPanel via the fx:root pattern (FxmlViews.load); ExplorerPanel is root and
   controller. Inserted in code: the collapsible section headers (TOOLS, OPEN EDITORS, workspace)
   in front of their content, and the workspace tree in front of the grip. The picker menus, the
@@ -52,6 +56,15 @@
                         <Tooltip text="Refresh workspace"/>
                     </tooltip>
                 </Button>
+                <MenuButton fx:id="favoritesButton" id="explorer-favorites"
+                            styleClass="fxt-sp-action, fxt-fav-quick-access" focusTraversable="false">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-star" iconSize="14"/>
+                    </graphic>
+                    <tooltip>
+                        <Tooltip text="Favorites"/>
+                    </tooltip>
+                </MenuButton>
             </children>
         </SidePanelHeader>
 
@@ -116,11 +129,27 @@
             </cursor>
         </Region>
 
-        <!-- RECENT (UX plan 3.4: favourites are managed in the Favorites activity and used via the
-             star menus); minHeight -Infinity = USE_PREF_SIZE (the user-chosen height) -->
+        <!-- FAVORITES | RECENT: two tabs over one pane; minHeight -Infinity = USE_PREF_SIZE (the
+             user-chosen height). The tab choice is remembered (ExplorerPanel.FAV_RECENT_TAB_KEY). -->
         <VBox fx:id="favRecentPane" id="explorer-fav-recent" minHeight="-Infinity">
             <children>
-                <Label text="RECENT" styleClass="fxt-sp-section-label, fxt-explorer-recent-header"/>
+                <HBox styleClass="fxt-explorer-tabs" spacing="2">
+                    <children>
+                        <ToggleButton fx:id="favoritesTab" id="explorer-tab-favorites" text="FAVORITES"
+                                      styleClass="fxt-explorer-tab" focusTraversable="false"
+                                      onAction="#onFavoritesTab"/>
+                        <ToggleButton fx:id="recentTab" id="explorer-tab-recent" text="RECENT"
+                                      styleClass="fxt-explorer-tab" focusTraversable="false"
+                                      onAction="#onRecentTab"/>
+                    </children>
+                </HBox>
+                <ListView fx:id="favoritesList" id="explorer-favorites-list" fixedCellSize="28" VBox.vgrow="ALWAYS"
+                          styleClass="fxt-open-editors, fxt-explorer-list">
+                    <placeholder>
+                        <Label text="Star files with Ctrl+D to see them here." wrapText="true"
+                               styleClass="fxt-placeholder-text"/>
+                    </placeholder>
+                </ListView>
                 <ListView fx:id="recentList" id="explorer-recent-list" fixedCellSize="28" VBox.vgrow="ALWAYS"
                           styleClass="fxt-open-editors, fxt-explorer-list">
                     <placeholder>

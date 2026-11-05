@@ -303,4 +303,44 @@ class ShellMenuBarTest {
         assertTrue(config.isDisable(), "only for a saved stylesheet");
         assertTrue(rerun.isDisable(), "nothing to repeat yet");
     }
+
+    @Test
+    void openFavoriteListsTheFavoritesAndOpensThePickedOne() throws Exception {
+        java.nio.file.Path fav = java.nio.file.Files.createTempFile("fxt-menu-fav", ".xml");
+        java.nio.file.Files.writeString(fav, "<f/>");
+        var favorites = org.fxt.freexmltoolkit.service.FavoritesService.getInstance();
+        try {
+            favorites.addFavorite(fav.toFile());
+            onFx(menuBar::rebuildFavorites);
+            Menu openFavorite = (Menu) item("menu-file-open-favorite");
+            String name = fav.getFileName().toString().replaceFirst("\\.xml$", "");
+            MenuItem pick = openFavorite.getItems().stream().filter(i -> name.equals(i.getText()))
+                    .findFirst().orElseThrow(() -> new AssertionError("favorite not listed"));
+            assertNotNull(pick.getId());
+            onFx(pick::fire);
+            WaitForAsyncUtils.waitFor(5, java.util.concurrent.TimeUnit.SECONDS, () -> shell.getEditorHost()
+                    .getOpenDocuments().stream().anyMatch(d -> fav.equals(d.getPath())));
+
+            fire("menu-file-manage-favorites");
+            assertEquals(Activity.FAVORITES, shell.getSelectionModel().getActive());
+        } finally {
+            favorites.removeFavoriteByPath(fav.toAbsolutePath().toString());
+            java.nio.file.Files.deleteIfExists(fav);
+        }
+    }
+
+    @Test
+    void headerStarIsTheFavoritesQuickAccess() throws Exception {
+        var star = (javafx.scene.control.MenuButton) shell.lookup("#header-favorites");
+        assertNotNull(star, "the header bar has a Favorites star");
+        onFx(() -> star.getOnShowing().handle(new javafx.event.Event(javafx.scene.control.MenuButton.ON_SHOWING)));
+        MenuItem add = star.getItems().stream().filter(i -> "favorites-quick-add".equals(i.getId()))
+                .findFirst().orElseThrow();
+        assertTrue(add.isDisable(), "no saved document is active");
+        MenuItem manage = star.getItems().stream().filter(i -> "favorites-quick-manage".equals(i.getId()))
+                .findFirst().orElseThrow();
+        onFx(manage::fire);
+        assertEquals(Activity.FAVORITES, shell.getSelectionModel().getActive());
+        assertTrue(shell.isLeftPanelOpen(), "Manage Favorites… reveals the Favorites panel");
+    }
 }

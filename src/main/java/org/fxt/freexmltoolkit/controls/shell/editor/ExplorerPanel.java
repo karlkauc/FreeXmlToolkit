@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit.controls.shell.editor;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,7 +11,9 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -20,7 +23,11 @@ import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.controls.theme.ActionColor;
+import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.domain.FileFavorite;
+import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 
 /**
@@ -28,7 +35,8 @@ import org.fxt.freexmltoolkit.service.PropertiesService;
  * "Redesign · Unified Editor (Light)" (node 28:48): a header row with flat icon
  * actions (new file, open folder, refresh, ⋮), the OPEN EDITORS list (active
  * document highlighted, dirty dot on the right), the workspace file tree headed
- * by the workspace folder's name, and the RECENT files list. Drives the
+ * by the workspace folder's name, and the FAVORITES | RECENT tabs at the bottom. The header's
+ * star opens the shell-wide Favorites quick access menu ({@link FavoritesMenu}). Drives the
  * {@link EditorHost} and reuses {@link PropertiesService} for recent files.
  */
 public class ExplorerPanel extends VBox {
@@ -39,6 +47,8 @@ public class ExplorerPanel extends VBox {
     /** Persisted height (px) of the RECENT pane, set by dragging its grip. */
     static final String FAV_RECENT_HEIGHT_KEY = "explorer.favRecent.height";
     static final String TOOLS_COLLAPSED_KEY = "explorer.tools.collapsed";
+    /** Persisted tab of the bottom pane: {@code favorites} or {@code recent}. */
+    static final String FAV_RECENT_TAB_KEY = "explorer.favRecent.tab";
     static final double FAV_RECENT_DEFAULT_HEIGHT = 240;
     static final double FAV_RECENT_MIN_HEIGHT = 96;
     static final double FAV_RECENT_MAX_HEIGHT = 2000;
@@ -46,6 +56,13 @@ public class ExplorerPanel extends VBox {
     private static final double FAV_RECENT_RESERVED_HEIGHT = 200;
     private final ObservableList<File> recentFiles = FXCollections.observableArrayList();
     @FXML private ListView<File> recentList;
+    private final ObservableList<FileFavorite> favorites = FXCollections.observableArrayList();
+    /** Paths of favorites whose file is gone (shown muted), collected at each refresh. */
+    private final java.util.Set<String> missingFavorites = new java.util.HashSet<>();
+    @FXML private ListView<FileFavorite> favoritesList;
+    @FXML private ToggleButton favoritesTab;
+    @FXML private ToggleButton recentTab;
+    @FXML private MenuButton favoritesButton;
     /** OPEN EDITORS scrolls inside a capped height (about six rows). */
     @FXML private javafx.scene.control.ScrollPane openEditorsScroll;
     /**
@@ -87,6 +104,32 @@ public class ExplorerPanel extends VBox {
             }
         });
 
+        // --- FAVORITES -------------------------------------------------------
+        favoritesList.setItems(favorites);
+        favoritesList.setCellFactory(lv -> new FavoriteCell());
+        favoritesList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null && newV.getFilePath() != null && !missingFavorites.contains(newV.getFilePath())) {
+                // Deferred: never open (and clear the selection) inside the ListView's own
+                // selection processing. Cleared so a second click on the same row opens again.
+                File file = new File(newV.getFilePath());
+                javafx.application.Platform.runLater(() -> {
+                    favoritesList.getSelectionModel().clearSelection();
+                    FavoritesMenu.recordingAccess(f -> editorHost.openFile(f.toPath())).accept(file);
+                });
+            }
+        });
+        favoritesList.setContextMenu(buildFavoriteContextMenu());
+        FavoritesMenu.installQuickAccess(favoritesButton, defaultQuickAccess());
+        refreshFavorites();
+        selectTab(loadFavRecentTab());
+        // The store is not observable: re-read it whenever the panel is shown again (activity
+        // switch), so edits made in the Favorites activity appear here.
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                refreshFavorites();
+            }
+        });
+
         // --- collapsible section headers, each in front of the content it toggles ----
         // Panel schema: the TOOLS come first, open by default, then the files the panel is
         // opened for (OPEN EDITORS, WORKSPACE).
@@ -104,8 +147,8 @@ public class ExplorerPanel extends VBox {
         getChildren().addAll(getChildren().indexOf(openEditorsScroll) + 1, java.util.List.of(workspaceHeader, workspace));
         getChildren().add(getChildren().indexOf(toolsBody), toolsHeader);
 
-        // RECENT pinned to the bottom, resizable by dragging the grip above it. Favorites are
-        // managed in the Favorites activity and used via the star menus (UX plan 3.4). A fixed,
+        // FAVORITES | RECENT pinned to the bottom, resizable by dragging the grip above it.
+        // Favorites are managed in the Favorites activity; this tab only lists and opens them. A fixed,
         // user-chosen height: the workspace tree above (vgrow) gives way first, so the lists are
         // never squeezed to an unreadable sliver on shorter (e.g. scaled HiDPI) screens.
         favRecentPane.setPrefHeight(clampFavRecentHeight(loadFavRecentHeight()));
@@ -144,6 +187,7 @@ public class ExplorerPanel extends VBox {
                 if (newW != null && newW.doubleValue() > 1.0) {
                     widthProperty().removeListener(this);
                     recentList.refresh();
+                    refreshFavorites();
                 }
             }
         });
@@ -162,6 +206,159 @@ public class ExplorerPanel extends VBox {
     // Every press of a FAVORITES | RECENT tab is routed through an explicit selection so a tab
     // can never be toggled off (a ToggleGroup would otherwise allow deselecting the active tab,
     // leaving none).
+
+    @FXML
+    public void onFavoritesTab() {
+        selectTab(FavRecentTab.FAVORITES);
+        saveFavRecentTab(FavRecentTab.FAVORITES);
+        refreshFavorites();
+    }
+
+    @FXML
+    public void onRecentTab() {
+        selectTab(FavRecentTab.RECENT);
+        saveFavRecentTab(FavRecentTab.RECENT);
+        refreshRecent();
+    }
+
+    /** The two tabs of the bottom pane. */
+    enum FavRecentTab { FAVORITES, RECENT }
+
+    /** Shows {@code tab}'s list; exactly one tab is selected afterwards. */
+    void selectTab(FavRecentTab tab) {
+        boolean fav = tab == FavRecentTab.FAVORITES;
+        favoritesTab.setSelected(fav);
+        recentTab.setSelected(!fav);
+        favoritesList.setVisible(fav);
+        favoritesList.setManaged(fav);
+        recentList.setVisible(!fav);
+        recentList.setManaged(!fav);
+    }
+
+    /** @return the tab currently shown (for tests/observers). */
+    FavRecentTab getSelectedTab() {
+        return favoritesTab.isSelected() ? FavRecentTab.FAVORITES : FavRecentTab.RECENT;
+    }
+
+    /** The stored tab, else FAVORITES while there are favorites and RECENT otherwise. */
+    private FavRecentTab loadFavRecentTab() {
+        if (propertiesService != null) {
+            try {
+                String value = propertiesService.get(FAV_RECENT_TAB_KEY);
+                if ("favorites".equals(value)) {
+                    return FavRecentTab.FAVORITES;
+                }
+                if ("recent".equals(value)) {
+                    return FavRecentTab.RECENT;
+                }
+            } catch (RuntimeException ignored) {
+                // unreadable - fall back to the default
+            }
+        }
+        return favorites.isEmpty() ? FavRecentTab.RECENT : FavRecentTab.FAVORITES;
+    }
+
+    private void saveFavRecentTab(FavRecentTab tab) {
+        if (propertiesService != null) {
+            try {
+                propertiesService.set(FAV_RECENT_TAB_KEY, tab.name().toLowerCase(java.util.Locale.ROOT));
+            } catch (RuntimeException ignored) {
+                // properties unavailable - keep the tab for this session only
+            }
+        }
+    }
+
+    /**
+     * Replaces the actions behind the header's Favorites star (the shell passes its own, so
+     * "Manage Favorites…" shows the Favorites activity and Ctrl+D refreshes every view).
+     */
+    public void setFavoritesQuickAccess(FavoritesMenu.QuickAccess actions) {
+        FavoritesMenu.installQuickAccess(favoritesButton, actions);
+    }
+
+    /** Standalone actions until the shell provides its own: open, add, no manage page. */
+    private FavoritesMenu.QuickAccess defaultQuickAccess() {
+        return new FavoritesMenu.QuickAccess(
+                file -> editorHost.openFile(file.toPath()),
+                () -> editorHost.getActiveDocument().filter(d -> d.getPath() != null).ifPresent(d -> {
+                    FavoritesService.getInstance().addFavorite(d.getPath().toFile());
+                    refreshFavorites();
+                }),
+                () -> editorHost.getActiveDocument().filter(d -> d.getPath() != null).isPresent(),
+                () -> selectTab(FavRecentTab.FAVORITES));
+    }
+
+    /**
+     * Reloads the FAVORITES list from the store (not observable): grouped by folder,
+     * uncategorized first; favorites whose file is gone are kept but shown muted.
+     */
+    public void refreshFavorites() {
+        List<FileFavorite> all;
+        try {
+            all = new java.util.ArrayList<>(FavoritesService.getInstance().getAllFavorites());
+        } catch (Throwable t) {
+            all = List.of();
+        }
+        // Stable sort: the store order is kept inside each folder.
+        all.sort(java.util.Comparator.comparing(ExplorerPanel::folderKey));
+        missingFavorites.clear();
+        for (FileFavorite favorite : all) {
+            if (!favorite.fileExists() && favorite.getFilePath() != null) {
+                missingFavorites.add(favorite.getFilePath());
+            }
+        }
+        favoritesList.getSelectionModel().clearSelection();
+        favorites.setAll(all);
+        favoritesList.refresh();
+    }
+
+    /** @return the favorites shown in the FAVORITES tab (for tests/observers). */
+    List<FileFavorite> getFavoriteItems() {
+        return List.copyOf(favorites);
+    }
+
+    private static String folderKey(FileFavorite favorite) {
+        String folder = favorite.getFolderName();
+        return folder == null || folder.isBlank() ? "" : folder.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private javafx.scene.control.ContextMenu buildFavoriteContextMenu() {
+        javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
+        MenuItem open = new MenuItem("Open", menuIcon("bi-folder2-open", ActionColor.NAVIGATE));
+        open.setOnAction(e -> selectedFavoriteFile().ifPresent(
+                f -> FavoritesMenu.recordingAccess(file -> editorHost.openFile(file.toPath())).accept(f)));
+        MenuItem reveal = new MenuItem("Reveal in Workspace", menuIcon("bi-diagram-3", ActionColor.NAVIGATE));
+        reveal.setOnAction(e -> selectedFavoriteFile().ifPresent(f -> revealFile(f.toPath())));
+        MenuItem remove = new MenuItem("Remove from Favorites", menuIcon("bi-star", ActionColor.DELETE));
+        remove.setOnAction(e -> {
+            FileFavorite favorite = favoritesList.getSelectionModel().getSelectedItem();
+            if (favorite != null) {
+                FavoritesService.getInstance().removeFavorite(favorite);
+                refreshFavorites();
+            }
+        });
+        menu.getItems().addAll(open, reveal, new javafx.scene.control.SeparatorMenuItem(), remove);
+        menu.setOnShowing(e -> {
+            boolean exists = selectedFavoriteFile().isPresent();
+            open.setDisable(!exists);
+            reveal.setDisable(!exists);
+            remove.setDisable(favoritesList.getSelectionModel().getSelectedItem() == null);
+        });
+        return menu;
+    }
+
+    private java.util.Optional<File> selectedFavoriteFile() {
+        FileFavorite favorite = favoritesList.getSelectionModel().getSelectedItem();
+        if (favorite == null || favorite.getFilePath() == null
+                || missingFavorites.contains(favorite.getFilePath())) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(new File(favorite.getFilePath()));
+    }
+
+    private static IconifyIcon menuIcon(String literal, ActionColor color) {
+        return SemanticIcon.paint(icon(literal, 16), color);
+    }
 
     /**
      * Makes {@code grip} (the thin strip above {@code pane}) draggable: dragging it up/down
@@ -851,6 +1048,45 @@ public class ExplorerPanel extends VBox {
                     javafx.scene.paint.Color.web(hex)));
         } catch (Exception ignored) {
             // unparsable color: keep the default icon color
+        }
+    }
+
+    /** Renders a favorite: type icon · name · muted folder; a missing file is muted with a hint. */
+    private final class FavoriteCell extends ListCell<FileFavorite> {
+        private FavoriteCell() {
+            setPrefWidth(0);
+        }
+
+        @Override
+        protected void updateItem(FileFavorite item, boolean empty) {
+            super.updateItem(item, empty);
+            getStyleClass().remove("fxt-explorer-missing");
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                setTooltip(null);
+                return;
+            }
+            String name = item.getName() != null && !item.getName().isBlank() ? item.getName() : item.getFileName();
+            Label nameLabel = new Label(name);
+            nameLabel.setMinWidth(0);
+            HBox row = new HBox(6, FavoritesMenu.typeIcon(item.getFileType()), nameLabel);
+            row.setAlignment(Pos.CENTER_LEFT);
+            String folder = item.getFolderName();
+            if (folder != null && !folder.isBlank()) {
+                Label folderLabel = new Label(folder);
+                folderLabel.getStyleClass().add("fxt-explorer-fav-folder");
+                folderLabel.setMinWidth(0);
+                row.getChildren().add(folderLabel);
+            }
+            setText(null);
+            setGraphic(row);
+            boolean missing = item.getFilePath() != null && missingFavorites.contains(item.getFilePath());
+            if (missing) {
+                getStyleClass().add("fxt-explorer-missing");
+            }
+            setTooltip(new javafx.scene.control.Tooltip(
+                    (missing ? "File not found: " : "") + item.getFilePath()));
         }
     }
 

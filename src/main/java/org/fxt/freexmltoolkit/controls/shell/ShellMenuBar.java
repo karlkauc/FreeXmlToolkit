@@ -25,6 +25,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorActions;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
+import org.fxt.freexmltoolkit.controls.shell.editor.FavoritesMenu;
 import org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner;
 import org.fxt.freexmltoolkit.controls.shell.editor.KeyboardShortcutsDialog;
 import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
@@ -80,6 +81,7 @@ public final class ShellMenuBar extends MenuBar {
 
     @FXML private Menu fileMenu;
     @FXML private Menu openRecentMenu;
+    @FXML private Menu openFavoriteMenu;
     @FXML private Menu viewMenu;
     @FXML private Menu activitiesMenu;
     @FXML private Menu helpMenu;
@@ -109,6 +111,7 @@ public final class ShellMenuBar extends MenuBar {
         FxmlViews.load(this, "/pages/views/ShellMenuBar.fxml");
 
         openRecentMenu.setGraphic(ShellMenuItem.icon("bi-clock-history", ActionColor.NAVIGATE));
+        openFavoriteMenu.setGraphic(ShellMenuItem.icon("bi-star", ActionColor.NAVIGATE));
         activitiesMenu.setGraphic(ShellMenuItem.icon("bi-grid", ActionColor.NAVIGATE));
         showConstraintsItem.setGraphic(ShellMenuItem.icon("bi-shield-check", ActionColor.NEUTRAL));
         showConstraintsItem.selectedProperty().bindBidirectional(XsdDiagramOptions.showConstraintsProperty());
@@ -118,6 +121,7 @@ public final class ShellMenuBar extends MenuBar {
         buildViewModeItems();
         buildActivityItems();
         rebuildRecentFiles();
+        rebuildFavorites();
         sponsorItem.setGraphic(ProjectLinks.sponsorIcon(16));
         if (!ErrorReportDialog.isAvailable()) {
             helpMenu.getItems().remove(reportProblemItem);
@@ -138,7 +142,10 @@ public final class ShellMenuBar extends MenuBar {
         for (Menu menu : getMenus()) {
             menu.addEventHandler(Menu.ON_SHOWING, e -> refresh());
         }
-        fileMenu.addEventHandler(Menu.ON_SHOWING, e -> rebuildRecentFiles());
+        fileMenu.addEventHandler(Menu.ON_SHOWING, e -> {
+            rebuildRecentFiles();
+            rebuildFavorites();
+        });
         refresh();
     }
 
@@ -195,6 +202,37 @@ public final class ShellMenuBar extends MenuBar {
             items.add(none);
         }
         openRecentMenu.getItems().setAll(items);
+    }
+
+    /**
+     * Refills "Open Favorite" from the favorites store (not observable): every favorite, grouped
+     * by folder, then "Manage Favorites…".
+     */
+    void rebuildFavorites() {
+        List<MenuItem> items = new ArrayList<>(FavoritesMenu.allItems(FavoritesMenu.recordingAccess(
+                file -> run("open_favorite", () -> shell.openFile(file)))));
+        // Data-driven items get positional ids (every menu item has one).
+        int[] next = {0};
+        items.forEach(item -> assignFavoriteIds(item, next));
+        if (items.isEmpty()) {
+            MenuItem none = new ShellMenuItem("No Favorites Yet", "bi-star", ActionColor.NEUTRAL);
+            none.setId("menu-file-no-favorites");
+            none.setDisable(true);
+            items.add(none);
+        }
+        items.add(new SeparatorMenuItem());
+        ShellMenuItem manage = new ShellMenuItem("Manage Favorites…", "bi-star", ActionColor.NAVIGATE);
+        manage.setId("menu-file-manage-favorites");
+        manage.setOnAction(e -> run("manage_favorites", () -> shell.showActivity(Activity.FAVORITES)));
+        items.add(manage);
+        openFavoriteMenu.getItems().setAll(items);
+    }
+
+    private static void assignFavoriteIds(MenuItem item, int[] next) {
+        item.setId("menu-file-favorite-" + next[0]++);
+        if (item instanceof Menu folder) {
+            folder.getItems().forEach(child -> assignFavoriteIds(child, next));
+        }
     }
 
     private static List<File> recentFiles() {

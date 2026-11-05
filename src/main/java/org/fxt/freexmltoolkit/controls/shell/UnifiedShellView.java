@@ -80,6 +80,8 @@ public class UnifiedShellView extends BorderPane {
     /** The header's Help button; anchors the Help popup ({@link #showHelpMenu()}). */
     @FXML private Button helpButton;
     private javafx.scene.control.ContextMenu helpPopup;
+    /** The header's Favorites star: quick access to every favorite from any activity. */
+    @FXML private javafx.scene.control.MenuButton favoritesButton;
     @FXML private StackPane activityBarHost;
     @FXML private StackPane sidePanelHost;
     @FXML private org.fxt.freexmltoolkit.controls.shell.editor.EditorHost editorHost;
@@ -188,6 +190,8 @@ public class UnifiedShellView extends BorderPane {
         queryConsole.setPrefHeight(220);
         menuBar = new ShellMenuBar(this);
         menuBarHost.getChildren().setAll(menuBar);
+        org.fxt.freexmltoolkit.controls.shell.editor.FavoritesMenu.installQuickAccess(
+                favoritesButton, favoritesQuickAccess("header"));
         viewSwitchHost.getChildren().setAll(editorHost.getViewSwitch());
         // Inspector below the chevron (chevron stays on top of the StackPane).
         var inspector = new org.fxt.freexmltoolkit.controls.shell.inspector.InspectorPanel(editorHost);
@@ -1020,7 +1024,31 @@ public class UnifiedShellView extends BorderPane {
                 instanceof org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel favorites) {
             favorites.refresh();
         }
+        if (sidePanels.get(Activity.EXPLORER)
+                instanceof org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel explorer) {
+            explorer.refreshFavorites();
+        }
         return true;
+    }
+
+    /**
+     * The shell actions behind every Favorites quick access menu (header star, Explorer star):
+     * open the picked file, add the active document, show the Favorites activity.
+     *
+     * @param source telemetry label of the menu ({@code header}, {@code explorer})
+     */
+    public org.fxt.freexmltoolkit.controls.shell.editor.FavoritesMenu.QuickAccess favoritesQuickAccess(String source) {
+        return new org.fxt.freexmltoolkit.controls.shell.editor.FavoritesMenu.QuickAccess(
+                file -> {
+                    toolbar("open_favorite_" + source);
+                    openFile(file);
+                },
+                () -> {
+                    toolbar("add_favorite_" + source);
+                    addActiveDocumentToFavorites();
+                },
+                () -> editorHost.getActiveDocument().filter(d -> d.getPath() != null).isPresent(),
+                () -> showActivity(Activity.FAVORITES));
     }
 
     /** Shows the Schema Library page with its Cache tab selected. */
@@ -1285,6 +1313,7 @@ public class UnifiedShellView extends BorderPane {
                 var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
                 explorer.setNewFileAction(this::newDocument);
                 explorer.setSchematronValidateAction(this::validateWithSchematron);
+                explorer.setFavoritesQuickAccess(favoritesQuickAccess("explorer"));
                 // File tools in the Explorer's TOOLS list reuse the Tools menu's actions.
                 explorer.setSpreadsheetAction(this::onSpreadsheet);
                 explorer.setCompareAction(this::onCompare);

@@ -314,7 +314,6 @@
 }
 .fxt-inspector-more > .arrow-button > .arrow {
     -fx-padding: 0;
-    -fx-shape: null;
 }
 
 /* Node header: kind icon tile · name · "Kind · type" · badge */
@@ -2809,8 +2808,46 @@
     -fx-padding: 0;
 }
 
-.fxt-explorer-recent-header {
-    -fx-padding: 6 12 4 14;
+/* FAVORITES | RECENT tabs of the Explorer's bottom pane: section-label text, the selected
+   tab in the primary colour with an underline. */
+.fxt-explorer-tabs {
+    -fx-padding: 6 12 2 10;
+}
+
+.fxt-explorer-tab {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 2 4 3 4;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-muted;
+    -fx-cursor: hand;
+}
+
+.fxt-explorer-tab:hover {
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-explorer-tab:selected {
+    -fx-text-fill: -fxt-primary;
+    -fx-border-color: transparent transparent -fxt-primary transparent;
+}
+
+/* Folder of a favorite (muted suffix) and a favorite whose file is gone. */
+.fxt-explorer-fav-folder {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-size: 11px;
+}
+
+.fxt-explorer-missing .label {
+    -fx-text-fill: -fxt-text-muted;
+}
+
+.fxt-explorer-missing .label .text {
+    -fx-strikethrough: true;
 }
 
 .fxt-workspace-empty {
@@ -4544,4 +4581,19 @@
 
 .fxt-overview-toolbar .toggle-button.fxt-tool-button:selected > .label {
     -fx-text-fill: -fxt-primary;
+}
+
+/* ===== Favorites quick access: star MenuButtons (header bar, Explorer header) without the
+   drop-down arrow, so they read like the icon buttons next to them. ===== */
+.fxt-fav-quick-access > .arrow-button {
+    -fx-padding: 0;
+}
+
+.fxt-fav-quick-access > .arrow-button > .arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.fxt-fav-quick-access > .label {
+    -fx-padding: 0;
 }

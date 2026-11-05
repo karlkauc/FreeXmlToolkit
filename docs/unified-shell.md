@@ -23,7 +23,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 |------|---------|
 | **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Signature, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (**Settings**, **Schema Library** and **Signature** open as a full page in the editor area - see [Settings Page](settings.md#settings-page), [Schema Library Page](#schema-library-page) and [Signature Page](#signature-panel). Help is not an activity - it is the **Help** menu, see [Help Menu & About](#help-menu-about).) |
 | **Menu bar** (very top) | **File / Edit / View / Tools / Help** - every action of the toolbar, the Activity Bar and the keyboard shortcuts in one place (see [Menu Bar](#menu-bar)). On macOS it is the system menu bar at the top of the screen. |
-| **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](query-console.md#query-console) when clicked, the **?** button (opens the [Help menu](#help-menu-about) as a popup - same as **F1**) and the Theme button. |
+| **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](query-console.md#query-console) when clicked, the **star** button ([Favorites quick access](#favorites-quick-access) - every favorite, from any activity or page), the **?** button (opens the [Help menu](#help-menu-about) as a popup - same as **F1**) and the Theme button. |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
 | **Editor host** (center) | Tabs of open documents, each with the Text, Tree and Graphic view modes - plus a rendered **Preview** for HTML documents (see [View Modes](#view-modes)). |
 | **Inspector** (right) | View **and edit** the selected node's properties from any view. **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). Hidden automatically while a page without a document (Settings, Schema Library, Signature, reports, tool tabs) is selected. |
@@ -290,7 +290,7 @@ schemas, **Save** needs an open document).
 
 | Menu | Contents |
 |------|----------|
-| **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first) |
+| **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), **Open Favorite** (all favorites, by folder, plus Manage Favorites…), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first) |
 | **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
 | **View** | The view modes (Text / Tree / Graphic / Overview / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), **Show Constraints in Diagram**, **Show Constraints on Target Nodes**, Toggle Light / Dark Theme, Full Screen |
 | **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Spreadsheet Converter…, Add to Favorites |
@@ -482,7 +482,8 @@ The **Transform** activity runs XSLT transformations: stylesheet, input, output 
 
 Open the **Explorer** panel from the activity bar to manage files.
 
-- **Header actions** (top right): New file, Open folder, Refresh workspace. **New file**
+- **Header actions** (top right): New file, Open folder, Refresh workspace and the **star**
+  ([Favorites quick access](#favorites-quick-access)). **New file**
   opens the same guided [New File dialog](#new-file-dialog) as the toolbar's **New** button.
 The sections appear from top to bottom in this order:
 
@@ -511,10 +512,14 @@ The sections appear from top to bottom in this order:
     | **Generate XSD from XML files…** | Infers one schema from the **XML files selected** in the workspace tree and opens it as a new tab; with no XML file selected, asks you to pick the files (same as **Tools → Generate XSD from XML Files…**). |
     | **Clear recent** | Empties the **RECENT** list. |
 
-- **RECENT** - at the bottom, the recently opened files; click one to reopen it (drag the
-  thin grip above the list to change its height). Favorites are not listed here: manage them
-  in the [Favorites](#favorites-panel) activity (**View → Favorites Panel**, Ctrl+Shift+D)
-  and use them via the star menus; **Ctrl+D** adds the active document to your favorites.
+- **FAVORITES | RECENT** - two tabs at the bottom (drag the thin grip above them to change
+  their height). **FAVORITES** lists all your favorites (uncategorized first, then by folder,
+  the folder shown in grey after the name); a favorite whose file no longer exists is shown
+  greyed out and struck through. Right-click for **Open**, **Reveal in Workspace** and
+  **Remove from Favorites**. **RECENT** lists the recently opened files. A click opens the
+  file. The chosen tab is remembered; at first start FAVORITES is shown when you have
+  favorites. **Ctrl+D** adds the active document to your favorites; rename them and sort
+  them into folders in the [Favorites](#favorites-panel) activity.
 - **Collapsible sections** - the **OPEN EDITORS**, workspace and **TOOLS** section headers
   are clickable: click a header to collapse or expand its section (the chevron next to the
   title flips accordingly). Use this to give the file tree more room when you have many
@@ -668,6 +673,22 @@ edited via the editor and all other files are written to disk atomically, with t
 changed-on-disk staleness check as Find text mode.
 
 ## Favorites Panel
+
+### Favorites Quick Access
+
+Favorites can be opened from everywhere, without switching activities:
+
+- the **star** in the header bar (next to **?**) - available in every activity and also on
+  the Settings, Schema Library and Signature pages,
+- the **star** in the Explorer header and the Explorer's **FAVORITES** tab,
+- **File → Open Favorite**.
+
+The star menus list every favorite (whatever its type, grouped by folder once you use
+folders, missing files left out), followed by **Add Active Document** (Ctrl+D) and
+**Manage Favorites…** (opens the Favorites activity). Opening a favorite here counts for
+the *Recently Used* / *Most Popular* collections.
+
+### Favorites Activity
 
 Open the **Favorites** panel from the star icon in the activity bar for one-click access to
 your saved files.

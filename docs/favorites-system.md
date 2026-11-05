@@ -19,7 +19,7 @@ The favorites system helps you quickly access the files you use most often. Save
 
 | Feature | Description |
 |---------|-------------|
-| **Works Everywhere** | Access favorites from any editor |
+| **Works Everywhere** | Open favorites from the header star, the Explorer (star + FAVORITES tab) and **File → Open Favorite** |
 | **File Recognition** | Automatically detects file types (XML, XSD, etc.) |
 | **One-Click Loading** | Open files instantly |
 
@@ -79,9 +79,19 @@ active tab, because those panels work on the active document and must not lose i
 same holds for every other way of picking a file on a page - file dialogs and recent menus
 included (see [Every Picked File Opens in the Editor](unified-shell.md#picked-files)).
 
-The **Explorer** panel no longer has a FAVORITES tab - its bottom list shows only
-**RECENT** files. Manage your favorites in the **Favorites** activity and use them via the
-star menus.
+### Open Favorites From Anywhere
+
+You do not need to switch to the Favorites activity to open a favorite:
+
+- **Header star** - the star next to **?** in the header bar lists every favorite, in every
+  activity and on the Settings / Schema Library / Signature pages.
+- **Explorer** - the star in the Explorer header opens the same menu, and the **FAVORITES**
+  tab at the bottom of the Explorer (next to **RECENT**) lists all favorites; click one to
+  open it.
+- **File → Open Favorite** in the menu bar.
+
+These menus list all favorites regardless of type (grouped by folder once you use folders)
+and end with **Add Active Document** (Ctrl+D) and **Manage Favorites…**.
 
 ---
 
