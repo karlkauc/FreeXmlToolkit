@@ -2699,7 +2699,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   cell — in the cell of the group the expression names (<code>sum(Datenpunkt/Wert)</code> → the
   <code>Datenpunkt</code> cell), otherwise in its first cell. An element can hold several named formulas,
   e.g. one sum per numeric column; <code>format-number(sum(Datenpunkt/Wert ! xs:decimal(.)), '#,##0.00')</code>
-  gives an exact sum with two decimals and thousands separators. Formulas are saved in the file as
+  gives an exact sum with two decimals and thousands separators (<code>12,005,649.85</code>). The German
+  number format is predeclared as <code>de</code>: <code>format-number(…, '#.##0,00', 'de')</code> gives
+  <code>12.005.649,85</code>. Formulas are saved in the file as
   <code>&lt;?fxt-formula name="…" expression="…"?&gt;</code> instructions. <strong>Store Formula Result in Document</strong>
   also writes the result into an element named after the formula, right after it;
   <strong>Recalculate Stored Formula Results</strong> refreshes all of them in one undo step.
