@@ -105,6 +105,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     private MenuItem filterToFocusItem;
     private MenuItem removeFilterItem;
     private MenuItem removeAllFiltersItem;
+    private CheckMenuItem filterActiveItem;
+    private CheckMenuItem saveFilterItem;
 
     // Table operations (visible with a table context)
     private Menu tableMenu;
@@ -269,6 +271,12 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         removeAllFiltersItem = new MenuItem("Remove All Filters");
         removeAllFiltersItem.setGraphic(createColoredIcon("bi-x-circle", ActionColor.DELETE));
         removeAllFiltersItem.setOnAction(e -> viewActions.removeAllFilters().run());
+        filterActiveItem = new CheckMenuItem("Filter Active");
+        filterActiveItem.setGraphic(createColoredIcon("bi-funnel-fill", ActionColor.TOOL));
+        filterActiveItem.setOnAction(e -> viewActions.toggleFilterActive().run());
+        saveFilterItem = new CheckMenuItem("Save Filter in Document");
+        saveFilterItem.setGraphic(createColoredIcon("bi-save", ActionColor.TOOL));
+        saveFilterItem.setOnAction(e -> viewActions.toggleFilterSaved().run());
 
         // === Expand/Collapse (canvas actions) ===
         expandFullyItem = new MenuItem("Expand Fully");
@@ -376,7 +384,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 expandFullyItem, collapseUnselectedItem, expandAllItem, collapseAllItem,
                 new SeparatorMenuItem(),
                 displayAsTableItem, flipTableItem, copyTableTsvItem, tableMenu, sortMenu,
-                filterItem, filterToFocusItem, removeFilterItem, removeAllFiltersItem,
+                filterItem, filterToFocusItem, filterActiveItem, saveFilterItem, removeFilterItem, removeAllFiltersItem,
                 new SeparatorMenuItem(),
                 addFormulaItem, storeFormulaItem, recalculateFormulasItem,
                 new SeparatorMenuItem(),
@@ -482,6 +490,12 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         filterToFocusItem.setDisable(!isElement || isRoot);
         removeFilterItem.setDisable(!viewActions.hasFilter().getAsBoolean());
         removeAllFiltersItem.setDisable(!viewActions.hasAnyFilter().getAsBoolean());
+        java.util.Optional<Boolean> active = viewActions.filterActiveState().get();
+        filterActiveItem.setDisable(active.isEmpty());
+        filterActiveItem.setSelected(active.orElse(false));
+        java.util.Optional<Boolean> saved = viewActions.filterSavedState().get();
+        saveFilterItem.setDisable(saved.isEmpty());
+        saveFilterItem.setSelected(saved.orElse(false));
         addFormulaItem.setDisable(formulaTarget() == null);
         boolean isFormula = GridFormulas.isFormula(node);
         storeFormulaItem.setVisible(isFormula);

@@ -500,6 +500,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             return;
         }
 
+        syncSavedFilters();
         allRows = FlatRow.groupSiblings(applyFilters(adapter.flatten(viewState::isTable)), siblingGroupSize);
         adapter.attachTables(allRows, this::markLayoutDirty);
         for (FlatRow row : allRows) {
@@ -885,7 +886,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         List<FlatRow> result = new ArrayList<>(rows.size() + filtered.size());
         if (anchor != null && filtered.containsKey(anchor)) {
             result.add(new FlatRow(FlatRow.RowType.FILTER, 0, anchor.getModelNode(), anchor,
-                    null, viewState.filter(filtered.get(anchor)), 0));
+                    null, filterLineText(filtered.get(anchor)), 0));
         }
         for (FlatRow row : rows) {
             if (!passesFilters(row, predicates) || !passesInherited(row, inherited)) {
@@ -896,7 +897,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             if (key != null) {
                 String expression = viewState.filter(key);
                 FlatRow line = new FlatRow(FlatRow.RowType.FILTER, row.getDepth() + 1, row.getModelNode(), row,
-                        null, expression, 0);
+                        null, filterLineText(key), 0);
                 result.add(line);
             }
         }
@@ -968,13 +969,28 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     public void setFilter(FlatRow row, String expression) {
         String key = keyOf(row);
+        boolean blank = expression == null || expression.isBlank();
         viewState.setFilter(key, expression);
-        if (expression != null && !expression.isBlank()) {
+        if (!blank) {
             viewState.setFilterActive(key, true);
             row.setExpanded(true);
             viewState.setExpanded(key, true);
         }
-        rebuildTree();
+        // A filter saved in the document follows: changed there too, removed from it with the filter
+        boolean documentChanged = false;
+        if (savedFilterKeys.contains(key)) {
+            if (blank) {
+                savedFilterKeys.remove(key);
+                documentChanged = adapter.removeSavedFilter(row);
+            } else {
+                documentChanged = adapter.saveFilter(row, expression);
+            }
+        }
+        if (documentChanged) {
+            refresh();
+        } else {
+            rebuildTree();
+        }
         String error = filterErrors.get(key);
         if (error != null) {
             showToast("Filter: " + error, ToastNotification.Type.WARNING);
@@ -1085,7 +1101,106 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         for (String key : List.copyOf(viewState.filters().keySet())) {
             viewState.setFilter(key, null);
         }
-        rebuildTree();
+        savedFilterKeys.clear();
+        if (adapter.removeAllSavedFilters()) {
+            refresh(); // saved filters are removed from the document too
+        } else {
+            rebuildTree();
+        }
+    }
+
+    // ==================== Saved filters ====================
+
+    /** The keys of the filters that are saved in the document (as last synchronized). */
+    private final java.util.Set<String> savedFilterKeys = new java.util.HashSet<>();
+
+    /**
+     * Takes the filters saved in the document into the view: a new or changed one comes in
+     * <em>inactive</em> (a file never opens filtered unnoticed), one whose instruction is gone
+     * (deleted in the text, undone) leaves the view. Filters set only in the view stay as they are.
+     */
+    private void syncSavedFilters() {
+        if (!adapter.supportsSavedFilters()) {
+            return;
+        }
+        java.util.Map<String, String> saved = adapter.savedFilters();
+        for (java.util.Iterator<String> it = savedFilterKeys.iterator(); it.hasNext(); ) {
+            String key = it.next();
+            if (!saved.containsKey(key)) {
+                viewState.setFilter(key, null);
+                it.remove();
+            }
+        }
+        saved.forEach((key, expression) -> {
+            if (expression.isBlank()) {
+                return;
+            }
+            if (!expression.equals(viewState.filter(key))) {
+                viewState.setFilter(key, expression);
+                viewState.setFilterActive(key, false);
+            }
+            savedFilterKeys.add(key);
+        });
+    }
+
+    /** @return the text of a filter line: the expression, marked when it is saved in the document */
+    private String filterLineText(String key) {
+        String expression = viewState.filter(key);
+        return savedFilterKeys.contains(key) ? expression + "   \u00b7 saved" : expression;
+    }
+
+    /** @return whether the filter of the selection's target is switched on; empty without a filter */
+    public java.util.Optional<Boolean> filterActiveStateOfSelection() {
+        if (!hasFilterOnSelection()) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(viewState.isFilterActive(keyOf(filterTargetRow())));
+    }
+
+    /** Switches the filter of the selection's target on or off (as a click on its funnel). */
+    public void toggleFilterActiveOfSelection() {
+        if (hasFilterOnSelection()) {
+            String key = keyOf(filterTargetRow());
+            viewState.setFilterActive(key, !viewState.isFilterActive(key));
+            rebuildTree();
+        }
+    }
+
+    /**
+     * @return whether the filter of the selection's target is saved in the document; empty without
+     *         a filter or when the model cannot save filters
+     */
+    public java.util.Optional<Boolean> filterSavedStateOfSelection() {
+        if (!adapter.supportsSavedFilters() || !hasFilterOnSelection()) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(savedFilterKeys.contains(keyOf(filterTargetRow())));
+    }
+
+    /**
+     * Saves the filter of the selection's target in the document, or removes it from there again
+     * (the filter itself stays in the view). One undoable edit.
+     */
+    public void toggleFilterSavedOfSelection() {
+        if (filterSavedStateOfSelection().isEmpty()) {
+            return;
+        }
+        FlatRow target = filterTargetRow();
+        String key = keyOf(target);
+        boolean changed;
+        if (savedFilterKeys.remove(key)) {
+            changed = adapter.removeSavedFilter(target);
+        } else {
+            changed = adapter.saveFilter(target, viewState.filter(key));
+            if (changed || adapter.isSavedFilter(target)) {
+                savedFilterKeys.add(key);
+            }
+        }
+        if (changed) {
+            refresh();
+        } else {
+            rebuildTree();
+        }
     }
 
     /** The table, row and column of the last table context menu (a complex cell filters its content). */
@@ -1886,6 +2001,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     this::editFilterOfSelection, this::filterToFocus, this::canFilterSelection,
                     this::removeFilterOfSelection, this::hasFilterOnSelection,
                     this::removeAllFilters, this::hasAnyFilter,
+                    this::toggleFilterActiveOfSelection, this::filterActiveStateOfSelection,
+                    this::toggleFilterSavedOfSelection, this::filterSavedStateOfSelection,
                     this::expandSelectionOneLevel, this::collapseSelectionOneLevel, this::selectModelNode));
         }
         return contextMenu;

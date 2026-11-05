@@ -31,6 +31,10 @@ public interface GridContextMenu<N> {
      * @param hasFilter          whether the selection's filter target has a filter
      * @param removeAllFilters   removes every filter of the view
      * @param hasAnyFilter       whether the view has any filter
+     * @param toggleFilterActive switches the selection's filter on/off
+     * @param filterActiveState  whether the selection's filter is on, empty without a filter
+     * @param toggleFilterSaved  saves the selection's filter in the document / removes it from there
+     * @param filterSavedState   whether the selection's filter is saved, empty when it cannot be
      * @param expandOneLevel     expands the selection by one level
      * @param collapseOneLevel   collapses the selection by one level
      * @param revealNode         selects the row of a model node and expands its ancestors (after
@@ -42,6 +46,8 @@ public interface GridContextMenu<N> {
                        Runnable editFilter, Runnable filterToFocus, java.util.function.BooleanSupplier filterSupported,
                        Runnable removeFilter, java.util.function.BooleanSupplier hasFilter,
                        Runnable removeAllFilters, java.util.function.BooleanSupplier hasAnyFilter,
+                       Runnable toggleFilterActive, java.util.function.Supplier<java.util.Optional<Boolean>> filterActiveState,
+                       Runnable toggleFilterSaved, java.util.function.Supplier<java.util.Optional<Boolean>> filterSavedState,
                        Runnable expandOneLevel, Runnable collapseOneLevel,
                        java.util.function.Consumer<Object> revealNode) {
         /** @return actions that do nothing (for menus built without a canvas, e.g. in tests) */
@@ -49,6 +55,7 @@ public interface GridContextMenu<N> {
             return new ViewActions(() -> { }, () -> { }, () -> { }, () -> { },
                     () -> { }, java.util.Optional::empty, () -> { }, java.util.Optional::empty, () -> { }, () -> { },
                     () -> false, () -> { }, () -> false, () -> { }, () -> false,
+                    () -> { }, java.util.Optional::empty, () -> { }, java.util.Optional::empty,
                     () -> { }, () -> { }, node -> { });
         }
     }

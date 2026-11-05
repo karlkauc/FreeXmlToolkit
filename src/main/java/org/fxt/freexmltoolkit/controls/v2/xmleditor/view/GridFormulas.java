@@ -28,7 +28,7 @@ public final class GridFormulas {
     /** The processing-instruction target of a formula. */
     public static final String TARGET = "fxt-formula";
 
-    private static final Pattern FIELD = Pattern.compile("(\\w+)=\"((?:[^\"&]|&quot;|&amp;|&gt;)*)\"");
+    static final Pattern FIELD = Pattern.compile("(\\w+)=\"((?:[^\"&]|&quot;|&amp;|&gt;)*)\"");
 
     private GridFormulas() {
     }
@@ -176,12 +176,12 @@ public final class GridFormulas {
         }
     }
 
-    private static String escape(String s) {
+    static String escape(String s) {
         // ">" is escaped too: the data must never contain the "?>" that ends the instruction
         return s == null ? "" : s.replace("&", "&amp;").replace("\"", "&quot;").replace(">", "&gt;");
     }
 
-    private static String unescape(String s) {
+    static String unescape(String s) {
         return s.replace("&quot;", "\"").replace("&gt;", ">").replace("&amp;", "&");
     }
 }

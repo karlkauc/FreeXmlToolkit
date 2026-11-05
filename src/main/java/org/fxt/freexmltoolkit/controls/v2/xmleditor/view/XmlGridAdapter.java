@@ -250,6 +250,56 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     }
 
     @Override
+    public java.util.Map<String, String> savedFilters() {
+        java.util.Map<String, String> result = new java.util.LinkedHashMap<>();
+        GridFilters.savedFilters(context.getDocument())
+                .forEach((key, pi) -> result.put(key, GridFilters.parse(pi.getData())));
+        return result;
+    }
+
+    @Override
+    public boolean supportsSavedFilters() {
+        return true;
+    }
+
+    @Override
+    public boolean isSavedFilter(FlatRow row) {
+        return row.getModelNode() instanceof XmlElement element && GridFilters.of(element) != null;
+    }
+
+    @Override
+    public boolean saveFilter(FlatRow row, String expression) {
+        if (!(row.getModelNode() instanceof XmlElement element) || expression == null || expression.isBlank()) {
+            return false;
+        }
+        XmlProcessingInstruction pi = GridFilters.of(element);
+        if (pi != null && expression.strip().equals(GridFilters.parse(pi.getData()))) {
+            return false;
+        }
+        // As the element's first child: in the file it stands right after the start tag
+        return context.executeCommand(pi == null
+                ? new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.InsertNodeCommand(
+                        element, GridFilters.create(expression.strip()), 0)
+                : GridFilters.update(pi, expression.strip()));
+    }
+
+    @Override
+    public boolean removeSavedFilter(FlatRow row) {
+        XmlProcessingInstruction pi = row.getModelNode() instanceof XmlElement element ? GridFilters.of(element) : null;
+        return pi != null && context.executeCommand(
+                new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.DeleteNodeCommand(pi));
+    }
+
+    @Override
+    public boolean removeAllSavedFilters() {
+        List<org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.XmlCommand> parts = new java.util.ArrayList<>();
+        for (XmlProcessingInstruction pi : GridFilters.savedFilters(context.getDocument()).values()) {
+            parts.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.commands.DeleteNodeCommand(pi));
+        }
+        return !parts.isEmpty() && context.executeCommand(new CompositeXmlCommand("Remove saved filters", parts));
+    }
+
+    @Override
     public java.util.function.Predicate<Object> filterPredicate(FlatRow row, String expression) {
         if (!(row.getModelNode() instanceof XmlElement context) || row.isVirtual()) {
             return null;

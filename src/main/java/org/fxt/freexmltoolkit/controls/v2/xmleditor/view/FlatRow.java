@@ -842,9 +842,9 @@ public class FlatRow {
             if (child instanceof XmlElement ce) {
                 childCount++;
                 elementsByName.computeIfAbsent(ce.getName(), k -> new ArrayList<>()).add(ce);
-            } else if (child instanceof XmlComment || child instanceof XmlProcessingInstruction
-                    || child instanceof XmlCData) {
-                childCount++;
+            } else if (child instanceof XmlComment || child instanceof XmlCData
+                    || child instanceof XmlProcessingInstruction pi && !GridFilters.isFilter(pi)) {
+                childCount++; // a saved filter has no row: its funnel line stands for it
             } else if (child instanceof XmlText text && !text.isWhitespace() && hasElementChildren) {
                 childCount++;
             }
@@ -944,7 +944,7 @@ public class FlatRow {
             } else if (child instanceof XmlComment comment) {
                 rows.add(new FlatRow(RowType.COMMENT, depth + 1, comment, elementRow,
                         null, comment.getText(), 0));
-            } else if (child instanceof XmlProcessingInstruction pi) {
+            } else if (child instanceof XmlProcessingInstruction pi && !GridFilters.isFilter(pi)) {
                 rows.add(new FlatRow(RowType.PROCESSING_INSTRUCTION, depth + 1, pi, elementRow,
                         pi.getTarget(), pi.getData(), 0));
             } else if (child instanceof XmlCData cdata) {

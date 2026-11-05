@@ -182,6 +182,43 @@ public interface GridModelAdapter<N> {
     }
 
     /**
+     * @return the filters saved in the document, by the key of their container row (see
+     *         {@link #stableKey}); empty when the model cannot store filters
+     */
+    default java.util.Map<String, String> savedFilters() {
+        return java.util.Map.of();
+    }
+
+    /** @return whether filters can be saved in the document */
+    default boolean supportsSavedFilters() {
+        return false;
+    }
+
+    /** @return whether the container row's filter is saved in the document */
+    default boolean isSavedFilter(FlatRow row) {
+        return false;
+    }
+
+    /**
+     * Saves (or updates) the filter of a container row in the document, as one undoable edit.
+     *
+     * @return whether the document changed
+     */
+    default boolean saveFilter(FlatRow row, String expression) {
+        return false;
+    }
+
+    /** Removes the saved filter of a container row from the document; @return whether it changed */
+    default boolean removeSavedFilter(FlatRow row) {
+        return false;
+    }
+
+    /** Removes every saved filter from the document in one undoable edit; @return whether it changed */
+    default boolean removeAllSavedFilters() {
+        return false;
+    }
+
+    /**
      * @param root   the root row
      * @param target the model node to focus (a row's node or a member of an embedded table)
      * @return the filter expression that, set on {@code root}, shows only {@code target} and its
