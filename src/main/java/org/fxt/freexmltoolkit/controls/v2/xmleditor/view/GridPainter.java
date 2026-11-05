@@ -333,6 +333,9 @@ final class GridPainter<N> {
                 Math.max(view.totalWidth, view.viewportWidthModel() + view.scrollOffsetX));
     }
 
+    /** Space kept free between the clipped name and the value column. */
+    private static final double NAME_CLIP_GAP = 2;
+
     /**
      * Draws one row of any grid (the root or an opened cell's) in the current coordinates.
      *
@@ -382,8 +385,17 @@ final class GridPainter<N> {
             }
         }
 
-        // -- Expand arrow, icon, label --
+        // -- Expand arrow, icon, label: clipped to the name cell, so a narrowed name column never
+        //    lets a long name run under the value column --
         double lineCenterY = top + GridCanvasView.ROW_HEIGHT / 2;
+        double nameRight = valueX - NAME_CLIP_GAP;
+        // Set before the save: the value text below draws with the same alignment
+        view.gc.setTextBaseline(VPos.CENTER);
+        view.gc.setTextAlign(TextAlignment.LEFT);
+        view.gc.save();
+        view.gc.beginPath();
+        view.gc.rect(labelX, top, Math.max(0, nameRight - labelX), span);
+        view.gc.clip();
         if (row.isExpandable()) {
             drawExpandArrow(row, labelX, lineCenterY);
         }
@@ -391,8 +403,6 @@ final class GridPainter<N> {
         drawRowIcon(row, iconX, lineCenterY);
 
         double textX = view.rowTextX(row);
-        view.gc.setTextBaseline(VPos.CENTER);
-        view.gc.setTextAlign(TextAlignment.LEFT);
 
         boolean isEditingThisRowName = (view.editor.editingRow == row && view.editor.editingElementName);
         boolean isEditingThisRowValue = (view.editor.editingRow == row && view.editor.editingValue);
@@ -423,11 +433,13 @@ final class GridPainter<N> {
         }
         if (row.showsTableGlyph()) {
             afterLabelX += GridMetrics.CHILD_COUNT_GAP;
-            row.setTableGlyphX(afterLabelX);
             drawTableGlyph(afterLabelX, lineCenterY - TABLE_ICON_SIZE / 2, row.hasRepeatingTable());
+            // A glyph cut off by the name column cannot be clicked (the click belongs to the value)
+            row.setTableGlyphX(afterLabelX + TABLE_ICON_SIZE <= nameRight ? afterLabelX : Double.NaN);
         } else {
             row.setTableGlyphX(Double.NaN);
         }
+        view.gc.restore();
 
         List<String> problems = view.problemsOf(row);
         if (problems != null) {
