@@ -164,4 +164,28 @@ class XmlCanvasViewCellFilterTest {
         assertEquals(1, table.getRows().size());
         assertEquals("B", table.getRows().getFirst().getValue("Code"));
     }
+
+    @Test
+    void filterOnTheOuterCellFiltersOnlyThatCellsTable() {
+        // Right-click on "3 × <Datenpunkt>" of the first record (the cell is still closed)
+        fx(() -> {
+            view.expandAll();
+            view.showTableContextMenu(0, 0, listRow(), listRow().getRepeatingTable(), 0, "Datenpunkt");
+            view.contextMenu().hide();
+            return null;
+        });
+        assertTrue(fx(view::canFilterSelection), "Filter… is enabled on a complex cell");
+        fx(() -> {
+            FlatRow target = view.prepareFilterTarget();
+            assertSame(firstRecord(), target.getModelNode(), "the cell's record, not the root");
+            view.setFilter(target, "Datenpunkt[starts-with(Code, 'B')]");
+            return null;
+        });
+
+        assertTrue(view.visibleRowList().stream().anyMatch(r -> "Meldung".equals(r.getLabel())));
+        assertEquals(2, fx(() -> listRow().getRepeatingTable().getRows().size()), "both records stay");
+        RepeatingElementsTable filtered = groupRow(openCell(0)).getRepeatingTable();
+        assertEquals(List.of("B"), filtered.getRows().stream().map(r -> r.getValue("Code")).toList());
+        assertEquals(2, groupRow(openCell(1)).getRepeatingTable().getRows().size(), "the other table is complete");
+    }
 }

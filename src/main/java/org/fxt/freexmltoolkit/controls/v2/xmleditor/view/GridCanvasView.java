@@ -993,6 +993,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      *         row of an embedded table is selected - the element that holds the table
      */
     FlatRow filterTargetRow() {
+        GridBlock cell = contextCellGrid();
+        if (cell != null && cell.anchor() != null) {
+            return cell.anchor();
+        }
         if (selectedRow != null) {
             // A repeating group stands for its members: the filter goes to the element holding it
             return selectedRow.isTableGroupOwner() ? selectedRow.getParentRow() : selectedRow;
@@ -1006,6 +1010,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      *         that is the cell's anchor (e.g. the table record whose Datenpunkt cell is open)
      */
     public boolean canFilterSelection() {
+        if (selectedRow == null && contextComplexCell() != null) {
+            return adapter.supportsFilters(); // the cell is opened when the filter is edited
+        }
         FlatRow target = filterTargetRow();
         return target != null && !target.isVirtual() && !target.isTableGroupOwner()
                 && (target.isExpandable() || isCellAnchor(target)) && filterSupported(target);
@@ -1022,9 +1029,56 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** Asks for the filter expression of the selected container (empty removes the filter). */
     public void editFilterOfSelection() {
-        if (canFilterSelection()) {
-            editFilter(filterTargetRow());
+        FlatRow target = prepareFilterTarget();
+        if (target != null) {
+            editFilter(target);
         }
+    }
+
+    /**
+     * @return the row the filter of the selection goes to, opening the context menu's complex cell
+     *         first when its content is filtered; {@code null} when the selection cannot be filtered
+     */
+    FlatRow prepareFilterTarget() {
+        if (!canFilterSelection()) {
+            return null;
+        }
+        RepeatingElementsTable.TableRow host = contextComplexCell();
+        if (selectedRow == null && host != null && !host.isColumnExpanded(contextTableColumn)) {
+            // A filter on a cell's content: open the cell, its anchor carries the filter
+            host.toggleColumnExpanded(contextTableColumn);
+            contextTable.recalculateColumnWidths();
+            recalculateVisibleRows();
+            updateScrollBars();
+            render();
+        }
+        return filterTargetRow();
+    }
+
+    /** The table, row and column of the last table context menu (a complex cell filters its content). */
+    private RepeatingElementsTable contextTable;
+    private int contextTableRow = -1;
+    private String contextTableColumn;
+
+    /**
+     * @return the table row whose complex cell the last table context menu was opened on, while
+     *         that table row is still the selection; otherwise {@code null}
+     */
+    private RepeatingElementsTable.TableRow contextComplexCell() {
+        if (selectedRow != null || contextTable == null || contextTable != tables.selectedTable
+                || contextTableColumn == null || contextTableRow < 0
+                || contextTableRow >= contextTable.getRows().size()
+                || contextTable.getSelectedRow() != contextTable.getRows().get(contextTableRow)) {
+            return null;
+        }
+        RepeatingElementsTable.TableRow row = contextTable.getRows().get(contextTableRow);
+        return row.hasComplexChild(contextTableColumn) ? row : null;
+    }
+
+    /** @return the opened grid of the context menu's complex cell, or {@code null} */
+    private GridBlock contextCellGrid() {
+        RepeatingElementsTable.TableRow row = contextComplexCell();
+        return row != null ? row.getCellGrid(contextTableColumn) : null;
     }
 
     /** Asks for the filter expression of a container row (empty removes the filter). */
@@ -1772,6 +1826,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     void showTableContextMenu(double screenX, double screenY, FlatRow ownerRow, RepeatingElementsTable table,
                               int tableRow, String column) {
+        contextTable = table;
+        contextTableRow = tableRow;
+        contextTableColumn = column;
         if (tableRow >= 0) {
             tables.selectTableRow(table, tableRow);
             render();

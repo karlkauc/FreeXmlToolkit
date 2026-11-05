@@ -20,6 +20,7 @@ public final class GridBlock {
     private final List<FlatRow> rows;
     private final RepeatingElementsTable.TableRow host;
     private final String column;
+    private FlatRow anchor;
     private GridBlockLayout.Result geometry;
 
     /**
@@ -36,8 +37,17 @@ public final class GridBlock {
             FlatRow parent = row.getParentRow();
             if (parent != null && parent.getDepth() < 0) {
                 parent.setBlock(this); // the virtual anchor: identifies the cell's top block
+                anchor = parent;
             }
         }
+    }
+
+    /**
+     * @return the virtual anchor the cell's top rows hang off (the record, or the element whose
+     *         content the cell lists), {@code null} for an empty cell
+     */
+    public FlatRow anchor() {
+        return anchor;
     }
 
     /** @return every row of the block, visible or not, in display order */
