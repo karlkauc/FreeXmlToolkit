@@ -1195,6 +1195,18 @@ val buildWindowsUpdateHelper = tasks.register<Exec>("buildWindowsUpdateHelper") 
                 If the proxy only accepts NTLM/Kerberos (Windows domain login), cargo cannot authenticate.
                 Run a local relay proxy such as px (https://github.com/genotrance/px) and point cargo at it:
                     set CARGO_HTTP_PROXY=http://127.0.0.1:3128
+
+                If cargo reported "linking with `link.exe` failed" and "link: extra operand", rustc found
+                the GNU coreutils 'link' (Git for Windows / cmder usr\bin) instead of the MSVC linker,
+                usually because the Visual Studio Build Tools are missing. Either:
+                  - install the Build Tools for Visual Studio, workload "Desktop development with C++"
+                    (MSVC x64 build tools + Windows SDK), or
+                  - without admin rights, use the GNU toolchain (windres from MinGW embeds icon + manifest):
+                    scoop install mingw
+                    rustup toolchain install stable-x86_64-pc-windows-gnu
+                    rustup default stable-x86_64-pc-windows-gnu
+                    cd update-helper && cargo clean
+                  Then make sure the build log shows no "Failed to embed icon/manifest" warning.
             """.trimIndent())
         }
         val output = file("update-helper/target/release/fxt-update-helper.exe")
