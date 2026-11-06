@@ -3000,7 +3000,12 @@ while you work elsewhere.</p>
   (<code>Transform-Result.xml</code> / <code>.html</code> / <code>.json</code> / <code>.txt</code>) that you can edit and save.
   An <strong>HTML/XHTML result</strong> opens as an HTML document rendered in the
   <a href="../unified-shell/#html-preview">Preview</a> view (switch to Text to see the markup); re-running the
-  transform updates the open result tab, re-rendering the preview if it is showing.</li>
+  transform updates the open result tab, re-rendering the preview if it is showing.
+  An <strong>XML result</strong> gets a schema for validation and IntelliSense like an opened file: the
+  <code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code> it declares (a relative location
+  resolves against the input's folder), else a Schema Library entry, else the schema of the
+  transform's input - if that schema declares the result's root element (e.g. a stylesheet
+  that only adds or removes annotations).</li>
 <li><strong>Browser</strong> (<em>Open in browser</em>) - opens the result (typically HTML) in your system web browser.</li>
 <li><strong>Save…</strong> (<em>Save result…</em>) - writes the result straight to a file.</li>
 <li><strong>✕</strong> - hides the OUTPUT panel; it reappears automatically on the next run.</li>
