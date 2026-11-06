@@ -975,6 +975,22 @@ $platformArgs""".trimIndent())
             if (platform == "macos" && jpackageExitValue != 0) {
                 throw GradleException("jpackage failed for $platform-$arch $packageType (exit code $jpackageExitValue)")
             }
+            if (platform == "windows" && jpackageExitValue != 0) {
+                val wixHint = if (packageType == "exe" || packageType == "msi") "\n\n" + """
+                    jpackage builds .exe/.msi installers with the WiX Toolset. Common causes:
+                      - WiX 4 or newer reports "error WIX0144: The extension 'WixToolset.Util.wixext' could not be found":
+                        the extensions are not bundled and must match the WiX version (see `wix --version`), e.g.
+                          wix extension add -g WixToolset.Util.wixext/7.0.1
+                          wix extension add -g WixToolset.UI.wixext/7.0.1
+                        (-g installs them into %USERPROFILE%\.wix\extensions, no admin rights needed;
+                        they are downloaded from nuget.org, so a proxy may need HTTPS_PROXY).
+                      - Newer WiX versions ask to accept the Open Source Maintenance Fee EULA once, e.g.
+                          wix eula accept wix7
+                      - WiX not found at all: install it (e.g. scoop install wixtoolset) and open a new terminal.
+                    A runnable app without an installer (no WiX needed): gradlew zipWindowsAppImageX64
+                """.trimIndent() else ""
+                throw GradleException("jpackage failed for $platform-$arch $packageType (exit code $jpackageExitValue)$wixHint")
+            }
 
             // Verify Rust helper made it into the package (Windows only)
             if (platform == "windows" && packageType == "app-image") {
