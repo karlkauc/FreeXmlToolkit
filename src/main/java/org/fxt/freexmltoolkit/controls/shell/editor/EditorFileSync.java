@@ -248,24 +248,9 @@ final class EditorFileSync {
             if (EditorTab.isAbandoned(tab)) {
                 return; // closed between the check above and this pulse
             }
-            File autoXsd = detection != null ? detection.schema() : null;
-            if (autoXsd != null) {
-                tab.schemaFile = autoXsd;
-                tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
-                tab.view.invalidateIntelliSenseCache();
-                if (tab.isSelected()) {
-                    host.activeSchema.set(autoXsd);
-                }
-                host.publishSchemaSource(tab, detection.source(), detection.sourceDetail());
-                host.schemaBinding.loadXmlSchemaProviderAsync(tab, autoXsd);
-                host.schemaBinding.schemaBindingsApplied.incrementAndGet();
-            }
-            // Always publish a terminal status so LOADING can never stick. When the
-            // CAS was lost (a concurrent detection ran), fall back to the tab's
-            // current binding.
-            host.publishSchemaStatus(tab, detection != null
-                    ? detection.status()
-                    : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
+            // Binds the detected schema and always publishes a terminal status so LOADING can
+            // never stick (a lost CAS - a concurrent detection ran - shows the current binding).
+            host.schemaBinding.applyDetection(tab, detection);
             if (detection != null && tab.view.supportsSchema()) {
                 UsageEvents.schemaBound(tab.document.getFileType().docKind(),
                         detection.source().name().toLowerCase(java.util.Locale.ROOT),

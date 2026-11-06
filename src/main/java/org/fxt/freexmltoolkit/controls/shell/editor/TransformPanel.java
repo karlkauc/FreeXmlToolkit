@@ -837,6 +837,11 @@ public class TransformPanel extends VBox {
         String xmlBaseUri = inputFile != null ? inputFile.toURI().toString()
                 : sourceDocument != null && sourceDocument.getPath() != null
                         ? sourceDocument.getPath().toUri().toString() : null;
+        // The input's location and schema, so the result's own tab can get a schema too
+        java.nio.file.Path inputPath = inputFile != null ? inputFile.toPath()
+                : sourceDocument != null ? sourceDocument.getPath() : null;
+        File openInputSchema = inputFile != null ? editorHost.schemaFileOf(inputFile)
+                : sourceDocument != null ? editorHost.schemaFileOf(sourceDocument) : null;
         Map<String, Object> params = collectParameters();
         boolean wantProfile = profileCheck.isSelected();
         boolean wantTrace = traceCheck.isSelected();
@@ -908,6 +913,8 @@ public class TransformPanel extends VBox {
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
             OutputFormat finalFormat = format;
+            TransformOutputPanel.ResultSource resultSource = ok
+                    ? resultSource(inputPath, openInputSchema, inputFile != null ? xmlInput : null) : null;
             org.fxt.freexmltoolkit.service.XsltTransformationResult report =
                     (wantProfile || wantTrace) ? fullResult : null;
             Platform.runLater(() -> {
@@ -921,7 +928,7 @@ public class TransformPanel extends VBox {
                     // routinely on half-edited input: show the error inline, never a modal dialog.
                     out.showError(finalResult);
                 } else {
-                    out.showTransformResult(finalResult, finalFormat, elapsedMs);
+                    out.showTransformResult(finalResult, finalFormat, elapsedMs, resultSource);
                 }
                 if (!finalResult.startsWith("ERROR") && autoOpenResultTab.isSelected()) {
                     out.openResultInEditor();
@@ -938,6 +945,24 @@ public class TransformPanel extends VBox {
                 }
             });
         });
+    }
+
+    /**
+     * Worker thread: the origin of a transform result - the input's location and schema (the one
+     * bound to its open tab, else the one an input file declares).
+     *
+     * @param inputXml the input text when it was read from a file that may not be open, else {@code null}
+     */
+    static TransformOutputPanel.ResultSource resultSource(java.nio.file.Path inputPath, File openInputSchema,
+                                                          String inputXml) {
+        File schema = openInputSchema;
+        if (schema == null && inputXml != null && inputPath != null) {
+            // the document element with its attributes is enough to find the declaration
+            String head = inputXml.length() > 65_536 ? inputXml.substring(0, 65_536) : inputXml;
+            java.nio.file.Path dir = inputPath.toAbsolutePath().getParent();
+            schema = EditorSchemaBinding.declaredSchemaFile(head, dir != null ? dir.toFile() : null).orElse(null);
+        }
+        return inputPath == null && schema == null ? null : new TransformOutputPanel.ResultSource(inputPath, schema);
     }
 
     /**

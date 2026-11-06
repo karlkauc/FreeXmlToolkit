@@ -133,6 +133,12 @@ final class EditorTab extends Tab {
      * validation/debounce cycle — only when the declared value actually changes.
      */
     volatile String lastDetectedSchemaLocation;
+    /**
+     * Stand-in location of an unsaved generated document (e.g. a transform result: next to the
+     * transform's input), against which relative schema locations resolve; {@code null} = none.
+     * The document's own path, once saved, takes precedence ({@link EditorSchemaBinding#schemaPath}).
+     */
+    volatile java.nio.file.Path schemaBasePath;
     /** Written on the loader thread, read on the FX thread (tab switch) — hence volatile. */
     volatile SchemaStatus schemaStatus = SchemaStatus.NONE;
     /** How {@link #schemaFile} was resolved (declared/catalog/library/manual); status-bar detail. */

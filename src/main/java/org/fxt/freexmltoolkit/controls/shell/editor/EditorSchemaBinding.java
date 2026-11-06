@@ -254,7 +254,7 @@ final class EditorSchemaBinding {
             return;
         }
         String content = tab.view.getText();
-        Path path = tab.document.getPath();
+        Path path = schemaPath(tab);
         long generation = tab.schemaBindingGen.incrementAndGet(); // supersede queued reconciles
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             if (EditorTab.isAbandoned(tab)) {
@@ -310,22 +310,115 @@ final class EditorSchemaBinding {
                 if (EditorTab.isAbandoned(tab)) {
                     return; // closed between the check above and this pulse
                 }
-                File autoXsd = result.schema();
-                if (autoXsd != null) {
-                    tab.schemaFile = autoXsd;
-                    tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
-                    tab.view.invalidateIntelliSenseCache();
-                    if (tab.isSelected()) {
-                        host.activeSchema.set(autoXsd);
-                    }
-                    host.publishSchemaSource(tab, result.source(), result.sourceDetail());
-                    loadXmlSchemaProviderAsync(tab, autoXsd);
-                    schemaBindingsApplied.incrementAndGet();
-                }
-                // Terminal status in every branch, so LOADING never sticks.
-                host.publishSchemaStatus(tab, result.status());
+                applyDetection(tab, result);
             });
         });
+    }
+
+    /**
+     * FX thread: applies an auto-detection result to the tab - binds the detected schema (origin
+     * AUTO, status-bar source, IntelliSense provider) and always publishes a terminal status, so
+     * LOADING never sticks. A {@code null} detection (the detection lock was held by another
+     * detection) publishes the tab's current binding state.
+     */
+    void applyDetection(EditorTab tab, SchemaDetection detection) {
+        File autoXsd = detection != null ? detection.schema() : null;
+        if (autoXsd != null) {
+            tab.schemaFile = autoXsd;
+            tab.schemaOrigin = SchemaRebindPolicy.SchemaBindingOrigin.AUTO;
+            tab.view.invalidateIntelliSenseCache();
+            if (tab.isSelected()) {
+                host.activeSchema.set(autoXsd);
+            }
+            host.publishSchemaSource(tab, detection.source(), detection.sourceDetail());
+            loadXmlSchemaProviderAsync(tab, autoXsd);
+            schemaBindingsApplied.incrementAndGet();
+        }
+        host.publishSchemaStatus(tab, detection != null
+                ? detection.status()
+                : (tab.schemaFile != null ? SchemaStatus.READY : SchemaStatus.NONE));
+    }
+
+    /**
+     * The location schema references of the tab's document resolve against: its file, or for an
+     * unsaved generated document the stand-in {@link EditorTab#schemaBasePath} (a transform result
+     * resolves like a file next to the transform's input); {@code null} when there is neither.
+     */
+    static Path schemaPath(EditorTab tab) {
+        Path path = tab.document.getPath();
+        return path != null ? path : tab.schemaBasePath;
+    }
+
+    /**
+     * Auto-detects the schema of a generated document (e.g. a transform result opened in its own
+     * tab), which - unlike a file - never runs the detection on open. Order: the schema the text
+     * declares (relative locations against {@link #schemaPath}), the Schema Library / catalogs, and
+     * finally {@code fallbackXsd} (the transform input's schema), but only when it declares the
+     * document's root element globally - an unrelated output must not inherit the input's schema.
+     * The inherited binding counts as auto-detected for the declaration the document carries, so
+     * the validation-time reconcile keeps it while that declaration is unchanged. No-op when the
+     * tab already has a schema. Call on the FX thread; the work runs on a worker.
+     *
+     * @param fallbackXsd the transform input's schema, or {@code null}
+     */
+    void detectGeneratedAsync(EditorTab tab, File fallbackXsd) {
+        if (!tab.view.supportsSchema() || tab.schemaFile != null) {
+            return;
+        }
+        String content = tab.view.getText();
+        Path path = schemaPath(tab);
+        long generation = tab.schemaBindingGen.incrementAndGet(); // supersede queued reconciles
+        long bindRequest = tab.schemaBindRequest.get(); // an explicit bind after this one wins
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            if (EditorTab.isAbandoned(tab)
+                    || !acquireSchemaDetection(tab, () -> tab.schemaBindingGen.get() != generation)) {
+                return;
+            }
+            SchemaDetection detection;
+            try {
+                if (tab.schemaBindingGen.get() != generation || tab.schemaFile != null) {
+                    return; // superseded, or bound meanwhile (an explicit choice is never replaced)
+                }
+                Platform.runLater(() -> host.publishSchemaStatus(tab, SchemaStatus.LOADING));
+                detection = detectSchemaFor(tab, content, path);
+                if (detection.schema() == null && fallbackXsd != null) {
+                    SchemaDetection inherited = inheritSchema(tab, content, fallbackXsd);
+                    if (inherited != null) {
+                        detection = inherited;
+                    }
+                }
+            } finally {
+                tab.schemaDetecting.set(false);
+            }
+            if (EditorTab.isAbandoned(tab)) {
+                return;
+            }
+            SchemaDetection result = detection;
+            Platform.runLater(() -> {
+                if (!EditorTab.isAbandoned(tab) && tab.schemaBindRequest.get() == bindRequest) {
+                    applyDetection(tab, result);
+                }
+            });
+        });
+    }
+
+    /**
+     * Worker thread, detection lock held: binds {@code xsd} (the transform input's schema) when it
+     * declares the root element of {@code content} as a global element.
+     * {@link EditorTab#lastDetectedSchemaLocation} stays what {@link #detectSchemaFor} recorded
+     * (the document's declaration), so the reconcile keeps this binding.
+     *
+     * @return the detection, or {@code null} when the schema does not fit or cannot be loaded
+     */
+    private static SchemaDetection inheritSchema(EditorTab tab, String content, File xsd) {
+        javax.xml.namespace.QName root = XsdGlobalElements.rootElement(content);
+        if (root == null || !xsd.isFile()
+                || !XsdGlobalElements.declares(xsd, root.getNamespaceURI(), root.getLocalPart())
+                || !loadSchemaSafely(tab, xsd)) {
+            return null;
+        }
+        return new SchemaDetection(xsd, SchemaStatus.READY, SchemaSource.DECLARED,
+                "from transform input: " + xsd.getName());
     }
 
     /**
@@ -344,7 +437,7 @@ final class EditorSchemaBinding {
                 || !tab.view.supportsSchema()) {
             return () -> null;
         }
-        Path path = tab.document.getPath();
+        Path path = schemaPath(tab);
         long generation = tab.schemaBindingGen.incrementAndGet();
         return () -> reconcileSchemaBinding(tab, content, path, generation);
     }

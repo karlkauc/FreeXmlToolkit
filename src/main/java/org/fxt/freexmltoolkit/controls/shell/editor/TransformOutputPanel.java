@@ -65,6 +65,20 @@ public class TransformOutputPanel extends VBox {
     /** The (re-used) editor tab holding the latest opened result, if still open. */
     private OpenDocument resultDocument;
 
+    /**
+     * Where a transform result came from, so its own tab can get a schema: relative schema
+     * locations in the result resolve against {@code inputPath}'s folder, and a result without a
+     * reachable schema inherits {@code inputSchema} when that declares the result's root element.
+     *
+     * @param inputPath   the transform's input file ({@code null} for unsaved input)
+     * @param inputSchema the XSD bound to / declared by the input, or {@code null}
+     */
+    public record ResultSource(java.nio.file.Path inputPath, java.io.File inputSchema) {
+    }
+
+    /** Origin of the result currently shown ({@code null} = unknown, e.g. a query result). */
+    private ResultSource resultSource;
+
     /** Loads the layout from {@code /pages/panels/TransformOutputPanel.fxml} and adds the Text view. */
     public TransformOutputPanel(EditorHost editorHost) {
         this.editorHost = editorHost;
@@ -105,7 +119,18 @@ public class TransformOutputPanel extends VBox {
 
     /** Shows a finished XSLT transform result (success or "ERROR: …"). */
     public void showTransformResult(String text, OutputFormat format, long elapsedMs) {
+        showTransformResult(text, format, elapsedMs, null);
+    }
+
+    /**
+     * Shows a transform result together with its origin, which {@link #openResultInEditor()} uses
+     * to give the result's tab a schema.
+     *
+     * @param source the transform's input and its schema, or {@code null}
+     */
+    public void showTransformResult(String text, OutputFormat format, long elapsedMs, ResultSource source) {
         showRun("Transformed", text, format, elapsedMs, null);
+        resultSource = text != null && text.startsWith("ERROR") ? null : source;
     }
 
     /** Shows an XPath/JSONPath query result. */
@@ -188,6 +213,7 @@ public class TransformOutputPanel extends VBox {
             return;
         }
         reveal();
+        resultSource = null; // set again by showTransformResult for a transform with a known input
         if (format != null) {
             lastResultFormat = format;
             badge.setText(format.name());
@@ -276,8 +302,8 @@ public class TransformOutputPanel extends VBox {
         };
         String name = "Transform-Result." + extension(lastResultFormat);
         boolean sameTab = resultDocument != null && name.equals(resultDocument.getDisplayName());
-        if (!sameTab || !editorHost.updateGeneratedDocument(resultDocument, result)) {
-            resultDocument = editorHost.openGeneratedDocument(result, type, name);
+        if (!sameTab || !editorHost.updateGeneratedDocument(resultDocument, result, resultSource)) {
+            resultDocument = editorHost.openGeneratedDocument(result, type, name, resultSource);
         }
         // HTML results open rendered, matching the OUTPUT dock's Preview toggle.
         if (type == EditorFileType.HTML) {

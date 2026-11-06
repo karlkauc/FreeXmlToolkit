@@ -246,6 +246,11 @@ The OUTPUT panel header shows:
       An **HTML/XHTML result** opens as an HTML document rendered in the
       [Preview](unified-shell.md#html-preview) view (switch to Text to see the markup); re-running the
       transform updates the open result tab, re-rendering the preview if it is showing.
+      An **XML result** gets a schema for validation and IntelliSense like an opened file: the
+      `xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` it declares (a relative location
+      resolves against the input's folder), else a Schema Library entry, else the schema of the
+      transform's input - if that schema declares the result's root element (e.g. a stylesheet
+      that only adds or removes annotations).
     - **Browser** (*Open in browser*) - opens the result (typically HTML) in your system web browser.
     - **Save…** (*Save result…*) - writes the result straight to a file.
     - **✕** - hides the OUTPUT panel; it reappears automatically on the next run.

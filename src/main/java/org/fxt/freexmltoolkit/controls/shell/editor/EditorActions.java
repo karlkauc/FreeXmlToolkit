@@ -269,6 +269,8 @@ public final class EditorActions {
         // The editor text runs, but under the file's location so relative imports/includes resolve
         String xsltSystemId = doc.getPath() != null ? doc.getPath().toUri().toString() : null;
         String xmlBaseUri = target.file() != null ? target.file().toURI().toString() : null;
+        // The target's schema (its open tab's binding), so the result's own tab can get one too
+        java.io.File openTargetSchema = editorHost.schemaFileOf(target.file());
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -298,9 +300,13 @@ public final class EditorActions {
             long elapsedMs = probe.finish(xml.length(),
                     fullResult.isSuccess() ? result.length() : -1, fullResult.isSuccess(),
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
+            TransformOutputPanel.ResultSource source = fullResult.isSuccess()
+                    ? TransformPanel.resultSource(target.file() != null ? target.file().toPath() : null,
+                            openTargetSchema, openTargetSchema == null ? xml : null)
+                    : null;
             Platform.runLater(() -> {
                 if (gen == queryRunGeneration) {
-                    out.showTransformResult(result, format, elapsedMs);
+                    out.showTransformResult(result, format, elapsedMs, source);
                 }
             });
         });

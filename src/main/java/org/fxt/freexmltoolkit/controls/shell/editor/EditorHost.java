@@ -1637,6 +1637,24 @@ public class EditorHost extends BorderPane {
      */
     public OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName,
                                               String usageSource) {
+        return openGeneratedDocument(content, type, displayName, usageSource, null);
+    }
+
+    /**
+     * Opens a transform result in its own tab. {@code source} tells where the result came from:
+     * relative schema locations in it resolve against the transform input's folder, and when the
+     * result declares no reachable schema it inherits the input's schema if that declares the
+     * result's root element - so the tab gets validation and schema-aware IntelliSense.
+     *
+     * @param source the transform's input and its schema, or {@code null}
+     */
+    public OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName,
+                                              TransformOutputPanel.ResultSource source) {
+        return openGeneratedDocument(content, type, displayName, UsageEvents.SOURCE_GENERATED, source);
+    }
+
+    private OpenDocument openGeneratedDocument(String content, EditorFileType type, String displayName,
+                                               String usageSource, TransformOutputPanel.ResultSource source) {
         EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode,
                 nodeClipboard, this::openNamedTypeEditor, schemaLookup::goToXmlDefinition);
         addTab(tab);
@@ -1645,7 +1663,42 @@ public class EditorHost extends BorderPane {
         tab.document.setDirty(true);
         // character count as a cheap size proxy (no encoding on the FX thread)
         reportGeneratedOpen(type != null ? type.docKind() : null, content, usageSource);
+        // a generated document never runs the detection on open that a file gets
+        detectGeneratedSchema(tab, displayName, source);
         return tab.document;
+    }
+
+    /** Starts the schema detection of a generated tab (stand-in location next to the transform input). */
+    private void detectGeneratedSchema(EditorTab tab, String displayName, TransformOutputPanel.ResultSource source) {
+        if (source != null && source.inputPath() != null && displayName != null) {
+            tab.schemaBasePath = source.inputPath().resolveSibling(displayName);
+        }
+        schemaBinding.detectGeneratedAsync(tab, source != null ? source.inputSchema() : null);
+    }
+
+    /** @return the schema bound to the open {@code document}'s tab, or {@code null} */
+    public File schemaFileOf(OpenDocument document) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab editorTab && editorTab.document == document) {
+                return editorTab.schemaFile;
+            }
+        }
+        return null;
+    }
+
+    /** @return the schema bound to the open tab of {@code file}, or {@code null} when it is not open / unbound */
+    public File schemaFileOf(File file) {
+        if (file == null) {
+            return null;
+        }
+        Path wanted = file.toPath().toAbsolutePath().normalize();
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab editorTab && editorTab.document.getPath() != null
+                    && editorTab.document.getPath().toAbsolutePath().normalize().equals(wanted)) {
+                return editorTab.schemaFile;
+            }
+        }
+        return null;
     }
 
     /**
@@ -1724,11 +1777,13 @@ public class EditorHost extends BorderPane {
                     xsltFile.getName() + " (preview)");
             String result;
             long inputChars = -1;
+            TransformOutputPanel.ResultSource previewSource = null;
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat format =
                     org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.XML;
             org.fxt.freexmltoolkit.service.XsltTransformationResult fullResult = null;
             try {
                 String xml = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
+                previewSource = TransformPanel.resultSource(xmlFile.toPath(), null, xml);
                 inputChars = xml.length();
                 String xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
                 format = TransformRunner.detectXsltOutputFormat(xsltContent);
@@ -1752,7 +1807,8 @@ public class EditorHost extends BorderPane {
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             String finalResult = result;
             org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat finalFormat = format;
-            Platform.runLater(() -> out.showTransformResult(finalResult, finalFormat, elapsedMs));
+            TransformOutputPanel.ResultSource finalSource = previewSource;
+            Platform.runLater(() -> out.showTransformResult(finalResult, finalFormat, elapsedMs, finalSource));
         });
     }
 
@@ -1824,10 +1880,24 @@ public class EditorHost extends BorderPane {
      * @return {@code true} if the document's tab is still open and was updated
      */
     public boolean updateGeneratedDocument(OpenDocument document, String content) {
+        return updateGeneratedDocument(document, content, null);
+    }
+
+    /**
+     * As {@link #updateGeneratedDocument(OpenDocument, String)} for a transform result; a tab without
+     * a schema yet runs the detection again (see
+     * {@link #openGeneratedDocument(String, EditorFileType, String, TransformOutputPanel.ResultSource)}).
+     * A bound schema is kept - the validation-time reconcile follows changed declarations.
+     */
+    public boolean updateGeneratedDocument(OpenDocument document, String content,
+                                           TransformOutputPanel.ResultSource source) {
         for (Tab tab : tabPane.getTabs()) {
             if (tab instanceof EditorTab editorTab && editorTab.document == document) {
                 editorTab.view.setText(content);
                 editorTab.refreshPreviewIfActive();
+                if (source != null && editorTab.schemaFile == null && editorTab.document.getPath() == null) {
+                    detectGeneratedSchema(editorTab, editorTab.document.getDisplayName(), source);
+                }
                 return true;
             }
         }
