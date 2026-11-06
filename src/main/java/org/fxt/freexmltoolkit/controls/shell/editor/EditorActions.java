@@ -266,6 +266,9 @@ public final class EditorActions {
         var format = TransformRunner.detectXsltOutputFormat(xslt);
         out.showPending("Transforming " + target.displayName() + "…");
         String stylesheetName = doc.getDisplayName();
+        // The editor text runs, but under the file's location so relative imports/includes resolve
+        String xsltSystemId = doc.getPath() != null ? doc.getPath().toUri().toString() : null;
+        String xmlBaseUri = target.file() != null ? target.file().toURI().toString() : null;
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -282,7 +285,7 @@ public final class EditorActions {
                 });
                 return;
             }
-            var fullResult = TransformRunner.xsltTransformResult(xml, xslt, Map.of(), format);
+            var fullResult = TransformRunner.xsltTransformResult(xml, xmlBaseUri, xslt, xsltSystemId, Map.of(), format);
             String result = fullResult.isSuccess()
                     ? fullResult.getOutputContent()
                     : "ERROR: " + fullResult.getErrorMessage();

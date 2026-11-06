@@ -121,4 +121,51 @@ class TransformRunnerTest {
                 </xsl:stylesheet>
                 """.formatted(method);
     }
+
+    /** A stylesheet that imports a sibling module by a relative href, plus an input referencing a sibling file. */
+    private static java.nio.file.Path writeImportingStylesheet(java.nio.file.Path dir) throws java.io.IOException {
+        java.nio.file.Files.writeString(dir.resolve("module.xslt"), """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template name="from-module">module:<xsl:value-of select="doc(resolve-uri('data.xml', base-uri(/)))/d"/></xsl:template>
+                </xsl:stylesheet>
+                """);
+        java.nio.file.Files.writeString(dir.resolve("data.xml"), "<d>sibling</d>");
+        java.nio.file.Path main = dir.resolve("main.xslt");
+        java.nio.file.Files.writeString(main, """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:import href="module.xslt"/>
+                  <xsl:output method="text"/>
+                  <xsl:template match="/"><xsl:call-template name="from-module"/></xsl:template>
+                </xsl:stylesheet>
+                """);
+        return main;
+    }
+
+    @Test
+    void resolvesRelativeImportsAgainstTheStylesheetFile(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        java.nio.file.Path main = writeImportingStylesheet(dir);
+        String xslt = java.nio.file.Files.readString(main);
+        String input = dir.resolve("input.xml").toUri().toString();
+        var format = org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT;
+
+        var result = TransformRunner.xsltTransformResult("<in/>", input, xslt, main.toUri().toString(),
+                java.util.Map.of(), format);
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertEquals("module:sibling", result.getOutputContent().strip());
+
+        var report = TransformRunner.transformForReport("<in/>", input, xslt, main.toUri().toString(),
+                java.util.Map.of(), format);
+        assertTrue(report.isSuccess(), report.getErrorMessage());
+        assertEquals("module:sibling", report.getOutputContent().strip());
+    }
+
+    @Test
+    void relativeImportFailsWithoutTheStylesheetLocation(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        String xslt = java.nio.file.Files.readString(writeImportingStylesheet(dir));
+        var result = TransformRunner.xsltTransformResult("<in/>", xslt, java.util.Map.of(),
+                org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat.TEXT);
+        assertFalse(result.isSuccess(), "without a location the import cannot be found next to the stylesheet");
+    }
 }

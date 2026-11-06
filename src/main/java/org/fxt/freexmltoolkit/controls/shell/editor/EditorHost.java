@@ -1732,7 +1732,8 @@ public class EditorHost extends BorderPane {
                 inputChars = xml.length();
                 String xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
                 format = TransformRunner.detectXsltOutputFormat(xsltContent);
-                fullResult = TransformRunner.xsltTransformResult(xml, xsltContent, java.util.Map.of(), format);
+                fullResult = TransformRunner.xsltTransformResult(xml, xmlFile.toURI().toString(),
+                        xsltContent, xsltFile.toURI().toString(), java.util.Map.of(), format);
                 result = fullResult.isSuccess()
                         ? fullResult.getOutputContent()
                         : "ERROR: " + fullResult.getErrorMessage();
@@ -1786,7 +1787,7 @@ public class EditorHost extends BorderPane {
         }
         var view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView(
                 org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView.Kind.XSLT,
-                xsltContent, java.util.Map.of(), format);
+                xsltContent, xsltFile.toURI().toString(), java.util.Map.of(), format);
         view.addInputFiles(xmlFiles);
         openToolTab("Batch", "bi-collection", view);
         view.run();

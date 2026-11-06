@@ -21,7 +21,7 @@ public final class BatchTransformRunner {
 
     private static List<BatchFileResult> runBatch(List<File> files,
             org.fxt.freexmltoolkit.service.ExecutionStats.OperationType operationType,
-            java.util.function.Function<String, org.fxt.freexmltoolkit.service.XsltTransformationResult> perFile) {
+            java.util.function.BiFunction<File, String, org.fxt.freexmltoolkit.service.XsltTransformationResult> perFile) {
         long t0 = System.nanoTime();
         List<BatchFileResult> results = new ArrayList<>();
         for (File file : files) {
@@ -31,7 +31,7 @@ public final class BatchTransformRunner {
                     .begin(operationType, file.getName() + " (batch)");
             try {
                 String xml = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-                org.fxt.freexmltoolkit.service.XsltTransformationResult r = perFile.apply(xml);
+                org.fxt.freexmltoolkit.service.XsltTransformationResult r = perFile.apply(file, xml);
                 boolean ok = r.isSuccess();
                 if (ok) {
                     probe.phase("Compile", r.getCompilationTime());
@@ -55,17 +55,40 @@ public final class BatchTransformRunner {
     /** Applies {@code xsltContent} to every file; errors are captured per file, never thrown. */
     public static List<BatchFileResult> runXsltBatch(List<File> files, String xsltContent,
             Map<String, Object> parameters, OutputFormat format) {
+        return runXsltBatch(files, xsltContent, null, parameters, format);
+    }
+
+    /**
+     * As {@link #runXsltBatch(List, String, Map, OutputFormat)} for a stylesheet read from a file:
+     * {@code xsltSystemId} (its {@code file:} URI, or {@code null}) lets relative
+     * {@code xsl:import}/{@code xsl:include} hrefs resolve against the stylesheet's folder; each
+     * input is run under its own file URI, so relative URIs in it resolve against its folder.
+     */
+    public static List<BatchFileResult> runXsltBatch(List<File> files, String xsltContent, String xsltSystemId,
+            Map<String, Object> parameters, OutputFormat format) {
         return runBatch(files, org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XSLT,
-                xml -> org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance()
-                        .transform(xml, xsltContent, parameters, format));
+                (file, xml) -> org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance()
+                        .transform(xml, xsltContent, xsltSystemId, file.toURI().toString(), parameters, format));
     }
 
     /** Runs {@code xqueryContent} against every file's context independently. */
     public static List<BatchFileResult> runXQueryBatch(List<File> files, String xqueryContent,
             Map<String, Object> externalVariables, OutputFormat format) {
+        return runXQueryBatch(files, xqueryContent, null, externalVariables, format);
+    }
+
+    /**
+     * As {@link #runXQueryBatch(List, String, Map, OutputFormat)} for a query read from a file:
+     * {@code querySystemId} (its {@code file:} URI, or {@code null}) lets relative
+     * {@code import module} locations resolve against the query's folder; each input is run under
+     * its own file URI.
+     */
+    public static List<BatchFileResult> runXQueryBatch(List<File> files, String xqueryContent, String querySystemId,
+            Map<String, Object> externalVariables, OutputFormat format) {
         return runBatch(files, org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.XQUERY,
-                xml -> org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance()
-                        .transformXQuery(xml, xqueryContent, externalVariables, format));
+                (file, xml) -> org.fxt.freexmltoolkit.service.XsltTransformationEngine.getInstance()
+                        .transformXQuery(xml, file.toURI().toString(), xqueryContent, querySystemId,
+                                externalVariables, format));
     }
 
     /**

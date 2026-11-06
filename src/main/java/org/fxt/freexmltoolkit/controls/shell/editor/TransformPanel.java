@@ -405,11 +405,14 @@ public class TransformPanel extends VBox {
                 out.showFailure("Could not read stylesheet: " + e.getMessage());
                 return;
             }
-            view = new BatchTransformView(BatchTransformView.Kind.XSLT,
-                    xsltContent, collectParameters(), resolveXsltFormat(xsltContent));
+            view = new BatchTransformView(BatchTransformView.Kind.XSLT, xsltContent,
+                    xsltFile.toURI().toString(), collectParameters(), resolveXsltFormat(xsltContent));
         } else if (xqueryText != null && !xqueryText.isBlank()) {
+            // the editor text runs, under the query file's location so relative module imports resolve
+            String querySystemId = editorHost.getActiveDocument()
+                    .map(OpenDocument::getPath).map(p -> p.toUri().toString()).orElse(null);
             view = new BatchTransformView(BatchTransformView.Kind.XQUERY,
-                    xqueryText, collectParameters(), chosenFormat(OutputFormat.XML));
+                    xqueryText, querySystemId, collectParameters(), chosenFormat(OutputFormat.XML));
         } else {
             out.showError("Set an XSLT stylesheet, or open an XQuery document, first.");
             return;
@@ -828,6 +831,12 @@ public class TransformPanel extends VBox {
             }
         }
         File xslt = xsltFile;
+        // Locations of stylesheet and input: relative xsl:import/xsl:include/document() hrefs
+        // resolve against the stylesheet's folder, relative URIs in the input against its own
+        String xsltSystemId = xslt.toURI().toString();
+        String xmlBaseUri = inputFile != null ? inputFile.toURI().toString()
+                : sourceDocument != null && sourceDocument.getPath() != null
+                        ? sourceDocument.getPath().toUri().toString() : null;
         Map<String, Object> params = collectParameters();
         boolean wantProfile = profileCheck.isSelected();
         boolean wantTrace = traceCheck.isSelected();
@@ -879,8 +888,8 @@ public class TransformPanel extends VBox {
                 // One single run: the full result feeds the output view, the statistics
                 // probe, and (when requested) the Profile/Trace report tabs.
                 fullResult = (wantProfile || wantTrace)
-                        ? TransformRunner.transformForReport(xmlInput, xsltContent, params, format)
-                        : TransformRunner.xsltTransformResult(xmlInput, xsltContent, params, format);
+                        ? TransformRunner.transformForReport(xmlInput, xmlBaseUri, xsltContent, xsltSystemId, params, format)
+                        : TransformRunner.xsltTransformResult(xmlInput, xmlBaseUri, xsltContent, xsltSystemId, params, format);
                 result = fullResult.isSuccess()
                         ? fullResult.getOutputContent()
                         : "ERROR: " + fullResult.getErrorMessage();

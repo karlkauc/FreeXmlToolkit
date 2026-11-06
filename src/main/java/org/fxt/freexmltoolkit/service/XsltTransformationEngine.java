@@ -933,18 +933,36 @@ public class XsltTransformationEngine {
      */
     public XsltTransformationResult transformXQuery(String xmlContent, String xqueryContent,
                                                      Map<String, Object> externalVariables, OutputFormat outputFormat) {
+        return transformXQuery(xmlContent, null, xqueryContent, null, externalVariables, outputFormat);
+    }
+
+    /**
+     * Like {@link #transformXQuery(String, String, Map, OutputFormat)} for a query and an input
+     * that come from files: {@code querySystemId} (the query's {@code file:} URI) becomes the
+     * static base URI, so relative {@code import module … at "…"} locations and
+     * {@code doc()}/{@code resolve-uri()} calls resolve against the query's folder;
+     * {@code inputSystemId} gives the context document its base URI. Either may be {@code null}.
+     */
+    public XsltTransformationResult transformXQuery(String xmlContent, String inputSystemId,
+                                                     String xqueryContent, String querySystemId,
+                                                     Map<String, Object> externalVariables, OutputFormat outputFormat) {
         long startTime = System.currentTimeMillis();
+        boolean located = querySystemId != null && !querySystemId.isBlank();
 
         try {
             logger.debug("Starting XQuery transformation with {} output format", outputFormat);
 
             // Compile XQuery
             XQueryCompiler xqueryCompiler = saxonProcessor.newXQueryCompiler();
+            if (located) {
+                xqueryCompiler.setBaseURI(java.net.URI.create(querySystemId));
+            }
 
             // Detect output method from XQuery declare option statements
             OutputFormat effectiveFormat = detectXQueryOutputFormat(xqueryContent, outputFormat);
 
-            String cacheKey = "xquery_" + xqueryContent.hashCode();
+            // the same text at another location resolves its imports differently
+            String cacheKey = "xquery_" + xqueryContent.hashCode() + (located ? "_" + querySystemId : "");
             XQueryExecutable executable = compiledXQueries.get(cacheKey);
 
             if (executable == null) {
@@ -974,7 +992,7 @@ public class XsltTransformationEngine {
             // context item, logging a warning instead.
             if (xmlContent != null && !xmlContent.trim().isEmpty()) {
                 try {
-                    XdmNode sourceDoc = parseXmlDocument(xmlContent);
+                    XdmNode sourceDoc = parseXmlDocument(saxonProcessor, xmlContent, inputSystemId);
                     evaluator.setContextItem(sourceDoc);
                 } catch (SaxonApiException contextEx) {
                     logger.warn("XQuery context document is not well-formed; running the query without a "

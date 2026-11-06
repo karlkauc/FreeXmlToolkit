@@ -57,9 +57,23 @@ public final class TransformRunner {
     public static XsltTransformationResult xsltTransformResult(String xml, String xsltContent,
             java.util.Map<String, Object> parameters,
             XsltTransformationEngine.OutputFormat outputFormat) {
+        return xsltTransformResult(xml, null, xsltContent, null, parameters, outputFormat);
+    }
+
+    /**
+     * As {@link #xsltTransformResult(String, String, java.util.Map, XsltTransformationEngine.OutputFormat)}
+     * for a stylesheet and input that come from files: with {@code xsltSystemId} (the
+     * stylesheet's {@code file:} URI) relative {@code xsl:import}/{@code xsl:include}/{@code document()}
+     * hrefs resolve against the stylesheet's folder, with {@code xmlBaseUri} relative URIs in the
+     * input resolve against the input's folder. Either may be {@code null} (in-memory text).
+     */
+    public static XsltTransformationResult xsltTransformResult(String xml, String xmlBaseUri,
+            String xsltContent, String xsltSystemId,
+            java.util.Map<String, Object> parameters,
+            XsltTransformationEngine.OutputFormat outputFormat) {
         try {
             return XsltTransformationEngine.getInstance()
-                    .transform(xml, xsltContent, parameters, outputFormat);
+                    .transform(xml, xsltContent, xsltSystemId, xmlBaseUri, parameters, outputFormat);
         } catch (Exception e) {
             return XsltTransformationResult.error(e.getMessage(), e);
         }
@@ -130,11 +144,24 @@ public final class TransformRunner {
     public static XsltTransformationResult transformForReport(String xml, String xsltContent,
             java.util.Map<String, Object> parameters,
             XsltTransformationEngine.OutputFormat outputFormat) {
+        return transformForReport(xml, null, xsltContent, null, parameters, outputFormat);
+    }
+
+    /**
+     * As {@link #transformForReport(String, String, java.util.Map, XsltTransformationEngine.OutputFormat)}
+     * with the input's and the stylesheet's locations (see
+     * {@link #xsltTransformResult(String, String, String, String, java.util.Map, XsltTransformationEngine.OutputFormat)}).
+     */
+    public static XsltTransformationResult transformForReport(String xml, String xmlBaseUri,
+            String xsltContent, String xsltSystemId,
+            java.util.Map<String, Object> parameters,
+            XsltTransformationEngine.OutputFormat outputFormat) {
         try {
             org.fxt.freexmltoolkit.debugger.DebugSession session =
                     new org.fxt.freexmltoolkit.debugger.DebugSession();
             return XsltTransformationEngine.getInstance()
-                    .transformWithDebugSession(xml, xsltContent, parameters, outputFormat, session);
+                    .transformWithDebugSession(xml, xmlBaseUri, xsltContent, xsltSystemId, parameters,
+                            outputFormat, session, null);
         } catch (Exception e) {
             return XsltTransformationResult.error(e.getMessage(), e);
         }

@@ -43,6 +43,77 @@ class BatchTransformRunnerTest {
     }
 
     @Test
+    void resolvesRelativeImportsAndInputUrisPerFile(@TempDir Path dir) throws Exception {
+        // the stylesheet imports a sibling module; each input reads the "data.xml" next to itself
+        Path xsl = dir.resolve("xsl");
+        Files.createDirectories(xsl);
+        Files.writeString(xsl.resolve("module.xslt"), """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:template name="from-module">module:<xsl:value-of select="doc(resolve-uri('data.xml', base-uri(/)))/d"/></xsl:template>
+                </xsl:stylesheet>
+                """);
+        Path main = xsl.resolve("main.xslt");
+        Files.writeString(main, """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:import href="module.xslt"/>
+                  <xsl:output method="text"/>
+                  <xsl:template match="/"><xsl:call-template name="from-module"/></xsl:template>
+                </xsl:stylesheet>
+                """);
+        Files.createDirectories(dir.resolve("one"));
+        Files.createDirectories(dir.resolve("two"));
+        write(dir.resolve("one"), "data.xml", "<d>first</d>");
+        write(dir.resolve("two"), "data.xml", "<d>second</d>");
+        File in1 = write(dir.resolve("one"), "in.xml", "<in/>");
+        File in2 = write(dir.resolve("two"), "in.xml", "<in/>");
+        String xslt = Files.readString(main);
+
+        List<BatchFileResult> results = BatchTransformRunner.runXsltBatch(
+                List.of(in1, in2), xslt, main.toUri().toString(), Map.of(), OutputFormat.TEXT);
+        assertTrue(results.get(0).ok(), results.get(0).error());
+        assertEquals("module:first", results.get(0).output().strip());
+        assertEquals("module:second", results.get(1).output().strip());
+
+        List<BatchFileResult> withoutLocation = BatchTransformRunner.runXsltBatch(
+                List.of(in1), xslt, Map.of(), OutputFormat.TEXT);
+        assertFalse(withoutLocation.get(0).ok(), "without the stylesheet location the import is not found");
+    }
+
+    @Test
+    void resolvesRelativeModuleImportsOfAQueryAndInputUrisPerFile(@TempDir Path dir) throws Exception {
+        Path xq = dir.resolve("xq");
+        Files.createDirectories(xq);
+        Files.writeString(xq.resolve("lib.xqm"), """
+                module namespace lib = "urn:test:lib";
+                declare function lib:label($n as node()) as xs:string {
+                  'module:' || doc(resolve-uri('data.xml', base-uri($n)))/d
+                };
+                """);
+        Path main = xq.resolve("main.xq");
+        Files.writeString(main, """
+                import module namespace lib = "urn:test:lib" at "lib.xqm";
+                lib:label(.)
+                """);
+        Files.createDirectories(dir.resolve("one"));
+        Files.createDirectories(dir.resolve("two"));
+        write(dir.resolve("one"), "data.xml", "<d>first</d>");
+        write(dir.resolve("two"), "data.xml", "<d>second</d>");
+        File in1 = write(dir.resolve("one"), "in.xml", "<in/>");
+        File in2 = write(dir.resolve("two"), "in.xml", "<in/>");
+        String query = Files.readString(main);
+
+        List<BatchFileResult> results = BatchTransformRunner.runXQueryBatch(
+                List.of(in1, in2), query, main.toUri().toString(), Map.of(), OutputFormat.TEXT);
+        assertTrue(results.get(0).ok(), results.get(0).error());
+        assertEquals("module:first", results.get(0).output().strip());
+        assertEquals("module:second", results.get(1).output().strip());
+
+        List<BatchFileResult> withoutLocation = BatchTransformRunner.runXQueryBatch(
+                List.of(in1), query, Map.of(), OutputFormat.TEXT);
+        assertFalse(withoutLocation.get(0).ok(), "without the query location the module is not found");
+    }
+
+    @Test
     void recordsOneAnonymousUsageEventPerBatch(@TempDir Path dir) throws Exception {
         File good = write(dir, "secret-name.xml", "<root><item/></root>");
         File bad = write(dir, "b.xml", "<root><item></root>"); // malformed

@@ -33,6 +33,8 @@ public class BatchTransformView extends VBox {
 
     private final Kind kind;
     private final String transformContent;
+    /** The stylesheet's / query's {@code file:} URI ({@code null} for in-memory text): relative imports resolve against it. */
+    private final String transformSystemId;
     private final Map<String, Object> parameters;
     private final OutputFormat format;
 
@@ -44,8 +46,19 @@ public class BatchTransformView extends VBox {
 
     public BatchTransformView(Kind kind, String transformContent,
             Map<String, Object> parameters, OutputFormat format) {
+        this(kind, transformContent, null, parameters, format);
+    }
+
+    /**
+     * @param transformSystemId the stylesheet's {@code file:} URI, so relative
+     *                          {@code xsl:import}/{@code xsl:include} hrefs resolve; {@code null}
+     *                          for text that has no file
+     */
+    public BatchTransformView(Kind kind, String transformContent, String transformSystemId,
+            Map<String, Object> parameters, OutputFormat format) {
         this.kind = kind;
         this.transformContent = transformContent == null ? "" : transformContent;
+        this.transformSystemId = transformSystemId;
         this.parameters = parameters == null ? Map.of() : parameters;
         this.format = format == null ? OutputFormat.XML : format;
 
@@ -146,8 +159,8 @@ public class BatchTransformView extends VBox {
         summary.setText("Running…");
         FxtGui.executorService.submit(() -> {
             List<BatchFileResult> results = kind == Kind.XQUERY
-                    ? BatchTransformRunner.runXQueryBatch(files, transformContent, parameters, format)
-                    : BatchTransformRunner.runXsltBatch(files, transformContent, parameters, format);
+                    ? BatchTransformRunner.runXQueryBatch(files, transformContent, transformSystemId, parameters, format)
+                    : BatchTransformRunner.runXsltBatch(files, transformContent, transformSystemId, parameters, format);
             long ok = results.stream().filter(BatchFileResult::ok).count();
             Platform.runLater(() -> {
                 lastResults = results;
