@@ -105,6 +105,17 @@ class GridFilterFormulaDocScreenshotGenerator {
         shell = (UnifiedShellView) root.lookup(".fxt-shell");
         EditorHost host = shell.getEditorHost();
         settle(800);
+        // Without the Properties pane the opened cell (formula + filter lines) gets the full width.
+        onFx(() -> shell.setInspectorVisible(false));
+        try {
+            takeShots(host, file);
+        } finally {
+            // setInspectorVisible persists the choice; restore the default for later runs.
+            onFx(() -> shell.setInspectorVisible(true));
+        }
+    }
+
+    private void takeShots(EditorHost host, Path file) throws Exception {
         onFx(() -> host.openFile(file));
         settle(1500);
         onFx(() -> host.setActiveViewMode(ViewMode.GRAPHIC));
