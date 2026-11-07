@@ -2145,6 +2145,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="How to switch it off">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#switching-it-off-for-every-user-administrators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching it off for every user (administrators)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2204,6 +2221,62 @@
     
   
     Code Signing Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threat-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threat Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../offline-operation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operation without Internet
   
 
     
@@ -2638,6 +2711,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="How to switch it off">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#switching-it-off-for-every-user-administrators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Switching it off for every user (administrators)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2917,9 +3007,46 @@ from the events currently waiting to be sent) together with your anonymous insta
 </ul>
 <p>then click <strong>Save Settings</strong>. Events of the disabled kind that are still waiting to be sent are
 deleted immediately.</p>
-<p>Administrators can disable telemetry completely by starting the application with the Java
-system property <code>-Dfxt.telemetry.disabled=true</code>, or by setting these keys in
-<code>~/.freeXmlToolkit/FreeXmlToolkit.properties</code>:</p>
+<h3 id="switching-it-off-for-every-user-administrators">Switching it off for every user (administrators)<a class="headerlink" href="#switching-it-off-for-every-user-administrators" title="Permanent link">&para;</a></h3>
+<p>Telemetry is switched off completely - nothing is recorded, queued or sent, and the first-start
+notice is not shown - when any of these is set:</p>
+<table>
+<thead>
+<tr>
+<th>Switch</th>
+<th>Value</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Environment variable <code>FXT_TELEMETRY_DISABLED</code></td>
+<td><code>1</code>, <code>true</code> or <code>yes</code></td>
+<td>machine-wide, e.g. by group policy or a software-distribution script</td>
+</tr>
+<tr>
+<td>Environment variable <code>DO_NOT_TRACK</code></td>
+<td><code>1</code>, <code>true</code> or <code>yes</code></td>
+<td>the cross-tool <a href="https://consoledonottrack.com/">Console Do Not Track</a> convention</td>
+</tr>
+<tr>
+<td>Java system property <code>-Dfxt.telemetry.disabled=true</code></td>
+<td><code>true</code></td>
+<td>a custom launcher or start script</td>
+</tr>
+</tbody>
+</table>
+<p>Setting the environment variable machine-wide:</p>
+<ul>
+<li><strong>Windows</strong> (elevated prompt): <code>setx FXT_TELEMETRY_DISABLED 1 /M</code>. With group policy:
+  <em>Computer Configuration → Preferences → Windows Settings → Environment</em>, a system variable
+  <code>FXT_TELEMETRY_DISABLED</code> with the value <code>1</code>.</li>
+<li><strong>macOS</strong>: <code>sudo launchctl setenv FXT_TELEMETRY_DISABLED 1</code> (until the next restart), or a
+  LaunchAgent that runs this command at login for a permanent setting.</li>
+<li><strong>Linux</strong>: add <code>FXT_TELEMETRY_DISABLED=1</code> to <code>/etc/environment</code>.</li>
+</ul>
+<p>The application reads the switch at start-up; restart it after setting the variable.</p>
+<p>A single user can also switch both kinds off in <code>~/.freeXmlToolkit/FreeXmlToolkit.properties</code>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="na">telemetry.usage.enabled</span><span class="o">=</span><span class="s">false</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">telemetry.errors.enabled</span><span class="o">=</span><span class="s">false</span>
 </code></pre></div>

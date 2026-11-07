@@ -2062,6 +2062,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threat-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threat Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../offline-operation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operation without Internet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2275,6 +2331,17 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#software-bill-of-materials-sbom" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Software Bill of Materials (SBOM)
+      
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#core-dependencies" class="md-nav__link">
@@ -2640,6 +2707,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#software-bill-of-materials-sbom" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Software Bill of Materials (SBOM)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#core-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2837,6 +2915,15 @@
 
 <h1 id="third-party-libraries-and-licenses">Third-Party Libraries and Licenses<a class="headerlink" href="#third-party-libraries-and-licenses" title="Permanent link">&para;</a></h1>
 <p>FreeXmlToolkit uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.</p>
+<h2 id="software-bill-of-materials-sbom">Software Bill of Materials (SBOM)<a class="headerlink" href="#software-bill-of-materials-sbom" title="Permanent link">&para;</a></h2>
+<p>From version 2.11 on, every <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub release</a> carries a
+machine-readable SBOM in the <a href="https://cyclonedx.org/">CycloneDX</a> 1.6 format:
+<code>FreeXmlToolkit-&lt;version&gt;-sbom.cdx.json</code> and <code>FreeXmlToolkit-&lt;version&gt;-sbom.cdx.xml</code>. It lists every library
+the application ships (the runtime classpath, not test or build tools) with its version, license, package URL
+and hashes, and it is covered by the release's <code>SHA256SUMS.txt</code>. Security and compliance tools such as
+Dependency-Track, Trivy or Grype read it directly.</p>
+<p>To create it from the sources: <code>./gradlew cyclonedxDirectBom</code> writes <code>build/reports/cyclonedx-direct/bom.json</code>
+and <code>bom.xml</code>.</p>
 <h2 id="core-dependencies">Core Dependencies<a class="headerlink" href="#core-dependencies" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

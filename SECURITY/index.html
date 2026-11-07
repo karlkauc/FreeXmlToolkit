@@ -2760,6 +2760,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../threat-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threat Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../offline-operation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operation without Internet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -3860,16 +3916,20 @@
 <tr>
 <td>Entity expansion bombs</td>
 <td>"Billion laughs" denial-of-service attacks</td>
-<td>Limited</td>
+<td>Limited (see below)</td>
 </tr>
 </tbody>
 </table>
 <h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
-<p>All XML parsing in FreeXmlToolkit uses secure configurations that:
+<p>The parsers that read your documents (the editor's model, validation, transformations) are
+created with secure settings that:
 - Disable external general entities
 - Disable external parameter entities
 - Disable external DTD loading
-- Limit entity expansion</p>
+- Turn on the JAXP secure-processing mode, whose built-in limits cap entity expansion</p>
+<p>In the editor, internal entities are kept as references and not expanded. FreeXmlToolkit sets no
+entity-expansion limits of its own beyond the parser's secure-processing defaults. See the
+<a href="../threat-model/">threat model</a> for the details and the known limits.</p>
 <h3 id="what-this-means-for-you">What This Means for You<a class="headerlink" href="#what-this-means-for-you" title="Permanent link">&para;</a></h3>
 <p><strong>Normal XML files work without issues.</strong> You can:
 - Open and edit any XML file
@@ -4032,10 +4092,15 @@ namespace URL (see
 <a href="../xsd-tools/#automatic-resolution-of-imported-schemas">Automatic Resolution of Imported Schemas</a>).
 These downloads go through the same SSRF protection: only public <code>http</code>/<code>https</code> addresses are
 contacted, and the downloaded content is verified to be a real XML Schema before it is used.
-Downloaded schemas are cached in <code>~/.freeXmlToolkit/cache/schemas/</code> only - nothing is ever
-written into your schema's folder, and your schema file is never rewritten. To disable
-remote downloads entirely, start the application with the system property
-<code>-Dfxt.schema.namespaceFallback=false</code>.</p>
+Downloaded schemas are cached in <code>~/.freeXmlToolkit/cache/schemas/</code>. In addition, a downloaded
+import or include is copied next to the schema that references it, under its original name, so
+the folder works without the network next time; an existing file is never overwritten and your
+schema file is never rewritten. Start the application with <code>-Dfxt.schema.localCopies=false</code> to
+keep downloads in the cache only.</p>
+<p><code>-Dfxt.schema.namespaceFallback=false</code> turns off the namespace-URL fallback and the downloads
+of the bundled Schema Library entries. It does <strong>not</strong> stop every download: a <code>schemaLocation</code>
+URL in a document or an import is still fetched. See
+<a href="../offline-operation/">Operation without internet</a> for the full list of network connections.</p>
 <hr />
 <h2 id="path-traversal-protection">Path Traversal Protection<a class="headerlink" href="#path-traversal-protection" title="Permanent link">&para;</a></h2>
 <h3 id="what-is-path-traversal">What Is Path Traversal?<a class="headerlink" href="#what-is-path-traversal" title="Permanent link">&para;</a></h3>
@@ -4218,7 +4283,7 @@ remote downloads entirely, start the application with the system property
 <tr>
 <td>SECURITY</td>
 <td>Trust all certificates</td>
-<td>Accept any TLS certificate for HTTPS downloads (schemas, updates). Leave off unless a corporate proxy re-signs traffic</td>
+<td>Accept any TLS certificate for HTTPS downloads (schemas, catalogs, FundsXML, telemetry). Never for the update check and update downloads. Leave off unless a corporate proxy re-signs traffic</td>
 <td><strong>Off</strong> (secure)</td>
 </tr>
 </tbody>
