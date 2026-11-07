@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.model;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Base class for all XML nodes in the V2 model.
@@ -30,10 +31,20 @@ import java.util.UUID;
 public abstract class XmlNode {
 
     /**
-     * Immutable unique identifier for this node.
-     * Never changes, even when node is duplicated (deep copy gets new UUID).
+     * Random high half of every id in this JVM, so ids of different runs do not collide.
+     * Drawn once: {@code UUID.randomUUID()} per node went through {@code SecureRandom} and
+     * dominated parsing of documents with millions of nodes (telemetry 2.10.0).
      */
-    private final UUID id;
+    private static final long SESSION_BITS = UUID.randomUUID().getMostSignificantBits();
+
+    /** Source of the per-node serial numbers (unique within this JVM). */
+    private static final AtomicLong SERIALS = new AtomicLong();
+
+    /**
+     * Immutable unique serial number of this node; {@link #getId()} turns it into a UUID.
+     * Never changes, even when node is duplicated (deep copy gets a new one).
+     */
+    private final long serial;
 
     /**
      * Parent node in the XML tree.
@@ -51,7 +62,7 @@ public abstract class XmlNode {
      * Constructs a new XmlNode with a unique UUID.
      */
     protected XmlNode() {
-        this.id = UUID.randomUUID();
+        this.serial = SERIALS.incrementAndGet();
         this.pcs = new PropertyChangeSupport(this);
         this.parent = null;
     }
@@ -63,7 +74,7 @@ public abstract class XmlNode {
      * @param original the original node to copy from
      */
     protected XmlNode(XmlNode original) {
-        this.id = UUID.randomUUID(); // New UUID for copy
+        this.serial = SERIALS.incrementAndGet(); // new id for the copy
         this.pcs = new PropertyChangeSupport(this);
         this.parent = null; // Parent set by caller
     }
@@ -130,7 +141,7 @@ public abstract class XmlNode {
      * @return the immutable UUID
      */
     public UUID getId() {
-        return id;
+        return new UUID(SESSION_BITS, serial);
     }
 
     /**
@@ -263,7 +274,7 @@ public abstract class XmlNode {
      */
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "[id=" + id + "]";
+        return getClass().getSimpleName() + "[id=" + getId() + "]";
     }
 
     /**
@@ -282,7 +293,7 @@ public abstract class XmlNode {
             return false;
         }
         XmlNode other = (XmlNode) obj;
-        return id.equals(other.id);
+        return serial == other.serial;
     }
 
     /**
@@ -292,6 +303,7 @@ public abstract class XmlNode {
      */
     @Override
     public int hashCode() {
-        return id.hashCode();
+        long bits = SESSION_BITS ^ serial; // same value as getId().hashCode(), without the object
+        return (int) (bits >> 32) ^ (int) bits;
     }
 }

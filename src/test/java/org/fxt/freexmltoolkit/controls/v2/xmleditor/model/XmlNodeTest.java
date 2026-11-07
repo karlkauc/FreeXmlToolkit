@@ -39,6 +39,29 @@ class XmlNodeTest {
     }
 
     @Test
+    void idsStayUniqueAcrossThreads() throws Exception {
+        int threads = 4, perThread = 20_000;
+        java.util.Set<UUID> ids = java.util.concurrent.ConcurrentHashMap.newKeySet();
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(threads);
+        try {
+            var futures = new ArrayList<java.util.concurrent.Future<?>>();
+            for (int t = 0; t < threads; t++) {
+                futures.add(pool.submit(() -> {
+                    for (int i = 0; i < perThread; i++) {
+                        ids.add(new XmlElement("n").getId());
+                    }
+                }));
+            }
+            for (var f : futures) {
+                f.get();
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+        assertEquals(threads * perThread, ids.size(), "every node must get its own id");
+    }
+
+    @Test
     void testUUIDImmutable() {
         UUID originalId = testNode.getId();
         testNode.setName("changed");
