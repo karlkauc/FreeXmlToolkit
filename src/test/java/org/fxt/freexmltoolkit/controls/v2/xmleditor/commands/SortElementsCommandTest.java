@@ -315,4 +315,45 @@ class SortElementsCommandTest {
             }
         }
     }
+
+    @Test
+    @DisplayName("Numbers sort numerically, empty values go to the end and come back first descending")
+    void numericSortWithEmptyValues() {
+        XmlElement parent = new XmlElement("rows");
+        List<XmlElement> rows = new ArrayList<>();
+        for (String value : new String[] {"10", "", "2", "1,000", "-3"}) {
+            XmlElement row = new XmlElement("row");
+            row.setAttribute("n", value);
+            parent.addChild(row);
+            rows.add(row);
+        }
+        RepeatingElementsTable table = new RepeatingElementsTable("row", rows, 0, () -> {});
+        assertTrue(new SortElementsCommand(table, "n", true).execute());
+        assertEquals(List.of("-3", "2", "10", "1,000", ""),
+                parent.getChildElements().stream().map(e -> e.getAttribute("n")).toList());
+
+        RepeatingElementsTable again = new RepeatingElementsTable("row", parent.getChildElements(), 0, () -> {});
+        assertTrue(new SortElementsCommand(again, "n", false).execute());
+        assertEquals(List.of("", "1,000", "10", "2", "-3"),
+                parent.getChildElements().stream().map(e -> e.getAttribute("n")).toList());
+    }
+
+    @Test
+    @DisplayName("A column of numbers and dates is a string column, empty values do not count")
+    void mixedNumbersAndDatesAreStrings() {
+        XmlElement parent = new XmlElement("rows");
+        List<XmlElement> rows = new ArrayList<>();
+        for (String value : new String[] {"", "2024", "2024-01-15"}) {
+            XmlElement row = new XmlElement("row");
+            row.setAttribute("d", value);
+            parent.addChild(row);
+            rows.add(row);
+        }
+        RepeatingElementsTable table = new RepeatingElementsTable("row", rows, 0, () -> {});
+        assertEquals(RepeatingElementsTable.ColumnDataType.STRING, table.detectColumnDataType("d"));
+
+        rows.get(1).setAttribute("d", "15.01.2024");
+        RepeatingElementsTable dates = new RepeatingElementsTable("row", rows, 0, () -> {});
+        assertEquals(RepeatingElementsTable.ColumnDataType.DATE, dates.detectColumnDataType("d"));
+    }
 }

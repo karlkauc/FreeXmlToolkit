@@ -41,6 +41,66 @@ public final class GridColumnSort {
         return ascending ? comparator : comparator.reversed();
     }
 
+    /**
+     * A cell text converted once for sorting (number or date parsed up front), carrying the item
+     * it sorts. Sorting 680,000 keys parsed each value about 40 times when comparing texts.
+     *
+     * @param item   the sorted item (row element)
+     * @param text   the cell text
+     * @param empty  whether the text is empty (sorts to the end)
+     * @param number the parsed number, for {@code NUMERIC}
+     * @param numeric whether {@code number} was parsed (else numbers compare as text)
+     * @param date   the parsed date ({@code null}: none), for {@code DATE}
+     * @param type   the column's data type
+     */
+    public record Key<T>(T item, String text, boolean empty, double number, boolean numeric, LocalDate date,
+                         ColumnDataType type) {
+    }
+
+    /** @return the sort key of a cell text for the given data type */
+    public static <T> Key<T> key(T item, String text, ColumnDataType dataType) {
+        boolean empty = text == null || text.trim().isEmpty();
+        double number = 0;
+        boolean numeric = false;
+        LocalDate date = null;
+        if (!empty && dataType == ColumnDataType.NUMERIC) {
+            try {
+                number = Double.parseDouble(text.replace(",", "").replace(" ", "").trim());
+                numeric = true;
+            } catch (NumberFormatException e) {
+                // compares as text
+            }
+        } else if (!empty && dataType == ColumnDataType.DATE) {
+            date = parseDate(text);
+        }
+        return new Key<>(item, text, empty, number, numeric, date, dataType);
+    }
+
+    /**
+     * Orders keys exactly like {@link #comparator} orders their texts (empties to the end for
+     * ascending, to the front for descending; unparsable numbers compare as text).
+     */
+    public static <T> Comparator<Key<T>> keyComparator(boolean ascending) {
+        Comparator<Key<T>> comparator = GridColumnSort::compareKeys;
+        return ascending ? comparator : comparator.reversed();
+    }
+
+    private static int compareKeys(Key<?> k1, Key<?> k2) {
+        if (k1.empty()) {
+            return 1;
+        }
+        if (k2.empty()) {
+            return -1;
+        }
+        return switch (k1.type()) {
+            case NUMERIC -> !k1.numeric() || !k2.numeric()
+                    ? k1.text().compareToIgnoreCase(k2.text())
+                    : Double.compare(k1.number(), k2.number());
+            case DATE -> compareDates(k1.date(), k2.date());
+            default -> k1.text().compareToIgnoreCase(k2.text());
+        };
+    }
+
     /** Compares two cell texts in ascending order for the given data type. */
     public static int compareValues(String v1, String v2, ColumnDataType dataType) {
         // Handle nulls/empties - always sort to end
@@ -69,8 +129,10 @@ public final class GridColumnSort {
     }
 
     private static int compareDates(String v1, String v2) {
-        LocalDate date1 = parseDate(v1);
-        LocalDate date2 = parseDate(v2);
+        return compareDates(parseDate(v1), parseDate(v2));
+    }
+
+    private static int compareDates(LocalDate date1, LocalDate date2) {
         if (date1 == null && date2 == null) {
             return 0;
         }

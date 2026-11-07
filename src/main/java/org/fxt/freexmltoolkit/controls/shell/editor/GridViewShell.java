@@ -114,20 +114,20 @@ public abstract class GridViewShell extends StackPane {
             }
             configure(secondary);
             // An edit in one view is shown in the other (both share the document)
-            java.util.function.Consumer<String> original = primary.getOnDocumentModified();
+            Runnable original = primary.getOnModelModified();
             GridCanvasView<?> first = primary;
             GridCanvasView<?> second = secondary;
-            first.setOnDocumentModified(text -> {
+            first.setOnModelModified(() -> {
                 if (original != null) {
-                    original.accept(text);
+                    original.run();
                 }
                 if (split != null) {
                     second.rebuild();
                 }
             });
-            second.setOnDocumentModified(text -> {
+            second.setOnModelModified(() -> {
                 if (original != null) {
-                    original.accept(text);
+                    original.run();
                 }
                 first.rebuild();
             });

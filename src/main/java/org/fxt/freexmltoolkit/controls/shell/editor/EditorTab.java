@@ -2206,7 +2206,7 @@ final class EditorTab extends Tab {
         if (xmlGridView == null) {
             xmlGridView = new XmlGridView();
             // Grid edits mutate the shared context directly; round-trip it via a minimal diff.
-            xmlGridView.setOnModified(xml -> onXmlModelChanged());
+            xmlGridView.setOnModelChanged(this::onXmlModelChanged);
             xmlGridView.setOnSelectionChanged(node -> {
                 currentXmlSelection = node;
                 selectionCallback.run();
@@ -2219,7 +2219,7 @@ final class EditorTab extends Tab {
         if (jsonGridView == null) {
             jsonGridView = new JsonGridView();
             // Grid edits mutate the shared context directly; round-trip it via a minimal diff.
-            jsonGridView.setOnModified(json -> roundTripJsonModelToText());
+            jsonGridView.setOnModelChanged(this::roundTripJsonModelToText);
             jsonGridView.setOnSelectionChanged(node -> {
                 currentJsonSelection = node;
                 selectionCallback.run();

@@ -2,10 +2,8 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.commands;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
@@ -73,22 +71,21 @@ public class SortElementsCommand implements XmlCommand {
         }
         originalOrder = new ArrayList<>(parentElement.getChildren());
 
-        // Each cell value is looked up once: a lookup per comparison made sorting large tables
-        // quadratic and froze the UI.
-        Map<XmlElement, String> values = new IdentityHashMap<>();
+        // Each cell value is read and converted once: a lookup or parse per comparison made
+        // sorting large tables slow and froze the UI.
+        List<GridColumnSort.Key<XmlElement>> keys = new ArrayList<>(table.getRows().size());
         for (RepeatingElementsTable.TableRow row : table.getRows()) {
-            if (row.getElement() != null) {
-                values.putIfAbsent(row.getElement(), row.getValue(columnName));
+            XmlElement element = row.getElement();
+            // an element moved away meanwhile keeps no slot
+            if (element != null && element.getParent() == parentElement) {
+                keys.add(GridColumnSort.key(element, row.getValue(columnName), dataType));
             }
         }
-        Comparator<String> byValue = GridColumnSort.comparator(dataType, ascending);
-        List<XmlElement> sortedElements = new ArrayList<>();
-        for (XmlElement element : elementsToSort) {
-            if (element.getParent() == parentElement) {
-                sortedElements.add(element); // an element moved away meanwhile keeps no slot
-            }
+        keys.sort(GridColumnSort.keyComparator(ascending));
+        List<XmlElement> sortedElements = new ArrayList<>(keys.size());
+        for (GridColumnSort.Key<XmlElement> key : keys) {
+            sortedElements.add(key.item());
         }
-        sortedElements.sort(Comparator.comparing(e -> values.getOrDefault(e, ""), byValue));
 
         parentElement.reorderChildren(withSortedSlots(originalOrder, sortedElements));
         executed = true;
@@ -121,7 +118,7 @@ public class SortElementsCommand implements XmlCommand {
      * filled in sorted order; every other sibling (text, comments, other elements) stays put.
      */
     private List<XmlNode> withSortedSlots(List<XmlNode> children, List<XmlElement> sortedElements) {
-        Set<XmlNode> sorted = Collections.newSetFromMap(new IdentityHashMap<>());
+        Set<XmlNode> sorted = Collections.newSetFromMap(new IdentityHashMap<>(sortedElements.size()));
         sorted.addAll(sortedElements);
         List<XmlNode> result = new ArrayList<>(children.size());
         int next = 0;

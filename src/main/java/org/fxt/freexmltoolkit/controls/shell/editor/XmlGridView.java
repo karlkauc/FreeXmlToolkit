@@ -18,6 +18,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
 public class XmlGridView extends GridViewShell {
 
     private Consumer<String> onModified;
+    private Runnable onModelChanged;
     private Consumer<XmlNode> onSelectionChanged;
     private XmlEditorContext context;
     private XmlCanvasView canvasView;
@@ -59,6 +60,16 @@ public class XmlGridView extends GridViewShell {
      */
     public void setOnModified(Consumer<String> onModified) {
         this.onModified = onModified;
+    }
+
+    /**
+     * Sets the callback invoked whenever the grid edits the document, without serializing it
+     * (the editor reads the shared model itself).
+     *
+     * @param onModelChanged the callback (may be {@code null} to clear)
+     */
+    public void setOnModelChanged(Runnable onModelChanged) {
+        this.onModelChanged = onModelChanged;
     }
 
     /**
@@ -113,9 +124,15 @@ public class XmlGridView extends GridViewShell {
         });
         XmlCanvasView view = new XmlCanvasView(ctx);
         this.canvasView = view;
-        view.setOnDocumentModified(modified -> {
-            if (modified != null && onModified != null) {
-                onModified.accept(modified);
+        view.setOnModelModified(() -> {
+            if (onModelChanged != null) {
+                onModelChanged.run();
+            }
+            if (onModified != null) {
+                String modified = view.getAdapter().serialize();
+                if (modified != null) {
+                    onModified.accept(modified);
+                }
             }
         });
         installCanvas(view);

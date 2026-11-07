@@ -24,7 +24,10 @@ public final class XmlGridRecord implements GridRecord {
     public static final String TEXT_KEY = "#text";
 
     private final XmlElement element;
-    private final List<String> columnKeys = new ArrayList<>();
+    /** The element's {@link XmlElement#getSubtreeVersion() subtree version} when analysed. */
+    private final int version;
+    /** Built by {@link #analyze()}, then immutable (and possibly shared, see {@link #shareColumnKeys}). */
+    private List<String> columnKeys = new ArrayList<>();
     private final Map<String, String> values = new LinkedHashMap<>();
     private final Map<String, Object> complexChildren = new LinkedHashMap<>();
     /** Every child element per column name, in document order. */
@@ -33,7 +36,17 @@ public final class XmlGridRecord implements GridRecord {
 
     public XmlGridRecord(XmlElement element) {
         this.element = element;
+        this.version = element.getSubtreeVersion();
         analyze();
+        columnKeys = List.copyOf(columnKeys);
+    }
+
+    /**
+     * @return whether the element is unchanged since this record analysed it (nothing in its
+     *         subtree fired a change), so a rebuilt table can keep the record
+     */
+    public boolean isCurrent() {
+        return element.getSubtreeVersion() == version;
     }
 
     private void analyze() {
@@ -86,6 +99,18 @@ public final class XmlGridRecord implements GridRecord {
         }
     }
 
+    /**
+     * Replaces the column keys by an equal list shared with other records, so the records of a
+     * large table hold one list instead of 680,000 and the table compares them by identity.
+     *
+     * @param keys a list equal to {@link #columnKeys()}
+     */
+    void shareColumnKeys(List<String> keys) {
+        if (keys != columnKeys && keys.equals(columnKeys)) {
+            columnKeys = keys;
+        }
+    }
+
     /** @return the wrapped element */
     public XmlElement getElement() {
         return element;
@@ -98,7 +123,7 @@ public final class XmlGridRecord implements GridRecord {
 
     @Override
     public List<String> columnKeys() {
-        return Collections.unmodifiableList(columnKeys);
+        return columnKeys;
     }
 
     @Override

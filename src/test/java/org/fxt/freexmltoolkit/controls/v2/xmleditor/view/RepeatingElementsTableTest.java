@@ -792,6 +792,91 @@ class RepeatingElementsTableTest {
         assertEquals(lazy.summary().lines(), table.getCellLayout(oneLine, "Note").summary().lines());
     }
 
+    // ==================== Rebuilt tables take over unchanged rows ====================
+
+    private List<XmlElement> orders(int n) {
+        XmlElement parent = new XmlElement("Orders");
+        for (int i = 0; i < n; i++) {
+            XmlElement order = new XmlElement("Order");
+            order.setAttribute("id", String.valueOf(i));
+            order.addChild(createElementWithText("Note", "note " + i));
+            parent.addChild(order);
+        }
+        return parent.getChildElements("Order");
+    }
+
+    @Test
+    void aRebuiltTableKeepsTheRecordsOfUnchangedElements() {
+        List<XmlElement> elements = orders(4);
+        RepeatingElementsTable first = new RepeatingElementsTable("Order", elements, 0, null);
+        first.calculateHeight();
+
+        // a cell edit in the third element, then the grid rebuilds the table
+        ((XmlText) elements.get(2).getChildElement("Note").getChildren().getFirst()).setText("edited");
+        RepeatingElementsTable second = new RepeatingElementsTable("Order", elements, 0, null, first);
+
+        assertSame(first.getRecords().get(0), second.getRecords().get(0));
+        assertSame(first.getRecords().get(3), second.getRecords().get(3));
+        assertNotSame(first.getRecords().get(2), second.getRecords().get(2), "the edited element is analysed again");
+        assertEquals("edited", second.getRows().get(2).getValue("Note"));
+    }
+
+    @Test
+    void aSortedTableKeepsEveryRecordAndLaysOutLikeANewOne() {
+        List<XmlElement> elements = orders(5);
+        RepeatingElementsTable first = new RepeatingElementsTable("Order", elements, 0, null);
+        first.calculateHeight();
+
+        List<XmlElement> reversed = new java.util.ArrayList<>(elements);
+        java.util.Collections.reverse(reversed);
+        XmlElement parent = (XmlElement) elements.getFirst().getParent();
+        parent.reorderChildren(reversed);
+        RepeatingElementsTable sorted = new RepeatingElementsTable("Order", reversed, 0, null, first);
+        RepeatingElementsTable fresh = new RepeatingElementsTable("Order", reversed, 0, null);
+
+        for (int i = 0; i < reversed.size(); i++) {
+            assertSame(first.getRecords().get(reversed.size() - 1 - i), sorted.getRecords().get(i),
+                    "reordering the parent changes no element");
+        }
+        assertEquals(fresh.calculateHeight(), sorted.calculateHeight(), 0.001);
+        assertEquals(fresh.getTotalColumnsWidth(), sorted.getTotalColumnsWidth(), 0.001);
+        for (RepeatingElementsTable.TableColumn col : fresh.getColumns()) {
+            assertEquals(col.getWidth(), sorted.getColumnWidth(col.getName()), 0.001, col.getName());
+        }
+    }
+
+    @Test
+    void anEditedValueIsMeasuredAgainWhenTheTableIsRebuilt() {
+        List<XmlElement> elements = orders(3);
+        RepeatingElementsTable first = new RepeatingElementsTable("Order", elements, 0, null);
+        double before = first.getColumnWidth("Note");
+
+        ((XmlText) elements.get(1).getChildElement("Note").getChildren().getFirst())
+                .setText("a much longer note than all the others");
+        RepeatingElementsTable second = new RepeatingElementsTable("Order", elements, 0, null, first);
+        RepeatingElementsTable fresh = new RepeatingElementsTable("Order", elements, 0, null);
+
+        assertTrue(second.getColumnWidth("Note") > before, "the longer value widens the column");
+        assertEquals(fresh.getColumnWidth("Note"), second.getColumnWidth("Note"), 0.001);
+    }
+
+    @Test
+    void measurementsAreNotTakenOverWhenTheColumnsChanged() {
+        List<XmlElement> elements = orders(3);
+        RepeatingElementsTable first = new RepeatingElementsTable("Order", elements, 0, null);
+        first.calculateHeight();
+
+        elements.get(0).setAttribute("status", "a status wider than the id column");
+        RepeatingElementsTable second = new RepeatingElementsTable("Order", elements, 0, null, first);
+        RepeatingElementsTable fresh = new RepeatingElementsTable("Order", elements, 0, null);
+
+        assertEquals(fresh.getColumns().size(), second.getColumns().size());
+        for (RepeatingElementsTable.TableColumn col : fresh.getColumns()) {
+            assertEquals(col.getWidth(), second.getColumnWidth(col.getName()), 0.001, col.getName());
+        }
+        assertEquals(fresh.calculateHeight(), second.calculateHeight(), 0.001);
+    }
+
     @Test
     void rowsShareTheirRecordsValues() {
         XmlElement record = new XmlElement("Order");

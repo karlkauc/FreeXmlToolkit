@@ -18,6 +18,7 @@ import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 public class JsonGridView extends GridViewShell {
 
     private Consumer<String> onModified;
+    private Runnable onModelChanged;
     private Consumer<JsonNode> onSelectionChanged;
     private JsonEditorContext context;
     private JsonCanvasView canvasView;
@@ -61,6 +62,16 @@ public class JsonGridView extends GridViewShell {
         this.onModified = onModified;
     }
 
+    /**
+     * Sets the callback invoked whenever the grid edits the document, without serializing it
+     * (the editor reads the shared model itself).
+     *
+     * @param onModelChanged the callback (may be {@code null} to clear)
+     */
+    public void setOnModelChanged(Runnable onModelChanged) {
+        this.onModelChanged = onModelChanged;
+    }
+
     /** Rebuilds the rows from the shared model without a round-trip (e.g. after shell undo). */
     public void rebuild() {
         if (canvasView != null) {
@@ -95,9 +106,15 @@ public class JsonGridView extends GridViewShell {
         });
         JsonCanvasView view = new JsonCanvasView(ctx);
         this.canvasView = view;
-        view.setOnDocumentModified(modified -> {
-            if (modified != null && onModified != null) {
-                onModified.accept(modified);
+        view.setOnModelModified(() -> {
+            if (onModelChanged != null) {
+                onModelChanged.run();
+            }
+            if (onModified != null) {
+                String modified = view.getAdapter().serialize();
+                if (modified != null) {
+                    onModified.accept(modified);
+                }
             }
         });
         installCanvas(view);

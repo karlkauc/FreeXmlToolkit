@@ -66,4 +66,27 @@ class GridFiltersTest {
         assertTrue(cell.flattenCell("a", FlatRow.ALWAYS_TABLE).stream()
                 .noneMatch(r -> r.getType() == FlatRow.RowType.PROCESSING_INSTRUCTION), "nor inside an opened cell");
     }
+
+    @Test
+    void theMemoSkipsUnchangedSubtreesButSeesNewAndRemovedFilters() {
+        StringBuilder xml = new StringBuilder("<Orders>");
+        for (int i = 0; i < GridFilters.MEMO_CHILDREN + 5; i++) {
+            xml.append("<Order><Items><Item>").append(i).append("</Item><Item>x</Item></Items></Order>");
+        }
+        XmlEditorContext context = load(xml.append("</Orders>").toString());
+        GridFilters.Memo memo = new GridFilters.Memo();
+        assertTrue(GridFilters.savedFilters(context.getDocument(), memo).isEmpty());
+
+        XmlElement items = context.getDocument().getRootElement().getChildElements("Order").get(7)
+                .getChildElement("Items");
+        XmlProcessingInstruction pi = GridFilters.create("Item[. = 'x']");
+        items.addChild(0, pi);
+        Map<String, XmlProcessingInstruction> saved = GridFilters.savedFilters(context.getDocument(), memo);
+        assertEquals(Map.of(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath.positional(items), pi), saved,
+                "a filter added below a remembered subtree is found");
+        assertEquals(saved, GridFilters.savedFilters(context.getDocument()), "same result as a full scan");
+
+        items.removeChild(pi);
+        assertTrue(GridFilters.savedFilters(context.getDocument(), memo).isEmpty());
+    }
 }

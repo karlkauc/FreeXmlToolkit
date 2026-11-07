@@ -369,9 +369,9 @@ public class XmlElement extends XmlNode {
             throw new IllegalArgumentException("Not a permutation of the children: size " + newOrder.size()
                     + " instead of " + children.size());
         }
-        java.util.Set<XmlNode> current = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        java.util.Set<XmlNode> current = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>(children.size()));
         current.addAll(children);
-        java.util.Set<XmlNode> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        java.util.Set<XmlNode> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>(children.size()));
         for (XmlNode node : newOrder) {
             if (!current.contains(node) || !seen.add(node)) {
                 throw new IllegalArgumentException("Not a permutation of the children");

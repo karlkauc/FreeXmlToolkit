@@ -60,6 +60,13 @@ public abstract class XmlNode {
     private PropertyChangeSupport pcs;
 
     /**
+     * Counts the changes of this node and its descendants (every fired property change bumps the
+     * node and all its ancestors). Views compare it to reuse what they derived from an unchanged
+     * subtree, e.g. the grid's table records after a sort or a cell edit elsewhere.
+     */
+    private int subtreeVersion;
+
+    /**
      * Constructs a new XmlNode with a unique UUID.
      */
     protected XmlNode() {
@@ -132,9 +139,20 @@ public abstract class XmlNode {
      * @param newValue     the new value
      */
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
+        for (XmlNode node = this; node != null; node = node.parent) {
+            node.subtreeVersion++;
+        }
         if (pcs != null) {
             pcs.firePropertyChange(propertyName, oldValue, newValue);
         }
+    }
+
+    /**
+     * @return a counter that changes whenever this node or one of its descendants changes (any
+     *         property change event, fired or not); equal values mean an unchanged subtree
+     */
+    public int getSubtreeVersion() {
+        return subtreeVersion;
     }
 
     /** @return the change support, created on first use */

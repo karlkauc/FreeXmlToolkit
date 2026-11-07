@@ -235,4 +235,28 @@ class XmlNodeTest {
         assertEquals(1, visitedNodes.size());
         assertEquals(testNode, visitedNodes.get(0));
     }
+
+    @Test
+    void aChangeBumpsTheSubtreeVersionOfTheNodeAndItsAncestorsOnly() {
+        XmlElement root = new XmlElement("root");
+        XmlElement first = new XmlElement("first");
+        XmlElement second = new XmlElement("second");
+        XmlText text = new XmlText("t");
+        root.addChild(first);
+        root.addChild(second);
+        first.addChild(text);
+        int rootVersion = root.getSubtreeVersion();
+        int firstVersion = first.getSubtreeVersion();
+        int secondVersion = second.getSubtreeVersion();
+
+        text.setText("changed");
+
+        assertNotEquals(rootVersion, root.getSubtreeVersion());
+        assertNotEquals(firstVersion, first.getSubtreeVersion());
+        assertEquals(secondVersion, second.getSubtreeVersion(), "a sibling's subtree is unchanged");
+
+        int afterEdit = second.getSubtreeVersion();
+        root.reorderChildren(List.of(second, first));
+        assertEquals(afterEdit, second.getSubtreeVersion(), "reordering changes the parent, not the children");
+    }
 }

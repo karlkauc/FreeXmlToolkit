@@ -107,4 +107,25 @@ class XmlCanvasViewTableClipboardTest {
         assertEquals(3, root.getChildElements("item").size());
         assertEquals("2", root.getChildElements("item").get(1).getChildElement("a").getTextContent());
     }
+
+    @Test
+    void anEditNotifiesTheModelCallbackWithoutSerializingForIt() {
+        int[] modelChanges = {0};
+        fx(() -> {
+            view.setOnDocumentModified(null); // the editor reads the model itself
+            view.setOnModelModified(() -> modelChanges[0]++);
+            RepeatingElementsTable table = owner().getRepeatingTable();
+            view.getAdapter().commitCellEdit(table, 0, "a", "9");
+            view.notifyDocumentModified();
+        });
+        assertEquals(1, modelChanges[0]);
+        assertNull(roundTripped, "no text callback, no serialized document");
+
+        fx(() -> {
+            view.setOnDocumentModified(xml -> roundTripped = xml);
+            view.notifyDocumentModified();
+        });
+        assertEquals(2, modelChanges[0]);
+        assertTrue(roundTripped.contains("<a>9</a>"), "a text callback still gets the document");
+    }
 }

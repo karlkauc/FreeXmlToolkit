@@ -3,6 +3,7 @@ package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -412,6 +413,19 @@ public class RepeatingElementsTable {
         /** Measured attribute-suffix width per column index ({@code -1}: no suffix), from the last column pass. */
         private double[] suffixWidths;
 
+        /** Bit c set: column c (< 64) has a complex child (measured with the widths). */
+        private long complexColumns;
+
+        /** Whether a value has a line break (such a row never fits one line). */
+        private boolean multiLine;
+
+        /**
+         * The text measurer {@link #valueWidths} and {@link #suffixWidths} were measured with
+         * ({@code null}: not measured). The row's texts never change, so the widths stay valid
+         * for the same measurer; a new table of the same columns takes them over.
+         */
+        private TextMeasurer measuredBy;
+
         /** The row height from the last layout pass; {@code -1} = needs layout. */
         private double layoutHeight = -1;
 
@@ -568,10 +582,10 @@ public class RepeatingElementsTable {
         /**
          * Tracks which columns have their complex cells expanded inline.
          */
-        private final Set<String> expandedColumns = new HashSet<>();
+        private Set<String> expandedColumns = Set.of(); // mutable from the first opened cell (few rows have one)
 
         /** The content of every opened complex cell, shown as a grid of its own. */
-        private final Map<String, GridBlock> cellGrids = new LinkedHashMap<>();
+        private Map<String, GridBlock> cellGrids = Map.of(); // mutable from the first opened cell
 
         /**
          * Checks if a column's complex cell is expanded for this row.
@@ -594,9 +608,15 @@ public class RepeatingElementsTable {
                 // The grid is kept: reopening the cell shows it as it was
                 expandedColumns.remove(columnName);
             } else {
+                if (expandedColumns.isEmpty()) {
+                    expandedColumns = new HashSet<>();
+                }
                 expandedColumns.add(columnName);
                 if (!cellGrids.containsKey(columnName) && complexChildren.containsKey(columnName)) {
                     CellGridFactory factory = owner != null ? owner.cellGridFactory : DEFAULT_CELL_GRIDS;
+                    if (cellGrids.isEmpty()) {
+                        cellGrids = new LinkedHashMap<>();
+                    }
                     cellGrids.put(columnName, factory.create(owner, this, columnName));
                 }
             }
@@ -621,6 +641,9 @@ public class RepeatingElementsTable {
 
         /** @return the grids of this row's opened cells, by column name */
         public Map<String, GridBlock> getCellGrids() {
+            if (expandedColumns.isEmpty()) {
+                return Map.of();
+            }
             Map<String, GridBlock> open = new LinkedHashMap<>();
             for (String column : expandedColumns) {
                 GridBlock grid = cellGrids.get(column);
@@ -663,7 +686,78 @@ public class RepeatingElementsTable {
      */
     public RepeatingElementsTable(String elementName, List<XmlElement> elements,
                                    int depth, Runnable onLayoutChangedCallback) {
-        this(elementName, toRecords(elements), depth, onLayoutChangedCallback, true);
+        this(elementName, elements, depth, onLayoutChangedCallback, null);
+    }
+
+    /**
+     * Creates a table that takes over what is still valid from the table it replaces (the grid
+     * rebuilds its rows after every edit and sort): the record of every element whose subtree is
+     * unchanged, and, while the columns are the same, its measured cell widths. A sort or a cell
+     * edit in a table of 680,000 records then re-analyses and re-measures only the changed rows.
+     *
+     * @param elementName             the common tag name
+     * @param elements                the repeating elements, in document order
+     * @param depth                   the nesting depth of the owning row
+     * @param onLayoutChangedCallback callback to invoke when the layout changes
+     * @param previous                the table this one replaces (same parent and name), or {@code null}
+     */
+    public RepeatingElementsTable(String elementName, List<XmlElement> elements, int depth,
+                                  Runnable onLayoutChangedCallback, RepeatingElementsTable previous) {
+        this(elementName, Kept.of(elements, previous), depth, onLayoutChangedCallback);
+    }
+
+    private RepeatingElementsTable(String elementName, Kept kept, int depth, Runnable onLayoutChangedCallback) {
+        this(elementName, kept.records(), depth, onLayoutChangedCallback, true);
+        inheritMeasurements(kept);
+    }
+
+    /**
+     * The records of a table that replaces {@code previous}, with the predecessor's row per index
+     * ({@code null} where the element is new). The rows are matched by position first (a cell
+     * edit keeps every position); only a reordered group (a sort) needs a lookup by element.
+     */
+    private record Kept(List<GridRecord> records, TableRow[] previousRows, RepeatingElementsTable previous) {
+
+        static Kept of(List<XmlElement> elements, RepeatingElementsTable previous) {
+            int n = elements.size();
+            TableRow[] old = new TableRow[n];
+            if (previous != null) {
+                List<TableRow> before = previous.rows;
+                boolean moved = false;
+                for (int i = 0; i < n; i++) {
+                    if (i < before.size() && before.get(i).record.node() == elements.get(i)) {
+                        old[i] = before.get(i);
+                    } else {
+                        moved = true;
+                    }
+                }
+                if (moved) {
+                    Map<Object, TableRow> byNode = new java.util.IdentityHashMap<>(before.size());
+                    for (TableRow row : before) {
+                        byNode.put(row.record.node(), row);
+                    }
+                    for (int i = 0; i < n; i++) {
+                        if (old[i] == null) {
+                            old[i] = byNode.get(elements.get(i));
+                        }
+                    }
+                }
+            }
+            GridRecord[] records = new GridRecord[n];
+            java.util.function.IntConsumer analyse = i -> {
+                TableRow row = old[i];
+                records[i] = row != null && row.record instanceof XmlGridRecord xml && xml.isCurrent()
+                        ? xml : new XmlGridRecord(elements.get(i));
+            };
+            if (n >= PARALLEL_RECORDS) {
+                java.util.stream.IntStream.range(0, n).parallel().forEach(analyse);
+            } else {
+                for (int i = 0; i < n; i++) {
+                    analyse.accept(i);
+                }
+            }
+            return new Kept(new ArrayList<>(Arrays.asList(records)), old, previous);
+        }
     }
 
     /**
@@ -681,23 +775,38 @@ public class RepeatingElementsTable {
         return new RepeatingElementsTable(name, new ArrayList<>(records), depth, onLayoutChangedCallback, true);
     }
 
-    /** From this many records on they are analysed in parallel (see {@link #toRecords}). */
+    /**
+     * From this many records on they are analysed in parallel (see {@link Kept#of}): on all cores
+     * while the calling (FX) thread waits for the result, so nothing edits the model meanwhile and
+     * the analysis only reads it (680,000 records took 2.5 s on one thread).
+     */
     static final int PARALLEL_RECORDS = 10_000;
 
     /**
-     * Analyses every element into a record. A large group is analysed on all cores while the
-     * calling (FX) thread waits for the result, so nothing edits the model meanwhile and the
-     * analysis only reads it: 680,000 records took 2.5 s on one thread.
+     * Takes over the measured widths of the rows that kept their record, when the columns are the
+     * same (name and order) as in {@code previous}; the layout then measures only the other rows.
      */
-    private static List<GridRecord> toRecords(List<XmlElement> elements) {
-        if (elements.size() >= PARALLEL_RECORDS) {
-            return new ArrayList<>(elements.parallelStream().map(XmlGridRecord::new).toList());
+    private void inheritMeasurements(Kept kept) {
+        RepeatingElementsTable previous = kept.previous();
+        if (previous == null || previous.columns.size() != columns.size()) {
+            return;
         }
-        List<GridRecord> records = new ArrayList<>(elements.size());
-        for (XmlElement element : elements) {
-            records.add(new XmlGridRecord(element));
+        for (int c = 0; c < columns.size(); c++) {
+            if (!previous.columns.get(c).getName().equals(columns.get(c).getName())) {
+                return;
+            }
         }
-        return records;
+        for (int i = 0; i < rows.size(); i++) {
+            TableRow row = rows.get(i);
+            TableRow old = kept.previousRows()[i];
+            if (old != null && old.record == row.record && old.measuredBy != null) {
+                row.valueWidths = old.valueWidths; // never written in place (see measure)
+                row.suffixWidths = old.suffixWidths;
+                row.multiLine = old.multiLine;
+                row.complexColumns = old.complexColumns;
+                row.measuredBy = old.measuredBy;
+            }
+        }
     }
 
     private RepeatingElementsTable(String elementName, List<GridRecord> records,
@@ -735,26 +844,38 @@ public class RepeatingElementsTable {
         // actually present so stale cached columns are dropped.
         // Distinct orders only, first occurrence first: merging an order that was merged before
         // changes nothing, and the records of a large table nearly all share one order.
-        Set<List<String>> distinctOrders = new LinkedHashSet<>();
+        // XML records take over the first equal list, so the next rebuild (records are kept while
+        // unchanged) finds the same list as the record before and skips it by identity.
+        Map<List<String>, List<String>> distinctOrders = new LinkedHashMap<>();
         Set<String> presentKeys = new LinkedHashSet<>();
         Map<String, GridRecord> keyOwner = new HashMap<>();
+        List<String> last = null;
         for (GridRecord record : records) {
             List<String> keys = record.columnKeys();
-            if (!distinctOrders.contains(keys)) {
-                distinctOrders.add(List.copyOf(keys));
+            if (keys == last) {
+                continue; // nothing new: the same order as the record before
             }
-            for (String key : keys) {
-                if (presentKeys.add(key)) {
-                    keyOwner.put(key, record);
+            List<String> shared = distinctOrders.get(keys);
+            if (shared == null) {
+                shared = List.copyOf(keys);
+                distinctOrders.put(shared, shared);
+                for (String key : keys) {
+                    if (presentKeys.add(key)) {
+                        keyOwner.put(key, record);
+                    }
                 }
             }
+            if (record instanceof XmlGridRecord xml) {
+                xml.shareColumnKeys(shared);
+            }
+            last = record.columnKeys();
         }
 
         // Check if we have a cached column order for this element type
         List<String> cachedOrder = columnOrderCache.get(elementName);
 
         // Merge all element orders into a unified order respecting document order
-        List<String> mergedOrder = mergeColumnOrders(new ArrayList<>(distinctOrders));
+        List<String> mergedOrder = mergeColumnOrders(new ArrayList<>(distinctOrders.keySet()));
 
         List<String> finalOrder;
         if (cachedOrder != null) {
@@ -1100,6 +1221,14 @@ public class RepeatingElementsTable {
         double pad2 = CELL_PADDING * 2;
         double maxValueColumn = m.wrapWidth() + pad2;
 
+        // -- Measure the rows not measured with this measurer yet (texts never change per row) --
+        for (TableRow row : rows) {
+            if (row.measuredBy != m.measurer() || row.valueWidths == null
+                    || row.valueWidths.length != columns.size()) {
+                measure(row, m);
+            }
+        }
+
         // -- Column pass: content-driven logical column widths (user overrides win) --
         for (TableColumn col : columns) {
             String name = col.getName();
@@ -1110,26 +1239,17 @@ public class RepeatingElementsTable {
 
             int c = columns.indexOf(col);
             for (TableRow row : rows) {
-                if (row.valueWidths == null || row.valueWidths.length != columns.size()) {
-                    row.valueWidths = new double[columns.size()];
-                    row.suffixWidths = new double[columns.size()];
-                }
-                // = cellContentWidth, keeping the parts for fitsOneLine
-                double valueWidth = m.width(row.getValue(name), GridFont.ROW);
-                double cw = valueWidth;
-                if (row.hasComplexChild(name)) {
+                // = cellContentWidth, from the measured parts
+                double cw = row.valueWidths[c];
+                if (hasComplex(row, c, name)) {
                     cw += GridMetrics.COMPLEX_ARROW_OFFSET;
                 }
-                String suffix = row.getAttributeSuffix(name);
-                double suffixWidth = -1;
-                if (suffix != null && !suffix.isEmpty()) {
-                    suffixWidth = m.width(suffix, GridFont.ROW);
-                    cw += GridMetrics.SUFFIX_GAP + suffixWidth;
+                if (row.suffixWidths[c] >= 0) {
+                    cw += GridMetrics.SUFFIX_GAP + row.suffixWidths[c];
                 }
-                row.valueWidths[c] = valueWidth;
-                row.suffixWidths[c] = suffixWidth;
                 contentWidth = Math.max(contentWidth, cw + pad2);
-                GridBlock grid = row.isColumnExpanded(name) ? row.getCellGrid(name) : null;
+                GridBlock grid = !row.expandedColumns.isEmpty() && row.isColumnExpanded(name)
+                        ? row.getCellGrid(name) : null;
                 if (grid != null) {
                     maxGridWidth = Math.max(maxGridWidth, grid.geometry(cellMeasure).width());
                 }
@@ -1154,6 +1274,39 @@ public class RepeatingElementsTable {
             layoutStandard(m);
         }
         layoutValid = true;
+    }
+
+    /**
+     * Measures the value and attribute-suffix width of every cell of the row into new arrays (a
+     * table that took them over from its predecessor may still share the old ones).
+     */
+    private void measure(TableRow row, GridMetrics m) {
+        double[] valueWidths = new double[columns.size()];
+        double[] suffixWidths = new double[columns.size()];
+        boolean multiLine = false;
+        long complex = 0;
+        for (int c = 0; c < columns.size(); c++) {
+            String name = columns.get(c).getName();
+            if (c < 64 && !row.complexChildren.isEmpty() && row.hasComplexChild(name)) {
+                complex |= 1L << c;
+            }
+            String value = row.getValue(name);
+            valueWidths[c] = m.width(value, GridFont.ROW);
+            multiLine |= value.indexOf('\n') >= 0;
+            String suffix = row.attributeSuffixes.isEmpty() ? null : row.getAttributeSuffix(name);
+            suffixWidths[c] = suffix != null && !suffix.isEmpty() ? m.width(suffix, GridFont.ROW) : -1;
+        }
+        row.valueWidths = valueWidths;
+        row.suffixWidths = suffixWidths;
+        row.multiLine = multiLine;
+        row.complexColumns = complex;
+        row.measuredBy = m.measurer();
+    }
+
+    /** @return whether the measured row's column {@code c} has a complex child (bit mask up to 64 columns) */
+    private static boolean hasComplex(TableRow row, int c, String name) {
+        return c < 64 ? (row.complexColumns & (1L << c)) != 0
+                : !row.complexChildren.isEmpty() && row.hasComplexChild(name);
     }
 
     /** @return the unwrapped width of a cell's content: value, complex-cell arrow and attribute suffix */
@@ -1337,21 +1490,18 @@ public class RepeatingElementsTable {
      *         wrapped in the layout pass.
      */
     private boolean fitsOneLine(TableRow row) {
-        if (row.valueWidths == null || row.valueWidths.length != columns.size()) {
+        if (row.valueWidths == null || row.valueWidths.length != columns.size() || row.multiLine) {
             return false;
         }
+        boolean anyExpanded = !row.expandedColumns.isEmpty();
         for (int c = 0; c < columns.size(); c++) {
             TableColumn col = columns.get(c);
             String name = col.getName();
-            if (row.isColumnExpanded(name)) {
-                return false;
-            }
-            String value = row.getValue(name);
-            if (value != null && value.indexOf('\n') >= 0) {
+            if (anyExpanded && row.isColumnExpanded(name)) {
                 return false;
             }
             double textAvail = Math.max(GridMetrics.MIN_TEXT_WIDTH, col.getWidth() - CELL_PADDING * 2
-                    - (row.hasComplexChild(name) ? GridMetrics.COMPLEX_ARROW_OFFSET : 0));
+                    - (hasComplex(row, c, name) ? GridMetrics.COMPLEX_ARROW_OFFSET : 0));
             if (row.valueWidths[c] > textAvail) {
                 return false;
             }
@@ -2321,39 +2471,50 @@ public class RepeatingElementsTable {
      * @return the detected data type
      */
     public ColumnDataType detectColumnDataType(String columnName) {
-        List<String> values = rows.stream()
-                .map(row -> row.getValue(columnName))
-                .filter(v -> v != null && !v.trim().isEmpty())
-                .toList();
-
-        if (values.isEmpty()) {
+        // One pass with early exits (a stream pipeline per type over 680,000 rows cost ~0.3 s)
+        boolean any = false;
+        boolean allNumeric = true;
+        boolean allDates = true;
+        for (TableRow row : rows) {
+            String v = row.getValue(columnName);
+            if (v == null || v.trim().isEmpty()) {
+                continue;
+            }
+            any = true;
+            if (allNumeric && !isNumber(v)) {
+                allNumeric = false;
+            }
+            if (!allNumeric && allDates && !looksLikeDate(v)) {
+                allDates = false;
+            }
+            if (!allNumeric && !allDates) {
+                return ColumnDataType.STRING;
+            }
+        }
+        if (!any) {
             return ColumnDataType.STRING;
         }
-
-        // Try numeric - check if all values can be parsed as numbers
-        boolean allNumeric = values.stream().allMatch(v -> {
-            try {
-                // Handle common number formats (with commas, spaces, etc.)
-                String cleaned = v.replace(",", "").replace(" ", "").trim();
-                Double.parseDouble(cleaned);
-                return true;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        });
-
         if (allNumeric) {
             return ColumnDataType.NUMERIC;
         }
-
-        // Try date - check common date patterns
-        boolean allDates = values.stream().allMatch(this::looksLikeDate);
-        if (allDates) {
-            return ColumnDataType.DATE;
+        // allDates was checked only from the first non-number on: check the values before it
+        for (TableRow row : rows) {
+            String v = row.getValue(columnName);
+            if (v != null && !v.trim().isEmpty() && !looksLikeDate(v)) {
+                return ColumnDataType.STRING;
+            }
         }
+        return ColumnDataType.DATE;
+    }
 
-        // Default to string
-        return ColumnDataType.STRING;
+    /** @return whether the text parses as a number (common thousands separators and spaces stripped) */
+    private static boolean isNumber(String v) {
+        try {
+            Double.parseDouble(v.replace(",", "").replace(" ", "").trim());
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     /**

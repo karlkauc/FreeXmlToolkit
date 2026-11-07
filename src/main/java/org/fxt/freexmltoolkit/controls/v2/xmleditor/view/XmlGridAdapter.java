@@ -1,7 +1,9 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
 import java.beans.PropertyChangeEvent;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
@@ -84,6 +86,10 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public void attachTables(List<FlatRow> rows, Runnable onLayoutChanged) {
+        // The tables of the last rebuild: a new table takes over their unchanged records and widths
+        Map<TableKey, RepeatingElementsTable> previous = builtTables;
+        Map<TableKey, RepeatingElementsTable> built = new HashMap<>();
+        builtTables = built;
         for (FlatRow row : rows) {
             // flatten() already grouped the siblings; rescanning them per row cost tens of ms
             List<XmlElement> group = row.getRepeatingGroup();
@@ -91,11 +97,32 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
                 // Built when the group is first expanded or drawn (FlatRow#setRepeatingTableFactory)
                 String label = row.getLabel();
                 int depth = row.getDepth();
-                row.setRepeatingTableFactory(
-                        () -> new RepeatingElementsTable(label, group, depth, onLayoutChanged));
+                TableKey key = new TableKey(group.getFirst().getParent(), label);
+                row.setRepeatingTableFactory(() -> {
+                    RepeatingElementsTable table = new RepeatingElementsTable(label, group, depth,
+                            onLayoutChanged, previous.remove(key));
+                    built.put(key, table);
+                    return table;
+                });
             }
         }
     }
+
+    /** A repeating group's table: the parent holding the group (by identity) and the group's name. */
+    private record TableKey(XmlNode parent, String name) {
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof TableKey other && other.parent == parent && other.name.equals(name);
+        }
+
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(parent) * 31 + name.hashCode();
+        }
+    }
+
+    /** The tables built since the last {@link #attachTables} (handed to the next rebuild's tables). */
+    private Map<TableKey, RepeatingElementsTable> builtTables = new HashMap<>();
 
     @Override
     public void addModelListener(Runnable onModelChanged) {
@@ -263,7 +290,10 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
             // Walking every element of a 150-MB document for filter instructions took a second
             // on each rebuild of the grid: once per model state.
             java.util.Map<String, String> result = new java.util.LinkedHashMap<>();
-            GridFilters.savedFilters(context.getDocument())
+            if (savedFiltersDocument != context.getDocument()) {
+                savedFiltersMemo = new GridFilters.Memo();
+            }
+            GridFilters.savedFilters(context.getDocument(), savedFiltersMemo)
                     .forEach((key, pi) -> result.put(key, GridFilters.parse(pi.getData())));
             savedFiltersCache = java.util.Collections.unmodifiableMap(result);
             savedFiltersRevision = revision;
@@ -275,6 +305,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     private java.util.Map<String, String> savedFiltersCache;
     private long savedFiltersRevision;
     private Object savedFiltersDocument;
+    private GridFilters.Memo savedFiltersMemo = new GridFilters.Memo();
 
     @Override
     public boolean supportsSavedFilters() {

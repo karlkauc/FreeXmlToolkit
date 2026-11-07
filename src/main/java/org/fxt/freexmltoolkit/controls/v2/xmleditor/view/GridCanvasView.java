@@ -210,6 +210,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // ==================== Document Change Callback ====================
 
     private java.util.function.Consumer<String> onDocumentModified;
+    private Runnable onModelModified;
 
     /**
      * Weakly registered with DesignTokens — the instance field keeps it alive
@@ -2762,10 +2763,30 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     /**
-     * Notifies the callback that the document was modified.
+     * Sets the callback invoked after every grid edit, without the serialized document: the
+     * editor reads the model itself and defers the text for large documents (serializing a
+     * 150-MB document after each cell edit froze the grid for seconds).
+     *
+     * @param callback the callback, or {@code null}
+     */
+    public void setOnModelModified(Runnable callback) {
+        this.onModelModified = callback;
+    }
+
+    /** @return the callback invoked after every grid edit, or {@code null} */
+    public Runnable getOnModelModified() {
+        return onModelModified;
+    }
+
+    /**
+     * Notifies the callbacks that the document was modified; the document is serialized only
+     * for a {@link #setOnDocumentModified text callback}.
      */
     void notifyDocumentModified() {
         problemsByLine = null; // line numbers refer to the text before this edit
+        if (onModelModified != null) {
+            onModelModified.run();
+        }
         if (onDocumentModified != null) {
             String serialized = adapter.serialize();
             onDocumentModified.accept(serialized);
