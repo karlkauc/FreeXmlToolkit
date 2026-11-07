@@ -31,9 +31,18 @@ plugins {
     id("com.github.spotbugs") version "6.5.13"
     id("com.diffplug.spotless") version "8.10.4"
     id("io.github.ben-manes.versions") version "0.66.0"
+    // Software bill of materials (CycloneDX) for every release: ./gradlew cyclonedxBom
+    id("org.cyclonedx.bom") version "3.5.1"
 }
 
 version = "2.10.0"
+
+// SBOM: only what ships (runtime classpath), not test or code-analysis tools. The release
+// workflow attaches build/reports/cyclonedx-direct/bom.{json,xml} to every GitHub release.
+tasks.cyclonedxDirectBom {
+    includeConfigs.set(listOf("runtimeClasspath"))
+    projectType.set(org.cyclonedx.model.Component.Type.APPLICATION)
+}
 
 // MSI UpgradeCode. Pinned to the value jpackage derived from vendor + name up to 2.4.0, so
 // existing installations keep upgrading in place and winget can match the package.

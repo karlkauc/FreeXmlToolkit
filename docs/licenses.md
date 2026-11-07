@@ -2,6 +2,18 @@
 
 FreeXmlToolkit uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
 
+## Software Bill of Materials (SBOM)
+
+From version 2.11 on, every [GitHub release](https://github.com/karlkauc/FreeXmlToolkit/releases) carries a
+machine-readable SBOM in the [CycloneDX](https://cyclonedx.org/) 1.6 format:
+`FreeXmlToolkit-<version>-sbom.cdx.json` and `FreeXmlToolkit-<version>-sbom.cdx.xml`. It lists every library
+the application ships (the runtime classpath, not test or build tools) with its version, license, package URL
+and hashes, and it is covered by the release's `SHA256SUMS.txt`. Security and compliance tools such as
+Dependency-Track, Trivy or Grype read it directly.
+
+To create it from the sources: `./gradlew cyclonedxDirectBom` writes `build/reports/cyclonedx-direct/bom.json`
+and `bom.xml`.
+
 ## Core Dependencies
 
 | Library | Version | License |

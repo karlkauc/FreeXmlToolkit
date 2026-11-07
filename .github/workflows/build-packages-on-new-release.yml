@@ -279,10 +279,41 @@ jobs:
             echo "🎉 Successfully uploaded $found_files file(s)"
           fi
 
+  # Software Bill of Materials (CycloneDX 1.6) der ausgelieferten Bibliotheken (Runtime-Classpath),
+  # als JSON und XML am Release; landet damit auch in SHA256SUMS.txt.
+  sbom:
+    if: github.event_name == 'release'
+    # Ein Fehler hier soll Prüfsummen und Paketmanager nicht aufhalten
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-package: 'jdk+fx'
+          java-version: '25'
+          distribution: 'liberica'
+      - name: Generate and upload SBOM
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          ./gradlew cyclonedxDirectBom --no-daemon
+          version="${TAG#v}"
+          cp build/reports/cyclonedx-direct/bom.json "FreeXmlToolkit-${version}-sbom.cdx.json"
+          cp build/reports/cyclonedx-direct/bom.xml "FreeXmlToolkit-${version}-sbom.cdx.xml"
+          gh release upload "$TAG" "FreeXmlToolkit-${version}-sbom.cdx.json" "FreeXmlToolkit-${version}-sbom.cdx.xml" \
+            --clobber -R "${{ github.repository }}"
+
   # SHA256SUMS.txt für alle Release-Assets. Nutzt die SHA-256-Digests, die GitHub zu jedem
   # Asset liefert (kein Download der ~1 GB Pakete); fehlt ein Digest, wird die Datei geladen.
   checksums:
-    needs: build
+    needs: [build, sbom]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     env:
