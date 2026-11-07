@@ -39,9 +39,8 @@ Configure the proxy under **Settings → Network & Security → HTTP PROXY**: *S
 (default, includes PAC/WPAD), *Manual proxy* or *No proxy*, hosts to reach directly, and proxy
 authentication (user and password, or the Windows account via NTLM/Kerberos). **Test Connection**
 checks an address with the values shown. Every connection of the application uses these
-settings - schema and catalog downloads, updates, FundsXML, telemetry, `doc()` in the Query
-Console's XPath mode and grid formulas, JSON Schema `$ref`s, XProc and HTML previews. See
-[Settings](settings.md).
+settings - schema and catalog downloads, updates, FundsXML, telemetry, JSON Schema `$ref`s,
+XProc and HTML previews. See [Settings](settings.md).
 
 ### Can I use FreeXmlToolkit offline?
 

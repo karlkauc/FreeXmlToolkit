@@ -24,13 +24,12 @@ back to its cache; the application is never blocked.
 | Namespace-URL fallback | The namespace URI of an import without a usable location | When an import cannot be resolved otherwise | On | `-Dfxt.schema.namespaceFallback=false` | Not resolved |
 | Bundled Schema Library entries | `w3.org`, `oasis-open.org`, `xbrl.org`, `web3d.org`, `schemas.xmlsoap.org`, `raw.githubusercontent.com` | On first use of the schema, then cached | On | `-Dfxt.schema.namespaceFallback=false`, or disable single entries in the Schema Library | The cached copy is used |
 | JSON Schema `$schema` / `$ref` | The referenced URL | When a JSON document is validated or bound | On | Use local `$ref`s | Not resolved |
-| `doc()` in the Query Console's XPath mode and in grid formulas | The URL in the expression | When the expression runs | – | Do not use remote URLs | Error message |
 | XProc `p:http-request` and remote `href`s | The URL in the pipeline | When the pipeline runs | – | Do not run such pipelines | Pipeline error |
 | HTML preview | Remote images, scripts and styles the page refers to | When the preview is shown | – | – | Missing resources |
 | Open from URL, proxy test | The URL you enter | On your action | – | – | Error message |
 
-Not on this list because they never connect: XSLT and XQuery runs (`doc()`, `document()` and
-`unparsed-text()` refuse remote URLs there), XSL-FO/PDF output (remote resources are refused),
+Not on this list because they never connect: XSLT, XQuery and XPath (also in the Query Console,
+grid formulas and filters: `doc()`, `document()` and `unparsed-text()` refuse remote URLs), XSL-FO/PDF output (remote resources are refused),
 XSD documentation (all assets are bundled), the user interface's icons and fonts.
 
 ## Schemas without the internet

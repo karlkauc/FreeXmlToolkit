@@ -59,9 +59,10 @@ created with secure settings that:
 - Disable external DTD loading
 - Turn on the JAXP secure-processing mode, whose built-in limits cap entity expansion
 
-In the editor, internal entities are kept as references and not expanded. FreeXmlToolkit sets no
-entity-expansion limits of its own beyond the parser's secure-processing defaults. See the
-[threat model](threat-model.md) for the details and the known limits.
+Secure processing stops a document after 100,000 entity expansions. The same settings apply when
+XPath, XQuery, XSLT, grid formulas and filters read a document. In the editor, internal entities
+are kept as references and not expanded. See the [threat model](threat-model.md) for the details
+and the known limits.
 
 ### What This Means for You
 
