@@ -122,7 +122,7 @@ public class XmlServiceImpl implements XmlService {
 
     private static final String CACHE_DIR = FileUtils.getUserDirectory().getAbsolutePath() + File.separator + ".freeXmlToolkit" + File.separator + "cache";
     private static final java.util.regex.Pattern MD5_DIR = java.util.regex.Pattern.compile("[0-9A-Fa-f]{32}");
-    Processor processor = new Processor(false);
+    Processor processor = SaxonResourceAccess.restrictedProcessor();
     XsltCompiler compiler = processor.newXsltCompiler();
     StringWriter sw;
     Xslt30Transformer transformer;
@@ -1081,7 +1081,7 @@ public class XmlServiceImpl implements XmlService {
         List<String> resultList = new LinkedList<>();
 
         try {
-            Processor saxon = new Processor(false);
+            Processor saxon = SaxonResourceAccess.restrictedProcessor();
 
             XQueryCompiler compiler = saxon.newXQueryCompiler();
             XQueryExecutable xpathExecutable = compiler.compile(xQuery);

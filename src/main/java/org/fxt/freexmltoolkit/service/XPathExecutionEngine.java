@@ -67,7 +67,7 @@ public class XPathExecutionEngine {
 
     public XPathExecutionEngine() {
         // Initialize Saxon processor for XPath 3.1 support
-        saxonProcessor = new Processor(false);
+        saxonProcessor = SaxonResourceAccess.restrictedProcessor();
         xpathCompiler = saxonProcessor.newXPathCompiler();
         xqueryCompiler = saxonProcessor.newXQueryCompiler();
 

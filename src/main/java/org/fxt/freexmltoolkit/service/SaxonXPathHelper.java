@@ -32,7 +32,7 @@ public final class SaxonXPathHelper {
 
     private static final Logger logger = LogManager.getLogger(SaxonXPathHelper.class);
 
-    private static final Processor PROCESSOR = new Processor(false);
+    private static final Processor PROCESSOR = SaxonResourceAccess.restrictedProcessor();
 
     // Standard namespace maps for common use cases
 

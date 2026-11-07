@@ -108,7 +108,7 @@ public class XPath2Service {
      * Creates a new XPath2Service with Saxon HE processor
      */
     public XPath2Service() {
-        this.processor = new Processor(false); // false = use Saxon-HE (Home Edition)
+        this.processor = SaxonResourceAccess.restrictedProcessor(); // Saxon-HE, no network access from doc()
         this.documentBuilder = processor.newDocumentBuilder();
         logger.info("XPath2Service initialized with Saxon HE {}", processor.getSaxonProductVersion());
     }

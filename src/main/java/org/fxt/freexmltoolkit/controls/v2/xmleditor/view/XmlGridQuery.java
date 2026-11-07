@@ -34,7 +34,7 @@ import net.sf.saxon.s9api.XdmValue;
  */
 public final class XmlGridQuery {
 
-    private static final Processor PROCESSOR = new Processor(false);
+    private static final Processor PROCESSOR = org.fxt.freexmltoolkit.service.SaxonResourceAccess.restrictedProcessor();
 
     /**
      * The German number format, available to every expression as {@code 'de'}:
