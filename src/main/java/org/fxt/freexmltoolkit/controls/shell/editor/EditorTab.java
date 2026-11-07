@@ -542,7 +542,20 @@ final class EditorTab extends Tab {
         ctx.setGoToDefinitionHandler(goToDefinitionCallback);
         xmlEditorContext = ctx;
         lastParsedXmlRevision = revision;
+        xmlModelLinesRevision = revision;
+        if (caretMapRevision != revision) {
+            caretMapDoc = null; // the model maps the caret now (see ensureCaretMapAsync)
+            caretMapRevision = -1;
+        }
     }
+
+    /**
+     * Text revision whose lines the shared XML model's source line numbers describe: the revision
+     * it was parsed from, until a model edit or a text change. While current, the model itself maps
+     * the caret, so no second, line-aware parse of the text is kept (a whole extra model of a
+     * 150-MB document).
+     */
+    private long xmlModelLinesRevision = -1;
 
     /**
      * Brings the XSD model up to date with the text without blocking the FX thread: when it is stale, a
@@ -728,6 +741,11 @@ final class EditorTab extends Tab {
     /** An edit (grid, Inspector, undo/redo) changed the shared XML model: write it into the text now, or later for a large document. */
     private void onXmlModelChanged() {
         xmlModelRevision++;
+        xmlModelLinesRevision = -1; // edited: its line numbers no longer match the text
+        if (xmlEditorContext != null && caretMapDoc == xmlEditorContext.getDocument()) {
+            caretMapDoc = null;
+            caretMapRevision = -1;
+        }
         if (view.getCodeArea().getLength() >= deferredXmlRoundTripChars) {
             xmlTextBehindModel = true;
             document.setDirty(true);
@@ -814,6 +832,9 @@ final class EditorTab extends Tab {
                 if (r[0] != r[1] || r[0] != r[2]) {
                     if (doc != null) {
                         view.replaceTextRegion(r[0], r[1], doc);
+                        // A replacement of many MB in the text's undo history kept a whole second copy
+                        // of the document alive; the edits themselves stay undoable in the model (grid).
+                        view.getCodeArea().getUndoManager().forgetHistory();
                     } else {
                         view.replaceTextRegion(r[0], r[1], text);
                     }
@@ -965,7 +986,7 @@ final class EditorTab extends Tab {
             return; // plain text, HTML, XQuery, JSON …: not an XML instance, nothing to map
         }
         if (view.getCodeArea().getLength() >= deferredXmlRoundTripChars
-                && !(xmlEditorContext != null && lastParsedXmlRevision == textRevision)) {
+                && !(xmlEditorContext != null && xmlModelLinesRevision == textRevision)) {
             // Large document edited in the text: re-parsing it after every caret pause copied the
             // whole text on the FX thread (seconds for 150 MB) and parsed it twice. The caret is
             // mapped again once the model is current (Graphic view, save, validation).
@@ -992,6 +1013,12 @@ final class EditorTab extends Tab {
      */
     private void ensureCaretMapAsync(Runnable onCurrent) {
         if (caretMapRevision == textRevision) {
+            onCurrent.run();
+            return;
+        }
+        if (xmlEditorContext != null && xmlModelLinesRevision == textRevision) {
+            caretMapDoc = xmlEditorContext.getDocument(); // parsed from this very text: no second parse
+            caretMapRevision = textRevision;
             onCurrent.run();
             return;
         }

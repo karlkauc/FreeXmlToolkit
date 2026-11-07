@@ -67,6 +67,43 @@ class TextCaretSelectsXmlNodeTest {
         WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS, () -> host.getActiveText().orElse("").contains("y=\"1\""));
     }
 
+    @Test
+    void largeDocumentMapsTheCaretWithItsParsedModel(@TempDir Path tmp) throws Exception {
+        int threshold = EditorTab.deferredXmlRoundTripChars;
+        EditorTab.deferredXmlRoundTripChars = 1; // every document counts as large
+        try {
+            Path xml = tmp.resolve("large.xml");
+            Files.writeString(xml, XML);
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+            WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                    () -> host.getActiveText().map(t -> t.contains("child")).orElse(false));
+            // the Graphic view parses the shared model; back in the text it maps the caret itself
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                host.setActiveViewMode(ViewMode.GRAPHIC);
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                    () -> host.activeViewModeProperty().get() == ViewMode.GRAPHIC);
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                host.setActiveViewMode(ViewMode.TEXT);
+                return null;
+            });
+            int caret = XML.indexOf("child") + 2;
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.moveActiveCaretTo(caret));
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "child".equals(inspector.getNodeNameText()));
+
+            // typed text: a large document is not re-parsed for the caret, the selection is dropped
+            WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+                host.getActiveCodeArea().insertText(caret, "q");
+                return null;
+            });
+            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeXmlNodeProperty().get() == null);
+            assertNull(host.activeXmlNodeProperty().get());
+        } finally {
+            EditorTab.deferredXmlRoundTripChars = threshold;
+        }
+    }
+
     private static final String NESTED = "<root>\n  <a>x</a>\n  <parent>\n    <kid>v</kid>\n  </parent>\n</root>\n";
 
     @Test

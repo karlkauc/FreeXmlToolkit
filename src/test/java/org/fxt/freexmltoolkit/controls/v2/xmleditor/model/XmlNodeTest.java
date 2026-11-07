@@ -62,6 +62,18 @@ class XmlNodeTest {
     }
 
     @Test
+    void changeSupportIsCreatedWithTheFirstListener() {
+        XmlElement node = new XmlElement("lazy");
+        node.setName("renamed"); // no listener yet: nothing to notify, no failure
+        List<PropertyChangeEvent> events = new ArrayList<>();
+        node.addPropertyChangeListener(events::add);
+        node.setName("again");
+        assertEquals(1, events.size());
+        assertEquals("again", events.getFirst().getNewValue());
+        new XmlElement("other").removePropertyChangeListener(events::add); // never had one: no failure
+    }
+
+    @Test
     void testUUIDImmutable() {
         UUID originalId = testNode.getId();
         testNode.setName("changed");

@@ -53,17 +53,17 @@ public abstract class XmlNode {
     private XmlNode parent;
 
     /**
-     * PropertyChangeSupport for observable properties.
-     * Enables reactive UI updates without tight coupling.
+     * PropertyChangeSupport for observable properties, created with the first listener: most of
+     * the millions of nodes of a large document never get one, and the support object (with its
+     * listener map) per node cost hundreds of MB.
      */
-    private final PropertyChangeSupport pcs;
+    private PropertyChangeSupport pcs;
 
     /**
      * Constructs a new XmlNode with a unique UUID.
      */
     protected XmlNode() {
         this.serial = SERIALS.incrementAndGet();
-        this.pcs = new PropertyChangeSupport(this);
         this.parent = null;
     }
 
@@ -75,7 +75,6 @@ public abstract class XmlNode {
      */
     protected XmlNode(XmlNode original) {
         this.serial = SERIALS.incrementAndGet(); // new id for the copy
-        this.pcs = new PropertyChangeSupport(this);
         this.parent = null; // Parent set by caller
     }
 
@@ -88,7 +87,7 @@ public abstract class XmlNode {
      * @param listener the listener to add
      */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(listener);
+        support().addPropertyChangeListener(listener);
     }
 
     /**
@@ -97,7 +96,9 @@ public abstract class XmlNode {
      * @param listener the listener to remove
      */
     public void removePropertyChangeListener(PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(listener);
+        if (pcs != null) {
+            pcs.removePropertyChangeListener(listener);
+        }
     }
 
     /**
@@ -107,7 +108,7 @@ public abstract class XmlNode {
      * @param listener     the listener to add
      */
     public void addPropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-        pcs.addPropertyChangeListener(propertyName, listener);
+        support().addPropertyChangeListener(propertyName, listener);
     }
 
     /**
@@ -117,7 +118,9 @@ public abstract class XmlNode {
      * @param listener     the listener to remove
      */
     public void removePropertyChangeListener(String propertyName, PropertyChangeListener listener) {
-        pcs.removePropertyChangeListener(propertyName, listener);
+        if (pcs != null) {
+            pcs.removePropertyChangeListener(propertyName, listener);
+        }
     }
 
     /**
@@ -129,7 +132,17 @@ public abstract class XmlNode {
      * @param newValue     the new value
      */
     protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-        pcs.firePropertyChange(propertyName, oldValue, newValue);
+        if (pcs != null) {
+            pcs.firePropertyChange(propertyName, oldValue, newValue);
+        }
+    }
+
+    /** @return the change support, created on first use */
+    private PropertyChangeSupport support() {
+        if (pcs == null) {
+            pcs = new PropertyChangeSupport(this);
+        }
+        return pcs;
     }
 
     // ==================== Identity and Relationships ====================
