@@ -278,7 +278,13 @@ final class EditorFileSync {
      * @return completes on the FX thread with whether the file was written
      */
     private CompletableFuture<Boolean> writeAsync(EditorTab tab, Path target) {
-        String text = tab.text();
+        if (tab.isXmlTextBehindModel()) {
+            // Grid edits of a large document are not in the text yet: write them back off the FX
+            // thread first (doing it inside text() blocked the UI for most of a minute at 150 MB).
+            return tab.xmlTextCurrentAsync().thenCompose(ignored -> writeAsync(tab, target));
+        }
+        // Immutable document state: the text is built on the worker (copying 150 MB took seconds on the FX thread)
+        var snapshot = tab.view.getCodeArea().getContent().snapshot();
         TextEncoding encoding = tab.document.getEncoding();
         boolean xml = tab.document.getFileType().isXmlFamily();
         long revision = tab.textRevision;
@@ -291,7 +297,7 @@ final class EditorFileSync {
             TextEncoding saved = null;
             Throwable failure = null;
             try {
-                saved = encoding.write(target, text, xml);
+                saved = encoding.write(target, snapshot.getText(), xml);
                 stamp = DiskStamp.of(target);
             } catch (IOException | RuntimeException | StackOverflowError | OutOfMemoryError e) {
                 failure = e;

@@ -722,6 +722,20 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         return row.getFormula();
     }
 
+    /**
+     * A formula evaluated off the FX thread is ready: drop the formula results cached on the rows
+     * and lay them out again (a result can change the label width). FX thread.
+     */
+    void formulasChanged() {
+        forEachLiveRow(row -> {
+            if (row.getType() == FlatRow.RowType.PROCESSING_INSTRUCTION) {
+                row.resetFormula();
+            }
+        });
+        recalculateVisibleRows();
+        render();
+    }
+
     /** @return the label a row shows: a formula's name, else the row label */
     String displayLabel(FlatRow row) {
         GridModelAdapter.FormulaView f = formulaOf(row);

@@ -135,15 +135,26 @@ public class FoldingManagerV2 {
      * @param text the XML text to analyze (a snapshot taken on the FX thread)
      */
     public void updateFoldingRegionsAsync(String text) {
-        long request = ++asyncRequest;
         if (text == null || text.isEmpty()) {
+            ++asyncRequest;
             foldingRegions.clear();
             return;
         }
+        updateFoldingRegionsAsync(() -> text);
+    }
+
+    /**
+     * Same as {@link #updateFoldingRegionsAsync(String)} with the text produced on the worker, e.g.
+     * from an immutable document snapshot (copying a document of 150 MB took seconds on the FX thread).
+     */
+    public void updateFoldingRegionsAsync(java.util.function.Supplier<String> textSource) {
+        long request = ++asyncRequest;
         FOLDING_EXECUTOR.execute(() -> {
             Map<Integer, FoldingRegion> regions;
             try {
-                regions = hasExtremelyLongLine(text) ? new TreeMap<>() : calculateFoldingRegions(text);
+                String text = textSource.get();
+                regions = text == null || text.isEmpty() || hasExtremelyLongLine(text)
+                        ? new TreeMap<>() : calculateFoldingRegions(text);
             } catch (RuntimeException e) {
                 logger.debug("Could not compute folding regions: {}", e.toString());
                 return;

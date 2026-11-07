@@ -66,6 +66,9 @@ class EditorHostXmlDeferredRoundTripTest {
             host.setActiveViewMode(ViewMode.TEXT);
             return null;
         });
+        // written back off the FX thread, the editor read-only meanwhile
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveCodeArea().getText().contains("c=\"3\"") && host.getActiveCodeArea().isEditable()));
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveCodeArea().getText()).contains("c=\"3\""));
 
         // saving writes it
@@ -74,6 +77,24 @@ class EditorHostXmlDeferredRoundTripTest {
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveActive()).get(5, TimeUnit.SECONDS));
         String saved = Files.readString(xml);
         assertTrue(saved.contains("b=\"2\"") && saved.contains("c=\"3\"") && saved.contains("d=\"4\""), saved);
+    }
+
+    @Test
+    void savingFromTheGridWritesTheDeferredEditsFirst(@TempDir Path tmp) throws Exception {
+        EditorTab.deferredXmlRoundTripChars = 1;
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root a=\"1\">\n  <child/>\n</root>\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        showGrid();
+        editRoot("b", "2");
+
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.saveActive()).get(5, TimeUnit.SECONDS));
+        String saved = Files.readString(xml);
+        assertTrue(saved.contains("b=\"2\""), saved);
+        assertTrue(saved.contains("\n  <child/>"), "the document keeps its two-space indentation: " + saved);
+        assertFalse(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveDocument().orElseThrow().isDirty()));
     }
 
     @Test
@@ -87,6 +108,22 @@ class EditorHostXmlDeferredRoundTripTest {
 
         editRoot("b", "2");
         assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveCodeArea().getText()).contains("b=\"2\""));
+    }
+
+    @Test
+    void aGridEditKeepsTheDocumentsIndentation(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root a=\"1\">\n  <child>\n    <leaf>x</leaf>\n  </child>\n</root>\n");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        showGrid();
+
+        editRoot("b", "2");
+        String text = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveCodeArea().getText());
+        assertTrue(text.contains("b=\"2\""), text);
+        assertTrue(text.contains("\n  <child>\n    <leaf>x</leaf>\n  </child>"),
+                "two-space indentation kept (the configured four spaces would rewrite every line): " + text);
     }
 
     private void showGrid() {

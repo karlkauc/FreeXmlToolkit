@@ -58,6 +58,9 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
      */
     private boolean dirty = false;
 
+    /** Counts model changes made through this manager (execute, undo, redo); see {@link #getRevision()}. */
+    private long revision;
+
     /**
      * PropertyChangeSupport for observable properties.
      */
@@ -108,6 +111,7 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
 
         logger.debug("Executing command: {}", command.getDescription());
 
+        revision++;
         // Execute the command FIRST (this updates the model)
         boolean success;
         try {
@@ -180,6 +184,7 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
 
         T command = undoStack.pop();
         logger.debug("Undoing command: {}", command.getDescription());
+        revision++;
 
         boolean success = command.undo();
         if (success) {
@@ -214,6 +219,7 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
 
         T command = redoStack.pop();
         logger.debug("Redoing command: {}", command.getDescription());
+        revision++;
 
         boolean success = command.execute();
         if (success) {
@@ -375,6 +381,14 @@ public abstract class AbstractCommandManager<T extends Command<T>> {
      *
      * @param dirty the new dirty value
      */
+    /**
+     * @return a counter that changes whenever a command, undo or redo touches the model; a reader
+     *         working off the FX thread compares it before and after to drop a result that raced an edit
+     */
+    public long getRevision() {
+        return revision;
+    }
+
     private void setDirty(boolean dirty) {
         boolean oldDirty = this.dirty;
         this.dirty = dirty;

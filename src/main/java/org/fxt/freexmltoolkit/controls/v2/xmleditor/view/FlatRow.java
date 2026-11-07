@@ -240,6 +240,13 @@ public class FlatRow {
         this.formulaComputed = true;
     }
 
+    /** Forgets the cached formula so the canvas asks the adapter again (a result computed later arrived). */
+    public void resetFormula() {
+        this.formula = null;
+        this.formulaComputed = false;
+        this.resultBlock = null;
+    }
+
     /** @return the laid-out result lines of a formula row, or {@code null} */
     public TextBlock getResultBlock() {
         return resultBlock;

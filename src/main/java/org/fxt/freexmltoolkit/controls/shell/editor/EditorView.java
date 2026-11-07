@@ -55,6 +55,11 @@ public interface EditorView {
         getCodeArea().replaceText(start, oldEnd, replacement);
     }
 
+    /** Same as {@link #replaceTextRegion(int, int, String)} with a replacement built by {@link #prepareText}. */
+    default void replaceTextRegion(int start, int oldEnd, XmlCodeEditorV2.PreparedText replacement) {
+        replaceTextRegion(start, oldEnd, replacement.text());
+    }
+
     /** @return the underlying code area (caret, undo, text property). */
     CodeArea getCodeArea();
 

@@ -533,7 +533,21 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
     public void replaceTextRegion(int start, int oldEnd, String replacement) {
         int caret = codeArea.getCaretPosition();
         codeArea.replaceText(start, oldEnd, replacement);
+        afterRegionReplaced(caret, start, oldEnd, replacement);
+    }
 
+    /**
+     * Same as {@link #replaceTextRegion(int, int, String)} with a replacement built by
+     * {@link #prepareText} off the FX thread: splitting a replacement of tens of MB into
+     * paragraphs took most of a minute on the FX thread (grid edits of a 150-MB document).
+     */
+    public void replaceTextRegion(int start, int oldEnd, PreparedText replacement) {
+        int caret = codeArea.getCaretPosition();
+        codeArea.replace(start, oldEnd, replacement.document());
+        afterRegionReplaced(caret, start, oldEnd, replacement.text());
+    }
+
+    private void afterRegionReplaced(int caret, int start, int oldEnd, String replacement) {
         // replaceText() puts the caret at the end of the insertion; restore the user's
         // caret, shifting it only if the change happened before it.
         int restored;
@@ -549,7 +563,8 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         // Highlighting follows from the text change itself (plainTextChanges → requestHighlighting).
         // Folding regions are recomputed off the FX thread; applying them refreshes the gutter once.
         if (foldingEnabled && codeArea.getLength() > 0) {
-            foldingManager.updateFoldingRegionsAsync(codeArea.getText());
+            var snapshot = codeArea.getContent().snapshot(); // immutable: its text is built on the worker
+            foldingManager.updateFoldingRegionsAsync(snapshot::getText);
         }
     }
 

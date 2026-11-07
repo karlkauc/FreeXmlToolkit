@@ -13,6 +13,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.BoundSchemaWatch;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlIndentDetector;
 
 /** A tab bound to one {@link OpenDocument}, its editor view, and Text/Tree/Graphic modes. */
 final class EditorTab extends Tab {
@@ -204,7 +205,7 @@ final class EditorTab extends Tab {
             textRevision++;
             // A text replaced from outside (reload from disk) wins over grid edits not yet written:
             // the model is re-parsed from it, never serialized over it.
-            xmlTextBehindModel = false;
+            markXmlTextCurrent();
         });
         contentStack.getChildren().add(view.getNode());
         // Overlay sits ABOVE contentStack (not inside it) so showOnly() — which toggles
@@ -258,8 +259,13 @@ final class EditorTab extends Tab {
 
     void setViewMode(ViewMode mode) {
         // Persist any pending (debounced) graphical edit before switching, so the
-        // text we read below — and the new view — see the latest model state.
-        flushPendingRoundTrip();
+        // text we read below — and the new view — see the latest model state. Deferred
+        // grid edits of a large document stay deferred for structured views (the model is
+        // current) and are written back off the FX thread when the text is shown.
+        flushPendingDiagramRoundTrip();
+        if (xmlTextBehindModel && (supportsView(mode) ? mode : ViewMode.TEXT) == ViewMode.TEXT) {
+            writeBackXmlModelAsync();
+        }
         ViewMode target = supportsView(mode) ? mode : ViewMode.TEXT;
         pendingViewMode = null;
         if (needsBackgroundParse(target)) {
@@ -505,7 +511,7 @@ final class EditorTab extends Tab {
             return;
         }
         try {
-            installXmlModel(parseXmlDocument(text), textRevision);
+            installXmlModel(parseXmlDocument(text), textRevision, XmlIndentDetector.detect(text));
         } catch (Exception e) {
             xmlEditorContext = null;
             lastParsedXmlRevision = -1;
@@ -520,9 +526,16 @@ final class EditorTab extends Tab {
     }
 
     /** Makes {@code doc} the shared XML model (fresh context: schema provider and Go to Definition wired). */
+    /**
+     * @param indent the indentation step of the parsed text ({@link XmlIndentDetector}), {@code -1}
+     *               when unknown: edits written back keep the document's indentation
+     */
     private void installXmlModel(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc,
-                                 long revision) {
+                                 long revision, int indent) {
         var ctx = new org.fxt.freexmltoolkit.controls.v2.xmleditor.editor.XmlEditorContext(doc);
+        if (indent > 0) {
+            ctx.getSerializer().setIndentSize(indent);
+        }
         if (xmlSchemaProvider != null) {
             ctx.setSchemaProvider(xmlSchemaProvider);
         }
@@ -556,10 +569,11 @@ final class EditorTab extends Tab {
         waiting.add(onCurrent);
         pendingXsdParseRevision = revision;
         pendingXsdParseCallbacks = waiting;
-        String text = view.getText();
+        var snapshot = view.getCodeArea().getContent().snapshot(); // immutable: its text is read on the worker
         java.nio.file.Path path = document.getPath();
         Runnable remoteCallback = remoteImportsCallback;
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String text = snapshot.getText(); // copying 150 MB took seconds on the FX thread
             XsdUiParser.Result parsed;
             try {
                 parsed = XsdUiParser.parseDetailed(text, path, remoteCallback);
@@ -620,8 +634,9 @@ final class EditorTab extends Tab {
         waiting.add(onCurrent);
         pendingXmlParseRevision = revision;
         pendingXmlParseCallbacks = waiting;
-        String text = view.getText();
+        var snapshot = view.getCodeArea().getContent().snapshot(); // immutable: its text is read on the worker
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String text = snapshot.getText(); // copying 150 MB took seconds on the FX thread
             org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument parsed;
             try {
                 parsed = text == null || text.isBlank() ? null : parseXmlDocument(text);
@@ -630,6 +645,7 @@ final class EditorTab extends Tab {
                 org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportUnlessUserInput(e, "editor.parse_xml");
             }
             var doc = parsed;
+            int indent = XmlIndentDetector.detect(text);
             Platform.runLater(() -> {
                 if (pendingXmlParseRevision != revision) {
                     return;
@@ -646,7 +662,7 @@ final class EditorTab extends Tab {
                 }
                 if (!(xmlEditorContext != null && lastParsedXmlRevision == revision)) {
                     if (doc != null) {
-                        installXmlModel(doc, revision);
+                        installXmlModel(doc, revision, indent);
                     } else {
                         xmlEditorContext = null;
                         lastParsedXmlRevision = -1;
@@ -669,8 +685,49 @@ final class EditorTab extends Tab {
     /** True while grid edits of a large document are not yet written into the text. */
     private boolean xmlTextBehindModel;
 
+    /** Counts edits of the shared XML model (grid, Inspector, undo/redo); see {@link #writeBackXmlModelAsync()}. */
+    private long xmlModelRevision;
+
+    /** True while {@link #writeBackXmlModelAsync()} works on a worker. */
+    private boolean xmlWriteBackRunning;
+
+    /** Completes once deferred grid edits are in the text (see {@link #xmlTextCurrentAsync()}). */
+    private CompletableFuture<Void> xmlTextCurrent;
+
+    /** The text no longer lags behind the model: written back, or replaced (the text then wins). */
+    private void markXmlTextCurrent() {
+        xmlTextBehindModel = false;
+        if (xmlTextCurrent != null) {
+            CompletableFuture<Void> done = xmlTextCurrent;
+            xmlTextCurrent = null;
+            // Not inline: this runs inside the area's text-change notification, where its text is
+            // not yet the new one; a save chained on the future read the text before the edit.
+            Platform.runLater(() -> done.complete(null));
+        }
+    }
+
+    /**
+     * Writes deferred grid edits into the text off the FX thread (save from the Graphic view).
+     *
+     * @return completes on the FX thread once the text holds every model edit (at once when it does)
+     */
+    CompletableFuture<Void> xmlTextCurrentAsync() {
+        if (!xmlTextBehindModel) {
+            return CompletableFuture.completedFuture(null);
+        }
+        if (xmlTextCurrent == null) {
+            xmlTextCurrent = new CompletableFuture<>();
+        }
+        CompletableFuture<Void> done = xmlTextCurrent;
+        if (!writeBackXmlModelAsync()) {
+            roundTripXmlModelToText(); // no model to write back: completes the future
+        }
+        return done;
+    }
+
     /** An edit (grid, Inspector, undo/redo) changed the shared XML model: write it into the text now, or later for a large document. */
     private void onXmlModelChanged() {
+        xmlModelRevision++;
         if (view.getCodeArea().getLength() >= deferredXmlRoundTripChars) {
             xmlTextBehindModel = true;
             document.setDirty(true);
@@ -696,9 +753,89 @@ final class EditorTab extends Tab {
         return view.getText();
     }
 
+    /**
+     * Writes deferred grid edits of a large document into the text without blocking the FX thread
+     * (Text view switch: serializing, diffing and splitting 150 MB into paragraphs took most of a
+     * minute there). The worker only reads the model; any model edit or text change meanwhile is
+     * seen through the revision counters on the FX thread, and the result is then dropped (and the
+     * write-back started again for a newer model). A synchronous {@link #text()} meanwhile simply
+     * wins. The loading overlay shows while it runs.
+     *
+     * @return whether a write-back runs now (false: nothing deferred or no model)
+     */
+    private boolean writeBackXmlModelAsync() {
+        if (xmlWriteBackRunning) {
+            return true;
+        }
+        if (!xmlTextBehindModel || xmlEditorContext == null) {
+            return false;
+        }
+        var ctx = xmlEditorContext;
+        long modelRevision = xmlModelRevision;
+        long revision = textRevision;
+        var snapshot = view.getCodeArea().getContent().snapshot(); // immutable: readable off the FX thread
+        xmlWriteBackRunning = true;
+        beginLoading();
+        // typing now would make the text win over the grid edits: read-only until written back
+        boolean editable = view.getCodeArea().isEditable();
+        view.getCodeArea().setEditable(false);
+        Runnable work = () -> {
+            int[] region = null;
+            String replacement = null;
+            org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2.PreparedText prepared = null;
+            try {
+                String xml = ctx.serializeToString();
+                String current = snapshot.getText();
+                region = TextDiff.minimalReplaceRegion(current, xml);
+                replacement = xml.substring(region[0], region[2]);
+                prepared = view.prepareText(replacement);
+            } catch (RuntimeException e) {
+                region = null; // a model edit raced the read: the revision check below redoes it
+            }
+            int[] r = region;
+            String text = replacement;
+            var doc = prepared;
+            Platform.runLater(() -> {
+                xmlWriteBackRunning = false;
+                endLoading();
+                view.getCodeArea().setEditable(editable);
+                if (isAbandoned(this) || !xmlTextBehindModel) {
+                    return; // closed, or written back synchronously / overwritten by a text change meanwhile
+                }
+                if (ctx != xmlEditorContext || modelRevision != xmlModelRevision || revision != textRevision) {
+                    writeBackXmlModelAsync(); // edited meanwhile: once more with the newer model
+                    return;
+                }
+                if (r == null) {
+                    roundTripXmlModelToText();
+                    return;
+                }
+                markXmlTextCurrent();
+                if (r[0] != r[1] || r[0] != r[2]) {
+                    if (doc != null) {
+                        view.replaceTextRegion(r[0], r[1], doc);
+                    } else {
+                        view.replaceTextRegion(r[0], r[1], text);
+                    }
+                    document.setDirty(true);
+                }
+                lastParsedXmlRevision = textRevision;
+            });
+        };
+        try {
+            org.fxt.freexmltoolkit.FxtGui.executorService.submit(work);
+        } catch (java.util.concurrent.RejectedExecutionException e) {
+            xmlWriteBackRunning = false;
+            endLoading();
+            view.getCodeArea().setEditable(editable);
+            roundTripXmlModelToText();
+        }
+        return true;
+    }
+
     /** Serializes the shared XML model back into the editor text via a minimal diff (caret/scroll preserved). */
     private void roundTripXmlModelToText() {
-        xmlTextBehindModel = false;
+        markXmlTextCurrent();
         if (xmlEditorContext == null) {
             return;
         }
@@ -725,8 +862,9 @@ final class EditorTab extends Tab {
             return;
         }
         long revision = textRevision;
-        String text = view.getText();
+        var snapshot = view.getCodeArea().getContent().snapshot(); // immutable: its text is read on the worker
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String text = snapshot.getText(); // copying 150 MB took seconds on the FX thread
             org.fxt.freexmltoolkit.controls.jsoneditor.editor.JsonEditorContext ctx = null;
             String error = null;
             if (text != null && !text.isBlank()) {
@@ -826,6 +964,17 @@ final class EditorTab extends Tab {
         if (viewMode != ViewMode.TEXT || type == EditorFileType.XSD || !type.isXmlFamily()) {
             return; // plain text, HTML, XQuery, JSON …: not an XML instance, nothing to map
         }
+        if (view.getCodeArea().getLength() >= deferredXmlRoundTripChars
+                && !(xmlEditorContext != null && lastParsedXmlRevision == textRevision)) {
+            // Large document edited in the text: re-parsing it after every caret pause copied the
+            // whole text on the FX thread (seconds for 150 MB) and parsed it twice. The caret is
+            // mapped again once the model is current (Graphic view, save, validation).
+            if (currentXmlSelection != null) {
+                currentXmlSelection = null;
+                selectionCallback.run();
+            }
+            return;
+        }
         // Both parses (shared model, caret map) run off the FX thread; the mapping below is cheap.
         ensureXmlModelParsedAsync(() -> {
             if (failedXmlParseRevision == textRevision) {
@@ -847,8 +996,9 @@ final class EditorTab extends Tab {
             return;
         }
         long revision = textRevision;
-        String text = view.getText();
+        var snapshot = view.getCodeArea().getContent().snapshot(); // immutable: its text is read on the worker
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            String text = snapshot.getText(); // copying 150 MB took seconds on the FX thread
             org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument parsed;
             try {
                 parsed = parseXmlDocument(text);
@@ -1056,6 +1206,38 @@ final class EditorTab extends Tab {
         if (root == null) {
             return null;
         }
+        // Start lines grow in document order, so the answer lies under the last child that starts on
+        // or before the line: descend there instead of visiting every element (a full walk over the
+        // 4 million elements of a 150-MB document took a second on every caret move).
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement best =
+                root.getSourceLineNumber() > 0 && root.getSourceLineNumber() <= line ? root : null;
+        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement current = root;
+        while (current != null) {
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement next = null;
+            java.util.List<org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode> children = current.getChildren();
+            for (int i = children.size() - 1; i >= 0; i--) {
+                if (children.get(i) instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement child) {
+                    int childLine = child.getSourceLineNumber();
+                    if (childLine <= 0) {
+                        return findElementByLineFully(root, line); // no line numbers: visit everything
+                    }
+                    if (childLine <= line) {
+                        next = child;
+                        break;
+                    }
+                }
+            }
+            if (next != null) {
+                best = next;
+            }
+            current = next;
+        }
+        return best;
+    }
+
+    /** {@link #findElementByLine} by visiting every element (for a tree without line numbers). */
+    private static org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement findElementByLineFully(
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root, int line) {
         org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement[] best =
                 new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement[1];
         collectBestByLine(root, line, best);
@@ -1667,11 +1849,16 @@ final class EditorTab extends Tab {
 
     /** Runs a pending debounced round-trip immediately, if one is scheduled (P1). */
     private void flushPendingRoundTrip() {
-        if (roundTripDebounce.getStatus() == javafx.animation.Animation.Status.RUNNING) {
-            roundTripModelToText();
-        }
+        flushPendingDiagramRoundTrip();
         if (xmlTextBehindModel) {
             roundTripXmlModelToText();
+        }
+    }
+
+    /** Runs a pending debounced diagram (XSD) round-trip immediately, if one is scheduled. */
+    private void flushPendingDiagramRoundTrip() {
+        if (roundTripDebounce.getStatus() == javafx.animation.Animation.Status.RUNNING) {
+            roundTripModelToText();
         }
     }
 

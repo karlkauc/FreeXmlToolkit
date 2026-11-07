@@ -39,8 +39,13 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     private final XmlEditorContext context;
 
+    /** Formulas over large contexts are evaluated off the FX thread, once per model state. */
+    private final AsyncFormulas formulas;
+
     public XmlGridAdapter(XmlEditorContext context) {
         this.context = context;
+        this.formulas = new AsyncFormulas(() -> context.getCommandManager().getRevision(),
+                context::getDocument, org.fxt.freexmltoolkit.FxtGui.executorService);
     }
 
     /** @return the wrapped editor context */
@@ -100,6 +105,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     @Override
     public void installViewHooks(GridCanvasView<XmlNode> view) {
         context.addPropertyChangeListener("mixedContentDetected", this::onMixedContentDetected);
+        formulas.setOnReady(view::formulasChanged);
     }
 
     /**
@@ -238,7 +244,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
                 || !(row.getModelNode() instanceof XmlProcessingInstruction pi) || !GridFormulas.isFormula(pi)) {
             return null;
         }
-        GridFormulas.Evaluated e = GridFormulas.evaluate(pi);
+        GridFormulas.Evaluated e = formulas.evaluate(pi);
         return new FormulaView(e.formula().name(), e.formula().expression(), e.result(), e.error(), e.formula().store());
     }
 
