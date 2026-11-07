@@ -124,4 +124,27 @@ class XmlServiceSchemaLocationTest {
         assertEquals(new File(base, "sub/a.xsd"), XmlServiceImpl.localSchemaFile("sub/a.xsd", base), "relative");
         assertNull(XmlServiceImpl.localSchemaFile("sub/a.xsd", null), "relative without a document directory");
     }
+
+    @Test
+    void aSchemaLocationOnALoopbackAddressIsNotDownloaded() throws Exception {
+        java.util.concurrent.atomic.AtomicInteger requests = new java.util.concurrent.atomic.AtomicInteger();
+        com.sun.net.httpserver.HttpServer server = com.sun.net.httpserver.HttpServer.create(
+                new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange -> {
+            requests.incrementAndGet();
+            byte[] body = "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"/>".getBytes();
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        server.start();
+        try {
+            String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/ssrf-" + System.nanoTime() + ".xsd";
+            assertFalse(new XmlServiceImpl().loadSchemaFromLocation(url),
+                    "opening a document must not make the app call a loopback address");
+            assertEquals(0, requests.get());
+        } finally {
+            server.stop(0);
+        }
+    }
 }

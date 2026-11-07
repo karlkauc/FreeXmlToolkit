@@ -1196,6 +1196,12 @@ public class XmlServiceImpl implements XmlService {
                         return true;
                     } else {
                         logger.debug("Did not find cached Schema file.");
+                        // Opening a document must not make the app call internal or loopback
+                        // addresses (SSRF), like every other schema download
+                        if (!org.fxt.freexmltoolkit.util.PathValidator.isUrlSafeToAccess(temp)) {
+                            logger.warn("Schema location not downloaded (private or loopback address): {}", temp);
+                            return false;
+                        }
                         var pathNew = Path.of(newFile.getAbsolutePath());
 
                         try {
@@ -2166,6 +2172,11 @@ public class XmlServiceImpl implements XmlService {
             // Check if already cached
             if (Files.exists(importedSchemaPath)) {
                 logger.debug("Imported schema already cached: {}", importedSchemaPath);
+                return;
+            }
+
+            if (!org.fxt.freexmltoolkit.util.PathValidator.isUrlSafeToAccess(resolvedUrl)) {
+                logger.warn("Imported schema not downloaded (private or loopback address): {}", resolvedUrl);
                 return;
             }
 
