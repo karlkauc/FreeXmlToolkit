@@ -272,6 +272,10 @@ public final class XmlGridRecord implements GridRecord {
      * For complex elements (with child elements), returns a summary showing child element names.
      */
     static String extractElementText(XmlElement element) {
+        List<XmlNode> children = element.getChildren();
+        if (children.size() == 1 && children.getFirst() instanceof XmlText only) {
+            return only.getText().trim(); // the common leaf cell, without the general pass below
+        }
         StringBuilder text = new StringBuilder();
         List<String> childElementNames = new ArrayList<>();
 

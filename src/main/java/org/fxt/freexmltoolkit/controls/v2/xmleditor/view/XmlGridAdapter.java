@@ -257,11 +257,24 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
 
     @Override
     public java.util.Map<String, String> savedFilters() {
-        java.util.Map<String, String> result = new java.util.LinkedHashMap<>();
-        GridFilters.savedFilters(context.getDocument())
-                .forEach((key, pi) -> result.put(key, GridFilters.parse(pi.getData())));
-        return result;
+        long revision = context.getCommandManager().getRevision();
+        if (savedFiltersCache == null || savedFiltersRevision != revision
+                || savedFiltersDocument != context.getDocument()) {
+            // Walking every element of a 150-MB document for filter instructions took a second
+            // on each rebuild of the grid: once per model state.
+            java.util.Map<String, String> result = new java.util.LinkedHashMap<>();
+            GridFilters.savedFilters(context.getDocument())
+                    .forEach((key, pi) -> result.put(key, GridFilters.parse(pi.getData())));
+            savedFiltersCache = java.util.Collections.unmodifiableMap(result);
+            savedFiltersRevision = revision;
+            savedFiltersDocument = context.getDocument();
+        }
+        return new java.util.LinkedHashMap<>(savedFiltersCache);
     }
+
+    private java.util.Map<String, String> savedFiltersCache;
+    private long savedFiltersRevision;
+    private Object savedFiltersDocument;
 
     @Override
     public boolean supportsSavedFilters() {

@@ -377,29 +377,40 @@ public class RepeatingElementsTable {
         private final GridRecord record;
 
         /**
-         * Map of column names to their string values.
+         * Map of column names to their string values (the record's own map: every key of a record
+         * is a column, so copying it per row only cost time and memory for large tables).
          */
-        private final Map<String, String> values = new LinkedHashMap<>();
+        private final Map<String, String> values;
 
         /**
          * Map of column names to complex child nodes (nodes with nested structure).
          */
-        private final Map<String, Object> complexChildren = new LinkedHashMap<>();
+        private final Map<String, Object> complexChildren;
 
         /**
          * Display-only attribute summaries per column (e.g. {@code ccy=EUR} for
          * {@code <Amount ccy="EUR">…</Amount>}). Kept SEPARATE from {@link #values}
          * so cell editing still round-trips the bare text value.
          */
-        private final Map<String, String> attributeSuffixes = new LinkedHashMap<>();
+        private final Map<String, String> attributeSuffixes;
 
         /**
          * Whether this row is expanded to show additional details.
          */
         private boolean expanded = false;
 
-        /** Per-column measured layout, filled by the owning table's layout pass. */
-        private final Map<String, CellLayout> cellLayouts = new HashMap<>();
+        /**
+         * Per-column measured layout: filled by the layout pass for rows whose cells may wrap,
+         * else on the first {@link RepeatingElementsTable#getCellLayout} (a table of 680,000 records
+         * laid out 3.4 million cells up front).
+         */
+        private final Map<String, CellLayout> cellLayouts = new HashMap<>(4);
+
+        /** Measured value width per column index, from the last column pass (see {@link #fitsOneLine}). */
+        private double[] valueWidths;
+
+        /** Measured attribute-suffix width per column index ({@code -1}: no suffix), from the last column pass. */
+        private double[] suffixWidths;
 
         /** The row height from the last layout pass; {@code -1} = needs layout. */
         private double layoutHeight = -1;
@@ -441,6 +452,9 @@ public class RepeatingElementsTable {
          */
         public TableRow(GridRecord record) {
             this.record = record;
+            this.values = record.values();
+            this.complexChildren = record.complexChildren();
+            this.attributeSuffixes = record.attributeSuffixes();
         }
 
         /**
@@ -496,7 +510,7 @@ public class RepeatingElementsTable {
             return attributeSuffixes.get(columnName);
         }
 
-        /** @return the mutable attribute-summary map (populated while building rows). */
+        /** @return the attribute-summary map (the record's). */
         public Map<String, String> getAttributeSuffixes() {
             return attributeSuffixes;
         }
@@ -667,7 +681,18 @@ public class RepeatingElementsTable {
         return new RepeatingElementsTable(name, new ArrayList<>(records), depth, onLayoutChangedCallback, true);
     }
 
+    /** From this many records on they are analysed in parallel (see {@link #toRecords}). */
+    static final int PARALLEL_RECORDS = 10_000;
+
+    /**
+     * Analyses every element into a record. A large group is analysed on all cores while the
+     * calling (FX) thread waits for the result, so nothing edits the model meanwhile and the
+     * analysis only reads it: 680,000 records took 2.5 s on one thread.
+     */
     private static List<GridRecord> toRecords(List<XmlElement> elements) {
+        if (elements.size() >= PARALLEL_RECORDS) {
+            return new ArrayList<>(elements.parallelStream().map(XmlGridRecord::new).toList());
+        }
         List<GridRecord> records = new ArrayList<>(elements.size());
         for (XmlElement element : elements) {
             records.add(new XmlGridRecord(element));
@@ -685,10 +710,11 @@ public class RepeatingElementsTable {
         analyzeStructure();
         buildRows();
 
-        // Restore sort state and user column widths from the caches, then lay out.
+        // Restore sort state and user column widths from the caches. The layout runs on the first
+        // query: the grid replaces the estimated metrics right after building the table, so laying
+        // out here was thrown away (seconds for a table of 680,000 records).
         restoreSortStateFromCache();
         restoreColumnWidthsFromCache();
-        ensureLayout();
     }
 
     // ==================== Structure Analysis ====================
@@ -707,12 +733,16 @@ public class RepeatingElementsTable {
     private void analyzeStructure() {
         // Per-record column keys (document order) for merging, plus the union of keys
         // actually present so stale cached columns are dropped.
-        List<List<String>> perElementOrders = new ArrayList<>();
+        // Distinct orders only, first occurrence first: merging an order that was merged before
+        // changes nothing, and the records of a large table nearly all share one order.
+        Set<List<String>> distinctOrders = new LinkedHashSet<>();
         Set<String> presentKeys = new LinkedHashSet<>();
         Map<String, GridRecord> keyOwner = new HashMap<>();
         for (GridRecord record : records) {
             List<String> keys = record.columnKeys();
-            perElementOrders.add(new ArrayList<>(keys));
+            if (!distinctOrders.contains(keys)) {
+                distinctOrders.add(List.copyOf(keys));
+            }
             for (String key : keys) {
                 if (presentKeys.add(key)) {
                     keyOwner.put(key, record);
@@ -724,7 +754,7 @@ public class RepeatingElementsTable {
         List<String> cachedOrder = columnOrderCache.get(elementName);
 
         // Merge all element orders into a unified order respecting document order
-        List<String> mergedOrder = mergeColumnOrders(perElementOrders);
+        List<String> mergedOrder = mergeColumnOrders(new ArrayList<>(distinctOrders));
 
         List<String> finalOrder;
         if (cachedOrder != null) {
@@ -878,21 +908,6 @@ public class RepeatingElementsTable {
         for (GridRecord record : records) {
             TableRow row = new TableRow(record);
             row.owner = this;
-            for (TableColumn col : columns) {
-                String name = col.getName();
-                String value = record.values().get(name);
-                if (value != null) {
-                    row.getValues().put(name, value);
-                }
-                String suffix = record.attributeSuffixes().get(name);
-                if (suffix != null) {
-                    row.getAttributeSuffixes().put(name, suffix);
-                }
-                Object complex = record.complexChildren().get(name);
-                if (complex != null) {
-                    row.getComplexChildren().put(name, complex);
-                }
-            }
             rows.add(row);
         }
     }
@@ -1062,10 +1077,18 @@ public class RepeatingElementsTable {
      * back-reference, so this is an O(1) flag check (it runs once per cell per render).
      */
     private void ensureLayout() {
-        if (!layoutValid) {
-            layout();
+        if (!layoutValid && !layingOut) {
+            layingOut = true; // a query from inside the pass (an opened cell's grid) reads the current state
+            try {
+                layout();
+            } finally {
+                layingOut = false;
+            }
         }
     }
+
+    /** True while {@link #layout()} runs. */
+    private boolean layingOut;
 
     /**
      * The layout pass: measured column widths (content-driven, capped at the wrap
@@ -1085,8 +1108,27 @@ public class RepeatingElementsTable {
             double contentWidth = 0;
             double maxGridWidth = 0;
 
+            int c = columns.indexOf(col);
             for (TableRow row : rows) {
-                contentWidth = Math.max(contentWidth, cellContentWidth(row, name, m) + pad2);
+                if (row.valueWidths == null || row.valueWidths.length != columns.size()) {
+                    row.valueWidths = new double[columns.size()];
+                    row.suffixWidths = new double[columns.size()];
+                }
+                // = cellContentWidth, keeping the parts for fitsOneLine
+                double valueWidth = m.width(row.getValue(name), GridFont.ROW);
+                double cw = valueWidth;
+                if (row.hasComplexChild(name)) {
+                    cw += GridMetrics.COMPLEX_ARROW_OFFSET;
+                }
+                String suffix = row.getAttributeSuffix(name);
+                double suffixWidth = -1;
+                if (suffix != null && !suffix.isEmpty()) {
+                    suffixWidth = m.width(suffix, GridFont.ROW);
+                    cw += GridMetrics.SUFFIX_GAP + suffixWidth;
+                }
+                row.valueWidths[c] = valueWidth;
+                row.suffixWidths[c] = suffixWidth;
+                contentWidth = Math.max(contentWidth, cw + pad2);
                 GridBlock grid = row.isColumnExpanded(name) ? row.getCellGrid(name) : null;
                 if (grid != null) {
                     maxGridWidth = Math.max(maxGridWidth, grid.geometry(cellMeasure).width());
@@ -1134,14 +1176,19 @@ public class RepeatingElementsTable {
     private void layoutStandard(GridMetrics m) {
         rowTops = new double[rows.size() + 1];
         double top = 0;
+        double oneLine = Math.max(ROW_HEIGHT, GridMetrics.rowHeight(1));
         for (int r = 0; r < rows.size(); r++) {
             TableRow row = rows.get(r);
             row.cellLayouts.clear();
             double rowHeight = ROW_HEIGHT;
-            for (TableColumn col : columns) {
-                CellLayout cell = layoutCell(row, col, m, col.getWidth());
-                row.cellLayouts.put(col.getName(), cell);
-                rowHeight = Math.max(rowHeight, cell.height());
+            if (fitsOneLine(row)) {
+                rowHeight = oneLine; // cells laid out on first use (getCellLayout)
+            } else {
+                for (TableColumn col : columns) {
+                    CellLayout cell = layoutCell(row, col, m, col.getWidth());
+                    row.cellLayouts.put(col.getName(), cell);
+                    rowHeight = Math.max(rowHeight, cell.height());
+                }
             }
             row.layoutHeight = rowHeight;
             rowTops[r] = top;
@@ -1272,7 +1319,48 @@ public class RepeatingElementsTable {
      */
     public CellLayout getCellLayout(TableRow row, String columnName) {
         ensureLayout();
-        return row.getCellLayout(columnName);
+        CellLayout layout = row.getCellLayout(columnName);
+        if (layout == null && !flipped && row.owner == this) {
+            TableColumn col = getColumn(columnName);
+            if (col != null) {
+                layout = layoutCell(row, col, metrics, col.getWidth());
+                row.cellLayouts.put(columnName, layout);
+            }
+        }
+        return layout;
+    }
+
+    /**
+     * @return whether every cell of {@code row} shows on one line at its column's width, by the very
+     *         comparisons {@link #layoutCell} and {@link TextWrap} make (value width against the text
+     *         width, then value + gap + suffix). Such a row is one line high, so its cells need not be
+     *         wrapped in the layout pass.
+     */
+    private boolean fitsOneLine(TableRow row) {
+        if (row.valueWidths == null || row.valueWidths.length != columns.size()) {
+            return false;
+        }
+        for (int c = 0; c < columns.size(); c++) {
+            TableColumn col = columns.get(c);
+            String name = col.getName();
+            if (row.isColumnExpanded(name)) {
+                return false;
+            }
+            String value = row.getValue(name);
+            if (value != null && value.indexOf('\n') >= 0) {
+                return false;
+            }
+            double textAvail = Math.max(GridMetrics.MIN_TEXT_WIDTH, col.getWidth() - CELL_PADDING * 2
+                    - (row.hasComplexChild(name) ? GridMetrics.COMPLEX_ARROW_OFFSET : 0));
+            if (row.valueWidths[c] > textAvail) {
+                return false;
+            }
+            double suffixWidth = row.suffixWidths[c];
+            if (suffixWidth >= 0 && row.valueWidths[c] + GridMetrics.SUFFIX_GAP + suffixWidth > textAvail) {
+                return false; // the suffix goes to a line of its own
+            }
+        }
+        return true;
     }
 
     /**
@@ -1442,6 +1530,7 @@ public class RepeatingElementsTable {
      * @return the sum of all column widths in pixels
      */
     public double getTotalColumnsWidth() {
+        ensureLayout();
         double total = 0;
         for (TableColumn col : columns) {
             total += col.getWidth();
@@ -1689,6 +1778,7 @@ public class RepeatingElementsTable {
      * @return the width of the column in pixels, or {@link #MIN_COLUMN_WIDTH} if not found
      */
     public double getColumnWidth(String columnName) {
+        ensureLayout();
         for (TableColumn col : columns) {
             if (col.getName().equals(columnName)) {
                 return col.getWidth();
@@ -1709,6 +1799,7 @@ public class RepeatingElementsTable {
      * @return true if the table is at least partially visible
      */
     public boolean isVisible(double viewportTop, double viewportBottom) {
+        ensureLayout();
         double nodeTop = y;
         double nodeBottom = y + height;
         return nodeBottom >= viewportTop && nodeTop <= viewportBottom;
@@ -1777,6 +1868,7 @@ public class RepeatingElementsTable {
      * @return the list of table columns
      */
     public List<TableColumn> getColumns() {
+        ensureLayout(); // callers read the laid-out widths
         return columns;
     }
 
@@ -1840,6 +1932,7 @@ public class RepeatingElementsTable {
      * @return the width in pixels
      */
     public double getWidth() {
+        ensureLayout();
         return width;
     }
 
@@ -1858,6 +1951,7 @@ public class RepeatingElementsTable {
      * @return the height in pixels
      */
     public double getHeight() {
+        ensureLayout();
         return height;
     }
 
@@ -2114,6 +2208,7 @@ public class RepeatingElementsTable {
      * @return the TableColumn with the specified name, or null if not found
      */
     public TableColumn getColumn(String name) {
+        ensureLayout();
         for (TableColumn col : columns) {
             if (col.getName().equals(name)) {
                 return col;
@@ -2129,6 +2224,7 @@ public class RepeatingElementsTable {
      * @return the TableColumn at the specified index, or null if index is out of bounds
      */
     public TableColumn getColumn(int index) {
+        ensureLayout();
         if (index >= 0 && index < columns.size()) {
             return columns.get(index);
         }

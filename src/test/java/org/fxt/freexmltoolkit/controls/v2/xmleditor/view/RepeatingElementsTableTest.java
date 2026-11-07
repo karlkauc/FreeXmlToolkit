@@ -757,6 +757,53 @@ class RepeatingElementsTableTest {
     /**
      * Creates an XmlElement with a text child.
      */
+    // ==================== Lazy cell layout ====================
+
+    @Test
+    void oneLineRowsAreLaidOutOnFirstUseWithTheSameResult() {
+        XmlElement shortRecord = new XmlElement("Order");
+        shortRecord.setAttribute("id", "1");
+        shortRecord.addChild(createElementWithText("Note", "short"));
+        XmlElement longRecord = new XmlElement("Order");
+        longRecord.setAttribute("id", "2");
+        longRecord.addChild(createElementWithText("Note", "a long note that is wrapped ".repeat(40)));
+        XmlElement multiLine = new XmlElement("Order");
+        multiLine.setAttribute("id", "3");
+        multiLine.addChild(createElementWithText("Note", "first\nsecond"));
+
+        RepeatingElementsTable table = new RepeatingElementsTable("Order",
+                List.of(shortRecord, longRecord, multiLine), 0, null);
+        table.calculateHeight(); // runs the layout pass
+        RepeatingElementsTable.TableRow oneLine = table.getRows().get(0);
+        assertNull(oneLine.getCellLayout("Note"), "a one-line row is not wrapped in the layout pass");
+        assertNotNull(table.getRows().get(1).getCellLayout("Note"), "a row that wraps is laid out up front");
+        assertNotNull(table.getRows().get(2).getCellLayout("Note"), "a value with a line break too");
+
+        RepeatingElementsTable.CellLayout lazy = table.getCellLayout(oneLine, "Note");
+        assertNotNull(lazy);
+        assertEquals(1, lazy.summary().lineCount());
+        assertEquals(lazy.height(), oneLine.getLayoutHeight(), 0.001, "the row height matches its cell");
+        assertTrue(table.getRows().get(1).getLayoutHeight() > oneLine.getLayoutHeight());
+        assertTrue(table.getRows().get(2).getLayoutHeight() > oneLine.getLayoutHeight());
+
+        // the same cell laid out up front (a row that is not one line high) gives the same layout
+        table.setFlipped(true);
+        table.setFlipped(false);
+        assertEquals(lazy.summary().lines(), table.getCellLayout(oneLine, "Note").summary().lines());
+    }
+
+    @Test
+    void rowsShareTheirRecordsValues() {
+        XmlElement record = new XmlElement("Order");
+        record.setAttribute("id", "7");
+        record.addChild(createElementWithText("Note", "n"));
+        RepeatingElementsTable table = new RepeatingElementsTable("Order", List.of(record), 0, null);
+        RepeatingElementsTable.TableRow row = table.getRows().getFirst();
+        assertEquals("7", row.getValue("id"));
+        assertEquals("n", row.getValue("Note"));
+        assertSame(row.getRecord().values(), row.getValues(), "no copy per row");
+    }
+
     private XmlElement createElementWithText(String name, String text) {
         XmlElement element = new XmlElement(name);
         element.addChild(new XmlText(text));
