@@ -625,9 +625,16 @@ public class XmlElement extends XmlNode {
             if (lines != null) {
                 lines.record(this, sb);
             }
+            if (hasMixedContent()) {
+                // Text beside child elements: line breaks or indentation added here would become
+                // part of the text, and grow with every write-back
+                serializeChildrenInline(sb, indentSize, lines);
+                sb.append("</").append(getQualifiedName()).append('>');
+                return;
+            }
 
-            // Children
-            boolean hasElementChildren = hasElementChildren();
+            // Children: elements, comments and instructions each on a line of their own
+            boolean hasElementChildren = hasLineChildren();
             if (hasElementChildren) {
                 sb.append('\n');
             }
@@ -647,6 +654,64 @@ public class XmlElement extends XmlNode {
             }
             sb.append("</").append(getQualifiedName()).append('>');
         }
+    }
+
+    /** @return whether a child is written on a line of its own (element, comment, instruction) */
+    private boolean hasLineChildren() {
+        for (XmlNode child : children) {
+            if (child instanceof XmlElement || child instanceof XmlComment || child instanceof XmlProcessingInstruction) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** @return whether the element holds text (or CDATA) beside other child nodes */
+    private boolean hasMixedContent() {
+        boolean text = false;
+        boolean other = false;
+        for (XmlNode child : children) {
+            if (child instanceof XmlText || child instanceof XmlCData) {
+                text = true;
+            } else {
+                other = true;
+            }
+            if (text && other) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Writes the children exactly as they are, without indentation or line breaks of its own. */
+    private void serializeChildrenInline(StringBuilder sb, int indentSize, LineRecorder lines) {
+        for (XmlNode child : children) {
+            if (child instanceof XmlElement element) {
+                element.serializeInline(sb, indentSize, lines);
+            } else {
+                child.serializeTo(sb, 0, indentSize, lines);
+            }
+        }
+    }
+
+    /** This element inside mixed content: no indentation and no line breaks at any depth. */
+    private void serializeInline(StringBuilder sb, int indentSize, LineRecorder lines) {
+        sb.append('<').append(getQualifiedName());
+        attributes.forEach((key, value) -> sb.append(' ').append(key).append("=\"")
+                .append(escapeXml(value)).append('"'));
+        if (children.isEmpty()) {
+            sb.append("/>");
+            if (lines != null) {
+                lines.record(this, sb);
+            }
+            return;
+        }
+        sb.append('>');
+        if (lines != null) {
+            lines.record(this, sb);
+        }
+        serializeChildrenInline(sb, indentSize, lines);
+        sb.append("</").append(getQualifiedName()).append('>');
     }
 
     /**

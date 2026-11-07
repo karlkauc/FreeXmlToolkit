@@ -180,8 +180,9 @@ public class StreamingXmlParser {
                         } else {
                             ParserState parentState = stateStack.peek();
                             parentState.hasElementChildren = true;
-                            // Discard any pending whitespace as it's just formatting before this child element
-                            parentState.pendingWhitespace.setLength(0);
+                            // Pending whitespace is formatting before this child element, unless the
+                            // parent turns out to hold text too (mixed content: kept, see END_ELEMENT)
+                            parentState.holdWhitespace(sharedStrings);
                             parentState.element.addChild(element);
                         }
                         stateStack.push(new ParserState(element));
@@ -190,13 +191,16 @@ public class StreamingXmlParser {
                     case XMLStreamConstants.END_ELEMENT:
                         if (!stateStack.isEmpty()) {
                             ParserState currentState = stateStack.pop();
-                            currentState.element.compactChildren();
                             // If no element children were found, commit any pending whitespace
                             // because it might be the only content of the element.
                             if (!currentState.hasElementChildren && currentState.pendingWhitespace.length() > 0) {
                                 currentState.element.addChild(new XmlText(currentState.pendingWhitespace.toString()));
+                            } else if (currentState.hasText) {
+                                // Mixed content: its whitespace is text ("<b>x</b> <i>y</i>"), not formatting
+                                currentState.holdWhitespace(sharedStrings);
+                                currentState.insertHeldWhitespace();
                             }
-                            // Discard pending whitespace if we had element children
+                            currentState.element.compactChildren();
                         }
                         break;
                         
@@ -213,6 +217,7 @@ public class StreamingXmlParser {
                                     currentState.pendingWhitespace.setLength(0);
                                 }
                                 currentState.element.addChild(new XmlCData(text));
+                                currentState.hasText = true;
                             } else if (text.trim().isEmpty()) {
                                 // Just whitespace - buffer it until we know if it's ignorable
                                 currentState.pendingWhitespace.append(text);
@@ -223,19 +228,20 @@ public class StreamingXmlParser {
                                     currentState.pendingWhitespace.setLength(0);
                                 }
                                 currentState.element.addChild(new XmlText(shared(sharedStrings, text)));
+                                currentState.hasText = true;
                             }
                         }
                         break;
                         
                     case XMLStreamConstants.COMMENT:
-                        XmlComment comment = new XmlComment(reader.getText());
+                        XmlComment comment = XmlComment.fromSource(reader.getText());
                         if (stateStack.isEmpty()) {
                             doc.addChild(comment);
                         } else {
                             ParserState currentState = stateStack.peek();
                             currentState.hasElementChildren = true;
                             // Comments also count as siblings that make surrounding whitespace ignorable
-                            currentState.pendingWhitespace.setLength(0);
+                            currentState.holdWhitespace(sharedStrings);
                             currentState.element.addChild(comment);
                         }
                         break;
@@ -247,7 +253,7 @@ public class StreamingXmlParser {
                         } else {
                             ParserState currentState = stateStack.peek();
                             currentState.hasElementChildren = true;
-                            currentState.pendingWhitespace.setLength(0);
+                            currentState.holdWhitespace(sharedStrings);
                             currentState.element.addChild(pi);
                         }
                         break;
@@ -268,7 +274,41 @@ public class StreamingXmlParser {
     private static class ParserState {
         final XmlElement element;
         boolean hasElementChildren = false;
+        /** Whether non-whitespace text or CDATA was seen: then the content is mixed. */
+        boolean hasText = false;
         final StringBuilder pendingWhitespace = new StringBuilder();
+        /** Whitespace before child nodes (child index, text), inserted only for mixed content. */
+        int[] heldAt;
+        String[] heldText;
+        int heldCount;
+
+        /** Takes the pending whitespace aside, at the position of the child that comes next. */
+        void holdWhitespace(java.util.Map<String, String> sharedStrings) {
+            if (pendingWhitespace.length() == 0) {
+                return;
+            }
+            if (heldAt == null) {
+                heldAt = new int[4];
+                heldText = new String[4];
+            } else if (heldCount == heldAt.length) {
+                heldAt = java.util.Arrays.copyOf(heldAt, heldCount * 2);
+                heldText = java.util.Arrays.copyOf(heldText, heldCount * 2);
+            }
+            heldAt[heldCount] = element.getChildCount();
+            heldText[heldCount] = shared(sharedStrings, pendingWhitespace.toString());
+            heldCount++;
+            pendingWhitespace.setLength(0);
+        }
+
+        /** Inserts the held whitespace where it was (from the back, so earlier positions stay valid). */
+        void insertHeldWhitespace() {
+            for (int i = heldCount - 1; i >= 0; i--) {
+                element.addChild(heldAt[i], new XmlText(heldText[i]));
+            }
+            heldAt = null;
+            heldText = null;
+            heldCount = 0;
+        }
 
         ParserState(XmlElement element) {
             this.element = element;

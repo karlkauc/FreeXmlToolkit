@@ -21,7 +21,7 @@ class RawTextContentTest {
         context.loadDocumentFromString("<root><p>Hello <b>bold</b> &amp; more<!--c--></p></root>");
         XmlElement p = context.getDocument().getRootElement().getChildElement("p");
         String raw = RawTextContent.of(p);
-        assertEquals("Hello <b>bold</b> &amp; more<!-- c -->", raw, "markup and entities stay unresolved");
+        assertEquals("Hello <b>bold</b> &amp; more<!--c-->", raw, "markup, entities and the comment stay as written");
 
         List<XmlNode> nodes = RawTextContent.parse("<i>new</i> text");
         assertTrue(context.executeCommand(new ReplaceChildrenCommand(p, nodes)));

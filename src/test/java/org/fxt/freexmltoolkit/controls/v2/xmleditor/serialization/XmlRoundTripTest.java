@@ -94,7 +94,9 @@ class XmlRoundTripTest {
 
         assertEquals(2, doc.getChildCount()); // Comment + root element
         assertTrue(doc.getChildren().get(0) instanceof XmlComment);
-        assertEquals(" This is a comment ", ((XmlComment) doc.getChildren().get(0)).getText());
+        // the spaces after <!-- and before --> are the comment's padding, not its text
+        assertEquals("This is a comment", ((XmlComment) doc.getChildren().get(0)).getText());
+        assertTrue(doc.serialize(0, 2).contains("<!-- This is a comment -->"), "written back unchanged");
     }
 
     @Test

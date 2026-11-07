@@ -328,7 +328,7 @@ public class XmlParser {
      */
     private XmlComment convertComment(Comment domComment) {
         String text = domComment.getNodeValue();
-        return new XmlComment(text != null ? text : "");
+        return XmlComment.fromSource(text);
     }
 
     /**
