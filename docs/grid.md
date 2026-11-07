@@ -123,6 +123,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
 - **Sibling groups** for very large files (**⋯** menu → *Sibling groups: 100 / 1,000 / 10,000
   nodes*, remembered): an element with more children than that shows them in collapsed groups
   such as `record <1001..2000>`; opening a group closes the other groups of the same element.
+- **Large files** (from 8 MB of text). Grid edits are not written into the text after every
+  change: the text follows when you switch to the Text view, save, validate or transform. While
+  it is written back, a loading indicator shows and the text is read-only for a moment.
 - **Validation markers.** After a validation (Validation panel), rows whose element has a
   problem show a red **!** at the end of the name cell and a red value; hover the row for the
   message. Problems inside a repeating group mark the member's row number. The markers clear
@@ -176,7 +179,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   the grey funnel line shows it, and a click on the funnel or right-click → **Filter Active**
   switches it on. Editing a saved filter updates the file; **Remove Filter** / **Remove All
   Filters** also remove it from the file, unticking **Save Filter in Document** only from the
-  file.
+  file. A filter on an element with more than 20,000 nodes below it is evaluated in the
+  background: its funnel line ends with *(evaluating…)* and the grid stays usable. Until the
+  result is in, the grid keeps the filter's previous result (after an edit) or shows all rows
+  (when it is new), then filters once the result arrives.
 
 ![A saved filter after opening the file: the grey "saved ·" funnel line, the table complete](img/unified-shell-grid-saved-filter.png)
 
@@ -197,7 +203,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:
   gives an exact sum with two decimals and thousands separators (`12,005,649.85`). The German
   number format is predeclared as `de`: `format-number(…, '#.##0,00', 'de')` gives
   `12.005.649,85`. Formulas are saved in the file as
-  `<?fxt-formula name="…" expression="…"?>` instructions. **Store Formula Result in Document**
+  `<?fxt-formula name="…" expression="…"?>` instructions. A formula over more than 20,000 nodes
+  is computed in the background: it shows `…` until its result arrives, and is computed again
+  only after the data changed. **Store Formula Result in Document**
   also writes the result into an element named after the formula, right after it;
   **Recalculate Stored Formula Results** refreshes all of them in one undo step.
 
