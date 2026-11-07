@@ -2648,6 +2648,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
 <li><strong>Sibling groups</strong> for very large files (<strong>⋯</strong> menu → <em>Sibling groups: 100 / 1,000 / 10,000
   nodes</em>, remembered): an element with more children than that shows them in collapsed groups
   such as <code>record &lt;1001..2000&gt;</code>; opening a group closes the other groups of the same element.</li>
+<li><strong>Large files</strong> (from 8 MB of text). Grid edits are not written into the text after every
+  change: the text follows when you switch to the Text view, save, validate or transform. While
+  it is written back, a loading indicator shows and the text is read-only for a moment.</li>
 <li><strong>Validation markers.</strong> After a validation (Validation panel), rows whose element has a
   problem show a red <strong>!</strong> at the end of the name cell and a red value; hover the row for the
   message. Problems inside a repeating group mark the member's row number. The markers clear
@@ -2701,7 +2704,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   the grey funnel line shows it, and a click on the funnel or right-click → <strong>Filter Active</strong>
   switches it on. Editing a saved filter updates the file; <strong>Remove Filter</strong> / <strong>Remove All
   Filters</strong> also remove it from the file, unticking <strong>Save Filter in Document</strong> only from the
-  file.</p>
+  file. A filter on an element with more than 20,000 nodes below it is evaluated in the
+  background: its funnel line ends with <em>(evaluating…)</em> and the grid stays usable. Until the
+  result is in, the grid keeps the filter's previous result (after an edit) or shows all rows
+  (when it is new), then filters once the result arrives.</p>
 <p><img alt="A saved filter after opening the file: the grey &quot;saved ·&quot; funnel line, the table complete" src="../img/unified-shell-grid-saved-filter.png" /></p>
 <p><img alt="The same filter switched on: only the AT positions remain in that cell, the sums still cover all" src="../img/unified-shell-grid-cell-filter.png" /></p>
 <ul>
@@ -2720,7 +2726,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   gives an exact sum with two decimals and thousands separators (<code>12,005,649.85</code>). The German
   number format is predeclared as <code>de</code>: <code>format-number(…, '#.##0,00', 'de')</code> gives
   <code>12.005.649,85</code>. Formulas are saved in the file as
-  <code>&lt;?fxt-formula name="…" expression="…"?&gt;</code> instructions. <strong>Store Formula Result in Document</strong>
+  <code>&lt;?fxt-formula name="…" expression="…"?&gt;</code> instructions. A formula over more than 20,000 nodes
+  is computed in the background: it shows <code>…</code> until its result arrives, and is computed again
+  only after the data changed. <strong>Store Formula Result in Document</strong>
   also writes the result into an element named after the formula, right after it;
   <strong>Recalculate Stored Formula Results</strong> refreshes all of them in one undo step.</li>
 </ul>

@@ -3798,7 +3798,10 @@ document type.</p>
 <ul>
 <li><strong>Text view</strong> - Move the text caret into an element. That element is selected automatically
   and shown in the inspector. If the caret is not inside a well-formed element, the inspector
-  shows a read-only view with the node's name and XPath.</li>
+  shows a read-only view with the node's name and XPath. In large files (from 8 MB) the
+  inspector follows the caret right away after edits in the grid. After you type, it shows no
+  node until you pause for about 1.5 seconds. The file is then parsed again in the background,
+  which takes a few seconds for very large files (about 5 seconds for 150 MB).</li>
 <li><strong>Tree view</strong> - Click a node in the tree (element, text, comment, CDATA, or processing
   instruction).</li>
 <li><strong>Graphic view</strong> - Select a row in the grid.</li>
