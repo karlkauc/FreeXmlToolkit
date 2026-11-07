@@ -60,7 +60,9 @@ public class XmlElement extends XmlNode {
      * Element attributes (ordered map).
      * Uses LinkedHashMap to preserve insertion order.
      */
-    private final Map<String, String> attributes = new LinkedHashMap<>();
+    // Map.of() until the first attribute: most elements of a large document have none, and an
+    // empty LinkedHashMap per element cost 175 MB for 4 million elements
+    private Map<String, String> attributes = Map.of();
 
     /**
      * Child nodes (elements, text, comments, CDATA, etc.).
@@ -109,7 +111,9 @@ public class XmlElement extends XmlNode {
         this.name = original.name + (suffix != null ? suffix : "");
         this.namespacePrefix = original.namespacePrefix;
         this.namespaceURI = original.namespaceURI;
-        this.attributes.putAll(original.attributes);
+        if (!original.attributes.isEmpty()) {
+            this.attributes = new LinkedHashMap<>(original.attributes);
+        }
         // Children copied by deepCopy() method
     }
 
@@ -218,7 +222,7 @@ public class XmlElement extends XmlNode {
      * @return the attributes map
      */
     public Map<String, String> getAttributes() {
-        return Collections.unmodifiableMap(attributes);
+        return attributes.isEmpty() ? Map.of() : Collections.unmodifiableMap(attributes);
     }
 
     /**
@@ -239,6 +243,9 @@ public class XmlElement extends XmlNode {
      * @param value the attribute value
      */
     public void setAttribute(String name, String value) {
+        if (attributes.isEmpty() && !(attributes instanceof LinkedHashMap)) {
+            attributes = new LinkedHashMap<>(4);
+        }
         String oldValue = attributes.put(name, value);
         firePropertyChange("attribute:" + name, oldValue, value);
         firePropertyChange("attributes", null, attributes);
@@ -252,6 +259,9 @@ public class XmlElement extends XmlNode {
      * @return the previous value, or null if not found
      */
     public String removeAttribute(String name) {
+        if (!attributes.containsKey(name)) {
+            return null; // also keeps Map.of() (which refuses remove) untouched
+        }
         String oldValue = attributes.remove(name);
         if (oldValue != null) {
             firePropertyChange("attribute:" + name, oldValue, null);
@@ -276,7 +286,7 @@ public class XmlElement extends XmlNode {
      */
     public void clearAttributes() {
         Map<String, String> oldAttributes = new LinkedHashMap<>(attributes);
-        attributes.clear();
+        attributes = Map.of();
         firePropertyChange("attributes", oldAttributes, attributes);
     }
 
@@ -584,46 +594,58 @@ public class XmlElement extends XmlNode {
     @Override
     public String serialize(int indent, int indentSize) {
         StringBuilder sb = new StringBuilder();
-        String indentStr = " ".repeat(indent * indentSize);
+        serializeTo(sb, indent, indentSize);
+        return sb.toString();
+    }
+
+    @Override
+    public void serializeTo(StringBuilder sb, int indent, int indentSize) {
+        int indentWidth = indent * indentSize;
 
         // Opening tag
-        sb.append(indentStr).append("<").append(getQualifiedName());
+        sb.repeat(' ', indentWidth).append('<').append(getQualifiedName());
 
-        // Attributes
-        for (Map.Entry<String, String> attr : attributes.entrySet()) {
-            sb.append(" ").append(attr.getKey()).append("=\"");
-            sb.append(escapeXml(attr.getValue())).append("\"");
-        }
+        // Attributes (forEach: an entrySet() call leaves a cached view in every map)
+        attributes.forEach((key, value) -> sb.append(' ').append(key).append("=\"")
+                .append(escapeXml(value)).append('"'));
 
         // Empty element or with children
         if (children.isEmpty()) {
             sb.append("/>");
         } else {
-            sb.append(">");
+            sb.append('>');
 
             // Children
-            boolean hasElementChildren = children.stream().anyMatch(c -> c instanceof XmlElement);
+            boolean hasElementChildren = hasElementChildren();
             if (hasElementChildren) {
-                sb.append("\n");
+                sb.append('\n');
             }
 
             for (XmlNode child : children) {
                 if (child instanceof XmlElement || child instanceof XmlComment || child instanceof XmlProcessingInstruction) {
-                    sb.append(child.serialize(indent + 1, indentSize));
-                    sb.append("\n");
+                    child.serializeTo(sb, indent + 1, indentSize);
+                    sb.append('\n');
                 } else {
-                    sb.append(child.serialize(0, indentSize));
+                    child.serializeTo(sb, 0, indentSize);
                 }
             }
 
             // Closing tag
             if (hasElementChildren) {
-                sb.append(indentStr);
+                sb.repeat(' ', indentWidth);
             }
-            sb.append("</").append(getQualifiedName()).append(">");
+            sb.append("</").append(getQualifiedName()).append('>');
         }
+    }
 
-        return sb.toString();
+    /**
+     * Shrinks the child list to its size; the parser calls it when the element is complete (a
+     * list of 10 slots per element for one or two children cost 130 MB in a 4-million-node file).
+     */
+    public void compactChildren() {
+        if (children instanceof ArrayList<XmlNode> list) {
+            list.trimToSize();
+        }
     }
 
     @Override

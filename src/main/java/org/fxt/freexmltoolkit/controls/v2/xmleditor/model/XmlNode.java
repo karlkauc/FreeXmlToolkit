@@ -288,6 +288,19 @@ public abstract class XmlNode {
     }
 
     /**
+     * Appends {@link #serialize(int, int)} to {@code out}. Containers override it to write their
+     * children into the same builder: building a string per element and copying it into the
+     * parent's copied a 150-MB document several times over (once per nesting level).
+     *
+     * @param out        the builder to append to
+     * @param indent     the current indentation level
+     * @param indentSize the number of spaces per indentation level
+     */
+    public void serializeTo(StringBuilder out, int indent, int indentSize) {
+        out.append(serialize(indent, indentSize));
+    }
+
+    /**
      * Accepts a visitor for tree traversal.
      * Implements the Visitor pattern for extensible operations.
      *

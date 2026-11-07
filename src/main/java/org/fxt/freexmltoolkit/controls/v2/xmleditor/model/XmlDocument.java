@@ -302,6 +302,9 @@ public class XmlDocument extends XmlNode {
         return copy;
     }
 
+    /** Length of the last {@link #serialize(int, int)} result, to size the next one's builder. */
+    private int lastSerializedLength;
+
     @Override
     public String serialize(int indent) {
         return serialize(indent, 2);
@@ -309,7 +312,10 @@ public class XmlDocument extends XmlNode {
 
     @Override
     public String serialize(int indent, int indentSize) {
-        StringBuilder sb = new StringBuilder();
+        // Sized after the last result: growing a builder to 150 MB copied it a dozen times
+        StringBuilder sb = new StringBuilder(lastSerializedLength > 0
+                ? (int) Math.min(Integer.MAX_VALUE - 16, lastSerializedLength + (lastSerializedLength >> 6) + 1024)
+                : 256);
 
         // XML declaration
         sb.append("<?xml version=\"").append(version).append("\"");
@@ -323,12 +329,13 @@ public class XmlDocument extends XmlNode {
 
         // Serialize all children
         for (XmlNode child : children) {
-            sb.append(child.serialize(0, indentSize));
+            child.serializeTo(sb, 0, indentSize);
             if (child.getNodeType() != XmlNodeType.TEXT) {
                 sb.append("\n");
             }
         }
 
+        lastSerializedLength = sb.length();
         return sb.toString();
     }
 

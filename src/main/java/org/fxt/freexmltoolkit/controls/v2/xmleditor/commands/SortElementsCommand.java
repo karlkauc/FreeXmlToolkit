@@ -35,10 +35,16 @@ public class SortElementsCommand implements XmlCommand {
     private final String columnName;
     private final boolean ascending;
     private final ColumnDataType dataType;
-    private final RepeatingElementsTable table;
+    /**
+     * Read by the first {@link #execute()} only, then dropped: the command lives in the undo
+     * history, and holding the table kept a whole table of 680,000 rows alive behind every sort.
+     */
+    private RepeatingElementsTable table;
 
     // For undo - the parent's children in their order before the sort
     private List<XmlNode> originalOrder;
+    // For redo - the parent's children in their sorted order
+    private List<XmlNode> sortedOrder;
     private boolean executed = false;
 
     /**
@@ -70,6 +76,11 @@ public class SortElementsCommand implements XmlCommand {
             return false;
         }
         originalOrder = new ArrayList<>(parentElement.getChildren());
+        if (sortedOrder != null) {
+            parentElement.reorderChildren(sortedOrder); // redo: the order computed the first time
+            executed = true;
+            return true;
+        }
 
         // Each cell value is read and converted once: a lookup or parse per comparison made
         // sorting large tables slow and froze the UI.
@@ -87,7 +98,9 @@ public class SortElementsCommand implements XmlCommand {
             sortedElements.add(key.item());
         }
 
-        parentElement.reorderChildren(withSortedSlots(originalOrder, sortedElements));
+        sortedOrder = withSortedSlots(originalOrder, sortedElements);
+        parentElement.reorderChildren(sortedOrder);
+        table = null;
         executed = true;
         return true;
     }

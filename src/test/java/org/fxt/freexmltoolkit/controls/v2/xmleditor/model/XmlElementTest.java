@@ -562,4 +562,23 @@ class XmlElementTest {
         assertTrue(str.contains("children=1"));
         assertTrue(str.contains("attributes=1"));
     }
+
+    @Test
+    void attributesWorkWithoutAMapUntilTheFirstOne() {
+        XmlElement element = new XmlElement("e");
+        assertTrue(element.getAttributes().isEmpty());
+        assertNull(element.removeAttribute("missing"));
+        element.clearAttributes();
+        element.setAttribute("b", "2");
+        element.setAttribute("a", "1");
+        assertEquals(java.util.List.of("b", "a"), java.util.List.copyOf(element.getAttributes().keySet()), "insertion order");
+        assertEquals("2", element.removeAttribute("b"));
+        element.clearAttributes();
+        assertEquals(0, element.getAttributeCount());
+        element.setAttribute("c", "3");
+        assertEquals("<e c=\"3\"/>", element.serialize(0));
+        XmlElement copy = (XmlElement) element.deepCopy(null);
+        copy.setAttribute("d", "4");
+        assertEquals(1, element.getAttributeCount(), "the copy has its own attributes");
+    }
 }

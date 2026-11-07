@@ -105,9 +105,35 @@ public class StreamingXmlParser {
         }
     }
 
+    private static final int MAX_SHARED_LENGTH = 32;
+    private static final int MAX_SHARED_STRINGS = 8_192;
+
+    /**
+     * @return an equal string seen before in this parse, or {@code s}: names and repeated values
+     *         ({@code status="open"}, {@code <city>Vienna</city>}) of a large file were a new string
+     *         per occurrence. Only short strings, and only the first {@value #MAX_SHARED_STRINGS}
+     *         distinct ones are remembered (they are looked up later still), so unique values such
+     *         as ids cannot grow the table.
+     */
+    private static String shared(java.util.Map<String, String> sharedStrings, String s) {
+        if (s == null || s.length() > MAX_SHARED_LENGTH) {
+            return s;
+        }
+        String known = sharedStrings.get(s);
+        if (known != null) {
+            return known;
+        }
+        if (sharedStrings.size() < MAX_SHARED_STRINGS) {
+            sharedStrings.put(s, s);
+        }
+        return s;
+    }
+
     private XmlDocument parseFromStream(XMLStreamReader reader) throws XMLStreamException {
         XmlDocument doc = new XmlDocument();
         Stack<ParserState> stateStack = new Stack<>();
+        // Short strings seen in this parse (bounded): one instance per repeated value
+        java.util.Map<String, String> sharedStrings = new java.util.HashMap<>();
         
         try {
             while (reader.hasNext()) {
@@ -125,7 +151,7 @@ public class StreamingXmlParser {
                         String prefix = reader.getPrefix();
                         String namespaceUri = reader.getNamespaceURI();
                         
-                        XmlElement element = new XmlElement(localName, prefix, namespaceUri);
+                        XmlElement element = new XmlElement(shared(sharedStrings, localName), prefix, namespaceUri);
                         element.setSourceLineNumber(reader.getLocation().getLineNumber());
 
                         // Handle namespace declarations
@@ -146,7 +172,7 @@ public class StreamingXmlParser {
                             String attrName = reader.getAttributeLocalName(i);
                             String attrPrefix = reader.getAttributePrefix(i);
                             String fullAttrName = (attrPrefix != null && !attrPrefix.isEmpty()) ? attrPrefix + ":" + attrName : attrName;
-                            element.setAttribute(fullAttrName, reader.getAttributeValue(i));
+                            element.setAttribute(shared(sharedStrings, fullAttrName), shared(sharedStrings, reader.getAttributeValue(i)));
                         }
                         
                         if (stateStack.isEmpty()) {
@@ -164,6 +190,7 @@ public class StreamingXmlParser {
                     case XMLStreamConstants.END_ELEMENT:
                         if (!stateStack.isEmpty()) {
                             ParserState currentState = stateStack.pop();
+                            currentState.element.compactChildren();
                             // If no element children were found, commit any pending whitespace
                             // because it might be the only content of the element.
                             if (!currentState.hasElementChildren && currentState.pendingWhitespace.length() > 0) {
@@ -195,7 +222,7 @@ public class StreamingXmlParser {
                                     currentState.element.addChild(new XmlText(currentState.pendingWhitespace.toString()));
                                     currentState.pendingWhitespace.setLength(0);
                                 }
-                                currentState.element.addChild(new XmlText(text));
+                                currentState.element.addChild(new XmlText(shared(sharedStrings, text)));
                             }
                         }
                         break;

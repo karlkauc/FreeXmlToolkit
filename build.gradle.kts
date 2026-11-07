@@ -246,7 +246,10 @@ tasks {
             "-Dprism.verbose=false",       // Reduce graphics logging
             // Keep stack traces of exceptions the JIT would otherwise throw pre-allocated
             // (a hot NullPointerException is logged without any trace otherwise).
-            "-XX:-OmitStackTraceInFastThrow"
+            "-XX:-OmitStackTraceInFastThrow",
+            // Repeated strings of large documents (the editor's lines "</order>", values such as
+            // "EUR") share one character array; G1 does it in the background
+            "-XX:+UseStringDeduplication"
         )
         // Max heap per run, e.g. `./gradlew run -Pheap=12g`; without it the JVM default
         // (a quarter of the physical memory) applies.
@@ -941,6 +944,8 @@ $faArgs
 -XX:MaxRAMPercentage=50
 --java-options
 -XX:+UseG1GC
+--java-options
+-XX:+UseStringDeduplication
 --java-options
 -Dprism.forceGPU=false
 --java-options

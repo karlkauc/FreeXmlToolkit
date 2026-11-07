@@ -356,4 +356,23 @@ class SortElementsCommandTest {
         RepeatingElementsTable dates = new RepeatingElementsTable("row", rows, 0, () -> {});
         assertEquals(RepeatingElementsTable.ColumnDataType.DATE, dates.detectColumnDataType("d"));
     }
+
+    @Test
+    @DisplayName("Redo restores the sorted order without keeping the table")
+    void redoAfterUndoRestoresTheSortedOrderWithoutTheTable() throws Exception {
+        RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, 0, () -> {});
+        SortElementsCommand cmd = new SortElementsCommand(table, "name", true);
+
+        assertTrue(cmd.execute());
+        List<Object> sorted = List.copyOf(parentElement.getChildren());
+        var field = SortElementsCommand.class.getDeclaredField("table");
+        field.setAccessible(true);
+        assertNull(field.get(cmd), "the command in the undo history holds no table");
+
+        assertTrue(cmd.undo());
+        assertEquals(testElements, parentElement.getChildren());
+        assertTrue(cmd.execute());
+        assertEquals(sorted, parentElement.getChildren());
+        assertEquals("Alice", ((XmlElement) parentElement.getChildren().getFirst()).getAttribute("name"));
+    }
 }

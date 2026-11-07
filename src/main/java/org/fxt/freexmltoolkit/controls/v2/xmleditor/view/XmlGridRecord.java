@@ -99,6 +99,9 @@ public final class XmlGridRecord implements GridRecord {
     private static final java.util.concurrent.ConcurrentHashMap<String, String> ATTRIBUTE_KEYS =
             new java.util.concurrent.ConcurrentHashMap<>();
     private static final int MAX_ATTRIBUTE_KEYS = 10_000;
+    /** Cell summaries of complex children ({@code <name>, <city>}), shared like the attribute keys. */
+    private static final java.util.concurrent.ConcurrentHashMap<String, String> SUMMARIES =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     static String attributeKey(String name) {
         String key = ATTRIBUTE_KEYS.get(name);
@@ -413,8 +416,11 @@ public final class XmlGridRecord implements GridRecord {
                 // Mixed content: show text + child summary
                 return text.toString() + " [" + summary + "]";
             } else {
-                // Only element children - show as expandable
-                return summary.toString();
+                // Only element children - show as expandable (one instance per summary text: the
+                // records of a large table repeat the same few)
+                String built = summary.toString();
+                return built.length() > 64 ? built : SUMMARIES.computeIfAbsent(built,
+                        k -> SUMMARIES.size() < MAX_ATTRIBUTE_KEYS ? k : null) instanceof String known ? known : built;
             }
         }
 
