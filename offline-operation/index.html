@@ -2752,14 +2752,6 @@ back to its cache; the application is never blocked.</p>
 <td>Not resolved</td>
 </tr>
 <tr>
-<td><code>doc()</code> in the Query Console's XPath mode and in grid formulas</td>
-<td>The URL in the expression</td>
-<td>When the expression runs</td>
-<td>–</td>
-<td>Do not use remote URLs</td>
-<td>Error message</td>
-</tr>
-<tr>
 <td>XProc <code>p:http-request</code> and remote <code>href</code>s</td>
 <td>The URL in the pipeline</td>
 <td>When the pipeline runs</td>
@@ -2785,8 +2777,8 @@ back to its cache; the application is never blocked.</p>
 </tr>
 </tbody>
 </table>
-<p>Not on this list because they never connect: XSLT and XQuery runs (<code>doc()</code>, <code>document()</code> and
-<code>unparsed-text()</code> refuse remote URLs there), XSL-FO/PDF output (remote resources are refused),
+<p>Not on this list because they never connect: XSLT, XQuery and XPath (also in the Query Console,
+grid formulas and filters: <code>doc()</code>, <code>document()</code> and <code>unparsed-text()</code> refuse remote URLs), XSL-FO/PDF output (remote resources are refused),
 XSD documentation (all assets are bundled), the user interface's icons and fonts.</p>
 <h2 id="schemas-without-the-internet">Schemas without the internet<a class="headerlink" href="#schemas-without-the-internet" title="Permanent link">&para;</a></h2>
 <p>Give the application a local copy of every schema your documents and schemas refer to:</p>

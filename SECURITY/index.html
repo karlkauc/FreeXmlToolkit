@@ -3927,9 +3927,10 @@ created with secure settings that:
 - Disable external parameter entities
 - Disable external DTD loading
 - Turn on the JAXP secure-processing mode, whose built-in limits cap entity expansion</p>
-<p>In the editor, internal entities are kept as references and not expanded. FreeXmlToolkit sets no
-entity-expansion limits of its own beyond the parser's secure-processing defaults. See the
-<a href="../threat-model/">threat model</a> for the details and the known limits.</p>
+<p>Secure processing stops a document after 100,000 entity expansions. The same settings apply when
+XPath, XQuery, XSLT, grid formulas and filters read a document. In the editor, internal entities
+are kept as references and not expanded. See the <a href="../threat-model/">threat model</a> for the details
+and the known limits.</p>
 <h3 id="what-this-means-for-you">What This Means for You<a class="headerlink" href="#what-this-means-for-you" title="Permanent link">&para;</a></h3>
 <p><strong>Normal XML files work without issues.</strong> You can:
 - Open and edit any XML file

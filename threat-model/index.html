@@ -2679,13 +2679,13 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 <tbody>
 <tr>
 <td><strong>XXE</strong>: an XML document reads local files or URLs through external entities</td>
-<td>Parsers are created by one factory with external general and parameter entities off, external DTD loading off and JAXP secure processing on. In the editor, internal entities are not expanded. A DOCTYPE is allowed (internal subsets are common in real files). XML signature files reject any DOCTYPE.</td>
+<td>Parsers are created by one factory with external general and parameter entities off, external DTD loading off and JAXP secure processing on. In the editor, internal entities are not expanded. A DOCTYPE is allowed (internal subsets are common in real files). XML signature files reject any DOCTYPE. The parser Saxon reads documents with (XPath, XQuery, XSLT, grid formulas and filters) gets the same settings.</td>
 <td>–</td>
 </tr>
 <tr>
 <td><strong>Entity expansion</strong> ("billion laughs")</td>
-<td>Bounded by the JAXP secure-processing limits of the parser. FreeXmlToolkit sets no limits of its own.</td>
-<td>JVM: <code>-Djdk.xml.entityExpansionLimit=…</code></td>
+<td>The parsers for documents and schemas run in secure-processing mode, which stops a document after 100,000 entity expansions; this also holds when Saxon reads a document (XPath, XQuery, XSLT, grid formulas and filters). The editor keeps internal entities as references; the StAX parsers do not read DTDs.</td>
+<td>–</td>
 </tr>
 <tr>
 <td><strong>DTDs named by schemas</strong></td>
@@ -2704,7 +2704,7 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 </tr>
 <tr>
 <td><strong>Stylesheets and queries reading the network</strong></td>
-<td>In XSLT and XQuery runs, <code>doc()</code>, <code>document()</code>, <code>unparsed-text()</code> and <code>unparsed-text-lines()</code> refuse http, https and ftp (URLs mapped by the Schema Library or a catalog excepted); <code>collection()</code> serves only the files selected for the run.</td>
+<td>In XSLT, XQuery and XPath (Query Console, grid formulas and filters), <code>doc()</code>, <code>document()</code>, <code>unparsed-text()</code> and <code>unparsed-text-lines()</code> refuse http, https and ftp (URLs mapped by the Schema Library or a catalog excepted); <code>collection()</code> serves only the files selected for the run.</td>
 <td>–</td>
 </tr>
 <tr>
@@ -2753,9 +2753,6 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 <p>These are not covered by the protections above. Keep them in mind when files come from
 untrusted sources:</p>
 <ul>
-<li><strong>XPath and grid formulas.</strong> The Query Console's <strong>XPath</strong> mode and the grid's formulas and
-  filters evaluate with a Saxon processor that does not refuse remote <code>doc()</code> URLs (the XSLT and
-  XQuery modes do). An expression typed or saved in a document can therefore fetch a URL.</li>
 <li><strong>XProc pipelines</strong> run unrestricted: <code>p:http-request</code> and remote <code>href</code>s are fetched (through
   the configured proxy). Run only pipelines you trust.</li>
 <li><strong>HTML previews</strong> (HTML files, XSLT output) are shown in an embedded WebKit view with
