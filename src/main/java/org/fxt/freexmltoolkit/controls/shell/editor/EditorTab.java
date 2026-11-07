@@ -200,7 +200,12 @@ final class EditorTab extends Tab {
         this.openTypeEditorCallback = openTypeEditorCallback;
         this.goToDefinitionCallback = goToDefinitionCallback;
         this.view = EditorViews.create(document.getFileType());
-        view.getCodeArea().plainTextChanges().subscribe(change -> textRevision++);
+        view.getCodeArea().plainTextChanges().subscribe(change -> {
+            textRevision++;
+            // A text replaced from outside (reload from disk) wins over grid edits not yet written:
+            // the model is re-parsed from it, never serialized over it.
+            xmlTextBehindModel = false;
+        });
         contentStack.getChildren().add(view.getNode());
         // Overlay sits ABOVE contentStack (not inside it) so showOnly() — which toggles
         // visibility of every contentStack child — never touches the spinner.
@@ -654,8 +659,46 @@ final class EditorTab extends Tab {
         });
     }
 
+    /**
+     * From this text length on, a grid edit does not write the model back into the text at once:
+     * serializing, diffing and restyling a 170-MB document took seconds per edit on the FX thread
+     * (telemetry). The text follows on the next {@link #text()} read or switch to the Text view.
+     */
+    static int deferredXmlRoundTripChars = 8 * 1024 * 1024; // not final: tests lower it
+
+    /** True while grid edits of a large document are not yet written into the text. */
+    private boolean xmlTextBehindModel;
+
+    /** An edit (grid, Inspector, undo/redo) changed the shared XML model: write it into the text now, or later for a large document. */
+    private void onXmlModelChanged() {
+        if (view.getCodeArea().getLength() >= deferredXmlRoundTripChars) {
+            xmlTextBehindModel = true;
+            document.setDirty(true);
+            return;
+        }
+        roundTripXmlModelToText();
+    }
+
+    /** @return whether grid edits are waiting to be written into the text (tests) */
+    boolean isXmlTextBehindModel() {
+        return xmlTextBehindModel;
+    }
+
+    /**
+     * The document's text with deferred grid edits of a large XML document written into it first.
+     * Every reader outside the editor view goes through here. A debounced diagram edit is left to
+     * its debounce (save, view switch and the debugger flush it themselves).
+     */
+    String text() {
+        if (xmlTextBehindModel) {
+            roundTripXmlModelToText();
+        }
+        return view.getText();
+    }
+
     /** Serializes the shared XML model back into the editor text via a minimal diff (caret/scroll preserved). */
     private void roundTripXmlModelToText() {
+        xmlTextBehindModel = false;
         if (xmlEditorContext == null) {
             return;
         }
@@ -1526,7 +1569,7 @@ final class EditorTab extends Tab {
     boolean undoXml() {
         if (xmlEditorContext != null && xmlEditorContext.undo()) {
             currentXmlSelection = null;
-            roundTripXmlModelToText();
+            onXmlModelChanged();
             return true;
         }
         return false;
@@ -1536,7 +1579,7 @@ final class EditorTab extends Tab {
     boolean redoXml() {
         if (xmlEditorContext != null && xmlEditorContext.redo()) {
             currentXmlSelection = null;
-            roundTripXmlModelToText();
+            onXmlModelChanged();
             return true;
         }
         return false;
@@ -1626,6 +1669,9 @@ final class EditorTab extends Tab {
     private void flushPendingRoundTrip() {
         if (roundTripDebounce.getStatus() == javafx.animation.Animation.Status.RUNNING) {
             roundTripModelToText();
+        }
+        if (xmlTextBehindModel) {
+            roundTripXmlModelToText();
         }
     }
 
@@ -1946,7 +1992,7 @@ final class EditorTab extends Tab {
         if (xmlGridView == null) {
             xmlGridView = new XmlGridView();
             // Grid edits mutate the shared context directly; round-trip it via a minimal diff.
-            xmlGridView.setOnModified(xml -> roundTripXmlModelToText());
+            xmlGridView.setOnModified(xml -> onXmlModelChanged());
             xmlGridView.setOnSelectionChanged(node -> {
                 currentXmlSelection = node;
                 selectionCallback.run();
@@ -1977,7 +2023,7 @@ final class EditorTab extends Tab {
         if (xmlEditorContext == null || !xmlEditorContext.executeCommand(command)) {
             return false;
         }
-        roundTripXmlModelToText();
+        onXmlModelChanged();
         return true;
     }
 

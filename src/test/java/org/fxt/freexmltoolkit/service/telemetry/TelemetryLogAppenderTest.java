@@ -93,4 +93,17 @@ class TelemetryLogAppenderTest {
         assertEquals("unknown", TelemetryLogAppender.simpleName(null));
         assertEquals("unknown", TelemetryLogAppender.simpleName(""));
     }
+
+    @Test
+    void aLoggedUserInputFailureIsNotCountedAsAnError() {
+        Logger logger = LogManager.getLogger("org.fxt.freexmltoolkit.service.XmlServiceImpl");
+        net.sf.saxon.s9api.SaxonApiException undeclaredVariable = assertThrows(
+                net.sf.saxon.s9api.SaxonApiException.class,
+                () -> new net.sf.saxon.s9api.Processor(false).newXPathCompiler().compile("$undeclared"));
+
+        logger.error("Error evaluating XPath", undeclaredVariable);
+        logger.error("Unexpected", new NullPointerException("bug"));
+
+        assertEquals(List.of("log.XmlServiceImpl"), telemetry.errorReports());
+    }
 }

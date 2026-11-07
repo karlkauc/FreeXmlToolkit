@@ -370,4 +370,25 @@ class XsltTransformationEngineXQueryTest {
         assertNull(XsltTransformationEngine.sanitizeXmlPrologue(null));
         assertEquals("", XsltTransformationEngine.sanitizeXmlPrologue(""));
     }
+
+    @Test
+    void topLevelAttributesAreShownInsteadOfFailingWithSENR0001() {
+        var result = engine.transformXQuery("<r><b id=\"x1\"/><b id=\"x2\"/></r>", "//@id",
+                new HashMap<>(), XsltTransformationEngine.OutputFormat.XML);
+
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertTrue(result.getOutputContent().contains("x1"), result.getOutputContent());
+        assertTrue(result.getOutputContent().contains("x2"), result.getOutputContent());
+    }
+
+    @Test
+    void mapsAndArraysAreShownInsteadOfFailingWithSENR0001() {
+        var result = engine.transformXQuery("<r/>", "map { 'a': 1 }, [1, 2]",
+                new HashMap<>(), XsltTransformationEngine.OutputFormat.XML);
+
+        assertTrue(result.isSuccess(), result.getErrorMessage());
+        assertTrue(result.getOutputContent().contains("'a'") || result.getOutputContent().contains("\"a\""),
+                result.getOutputContent());
+        assertTrue(result.getOutputContent().contains("[1,2]"), result.getOutputContent());
+    }
 }

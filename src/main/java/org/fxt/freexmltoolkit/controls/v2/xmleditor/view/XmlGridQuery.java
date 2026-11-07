@@ -122,15 +122,28 @@ public final class XmlGridQuery {
     }
 
     private static XdmNode parse(XmlElement context, Map<String, String> namespaces) throws SaxonApiException {
-        XmlElement copy = (XmlElement) context.deepCopy("");
+        // The namespaces in scope are declared on the serialized start tag; the model is not copied
+        // (a deep copy of a large table gave every node a fresh UUID and stalled the grid's layout).
+        String xml = withDeclarations(context.serialize(0), "<" + context.getQualifiedName(), context, namespaces);
+        DocumentBuilder builder = PROCESSOR.newDocumentBuilder();
+        return builder.build(new StreamSource(new StringReader(xml)));
+    }
+
+    /** Inserts {@code xmlns} declarations the element does not carry itself after its start-tag name. */
+    static String withDeclarations(String xml, String startTag, XmlElement context, Map<String, String> namespaces) {
+        StringBuilder declarations = new StringBuilder();
         namespaces.forEach((prefix, uri) -> {
             String attr = prefix.isEmpty() ? "xmlns" : "xmlns:" + prefix;
-            if (!copy.hasAttribute(attr)) {
-                copy.setAttribute(attr, uri);
+            if (!context.hasAttribute(attr)) {
+                declarations.append(' ').append(attr).append("=\"")
+                        .append(uri.replace("&", "&amp;").replace("<", "&lt;").replace("\"", "&quot;"))
+                        .append('"');
             }
         });
-        DocumentBuilder builder = PROCESSOR.newDocumentBuilder();
-        return builder.build(new StreamSource(new StringReader(copy.serialize(0))));
+        if (declarations.isEmpty() || !xml.startsWith(startTag)) {
+            return xml;
+        }
+        return startTag + declarations + xml.substring(startTag.length());
     }
 
     private static XdmNode firstElement(XdmNode document) {

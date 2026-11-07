@@ -357,6 +357,33 @@ public class XmlElement extends XmlNode {
     }
 
     /**
+     * Puts the children into a new order in one step: {@code newOrder} must hold exactly the
+     * current children (by identity), each once. Fires a single "children" property change event,
+     * so reordering many children costs one notification instead of one per move.
+     *
+     * @param newOrder the current children in their new order
+     * @throws IllegalArgumentException if {@code newOrder} is not a permutation of the children
+     */
+    public void reorderChildren(List<? extends XmlNode> newOrder) {
+        if (newOrder.size() != children.size()) {
+            throw new IllegalArgumentException("Not a permutation of the children: size " + newOrder.size()
+                    + " instead of " + children.size());
+        }
+        java.util.Set<XmlNode> current = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        current.addAll(children);
+        java.util.Set<XmlNode> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        for (XmlNode node : newOrder) {
+            if (!current.contains(node) || !seen.add(node)) {
+                throw new IllegalArgumentException("Not a permutation of the children");
+            }
+        }
+        List<XmlNode> oldChildren = new ArrayList<>(children);
+        children.clear();
+        children.addAll(newOrder);
+        firePropertyChange("children", oldChildren, children);
+    }
+
+    /**
      * Removes all children.
      * Fires a "children" property change event.
      */

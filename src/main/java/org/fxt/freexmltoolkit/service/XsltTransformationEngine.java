@@ -1010,7 +1010,21 @@ public class XsltTransformationEngine {
             TransformationProfile profile = new TransformationProfile();
             profile.startTransformation();
 
-            evaluator.run(serializer);
+            try {
+                evaluator.run(serializer);
+            } catch (SaxonApiException e) {
+                if (!isUnserializableItemError(e)) {
+                    throw e;
+                }
+                // A top-level attribute, namespace node, map, array or function item has no XML
+                // serialization (SENR0001); show it the way the adaptive method writes it.
+                outputWriter = new StringWriter();
+                serializer = saxonProcessor.newSerializer(outputWriter);
+                configureSerializer(serializer, effectiveFormat);
+                serializer.setOutputProperty(Serializer.Property.METHOD, "adaptive");
+                serializer.setOutputProperty(Serializer.Property.ITEM_SEPARATOR, "\n");
+                serializer.serializeXdmValue(evaluator.evaluate());
+            }
 
             profile.endTransformation();
             profile.setOutputSize(outputWriter.toString().length());
@@ -1513,6 +1527,11 @@ public class XsltTransformationEngine {
             // Add debugging configuration
             transformer.setParameter(new QName("debug-mode"), new XdmAtomicValue(true));
         }
+    }
+
+    /** @return whether the failure is SENR0001: an item the chosen output method cannot serialize */
+    static boolean isUnserializableItemError(SaxonApiException e) {
+        return e.getErrorCode() != null && "SENR0001".equals(e.getErrorCode().getLocalName());
     }
 
     private void configureSerializer(Destination destination, OutputFormat outputFormat) {

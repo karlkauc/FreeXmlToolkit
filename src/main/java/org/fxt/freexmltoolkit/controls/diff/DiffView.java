@@ -46,6 +46,9 @@ import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
  */
 public final class DiffView extends Tab {
 
+    private static final org.apache.logging.log4j.Logger logger =
+            org.apache.logging.log4j.LogManager.getLogger(DiffView.class);
+
     private static final Duration DEBOUNCE = Duration.millis(300);
 
     private final CodeArea leftArea = new PlainTextCodeArea();
@@ -78,6 +81,24 @@ public final class DiffView extends Tab {
     public DiffView(String leftDisplayName, String leftInitialText, Consumer<String> leftSaveHandler,
                     File rightFile) {
         this(leftDisplayName, leftInitialText, leftSaveHandler, rightFile, readFileSafely(rightFile), false);
+    }
+
+    /**
+     * Above this combined size (in characters, ~ bytes for files) two documents are not compared:
+     * the line diff plus two highlighted editors of two 170-MB files exhausted a 24-GB heap.
+     */
+    public static final long MAX_COMPARE_CHARS = 64L * 1024 * 1024;
+
+    /** @return whether two documents of these sizes are too large to compare side by side */
+    public static boolean tooLargeToCompare(long leftChars, long rightChars) {
+        return leftChars + rightChars > MAX_COMPARE_CHARS;
+    }
+
+    /** @return a user-facing explanation for {@link #tooLargeToCompare} */
+    public static String tooLargeMessage(long leftChars, long rightChars) {
+        return String.format(java.util.Locale.ROOT,
+                "Together the two documents have %.0f MB; the side-by-side comparison supports up to %d MB.",
+                (leftChars + rightChars) / (1024.0 * 1024.0), MAX_COMPARE_CHARS / (1024 * 1024));
     }
 
     /**
@@ -333,9 +354,18 @@ public final class DiffView extends Tab {
         String left = leftArea.getText();
         String right = rightArea.getText();
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
-            List<DiffChunk> result = DiffEngine.compute(left, right);
-            var leftSpans = DiffHighlighter.computeHighlighting(left, result, DiffHighlighter.Side.LEFT);
-            var rightSpans = DiffHighlighter.computeHighlighting(right, result, DiffHighlighter.Side.RIGHT);
+            List<DiffChunk> result;
+            org.fxmisc.richtext.model.StyleSpans<java.util.Collection<String>> leftSpans;
+            org.fxmisc.richtext.model.StyleSpans<java.util.Collection<String>> rightSpans;
+            try {
+                result = DiffEngine.compute(left, right);
+                leftSpans = DiffHighlighter.computeHighlighting(left, result, DiffHighlighter.Side.LEFT);
+                rightSpans = DiffHighlighter.computeHighlighting(right, result, DiffHighlighter.Side.RIGHT);
+            } catch (OutOfMemoryError e) {
+                // edited beyond what fits: keep the view usable without highlights
+                logger.warn("Not enough memory to compare {} + {} characters", left.length(), right.length());
+                return;
+            }
             Platform.runLater(() -> {
                 if (gen != recomputeGeneration.get()
                         || leftArea.getLength() != left.length() || rightArea.getLength() != right.length()) {

@@ -263,7 +263,7 @@ public class EditorHost extends BorderPane {
     /** @return the text of the active editor, or empty if no tab is open. */
     public Optional<String> getActiveText() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();
-        return tab instanceof EditorTab et ? Optional.of(et.view.getText()) : Optional.empty();
+        return tab instanceof EditorTab et ? Optional.of(et.text()) : Optional.empty();
     }
 
     /**
@@ -279,7 +279,7 @@ public class EditorHost extends BorderPane {
     public Optional<String> getDocumentText(OpenDocument document) {
         for (Tab tab : tabPane.getTabs()) {
             if (tab instanceof EditorTab editorTab && editorTab.document == document) {
-                return Optional.of(editorTab.view.getText());
+                return Optional.of(editorTab.text());
             }
         }
         return Optional.empty();
@@ -613,7 +613,7 @@ public class EditorHost extends BorderPane {
     public Optional<String> getOpenDocumentText(java.nio.file.Path path) {
         for (Tab tab : tabPane.getTabs()) {
             if (tab instanceof EditorTab et && path.equals(et.document.getPath())) {
-                return Optional.of(et.view.getText());
+                return Optional.of(et.text());
             }
         }
         return Optional.empty();
@@ -1252,7 +1252,10 @@ public class EditorHost extends BorderPane {
             return CompletableFuture.completedFuture(null);
         }
         String leftName = left.document.getDisplayName();
-        String leftText = left.view.getText();
+        String leftText = left.text();
+        if (refuseTooLargeToCompare(leftText.length(), rightFile.length())) {
+            return CompletableFuture.completedFuture(null);
+        }
         java.util.function.Consumer<String> leftSave = newText -> {
             left.view.setText(newText);
             Path path = left.document.getPath();
@@ -1270,6 +1273,16 @@ public class EditorHost extends BorderPane {
                 });
     }
 
+    /** Shows why two documents are not compared when they are too large; @return whether refused */
+    private static boolean refuseTooLargeToCompare(long leftChars, long rightChars) {
+        if (!org.fxt.freexmltoolkit.controls.diff.DiffView.tooLargeToCompare(leftChars, rightChars)) {
+            return false;
+        }
+        org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Compare", "Files too large to compare",
+                org.fxt.freexmltoolkit.controls.diff.DiffView.tooLargeMessage(leftChars, rightChars));
+        return true;
+    }
+
     /**
      * Opens a side-by-side diff of two files (Explorer "Compare files…" with two selected files).
      * When {@code leftFile} is open in an editor tab, that tab is the left side (unsaved edits
@@ -1284,6 +1297,9 @@ public class EditorHost extends BorderPane {
                 tabPane.getSelectionModel().select(tab);
                 return openDiffWithFile(rightFile);
             }
+        }
+        if (refuseTooLargeToCompare(leftFile.length(), rightFile.length())) {
+            return CompletableFuture.completedFuture(null);
         }
         return org.fxt.freexmltoolkit.controls.diff.DiffView.openFiles(leftFile, rightFile)
                 .thenApply(diff -> {
@@ -1658,14 +1674,44 @@ public class EditorHost extends BorderPane {
         EditorTab tab = new EditorTab(OpenDocument.untitled(displayName, type), this::refreshSelectedNode,
                 nodeClipboard, this::openNamedTypeEditor, schemaLookup::goToXmlDefinition);
         addTab(tab);
-        tab.view.setText(content);
-        tab.attachDirtyTracking();
-        tab.document.setDirty(true);
         // character count as a cheap size proxy (no encoding on the FX thread)
         reportGeneratedOpen(type != null ? type.docKind() : null, content, usageSource);
+        if (content != null && content.length() >= org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2.PREPARE_THRESHOLD_CHARS) {
+            // A large result (a transform output of 100+ MB) builds its editor document off the
+            // FX thread, like a large file on open: setText froze the UI for seconds.
+            tab.loading = true;
+            tab.beginLoading();
+            try {
+                org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+                    var prepared = tab.view.prepareText(content);
+                    Platform.runLater(() -> showGeneratedText(tab, content, prepared, displayName, source));
+                });
+            } catch (java.util.concurrent.RejectedExecutionException shuttingDown) {
+                showGeneratedText(tab, content, null, displayName, source);
+            }
+            return tab.document;
+        }
+        showGeneratedText(tab, content, null, displayName, source);
+        return tab.document;
+    }
+
+    /** Shows a generated text in its tab (prepared off the FX thread when large) and detects its schema. */
+    private void showGeneratedText(EditorTab tab, String content, org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2.PreparedText prepared,
+                                   String displayName, TransformOutputPanel.ResultSource source) {
+        if (tab.closed.get()) {
+            return;
+        }
+        if (prepared != null) {
+            tab.view.setText(prepared);
+        } else {
+            tab.view.setText(content);
+        }
+        tab.endLoading();
+        tab.loading = false;
+        tab.attachDirtyTracking();
+        tab.document.setDirty(true);
         // a generated document never runs the detection on open that a file gets
         detectGeneratedSchema(tab, displayName, source);
-        return tab.document;
     }
 
     /** Starts the schema detection of a generated tab (stand-in location next to the transform input). */
@@ -2652,7 +2698,7 @@ public class EditorHost extends BorderPane {
      * edited meanwhile or the rewrite failed or produced nothing.
      */
     private CompletableFuture<Boolean> transformActiveText(EditorTab et, String mode, TextRewrite rewrite) {
-        String text = et.view.getText();
+        String text = et.text();
         long revision = et.textRevision;
         var kind = et.document.getFileType().docKind();
         et.beginLoading();

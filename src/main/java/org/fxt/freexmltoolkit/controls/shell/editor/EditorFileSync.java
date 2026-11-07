@@ -278,7 +278,7 @@ final class EditorFileSync {
      * @return completes on the FX thread with whether the file was written
      */
     private CompletableFuture<Boolean> writeAsync(EditorTab tab, Path target) {
-        String text = tab.view.getText();
+        String text = tab.text();
         TextEncoding encoding = tab.document.getEncoding();
         boolean xml = tab.document.getFileType().isXmlFamily();
         long revision = tab.textRevision;
@@ -371,7 +371,7 @@ final class EditorFileSync {
     private void offerUtf8Save(EditorTab tab, Path target) {
         TextEncoding current = tab.document.getEncoding();
         if (org.fxt.freexmltoolkit.controls.shell.editor.search.EncodingSniffer.declaredEncoding(
-                tab.view.getText()) != null) {
+                tab.text()) != null) {
             // A declaration would pick the charset again on the next write: the user has to edit it.
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
                     "Could not save " + target.getFileName() + ": the text contains characters that "
@@ -389,7 +389,7 @@ final class EditorFileSync {
     boolean write(EditorTab tab, Path target) {
         try {
             TextEncoding encoding = tab.document.getEncoding();
-            tab.document.setEncoding(encoding.write(target, tab.view.getText(),
+            tab.document.setEncoding(encoding.write(target, tab.text(),
                     tab.document.getFileType().isXmlFamily()));
             tab.document.setDirty(false);
             // Our own write must not be reported as an external change.
@@ -488,7 +488,7 @@ final class EditorFileSync {
                 }
                 continue;
             }
-            if (change.diskText() != null && change.diskText().equals(tab.view.getText())) {
+            if (change.diskText() != null && change.diskText().equals(tab.text())) {
                 // Touched or rewritten with identical content: nothing to ask.
                 document.setDiskStamp(change.current());
                 document.setDirty(false);
@@ -764,7 +764,7 @@ final class EditorFileSync {
         File xsd = tab.schemaFile;
         if (xsd != null && tab.document.isUntitled() && target != null && target.getParent() != null) {
             org.fxt.freexmltoolkit.service.SampleSchemaLocation
-                    .relocate(tab.view.getText(), xsd, target.getParent())
+                    .relocate(tab.text(), xsd, target.getParent())
                     .ifPresent(tab.view::setText);
         }
         return target;

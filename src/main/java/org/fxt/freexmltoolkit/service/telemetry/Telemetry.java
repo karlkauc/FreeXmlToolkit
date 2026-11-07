@@ -175,7 +175,9 @@ public final class Telemetry {
 
     /**
      * Reports an exception that was logged ({@link TelemetryLogAppender}) unless it was already
-     * reported explicitly or is shutdown noise. Never throws.
+     * reported explicitly, is shutdown noise or is the user's input ({@link QueryFailure#classify}:
+     * a broken expression, stylesheet or document is logged before the action event classifies
+     * it, and must not count as an error a second time). Never throws.
      */
     public static void reportLogged(Throwable t, String where) {
         if (t == null || isShutdownNoise(t)) {
@@ -186,6 +188,9 @@ public final class Telemetry {
                 if (reported.contains(t)) {
                     return;
                 }
+            }
+            if (QueryFailure.classify(t).status() == TelemetryEvent.Status.INVALID_INPUT) {
+                return;
             }
             reportError(t, where);
         } catch (Throwable ignored) {

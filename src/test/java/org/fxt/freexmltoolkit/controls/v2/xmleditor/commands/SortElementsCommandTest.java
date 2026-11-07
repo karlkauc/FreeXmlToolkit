@@ -242,4 +242,77 @@ class SortElementsCommandTest {
             assertTrue(cmd.getDescription().contains("price"));
         }
     }
+
+    @Nested
+    @DisplayName("Siblings, events and size")
+    class SlotTests {
+
+        @Test
+        @DisplayName("Other siblings keep their positions; one children event per sort and undo")
+        void otherSiblingsStayAndOneEventIsFired() {
+            XmlElement parent = new XmlElement("items");
+            XmlElement header = new XmlElement("header");
+            parent.addChild(header);
+            List<XmlElement> items = new ArrayList<>();
+            for (String name : List.of("c", "a", "b")) {
+                XmlElement item = new XmlElement("item");
+                item.setAttribute("name", name);
+                parent.addChild(item);
+                items.add(item);
+                if (name.equals("a")) {
+                    parent.addChild(new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment("keep"));
+                }
+            }
+            var before = new ArrayList<>(parent.getChildren());
+            int[] events = {0};
+            parent.addPropertyChangeListener(e -> {
+                if ("children".equals(e.getPropertyName())) {
+                    events[0]++;
+                }
+            });
+            RepeatingElementsTable table = new RepeatingElementsTable("item", items, 0, () -> {});
+            SortElementsCommand cmd = new SortElementsCommand(table, "name", true);
+
+            assertTrue(cmd.execute());
+            assertEquals(1, events[0]);
+            assertSame(header, parent.getChildren().get(0));
+            assertEquals("a", ((XmlElement) parent.getChildren().get(1)).getAttribute("name"));
+            assertEquals("b", ((XmlElement) parent.getChildren().get(2)).getAttribute("name"));
+            assertInstanceOf(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlComment.class,
+                    parent.getChildren().get(3));
+            assertEquals("c", ((XmlElement) parent.getChildren().get(4)).getAttribute("name"));
+
+            assertTrue(cmd.undo());
+            assertEquals(2, events[0]);
+            assertEquals(before, parent.getChildren());
+        }
+
+        @Test
+        @DisplayName("Sorting 50,000 rows stays fast (cell values are looked up once)")
+        void largeTablesSortQuickly() {
+            XmlElement parent = new XmlElement("items");
+            List<XmlElement> items = new ArrayList<>();
+            java.util.Random random = new java.util.Random(7);
+            for (int i = 0; i < 50_000; i++) {
+                XmlElement item = new XmlElement("item");
+                item.setAttribute("n", Integer.toString(random.nextInt(1_000_000)));
+                parent.addChild(item);
+                items.add(item);
+            }
+            RepeatingElementsTable table = new RepeatingElementsTable("item", items, 0, () -> {});
+            SortElementsCommand cmd = new SortElementsCommand(table, "n", true);
+
+            long start = System.nanoTime();
+            assertTrue(cmd.execute());
+            long ms = (System.nanoTime() - start) / 1_000_000;
+
+            assertTrue(ms < 3_000, "sort took " + ms + " ms");
+            int previous = Integer.MIN_VALUE;
+            for (var child : parent.getChildren()) {
+                int n = Integer.parseInt(((XmlElement) child).getAttribute("n"));
+                assertTrue(n >= previous);
+                previous = n;
+            }
+        }
+    }
 }

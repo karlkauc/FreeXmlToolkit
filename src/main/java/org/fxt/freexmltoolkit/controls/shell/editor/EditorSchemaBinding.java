@@ -94,7 +94,7 @@ final class EditorSchemaBinding {
         // What the reconcile will sniff from the buffer (no base directory: untitled).
         String declared = org.fxt.freexmltoolkit.di.ServiceRegistry
                 .get(org.fxt.freexmltoolkit.service.XmlService.class)
-                .getSchemaNameFromXmlContent(et.view.getText(), null)
+                .getSchemaNameFromXmlContent(et.text(), null)
                 .orElse(null);
         return bindSchemaToActiveDocument(xsd, SchemaRebindPolicy.SchemaBindingOrigin.AUTO,
                 SchemaSource.DECLARED, xsd.getAbsolutePath(), declared);
@@ -253,7 +253,7 @@ final class EditorSchemaBinding {
         if (tab.schemaFile != null || !tab.view.supportsSchema()) {
             return;
         }
-        String content = tab.view.getText();
+        String content = tab.text();
         Path path = schemaPath(tab);
         long generation = tab.schemaBindingGen.incrementAndGet(); // supersede queued reconciles
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
@@ -365,7 +365,7 @@ final class EditorSchemaBinding {
         if (!tab.view.supportsSchema() || tab.schemaFile != null) {
             return;
         }
-        String content = tab.view.getText();
+        String content = tab.text();
         Path path = schemaPath(tab);
         long generation = tab.schemaBindingGen.incrementAndGet(); // supersede queued reconciles
         long bindRequest = tab.schemaBindRequest.get(); // an explicit bind after this one wins
