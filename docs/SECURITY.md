@@ -326,7 +326,7 @@ update.requireChecksum=true
 | Card | Setting | Description | Default |
 |------|---------|-------------|---------|
 | PARSER | Allow XSLT extension functions | Enable Java extension functions in XSLT | **Off** (secure) |
-| SECURITY | Trust all certificates | Accept any TLS certificate for HTTPS downloads (schemas, updates). Leave off unless a corporate proxy re-signs traffic | **Off** (secure) |
+| SECURITY | Trust all certificates | Accept any TLS certificate for HTTPS downloads (schemas, catalogs, FundsXML, telemetry). Never for the update check and update downloads. Leave off unless a corporate proxy re-signs traffic | **Off** (secure) |
 
 ### Security Property Reference
 

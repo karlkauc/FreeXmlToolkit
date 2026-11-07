@@ -248,6 +248,30 @@ public class ConnectionServiceImpl implements ConnectionService {
         }
     }
 
+    @Override
+    public HttpURLConnection openVerifiedConnection(URI uri) throws IOException {
+        try {
+            return newConnection(uri, withCertificateValidation(propertiesService.loadProperties()));
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public ConnectionResult executeVerifiedHttpRequest(URI uri) {
+        return testHttpRequest(uri, withCertificateValidation(propertiesService.loadProperties()));
+    }
+
+    /** @return a copy of {@code properties} with the certificate bypass switched off */
+    static Properties withCertificateValidation(Properties properties) {
+        Properties copy = new Properties();
+        copy.putAll(properties);
+        copy.setProperty("ssl.trustAllCerts", "false");
+        return copy;
+    }
+
     private static String readPostResponse(HttpURLConnection connection, int status) {
         try (InputStream in = status >= 400 ? connection.getErrorStream() : connection.getInputStream()) {
             if (in == null) {
@@ -314,7 +338,7 @@ public class ConnectionServiceImpl implements ConnectionService {
      * exceptions), proxy authentication (credentials or Windows sign-on, set on this connection
      * only), timeouts, User-Agent and — when switched on — the per-connection certificate bypass.
      */
-    private HttpURLConnection newConnection(URI uri, Properties properties) throws Exception {
+    HttpURLConnection newConnection(URI uri, Properties properties) throws Exception {
         ProxySettings settings = ProxySettings.from(properties);
         Proxy proxy = proxyFor(settings, uri);
         URL url = uri.toURL();

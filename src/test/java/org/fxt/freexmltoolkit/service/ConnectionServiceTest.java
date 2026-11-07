@@ -278,6 +278,25 @@ class ConnectionServiceTest {
     }
 
     @Test
+    @DisplayName("Update connections validate certificates even with Trust all certificates on")
+    void verifiedConnectionsIgnoreTheCertificateBypass() throws Exception {
+        URI uri = URI.create("https://updates.example.invalid/asset.zip");
+        Properties props = new Properties();
+        props.setProperty("ssl.trustAllCerts", "true");
+
+        var bypassed = (javax.net.ssl.HttpsURLConnection) connectionService.newConnection(uri, props);
+        assertTrue(bypassed.getHostnameVerifier().verify("other.host", null),
+                "an ordinary connection follows the setting (accepts any host)");
+
+        var verified = (javax.net.ssl.HttpsURLConnection) connectionService.newConnection(uri,
+                ConnectionServiceImpl.withCertificateValidation(props));
+        assertSame(javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier(), verified.getHostnameVerifier(),
+                "the verified connection keeps the JVM's certificate and host checks");
+        assertSame(javax.net.ssl.HttpsURLConnection.getDefaultSSLSocketFactory(), verified.getSSLSocketFactory());
+        assertEquals("true", props.getProperty("ssl.trustAllCerts"), "the saved settings are not changed");
+    }
+
+    @Test
     @DisplayName("Should extract response headers correctly")
     void testResponseHeaderExtraction() {
         URI testUri = URI.create("http://localhost:" + testPort + "/success");

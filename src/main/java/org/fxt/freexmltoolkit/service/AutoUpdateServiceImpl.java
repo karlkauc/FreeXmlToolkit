@@ -351,7 +351,8 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             URI uri = URI.create(urlString);
 
             // Proxy, proxy authentication and certificate settings come from the one HTTP service.
-            connection = ServiceRegistry.get(ConnectionService.class).openConnection(uri);
+            // Never with "Trust all certificates": the update's integrity rests on TLS
+            connection = ServiceRegistry.get(ConnectionService.class).openVerifiedConnection(uri);
             currentConnection = connection;
 
             connection.setRequestMethod("GET");
@@ -967,7 +968,7 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
                     GITHUB_OWNER, GITHUB_REPO, version);
 
             ConnectionService connectionService = ServiceRegistry.get(ConnectionService.class);
-            var result = connectionService.executeHttpRequest(URI.create(apiUrl));
+            var result = connectionService.executeVerifiedHttpRequest(URI.create(apiUrl));
             if (result == null || result.httpStatus() == null || result.httpStatus() != 200
                     || result.resultBody() == null || result.resultBody().isBlank()) {
                 writeDebugLog(debugLog, "Could not fetch release metadata for digest lookup (status: "

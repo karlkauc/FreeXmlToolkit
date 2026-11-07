@@ -134,6 +134,27 @@ public interface ConnectionService {
     }
 
     /**
+     * {@link #openConnection(URI)} that always validates the server certificate, also when
+     * "Trust all certificates" ({@code ssl.trustAllCerts}) is on: for application updates, whose
+     * integrity rests on TLS (the download and the digest it is checked against).
+     *
+     * @param uri the target
+     * @return the unconnected connection
+     * @throws IOException if the URL cannot be opened
+     */
+    default java.net.HttpURLConnection openVerifiedConnection(URI uri) throws IOException {
+        return openConnection(uri);
+    }
+
+    /**
+     * {@link #executeHttpRequest(URI)} that always validates the server certificate (see
+     * {@link #openVerifiedConnection(URI)}).
+     */
+    default ConnectionResult executeVerifiedHttpRequest(URI uri) {
+        return executeHttpRequest(uri);
+    }
+
+    /**
      * The proxies for XML Calabash's {@code p:http-request} (which uses its own HTTP client): scheme
      * ({@code http}, {@code https}) to proxy URI, empty when connecting directly or when the system
      * decides per URL (PAC).

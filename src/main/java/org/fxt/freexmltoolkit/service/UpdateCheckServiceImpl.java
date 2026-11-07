@@ -186,7 +186,7 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
 
             try {
                 // Fetch latest release from GitHub API
-                var connectionResult = getConnectionService().executeHttpRequest(new URI(GITHUB_RELEASES_API_URL));
+                var connectionResult = getConnectionService().executeVerifiedHttpRequest(new URI(GITHUB_RELEASES_API_URL));
 
                 if (connectionResult == null || connectionResult.httpStatus() != 200) {
                     logger.warn("Failed to fetch update info. HTTP Status: {}",
