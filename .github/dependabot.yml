@@ -1,0 +1,45 @@
+# Dependency updates: one grouped pull request per ecosystem and week, security
+# updates as soon as an advisory is published (GitHub opens them independently of
+# this schedule once "Dependabot security updates" is on in the repository settings).
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      gradle-dependencies:
+        patterns: ["*"]
+    ignore:
+      # Pinned in build.gradle.kts: XML Calabash 3 is compiled against Saxon 12.10 internals.
+      - dependency-name: "net.sf.saxon:Saxon-HE"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  # Windows update helper (Rust)
+  - package-ecosystem: "cargo"
+    directory: "/update-helper"
+    schedule:
+      interval: "monthly"
+    groups:
+      cargo:
+        patterns: ["*"]
+
+  # SCSS build of the theme (npm, build-time only)
+  - package-ecosystem: "npm"
+    directory: "/src/main/resources/scss"
+    schedule:
+      interval: "monthly"
+    groups:
+      npm:
+        patterns: ["*"]
