@@ -833,6 +833,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     private List<FlatRow> applyFilters(List<FlatRow> rows) {
         filterErrors.clear();
+        pendingFilters.clear();
         activeFilters.clear();
         return applyFilters(rows, null);
     }
@@ -881,6 +882,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                 if (p != null) {
                     predicates.put(row, p);
                     activeFilters.put(key, p);
+                }
+                if (adapter.isFilterPending(row, expression)) {
+                    pendingFilters.add(key);
                 }
             } catch (IllegalArgumentException e) {
                 filterErrors.put(key, e.getMessage());
@@ -1165,8 +1169,12 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      */
     private String filterLineText(String key) {
         String expression = viewState.filter(key);
-        return savedFilterKeys.contains(key) ? "saved \u00b7 " + expression : expression;
+        String text = savedFilterKeys.contains(key) ? "saved \u00b7 " + expression : expression;
+        return pendingFilters.contains(key) ? text + "  (evaluating\u2026)" : text;
     }
+
+    /** Keys of the filters still evaluated in the background (see {@link GridModelAdapter#isFilterPending}). */
+    private final java.util.Set<String> pendingFilters = new java.util.HashSet<>();
 
     /** @return whether the filter of the selection's target is switched on; empty without a filter */
     public java.util.Optional<Boolean> filterActiveStateOfSelection() {

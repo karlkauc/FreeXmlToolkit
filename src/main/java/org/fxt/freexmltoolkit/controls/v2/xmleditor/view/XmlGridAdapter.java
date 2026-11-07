@@ -44,9 +44,14 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     /** Formulas over large contexts are evaluated off the FX thread, once per model state. */
     private final AsyncFormulas formulas;
 
+    /** Filters over large contexts likewise. */
+    private final AsyncFilters filters;
+
     public XmlGridAdapter(XmlEditorContext context) {
         this.context = context;
         this.formulas = new AsyncFormulas(() -> context.getCommandManager().getRevision(),
+                context::getDocument, org.fxt.freexmltoolkit.FxtGui.executorService);
+        this.filters = new AsyncFilters(() -> context.getCommandManager().getRevision(),
                 context::getDocument, org.fxt.freexmltoolkit.FxtGui.executorService);
     }
 
@@ -133,6 +138,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     public void installViewHooks(GridCanvasView<XmlNode> view) {
         context.addPropertyChangeListener("mixedContentDetected", this::onMixedContentDetected);
         formulas.setOnReady(view::formulasChanged);
+        filters.setOnReady(view::rebuildTree);
     }
 
     /**
@@ -350,11 +356,24 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
     }
 
     @Override
+    public boolean isFilterPending(FlatRow row, String expression) {
+        return row.getModelNode() instanceof XmlElement context && !row.isVirtual()
+                && filters.evaluate(context, expression).pending();
+    }
+
+    @Override
     public java.util.function.Predicate<Object> filterPredicate(FlatRow row, String expression) {
         if (!(row.getModelNode() instanceof XmlElement context) || row.isVirtual()) {
             return null;
         }
-        java.util.Set<XmlNode> matches = XmlGridQuery.evaluate(context, expression).nodes();
+        AsyncFilters.Outcome outcome = filters.evaluate(context, expression);
+        if (outcome.error() != null) {
+            throw new IllegalArgumentException(outcome.error());
+        }
+        if (outcome.matches() == null) {
+            return null; // first evaluation still running: unfiltered until it is done
+        }
+        java.util.Set<XmlNode> matches = outcome.matches();
         java.util.Set<XmlNode> ancestors = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
         for (XmlNode match : matches) {
             XmlNode current = match.getParent();

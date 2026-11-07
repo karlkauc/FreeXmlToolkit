@@ -182,6 +182,14 @@ public interface GridModelAdapter<N> {
     }
 
     /**
+     * @return whether the filter is still being evaluated in the background (its predicate is
+     *         the previous result, or none); the filter line says so
+     */
+    default boolean isFilterPending(FlatRow row, String expression) {
+        return false;
+    }
+
+    /**
      * @return the filters saved in the document, by the key of their container row (see
      *         {@link #stableKey}); empty when the model cannot store filters
      */
