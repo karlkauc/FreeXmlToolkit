@@ -913,6 +913,7 @@ public class FlatRow {
         // Child nodes - recurse into elements, emit TEXT/COMMENT/CDATA/PI rows
         String parentPath = null; // the group key prefix, computed once and only when needed
         Map<String, Integer> instanceCounters = null;
+        Map<String, GroupChoice> groupKeys = null;
         for (XmlNode child : element.getChildren()) {
             if (onlyName != null && !(child instanceof XmlElement only && onlyName.equals(only.getName()))) {
                 continue;
@@ -927,9 +928,17 @@ public class FlatRow {
                         parentPath = org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath
                                 .positional(element);
                         instanceCounters = new java.util.HashMap<>();
+                        groupKeys = new java.util.HashMap<>();
                     }
-                    String groupKey = groupKey(parentPath, childElement.getName());
-                    if (groupAsTable.test(groupKey)) {
+                    // Key and table choice once per group, not per member (680,000 members built
+                    // and hashed a key string each on every grid rebuild)
+                    String parent = parentPath;
+                    GroupChoice choice = groupKeys.computeIfAbsent(childElement.getName(), name -> {
+                        String key = groupKey(parent, name);
+                        return new GroupChoice(key, groupAsTable.test(key));
+                    });
+                    String groupKey = choice.key();
+                    if (choice.table()) {
                         // One row for the whole group, at its first element; the others are skipped
                         if (group.get(0) == childElement) {
                             FlatRow tableRow = new FlatRow(RowType.ELEMENT, depth + 1, childElement,
@@ -965,6 +974,10 @@ public class FlatRow {
                         null, text.getText().strip(), 0));
             }
         }
+    }
+
+    /** A repeating group's key and whether it is shown as a table. */
+    private record GroupChoice(String key, boolean table) {
     }
 
     /**

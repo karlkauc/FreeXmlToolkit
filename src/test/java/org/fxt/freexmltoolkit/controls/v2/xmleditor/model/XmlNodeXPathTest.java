@@ -41,6 +41,26 @@ class XmlNodeXPathTest {
     }
 
     @Test
+    void positionsCountOnlySameNameSiblingsAcrossOtherNames() {
+        XmlDocument doc = new XmlDocument();
+        XmlElement root = new XmlElement("root");
+        doc.addChild(root);
+        XmlElement a1 = new XmlElement("a");
+        XmlElement b = new XmlElement("b");
+        XmlElement a2 = new XmlElement("a");
+        XmlElement c = new XmlElement("c");
+        root.addChild(a1);
+        root.addChild(b);
+        root.addChild(a2);
+        root.addChild(c);
+
+        assertEquals("/root/a[1]", XmlNodeXPath.positional(a1));
+        assertEquals("/root/b", XmlNodeXPath.positional(b));
+        assertEquals("/root/a[2]", XmlNodeXPath.positional(a2));
+        assertEquals("/root/c", XmlNodeXPath.positional(c));
+    }
+
+    @Test
     void deepPathMixesIndexedAndPlainSteps() {
         XmlDocument doc = new XmlDocument();
         XmlElement root = new XmlElement("root");

@@ -626,6 +626,25 @@ class FlatRowTest {
         assertSame(formula, list.getChildren().getLast(), "the document order is unchanged");
     }
 
+    @Test
+    void theTableChoiceIsAskedOncePerGroupNotPerMember() {
+        XmlDocument document = new XmlDocument();
+        XmlElement root = new XmlElement("Orders");
+        document.addChild(root);
+        for (int i = 0; i < 50; i++) {
+            root.addChild(new XmlElement("Order"));
+            root.addChild(new XmlElement("Note"));
+        }
+        List<String> asked = new java.util.ArrayList<>();
+        List<FlatRow> rows = FlatRow.flatten(document, key -> asked.add(key) && key.endsWith("Order"));
+
+        assertEquals(List.of("/Orders/Order", "/Orders/Note"), asked);
+        assertEquals(1, rows.stream().filter(r -> "/Orders/Order".equals(r.getTableGroupKey())).count(),
+                "one table row for the Order group");
+        assertEquals(50, rows.stream().filter(r -> "/Orders/Note".equals(r.getStandardGroupKey())).count(),
+                "every Note is its own numbered row");
+    }
+
     private static int indexOfNode(List<FlatRow> rows, Object node) {
         for (int i = 0; i < rows.size(); i++) {
             if (rows.get(i).getModelNode() == node) {

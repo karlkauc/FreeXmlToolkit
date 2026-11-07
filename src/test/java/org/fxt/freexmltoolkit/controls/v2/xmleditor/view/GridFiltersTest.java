@@ -89,4 +89,23 @@ class GridFiltersTest {
         items.removeChild(pi);
         assertTrue(GridFilters.savedFilters(context.getDocument(), memo).isEmpty());
     }
+
+    @Test
+    void aLargeFirstScanChecksSubtreesInParallelAndKeepsDocumentOrder() {
+        StringBuilder xml = new StringBuilder("<Orders>");
+        int n = GridFilters.PARALLEL_CHILDREN + 10;
+        for (int i = 0; i < n; i++) {
+            xml.append("<Order><Items>");
+            if (i == 3 || i == n - 2) {
+                xml.append("<?fxt-filter expression=\"Item\"?>");
+            }
+            xml.append("<Item>").append(i).append("</Item></Items></Order>");
+        }
+        XmlEditorContext context = load(xml.append("</Orders>").toString());
+
+        Map<String, XmlProcessingInstruction> saved = GridFilters.savedFilters(context.getDocument(), new GridFilters.Memo());
+        assertEquals(List.of("/Orders/Order[4]/Items", "/Orders/Order[" + (n - 1) + "]/Items"),
+                List.copyOf(saved.keySet()));
+        assertEquals(saved, GridFilters.savedFilters(context.getDocument()), "same result as a full scan");
+    }
 }

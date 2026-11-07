@@ -855,7 +855,9 @@ public class RepeatingElementsTable {
             if (keys == last) {
                 continue; // nothing new: the same order as the record before
             }
-            List<String> shared = distinctOrders.get(keys);
+            // Mostly the order of the record before: one list comparison (its strings are shared
+            // instances, so equals stops at identity) instead of hashing the list
+            List<String> shared = last != null && last.equals(keys) ? last : distinctOrders.get(keys);
             if (shared == null) {
                 shared = List.copyOf(keys);
                 distinctOrders.put(shared, shared);
@@ -1026,6 +1028,18 @@ public class RepeatingElementsTable {
      * complex (expandable) children are copied for every column the record provides.
      */
     private void buildRows() {
+        int n = records.size();
+        if (n >= PARALLEL_RECORDS) {
+            // 680,000 rows built again after every cell edit: allocated on all cores
+            TableRow[] built = new TableRow[n];
+            java.util.stream.IntStream.range(0, n).parallel().forEach(i -> {
+                TableRow row = new TableRow(records.get(i));
+                row.owner = this;
+                built[i] = row;
+            });
+            rows.addAll(Arrays.asList(built));
+            return;
+        }
         for (GridRecord record : records) {
             TableRow row = new TableRow(record);
             row.owner = this;

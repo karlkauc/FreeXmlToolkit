@@ -92,4 +92,14 @@ class AsyncFormulasTest {
         assertEquals("2", WaitForAsyncUtils.waitForAsyncFx(5000, () -> sync.evaluate(pi)).result());
         assertTrue(queued.isEmpty());
     }
+
+    @Test
+    void largerStopsAtTheLimitAlsoForAWideElement() {
+        XmlEditorContext wide = new XmlEditorContext();
+        wide.loadDocumentFromString("<r><a/><b/><c/></r>");
+        var root = wide.getDocument().getRootElement();
+        assertTrue(AsyncFormulas.larger(root, 3), "root + 3 children = 4 nodes");
+        assertFalse(AsyncFormulas.larger(root, 4));
+        assertFalse(AsyncFormulas.larger(root.getChildElements("a").getFirst(), 1));
+    }
 }

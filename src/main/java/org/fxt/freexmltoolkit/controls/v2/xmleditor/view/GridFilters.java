@@ -119,6 +119,12 @@ public final class GridFilters {
         return result;
     }
 
+    /**
+     * At least this many children of a large element to scan: their subtrees are checked in
+     * parallel first (the first scan of a 4-million-node document took 0.6 s on the FX thread).
+     */
+    static final int PARALLEL_CHILDREN = 10_000;
+
     /** @return whether the subtree of {@code element} holds a filter */
     private static boolean collect(XmlElement element, Map<String, XmlProcessingInstruction> out, Memo memo) {
         if (element == null) {
@@ -127,11 +133,31 @@ public final class GridFilters {
         List<XmlNode> children = element.getChildren();
         Children before = null;
         Children now = null;
+        boolean[] unknown = null; // per child: to scan (not known filter-free)
+        boolean[] holds = null;   // per child to scan: its subtree holds a filter (parallel pre-check)
         if (memo != null && children.size() >= MEMO_CHILDREN) {
             before = memo.byParent.get(element);
             int n = children.size();
             now = new Children(new XmlNode[n], new int[n], new boolean[n]);
             memo.next.put(element, now);
+            unknown = new boolean[n];
+            int toScan = 0;
+            for (int i = 0; i < n; i++) {
+                if (children.get(i) instanceof XmlElement el
+                        && !(before != null && i < before.nodes().length && before.nodes()[i] == el
+                        && before.versions()[i] == el.getSubtreeVersion() && before.filterFree()[i])) {
+                    unknown[i] = true;
+                    toScan++;
+                }
+            }
+            if (toScan >= PARALLEL_CHILDREN) {
+                boolean[] result = new boolean[n];
+                boolean[] scan = unknown;
+                java.util.stream.IntStream.range(0, n).parallel()
+                        .filter(i -> scan[i])
+                        .forEach(i -> result[i] = holdsFilter((XmlElement) children.get(i)));
+                holds = result;
+            }
         }
         boolean found = false;
         String key = null;
@@ -148,18 +174,27 @@ public final class GridFilters {
                     found |= collect(el, out, memo);
                     continue;
                 }
-                int version = el.getSubtreeVersion();
-                boolean free = before != null && i < before.nodes().length && before.nodes()[i] == el
-                        && before.versions()[i] == version && before.filterFree()[i];
+                boolean free = !unknown[i];
                 if (!free) {
-                    free = !collect(el, out, memo);
+                    // A subtree the parallel pre-check found filter-free is not walked again
+                    free = holds != null && !holds[i] || !collect(el, out, memo);
                     found |= !free;
                 }
                 now.nodes()[i] = el;
-                now.versions()[i] = version;
+                now.versions()[i] = el.getSubtreeVersion();
                 now.filterFree()[i] = free;
             }
         }
         return found;
+    }
+
+    /** @return whether the subtree of {@code element} holds a filter (read-only, any thread) */
+    private static boolean holdsFilter(XmlElement element) {
+        for (XmlNode child : element.getChildren()) {
+            if (isFilter(child) || child instanceof XmlElement el && holdsFilter(el)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

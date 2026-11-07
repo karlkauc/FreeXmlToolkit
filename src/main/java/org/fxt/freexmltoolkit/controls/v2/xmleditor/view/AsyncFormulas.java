@@ -114,6 +114,9 @@ final class AsyncFormulas {
                 return true;
             }
             if (node instanceof XmlElement element) {
+                if (count + stack.size() + element.getChildren().size() > limit) {
+                    return true; // known without pushing 680,000 children first
+                }
                 for (XmlNode child : element.getChildren()) {
                     stack.push(child);
                 }

@@ -58,7 +58,9 @@ public final class XmlNodeXPath {
             return "/" + name;
         }
 
-        int position = 1;
+        // Stops once the position is known and a second same-name sibling was seen: the first of
+        // 680,000 siblings no longer counts all of them
+        int position = 0;
         int sameNameCount = 0;
         for (XmlNode sibling : siblings) {
             if (sibling instanceof XmlElement siblingElement && siblingElement.getName().equals(name)) {
@@ -66,10 +68,15 @@ public final class XmlNodeXPath {
                 if (sibling == element) {
                     position = sameNameCount;
                 }
+                if (position > 0 && sameNameCount > 1) {
+                    break;
+                }
             }
         }
+        if (position == 0) {
+            position = 1;
+        }
 
-        // Only disambiguate with [position] when there are several same-name siblings.
         return sameNameCount > 1 ? "/" + name + "[" + position + "]" : "/" + name;
     }
 }

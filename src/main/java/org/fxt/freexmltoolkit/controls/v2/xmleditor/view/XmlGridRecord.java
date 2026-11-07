@@ -29,16 +29,57 @@ public final class XmlGridRecord implements GridRecord {
     /** Built by {@link #analyze()}, then immutable (and possibly shared, see {@link #shareColumnKeys}). */
     private List<String> columnKeys = new ArrayList<>();
     private final Map<String, String> values = new LinkedHashMap<>();
-    private final Map<String, Object> complexChildren = new LinkedHashMap<>();
-    /** Every child element per column name, in document order. */
-    private final Map<String, List<XmlElement>> cellMembers = new LinkedHashMap<>();
-    private final Map<String, String> attributeSuffixes = new LinkedHashMap<>();
+    // complexChildren / attributeSuffixes / cellMembers: built by analyze(), then an empty one is
+    // replaced by Map.of() and cellMembers dropped when every column holds one element — the
+    // records of a table of 680,000 kept three maps and five lists each, and copying them in the
+    // young collections took most of the grid's first build
+    private Map<String, Object> complexChildren = new LinkedHashMap<>();
+    /** Every child element per column name, in document order ({@code null}: at most one each). */
+    private Map<String, List<XmlElement>> cellMembers = new LinkedHashMap<>();
+    private Map<String, String> attributeSuffixes = new LinkedHashMap<>();
 
     public XmlGridRecord(XmlElement element) {
         this.element = element;
         this.version = element.getSubtreeVersion();
         analyze();
-        columnKeys = List.copyOf(columnKeys);
+        columnKeys = sharedKeys(columnKeys);
+        if (complexChildren.isEmpty()) {
+            complexChildren = Map.of();
+        }
+        if (attributeSuffixes.isEmpty()) {
+            attributeSuffixes = Map.of();
+        }
+        if (cellMembers.values().stream().allMatch(members -> members.size() < 2)) {
+            cellMembers = null;
+        }
+    }
+
+    /**
+     * Column orders seen so far, one list instance each: the records of a large table, analysed
+     * in parallel, take over the same list, and the table's structure pass then compares them by
+     * identity (680,000 list comparisons on the FX thread before). Bounded like the attribute keys.
+     */
+    private static final java.util.concurrent.ConcurrentHashMap<List<String>, List<String>> KEY_ORDERS =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int MAX_KEY_ORDERS = 1_000;
+    private static final int MAX_SHARED_ORDER_LENGTH = 64;
+
+    private static List<String> sharedKeys(List<String> keys) {
+        List<String> copy = List.copyOf(keys);
+        if (copy.size() > MAX_SHARED_ORDER_LENGTH) {
+            return copy;
+        }
+        List<String> known = KEY_ORDERS.get(copy);
+        if (known != null) {
+            return known;
+        }
+        if (KEY_ORDERS.size() < MAX_KEY_ORDERS) {
+            known = KEY_ORDERS.putIfAbsent(copy, copy);
+            if (known != null) {
+                return known;
+            }
+        }
+        return copy;
     }
 
     /**
@@ -49,10 +90,34 @@ public final class XmlGridRecord implements GridRecord {
         return element.getSubtreeVersion() == version;
     }
 
+    /**
+     * Column keys of attributes ({@code @name}), one instance per name: a table of 680,000 records
+     * built a new string per record and attribute, and comparing and hashing the records' key
+     * lists then read every character. Bounded, so a document with endless attribute names cannot
+     * grow it without limit.
+     */
+    private static final java.util.concurrent.ConcurrentHashMap<String, String> ATTRIBUTE_KEYS =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int MAX_ATTRIBUTE_KEYS = 10_000;
+
+    static String attributeKey(String name) {
+        String key = ATTRIBUTE_KEYS.get(name);
+        if (key == null) {
+            key = "@" + name;
+            if (ATTRIBUTE_KEYS.size() < MAX_ATTRIBUTE_KEYS) {
+                String known = ATTRIBUTE_KEYS.putIfAbsent(name, key);
+                if (known != null) {
+                    key = known;
+                }
+            }
+        }
+        return key;
+    }
+
     private void analyze() {
         // Attributes (in document order)
         for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
-            columnKeys.add("@" + attr.getKey());
+            columnKeys.add(attributeKey(attr.getKey()));
             if (attr.getValue() != null) {
                 values.put(attr.getKey(), attr.getValue());
             }
@@ -267,6 +332,15 @@ public final class XmlGridRecord implements GridRecord {
 
     /** @return every child element behind the column, in document order (empty for attributes and text) */
     public List<XmlElement> cellMembers(String columnName) {
+        if (cellMembers == null) {
+            // At most one child per name when analysed
+            for (XmlNode child : element.getChildren()) {
+                if (child instanceof XmlElement el && el.getName().equals(columnName)) {
+                    return List.of(el);
+                }
+            }
+            return List.of();
+        }
         List<XmlElement> members = cellMembers.get(columnName);
         return members == null ? List.of() : Collections.unmodifiableList(members);
     }
