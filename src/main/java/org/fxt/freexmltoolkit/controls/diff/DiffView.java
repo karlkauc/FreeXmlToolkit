@@ -315,12 +315,12 @@ public final class DiffView extends Tab {
         rightDebounce.setOnFinished(e -> recomputeInBackground());
 
         // plainTextChanges, not textProperty: a ChangeListener builds the whole text per keystroke
-        leftArea.plainTextChanges().subscribe(change -> {
+        org.fxt.freexmltoolkit.controls.v2.editor.TextEdits.of(leftArea).subscribe(change -> {
             if (suppressDebounce) return;
             setDirty(0, true);
             leftDebounce.playFromStart();
         });
-        rightArea.plainTextChanges().subscribe(change -> {
+        org.fxt.freexmltoolkit.controls.v2.editor.TextEdits.of(rightArea).subscribe(change -> {
             if (suppressDebounce) return;
             setDirty(1, true);
             rightDebounce.playFromStart();

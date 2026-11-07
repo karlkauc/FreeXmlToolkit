@@ -525,17 +525,17 @@ final class EditorDebugSupport {
             return;
         }
         area.getProperties().put(BREAKPOINT_SHIFT_KEY, Boolean.TRUE);
-        area.plainTextChanges().subscribe(change -> {
+        org.fxt.freexmltoolkit.controls.v2.editor.TextEdits.of(area).subscribe(change -> {
             var gutter = breakpointGutterOf(et);
             if (gutter == null || gutter.getTarget() == null) {
                 return;
             }
-            String removed = change.getRemoved();
-            String inserted = change.getInserted();
-            int lengthBefore = area.getLength() - inserted.length() + removed.length();
-            if (removed.length() == lengthBefore) {
+            int lengthBefore = area.getLength() - change.getInsertedLength() + change.getRemovedLength();
+            if (change.getRemovedLength() == lengthBefore) {
                 return; // the whole text was replaced (load, reload, format): no edit to follow
             }
+            String removed = change.getRemoved();
+            String inserted = change.getInserted();
             var shift = new org.fxt.freexmltoolkit.debugger.LineShift(
                     lineOf(area.getText(), change.getPosition()), columnOf(area.getText(), change.getPosition()),
                     org.fxt.freexmltoolkit.debugger.LineShift.newlines(removed),

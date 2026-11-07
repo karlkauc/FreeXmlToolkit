@@ -43,11 +43,7 @@ public final class InlineValueLayer extends Pane {
         clip.heightProperty().bind(heightProperty());
         setClip(clip);
         area.viewportDirtyEvents().subscribe(e -> scheduleLayout());
-        area.plainTextChanges().subscribe(change -> {
-            if (!change.getInserted().equals(change.getRemoved())) {
-                setValues(Map.of());
-            }
-        });
+        TextEdits.of(area).subscribe(change -> setValues(Map.of()));
         widthProperty().addListener((obs, o, n) -> scheduleLayout());
         heightProperty().addListener((obs, o, n) -> scheduleLayout());
     }

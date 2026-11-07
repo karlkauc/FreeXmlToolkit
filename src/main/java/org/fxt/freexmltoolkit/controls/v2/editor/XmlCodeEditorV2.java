@@ -427,10 +427,7 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
         // plainTextChanges, not a textProperty ChangeListener: the latter materializes the whole
         // document as a String on every keystroke (twice, with the old value), which cost tens of ms per
         // key on multi-MB files. The highlighter reads the text itself, once, after its debounce.
-        codeArea.plainTextChanges().subscribe(change -> {
-            if (change.getInserted().equals(change.getRemoved())) {
-                return;
-            }
+        TextEdits.of(codeArea).subscribe(change -> {
             textRevision++;
             editorContext.setDirty(true);
             syntaxManager.requestHighlighting();
@@ -491,7 +488,8 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
 
     /** Same as {@link #setText(String)} with a document built by {@link #prepareText}. */
     public void setText(PreparedText prepared) {
-        codeArea.replace(0, codeArea.getLength(), prepared.document());
+        // A load: no undo step (the plain-text undo manager kept the whole text as a string)
+        TextEdits.withoutUndo(codeArea, () -> codeArea.replace(0, codeArea.getLength(), prepared.document()));
         afterSetText(prepared.text());
     }
 
@@ -543,7 +541,9 @@ public class XmlCodeEditorV2 extends VBox implements org.fxt.freexmltoolkit.cont
      */
     public void replaceTextRegion(int start, int oldEnd, PreparedText replacement) {
         int caret = codeArea.getCaretPosition();
-        codeArea.replace(start, oldEnd, replacement.document());
+        // Not an undo step of the text: a replacement of this size kept a second copy of the
+        // document in the history (the edits behind it stay undoable in the model)
+        TextEdits.withoutUndo(codeArea, () -> codeArea.replace(start, oldEnd, replacement.document()));
         afterRegionReplaced(caret, start, oldEnd, replacement.text());
     }
 

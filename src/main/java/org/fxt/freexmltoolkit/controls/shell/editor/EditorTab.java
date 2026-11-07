@@ -201,7 +201,7 @@ final class EditorTab extends Tab {
         this.openTypeEditorCallback = openTypeEditorCallback;
         this.goToDefinitionCallback = goToDefinitionCallback;
         this.view = EditorViews.create(document.getFileType());
-        view.getCodeArea().plainTextChanges().subscribe(change -> {
+        org.fxt.freexmltoolkit.controls.v2.editor.TextEdits.of(view.getCodeArea()).subscribe(change -> {
             textRevision++;
             // A text replaced from outside (reload from disk) wins over grid edits not yet written:
             // the model is re-parsed from it, never serialized over it.
@@ -2352,11 +2352,8 @@ final class EditorTab extends Tab {
         }
         dirtyTrackingAttached = true;
         // plainTextChanges, not textProperty: a ChangeListener there builds the whole text per keystroke
-        view.getCodeArea().plainTextChanges().subscribe(change -> {
-            if (!change.getInserted().equals(change.getRemoved())) {
-                document.setDirty(true);
-            }
-        });
+        org.fxt.freexmltoolkit.controls.v2.editor.TextEdits.of(view.getCodeArea())
+                .subscribe(change -> document.setDirty(true));
     }
 
     void refreshIcon() {

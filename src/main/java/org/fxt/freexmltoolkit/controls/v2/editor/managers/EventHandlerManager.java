@@ -44,7 +44,7 @@ public class EventHandlerManager {
     public EventHandlerManager(EditorContext editorContext) {
         this.editorContext = editorContext;
         this.codeArea = editorContext.getCodeArea();
-        this.codeArea.plainTextChanges().subscribe(change -> editRevision++);
+        org.fxt.freexmltoolkit.controls.v2.editor.TextEdits.of(this.codeArea).subscribe(change -> editRevision++);
         logger.info("EventHandlerManager created");
     }
 

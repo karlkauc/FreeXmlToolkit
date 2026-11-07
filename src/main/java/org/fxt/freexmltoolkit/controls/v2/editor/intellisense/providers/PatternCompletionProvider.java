@@ -66,7 +66,7 @@ public class PatternCompletionProvider implements CompletionProvider {
     public PatternCompletionProvider(EditorContext editorContext) {
         this.editorContext = Objects.requireNonNull(editorContext, "EditorContext cannot be null");
         if (editorContext.getCodeArea() != null) {
-            editorContext.getCodeArea().plainTextChanges().subscribe(change -> textRevision++);
+            org.fxt.freexmltoolkit.controls.v2.editor.TextEdits.of(editorContext.getCodeArea()).subscribe(change -> textRevision++);
         }
     }
 
