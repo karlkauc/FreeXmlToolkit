@@ -41,8 +41,10 @@ import com.google.gson.JsonParser;
  * sends them in the background ({@link TelemetrySender}) on a single daemon thread.
  *
  * <p><b>Kill switch:</b> nothing is recorded or sent when {@code -Dfxt.telemetry.disabled=true}
- * (set by every Gradle test task and {@code gradlew run}) or when the app version is the
- * development fallback {@code 0.0.0-dev} (unless {@code -Dfxt.telemetry.force=true}).
+ * (set by every Gradle test task and {@code gradlew run}), when the environment variable
+ * {@code FXT_TELEMETRY_DISABLED} or {@code DO_NOT_TRACK} is set to a true value (administrators set
+ * them machine-wide, e.g. by group policy, without touching the launcher), or when the app version
+ * is the development fallback {@code 0.0.0-dev} (unless {@code -Dfxt.telemetry.force=true}).
  *
  * <p><b>Gates:</b> events are queued but not sent until the first-start notice was shown;
  * usage events obey the usage toggle, error events the error toggle.
@@ -55,6 +57,10 @@ public class TelemetryServiceImpl implements TelemetryService {
     public static final String DEFAULT_ENDPOINT = "https://telemetry.status20.net";
     /** System property: disable telemetry entirely. */
     public static final String PROP_DISABLED = "fxt.telemetry.disabled";
+    /** Environment variable: disable telemetry entirely (machine-wide switch for administrators). */
+    public static final String ENV_DISABLED = "FXT_TELEMETRY_DISABLED";
+    /** Environment variable of the cross-tool "Console Do Not Track" convention (consoledonottrack.com). */
+    public static final String ENV_DO_NOT_TRACK = "DO_NOT_TRACK";
     /** System property: allow telemetry in development builds. */
     public static final String PROP_FORCE = "fxt.telemetry.force";
     /** System property: endpoint override. */
@@ -129,7 +135,7 @@ public class TelemetryServiceImpl implements TelemetryService {
 
     /** Production instance: real properties, proxy-aware HTTP, queue under {@code ~/.freeXmlToolkit}. */
     public static TelemetryServiceImpl createDefault() {
-        boolean killed = isKillSwitchActive(System.getProperties(), VersionUtil.getVersion());
+        boolean killed = isKillSwitchActive(System.getProperties(), System.getenv(), VersionUtil.getVersion());
         PropertiesService props = ServiceRegistry.get(PropertiesService.class);
         ConnectionService connection = ServiceRegistry.get(ConnectionService.class);
         TelemetryQueue queue = killed
@@ -156,12 +162,37 @@ public class TelemetryServiceImpl implements TelemetryService {
      *         {@code fxt.telemetry.force=true}
      */
     public static boolean isKillSwitchActive(Properties systemProperties, String appVersion) {
-        if (Boolean.parseBoolean(systemProperties.getProperty(PROP_DISABLED))) {
+        return isKillSwitchActive(systemProperties, java.util.Map.of(), appVersion);
+    }
+
+    /**
+     * Whether telemetry must be off for this process.
+     *
+     * @param systemProperties the JVM system properties
+     * @param environment      the process environment
+     * @param appVersion       the app version
+     * @return true for {@code fxt.telemetry.disabled=true}, {@code FXT_TELEMETRY_DISABLED} or
+     *         {@code DO_NOT_TRACK} set to a true value, or a dev version without
+     *         {@code fxt.telemetry.force=true}
+     */
+    public static boolean isKillSwitchActive(Properties systemProperties, java.util.Map<String, String> environment,
+                                             String appVersion) {
+        if (Boolean.parseBoolean(systemProperties.getProperty(PROP_DISABLED))
+                || isTrue(environment.get(ENV_DISABLED)) || isTrue(environment.get(ENV_DO_NOT_TRACK))) {
             return true;
         }
         boolean force = Boolean.parseBoolean(systemProperties.getProperty(PROP_FORCE));
         boolean devBuild = appVersion == null || appVersion.isBlank() || DEV_VERSION.equals(appVersion);
         return devBuild && !force;
+    }
+
+    /** @return whether an environment value means "on": {@code 1}, {@code true} or {@code yes} */
+    static boolean isTrue(String value) {
+        if (value == null) {
+            return false;
+        }
+        String v = value.strip().toLowerCase(java.util.Locale.ROOT);
+        return v.equals("1") || v.equals("true") || v.equals("yes");
     }
 
     // ------------------------------------------------------------------ state

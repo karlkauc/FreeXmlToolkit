@@ -130,9 +130,29 @@ Open **Settings → Privacy → USAGE STATISTICS** and clear
 then click **Save Settings**. Events of the disabled kind that are still waiting to be sent are
 deleted immediately.
 
-Administrators can disable telemetry completely by starting the application with the Java
-system property `-Dfxt.telemetry.disabled=true`, or by setting these keys in
-`~/.freeXmlToolkit/FreeXmlToolkit.properties`:
+### Switching it off for every user (administrators)
+
+Telemetry is switched off completely - nothing is recorded, queued or sent, and the first-start
+notice is not shown - when any of these is set:
+
+| Switch | Value | Typical use |
+|---|---|---|
+| Environment variable `FXT_TELEMETRY_DISABLED` | `1`, `true` or `yes` | machine-wide, e.g. by group policy or a software-distribution script |
+| Environment variable `DO_NOT_TRACK` | `1`, `true` or `yes` | the cross-tool [Console Do Not Track](https://consoledonottrack.com/) convention |
+| Java system property `-Dfxt.telemetry.disabled=true` | `true` | a custom launcher or start script |
+
+Setting the environment variable machine-wide:
+
+- **Windows** (elevated prompt): `setx FXT_TELEMETRY_DISABLED 1 /M`. With group policy:
+  *Computer Configuration → Preferences → Windows Settings → Environment*, a system variable
+  `FXT_TELEMETRY_DISABLED` with the value `1`.
+- **macOS**: `sudo launchctl setenv FXT_TELEMETRY_DISABLED 1` (until the next restart), or a
+  LaunchAgent that runs this command at login for a permanent setting.
+- **Linux**: add `FXT_TELEMETRY_DISABLED=1` to `/etc/environment`.
+
+The application reads the switch at start-up; restart it after setting the variable.
+
+A single user can also switch both kinds off in `~/.freeXmlToolkit/FreeXmlToolkit.properties`:
 
 ```properties
 telemetry.usage.enabled=false

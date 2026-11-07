@@ -80,6 +80,17 @@ class TelemetryServiceImplTest {
     }
 
     @Test
+    void anEnvironmentVariableSwitchesTelemetryOffMachineWide() {
+        Properties p = new Properties();
+        assertFalse(TelemetryServiceImpl.isKillSwitchActive(p, java.util.Map.of(), "2.2.0"));
+        assertTrue(TelemetryServiceImpl.isKillSwitchActive(p, java.util.Map.of("FXT_TELEMETRY_DISABLED", "true"), "2.2.0"));
+        assertTrue(TelemetryServiceImpl.isKillSwitchActive(p, java.util.Map.of("FXT_TELEMETRY_DISABLED", " YES "), "2.2.0"));
+        assertTrue(TelemetryServiceImpl.isKillSwitchActive(p, java.util.Map.of("DO_NOT_TRACK", "1"), "2.2.0"));
+        assertFalse(TelemetryServiceImpl.isKillSwitchActive(p, java.util.Map.of("DO_NOT_TRACK", "0"), "2.2.0"));
+        assertFalse(TelemetryServiceImpl.isKillSwitchActive(p, java.util.Map.of("FXT_TELEMETRY_DISABLED", ""), "2.2.0"));
+    }
+
+    @Test
     void killedServiceRecordsAndSendsNothing() {
         service.shutdown(Duration.ofMillis(100));
         service = newService(true);
