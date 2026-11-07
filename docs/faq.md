@@ -39,14 +39,18 @@ Configure the proxy under **Settings → Network & Security → HTTP PROXY**: *S
 (default, includes PAC/WPAD), *Manual proxy* or *No proxy*, hosts to reach directly, and proxy
 authentication (user and password, or the Windows account via NTLM/Kerberos). **Test Connection**
 checks an address with the values shown. Every connection of the application uses these
-settings - schema and catalog downloads, updates, FundsXML, telemetry, `doc()` in XPath/XQuery,
-JSON Schema `$ref`s and XProc. See [Settings](settings.md).
+settings - schema and catalog downloads, updates, FundsXML, telemetry, `doc()` in the Query
+Console's XPath mode and grid formulas, JSON Schema `$ref`s, XProc and HTML previews. See
+[Settings](settings.md).
 
 ### Can I use FreeXmlToolkit offline?
 
-Yes. Only optional features go online: the update check, schema downloads for imports that are
-not cached, the FundsXML extension and the anonymous telemetry (see
-[Privacy & Telemetry](telemetry.md#offline-use-and-proxies)).
+Yes. Editing, validation against local schemas, transformations, debugging and PDF output run
+locally. What goes online is optional or comes from your documents: the update check, the
+anonymous telemetry, the FundsXML extension, and schemas a document or import refers to by an
+`http(s)` URL that is neither cached nor mapped to a local file. [Operation without
+internet](offline-operation.md) lists every connection, how to switch it off and how to prepare
+schemas for an offline machine.
 
 ## Schemas and Validation
 

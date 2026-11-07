@@ -48,15 +48,20 @@ If processed without protection, this could expose sensitive files from your com
 | External file access | Reading local files via `file://` URIs | Blocked |
 | External DTD loading | Loading DTD definitions from remote servers | Blocked |
 | Parameter entities | Using `%entity;` to include external content | Blocked |
-| Entity expansion bombs | "Billion laughs" denial-of-service attacks | Limited |
+| Entity expansion bombs | "Billion laughs" denial-of-service attacks | Limited (see below) |
 
 ### How It Works
 
-All XML parsing in FreeXmlToolkit uses secure configurations that:
+The parsers that read your documents (the editor's model, validation, transformations) are
+created with secure settings that:
 - Disable external general entities
 - Disable external parameter entities
 - Disable external DTD loading
-- Limit entity expansion
+- Turn on the JAXP secure-processing mode, whose built-in limits cap entity expansion
+
+In the editor, internal entities are kept as references and not expanded. FreeXmlToolkit sets no
+entity-expansion limits of its own beyond the parser's secure-processing defaults. See the
+[threat model](threat-model.md) for the details and the known limits.
 
 ### What This Means for You
 
@@ -175,10 +180,16 @@ namespace URL (see
 [Automatic Resolution of Imported Schemas](xsd-tools.md#automatic-resolution-of-imported-schemas)).
 These downloads go through the same SSRF protection: only public `http`/`https` addresses are
 contacted, and the downloaded content is verified to be a real XML Schema before it is used.
-Downloaded schemas are cached in `~/.freeXmlToolkit/cache/schemas/` only - nothing is ever
-written into your schema's folder, and your schema file is never rewritten. To disable
-remote downloads entirely, start the application with the system property
-`-Dfxt.schema.namespaceFallback=false`.
+Downloaded schemas are cached in `~/.freeXmlToolkit/cache/schemas/`. In addition, a downloaded
+import or include is copied next to the schema that references it, under its original name, so
+the folder works without the network next time; an existing file is never overwritten and your
+schema file is never rewritten. Start the application with `-Dfxt.schema.localCopies=false` to
+keep downloads in the cache only.
+
+`-Dfxt.schema.namespaceFallback=false` turns off the namespace-URL fallback and the downloads
+of the bundled Schema Library entries. It does **not** stop every download: a `schemaLocation`
+URL in a document or an import is still fetched. See
+[Operation without internet](offline-operation.md) for the full list of network connections.
 
 ---
 

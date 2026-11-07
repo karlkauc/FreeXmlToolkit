@@ -151,6 +151,8 @@ nav:
     - Digital Signatures: digital-signatures.md
     - Privacy & Telemetry: telemetry.md
     - Code Signing Policy: code-signing-policy.md
+    - Threat Model: threat-model.md
+    - Operation without Internet: offline-operation.md
   - Reference:
     - What's New: whats-new.md
     - FAQ & Troubleshooting: faq.md
