@@ -103,6 +103,16 @@ public class XmlSerializer {
     }
 
     /**
+     * {@link #serialize(XmlDocument)} that records the start-tag line of every element in {@code lines}.
+     */
+    public String serialize(XmlDocument document, org.fxt.freexmltoolkit.controls.v2.xmleditor.model.LineRecorder lines) {
+        if (document == null) {
+            throw new IllegalArgumentException("Document cannot be null");
+        }
+        return document.serialize(indentSize, lines);
+    }
+
+    /**
      * Serializes any XML node to string.
      *
      * @param node the node to serialize

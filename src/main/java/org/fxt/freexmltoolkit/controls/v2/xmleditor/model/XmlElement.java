@@ -600,6 +600,11 @@ public class XmlElement extends XmlNode {
 
     @Override
     public void serializeTo(StringBuilder sb, int indent, int indentSize) {
+        serializeTo(sb, indent, indentSize, null);
+    }
+
+    @Override
+    public void serializeTo(StringBuilder sb, int indent, int indentSize, LineRecorder lines) {
         int indentWidth = indent * indentSize;
 
         // Opening tag
@@ -612,8 +617,14 @@ public class XmlElement extends XmlNode {
         // Empty element or with children
         if (children.isEmpty()) {
             sb.append("/>");
+            if (lines != null) {
+                lines.record(this, sb);
+            }
         } else {
             sb.append('>');
+            if (lines != null) {
+                lines.record(this, sb);
+            }
 
             // Children
             boolean hasElementChildren = hasElementChildren();
@@ -623,10 +634,10 @@ public class XmlElement extends XmlNode {
 
             for (XmlNode child : children) {
                 if (child instanceof XmlElement || child instanceof XmlComment || child instanceof XmlProcessingInstruction) {
-                    child.serializeTo(sb, indent + 1, indentSize);
+                    child.serializeTo(sb, indent + 1, indentSize, lines);
                     sb.append('\n');
                 } else {
-                    child.serializeTo(sb, 0, indentSize);
+                    child.serializeTo(sb, 0, indentSize, lines);
                 }
             }
 

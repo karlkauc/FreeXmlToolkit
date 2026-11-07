@@ -119,6 +119,13 @@ final class EditorTab extends Tab {
     /** Coalesces caret movement into a single Text-view caret&rarr;node resolution. */
     final javafx.animation.PauseTransition xmlCaretDebounce =
             new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
+
+    /**
+     * Typing pause after which a large document edited in the text is parsed again in the
+     * background, so the Inspector follows the caret (see {@link #resolveCaretXmlNode()}).
+     */
+    final javafx.animation.PauseTransition largeXmlCaretParse =
+            new javafx.animation.PauseTransition(javafx.util.Duration.millis(1500));
     /** Read on validation worker threads (schema reconcile) — hence volatile. */
     volatile File schemaFile;
     /** V2 model of {@link #schemaFile} for an XML tab (read-only cache; edits go to the XSD's tab). */
@@ -219,6 +226,7 @@ final class EditorTab extends Tab {
                 () -> (document.isDirty() ? "● " : "") + document.getDisplayName(),
                 document.dirtyProperty(), document.displayNameProperty()));
         roundTripDebounce.setOnFinished(e -> roundTripModelToText());
+        largeXmlCaretParse.setOnFinished(e -> parseLargeXmlForCaret());
         xmlCaretDebounce.setOnFinished(e -> {
             if (document.getFileType() == EditorFileType.XSD) {
                 resolveCaretXsdNode();
@@ -670,7 +678,11 @@ final class EditorTab extends Tab {
                     return;
                 }
                 if (textRevision != revision) {
-                    callbacks.forEach(this::ensureXmlModelParsedAsync);
+                    for (Runnable callback : callbacks) {
+                        if (!(callback instanceof NoRetry)) {
+                            ensureXmlModelParsedAsync(callback);
+                        }
+                    }
                     return;
                 }
                 if (!(xmlEditorContext != null && lastParsedXmlRevision == revision)) {
@@ -797,12 +809,13 @@ final class EditorTab extends Tab {
         // typing now would make the text win over the grid edits: read-only until written back
         boolean editable = view.getCodeArea().isEditable();
         view.getCodeArea().setEditable(false);
+        var lines = new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.LineRecorder();
         Runnable work = () -> {
             int[] region = null;
             String replacement = null;
             org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2.PreparedText prepared = null;
             try {
-                String xml = ctx.serializeToString();
+                String xml = ctx.serializeToString(lines);
                 String current = snapshot.getText();
                 region = TextDiff.minimalReplaceRegion(current, xml);
                 replacement = xml.substring(region[0], region[2]);
@@ -841,6 +854,7 @@ final class EditorTab extends Tab {
                     document.setDirty(true);
                 }
                 lastParsedXmlRevision = textRevision;
+                modelLinesFrom(lines);
             });
         };
         try {
@@ -854,21 +868,37 @@ final class EditorTab extends Tab {
         return true;
     }
 
+    /**
+     * The text now is the model's serialization that recorded {@code lines}: the model takes over
+     * those lines and maps the caret again (Inspector in the Text view) without a second parse.
+     */
+    private void modelLinesFrom(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.LineRecorder lines) {
+        lines.apply();
+        xmlModelLinesRevision = textRevision;
+        if (caretMapRevision != textRevision) {
+            caretMapDoc = null; // the model maps the caret now (see ensureCaretMapAsync)
+            caretMapRevision = -1;
+        }
+    }
+
     /** Serializes the shared XML model back into the editor text via a minimal diff (caret/scroll preserved). */
     private void roundTripXmlModelToText() {
         markXmlTextCurrent();
         if (xmlEditorContext == null) {
             return;
         }
-        String xml = xmlEditorContext.serializeToString();
+        var lines = new org.fxt.freexmltoolkit.controls.v2.xmleditor.model.LineRecorder();
+        String xml = xmlEditorContext.serializeToString(lines);
         String current = view.getText();
         int[] region = TextDiff.minimalReplaceRegion(current, xml);
         if (region[0] == region[1] && region[0] == region[2]) {
             lastParsedXmlRevision = textRevision;
+            modelLinesFrom(lines);
             return;
         }
         view.replaceTextRegion(region[0], region[1], xml.substring(region[0], region[2]));
         lastParsedXmlRevision = textRevision;
+        modelLinesFrom(lines);
         document.setDirty(true);
     }
 
@@ -987,13 +1017,14 @@ final class EditorTab extends Tab {
         }
         if (view.getCodeArea().getLength() >= deferredXmlRoundTripChars
                 && !(xmlEditorContext != null && xmlModelLinesRevision == textRevision)) {
-            // Large document edited in the text: re-parsing it after every caret pause copied the
-            // whole text on the FX thread (seconds for 150 MB) and parsed it twice. The caret is
-            // mapped again once the model is current (Graphic view, save, validation).
+            // Large document edited in the text: not parsed after every caret pause (a 150-MB parse
+            // takes seconds and builds a whole model), but once typing has paused. Until then the
+            // Inspector shows no node.
             if (currentXmlSelection != null) {
                 currentXmlSelection = null;
                 selectionCallback.run();
             }
+            largeXmlCaretParse.playFromStart();
             return;
         }
         // Both parses (shared model, caret map) run off the FX thread; the mapping below is cheap.
@@ -1004,6 +1035,30 @@ final class EditorTab extends Tab {
             }
             ensureCaretMapAsync(this::applyCaretXmlNode);
         });
+    }
+
+    /**
+     * The typing pause of a large document is over: parse the text once in the background (the
+     * model then maps the caret itself) and show the node at the caret. Text typed meanwhile drops
+     * the result without starting the next parse at once; the next pause asks again.
+     */
+    private void parseLargeXmlForCaret() {
+        if (viewMode != ViewMode.TEXT || isAbandoned(this)) {
+            return;
+        }
+        ensureXmlModelParsedAsync(new NoRetry(() -> {
+            if (xmlEditorContext != null && xmlModelLinesRevision == textRevision) {
+                resolveCaretXmlNode();
+            }
+        }));
+    }
+
+    /** A parse callback that is dropped, not re-run, when the text changed during the parse. */
+    private record NoRetry(Runnable action) implements Runnable {
+        @Override
+        public void run() {
+            action.run();
+        }
     }
 
     /**

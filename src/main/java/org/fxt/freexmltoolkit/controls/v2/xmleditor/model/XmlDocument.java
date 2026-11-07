@@ -312,6 +312,17 @@ public class XmlDocument extends XmlNode {
 
     @Override
     public String serialize(int indent, int indentSize) {
+        return serialize(indentSize, null);
+    }
+
+    /**
+     * Serializes the document and records the line of every element's start tag.
+     *
+     * @param indentSize the number of spaces per indentation level
+     * @param lines      receives the lines (see {@link LineRecorder#apply()}), or {@code null}
+     * @return the XML text
+     */
+    public String serialize(int indentSize, LineRecorder lines) {
         // Sized after the last result: growing a builder to 150 MB copied it a dozen times
         StringBuilder sb = new StringBuilder(lastSerializedLength > 0
                 ? (int) Math.min(Integer.MAX_VALUE - 16, lastSerializedLength + (lastSerializedLength >> 6) + 1024)
@@ -329,7 +340,7 @@ public class XmlDocument extends XmlNode {
 
         // Serialize all children
         for (XmlNode child : children) {
-            child.serializeTo(sb, 0, indentSize);
+            child.serializeTo(sb, 0, indentSize, lines);
             if (child.getNodeType() != XmlNodeType.TEXT) {
                 sb.append("\n");
             }

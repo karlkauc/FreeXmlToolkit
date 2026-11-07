@@ -68,7 +68,7 @@ class TextCaretSelectsXmlNodeTest {
     }
 
     @Test
-    void largeDocumentMapsTheCaretWithItsParsedModel(@TempDir Path tmp) throws Exception {
+    void largeDocumentMapsTheCaretWithItsParsedModelAndAgainAfterATypingPause(@TempDir Path tmp) throws Exception {
         int threshold = EditorTab.deferredXmlRoundTripChars;
         EditorTab.deferredXmlRoundTripChars = 1; // every document counts as large
         try {
@@ -92,13 +92,15 @@ class TextCaretSelectsXmlNodeTest {
             WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.moveActiveCaretTo(caret));
             WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> "child".equals(inspector.getNodeNameText()));
 
-            // typed text: a large document is not re-parsed for the caret, the selection is dropped
+            // typed text: not re-parsed on every caret pause; the selection is dropped meanwhile …
             WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
                 host.getActiveCodeArea().insertText(caret, "q");
                 return null;
             });
-            WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeXmlNodeProperty().get() == null);
-            assertNull(host.activeXmlNodeProperty().get());
+            WaitForAsyncUtils.waitFor(1, TimeUnit.SECONDS, () -> host.activeXmlNodeProperty().get() == null);
+            // … and once typing has paused, the text is parsed in the background and the caret mapped
+            WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> "chqild".equals(inspector.getNodeNameText()));
+            assertEquals("chqild", inspector.getNodeNameText());
         } finally {
             EditorTab.deferredXmlRoundTripChars = threshold;
         }

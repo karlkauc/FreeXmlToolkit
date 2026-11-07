@@ -126,6 +126,35 @@ class EditorHostXmlDeferredRoundTripTest {
                 "two-space indentation kept (the configured four spaces would rewrite every line): " + text);
     }
 
+    @Test
+    void afterAWriteBackTheModelMapsTheCaretWithoutAParse(@TempDir Path tmp) throws Exception {
+        EditorTab.deferredXmlRoundTripChars = 1;
+        String source = "<root a=\"1\">\n  <child/>\n  <other x=\"2\"/>\n</root>\n";
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, source);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        showGrid();
+        editRoot("b", "2");
+        XmlElement other = WaitForAsyncUtils.waitForAsyncFx(2000, () -> ((XmlGridView) host.lookupAll("*").stream()
+                .filter(n -> n instanceof XmlGridView && n.isVisible()).findFirst().orElseThrow())
+                .getContext().getDocument().getRootElement().getChildElements("other").getFirst());
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveViewMode(ViewMode.TEXT);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveCodeArea().getText().contains("b=\"2\"") && host.getActiveCodeArea().isEditable()));
+        int caret = WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveCodeArea().getText().indexOf("<other") + 2);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.moveActiveCaretTo(caret));
+
+        // the edited model itself (same node, grid undo history kept), not a new parse of the text
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.activeXmlNodeProperty().get() == other);
+        assertSame(other, host.activeXmlNodeProperty().get());
+    }
+
     private void showGrid() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
             host.setActiveViewMode(ViewMode.GRAPHIC);

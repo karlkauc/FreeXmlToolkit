@@ -350,6 +350,14 @@ public class XmlEditorContext {
         return serializer.serialize(document);
     }
 
+    /**
+     * {@link #serializeToString()} that records the start-tag line of every element, to be applied
+     * to the model once the text shows this serialization.
+     */
+    public String serializeToString(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.LineRecorder lines) {
+        return serializer.serialize(document, lines);
+    }
+
     // ==================== Command Execution ====================
 
     /**

@@ -301,6 +301,14 @@ public abstract class XmlNode {
     }
 
     /**
+     * {@link #serializeTo(StringBuilder, int, int)} that also records the line of every element
+     * start tag in {@code lines} (when not {@code null}).
+     */
+    public void serializeTo(StringBuilder out, int indent, int indentSize, LineRecorder lines) {
+        serializeTo(out, indent, indentSize);
+    }
+
+    /**
      * Accepts a visitor for tree traversal.
      * Implements the Visitor pattern for extensible operations.
      *
