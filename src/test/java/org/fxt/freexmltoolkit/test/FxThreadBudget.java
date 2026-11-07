@@ -73,4 +73,26 @@ public final class FxThreadBudget {
     public static long assertFast(long maxMillis, String what, Runnable onFx) {
         return assertFast(maxMillis, 3, what, onFx);
     }
+
+    /**
+     * FX-thread CPU time from running {@code start} on the FX thread until {@code done} holds:
+     * for steps the FX thread completes over several events (a view switch that parses in the
+     * background, then builds the grid). Everything the FX thread does in between counts,
+     * rendering included.
+     *
+     * @return the FX thread's CPU time in milliseconds over the whole step
+     */
+    public static long cpuUntil(Runnable start, java.util.function.BooleanSupplier done, long timeoutSeconds)
+            throws Exception {
+        long fxThread = WaitForAsyncUtils.waitForAsyncFx(10_000, () -> Thread.currentThread().threadId());
+        long before = THREADS.getThreadCpuTime(fxThread);
+        WaitForAsyncUtils.waitForAsyncFx(60_000, (Callable<Void>) () -> {
+            start.run();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(timeoutSeconds, TimeUnit.SECONDS,
+                () -> WaitForAsyncUtils.waitForAsyncFx(60_000, done::getAsBoolean));
+        WaitForAsyncUtils.waitForFxEvents();
+        return TimeUnit.NANOSECONDS.toMillis(THREADS.getThreadCpuTime(fxThread) - before);
+    }
 }
