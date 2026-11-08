@@ -1,6 +1,25 @@
 # Third-Party Libraries and Licenses
 
-FreeXmlToolkit uses several third-party libraries. The following is a comprehensive list of these libraries and the licenses under which they are provided.
+FreeXmlToolkit itself is licensed under the [Apache License 2.0](https://github.com/karlkauc/FreeXmlToolkit/blob/main/LICENSE.md).
+It is built on third-party libraries and ships with its own Java runtime. The tables below list the libraries the
+project uses directly; the [SBOM](#software-bill-of-materials-sbom) of each release lists every library in the
+installation, including the ones these pull in. Two parts need more than a table row: the
+[Xerces build for XSD 1.1](#xml-validation-xsd-11-support) and the
+[bundled Java runtime with JavaFX](#bundled-java-runtime-and-javafx). This page explains the license
+situation; it is not legal advice.
+
+## License Texts in the Installation
+
+Every library jar carries its own license and notice files (`META-INF/`), in
+the installation's `app` folder. The Java runtime keeps its license texts in a `legal` folder, one subfolder per
+module:
+
+| Installation | Java runtime license texts |
+|---|---|
+| Windows | `runtime\legal\` in the installation folder |
+| macOS | `FreeXmlToolkit.app/Contents/runtime/Contents/Home/legal/` |
+| Linux `.deb` / `.rpm` | `/opt/freexmltoolkit/lib/runtime/legal/` |
+| Linux ZIP | `lib/runtime/legal/` in the extracted folder |
 
 ## Software Bill of Materials (SBOM)
 
@@ -43,19 +62,68 @@ and `bom.xml`.
 
 | Library | Version | License |
 |---------|---------|---------|
-| **Apache Xerces** (org.exist-db.thirdparty.xerces:xercesImpl) | 2.12.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
-| **XPath 2.0 Processor** (org.exist-db.thirdparty.org.eclipse.wst.xml:xpath2) | 1.2.0 | [Eclipse Public License 2.0](https://www.eclipse.org/legal/epl-2.0/) |
-| **Java CUP Runtime** (edu.princeton.cup:java-cup) | 10k | [CUP License](http://www2.cs.tum.edu/projects/cup/) |
+| **Apache Xerces**, XSD 1.1 build (org.exist-db.thirdparty.xerces:xercesImpl, classifier `xml-schema-1.1`) | 2.12.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **Eclipse WST XPath 2.0 Processor** "PsychoPath" (org.exist-db.thirdparty.org.eclipse.wst.xml:xpath2) | 1.2.0 | [Eclipse Public License 1.0](https://www.eclipse.org/legal/epl-v10.html) |
+| **Java CUP Runtime** (edu.princeton.cup:java-cup) | 10k | [CUP License](http://www2.cs.tum.edu/projects/cup/) (permissive, similar to the Standard ML of New Jersey license) |
+| **XML Commons External** (xml-apis:xml-apis, xml-apis:xml-apis-ext) | 1.4.01, 1.3.04 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0); contains the SAX (public domain) and W3C DOM interfaces ([W3C Software License](https://www.w3.org/copyright/software-license/)) |
+
+**Why a Xerces from eXist-db.** XSD 1.1 validation (assertions, conditional types, open content) comes from
+Apache Xerces-J. The Apache project builds Xerces-J 2.12.2 in two variants: the XSD 1.0 build, which is the one on
+Maven Central as `xerces:xercesImpl`, and the XSD 1.1 build, which Apache only offers as a download on
+[xerces.apache.org](https://xerces.apache.org/mirrors.cgi). The [eXist-db](https://exist-db.org) project publishes
+the XSD 1.1 build to Maven Central under its own group id `org.exist-db.thirdparty.xerces`, so that build tools can
+use it. FreeXmlToolkit uses that artifact:
+
+- It is **Apache code under the Apache License 2.0**, not an eXist-db product under eXist-db's license (LGPL). The
+  jar reports itself as `Xerces-J 2.12.2-xml-schema-1.1` from the Apache Software Foundation and contains Apache's
+  `LICENSE` and `NOTICE`. "Fork" only means a different place of publication.
+- The matching **sources** are on Maven Central next to the jar (`xercesImpl-2.12.2-xml-schema-1.1-sources.jar`);
+  the Apache sources are the release tag `Xerces-J_2_12_2` in the Apache Xerces repository.
+- For assertions, Xerces needs the **XPath 2.0 processor** from the Eclipse Web Tools Platform and the **CUP**
+  parser runtime. eXist-db publishes both in the same way. The XPath 2.0 processor is under the Eclipse Public
+  License **1.0** (a weak copyleft for the library itself, without effect on FreeXmlToolkit's code); it is
+  distributed unchanged, and its sources are on Maven Central (`xpath2-1.2.0-sources.jar`).
+- Xerces depends on the old **XML Commons** interface jars (`xml-apis`), and the Xerces jar contains copies of
+  them. They are inert on Java 25: the classes of the `javax.xml`, `org.w3c.dom` and `org.xml.sax` packages always
+  come from the Java runtime's own `java.xml` module.
+- The XSD 1.1 build is used for XSD 1.0 schemas as well unless Settings → Schemas & Validation → **XML parser** is set to Saxon; XSD 1.1 schemas always use it.
 
 ## UI Framework and Components
 
 | Library | Version | License |
 |---------|---------|---------|
-| **JavaFX** (Liberica Full JDK) | 25 | [GPL v2 with Classpath Exception](https://openjdk.java.net/legal/gplv2+ce.html) |
+| **Java runtime with JavaFX** (BellSoft Liberica Full JDK, see [below](#bundled-java-runtime-and-javafx)) | 25 | [GPL v2 with Classpath Exception](https://openjdk.org/legal/gplv2+ce.html) |
 | **RichTextFX** (org.fxmisc.richtext:richtextfx) | 0.11.7 | [BSD-2-Clause License](https://opensource.org/licenses/BSD-2-Clause) |
 | **ControlsFX** (org.controlsfx:controlsfx) | 11.2.6 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
 | **CSSFX** (fr.brouillard.oss:cssfx) | 11.5.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **NSMenuFX** (de.jangassen:nsmenufx, macOS menu bar) | 3.1.0 | [BSD 3-Clause License](https://opensource.org/licenses/BSD-3-Clause) |
+
+## Bundled Java Runtime and JavaFX
+
+FreeXmlToolkit does not need an installed Java. Each installer and ZIP contains a Java 25 runtime, made with
+`jlink` from the [BellSoft Liberica Full JDK](https://bell-sw.com/libericajdk/). "Full" means the JDK includes
+[OpenJFX](https://openjfx.io) (JavaFX), the UI toolkit; FreeXmlToolkit does not download or ship JavaFX jars of
+its own.
+
+- **What is in it.** Only the modules the application needs (`java.base`, `java.desktop`, `java.xml`,
+  `java.net.http`, …, and `javafx.base`, `javafx.controls`, `javafx.fxml`, `javafx.graphics`, `javafx.media`,
+  `javafx.swing`, `javafx.web`). The modules are not modified; `jlink` only leaves out the other modules, debug
+  information and the command line tools. The `release` file in the runtime folder names the exact version.
+- **License.** OpenJDK and OpenJFX are under the **GNU General Public License version 2 with the Classpath
+  Exception**. The Classpath Exception allows an application to run on and link with the runtime under its own
+  license; FreeXmlToolkit's code stays under the Apache License 2.0, and the runtime stays under GPLv2+CE.
+  Some native parts carry their own licenses: WebKit in `javafx.web` (used for the HTML preview and the help
+  pages) and GStreamer/GLib in `javafx.media` are mostly under the LGPL 2.1, and libraries such as ICU, libxml2,
+  libxslt, FreeType, HarfBuzz, libjpeg and libpng under permissive licenses. Every one of them is listed with its
+  full license text in the module's `legal` subfolder (see [License Texts in the Installation](#license-texts-in-the-installation)).
+- **Sources.** The runtime is the unmodified Liberica build. Its sources are published by BellSoft
+  ([Liberica source packages](https://bell-sw.com/pages/downloads/), [github.com/bell-sw](https://github.com/bell-sw))
+  and by the OpenJDK projects ([openjdk/jdk](https://github.com/openjdk/jdk), [openjdk/jfx](https://github.com/openjdk/jfx)).
+- **Updates.** The runtime is replaced with every FreeXmlToolkit release, which picks up the latest Liberica 25
+  update at build time. Java security fixes therefore arrive with FreeXmlToolkit updates, not through a separately
+  installed Java.
+- **The TestFX/Monocle** jar in the test dependencies below is only used to run the tests headless; it is not part
+  of the installation.
 
 ## Icons and Graphics
 
@@ -151,14 +219,18 @@ The majority of libraries used in FreeXmlToolkit are licensed under permissive o
 
 | License Type | Count |
 |--------------|-------|
-| Apache License 2.0 | 29 |
+| Apache License 2.0 | 30 |
 | MIT License | 5 |
 | BSD (2/3-Clause) | 5 |
-| Eclipse Public / Distribution License | 5 |
+| Eclipse Public / Distribution License (1.0 / 2.0) | 5 |
 | EUPL-1.1 | 2 |
 | GPL v2 with Classpath Exception | 2 |
 | Mozilla Public License 2.0 | 1 |
 | CUP License | 1 |
 
-All licenses are compatible with the Apache License 2.0 under which FreeXmlToolkit is distributed.
+The libraries on the application's class path are under permissive or weak-copyleft licenses (Apache, MIT, BSD,
+MPL 2.0, EPL, EDL) that allow their use in an application under the Apache License 2.0. The GPL-with-Classpath-
+Exception parts are the Java runtime and JavaFX, which the application runs on (see
+[Bundled Java Runtime and JavaFX](#bundled-java-runtime-and-javafx)); EUPL and GPLv2+CE in the testing section
+concern test tools that are not distributed.
 
