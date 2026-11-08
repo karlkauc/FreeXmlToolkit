@@ -2251,6 +2251,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Administration & Policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2805,12 +2833,16 @@ untrusted sources:</p>
 </thead>
 <tbody>
 <tr>
+<td>Users cannot change the settings below</td>
+<td>Put them into the machine-wide policy file, see <a href="../administration/">Administration &amp; Policies</a></td>
+</tr>
+<tr>
 <td>No telemetry</td>
-<td>Environment variable <code>FXT_TELEMETRY_DISABLED=1</code> (machine-wide)</td>
+<td>Environment variable <code>FXT_TELEMETRY_DISABLED=1</code> (machine-wide), or <code>fxt.telemetry.disabled=true</code> in the policy file</td>
 </tr>
 <tr>
 <td>No update check</td>
-<td><code>update.check.enabled=false</code> in the properties file (Settings → Updates)</td>
+<td><code>update.check.enabled=false</code> in the properties file (Settings → Updates); <code>update.allowed=false</code> in the policy file also removes manual checks and installs</td>
 </tr>
 <tr>
 <td>Schemas only from local files</td>
@@ -2830,8 +2862,9 @@ untrusted sources:</p>
 </tr>
 </tbody>
 </table>
-<p>The <code>-D…</code> options are Java options; <a href="../offline-operation/#java-options-for-an-installed-application">Operation without internet</a>
-shows where to set them for an installed application, and lists every connection and cache.</p>
+<p>The <code>-D…</code> options are Java options; the policy file takes them as <code>fxt.…=value</code> lines, and
+<a href="../offline-operation/#java-options-for-an-installed-application">Operation without internet</a>
+shows where else to set them for an installed application, and lists every connection and cache.</p>
 <h2 id="reporting-a-vulnerability">Reporting a vulnerability<a class="headerlink" href="#reporting-a-vulnerability" title="Permanent link">&para;</a></h2>
 <p>See the <a href="../security-policy/">Security Policy</a>.</p>
 

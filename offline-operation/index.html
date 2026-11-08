@@ -18,7 +18,7 @@
         <link rel="prev" href="../threat-model/">
       
       
-        <link rel="next" href="../whats-new/">
+        <link rel="next" href="../administration/">
       
       
         
@@ -2251,6 +2251,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../administration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Administration & Policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2870,6 +2898,10 @@ FundsXML extension.</p>
 </code></pre></div>
 <p>and set the environment variable <code>FXT_TELEMETRY_DISABLED=1</code> machine-wide (it also suppresses the
 first-start notice; see <a href="../telemetry/#switching-it-off-for-every-user-administrators">Privacy &amp; Telemetry</a>).</p>
+<p>For every user of a computer, and without users being able to switch them back, put these
+lines into the machine-wide policy file instead (with <code>update.allowed=false</code>,
+<code>fxt.telemetry.disabled=true</code> and the <code>fxt.schema.…</code> options below), see
+<a href="../administration/">Administration &amp; Policies</a>.</p>
 <h2 id="java-options-for-an-installed-application">Java options for an installed application<a class="headerlink" href="#java-options-for-an-installed-application" title="Permanent link">&para;</a></h2>
 <p>Options written as <code>-D…</code> on this page are Java options. In an installed application they go into
 the launcher configuration in the installation's <code>app</code> folder, <code>FreeXmlToolkit.cfg</code> (on Linux
@@ -2880,7 +2912,7 @@ under <code>lib/app/</code>), as lines in the <code>[JavaOptions]</code> section
 </code></pre></div>
 <p>An update replaces this file, so software distribution should write it again after each update.
 On macOS the file is part of the signed application bundle: changing it breaks the signature, so
-use the environment variables and the properties file there instead.</p>
+use the <a href="../administration/">policy file</a> (<code>fxt.…</code> keys) or the environment variables there instead.</p>
 <p>See also the <a href="../threat-model/">Threat Model</a> for the security side of these connections.</p>
 
 
@@ -2936,13 +2968,13 @@ use the environment variables and the properties file there instead.</p>
         
         
           
-          <a href="../whats-new/" class="md-footer__link md-footer__link--next" aria-label="Next: What&#39;s New">
+          <a href="../administration/" class="md-footer__link md-footer__link--next" aria-label="Next: Administration &amp; Policies">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                What's New
+                Administration & Policies
               </div>
             </div>
             <div class="md-footer__button md-icon">
