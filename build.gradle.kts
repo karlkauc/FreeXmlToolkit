@@ -160,6 +160,17 @@ dependencies {
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
     implementation("jakarta.activation:jakarta.activation-api:2.1.4")
 
+    // Security: transitive versions with known vulnerabilities lifted (OSV scan, November 2026).
+    // ognl 3.3.4 (via Thymeleaf) stays: 3.4 breaks Thymeleaf 3.1, and its CVE-2026-113730 needs
+    // attacker-written OGNL expressions; the documentation templates are bundled, no preprocessing.
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.21.7")) // via XML Calabash
+    constraints {
+        implementation("tools.jackson.core:jackson-core:3.2.3") { because("CVE fix; via json-schema-validator") }
+        implementation("tools.jackson.core:jackson-databind:3.2.3") { because("CVE fix; via json-schema-validator") }
+        implementation("org.jsoup:jsoup:1.23.2") { because("CVE fix; via flexmark") }
+        testImplementation("org.assertj:assertj-core:3.27.7") { because("CVE fix; via TestFX") }
+    }
+
     implementation("org.apache.httpcomponents.core5:httpcore5-h2:5.4.4")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.6.5")
 
