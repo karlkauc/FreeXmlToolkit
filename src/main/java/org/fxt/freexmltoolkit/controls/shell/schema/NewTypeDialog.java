@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -50,8 +52,8 @@ public class NewTypeDialog extends Dialog<NewTypeDialog.NewType> {
      */
     public NewTypeDialog(XsdSchema schema, Kind kind) {
         this.schema = schema;
-        setTitle("New Type");
-        setHeaderText("Declare a new top-level type in this schema.");
+        setTitle(I18n.t("NewTypeDialog.new-type"));
+        setHeaderText(I18n.t("NewTypeDialog.declare-a-new-top-level"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/NewTypeDialog.fxml"));
         getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());

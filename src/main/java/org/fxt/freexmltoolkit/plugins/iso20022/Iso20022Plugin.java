@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.plugins.iso20022;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -152,7 +154,7 @@ public final class Iso20022Plugin implements FxtPlugin {
             String text = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             ui.editorHost().openGeneratedDocument(text, EditorFileType.XML, message + "-sample.xml");
         } catch (IOException | NullPointerException e) {
-            DialogHelper.showError("ISO 20022", "The sample could not be opened.", String.valueOf(e.getMessage()));
+            DialogHelper.showError(I18n.t("Iso20022Plugin.iso-20022"), I18n.t("Iso20022Plugin.the-sample-could-not-be"), String.valueOf(e.getMessage()));
         }
     }
 }

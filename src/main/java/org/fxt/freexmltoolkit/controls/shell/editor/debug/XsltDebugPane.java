@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -375,7 +377,7 @@ public final class XsltDebugPane extends VBox {
     public void onRestart() {
         messagesView.clear();
         outputView.clear();
-        status.setText("Restarting…");
+        status.setText(I18n.t("XsltDebugPane.restarting"));
         controller.restart();
     }
 
@@ -510,7 +512,7 @@ public final class XsltDebugPane extends VBox {
                 if (!status.getText().startsWith("Restarting")) {
                     messagesView.clear();
                 }
-                status.setText("Running…");
+                status.setText(I18n.t("XsltDebugPane.running"));
                 onPaused.accept(null);
             }
             case STOPPED -> {
@@ -518,7 +520,7 @@ public final class XsltDebugPane extends VBox {
                 variablesView.clear();
                 callStackView.clear();
                 watchView.evaluateAll(null);
-                status.setText("Stopped.");
+                status.setText(I18n.t("XsltDebugPane.stopped"));
                 onPaused.accept(null);
             }
             case IDLE -> {
@@ -527,7 +529,7 @@ public final class XsltDebugPane extends VBox {
                 callStackView.clear();
                 watchView.evaluateAll(null);
                 if (!status.getText().startsWith("Finished") && !status.getText().startsWith("Error")) {
-                    status.setText("Finished.");
+                    status.setText(I18n.t("XsltDebugPane.finished"));
                 }
                 onPaused.accept(null);
             }
@@ -547,7 +549,7 @@ public final class XsltDebugPane extends VBox {
                     + (result.getOutputContent() == null ? 0 : result.getOutputContent().length())
                     + " chars → OUTPUT");
         } else if (result.getErrorMessage() != null && result.getErrorMessage().contains("stopped")) {
-            status.setText("Stopped.");
+            status.setText(I18n.t("XsltDebugPane.stopped"));
         } else {
             status.setText("Error: " + (result.getErrorMessage() == null ? "transformation failed"
                     : result.getErrorMessage()));
@@ -702,8 +704,7 @@ public final class XsltDebugPane extends VBox {
         if (frameScope == null) {
             scope = null;
             variablesView.setVariables(List.of());
-            variablesView.setPlaceholderText("No variables were captured for this frame "
-                    + "(only the innermost frames carry values).");
+            variablesView.setPlaceholderText(I18n.t("XsltDebugPane.no-variables-were-captured-for"));
             watchView.markUnavailable("<no values for this frame>");
             return;
         }
@@ -732,7 +733,7 @@ public final class XsltDebugPane extends VBox {
     void jumpToOutputSource(int offset) {
         controller.getSession().outputSources().locate(offset).ifPresentOrElse(
                 src -> onJumpToFrame.accept(new DebugStackFrame("output", src.systemId(), src.line(), List.of())),
-                () -> status.setText("No instruction is known for this part of the output."));
+                () -> status.setText(I18n.t("XsltDebugPane.no-instruction-is-known-for")));
     }
 
     /** The last "Explain Match" dialog shown (tests). */
@@ -746,7 +747,7 @@ public final class XsltDebugPane extends VBox {
         }
         PausedSnapshot scopeSnap = frameScope(frame, snap);
         if (scopeSnap == null || !(scopeSnap.contextXdm() instanceof net.sf.saxon.s9api.XdmNode node)) {
-            status.setText("Explain Match: this frame has no context node captured.");
+            status.setText(I18n.t("XsltDebugPane.explain-match-this-frame-has"));
             return;
         }
         String mode = modeOf(frame);

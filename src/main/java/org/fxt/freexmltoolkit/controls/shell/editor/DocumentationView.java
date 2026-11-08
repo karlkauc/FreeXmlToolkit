@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -393,7 +395,7 @@ public class DocumentationView extends BorderPane {
     /** Runs the generation with {@code options} off the UI thread (cancellable). */
     void generate(DocOptions options) {
         if (options.xsd() == null || !options.xsd().isFile()) {
-            status.setText("Select an XSD schema first.");
+            status.setText(I18n.t("DocumentationView.select-an-xsd-schema-first"));
             return;
         }
         if (options.output() == null) {
@@ -613,7 +615,7 @@ public class DocumentationView extends BorderPane {
         Future<?> current = running;
         if (current != null) {
             current.cancel(true);
-            status.setText("Cancelling…");
+            status.setText(I18n.t("DocumentationView.cancelling"));
         }
     }
 
@@ -622,10 +624,10 @@ public class DocumentationView extends BorderPane {
     /** Scans the XSD's documentation languages off the UI thread and shows them as checkboxes. */
     void scanLanguages() {
         if (xsdFile == null || !xsdFile.isFile()) {
-            status.setText("Select an XSD schema first.");
+            status.setText(I18n.t("DocumentationView.select-an-xsd-schema-first"));
             return;
         }
-        languagesStatus.setText("Scanning…");
+        languagesStatus.setText(I18n.t("DocumentationView.scanning"));
         File xsd = xsdFile;
         FxtGui.executorService.submit(() -> {
             Set<String> found;
@@ -642,7 +644,7 @@ public class DocumentationView extends BorderPane {
                 languagesPane.getChildren().clear();
                 fallbackLanguage.getItems().clear();
                 if (languages.isEmpty()) {
-                    languagesStatus.setText("No languages found - all documentation is included.");
+                    languagesStatus.setText(I18n.t("DocumentationView.no-languages-found-all-documentation"));
                     return;
                 }
                 languagesStatus.setText(languages.size() + " language(s) found:");
@@ -677,7 +679,7 @@ public class DocumentationView extends BorderPane {
     @FXML
     public void onChooseFavicon() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select favicon");
+        chooser.setTitle(I18n.t("DocumentationView.select-favicon"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                 "Favicon", "*.ico", "*.png", "*.svg", "*.gif"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
@@ -689,7 +691,7 @@ public class DocumentationView extends BorderPane {
     @FXML
     public void onChooseXsd() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select XSD schema");
+        chooser.setTitle(I18n.t("DocumentationView.select-xsd-schema"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD", "*.xsd"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -707,7 +709,7 @@ public class DocumentationView extends BorderPane {
             case "Word" -> outputTarget = chooseFile(window, baseName + ".docx", "Word", "*.docx");
             default -> {
                 DirectoryChooser chooser = new DirectoryChooser();
-                chooser.setTitle("Choose output directory for HTML documentation");
+                chooser.setTitle(I18n.t("DocumentationView.choose-output-directory-for-html"));
                 File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, window);
                 if (dir != null) {
                     outputTarget = dir;

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -22,7 +24,7 @@ public class FundsXmlPanel extends VBox {
         @Override
         public void onStarted() {
             showProgress(-1);
-            PanelStatus.info(status, "Downloading…");
+            PanelStatus.info(status, I18n.t("FundsXmlPanel.downloading"));
         }
 
         @Override
@@ -39,11 +41,11 @@ public class FundsXmlPanel extends VBox {
                         ? "Download complete — schema version " + result.schemaVersion() + "."
                         : "Download complete.");
             } else if (result.cause() != null) {
-                PanelStatus.failure(status, "Download failed",
+                PanelStatus.failure(status, I18n.t("FundsXmlPanel.download-failed"),
                         "Download failed: " + (result.error() == null ? "unknown error" : result.error()),
-                        "Check your internet connection and the proxy settings, then try again.", result.cause());
+                        I18n.t("FundsXmlPanel.check-your-internet-connection-and"), result.cause());
             } else {
-                PanelStatus.failure(status, "Download failed",
+                PanelStatus.failure(status, I18n.t("FundsXmlPanel.download-failed"),
                         "Download failed: " + (result.error() == null ? "unknown error" : result.error()));
             }
             refreshVersions();
@@ -66,7 +68,7 @@ public class FundsXmlPanel extends VBox {
         coordinator.addListener(downloadListener);
         if (coordinator.isRunning()) {
             showProgress(-1);
-            PanelStatus.info(status, "Downloading…");
+            PanelStatus.info(status, I18n.t("FundsXmlPanel.downloading"));
         }
     }
 
@@ -101,7 +103,7 @@ public class FundsXmlPanel extends VBox {
     @FXML
     public void onDownload() {
         if (!FundsXmlDownloadCoordinator.getInstance().startBackgroundDownload("panel")) {
-            PanelStatus.info(status, "Download already in progress…");
+            PanelStatus.info(status, I18n.t("FundsXmlPanel.download-already-in-progress"));
         }
     }
 
@@ -109,7 +111,7 @@ public class FundsXmlPanel extends VBox {
     public void onOpenSchema() {
         java.nio.file.Path schemaFile = FundsXmlRunner.activeSchemaFile();
         if (schemaFile == null) {
-            PanelStatus.info(status, "No active schema — download content first.");
+            PanelStatus.info(status, I18n.t("FundsXmlPanel.no-active-schema-download-content"));
             return;
         }
         editorHost.openFile(schemaFile);
@@ -137,7 +139,7 @@ public class FundsXmlPanel extends VBox {
     @FXML
     public void onValidate() {
         String xml = editorHost.getActiveText().orElse(null);
-        PanelStatus.info(status, "Validating…");
+        PanelStatus.info(status, I18n.t("FundsXmlPanel.validating"));
         FxtGui.executorService.submit(() -> {
             String summary = FundsXmlRunner.validateSummary(xml);
             Platform.runLater(() -> PanelStatus.info(status, summary));
@@ -146,7 +148,7 @@ public class FundsXmlPanel extends VBox {
 
     @FXML
     public void onGenerateDocs() {
-        PanelStatus.info(status, "Generating documentation…");
+        PanelStatus.info(status, I18n.t("FundsXmlPanel.generating-documentation"));
         FxtGui.executorService.submit(() -> {
             String msg;
             boolean ok = true;
@@ -164,7 +166,7 @@ public class FundsXmlPanel extends VBox {
                     PanelStatus.success(status, finalMsg);
                 } else {
                     // schema_doc already carries the failure
-                    PanelStatus.failure(status, "Documentation failed", finalMsg, false);
+                    PanelStatus.failure(status, I18n.t("FundsXmlPanel.documentation-failed"), finalMsg, false);
                 }
             });
         });
@@ -175,13 +177,13 @@ public class FundsXmlPanel extends VBox {
             return;
         }
         org.fxt.freexmltoolkit.util.DesktopActions.open(dir.toFile(), e ->
-                PanelStatus.failure(status, "Could not open folder", "Could not open folder: " + e.getMessage(),
-                        "Open the folder in your file manager instead.", e));
+                PanelStatus.failure(status, I18n.t("FundsXmlPanel.could-not-open-folder"), "Could not open folder: " + e.getMessage(),
+                        I18n.t("FundsXmlPanel.open-the-folder-in-your"), e));
     }
 
     private void openUrl(String url) {
-        java.util.function.Consumer<Exception> failed = e -> PanelStatus.failure(status, "Could not open browser",
-                "Could not open browser: " + e.getMessage(), "Copy the address into your browser instead.", e);
+        java.util.function.Consumer<Exception> failed = e -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.could-not-open-browser"),
+                "Could not open browser: " + e.getMessage(), I18n.t("FundsXmlPanel.copy-the-address-into-your"), e);
         try {
             org.fxt.freexmltoolkit.util.DesktopActions.browse(new java.net.URI(url), failed);
         } catch (java.net.URISyntaxException e) {

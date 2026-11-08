@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntConsumer;
@@ -31,7 +33,7 @@ public class BreakpointsView extends VBox {
     private Runnable onChanged = () -> { };
     private Runnable onCountChanged = () -> { };
     private final ListView<org.fxt.freexmltoolkit.debugger.SymbolBreakpoint> symbolList = new ListView<>();
-    private final Label symbolTitle = new Label("Templates & functions");
+    private final Label symbolTitle = new Label(I18n.t("BreakpointsView.templates-functions"));
     private java.util.function.Supplier<String> stylesheetText = () -> "";
     private org.fxt.freexmltoolkit.debugger.ui.SymbolBreakpointDialog.Prompt symbolPrompt =
             org.fxt.freexmltoolkit.debugger.ui.SymbolBreakpointDialog.DEFAULT;
@@ -51,7 +53,7 @@ public class BreakpointsView extends VBox {
 
             {
                 header.getStyleClass().add("fxt-bp-file");
-                enabled.setTooltip(new javafx.scene.control.Tooltip("Enabled — untick to keep the breakpoint without pausing"));
+                enabled.setTooltip(new javafx.scene.control.Tooltip(I18n.t("BreakpointsView.enabled-untick-to-keep-the")));
                 enabled.setOnAction(e -> {
                     Breakpoint bp = getItem();
                     if (bp != null) {
@@ -93,13 +95,12 @@ public class BreakpointsView extends VBox {
                         + (hits > 0 ? "   ·  " + hits + (hits == 1 ? " hit" : " hits") : "")
                         + (unreached ? "   ·  not reached in the last run" : ""));
                 setTooltip(unreached ? new javafx.scene.control.Tooltip(
-                        "The last run never reached this line: it has no instruction Saxon traces "
-                                + "(e.g. a closing tag or a comment), or the code there did not run.") : null);
+                        I18n.t("BreakpointsView.the-last-run-never-reached")) : null);
                 setGraphic(box);
             }
         });
         list.setContextMenu(listMenu());
-        list.setPlaceholder(new Label("No breakpoints."));
+        list.setPlaceholder(new Label(I18n.t("BreakpointsView.no-breakpoints")));
         list.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
                 Breakpoint bp = list.getSelectionModel().getSelectedItem();
@@ -306,7 +307,7 @@ public class BreakpointsView extends VBox {
                 errors, errorCodesItem, terminate, messages);
         menu.getStyleClass().addAll("fxt-sp-action", "fxt-output-action");
         menu.setTooltip(new javafx.scene.control.Tooltip(
-                "Pause on errors or xsl:message, independent of line breakpoints (Mute silences these too)"));
+                I18n.t("BreakpointsView.pause-on-errors-or-xsl")));
         breakOnItems = java.util.List.of(errors, terminate, messages);
         return menu;
     }
@@ -382,15 +383,15 @@ public class BreakpointsView extends VBox {
 
     /** Row menu: per-file enable / disable / remove, and Export / Import of all breakpoints. */
     private javafx.scene.control.ContextMenu listMenu() {
-        javafx.scene.control.MenuItem enableFile = menuItem("Enable All in File", "bi-check2-square",
+        javafx.scene.control.MenuItem enableFile = menuItem(I18n.t("BreakpointsView.enable-all-in-file"), "bi-check2-square",
                 org.fxt.freexmltoolkit.controls.theme.ActionColor.CREATE, () -> setEnabledInFile(true));
-        javafx.scene.control.MenuItem disableFile = menuItem("Disable All in File", "bi-slash-circle",
+        javafx.scene.control.MenuItem disableFile = menuItem(I18n.t("BreakpointsView.disable-all-in-file"), "bi-slash-circle",
                 org.fxt.freexmltoolkit.controls.theme.ActionColor.NEUTRAL, () -> setEnabledInFile(false));
-        javafx.scene.control.MenuItem removeFile = menuItem("Remove All in File", "bi-trash",
+        javafx.scene.control.MenuItem removeFile = menuItem(I18n.t("BreakpointsView.remove-all-in-file"), "bi-trash",
                 org.fxt.freexmltoolkit.controls.theme.ActionColor.DELETE, this::removeAllInFile);
-        javafx.scene.control.MenuItem export = menuItem("Export Breakpoints…", "bi-box-arrow-up",
+        javafx.scene.control.MenuItem export = menuItem(I18n.t("BreakpointsView.export-breakpoints"), "bi-box-arrow-up",
                 org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL, this::exportWithChooser);
-        javafx.scene.control.MenuItem importItem = menuItem("Import Breakpoints…", "bi-box-arrow-in-down",
+        javafx.scene.control.MenuItem importItem = menuItem(I18n.t("BreakpointsView.import-breakpoints"), "bi-box-arrow-in-down",
                 org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL, this::importWithChooser);
         javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu(enableFile, disableFile, removeFile,
                 new javafx.scene.control.SeparatorMenuItem(), export, importItem);

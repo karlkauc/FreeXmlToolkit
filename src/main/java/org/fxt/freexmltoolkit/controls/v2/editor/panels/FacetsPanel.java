@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -79,11 +81,11 @@ public class FacetsPanel extends VBox {
         setSpacing(10);
 
         // Title
-        Label titleLabel = new Label("Facets (Restrictions)");
+        Label titleLabel = new Label(I18n.t("FacetsPanel.facets-restrictions"));
         titleLabel.setStyle("-fx-font-weight: bold;");
 
         // Description
-        Label descLabel = new Label("Facets define restrictions on data types");
+        Label descLabel = new Label(I18n.t("FacetsPanel.facets-define-restrictions-on-data"));
         descLabel.setWrapText(true);
         descLabel.setStyle("-fx-text-fill: #666666; -fx-font-size: 11px;");
 
@@ -103,7 +105,7 @@ public class FacetsPanel extends VBox {
         facetsGridPane.setPadding(new Insets(10));
 
         // No facets label (initially visible)
-        noFacetsLabel = new Label("No restriction defined. Select a base type to see applicable facets.");
+        noFacetsLabel = new Label(I18n.t("FacetsPanel.no-restriction-defined-select-a"));
         noFacetsLabel.setStyle("-fx-text-fill: #999999;");
         noFacetsLabel.setWrapText(true);
 
@@ -242,7 +244,7 @@ public class FacetsPanel extends VBox {
             facetFixedCheckBoxes.clear();
 
             if (baseType == null || baseType.isEmpty()) {
-                noFacetsLabel.setText("No base type specified. Cannot determine applicable facets.");
+                noFacetsLabel.setText(I18n.t("FacetsPanel.no-base-type-specified-cannot"));
                 facetsGridPane.add(noFacetsLabel, 0, 0, 3, 1);
                 return;
             }
@@ -266,7 +268,7 @@ public class FacetsPanel extends VBox {
             );
 
             if (applicableFacets.isEmpty()) {
-                noFacetsLabel.setText("All facets for this datatype are managed in separate tabs (Enumerations, Patterns, Assertions)");
+                noFacetsLabel.setText(I18n.t("FacetsPanel.all-facets-for-this-datatype"));
                 facetsGridPane.add(noFacetsLabel, 0, 0, 3, 1);
                 return;
             }
@@ -296,7 +298,7 @@ public class FacetsPanel extends VBox {
                 Node inputControl = createFacetControl(facetType, currentValue);
 
                 // Create fixed checkbox
-                CheckBox fixedCheckBox = new CheckBox("Fixed");
+                CheckBox fixedCheckBox = new CheckBox(I18n.t("FacetsPanel.fixed"));
                 fixedCheckBox.setSelected(currentFixed);
                 fixedCheckBox.setDisable(isFixed || isInheritedView);
 
@@ -526,7 +528,7 @@ public class FacetsPanel extends VBox {
         facetsGridPane.getChildren().clear();
         facetControls.clear();
         facetFixedCheckBoxes.clear();
-        noFacetsLabel.setText("No restriction defined.");
+        noFacetsLabel.setText(I18n.t("FacetsPanel.no-restriction-defined"));
         facetsGridPane.add(noFacetsLabel, 0, 0, 3, 1);
     }
 

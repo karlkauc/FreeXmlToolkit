@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.dialogs;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.net.URI;
 
 import javafx.event.ActionEvent;
@@ -70,7 +72,7 @@ public final class TelemetryInfoDialog {
 
         DialogPane pane = dialog.getDialogPane();
         pane.getStylesheets().addAll(DialogHelper.getThemeStylesheets());
-        pane.setHeaderText("What is sent?");
+        pane.setHeaderText(I18n.t("TelemetryInfoDialog.what-is-sent"));
         IconifyIcon headerIcon = new IconifyIcon("bi-shield-check");
         headerIcon.setIconSize(32);
         headerIcon.setIconColor(Color.web(SemanticColors.INFO));

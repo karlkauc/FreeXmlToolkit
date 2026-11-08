@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -39,7 +41,7 @@ public class VariablesView extends VBox {
     private final TreeItem<VariableTree.Node> root = new TreeItem<>();
     /** Names the selected outer call stack frame; hidden while the innermost frame is shown. */
     private final Label frameInfo = new Label();
-    private final Label placeholder = new Label("Not paused.");
+    private final Label placeholder = new Label(I18n.t("VariablesView.not-paused"));
     private Consumer<VariableBinding> onOpenValue = b -> { };
     private Consumer<VariableBinding> onCopyValue = b -> { };
     private Consumer<ValueSource> onOpenNested = s -> { };
@@ -150,9 +152,9 @@ public class VariablesView extends VBox {
     }
 
     private ContextMenu menu() {
-        MenuItem openItem = item("Open Value…", "bi-box-arrow-up-right", ActionColor.NAVIGATE, () -> open(selected()));
-        MenuItem copyItem = item("Copy Value", "bi-clipboard", ActionColor.TOOL, () -> copy(selected()));
-        MenuItem watchItem = item("Add to Watches", "bi-eye", ActionColor.CREATE, () -> {
+        MenuItem openItem = item(I18n.t("VariablesView.open-value"), "bi-box-arrow-up-right", ActionColor.NAVIGATE, () -> open(selected()));
+        MenuItem copyItem = item(I18n.t("VariablesView.copy-value"), "bi-clipboard", ActionColor.TOOL, () -> copy(selected()));
+        MenuItem watchItem = item(I18n.t("VariablesView.add-to-watches"), "bi-eye", ActionColor.CREATE, () -> {
             VariableTree.Node node = selected();
             if (node != null && node.expr() != null) {
                 onAddToWatches.accept(node.expr());
@@ -269,7 +271,7 @@ public class VariablesView extends VBox {
 
     public void clear() {
         root.getChildren().clear();
-        placeholder.setText("Not paused.");
+        placeholder.setText(I18n.t("VariablesView.not-paused"));
         setFrameInfo(null);
     }
 

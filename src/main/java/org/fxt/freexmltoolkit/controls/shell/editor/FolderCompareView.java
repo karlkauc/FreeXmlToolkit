@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -173,7 +175,7 @@ public class FolderCompareView extends VBox {
         Path r = right;
         progress.setVisible(true);
         progress.setManaged(true);
-        summary.setText("Comparing…");
+        summary.setText(I18n.t("FolderCompareView.comparing"));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
                 FolderComparison.Result done = FolderComparison.compare(l, r, options,

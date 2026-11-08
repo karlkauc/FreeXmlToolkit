@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -45,7 +47,7 @@ public final class TypePickerDialog {
         field.setValue(current);
         field.setPrefWidth(380);
 
-        Label label = new Label("Type");
+        Label label = new Label(I18n.t("TypePickerDialog.type"));
         label.getStyleClass().add("fxt-type-picker-dialog-label");
         VBox content = new VBox(6, label, field);
         content.setPadding(new Insets(12, 16, 4, 16));

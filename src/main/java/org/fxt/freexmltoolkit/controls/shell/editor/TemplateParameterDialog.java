@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -28,7 +30,7 @@ public class TemplateParameterDialog extends Dialog<Map<String, String>> {
     private final Map<String, Supplier<String>> readers = new LinkedHashMap<>();
 
     public TemplateParameterDialog(XmlTemplate template) {
-        setTitle("Template Parameters");
+        setTitle(I18n.t("TemplateParameterDialog.template-parameters"));
         setHeaderText("Enter values for \"" + template.getName() + "\"");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 

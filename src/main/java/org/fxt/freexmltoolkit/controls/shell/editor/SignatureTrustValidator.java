@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.security.KeyStore;
@@ -84,7 +86,7 @@ public final class SignatureTrustValidator {
     public static TrustResult validateChain(List<X509Certificate> chain, KeyStore trustStore,
             boolean checkRevocation) {
         if (chain == null || chain.isEmpty()) {
-            return TrustResult.error("no certificate chain found in the signature");
+            return TrustResult.error(I18n.t("SignatureTrustValidator.no-certificate-chain-found-in"));
         }
         try {
             X509Certificate leaf = chain.get(0);

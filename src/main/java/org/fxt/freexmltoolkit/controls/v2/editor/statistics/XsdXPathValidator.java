@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -357,7 +359,7 @@ public class XsdXPathValidator {
                     "(empty)",
                     assertion.getName(),
                     XPathSource.ASSERT_TEST,
-                    "Assert test expression is empty",
+                    I18n.t("XsdXPathValidator.assert-test-expression-is-empty"),
                     assertion
             ));
             return;
@@ -412,7 +414,7 @@ public class XsdXPathValidator {
                             xpath,
                             constraintName,
                             source,
-                            "No matches in sample XML",
+                            I18n.t("XsdXPathValidator.no-matches-in-sample-xml"),
                             matchCount,
                             sourceNode
                     ));

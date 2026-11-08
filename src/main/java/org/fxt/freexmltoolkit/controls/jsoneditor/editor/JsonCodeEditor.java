@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls.jsoneditor.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -95,7 +97,7 @@ public class JsonCodeEditor extends VBox {
         this.scrollPane = new VirtualizedScrollPane<>(codeArea);
 
         // Create status bar
-        this.statusLabel = new Label("Ready");
+        this.statusLabel = new Label(I18n.t("JsonCodeEditor.ready"));
 
         // Initialize UI
         initializeUI();

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -49,7 +51,7 @@ public class CallStackView extends VBox {
                 }
             }
         });
-        list.setPlaceholder(new Label("Not paused."));
+        list.setPlaceholder(new Label(I18n.t("CallStackView.not-paused")));
         list.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
                 DebugStackFrame f = list.getSelectionModel().getSelectedItem();
@@ -75,7 +77,7 @@ public class CallStackView extends VBox {
         });
         javafx.scene.control.ContextMenu menu = DebugValueMenu.create(() -> list.getSelectionModel().getSelectedItem(),
                 f -> onOpenValue.accept(f), f -> onCopyValue.accept(f));
-        javafx.scene.control.MenuItem explain = new javafx.scene.control.MenuItem("Explain Match…");
+        javafx.scene.control.MenuItem explain = new javafx.scene.control.MenuItem(I18n.t("CallStackView.explain-match"));
         explain.setId("debug-explain-match");
         explain.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
                 new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-diagram-3"),

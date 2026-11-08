@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -82,7 +84,7 @@ final class AssertionsPane extends VBox {
         assertTable.setEditable(editable);
         addButton.setDisable(!editable);
         deleteButton.setDisable(!editable || assertTable.getSelectionModel().getSelectedItem() == null);
-        hintLabel.setText("Assertions are XSD 1.1: validate with an XSD 1.1 processor.");
+        hintLabel.setText(I18n.t("AssertionsPane.assertions-are-xsd-1-1"));
         return true;
     }
 

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +62,7 @@ public class ValidationPanel extends VBox {
     @FXML private Label xsdName;
     @FXML private Label schematronName;
     @FXML private Label jsonSchemaName;
-    private final Label resultsHeaderLabel = new Label("RESULTS");
+    private final Label resultsHeaderLabel = new Label(I18n.t("ValidationPanel.results"));
     private final MenuButton xsdFavoritesMenu = new MenuButton();
     private final MenuButton schematronFavoritesMenu;
     @FXML private MenuButton overflowMenu;
@@ -182,7 +184,7 @@ public class ValidationPanel extends VBox {
         // list's own vertical scrollbar appears when there are more problems than fit.
         problemsList.setMinHeight(0);
         VBox.setVgrow(problemsList, Priority.ALWAYS);
-        problemsList.setPlaceholder(new Label("No problems"));
+        problemsList.setPlaceholder(new Label(I18n.t("ValidationPanel.no-problems")));
         problemsList.setCellFactory(lv -> new ProblemCell());
         problemsList.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.line() > 0) {
@@ -190,7 +192,7 @@ public class ValidationPanel extends VBox {
             }
         });
 
-        Label problemsLabel = new Label("PROBLEMS");
+        Label problemsLabel = new Label(I18n.t("ValidationPanel.problems"));
         CollapsibleSection problemsSection = new CollapsibleSection(problemsLabel, problemsList, true);
         problemsSection.setId("validation-problems-section");
 
@@ -271,10 +273,10 @@ public class ValidationPanel extends VBox {
     public void openSchematronReport() {
         if (lastSchematronReport == null) {
             PanelStatus.precondition(status,
-                    "No Schematron report yet — bind a Schematron and validate first");
+                    I18n.t("ValidationPanel.no-schematron-report-yet-bind"));
             return;
         }
-        editorHost.openToolTab("Schematron Report", "bi-journal-check",
+        editorHost.openToolTab(I18n.t("ValidationPanel.schematron-report"), "bi-journal-check",
                 new SchematronReportView(lastSchematronReport, editorHost));
     }
 
@@ -283,7 +285,7 @@ public class ValidationPanel extends VBox {
     public void openSchematronTemplates() {
         var library = new org.fxt.freexmltoolkit.controls.SchematronTemplateLibrary();
         library.setTemplateInsertCallback(editorHost::insertTextAtCaret);
-        editorHost.openToolTab("Schematron Templates", "bi-collection", library);
+        editorHost.openToolTab(I18n.t("ValidationPanel.schematron-templates"), "bi-collection", library);
     }
 
     /** Opens the Schematron tester as a tool tab, pre-loading the bound Schematron if any. */
@@ -294,13 +296,13 @@ public class ValidationPanel extends VBox {
         if (schematron != null) {
             tester.setSchematronFile(schematron);
         }
-        editorHost.openToolTab("Schematron Tester", "bi-play-circle", tester);
+        editorHost.openToolTab(I18n.t("ValidationPanel.schematron-tester"), "bi-play-circle", tester);
     }
 
     /** Opens the visual Schematron rule builder as a tool tab. */
     @FXML
     public void openSchematronBuilder() {
-        editorHost.openToolTab("Schematron Builder", "bi-tools",
+        editorHost.openToolTab(I18n.t("ValidationPanel.schematron-builder"), "bi-tools",
                 new org.fxt.freexmltoolkit.controls.SchematronVisualBuilder());
     }
 
@@ -317,11 +319,11 @@ public class ValidationPanel extends VBox {
             var issues = run.issues();
             UsageEvents.schematronChecked(issues.size(), t0, run.failure());
             javafx.application.Platform.runLater(() -> {
-                editorHost.openToolTab("Schematron Check", "bi-bug", new SchematronCheckResultView(issues));
+                editorHost.openToolTab(I18n.t("ValidationPanel.schematron-check"), "bi-bug", new SchematronCheckResultView(issues));
                 if (run.failed()) {
                     // schematron_check carries the failure; the dialog explains it
-                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Schematron Check",
-                            "The check could not run.", "Check that the document is well-formed, then run it again.",
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("ValidationPanel.schematron-check"),
+                            I18n.t("ValidationPanel.the-check-could-not-run"), I18n.t("ValidationPanel.check-that-the-document-is"),
                             run.error(), false);
                 }
             });
@@ -331,7 +333,7 @@ public class ValidationPanel extends VBox {
     /** Opens the Schematron documentation generator as a tool tab. */
     @FXML
     public void openSchematronDocumentation() {
-        editorHost.openToolTab("Schematron Documentation", "bi-file-earmark-text",
+        editorHost.openToolTab(I18n.t("ValidationPanel.schematron-documentation"), "bi-file-earmark-text",
                 new org.fxt.freexmltoolkit.controls.SchematronDocumentationGenerator());
     }
 
@@ -382,7 +384,7 @@ public class ValidationPanel extends VBox {
      */
     private void revalidate(boolean live) {
         if (editorHost.getActiveDocument().isEmpty()) {
-            PanelStatus.precondition(status, "No document open");
+            PanelStatus.precondition(status, I18n.t("ValidationPanel.no-document-open"));
             setProblems(List.of());
             editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;
@@ -393,7 +395,7 @@ public class ValidationPanel extends VBox {
         boolean validatable = isXmlFamilyActive() || editorHost.getActiveDocument()
                 .map(d -> d.getFileType() == EditorFileType.JSON).orElse(false);
         if (!validatable) {
-            PanelStatus.precondition(status, "Not a validatable document type");
+            PanelStatus.precondition(status, I18n.t("ValidationPanel.not-a-validatable-document-type"));
             setProblems(List.of());
             editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;
@@ -401,7 +403,7 @@ public class ValidationPanel extends VBox {
         String content = editorHost.getActiveText().orElse("");
         if (content.isBlank()) {
             // Nothing to validate (e.g. a document still loading) — avoid parsing empty text.
-            PanelStatus.precondition(status, "Empty document");
+            PanelStatus.precondition(status, I18n.t("ValidationPanel.empty-document"));
             setProblems(List.of());
             editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
             return;
@@ -415,7 +417,7 @@ public class ValidationPanel extends VBox {
         String documentName = editorHost.getActiveDocument()
                 .map(OpenDocument::getDisplayName).orElse(null);
         var docKind = editorHost.getActiveDocument().map(d -> d.getFileType().docKind()).orElse(null);
-        PanelStatus.info(status, "Validating…");
+        PanelStatus.info(status, I18n.t("ValidationPanel.validating"));
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
@@ -455,8 +457,8 @@ public class ValidationPanel extends VBox {
                         result.size(), summary);
                 if (runResult.failed() && !live) {
                     // the validate event already carries the failure; the dialog explains it
-                    PanelStatus.failure(status, "Validation", "Validation could not run.",
-                            "Check that the bound schema or Schematron loads, then validate again.",
+                    PanelStatus.failure(status, I18n.t("ValidationPanel.validation"), I18n.t("ValidationPanel.validation-could-not-run"),
+                            I18n.t("ValidationPanel.check-that-the-bound-schema"),
                             runResult.error(), false);
                 }
             });
@@ -568,7 +570,7 @@ public class ValidationPanel extends VBox {
         PanelStatus.info(status, "Validating " + total + " file(s)…");
         progress.beginDeterminate(total, () -> {
             cancelled.set(true);
-            PanelStatus.info(status, "Cancelling…");
+            PanelStatus.info(status, I18n.t("ValidationPanel.cancelling"));
         });
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -613,7 +615,7 @@ public class ValidationPanel extends VBox {
     @FXML
     public void onChooseBatch() {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Select XML files to validate");
+        chooser.setTitle(I18n.t("ValidationPanel.select-xml-files-to-validate"));
         chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML", "*.xml"));
         java.util.List<File> files = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenMultipleDialog(chooser, 
                 getScene() != null ? getScene().getWindow() : null);
@@ -623,7 +625,7 @@ public class ValidationPanel extends VBox {
     @FXML
     public void onChooseBatchFolder() {
         DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Select folder with XML files");
+        chooser.setTitle(I18n.t("ValidationPanel.select-folder-with-xml-files"));
         File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir != null) {
             runBatchForDirectory(dir);
@@ -648,7 +650,7 @@ public class ValidationPanel extends VBox {
                         .sorted()
                         .toList();
             } catch (java.io.IOException ex) {
-                Platform.runLater(() -> PanelStatus.failure(status, "Validation failed",
+                Platform.runLater(() -> PanelStatus.failure(status, I18n.t("ValidationPanel.validation-failed"),
                         "Could not scan " + dir.getName() + ": " + ex.getMessage()));
                 return;
             }
@@ -666,7 +668,7 @@ public class ValidationPanel extends VBox {
     @FXML
     public void onChooseXsd() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select XSD schema");
+        chooser.setTitle(I18n.t("ValidationPanel.select-xsd-schema"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -773,7 +775,7 @@ public class ValidationPanel extends VBox {
     @FXML
     public void onChooseSchematron() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select Schematron");
+        chooser.setTitle(I18n.t("ValidationPanel.select-schematron"));
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Schematron", "*.sch", "*.schematron"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
@@ -805,7 +807,7 @@ public class ValidationPanel extends VBox {
     @FXML
     public void onChooseJsonSchema() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select JSON Schema");
+        chooser.setTitle(I18n.t("ValidationPanel.select-json-schema"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Schema", "*.json"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -855,7 +857,7 @@ public class ValidationPanel extends VBox {
                 .map(p -> p.getFileName().toString())
                 .orElse(null);
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Export problems to Excel");
+        chooser.setTitle(I18n.t("ValidationPanel.export-problems-to-excel"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Workbook", "*.xlsx"));
         chooser.setInitialFileName((sourceName != null ? stripExtension(sourceName) : "validation") + "-problems.xlsx");
         File target = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
@@ -870,12 +872,12 @@ public class ValidationPanel extends VBox {
                 ValidationExcelExporter.export(snapshot, sourceName, output.toPath());
                 Platform.runLater(() -> {
                     PanelStatus.success(status, "Exported " + EditorActions.problemCount(snapshot.size()));
-                    org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Export problems",
+                    org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("ValidationPanel.export-problems"),
                             null, "Wrote " + EditorActions.problemCount(snapshot.size()) + " to:\n" + output.getAbsolutePath());
                 });
             } catch (Exception ex) {
-                Platform.runLater(() -> PanelStatus.failure(status, "Export problems",
-                        "Could not write the Excel file.",
+                Platform.runLater(() -> PanelStatus.failure(status, I18n.t("ValidationPanel.export-problems"),
+                        I18n.t("ValidationPanel.could-not-write-the-excel"),
                         org.fxt.freexmltoolkit.util.DialogHelper.Remedies.EXPORT, ex));
             }
         });

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -34,8 +36,8 @@ public class MergeFilesDialog extends Dialog<MergeFilesDialog.Request> {
 
     /** @param left the left file to start with (the active document), or {@code null} */
     public MergeFilesDialog(Path left) {
-        setTitle("Merge Files");
-        setHeaderText("Merge two changed versions of a file with their common base.");
+        setTitle(I18n.t("MergeFilesDialog.merge-files"));
+        setHeaderText(I18n.t("MergeFilesDialog.merge-two-changed-versions-of"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/MergeFilesDialog.fxml"));
         if (left != null) {
@@ -111,7 +113,7 @@ public class MergeFilesDialog extends Dialog<MergeFilesDialog.Request> {
     @FXML
     public void onBrowseResult() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Result file");
+        chooser.setTitle(I18n.t("MergeFilesDialog.result-file"));
         File file = FileChooserHelper.showSaveDialog(chooser, getDialogPane().getScene().getWindow());
         if (file != null) {
             resultField.setText(file.getAbsolutePath());

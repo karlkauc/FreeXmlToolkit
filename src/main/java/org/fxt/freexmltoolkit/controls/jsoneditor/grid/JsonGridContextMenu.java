@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.jsoneditor.grid;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
@@ -145,22 +147,22 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         ContextMenu menu = new ContextMenu();
 
         // === Add Submenu ===
-        Menu addMenu = new Menu("Add");
+        Menu addMenu = new Menu(I18n.t("JsonGridContextMenu.add"));
         addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
 
-        addPropertyItem = new MenuItem("Property");
+        addPropertyItem = new MenuItem(I18n.t("JsonGridContextMenu.property"));
         addPropertyItem.setGraphic(createColoredIcon("bi-braces", ActionColor.CREATE));
         addPropertyItem.setOnAction(e -> addProperty());
 
-        addArrayItemItem = new MenuItem("Array Item");
+        addArrayItemItem = new MenuItem(I18n.t("JsonGridContextMenu.array-item"));
         addArrayItemItem.setGraphic(createColoredIcon("bi-list-ol", ActionColor.CREATE));
         addArrayItemItem.setOnAction(e -> addArrayItem());
 
-        addSiblingBeforeItem = new MenuItem("Sibling Before");
+        addSiblingBeforeItem = new MenuItem(I18n.t("JsonGridContextMenu.sibling-before"));
         addSiblingBeforeItem.setGraphic(createColoredIcon("bi-arrow-up", ActionColor.CREATE));
         addSiblingBeforeItem.setOnAction(e -> addSibling(true));
 
-        addSiblingAfterItem = new MenuItem("Sibling After");
+        addSiblingAfterItem = new MenuItem(I18n.t("JsonGridContextMenu.sibling-after"));
         addSiblingAfterItem.setGraphic(createColoredIcon("bi-arrow-down", ActionColor.CREATE));
         addSiblingAfterItem.setOnAction(e -> addSibling(false));
 
@@ -171,55 +173,55 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         );
 
         // === Edit Items ===
-        renameItem = new MenuItem("Rename Key");
+        renameItem = new MenuItem(I18n.t("JsonGridContextMenu.rename-key"));
         renameItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY));
         renameItem.setOnAction(e -> renameKey());
         renameItem.setAccelerator(new KeyCodeCombination(KeyCode.F2));
 
-        duplicateItem = new MenuItem("Duplicate");
+        duplicateItem = new MenuItem(I18n.t("JsonGridContextMenu.duplicate"));
         duplicateItem.setGraphic(createColoredIcon("bi-files", ActionColor.CREATE));
         duplicateItem.setOnAction(e -> duplicateNode());
         duplicateItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
 
         // === Clipboard ===
-        copyItem = new MenuItem("Copy");
+        copyItem = new MenuItem(I18n.t("JsonGridContextMenu.copy"));
         copyItem.setGraphic(createColoredIcon("bi-clipboard", ActionColor.NEUTRAL));
         copyItem.setOnAction(e -> copyNodeToInternalClipboard());
         copyItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
 
-        cutItem = new MenuItem("Cut");
+        cutItem = new MenuItem(I18n.t("JsonGridContextMenu.cut"));
         cutItem.setGraphic(createColoredIcon("bi-scissors", ActionColor.DELETE));
         cutItem.setOnAction(e -> cutNode());
         cutItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN));
 
-        pasteItem = new MenuItem("Paste as Sibling");
+        pasteItem = new MenuItem(I18n.t("JsonGridContextMenu.paste-as-sibling"));
         pasteItem.setGraphic(createColoredIcon("bi-clipboard-check", ActionColor.CREATE));
         pasteItem.setOnAction(e -> pasteAsSibling());
         pasteItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN));
 
-        pasteAsChildItem = new MenuItem("Paste as Child");
+        pasteAsChildItem = new MenuItem(I18n.t("JsonGridContextMenu.paste-as-child"));
         pasteAsChildItem.setGraphic(createColoredIcon("bi-clipboard-plus", ActionColor.CREATE));
         pasteAsChildItem.setOnAction(e -> pasteAsChild());
         pasteAsChildItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
-        copyCellContentItem = new MenuItem("Copy Cell Content");
+        copyCellContentItem = new MenuItem(I18n.t("JsonGridContextMenu.copy-cell-content"));
         copyCellContentItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
         copyCellContentItem.setOnAction(e -> copyCellContent());
         copyCellContentItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
-        copyPathItem = new MenuItem("Copy JSONPath");
+        copyPathItem = new MenuItem(I18n.t("JsonGridContextMenu.copy-jsonpath"));
         copyPathItem.setGraphic(createColoredIcon("bi-diagram-3", ActionColor.NEUTRAL));
         copyPathItem.setOnAction(e -> copyPath());
         // Ctrl+Alt+X: Ctrl+Shift+X belongs to the global Query Console toggle.
         copyPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
 
-        copyNodeItem = new MenuItem("Copy Node (JSON)");
+        copyNodeItem = new MenuItem(I18n.t("JsonGridContextMenu.copy-node-json"));
         copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
         copyNodeItem.setOnAction(e -> copyNodeJson());
         copyNodeItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
 
         // === Change Type ===
-        changeTypeMenu = new Menu("Change Type");
+        changeTypeMenu = new Menu(I18n.t("JsonGridContextMenu.change-type"));
         changeTypeMenu.setGraphic(createColoredIcon("bi-arrow-repeat", ActionColor.STRUCTURE));
         for (JsonNodeType type : VALUE_TYPES) {
             MenuItem item = new MenuItem(typeLabel(type));
@@ -229,70 +231,70 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
         }
 
         // === Move ===
-        moveUpItem = new MenuItem("Move Up");
+        moveUpItem = new MenuItem(I18n.t("JsonGridContextMenu.move-up"));
         moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", ActionColor.STRUCTURE));
         moveUpItem.setOnAction(e -> moveNode(-1));
         moveUpItem.setAccelerator(new KeyCodeCombination(KeyCode.UP, KeyCombination.ALT_DOWN));
 
-        moveDownItem = new MenuItem("Move Down");
+        moveDownItem = new MenuItem(I18n.t("JsonGridContextMenu.move-down"));
         moveDownItem.setGraphic(createColoredIcon("bi-arrow-down-circle", ActionColor.STRUCTURE));
         moveDownItem.setOnAction(e -> moveNode(1));
         moveDownItem.setAccelerator(new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN));
 
         // === Expand/Collapse (canvas actions) ===
-        expandFullyItem = new MenuItem("Expand Fully");
+        expandFullyItem = new MenuItem(I18n.t("JsonGridContextMenu.expand-fully"));
         expandFullyItem.setGraphic(createColoredIcon("bi-chevron-double-down", ActionColor.NEUTRAL));
         expandFullyItem.setOnAction(e -> viewActions.expandFully().run());
         expandFullyItem.setAccelerator(new KeyCodeCombination(KeyCode.PLUS,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
 
-        collapseUnselectedItem = new MenuItem("Collapse Unselected");
+        collapseUnselectedItem = new MenuItem(I18n.t("JsonGridContextMenu.collapse-unselected"));
         collapseUnselectedItem.setGraphic(createColoredIcon("bi-chevron-double-up", ActionColor.NEUTRAL));
         collapseUnselectedItem.setOnAction(e -> viewActions.collapseUnselected().run());
         collapseUnselectedItem.setAccelerator(new KeyCodeCombination(KeyCode.MINUS,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
 
-        displayAsTableItem = new CheckMenuItem("Display as Table");
+        displayAsTableItem = new CheckMenuItem(I18n.t("JsonGridContextMenu.display-as-table"));
         displayAsTableItem.setGraphic(createColoredIcon("bi-table", ActionColor.NEUTRAL));
         displayAsTableItem.setOnAction(e -> viewActions.toggleTableDisplay().run());
 
-        flipTableItem = new CheckMenuItem("Flip Rows/Columns");
+        flipTableItem = new CheckMenuItem(I18n.t("JsonGridContextMenu.flip-rows-columns"));
         flipTableItem.setGraphic(createColoredIcon("bi-arrow-left-right", ActionColor.NEUTRAL));
         flipTableItem.setOnAction(e -> viewActions.flipTable().run());
 
-        copyTableTsvItem = new MenuItem("Copy Table as Tab-separated Text");
+        copyTableTsvItem = new MenuItem(I18n.t("JsonGridContextMenu.copy-table-as-tab-separated"));
         copyTableTsvItem.setGraphic(createColoredIcon("bi-file-earmark-spreadsheet", ActionColor.NEUTRAL));
         copyTableTsvItem.setOnAction(e -> copyTableAsTsv());
 
         // === Table operations ===
-        tableMenu = new Menu("Table");
+        tableMenu = new Menu(I18n.t("JsonGridContextMenu.table"));
         tableMenu.setGraphic(createColoredIcon("bi-grid-3x3", ActionColor.STRUCTURE));
-        insertRowBeforeItem = new MenuItem("Insert Row Before");
+        insertRowBeforeItem = new MenuItem(I18n.t("JsonGridContextMenu.insert-row-before"));
         insertRowBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-up", ActionColor.CREATE));
         insertRowBeforeItem.setOnAction(e -> insertRow(Placement.BEFORE));
-        insertRowAfterItem = new MenuItem("Insert Row After");
+        insertRowAfterItem = new MenuItem(I18n.t("JsonGridContextMenu.insert-row-after"));
         insertRowAfterItem.setGraphic(createColoredIcon("bi-arrow-bar-down", ActionColor.CREATE));
         insertRowAfterItem.setOnAction(e -> insertRow(Placement.AFTER));
-        appendRowItem = new MenuItem("Append Row");
+        appendRowItem = new MenuItem(I18n.t("JsonGridContextMenu.append-row"));
         appendRowItem.setGraphic(createColoredIcon("bi-plus-square", ActionColor.CREATE));
         appendRowItem.setOnAction(e -> insertRow(Placement.APPEND));
-        deleteRowItem = new MenuItem("Delete Row");
+        deleteRowItem = new MenuItem(I18n.t("JsonGridContextMenu.delete-row"));
         deleteRowItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
         deleteRowItem.setOnAction(e -> deleteRow());
-        insertColumnBeforeItem = new MenuItem("Insert Column Before…");
+        insertColumnBeforeItem = new MenuItem(I18n.t("JsonGridContextMenu.insert-column-before"));
         insertColumnBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-left", ActionColor.CREATE));
         insertColumnBeforeItem.setOnAction(e -> insertColumn(Placement.BEFORE));
-        insertColumnAfterItem = new MenuItem("Insert Column After…");
+        insertColumnAfterItem = new MenuItem(I18n.t("JsonGridContextMenu.insert-column-after"));
         insertColumnAfterItem.setGraphic(createColoredIcon("bi-arrow-bar-right", ActionColor.CREATE));
         insertColumnAfterItem.setOnAction(e -> insertColumn(Placement.AFTER));
-        renameColumnItem = new MenuItem("Rename Column…");
+        renameColumnItem = new MenuItem(I18n.t("JsonGridContextMenu.rename-column"));
         renameColumnItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY));
         renameColumnItem.setOnAction(e -> renameColumn(clickedTable, clickedColumnName));
-        expandCellsItem = new MenuItem("Expand Selected Cells");
+        expandCellsItem = new MenuItem(I18n.t("JsonGridContextMenu.expand-selected-cells"));
         expandCellsItem.setGraphic(createColoredIcon("bi-plus-square-dotted", ActionColor.NEUTRAL));
         expandCellsItem.setAccelerator(new javafx.scene.input.KeyCharacterCombination("+"));
         expandCellsItem.setOnAction(e -> viewActions.expandOneLevel().run());
-        collapseCellsItem = new MenuItem("Collapse Selected Cells");
+        collapseCellsItem = new MenuItem(I18n.t("JsonGridContextMenu.collapse-selected-cells"));
         collapseCellsItem.setGraphic(createColoredIcon("bi-dash-square-dotted", ActionColor.NEUTRAL));
         collapseCellsItem.setAccelerator(new javafx.scene.input.KeyCharacterCombination("-"));
         collapseCellsItem.setOnAction(e -> viewActions.collapseOneLevel().run());
@@ -300,30 +302,30 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
                 new SeparatorMenuItem(), insertColumnBeforeItem, insertColumnAfterItem, renameColumnItem,
                 new SeparatorMenuItem(), expandCellsItem, collapseCellsItem);
 
-        expandAllItem = new MenuItem("Expand All");
+        expandAllItem = new MenuItem(I18n.t("JsonGridContextMenu.expand-all"));
         expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
         expandAllItem.setOnAction(e -> viewActions.expandAll().run());
 
-        collapseAllItem = new MenuItem("Collapse All");
+        collapseAllItem = new MenuItem(I18n.t("JsonGridContextMenu.collapse-all"));
         collapseAllItem.setGraphic(createColoredIcon("bi-arrows-collapse", ActionColor.NEUTRAL));
         collapseAllItem.setOnAction(e -> viewActions.collapseAll().run());
 
         // === Sort (for table columns) ===
-        sortMenu = new Menu("Sort Column");
+        sortMenu = new Menu(I18n.t("JsonGridContextMenu.sort-column"));
         sortMenu.setGraphic(createColoredIcon("bi-sort-down", ActionColor.TOOL));
 
-        sortAscendingItem = new MenuItem("Sort Ascending");
+        sortAscendingItem = new MenuItem(I18n.t("JsonGridContextMenu.sort-ascending"));
         sortAscendingItem.setGraphic(createColoredIcon("bi-sort-up", ActionColor.TOOL));
         sortAscendingItem.setOnAction(e -> sortColumn(true));
 
-        sortDescendingItem = new MenuItem("Sort Descending");
+        sortDescendingItem = new MenuItem(I18n.t("JsonGridContextMenu.sort-descending"));
         sortDescendingItem.setGraphic(createColoredIcon("bi-sort-down-alt", ActionColor.TOOL));
         sortDescendingItem.setOnAction(e -> sortColumn(false));
 
         sortMenu.getItems().addAll(sortAscendingItem, sortDescendingItem);
 
         // === Delete ===
-        deleteItem = new MenuItem("Delete");
+        deleteItem = new MenuItem(I18n.t("JsonGridContextMenu.delete"));
         deleteItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
         deleteItem.setOnAction(e -> deleteNode());
         deleteItem.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
@@ -930,10 +932,10 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
 
         int row = 0;
         if (askKey) {
-            grid.add(new Label("Key:"), 0, row);
+            grid.add(new Label(I18n.t("JsonGridContextMenu.key")), 0, row);
             grid.add(keyField, 1, row++);
         }
-        grid.add(new Label("Type:"), 0, row);
+        grid.add(new Label(I18n.t("JsonGridContextMenu.type")), 0, row);
         grid.add(typeBox, 1, row);
         dialog.getDialogPane().setContent(grid);
 

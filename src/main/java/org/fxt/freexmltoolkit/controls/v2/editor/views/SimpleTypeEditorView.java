@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -224,9 +226,9 @@ public class SimpleTypeEditorView extends BorderPane {
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
 
-        saveBtn = new Button("Save Type");
+        saveBtn = new Button(I18n.t("SimpleTypeEditorView.save-type"));
         saveBtn.setGraphic(new IconifyIcon("bi-floppy"));
-        saveBtn.setTooltip(new Tooltip("Save changes (Ctrl+S)"));
+        saveBtn.setTooltip(new Tooltip(I18n.t("SimpleTypeEditorView.save-changes-ctrl-s")));
         saveBtn.setStyle("-fx-font-weight: bold;");
         saveBtn.setDisable(true); // Enabled when callback is set
         saveBtn.setOnAction(e -> {
@@ -235,9 +237,9 @@ public class SimpleTypeEditorView extends BorderPane {
             }
         });
 
-        closeBtn = new Button("Close");
+        closeBtn = new Button(I18n.t("SimpleTypeEditorView.close"));
         closeBtn.setGraphic(new IconifyIcon("bi-x-circle"));
-        closeBtn.setTooltip(new Tooltip("Close editor (Esc)"));
+        closeBtn.setTooltip(new Tooltip(I18n.t("SimpleTypeEditorView.close-editor-esc")));
         closeBtn.setDisable(true); // Enabled when callback is set
         closeBtn.setOnAction(e -> {
             if (onCloseCallback != null) {
@@ -245,9 +247,9 @@ public class SimpleTypeEditorView extends BorderPane {
             }
         });
 
-        findUsageBtn = new Button("Find Usage");
+        findUsageBtn = new Button(I18n.t("SimpleTypeEditorView.find-usage"));
         findUsageBtn.setGraphic(new IconifyIcon("bi-search"));
-        findUsageBtn.setTooltip(new Tooltip("Find where this type is used (Ctrl+U)"));
+        findUsageBtn.setTooltip(new Tooltip(I18n.t("SimpleTypeEditorView.find-where-this-type-is")));
         findUsageBtn.setDisable(true); // Enabled when callback is set
         findUsageBtn.setOnAction(e -> {
             if (onFindUsageCallback != null) {
@@ -275,10 +277,10 @@ public class SimpleTypeEditorView extends BorderPane {
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         // Tab 1: General
-        Tab generalTab = new Tab("General", createGeneralPanel());
+        Tab generalTab = new Tab(I18n.t("SimpleTypeEditorView.general"), createGeneralPanel());
 
         // Tab 2: Restriction
-        Tab restrictionTab = new Tab("Restriction", createRestrictionPanel());
+        Tab restrictionTab = new Tab(I18n.t("SimpleTypeEditorView.restriction"), createRestrictionPanel());
 
         // Tabs 3 + 4: List / Union follow the type's variety - a type that already restricts
         // cannot also be a list or a union, a list type cannot also be a union and vice versa.
@@ -286,14 +288,14 @@ public class SimpleTypeEditorView extends BorderPane {
         boolean hasList = findListInSimpleType() != null;
         boolean hasUnion = findUnionInSimpleType() != null;
 
-        Tab listTab = new Tab("List", createListPanel());
+        Tab listTab = new Tab(I18n.t("SimpleTypeEditorView.list"), createListPanel());
         listTab.setDisable(hasRestriction || hasUnion);
 
-        Tab unionTab = new Tab("Union", createUnionPanel());
+        Tab unionTab = new Tab(I18n.t("SimpleTypeEditorView.union"), createUnionPanel());
         unionTab.setDisable(hasRestriction || hasList);
 
         // Tab 5: Annotation
-        Tab annotationTab = new Tab("Annotation", createAnnotationPanel());
+        Tab annotationTab = new Tab(I18n.t("SimpleTypeEditorView.annotation"), createAnnotationPanel());
 
         tabPane.getTabs().addAll(generalTab, restrictionTab, listTab, unionTab, annotationTab);
 
@@ -308,7 +310,7 @@ public class SimpleTypeEditorView extends BorderPane {
         VBox panel = new VBox(15);
         panel.setPadding(new Insets(20));
 
-        Label title = new Label("General Properties");
+        Label title = new Label(I18n.t("SimpleTypeEditorView.general-properties"));
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
         GridPane grid = new GridPane();
@@ -316,10 +318,10 @@ public class SimpleTypeEditorView extends BorderPane {
         grid.setVgap(10);
 
         // Name field - editable
-        Label nameLabel = new Label("Name:");
+        Label nameLabel = new Label(I18n.t("SimpleTypeEditorView.name"));
         TextField nameField = new TextField(simpleType.getName());
-        nameField.setPromptText("Type name");
-        nameField.setTooltip(new Tooltip("The name of this SimpleType"));
+        nameField.setPromptText(I18n.t("SimpleTypeEditorView.type-name"));
+        nameField.setTooltip(new Tooltip(I18n.t("SimpleTypeEditorView.the-name-of-this-simpletype")));
 
         // Listen to name changes
         nameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
@@ -358,11 +360,11 @@ public class SimpleTypeEditorView extends BorderPane {
         grid.add(nameField, 1, 0);
 
         // Final attribute - prevents further derivation
-        Label finalLabel = new Label("Final:");
+        Label finalLabel = new Label(I18n.t("SimpleTypeEditorView.final"));
 
-        CheckBox finalCheck = new CheckBox("Prevent further derivation");
+        CheckBox finalCheck = new CheckBox(I18n.t("SimpleTypeEditorView.prevent-further-derivation"));
         finalCheck.setSelected(simpleType.isFinal());
-        finalCheck.setTooltip(new Tooltip("When checked, this type cannot be further derived"));
+        finalCheck.setTooltip(new Tooltip(I18n.t("SimpleTypeEditorView.when-checked-this-type-cannot")));
 
         // Listen to changes
         finalCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
@@ -380,8 +382,7 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Information label
         Label infoLabel = new Label(
-                "The 'final' attribute prevents this type from being further derived.\n" +
-                "When set, other types cannot use this type as a base."
+                I18n.t("SimpleTypeEditorView.the-final-attribute-prevents-this")
         );
         infoLabel.setWrapText(true);
         infoLabel.getStyleClass().add("theme-text-secondary");
@@ -401,13 +402,13 @@ public class SimpleTypeEditorView extends BorderPane {
         VBox panel = new VBox(10);
         panel.setPadding(new Insets(10));
 
-        Label title = new Label("Restriction");
+        Label title = new Label(I18n.t("SimpleTypeEditorView.restriction"));
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
         // Base Type selector
         HBox baseTypeBox = new HBox(10);
         baseTypeBox.setAlignment(Pos.CENTER_LEFT);
-        Label baseLabel = new Label("Base Type:");
+        Label baseLabel = new Label(I18n.t("SimpleTypeEditorView.base-type"));
         baseTypePicker = newSimpleTypePicker("simple-type-base-type");
 
         // Find existing restriction to get base type
@@ -426,7 +427,7 @@ public class SimpleTypeEditorView extends BorderPane {
         restrictionTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         // Tab 1: Facets
-        Tab facetsTab = new Tab("Facets");
+        Tab facetsTab = new Tab(I18n.t("SimpleTypeEditorView.facets"));
         facetsTab.setGraphic(new IconifyIcon("bi-funnel"));
         facetsPanel = new FacetsPanel(editorContext);
         if (currentRestriction != null) {
@@ -469,16 +470,16 @@ public class SimpleTypeEditorView extends BorderPane {
         vbox.setPadding(new Insets(10));
 
         // Title and description
-        Label titleLabel = new Label("Enumeration Values");
+        Label titleLabel = new Label(I18n.t("SimpleTypeEditorView.enumeration-values"));
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-        Label descLabel = new Label("Define a list of allowed values for this type (e.g., 'red', 'green', 'blue')");
+        Label descLabel = new Label(I18n.t("SimpleTypeEditorView.define-a-list-of-allowed"));
         descLabel.setWrapText(true);
         descLabel.getStyleClass().add("desc-label");
 
         // Enumerations list
         enumerationsListView = new ListView<>();
         enumerationsListView.setPrefHeight(200);
-        enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
+        enumerationsListView.setPlaceholder(new Label(I18n.t("SimpleTypeEditorView.no-enumeration-values-defined")));
         VBox.setVgrow(enumerationsListView, Priority.ALWAYS);
 
         // Load existing enumerations
@@ -488,12 +489,12 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
-        Button addEnumBtn = new Button("Add");
+        Button addEnumBtn = new Button(I18n.t("SimpleTypeEditorView.add"));
         addEnumBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
-        Button editEnumBtn = new Button("Edit");
+        Button editEnumBtn = new Button(I18n.t("SimpleTypeEditorView.edit"));
         editEnumBtn.setGraphic(new IconifyIcon("bi-pencil"));
         editEnumBtn.setDisable(true);
-        Button removeEnumBtn = new Button("Remove");
+        Button removeEnumBtn = new Button(I18n.t("SimpleTypeEditorView.remove"));
         removeEnumBtn.setGraphic(new IconifyIcon("bi-trash"));
         removeEnumBtn.setDisable(true);
 
@@ -517,7 +518,7 @@ public class SimpleTypeEditorView extends BorderPane {
 
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), enumerationsListView, buttonBox);
 
-        Tab tab = new Tab("Enumerations", vbox);
+        Tab tab = new Tab(I18n.t("SimpleTypeEditorView.enumerations"), vbox);
         tab.setGraphic(new IconifyIcon("bi-list-ul"));
         return tab;
     }
@@ -533,7 +534,7 @@ public class SimpleTypeEditorView extends BorderPane {
         vbox.setPadding(new Insets(10));
 
         // Title and description
-        Label titleLabel = new Label("Regular Expression Patterns");
+        Label titleLabel = new Label(I18n.t("SimpleTypeEditorView.regular-expression-patterns"));
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
         Label descLabel = new Label("Define regex patterns that values must match (e.g., [0-9]{3}-[0-9]{2}-[0-9]{4})");
         descLabel.setWrapText(true);
@@ -542,7 +543,7 @@ public class SimpleTypeEditorView extends BorderPane {
         // Patterns list
         patternsListView = new ListView<>();
         patternsListView.setPrefHeight(200);
-        patternsListView.setPlaceholder(new Label("No patterns defined"));
+        patternsListView.setPlaceholder(new Label(I18n.t("SimpleTypeEditorView.no-patterns-defined")));
         VBox.setVgrow(patternsListView, Priority.ALWAYS);
 
         // Load existing patterns
@@ -552,12 +553,12 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
-        Button addPatternBtn = new Button("Add");
+        Button addPatternBtn = new Button(I18n.t("SimpleTypeEditorView.add"));
         addPatternBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
-        Button editPatternBtn = new Button("Edit");
+        Button editPatternBtn = new Button(I18n.t("SimpleTypeEditorView.edit"));
         editPatternBtn.setGraphic(new IconifyIcon("bi-pencil"));
         editPatternBtn.setDisable(true);
-        Button removePatternBtn = new Button("Remove");
+        Button removePatternBtn = new Button(I18n.t("SimpleTypeEditorView.remove"));
         removePatternBtn.setGraphic(new IconifyIcon("bi-trash"));
         removePatternBtn.setDisable(true);
 
@@ -577,7 +578,7 @@ public class SimpleTypeEditorView extends BorderPane {
 
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), patternsListView, buttonBox);
 
-        Tab tab = new Tab("Patterns", vbox);
+        Tab tab = new Tab(I18n.t("SimpleTypeEditorView.patterns"), vbox);
         tab.setGraphic(new IconifyIcon("bi-braces"));
         return tab;
     }
@@ -593,16 +594,16 @@ public class SimpleTypeEditorView extends BorderPane {
         vbox.setPadding(new Insets(10));
 
         // Title and description
-        Label titleLabel = new Label("XSD 1.1 Assertions");
+        Label titleLabel = new Label(I18n.t("SimpleTypeEditorView.xsd-1-1-assertions"));
         titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px;");
-        Label descLabel = new Label("XPath-based assertions for complex validation rules (XSD 1.1 feature)");
+        Label descLabel = new Label(I18n.t("SimpleTypeEditorView.xpath-based-assertions-for-complex"));
         descLabel.setWrapText(true);
         descLabel.getStyleClass().add("desc-label");
 
         // Assertions list
         assertionsListView = new ListView<>();
         assertionsListView.setPrefHeight(200);
-        assertionsListView.setPlaceholder(new Label("No assertions defined (requires XSD 1.1)"));
+        assertionsListView.setPlaceholder(new Label(I18n.t("SimpleTypeEditorView.no-assertions-defined-requires-xsd")));
         VBox.setVgrow(assertionsListView, Priority.ALWAYS);
 
         // Load existing assertions
@@ -612,12 +613,12 @@ public class SimpleTypeEditorView extends BorderPane {
 
         // Add/Remove buttons
         HBox buttonBox = new HBox(10);
-        Button addAssertBtn = new Button("Add");
+        Button addAssertBtn = new Button(I18n.t("SimpleTypeEditorView.add"));
         addAssertBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
-        Button editAssertBtn = new Button("Edit");
+        Button editAssertBtn = new Button(I18n.t("SimpleTypeEditorView.edit"));
         editAssertBtn.setGraphic(new IconifyIcon("bi-pencil"));
         editAssertBtn.setDisable(true);
-        Button removeAssertBtn = new Button("Remove");
+        Button removeAssertBtn = new Button(I18n.t("SimpleTypeEditorView.remove"));
         removeAssertBtn.setGraphic(new IconifyIcon("bi-trash"));
         removeAssertBtn.setDisable(true);
 
@@ -636,13 +637,13 @@ public class SimpleTypeEditorView extends BorderPane {
         buttonBox.getChildren().addAll(addAssertBtn, editAssertBtn, removeAssertBtn);
 
         // Info note about XSD 1.1
-        Label infoLabel = new Label("Note: Assertions are an XSD 1.1 feature and may not be supported by all validators");
+        Label infoLabel = new Label(I18n.t("SimpleTypeEditorView.note-assertions-are-an-xsd"));
         infoLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-size: 10px; -fx-font-style: italic;");
         infoLabel.setWrapText(true);
 
         vbox.getChildren().addAll(titleLabel, descLabel, new Separator(), assertionsListView, buttonBox, infoLabel);
 
-        Tab tab = new Tab("Assertions", vbox);
+        Tab tab = new Tab(I18n.t("SimpleTypeEditorView.assertions"), vbox);
         tab.setGraphic(new IconifyIcon("bi-check2-square"));
         return tab;
     }
@@ -1124,10 +1125,10 @@ public class SimpleTypeEditorView extends BorderPane {
         VBox panel = new VBox(15);
         panel.setPadding(new Insets(20));
 
-        Label title = new Label("List");
+        Label title = new Label(I18n.t("SimpleTypeEditorView.list"));
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        Label itemTypeLabel = new Label("Item Type:");
+        Label itemTypeLabel = new Label(I18n.t("SimpleTypeEditorView.item-type"));
         TypePickerField itemTypePicker = newSimpleTypePicker("simple-type-item-type");
         itemTypePicker.setMaxWidth(320);
 
@@ -1141,8 +1142,7 @@ public class SimpleTypeEditorView extends BorderPane {
         itemTypePicker.setOnCommit(this::handleItemTypeChange);
 
         Label description = new Label(
-                "A list creates space-separated values of the specified item type.\n" +
-                "Example: \"DE AT CH FR\" (list of country codes)"
+                I18n.t("SimpleTypeEditorView.a-list-creates-space-separated")
         );
         description.setWrapText(true);
         description.getStyleClass().add("theme-text-secondary");
@@ -1214,10 +1214,10 @@ public class SimpleTypeEditorView extends BorderPane {
         VBox panel = new VBox(15);
         panel.setPadding(new Insets(20));
 
-        Label title = new Label("Union");
+        Label title = new Label(I18n.t("SimpleTypeEditorView.union"));
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        Label memberTypesLabel = new Label("Member Types:");
+        Label memberTypesLabel = new Label(I18n.t("SimpleTypeEditorView.member-types"));
         ListView<String> memberTypesList = new ListView<>();
         memberTypesList.setPrefHeight(150);
 
@@ -1227,14 +1227,14 @@ public class SimpleTypeEditorView extends BorderPane {
             memberTypesList.getItems().addAll(currentUnion.getMemberTypes());
         }
 
-        Button addBtn = new Button("Add Member Type");
+        Button addBtn = new Button(I18n.t("SimpleTypeEditorView.add-member-type"));
         addBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
-        addBtn.setTooltip(new Tooltip("Add a type to the union"));
+        addBtn.setTooltip(new Tooltip(I18n.t("SimpleTypeEditorView.add-a-type-to-the")));
         addBtn.setOnAction(e -> handleAddMemberType(memberTypesList));
 
-        Button removeBtn = new Button("Remove");
+        Button removeBtn = new Button(I18n.t("SimpleTypeEditorView.remove"));
         removeBtn.setGraphic(new IconifyIcon("bi-trash"));
-        removeBtn.setTooltip(new Tooltip("Remove selected type"));
+        removeBtn.setTooltip(new Tooltip(I18n.t("SimpleTypeEditorView.remove-selected-type")));
         removeBtn.setStyle("-fx-text-fill: red;");
         removeBtn.setOnAction(e -> handleRemoveMemberType(memberTypesList));
         removeBtn.setDisable(true);
@@ -1247,8 +1247,7 @@ public class SimpleTypeEditorView extends BorderPane {
         HBox buttonsBox = new HBox(10, addBtn, removeBtn);
 
         Label description = new Label(
-                "A union allows values from any of the specified member types.\n" +
-                "Example: Value can be either string OR decimal."
+                I18n.t("SimpleTypeEditorView.a-union-allows-values-from")
         );
         description.setWrapText(true);
         description.getStyleClass().add("theme-text-secondary");
@@ -1352,13 +1351,12 @@ public class SimpleTypeEditorView extends BorderPane {
         panel.setPadding(new Insets(15));
 
         // Title
-        Label title = new Label("Annotation");
+        Label title = new Label(I18n.t("SimpleTypeEditorView.annotation"));
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
         // Description
         Label description = new Label(
-                "Manage documentation and application-specific metadata for this type. " +
-                "Documentation supports multiple languages."
+                I18n.t("SimpleTypeEditorView.manage-documentation-and-application-specific")
         );
         description.setWrapText(true);
         description.getStyleClass().add("theme-text-secondary");

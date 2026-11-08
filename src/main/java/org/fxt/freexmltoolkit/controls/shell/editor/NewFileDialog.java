@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -76,8 +78,8 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
 
     NewFileDialog(List<XmlTemplate> templates) {
         this.allTemplates = templates == null ? List.of() : templates;
-        setTitle("New File");
-        setHeaderText("Choose what to create");
+        setTitle(I18n.t("NewFileDialog.new-file"));
+        setHeaderText(I18n.t("NewFileDialog.choose-what-to-create"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/NewFileDialog.fxml"));
@@ -164,7 +166,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
     @FXML
     public void onBrowseSchema() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select XSD Schema");
+        chooser.setTitle(I18n.t("NewFileDialog.select-xsd-schema"));
         chooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XSD Schema", "*.xsd"),
                 new FileChooser.ExtensionFilter("All files", "*.*"));
@@ -182,7 +184,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
     public void onBrowseSaveLocation() {
         EditorFileType type = typeBox.getValue();
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save New File As");
+        chooser.setTitle(I18n.t("NewFileDialog.save-new-file-as"));
         String ext = type.primaryExtension();
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter(type.label() + " files", "*." + ext));
@@ -305,7 +307,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
                 if (empty) {
                     setText(null);
                 } else if (item == null) {
-                    setText("— None —");
+                    setText(I18n.t("NewFileDialog.none"));
                 } else {
                     String cat = item.getCategory();
                     setText(item.getName() + (cat == null || cat.isBlank() ? "" : "  (" + cat + ")"));

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -94,11 +96,11 @@ public class SchematronTester extends VBox {
     private void initializeComponents() {
         // Schematron file selection
         schematronFileField = new TextField();
-        schematronFileField.setPromptText("Select Schematron file to test...");
+        schematronFileField.setPromptText(I18n.t("SchematronTester.select-schematron-file-to-test"));
         schematronFileField.setEditable(false);
         schematronFileField.setPrefWidth(400);
 
-        browseSchematronButton = new Button("Browse...");
+        browseSchematronButton = new Button(I18n.t("SchematronTester.browse"));
         IconifyIcon browseIcon = new IconifyIcon("bi-folder2-open");
         browseIcon.setIconSize(16);
         org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(browseIcon, org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.PRIMARY);
@@ -112,7 +114,7 @@ public class SchematronTester extends VBox {
         testFilesListView.setPrefHeight(150);
         testFilesListView.setCellFactory(listView -> new TestFileListCell());
 
-        addTestFileButton = new Button("Add XML Files");
+        addTestFileButton = new Button(I18n.t("SchematronTester.add-xml-files"));
         IconifyIcon addIcon = new IconifyIcon("bi-plus-circle");
         addIcon.setIconSize(16);
         org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(addIcon, org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.SUCCESS);
@@ -121,7 +123,7 @@ public class SchematronTester extends VBox {
         addTestFileButton.setGraphicTextGap(6);
         addTestFileButton.getStyleClass().add("primary-button");
 
-        removeTestFileButton = new Button("Remove Selected");
+        removeTestFileButton = new Button(I18n.t("SchematronTester.remove-selected"));
         IconifyIcon removeIcon = new IconifyIcon("bi-trash");
         removeIcon.setIconSize(16);
         org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(removeIcon, org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.DANGER);
@@ -132,7 +134,7 @@ public class SchematronTester extends VBox {
         removeTestFileButton.setDisable(true);
 
         // Test execution controls
-        runTestsButton = new Button("Run Tests");
+        runTestsButton = new Button(I18n.t("SchematronTester.run-tests"));
         IconifyIcon runIcon = new IconifyIcon("bi-play-fill");
         runIcon.setIconSize(16);
         org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(runIcon, org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.SUCCESS);
@@ -143,7 +145,7 @@ public class SchematronTester extends VBox {
         runTestsButton.setPrefWidth(120);
         runTestsButton.setDisable(true);
 
-        clearResultsButton = new Button("Clear Results");
+        clearResultsButton = new Button(I18n.t("SchematronTester.clear-results"));
         IconifyIcon clearIcon = new IconifyIcon("bi-x-circle");
         clearIcon.setIconSize(16);
         org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(clearIcon, org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.NEUTRAL);
@@ -157,7 +159,7 @@ public class SchematronTester extends VBox {
         progressBar.setPrefWidth(200);
         progressBar.setVisible(false);
 
-        statusLabel = new Label("Ready");
+        statusLabel = new Label(I18n.t("SchematronTester.ready"));
         statusLabel.getStyleClass().add("status-label");
 
         // Results display
@@ -167,7 +169,7 @@ public class SchematronTester extends VBox {
         detailsTextArea.setEditable(false);
         detailsTextArea.setPrefHeight(120);
         detailsTextArea.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 11px;");
-        detailsTextArea.setPromptText("Select a test result to view details...");
+        detailsTextArea.setPromptText(I18n.t("SchematronTester.select-a-test-result-to"));
     }
 
     /**
@@ -178,12 +180,12 @@ public class SchematronTester extends VBox {
         table.setPrefHeight(200);
 
         // Test file column
-        TableColumn<TestResult, String> fileColumn = new TableColumn<>("Test File");
+        TableColumn<TestResult, String> fileColumn = new TableColumn<>(I18n.t("SchematronTester.test-file"));
         fileColumn.setCellValueFactory(new PropertyValueFactory<>("fileName"));
         fileColumn.setPrefWidth(200);
 
         // Status column
-        TableColumn<TestResult, String> statusColumn = new TableColumn<>("Status");
+        TableColumn<TestResult, String> statusColumn = new TableColumn<>(I18n.t("SchematronTester.status"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         statusColumn.setPrefWidth(80);
         statusColumn.setCellFactory(column -> new TableCell<TestResult, String>() {
@@ -206,22 +208,22 @@ public class SchematronTester extends VBox {
         });
 
         // Errors column
-        TableColumn<TestResult, Integer> errorsColumn = new TableColumn<>("Errors");
+        TableColumn<TestResult, Integer> errorsColumn = new TableColumn<>(I18n.t("SchematronTester.errors"));
         errorsColumn.setCellValueFactory(new PropertyValueFactory<>("errorCount"));
         errorsColumn.setPrefWidth(60);
 
         // Warnings column
-        TableColumn<TestResult, Integer> warningsColumn = new TableColumn<>("Warnings");
+        TableColumn<TestResult, Integer> warningsColumn = new TableColumn<>(I18n.t("SchematronTester.warnings"));
         warningsColumn.setCellValueFactory(new PropertyValueFactory<>("warningCount"));
         warningsColumn.setPrefWidth(70);
 
         // Duration column
-        TableColumn<TestResult, String> durationColumn = new TableColumn<>("Duration");
+        TableColumn<TestResult, String> durationColumn = new TableColumn<>(I18n.t("SchematronTester.duration"));
         durationColumn.setCellValueFactory(new PropertyValueFactory<>("duration"));
         durationColumn.setPrefWidth(80);
 
         // Timestamp column
-        TableColumn<TestResult, String> timestampColumn = new TableColumn<>("Time");
+        TableColumn<TestResult, String> timestampColumn = new TableColumn<>(I18n.t("SchematronTester.time"));
         timestampColumn.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
         timestampColumn.setPrefWidth(150);
 
@@ -235,7 +237,7 @@ public class SchematronTester extends VBox {
      */
     private void layoutComponents() {
         // Header
-        Label headerLabel = new Label("Schematron Testing Framework");
+        Label headerLabel = new Label(I18n.t("SchematronTester.schematron-testing-framework"));
         headerLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
 
         // Schematron file section
@@ -289,7 +291,7 @@ public class SchematronTester extends VBox {
         HBox fileRow = new HBox(10);
         fileRow.setAlignment(Pos.CENTER_LEFT);
         fileRow.getChildren().addAll(
-                new Label("File:"),
+                new Label(I18n.t("SchematronTester.file")),
                 schematronFileField,
                 browseSchematronButton
         );
@@ -338,10 +340,10 @@ public class SchematronTester extends VBox {
      * Create results display controls
      */
     private VBox createResultsControls() {
-        Label tableLabel = new Label("Test Results:");
+        Label tableLabel = new Label(I18n.t("SchematronTester.test-results"));
         tableLabel.setFont(Font.font("System", FontWeight.BOLD, 11));
 
-        Label detailsLabel = new Label("Details:");
+        Label detailsLabel = new Label(I18n.t("SchematronTester.details"));
         detailsLabel.setFont(Font.font("System", FontWeight.BOLD, 11));
 
         VBox controls = new VBox(5);
@@ -383,7 +385,7 @@ public class SchematronTester extends VBox {
      */
     private void browseSchematronFile() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Schematron File");
+        fileChooser.setTitle(I18n.t("SchematronTester.select-schematron-file"));
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Schematron files", "*.sch", "*.schematron"),
                 new FileChooser.ExtensionFilter("All Files", "*.*")
@@ -403,7 +405,7 @@ public class SchematronTester extends VBox {
      */
     private void addTestFiles() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select XML Test Files");
+        fileChooser.setTitle(I18n.t("SchematronTester.select-xml-test-files"));
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML files", "*.xml"),
                 new FileChooser.ExtensionFilter("All Files", "*.*")
@@ -457,7 +459,7 @@ public class SchematronTester extends VBox {
 
         progressBar.setProgress(0);
         progressBar.setVisible(true);
-        statusLabel.setText("Running tests...");
+        statusLabel.setText(I18n.t("SchematronTester.running-tests"));
 
         // Clear previous results
         testResults.clear();
@@ -471,9 +473,9 @@ public class SchematronTester extends VBox {
                 logger.error("Error during test execution", e);
                 javafx.application.Platform.runLater(() -> {
                     statusLabel.setText("Error: " + e.getMessage());
-                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Schematron Test",
-                            "The Schematron test could not be run.",
-                            "Check that the XML file and the Schematron rules are valid and readable, then run the test again.",
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("SchematronTester.schematron-test"),
+                            I18n.t("SchematronTester.the-schematron-test-could-not"),
+                            I18n.t("SchematronTester.check-that-the-xml-file"),
                             e);
                 });
             } finally {
@@ -600,7 +602,7 @@ public class SchematronTester extends VBox {
     private void clearResults() {
         testResults.clear();
         detailsTextArea.clear();
-        statusLabel.setText("Ready");
+        statusLabel.setText(I18n.t("SchematronTester.ready"));
         progressBar.setProgress(0);
 
         logger.debug("Cleared test results");

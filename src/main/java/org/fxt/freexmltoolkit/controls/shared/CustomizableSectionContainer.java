@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls.shared;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -166,7 +168,7 @@ public class CustomizableSectionContainer extends VBox {
         gearIcon.setIconSize(14);
         SemanticIcon.paint(gearIcon, DesignTokens.ColorToken.NEUTRAL);
         button.setGraphic(gearIcon);
-        button.setTooltip(new Tooltip("Customize sections"));
+        button.setTooltip(new Tooltip(I18n.t("CustomizableSectionContainer.customize-sections")));
         button.getStyleClass().addAll("settings-gear-button", "flat-button");
         button.setOnAction(e -> showSettingsPopup(button));
         return button;
@@ -380,7 +382,7 @@ public class CustomizableSectionContainer extends VBox {
         hideItem.setGraphic(hideIcon);
         hideItem.setOnAction(e -> setSectionVisible(sectionId, false));
 
-        MenuItem customizeItem = new MenuItem("Customize Sections...");
+        MenuItem customizeItem = new MenuItem(I18n.t("CustomizableSectionContainer.customize-sections-2"));
         IconifyIcon customizeIcon = new IconifyIcon("bi-gear");
         customizeIcon.setIconSize(14);
         customizeItem.setGraphic(customizeIcon);

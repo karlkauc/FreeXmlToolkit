@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -149,19 +151,19 @@ public class FopPanel extends VBox {
      */
     public void startDebug() {
         if (xslFile == null) {
-            PanelStatus.precondition(status, "Select an XSL-FO stylesheet first.");
+            PanelStatus.precondition(status, I18n.t("FopPanel.select-an-xsl-fo-stylesheet"));
             return;
         }
         File xmlFile = inputXmlFile();
         if (xmlFile == null) {
-            PanelStatus.precondition(status, "No document open.");
+            PanelStatus.precondition(status, I18n.t("FopPanel.no-document-open"));
             return;
         }
         String xml;
         try {
             xml = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            PanelStatus.failure(status, "Could not read XML", "Could not read the XML input: " + e.getMessage());
+            PanelStatus.failure(status, I18n.t("FopPanel.could-not-read-xml"), "Could not read the XML input: " + e.getMessage());
             return;
         }
         java.util.Map<String, Object> parameters = new java.util.HashMap<>(currentOptions().stylesheetParameters());
@@ -192,7 +194,7 @@ public class FopPanel extends VBox {
             return;
         }
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save PDF");
+        chooser.setTitle(I18n.t("FopPanel.save-pdf"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -203,12 +205,12 @@ public class FopPanel extends VBox {
     /** Renders the FO of the latest run into {@code pdfOutput} (async); also used by tests. */
     public void renderFoTo(File pdfOutput) {
         if (lastResult == null || lastResult.foXml() == null) {
-            PanelStatus.precondition(status, "Debug or generate first — there is no FO to render yet.");
+            PanelStatus.precondition(status, I18n.t("FopPanel.debug-or-generate-first-there"));
             return;
         }
         String fo = lastResult.foXml();
         FopRunner.PdfOptions options = currentOptions();
-        PanelStatus.info(status, "Rendering…");
+        PanelStatus.info(status, I18n.t("FopPanel.rendering"));
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             FopRunner.FopResult outcome = FopRunner.renderFo(fo, pdfOutput, options);
@@ -226,8 +228,8 @@ public class FopPanel extends VBox {
                     previewPdf();
                 } else {
                     // fop_pdf already carries the failure; the dialog must not report it a second time.
-                    PanelStatus.failure(status, "PDF generation failed", "PDF generation failed.",
-                            "FOP rejected the FO document.", PanelStatus.strip(outcome.asText()), false);
+                    PanelStatus.failure(status, I18n.t("FopPanel.pdf-generation-failed"), I18n.t("FopPanel.pdf-generation-failed-2"),
+                            I18n.t("FopPanel.fop-rejected-the-fo-document"), PanelStatus.strip(outcome.asText()), false);
                     editorHost.transformOutputPanel().showMessages("PDF / FOP · rendering failed",
                             PanelStatus.strip(outcome.asText()) + "\n\n" + lastResult.notesText());
                 }
@@ -297,17 +299,17 @@ public class FopPanel extends VBox {
     /** Generates a PDF from the XML input + the selected XSL into {@code pdfOutput} (async). */
     public void generateTo(File pdfOutput) {
         if (xslFile == null) {
-            PanelStatus.precondition(status, "Select an XSL-FO stylesheet first.");
+            PanelStatus.precondition(status, I18n.t("FopPanel.select-an-xsl-fo-stylesheet"));
             return;
         }
         File xmlFile = inputXmlFile();
         if (xmlFile == null) {
-            PanelStatus.precondition(status, "No document open.");
+            PanelStatus.precondition(status, I18n.t("FopPanel.no-document-open"));
             return;
         }
         File xsl = xslFile;
         FopRunner.PdfOptions options = currentOptions();
-        PanelStatus.info(status, "Generating…");
+        PanelStatus.info(status, I18n.t("FopPanel.generating"));
         openButton.setDisable(true);
         generateButton.setDisable(true);
         // PDF rendering is a single opaque call, so cancellation frees the UI and
@@ -321,7 +323,7 @@ public class FopPanel extends VBox {
             }
             progress.finish();
             generateButton.setDisable(false);
-            PanelStatus.info(status, "Cancelled");
+            PanelStatus.info(status, I18n.t("FopPanel.cancelled"));
         });
         task[0] = FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -358,9 +360,9 @@ public class FopPanel extends VBox {
                     previewPdf(); // show the result in-app immediately
                 } else {
                     // fop_pdf already carries the failure; the dialog must not report it a second time.
-                    PanelStatus.failure(status, "PDF generation failed",
-                            "PDF generation failed.",
-                            "Check that the XML and the XSL-FO stylesheet are valid and the target file is writable, then try again.",
+                    PanelStatus.failure(status, I18n.t("FopPanel.pdf-generation-failed"),
+                            I18n.t("FopPanel.pdf-generation-failed-2"),
+                            I18n.t("FopPanel.check-that-the-xml-and"),
                             PanelStatus.strip(result), false);
                     // The details (stylesheet error with its location, FOP's reason) go to OUTPUT.
                     editorHost.transformOutputPanel().showMessages("PDF / FOP · generation failed",
@@ -443,7 +445,7 @@ public class FopPanel extends VBox {
 
     private void chooseXsl() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select XSL-FO Stylesheet");
+        chooser.setTitle(I18n.t("FopPanel.select-xsl-fo-stylesheet"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSL", "*.xsl", "*.xslt"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -453,7 +455,7 @@ public class FopPanel extends VBox {
 
     private void chooseXmlOverride() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select XML file");
+        chooser.setTitle(I18n.t("FopPanel.select-xml-file"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -477,7 +479,7 @@ public class FopPanel extends VBox {
 
     private void chooseTargetAndGenerate() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save PDF");
+        chooser.setTitle(I18n.t("FopPanel.save-pdf"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -497,7 +499,7 @@ public class FopPanel extends VBox {
             return;
         }
         org.fxt.freexmltoolkit.util.DesktopActions.open(lastPdf, e ->
-                PanelStatus.failure(status, "Could not open PDF", "Could not open PDF (no desktop handler)."));
+                PanelStatus.failure(status, I18n.t("FopPanel.could-not-open-pdf"), I18n.t("FopPanel.could-not-open-pdf-no")));
     }
 
     // ----- shared mockup-language helpers ------------------------------------

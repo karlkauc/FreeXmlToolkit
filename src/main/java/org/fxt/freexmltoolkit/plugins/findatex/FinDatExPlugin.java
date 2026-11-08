@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.plugins.findatex;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -105,7 +107,7 @@ public final class FinDatExPlugin implements FxtPlugin {
     /** Opens an Excel template file (first sheet) as CSV text. */
     static void openExcel(PluginUi ui) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Open FinDatEx Excel File");
+        chooser.setTitle(I18n.t("FinDatExPlugin.open-findatex-excel-file"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel", "*.xlsx", "*.xls"));
         File file = FileChooserHelper.showOpenDialog(chooser, ui.window());
         if (file == null) {
@@ -117,7 +119,7 @@ public final class FinDatExPlugin implements FxtPlugin {
                 Platform.runLater(() -> ui.editorHost().openGeneratedDocument(csv, EditorFileType.OTHER,
                         file.getName().replaceFirst("\\.xlsx?$", "") + ".csv"));
             } catch (IOException | RuntimeException e) {
-                Platform.runLater(() -> DialogHelper.showError("FinDatEx", "The Excel file could not be read.",
+                Platform.runLater(() -> DialogHelper.showError(I18n.t("FinDatExPlugin.findatex"), I18n.t("FinDatExPlugin.the-excel-file-could-not"),
                         String.valueOf(e.getMessage())));
             }
         });

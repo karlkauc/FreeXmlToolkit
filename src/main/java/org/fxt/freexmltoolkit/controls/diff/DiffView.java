@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -94,8 +96,8 @@ public final class DiffView extends Tab {
     private final XmlDiffPanel xmlPanel = new XmlDiffPanel(this::showDifference);
     private final SplitPane verticalSplit = new SplitPane();
     private final ToggleGroup modeGroup = new ToggleGroup();
-    private final ToggleButton textModeButton = new ToggleButton("Text");
-    private final ToggleButton xmlModeButton = new ToggleButton("XML");
+    private final ToggleButton textModeButton = new ToggleButton(I18n.t("DiffView.text"));
+    private final ToggleButton xmlModeButton = new ToggleButton(I18n.t("DiffView.xml"));
     private final MenuButton xmlOptionsButton = new MenuButton("XML Options");
     private Button allLeftButton;
     private Button allRightButton;
@@ -281,9 +283,8 @@ public final class DiffView extends Tab {
         textModeButton.setToggleGroup(modeGroup);
         xmlModeButton.setToggleGroup(modeGroup);
         textModeButton.setSelected(true);
-        textModeButton.setTooltip(new Tooltip("Compare line by line; merge with the arrows"));
-        xmlModeButton.setTooltip(new Tooltip("Compare as XML: elements, attributes and text, "
-                + "regardless of formatting and attribute order (both sides must be XML)"));
+        textModeButton.setTooltip(new Tooltip(I18n.t("DiffView.compare-line-by-line-merge")));
+        xmlModeButton.setTooltip(new Tooltip(I18n.t("DiffView.compare-as-xml-elements-attributes")));
         modeGroup.selectedToggleProperty().addListener((obs, old, selected) -> {
             if (selected == null) {
                 modeGroup.selectToggle(old);   // one mode is always on
@@ -321,11 +322,11 @@ public final class DiffView extends Tab {
     }
 
     private MenuButton buildXmlOptions() {
-        CheckMenuItem normalize = new CheckMenuItem("Ignore whitespace differences");
-        CheckMenuItem comments = new CheckMenuItem("Ignore comments");
-        CheckMenuItem prefixes = new CheckMenuItem("Report namespace prefix changes");
-        CheckMenuItem order = new CheckMenuItem("Ignore element order");
-        MenuItem keys = new MenuItem("Key Attributes…");
+        CheckMenuItem normalize = new CheckMenuItem(I18n.t("DiffView.ignore-whitespace-differences"));
+        CheckMenuItem comments = new CheckMenuItem(I18n.t("DiffView.ignore-comments"));
+        CheckMenuItem prefixes = new CheckMenuItem(I18n.t("DiffView.report-namespace-prefix-changes"));
+        CheckMenuItem order = new CheckMenuItem(I18n.t("DiffView.ignore-element-order"));
+        MenuItem keys = new MenuItem(I18n.t("DiffView.key-attributes"));
         normalize.setSelected(xmlOptions.normalizeWhitespace());
         comments.setSelected(xmlOptions.ignoreComments());
         prefixes.setSelected(xmlOptions.reportPrefixChanges());
@@ -343,7 +344,7 @@ public final class DiffView extends Tab {
         org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon, DesignTokens.ColorToken.NEUTRAL);
         xmlOptionsButton.setGraphic(icon);
         xmlOptionsButton.getStyleClass().add("toolbar-button");
-        xmlOptionsButton.setTooltip(new Tooltip("What the XML comparison ignores"));
+        xmlOptionsButton.setTooltip(new Tooltip(I18n.t("DiffView.what-the-xml-comparison-ignores")));
         xmlOptionsButton.setDisable(true);
         return xmlOptionsButton;
     }
@@ -724,7 +725,7 @@ public final class DiffView extends Tab {
             if (leftSaveHandler != null) leftSaveHandler.accept(leftArea.getText());
             setDirty(0, false);
         } catch (Exception ex) {
-            showError("Could not save left side", ex.getMessage(), ex);
+            showError(I18n.t("DiffView.could-not-save-left-side"), ex.getMessage(), ex);
         }
     }
 
@@ -733,7 +734,7 @@ public final class DiffView extends Tab {
             Files.writeString(rightFile.toPath(), rightArea.getText(), StandardCharsets.UTF_8);
             setDirty(1, false);
         } catch (IOException ex) {
-            showError("Could not save right side", ex.getMessage(), ex);
+            showError(I18n.t("DiffView.could-not-save-right-side"), ex.getMessage(), ex);
         }
     }
 
@@ -759,8 +760,8 @@ public final class DiffView extends Tab {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
                 "There are unsaved changes in the diff view.\nClose anyway?",
                 ButtonType.YES, ButtonType.CANCEL);
-        alert.setTitle("Unsaved changes");
-        alert.setHeaderText("Discard merged changes?");
+        alert.setTitle(I18n.t("DiffView.unsaved-changes"));
+        alert.setHeaderText(I18n.t("DiffView.discard-merged-changes"));
         Optional<ButtonType> r = alert.showAndWait();
         if (r.isEmpty() || r.get() != ButtonType.YES) {
             ev.consume();

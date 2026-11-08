@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -117,7 +119,7 @@ public class CardinalityIndicator {
         Label asterisk = new Label("*");
         asterisk.setStyle("-fx-text-fill: " + REQUIRED_COLOR + "; -fx-font-size: 14px; -fx-font-weight: bold;");
 
-        Tooltip tooltip = new Tooltip("Required element");
+        Tooltip tooltip = new Tooltip(I18n.t("CardinalityIndicator.required-element"));
         tooltip.setShowDelay(Duration.millis(200));
         Tooltip.install(asterisk, tooltip);
 

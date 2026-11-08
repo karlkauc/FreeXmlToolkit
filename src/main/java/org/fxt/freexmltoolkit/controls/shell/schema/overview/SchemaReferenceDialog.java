@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -134,7 +136,7 @@ public final class SchemaReferenceDialog extends Dialog<SchemaReferenceDialog.An
      */
     public static Optional<Choice> chooseSchemaFile(Window owner, Path documentPath) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Choose Schema");
+        chooser.setTitle(I18n.t("SchemaReferenceDialog.choose-schema"));
         chooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Schema (*.xsd)", "*.xsd"),
                 new FileChooser.ExtensionFilter("All files", "*.*"));

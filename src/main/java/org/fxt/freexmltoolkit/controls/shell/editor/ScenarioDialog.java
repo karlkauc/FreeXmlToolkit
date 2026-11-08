@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -34,7 +36,7 @@ public class ScenarioDialog extends Dialog<ScenarioDialog.Request> {
      */
     public ScenarioDialog(FxtProject project, String name, String output) {
         this.project = project;
-        setTitle("Save as Scenario");
+        setTitle(I18n.t("ScenarioDialog.save-as-scenario"));
         setHeaderText("Save the Transform settings as a scenario of the project \"" + project.name() + "\".");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/ScenarioDialog.fxml"));
@@ -79,7 +81,7 @@ public class ScenarioDialog extends Dialog<ScenarioDialog.Request> {
     @FXML
     public void onBrowseOutput() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Scenario output file");
+        chooser.setTitle(I18n.t("ScenarioDialog.scenario-output-file"));
         chooser.setInitialDirectory(project.root().toFile());
         File file = FileChooserHelper.showSaveDialog(chooser, getDialogPane().getScene().getWindow());
         if (file != null) {

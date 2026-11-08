@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 
 import javafx.fxml.FXML;
@@ -74,7 +76,7 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
     @FXML private Button browseSchema;
 
     public SpreadsheetConverterDialog() {
-        setTitle("Spreadsheet Converter");
+        setTitle(I18n.t("SpreadsheetConverterDialog.spreadsheet-converter"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/SpreadsheetConverterDialog.fxml"));
@@ -110,7 +112,7 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
     @FXML
     public void onBrowseSchema() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Schema for the import");
+        chooser.setTitle(I18n.t("SpreadsheetConverterDialog.schema-for-the-import"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
         File file = FileChooserHelper.showOpenDialog(chooser, getDialogPane().getScene() == null
                 ? null : getDialogPane().getScene().getWindow());

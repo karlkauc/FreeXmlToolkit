@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -53,8 +55,7 @@ public class DataConversionDialog extends Dialog<Options> {
         if (toJson) {
             structuredHint.setText("Elements become properties, attributes \"@name\", text next to them "
                     + "\"#text\"; repeated elements become arrays. Comments are dropped.");
-            w3cHint.setText("For XML in the W3C JSON vocabulary (map, array, string, number, boolean, null "
-                    + "in the namespace http://www.w3.org/2005/xpath-functions), as written by fn:json-to-xml.");
+            w3cHint.setText(I18n.t("DataConversionDialog.for-xml-in-the-w3c"));
         } else {
             structuredHint.setText("Properties become elements, \"@name\" properties attributes, \"#text\" text; "
                     + "array items repeat their element. Names that are no XML names are adapted.");

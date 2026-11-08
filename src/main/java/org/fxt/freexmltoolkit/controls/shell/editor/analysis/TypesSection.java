@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -229,7 +231,7 @@ final class TypesSection extends VBox {
     private void showDetails(ComponentInfo component) {
         if (component == null) {
             usages.getItems().clear();
-            usagesTitle.setText("USED IN");
+            usagesTitle.setText(I18n.t("TypesSection.used-in"));
             documentation.setText("");
             return;
         }
@@ -331,7 +333,7 @@ final class TypesSection extends VBox {
             }
         }
         if (keys.isEmpty()) {
-            status.setText("Nothing to remove: all unreachable components live in included files.");
+            status.setText(I18n.t("TypesSection.nothing-to-remove-all-unreachable"));
             return;
         }
         Alert alert = DialogHelper.createStyledAlert(Alert.AlertType.CONFIRMATION, "Remove unused components",
@@ -357,7 +359,7 @@ final class TypesSection extends VBox {
     private void remove(List<ComponentKey> keys, int skippedFromInclude) {
         Optional<EditorHost.ComponentRemoval> outcome = editorHost.removeUnusedSchemaComponents(document, keys);
         if (outcome.isEmpty()) {
-            status.setText("Nothing removed: the document could not be parsed, or it uses xs:redefine/xs:override.");
+            status.setText(I18n.t("TypesSection.nothing-removed-the-document-could"));
             return;
         }
         EditorHost.ComponentRemoval result = outcome.get();

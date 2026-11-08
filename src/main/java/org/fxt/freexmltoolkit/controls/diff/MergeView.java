@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -268,7 +270,7 @@ public class MergeView extends VBox {
     @FXML
     public void onSaveAs() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save Merge Result");
+        chooser.setTitle(I18n.t("MergeView.save-merge-result"));
         if (output != null) {
             chooser.setInitialDirectory(output.toAbsolutePath().getParent().toFile());
             chooser.setInitialFileName(output.getFileName().toString());
@@ -289,7 +291,7 @@ public class MergeView extends VBox {
             Files.writeString(target, area.getText(), StandardCharsets.UTF_8);
             status.setText(status.getText() + " · saved to " + target.getFileName());
         } catch (IOException e) {
-            DialogHelper.showError("Save Merge Result", "The merge result could not be saved.", e.getMessage(), e);
+            DialogHelper.showError(I18n.t("MergeView.save-merge-result"), I18n.t("MergeView.the-merge-result-could-not"), e.getMessage(), e);
         }
     }
 
@@ -301,8 +303,8 @@ public class MergeView extends VBox {
                 "The result still contains " + blocks.size() + (blocks.size() == 1 ? " conflict" : " conflicts")
                         + " with their markers. Save anyway?",
                 javafx.scene.control.ButtonType.YES, javafx.scene.control.ButtonType.CANCEL);
-        alert.setTitle("Save Merge Result");
-        alert.setHeaderText("Unresolved conflicts");
+        alert.setTitle(I18n.t("MergeView.save-merge-result"));
+        alert.setHeaderText(I18n.t("MergeView.unresolved-conflicts"));
         if (getScene() != null) {
             alert.initOwner(getScene().getWindow());
         }

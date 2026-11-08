@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 
 import javafx.fxml.FXML;
@@ -28,7 +30,7 @@ public class TemplateInsertDialog extends Dialog<XmlTemplate> {
     }
 
     public TemplateInsertDialog(List<XmlTemplate> templates) {
-        setTitle("Insert Template");
+        setTitle(I18n.t("TemplateInsertDialog.insert-template"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/TemplateInsertDialog.fxml"));

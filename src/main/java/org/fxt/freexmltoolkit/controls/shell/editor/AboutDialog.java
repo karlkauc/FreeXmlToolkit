@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Objects;
 
 import javafx.application.Platform;
@@ -95,9 +97,9 @@ public final class AboutDialog {
                     java.util.Map.of(javafx.scene.input.DataFormat.PLAIN_TEXT,
                             "FreeXmlToolkit " + version
                                     + (buildTs.isBlank() ? "" : " (build " + buildTs + ")")));
-            copyBtn.setText("Copied!");
+            copyBtn.setText(I18n.t("AboutDialog.copied"));
             javafx.animation.PauseTransition pt = new javafx.animation.PauseTransition(Duration.seconds(1.5));
-            pt.setOnFinished(e -> copyBtn.setText("Copy version"));
+            pt.setOnFinished(e -> copyBtn.setText(I18n.t("AboutDialog.copy-version")));
             pt.play();
             evt.consume();
         });
@@ -106,7 +108,7 @@ public final class AboutDialog {
         updatesBtn.setGraphic(new IconifyIcon("bi-arrow-clockwise"));
         if (!org.fxt.freexmltoolkit.service.AdminPolicy.current().updatesAllowed()) {
             updatesBtn.setDisable(true);
-            updatesBtn.setTooltip(new javafx.scene.control.Tooltip("Updates are managed by your administrator."));
+            updatesBtn.setTooltip(new javafx.scene.control.Tooltip(I18n.t("AboutDialog.updates-are-managed-by-your")));
         }
         updatesBtn.addEventFilter(ActionEvent.ACTION, evt -> {
             evt.consume();
@@ -199,7 +201,7 @@ public final class AboutDialog {
     // Ported verbatim from MainController.checkForUpdatesFromAbout.
     private static void checkForUpdatesFromAbout(Button trigger) {
         String original = trigger.getText();
-        trigger.setText("Checking...");
+        trigger.setText(I18n.t("AboutDialog.checking"));
         trigger.setDisable(true);
 
         UpdateCheckService service = ServiceRegistry.get(UpdateCheckService.class);
@@ -234,8 +236,8 @@ public final class AboutDialog {
 
     // Ported from MainController.showUpdateCheckError (helper of checkForUpdatesFromAbout).
     private static void showUpdateCheckError(Throwable ex) {
-        org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Update check failed",
-                "Could not check for updates",
+        org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("AboutDialog.update-check-failed"),
+                I18n.t("AboutDialog.could-not-check-for-updates"),
                 ex.getMessage() != null ? ex.getMessage() : ex.toString());
     }
 
@@ -278,10 +280,9 @@ public final class AboutDialog {
             // A LinkageError here means the installation changed under this process,
             // typically because another instance has already installed the update.
             logger.error("Could not start the auto-update", e);
-            org.fxt.freexmltoolkit.util.DialogHelper.showError("Update Failed",
-                    "The update could not be started",
-                    "The installation was changed while this window was open, probably by an update"
-                            + " started in another window.\n\nPlease close and restart FreeXmlToolkit.", e);
+            org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("AboutDialog.update-failed"),
+                    I18n.t("AboutDialog.the-update-could-not-be"),
+                    I18n.t("AboutDialog.the-installation-was-changed-while"), e);
         }
     }
 
@@ -296,9 +297,9 @@ public final class AboutDialog {
         long ownPid = ProcessHandle.current().pid();
         int others;
         while ((others = marker.otherLiveSessions(ownPid)) > 0) {
-            boolean retry = org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Update",
-                    "Close the other FreeXmlToolkit windows first", otherInstancesMessage(others),
-                    "Retry", "Cancel");
+            boolean retry = org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("AboutDialog.update"),
+                    I18n.t("AboutDialog.close-the-other-freexmltoolkit-windows"), otherInstancesMessage(others),
+                    I18n.t("AboutDialog.retry"), I18n.t("AboutDialog.cancel"));
             if (!retry) {
                 return false;
             }

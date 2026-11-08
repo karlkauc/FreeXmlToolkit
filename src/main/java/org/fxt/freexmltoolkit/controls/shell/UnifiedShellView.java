@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -508,7 +510,7 @@ public class UnifiedShellView extends BorderPane {
                 javafx.application.Platform.runLater(() -> editorHost.openFile(document));
             } catch (java.io.IOException e) {
                 javafx.application.Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showError(
-                        "Open an Example", "The example could not be created",
+                        I18n.t("UnifiedShellView.open-an-example"), I18n.t("UnifiedShellView.the-example-could-not-be"),
                         e.getMessage(), e));
             }
         });
@@ -1914,7 +1916,7 @@ public class UnifiedShellView extends BorderPane {
         }
         var docOpt = editorHost.getActiveDocument();
         if (docOpt.isEmpty()) {
-            breadcrumb.setText("FreeXmlToolkit");
+            breadcrumb.setText(I18n.t("UnifiedShellView.freexmltoolkit"));
             return;
         }
         var doc = docOpt.get();
@@ -2110,7 +2112,7 @@ public class UnifiedShellView extends BorderPane {
         browse.setGraphic(sizedIcon("bi-folder2-open"));
         browse.setOnAction(e -> {
             var chooser = new javafx.stage.FileChooser();
-            chooser.setTitle("Choose XML Target");
+            chooser.setTitle(I18n.t("UnifiedShellView.choose-xml-target"));
             chooser.getExtensionFilters().addAll(
                     new javafx.stage.FileChooser.ExtensionFilter("XML files", "*.xml"),
                     new javafx.stage.FileChooser.ExtensionFilter(
@@ -2241,9 +2243,9 @@ public class UnifiedShellView extends BorderPane {
             }
             String content = org.fxt.freexmltoolkit.controls.shell.editor.TemplateRunner.render(template, params);
             if (content.startsWith("ERROR:")) {
-                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("New File",
-                        "The template could not be rendered.",
-                        "Check the template and any parameter values you entered, then try inserting it again.",
+                org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("UnifiedShellView.new-file"),
+                        I18n.t("UnifiedShellView.the-template-could-not-be"),
+                        I18n.t("UnifiedShellView.check-the-template-and-any"),
                         org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(content));
                 return;
             }
@@ -2265,8 +2267,8 @@ public class UnifiedShellView extends BorderPane {
                 javafx.application.Platform.runLater(() -> {
                     if (xml.startsWith("ERROR:")) {
                         // sample_generate already carries the failure
-                        org.fxt.freexmltoolkit.util.DialogHelper.showActionError("New File",
-                                "Could not generate a document from the schema.",
+                        org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("UnifiedShellView.new-file"),
+                                I18n.t("UnifiedShellView.could-not-generate-a-document"),
                                 org.fxt.freexmltoolkit.util.DialogHelper.Remedies.INVALID_SCHEMA,
                                 org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(xml), false);
                     } else {
@@ -2348,8 +2350,8 @@ public class UnifiedShellView extends BorderPane {
 
     private void convertSpreadsheet() {
         if (spreadsheetConversionRunning) {
-            org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Spreadsheet Converter",
-                    "A conversion is still running", "Wait until it has finished, then start the next one.");
+            org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("UnifiedShellView.spreadsheet-converter"),
+                    I18n.t("UnifiedShellView.a-conversion-is-still-running"), I18n.t("UnifiedShellView.wait-until-it-has-finished"));
             return;
         }
         var dialog = new org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetConverterDialog();
@@ -2374,7 +2376,7 @@ public class UnifiedShellView extends BorderPane {
             var cellTypes = editorHost.activeSpreadsheetTypeResolver()
                     .orElse(org.fxt.freexmltoolkit.service.SpreadsheetTypeResolver.NONE);
             javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-            chooser.setTitle("Save spreadsheet");
+            chooser.setTitle(I18n.t("UnifiedShellView.save-spreadsheet"));
             chooser.getExtensionFilters().add(excel
                     ? new javafx.stage.FileChooser.ExtensionFilter("Excel", "*.xlsx")
                     : new javafx.stage.FileChooser.ExtensionFilter("CSV", "*.csv"));
@@ -2400,7 +2402,7 @@ public class UnifiedShellView extends BorderPane {
             });
         } else {
             javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-            chooser.setTitle("Import spreadsheet");
+            chooser.setTitle(I18n.t("UnifiedShellView.import-spreadsheet"));
             chooser.getExtensionFilters().add(
                     new javafx.stage.FileChooser.ExtensionFilter("Excel / CSV", "*.xlsx", "*.csv"));
             java.io.File in = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window);
@@ -2462,29 +2464,29 @@ public class UnifiedShellView extends BorderPane {
     private void reportConversion(org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.Result result,
                                   java.io.File file, boolean imported) {
         if (!result.isError()) {
-            org.fxt.freexmltoolkit.util.DialogHelper.showInformation("Spreadsheet Converter",
-                    "Conversion finished", "Done: " + file.getAbsolutePath());
+            org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("UnifiedShellView.spreadsheet-converter"),
+                    I18n.t("UnifiedShellView.conversion-finished"), "Done: " + file.getAbsolutePath());
         } else if (result.error() instanceof org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.RowLimitExceededException limit) {
-            org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Spreadsheet Converter",
-                    "The document has too many rows for one spreadsheet sheet.",
+            org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("UnifiedShellView.spreadsheet-converter"),
+                    I18n.t("UnifiedShellView.the-document-has-too-many"),
                     String.format("The export needs %,d rows, but a sheet holds at most %,d."
                             + "%n%nExport as CSV instead - it has no row limit.", limit.getRows(), limit.getMaxRows()));
         } else if (result.error() instanceof org.fxt.freexmltoolkit.controls.shell.editor.SpreadsheetActionRunner.InsufficientMemoryException) {
-            org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Spreadsheet Converter",
-                    "The document is too large to convert with the available memory.",
+            org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("UnifiedShellView.spreadsheet-converter"),
+                    I18n.t("UnifiedShellView.the-document-is-too-large"),
                     result.error().getMessage() + "."
                             + "\n\nRaise \"Maximum memory\" in Settings > Memory, close other large documents, or export as CSV.");
         } else if (!imported && result.error() instanceof org.xml.sax.SAXParseException parse) {
             // A malformed document is an input problem, not a failure of the converter: say where
             // it is instead of raising an error dialog (and an error report) with a stack trace.
-            org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Spreadsheet Converter",
-                    "The document is not well-formed XML, so it cannot be converted.",
+            org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("UnifiedShellView.spreadsheet-converter"),
+                    I18n.t("UnifiedShellView.the-document-is-not-well"),
                     "Line " + parse.getLineNumber() + ", column " + parse.getColumnNumber() + ": "
                             + parse.getMessage()
                             + "\n\nFix the document (the Validation panel lists the problem), then convert again.");
         } else {
-            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Spreadsheet Converter",
-                    "The conversion could not be completed.",
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("UnifiedShellView.spreadsheet-converter"),
+                    I18n.t("UnifiedShellView.the-conversion-could-not-be"),
                     imported
                             ? "Check that the spreadsheet is a valid .xlsx/.csv file and not open in another program, then try again."
                             : "Check that the document is well-formed and the target file is writable (not open elsewhere), then try again.",
@@ -2521,9 +2523,9 @@ public class UnifiedShellView extends BorderPane {
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.templateInserted(run.failure());
             if (run.failed()) {
                 // template_insert carries the failure; the user used to see nothing at all
-                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Insert Template",
-                        "The template could not be rendered.",
-                        "Check the template's parameters and placeholders, then try again.",
+                org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("UnifiedShellView.insert-template"),
+                        I18n.t("UnifiedShellView.the-template-could-not-be"),
+                        I18n.t("UnifiedShellView.check-the-template-s-parameters"),
                         org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus.strip(run.text()), false);
             } else {
                 editorHost.insertTextAtCaret(run.text());
@@ -2541,12 +2543,12 @@ public class UnifiedShellView extends BorderPane {
     public void compareFolders() {
         javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
         javafx.stage.DirectoryChooser chooser = new javafx.stage.DirectoryChooser();
-        chooser.setTitle("Compare Folders: left folder");
+        chooser.setTitle(I18n.t("UnifiedShellView.compare-folders-left-folder"));
         java.io.File left = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, owner);
         if (left == null) {
             return;
         }
-        chooser.setTitle("Compare Folders: right folder");
+        chooser.setTitle(I18n.t("UnifiedShellView.compare-folders-right-folder"));
         if (left.getParentFile() != null) {
             chooser.setInitialDirectory(left.getParentFile());
         }
@@ -2570,8 +2572,8 @@ public class UnifiedShellView extends BorderPane {
                 .open(request.base(), request.left(), request.right(), request.output())
                 .whenComplete((view, error) -> javafx.application.Platform.runLater(() -> {
                     if (error != null) {
-                        org.fxt.freexmltoolkit.util.DialogHelper.showError("Merge Files",
-                                "The files could not be merged.", String.valueOf(error.getMessage()), error);
+                        org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("UnifiedShellView.merge-files"),
+                                I18n.t("UnifiedShellView.the-files-could-not-be"), String.valueOf(error.getMessage()), error);
                     } else {
                         editorHost.openToolTab("Merge: " + request.left().getFileName(), "bi-sign-merge-left", view);
                     }
@@ -2583,7 +2585,7 @@ public class UnifiedShellView extends BorderPane {
             return;
         }
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Compare with File…");
+        chooser.setTitle(I18n.t("UnifiedShellView.compare-with-file"));
         chooser.getExtensionFilters().addAll(
                 org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.fileChooserFilters());
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
@@ -2621,7 +2623,7 @@ public class UnifiedShellView extends BorderPane {
      * clickable to bind an XSD). The labels themselves live in {@code shell.fxml}.
      */
     private void wireStatusBar() {
-        statusMemory.setTooltip(new javafx.scene.control.Tooltip("JVM heap (used / max) — click to run GC"));
+        statusMemory.setTooltip(new javafx.scene.control.Tooltip(I18n.t("UnifiedShellView.jvm-heap-used-max-click")));
         statusMemory.setOnMouseClicked(e -> {
             System.gc();
             statusMemory.setText(memoryText());
@@ -2640,7 +2642,7 @@ public class UnifiedShellView extends BorderPane {
         statusLastRun.visibleProperty().bind(statusLastRun.textProperty().isNotEmpty());
         statusLastRun.setCursor(javafx.scene.Cursor.HAND);
         statusLastRun.setTooltip(new javafx.scene.control.Tooltip(
-                "Last recorded operation — click for execution statistics"));
+                I18n.t("UnifiedShellView.last-recorded-operation-click-for")));
         statusLastRun.setOnMouseClicked(e -> editorHost.openExecutionStats());
         statusLastRun.getStyleClass().add("fxt-status-badge");
         org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().addListener(
@@ -2710,8 +2712,7 @@ public class UnifiedShellView extends BorderPane {
             statusSchema.setGraphic(icon);
             statusSchema.getStyleClass().add("fxt-status-schema-ready");
             statusSchema.setTooltip(new javafx.scene.control.Tooltip(
-                    "This document is an XSD schema. The version comes from vc:minVersion on xs:schema;"
-                            + " without it the schema is treated as XSD 1.0 (1.1 features still validate)."));
+                    I18n.t("UnifiedShellView.this-document-is-an-xsd")));
             return;
         }
         statusSchema.setCursor(javafx.scene.Cursor.HAND);

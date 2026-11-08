@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
@@ -151,7 +153,7 @@ public class TypeLibraryPanel extends VBox {
             });
         }
         ContextMenu menu = new ContextMenu();
-        MenuItem reveal = menuItem("Reveal in Tree", "bi-list-nested", () -> {
+        MenuItem reveal = menuItem(I18n.t("TypeLibraryPanel.reveal-in-tree"), "bi-list-nested", () -> {
             if (selectedTypeName != null) {
                 editorHost.revealTypeByName(selectedTypeName);
             }
@@ -159,12 +161,12 @@ public class TypeLibraryPanel extends VBox {
         menu.getItems().add(reveal);
         if (isTypeList) {
             menu.getItems().addAll(
-                    menuItem("Open Type Editor", "bi-pencil-square", () -> {
+                    menuItem(I18n.t("TypeLibraryPanel.open-type-editor"), "bi-pencil-square", () -> {
                         if (selectedTypeName != null) {
                             editorHost.openTypeEditorTab(selectedTypeName);
                         }
                     }),
-                    menuItem("Find Usage", "bi-search", this::findUsageOfSelectedType),
+                    menuItem(I18n.t("TypeLibraryPanel.find-usage"), "bi-search", this::findUsageOfSelectedType),
                     new javafx.scene.control.SeparatorMenuItem(),
                     list == simpleList
                             ? createItem("New Simple Type…", "bi-type", () -> newType(AddGlobalTypeCommand.Kind.SIMPLE))
@@ -193,8 +195,8 @@ public class TypeLibraryPanel extends VBox {
             UsageEvents.typeUsagesSearched(usages.size(), t0, search.failure());
             if (search.failed()) {
                 // type_usages carries the failure; the dialog explains it instead of "No usages found."
-                javafx.application.Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Find Usages",
-                        "The schema could not be analyzed.", "Fix the schema's errors, then search again.",
+                javafx.application.Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("TypeLibraryPanel.find-usages"),
+                        I18n.t("TypeLibraryPanel.the-schema-could-not-be"), I18n.t("TypeLibraryPanel.fix-the-schema-s-errors"),
                         search.error(), false));
                 return;
             }
@@ -219,7 +221,7 @@ public class TypeLibraryPanel extends VBox {
     @FXML
     public void generateXsdBatch() {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Select XML files to infer a schema from");
+        chooser.setTitle(I18n.t("TypeLibraryPanel.select-xml-files-to-infer"));
         chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML", "*.xml"));
         java.util.List<File> files = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenMultipleDialog(chooser, 
                 getScene() != null ? getScene().getWindow() : null);
@@ -504,7 +506,7 @@ public class TypeLibraryPanel extends VBox {
             // Every error shown here belongs to an action that sends its own usage event with the
             // failure's classification, so the dialog must not count it a second time.
             case ERROR -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError(title, message,
-                    "Fix the input named in the message and run the action again.", (String) null, false);
+                    I18n.t("TypeLibraryPanel.fix-the-input-named-in"), (String) null, false);
             case WARNING -> org.fxt.freexmltoolkit.util.DialogHelper.showWarning(title, null, message);
             default -> org.fxt.freexmltoolkit.util.DialogHelper.showInformation(title, null, message);
         }

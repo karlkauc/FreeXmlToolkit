@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -26,14 +28,14 @@ final class DebugValueMenu {
      */
     static <T> ContextMenu create(Supplier<T> selected, Consumer<T> open, Consumer<T> copy,
                                   Consumer<T> addToWatches, java.util.function.Predicate<T> watchable) {
-        MenuItem openItem = new MenuItem("Open Value…", icon("bi-box-arrow-up-right", ActionColor.NAVIGATE));
+        MenuItem openItem = new MenuItem(I18n.t("DebugValueMenu.open-value"), icon("bi-box-arrow-up-right", ActionColor.NAVIGATE));
         openItem.setOnAction(e -> run(selected, open));
-        MenuItem copyItem = new MenuItem("Copy Value", icon("bi-clipboard", ActionColor.TOOL));
+        MenuItem copyItem = new MenuItem(I18n.t("DebugValueMenu.copy-value"), icon("bi-clipboard", ActionColor.TOOL));
         copyItem.setOnAction(e -> run(selected, copy));
         ContextMenu menu = new ContextMenu(openItem, copyItem);
         MenuItem watchItem = null;
         if (addToWatches != null) {
-            watchItem = new MenuItem("Add to Watches", icon("bi-eye", ActionColor.CREATE));
+            watchItem = new MenuItem(I18n.t("DebugValueMenu.add-to-watches"), icon("bi-eye", ActionColor.CREATE));
             watchItem.setOnAction(e -> run(selected, addToWatches));
             menu.getItems().add(watchItem);
         }

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -96,7 +98,7 @@ public class TransformOutputPanel extends VBox {
 
         output.setEditable(false);
         output.setWrapText(false);
-        output.setPlaceholder(new Label("Run a transform or query to see the result here."));
+        output.setPlaceholder(new Label(I18n.t("TransformOutputPanel.run-a-transform-or-query")));
         output.getStyleClass().addAll("fxt-transform-output", "fxt-query-results");
         output.setParagraphGraphicFactory(LineNumberFactory.get(output));
         CodeAreaFontZoom.install(output);
@@ -195,7 +197,7 @@ public class TransformOutputPanel extends VBox {
         statusIcon.getStyleClass().removeAll("sev-ok", "sev-error");
         statusIcon.getStyleClass().add("sev-error");
         statusIcon.setVisible(true);
-        statusLabel.setText("Error");
+        statusLabel.setText(I18n.t("TransformOutputPanel.error"));
         badge.setVisible(false);
         setToggleAvailable(previewToggle, false);
         setToggleAvailable(tableToggle, false);
@@ -336,7 +338,7 @@ public class TransformOutputPanel extends VBox {
         }
         String extension = extension(lastResultFormat);
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save Transform Result");
+        chooser.setTitle(I18n.t("TransformOutputPanel.save-transform-result"));
         chooser.setInitialFileName("transform-result." + extension);
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                 extension.toUpperCase(java.util.Locale.ROOT), "*." + extension));

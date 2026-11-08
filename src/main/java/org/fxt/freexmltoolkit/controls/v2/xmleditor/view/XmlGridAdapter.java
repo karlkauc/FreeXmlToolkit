@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.List;
@@ -154,7 +156,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         javafx.application.Platform.runLater(() -> {
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                     javafx.scene.control.Alert.AlertType.WARNING);
-            alert.setTitle("Mixed Content Detected");
+            alert.setTitle(I18n.t("XmlGridAdapter.mixed-content-detected"));
             alert.setHeaderText("This XML contains " + mixedElements.size()
                     + " element(s) with mixed content");
 

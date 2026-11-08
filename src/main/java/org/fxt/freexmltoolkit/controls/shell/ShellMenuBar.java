@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -528,13 +530,13 @@ public final class ShellMenuBar extends MenuBar {
                     UpdateActionRunner.failureReason(info, error));
             Platform.runLater(() -> {
                 if (error != null || info == null) {
-                    DialogHelper.showWarning("Check for Updates", "Could not check for updates",
+                    DialogHelper.showWarning(I18n.t("ShellMenuBar.check-for-updates"), I18n.t("ShellMenuBar.could-not-check-for-updates"),
                             error != null && error.getMessage() != null ? error.getMessage()
                                     : "The update service did not answer.");
                 } else if (info.updateAvailable()) {
                     AboutDialog.showUpdateDialog(info);
                 } else {
-                    DialogHelper.showInformation("Check for Updates", "FreeXmlToolkit is up to date",
+                    DialogHelper.showInformation(I18n.t("ShellMenuBar.check-for-updates"), I18n.t("ShellMenuBar.freexmltoolkit-is-up-to-date"),
                             UpdateActionRunner.describe(info));
                 }
             });

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -144,26 +146,26 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         ContextMenu menu = new ContextMenu();
 
         // === Add Submenu ===
-        Menu addMenu = new Menu("Add");
+        Menu addMenu = new Menu(I18n.t("XmlGridContextMenu.add"));
         addMenu.setGraphic(createColoredIcon("bi-plus-circle", ActionColor.CREATE));
 
-        addElementItem = new MenuItem("Child Element");
+        addElementItem = new MenuItem(I18n.t("XmlGridContextMenu.child-element"));
         addElementItem.setGraphic(createColoredIcon("bi-code-slash", ActionColor.CREATE));
         addElementItem.setOnAction(e -> addChildElement());
 
-        addAttributeItem = new MenuItem("Attribute");
+        addAttributeItem = new MenuItem(I18n.t("XmlGridContextMenu.attribute"));
         addAttributeItem.setGraphic(createColoredIcon("bi-at", ActionColor.CREATE));
         addAttributeItem.setOnAction(e -> addAttribute());
 
-        addTextItem = new MenuItem("Text Content");
+        addTextItem = new MenuItem(I18n.t("XmlGridContextMenu.text-content"));
         addTextItem.setGraphic(createColoredIcon("bi-fonts", ActionColor.CREATE));
         addTextItem.setOnAction(e -> addTextContent());
 
-        addSiblingBeforeItem = new MenuItem("Sibling Before");
+        addSiblingBeforeItem = new MenuItem(I18n.t("XmlGridContextMenu.sibling-before"));
         addSiblingBeforeItem.setGraphic(createColoredIcon("bi-arrow-up", ActionColor.CREATE));
         addSiblingBeforeItem.setOnAction(e -> addSiblingElement(true));
 
-        addSiblingAfterItem = new MenuItem("Sibling After");
+        addSiblingAfterItem = new MenuItem(I18n.t("XmlGridContextMenu.sibling-after"));
         addSiblingAfterItem.setGraphic(createColoredIcon("bi-arrow-down", ActionColor.CREATE));
         addSiblingAfterItem.setOnAction(e -> addSiblingElement(false));
 
@@ -174,164 +176,164 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         );
 
         // === Edit Items ===
-        renameItem = new MenuItem("Rename");
+        renameItem = new MenuItem(I18n.t("XmlGridContextMenu.rename"));
         renameItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY));
         renameItem.setOnAction(e -> renameElement());
         renameItem.setAccelerator(new KeyCodeCombination(KeyCode.F2));
 
-        duplicateItem = new MenuItem("Duplicate");
+        duplicateItem = new MenuItem(I18n.t("XmlGridContextMenu.duplicate"));
         duplicateItem.setGraphic(createColoredIcon("bi-files", ActionColor.CREATE));
         duplicateItem.setOnAction(e -> duplicateElement());
         duplicateItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
 
         // === Clipboard ===
-        copyItem = new MenuItem("Copy");
+        copyItem = new MenuItem(I18n.t("XmlGridContextMenu.copy"));
         copyItem.setGraphic(createColoredIcon("bi-clipboard", ActionColor.NEUTRAL));
         copyItem.setOnAction(e -> copyElement());
         copyItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
 
-        cutItem = new MenuItem("Cut");
+        cutItem = new MenuItem(I18n.t("XmlGridContextMenu.cut"));
         cutItem.setGraphic(createColoredIcon("bi-scissors", ActionColor.DELETE));
         cutItem.setOnAction(e -> cutElement());
         cutItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN));
 
-        pasteItem = new MenuItem("Paste as Sibling");
+        pasteItem = new MenuItem(I18n.t("XmlGridContextMenu.paste-as-sibling"));
         pasteItem.setGraphic(createColoredIcon("bi-clipboard-check", ActionColor.CREATE));
         pasteItem.setOnAction(e -> pasteAsSibling());
         pasteItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN));
 
-        pasteAsChildItem = new MenuItem("Paste as Child");
+        pasteAsChildItem = new MenuItem(I18n.t("XmlGridContextMenu.paste-as-child"));
         pasteAsChildItem.setGraphic(createColoredIcon("bi-clipboard-plus", ActionColor.CREATE));
         pasteAsChildItem.setOnAction(e -> pasteAsChild());
         pasteAsChildItem.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
-        copyCellContentItem = new MenuItem("Copy Cell Content");
+        copyCellContentItem = new MenuItem(I18n.t("XmlGridContextMenu.copy-cell-content"));
         copyCellContentItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
         copyCellContentItem.setOnAction(e -> copyCellContent());
         copyCellContentItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
 
-        copyXPathItem = new MenuItem("Copy XPath");
+        copyXPathItem = new MenuItem(I18n.t("XmlGridContextMenu.copy-xpath"));
         copyXPathItem.setGraphic(createColoredIcon("bi-diagram-3", ActionColor.NEUTRAL));
         copyXPathItem.setOnAction(e -> copyXPath());
         // Ctrl+Alt+X: Ctrl+Shift+X belongs to the global Query Console toggle.
         copyXPathItem.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
 
-        copyNodeItem = new MenuItem("Copy Node (XML)");
+        copyNodeItem = new MenuItem(I18n.t("XmlGridContextMenu.copy-node-xml"));
         copyNodeItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
         copyNodeItem.setOnAction(e -> copyNode());
         copyNodeItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN, KeyCombination.ALT_DOWN));
 
         // === Go to Definition (navigate to XSD schema definition) ===
-        goToDefinitionItem = new MenuItem("Go to Definition");
+        goToDefinitionItem = new MenuItem(I18n.t("XmlGridContextMenu.go-to-definition"));
         goToDefinitionItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", ActionColor.NAVIGATE));
         goToDefinitionItem.setOnAction(e -> goToDefinition());
 
         // === Move ===
-        moveUpItem = new MenuItem("Move Up");
+        moveUpItem = new MenuItem(I18n.t("XmlGridContextMenu.move-up"));
         moveUpItem.setGraphic(createColoredIcon("bi-arrow-up-circle", ActionColor.STRUCTURE));
         moveUpItem.setOnAction(e -> moveElement(-1));
         moveUpItem.setAccelerator(new KeyCodeCombination(KeyCode.UP, KeyCombination.ALT_DOWN));
 
-        moveDownItem = new MenuItem("Move Down");
+        moveDownItem = new MenuItem(I18n.t("XmlGridContextMenu.move-down"));
         moveDownItem.setGraphic(createColoredIcon("bi-arrow-down-circle", ActionColor.STRUCTURE));
         moveDownItem.setOnAction(e -> moveElement(1));
         moveDownItem.setAccelerator(new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN));
 
-        wrapInElementItem = new MenuItem("Wrap in Element…");
+        wrapInElementItem = new MenuItem(I18n.t("XmlGridContextMenu.wrap-in-element"));
         wrapInElementItem.setGraphic(createColoredIcon("bi-box-arrow-in-down", ActionColor.STRUCTURE));
         wrapInElementItem.setOnAction(e -> wrapInElement());
         wrapInElementItem.setAccelerator(new KeyCodeCombination(KeyCode.W,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN));
 
-        editRawTextItem = new MenuItem("Edit as Raw Text…");
+        editRawTextItem = new MenuItem(I18n.t("XmlGridContextMenu.edit-as-raw-text"));
         editRawTextItem.setGraphic(createColoredIcon("bi-code-slash", ActionColor.MODIFY));
         editRawTextItem.setOnAction(e -> editAsRawText());
         editRawTextItem.setAccelerator(new KeyCodeCombination(KeyCode.R,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN));
 
-        addFormulaItem = new MenuItem("Add Formula…");
+        addFormulaItem = new MenuItem(I18n.t("XmlGridContextMenu.add-formula"));
         addFormulaItem.setGraphic(createColoredIcon("bi-calculator", ActionColor.CREATE));
         addFormulaItem.setOnAction(e -> addFormula());
-        storeFormulaItem = new CheckMenuItem("Store Formula Result in Document");
+        storeFormulaItem = new CheckMenuItem(I18n.t("XmlGridContextMenu.store-formula-result-in-document"));
         storeFormulaItem.setGraphic(createColoredIcon("bi-save", ActionColor.TOOL));
         storeFormulaItem.setOnAction(e -> toggleStoreFormula());
-        recalculateFormulasItem = new MenuItem("Recalculate Stored Formula Results");
+        recalculateFormulasItem = new MenuItem(I18n.t("XmlGridContextMenu.recalculate-stored-formula-results"));
         recalculateFormulasItem.setGraphic(createColoredIcon("bi-arrow-repeat", ActionColor.TOOL));
         recalculateFormulasItem.setOnAction(e -> recalculateFormulas());
 
-        filterItem = new MenuItem("Filter…");
+        filterItem = new MenuItem(I18n.t("XmlGridContextMenu.filter"));
         filterItem.setGraphic(createColoredIcon("bi-funnel", ActionColor.TOOL));
         filterItem.setOnAction(e -> viewActions.editFilter().run());
-        filterToFocusItem = new MenuItem("Filter to Focus");
+        filterToFocusItem = new MenuItem(I18n.t("XmlGridContextMenu.filter-to-focus"));
         filterToFocusItem.setGraphic(createColoredIcon("bi-bullseye", ActionColor.TOOL));
         filterToFocusItem.setOnAction(e -> viewActions.filterToFocus().run());
-        removeFilterItem = new MenuItem("Remove Filter");
+        removeFilterItem = new MenuItem(I18n.t("XmlGridContextMenu.remove-filter"));
         removeFilterItem.setGraphic(createColoredIcon("bi-x-circle", ActionColor.DELETE));
         removeFilterItem.setOnAction(e -> viewActions.removeFilter().run());
-        removeAllFiltersItem = new MenuItem("Remove All Filters");
+        removeAllFiltersItem = new MenuItem(I18n.t("XmlGridContextMenu.remove-all-filters"));
         removeAllFiltersItem.setGraphic(createColoredIcon("bi-x-circle", ActionColor.DELETE));
         removeAllFiltersItem.setOnAction(e -> viewActions.removeAllFilters().run());
-        filterActiveItem = new CheckMenuItem("Filter Active");
+        filterActiveItem = new CheckMenuItem(I18n.t("XmlGridContextMenu.filter-active"));
         filterActiveItem.setGraphic(createColoredIcon("bi-funnel-fill", ActionColor.TOOL));
         filterActiveItem.setOnAction(e -> viewActions.toggleFilterActive().run());
-        saveFilterItem = new CheckMenuItem("Save Filter in Document");
+        saveFilterItem = new CheckMenuItem(I18n.t("XmlGridContextMenu.save-filter-in-document"));
         saveFilterItem.setGraphic(createColoredIcon("bi-save", ActionColor.TOOL));
         saveFilterItem.setOnAction(e -> viewActions.toggleFilterSaved().run());
 
         // === Expand/Collapse (canvas actions) ===
-        expandFullyItem = new MenuItem("Expand Fully");
+        expandFullyItem = new MenuItem(I18n.t("XmlGridContextMenu.expand-fully"));
         expandFullyItem.setGraphic(createColoredIcon("bi-chevron-double-down", ActionColor.NEUTRAL));
         expandFullyItem.setOnAction(e -> viewActions.expandFully().run());
         expandFullyItem.setAccelerator(new KeyCodeCombination(KeyCode.PLUS,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
 
-        collapseUnselectedItem = new MenuItem("Collapse Unselected");
+        collapseUnselectedItem = new MenuItem(I18n.t("XmlGridContextMenu.collapse-unselected"));
         collapseUnselectedItem.setGraphic(createColoredIcon("bi-chevron-double-up", ActionColor.NEUTRAL));
         collapseUnselectedItem.setOnAction(e -> viewActions.collapseUnselected().run());
         collapseUnselectedItem.setAccelerator(new KeyCodeCombination(KeyCode.MINUS,
                 KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
 
-        displayAsTableItem = new CheckMenuItem("Display as Table");
+        displayAsTableItem = new CheckMenuItem(I18n.t("XmlGridContextMenu.display-as-table"));
         displayAsTableItem.setGraphic(createColoredIcon("bi-table", ActionColor.NEUTRAL));
         displayAsTableItem.setOnAction(e -> viewActions.toggleTableDisplay().run());
 
-        flipTableItem = new CheckMenuItem("Flip Rows/Columns");
+        flipTableItem = new CheckMenuItem(I18n.t("XmlGridContextMenu.flip-rows-columns"));
         flipTableItem.setGraphic(createColoredIcon("bi-arrow-left-right", ActionColor.NEUTRAL));
         flipTableItem.setOnAction(e -> viewActions.flipTable().run());
 
-        copyTableTsvItem = new MenuItem("Copy Table as Tab-separated Text");
+        copyTableTsvItem = new MenuItem(I18n.t("XmlGridContextMenu.copy-table-as-tab-separated"));
         copyTableTsvItem.setGraphic(createColoredIcon("bi-file-earmark-spreadsheet", ActionColor.NEUTRAL));
         copyTableTsvItem.setOnAction(e -> copyTableAsTsv());
 
         // === Table operations ===
-        tableMenu = new Menu("Table");
+        tableMenu = new Menu(I18n.t("XmlGridContextMenu.table"));
         tableMenu.setGraphic(createColoredIcon("bi-grid-3x3", ActionColor.STRUCTURE));
-        insertRowBeforeItem = new MenuItem("Insert Row Before");
+        insertRowBeforeItem = new MenuItem(I18n.t("XmlGridContextMenu.insert-row-before"));
         insertRowBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-up", ActionColor.CREATE));
         insertRowBeforeItem.setOnAction(e -> insertRow(TableEditOps.Placement.BEFORE));
-        insertRowAfterItem = new MenuItem("Insert Row After");
+        insertRowAfterItem = new MenuItem(I18n.t("XmlGridContextMenu.insert-row-after"));
         insertRowAfterItem.setGraphic(createColoredIcon("bi-arrow-bar-down", ActionColor.CREATE));
         insertRowAfterItem.setOnAction(e -> insertRow(TableEditOps.Placement.AFTER));
-        appendRowItem = new MenuItem("Append Row");
+        appendRowItem = new MenuItem(I18n.t("XmlGridContextMenu.append-row"));
         appendRowItem.setGraphic(createColoredIcon("bi-plus-square", ActionColor.CREATE));
         appendRowItem.setOnAction(e -> insertRow(TableEditOps.Placement.APPEND));
-        deleteRowItem = new MenuItem("Delete Row");
+        deleteRowItem = new MenuItem(I18n.t("XmlGridContextMenu.delete-row"));
         deleteRowItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
         deleteRowItem.setOnAction(e -> deleteRow());
-        insertColumnBeforeItem = new MenuItem("Insert Column Before…");
+        insertColumnBeforeItem = new MenuItem(I18n.t("XmlGridContextMenu.insert-column-before"));
         insertColumnBeforeItem.setGraphic(createColoredIcon("bi-arrow-bar-left", ActionColor.CREATE));
         insertColumnBeforeItem.setOnAction(e -> insertColumn(TableEditOps.Placement.BEFORE));
-        insertColumnAfterItem = new MenuItem("Insert Column After…");
+        insertColumnAfterItem = new MenuItem(I18n.t("XmlGridContextMenu.insert-column-after"));
         insertColumnAfterItem.setGraphic(createColoredIcon("bi-arrow-bar-right", ActionColor.CREATE));
         insertColumnAfterItem.setOnAction(e -> insertColumn(TableEditOps.Placement.AFTER));
-        renameColumnItem = new MenuItem("Rename Column…");
+        renameColumnItem = new MenuItem(I18n.t("XmlGridContextMenu.rename-column"));
         renameColumnItem.setGraphic(createColoredIcon("bi-pencil", ActionColor.MODIFY));
         renameColumnItem.setOnAction(e -> renameColumn(clickedTable, clickedColumnName));
-        expandCellsItem = new MenuItem("Expand Selected Cells");
+        expandCellsItem = new MenuItem(I18n.t("XmlGridContextMenu.expand-selected-cells"));
         expandCellsItem.setGraphic(createColoredIcon("bi-plus-square-dotted", ActionColor.NEUTRAL));
         expandCellsItem.setAccelerator(new javafx.scene.input.KeyCharacterCombination("+"));
         expandCellsItem.setOnAction(e -> viewActions.expandOneLevel().run());
-        collapseCellsItem = new MenuItem("Collapse Selected Cells");
+        collapseCellsItem = new MenuItem(I18n.t("XmlGridContextMenu.collapse-selected-cells"));
         collapseCellsItem.setGraphic(createColoredIcon("bi-dash-square-dotted", ActionColor.NEUTRAL));
         collapseCellsItem.setAccelerator(new javafx.scene.input.KeyCharacterCombination("-"));
         collapseCellsItem.setOnAction(e -> viewActions.collapseOneLevel().run());
@@ -339,30 +341,30 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
                 new SeparatorMenuItem(), insertColumnBeforeItem, insertColumnAfterItem, renameColumnItem,
                 new SeparatorMenuItem(), expandCellsItem, collapseCellsItem);
 
-        expandAllItem = new MenuItem("Expand All");
+        expandAllItem = new MenuItem(I18n.t("XmlGridContextMenu.expand-all"));
         expandAllItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
         expandAllItem.setOnAction(e -> viewActions.expandAll().run());
 
-        collapseAllItem = new MenuItem("Collapse All");
+        collapseAllItem = new MenuItem(I18n.t("XmlGridContextMenu.collapse-all"));
         collapseAllItem.setGraphic(createColoredIcon("bi-arrows-collapse", ActionColor.NEUTRAL));
         collapseAllItem.setOnAction(e -> viewActions.collapseAll().run());
 
         // === Sort (for table columns) ===
-        sortMenu = new Menu("Sort Column");
+        sortMenu = new Menu(I18n.t("XmlGridContextMenu.sort-column"));
         sortMenu.setGraphic(createColoredIcon("bi-sort-down", ActionColor.TOOL));
 
-        sortAscendingItem = new MenuItem("Sort Ascending");
+        sortAscendingItem = new MenuItem(I18n.t("XmlGridContextMenu.sort-ascending"));
         sortAscendingItem.setGraphic(createColoredIcon("bi-sort-up", ActionColor.TOOL));
         sortAscendingItem.setOnAction(e -> sortColumn(true));
 
-        sortDescendingItem = new MenuItem("Sort Descending");
+        sortDescendingItem = new MenuItem(I18n.t("XmlGridContextMenu.sort-descending"));
         sortDescendingItem.setGraphic(createColoredIcon("bi-sort-down-alt", ActionColor.TOOL));
         sortDescendingItem.setOnAction(e -> sortColumn(false));
 
         sortMenu.getItems().addAll(sortAscendingItem, sortDescendingItem);
 
         // === Delete ===
-        deleteItem = new MenuItem("Delete");
+        deleteItem = new MenuItem(I18n.t("XmlGridContextMenu.delete"));
         deleteItem.setGraphic(createColoredIcon("bi-trash", ActionColor.DELETE));
         deleteItem.setOnAction(e -> deleteElement());
         deleteItem.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
@@ -627,8 +629,8 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
         grid.setHgap(8);
         grid.setVgap(8);
-        grid.addRow(0, new javafx.scene.control.Label("Name:"), name);
-        grid.addRow(1, new javafx.scene.control.Label("Expression:"), expression);
+        grid.addRow(0, new javafx.scene.control.Label(I18n.t("XmlGridContextMenu.name")), name);
+        grid.addRow(1, new javafx.scene.control.Label(I18n.t("XmlGridContextMenu.expression")), expression);
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(
                 javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
@@ -857,7 +859,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         // ComboBox with valid elements
         ComboBox<String> elementComboBox = new ComboBox<>(FXCollections.observableArrayList(validElements));
-        elementComboBox.setPromptText("Select element...");
+        elementComboBox.setPromptText(I18n.t("XmlGridContextMenu.select-element"));
         elementComboBox.setPrefWidth(250);
 
         // Pre-select first element
@@ -917,9 +919,9 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         }
 
         // Option for custom element name (if schema allows any)
-        CheckBox customCheckBox = new CheckBox("Enter custom name");
+        CheckBox customCheckBox = new CheckBox(I18n.t("XmlGridContextMenu.enter-custom-name"));
         TextField customField = new TextField();
-        customField.setPromptText("Custom element name...");
+        customField.setPromptText(I18n.t("XmlGridContextMenu.custom-element-name"));
         customField.setDisable(true);
         customField.setPrefWidth(250);
 
@@ -931,7 +933,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
             }
         });
 
-        grid.add(new Label("Element:"), 0, 0);
+        grid.add(new Label(I18n.t("XmlGridContextMenu.element")), 0, 0);
         grid.add(elementComboBox, 1, 0);
         grid.add(infoLabel, 1, 1);
         grid.add(customCheckBox, 0, 2, 2, 1);
@@ -1114,7 +1116,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         // ComboBox with valid attributes
         ComboBox<String> attributeComboBox = new ComboBox<>(FXCollections.observableArrayList(validAttributes));
-        attributeComboBox.setPromptText("Select attribute...");
+        attributeComboBox.setPromptText(I18n.t("XmlGridContextMenu.select-attribute"));
         attributeComboBox.setPrefWidth(250);
 
         // Pre-select first attribute
@@ -1188,9 +1190,9 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         }
 
         // Option for custom attribute name
-        CheckBox customCheckBox = new CheckBox("Enter custom name");
+        CheckBox customCheckBox = new CheckBox(I18n.t("XmlGridContextMenu.enter-custom-name"));
         TextField customField = new TextField();
-        customField.setPromptText("Custom attribute name...");
+        customField.setPromptText(I18n.t("XmlGridContextMenu.custom-attribute-name"));
         customField.setDisable(true);
         customField.setPrefWidth(250);
 
@@ -1203,7 +1205,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
             }
         });
 
-        grid.add(new Label("Attribute:"), 0, 0);
+        grid.add(new Label(I18n.t("XmlGridContextMenu.attribute-2")), 0, 0);
         grid.add(attributeComboBox, 1, 0);
         grid.add(infoLabel, 1, 1);
         grid.add(customCheckBox, 0, 2, 2, 1);

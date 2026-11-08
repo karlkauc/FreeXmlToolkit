@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -219,7 +221,7 @@ public class QueryConsole extends Region {
     private void initResults() {
         resultsArea.setEditable(false);
         resultsArea.setWrapText(false);
-        resultsArea.setPlaceholder(new Label("Run a query to see results here."));
+        resultsArea.setPlaceholder(new Label(I18n.t("QueryConsole.run-a-query-to-see")));
         resultsArea.getStyleClass().addAll("fxt-transform-output", "fxt-query-results");
         resultsArea.setParagraphGraphicFactory(LineNumberFactory.get(resultsArea));
         CodeAreaFontZoom.install(resultsArea);
@@ -467,7 +469,7 @@ public class QueryConsole extends Region {
             return;
         }
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save Results");
+        chooser.setTitle(I18n.t("QueryConsole.save-results"));
         chooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Text (*.txt)", "*.txt"),
                 new FileChooser.ExtensionFilter("XML (*.xml)", "*.xml"),
@@ -581,7 +583,7 @@ public class QueryConsole extends Region {
 
     /** Asks for confirmation, then deletes the snippet file. */
     private void deleteSnippet(File file, boolean xquery) {
-        if (DialogHelper.showConfirmation("Delete Snippet",
+        if (DialogHelper.showConfirmation(I18n.t("QueryConsole.delete-snippet"),
                 "Delete snippet '" + snippetDisplayName(file, xquery) + "'?",
                 "The file " + file.getName() + " will be deleted permanently.")) {
             deleteSnippetForTest(file);
@@ -645,7 +647,7 @@ public class QueryConsole extends Region {
                     + " input is empty — nothing to overwrite with.");
             return;
         }
-        if (DialogHelper.showConfirmation("Overwrite Snippet",
+        if (DialogHelper.showConfirmation(I18n.t("QueryConsole.overwrite-snippet"),
                 "Overwrite snippet '" + snippetDisplayName(file, xquery) + "'?",
                 "The saved " + (xquery ? "XQuery" : "XPath")
                         + " will be replaced with the current console content.")) {
@@ -694,7 +696,7 @@ public class QueryConsole extends Region {
                 .getSnippetsByTag(FundsXmlPostDownloadRegistrar.SNIPPET_TAG);
 
         if (xpathFiles.isEmpty() && xqueryFiles.isEmpty() && fundsXmlSnippets.isEmpty()) {
-            MenuItem empty = new MenuItem("(no saved snippets)");
+            MenuItem empty = new MenuItem(I18n.t("QueryConsole.no-saved-snippets"));
             empty.setDisable(true);
             snippetsMenu.getItems().add(empty);
             return;
@@ -711,7 +713,7 @@ public class QueryConsole extends Region {
             if (!xpathFiles.isEmpty() || !xqueryFiles.isEmpty()) {
                 snippetsMenu.getItems().add(new SeparatorMenuItem());
             }
-            MenuItem header = new MenuItem("FUNDSXML");
+            MenuItem header = new MenuItem(I18n.t("QueryConsole.fundsxml"));
             header.setDisable(true);
             snippetsMenu.getItems().add(header);
             fundsXmlSnippets.stream()
@@ -727,12 +729,12 @@ public class QueryConsole extends Region {
         String label = (xquery ? "XQuery: " : "XPath: ") + snippet.getName();
         Menu menu = new Menu(label, snippetIcon(xquery));
 
-        MenuItem load = new MenuItem("Load into console", snippetIcon(xquery));
+        MenuItem load = new MenuItem(I18n.t("QueryConsole.load-into-console"), snippetIcon(xquery));
         load.setOnAction(e -> loadSnippet(snippet));
 
         // Repository snippets have no backing file — open the query text as an
         // untitled document of the matching type (query editor + Run button).
-        MenuItem open = new MenuItem("Open in editor", menuIcon("bi-pencil-square"));
+        MenuItem open = new MenuItem(I18n.t("QueryConsole.open-in-editor"), menuIcon("bi-pencil-square"));
         open.setOnAction(e -> {
             EditorFileType type = xquery ? EditorFileType.XQUERY : EditorFileType.XPATH;
             editorHost.openGeneratedDocument(
@@ -776,19 +778,19 @@ public class QueryConsole extends Region {
         String label = (xquery ? "XQuery: " : "XPath: ") + snippetDisplayName(file, xquery);
         Menu menu = new Menu(label, snippetIcon(xquery));
 
-        MenuItem load = new MenuItem("Load into console", snippetIcon(xquery));
+        MenuItem load = new MenuItem(I18n.t("QueryConsole.load-into-console"), snippetIcon(xquery));
         load.setOnAction(e -> loadSnippet(file, xquery));
 
-        MenuItem open = new MenuItem("Open in editor", menuIcon("bi-pencil-square"));
+        MenuItem open = new MenuItem(I18n.t("QueryConsole.open-in-editor"), menuIcon("bi-pencil-square"));
         open.setOnAction(e -> editorHost.openFile(file));
 
-        MenuItem overwrite = new MenuItem("Overwrite with current query", menuIcon("bi-save"));
+        MenuItem overwrite = new MenuItem(I18n.t("QueryConsole.overwrite-with-current-query"), menuIcon("bi-save"));
         overwrite.setOnAction(e -> overwriteSnippet(file, xquery));
 
-        MenuItem rename = new MenuItem("Rename…", menuIcon("bi-pencil"));
+        MenuItem rename = new MenuItem(I18n.t("QueryConsole.rename"), menuIcon("bi-pencil"));
         rename.setOnAction(e -> renameSnippet(file, xquery));
 
-        MenuItem delete = new MenuItem("Delete…", menuIcon("bi-trash"));
+        MenuItem delete = new MenuItem(I18n.t("QueryConsole.delete"), menuIcon("bi-trash"));
         delete.setOnAction(e -> deleteSnippet(file, xquery));
 
         menu.getItems().addAll(load, open, new SeparatorMenuItem(), overwrite, rename, delete);

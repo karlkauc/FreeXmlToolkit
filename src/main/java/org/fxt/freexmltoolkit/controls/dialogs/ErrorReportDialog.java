@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.dialogs;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -70,7 +72,7 @@ public final class ErrorReportDialog {
         }
         IconifyIcon icon = new IconifyIcon("bi-send");
         icon.setIconSize(16);
-        Button button = new Button("Send error report…", icon);
+        Button button = new Button(I18n.t("ErrorReportDialog.send-error-report"), icon);
         button.setOnAction(e -> show(ownerSupplier == null ? null : ownerSupplier.get(), error));
         return button;
     }
@@ -101,7 +103,7 @@ public final class ErrorReportDialog {
 
         DialogPane pane = dialog.getDialogPane();
         pane.getStylesheets().addAll(DialogHelper.getThemeStylesheets());
-        pane.setHeaderText("Help us fix this problem");
+        pane.setHeaderText(I18n.t("ErrorReportDialog.help-us-fix-this-problem"));
         IconifyIcon headerIcon = new IconifyIcon("bi-bug");
         headerIcon.setIconSize(32);
         headerIcon.setIconColor(Color.web(SemanticColors.INFO));
@@ -160,10 +162,10 @@ public final class ErrorReportDialog {
             contact.setDisable(true);
             technical.setDisable(true);
             status.setStyle("-fx-text-fill: " + SemanticColors.NEUTRAL + ";");
-            status.setText("Sending…");
+            status.setText(I18n.t("ErrorReportDialog.sending"));
             telemetry.sendErrorReport(description.getText(), contact.getText(), error, technical.isSelected())
                     .whenComplete((result, ex) -> Platform.runLater(() -> onResult(dialog, pane, sendType,
-                            result != null ? result : ErrorReportResult.failure("The report could not be sent."),
+                            result != null ? result : ErrorReportResult.failure(I18n.t("ErrorReportDialog.the-report-could-not-be")),
                             status, send, description, contact, technical, error)));
         });
         return dialog;

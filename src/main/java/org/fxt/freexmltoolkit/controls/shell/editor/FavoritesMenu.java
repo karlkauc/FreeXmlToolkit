@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -146,18 +148,18 @@ public final class FavoritesMenu {
     public static List<MenuItem> quickAccessItems(QuickAccess actions) {
         List<MenuItem> items = new ArrayList<>(allItems(recordingAccess(actions.open())));
         if (items.isEmpty()) {
-            MenuItem none = new MenuItem("No Favorites Yet", icon("bi-star", ActionColor.NEUTRAL));
+            MenuItem none = new MenuItem(I18n.t("FavoritesMenu.no-favorites-yet"), icon("bi-star", ActionColor.NEUTRAL));
             none.setId("favorites-quick-none");
             none.setDisable(true);
             items.add(none);
         }
         items.add(new SeparatorMenuItem());
-        MenuItem add = new MenuItem("Add Active Document  (Ctrl+D)", icon("bi-star-fill", ActionColor.CREATE));
+        MenuItem add = new MenuItem(I18n.t("FavoritesMenu.add-active-document-ctrl-d"), icon("bi-star-fill", ActionColor.CREATE));
         add.setId("favorites-quick-add");
         add.setMnemonicParsing(false);
         add.setDisable(!actions.canAddActive().getAsBoolean());
         add.setOnAction(e -> actions.addActive().run());
-        MenuItem manage = new MenuItem("Manage Favorites…", icon("bi-star", ActionColor.NAVIGATE));
+        MenuItem manage = new MenuItem(I18n.t("FavoritesMenu.manage-favorites"), icon("bi-star", ActionColor.NAVIGATE));
         manage.setId("favorites-quick-manage");
         manage.setOnAction(e -> actions.manage().run());
         items.add(add);
@@ -183,7 +185,7 @@ public final class FavoritesMenu {
         button.setGraphic(star);
         button.getStyleClass().addAll(styleClass, QUICK_ACCESS_STYLE);
         button.setFocusTraversable(false);
-        button.setTooltip(new Tooltip("Favorites"));
+        button.setTooltip(new Tooltip(I18n.t("FavoritesMenu.favorites")));
         installQuickAccess(button, actions);
         return button;
     }

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -320,7 +322,7 @@ public class TransformPanel extends VBox {
         }
         FxtProject project = open.get();
         if (xsltFile == null) {
-            out.showError("Choose a stylesheet before saving a scenario.");
+            out.showError(I18n.t("TransformPanel.choose-a-stylesheet-before-saving"));
             return;
         }
         Optional<FxtProject.Scenario> chosen = chosenScenario();
@@ -363,7 +365,7 @@ public class TransformPanel extends VBox {
         String name = scenarioChoice.getValue();
         Optional<FxtProject> project = ProjectService.getInstance().current();
         if (name == null || project.isEmpty()
-                || !org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Delete Scenario",
+                || !org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("TransformPanel.delete-scenario"),
                         "Delete the scenario \"" + name + "\"?", "It is removed from " + project.get().file().getFileName() + ".")) {
             return;
         }
@@ -457,7 +459,7 @@ public class TransformPanel extends VBox {
     @FXML
     public void onChooseInputFile() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select Input XML");
+        chooser.setTitle(I18n.t("TransformPanel.select-input-xml"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -570,7 +572,7 @@ public class TransformPanel extends VBox {
     @FXML
     public void startDebug() {
         if (xsltFile == null) {
-            out.showError("Select an XSLT stylesheet first.");
+            out.showError(I18n.t("TransformPanel.select-an-xslt-stylesheet-first"));
             return;
         }
         // Same input as Run Transform: the INPUT override file when one is set (drop, favourite,
@@ -585,7 +587,7 @@ public class TransformPanel extends VBox {
             }
         } else {
             if (editorHost.getActiveDocument().isEmpty()) {
-                out.showError("No document open.");
+                out.showError(I18n.t("TransformPanel.no-document-open"));
                 return;
             }
             xml = editorHost.getActiveText().orElse("");
@@ -630,10 +632,10 @@ public class TransformPanel extends VBox {
             view = new BatchTransformView(BatchTransformView.Kind.XQUERY,
                     xqueryText, querySystemId, collectParameters(), chosenFormat(OutputFormat.XML));
         } else {
-            out.showError("Set an XSLT stylesheet, or open an XQuery document, first.");
+            out.showError(I18n.t("TransformPanel.set-an-xslt-stylesheet-or"));
             return;
         }
-        editorHost.openToolTab("Batch", "bi-files", view);
+        editorHost.openToolTab(I18n.t("TransformPanel.batch"), "bi-files", view);
     }
 
     // ----- stylesheet ----------------------------------------------------------
@@ -689,7 +691,7 @@ public class TransformPanel extends VBox {
         }
         recentXsltMenu.setDisable(recentXsltMenu.getItems().isEmpty());
         if (!recentXsltMenu.getItems().isEmpty()) {
-            MenuItem clear = new MenuItem("Clear recent");
+            MenuItem clear = new MenuItem(I18n.t("TransformPanel.clear-recent"));
             clear.setOnAction(e -> {
                 try {
                     org.fxt.freexmltoolkit.di.ServiceRegistry
@@ -1036,7 +1038,7 @@ public class TransformPanel extends VBox {
     /** @param live triggered by live preview / stylesheet watch (only affects usage statistics) */
     private void transform(boolean live) {
         if (xsltFile == null) {
-            out.showError("Select an XSLT stylesheet first.");
+            out.showError(I18n.t("TransformPanel.select-an-xslt-stylesheet-first"));
             return;
         }
         String xml;
@@ -1051,14 +1053,14 @@ public class TransformPanel extends VBox {
                 java.util.Optional<String> sourceText = sourceDocument != null
                         ? editorHost.getDocumentText(sourceDocument) : java.util.Optional.empty();
                 if (sourceText.isEmpty()) {
-                    out.showError("Select the source document to transform.");
+                    out.showError(I18n.t("TransformPanel.select-the-source-document-to"));
                     return;
                 }
                 xml = sourceText.get();
             } else {
                 OpenDocument input = inputDocument().orElse(null);
                 if (input == null) {
-                    out.showError("No XML input — open the XML document to transform, or pick an input file.");
+                    out.showError(I18n.t("TransformPanel.no-xml-input-open-the"));
                     return;
                 }
                 sourceDocument = input;
@@ -1081,7 +1083,7 @@ public class TransformPanel extends VBox {
         boolean wantProfile = profileCheck.isSelected();
         boolean wantTrace = traceCheck.isSelected();
         OutputFormat chosen = chosenFormat(null); // null = Auto, resolved from the stylesheet below
-        out.showPending("Transforming…");
+        out.showPending(I18n.t("TransformPanel.transforming"));
         // A transform is a single opaque call; cancellation frees the UI and abandons
         // the result (best-effort interrupt) — it may not stop Saxon mid-transform.
         java.util.concurrent.atomic.AtomicBoolean abandoned = new java.util.concurrent.atomic.AtomicBoolean(false);
@@ -1094,7 +1096,7 @@ public class TransformPanel extends VBox {
             }
             progress.finish();
             transformButton.setDisable(false);
-            out.showPending("Cancelled");
+            out.showPending(I18n.t("TransformPanel.cancelled"));
         });
         String editorXml = xml;
         task[0] = FxtGui.executorService.submit(() -> {
@@ -1195,7 +1197,7 @@ public class TransformPanel extends VBox {
                                 params, finalFormat, xslt.getName(), null);
                     }
                     if (wantTrace && trace != null && trace.isSuccess()) {
-                        editorHost.openToolTab("Trace", "bi-list-columns",
+                        editorHost.openToolTab(I18n.t("TransformPanel.trace"), "bi-list-columns",
                                 new org.fxt.freexmltoolkit.controls.shell.editor.debug.TraceView(trace));
                     }
                 }
@@ -1334,7 +1336,7 @@ public class TransformPanel extends VBox {
     @FXML
     public void onChooseXslt() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select XSLT");
+        chooser.setTitle(I18n.t("TransformPanel.select-xslt"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {

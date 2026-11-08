@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
@@ -52,7 +54,7 @@ public class SchematronCheckResultView extends VBox {
         TableColumn<SchematronError, String> message = column("Message", SchematronError::message, -1);
         table.getColumns().add(message);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(new Label("No issues found."));
+        table.setPlaceholder(new Label(I18n.t("SchematronCheckResultView.no-issues-found")));
         table.getItems().setAll(issues);
         VBox.setVgrow(table, Priority.ALWAYS);
 

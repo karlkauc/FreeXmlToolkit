@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -441,7 +443,7 @@ public class InspectorPanel extends VBox {
 
     private void initTypeFacets() {
         // Editable facet values (inline facets); inherited facets are read-only rows.
-        facetList.setPlaceholderText("No facets");
+        facetList.setPlaceholderText(I18n.t("InspectorPanel.no-facets"));
         facetList.setOnValueCommit((entry, value) -> {
             if (!updating && !inheritedFacets.contains(entry.item())) {
                 routeEdit(() -> editorHost.editActiveFacet(entry.item(), value),
@@ -489,7 +491,7 @@ public class InspectorPanel extends VBox {
             }
         });
 
-        xmlAttrList.setPlaceholderText("No attributes");
+        xmlAttrList.setPlaceholderText(I18n.t("InspectorPanel.no-attributes"));
         xmlAttrList.setOnNameCommit((entry, name) -> {
             if (!updating && !name.isBlank()) {
                 editorHost.renameActiveXmlAttribute(entry.item(), name.trim());
@@ -821,7 +823,7 @@ public class InspectorPanel extends VBox {
         int uses = usageCount(component);
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                 javafx.scene.control.Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Change a shared schema component");
+        alert.setTitle(I18n.t("InspectorPanel.change-a-shared-schema-component"));
         alert.setHeaderText(kind + " \"" + component.getName() + "\" is used in " + uses + " places");
         alert.setContentText("The change is made in " + xmlDeclEdit.decl().schemaFileName()
                 + " and applies to every place that uses it.");
@@ -1092,22 +1094,22 @@ public class InspectorPanel extends VBox {
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText text) {
             populateContent("Text", "Text", text.getText());
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction pi) {
-            setHeader(pi.getTarget(), "Processing Instruction");
-            kindValue.setText("Processing Instruction");
+            setHeader(pi.getTarget(), I18n.t("InspectorPanel.processing-instruction"));
+            kindValue.setText(I18n.t("InspectorPanel.processing-instruction"));
             piTargetField.setText(pi.getTarget() == null ? "" : pi.getTarget());
             piDataField.setText(pi.getData() == null ? "" : pi.getData());
             show(piSection, true);
         } else if (node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument doc) {
-            setHeader("XML Document", "Document");
-            kindValue.setText("Document");
+            setHeader(I18n.t("InspectorPanel.xml-document"), I18n.t("InspectorPanel.document"));
+            kindValue.setText(I18n.t("InspectorPanel.document"));
             declVersionField.setText(doc.getVersion() == null ? "" : doc.getVersion());
             declEncodingField.setText(doc.getEncoding() == null ? "" : doc.getEncoding());
             declStandaloneCombo.setValue(doc.getStandalone() == null ? "(omit)"
                     : (doc.getStandalone() ? "yes" : "no"));
             show(declarationSection, true);
         } else {
-            setHeader(PLACEHOLDER, "Node");
-            kindValue.setText("Node");
+            setHeader(PLACEHOLDER, I18n.t("InspectorPanel.node"));
+            kindValue.setText(I18n.t("InspectorPanel.node"));
         }
         nodeIcon.setIconLiteral(XmlNodeIcons.icon(node));
         showDepth(node instanceof org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlDocument ? -1 : xmlDepth(node));
@@ -1472,8 +1474,8 @@ public class InspectorPanel extends VBox {
     private void populateXmlNode(XmlElement el) {
         String xpath = xmlXPath(el);
         var info = editorHost.resolveActiveXmlElementInfo(xpath);
-        setHeader(el.getName(), "Element", info.map(i -> i.typeName()).orElse(null), XmlNodeIcons.icon(el));
-        kindValue.setText("Element");
+        setHeader(el.getName(), I18n.t("InspectorPanel.element"), info.map(i -> i.typeName()).orElse(null), XmlNodeIcons.icon(el));
+        kindValue.setText(I18n.t("InspectorPanel.element"));
         nameField.setEditable(true);
         nameField.setText(el.getName());
         xpathValue.setText(xpath);
@@ -1489,7 +1491,7 @@ public class InspectorPanel extends VBox {
 
         // Text content is only editable for leaf elements (no child elements → no mixed content).
         boolean leaf = !el.hasElementChildren();
-        xmlTextLabel.setText("TEXT");
+        xmlTextLabel.setText(I18n.t("InspectorPanel.text"));
         xmlTextArea.setEditable(true);
         String text = leaf && el.getTextContent() != null ? el.getTextContent() : "";
         xmlTextArea.setText(text);
@@ -1720,7 +1722,7 @@ public class InspectorPanel extends VBox {
         boolean isElement = decl instanceof XsdElement;
         String type = isElement ? ((XsdElement) decl).getType() : null;
         // An anonymous type has no name of its own: the subtitle keeps the effective (base) type.
-        setHeader(el.getName(), "Element", type != null && !type.isBlank() ? type : effectiveType,
+        setHeader(el.getName(), I18n.t("InspectorPanel.element"), type != null && !type.isBlank() ? type : effectiveType,
                 XmlNodeIcons.icon(el));
 
         // Type (editable) + derivation from the live model
@@ -1932,7 +1934,7 @@ public class InspectorPanel extends VBox {
         xpathValue.setText(node.getPath());
         showDepth(jsonDepth(node));
 
-        xmlTextLabel.setText("VALUE");
+        xmlTextLabel.setText(I18n.t("InspectorPanel.value"));
         xmlTextArea.setEditable(valueEditable);
         xmlTextArea.setText(jsonValue(node));
         show(xmlTextBox, true);
@@ -2029,8 +2031,8 @@ public class InspectorPanel extends VBox {
             xpathValue.setText(PLACEHOLDER);
         } else if (docOpt.get().getFileType() == EditorFileType.JSON) {
             showEmptyHint("Select a node in the Tree or Graphic view to see and edit its properties.");
-            setHeader(PLACEHOLDER, "JSON", null, "bi-braces");
-            kindValue.setText("JSON");
+            setHeader(PLACEHOLDER, I18n.t("InspectorPanel.json"), null, "bi-braces");
+            kindValue.setText(I18n.t("InspectorPanel.json"));
             nameField.setText("");
             xpathValue.setText(PLACEHOLDER);
         } else {

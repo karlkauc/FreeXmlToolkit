@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.search;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -135,7 +137,7 @@ public final class FileSearchRunner {
         try {
             byte[] head = readHead(file);
             if (EncodingSniffer.isBinary(head)) {
-                return error(file, "Binary file skipped");
+                return error(file, I18n.t("FileSearchRunner.binary-file-skipped"));
             }
             EncodingSniffer.Loaded loaded = EncodingSniffer.load(file);
             BasicFileAttributes attrs = Files.readAttributes(file, BasicFileAttributes.class);

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -60,8 +62,8 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptionsDialog.Request> {
      */
     public FlattenOptionsDialog(Path sourceFile) {
         this.sourceFile = sourceFile;
-        setTitle("Flatten Schema");
-        setHeaderText("Create a standalone schema, optionally reduced for server-side validation.");
+        setTitle(I18n.t("FlattenOptionsDialog.flatten-schema"));
+        setHeaderText(I18n.t("FlattenOptionsDialog.create-a-standalone-schema-optionally"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/FlattenOptionsDialog.fxml"));
@@ -171,7 +173,7 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptionsDialog.Request> {
     @FXML
     public void onBrowse() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save Flattened Schema");
+        chooser.setTitle(I18n.t("FlattenOptionsDialog.save-flattened-schema"));
         chooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("XML Schema (*.xsd)", "*.xsd"),
                 new FileChooser.ExtensionFilter("All files", "*.*"));

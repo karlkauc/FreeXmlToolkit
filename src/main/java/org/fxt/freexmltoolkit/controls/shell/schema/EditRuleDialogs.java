@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
@@ -55,7 +57,7 @@ public final class EditRuleDialogs {
         }
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
-        alert.setHeaderText("This change would make the schema invalid");
+        alert.setHeaderText(I18n.t("EditRuleDialogs.this-change-would-make-the"));
         alert.setContentText(check.reason());
         ButtonType replace = new ButtonType(check.replaceLabel(), ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(replace, ButtonType.CANCEL);
@@ -107,7 +109,7 @@ public final class EditRuleDialogs {
         }
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
-        alert.setHeaderText("This change is not valid in XML Schema");
+        alert.setHeaderText(I18n.t("EditRuleDialogs.this-change-is-not-valid"));
         alert.setContentText(check.reason());
         style(alert, owner);
         alert.showAndWait();

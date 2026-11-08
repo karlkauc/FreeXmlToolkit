@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -316,7 +318,7 @@ final class XPathSection extends VBox {
     private void showDetails(Row row) {
         details.getChildren().clear();
         if (row == null) {
-            details.getChildren().add(AnalysisSupport.emptyLabel("Select an expression to see its findings."));
+            details.getChildren().add(AnalysisSupport.emptyLabel(I18n.t("XPathSection.select-an-expression-to-see")));
             Label note = AnalysisSupport.emptyLabel(STATIC_NOTE);
             note.setWrapText(true);
             details.getChildren().add(note);

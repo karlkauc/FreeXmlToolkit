@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.function.Consumer;
@@ -63,7 +65,7 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
 
         // Text field
         textField = new TextField(currentValue != null ? currentValue : "");
-        textField.setPromptText("Enter URI...");
+        textField.setPromptText(I18n.t("UriTextField.enter-uri"));
         HBox.setHgrow(textField, Priority.ALWAYS);
 
         // Validate initial value
@@ -159,7 +161,7 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
         } else {
             textField.setStyle(baseStyle +
                     "-fx-border-color: #28a745; -fx-border-width: 1px;");
-            textField.setTooltip(new Tooltip("Valid URI"));
+            textField.setTooltip(new Tooltip(I18n.t("UriTextField.valid-uri")));
         }
     }
 

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -509,7 +511,7 @@ final class StatisticsSection extends VBox {
         HBox.setHgrow(bar, Priority.ALWAYS);
         Label value = new Label(String.format(Locale.ROOT, "%.1f%%", clamped));
         value.getStyleClass().add("fxt-analysis-bar-value");
-        Label caption = new Label("Coverage");
+        Label caption = new Label(I18n.t("StatisticsSection.coverage"));
         caption.getStyleClass().add("fxt-analysis-key");
         HBox head = new HBox(8, caption, spacer(), value);
         head.setAlignment(Pos.CENTER_LEFT);

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -25,7 +27,7 @@ public class SampleXmlOptionsDialog extends Dialog<SampleXmlOptionsDialog.Option
     @FXML private CheckBox realistic;
 
     public SampleXmlOptionsDialog() {
-        setTitle("Generate Sample XML");
+        setTitle(I18n.t("SampleXmlOptionsDialog.generate-sample-xml"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/SampleXmlOptionsDialog.fxml"));

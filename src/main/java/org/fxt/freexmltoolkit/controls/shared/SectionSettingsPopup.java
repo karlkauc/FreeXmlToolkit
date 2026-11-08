@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls.shared;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,13 +73,13 @@ public class SectionSettingsPopup {
         content.setStyle("-fx-background-color: -fx-control-inner-background; -fx-background-radius: 6; -fx-border-radius: 6; -fx-border-width: 1; -fx-border-color: derive(-fx-control-inner-background, -20%);");
 
         // Header
-        Label header = new Label("Customize Sections");
+        Label header = new Label(I18n.t("SectionSettingsPopup.customize-sections"));
         header.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
 
         itemsBox = new VBox(2);
 
         // Reset button
-        Button resetButton = new Button("Reset to Defaults");
+        Button resetButton = new Button(I18n.t("SectionSettingsPopup.reset-to-defaults"));
         IconifyIcon resetIcon = new IconifyIcon("bi-arrow-counterclockwise");
         resetIcon.setIconSize(14);
         resetButton.setGraphic(resetIcon);
@@ -159,7 +161,7 @@ public class SectionSettingsPopup {
         checkBox.setSelected(isVisible);
         checkBox.setDisable(!isEnabled);
         if (!isEnabled) {
-            checkBox.setTooltip(new Tooltip("Requires additional context to be available"));
+            checkBox.setTooltip(new Tooltip(I18n.t("SectionSettingsPopup.requires-additional-context-to-be")));
         }
         checkBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
             container.setSectionVisible(sectionId, newVal);
@@ -172,7 +174,7 @@ public class SectionSettingsPopup {
         upIcon.setIconSize(12);
         moveUpBtn.setGraphic(upIcon);
         moveUpBtn.getStyleClass().add("section-move-button");
-        moveUpBtn.setTooltip(new Tooltip("Move up"));
+        moveUpBtn.setTooltip(new Tooltip(I18n.t("SectionSettingsPopup.move-up")));
         moveUpBtn.setDisable(index == 0);
         moveUpBtn.setOnAction(e -> moveAndRefresh(sectionId, index - 1));
 
@@ -182,7 +184,7 @@ public class SectionSettingsPopup {
         downIcon.setIconSize(12);
         moveDownBtn.setGraphic(downIcon);
         moveDownBtn.getStyleClass().add("section-move-button");
-        moveDownBtn.setTooltip(new Tooltip("Move down"));
+        moveDownBtn.setTooltip(new Tooltip(I18n.t("SectionSettingsPopup.move-down")));
         moveDownBtn.setDisable(index == totalCount - 1);
         moveDownBtn.setOnAction(e -> moveAndRefresh(sectionId, index + 1));
 

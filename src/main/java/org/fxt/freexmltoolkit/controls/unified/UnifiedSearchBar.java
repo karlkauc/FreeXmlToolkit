@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.unified;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -54,7 +56,7 @@ public class UnifiedSearchBar extends HBox {
 
         // Search field
         searchField = new TextField();
-        searchField.setPromptText("Search...");
+        searchField.setPromptText(I18n.t("UnifiedSearchBar.search"));
         searchField.setPrefWidth(250);
         searchField.getStyleClass().add("search-input");
         searchField.setOnKeyPressed(e -> {
@@ -82,7 +84,7 @@ public class UnifiedSearchBar extends HBox {
         prevIcon.setIconSize(15);
         findPrevButton.setGraphic(prevIcon);
         findPrevButton.getStyleClass().add("search-icon-button");
-        findPrevButton.setTooltip(new Tooltip("Find Previous (Shift+Enter)"));
+        findPrevButton.setTooltip(new Tooltip(I18n.t("UnifiedSearchBar.find-previous-shift-enter")));
         findPrevButton.setOnAction(e -> findPrevious());
 
         // Find Next button
@@ -91,7 +93,7 @@ public class UnifiedSearchBar extends HBox {
         nextIcon.setIconSize(15);
         findNextButton.setGraphic(nextIcon);
         findNextButton.getStyleClass().add("search-icon-button");
-        findNextButton.setTooltip(new Tooltip("Find Next (Enter)"));
+        findNextButton.setTooltip(new Tooltip(I18n.t("UnifiedSearchBar.find-next-enter")));
         findNextButton.setOnAction(e -> findNext());
 
         // Toggle Replace button
@@ -100,7 +102,7 @@ public class UnifiedSearchBar extends HBox {
         replaceIcon.setIconSize(15);
         toggleReplaceButton.setGraphic(replaceIcon);
         toggleReplaceButton.getStyleClass().add("search-icon-button");
-        toggleReplaceButton.setTooltip(new Tooltip("Toggle Replace (Ctrl+H)"));
+        toggleReplaceButton.setTooltip(new Tooltip(I18n.t("UnifiedSearchBar.toggle-replace-ctrl-h")));
         toggleReplaceButton.setOnAction(e -> toggleReplaceMode());
 
         // Close button
@@ -109,12 +111,12 @@ public class UnifiedSearchBar extends HBox {
         closeIcon.setIconSize(14);
         closeButton.setGraphic(closeIcon);
         closeButton.getStyleClass().addAll("search-icon-button", "search-close-button");
-        closeButton.setTooltip(new Tooltip("Close (Escape)"));
+        closeButton.setTooltip(new Tooltip(I18n.t("UnifiedSearchBar.close-escape")));
         closeButton.setOnAction(e -> hide());
 
         // Replace field and buttons (hidden by default)
         replaceField = new TextField();
-        replaceField.setPromptText("Replace with...");
+        replaceField.setPromptText(I18n.t("UnifiedSearchBar.replace-with"));
         replaceField.setPrefWidth(200);
         replaceField.getStyleClass().add("search-input");
         replaceField.setOnKeyPressed(e -> {
@@ -125,15 +127,15 @@ public class UnifiedSearchBar extends HBox {
             }
         });
 
-        Button replaceButton = new Button("Replace");
+        Button replaceButton = new Button(I18n.t("UnifiedSearchBar.replace"));
         replaceButton.getStyleClass().add("search-pill-button");
         replaceButton.setOnAction(e -> replaceNext());
-        replaceButton.setTooltip(new Tooltip("Replace current match"));
+        replaceButton.setTooltip(new Tooltip(I18n.t("UnifiedSearchBar.replace-current-match")));
 
-        Button replaceAllButton = new Button("All");
+        Button replaceAllButton = new Button(I18n.t("UnifiedSearchBar.all"));
         replaceAllButton.getStyleClass().add("search-pill-button");
         replaceAllButton.setOnAction(e -> replaceAll());
-        replaceAllButton.setTooltip(new Tooltip("Replace all matches"));
+        replaceAllButton.setTooltip(new Tooltip(I18n.t("UnifiedSearchBar.replace-all-matches")));
 
         replaceBox = new HBox(6, replaceField, replaceButton, replaceAllButton);
         replaceBox.setAlignment(Pos.CENTER_LEFT);
@@ -282,7 +284,7 @@ public class UnifiedSearchBar extends HBox {
         }
 
         if (!found) {
-            statusLabel.setText("Not found");
+            statusLabel.setText(I18n.t("UnifiedSearchBar.not-found"));
             SemanticStyle.style(statusLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + ";");
         } else {
             showMatchCount(text);
@@ -303,7 +305,7 @@ public class UnifiedSearchBar extends HBox {
         }
 
         if (!found) {
-            statusLabel.setText("Not found");
+            statusLabel.setText(I18n.t("UnifiedSearchBar.not-found"));
             SemanticStyle.style(statusLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + ";");
         } else {
             showMatchCount(text);
@@ -389,7 +391,7 @@ public class UnifiedSearchBar extends HBox {
             statusLabel.setText(count + " found");
             statusLabel.setStyle("");
         } else {
-            statusLabel.setText("Not found");
+            statusLabel.setText(I18n.t("UnifiedSearchBar.not-found"));
             SemanticStyle.style(statusLabel, DesignTokens.ColorToken.DANGER, c -> "-fx-text-fill: " + c + ";");
         }
     }

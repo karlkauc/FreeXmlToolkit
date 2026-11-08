@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.EnumMap;
 import java.util.List;
@@ -226,15 +228,15 @@ public class SignatureView extends ScrollPane {
             docInfo.setText(String.format("%d KB · %s", Math.max(1, file.length() / 1024),
                     file.getParentFile() != null ? file.getParentFile().getName() : ""));
         } else {
-            docName.setText("No document");
-            docInfo.setText("Open a saved XML file, or browse for one");
+            docName.setText(I18n.t("SignatureView.no-document"));
+            docInfo.setText(I18n.t("SignatureView.open-a-saved-xml-file"));
         }
     }
 
     @FXML
     public void onChooseDocument() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select XML document");
+        chooser.setTitle(I18n.t("SignatureView.select-xml-document"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
         if (file != null) {
@@ -253,7 +255,7 @@ public class SignatureView extends ScrollPane {
     @FXML
     public void onChooseKeystore() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select Keystore");
+        chooser.setTitle(I18n.t("SignatureView.select-keystore"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Java KeyStore", "*.jks", "*.keystore"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
         if (file != null) {
@@ -314,26 +316,24 @@ public class SignatureView extends ScrollPane {
      */
     public void signFile(File xml, SignatureService.SignatureType type) {
         if (xml == null) {
-            PanelStatus.precondition(status, "No document open.");
+            PanelStatus.precondition(status, I18n.t("SignatureView.no-document-open"));
             return;
         }
         if (keystoreFile == null) {
             FieldMarker.mark(keystoreName);
             PanelStatus.precondition(status,
-                    "Select a keystore first (the highlighted entry in KEYSTORE). "
-                            + "\"Create Certificate\" can generate one for you.");
+                    I18n.t("SignatureView.select-a-keystore-first-the"));
             return;
         }
         FieldMarker.clear(keystoreName);
         if (credentialsMissing()) {
             PanelStatus.precondition(status,
-                    "Fill in the highlighted keystore fields — alias and both passwords "
-                            + "are required for signing.");
+                    I18n.t("SignatureView.fill-in-the-highlighted-keystore"));
             return;
         }
         // Signing reads the saved file: offer to save editor changes first.
         if (!editorHost.ensureSavedBeforeTool(xml.toPath(), "Signing")) {
-            PanelStatus.info(status, "Signing cancelled.");
+            PanelStatus.info(status, I18n.t("SignatureView.signing-cancelled"));
             return;
         }
         File keystore = keystoreFile;
@@ -342,7 +342,7 @@ public class SignatureView extends ScrollPane {
         String aliasPw = aliasPassword.getText();
         File output = type == SignatureService.SignatureType.DETACHED
                 ? siblingFile(xml, ".sig.xml") : siblingFile(xml, ".signed.xml");
-        PanelStatus.info(status, "Signing…");
+        PanelStatus.info(status, I18n.t("SignatureView.signing"));
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             String result;
@@ -373,7 +373,7 @@ public class SignatureView extends ScrollPane {
                     }
                 } else {
                     // the sign event already carries the failure
-                    PanelStatus.failure(status, "Signing failed", finalResult, false);
+                    PanelStatus.failure(status, I18n.t("SignatureView.signing-failed"), finalResult, false);
                 }
             });
         });
@@ -473,7 +473,7 @@ public class SignatureView extends ScrollPane {
         fingerprint.setWrapText(true);
         Button copy = new Button(null, icon("bi-clipboard", 13));
         copy.getStyleClass().add("fxt-tool-button");
-        copy.setTooltip(new Tooltip("Copy fingerprint"));
+        copy.setTooltip(new Tooltip(I18n.t("SignatureView.copy-fingerprint")));
         copy.setOnAction(e -> {
             javafx.scene.input.ClipboardContent content = new javafx.scene.input.ClipboardContent();
             content.putString(details.sha256Fingerprint());
@@ -481,7 +481,7 @@ public class SignatureView extends ScrollPane {
         });
         HBox fingerprintRow = new HBox(8, fingerprint, copy);
         fingerprintRow.setAlignment(Pos.CENTER_LEFT);
-        Label fingerprintLabel = new Label("SHA-256 fingerprint");
+        Label fingerprintLabel = new Label(I18n.t("SignatureView.sha-256-fingerprint"));
         fingerprintLabel.getStyleClass().add("fxt-sig-field-label");
 
         certificateBox.getChildren().setAll(headerRow, validity, rows, fingerprintLabel, fingerprintRow);
@@ -508,10 +508,10 @@ public class SignatureView extends ScrollPane {
     public void validateActive() {
         File xml = xmlFile;
         if (xml == null) {
-            PanelStatus.precondition(status, "No document open.");
+            PanelStatus.precondition(status, I18n.t("SignatureView.no-document-open"));
             return;
         }
-        PanelStatus.info(status, "Validating…");
+        PanelStatus.info(status, I18n.t("SignatureView.validating"));
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             SignatureService.ValidationOutcome outcome;
@@ -534,31 +534,24 @@ public class SignatureView extends ScrollPane {
     /** Maps a validation outcome to the status line and, for failures, an explanatory dialog. */
     private void reportValidationOutcome(SignatureService.ValidationOutcome outcome) {
         switch (outcome.status()) {
-            case VALID -> PanelStatus.success(status, "Signature valid ✓");
+            case VALID -> PanelStatus.success(status, I18n.t("SignatureView.signature-valid"));
             case NO_SIGNATURE -> PanelStatus.precondition(status,
-                    "This document contains no signature. Sign it first via \"Sign XML File\".");
-            case INVALID -> PanelStatus.failure(status, "Signature validation failed",
+                    I18n.t("SignatureView.this-document-contains-no-signature"));
+            case INVALID -> PanelStatus.failure(status, I18n.t("SignatureView.signature-validation-failed"),
                     outcome.message(),
-                    "The document no longer matches its signature — it was probably modified "
-                            + "after signing. Re-sign the current content, or validate the original, "
-                            + "unmodified file. \"Validate (Details)\" shows the signing certificate.",
+                    I18n.t("SignatureView.the-document-no-longer-matches"),
                     outcome.cause(), false); // the user's document, counted by verify_signature
-            case UNSUPPORTED_KEY_INFO -> PanelStatus.failure(status, "Signature validation failed",
+            case UNSUPPORTED_KEY_INFO -> PanelStatus.failure(status, I18n.t("SignatureView.signature-validation-failed"),
                     outcome.message(),
-                    "Validation uses the certificate embedded in the signature itself. Ask the "
-                            + "sender for a signature that embeds its X.509 certificate (RSA key, "
-                            + "SHA-256/512), or inspect the signature via \"Validate (Details)\". "
-                            + "Files signed by this application always embed their certificate.",
+                    I18n.t("SignatureView.validation-uses-the-certificate-embedded"),
                     outcome.cause(), false);
-            case WEAK_ALGORITHM -> PanelStatus.failure(status, "Signature validation failed",
+            case WEAK_ALGORITHM -> PanelStatus.failure(status, I18n.t("SignatureView.signature-validation-failed"),
                     outcome.message(),
-                    "SHA-1 signatures are rejected for security reasons. "
-                            + "Re-sign the document with SHA-256 or SHA-512.",
+                    I18n.t("SignatureView.sha-1-signatures-are-rejected"),
                     outcome.cause(), false);
-            case ERROR -> PanelStatus.failure(status, "Signature validation failed",
+            case ERROR -> PanelStatus.failure(status, I18n.t("SignatureView.signature-validation-failed"),
                     outcome.message(),
-                    "Check that the file is well-formed XML and readable, then try again. "
-                            + "The technical details below show the underlying cause.",
+                    I18n.t("SignatureView.check-that-the-file-is"),
                     outcome.cause(), false); // verify_signature carries the failure
             default -> { }
         }
@@ -572,10 +565,10 @@ public class SignatureView extends ScrollPane {
     public void validateDetailsActive() {
         File xml = xmlFile;
         if (xml == null) {
-            PanelStatus.precondition(status, "No document open.");
+            PanelStatus.precondition(status, I18n.t("SignatureView.no-document-open"));
             return;
         }
-        PanelStatus.info(status, "Validating…");
+        PanelStatus.info(status, I18n.t("SignatureView.validating"));
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             SignatureActionRunner.Report run = SignatureActionRunner.describeSignatureResult(xml);
@@ -583,9 +576,9 @@ public class SignatureView extends ScrollPane {
             UsageEvents.signatureVerified("details", run.failure() != null ? "error" : "report", t0, run.failure());
             Platform.runLater(() -> {
                 if (run.failure() != null) {
-                    PanelStatus.failure(status, "Signature validation failed", report, false);
+                    PanelStatus.failure(status, I18n.t("SignatureView.signature-validation-failed"), report, false);
                 } else {
-                    PanelStatus.success(status, "Validation report opened");
+                    PanelStatus.success(status, I18n.t("SignatureView.validation-report-opened"));
                 }
                 editorHost.openGeneratedDocument(report, EditorFileType.OTHER, "Signature-Report.txt");
             });
@@ -603,8 +596,7 @@ public class SignatureView extends ScrollPane {
     public void createCertificate() {
         if (credentialsMissing()) {
             PanelStatus.precondition(status,
-                    "Fill in the highlighted keystore fields — alias and both passwords "
-                            + "are required to create a certificate.");
+                    I18n.t("SignatureView.fill-in-the-highlighted-keystore-2"));
             return;
         }
         SignatureActionRunner.CertificateInfo info = new SignatureActionRunner.CertificateInfo(
@@ -613,7 +605,7 @@ public class SignatureView extends ScrollPane {
         String aliasName = alias.getText();
         String ksPw = keystorePassword.getText();
         String aliasPw = aliasPassword.getText();
-        PanelStatus.info(status, "Creating certificate…");
+        PanelStatus.info(status, I18n.t("SignatureView.creating-certificate"));
         FxtGui.executorService.submit(() -> {
             String result;
             File created = null;
@@ -634,7 +626,7 @@ public class SignatureView extends ScrollPane {
                     setKeystore(ks); // ready to sign with the new keystore
                 } else {
                     // create_certificate already carries the failure
-                    PanelStatus.failure(status, "Certificate creation failed", finalResult, false);
+                    PanelStatus.failure(status, I18n.t("SignatureView.certificate-creation-failed"), finalResult, false);
                 }
             });
         });
@@ -646,7 +638,7 @@ public class SignatureView extends ScrollPane {
     @FXML
     public void chooseTrustStore() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Select trust store");
+        chooser.setTitle(I18n.t("SignatureView.select-trust-store"));
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Key/Trust store", "*.jks", "*.p12", "*.pfx", "*.keystore"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, window());
@@ -669,14 +661,14 @@ public class SignatureView extends ScrollPane {
     public void validateTrustActive() {
         File xml = xmlFile;
         if (xml == null) {
-            PanelStatus.precondition(status, "No document open.");
+            PanelStatus.precondition(status, I18n.t("SignatureView.no-document-open"));
             return;
         }
         File store = trustStoreFile;
         boolean revocation = checkRevocation.isSelected();
         char[] storePassword = trustStorePassword.getText().isBlank()
                 ? null : trustStorePassword.getText().toCharArray();
-        PanelStatus.info(status, "Validating trust…");
+        PanelStatus.info(status, I18n.t("SignatureView.validating-trust"));
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             String report;
@@ -700,10 +692,10 @@ public class SignatureView extends ScrollPane {
             Platform.runLater(() -> {
                 if (failure != null) {
                     // verify_signature carries the failure; the dialog explains it
-                    PanelStatus.failure(status, "Trust validation failed", "Trust validation could not run.",
-                            "Check the trust store file and its password, then try again.", failure, false);
+                    PanelStatus.failure(status, I18n.t("SignatureView.trust-validation-failed"), I18n.t("SignatureView.trust-validation-could-not-run"),
+                            I18n.t("SignatureView.check-the-trust-store-file"), failure, false);
                 } else {
-                    PanelStatus.success(status, "Trust report opened");
+                    PanelStatus.success(status, I18n.t("SignatureView.trust-report-opened"));
                 }
                 editorHost.openGeneratedDocument(finalReport, EditorFileType.OTHER, "Signature-Trust-Report.txt");
             });

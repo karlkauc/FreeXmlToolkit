@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -150,13 +152,13 @@ public class ComplexTypeEditorView extends BorderPane {
         ToolBar toolbar = new ToolBar();
 
         // Name label and field
-        Label nameLabel = new Label("Name:");
+        Label nameLabel = new Label(I18n.t("ComplexTypeEditorView.name"));
         nameLabel.setStyle("-fx-font-weight: bold;");
 
         TextField nameField = new TextField(complexType.getName());
         nameField.setPrefWidth(250);
-        nameField.setPromptText("Type name");
-        nameField.setTooltip(new Tooltip("The name of this ComplexType"));
+        nameField.setPromptText(I18n.t("ComplexTypeEditorView.type-name"));
+        nameField.setTooltip(new Tooltip(I18n.t("ComplexTypeEditorView.the-name-of-this-complextype")));
 
         // Listen to name changes
         nameField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
@@ -170,9 +172,9 @@ public class ComplexTypeEditorView extends BorderPane {
         nameField.setOnAction(e -> handleNameChange(nameField.getText()));
 
         // Abstract checkbox
-        CheckBox abstractCheck = new CheckBox("Abstract");
+        CheckBox abstractCheck = new CheckBox(I18n.t("ComplexTypeEditorView.abstract"));
         abstractCheck.setSelected(complexType.isAbstract());
-        abstractCheck.setTooltip(new Tooltip("Abstract types cannot be used directly"));
+        abstractCheck.setTooltip(new Tooltip(I18n.t("ComplexTypeEditorView.abstract-types-cannot-be-used")));
         abstractCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal == complexType.isAbstract()) {
                 return; // follows the model (undo / redo), nothing to change
@@ -186,9 +188,9 @@ public class ComplexTypeEditorView extends BorderPane {
         });
 
         // Mixed checkbox
-        CheckBox mixedCheck = new CheckBox("Mixed");
+        CheckBox mixedCheck = new CheckBox(I18n.t("ComplexTypeEditorView.mixed"));
         mixedCheck.setSelected(complexType.isMixed());
-        mixedCheck.setTooltip(new Tooltip("Mixed content allows text between elements"));
+        mixedCheck.setTooltip(new Tooltip(I18n.t("ComplexTypeEditorView.mixed-content-allows-text-between")));
         mixedCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal == complexType.isMixed()) {
                 return; // follows the model (undo / redo), nothing to change
@@ -217,9 +219,9 @@ public class ComplexTypeEditorView extends BorderPane {
         complexType.addPropertyChangeListener(typeListener);
 
         // Close button
-        Button closeBtn = new Button("Close");
+        Button closeBtn = new Button(I18n.t("ComplexTypeEditorView.close"));
         closeBtn.setGraphic(new IconifyIcon("bi-x-circle"));
-        closeBtn.setTooltip(new Tooltip("Close editor (Esc)"));
+        closeBtn.setTooltip(new Tooltip(I18n.t("ComplexTypeEditorView.close-editor-esc")));
         closeBtn.setOnAction(e -> {
             if (onCloseCallback != null) {
                 onCloseCallback.run();

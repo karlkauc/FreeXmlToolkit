@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.schema;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -615,7 +617,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
                     }
                 }
             } catch (NumberFormatException e) {
-                return ValidationResult.warning("Value must be a valid number");
+                return ValidationResult.warning(I18n.t("XsdSchemaAdapter.value-must-be-a-valid"));
             }
         }
 
@@ -623,7 +625,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
         if (xsdType == XsdType.BOOLEAN && !value.isEmpty()
                 && !value.equals("true") && !value.equals("false")
                 && !value.equals("1") && !value.equals("0")) {
-            return ValidationResult.warning("Value must be 'true', 'false', '1', or '0'");
+            return ValidationResult.warning(I18n.t("XsdSchemaAdapter.value-must-be-true-false"));
         }
 
         return ValidationResult.valid();

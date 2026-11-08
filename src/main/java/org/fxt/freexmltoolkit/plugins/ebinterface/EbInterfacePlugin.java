@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.plugins.ebinterface;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -105,7 +107,7 @@ public final class EbInterfacePlugin implements FxtPlugin {
             String text = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             ui.editorHost().openGeneratedDocument(text, EditorFileType.XML, "ebinterface-6p1-invoice.xml");
         } catch (IOException | NullPointerException e) {
-            DialogHelper.showError("ebInterface", "The sample could not be opened.", String.valueOf(e.getMessage()));
+            DialogHelper.showError("ebInterface", I18n.t("EbInterfacePlugin.the-sample-could-not-be"), String.valueOf(e.getMessage()));
         }
     }
 }

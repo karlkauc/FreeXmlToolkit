@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 
 import javafx.fxml.FXML;
@@ -57,9 +59,9 @@ public final class GridEntryHelpersPanel extends VBox {
             list.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
             list.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> updateButtons());
         }
-        siblingsList.setPlaceholder(placeholder("Select a node in the grid"));
-        childrenList.setPlaceholder(placeholder("Select an element"));
-        valuesList.setPlaceholder(placeholder("No enumeration"));
+        siblingsList.setPlaceholder(placeholder(I18n.t("GridEntryHelpersPanel.select-a-node-in-the")));
+        childrenList.setPlaceholder(placeholder(I18n.t("GridEntryHelpersPanel.select-an-element")));
+        valuesList.setPlaceholder(placeholder(I18n.t("GridEntryHelpersPanel.no-enumeration")));
         siblingsList.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
                 onInsertAfter();

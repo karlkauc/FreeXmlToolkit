@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -45,7 +47,7 @@ public final class ProjectActions {
         try {
             ProjectService.getInstance().create(path, name);
         } catch (IOException e) {
-            DialogHelper.showError("New Project", "The project could not be created.", e.getMessage());
+            DialogHelper.showError(I18n.t("ProjectActions.new-project"), I18n.t("ProjectActions.the-project-could-not-be"), e.getMessage());
         }
     }
 
@@ -63,7 +65,7 @@ public final class ProjectActions {
             ProjectService.getInstance().open(file);
             return true;
         } catch (IOException e) {
-            DialogHelper.showError("Open Project", "The project could not be opened.", e.getMessage());
+            DialogHelper.showError(I18n.t("ProjectActions.open-project"), I18n.t("ProjectActions.the-project-could-not-be-2"), e.getMessage());
             return false;
         }
     }
@@ -115,7 +117,7 @@ public final class ProjectActions {
             return;
         }
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Add Catalog to Project");
+        chooser.setTitle(I18n.t("ProjectActions.add-catalog-to-project"));
         chooser.setInitialDirectory(open.get().root().toFile());
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML catalog", "*.xml", "*.cat"));
         File file = FileChooserHelper.showOpenDialog(chooser, owner);
@@ -126,7 +128,7 @@ public final class ProjectActions {
         try {
             ProjectService.getInstance().save();
         } catch (IOException e) {
-            DialogHelper.showError("Add Catalog to Project", "The project could not be saved.", e.getMessage());
+            DialogHelper.showError(I18n.t("ProjectActions.add-catalog-to-project"), I18n.t("ProjectActions.the-project-could-not-be-3"), e.getMessage());
         }
     }
 }

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -559,7 +561,7 @@ public class SchematronTemplateLibrary extends VBox {
      */
     private static class TemplateCustomizationDialog extends Dialog<String> {
         TemplateCustomizationDialog(TemplateItem template) {
-            setTitle("Customize Template");
+            setTitle(I18n.t("SchematronTemplateLibrary.customize-template"));
             setHeaderText("Customize: " + template.getName());
 
             ButtonType insertButtonType = new ButtonType("Insert", ButtonBar.ButtonData.OK_DONE);
@@ -568,7 +570,7 @@ public class SchematronTemplateLibrary extends VBox {
             VBox content = new VBox(10);
             content.setPadding(new Insets(20));
 
-            Label instructionLabel = new Label("Replace placeholders in the template:");
+            Label instructionLabel = new Label(I18n.t("SchematronTemplateLibrary.replace-placeholders-in-the-template"));
             instructionLabel.setStyle("-fx-font-weight: bold;");
 
             TextArea templateArea = new TextArea();

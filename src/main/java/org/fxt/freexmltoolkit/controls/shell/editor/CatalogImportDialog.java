@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -17,7 +19,7 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 public class CatalogImportDialog extends Dialog<List<SchemaLibraryEntry>> {
 
     public CatalogImportDialog(List<SchemaLibraryEntry> preview, Set<String> existingKeys) {
-        setTitle("Import Catalog Entries");
+        setTitle(I18n.t("CatalogImportDialog.import-catalog-entries"));
         setHeaderText(preview.size() + " namespace mapping(s) found. Entries already in the library are unchecked.");
         getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -37,7 +39,7 @@ public class CatalogImportDialog extends Dialog<List<SchemaLibraryEntry>> {
         ScrollPane scroll = new ScrollPane(list);
         scroll.setFitToWidth(true);
         scroll.setPrefSize(600, 320);
-        CheckBox all = new CheckBox("Select all");
+        CheckBox all = new CheckBox(I18n.t("CatalogImportDialog.select-all"));
         all.setSelected(boxes.stream().filter(b -> !b.isDisabled()).allMatch(CheckBox::isSelected));
         // Only toggle selectable boxes: entries already in the library stay unchecked and disabled.
         all.setOnAction(ev -> boxes.stream().filter(b -> !b.isDisabled()).forEach(b -> b.setSelected(all.isSelected())));

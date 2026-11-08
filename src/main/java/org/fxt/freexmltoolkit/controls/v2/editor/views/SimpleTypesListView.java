@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Comparator;
 import java.util.function.Consumer;
 
@@ -143,15 +145,15 @@ public class SimpleTypesListView extends BorderPane {
         // Top: Title and Add button
         HBox topBar = new HBox(10);
         topBar.setPadding(new Insets(10));
-        Label title = new Label("SimpleTypes Overview");
+        Label title = new Label(I18n.t("SimpleTypesListView.simpletypes-overview"));
         title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button addBtn = new Button("Add SimpleType");
+        Button addBtn = new Button(I18n.t("SimpleTypesListView.add-simpletype"));
         addBtn.setGraphic(new IconifyIcon("bi-plus-circle"));
-        addBtn.setTooltip(new Tooltip("Add new SimpleType (Ctrl+N)"));
+        addBtn.setTooltip(new Tooltip(I18n.t("SimpleTypesListView.add-new-simpletype-ctrl-n")));
         addBtn.setStyle("-fx-font-weight: bold;");
         addBtn.setOnAction(e -> handleAddType());
 
@@ -264,16 +266,16 @@ public class SimpleTypesListView extends BorderPane {
 
         Label filterLabel = new Label("🔍");
         filterField = new TextField();
-        filterField.setPromptText("Filter by name...");
+        filterField.setPromptText(I18n.t("SimpleTypesListView.filter-by-name"));
         filterField.setPrefWidth(250);
-        filterField.setTooltip(new Tooltip("Filter types by name (Ctrl+F)"));
+        filterField.setTooltip(new Tooltip(I18n.t("SimpleTypesListView.filter-types-by-name-ctrl")));
 
         // Wire up filter
         filterField.textProperty().addListener((obs, oldVal, newVal) -> {
             applyFilter(newVal);
         });
 
-        Label sortLabel = new Label("Sort by:");
+        Label sortLabel = new Label(I18n.t("SimpleTypesListView.sort-by"));
         sortCombo = new ComboBox<>();
         sortCombo.getItems().addAll("Name", "Base Type", "Usage Count");
         sortCombo.setValue("Name");
@@ -298,23 +300,23 @@ public class SimpleTypesListView extends BorderPane {
         TableView<SimpleTypeRow> table = new TableView<>();
 
         // Columns
-        TableColumn<SimpleTypeRow, String> nameCol = new TableColumn<>("Name");
+        TableColumn<SimpleTypeRow, String> nameCol = new TableColumn<>(I18n.t("SimpleTypesListView.name"));
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         nameCol.setPrefWidth(200);
 
-        TableColumn<SimpleTypeRow, String> baseTypeCol = new TableColumn<>("Base Type");
+        TableColumn<SimpleTypeRow, String> baseTypeCol = new TableColumn<>(I18n.t("SimpleTypesListView.base-type"));
         baseTypeCol.setCellValueFactory(new PropertyValueFactory<>("baseType"));
         baseTypeCol.setPrefWidth(150);
 
-        TableColumn<SimpleTypeRow, String> facetsCol = new TableColumn<>("Facets");
+        TableColumn<SimpleTypeRow, String> facetsCol = new TableColumn<>(I18n.t("SimpleTypesListView.facets"));
         facetsCol.setCellValueFactory(new PropertyValueFactory<>("facets"));
         facetsCol.setPrefWidth(200);
 
-        TableColumn<SimpleTypeRow, Integer> usageCol = new TableColumn<>("Usage");
+        TableColumn<SimpleTypeRow, Integer> usageCol = new TableColumn<>(I18n.t("SimpleTypesListView.usage"));
         usageCol.setCellValueFactory(new PropertyValueFactory<>("usage"));
         usageCol.setPrefWidth(80);
 
-        TableColumn<SimpleTypeRow, Void> actionsCol = new TableColumn<>("Actions");
+        TableColumn<SimpleTypeRow, Void> actionsCol = new TableColumn<>(I18n.t("SimpleTypesListView.actions"));
         actionsCol.setPrefWidth(150);
         actionsCol.setCellFactory(col -> new TableCell<>() {
             private final Button editBtn = new Button();
@@ -322,14 +324,14 @@ public class SimpleTypesListView extends BorderPane {
 
             {
                 editBtn.setGraphic(new IconifyIcon("bi-pencil"));
-                editBtn.setTooltip(new Tooltip("Edit type (Double-click)"));
+                editBtn.setTooltip(new Tooltip(I18n.t("SimpleTypesListView.edit-type-double-click")));
                 editBtn.setOnAction(e -> {
                     SimpleTypeRow row = getTableView().getItems().get(getIndex());
                     handleEditType(row.getSimpleType());
                 });
 
                 delBtn.setGraphic(new IconifyIcon("bi-trash"));
-                delBtn.setTooltip(new Tooltip("Delete type (Delete key)"));
+                delBtn.setTooltip(new Tooltip(I18n.t("SimpleTypesListView.delete-type-delete-key")));
                 delBtn.setStyle("-fx-text-fill: red;");
                 delBtn.setOnAction(e -> {
                     SimpleTypeRow row = getTableView().getItems().get(getIndex());
@@ -381,7 +383,7 @@ public class SimpleTypesListView extends BorderPane {
         VBox panel = new VBox(5);
         panel.setPadding(new Insets(10));
 
-        Label title = new Label("Preview (XSD)");
+        Label title = new Label(I18n.t("SimpleTypesListView.preview-xsd"));
         title.setStyle("-fx-font-weight: bold;");
 
         previewArea = new TextArea();
@@ -403,9 +405,9 @@ public class SimpleTypesListView extends BorderPane {
     private ToolBar createActionToolbar() {
         ToolBar toolbar = new ToolBar();
 
-        Button editBtn = new Button("Edit Selected");
+        Button editBtn = new Button(I18n.t("SimpleTypesListView.edit-selected"));
         editBtn.setGraphic(new IconifyIcon("bi-pencil-square"));
-        editBtn.setTooltip(new Tooltip("Edit selected type (Enter)"));
+        editBtn.setTooltip(new Tooltip(I18n.t("SimpleTypesListView.edit-selected-type-enter")));
         editBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
@@ -413,9 +415,9 @@ public class SimpleTypesListView extends BorderPane {
             }
         });
 
-        Button duplicateBtn = new Button("Duplicate");
+        Button duplicateBtn = new Button(I18n.t("SimpleTypesListView.duplicate"));
         duplicateBtn.setGraphic(new IconifyIcon("bi-files"));
-        duplicateBtn.setTooltip(new Tooltip("Duplicate selected type (Ctrl+D)"));
+        duplicateBtn.setTooltip(new Tooltip(I18n.t("SimpleTypesListView.duplicate-selected-type-ctrl-d")));
         duplicateBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
@@ -423,9 +425,9 @@ public class SimpleTypesListView extends BorderPane {
             }
         });
 
-        Button findUsageBtn = new Button("Find Usage");
+        Button findUsageBtn = new Button(I18n.t("SimpleTypesListView.find-usage"));
         findUsageBtn.setGraphic(new IconifyIcon("bi-search"));
-        findUsageBtn.setTooltip(new Tooltip("Find where this type is used (Ctrl+U)"));
+        findUsageBtn.setTooltip(new Tooltip(I18n.t("SimpleTypesListView.find-where-this-type-is")));
         findUsageBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();
             if (selected != null) {
@@ -433,9 +435,9 @@ public class SimpleTypesListView extends BorderPane {
             }
         });
 
-        Button deleteBtn = new Button("Delete");
+        Button deleteBtn = new Button(I18n.t("SimpleTypesListView.delete"));
         deleteBtn.setGraphic(new IconifyIcon("bi-trash"));
-        deleteBtn.setTooltip(new Tooltip("Delete selected type (Delete key)"));
+        deleteBtn.setTooltip(new Tooltip(I18n.t("SimpleTypesListView.delete-selected-type-delete-key")));
         deleteBtn.setStyle("-fx-text-fill: red;");
         deleteBtn.setOnAction(e -> {
             SimpleTypeRow selected = tableView.getSelectionModel().getSelectedItem();

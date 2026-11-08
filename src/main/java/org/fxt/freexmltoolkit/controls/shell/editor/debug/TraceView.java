@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -23,32 +25,32 @@ public class TraceView extends VBox {
         setPadding(new Insets(16));
         getStyleClass().add("fxt-side-panel-content");
 
-        Label matchTitle = new Label("TEMPLATE MATCHES");
+        Label matchTitle = new Label(I18n.t("TraceView.template-matches"));
         matchTitle.getStyleClass().add("fxt-side-panel-title");
         matches.getColumns().add(DebugTableColumns.col("Pattern", t -> t.pattern() != null ? t.pattern() : "", 200));
         matches.getColumns().add(DebugTableColumns.col("Processing", t -> t.name() != null ? t.name() : "", 140));
         matches.getColumns().add(DebugTableColumns.col("Line", t -> Integer.toString(t.lineNumber()), 60));
         matches.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        matches.setPlaceholder(new Label("No template matches captured."));
+        matches.setPlaceholder(new Label(I18n.t("TraceView.no-template-matches-captured")));
         if (result.getTemplateMatches() != null) {
             matches.getItems().setAll(result.getTemplateMatches());
         }
         VBox.setVgrow(matches, Priority.ALWAYS);
 
-        Label msgTitle = new Label("MESSAGES");
+        Label msgTitle = new Label(I18n.t("TraceView.messages"));
         msgTitle.getStyleClass().add("fxt-side-panel-title");
         messages.getColumns().add(DebugTableColumns.col("Level", TransformationMessage::getLevel, 80));
         messages.getColumns().add(DebugTableColumns.col("Message", TransformationMessage::getMessage, -1));
         messages.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        messages.setPlaceholder(new Label("No xsl:message output."));
+        messages.setPlaceholder(new Label(I18n.t("TraceView.no-xsl-message-output")));
         if (result.getMessages() != null) {
             messages.getItems().setAll(result.getMessages());
         }
         VBox.setVgrow(messages, Priority.ALWAYS);
 
-        Label traceTitle = new Label("CALL TRACE");
+        Label traceTitle = new Label(I18n.t("TraceView.call-trace"));
         traceTitle.getStyleClass().add("fxt-side-panel-title");
-        callTrace.setPlaceholder(new Label("No instructions traced."));
+        callTrace.setPlaceholder(new Label(I18n.t("TraceView.no-instructions-traced")));
         if (result.getCallStack() != null) {
             callTrace.getItems().setAll(result.getCallStack());
         }

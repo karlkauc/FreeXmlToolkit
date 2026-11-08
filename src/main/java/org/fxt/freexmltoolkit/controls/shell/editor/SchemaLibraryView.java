@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -400,15 +402,15 @@ public class SchemaLibraryView extends VBox {
     @FXML
     public void onDeleteCached() {
         var s = cacheTable.getSelectionModel().getSelectedItem();
-        if (s != null && DialogHelper.showConfirmation("Delete Cached Schema", "Delete the cached copy of\n" + urlOf(s) + "?",
-                "It will be downloaded again on next use.")) {
+        if (s != null && DialogHelper.showConfirmation(I18n.t("SchemaLibraryView.delete-cached-schema"), "Delete the cached copy of\n" + urlOf(s) + "?",
+                I18n.t("SchemaLibraryView.it-will-be-downloaded-again"))) {
             deleteSelectedCacheEntryWithoutConfirm();
         }
     }
 
     @FXML
     public void onClearCache() {
-        if (DialogHelper.showConfirmation("Clear Schema Cache", "Delete all cached remote schemas?",
+        if (DialogHelper.showConfirmation(I18n.t("SchemaLibraryView.clear-schema-cache"), I18n.t("SchemaLibraryView.delete-all-cached-remote-schemas"),
                 cache.getCacheDirectory() + "\n\nThis action cannot be undone.")) {
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 int n = cache.clearCache();
@@ -420,8 +422,8 @@ public class SchemaLibraryView extends VBox {
     /** Clears the legacy auto-detected cache (~/.freeXmlToolkit/cache/&lt;MD5&gt;/). */
     @FXML
     public void onClearLegacyCache() {
-        if (DialogHelper.showConfirmation("Clear Auto-detected Schemas", "Delete all schemas cached from xsi:schemaLocation downloads?",
-                "They are downloaded again when a document referencing them is opened.")) {
+        if (DialogHelper.showConfirmation(I18n.t("SchemaLibraryView.clear-auto-detected-schemas"), I18n.t("SchemaLibraryView.delete-all-schemas-cached-from"),
+                I18n.t("SchemaLibraryView.they-are-downloaded-again-when"))) {
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 int n = xmlService.clearAutoDetectedSchemaCache();
                 Platform.runLater(() -> { setStatus("Deleted " + n + " file(s)."); refreshCache(); });
@@ -476,7 +478,7 @@ public class SchemaLibraryView extends VBox {
     @FXML
     public void chooseCatalog() {
         FileChooser fc = new FileChooser();
-        fc.setTitle("Select XML catalog");
+        fc.setTitle(I18n.t("SchemaLibraryView.select-xml-catalog"));
         fc.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML catalogs", "*.xml"),
                 new FileChooser.ExtensionFilter("All files", "*.*"));
         File f = fc.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
@@ -541,13 +543,13 @@ public class SchemaLibraryView extends VBox {
     }
 
     private ContextMenu mappingsContextMenu() {
-        MenuItem open = new MenuItem("Open schema", SemanticIcon.paint(new IconifyIcon("bi-box-arrow-up-right"), ActionColor.NAVIGATE));
+        MenuItem open = new MenuItem(I18n.t("SchemaLibraryView.open-schema"), SemanticIcon.paint(new IconifyIcon("bi-box-arrow-up-right"), ActionColor.NAVIGATE));
         open.setOnAction(e -> { var s = mappings.getSelectionModel().getSelectedItem(); if (s != null) openEntry(s); });
-        MenuItem edit = new MenuItem("Edit…", SemanticIcon.paint(new IconifyIcon("bi-pencil"), ActionColor.MODIFY));
+        MenuItem edit = new MenuItem(I18n.t("SchemaLibraryView.edit"), SemanticIcon.paint(new IconifyIcon("bi-pencil"), ActionColor.MODIFY));
         edit.setOnAction(e -> editSelected());
-        MenuItem remove = new MenuItem("Remove", SemanticIcon.paint(new IconifyIcon("bi-trash"), ActionColor.DELETE));
+        MenuItem remove = new MenuItem(I18n.t("SchemaLibraryView.remove"), SemanticIcon.paint(new IconifyIcon("bi-trash"), ActionColor.DELETE));
         remove.setOnAction(e -> removeSelected());
-        MenuItem copy = new MenuItem("Copy namespace", SemanticIcon.paint(new IconifyIcon("bi-clipboard"), ActionColor.NEUTRAL));
+        MenuItem copy = new MenuItem(I18n.t("SchemaLibraryView.copy-namespace"), SemanticIcon.paint(new IconifyIcon("bi-clipboard"), ActionColor.NEUTRAL));
         copy.setOnAction(e -> {
             var s = mappings.getSelectionModel().getSelectedItem();
             if (s != null) {
@@ -589,8 +591,8 @@ public class SchemaLibraryView extends VBox {
     public void removeSelected() {
         SchemaLibraryEntry s = mappings.getSelectionModel().getSelectedItem();
         if (s == null || s.source() != EntrySource.USER) return;
-        if (DialogHelper.showConfirmation("Remove Mapping", "Remove the mapping for " + display(s) + "?",
-                "The schema file itself is not deleted.")) {
+        if (DialogHelper.showConfirmation(I18n.t("SchemaLibraryView.remove-mapping"), "Remove the mapping for " + display(s) + "?",
+                I18n.t("SchemaLibraryView.the-schema-file-itself-is"))) {
             removeSelectedWithoutConfirm();
         }
     }

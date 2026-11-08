@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.plugins.xbrl;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -118,7 +120,7 @@ public final class XbrlPlugin implements FxtPlugin {
 
     static void chooseCommand(PluginUi ui) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Choose arelleCmdLine");
+        chooser.setTitle(I18n.t("XbrlPlugin.choose-arellecmdline"));
         File file = FileChooserHelper.showOpenDialog(chooser, ui.window());
         if (file != null) {
             ServiceRegistry.get(PropertiesService.class).set(COMMAND_KEY, file.getAbsolutePath());

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -63,12 +65,12 @@ public class LinkAutocompletePopup extends Popup {
         content.setMaxHeight(300);
 
         // Header
-        headerLabel = new Label("Select element reference");
+        headerLabel = new Label(I18n.t("LinkAutocompletePopup.select-element-reference"));
         headerLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #333;");
 
         // Filter field
         filterField = new TextField();
-        filterField.setPromptText("Type to filter (/ for XPath, name for element)");
+        filterField.setPromptText(I18n.t("LinkAutocompletePopup.type-to-filter-for-xpath"));
         filterField.textProperty().addListener((obs, oldVal, newVal) -> updateSuggestions(newVal));
 
         // List view
@@ -89,7 +91,7 @@ public class LinkAutocompletePopup extends Popup {
         listView.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPress);
 
         // Hint label
-        Label hintLabel = new Label("↑↓ Navigate | Enter Select | Esc Cancel");
+        Label hintLabel = new Label(I18n.t("LinkAutocompletePopup.navigate-enter-select-esc-cancel"));
         hintLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 10px;");
 
         content.getChildren().addAll(headerLabel, filterField, listView, hintLabel);
@@ -149,11 +151,11 @@ public class LinkAutocompletePopup extends Popup {
 
         // Update header based on mode
         if (filter != null && filter.startsWith("/")) {
-            headerLabel.setText("XPath references");
+            headerLabel.setText(I18n.t("LinkAutocompletePopup.xpath-references"));
         } else if (filter != null && !filter.isEmpty()) {
-            headerLabel.setText("Element references");
+            headerLabel.setText(I18n.t("LinkAutocompletePopup.element-references"));
         } else {
-            headerLabel.setText("Select element reference");
+            headerLabel.setText(I18n.t("LinkAutocompletePopup.select-element-reference"));
         }
     }
 

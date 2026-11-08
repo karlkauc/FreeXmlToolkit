@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls.dialogs;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -91,7 +93,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
     }
 
     private void initializeDialog() {
-        setTitle("Updating FreeXmlToolkit");
+        setTitle(I18n.t("UpdateProgressDialog.updating-freexmltoolkit"));
         initModality(Modality.APPLICATION_MODAL);
         initStyle(StageStyle.UTILITY);
         setResizable(false);
@@ -126,7 +128,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
         // Set result converter
         setResultConverter(buttonType -> {
             if (buttonType == cancelButtonType) {
-                return UpdateResult.failure("Update cancelled by user");
+                return UpdateResult.failure(I18n.t("UpdateProgressDialog.update-cancelled-by-user"));
             }
             return null;
         });
@@ -210,35 +212,35 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
     private void updateStageUI(UpdateStage stage) {
         switch (stage) {
             case PREPARING -> {
-                stageLabel.setText("Preparing update...");
+                stageLabel.setText(I18n.t("UpdateProgressDialog.preparing-update"));
                 stageIcon.setIconLiteral("bi-gear");
                 SemanticIcon.paint(stageIcon, DesignTokens.ColorToken.NEUTRAL);
             }
             case DOWNLOADING -> {
-                stageLabel.setText("Downloading update...");
+                stageLabel.setText(I18n.t("UpdateProgressDialog.downloading-update"));
                 stageIcon.setIconLiteral("bi-cloud-download");
                 SemanticIcon.paint(stageIcon, DesignTokens.ColorToken.PRIMARY);
             }
             case EXTRACTING -> {
-                stageLabel.setText("Extracting files...");
+                stageLabel.setText(I18n.t("UpdateProgressDialog.extracting-files"));
                 stageIcon.setIconLiteral("bi-file-earmark-zip");
                 SemanticIcon.paint(stageIcon, DesignTokens.ColorToken.INFO);
             }
             case LAUNCHING_UPDATER -> {
-                stageLabel.setText("Installing update...");
+                stageLabel.setText(I18n.t("UpdateProgressDialog.installing-update"));
                 stageIcon.setIconLiteral("bi-arrow-repeat");
                 SemanticIcon.paint(stageIcon, DesignTokens.ColorToken.SUCCESS);
                 cancelButton.setDisable(true);
             }
             case COMPLETED -> {
-                stageLabel.setText("Update ready!");
+                stageLabel.setText(I18n.t("UpdateProgressDialog.update-ready"));
                 stageIcon.setIconLiteral("bi-check-circle");
                 SemanticIcon.paint(stageIcon, DesignTokens.ColorToken.SUCCESS);
                 progressBar.setProgress(1.0);
                 cancelButton.setDisable(true);
             }
             case FAILED -> {
-                stageLabel.setText("Update failed");
+                stageLabel.setText(I18n.t("UpdateProgressDialog.update-failed"));
                 stageIcon.setIconLiteral("bi-x-circle");
                 SemanticIcon.paint(stageIcon, DesignTokens.ColorToken.DANGER);
                 progressBar.setProgress(0);
@@ -252,11 +254,11 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
      */
     private void handleUpdateSuccess(UpdateResult result) {
         updateStageUI(UpdateStage.COMPLETED);
-        statusLabel.setText("Update ready. The application will restart shortly...");
-        detailsLabel.setText("Please wait while the updater finishes installation.");
+        statusLabel.setText(I18n.t("UpdateProgressDialog.update-ready-the-application-will"));
+        detailsLabel.setText(I18n.t("UpdateProgressDialog.please-wait-while-the-updater"));
 
         // Replace Cancel button with Close
-        cancelButton.setText("Close & Restart");
+        cancelButton.setText(I18n.t("UpdateProgressDialog.close-restart"));
         cancelButton.setDisable(false);
         cancelButton.setOnAction(e -> {
             setResult(result);
@@ -288,10 +290,10 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
     private void handleUpdateFailure(UpdateResult result) {
         updateStageUI(UpdateStage.FAILED);
         statusLabel.setText(result.errorMessage() != null ? result.errorMessage() : "Unknown error");
-        detailsLabel.setText("You can try again or download manually from GitHub.");
+        detailsLabel.setText(I18n.t("UpdateProgressDialog.you-can-try-again-or"));
 
         // Change button to Close
-        cancelButton.setText("Close");
+        cancelButton.setText(I18n.t("UpdateProgressDialog.close"));
         cancelButton.setDisable(false);
         cancelButton.setOnAction(e -> {
             setResult(result);
@@ -311,7 +313,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
         logger.info("User cancelled update");
 
         autoUpdateService.cancelUpdate();
-        statusLabel.setText("Cancelling...");
+        statusLabel.setText(I18n.t("UpdateProgressDialog.cancelling"));
         cancelButton.setDisable(true);
     }
 

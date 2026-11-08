@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.search;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -156,12 +158,12 @@ public class XPathSearchPane extends VBox {
     public void onDetectNamespaces() {
         String text = editorHost.getActiveText().orElse(null);
         if (text == null || text.isBlank()) {
-            PanelStatus.precondition(status, "Open an XML document to detect its namespaces");
+            PanelStatus.precondition(status, I18n.t("XPathSearchPane.open-an-xml-document-to"));
             return;
         }
         Map<String, String> namespaces = XPathMatchLocator.extractRootNamespaces(text);
         if (namespaces.isEmpty()) {
-            PanelStatus.info(status, "The document declares no namespaces");
+            PanelStatus.info(status, I18n.t("XPathSearchPane.the-document-declares-no-namespaces"));
             return;
         }
         StringBuilder sb = new StringBuilder();
@@ -174,7 +176,7 @@ public class XPathSearchPane extends VBox {
     @FXML
     public void onChooseFolder() {
         DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Choose folder");
+        chooser.setTitle(I18n.t("XPathSearchPane.choose-folder"));
         Path current = effectiveFolder();
         if (current != null) {
             chooser.setInitialDirectory(current.toFile());
@@ -215,7 +217,7 @@ public class XPathSearchPane extends VBox {
     private void runSearch() {
         String xpath = xpathArea.getText();
         if (xpath == null || xpath.isBlank()) {
-            PanelStatus.precondition(status, "Enter an XPath expression");
+            PanelStatus.precondition(status, I18n.t("XPathSearchPane.enter-an-xpath-expression"));
             return;
         }
         XPathQuery query = new XPathQuery(xpath.strip(), parseNamespaces());
@@ -234,11 +236,11 @@ public class XPathSearchPane extends VBox {
             var doc = editorHost.getActiveDocument().orElse(null);
             String text = editorHost.getActiveText().orElse(null);
             if (text == null || text.isBlank()) {
-                PanelStatus.precondition(status, "Open an XML document first");
+                PanelStatus.precondition(status, I18n.t("XPathSearchPane.open-an-xml-document-first"));
                 return;
             }
             Path path = doc != null ? doc.getPath() : null;
-            PanelStatus.info(status, "Evaluating…");
+            PanelStatus.info(status, I18n.t("XPathSearchPane.evaluating"));
             progress.beginIndeterminate(() -> cancelFlag.set(true));
             FxtGui.executorService.submit(() -> {
                 try {
@@ -264,11 +266,11 @@ public class XPathSearchPane extends VBox {
         } else {
             Path root = effectiveFolder();
             if (root == null) {
-                PanelStatus.precondition(status, "Open a workspace folder or choose one");
+                PanelStatus.precondition(status, I18n.t("XPathSearchPane.open-a-workspace-folder-or"));
                 return;
             }
             Map<Path, String> buffers = snapshotDirtyBuffers();
-            PanelStatus.info(status, "Searching…");
+            PanelStatus.info(status, I18n.t("XPathSearchPane.searching"));
             progress.beginIndeterminate(() -> cancelFlag.set(true));
             FxtGui.executorService.submit(() -> {
                 long t0 = System.nanoTime();
@@ -330,7 +332,7 @@ public class XPathSearchPane extends VBox {
             summary += " — cancelled";
         }
         if (total == 0 && errors == 0) {
-            PanelStatus.info(status, "No matches");
+            PanelStatus.info(status, I18n.t("XPathSearchPane.no-matches"));
         } else {
             PanelStatus.success(status, summary);
         }
@@ -389,7 +391,7 @@ public class XPathSearchPane extends VBox {
     public void onApply() {
         List<SearchResultsTree.MatchRow> checked = resultsTree.getCheckedMatches();
         if (checked.isEmpty() || lastQuery == null) {
-            PanelStatus.precondition(status, "Find matches first and keep at least one checked");
+            PanelStatus.precondition(status, I18n.t("XPathSearchPane.find-matches-first-and-keep"));
             return;
         }
         ReplaceMode mode = selectedMode();
@@ -400,7 +402,7 @@ public class XPathSearchPane extends VBox {
             return;
         }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("XPath Replace");
+        confirm.setTitle(I18n.t("XPathSearchPane.xpath-replace"));
         confirm.setHeaderText(modeChoice.getValue() + ": " + checked.size() + " match(es)");
         confirm.setContentText(docSnapshot != null
                 ? "The active document is edited in place — one Ctrl+Z undoes everything."
@@ -419,7 +421,7 @@ public class XPathSearchPane extends VBox {
                                        ReplaceMode mode, String argument) {
         String current = editorHost.getActiveText().orElse(null);
         if (current == null || !current.equals(docSnapshot)) {
-            PanelStatus.precondition(status, "The document changed — run the search again");
+            PanelStatus.precondition(status, I18n.t("XPathSearchPane.the-document-changed-run-the"));
             return;
         }
         try {
@@ -427,7 +429,7 @@ public class XPathSearchPane extends VBox {
                     .map(row -> (NodeMatch) row.payload()).toList();
             var result = XPathReplacePlanner.plan(docSnapshot, lastQuery, mode, argument, matches);
             if (result.plan().isEmpty()) {
-                PanelStatus.info(status, "Nothing to replace");
+                PanelStatus.info(status, I18n.t("XPathSearchPane.nothing-to-replace"));
                 return;
             }
             String merged = result.plan().mergedRegion(docSnapshot);
@@ -447,7 +449,7 @@ public class XPathSearchPane extends VBox {
             // the planner rejected the user's XPath / document: invalid_input, not an app error
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("xpath", "document", 0,
                     org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("XPathEditException"));
-            PanelStatus.failure(status, "XPath Replace", e.getMessage(), false);
+            PanelStatus.failure(status, I18n.t("XPathSearchPane.xpath-replace"), e.getMessage(), false);
         }
     }
 
@@ -529,7 +531,7 @@ public class XPathSearchPane extends VBox {
                             + outcomes.size() + " file(s)");
                 } else {
                     org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("xpath", "files", applied, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("files_skipped"));
-                    PanelStatus.failure(status, "XPath Replace",
+                    PanelStatus.failure(status, I18n.t("XPathSearchPane.xpath-replace"),
                             "Replaced " + applied + " match(es); " + problems.size()
                                     + " file(s) skipped:\n" + String.join("\n", problems), false);
                 }

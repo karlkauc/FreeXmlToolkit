@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.Optional;
 
@@ -46,7 +48,7 @@ public final class DebugConfigurationDialog extends Dialog<DebugConfigurationDia
     @FXML private CheckBox pauseBox;
 
     public DebugConfigurationDialog(String stylesheetName, DebugLaunchConfig config) {
-        setTitle("Debug Configuration");
+        setTitle(I18n.t("DebugConfigurationDialog.debug-configuration"));
         setHeaderText("Debug " + stylesheetName);
         IconifyIcon icon = new IconifyIcon("bi-bug");
         icon.setIconSize(32);
@@ -91,7 +93,7 @@ public final class DebugConfigurationDialog extends Dialog<DebugConfigurationDia
     @FXML
     public void onBrowse() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Input XML");
+        chooser.setTitle(I18n.t("DebugConfigurationDialog.input-xml"));
         chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML files", "*.xml"),
                 new FileChooser.ExtensionFilter("All files", "*.*"));
         String current = fileField.getText();

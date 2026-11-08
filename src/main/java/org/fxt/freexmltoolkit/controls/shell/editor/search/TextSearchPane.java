@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.search;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -135,7 +137,7 @@ public class TextSearchPane extends VBox {
     @FXML
     public void onChooseFolder() {
         DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Choose folder to search");
+        chooser.setTitle(I18n.t("TextSearchPane.choose-folder-to-search"));
         Path current = effectiveFolder();
         if (current != null) {
             chooser.setInitialDirectory(current.toFile());
@@ -186,13 +188,13 @@ public class TextSearchPane extends VBox {
             resultsTree.clearResults();
             lastResults = null;
             editorHost.clearActiveSearchHighlights();
-            PanelStatus.info(status, "Type to search");
+            PanelStatus.info(status, I18n.t("TextSearchPane.type-to-search"));
             progress.finish();
             return;
         }
         Path root = effectiveFolder();
         if (root == null) {
-            PanelStatus.precondition(status, "Open a workspace folder or choose one to search");
+            PanelStatus.precondition(status, I18n.t("TextSearchPane.open-a-workspace-folder-or"));
             return;
         }
         TextSearchQuery query = new TextSearchQuery(pattern, caseToggle.isSelected(),
@@ -207,7 +209,7 @@ public class TextSearchPane extends VBox {
 
         // Dirty open documents are searched via their live buffer (snapshotted on FX thread).
         Map<Path, String> buffers = snapshotBuffers(true);
-        PanelStatus.info(status, "Searching…");
+        PanelStatus.info(status, I18n.t("TextSearchPane.searching"));
         progress.beginIndeterminate(() -> cancelFlag.set(true));
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -260,7 +262,7 @@ public class TextSearchPane extends VBox {
             summary += " — cancelled";
         }
         if (totalMatches == 0 && fileErrors == 0) {
-            PanelStatus.info(status, "No matches");
+            PanelStatus.info(status, I18n.t("TextSearchPane.no-matches"));
         } else {
             PanelStatus.success(status, summary);
         }
@@ -305,12 +307,12 @@ public class TextSearchPane extends VBox {
     @FXML
     public void onReplaceChecked() {
         if (lastResults == null || lastQuery == null) {
-            PanelStatus.precondition(status, "Run a search first");
+            PanelStatus.precondition(status, I18n.t("TextSearchPane.run-a-search-first"));
             return;
         }
         List<SearchResultsTree.MatchRow> checked = resultsTree.getCheckedMatches();
         if (checked.isEmpty()) {
-            PanelStatus.precondition(status, "No matches checked");
+            PanelStatus.precondition(status, I18n.t("TextSearchPane.no-matches-checked"));
             return;
         }
         String template = replaceField.getText() == null ? "" : replaceField.getText();
@@ -322,7 +324,7 @@ public class TextSearchPane extends VBox {
                 .filter(p -> editorHost.getOpenDocumentText(p).isPresent()).count();
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Replace in Files");
+        confirm.setTitle(I18n.t("TextSearchPane.replace-in-files"));
         confirm.setHeaderText("Replace " + checked.size() + " match(es) in "
                 + checkedStarts.size() + " file(s)?");
         confirm.setContentText(editorFiles > 0
@@ -399,7 +401,7 @@ public class TextSearchPane extends VBox {
         } else {
             // files that changed meanwhile or cannot be written: the environment, counted by the event
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("text", "files", applied, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("files_skipped"));
-            PanelStatus.failure(status, "Replace in Files",
+            PanelStatus.failure(status, I18n.t("TextSearchPane.replace-in-files"),
                     "Replaced " + applied + " match(es) in " + okFiles + " file(s); "
                             + problems.size() + " file(s) skipped:\n"
                             + String.join("\n", problems), false);

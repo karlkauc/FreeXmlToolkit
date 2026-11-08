@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
@@ -2348,7 +2350,7 @@ final class EditorTab extends Tab {
     private static javafx.scene.layout.StackPane buildLoadingOverlay() {
         javafx.scene.control.ProgressIndicator spinner = new javafx.scene.control.ProgressIndicator();
         spinner.setMaxSize(48, 48);
-        javafx.scene.control.Label label = new javafx.scene.control.Label("Loading …");
+        javafx.scene.control.Label label = new javafx.scene.control.Label(I18n.t("EditorTab.loading"));
         label.getStyleClass().add("fxt-editor-loading-label");
         javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(10, spinner, label);
         box.setAlignment(javafx.geometry.Pos.CENTER);

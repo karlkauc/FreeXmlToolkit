@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -135,7 +137,7 @@ final class EditorDebugSupport {
         } catch (Exception e) {
             // debug_run (stage start) carries the failure; the dialog explains it
             UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("XSLT Debug", "Could not start the debugger.",
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorDebugSupport.xslt-debug"), I18n.t("EditorDebugSupport.could-not-start-the-debugger"),
                     "Could not read stylesheet: " + e.getMessage(), e, false);
             return;
         }
@@ -819,7 +821,7 @@ final class EditorDebugSupport {
         if (menu == null) {
             return;
         }
-        javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem("Break When Processed");
+        javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem(I18n.t("EditorDebugSupport.break-when-processed"));
         item.setId("editor-ctx-break-when-processed");
         item.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(
                 new org.fxt.freexmltoolkit.controls.icons.IconifyIcon("bi-record-circle"),

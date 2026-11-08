@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Locale;
 
 import javafx.geometry.Pos;
@@ -31,7 +33,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.ResultHighlighter;
  */
 public class OutputSoFarView extends VBox {
 
-    private final Label info = new Label("The output appears here while the run is paused.");
+    private final Label info = new Label(I18n.t("OutputSoFarView.the-output-appears-here-while"));
     private final CodeArea area = new PlainTextCodeArea();
     private static final String PRINCIPAL = "Principal result";
     private final ChoiceBox<String> resultChoice = new ChoiceBox<>();

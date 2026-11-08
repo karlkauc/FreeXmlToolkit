@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -214,9 +216,9 @@ final class EditorFileSync {
                 tab.document.setDiskStamp(stamp);
                 tab.loading = false;
                 host.publishSchemaStatus(tab, SchemaStatus.NONE);
-                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Open failed",
+                org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorFileSync.open-failed"),
                         "Could not read " + path.getFileName() + ".",
-                        "Check that the file exists and that you may read it, then open it again.", e, false);
+                        I18n.t("EditorFileSync.check-that-the-file-exists"), e, false);
             });
             return;
         }
@@ -389,10 +391,9 @@ final class EditorFileSync {
             return;
         }
         // file_save already carries the failure; the dialog must not report it a second time.
-        org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
+        org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorFileSync.save-failed"),
                 "Could not save " + target.getFileName() + ".",
-                "Check that the file is not read-only or locked by another program and that the drive "
-                        + "has free space, then try again or use Save As.", cause, false);
+                I18n.t("EditorFileSync.check-that-the-file-is"), cause, false);
     }
 
     /**
@@ -401,11 +402,10 @@ final class EditorFileSync {
      * Replaceable by tests.
      */
     static java.util.function.Predicate<String> utf8SaveConfirmer = charset ->
-            org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Save failed",
+            org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("EditorFileSync.save-failed"),
                     "The text contains characters that " + charset + " cannot store.",
-                    "Save the file as UTF-8 instead? Its other characters stay as they are, only their bytes "
-                            + "on disk change.",
-                    "Save as UTF-8", "Cancel");
+                    I18n.t("EditorFileSync.save-the-file-as-utf"),
+                    I18n.t("EditorFileSync.save-as-utf-8"), I18n.t("EditorFileSync.cancel"));
 
     /** Offers to save {@code tab} as UTF-8 after its own charset could not encode the text. FX thread. */
     private void offerUtf8Save(EditorTab tab, Path target) {
@@ -413,10 +413,10 @@ final class EditorFileSync {
         if (org.fxt.freexmltoolkit.controls.shell.editor.search.EncodingSniffer.declaredEncoding(
                 tab.text()) != null) {
             // A declaration would pick the charset again on the next write: the user has to edit it.
-            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Save failed",
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorFileSync.save-failed"),
                     "Could not save " + target.getFileName() + ": the text contains characters that "
                             + current.charset().name() + " cannot store.",
-                    "Change the encoding in the XML declaration (for example to UTF-8) and save again.",
+                    I18n.t("EditorFileSync.change-the-encoding-in-the"),
                     (String) null, false);
             return;
         }
@@ -616,9 +616,9 @@ final class EditorFileSync {
                         return;
                     }
                     tab.document.setDirty(true); // still the old content, which is not on disk
-                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Reload Failed",
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorFileSync.reload-failed"),
                             "Could not read " + path + ".",
-                            "The editor still shows the previous content.", e);
+                            I18n.t("EditorFileSync.the-editor-still-shows-the"), e);
                 });
                 return;
             }
@@ -753,7 +753,7 @@ final class EditorFileSync {
 
     boolean saveTabAs(EditorTab tab) {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Save As");
+        chooser.setTitle(I18n.t("EditorFileSync.save-as"));
         tab.document.getFileType().configureSaveChooser(chooser, tab.document.getDisplayName());
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, host.getScene() != null ? host.getScene().getWindow() : null);
         Path target = file == null ? null : withTypeExtension(tab, file.toPath());

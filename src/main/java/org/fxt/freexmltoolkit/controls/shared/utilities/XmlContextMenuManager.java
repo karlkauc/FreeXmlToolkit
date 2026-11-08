@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shared.utilities;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -94,7 +96,7 @@ public class XmlContextMenuManager {
         contextMenu = new ContextMenu();
 
         // Comment functionality
-        MenuItem commentLineMenuItem = new MenuItem("Comment Lines (Ctrl+D)");
+        MenuItem commentLineMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.comment-lines-ctrl-d"));
         commentLineMenuItem.getStyleClass().add("comment-action");
         commentLineMenuItem.setGraphic(createColoredIcon("bi-chat-square-text", ActionColor.MODIFY));
         commentLineMenuItem.setOnAction(event -> {
@@ -105,7 +107,7 @@ public class XmlContextMenuManager {
 
         // Standard editing operations
         SeparatorMenuItem separator1 = new SeparatorMenuItem();
-        MenuItem cutMenuItem = new MenuItem("Cut (Ctrl+X)");
+        MenuItem cutMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.cut-ctrl-x"));
         cutMenuItem.getStyleClass().add("edit-action");
         cutMenuItem.setGraphic(createColoredIcon("bi-scissors", ActionColor.DELETE));
         cutMenuItem.setOnAction(event -> {
@@ -114,7 +116,7 @@ public class XmlContextMenuManager {
             }
         });
 
-        MenuItem copyMenuItem = new MenuItem("Copy (Ctrl+C)");
+        MenuItem copyMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.copy-ctrl-c"));
         copyMenuItem.getStyleClass().add("edit-action");
         copyMenuItem.setGraphic(createColoredIcon("bi-files", ActionColor.NEUTRAL));
         copyMenuItem.setOnAction(event -> {
@@ -123,7 +125,7 @@ public class XmlContextMenuManager {
             }
         });
 
-        MenuItem pasteMenuItem = new MenuItem("Paste (Ctrl+V)");
+        MenuItem pasteMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.paste-ctrl-v"));
         pasteMenuItem.getStyleClass().add("edit-action");
         pasteMenuItem.setGraphic(createColoredIcon("bi-clipboard", ActionColor.CREATE));
         pasteMenuItem.setOnAction(event -> {
@@ -134,7 +136,7 @@ public class XmlContextMenuManager {
 
         // XML-specific operations
         SeparatorMenuItem separator2 = new SeparatorMenuItem();
-        MenuItem copyXPathMenuItem = new MenuItem("Copy XPath");
+        MenuItem copyXPathMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.copy-xpath"));
         copyXPathMenuItem.getStyleClass().add("xml-action");
         copyXPathMenuItem.setGraphic(createColoredIcon("bi-signpost-2", ActionColor.NEUTRAL));
         copyXPathMenuItem.setOnAction(event -> {
@@ -143,7 +145,7 @@ public class XmlContextMenuManager {
             }
         });
 
-        MenuItem copyNodeMenuItem = new MenuItem("Copy Node");
+        MenuItem copyNodeMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.copy-node"));
         copyNodeMenuItem.getStyleClass().add("xml-action");
         copyNodeMenuItem.setGraphic(createColoredIcon("bi-clipboard-data", ActionColor.NEUTRAL));
         copyNodeMenuItem.setOnAction(event -> {
@@ -152,7 +154,7 @@ public class XmlContextMenuManager {
             }
         });
 
-        MenuItem goToDefinitionMenuItem = new MenuItem("Go to Definition (Ctrl+Click)");
+        MenuItem goToDefinitionMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.go-to-definition-ctrl-click"));
         goToDefinitionMenuItem.getStyleClass().add("xml-action");
         goToDefinitionMenuItem.setGraphic(createColoredIcon("bi-box-arrow-up-right", ActionColor.NAVIGATE));
         goToDefinitionMenuItem.setOnAction(event -> {
@@ -163,7 +165,7 @@ public class XmlContextMenuManager {
 
         // Selection and search
         SeparatorMenuItem separator3 = new SeparatorMenuItem();
-        MenuItem selectAllMenuItem = new MenuItem("Select All (Ctrl+A)");
+        MenuItem selectAllMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.select-all-ctrl-a"));
         selectAllMenuItem.getStyleClass().add("search-action");
         selectAllMenuItem.setGraphic(createColoredIcon("bi-border-all", ActionColor.NEUTRAL));
         selectAllMenuItem.setOnAction(event -> {
@@ -172,7 +174,7 @@ public class XmlContextMenuManager {
             }
         });
 
-        MenuItem findReplaceMenuItem = new MenuItem("Find & Replace (Ctrl+H)");
+        MenuItem findReplaceMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.find-replace-ctrl-h"));
         findReplaceMenuItem.getStyleClass().add("search-action");
         findReplaceMenuItem.setGraphic(createColoredIcon("bi-search", ActionColor.NAVIGATE));
         findReplaceMenuItem.setOnAction(event -> {
@@ -183,7 +185,7 @@ public class XmlContextMenuManager {
 
         // XML formatting and validation
         SeparatorMenuItem separator4 = new SeparatorMenuItem();
-        MenuItem formatXmlMenuItem = new MenuItem("Format XML");
+        MenuItem formatXmlMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.format-xml"));
         formatXmlMenuItem.getStyleClass().add("format-action");
         formatXmlMenuItem.setGraphic(createColoredIcon("bi-code-square", ActionColor.TOOL));
         formatXmlMenuItem.setOnAction(event -> {
@@ -192,7 +194,7 @@ public class XmlContextMenuManager {
             }
         });
 
-        MenuItem validateXmlMenuItem = new MenuItem("Validate XML");
+        MenuItem validateXmlMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.validate-xml"));
         validateXmlMenuItem.getStyleClass().add("format-action");
         validateXmlMenuItem.setGraphic(createColoredIcon("bi-check-circle", ActionColor.CREATE));
         validateXmlMenuItem.setOnAction(event -> {
@@ -203,7 +205,7 @@ public class XmlContextMenuManager {
 
         // Code folding
         SeparatorMenuItem separator5 = new SeparatorMenuItem();
-        MenuItem expandAllMenuItem = new MenuItem("Expand All");
+        MenuItem expandAllMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.expand-all"));
         expandAllMenuItem.getStyleClass().add("fold-action");
         expandAllMenuItem.setGraphic(createColoredIcon("bi-arrows-expand", ActionColor.NEUTRAL));
         expandAllMenuItem.setOnAction(event -> {
@@ -212,7 +214,7 @@ public class XmlContextMenuManager {
             }
         });
 
-        MenuItem collapseAllMenuItem = new MenuItem("Collapse All");
+        MenuItem collapseAllMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.collapse-all"));
         collapseAllMenuItem.getStyleClass().add("fold-action");
         collapseAllMenuItem.setGraphic(createColoredIcon("bi-arrows-collapse", ActionColor.NEUTRAL));
         collapseAllMenuItem.setOnAction(event -> {

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,10 +66,10 @@ final class EditorTabMenu {
         OpenDocument doc = actions.documentOf(tab);
         boolean titled = doc != null && !doc.isUntitled();
 
-        MenuItem close = item("tab-ctx-close", "Close", "bi-x-lg", ActionColor.NEUTRAL,
+        MenuItem close = item("tab-ctx-close", I18n.t("EditorTabMenu.close"), "bi-x-lg", ActionColor.NEUTRAL,
                 () -> actions.close(tab));
         close.setDisable(!tab.isClosable());
-        MenuItem closeOthers = item("tab-ctx-close-others", "Close Others", "bi-x-square", ActionColor.NEUTRAL,
+        MenuItem closeOthers = item("tab-ctx-close-others", I18n.t("EditorTabMenu.close-others"), "bi-x-square", ActionColor.NEUTRAL,
                 () -> actions.closeOthers(tab));
         closeOthers.setDisable(!actions.hasOtherClosableTabs(tab));
 
@@ -78,21 +80,21 @@ final class EditorTabMenu {
             return items;
         }
 
-        MenuItem reload = item("tab-ctx-reload", "Reload from Disk", "bi-arrow-clockwise", ActionColor.NAVIGATE,
+        MenuItem reload = item("tab-ctx-reload", I18n.t("EditorTabMenu.reload-from-disk"), "bi-arrow-clockwise", ActionColor.NAVIGATE,
                 () -> actions.reload(tab));
         // No disk check here (network drives): a missing file is reported by the reload itself.
         reload.setDisable(!titled);
-        MenuItem save = item("tab-ctx-save", "Save", "bi-save", ActionColor.CREATE, () -> actions.save(tab));
+        MenuItem save = item("tab-ctx-save", I18n.t("EditorTabMenu.save"), "bi-save", ActionColor.CREATE, () -> actions.save(tab));
         save.setDisable(titled && !doc.isDirty());
-        MenuItem saveAs = item("tab-ctx-save-as", "Save As…", "bi-save2", ActionColor.CREATE,
+        MenuItem saveAs = item("tab-ctx-save-as", I18n.t("EditorTabMenu.save-as"), "bi-save2", ActionColor.CREATE,
                 () -> actions.saveAs(tab));
-        MenuItem copyPath = item("tab-ctx-copy-path", "Copy Path", "bi-clipboard", ActionColor.NEUTRAL,
+        MenuItem copyPath = item("tab-ctx-copy-path", I18n.t("EditorTabMenu.copy-path"), "bi-clipboard", ActionColor.NEUTRAL,
                 () -> actions.copyPath(tab));
         copyPath.setDisable(!titled);
-        MenuItem revealOs = item("tab-ctx-reveal-os", "Reveal in File Manager", "bi-folder2-open",
+        MenuItem revealOs = item("tab-ctx-reveal-os", I18n.t("EditorTabMenu.reveal-in-file-manager"), "bi-folder2-open",
                 ActionColor.NAVIGATE, () -> actions.revealInFileManager(tab));
         revealOs.setDisable(!titled);
-        MenuItem revealExplorer = item("tab-ctx-reveal-explorer", "Reveal in Explorer Panel", "bi-layout-sidebar",
+        MenuItem revealExplorer = item("tab-ctx-reveal-explorer", I18n.t("EditorTabMenu.reveal-in-explorer-panel"), "bi-layout-sidebar",
                 ActionColor.NAVIGATE, () -> actions.revealInExplorer(tab));
         revealExplorer.setDisable(!titled);
 

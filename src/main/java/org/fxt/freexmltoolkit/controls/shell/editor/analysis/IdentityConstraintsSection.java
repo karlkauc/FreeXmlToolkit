@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
@@ -229,7 +231,7 @@ final class IdentityConstraintsSection extends VBox {
         details.getChildren().clear();
         if (info == null) {
             details.getChildren().add(AnalysisSupport.emptyLabel(
-                    "Select a constraint to see its selector, fields and validation message."));
+                    I18n.t("IdentityConstraintsSection.select-a-constraint-to-see")));
             return;
         }
         Label title = new Label(typeName(info.type()) + " " + AnalysisSupport.nullSafe(info.name()),

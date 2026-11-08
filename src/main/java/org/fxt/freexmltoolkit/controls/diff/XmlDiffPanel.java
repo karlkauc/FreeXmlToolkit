@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -32,7 +34,7 @@ final class XmlDiffPanel extends VBox {
         summary.setId("diff-xml-summary");
         summary.setMaxWidth(Double.MAX_VALUE);
         table.setId("diff-xml-table");
-        table.setPlaceholder(new Label("No differences"));
+        table.setPlaceholder(new Label(I18n.t("XmlDiffPanel.no-differences")));
         table.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.getColumns().add(column("Change", 80, d -> XmlStructuralDiff.label(d.change())));
@@ -103,7 +105,7 @@ final class XmlDiffPanel extends VBox {
     /** Shows that a comparison is running. */
     void setComputing() {
         summary.getStyleClass().remove("diff-xml-error");
-        summary.setText("Comparing…");
+        summary.setText(I18n.t("XmlDiffPanel.comparing"));
     }
 
     /** Selects the next ({@code delta > 0}) or previous difference, wrapping around. */

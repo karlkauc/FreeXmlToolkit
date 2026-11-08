@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -131,7 +133,7 @@ public final class ValueViewerWindow extends Stage {
         });
         runButton.setDisable(!canQuery);
         if (!canQuery) {
-            resultStatus.setText("XPath is available while the debugger has a paused state.");
+            resultStatus.setText(I18n.t("ValueViewerWindow.xpath-is-available-while-the"));
         }
         prettyToggle.setDisable(!source.hasValue() || evaluator == null);
         render();
@@ -236,7 +238,7 @@ public final class ValueViewerWindow extends Stage {
         final boolean pretty = prettyToggle.isSelected();
         final int gen = ++xpathGeneration;
         resultStatus.getStyleClass().remove(ERROR_CLASS);
-        resultStatus.setText("Running…");
+        resultStatus.setText(I18n.t("ValueViewerWindow.running"));
         FxtGui.executorService.submit(() -> {
             long start = System.nanoTime();
             String text;

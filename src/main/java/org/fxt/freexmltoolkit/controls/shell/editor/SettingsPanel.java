@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 
 import javafx.fxml.FXML;
@@ -452,11 +454,9 @@ public class SettingsPanel extends VBox {
      */
     @FXML
     public void onResetDefaults() {
-        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Reset Settings",
-                "Reset the settings to their defaults?",
-                "Appearance, editor, schema, temp-folder and network settings return to their defaults. "
-                        + "User info, templates, file associations, privacy and extension settings stay as they are.\n\n"
-                        + "Nothing is stored until you click Save Settings.")) {
+        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("SettingsPanel.reset-settings"),
+                I18n.t("SettingsPanel.reset-the-settings-to-their"),
+                I18n.t("SettingsPanel.appearance-editor-schema-temp-folder"))) {
             resetToDefaults();
         }
     }
@@ -534,7 +534,7 @@ public class SettingsPanel extends VBox {
                 org.fxt.freexmltoolkit.service.AdminPolicy.current().overlay()));
         trustAllCerts.setSelected(false);
         updateCheck.setSelected(true);
-        saveStatus.setText("Defaults restored — click Save Settings to keep them.");
+        saveStatus.setText(I18n.t("SettingsPanel.defaults-restored-click-save-settings"));
     }
 
     @FXML
@@ -554,8 +554,8 @@ public class SettingsPanel extends VBox {
 
     @FXML
     public void onClearCache() {
-        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clear Cache",
-                "Clear the local cache folder?",
+        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("SettingsPanel.clear-cache"),
+                I18n.t("SettingsPanel.clear-the-local-cache-folder"),
                 "This deletes all cached files (downloaded schemas etc.) under\n"
                         + cacheFolder().getAbsolutePath() + "\n\nThis action cannot be undone.")) {
             clearInBackground(this::clearCacheFolder, " cached file(s).");
@@ -564,7 +564,7 @@ public class SettingsPanel extends VBox {
 
     /** Deletes off the FX thread (thousands of cached schemas took seconds) and reports the count. */
     private void clearInBackground(java.util.function.IntSupplier clear, String what) {
-        tempStatus.setText("Clearing…");
+        tempStatus.setText(I18n.t("SettingsPanel.clearing"));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             int cleared = clear.getAsInt();
             javafx.application.Platform.runLater(() -> {
@@ -654,8 +654,8 @@ public class SettingsPanel extends VBox {
 
     /** Confirms "Clean Up Now" for a log folder; replaceable by tests. */
     static java.util.function.Predicate<java.nio.file.Path> logCleanupConfirmer = dir ->
-            org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clean Up Log Files",
-                    "Delete old log files now?",
+            org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("SettingsPanel.clean-up-log-files"),
+                    I18n.t("SettingsPanel.delete-old-log-files-now"),
                     "Log files beyond the limits set here are deleted from\n" + dir
                             + "\n\nThe log file in use is kept. This action cannot be undone.");
 
@@ -669,14 +669,14 @@ public class SettingsPanel extends VBox {
         int maxAge = logMaxAge.getValue();
         int maxSize = logMaxSize.getValue();
         if (maxAge <= 0 && maxSize <= 0) {
-            logStatus.setText("Set a number of days or a size limit first.");
+            logStatus.setText(I18n.t("SettingsPanel.set-a-number-of-days"));
             return;
         }
         if (!logCleanupConfirmer.test(dir)) {
             return;
         }
         cleanLogsButton.setDisable(true);
-        logStatus.setText("Cleaning up…");
+        logStatus.setText(I18n.t("SettingsPanel.cleaning-up"));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             var result = org.fxt.freexmltoolkit.service.LogCleanupService.clean(dir, maxAge, maxSize);
             javafx.application.Platform.runLater(() -> {
@@ -718,7 +718,7 @@ public class SettingsPanel extends VBox {
             pluginRows.getChildren().add(new VBox(2, box, description));
         }
         if (pluginRows.getChildren().isEmpty()) {
-            Label none = new Label("No plugins found.");
+            Label none = new Label(I18n.t("SettingsPanel.no-plugins-found"));
             none.getStyleClass().add("fxt-placeholder-text");
             pluginRows.getChildren().add(none);
         }
@@ -921,7 +921,7 @@ public class SettingsPanel extends VBox {
                 throw new IllegalArgumentException("not an http(s) URL");
             }
         } catch (IllegalArgumentException e) {
-            proxyTestStatus.setText("Enter an http:// or https:// address to test.");
+            proxyTestStatus.setText(I18n.t("SettingsPanel.enter-an-http-or-https"));
             return;
         }
         java.util.Properties test = new java.util.Properties();
@@ -956,12 +956,11 @@ public class SettingsPanel extends VBox {
 
     @FXML
     public void onClearStatistics() {
-        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Clear Statistics",
-                "Clear all progress data?",
-                "This will permanently delete all your usage statistics. "
-                        + "This action cannot be undone.")) {
+        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("SettingsPanel.clear-statistics"),
+                I18n.t("SettingsPanel.clear-all-progress-data"),
+                I18n.t("SettingsPanel.this-will-permanently-delete-all"))) {
             UsageTrackingServiceImpl.getInstance().clearStatistics();
-            usageStatus.setText("Usage statistics cleared.");
+            usageStatus.setText(I18n.t("SettingsPanel.usage-statistics-cleared"));
         }
     }
 
@@ -1010,7 +1009,7 @@ public class SettingsPanel extends VBox {
     public void onSave() {
         saveSettings();
         dirty.set(false);
-        saveStatus.setText("Settings saved.");
+        saveStatus.setText(I18n.t("SettingsPanel.settings-saved"));
         refreshFolderUsage(); // the temp folder may have changed
         org.fxt.freexmltoolkit.service.ConnectionServiceImpl.getInstance().applyGlobalSettings();
     }
@@ -1048,8 +1047,8 @@ public class SettingsPanel extends VBox {
             try {
                 TemplateRepository.getInstance().saveTemplateToFile(template);
             } catch (Exception ex) {
-                org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Templates",
-                        "The template could not be saved.",
+                org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("SettingsPanel.templates"),
+                        I18n.t("SettingsPanel.the-template-could-not-be"),
                         org.fxt.freexmltoolkit.util.DialogHelper.Remedies.FILE_UNWRITABLE, ex);
             }
             reloadTemplatesList();
@@ -1061,9 +1060,9 @@ public class SettingsPanel extends VBox {
         if (selected == null) {
             return;
         }
-        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Delete Template",
+        if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("SettingsPanel.delete-template"),
                 "Delete template '" + selected.getName() + "'?",
-                "This permanently removes the template file. This action cannot be undone.")) {
+                I18n.t("SettingsPanel.this-permanently-removes-the-template"))) {
             TemplateRepository.getInstance().removeTemplate(selected.getId(), true);
             reloadTemplatesList();
         }
@@ -1404,9 +1403,9 @@ public class SettingsPanel extends VBox {
         } catch (Throwable t) {
             // Reported with its stack (where = dialog.Settings) and told to the user: a settings
             // save that fails silently looks like a save that worked.
-            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Settings",
-                    "The settings could not be saved.",
-                    "Check that the settings file in your home folder (.freeXmlToolkit) is writable, then try again.", t);
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("SettingsPanel.settings"),
+                    I18n.t("SettingsPanel.the-settings-could-not-be"),
+                    I18n.t("SettingsPanel.check-that-the-settings-file"), t);
         }
     }
 
@@ -1466,7 +1465,7 @@ public class SettingsPanel extends VBox {
             svc = ServiceRegistry.get(FileAssociationService.class);
         } catch (Throwable t) {
             setAssociationControlsDisabled(true);
-            assocStatus.setText("File association service unavailable.");
+            assocStatus.setText(I18n.t("SettingsPanel.file-association-service-unavailable"));
             return;
         }
         if (!svc.isSupported()) {
@@ -1505,7 +1504,7 @@ public class SettingsPanel extends VBox {
             }
         });
         if (types.isEmpty()) {
-            assocStatus.setText("Select at least one file type.");
+            assocStatus.setText(I18n.t("SettingsPanel.select-at-least-one-file"));
             return;
         }
         FileAssociationService svc = ServiceRegistry.get(FileAssociationService.class);
@@ -1527,9 +1526,9 @@ public class SettingsPanel extends VBox {
                 // (e.g. the Windows Settings confirmation step).
                 assocStatus.setText(result.message());
                 if (!result.success()) {
-                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("File Associations",
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("SettingsPanel.file-associations"),
                             result.message(),
-                            "Check the details below and try again.",
+                            I18n.t("SettingsPanel.check-the-details-below-and"),
                             String.join("\n", result.errors()));
                 }
             });

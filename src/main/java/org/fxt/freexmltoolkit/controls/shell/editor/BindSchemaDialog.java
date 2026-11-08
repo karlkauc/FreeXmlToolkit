@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -35,7 +37,7 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
      */
     public BindSchemaDialog(FxtProject project, String files, Path schema) {
         this.project = project;
-        setTitle("Bind Schema in Project");
+        setTitle(I18n.t("BindSchemaDialog.bind-schema-in-project"));
         setHeaderText("Validate XML files of \"" + project.name() + "\" with a schema.");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/BindSchemaDialog.fxml"));
@@ -80,7 +82,7 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
     @FXML
     public void onBrowseSchema() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Schema");
+        chooser.setTitle(I18n.t("BindSchemaDialog.schema"));
         chooser.setInitialDirectory(project.root().toFile());
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
         File file = FileChooserHelper.showOpenDialog(chooser, getDialogPane().getScene().getWindow());

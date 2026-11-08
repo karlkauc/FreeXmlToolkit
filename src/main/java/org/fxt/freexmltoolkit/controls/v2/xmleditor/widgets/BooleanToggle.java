@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.function.Consumer;
 
 import javafx.geometry.Insets;
@@ -168,7 +170,7 @@ public class BooleanToggle implements TypeAwareWidgetFactory.EditWidget {
     public ValidationResult getValidationResult() {
         // Boolean is always valid if a value is selected
         if (currentValue == null || currentValue.isEmpty()) {
-            return ValidationResult.warning("Please select true or false");
+            return ValidationResult.warning(I18n.t("BooleanToggle.please-select-true-or-false"));
         }
         return ValidationResult.valid();
     }

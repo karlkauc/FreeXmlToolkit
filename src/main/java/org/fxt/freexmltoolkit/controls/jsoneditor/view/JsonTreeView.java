@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls.jsoneditor.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -96,7 +98,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
 
         // Create search toolbar
         searchField = new TextField();
-        searchField.setPromptText("Search JSON...");
+        searchField.setPromptText(I18n.t("JsonTreeView.search-json"));
         searchField.setOnAction(e -> search(searchField.getText()));
 
         Button searchButton = new Button();
@@ -104,7 +106,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
         searchIcon.setIconSize(16);
         searchButton.setGraphic(searchIcon);
         searchButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        searchButton.setTooltip(new Tooltip("Search"));
+        searchButton.setTooltip(new Tooltip(I18n.t("JsonTreeView.search")));
         searchButton.setOnAction(e -> search(searchField.getText()));
 
         HBox searchBar = new HBox(8, searchField, searchButton);
@@ -125,7 +127,7 @@ public class JsonTreeView extends VBox implements PropertyChangeListener,
         });
 
         // Status label
-        statusLabel = new Label("Ready");
+        statusLabel = new Label(I18n.t("JsonTreeView.ready"));
         statusLabel.setStyle("-fx-text-fill: #6c757d; -fx-font-size: 11px;");
 
         getChildren().addAll(searchBar, treeView, statusLabel);

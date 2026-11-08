@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -89,7 +91,7 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
     @FXML
     public void onBrowse() {
         FileChooser fc = new FileChooser();
-        fc.setTitle("Select schema file");
+        fc.setTitle(I18n.t("SchemaLibraryEntryDialog.select-schema-file"));
         fc.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Schemas", "*.xsd", "*.json", "*.dtd"),
                 new FileChooser.ExtensionFilter("All files", "*.*"));

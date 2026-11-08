@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -229,7 +231,7 @@ public class MultiFileXsdSerializer {
             List<XsdNode> nodes = nodesByFile.get(filePath);
             if (nodes == null) {
                 logger.warn("No nodes found for file: {}", filePath);
-                results.put(filePath, SaveResult.failure(filePath, "No nodes found for this file"));
+                results.put(filePath, SaveResult.failure(filePath, I18n.t("MultiFileXsdSerializer.no-nodes-found-for-this")));
                 continue;
             }
 

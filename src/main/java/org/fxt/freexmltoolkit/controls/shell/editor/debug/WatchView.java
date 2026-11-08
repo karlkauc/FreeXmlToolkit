@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -69,7 +71,7 @@ public class WatchView extends VBox {
         value.setEditable(false);
         table.getColumns().add(value);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(new Label("No watches."));
+        table.setPlaceholder(new Label(I18n.t("WatchView.no-watches")));
         table.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.DELETE) {
                 removeSelected();

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.util;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Optional;
 
 import javafx.geometry.Insets;
@@ -375,7 +377,7 @@ public class DialogHelper {
         if (detailText != null && !detailText.isBlank()) {
             VBox expandableContent = new VBox(5);
             expandableContent.setPadding(new Insets(10));
-            Label label = new Label("Technical details:");
+            Label label = new Label(I18n.t("DialogHelper.technical-details"));
             TextArea textArea = new TextArea(detailText);
             textArea.setEditable(false);
             textArea.setWrapText(false);

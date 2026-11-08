@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -25,7 +27,7 @@ final class XsdGraphZoomControl extends HBox {
 
         percent.getStyleClass().add("fxt-graph-zoom-percent");
         percent.setId("graph-zoom-label");
-        percent.setTooltip(new Tooltip("Reset Zoom to 100% (Ctrl 0)"));
+        percent.setTooltip(new Tooltip(I18n.t("XsdGraphZoomControl.reset-zoom-to-100-ctrl")));
         percent.setOnMouseClicked(e -> reset.run());
 
         getChildren().addAll(

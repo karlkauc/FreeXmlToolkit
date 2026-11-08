@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -97,8 +99,8 @@ public class XSpecView extends VBox {
         Optional<OpenDocument> document = editorHost.getActiveDocument();
         String text = editorHost.getActiveText().orElse("");
         if (document.isEmpty() || document.get().getPath() == null || !XSpecRunner.isXSpec(text)) {
-            DialogHelper.showInformation("Run XSpec Tests", "No XSpec document",
-                    "Open a saved .xspec file (an x:description) to run its tests.");
+            DialogHelper.showInformation(I18n.t("XSpecView.run-xspec-tests"), I18n.t("XSpecView.no-xspec-document"),
+                    I18n.t("XSpecView.open-a-saved-xspec-file"));
             return false;
         }
         Path file = document.get().getPath();
@@ -120,7 +122,7 @@ public class XSpecView extends VBox {
     /** Runs the tests of {@code text} (the XSpec document) in the background. */
     void run(String text) {
         setBusy(true);
-        summary.setText("Running…");
+        summary.setText(I18n.t("XSpecView.running"));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             XSpecRunner.Result done = runner.run(text, xspecFile);
             Platform.runLater(() -> show(done));
@@ -245,7 +247,7 @@ public class XSpecView extends VBox {
             return;
         }
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Export JUnit Report");
+        chooser.setTitle(I18n.t("XSpecView.export-junit-report"));
         chooser.setInitialFileName(xspecFile.getFileName().toString().replaceFirst("\\.xspec$", "") + "-junit.xml");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JUnit XML", "*.xml"));
         File target = FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
@@ -255,7 +257,7 @@ public class XSpecView extends VBox {
         try {
             Files.writeString(target.toPath(), runner.junit(current), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            DialogHelper.showError("Export JUnit Report", "The report could not be written.", e.getMessage(), e);
+            DialogHelper.showError(I18n.t("XSpecView.export-junit-report"), I18n.t("XSpecView.the-report-could-not-be"), e.getMessage(), e);
         }
     }
 

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -94,8 +96,8 @@ public final class DataConversionAction {
                         "The " + source.name() + " document could not be converted.", e.getMessage()));
             } catch (OutOfMemoryError e) {
                 Platform.runLater(() -> DialogHelper.showWarning(title,
-                        "The document is too large to convert with the available memory.",
-                        "Increase the maximum memory in Settings → Memory, or convert it with fxt-cli."));
+                        I18n.t("DataConversionAction.the-document-is-too-large"),
+                        I18n.t("DataConversionAction.increase-the-maximum-memory-in")));
             } catch (RuntimeException e) {
                 logger.warn("Conversion to {} failed", target, e);
                 Platform.runLater(() -> DialogHelper.showWarning(title,

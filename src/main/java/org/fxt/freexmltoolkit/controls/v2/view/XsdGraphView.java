@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
@@ -496,19 +498,19 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
         // Note: Save button removed - use the Save button in the XSD tab toolbar instead
 
-        Button expandAllBtn = new Button("Expand All");
+        Button expandAllBtn = new Button(I18n.t("XsdGraphView.expand-all"));
         expandAllBtn.setOnAction(e -> {
             expandAll(rootNode);
             redraw();
         });
 
-        Button collapseAllBtn = new Button("Collapse All");
+        Button collapseAllBtn = new Button(I18n.t("XsdGraphView.collapse-all"));
         collapseAllBtn.setOnAction(e -> {
             collapseAll(rootNode);
             redraw();
         });
 
-        Button fitBtn = new Button("Fit to View");
+        Button fitBtn = new Button(I18n.t("XsdGraphView.fit-to-view"));
         fitBtn.setOnAction(e -> fitToView());
 
         // Separator
@@ -516,9 +518,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         separator.setOrientation(javafx.geometry.Orientation.VERTICAL);
 
         // Properties Panel Toggle Button
-        propertiesToggle = new ToggleButton("Properties");
+        propertiesToggle = new ToggleButton(I18n.t("XsdGraphView.properties"));
         propertiesToggle.setSelected(true); // Initially visible
-        propertiesToggle.setTooltip(new Tooltip("Show/Hide Properties Panel (Ctrl+P)"));
+        propertiesToggle.setTooltip(new Tooltip(I18n.t("XsdGraphView.show-hide-properties-panel-ctrl")));
         propertiesToggle.setOnAction(e -> {
             if (propertiesToggle.isSelected()) {
                 // Show properties panel
@@ -535,17 +537,17 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         // Zoom buttons
         Button zoomInBtn = new Button("+");
         zoomInBtn.setStyle("-fx-font-weight: bold; -fx-padding: 5 10;");
-        zoomInBtn.setTooltip(new Tooltip("Zoom In (Ctrl +)"));
+        zoomInBtn.setTooltip(new Tooltip(I18n.t("XsdGraphView.zoom-in-ctrl")));
         zoomInBtn.setOnAction(e -> zoomIn());
 
         Button zoomOutBtn = new Button("-");
         zoomOutBtn.setStyle("-fx-font-weight: bold; -fx-padding: 5 10;");
-        zoomOutBtn.setTooltip(new Tooltip("Zoom Out (Ctrl -)"));
+        zoomOutBtn.setTooltip(new Tooltip(I18n.t("XsdGraphView.zoom-out-ctrl")));
         zoomOutBtn.setOnAction(e -> zoomOut());
 
-        Button zoomResetBtn = new Button("Reset");
+        Button zoomResetBtn = new Button(I18n.t("XsdGraphView.reset"));
         zoomResetBtn.setStyle("-fx-padding: 5 10;");
-        zoomResetBtn.setTooltip(new Tooltip("Reset Zoom to 100% (Ctrl 0)"));
+        zoomResetBtn.setTooltip(new Tooltip(I18n.t("XsdGraphView.reset-zoom-to-100-ctrl")));
         zoomResetBtn.setOnAction(e -> zoomReset());
 
         zoomLabel = new Label("100%");

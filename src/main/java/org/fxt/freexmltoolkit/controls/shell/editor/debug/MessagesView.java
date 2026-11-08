@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -56,7 +58,7 @@ public class MessagesView extends VBox {
     private final ListView<TransformationMessage> list = new ListView<>(shown);
     private final ChoiceBox<LevelFilter> level = new ChoiceBox<>(FXCollections.observableArrayList(LevelFilter.values()));
     private final TextField search = new TextField();
-    private final Label placeholder = new Label("No messages yet — xsl:message output appears here.");
+    private final Label placeholder = new Label(I18n.t("MessagesView.no-messages-yet-xsl-message"));
     private Consumer<TransformationMessage> onJumpTo = m -> { };
     private Runnable onCountChanged = () -> { };
 
@@ -96,7 +98,7 @@ public class MessagesView extends VBox {
 
         level.setValue(LevelFilter.ALL);
         level.valueProperty().addListener((obs, old, v) -> applyFilter());
-        search.setPromptText("Filter messages");
+        search.setPromptText(I18n.t("MessagesView.filter-messages"));
         search.textProperty().addListener((obs, old, v) -> applyFilter());
         HBox.setHgrow(search, Priority.ALWAYS);
         Button copy = DebugToolbar.action("Copy", "bi-clipboard", "Copy the selected messages, or all shown ones");

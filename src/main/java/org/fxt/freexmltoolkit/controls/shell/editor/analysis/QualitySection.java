@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
@@ -288,7 +290,7 @@ final class QualitySection extends VBox {
     private void showDetails(QualityIssue issue) {
         details.getChildren().clear();
         if (issue == null) {
-            details.getChildren().add(AnalysisSupport.emptyLabel("Select an issue to see its suggestion and affected elements."));
+            details.getChildren().add(AnalysisSupport.emptyLabel(I18n.t("QualitySection.select-an-issue-to-see")));
             return;
         }
         Label message = new Label(issue.message(), AnalysisSupport.severityIcon(issue.severity(), 14));
@@ -312,7 +314,7 @@ final class QualitySection extends VBox {
         }
         if (issue.affectedElements() != null && !issue.affectedElements().isEmpty()) {
             FlowPane links = new FlowPane(6, 2);
-            Label affected = new Label("Affected: ");
+            Label affected = new Label(I18n.t("QualitySection.affected"));
             affected.getStyleClass().add("fxt-analysis-key");
             links.getChildren().add(affected);
             for (String name : issue.affectedElements()) {

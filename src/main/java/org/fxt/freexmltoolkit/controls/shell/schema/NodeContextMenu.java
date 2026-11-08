@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -43,24 +45,24 @@ public final class NodeContextMenu {
     public static ContextMenu build(NodeEditActions actions, Supplier<XsdNode> currentNode,
                                     Supplier<XsdSchema> schema) {
         ContextMenu menu = new ContextMenu();
-        MenuItem paste = item("Paste", "bi-clipboard-plus", ActionColor.CREATE, currentNode, actions::paste);
-        MenuItem addElement = item("Add Element…", "bi-plus-circle", ActionColor.CREATE, currentNode,
+        MenuItem paste = item(I18n.t("NodeContextMenu.paste"), "bi-clipboard-plus", ActionColor.CREATE, currentNode, actions::paste);
+        MenuItem addElement = item(I18n.t("NodeContextMenu.add-element"), "bi-plus-circle", ActionColor.CREATE, currentNode,
                 node -> NewNodeDialog.askElement(null, node, schema, "NewElement")
                         .ifPresent(spec -> actions.addElement(node, spec)));
-        MenuItem addContainer = item("Add Container Element…", "bi-node-plus", ActionColor.CREATE, currentNode,
+        MenuItem addContainer = item(I18n.t("NodeContextMenu.add-container-element"), "bi-node-plus", ActionColor.CREATE, currentNode,
                 node -> promptName(actions::addContainerElement, node, "Add Container Element", "NewContainer"));
-        MenuItem addAttribute = item("Add Attribute…", "bi-at", ActionColor.CREATE, currentNode,
+        MenuItem addAttribute = item(I18n.t("NodeContextMenu.add-attribute"), "bi-at", ActionColor.CREATE, currentNode,
                 node -> NewNodeDialog.askAttribute(null, node, schema, "newAttribute")
                         .ifPresent(spec -> actions.addAttribute(node, spec)));
-        MenuItem addSequence = item("Add Sequence", "bi-list-ol", ActionColor.CREATE, currentNode, actions::addSequence);
-        MenuItem addChoice = item("Add Choice", "bi-signpost-split", ActionColor.CREATE, currentNode, actions::addChoice);
-        MenuItem addAll = item("Add All", "bi-list-check", ActionColor.CREATE, currentNode, actions::addAll);
-        MenuItem changeType = item("Change Type…", "bi-type", ActionColor.STRUCTURE, currentNode,
+        MenuItem addSequence = item(I18n.t("NodeContextMenu.add-sequence"), "bi-list-ol", ActionColor.CREATE, currentNode, actions::addSequence);
+        MenuItem addChoice = item(I18n.t("NodeContextMenu.add-choice"), "bi-signpost-split", ActionColor.CREATE, currentNode, actions::addChoice);
+        MenuItem addAll = item(I18n.t("NodeContextMenu.add-all"), "bi-list-check", ActionColor.CREATE, currentNode, actions::addAll);
+        MenuItem changeType = item(I18n.t("NodeContextMenu.change-type"), "bi-type", ActionColor.STRUCTURE, currentNode,
                 node -> promptChangeType(actions, node, schema));
         // Top-level types are declared on the schema node only.
-        MenuItem newComplexType = item("New Complex Type…", "bi-diagram-3", ActionColor.CREATE, currentNode,
+        MenuItem newComplexType = item(I18n.t("NodeContextMenu.new-complex-type"), "bi-diagram-3", ActionColor.CREATE, currentNode,
                 node -> actions.newType(AddGlobalTypeCommand.Kind.COMPLEX));
-        MenuItem newSimpleType = item("New Simple Type…", "bi-type", ActionColor.CREATE, currentNode,
+        MenuItem newSimpleType = item(I18n.t("NodeContextMenu.new-simple-type"), "bi-type", ActionColor.CREATE, currentNode,
                 node -> actions.newType(AddGlobalTypeCommand.Kind.SIMPLE));
         SeparatorMenuItem typeSeparator = new SeparatorMenuItem();
         menu.getItems().addAll(
@@ -73,22 +75,22 @@ public final class NodeContextMenu {
                 addSequence,
                 addChoice,
                 addAll,
-                item("Add Comment…", "bi-chat-left-text", ActionColor.CREATE, currentNode,
+                item(I18n.t("NodeContextMenu.add-comment"), "bi-chat-left-text", ActionColor.CREATE, currentNode,
                         node -> promptComment(actions, node)),
                 new SeparatorMenuItem(),
-                item("Rename…", "bi-pencil", ActionColor.MODIFY, currentNode, node -> promptRename(actions, node)),
+                item(I18n.t("NodeContextMenu.rename"), "bi-pencil", ActionColor.MODIFY, currentNode, node -> promptRename(actions, node)),
                 changeType,
-                item("Change Cardinality…", "bi-arrows-expand", ActionColor.STRUCTURE, currentNode, node -> promptCardinality(actions, node)),
+                item(I18n.t("NodeContextMenu.change-cardinality"), "bi-arrows-expand", ActionColor.STRUCTURE, currentNode, node -> promptCardinality(actions, node)),
                 new SeparatorMenuItem(),
-                item("Copy", "bi-clipboard", ActionColor.NEUTRAL, currentNode, actions::copy),
-                item("Cut", "bi-scissors", ActionColor.DELETE, currentNode, actions::cut),
+                item(I18n.t("NodeContextMenu.copy"), "bi-clipboard", ActionColor.NEUTRAL, currentNode, actions::copy),
+                item(I18n.t("NodeContextMenu.cut"), "bi-scissors", ActionColor.DELETE, currentNode, actions::cut),
                 paste,
                 new SeparatorMenuItem(),
-                item("Duplicate", "bi-copy", ActionColor.CREATE, currentNode, actions::duplicate),
-                item("Move Up", "bi-arrow-up", ActionColor.STRUCTURE, currentNode, actions::moveUp),
-                item("Move Down", "bi-arrow-down", ActionColor.STRUCTURE, currentNode, actions::moveDown),
+                item(I18n.t("NodeContextMenu.duplicate"), "bi-copy", ActionColor.CREATE, currentNode, actions::duplicate),
+                item(I18n.t("NodeContextMenu.move-up"), "bi-arrow-up", ActionColor.STRUCTURE, currentNode, actions::moveUp),
+                item(I18n.t("NodeContextMenu.move-down"), "bi-arrow-down", ActionColor.STRUCTURE, currentNode, actions::moveDown),
                 new SeparatorMenuItem(),
-                item("Delete", "bi-trash", ActionColor.DELETE, currentNode, actions::delete));
+                item(I18n.t("NodeContextMenu.delete"), "bi-trash", ActionColor.DELETE, currentNode, actions::delete));
         // Re-checked on each open: only edits that keep the schema valid are enabled. Edits that
         // replace conflicting content stay enabled and ask first (EditorTab).
         menu.setOnShowing(e -> {

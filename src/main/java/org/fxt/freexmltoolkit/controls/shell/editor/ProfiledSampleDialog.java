@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.Map;
 
@@ -83,7 +85,7 @@ public class ProfiledSampleDialog extends Dialog<GenerationProfile> {
     @FXML private Spinner<Integer> maxOccurrences;
 
     public ProfiledSampleDialog(List<XPathInfo> xpaths) {
-        setTitle("Generate Sample XML (Advanced)");
+        setTitle(I18n.t("ProfiledSampleDialog.generate-sample-xml-advanced"));
         setResizable(true);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -122,9 +124,9 @@ public class ProfiledSampleDialog extends Dialog<GenerationProfile> {
     public void onSaveProfile() {
         TextInputDialog prompt = new TextInputDialog(
                 profileCombo.getValue() != null ? profileCombo.getValue() : "Profile");
-        prompt.setTitle("Save Profile");
+        prompt.setTitle(I18n.t("ProfiledSampleDialog.save-profile"));
         prompt.setHeaderText(null);
-        prompt.setContentText("Profile name:");
+        prompt.setContentText(I18n.t("ProfiledSampleDialog.profile-name"));
         prompt.showAndWait().ifPresent(name -> {
             if (!name.isBlank()) {
                 GenerationProfile profile = currentProfile();

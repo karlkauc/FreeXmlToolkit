@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -157,7 +159,7 @@ public class XmlInstanceTreeView extends TreeView<XmlNode> {
         /** Lazily builds this cell's context menu (a single "Go to Definition" item). */
         private ContextMenu cellMenu() {
             if (cellMenu == null) {
-                MenuItem goToDefinitionItem = new MenuItem("Go to Definition");
+                MenuItem goToDefinitionItem = new MenuItem(I18n.t("XmlInstanceTreeView.go-to-definition"));
                 IconifyIcon menuIcon = new IconifyIcon("bi-box-arrow-up-right");
                 SemanticIcon.paint(menuIcon, DesignTokens.ColorToken.INFO);
                 menuIcon.setIconSize(14);

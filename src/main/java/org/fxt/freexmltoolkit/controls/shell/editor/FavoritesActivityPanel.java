@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
@@ -105,12 +107,12 @@ public class FavoritesActivityPanel extends VBox {
         });
 
         ContextMenu menu = new ContextMenu();
-        MenuItem open = new MenuItem("Open", SemanticIcon.paint(icon("bi-folder2-open"), ActionColor.NAVIGATE));
+        MenuItem open = new MenuItem(I18n.t("FavoritesActivityPanel.open"), SemanticIcon.paint(icon("bi-folder2-open"), ActionColor.NAVIGATE));
         open.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             FavoritesService.getInstance().recordAccess(f.getFilePath());
             editorHost.openFile(Path.of(f.getFilePath()));
         }));
-        MenuItem rename = new MenuItem("Rename…", SemanticIcon.paint(icon("bi-pencil"), ActionColor.MODIFY));
+        MenuItem rename = new MenuItem(I18n.t("FavoritesActivityPanel.rename"), SemanticIcon.paint(icon("bi-pencil"), ActionColor.MODIFY));
         rename.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             TextInputDialog dialog = new TextInputDialog(displayName(f));
             dialog.setTitle("Rename Favorite");
@@ -119,8 +121,8 @@ public class FavoritesActivityPanel extends VBox {
             dialog.showAndWait().map(String::strip).filter(s -> !s.isEmpty())
                     .ifPresent(newName -> renameFavorite(f, newName));
         }));
-        Menu moveTo = new Menu("Move to folder", SemanticIcon.paint(icon("bi-folder-symlink"), ActionColor.STRUCTURE));
-        MenuItem remove = new MenuItem("Remove", SemanticIcon.paint(icon("bi-trash"), ActionColor.DELETE));
+        Menu moveTo = new Menu(I18n.t("FavoritesActivityPanel.move-to-folder"), SemanticIcon.paint(icon("bi-folder-symlink"), ActionColor.STRUCTURE));
+        MenuItem remove = new MenuItem(I18n.t("FavoritesActivityPanel.remove"), SemanticIcon.paint(icon("bi-trash"), ActionColor.DELETE));
         remove.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             FavoritesService.getInstance().removeFavorite(f);
             refresh();
@@ -218,9 +220,9 @@ public class FavoritesActivityPanel extends VBox {
         if (!folders.isEmpty()) {
             moveTo.getItems().add(new SeparatorMenuItem());
         }
-        MenuItem noFolder = new MenuItem("(No folder)");
+        MenuItem noFolder = new MenuItem(I18n.t("FavoritesActivityPanel.no-folder"));
         noFolder.setOnAction(e -> selectedFavorite().ifPresent(f -> moveToFolder(f, null)));
-        MenuItem newFolder = new MenuItem("New folder…", SemanticIcon.paint(icon("bi-folder-plus"), ActionColor.CREATE));
+        MenuItem newFolder = new MenuItem(I18n.t("FavoritesActivityPanel.new-folder"), SemanticIcon.paint(icon("bi-folder-plus"), ActionColor.CREATE));
         newFolder.setOnAction(e -> selectedFavorite().ifPresent(f -> {
             TextInputDialog dialog = new TextInputDialog();
             dialog.setTitle("New Folder");

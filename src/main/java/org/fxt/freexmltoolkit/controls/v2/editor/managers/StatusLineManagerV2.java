@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -117,10 +119,10 @@ public class StatusLineManagerV2 {
         this.codeArea = editorContext.getCodeArea();
 
         // Create labels
-        this.lineColumnLabel = new Label("Ln 1, Col 1");
-        this.charCountLabel = new Label("0 chars");
-        this.encodingLabel = new Label("UTF-8");
-        this.xsdStatusLabel = new Label("No XSD");
+        this.lineColumnLabel = new Label(I18n.t("StatusLineManagerV2.ln-1-col-1"));
+        this.charCountLabel = new Label(I18n.t("StatusLineManagerV2.0-chars"));
+        this.encodingLabel = new Label(I18n.t("StatusLineManagerV2.utf-8"));
+        this.xsdStatusLabel = new Label(I18n.t("StatusLineManagerV2.no-xsd"));
         this.dirtyLabel = new Label("");
 
         // Create status line

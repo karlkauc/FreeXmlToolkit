@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -649,29 +651,29 @@ public final class SchemaOverviewView extends VBox {
         boolean own = !node.isFromInclude();
         GlobalComponentKind kind = GlobalComponentKind.of(node);
         if (node instanceof XsdComplexType || node instanceof XsdSimpleType) {
-            menu.getItems().add(item("Open in Type Editor", "bi-box-arrow-up-right", ActionColor.NAVIGATE,
+            menu.getItems().add(item(I18n.t("SchemaOverviewView.open-in-type-editor"), "bi-box-arrow-up-right", ActionColor.NAVIGATE,
                     () -> host.openTypeEditor(node.getName())));
         }
         if (node instanceof XsdElement) {
-            menu.getItems().add(item("Show in Graphic View", "bi-diagram-2", ActionColor.NAVIGATE,
+            menu.getItems().add(item(I18n.t("SchemaOverviewView.show-in-graphic-view"), "bi-diagram-2", ActionColor.NAVIGATE,
                     () -> host.showInGraphic(node)));
         }
         if (node instanceof XsdSchemaReference reference) {
-            menu.getItems().add(item("Open Referenced File", "bi-folder2-open", ActionColor.NAVIGATE,
+            menu.getItems().add(item(I18n.t("SchemaOverviewView.open-referenced-file"), "bi-folder2-open", ActionColor.NAVIGATE,
                     () -> host.openReferencedFile(reference)));
         }
         if (!menu.getItems().isEmpty()) {
             menu.getItems().add(new SeparatorMenuItem());
         }
         if (own && OverviewRows.hasEditableName(node)) {
-            menu.getItems().add(item("Rename…", "bi-pencil", ActionColor.MODIFY, () -> componentTable.edit(
+            menu.getItems().add(item(I18n.t("SchemaOverviewView.rename"), "bi-pencil", ActionColor.MODIFY, () -> componentTable.edit(
                     componentTable.getItems().indexOf(node), nameColumn)));
         }
         if (own && kind != null && OverviewRows.hasEditableAnnotation(node)) {
-            menu.getItems().add(item("Edit Annotation", "bi-card-text", ActionColor.MODIFY, () -> componentTable.edit(
+            menu.getItems().add(item(I18n.t("SchemaOverviewView.edit-annotation"), "bi-card-text", ActionColor.MODIFY, () -> componentTable.edit(
                     componentTable.getItems().indexOf(node), annotationColumn)));
         }
-        Menu insert = new Menu("Insert Before");
+        Menu insert = new Menu(I18n.t("SchemaOverviewView.insert-before"));
         insert.setGraphic(menuIcon("bi-plus-square", ActionColor.CREATE));
         for (GlobalComponentKind each : GlobalComponentKind.values()) {
             insert.getItems().add(item(each.label(), iconFor(each), ActionColor.CREATE, () -> addComponent(each, true)));
@@ -679,10 +681,10 @@ public final class SchemaOverviewView extends VBox {
         menu.getItems().add(insert);
         if (own) {
             menu.getItems().addAll(
-                    item("Move Up", "bi-arrow-up", ActionColor.MODIFY, this::onMoveUp),
-                    item("Move Down", "bi-arrow-down", ActionColor.MODIFY, this::onMoveDown),
+                    item(I18n.t("SchemaOverviewView.move-up"), "bi-arrow-up", ActionColor.MODIFY, this::onMoveUp),
+                    item(I18n.t("SchemaOverviewView.move-down"), "bi-arrow-down", ActionColor.MODIFY, this::onMoveDown),
                     new SeparatorMenuItem(),
-                    item("Delete", "bi-trash", ActionColor.DELETE, this::onDelete));
+                    item(I18n.t("SchemaOverviewView.delete"), "bi-trash", ActionColor.DELETE, this::onDelete));
         }
         return menu;
     }
@@ -736,10 +738,10 @@ public final class SchemaOverviewView extends VBox {
         ButtonType update = new ButtonType("Rename and Update", ButtonBar.ButtonData.YES);
         ButtonType only = new ButtonType("Rename Only", ButtonBar.ButtonData.NO);
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "", update, only, ButtonType.CANCEL);
-        alert.setTitle("Rename");
+        alert.setTitle(I18n.t("SchemaOverviewView.rename-2"));
         alert.setHeaderText("'" + node.getName() + "' is referenced " + references + " time"
                 + (references == 1 ? "" : "s") + " in this schema.");
-        alert.setContentText("Update the references to the new name as well?");
+        alert.setContentText(I18n.t("SchemaOverviewView.update-the-references-to-the"));
         alert.getDialogPane().getStylesheets().addAll(org.fxt.freexmltoolkit.util.DialogHelper.getThemeStylesheets());
         if (window() != null) {
             alert.initOwner(window());

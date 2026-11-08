@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,8 +36,8 @@ public final class DiffGutter extends Pane {
 
     /** Reused arrow buttons in pairs: even index applies left to right, odd index right to left. */
     private final List<Button> arrows = new ArrayList<>();
-    private final Tooltip toRightTooltip = new Tooltip("Apply this chunk from left to right");
-    private final Tooltip toLeftTooltip = new Tooltip("Apply this chunk from right to left");
+    private final Tooltip toRightTooltip = new Tooltip(I18n.t("DiffGutter.apply-this-chunk-from-left"));
+    private final Tooltip toLeftTooltip = new Tooltip(I18n.t("DiffGutter.apply-this-chunk-from-right"));
     private int visibleArrows;
     private boolean relayoutPending;
 

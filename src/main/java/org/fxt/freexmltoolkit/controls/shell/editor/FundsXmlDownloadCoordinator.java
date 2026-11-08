@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
@@ -206,7 +208,7 @@ public final class FundsXmlDownloadCoordinator {
                 String version = result.schemaVersion() == null ? "" : " (schema " + result.schemaVersion() + ")";
                 ToastNotification.success(window, "FundsXML content updated" + version);
             } else {
-                ToastNotification.info(window, "FundsXML update failed — see log for details");
+                ToastNotification.info(window, I18n.t("FundsXmlDownloadCoordinator.fundsxml-update-failed-see-log"));
             }
         } catch (Exception e) {
             logger.debug("Could not show FundsXML toast: {}", e.getMessage());

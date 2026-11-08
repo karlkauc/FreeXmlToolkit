@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -56,10 +58,10 @@ public final class XQueryTableRunner {
      */
     public static XQueryTable run(String xml, String xquery) {
         if (xml == null || xml.isBlank()) {
-            return XQueryTable.error("No XML to query.");
+            return XQueryTable.error(I18n.t("XQueryTableRunner.no-xml-to-query"));
         }
         if (xquery == null || xquery.isBlank()) {
-            return XQueryTable.error("No XQuery expression.");
+            return XQueryTable.error(I18n.t("XQueryTableRunner.no-xquery-expression"));
         }
         try {
             Processor processor = XsltTransformationEngine.getInstance().getSaxonProcessor();

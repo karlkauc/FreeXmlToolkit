@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.quickfix;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.function.Consumer;
 
 import javafx.scene.control.Menu;
@@ -24,7 +26,7 @@ public final class QuickFixMenuFactory {
      * @return the ready-made submenu
      */
     public static Menu buildQuickFixMenu(ValidationProblem problem, Consumer<SqfFixSuggestion> onPick) {
-        Menu menu = new Menu("Quick Fix");
+        Menu menu = new Menu(I18n.t("QuickFixMenuFactory.quick-fix"));
         menu.setGraphic(QuickFixIcons.lightbulb(16));
         for (SqfFixSuggestion fix : problem.fixes()) {
             MenuItem item = new MenuItem(fix.title()

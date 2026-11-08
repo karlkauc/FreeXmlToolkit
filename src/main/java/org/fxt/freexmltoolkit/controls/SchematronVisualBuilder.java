@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Optional;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -105,7 +107,7 @@ public class SchematronVisualBuilder extends VBox {
         });
 
         assertionActionsColumn.setCellFactory(param -> new TableCell<AssertionItem, Void>() {
-            private final Button deleteButton = new Button("Delete");
+            private final Button deleteButton = new Button(I18n.t("SchematronVisualBuilder.delete"));
 
             {
                 deleteButton.setOnAction(event -> {
@@ -157,7 +159,7 @@ public class SchematronVisualBuilder extends VBox {
         });
 
         reportActionsColumn.setCellFactory(param -> new TableCell<ReportItem, Void>() {
-            private final Button deleteButton = new Button("Delete");
+            private final Button deleteButton = new Button(I18n.t("SchematronVisualBuilder.delete"));
 
             {
                 deleteButton.setOnAction(event -> {
@@ -385,7 +387,7 @@ public class SchematronVisualBuilder extends VBox {
      */
     private void showAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Input Required");
+        alert.setTitle(I18n.t("SchematronVisualBuilder.input-required"));
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
@@ -673,8 +675,8 @@ public class SchematronVisualBuilder extends VBox {
          * Creates a new assertion dialog with input fields for test, message, and flag.
          */
         AssertionDialog() {
-            setTitle("Add Assertion");
-            setHeaderText("Create a new assertion rule");
+            setTitle(I18n.t("SchematronVisualBuilder.add-assertion"));
+            setHeaderText(I18n.t("SchematronVisualBuilder.create-a-new-assertion-rule"));
 
             ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
             getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
@@ -689,18 +691,18 @@ public class SchematronVisualBuilder extends VBox {
             testField.setPrefWidth(300);
 
             TextField messageField = new TextField();
-            messageField.setPromptText("Error message");
+            messageField.setPromptText(I18n.t("SchematronVisualBuilder.error-message"));
             messageField.setPrefWidth(300);
 
             TextField flagField = new TextField();
-            flagField.setPromptText("Flag (optional)");
+            flagField.setPromptText(I18n.t("SchematronVisualBuilder.flag-optional"));
             flagField.setPrefWidth(200);
 
-            grid.add(new Label("Test:"), 0, 0);
+            grid.add(new Label(I18n.t("SchematronVisualBuilder.test")), 0, 0);
             grid.add(testField, 1, 0);
-            grid.add(new Label("Message:"), 0, 1);
+            grid.add(new Label(I18n.t("SchematronVisualBuilder.message")), 0, 1);
             grid.add(messageField, 1, 1);
-            grid.add(new Label("Flag:"), 0, 2);
+            grid.add(new Label(I18n.t("SchematronVisualBuilder.flag")), 0, 2);
             grid.add(flagField, 1, 2);
 
             getDialogPane().setContent(grid);
@@ -724,8 +726,8 @@ public class SchematronVisualBuilder extends VBox {
          * Creates a new report dialog with input fields for test, message, and flag.
          */
         ReportDialog() {
-            setTitle("Add Report");
-            setHeaderText("Create a new report rule");
+            setTitle(I18n.t("SchematronVisualBuilder.add-report"));
+            setHeaderText(I18n.t("SchematronVisualBuilder.create-a-new-report-rule"));
 
             ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
             getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
@@ -740,18 +742,18 @@ public class SchematronVisualBuilder extends VBox {
             testField.setPrefWidth(300);
 
             TextField messageField = new TextField();
-            messageField.setPromptText("Warning message");
+            messageField.setPromptText(I18n.t("SchematronVisualBuilder.warning-message"));
             messageField.setPrefWidth(300);
 
             TextField flagField = new TextField();
-            flagField.setPromptText("Flag (optional)");
+            flagField.setPromptText(I18n.t("SchematronVisualBuilder.flag-optional"));
             flagField.setPrefWidth(200);
 
-            grid.add(new Label("Test:"), 0, 0);
+            grid.add(new Label(I18n.t("SchematronVisualBuilder.test")), 0, 0);
             grid.add(testField, 1, 0);
-            grid.add(new Label("Message:"), 0, 1);
+            grid.add(new Label(I18n.t("SchematronVisualBuilder.message")), 0, 1);
             grid.add(messageField, 1, 1);
-            grid.add(new Label("Flag:"), 0, 2);
+            grid.add(new Label(I18n.t("SchematronVisualBuilder.flag")), 0, 2);
             grid.add(flagField, 1, 2);
 
             getDialogPane().setContent(grid);

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -648,9 +650,9 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Update placeholder text if patterns are from referenced type
         if (patternsFromReferencedType && !effectivePatterns.isEmpty()) {
-            patternsListView.setPlaceholder(new Label("Patterns from referenced type (read-only)"));
+            patternsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.patterns-from-referenced-type-read")));
         } else {
-            patternsListView.setPlaceholder(new Label("No patterns defined for this element"));
+            patternsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-patterns-defined-for-this")));
         }
 
         logger.debug("Loaded {} patterns from element '{}' (from referenced type: {})",
@@ -667,9 +669,9 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Update placeholder text if enumerations are from referenced type
         if (enumerationsFromReferencedType && !effectiveEnumerations.isEmpty()) {
-            enumerationsListView.setPlaceholder(new Label("Enumerations from referenced type (read-only)"));
+            enumerationsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.enumerations-from-referenced-type-read")));
         } else {
-            enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
+            enumerationsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-enumeration-values-defined")));
         }
 
         logger.debug("Loaded {} enumerations from element '{}' (from referenced type: {})",
@@ -686,9 +688,9 @@ public class XsdPropertiesPanel extends BorderPane {
 
         // Update placeholder text if assertions are from referenced type
         if (assertionsFromReferencedType && !effectiveAssertions.isEmpty()) {
-            assertionsListView.setPlaceholder(new Label("Assertions from referenced type (read-only)"));
+            assertionsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.assertions-from-referenced-type-read")));
         } else {
-            assertionsListView.setPlaceholder(new Label("No assertions defined (requires XSD 1.1)"));
+            assertionsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-assertions-defined-requires-xsd")));
         }
 
         logger.debug("Loaded {} assertions from element '{}' (from referenced type: {})",
@@ -718,9 +720,9 @@ public class XsdPropertiesPanel extends BorderPane {
             if (typeRef != null && !typeRef.isEmpty()) {
                 updateFacetsForAttribute(xsdAttribute, typeRef);
             }
-            patternsListView.setPlaceholder(new Label("No patterns defined for this attribute"));
-            enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
-            assertionsListView.setPlaceholder(new Label("No assertions defined"));
+            patternsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-patterns-defined-for-this-2")));
+            enumerationsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-enumeration-values-defined")));
+            assertionsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-assertions-defined")));
             logger.debug("Attribute '{}' has built-in type '{}', no referenced type to resolve",
                     xsdAttribute.getName(), typeRef);
             return;
@@ -779,7 +781,7 @@ public class XsdPropertiesPanel extends BorderPane {
             enumerationsListView.getItems().addAll(enumerations);
             enumerationsListView.setPlaceholder(new Label("Enumerations from type '" + typeName + "' (read-only)"));
         } else {
-            enumerationsListView.setPlaceholder(new Label("No enumeration values defined"));
+            enumerationsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-enumeration-values-defined")));
         }
 
         // Load patterns from referenced type
@@ -789,7 +791,7 @@ public class XsdPropertiesPanel extends BorderPane {
             patternsListView.getItems().addAll(patterns);
             patternsListView.setPlaceholder(new Label("Patterns from type '" + typeName + "' (read-only)"));
         } else {
-            patternsListView.setPlaceholder(new Label("No patterns defined for this attribute"));
+            patternsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-patterns-defined-for-this-2")));
         }
 
         // Load assertions from referenced type
@@ -799,7 +801,7 @@ public class XsdPropertiesPanel extends BorderPane {
             assertionsListView.getItems().addAll(assertions);
             assertionsListView.setPlaceholder(new Label("Assertions from type '" + typeName + "' (read-only)"));
         } else {
-            assertionsListView.setPlaceholder(new Label("No assertions defined"));
+            assertionsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-assertions-defined")));
         }
 
         logger.debug("Updated facets column for attribute '{}' (type '{}': {} enumerations, {} patterns, {} assertions)",
@@ -2051,7 +2053,7 @@ public class XsdPropertiesPanel extends BorderPane {
             IconifyIcon commentIcon = new IconifyIcon("bi-chat-left-quote");
             commentIcon.setIconSize(18);
             commentIcon.setIconColor(Color.web("#6c757d"));
-            Label titleLabel = new Label("Comment");
+            Label titleLabel = new Label(I18n.t("XsdPropertiesPanel.comment"));
             titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
             titleBox.getChildren().addAll(commentIcon, titleLabel);
 
@@ -2061,11 +2063,11 @@ public class XsdPropertiesPanel extends BorderPane {
             contentArea.setWrapText(true);
             contentArea.setPrefRowCount(8);
             contentArea.setEditable(isEditMode);
-            contentArea.setPromptText("Enter comment text...");
+            contentArea.setPromptText(I18n.t("XsdPropertiesPanel.enter-comment-text"));
             VBox.setVgrow(contentArea, Priority.ALWAYS);
 
             // Apply button
-            Button applyBtn = new Button("Apply");
+            Button applyBtn = new Button(I18n.t("XsdPropertiesPanel.apply"));
             IconifyIcon applyIcon = new IconifyIcon("bi-check-circle");
             applyIcon.setIconSize(16);
             applyIcon.setIconColor(Color.web("#28a745"));

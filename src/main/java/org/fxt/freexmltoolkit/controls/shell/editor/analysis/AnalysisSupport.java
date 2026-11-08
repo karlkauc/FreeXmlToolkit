@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -53,7 +55,7 @@ final class AnalysisSupport {
      */
     static void toggleChip(Label chip, Property<String> filter, String value, String all) {
         chip.setCursor(Cursor.HAND);
-        chip.setTooltip(new Tooltip("Click to show only these entries"));
+        chip.setTooltip(new Tooltip(I18n.t("AnalysisSupport.click-to-show-only-these")));
         chip.setOnMouseClicked(e -> filter.setValue(value.equals(filter.getValue()) ? all : value));
         Runnable sync = () -> {
             boolean active = value.equals(filter.getValue());

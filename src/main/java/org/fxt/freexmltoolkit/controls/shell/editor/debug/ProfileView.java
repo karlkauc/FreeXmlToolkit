@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -236,7 +238,7 @@ public class ProfileView extends VBox {
 
     private void export(String name, String type, String glob, String content) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Export Profile");
+        chooser.setTitle(I18n.t("ProfileView.export-profile"));
         chooser.setInitialFileName(name);
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(type, glob));
         File file = FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
@@ -246,7 +248,7 @@ public class ProfileView extends VBox {
         try {
             Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            DialogHelper.showError("Export Profile", "The profile could not be written.", e.getMessage(), e);
+            DialogHelper.showError(I18n.t("ProfileView.export-profile"), I18n.t("ProfileView.the-profile-could-not-be"), e.getMessage(), e);
         }
     }
 

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -32,7 +34,7 @@ public final class MatchExplanationDialog extends Dialog<Void> {
      */
     public MatchExplanationDialog(String node, String mode, List<MatchExplanation.Line> lines,
                                   Consumer<MatchExplanation.Line> onOpen) {
-        setTitle("Explain Match");
+        setTitle(I18n.t("MatchExplanationDialog.explain-match"));
         setHeaderText("Template rules for " + node + ("#default".equals(mode) ? "" : "  ·  mode " + mode));
         IconifyIcon icon = new IconifyIcon("bi-diagram-3");
         icon.setIconSize(32);

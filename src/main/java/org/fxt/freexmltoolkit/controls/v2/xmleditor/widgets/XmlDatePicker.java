@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -126,7 +128,7 @@ public class XmlDatePicker implements TypeAwareWidgetFactory.EditWidget {
                 datePicker.setValue(parsed);
                 validationResult = ValidationResult.valid();
             } else if (!text.isEmpty()) {
-                validationResult = ValidationResult.warning("Invalid date format. Use YYYY-MM-DD");
+                validationResult = ValidationResult.warning(I18n.t("XmlDatePicker.invalid-date-format-use-yyyy"));
             }
             applyValidationStyle();
         });

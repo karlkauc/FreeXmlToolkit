@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
@@ -95,21 +97,21 @@ public class SchematronDocumentationGenerator extends VBox {
     private void initializeComponents() {
         // File selection
         schematronFileField = new TextField();
-        schematronFileField.setPromptText("Select Schematron file to document...");
+        schematronFileField.setPromptText(I18n.t("SchematronDocumentationGenerator.select-schematron-file-to-document"));
         schematronFileField.setEditable(false);
         schematronFileField.setPrefWidth(400);
 
-        browseButton = new Button("Browse...");
+        browseButton = new Button(I18n.t("SchematronDocumentationGenerator.browse"));
         browseButton.setPrefWidth(80);
 
         // Options
-        includeXPathCheckBox = new CheckBox("Include XPath Details");
+        includeXPathCheckBox = new CheckBox(I18n.t("SchematronDocumentationGenerator.include-xpath-details"));
         includeXPathCheckBox.setSelected(true);
 
-        includeExamplesCheckBox = new CheckBox("Include Code Examples");
+        includeExamplesCheckBox = new CheckBox(I18n.t("SchematronDocumentationGenerator.include-code-examples"));
         includeExamplesCheckBox.setSelected(true);
 
-        includeStatisticsCheckBox = new CheckBox("Include Statistics");
+        includeStatisticsCheckBox = new CheckBox(I18n.t("SchematronDocumentationGenerator.include-statistics"));
         includeStatisticsCheckBox.setSelected(false);
 
         formatComboBox = new ComboBox<>();
@@ -117,12 +119,12 @@ public class SchematronDocumentationGenerator extends VBox {
         formatComboBox.setValue("HTML");
 
         // Generation controls
-        generateButton = new Button("Generate Documentation");
+        generateButton = new Button(I18n.t("SchematronDocumentationGenerator.generate-documentation"));
         generateButton.getStyleClass().add("primary-button");
         generateButton.setPrefWidth(180);
         generateButton.setDisable(true);
 
-        exportButton = new Button("Export...");
+        exportButton = new Button(I18n.t("SchematronDocumentationGenerator.export"));
         exportButton.getStyleClass().add("secondary-button");
         exportButton.setPrefWidth(100);
         exportButton.setDisable(true);
@@ -131,7 +133,7 @@ public class SchematronDocumentationGenerator extends VBox {
         progressBar.setPrefWidth(200);
         progressBar.setVisible(false);
 
-        statusLabel = new Label("Ready");
+        statusLabel = new Label(I18n.t("SchematronDocumentationGenerator.ready"));
         statusLabel.getStyleClass().add("status-label");
 
         // Documentation display
@@ -144,7 +146,7 @@ public class SchematronDocumentationGenerator extends VBox {
      */
     private void layoutComponents() {
         // Header
-        Label headerLabel = new Label("Schematron Documentation Generator");
+        Label headerLabel = new Label(I18n.t("SchematronDocumentationGenerator.schematron-documentation-generator"));
         headerLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
 
         // File section
@@ -198,7 +200,7 @@ public class SchematronDocumentationGenerator extends VBox {
         HBox fileRow = new HBox(10);
         fileRow.setAlignment(Pos.CENTER_LEFT);
         fileRow.getChildren().addAll(
-                new Label("File:"),
+                new Label(I18n.t("SchematronDocumentationGenerator.file")),
                 schematronFileField,
                 browseButton
         );
@@ -222,7 +224,7 @@ public class SchematronDocumentationGenerator extends VBox {
         optionsRow2.setAlignment(Pos.CENTER_LEFT);
         optionsRow2.getChildren().addAll(
                 includeStatisticsCheckBox,
-                new Label("Format:"),
+                new Label(I18n.t("SchematronDocumentationGenerator.format")),
                 formatComboBox
         );
 
@@ -286,7 +288,7 @@ public class SchematronDocumentationGenerator extends VBox {
      */
     private void browseForSchematronFile() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Schematron File");
+        fileChooser.setTitle(I18n.t("SchematronDocumentationGenerator.select-schematron-file"));
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Schematron files", "*.sch", "*.schematron"),
                 new FileChooser.ExtensionFilter("All Files", "*.*")
@@ -311,7 +313,7 @@ public class SchematronDocumentationGenerator extends VBox {
 
         progressBar.setProgress(-1); // Indeterminate progress
         progressBar.setVisible(true);
-        statusLabel.setText("Generating documentation...");
+        statusLabel.setText(I18n.t("SchematronDocumentationGenerator.generating-documentation"));
         generateButton.setDisable(true);
 
         // Generate documentation in background
@@ -326,7 +328,7 @@ public class SchematronDocumentationGenerator extends VBox {
             generatedDocumentation = documentationTask.getValue();
             displayDocumentation(generatedDocumentation);
 
-            statusLabel.setText("Documentation generated successfully");
+            statusLabel.setText(I18n.t("SchematronDocumentationGenerator.documentation-generated-successfully"));
             progressBar.setVisible(false);
             generateButton.setDisable(false);
             exportButton.setDisable(false);
@@ -342,7 +344,7 @@ public class SchematronDocumentationGenerator extends VBox {
             progressBar.setVisible(false);
             generateButton.setDisable(false);
 
-            org.fxt.freexmltoolkit.util.DialogHelper.showError("Generation Error", null,
+            org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("SchematronDocumentationGenerator.generation-error"), null,
                     "Failed to generate documentation: " + exception.getMessage(), exception);
         });
 
@@ -809,7 +811,7 @@ public class SchematronDocumentationGenerator extends VBox {
         }
 
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Export Documentation");
+        fileChooser.setTitle(I18n.t("SchematronDocumentationGenerator.export-documentation"));
 
         String extension;
         String description;
@@ -846,7 +848,7 @@ public class SchematronDocumentationGenerator extends VBox {
                 logger.info("Documentation exported to: {}", file.getAbsolutePath());
             } catch (Exception e) {
                 logger.error("Export failed", e);
-                org.fxt.freexmltoolkit.util.DialogHelper.showError("Export Error", null,
+                org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("SchematronDocumentationGenerator.export-error"), null,
                         "Failed to export documentation: " + e.getMessage(), e);
             }
         }

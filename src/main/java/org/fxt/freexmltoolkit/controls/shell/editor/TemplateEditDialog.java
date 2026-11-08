@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Set;
 
 import javafx.fxml.FXML;
@@ -67,7 +69,7 @@ public class TemplateEditDialog extends Dialog<XmlTemplate> {
             typeBox.getSelectionModel().select(typeOf(existing));
         } else {
             typeBox.getSelectionModel().select(EditorFileType.XML);
-            categoryField.setText("Custom");
+            categoryField.setText(I18n.t("TemplateEditDialog.custom"));
         }
     }
 

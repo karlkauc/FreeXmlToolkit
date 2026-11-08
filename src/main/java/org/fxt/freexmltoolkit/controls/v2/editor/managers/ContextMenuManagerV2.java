@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ContextMenu;
@@ -95,12 +97,12 @@ public class ContextMenuManagerV2 implements XmlContextMenuManager.XmlContextAct
         }
 
         // Create Undo item
-        undoMenuItem = new MenuItem("Undo (Ctrl+Z)");
+        undoMenuItem = new MenuItem(I18n.t("ContextMenuManagerV2.undo-ctrl-z"));
         undoMenuItem.setGraphic(createColoredIcon("bi-arrow-counterclockwise", ActionColor.NEUTRAL));
         undoMenuItem.setOnAction(e -> performUndo());
 
         // Create Redo item
-        redoMenuItem = new MenuItem("Redo (Ctrl+Y)");
+        redoMenuItem = new MenuItem(I18n.t("ContextMenuManagerV2.redo-ctrl-y"));
         redoMenuItem.setGraphic(createColoredIcon("bi-arrow-clockwise", ActionColor.NEUTRAL));
         redoMenuItem.setOnAction(e -> performRedo());
 

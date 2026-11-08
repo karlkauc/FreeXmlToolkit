@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +99,7 @@ public final class EditorActions {
         String content = editorHost.getActiveText().orElse("");
         if (content.isBlank()) {
             editorHost.setValidationStatus(EditorHost.ValidationState.NOT_VALIDATED, 0, "Not validated");
-            editorHost.openToolTab("Validation", "bi-check2-circle",
+            editorHost.openToolTab(I18n.t("EditorActions.validation"), "bi-check2-circle",
                     messageRegion("Empty document — nothing to validate."));
             return;
         }
@@ -125,13 +127,13 @@ public final class EditorActions {
                 editorHost.setValidationStatus(
                         result.isEmpty() ? EditorHost.ValidationState.VALID : EditorHost.ValidationState.INVALID,
                         result.size(), summary);
-                editorHost.openToolTab("Validation", "bi-check2-circle",
+                editorHost.openToolTab(I18n.t("EditorActions.validation"), "bi-check2-circle",
                         validationResultRegion(result, summary));
                 if (runResult.failed()) {
                     // the validate event already carries the failure; the dialog explains it
-                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Validation",
-                            "Validation could not run.",
-                            "Check that the bound schema or Schematron loads, then validate again.",
+                    org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorActions.validation"),
+                            I18n.t("EditorActions.validation-could-not-run"),
+                            I18n.t("EditorActions.check-that-the-bound-schema"),
                             runResult.error(), false);
                 }
             });
@@ -172,14 +174,13 @@ public final class EditorActions {
         TransformOutputPanel out = editorHost.transformOutputPanel();
         String query = editorHost.getActiveText().orElse("");
         if (query.isBlank()) {
-            out.showError("The query is empty.");
+            out.showError(I18n.t("EditorActions.the-query-is-empty"));
             return;
         }
         var doc = editorHost.getActiveDocument().orElseThrow();
         var resolved = editorHost.resolveQueryTarget(doc);
         if (resolved.isEmpty()) {
-            out.showError("Open an XML document first, or pick one via the Target dropdown — "
-                    + "by default the query runs against the most recently active XML document.");
+            out.showError(I18n.t("EditorActions.open-an-xml-document-first"));
             return;
         }
         var target = resolved.get();
@@ -252,14 +253,13 @@ public final class EditorActions {
         TransformOutputPanel out = editorHost.transformOutputPanel();
         String xslt = editorHost.getActiveText().orElse("");
         if (xslt.isBlank()) {
-            out.showError("The stylesheet is empty.");
+            out.showError(I18n.t("EditorActions.the-stylesheet-is-empty"));
             return;
         }
         var doc = editorHost.getActiveDocument().orElseThrow();
         var resolved = editorHost.resolveQueryTarget(doc);
         if (resolved.isEmpty()) {
-            out.showError("Open an XML document first, or pick one via the Target dropdown — "
-                    + "by default the transform runs against the most recently active XML document.");
+            out.showError(I18n.t("EditorActions.open-an-xml-document-first-2"));
             return;
         }
         var target = resolved.get();
@@ -333,7 +333,7 @@ public final class EditorActions {
         TransformOutputPanel out = editorHost.transformOutputPanel();
         var doc = editorHost.getActiveDocument().orElseThrow();
         if (doc.getPath() == null) {
-            out.showError("Save the stylesheet first — the debugger runs the saved file.");
+            out.showError(I18n.t("EditorActions.save-the-stylesheet-first-the"));
             return;
         }
         // A saved debug configuration of this stylesheet decides input, parameters and format.
@@ -347,8 +347,7 @@ public final class EditorActions {
         }
         var resolved = editorHost.resolveQueryTarget(doc);
         if (resolved.isEmpty()) {
-            out.showError("Open an XML document first, or pick one via the Target dropdown — "
-                    + "by default the debugger runs against the most recently active XML document.");
+            out.showError(I18n.t("EditorActions.open-an-xml-document-first-3"));
             return;
         }
         String xml;
@@ -377,7 +376,7 @@ public final class EditorActions {
         TransformOutputPanel out = editorHost.transformOutputPanel();
         var doc = editorHost.getActiveDocument().orElseThrow();
         if (doc.getPath() == null) {
-            out.showError("Save the query first - breakpoints belong to its file.");
+            out.showError(I18n.t("EditorActions.save-the-query-first-breakpoints"));
             return;
         }
         String xml = "";
@@ -408,13 +407,12 @@ public final class EditorActions {
         TransformOutputPanel out = editorHost.transformOutputPanel();
         var doc = editorHost.getActiveDocument().orElseThrow();
         if (doc.getPath() == null) {
-            out.showError("Save the Schematron first - it is compiled from its file.");
+            out.showError(I18n.t("EditorActions.save-the-schematron-first-it"));
             return;
         }
         var resolved = editorHost.resolveQueryTarget(doc);
         if (resolved.isEmpty()) {
-            out.showError("Open an XML document first, or pick one via the Target dropdown - "
-                    + "the Schematron is debugged against the most recently active XML document.");
+            out.showError(I18n.t("EditorActions.open-an-xml-document-first-4"));
             return;
         }
         String xml;
@@ -446,7 +444,7 @@ public final class EditorActions {
         TransformOutputPanel out = editorHost.transformOutputPanel();
         String pipeline = editorHost.getActiveText().orElse("");
         if (pipeline.isBlank()) {
-            out.showError("The pipeline is empty.");
+            out.showError(I18n.t("EditorActions.the-pipeline-is-empty"));
             return;
         }
         var doc = editorHost.getActiveDocument().orElseThrow();

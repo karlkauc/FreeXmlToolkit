@@ -120,8 +120,16 @@ public final class I18n {
         return bundle.containsKey(key) ? bundle.getString(key) : fallback;
     }
 
-    /** @return the text of {@code key} with {@code {0}}, {@code {1}} … replaced (MessageFormat rules) */
+    /**
+     * @return the text of {@code key} with {@code {0}}, {@code {1}} … replaced by the arguments as text
+     *         ({@code String.valueOf}); the pattern follows MessageFormat rules ({@code ''} for an apostrophe)
+     */
     public static String t(String key, Object... args) {
-        return new MessageFormat(t(key), locale).format(args);
+        // Arguments as plain text: MessageFormat would group numbers ("1,234") and format dates
+        Object[] texts = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            texts[i] = args[i] == null ? "null" : String.valueOf(args[i]);
+        }
+        return new MessageFormat(t(key), locale).format(texts);
     }
 }

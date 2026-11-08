@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,9 +90,9 @@ public class FavoritesManagerView extends BorderPane {
                 d.getValue().getFilePath()));
 
         ContextMenu rowMenu = new ContextMenu();
-        MenuItem open = new MenuItem("Open", SemanticIcon.paint(icon("bi-folder2-open", 16), ActionColor.NAVIGATE));
+        MenuItem open = new MenuItem(I18n.t("FavoritesManagerView.open"), SemanticIcon.paint(icon("bi-folder2-open", 16), ActionColor.NAVIGATE));
         open.setOnAction(e -> openSelected());
-        MenuItem remove = new MenuItem("Remove from favorites", SemanticIcon.paint(icon("bi-x-circle", 16), ActionColor.DELETE));
+        MenuItem remove = new MenuItem(I18n.t("FavoritesManagerView.remove-from-favorites"), SemanticIcon.paint(icon("bi-x-circle", 16), ActionColor.DELETE));
         remove.setOnAction(e -> removeSelected());
         rowMenu.getItems().addAll(open, new SeparatorMenuItem(), remove);
         table.setContextMenu(rowMenu);

@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.format.DateTimeFormatter;
@@ -148,7 +150,7 @@ public class ExecutionStatsView extends VBox {
             return;
         }
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Export Execution Statistics");
+        chooser.setTitle(I18n.t("ExecutionStatsView.export-execution-statistics"));
         chooser.setInitialFileName("execution-statistics." + format);
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                 format.toUpperCase() + " files", "*." + format));
@@ -162,7 +164,7 @@ public class ExecutionStatsView extends VBox {
                     : ExecutionStatsService.toJson(stats);
             Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Export failed",
+            org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("ExecutionStatsView.export-failed"),
                     "The statistics could not be written to " + file.getName() + ".",
                     org.fxt.freexmltoolkit.util.DialogHelper.Remedies.EXPORT, e);
         }

@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -1238,7 +1240,7 @@ public class EditorHost extends BorderPane {
         if (view.getGraphView() != null) {
             view.getGraphView().useMinimalChrome();
         }
-        javafx.scene.control.Button save = new javafx.scene.control.Button("Save to schema",
+        javafx.scene.control.Button save = new javafx.scene.control.Button(I18n.t("EditorHost.save-to-schema"),
                 new IconifyIcon("bi-save"));
         save.getStyleClass().add("fxt-tool-button");
         save.setOnAction(e -> {
@@ -1256,7 +1258,7 @@ public class EditorHost extends BorderPane {
     /** Shows a file chooser and opens the chosen file (used by the welcome empty-state). */
     public void openFileChooser() {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Open File");
+        chooser.setTitle(I18n.t("EditorHost.open-file"));
         chooser.getExtensionFilters().addAll(EditorFileType.fileChooserFilters());
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -1303,7 +1305,7 @@ public class EditorHost extends BorderPane {
         if (!org.fxt.freexmltoolkit.controls.diff.DiffView.tooLargeToCompare(leftChars, rightChars)) {
             return false;
         }
-        org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Compare", "Files too large to compare",
+        org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("EditorHost.compare"), I18n.t("EditorHost.files-too-large-to-compare"),
                 org.fxt.freexmltoolkit.controls.diff.DiffView.tooLargeMessage(leftChars, rightChars));
         return true;
     }
@@ -1611,7 +1613,7 @@ public class EditorHost extends BorderPane {
                 Platform.runLater(() -> openGeneratedDocument(body, type, name, UsageEvents.SOURCE_URL));
             } catch (Exception e) {
                 Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError(
-                        "Open from URL", "Could not fetch \"" + url + "\".",
+                        I18n.t("EditorHost.open-from-url"), "Could not fetch \"" + url + "\".",
                         org.fxt.freexmltoolkit.util.DialogHelper.Remedies.URL_FETCH, e));
             }
         });
@@ -1832,15 +1834,15 @@ public class EditorHost extends BorderPane {
     public void runXsltPreview(File xmlFile, File xsltFile) {
         TransformOutputPanel out = transformOutputPanel();
         if (xsltFile == null || !xsltFile.isFile()) {
-            out.showError("Select an XSLT stylesheet first.");
+            out.showError(I18n.t("EditorHost.select-an-xslt-stylesheet-first"));
             return;
         }
         if (xmlFile == null || !xmlFile.isFile()) {
-            out.showError("Select an XML file to transform.");
+            out.showError(I18n.t("EditorHost.select-an-xml-file-to"));
             return;
         }
         rememberRecentXslt(xsltFile);
-        out.showPending("Transforming…");
+        out.showPending(I18n.t("EditorHost.transforming"));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
@@ -1894,11 +1896,11 @@ public class EditorHost extends BorderPane {
     public void openBatchTransform(java.util.List<File> xmlFiles, File xsltFile) {
         TransformOutputPanel out = transformOutputPanel();
         if (xsltFile == null || !xsltFile.isFile()) {
-            out.showError("Select an XSLT stylesheet first.");
+            out.showError(I18n.t("EditorHost.select-an-xslt-stylesheet-first"));
             return;
         }
         if (xmlFiles == null || xmlFiles.isEmpty()) {
-            out.showError("Select XML files to transform.");
+            out.showError(I18n.t("EditorHost.select-xml-files-to-transform"));
             return;
         }
         rememberRecentXslt(xsltFile);
@@ -1916,7 +1918,7 @@ public class EditorHost extends BorderPane {
                 org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView.Kind.XSLT,
                 xsltContent, xsltFile.toURI().toString(), java.util.Map.of(), format);
         view.addInputFiles(xmlFiles);
-        openToolTab("Batch", "bi-collection", view);
+        openToolTab(I18n.t("EditorHost.batch"), "bi-collection", view);
         view.run();
     }
 
@@ -3462,9 +3464,9 @@ public class EditorHost extends BorderPane {
             if (tab instanceof EditorTab et && !et.document.isUntitled()) {
                 Path path = et.document.getPath().toAbsolutePath();
                 org.fxt.freexmltoolkit.util.DesktopActions.reveal(path.toFile(), e ->
-                        org.fxt.freexmltoolkit.util.DialogHelper.showActionError("Reveal Failed",
+                        org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorHost.reveal-failed"),
                                 "Could not show " + path + " in the file manager.",
-                                "Open the folder manually.", e));
+                                I18n.t("EditorHost.open-the-folder-manually"), e));
             }
         }
 

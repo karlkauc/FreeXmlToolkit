@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -32,7 +34,7 @@ public final class PanelProgress extends HBox {
 
     private final ProgressBar bar = new ProgressBar();
     private final Label countLabel = new Label();
-    private final Button cancelButton = new Button("Cancel");
+    private final Button cancelButton = new Button(I18n.t("PanelProgress.cancel"));
     private Runnable onCancel;
     private int total;
 

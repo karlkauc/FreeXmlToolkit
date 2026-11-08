@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -30,7 +32,7 @@ public class DocLanguagesEditor extends VBox {
 
     public DocLanguagesEditor() {
         setSpacing(6);
-        Button add = new Button("Add language");
+        Button add = new Button(I18n.t("DocLanguagesEditor.add-language"));
         IconifyIcon plus = new IconifyIcon("bi-plus-circle");
         plus.setIconSize(14);
         add.setGraphic(plus);

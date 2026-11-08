@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -41,7 +43,7 @@ public class BatchTransformView extends VBox {
     private final TableView<BatchFileResult> table = new TableView<>();
     private final List<File> inputFiles = new ArrayList<>();
     private final TextArea resultArea = new TextArea();
-    private final Label summary = new Label("No files selected.");
+    private final Label summary = new Label(I18n.t("BatchTransformView.no-files-selected"));
     private List<BatchFileResult> lastResults = List.of();
 
     public BatchTransformView(Kind kind, String transformContent,
@@ -79,7 +81,7 @@ public class BatchTransformView extends VBox {
         table.getColumns().add(DebugTableColumns.col("Status", r -> r.ok() ? "OK" : "ERROR", 80));
         table.getColumns().add(DebugTableColumns.col("ms", r -> Long.toString(r.timeMs()), 60));
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(new Label("Add XML files to process."));
+        table.setPlaceholder(new Label(I18n.t("BatchTransformView.add-xml-files-to-process")));
         table.getSelectionModel().selectedItemProperty().addListener((obs, o, sel) ->
                 resultArea.setText(sel == null ? "" : (sel.ok() ? sel.output() : sel.error())));
         VBox.setVgrow(table, Priority.ALWAYS);
@@ -94,13 +96,13 @@ public class BatchTransformView extends VBox {
         resultArea.getStyleClass().add("fxt-transform-output");
 
         getChildren().addAll(title, fileButtons, table, runButtons,
-                new Label("RESULT"), resultArea);
+                new Label(I18n.t("BatchTransformView.result")), resultArea);
         refreshFileTable();
     }
 
     private void addFiles() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Add XML files");
+        chooser.setTitle(I18n.t("BatchTransformView.add-xml-files"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
         List<File> chosen = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenMultipleDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (chosen != null) {
@@ -111,7 +113,7 @@ public class BatchTransformView extends VBox {
 
     private void addDirectory() {
         DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Add a directory of XML files");
+        chooser.setTitle(I18n.t("BatchTransformView.add-a-directory-of-xml"));
         File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir != null && dir.isDirectory()) {
             File[] xmls = dir.listFiles((d, name) -> name.toLowerCase().endsWith(".xml"));
@@ -152,11 +154,11 @@ public class BatchTransformView extends VBox {
     /** Runs the batch off the UI thread and shows per-file outcomes. */
     public void run() {
         if (inputFiles.isEmpty()) {
-            summary.setText("Add files first.");
+            summary.setText(I18n.t("BatchTransformView.add-files-first"));
             return;
         }
         List<File> files = new ArrayList<>(inputFiles);
-        summary.setText("Running…");
+        summary.setText(I18n.t("BatchTransformView.running"));
         FxtGui.executorService.submit(() -> {
             List<BatchFileResult> results = kind == Kind.XQUERY
                     ? BatchTransformRunner.runXQueryBatch(files, transformContent, transformSystemId, parameters, format)
@@ -172,11 +174,11 @@ public class BatchTransformView extends VBox {
 
     private void saveAll() {
         if (lastResults.isEmpty()) {
-            summary.setText("Run the batch first.");
+            summary.setText(I18n.t("BatchTransformView.run-the-batch-first"));
             return;
         }
         DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Save all results to…");
+        chooser.setTitle(I18n.t("BatchTransformView.save-all-results-to"));
         File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir == null) {
             return;

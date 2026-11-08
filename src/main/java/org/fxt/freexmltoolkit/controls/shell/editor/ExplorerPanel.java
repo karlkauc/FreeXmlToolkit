@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
@@ -72,7 +74,7 @@ public class ExplorerPanel extends VBox {
      */
     @FXML private VBox openEditorsBox;
     private final WorkspaceTree workspace = new WorkspaceTree(this::openWorkspaceFile);
-    private final Label workspaceTitle = new Label("WORKSPACE");
+    private final Label workspaceTitle = new Label(I18n.t("ExplorerPanel.workspace"));
     @FXML private VBox toolsBody;
     @FXML private PanelActionList fileActions;
     @FXML private PanelActionButton compareButton;
@@ -143,14 +145,14 @@ public class ExplorerPanel extends VBox {
         // --- collapsible section headers, each in front of the content it toggles ----
         // Panel schema: the TOOLS come first, open by default, then the files the panel is
         // opened for (OPEN EDITORS, WORKSPACE).
-        HBox openHeader = SidePanelLayout.sectionHeader(new Label("OPEN EDITORS"), openEditorsScroll, openEditorsBox);
+        HBox openHeader = SidePanelLayout.sectionHeader(new Label(I18n.t("ExplorerPanel.open-editors")), openEditorsScroll, openEditorsBox);
         openHeader.setId("explorer-open-editors-header");
         workspaceTitle.getStyleClass().add("fxt-sp-section-label");
         workspace.setOnOpenFolder(this::onChooseFolder);
         HBox workspaceHeader = SidePanelLayout.sectionHeader(workspaceTitle, workspace);
         workspaceHeader.setId("explorer-workspace-header");
         VBox.setVgrow(workspace, Priority.ALWAYS);
-        HBox toolsHeader = SidePanelLayout.sectionHeader(loadToolsCollapsed(), new Label("TOOLS"), toolsBody);
+        HBox toolsHeader = SidePanelLayout.sectionHeader(loadToolsCollapsed(), new Label(I18n.t("ExplorerPanel.tools")), toolsBody);
         toolsHeader.setId("explorer-tools-header");
         toolsBody.visibleProperty().addListener((obs, oldV, visible) -> saveToolsCollapsed(!visible));
         getChildren().add(getChildren().indexOf(openEditorsScroll), openHeader);
@@ -334,12 +336,12 @@ public class ExplorerPanel extends VBox {
 
     private javafx.scene.control.ContextMenu buildFavoriteContextMenu() {
         javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu();
-        MenuItem open = new MenuItem("Open", menuIcon("bi-folder2-open", ActionColor.NAVIGATE));
+        MenuItem open = new MenuItem(I18n.t("ExplorerPanel.open"), menuIcon("bi-folder2-open", ActionColor.NAVIGATE));
         open.setOnAction(e -> selectedFavoriteFile().ifPresent(
                 f -> FavoritesMenu.recordingAccess(file -> editorHost.openFile(file.toPath())).accept(f)));
-        MenuItem reveal = new MenuItem("Reveal in Workspace", menuIcon("bi-diagram-3", ActionColor.NAVIGATE));
+        MenuItem reveal = new MenuItem(I18n.t("ExplorerPanel.reveal-in-workspace"), menuIcon("bi-diagram-3", ActionColor.NAVIGATE));
         reveal.setOnAction(e -> selectedFavoriteFile().ifPresent(f -> revealFile(f.toPath())));
-        MenuItem remove = new MenuItem("Remove from Favorites", menuIcon("bi-star", ActionColor.DELETE));
+        MenuItem remove = new MenuItem(I18n.t("ExplorerPanel.remove-from-favorites"), menuIcon("bi-star", ActionColor.DELETE));
         remove.setOnAction(e -> {
             FileFavorite favorite = favoritesList.getSelectionModel().getSelectedItem();
             if (favorite != null) {
@@ -513,7 +515,7 @@ public class ExplorerPanel extends VBox {
     /** Opens a file chooser to pick a stylesheet, then makes it the current one. */
     private void chooseStylesheet() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Choose XSLT stylesheet");
+        chooser.setTitle(I18n.t("ExplorerPanel.choose-xslt-stylesheet"));
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("XSLT", "*.xsl", "*.xslt"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
@@ -561,7 +563,7 @@ public class ExplorerPanel extends VBox {
         }
         java.util.List<File> xmls = selectedXmlFiles();
         if (xmls.isEmpty()) {
-            editorHost.transformOutputPanel().showError("Select an XML file to transform.");
+            editorHost.transformOutputPanel().showError(I18n.t("ExplorerPanel.select-an-xml-file-to"));
             return;
         }
         if (xmls.size() == 1) {
@@ -627,7 +629,7 @@ public class ExplorerPanel extends VBox {
     /** Opens a file chooser to pick a Schematron, then makes it the current one. */
     private void chooseSchematronFile() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Choose Schematron");
+        chooser.setTitle(I18n.t("ExplorerPanel.choose-schematron"));
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Schematron", "*.sch", "*.schematron"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
@@ -677,7 +679,7 @@ public class ExplorerPanel extends VBox {
         }
         java.util.List<File> xmls = selectedXmlFiles();
         if (xmls.isEmpty()) {
-            editorHost.transformOutputPanel().showError("Select an XML file to validate.");
+            editorHost.transformOutputPanel().showError(I18n.t("ExplorerPanel.select-an-xml-file-to-2"));
             return;
         }
         editorHost.setActiveSchematron(schematron);
@@ -730,7 +732,7 @@ public class ExplorerPanel extends VBox {
         transform.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-arrow-repeat", 16),
                 org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL));
         transform.setDisable(!hasXml);
-        javafx.scene.control.Menu otherXslt = new javafx.scene.control.Menu("Transform with Other Stylesheet");
+        javafx.scene.control.Menu otherXslt = new javafx.scene.control.Menu(I18n.t("ExplorerPanel.transform-with-other-stylesheet"));
         otherXslt.setId("explorer-ctx-transform-with");
         otherXslt.setGraphic(icon("bi-file-earmark-code", 16));
         for (File file : recentXsltFiles()) {
@@ -741,7 +743,7 @@ public class ExplorerPanel extends VBox {
             recent.setGraphic(icon("bi-file-earmark-code", 16));
             otherXslt.getItems().add(recent);
         }
-        MenuItem chooseXslt = menuItem("Choose stylesheet…", () -> {
+        MenuItem chooseXslt = menuItem(I18n.t("ExplorerPanel.choose-stylesheet"), () -> {
             chooseStylesheet();
             if (currentXslt != null) {
                 runTransformOnSelection();
@@ -762,19 +764,19 @@ public class ExplorerPanel extends VBox {
         otherSch.setDisable(!hasXml);
 
         java.util.List<Path> selected = workspace.getSelectedFiles();
-        MenuItem open = menuItem("Open", () -> workspace.getSelectedFiles().forEach(this::openWorkspaceFile));
+        MenuItem open = menuItem(I18n.t("ExplorerPanel.open"), () -> workspace.getSelectedFiles().forEach(this::openWorkspaceFile));
         open.setId("explorer-ctx-open");
         open.setGraphic(icon("bi-box-arrow-up-right", 16));
         open.setDisable(selected.isEmpty());
 
-        MenuItem compare = menuItem("Compare Selected Files", this::onCompare);
+        MenuItem compare = menuItem(I18n.t("ExplorerPanel.compare-selected-files"), this::onCompare);
         compare.setId("explorer-ctx-compare");
         compare.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-file-diff", 16),
                 org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL));
         compare.setDisable(selected.size() != 2);
 
         boolean selectedXml = selected.stream().anyMatch(ExplorerPanel::isXmlFile);
-        MenuItem xsd = menuItem("Generate XSD from Selected", this::onGenerateXsdBatch);
+        MenuItem xsd = menuItem(I18n.t("ExplorerPanel.generate-xsd-from-selected"), this::onGenerateXsdBatch);
         xsd.setId("explorer-ctx-generate-xsd");
         xsd.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-files", 16),
                 org.fxt.freexmltoolkit.controls.theme.ActionColor.CREATE));
@@ -879,7 +881,7 @@ public class ExplorerPanel extends VBox {
 
     /** The "Validate with Other Schematron" submenu: recents · Favorites · Choose… · Clear recent. */
     private javafx.scene.control.Menu schematronSubmenu() {
-        javafx.scene.control.Menu menu = new javafx.scene.control.Menu("Validate with Other Schematron");
+        javafx.scene.control.Menu menu = new javafx.scene.control.Menu(I18n.t("ExplorerPanel.validate-with-other-schematron"));
         menu.setId("explorer-ctx-validate-with");
         menu.setGraphic(icon("bi-ui-checks-grid", 16));
         for (File file : recentSchematronFiles()) {
@@ -898,14 +900,14 @@ public class ExplorerPanel extends VBox {
                     pickSchematron(file);
                     runValidationOnSelection();
                 }));
-        MenuItem choose = menuItem("Choose Schematron…", () -> {
+        MenuItem choose = menuItem(I18n.t("ExplorerPanel.choose-schematron-2"), () -> {
             chooseSchematronFile();
             if (currentSchematron != null) {
                 runValidationOnSelection();
             }
         });
         choose.setGraphic(icon("bi-folder2-open", 16));
-        MenuItem clear = menuItem("Clear recent", this::clearRecentSchematron);
+        MenuItem clear = menuItem(I18n.t("ExplorerPanel.clear-recent"), this::clearRecentSchematron);
         clear.setGraphic(icon("bi-eraser", 16));
         menu.getItems().addAll(choose, clear);
         return menu;
@@ -1010,7 +1012,7 @@ public class ExplorerPanel extends VBox {
     @FXML
     public void onChooseFolder() {
         DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Open Folder");
+        chooser.setTitle(I18n.t("ExplorerPanel.open-folder"));
         File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir != null) {
             setWorkspaceFolder(dir.toPath());
@@ -1020,7 +1022,7 @@ public class ExplorerPanel extends VBox {
     @FXML
     public void onOpenFile() {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Open File");
+        chooser.setTitle(I18n.t("ExplorerPanel.open-file"));
         chooser.getExtensionFilters().addAll(EditorFileType.fileChooserFilters());
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {

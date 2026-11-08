@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -140,11 +142,11 @@ public class ProblemsPanel extends VBox {
                     new SeparatorMenuItem());
         }
         menu.getItems().addAll(
-                menuItem("problems-ctx-copy-message", "Copy Message", "bi-clipboard",
+                menuItem("problems-ctx-copy-message", I18n.t("ProblemsPanel.copy-message"), "bi-clipboard",
                         () -> copyToClipboard(item.message() == null ? "" : item.message())),
-                menuItem("problems-ctx-copy", "Copy Problem", "bi-clipboard-plus",
+                menuItem("problems-ctx-copy", I18n.t("ProblemsPanel.copy-problem"), "bi-clipboard-plus",
                         () -> copyToClipboard(describe(item, documentName()))),
-                menuItem("problems-ctx-copy-all", "Copy All Problems", "bi-clipboard-data",
+                menuItem("problems-ctx-copy-all", I18n.t("ProblemsPanel.copy-all-problems"), "bi-clipboard-data",
                         () -> copyToClipboard(describeAll(items, documentName()))));
         return menu;
     }

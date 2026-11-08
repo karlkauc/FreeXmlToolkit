@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -171,7 +173,7 @@ public class LargeFileView extends VBox {
                     info.setText(path.getFileName() + " · " + LargeFileGuard.formatSize(built.size()) + " · "
                             + String.format(Locale.ROOT, "%,d", built.lineCount()) + " lines · "
                             + built.charset().name() + " · read-only");
-                    status.setText("Click a row to select it, Shift+click to extend, Ctrl+C to copy.");
+                    status.setText(I18n.t("LargeFileView.click-a-row-to-select"));
                     structureTab.setDisable(!looksLikeXml(built));
                     onIndexed.run();
                 });
@@ -358,7 +360,7 @@ public class LargeFileView extends VBox {
                 Platform.runLater(() -> {
                     hideProgress();
                     findButton.setDisable(false);
-                    status.setText("Search cancelled.");
+                    status.setText(I18n.t("LargeFileView.search-cancelled"));
                 });
             } catch (IOException | RuntimeException e) {
                 Platform.runLater(() -> {
@@ -436,7 +438,7 @@ public class LargeFileView extends VBox {
                     setText(null);
                     setGraphic(null);
                 } else if (item instanceof More) {
-                    setText("Load more…");
+                    setText(I18n.t("LargeFileView.load-more"));
                     setGraphic(null);
                 } else if (item instanceof LargeXmlStructure.Node node) {
                     setText(label(node));
@@ -475,10 +477,10 @@ public class LargeFileView extends VBox {
     }
 
     private javafx.scene.control.ContextMenu nodeMenu(java.util.function.Supplier<LargeXmlStructure.Node> target) {
-        javafx.scene.control.MenuItem show = menuItem("Show in Text", "bi-text-left", () -> showInText(target.get()));
-        javafx.scene.control.MenuItem open = menuItem("Open as New Document", "bi-box-arrow-up-right",
+        javafx.scene.control.MenuItem show = menuItem(I18n.t("LargeFileView.show-in-text"), "bi-text-left", () -> showInText(target.get()));
+        javafx.scene.control.MenuItem open = menuItem(I18n.t("LargeFileView.open-as-new-document"), "bi-box-arrow-up-right",
                 () -> extract(target.get()));
-        javafx.scene.control.MenuItem copy = menuItem("Copy XPath", "bi-clipboard", () -> {
+        javafx.scene.control.MenuItem copy = menuItem(I18n.t("LargeFileView.copy-xpath"), "bi-clipboard", () -> {
             LargeXmlStructure.Node node = target.get();
             if (node != null) {
                 ClipboardContent content = new ClipboardContent();
@@ -516,7 +518,7 @@ public class LargeFileView extends VBox {
 
     private void loadRoot() {
         LargeFileIndex current = index;
-        recordsLabel.setText("Reading the structure…");
+        recordsLabel.setText(I18n.t("LargeFileView.reading-the-structure"));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
                 LargeXmlStructure s = new LargeXmlStructure(current);
@@ -761,7 +763,7 @@ public class LargeFileView extends VBox {
             schema = schemaChoice.get();
         } else {
             javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-            chooser.setTitle("Validate Against a Schema");
+            chooser.setTitle(I18n.t("LargeFileView.validate-against-a-schema"));
             chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
             schema = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
                     getScene() != null ? getScene().getWindow() : null);
@@ -782,7 +784,7 @@ public class LargeFileView extends VBox {
             return;
         }
         if (schemaWanted && schema == null) {
-            status.setText("The document declares no schema the application can find; choose one with Against a Schema….");
+            status.setText(I18n.t("LargeFileView.the-document-declares-no-schema"));
             return;
         }
         cancel.set(true);
@@ -803,7 +805,7 @@ public class LargeFileView extends VBox {
                 Platform.runLater(() -> {
                     hideProgress();
                     validateButton.setDisable(false);
-                    status.setText("Validation cancelled.");
+                    status.setText(I18n.t("LargeFileView.validation-cancelled"));
                 });
             } catch (IOException | RuntimeException e) {
                 Platform.runLater(() -> {

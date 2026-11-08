@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -63,7 +65,7 @@ public class InspectorKeyValueList<T> extends VBox {
     public InspectorKeyValueList() {
         getStyleClass().add("fxt-inspector-codebox");
         placeholder.getStyleClass().add("fxt-inspector-kv-placeholder");
-        setPlaceholderText("None");
+        setPlaceholderText(I18n.t("InspectorKeyValueList.none"));
         getChildren().setAll(placeholder);
     }
 

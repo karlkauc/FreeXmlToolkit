@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -42,7 +44,7 @@ public final class DebugHover {
     private final VBox box = new VBox(2);
     private final Label title = new Label();
     private final Label value = new Label();
-    private final Hyperlink open = new Hyperlink("Open in value viewer");
+    private final Hyperlink open = new Hyperlink(I18n.t("DebugHover.open-in-value-viewer"));
     private final PauseTransition hideDelay = new PauseTransition(javafx.util.Duration.millis(500));
     private final EventHandler<MouseOverTextEvent> onBegin = this::onBegin;
     private final EventHandler<MouseOverTextEvent> onEnd = e -> hideDelay.playFromStart();

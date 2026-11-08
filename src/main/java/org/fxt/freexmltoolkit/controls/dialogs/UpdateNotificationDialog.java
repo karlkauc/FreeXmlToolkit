@@ -18,6 +18,8 @@
 
 package org.fxt.freexmltoolkit.controls.dialogs;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.net.URI;
 
 import javafx.fxml.FXML;
@@ -102,7 +104,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
     }
 
     private void initializeDialog() {
-        setTitle("Update Available");
+        setTitle(I18n.t("UpdateNotificationDialog.update-available"));
         initModality(Modality.APPLICATION_MODAL);
 
         DialogPane dialogPane = getDialogPane();

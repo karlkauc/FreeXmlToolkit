@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
@@ -38,7 +40,7 @@ public class SchematronReportView extends VBox {
         setPadding(new Insets(16));
         getStyleClass().add("fxt-side-panel-content");
 
-        Label title = new Label("SCHEMATRON REPORT");
+        Label title = new Label(I18n.t("SchematronReportView.schematron-report"));
         title.getStyleClass().add("fxt-side-panel-title");
 
         VBox meta = new VBox(2);
@@ -69,7 +71,7 @@ public class SchematronReportView extends VBox {
                 p -> nullSafe(p.context()), -1);
         table.getColumns().add(context);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPlaceholder(new Label("All rules passed — no findings."));
+        table.setPlaceholder(new Label(I18n.t("SchematronReportView.all-rules-passed-no-findings")));
         table.getItems().setAll(data.problems());
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.line() > 0 && editorHost != null) {
@@ -84,7 +86,7 @@ public class SchematronReportView extends VBox {
     /** Prompts for a target file and writes {@code content} to it. */
     private void save(String extension, String filterName, String content) {
         if (content == null) {
-            status.setText("Nothing to save.");
+            status.setText(I18n.t("SchematronReportView.nothing-to-save"));
             return;
         }
         FileChooser chooser = new FileChooser();
@@ -122,7 +124,7 @@ public class SchematronReportView extends VBox {
 
     /** A narrow column with a lightbulb button on rows that offer SQF quick fixes. */
     private static TableColumn<ValidationProblem, ValidationProblem> fixColumn(EditorHost editorHost) {
-        TableColumn<ValidationProblem, ValidationProblem> column = new TableColumn<>("Fix");
+        TableColumn<ValidationProblem, ValidationProblem> column = new TableColumn<>(I18n.t("SchematronReportView.fix"));
         column.setPrefWidth(50);
         column.setSortable(false);
         column.setCellValueFactory(c -> new javafx.beans.property.ReadOnlyObjectWrapper<>(c.getValue()));
@@ -139,7 +141,7 @@ public class SchematronReportView extends VBox {
                 Button button = new Button(null, bulb);
                 button.getStyleClass().add("fxt-tool-button");
                 javafx.scene.control.Tooltip.install(button,
-                        new javafx.scene.control.Tooltip("Apply a quick fix"));
+                        new javafx.scene.control.Tooltip(I18n.t("SchematronReportView.apply-a-quick-fix")));
                 button.setOnAction(e -> {
                     javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu(
                             org.fxt.freexmltoolkit.controls.shell.editor.quickfix.QuickFixMenuFactory

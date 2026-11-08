@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -57,10 +59,10 @@ public class WorkspaceTree extends VBox {
         });
 
         javafx.scene.control.Label hint = new javafx.scene.control.Label(
-                "No folder open. Open a folder to browse its XML, XSD and stylesheet files here.");
+                I18n.t("WorkspaceTree.no-folder-open-open-a"));
         hint.setWrapText(true);
         hint.getStyleClass().add("fxt-placeholder-text");
-        javafx.scene.control.Button open = PanelActionList.inlineRow("Open folder…", "bi-folder2-open", () -> {
+        javafx.scene.control.Button open = PanelActionList.inlineRow(I18n.t("WorkspaceTree.open-folder"), "bi-folder2-open", () -> {
             if (onOpenFolder != null) {
                 onOpenFolder.run();
             }
