@@ -53,6 +53,16 @@ as user data), `FolderComparison`, `ThreeWayMerge` (diff3 on java-diff-utils, Gi
 `XmlDiffPanel`), `MergeView` + `MergeFilesDialog`, `controls/shell/editor/FolderCompareView`,
 `DataConversionAction`. CLI: `compare`, `merge`, `convert`. Diff colours: `-fxt-diff-*` tokens.
 
+## Large File Viewer
+
+`service/largefile/`: `LargeFileIndex` (sparse row index, every 1024th row's offset; rows ≤ 4 KB, read
+from disk on demand; UTF-8/single-byte only), `LargeXmlStructure` (byte-level scanner: children of one
+element a page at a time, byte ranges, XPaths, fields), `LargeFileValidation` (streaming XSD/well-formedness
+via `XercesXmlValidationService.validateStream`). UI `controls/shell/editor/LargeFileView` (Text | Problems |
+Structure; `ListView` over `RowNumbers`, a list that stores nothing — a standalone `VirtualFlow` rendered no
+cells), opened by `EditorHost.openLargeFileViewer`, offered by `EditorFileSync` for files ≥ 50 MB / too large.
+`fxt-cli validate` streams XML files ≥ 64 MB. Docs: `docs/large-files.md`.
+
 ## Administrator Policy
 
 `service/AdminPolicy` reads machine-wide `policy.properties` (locked) and `defaults.properties`
