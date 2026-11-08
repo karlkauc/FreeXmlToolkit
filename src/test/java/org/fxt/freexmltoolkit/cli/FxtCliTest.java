@@ -260,6 +260,28 @@ class FxtCliTest {
     }
 
     @Nested
+    @DisplayName("merge")
+    class Merge {
+
+        @Test
+        @DisplayName("clean merge exits 0; conflicts exit 1 with markers and labels")
+        void merge() throws Exception {
+            Path base = write("base.xml", "<a>\n  <x>1</x>\n  <y>1</y>\n  <z>1</z>\n</a>\n");
+            Path mine = write("mine.xml", "<a>\n  <x>2</x>\n  <y>1</y>\n  <z>1</z>\n</a>\n");
+            Path theirs = write("theirs.xml", "<a>\n  <x>1</x>\n  <y>1</y>\n  <z>3</z>\n</a>\n");
+            Path merged = dir.resolve("merged.xml");
+            assertEquals(ExitCodes.OK, run("merge", base, mine, theirs, "-o", merged), err);
+            assertEquals("<a>\n  <x>2</x>\n  <y>1</y>\n  <z>3</z>\n</a>\n", Files.readString(merged));
+
+            Path other = write("other.xml", "<a>\n  <x>9</x>\n  <y>1</y>\n  <z>1</z>\n</a>\n");
+            assertEquals(ExitCodes.FAILED, run("merge", "-L", "ours", "-L", "base", "-L", "theirs", base, mine, other), err);
+            assertTrue(out.contains("<<<<<<< ours\n  <x>2</x>\n||||||| base\n  <x>1</x>\n=======\n  <x>9</x>\n>>>>>>> theirs\n"),
+                    out);
+            assertTrue(err.contains("1 conflict"), err);
+        }
+    }
+
+    @Nested
     @DisplayName("convert")
     class Convert {
 

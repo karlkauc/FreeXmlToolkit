@@ -4713,3 +4713,30 @@
 .fxt-folder-compare-only_right:selected .table-cell {
     -fx-text-fill: -fxt-on-primary;
 }
+
+/* Merge Files (MergeView): conflict blocks in the merged text */
+.merge-marker {
+    -fx-fill: -fxt-text-muted;
+    -rtfx-background-color: -fxt-bg-surface-2;
+}
+
+.merge-left {
+    -rtfx-background-color: -fxt-bg-subtle;
+}
+
+.merge-base {
+    -rtfx-background-color: -fxt-diff-modified-bg;
+}
+
+.merge-right {
+    -rtfx-background-color: -fxt-diff-added-bg;
+}
+
+.fxt-merge-status-conflicts {
+    -fx-text-fill: -fxt-warning;
+    -fx-font-weight: bold;
+}
+
+.fxt-merge-status-ok {
+    -fx-text-fill: -fxt-success-text;
+}

@@ -543,6 +543,16 @@ public final class XmlStructuralDiff {
         return Objects.requireNonNullElse(e.getMessage(), e.toString());
     }
 
+    /** @return why {@code xml} is not well-formed (with line and column), or {@code null} when it is */
+    public static String wellFormednessError(String xml) {
+        try {
+            parse(xml, Options.DEFAULTS);
+            return null;
+        } catch (SAXException | IOException | ParserConfigurationException e) {
+            return message(e);
+        }
+    }
+
     /** @return whether the text looks like XML (starts with {@code <} after whitespace and a BOM) */
     public static boolean looksLikeXml(String text) {
         if (text == null) {

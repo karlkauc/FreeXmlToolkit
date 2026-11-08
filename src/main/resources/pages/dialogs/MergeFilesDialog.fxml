@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Content of the "Merge Files" dialog: base, left and right version and the result file. Loaded by
+  MergeFilesDialog (FxmlViews.loadContent), which is the controller and adds title, header and buttons.
+-->
+<GridPane hgap="8" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <children>
+        <Label text="Base (common ancestor)" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="baseField" id="merge-base" prefColumnCount="40" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Button id="merge-base-browse" text="Browse…" onAction="#onBrowseBase" GridPane.rowIndex="0" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="Left (mine)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="leftField" id="merge-left" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Button id="merge-left-browse" text="Browse…" onAction="#onBrowseLeft" GridPane.rowIndex="1" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="Right (theirs)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="rightField" id="merge-right" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Button id="merge-right-browse" text="Browse…" onAction="#onBrowseRight" GridPane.rowIndex="2" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="Result file" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="resultField" id="merge-result" promptText="Optional: where Save writes the result"
+                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Button id="merge-result-browse" text="Browse…" onAction="#onBrowseResult" GridPane.rowIndex="3" GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label fx:id="error" id="merge-files-error" wrapText="true" visible="false" managed="false"
+               style="-fx-text-fill: #e03131;" GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+        <Label text="Changes made on one side only are taken over; lines both sides changed differently become conflicts to resolve."
+               wrapText="true" opacity="0.7" maxWidth="560" GridPane.rowIndex="5" GridPane.columnIndex="0"
+               GridPane.columnSpan="3"/>
+    </children>
+</GridPane>

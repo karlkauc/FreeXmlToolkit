@@ -421,6 +421,7 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onGenerateXsdBatch() { run("generate_xsd_batch", shell::onGenerateXsdBatch); }
     @FXML public void onCompare() { run("compare", shell::onCompare); }
     @FXML public void onCompareFolders() { run("compare_folders", shell::compareFolders); }
+    @FXML public void onMergeFiles() { run("merge_files", shell::mergeFiles); }
     @FXML public void onConvertToJson() { run("convert_json", () -> shell.convertActive(DataFormatConverter.Format.JSON)); }
     @FXML public void onConvertToXml() { run("convert_xml", () -> shell.convertActive(DataFormatConverter.Format.XML)); }
     @FXML public void onConvertToYaml() { run("convert_yaml", () -> shell.convertActive(DataFormatConverter.Format.YAML)); }

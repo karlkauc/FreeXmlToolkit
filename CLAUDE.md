@@ -34,13 +34,21 @@ the tag-pinning gotcha), invoke the **`release` skill** (`.claude/skills/release
 
 ## Command Line (fxt-cli)
 
-`org.fxt.freexmltoolkit.cli.FxtCli` (picocli): `validate`, `transform`, `xsd-doc`, `compare`, `convert`, `fop`. The
+`org.fxt.freexmltoolkit.cli.FxtCli` (picocli): `validate`, `transform`, `xsd-doc`, `compare`, `merge`, `convert`, `fop`. The
 subcommands only parse options and call the UI-free runners in `controls/shell/editor/`
 (`ValidationRunner`, `TransformRunner`, `XProcRunner`, `DocumentationRunner`, `FopRunner`) — put
 new logic there so the shell and the CLI share it. Logs go to stderr (`log4j2-cli.xml`), stdout is
 for results; no telemetry. Exit codes in `cli/ExitCodes`. Packaged as a second jpackage launcher
 (`--add-launcher fxt-cli=…`, properties written in `createJPackageTask`). User docs:
 `docs/command-line.md`; tests: `FxtCliTest`.
+
+## Compare, Merge, Conversion
+
+UI-free services in `service/`: `XmlStructuralDiff` (XMLUnit 2; DOM built from SAX with line numbers
+as user data), `FolderComparison`, `ThreeWayMerge` (diff3 on java-diff-utils, Git markers),
+`DataFormatConverter` (XML ↔ JSON ↔ YAML). UI: `controls/diff/DiffView` (Text | XML mode,
+`XmlDiffPanel`), `MergeView` + `MergeFilesDialog`, `controls/shell/editor/FolderCompareView`,
+`DataConversionAction`. CLI: `compare`, `merge`, `convert`. Diff colours: `-fxt-diff-*` tokens.
 
 ## Administrator Policy
 

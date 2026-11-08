@@ -2513,6 +2513,26 @@ public class UnifiedShellView extends BorderPane {
                 new org.fxt.freexmltoolkit.controls.shell.editor.FolderCompareView(editorHost, left.toPath(), right.toPath()));
     }
 
+    /** Tools → Merge Files: asks for base, left and right and opens the three-way merge in a tool tab. */
+    public void mergeFiles() {
+        java.nio.file.Path active = editorHost.getActiveDocument()
+                .map(org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument::getPath).orElse(null);
+        var dialog = new org.fxt.freexmltoolkit.controls.diff.MergeFilesDialog(active);
+        if (getScene() != null) {
+            dialog.initOwner(getScene().getWindow());
+        }
+        dialog.showAndWait().ifPresent(request -> org.fxt.freexmltoolkit.controls.diff.MergeView
+                .open(request.base(), request.left(), request.right(), request.output())
+                .whenComplete((view, error) -> javafx.application.Platform.runLater(() -> {
+                    if (error != null) {
+                        org.fxt.freexmltoolkit.util.DialogHelper.showError("Merge Files",
+                                "The files could not be merged.", String.valueOf(error.getMessage()), error);
+                    } else {
+                        editorHost.openToolTab("Merge: " + request.left().getFileName(), "bi-sign-merge-left", view);
+                    }
+                })));
+    }
+
     private void compareWithFile() {
         if (editorHost.getActiveDocument().isEmpty()) {
             return;

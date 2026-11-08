@@ -296,7 +296,7 @@ schemas, **Save** needs an open document).
 | **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), **Open Favorite** (all favorites, by folder, plus Manage Favorites…), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first) |
 | **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
 | **View** | The view modes (Text / Tree / Graphic / Overview / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), **Show Constraints in Diagram**, **Show Constraints on Target Nodes**, Toggle Light / Dark Theme, Full Screen |
-| **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Compare Folders…, Spreadsheet Converter…, Convert to JSON…, Convert to XML…, Convert to YAML…, Add to Favorites |
+| **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Compare Folders…, Merge Files…, Spreadsheet Converter…, Convert to JSON…, Convert to XML…, Convert to YAML…, Add to Favorites |
 | **Help** | Documentation, Keyboard Shortcuts, FundsXML Website and FundsXML Schema Docs (only while the [FundsXML extension](fundsxml-extensions.md) is enabled), Report a Problem… (when error reporting is enabled), GitHub Repository, Sponsor this Project, Check for Updates…, About FreeXmlToolkit - see [Help Menu & About](#help-menu-about) |
 
 ### macOS
@@ -1185,6 +1185,42 @@ folder, **Compare** runs the comparison again. XML files above 32 MB and files t
 well-formed are compared by their bytes (the **Note** column says so).
 
 On the command line: [`fxt-cli compare`](command-line.md#compare).
+
+### Merging three files
+
+When two people changed the same file, **Tools → Merge Files…** combines both versions with their
+common ancestor (a three-way merge, as in Git). Choose the **Base** (the version both started
+from), **Left** (mine; the active document is suggested) and **Right** (theirs), and optionally the
+**Result file** that **Save** writes.
+
+The merged text opens in a tab. Changes made on one side only, and the same change made on both
+sides, are taken over. Lines that both sides changed differently become a conflict block, marked
+like in Git:
+
+```text
+<<<<<<< order-mine.xml
+  <note>call first</note>
+||||||| order-base.xml
+  <note>none</note>
+=======
+  <note>urgent</note>
+>>>>>>> order-theirs.xml
+```
+
+| Control | Action |
+|---|---|
+| **Prev** / **Next** | Jump to the previous or next conflict |
+| **Use Left** / **Use Right** | Resolve the current conflict (at or after the caret) with one side |
+| **Use Both** | Keep the left lines followed by the right ones |
+| **Use Base** | Keep neither change |
+| **Save** / **Save As…** | Write the result; with conflicts left you are asked first |
+
+The text can also be edited directly. The status on the right counts the conflicts left; once
+there are none, it says whether the XML is well-formed. For XML files, two changes that differ only
+in whitespace (indentation) are not a conflict. Changes on adjacent lines count as one conflict,
+as in Git.
+
+On the command line, also as a Git merge driver: [`fxt-cli merge`](command-line.md#merge).
 
 ## Jump to Validation Errors
 

@@ -1,6 +1,6 @@
 # Command Line (fxt-cli)
 
-`fxt-cli` runs FreeXmlToolkit's validators, transformation engines, XML comparison, schema
+`fxt-cli` runs FreeXmlToolkit's validators, transformation engines, XML comparison and merge, schema
 documentation, XML/JSON/YAML conversion and PDF output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
 same engines and the same security defaults as the application, and it is installed with it.
 
@@ -10,6 +10,7 @@ fxt-cli transform -s report.xsl -p year=2026 data/order.xml -o report.html
 fxt-cli xsd-doc schema/order.xsd -o site/
 fxt-cli fop -i data/order.xml -s order2fo.xsl -o order.pdf
 fxt-cli compare old/order.xml new/order.xml
+fxt-cli merge base.xml mine.xml theirs.xml -o merged.xml
 fxt-cli convert data/order.xml -o order.json
 fxt-cli convert -t yaml data/config.json
 ```
@@ -144,6 +145,36 @@ For two files, the text report has one line per difference in the form
 two folders it lists every file that differs or exists on one side only, then the counts. The exit
 code is 0 when the files are equivalent or the folders match, 1 when they differ, 3 when a file is
 not well-formed XML.
+
+## merge
+
+Three-way merge of a base and two changed versions, like **Tools → Merge Files…** (see
+[Merging three files](unified-shell.md#merging-three-files)). Conflicts are written with Git's
+markers.
+
+```bash
+fxt-cli merge [options] BASE LEFT RIGHT
+```
+
+| Option | Meaning |
+|---|---|
+| `-o`, `--output FILE` | Result file (may be LEFT); without it the result goes to standard output |
+| `-L`, `--label NAME` | Names in the conflict markers, up to three in the order LEFT, BASE, RIGHT |
+| `--no-base` | Leave the base part (`|||||||`) out of conflict blocks |
+| `--exact-whitespace` | For XML: changes that differ only in whitespace are a conflict too |
+
+The exit code is 0 without conflicts and 1 with conflicts (the result then contains the markers).
+A merge without conflicts whose XML is not well-formed gives a warning on standard error.
+
+As a Git merge driver for XML files, in `.git/config` or `~/.gitconfig`:
+
+```ini
+[merge "fxt"]
+    name = FreeXmlToolkit XML merge
+    driver = fxt-cli merge -q -L ours -L base -L theirs %O %A %B -o %A
+```
+
+and in `.gitattributes`: `*.xml merge=fxt`.
 
 ## convert
 
