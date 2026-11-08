@@ -2918,7 +2918,7 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 </tr>
 <tr>
 <td><strong>DTD validation</strong> of documents with a DOCTYPE</td>
-<td>External general entities stay off (no XXE); the DTD and its parameter-entity modules load only from XML catalogs, the Schema Library, local files, or <code>http(s)</code> through the schema cache (proxy settings, internal addresses refused); entity expansion is limited to 100,000. RELAX NG schemas and the documents checked against them are read with external entities and DTD loading off.</td>
+<td>External general entities stay off (no XXE); the DTD and its parameter-entity modules load only from XML catalogs, the Schema Library, local files, or <code>http(s)</code> through the schema cache (proxy settings, internal addresses refused); entity expansion is limited to 100,000. One validation or translation never mixes local files and downloads: once a DTD has read a local file other than the DOCTYPE's own DTD it downloads nothing more, and the other way round (entity text could otherwise carry a local file's contents into a URL); catalog and Schema Library entries are exempt. <code>file:</code> URLs naming another host (Windows network shares) are refused. RELAX NG schemas and the documents checked against them are read with external entities and DTD loading off, also when they are translated to XSD for IntelliSense; a RELAX NG schema with a DOCTYPE is not translated. The DTD setting also stops the translation of DTDs bound by a project.</td>
 <td><code>security.dtd.allowed=false</code></td>
 </tr>
 <tr>
@@ -2983,7 +2983,12 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 </tr>
 <tr>
 <td><strong>YAML that expands or loops</strong> (alias bombs, recursive aliases) when converting to JSON or XML</td>
-<td>YAML is read with the core schema only (no Java objects are created from tags); at most 50 aliases per document, duplicate keys and recursive aliases are refused.</td>
+<td>YAML is read with the core schema only (no Java objects are created from tags); at most 50 aliases per collection, the expanded document may hold at most twice as many values as the text has characters (at least one million), duplicate keys and recursive aliases are refused.</td>
+<td>–</td>
+</tr>
+<tr>
+<td><strong>Project files writing elsewhere</strong> (a <code>.fxtproj</code> from a repository or a download)</td>
+<td>The output of a scenario must be a relative path inside the project folder; <code>../…</code> and absolute paths are refused before the scenario runs.</td>
 <td>–</td>
 </tr>
 <tr>
@@ -3005,6 +3010,10 @@ untrusted sources:</p>
 <li><strong>XProc pipelines</strong> can read and write local files (<code>p:store</code>, <code>p:file-copy</code>, <code>p:file-delete</code>, …)
   with the user's rights, like a script. Run only pipelines you trust; with
   <code>security.xproc.unrestricted</code> they can also run programs and reach the network.</li>
+<li><strong>Stylesheets write files.</strong> <code>xsl:result-document</code> writes to any path the user may write to,
+  as in every XSLT 2.0+ processor; this also holds for the stylesheet of a project scenario and
+  for the stylesheet under test in an XSpec run. Only the debugger keeps such results in memory.
+  Run only stylesheets you trust.</li>
 <li><strong>Opening a document downloads its schema.</strong> An <code>xsi:schemaLocation</code> with an http(s) URL is
   fetched when the file is opened (from public addresses only; the Schema Library and catalogs
   are asked first). The download reveals to that server that the file was opened.</li>
