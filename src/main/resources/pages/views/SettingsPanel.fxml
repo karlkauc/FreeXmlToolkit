@@ -44,6 +44,13 @@
                 <VBox fx:id="page" spacing="16" styleClass="fxt-settings-page">
                     <children>
                         <Label text="SETTINGS" styleClass="fxt-side-panel-title, fxt-panel-title"/>
+                        <!-- Shown when an administrator's policy file locks settings (AdminPolicy). -->
+                        <Label fx:id="policyNotice" id="settings-policy-notice" visible="false" managed="false"
+                               wrapText="true" maxWidth="1200" styleClass="fxt-settings-policy-notice">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-shield-lock" iconSize="16"/>
+                            </graphic>
+                        </Label>
 
                         <!-- One group per topic; the side panel (PageNavigator) lists the groups. -->
                         <VBox fx:id="groups" spacing="28" maxWidth="1200">

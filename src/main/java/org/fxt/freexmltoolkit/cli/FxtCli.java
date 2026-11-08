@@ -64,6 +64,7 @@ public final class FxtCli implements Runnable {
      */
     public static void main(String[] args) {
         Logging.configure();
+        org.fxt.freexmltoolkit.service.AdminPolicy.install();
         System.exit(execute(args));
     }
 

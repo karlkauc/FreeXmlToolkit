@@ -672,6 +672,9 @@ public class FxtGui extends Application {
      * @param args command line arguments
      */
     public static void main(String[] args) {
+        // The administrator's settings come first: their fxt.* system properties (telemetry,
+        // schema downloads, ...) must be in place before anything reads them.
+        org.fxt.freexmltoolkit.service.AdminPolicy.install();
         // Every logged exception (WARN/ERROR with a throwable) reaches the error telemetry; reports
         // made before the service is installed are buffered. First, so startup failures count too.
         org.fxt.freexmltoolkit.service.telemetry.TelemetryLogAppender.install();

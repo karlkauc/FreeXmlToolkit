@@ -1183,6 +1183,21 @@
     -fx-border-width: 1 0 0 0;
 }
 
+/* Settings an administrator locked (policy file): one notice above the groups. */
+.fxt-settings-policy-notice {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-background-radius: 8;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 8;
+    -fx-padding: 10 14 10 14;
+    -fx-graphic-text-gap: 10;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.fxt-settings-policy-notice .iconify-icon {
+    -fx-icon-color: -fxt-info;
+}
+
 .fxt-settings-dirty {
     -fx-text-fill: -fxt-warning;
     -fx-font-weight: bold;

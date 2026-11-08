@@ -126,6 +126,10 @@ public class AutoUpdateServiceImpl implements AutoUpdateService {
             UpdateInfo updateInfo,
             Consumer<UpdateProgress> progressCallback) {
 
+        if (!AdminPolicy.current().updatesAllowed()) {
+            return CompletableFuture.completedFuture(UpdateResult.failure(
+                    "Updates are managed by your administrator."));
+        }
         InstallSource installSource = InstallSourceDetector.current();
         if (installSource.isManaged()) {
             // Never overwrite an installation a package manager owns

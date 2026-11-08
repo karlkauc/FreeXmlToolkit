@@ -171,6 +171,11 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
 
     @Override
     public CompletableFuture<UpdateInfo> checkForUpdates() {
+        if (!AdminPolicy.current().updatesAllowed()) {
+            // The administrator disabled updates: no request is made
+            return CompletableFuture.completedFuture(
+                    UpdateInfo.errorDuringCheck(getCurrentVersion(), FAILURE_DISABLED_BY_POLICY));
+        }
         return CompletableFuture.supplyAsync(() -> {
             // Return cached result if already checked in this session
             if (updateCheckPerformed && cachedUpdateInfo != null) {
@@ -268,8 +273,14 @@ public class UpdateCheckServiceImpl implements UpdateCheckService {
         return "http_" + result.httpStatus();
     }
 
+    /** {@link UpdateInfo#failureReason()} of a check the administrator's policy refused. */
+    public static final String FAILURE_DISABLED_BY_POLICY = "disabled_by_policy";
+
     @Override
     public boolean isUpdateCheckEnabled() {
+        if (!AdminPolicy.current().updatesAllowed()) {
+            return false;
+        }
         if (InstallSourceDetector.isFlatpakSandbox()) {
             // Flathub delivers updates through the software center
             return false;

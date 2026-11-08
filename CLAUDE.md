@@ -42,6 +42,18 @@ for results; no telemetry. Exit codes in `cli/ExitCodes`. Packaged as a second j
 (`--add-launcher fxt-cli=…`, properties written in `createJPackageTask`). User docs:
 `docs/command-line.md`; tests: `FxtCliTest`.
 
+## Administrator Policy
+
+`service/AdminPolicy` reads machine-wide `policy.properties` (locked) and `defaults.properties`
+(`%ProgramData%\FreeXmlToolkit`, `/Library/Application Support/FreeXmlToolkit`, `/etc/freexmltoolkit`,
+or `-Dfxt.policy.file` / `FXT_POLICY_FILE`); installed first thing in `FxtGui.main` / `FxtCli.main`
+(`fxt.*` keys become system properties). `PropertiesServiceImpl` keeps the user's values in an
+overlay (`AdminPolicy.PolicyProperties`), `loadProperties()` returns `AdminPolicy.effective(...)`
+(a plain copy that survives `putAll`), `saveProperties` stores only `userValues(...)` — locked values
+never reach the user's file. `update.allowed=false` disables update check/menu/install. Settings
+page: new controls must be added to `SettingsPanel.policyKeys()`, and disable bindings go through
+`bindDisable(...)`. Docs: `docs/administration.md`.
+
 ## Architecture Overview
 
 **The UI is the Unified Shell** (`controls/shell/`, VS-Code-style): an Activity Bar switches the left side panel (Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library, PDF/FOP, Signature, FundsXML, Settings; Help is the menu bar's Help menu, also behind the header's ? button and F1). Settings, Schema Library and Signature are pages in the main area — their side panel is a `PageNavigator` listing the page's sections; the center is one `EditorHost` with file tabs and per-document view modes (Text / Tree / Graphic); right is the Properties Inspector. There is **no** per-tool tab/controller architecture anymore — `controller/` only contains `UnifiedShellController`.

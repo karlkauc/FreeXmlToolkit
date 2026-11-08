@@ -57,6 +57,7 @@ public class SettingsPanel extends VBox {
     @FXML private VBox groups;
     @FXML private Label noMatch;
     @FXML private Label dirtyHint;
+    @FXML private Label policyNotice;
     @FXML private Label saveStatus;
     @FXML private Button saveButton;
 
@@ -206,23 +207,25 @@ public class SettingsPanel extends VBox {
         (isDark ? dark : light).setSelected(true);
 
         parserType.getItems().setAll(XmlParserType.values());
-        backupDir.disableProperty().bind(backupSeparateDir.selectedProperty().not());
-        customTempDir.disableProperty().bind(useSystemTemp.selectedProperty());
-        logMaxAge.disableProperty().bind(logCleanup.selectedProperty().not());
-        logMaxSize.disableProperty().bind(logCleanup.selectedProperty().not());
+        collectPolicyLocks();
+        bindDisable(backupDir, backupSeparateDir.selectedProperty().not());
+        bindDisable(customTempDir, useSystemTemp.selectedProperty());
+        bindDisable(logMaxAge, logCleanup.selectedProperty().not());
+        bindDisable(logMaxSize, logCleanup.selectedProperty().not());
         proxyMode.getItems().setAll(PROXY_MODE_LABELS.values());
         var notManual = javafx.beans.binding.Bindings.notEqual(
                 PROXY_MODE_LABELS.get(org.fxt.freexmltoolkit.service.ProxySettings.Mode.MANUAL),
                 proxyMode.valueProperty());
-        proxyHost.disableProperty().bind(notManual);
-        proxyPort.disableProperty().bind(notManual);
+        bindDisable(proxyHost, notManual);
+        bindDisable(proxyPort, notManual);
         var direct = javafx.beans.binding.Bindings.equal(
                 PROXY_MODE_LABELS.get(org.fxt.freexmltoolkit.service.ProxySettings.Mode.NONE),
                 proxyMode.valueProperty());
         for (javafx.scene.Node node : new javafx.scene.Node[] {proxyBypass, proxyUser, proxyPassword,
                 proxyDomain, proxyWindowsSignOn}) {
-            node.disableProperty().bind(direct);
+            bindDisable(node, direct);
         }
+        applyPolicyLocks();
 
         templatesList.setCellFactory(lv -> templateCell());
         editTemplateButton.disableProperty().bind(
@@ -440,6 +443,42 @@ public class SettingsPanel extends VBox {
 
     /** Puts the built-in defaults into the controls (not persisted until saved). */
     void resetToDefaults() {
+        // Settings the administrator locked keep their value
+        java.util.List<Runnable> keepLocked = new java.util.ArrayList<>();
+        for (javafx.scene.Node node : policyLocked) {
+            keepLocked.add(restorerOf(node));
+        }
+        resetToBuiltInDefaults();
+        keepLocked.forEach(Runnable::run);
+    }
+
+    /** @return an action putting the control's current value back */
+    @SuppressWarnings("unchecked")
+    private static Runnable restorerOf(javafx.scene.Node node) {
+        if (node instanceof javafx.scene.control.CheckBox box) {
+            boolean selected = box.isSelected();
+            return () -> box.setSelected(selected);
+        }
+        if (node instanceof ToggleButton toggle) {
+            boolean selected = toggle.isSelected();
+            return () -> toggle.setSelected(selected);
+        }
+        if (node instanceof TextField field) {
+            String text = field.getText();
+            return () -> field.setText(text);
+        }
+        if (node instanceof Spinner<?> spinner) {
+            Object value = spinner.getValue();
+            return () -> ((Spinner<Object>) spinner).getValueFactory().setValue(value);
+        }
+        if (node instanceof ComboBox<?> combo) {
+            Object value = combo.getValue();
+            return () -> ((ComboBox<Object>) combo).setValue(value);
+        }
+        return () -> { };
+    }
+
+    private void resetToBuiltInDefaults() {
         smallIcons.setSelected(false);
         toolbarLabels.setSelected(true);
         activityBarLabels.setSelected(true);
@@ -468,7 +507,9 @@ public class SettingsPanel extends VBox {
         logCleanup.setSelected(true);
         logMaxAge.getValueFactory().setValue(14);
         logMaxSize.getValueFactory().setValue(100);
-        showProxySettings(org.fxt.freexmltoolkit.service.ProxySettings.from(new java.util.Properties()));
+        // the administrator's proxy defaults, if any, else the built-in ones
+        showProxySettings(org.fxt.freexmltoolkit.service.ProxySettings.from(
+                org.fxt.freexmltoolkit.service.AdminPolicy.current().overlay()));
         trustAllCerts.setSelected(false);
         updateCheck.setSelected(true);
         saveStatus.setText("Defaults restored — click Save Settings to keep them.");
@@ -658,6 +699,104 @@ public class SettingsPanel extends VBox {
         labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.MANUAL, "Manual proxy");
         labels.put(org.fxt.freexmltoolkit.service.ProxySettings.Mode.NONE, "No proxy (direct connection)");
         PROXY_MODE_LABELS = java.util.Collections.unmodifiableMap(labels);
+    }
+
+    /** The controls whose setting the administrator locked ({@link org.fxt.freexmltoolkit.service.AdminPolicy}). */
+    private final java.util.Set<javafx.scene.Node> policyLocked = new java.util.HashSet<>();
+
+    /** The settings keys each control edits, for the administrator's locks. */
+    java.util.Map<javafx.scene.Node, String[]> policyKeys() {
+        var keys = new java.util.LinkedHashMap<javafx.scene.Node, String[]>();
+        keys.put(indentSpaces, new String[] {"xml.indent.spaces"});
+        keys.put(jsonIndent, new String[] {"json.indent.spaces"});
+        keys.put(autoFormat, new String[] {"xml.autoformat.after.loading"});
+        keys.put(xsdPrettyPrint, new String[] {"xsd.prettyPrint.onSave"});
+        keys.put(schematronPretty, new String[] {"schematron.prettyPrint.onLoad"});
+        keys.put(recentFilesLimit, new String[] {"recentFiles.limit"});
+        keys.put(xsdAutoSave, new String[] {"xsd.autoSave.enabled"});
+        keys.put(xsdAutoSaveInterval, new String[] {"xsd.autoSave.interval"});
+        keys.put(xsdBackup, new String[] {"xsd.backup.enabled"});
+        keys.put(xsdBackupVersions, new String[] {"xsd.backup.versions"});
+        keys.put(backupSeparateDir, new String[] {"backup.use.separate.directory"});
+        keys.put(backupDir, new String[] {"backup.directory"});
+        keys.put(parserType, new String[] {"xml.parser.type"});
+        keys.put(xsltExtensions, new String[] {"security.xslt.allow.extensions"});
+        keys.put(renderingMode, new String[] {"rendering.mode"});
+        keys.put(maxMemory, new String[] {org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY});
+        keys.put(useSystemTemp, new String[] {"useSystemTempFolder"});
+        keys.put(customTempDir, new String[] {"customTempFolder"});
+        keys.put(logCleanup, new String[] {PropertiesService.LOG_CLEANUP_ENABLED});
+        keys.put(logMaxAge, new String[] {PropertiesService.LOG_CLEANUP_MAX_AGE_DAYS});
+        keys.put(logMaxSize, new String[] {PropertiesService.LOG_CLEANUP_MAX_SIZE_MB});
+        keys.put(updateCheck, new String[] {"update.check.enabled"});
+        keys.put(smallIcons, new String[] {"ui.use.small.icons"});
+        keys.put(toolbarLabels, new String[] {"toolbar.show.labels"});
+        keys.put(activityBarLabels, new String[] {"activitybar.show.labels"});
+        keys.put(toolbarIconSmall, new String[] {"toolbar.icon.size"});
+        keys.put(toolbarIconLarge, new String[] {"toolbar.icon.size"});
+        keys.put(showLeftPanel, new String[] {"shell.leftPanel.visible"});
+        keys.put(showInspector, new String[] {"shell.inspector.visible"});
+        keys.put(proxyMode, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_USE_SYSTEM,
+                org.fxt.freexmltoolkit.service.ProxySettings.KEY_MANUAL});
+        keys.put(proxyHost, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_HOST});
+        keys.put(proxyPort, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_PORT});
+        keys.put(proxyBypass, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_NON_PROXY_HOSTS});
+        keys.put(proxyUser, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_USER});
+        keys.put(proxyPassword, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_PASSWORD});
+        keys.put(proxyDomain, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_DOMAIN});
+        keys.put(proxyWindowsSignOn, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_WINDOWS_SIGN_ON});
+        keys.put(connectTimeout, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_CONNECT_TIMEOUT});
+        keys.put(readTimeout, new String[] {org.fxt.freexmltoolkit.service.ProxySettings.KEY_READ_TIMEOUT});
+        keys.put(userName, new String[] {"user.name"});
+        keys.put(userEmail, new String[] {"user.email"});
+        keys.put(userCompany, new String[] {"user.company"});
+        keys.put(trustAllCerts, new String[] {"ssl.trustAllCerts"});
+        keys.put(telemetryUsage, new String[] {PropertiesService.TELEMETRY_USAGE_ENABLED});
+        keys.put(telemetryErrors, new String[] {PropertiesService.TELEMETRY_ERRORS_ENABLED});
+        keys.put(execStatsEnabled, new String[] {org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED});
+        keys.put(fundsXmlEnabled, new String[] {org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED});
+        keys.put(templatesDir, new String[] {"templates.directory"});
+        keys.put(schemaLibraryAutoBind, new String[] {"schemaLibrary.autoBind.enabled"});
+        return keys;
+    }
+
+    /** Finds the controls whose setting the administrator locked. */
+    private void collectPolicyLocks() {
+        var policy = org.fxt.freexmltoolkit.service.AdminPolicy.current();
+        policyKeys().forEach((node, keys) -> {
+            if (policy.isAnyLocked(keys)) {
+                policyLocked.add(node);
+            }
+        });
+    }
+
+    /** Binds a control's disabled state, unless the administrator locked its setting (then it stays disabled). */
+    private void bindDisable(javafx.scene.Node node, javafx.beans.value.ObservableValue<Boolean> condition) {
+        if (!policyLocked.contains(node)) {
+            node.disableProperty().bind(condition);
+        }
+    }
+
+    /** Disables the locked controls and explains why above the groups. */
+    private void applyPolicyLocks() {
+        for (javafx.scene.Node node : policyLocked) {
+            node.setDisable(true);
+            node.getStyleClass().add("fxt-policy-locked");
+        }
+        var policy = org.fxt.freexmltoolkit.service.AdminPolicy.current();
+        boolean updatesOff = !policy.updatesAllowed();
+        if (!policyLocked.isEmpty() || updatesOff) {
+            policyNotice.setText("Some settings are managed by your administrator and cannot be changed here"
+                    + (updatesOff ? "; updates are installed by your administrator" : "")
+                    + ". Policy file: " + policy.policyFile());
+            policyNotice.setVisible(true);
+            policyNotice.setManaged(true);
+        }
+    }
+
+    /** @return whether the administrator locked the setting of this control (tests) */
+    boolean isPolicyLocked(javafx.scene.Node node) {
+        return policyLocked.contains(node);
     }
 
     private void showProxySettings(org.fxt.freexmltoolkit.service.ProxySettings settings) {

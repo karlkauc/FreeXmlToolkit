@@ -104,6 +104,10 @@ public final class AboutDialog {
 
         Button updatesBtn = (Button) dialogPane.lookupButton(checkUpdatesType);
         updatesBtn.setGraphic(new IconifyIcon("bi-arrow-clockwise"));
+        if (!org.fxt.freexmltoolkit.service.AdminPolicy.current().updatesAllowed()) {
+            updatesBtn.setDisable(true);
+            updatesBtn.setTooltip(new javafx.scene.control.Tooltip("Updates are managed by your administrator."));
+        }
         updatesBtn.addEventFilter(ActionEvent.ACTION, evt -> {
             evt.consume();
             checkForUpdatesFromAbout(updatesBtn);

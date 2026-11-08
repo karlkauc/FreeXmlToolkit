@@ -39,7 +39,12 @@ public class PropertiesServiceImpl implements PropertiesService {
     /** A failing save is reported to telemetry once per session, not on every setting change. */
     private static final AtomicBoolean saveFailureReported = new AtomicBoolean();
     private static final PropertiesService instance = new PropertiesServiceImpl();
-    private Properties properties = new Properties();
+    /**
+     * The user's settings with the administrator's policy laid over them ({@link AdminPolicy}):
+     * locked keys read as the policy says and are never stored, missing keys fall back to the
+     * administrator's defaults.
+     */
+    private Properties properties = newSettings();
     private final PasswordEncryptionService passwordEncryptionService =
             PasswordEncryptionServiceImpl.getInstance();
 
@@ -100,6 +105,11 @@ public class PropertiesServiceImpl implements PropertiesService {
         return target.toFile();
     }
 
+    /** Empty settings that read through the administrator's policy. */
+    private static Properties newSettings() {
+        return AdminPolicy.current().overlay();
+    }
+
     /**
      * Returns the singleton instance of the PropertiesService.
      *
@@ -122,7 +132,7 @@ public class PropertiesServiceImpl implements PropertiesService {
             createDefaultProperties();
         } else {
             logger.debug("Properties file already exists!");
-            properties = loadProperties();
+            loadProperties(); // reads the file into the user's settings
             migratePasswordsIfNeeded();
         }
     }
@@ -149,7 +159,8 @@ public class PropertiesServiceImpl implements PropertiesService {
                 }
             }
         }
-        return (Properties) properties.clone();
+        // The effective values (administrator's defaults and locks applied) as a plain copy
+        return AdminPolicy.current().effective(properties);
     }
 
     private boolean fileChangedOnDisk() {
@@ -169,9 +180,9 @@ public class PropertiesServiceImpl implements PropertiesService {
      */
     @Override
     public void saveProperties(Properties save) {
-        Properties updated = new Properties();
-        updated.putAll(save);
         synchronized (diskLock) {
+            // only the user's own values: locked keys and untouched defaults stay out of the file
+            Properties updated = AdminPolicy.current().userValues(save, properties);
             this.properties = updated;
             // Coalesced: a burst of setter calls (the Settings page saves ~35 of them) writes once.
             if (pendingSave != null) {
@@ -231,7 +242,7 @@ public class PropertiesServiceImpl implements PropertiesService {
      */
     @Override
     public void createDefaultProperties() {
-        properties = new Properties();
+        properties = newSettings();
         properties.setProperty("customTempFolder", System.getProperty("java.io.tmpdir"));
         properties.setProperty("font.family", "");
         properties.setProperty("font.size", "");
@@ -259,6 +270,11 @@ public class PropertiesServiceImpl implements PropertiesService {
         properties.setProperty("user.name", "");
         properties.setProperty("user.email", "");
         properties.setProperty("user.company", "");
+
+        // The administrator's defaults (defaults.properties) apply until the user changes them.
+        for (String key : AdminPolicy.current().defaultKeys()) {
+            properties.remove(key);
+        }
 
         // Must write through propertiesFile (NOT the bare file name): the field honors
         // the fxt.properties.file override — a literal path here would write into the

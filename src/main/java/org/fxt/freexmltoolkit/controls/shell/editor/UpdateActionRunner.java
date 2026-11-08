@@ -59,6 +59,10 @@ public final class UpdateActionRunner {
         if (info == null) {
             return "Update check failed.";
         }
+        if (org.fxt.freexmltoolkit.service.UpdateCheckServiceImpl.FAILURE_DISABLED_BY_POLICY
+                .equals(info.failureReason())) {
+            return "Updates are managed by your administrator.";
+        }
         if (info.updateAvailable()) {
             return "Update available: " + info.latestVersion() + " (you have " + info.currentVersion() + ")";
         }

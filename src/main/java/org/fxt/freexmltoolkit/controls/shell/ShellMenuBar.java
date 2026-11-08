@@ -123,6 +123,8 @@ public final class ShellMenuBar extends MenuBar {
         rebuildRecentFiles();
         rebuildFavorites();
         sponsorItem.setGraphic(ProjectLinks.sponsorIcon(16));
+        // The administrator may have disabled updates (policy update.allowed=false)
+        updatesItem.setDisable(!org.fxt.freexmltoolkit.service.AdminPolicy.current().updatesAllowed());
         if (!ErrorReportDialog.isAvailable()) {
             helpMenu.getItems().remove(reportProblemItem);
         }
