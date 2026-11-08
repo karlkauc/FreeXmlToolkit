@@ -151,6 +151,7 @@ nav:
     - FundsXML Extensions: fundsxml-extensions.md
     - Industry Plugins: industry-plugins.md
     - Plugins: plugins.md
+    - Writing Plugins: plugin-development.md
   - Security:
     - Security Features: SECURITY.md
     - Digital Signatures: digital-signatures.md

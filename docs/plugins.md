@@ -39,76 +39,11 @@ available to a plugin through `PluginContext.service(…)`.
 
 ## Writing a plugin
 
-A plugin is a class implementing `org.fxt.freexmltoolkit.plugin.FxtPlugin`, compiled against the
-FreeXmlToolkit jar (`FreeXmlToolkit.jar` in the installation's `app` folder; Java 25, JavaFX 25), and
-listed in the jar's `META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin`:
-
-```java
-package com.example.orders;
-
-import java.util.List;
-
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
-
-import org.fxt.freexmltoolkit.plugin.*;
-
-public class OrdersPlugin implements FxtPlugin {
-
-    @Override public String id() { return "com.example.orders"; }
-    @Override public String name() { return "Orders"; }
-    @Override public String version() { return "1.0"; }
-    @Override public String description() { return "Checks and tools for order documents."; }
-
-    @Override
-    public void register(PluginContext context) {
-        // An activity with its side panel (created on the JavaFX thread when first shown)
-        context.addActivity(new PluginActivity("orders", "Orders", "bi-cart",
-                ui -> new VBox(new Label("Order tools"))));
-
-        // A Tools menu item
-        context.addMenuItem(new PluginMenuItem(PluginMenuItem.Menu.TOOLS, "orders-report",
-                "Orders Report…", "bi-table", ui -> ui.showActivity("orders"), null));
-
-        // A check that runs with every XML validation
-        context.addValidator(new DocumentValidator() {
-            @Override public String name() { return "Order rules"; }
-
-            @Override public boolean accepts(String content, String documentName) {
-                return content.contains("<order");
-            }
-
-            @Override public List<Problem> validate(String content, String documentName) {
-                return content.contains("<total>0</total>")
-                        ? List.of(new Problem("warning", 0, "The order total is zero."))
-                        : List.of();
-            }
-        });
-    }
-}
-```
-
-`META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin`:
-
-```text
-com.example.orders.OrdersPlugin
-```
-
-Rules:
-
-- **`id()`** must be unique; it is also the settings key `plugin.<id>.enabled`. Two plugins with the
-  same id: the second is not loaded.
-- **`register()`** runs once at start, before the window opens — also in `fxt-cli`, where only the
-  validators are used. Only declare contributions there: do not block and do not create UI.
-- Panels, menu actions and document listeners run on the JavaFX thread and get a `PluginUi`:
-  the editor area (`editorHost()`), the window, `openFile`, `showActivity`, `showEditorBar` /
-  `hideEditorBar` and `refreshContributions()` (asks the activities and menu items again whether
-  they are visible, e.g. after a setting changed).
-- Validators and startup tasks run on background threads.
-- Icons are [Bootstrap Icons](https://icons.getbootstrap.com/) names (`bi-…`).
-- Each external plugin has its own class loader; libraries it needs belong into its jar.
-- A plugin that throws while registering contributes nothing and is listed as failed; a panel that
-  fails shows an error in the side panel; a failing validator becomes one error in the results.
+A plugin is a class implementing `org.fxt.freexmltoolkit.plugin.FxtPlugin`, listed in
+`META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin` of its jar. The full guide — how plugins are
+loaded, every contribution type, threads, translations, building, testing and debugging — is
+[Writing Plugins](plugin-development.md); a complete example project is in
+[`examples/plugin-sample`](https://github.com/karlkauc/FreeXmlToolkit/tree/main/examples/plugin-sample).
 
 ## Built-in plugins
 

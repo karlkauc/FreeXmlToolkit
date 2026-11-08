@@ -1,0 +1,15 @@
+/* Styles of the plugin's own panel; the design tokens (-fxt-*) of the application are available. */
+.orders-panel {
+    -fx-padding: 12;
+    -fx-spacing: 8;
+}
+
+.orders-panel .orders-title {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.orders-panel .orders-hint {
+    -fx-text-fill: -fxt-text-secondary;
+    -fx-wrap-text: true;
+}
