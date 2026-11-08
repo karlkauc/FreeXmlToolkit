@@ -2053,6 +2053,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#ebinterface-austrian-e-invoice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ebInterface (Austrian e-invoice)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2709,6 +2720,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#ebinterface-austrian-e-invoice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ebInterface (Austrian e-invoice)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2769,6 +2791,55 @@ guidelines 2025 (SCT and SDD Core, customer-to-PSP):</p>
 <p><strong>Side panel:</strong> the message type and name, the number of payment groups and transactions, their
 total and whether it is SEPA; <strong>New SEPA Credit Transfer (pain.001)</strong> and <strong>New SEPA Direct Debit
 (pain.008)</strong> open sample messages (schema-valid, version 2025) to start from.</p>
+<h2 id="ebinterface-austrian-e-invoice">ebInterface (Austrian e-invoice)<a class="headerlink" href="#ebinterface-austrian-e-invoice" title="Permanent link">&para;</a></h2>
+<p>For ebInterface invoices (root <code>Invoice</code>, namespace <code>http://www.ebinterface.at/schema/&lt;version&gt;/</code>).</p>
+<p><strong>Schemas</strong> of versions 4.1, 4.2, 4.3, 5.0, 6.0 and 6.1 are bound automatically, downloaded from the
+standard's repository on GitHub (<code>austriapro/ebinterface-standards</code>).</p>
+<p><strong>Checks</strong>, after the ebInterface 6.1 specification:</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Austrian VAT ids (<code>VATIdentificationNumber</code> starting with <code>ATU</code>): format and check digit; <code>ATU00000000</code> ("no UID") is accepted</td>
+<td>error</td>
+</tr>
+<tr>
+<td><code>IBAN</code> and <code>BIC</code></td>
+<td>error</td>
+</tr>
+<tr>
+<td><code>PayableAmount</code> = <code>TotalGrossAmount</code> − <code>PrepaidAmount</code> + <code>RoundingAmount</code> (skipped with below-the-line items)</td>
+<td>error</td>
+</tr>
+<tr>
+<td><code>LineItemAmount</code> = <code>Quantity</code> × <code>UnitPrice</code> (/ <code>BaseQuantity</code>), for lines without surcharges or reductions</td>
+<td>warning</td>
+</tr>
+<tr>
+<td><code>TaxAmount</code> = <code>TaxableAmount</code> × <code>TaxPercent</code> / 100, for every tax item</td>
+<td>warning</td>
+</tr>
+<tr>
+<td>the taxable amounts of the tax summary (<code>Tax/TaxItem</code>) add up to the line amounts (without invoice-level surcharges or reductions)</td>
+<td>warning</td>
+</tr>
+<tr>
+<td><code>TotalGrossAmount</code> = taxable amounts + taxes of the tax summary (without surcharges, reductions or other taxes)</td>
+<td>warning</td>
+</tr>
+<tr>
+<td>the due date is not before the invoice date</td>
+<td>warning</td>
+</tr>
+</tbody>
+</table>
+<p>Amounts may differ by one cent of rounding. <strong>Side panel:</strong> document type, number, date, biller,
+number of lines and payable amount; <strong>New ebInterface 6.1 Invoice</strong> opens a schema-valid sample.</p>
 
 
 
