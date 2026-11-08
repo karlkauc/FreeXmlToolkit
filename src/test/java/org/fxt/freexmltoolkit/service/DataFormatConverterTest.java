@@ -193,6 +193,16 @@ class DataFormatConverterTest {
                     .append(", *").append(p).append(", *").append(p).append(", *").append(p).append("]\n");
         }
         assertThrows(ConversionException.class, () -> DataFormatConverter.parseYaml(bomb.toString()));
+
+        // Two aliases per collection stay under the alias limit, but 26 levels expand to 2^27 nodes
+        StringBuilder doubling = new StringBuilder("l0: &l0 [x, x]\n");
+        for (int i = 1; i <= 25; i++) {
+            doubling.append("l").append(i).append(": &l").append(i).append(" [*l").append(i - 1).append(", *l")
+                    .append(i - 1).append("]\n");
+        }
+        ConversionException e = assertThrows(ConversionException.class,
+                () -> DataFormatConverter.parseYaml(doubling.toString()));
+        assertTrue(e.getMessage().contains("too many values"), e.getMessage());
     }
 
     @Test

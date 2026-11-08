@@ -1,6 +1,7 @@
 package org.fxt.freexmltoolkit.plugins.xbrl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,6 +39,15 @@ class XbrlPluginTest {
         assertTrue(problem.message().startsWith("[xbrl.4.6.2:numericUnit] Fact ex:Revenue context c1 is numeric"),
                 problem.message());
         assertEquals(List.of(), ArelleRunner.parseLog("{\"log\":[]}", "x.xbrl"));
+    }
+
+    @Test
+    @DisplayName("a .cmd/.bat Arelle gets no file name cmd.exe would interpret")
+    void batchMetacharacters() {
+        assertTrue(ArelleRunner.unsafeForBatch(Path.of("arelleCmdLine.cmd"), Path.of("a&calc.xbrl")));
+        assertTrue(ArelleRunner.unsafeForBatch(Path.of("arelle.BAT"), Path.of("50%.xbrl")));
+        assertFalse(ArelleRunner.unsafeForBatch(Path.of("arelleCmdLine.exe"), Path.of("a&calc.xbrl")));
+        assertFalse(ArelleRunner.unsafeForBatch(Path.of("arelleCmdLine.cmd"), Path.of("report 2026.xbrl")));
     }
 
     @Test

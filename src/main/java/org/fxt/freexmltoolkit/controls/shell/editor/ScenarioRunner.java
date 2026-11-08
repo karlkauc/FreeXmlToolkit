@@ -63,6 +63,8 @@ public final class ScenarioRunner {
         Path input = scenario.input == null || scenario.input.isBlank() ? null : project.resolve(scenario.input);
         Language language = languageOf(scenario.stylesheet);
         try {
+            Path target = scenario.output == null || scenario.output.isBlank() ? null
+                    : project.resolveWritable(scenario.output);
             if (!Files.isRegularFile(code)) {
                 return new Result(null, null, null, "Not found: " + code);
             }
@@ -110,8 +112,8 @@ public final class ScenarioRunner {
                 return new Result(null, format, null, error);
             }
             Path written = null;
-            if (scenario.output != null && !scenario.output.isBlank()) {
-                written = project.resolve(scenario.output);
+            if (target != null) {
+                written = target;
                 Path parent = written.getParent();
                 if (parent != null) {
                     Files.createDirectories(parent);

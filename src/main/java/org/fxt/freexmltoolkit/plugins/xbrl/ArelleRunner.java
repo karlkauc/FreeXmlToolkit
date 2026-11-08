@@ -66,6 +66,10 @@ public final class ArelleRunner {
      */
     public static List<DocumentValidator.Problem> validate(Path command, Path file, Duration timeout)
             throws IOException, InterruptedException {
+        if (unsafeForBatch(command, file)) {
+            throw new IOException("The file name " + file.getFileName() + " contains characters that cmd.exe would "
+                    + "interpret; rename it or configure arelleCmdLine.exe instead of a .cmd/.bat script.");
+        }
         Path log = Files.createTempFile("fxt-arelle", ".json");
         try {
             ProcessBuilder builder = new ProcessBuilder(command.toString(), "-f", file.toAbsolutePath().toString(), "-v",
@@ -85,6 +89,18 @@ public final class ArelleRunner {
         } finally {
             Files.deleteIfExists(log);
         }
+    }
+
+    /**
+     * Windows runs a {@code .cmd} / {@code .bat} through {@code cmd.exe}, which reads {@code &}, {@code |},
+     * {@code %} and the like in arguments as its own syntax, whatever the quoting.
+     */
+    static boolean unsafeForBatch(Path command, Path file) {
+        String name = command.getFileName() == null ? "" : command.getFileName().toString().toLowerCase(java.util.Locale.ROOT);
+        if (!name.endsWith(".cmd") && !name.endsWith(".bat")) {
+            return false;
+        }
+        return file.toAbsolutePath().toString().chars().anyMatch(c -> "&|<>^%!\"\r\n".indexOf(c) >= 0);
     }
 
     /** Turns Arelle's JSON log into problems; {@code fileName} picks the line of a reference into the file. */

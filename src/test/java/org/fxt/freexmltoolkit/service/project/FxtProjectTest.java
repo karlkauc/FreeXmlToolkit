@@ -119,5 +119,15 @@ class FxtProjectTest {
         var missing = ScenarioRunner.run(project, new FxtProject.Scenario("x", "nope.xsl", "data.xml", Map.of(), null, null));
         assertFalse(missing.ok());
         assertTrue(missing.error().startsWith("Not found"), missing.error());
+
+        // A project file must not write outside its folder (../.bashrc, absolute paths)
+        for (String output : List.of("../escape.txt", "out/../../escape.txt", dir.getParent().resolve("abs.txt").toString())) {
+            var escaping = ScenarioRunner.run(project, new FxtProject.Scenario("x", "xsl/count.xsl", "data.xml",
+                    Map.of(), null, output));
+            assertFalse(escaping.ok(), output);
+            assertTrue(escaping.error().contains("Refused"), escaping.error());
+        }
+        assertFalse(Files.exists(dir.getParent().resolve("escape.txt")));
+        assertFalse(Files.exists(dir.getParent().resolve("abs.txt")));
     }
 }

@@ -40,7 +40,7 @@ public final class RelaxNgValidator {
         PropertyMapBuilder properties = new PropertyMapBuilder();
         properties.put(ValidateProperty.ERROR_HANDLER, collector);
         properties.put(ValidateProperty.XML_READER_CREATOR, RelaxNgValidator::secureReader);
-        properties.put(ValidateProperty.RESOLVER, new SecureGrammarResolver());
+        properties.put(ValidateProperty.RESOLVER, new SecureGrammarResolver(schema.toURI().toString()));
         boolean compact = GrammarKind.ofFile(schema).orElse(GrammarKind.RELAX_NG) == GrammarKind.RELAX_NG_COMPACT;
         SchemaReader reader = compact ? CompactSchemaReader.getInstance() : SAXSchemaReader.getInstance();
         ValidationDriver driver = new ValidationDriver(properties.toPropertyMap(), reader);

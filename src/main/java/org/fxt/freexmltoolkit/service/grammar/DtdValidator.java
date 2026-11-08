@@ -18,7 +18,8 @@ import org.xml.sax.ext.DefaultHandler2;
  *
  * <p>Security: external general entities are never loaded (no XXE); DTDs and their parameter-entity
  * modules are loaded only through {@link GrammarResolver} (catalogs, local files, the schema cache for
- * http(s)); entity expansion is limited by Xerces' security manager (no "billion laughs").
+ * http(s)), within one {@link GrammarResolver.Session}, so entity text cannot carry a local file to a
+ * server; entity expansion is limited by Xerces' security manager (no "billion laughs").
  */
 public final class DtdValidator {
 
@@ -103,6 +104,7 @@ public final class DtdValidator {
     private static final class Handler extends DefaultHandler2 {
         private final List<GrammarProblem> problems;
         private final File dtd;
+        private final GrammarResolver.Session session = new GrammarResolver.Session(null);
 
         Handler(List<GrammarProblem> problems, File dtd) {
             this.problems = problems;
@@ -112,21 +114,23 @@ public final class DtdValidator {
         @Override
         public InputSource getExternalSubset(String name, String baseURI) throws IOException {
             // A document without DOCTYPE: the DTD the user chose
-            return dtd == null ? null : GrammarResolver.resolve(null, dtd.toURI().toString(), null);
+            return dtd == null ? null : GrammarResolver.resolve(session, true, null, dtd.toURI().toString(), null);
         }
 
         @Override
         public InputSource resolveEntity(String name, String publicId, String baseURI, String systemId)
                 throws SAXException, IOException {
             if (dtd != null && "[dtd]".equals(name)) {
-                return GrammarResolver.resolve(null, dtd.toURI().toString(), null);
+                return GrammarResolver.resolve(session, true, null, dtd.toURI().toString(), null);
             }
             if (name != null && !"[dtd]".equals(name) && !name.startsWith("%")) {
                 // External general entity: never loaded (XXE); the feature is off, this is the second lock
                 throw new SAXException("External entity \"" + name + "\" is not loaded.");
             }
             try {
-                return GrammarResolver.resolve(publicId, systemId, baseURI);
+                // The DOCTYPE's own system id is a literal of the document; parameter entities count
+                // against the session (no mixing of local files and downloads)
+                return GrammarResolver.resolve(session, "[dtd]".equals(name), publicId, systemId, baseURI);
             } catch (IOException e) {
                 throw new Unavailable("Cannot load the DTD " + (systemId != null ? systemId : publicId) + ": "
                         + e.getMessage(), e);

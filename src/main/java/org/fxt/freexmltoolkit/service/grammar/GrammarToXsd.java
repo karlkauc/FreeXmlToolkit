@@ -11,9 +11,20 @@ import java.util.HexFormat;
 import java.util.List;
 
 import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
 
+import com.thaiopensource.relaxng.edit.NameClass;
+import com.thaiopensource.relaxng.edit.Pattern;
 import com.thaiopensource.relaxng.edit.SchemaCollection;
+import com.thaiopensource.relaxng.edit.SourceLocation;
+import com.thaiopensource.relaxng.input.parse.AnnotationsImpl;
+import com.thaiopensource.relaxng.input.parse.CommentListImpl;
+import com.thaiopensource.relaxng.input.parse.ElementAnnotationBuilderImpl;
+import com.thaiopensource.relaxng.parse.Parseable;
+import com.thaiopensource.resolver.xml.sax.SAXResolver;
 import com.thaiopensource.relaxng.input.InputFormat;
 import com.thaiopensource.relaxng.input.dtd.DtdInputFormat;
 import com.thaiopensource.relaxng.input.parse.compact.CompactParseInputFormat;
@@ -56,6 +67,13 @@ public final class GrammarToXsd {
         if (kind == GrammarKind.XSD) {
             return grammar;
         }
+        if (kind == GrammarKind.DTD && !GrammarPolicy.dtdAllowed()) {
+            throw new IOException("DTDs are switched off (Settings → Security, or your administrator's policy).");
+        }
+        if (kind == GrammarKind.RELAX_NG && DeclaredGrammar.prolog(Files.readString(grammar,
+                StandardCharsets.UTF_8)).contains("<!DOCTYPE")) {
+            throw new IOException(grammar.getFileName() + " declares a DOCTYPE; RELAX NG schemas with DTDs are not translated.");
+        }
         String name = grammar.getFileName().toString().replaceFirst("\\.[^.]*$", "");
         Path folder = cacheFolder().resolve(hash(grammar));
         Path xsd = folder.resolve(name + ".xsd");
@@ -83,7 +101,7 @@ public final class GrammarToXsd {
         InputFormat input = switch (kind) {
             case DTD -> new DtdInputFormat();
             case RELAX_NG_COMPACT -> new CompactParseInputFormat();
-            default -> new SAXParseInputFormat();
+            default -> new SecureSaxInputFormat();
         };
         String inputType = switch (kind) {
             case DTD -> "dtd";
@@ -92,7 +110,7 @@ public final class GrammarToXsd {
         };
         try {
             SchemaCollection schemas = input.load(grammar.toUri().toString(), new String[0], "xsd", handler,
-                    new SecureGrammarResolver());
+                    new SecureGrammarResolver(grammar.toUri().toString()));
             OutputDirectory out = new LocalOutputDirectory(schemas.getMainUri(), xsd.toFile(), ".xsd", "UTF-8", 100, 2);
             new XsdOutputFormat().output(schemas, out, new String[0], inputType, handler);
         } catch (Exception e) {
@@ -104,6 +122,24 @@ public final class GrammarToXsd {
                     + (errors.isEmpty() ? "." : ": " + String.join("; ", errors)));
         }
         return xsd;
+    }
+
+    /**
+     * Trang's RELAX NG XML input with the parser {@link RelaxNgValidator#secureReader()}: no DTD, no
+     * external entities (Trang's default reader expands both).
+     */
+    private static final class SecureSaxInputFormat extends SAXParseInputFormat {
+        @Override
+        public Parseable<Pattern, NameClass, SourceLocation, ElementAnnotationBuilderImpl, CommentListImpl, AnnotationsImpl>
+                makeParseable(InputSource in, SAXResolver resolver, ErrorHandler eh) throws SAXException {
+            SAXResolver secure = new SAXResolver(resolver.getResolver()) {
+                @Override
+                protected XMLReader createXMLReaderWithoutResolver() throws SAXException {
+                    return RelaxNgValidator.secureReader();
+                }
+            };
+            return super.makeParseable(in, secure, eh);
+        }
     }
 
     /**

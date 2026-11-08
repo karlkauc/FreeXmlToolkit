@@ -374,7 +374,8 @@ public final class DataFormatConverter {
 
     /**
      * Parses YAML 1.2 (core schema). Several documents become an array. Aliases are expanded
-     * (at most 50 per document, so an alias bomb cannot exhaust memory); duplicate keys and
+     * (at most 50 per collection, and the expanded document may have at most twice as many values as
+     * the text has characters, so an alias bomb cannot exhaust memory); duplicate keys and
      * recursive aliases are errors.
      */
     public static JsonElement parseYaml(String yaml) throws ConversionException {
@@ -386,9 +387,10 @@ public final class DataFormatConverter {
                 .setCodePointLimit(Integer.MAX_VALUE)
                 .build();
         List<JsonElement> documents = new ArrayList<>();
+        long[] budget = {Math.max(MIN_YAML_NODES, 2L * yaml.length())};
         try {
             for (Object document : new Load(settings).loadAllFromString(yaml)) {
-                documents.add(yamlToJson(document, new IdentityHashMap<>()));
+                documents.add(yamlToJson(document, new IdentityHashMap<>(), budget));
             }
         } catch (YamlEngineException e) {
             throw new ConversionException("The YAML is not valid: " + e.getMessage(), e);
@@ -404,7 +406,18 @@ public final class DataFormatConverter {
         return array;
     }
 
-    private static JsonElement yamlToJson(Object value, IdentityHashMap<Object, Boolean> open) throws ConversionException {
+    /**
+     * Nodes a YAML document may expand to: twice its length, at least this many. Aliases repeat a
+     * node without repeating its text, so 26 lines of nested aliases would otherwise expand to more
+     * than 100 million nodes.
+     */
+    static final long MIN_YAML_NODES = 1_000_000L;
+
+    private static JsonElement yamlToJson(Object value, IdentityHashMap<Object, Boolean> open, long[] budget)
+            throws ConversionException {
+        if (--budget[0] < 0) {
+            throw new ConversionException("The YAML expands to too many values through its aliases (\"alias bomb\").");
+        }
         if (value == null) {
             return JsonNull.INSTANCE;
         }
@@ -434,13 +447,13 @@ public final class DataFormatConverter {
                 if (value instanceof Map<?, ?> map) {
                     JsonObject object = new JsonObject();
                     for (Map.Entry<?, ?> entry : map.entrySet()) {
-                        object.add(String.valueOf(entry.getKey()), yamlToJson(entry.getValue(), open));
+                        object.add(String.valueOf(entry.getKey()), yamlToJson(entry.getValue(), open, budget));
                     }
                     return object;
                 }
                 JsonArray array = new JsonArray();
                 for (Object item : (Collection<?>) value) {
-                    array.add(yamlToJson(item, open));
+                    array.add(yamlToJson(item, open, budget));
                 }
                 return array;
             } finally {

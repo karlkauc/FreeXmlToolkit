@@ -159,6 +159,25 @@ public final class FxtProject {
         return root().resolve(relative).normalize();
     }
 
+    /**
+     * A path a project may write to: relative and inside the project folder. A project file comes
+     * from anywhere (a repository, a download), so it must not name {@code ../../.bashrc} or a
+     * start-up folder as the output of a scenario.
+     *
+     * @throws IOException when {@code relative} is absolute or leads out of the project folder
+     */
+    public Path resolveWritable(String relative) throws IOException {
+        Path root = root().toAbsolutePath().normalize();
+        Path target = root.resolve(relative).toAbsolutePath().normalize();
+        boolean absolute = Path.of(relative).isAbsolute() || relative.startsWith("/") || relative.startsWith("\\")
+                || relative.matches("^[A-Za-z]:.*");
+        if (absolute || !target.startsWith(root) || target.equals(root)) {
+            throw new IOException("Refused to write " + relative + ": a project writes only to files inside its folder ("
+                    + root + ").");
+        }
+        return target;
+    }
+
     /** @return {@code path} relative to the project folder (with {@code /}), or absolute if outside */
     public String relativize(Path path) {
         Path absolute = path.toAbsolutePath().normalize();
