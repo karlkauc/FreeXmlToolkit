@@ -150,6 +150,9 @@ dependencies {
     implementation("com.github.mifmif:generex:1.0.2")
     implementation("com.github.curious-odd-man:rgxgen:3.1")
 
+    // Command-line interface (fxt-cli, org.fxt.freexmltoolkit.cli)
+    implementation("info.picocli:picocli:4.7.7")
+
     // Note: Guice 7.0.0 doesn't support Java 25 (class file version 69)
     // Using manual DI pattern instead - see org.fxt.freexmltoolkit.di package
 
@@ -915,6 +918,24 @@ Development
                 ""
             }
 
+            // Second launcher: the command line (fxt-cli). Its java-options replace the GUI's, so
+            // it starts headless without the JavaFX options; Windows gives it a console, and no
+            // installer creates a menu entry or shortcut for it.
+            val cliLauncherFile = File(project.layout.buildDirectory.asFile.get(), "jpackage-fxt-cli-$platform.properties")
+            val cliPlatformProps = when (platform) {
+                "windows" -> "win-console=true\nwin-shortcut=false\nwin-menu=false\n"
+                "linux" -> "linux-shortcut=false\n"
+                else -> ""
+            }
+            cliLauncherFile.writeText(
+                "main-class=org.fxt.freexmltoolkit.cli.FxtCli\n" +
+                "description=FreeXmlToolkit command line\n" +
+                "java-options=--enable-preview --enable-native-access=ALL-UNNAMED,javafx.graphics " +
+                "-Djava.awt.headless=true -XX:+UseG1GC -XX:MaxRAMPercentage=50 " +
+                "-Djava.library.path=${'$'}ROOTDIR/runtime/bin\n" +
+                cliPlatformProps)
+            val cliLauncherArg = "--add-launcher\nfxt-cli=${cliLauncherFile.absolutePath}"
+
             argsFile.writeText("""--type
 $packageType
 --input
@@ -936,6 +957,7 @@ ${project.version}
 --description
 "FreeXMLToolkit - Universal Toolkit for XML"
 $iconArg
+$cliLauncherArg
 $rustHelperArg
 $runtimeArg
 $faArgs
@@ -1493,6 +1515,17 @@ tasks.register("createAllRuntimes") {
 }
 
 // Task to run XmlCodeEditorV2 Demo
+// The command line from the build: ./gradlew runCli --args="validate src/test/resources"
+tasks.register<JavaExec>("runCli") {
+    group = "application"
+    description = "Runs fxt-cli (org.fxt.freexmltoolkit.cli.FxtCli); pass its arguments with --args"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("org.fxt.freexmltoolkit.cli.FxtCli")
+    jvmArgs("--enable-preview", "--enable-native-access=ALL-UNNAMED,javafx.graphics", "-Djava.awt.headless=true")
+    workingDir = project.rootDir
+    standardInput = System.`in`
+}
+
 tasks.register<JavaExec>("runEditorV2Demo") {
     group = "application"
     description = "Run XmlCodeEditorV2 Demo Application"

@@ -1,0 +1,369 @@
+package org.fxt.freexmltoolkit.cli;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.w3c.dom.Document;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+/**
+ * Runs {@code fxt-cli} in-process ({@link FxtCli#newCommandLine}) on small files and checks exit
+ * codes, standard output / error and the report formats.
+ */
+@DisplayName("fxt-cli")
+class FxtCliTest {
+
+    private static final String XSD = """
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+              <xs:element name="root"><xs:complexType><xs:sequence>
+                <xs:element name="n" type="xs:int" maxOccurs="unbounded"/>
+              </xs:sequence></xs:complexType></xs:element>
+            </xs:schema>
+            """;
+
+    private static final String SCHEMATRON = """
+            <schema xmlns="http://purl.oclc.org/dsdl/schematron" queryBinding="xslt2">
+              <pattern><rule context="n">
+                <report test=". = '3'" role="warning">three is suspicious</report>
+              </rule></pattern>
+            </schema>
+            """;
+
+    @TempDir
+    Path dir;
+
+    private Path xsd;
+    private Path valid;
+    private Path invalid;
+    private String out;
+    private String err;
+
+    @BeforeEach
+    void files() throws Exception {
+        xsd = write("s.xsd", XSD);
+        valid = write("valid.xml", "<root>\n  <n>3</n>\n</root>\n");
+        invalid = write("invalid.xml", "<root>\n  <n>x</n>\n</root>\n");
+    }
+
+    private Path write(String name, String text) throws Exception {
+        Path file = dir.resolve(name);
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, text, StandardCharsets.UTF_8);
+        return file;
+    }
+
+    private int run(Object... args) {
+        StringWriter outText = new StringWriter();
+        StringWriter errText = new StringWriter();
+        String[] strings = new String[args.length];
+        for (int i = 0; i < args.length; i++) {
+            strings[i] = String.valueOf(args[i]);
+        }
+        int code = FxtCli.newCommandLine(new PrintWriter(outText, true), new PrintWriter(errText, true))
+                .execute(strings);
+        out = outText.toString();
+        err = errText.toString();
+        return code;
+    }
+
+    @Nested
+    @DisplayName("validate")
+    class Validate {
+
+        @Test
+        @DisplayName("a valid file exits 0, an invalid one 1 with file:line:column")
+        void exitCodes() {
+            assertEquals(ExitCodes.OK, run("validate", "-x", xsd, valid), err);
+            assertTrue(out.contains("1 file, all valid"), out);
+
+            assertEquals(ExitCodes.FAILED, run("validate", "-x", xsd, valid, invalid), err);
+            assertTrue(out.contains(invalid + ":2:"), out);
+            assertTrue(out.contains("error: [XSD]"), out);
+            assertTrue(out.contains("2 files, 1 invalid"), out);
+        }
+
+        @Test
+        @DisplayName("without --xsd the schema the document declares is used")
+        void declaredSchema() throws Exception {
+            Path declared = write("declared.xml", "<root xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""
+                    + " xsi:noNamespaceSchemaLocation=\"s.xsd\">\n  <n>x</n>\n</root>\n");
+            assertEquals(ExitCodes.FAILED, run("validate", declared), err);
+            assertTrue(out.contains("[XSD]"), out);
+
+            // --no-schema-lookup: well-formedness only
+            assertEquals(ExitCodes.OK, run("validate", "--no-schema-lookup", declared), err);
+        }
+
+        @Test
+        @DisplayName("a malformed file is reported once per parse error")
+        void malformed() throws Exception {
+            Path broken = write("broken.xml", "<root><n>1</n>\n");
+            assertEquals(ExitCodes.FAILED, run("validate", broken));
+            assertEquals(1, out.lines().filter(l -> l.contains("[Well-formed]")).count(), out);
+        }
+
+        @Test
+        @DisplayName("a schema that does not load exits 3")
+        void schemaDoesNotLoad() throws Exception {
+            Path broken = write("broken.xsd", "not a schema");
+            assertEquals(ExitCodes.NOT_RUN, run("validate", "-x", broken, valid), out + err);
+            assertTrue(out.contains("not validated"), out);
+        }
+
+        @Test
+        @DisplayName("a missing file or schema is a usage error (2) with a short hint")
+        void usageErrors() {
+            assertEquals(ExitCodes.USAGE, run("validate", dir.resolve("missing.xml")));
+            assertTrue(err.contains("File not found"), err);
+            assertTrue(err.contains("--help"), err);
+            assertFalse(err.contains("Usage:"), err);
+
+            assertEquals(ExitCodes.USAGE, run("validate", "-x", dir.resolve("missing.xsd"), valid));
+            assertTrue(err.contains("XML Schema not found"), err);
+        }
+
+        @Test
+        @DisplayName("folders are searched recursively for the include globs, hidden folders skipped")
+        void folders() throws Exception {
+            write("sub/deep.xml", "<a/>");
+            write("sub/ignored.txt", "<a");
+            write(".git/hidden.xml", "<a");
+            assertEquals(ExitCodes.FAILED, run("validate", "--no-schema-lookup", "-x", xsd, dir), err);
+            // s.xsd is not *.xml; valid, invalid, deep
+            assertTrue(out.contains("3 files"), out);
+            assertFalse(out.contains("hidden.xml"), out);
+        }
+
+        @Test
+        @DisplayName("Schematron warnings fail only with --fail-on-warning")
+        void schematronWarnings() throws Exception {
+            Path sch = write("r.sch", SCHEMATRON);
+            assertEquals(ExitCodes.OK, run("validate", "-x", xsd, "-s", sch, valid), out + err);
+            assertTrue(out.contains("warning: [Schematron] three is suspicious"), out);
+            assertEquals(ExitCodes.FAILED, run("validate", "-x", xsd, "-s", sch, "--fail-on-warning", valid));
+        }
+
+        @Test
+        @DisplayName("JSON files are checked against --json-schema")
+        void json() throws Exception {
+            Path schema = write("j.schema.json", "{\"type\":\"object\",\"properties\":{\"a\":{\"type\":\"string\"}}}");
+            Path good = write("good.json", "{\"a\": \"x\"}");
+            Path bad = write("bad.json", "{\"a\": 1}");
+            assertEquals(ExitCodes.OK, run("validate", "-j", schema, good), out + err);
+            assertEquals(ExitCodes.FAILED, run("validate", "-j", schema, bad));
+            assertTrue(out.contains("[JSON Schema]"), out);
+        }
+
+        @Test
+        @DisplayName("SARIF 2.1.0 report with rule, level and region")
+        void sarif() {
+            assertEquals(ExitCodes.FAILED, run("validate", "-x", xsd, "-f", "sarif", invalid));
+            JsonObject root = JsonParser.parseString(out).getAsJsonObject();
+            assertEquals("2.1.0", root.get("version").getAsString());
+            JsonObject runObject = root.getAsJsonArray("runs").get(0).getAsJsonObject();
+            assertEquals("FreeXmlToolkit",
+                    runObject.getAsJsonObject("tool").getAsJsonObject("driver").get("name").getAsString());
+            JsonObject result = runObject.getAsJsonArray("results").get(0).getAsJsonObject();
+            assertEquals("xsd", result.get("ruleId").getAsString());
+            assertEquals("error", result.get("level").getAsString());
+            JsonObject physical = result.getAsJsonArray("locations").get(0).getAsJsonObject()
+                    .getAsJsonObject("physicalLocation");
+            assertEquals(2, physical.getAsJsonObject("region").get("startLine").getAsInt());
+            assertTrue(physical.getAsJsonObject("artifactLocation").get("uri").getAsString().endsWith("invalid.xml"));
+        }
+
+        @Test
+        @DisplayName("JUnit report written to a file, text summary on standard output")
+        void junitToFile() throws Exception {
+            Path report = dir.resolve("reports/junit.xml");
+            assertEquals(ExitCodes.FAILED, run("validate", "-x", xsd, "-f", "junit", "-r", report, valid, invalid));
+            assertTrue(out.contains("2 files, 1 invalid"), out);
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                    .parse(new ByteArrayInputStream(Files.readAllBytes(report)));
+            assertEquals("2", doc.getDocumentElement().getAttribute("tests"));
+            assertEquals("1", doc.getDocumentElement().getAttribute("failures"));
+            assertEquals(1, doc.getElementsByTagName("failure").getLength());
+        }
+
+        @Test
+        @DisplayName("JSON report")
+        void jsonReport() {
+            assertEquals(ExitCodes.FAILED, run("validate", "-x", xsd, "-f", "json", invalid));
+            JsonObject root = JsonParser.parseString(out).getAsJsonObject();
+            assertFalse(root.get("valid").getAsBoolean());
+            assertEquals(1, root.getAsJsonObject("summary").get("invalidFiles").getAsInt());
+        }
+
+        @Test
+        @DisplayName("--quiet prints the findings without the summary")
+        void quiet() {
+            assertEquals(ExitCodes.OK, run("-q", "validate", "-x", xsd, valid));
+            assertEquals("", out);
+        }
+    }
+
+    @Nested
+    @DisplayName("transform")
+    class Transform {
+
+        private static final String XSLT = """
+                <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                  <xsl:param name="label" select="'sum'"/>
+                  <xsl:output method="text"/>
+                  <xsl:template match="/"><xsl:value-of select="$label"/>=<xsl:value-of select="sum(//n)"/></xsl:template>
+                </xsl:stylesheet>
+                """;
+
+        @Test
+        @DisplayName("XSLT with a parameter to standard output; output method from xsl:output")
+        void xslt() throws Exception {
+            Path xsl = write("t.xsl", XSLT);
+            assertEquals(ExitCodes.OK, run("transform", "-s", xsl, "-p", "label=total", valid), err);
+            assertEquals("total=3", out);
+        }
+
+        @Test
+        @DisplayName("several inputs need --output-dir; results are named after the inputs")
+        void outputDir() throws Exception {
+            Path xsl = write("t.xsl", XSLT);
+            assertEquals(ExitCodes.USAGE, run("transform", "-s", xsl, valid, invalid));
+            Path target = dir.resolve("out");
+            Path second = write("second.xml", "<root><n>4</n></root>");
+            assertEquals(ExitCodes.OK, run("transform", "-s", xsl, "-d", target, valid, second), err);
+            assertEquals("sum=3", Files.readString(target.resolve("valid.txt")));
+            assertEquals("sum=4", Files.readString(target.resolve("second.txt")));
+        }
+
+        @Test
+        @DisplayName("XQuery with an external variable, without input")
+        void xquery() throws Exception {
+            Path query = write("q.xq", "declare variable $x external; <r>{ $x }</r>");
+            assertEquals(ExitCodes.OK, run("transform", "-s", query, "-p", "x=7"), err);
+            assertTrue(out.contains("<r>7</r>"), out);
+        }
+
+        @Test
+        @DisplayName("XProc pipeline")
+        void xproc() throws Exception {
+            Path pipeline = write("p.xpl", """
+                    <p:declare-step xmlns:p="http://www.w3.org/ns/xproc" version="3.0">
+                      <p:input port="source"/><p:output port="result"/>
+                      <p:identity/>
+                    </p:declare-step>
+                    """);
+            assertEquals(ExitCodes.OK, run("transform", "-s", pipeline, valid), err);
+            assertTrue(out.contains("<n>3</n>"), out);
+        }
+
+        @Test
+        @DisplayName("a failing transformation exits 1; remote doc() stays blocked")
+        void failure() throws Exception {
+            Path xsl = write("remote.xsl", """
+                    <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                      <xsl:template match="/"><xsl:value-of select="doc('http://127.0.0.1:9/x.xml')"/></xsl:template>
+                    </xsl:stylesheet>
+                    """);
+            assertEquals(ExitCodes.FAILED, run("transform", "-s", xsl, valid));
+            assertTrue(err.contains("Blocked remote resource"), err);
+        }
+
+        @Test
+        @DisplayName("XSLT without input and an unknown language are usage errors")
+        void usage() throws Exception {
+            Path xsl = write("t.xsl", XSLT);
+            assertEquals(ExitCodes.USAGE, run("transform", "-s", xsl));
+            Path unknown = write("t.txt", "x");
+            assertEquals(ExitCodes.USAGE, run("transform", "-s", unknown, valid));
+            assertTrue(err.contains("--language"), err);
+        }
+    }
+
+    @Nested
+    @DisplayName("xsd-doc and fop")
+    class Output {
+
+        @Test
+        @DisplayName("HTML documentation site")
+        void html() {
+            Path site = dir.resolve("doc");
+            assertEquals(ExitCodes.OK, run("xsd-doc", xsd, "-o", site), err);
+            assertTrue(Files.isRegularFile(site.resolve("index.html")));
+        }
+
+        @Test
+        @DisplayName("PDF documentation from the extension of --output")
+        void pdf() throws Exception {
+            Path pdf = dir.resolve("doc.pdf");
+            assertEquals(ExitCodes.OK, run("xsd-doc", xsd, "-o", pdf), err);
+            assertTrue(new String(Files.readAllBytes(pdf), 0, 5, StandardCharsets.ISO_8859_1).startsWith("%PDF"));
+        }
+
+        @Test
+        @DisplayName("PDF from an XSL-FO document; -i/-s and --fo exclude each other")
+        void fop() throws Exception {
+            Path fo = write("doc.fo", """
+                    <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
+                      <fo:layout-master-set>
+                        <fo:simple-page-master master-name="p" page-height="297mm" page-width="210mm">
+                          <fo:region-body margin="20mm"/>
+                        </fo:simple-page-master>
+                      </fo:layout-master-set>
+                      <fo:page-sequence master-reference="p">
+                        <fo:flow flow-name="xsl-region-body"><fo:block>Hello</fo:block></fo:flow>
+                      </fo:page-sequence>
+                    </fo:root>
+                    """);
+            Path pdf = dir.resolve("out/hello.pdf");
+            assertEquals(ExitCodes.OK, run("fop", "--fo", fo, "-o", pdf), err);
+            assertTrue(Files.size(pdf) > 100);
+            assertEquals(ExitCodes.USAGE, run("fop", "--fo", fo, "-i", valid, "-o", pdf));
+        }
+    }
+
+    @Test
+    @DisplayName("--version names the application")
+    void version() {
+        assertEquals(ExitCodes.OK, run("--version"));
+        assertTrue(out.startsWith("FreeXmlToolkit "), out);
+    }
+
+    @Test
+    @DisplayName("the log configuration writes to standard error only")
+    void logConfiguration() throws Exception {
+        try (var in = FxtCli.class.getClassLoader().getResourceAsStream(Logging.CONFIG)) {
+            String config = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            assertTrue(config.contains("SYSTEM_ERR"));
+            assertFalse(config.contains("SYSTEM_OUT"));
+        }
+    }
+
+    @Test
+    @DisplayName("severities of XSD, Schematron and JSON Schema findings")
+    void severities() {
+        assertEquals(ValidationReport.Severity.ERROR, ValidationReport.Severity.of("fatal"));
+        assertEquals(ValidationReport.Severity.ERROR, ValidationReport.Severity.of(null));
+        assertEquals(ValidationReport.Severity.WARNING, ValidationReport.Severity.of("warning"));
+        assertEquals(ValidationReport.Severity.INFO, ValidationReport.Severity.of("info"));
+        assertEquals(List.of("xsd", "schematron", "json-schema"),
+                List.of(ReportWriters.ruleIdOf("XSD"), ReportWriters.ruleIdOf("Schematron"),
+                        ReportWriters.ruleIdOf("JSON Schema")));
+    }
+}

@@ -402,7 +402,7 @@ public class XsdDocumentationPdfService {
             throws Exception {
 
         // Ensure output directory exists
-        Files.createDirectories(outputFile.toPath().getParent());
+        Files.createDirectories(outputFile.toPath().toAbsolutePath().getParent());
 
         // Configure FOP
         FOUserAgent foUserAgent = fopFactory.newFOUserAgent();

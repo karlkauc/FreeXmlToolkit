@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Log configuration of fxt-cli (org.fxt.freexmltoolkit.cli.FxtCli): only errors, and only on
+  standard error, so standard output carries nothing but results and reports.
+  The verbose option lowers the root level to DEBUG.
+-->
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="StdErr" target="SYSTEM_ERR">
+            <PatternLayout pattern="[%-5level] %logger{1} - %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="ERROR">
+            <AppenderRef ref="StdErr"/>
+        </Root>
+    </Loggers>
+</Configuration>

@@ -18,6 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./gradlew test --tests "ClassName.methodName"  # Single test
 ./gradlew createAllExecutables   # All native packages
 ./gradlew dependencyUpdates      # Check for dependency updates
+./gradlew runCli --args="validate src/test/resources"   # Command line (fxt-cli)
 ```
 
 **Build Details:** Java 25 with preview features, JavaFX 25 (bundled in Liberica Full JDK), Gradle 9.x with Kotlin DSL.
@@ -30,6 +31,16 @@ the tag-pinning gotcha), invoke the **`release` skill** (`.claude/skills/release
 ## Application Entry Point
 
 **Main Class:** `org.fxt.freexmltoolkit.FxtGui` — extends `javafx.application.Application`, loads `/pages/tab_unified_shell.fxml` (→ `UnifiedShellController` → `UnifiedShellView`), initializes logging, fonts, CSS hot-reloading, platform icons, and `ShellBootstrap` startup tasks.
+
+## Command Line (fxt-cli)
+
+`org.fxt.freexmltoolkit.cli.FxtCli` (picocli): `validate`, `transform`, `xsd-doc`, `fop`. The
+subcommands only parse options and call the UI-free runners in `controls/shell/editor/`
+(`ValidationRunner`, `TransformRunner`, `XProcRunner`, `DocumentationRunner`, `FopRunner`) — put
+new logic there so the shell and the CLI share it. Logs go to stderr (`log4j2-cli.xml`), stdout is
+for results; no telemetry. Exit codes in `cli/ExitCodes`. Packaged as a second jpackage launcher
+(`--add-launcher fxt-cli=…`, properties written in `createJPackageTask`). User docs:
+`docs/command-line.md`; tests: `FxtCliTest`.
 
 ## Architecture Overview
 

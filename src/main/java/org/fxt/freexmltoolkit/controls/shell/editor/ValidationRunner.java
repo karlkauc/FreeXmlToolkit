@@ -85,6 +85,20 @@ public final class ValidationRunner {
         return -1;
     }
 
+    /**
+     * The XSD an XML document refers to, found like the editor does on open:
+     * {@code xsi:schemaLocation} / {@code xsi:noNamespaceSchemaLocation} (relative to
+     * {@code baseDir}, remote ones downloaded and cached), redirected by the Schema Library
+     * and catalogs, else the Schema Library entry for the root namespace or element.
+     *
+     * @param xml     the XML text
+     * @param baseDir the document's folder, may be {@code null}
+     * @return the local XSD file, empty when the document names none or it does not resolve
+     */
+    public static java.util.Optional<File> declaredSchema(String xml, File baseDir) {
+        return EditorSchemaBinding.declaredSchemaFile(xml, baseDir);
+    }
+
     public static List<ValidationProblem> run(String xml, File xsd, File schematron) {
         return runWithReport(xml, xsd, schematron, null).problems();
     }
