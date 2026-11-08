@@ -1674,6 +1674,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XProc Pipelines
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1690,6 +1708,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#restrictions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restrictions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -2560,6 +2608,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#restrictions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restrictions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -2607,6 +2674,20 @@ target and streams the result into the OUTPUT panel.</em></p>
 available; use the Validation activity (Xerces, full XSD 1.1) and the PDF/FOP
 activity instead. <code>p:validate-with-json-schema</code> is not supported in this bundle.</p>
 </div>
+<h2 id="restrictions">Restrictions<a class="headerlink" href="#restrictions" title="Permanent link">&para;</a></h2>
+<p>Pipelines are programs, so by default they run with restrictions:</p>
+<ul>
+<li>Pipelines that use <strong><code>p:os-exec</code></strong> (run a program), <strong><code>p:run</code></strong> (run a pipeline computed at run
+  time) or <strong><code>p:http-request</code></strong> are not run, also when the step is in an imported library. The
+  message names the step.</li>
+<li>Documents, imports and <code>doc()</code> may only be <strong>local files</strong>; loading from <code>http:</code>, <code>https:</code> or
+  <code>ftp:</code> fails with a message that says so.</li>
+<li>Reading and writing local files (<code>p:store</code>, <code>p:file-copy</code>, <code>p:file-delete</code>, …) works as before,
+  with your rights: run only pipelines you trust.</li>
+</ul>
+<p><strong>Settings → Network &amp; Security → Run XProc pipelines without restrictions</strong> lifts all of it (an
+administrator can lock it, see <a href="../administration/">Administration &amp; Policies</a>). The same rules apply
+to <code>fxt-cli transform</code>. See also the <a href="../threat-model/">Threat Model</a>.</p>
 
 
 

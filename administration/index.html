@@ -2877,6 +2877,16 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <td>Lock Java extension calls in stylesheets off</td>
 </tr>
 <tr>
+<td><code>security.xproc.unrestricted</code></td>
+<td><code>false</code></td>
+<td>Lock the XProc restrictions on: no <code>p:os-exec</code>, <code>p:run</code>, <code>p:http-request</code>, no network (see <a href="../threat-model/">Threat Model</a>)</td>
+</tr>
+<tr>
+<td><code>security.htmlPreview.allowActiveContent</code></td>
+<td><code>false</code></td>
+<td>Lock JavaScript and remote content in HTML previews off</td>
+</tr>
+<tr>
 <td><code>fundsxml.enabled</code></td>
 <td><code>true</code> / <code>false</code></td>
 <td>FundsXML extension</td>
@@ -2960,6 +2970,8 @@ or the Windows sign-on (<code>http.proxy.windowsSignOn=true</code>) instead.</p>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="na">fxt.schema.namespaceFallback</span><span class="o">=</span><span class="s">false</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="na">ssl.trustAllCerts</span><span class="o">=</span><span class="s">false</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="na">security.xslt.allow.extensions</span><span class="o">=</span><span class="s">false</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="na">security.xproc.unrestricted</span><span class="o">=</span><span class="s">false</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="na">security.htmlPreview.allowActiveContent</span><span class="o">=</span><span class="s">false</span>
 </code></pre></div>
 <p>A company proxy that users can still change, with a shared template folder:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># /etc/freexmltoolkit/defaults.properties</span>

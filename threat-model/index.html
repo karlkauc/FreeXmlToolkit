@@ -2797,6 +2797,21 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 <td>–</td>
 </tr>
 <tr>
+<td><strong>Schematron</strong> reading local files or the network</td>
+<td>The document is read by the application's secure parser and the Schematron with external entities resolved to nothing; the compiled rules run in a Saxon configuration with the same parser settings and without remote <code>doc()</code>, <code>document()</code> or <code>unparsed-text()</code>.</td>
+<td>–</td>
+</tr>
+<tr>
+<td><strong>XProc pipelines</strong> running programs or reaching the network</td>
+<td>Pipelines that use <code>p:os-exec</code>, <code>p:run</code> (a pipeline computed at run time) or <code>p:http-request</code>, also in imported libraries, are refused before they run. Documents, imports and <code>doc()</code> targets may only be local files: XML Calabash's resolver allows only <code>file:</code> and <code>jar:</code> URIs, and its HTTP client is sent to an address where nothing listens. Pipelines can still read and write local files (<code>p:store</code>, <code>p:file-*</code>).</td>
+<td><code>security.xproc.unrestricted</code> (Settings → Network &amp; Security, default off)</td>
+</tr>
+<tr>
+<td><strong>HTML previews</strong> running scripts or loading remote content</td>
+<td>Previews of HTML files, XSLT output and generated documentation run no JavaScript, open no popups, load images, styles and fonts only from <code>data:</code> URIs or local files (a Content-Security-Policy is added to the page) and do not follow links to remote pages.</td>
+<td><code>security.htmlPreview.allowActiveContent</code> (Settings → Network &amp; Security, default off)</td>
+</tr>
+<tr>
 <td><strong>Forged or weak XML signatures</strong></td>
 <td>Verification uses the JDK's XML DSig with its secure-validation default; SHA-1 is rejected; references resolve only to plain file names in the signature's own folder.</td>
 <td>–</td>
@@ -2842,11 +2857,9 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 <p>These are not covered by the protections above. Keep them in mind when files come from
 untrusted sources:</p>
 <ul>
-<li><strong>XProc pipelines</strong> run unrestricted: <code>p:http-request</code> and remote <code>href</code>s are fetched (through
-  the configured proxy). Run only pipelines you trust.</li>
-<li><strong>HTML previews</strong> (HTML files, XSLT output) are shown in an embedded WebKit view with
-  JavaScript enabled, and it loads the remote resources the page refers to.</li>
-<li><strong>Schematron</strong> is compiled and run without extra restrictions beyond Saxon's defaults.</li>
+<li><strong>XProc pipelines</strong> can read and write local files (<code>p:store</code>, <code>p:file-copy</code>, <code>p:file-delete</code>, …)
+  with the user's rights, like a script. Run only pipelines you trust; with
+  <code>security.xproc.unrestricted</code> they can also run programs and reach the network.</li>
 <li><strong>Opening a document downloads its schema.</strong> An <code>xsi:schemaLocation</code> with an http(s) URL is
   fetched when the file is opened (from public addresses only; the Schema Library and catalogs
   are asked first). The download reveals to that server that the file was opened.</li>
@@ -2892,6 +2905,14 @@ untrusted sources:</p>
 <tr>
 <td>No Java from stylesheets</td>
 <td>Leave <code>security.xslt.allow.extensions</code> off (default)</td>
+</tr>
+<tr>
+<td>XProc without programs and network</td>
+<td>Leave <code>security.xproc.unrestricted</code> off (default); lock it with <code>security.xproc.unrestricted=false</code> in the policy file</td>
+</tr>
+<tr>
+<td>HTML previews without scripts and remote content</td>
+<td>Leave <code>security.htmlPreview.allowActiveContent</code> off (default); lock it in the policy file</td>
 </tr>
 </tbody>
 </table>

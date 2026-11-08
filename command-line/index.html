@@ -3086,7 +3086,9 @@ error. XSLT needs an input document; XQuery and XProc can run without one. Relat
 <code>xsl:import</code>, <code>xsl:include</code> and <code>doc()</code> references resolve against the stylesheet's and the
 input's folder. As in the application, stylesheets cannot call Java, and <code>doc()</code>,
 <code>document()</code> and <code>unparsed-text()</code> refuse remote URLs (see <a href="../threat-model/">Threat Model</a>);
-XProc pipelines run unrestricted.</p>
+XProc pipelines may not run programs (<code>p:os-exec</code>), run computed pipelines (<code>p:run</code>), send HTTP
+requests or load documents from the network, unless <code>security.xproc.unrestricted=true</code> is set in
+the settings (see <a href="../threat-model/">Threat Model</a>).</p>
 <h2 id="xsd-doc">xsd-doc<a class="headerlink" href="#xsd-doc" title="Permanent link">&para;</a></h2>
 <p>Generates the documentation of an XML Schema, like <strong>Generate Documentation</strong> in the
 application.</p>
