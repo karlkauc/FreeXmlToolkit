@@ -3039,6 +3039,14 @@ treated as JSON, everything else as XML.</p>
 <td><code>-d</code>, <code>--output-dir DIR</code></td>
 <td>Output folder for several inputs; each result is named after its input with the extension of the output method</td>
 </tr>
+<tr>
+<td><code>--profile REPORT</code></td>
+<td>XSLT with one input: profile the run and write the report, as JSON when REPORT ends in <code>.json</code>, else as text (<code>-</code> for standard error)</td>
+</tr>
+<tr>
+<td><code>--warmup N</code></td>
+<td>With <code>--profile</code>: runs before the measured one (default 1), so Java's JIT compiler has warmed up</td>
+</tr>
 </tbody>
 </table>
 <p>Without <code>-o</code> and <code>-d</code> the result goes to standard output. <code>xsl:message</code> output goes to standard

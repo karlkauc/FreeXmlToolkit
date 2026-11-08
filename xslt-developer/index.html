@@ -3682,8 +3682,45 @@ tab opens pre-loaded with those files and starts automatically.</p>
 <p>Every run shows compact statistics in the OUTPUT panel's status line:
 <code>Transformed · N ms · M chars</code> — the <strong>execution time</strong> and the <strong>output size</strong>.</p>
 <p>For a deeper look, enable <strong>Profile run</strong> in the Transform panel's <strong>OPTIONS &amp; TOOLS</strong> section: the next
-transformation additionally opens a read-only <strong>Profile</strong> tool tab with overall timings and
-<strong>per-template execution times</strong>, so you can see exactly where the time goes.</p>
+transformation runs under the XSLT profiler and opens a <strong>Profile: <stylesheet></strong> tab that shows
+where the time goes.</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Hot Spots</strong></td>
+<td>Every template rule (with its mode), named template and function: calls, <strong>Self</strong> time and its share of the run, <strong>Total</strong> time, average per call. Sorted by self time: the top rows are what to optimize.</td>
+</tr>
+<tr>
+<td><strong>Call Tree</strong></td>
+<td>Who called whom: the whole run at the top, below it the templates and functions each one called, with calls, total time and its share, and self time. The slowest path is expanded.</td>
+</tr>
+<tr>
+<td><strong>Flame Graph</strong></td>
+<td>The call tree as bars; the width is the total time. Click a bar to zoom in (it fills the width), click it again or <strong>Reset Zoom</strong> to go back; hover for the numbers.</td>
+</tr>
+<tr>
+<td><strong>Lines</strong></td>
+<td>Self time per stylesheet line, with the line's text: the expressions and instructions that cost the most.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total</strong> is the time from entering a template or function until leaving it, including everything it
+calls; a recursive function counts only its outermost calls, so no time is counted twice (in the call
+tree its recursive calls are folded into one node). <strong>Self</strong> is the total without the templates and
+functions it calls. Double-click a row or bar to open the stylesheet (also an included or imported
+module) at that line.</p>
+<p>The run is measured with Saxon's tracing on, so the absolute times are higher than in a normal
+transformation; compare the parts with each other. The first run of a stylesheet also includes the
+warm-up of Java's JIT compiler: <strong>Profile Again</strong> measures once more after a warm-up run, which gives
+steadier numbers. <strong>Export</strong> writes the profile as JSON (with the call tree) or as a text report.</p>
+<p>On the command line, <code>fxt-cli transform --profile report.json …</code> profiles a run (see
+<a href="../command-line/#transform">Command Line</a>).</p>
 <hr />
 <h2 id="tracing-and-messages">Tracing and Messages<a class="headerlink" href="#tracing-and-messages" title="Permanent link">&para;</a></h2>
 <p>Enable <strong>Trace run</strong> in <strong>OPTIONS &amp; TOOLS</strong> to open a <strong>Trace</strong> tool tab with the next run. It
