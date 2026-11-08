@@ -100,6 +100,51 @@ class LargeFileViewTest {
     }
 
     @Test
+    void structureTreeRecordsShowInTextAndExtract(@TempDir Path dir) throws Exception {
+        Path file = orders(dir, 2_500);
+        LargeFileView view = open(file);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.selectStructureForTesting();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> view.recordsForTesting().size() == LargeFileView.PAGE));
+        assertEquals(List.of("#", "Element", "@id", "amount"),
+                WaitForAsyncUtils.waitForAsyncFx(2000, view::recordColumnsForTesting));
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, view::recordsLabelForTesting)
+                .startsWith("Children of /orders[1]: 1,000 loaded, more available"));
+        var root = WaitForAsyncUtils.waitForAsyncFx(2000, () -> view.treeForTesting().getRoot());
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> root.getChildren().size() == LargeFileView.PAGE + 1);
+        assertEquals("order id=\"1\"", LargeFileView.label(
+                (org.fxt.freexmltoolkit.service.largefile.LargeXmlStructure.Node) root.getChildren().get(0).getValue()));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.onLoadMore();
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> view.recordsForTesting().size() == 2 * LargeFileView.PAGE));
+        assertEquals(2_001, root.getChildren().size(), "the tree got the page too, and a new Load more entry");
+
+        var tenth = WaitForAsyncUtils.waitForAsyncFx(2000, () -> view.recordsForTesting().get(9));
+        assertEquals("/orders[1]/order[10]", tenth.xpath());
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.showInText(tenth);
+            return null;
+        });
+        assertEquals(10, WaitForAsyncUtils.waitForAsyncFx(2000, view::selectionForTesting)[0], "line 11, row 10");
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.extract(tenth);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.getActiveText().map(t -> t.startsWith("<order id=\"10\">")).orElse(false)));
+        assertEquals("<order id=\"10\"><amount>30</amount></order>",
+                WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.getActiveText().orElse("")));
+    }
+
+    @Test
     void highlightsXml() {
         List<Text> parts = LargeFileView.highlight("<a id=\"1\">x<!-- c --></a>");
         assertEquals("<a", parts.get(0).getText());

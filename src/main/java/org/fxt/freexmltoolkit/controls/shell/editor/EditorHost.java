@@ -1004,6 +1004,7 @@ public class EditorHost extends BorderPane {
             }
         }
         LargeFileView view = new LargeFileView(path);
+        view.setDocumentOpener((name, text) -> openGeneratedDocument(text, EditorFileType.XML, name));
         Tab tab = openToolTab(path.getFileName() + " (viewer)", "bi-eye", view);
         tab.setTooltip(new javafx.scene.control.Tooltip(path + " - Large File Viewer (read-only)"));
         tab.setOnClosed(e -> view.close());

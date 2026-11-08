@@ -7,6 +7,10 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -53,11 +57,53 @@
                 <Button text="Cancel" id="large-file-cancel" onAction="#onCancel"/>
             </children>
         </HBox>
-        <SplitPane fx:id="split" orientation="VERTICAL" VBox.vgrow="ALWAYS">
-            <items>
-                <StackPane fx:id="rowsSlot" id="large-file-rows"/>
-            </items>
-        </SplitPane>
+        <TabPane fx:id="views" id="large-file-views" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+            <tabs>
+                <Tab fx:id="textTab" text="Text" id="large-file-tab-text">
+                    <content>
+                        <SplitPane fx:id="split" orientation="VERTICAL">
+                            <items>
+                                <StackPane fx:id="rowsSlot" id="large-file-rows"/>
+                            </items>
+                        </SplitPane>
+                    </content>
+                </Tab>
+                <Tab fx:id="structureTab" text="Structure" id="large-file-tab-structure">
+                    <content>
+                        <SplitPane dividerPositions="0.35">
+                            <items>
+                                <TreeView fx:id="tree" id="large-file-tree"/>
+                                <VBox spacing="4">
+                                    <children>
+                                        <HBox spacing="8" alignment="CENTER_LEFT">
+                                            <padding>
+                                                <Insets top="4" right="8" bottom="2" left="8"/>
+                                            </padding>
+                                            <children>
+                                                <Label fx:id="recordsLabel" id="large-file-records-label"
+                                                       text="Select an element to list its children."/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Button fx:id="loadMoreButton" text="Load More" id="large-file-load-more"
+                                                        onAction="#onLoadMore" disable="true">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-chevron-double-down" iconSize="16"/>
+                                                    </graphic>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <TableView fx:id="records" id="large-file-records" VBox.vgrow="ALWAYS">
+                                            <placeholder>
+                                                <Label text="No child elements"/>
+                                            </placeholder>
+                                        </TableView>
+                                    </children>
+                                </VBox>
+                            </items>
+                        </SplitPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
         <ListView fx:id="results" id="large-file-results" visible="false" managed="false"/>
         <HBox spacing="8" alignment="CENTER_LEFT" styleClass="diff-xml-summary">
             <children>

@@ -39,6 +39,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.service.largefile.LargeFileIndex;
+import org.fxt.freexmltoolkit.service.largefile.LargeXmlStructure;
 
 /**
  * Large File Viewer: a read-only view of a text or XML file of any size. The file is indexed once in
@@ -68,6 +69,37 @@ public class LargeFileView extends VBox {
     @FXML private StackPane rowsSlot;
     @FXML private ListView<LargeFileIndex.Hit> results;
     @FXML private Label status;
+    @FXML private javafx.scene.control.TabPane views;
+    @FXML private javafx.scene.control.Tab textTab;
+    @FXML private javafx.scene.control.Tab structureTab;
+    @FXML private javafx.scene.control.TreeView<Object> tree;
+    @FXML private Label recordsLabel;
+    @FXML private Button loadMoreButton;
+    @FXML private javafx.scene.control.TableView<LargeXmlStructure.Node> records;
+
+    /** Children per page in the tree and the records table. */
+    static final int PAGE = 1000;
+    /** Elements larger than this are not opened as a new document. */
+    static final int MAX_EXTRACT_BYTES = 50 * 1024 * 1024;
+
+    private LargeXmlStructure structure;
+    /** Set when the view closes: stops structure reads. */
+    private final AtomicBoolean closed = new AtomicBoolean();
+    /** Loaded children of an element: the nodes so far, where the next page starts (-1: all), the counters. */
+    private final java.util.Map<LargeXmlStructure.Node, Loaded> loaded = new java.util.HashMap<>();
+    private LargeXmlStructure.Node recordsParent;
+    private java.util.function.BiConsumer<String, String> documentOpener = (name, text) -> { };
+
+    private static final class Loaded {
+        final List<LargeXmlStructure.Node> nodes = new ArrayList<>();
+        long next;
+        java.util.Map<String, Integer> positions;
+        boolean loading;
+    }
+
+    /** "Load more" entry of the tree. */
+    private record More(LargeXmlStructure.Node parent) {
+    }
 
     private final Path path;
     private final ListView<Integer> flow = new ListView<>();
@@ -95,6 +127,7 @@ public class LargeFileView extends VBox {
             }
         });
         addEventFilter(KeyEvent.KEY_PRESSED, this::onKey);
+        setUpStructure();
         setDisableControls(true);
         info.setText(path.getFileName() + " · indexing…");
         index();
@@ -129,6 +162,7 @@ public class LargeFileView extends VBox {
                             + String.format(Locale.ROOT, "%,d", built.lineCount()) + " lines · "
                             + built.charset().name() + " · read-only");
                     status.setText("Click a row to select it, Shift+click to extend, Ctrl+C to copy.");
+                    structureTab.setDisable(!looksLikeXml(built));
                     onIndexed.run();
                 });
             } catch (CancellationException e) {
@@ -354,9 +388,319 @@ public class LargeFileView extends VBox {
         results.scrollTo(next);
     }
 
+    // ---- structure ------------------------------------------------------------------------------
+
+    /** Opens an extracted element as a new document (name, text). */
+    public void setDocumentOpener(java.util.function.BiConsumer<String, String> opener) {
+        documentOpener = opener == null ? (name, text) -> { } : opener;
+    }
+
+    private static boolean looksLikeXml(LargeFileIndex index) {
+        try {
+            for (LargeFileIndex.Row row : index.rows(0, 20)) {
+                String text = row.text().strip();
+                if (!text.isEmpty()) {
+                    return text.startsWith("<");
+                }
+            }
+        } catch (IOException e) {
+            return false;
+        }
+        return false;
+    }
+
+    private void setUpStructure() {
+        structureTab.setDisable(true);
+        structureTab.setOnSelectionChanged(e -> {
+            if (structureTab.isSelected() && structure == null && index != null) {
+                loadRoot();
+            }
+        });
+        tree.setShowRoot(true);
+        tree.setCellFactory(t -> new javafx.scene.control.TreeCell<>() {
+            @Override
+            protected void updateItem(Object item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else if (item instanceof More) {
+                    setText("Load more…");
+                    setGraphic(null);
+                } else if (item instanceof LargeXmlStructure.Node node) {
+                    setText(label(node));
+                } else {
+                    setText(String.valueOf(item));
+                }
+            }
+        });
+        tree.getSelectionModel().selectedItemProperty().addListener((obs, o, item) -> {
+            if (item == null) {
+                return;
+            }
+            if (item.getValue() instanceof More more) {
+                loadPage(more.parent(), item.getParent());
+            } else if (item.getValue() instanceof LargeXmlStructure.Node node) {
+                showRecords(node);
+            }
+        });
+        javafx.scene.control.ContextMenu treeMenu = nodeMenu(() -> selectedTreeNode());
+        tree.setContextMenu(treeMenu);
+        records.setContextMenu(nodeMenu(() -> records.getSelectionModel().getSelectedItem()));
+        records.setRowFactory(t -> {
+            javafx.scene.control.TableRow<LargeXmlStructure.Node> row = new javafx.scene.control.TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    showInText(row.getItem());
+                }
+            });
+            return row;
+        });
+    }
+
+    private LargeXmlStructure.Node selectedTreeNode() {
+        var item = tree.getSelectionModel().getSelectedItem();
+        return item != null && item.getValue() instanceof LargeXmlStructure.Node node ? node : null;
+    }
+
+    private javafx.scene.control.ContextMenu nodeMenu(java.util.function.Supplier<LargeXmlStructure.Node> target) {
+        javafx.scene.control.MenuItem show = menuItem("Show in Text", "bi-text-left", () -> showInText(target.get()));
+        javafx.scene.control.MenuItem open = menuItem("Open as New Document", "bi-box-arrow-up-right",
+                () -> extract(target.get()));
+        javafx.scene.control.MenuItem copy = menuItem("Copy XPath", "bi-clipboard", () -> {
+            LargeXmlStructure.Node node = target.get();
+            if (node != null) {
+                ClipboardContent content = new ClipboardContent();
+                content.putString(node.xpath());
+                Clipboard.getSystemClipboard().setContent(content);
+            }
+        });
+        javafx.scene.control.ContextMenu menu = new javafx.scene.control.ContextMenu(show, open, copy);
+        menu.setOnShowing(e -> {
+            boolean none = target.get() == null;
+            show.setDisable(none);
+            open.setDisable(none);
+            copy.setDisable(none);
+        });
+        return menu;
+    }
+
+    private static javafx.scene.control.MenuItem menuItem(String text, String icon, Runnable action) {
+        javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem(text,
+                new org.fxt.freexmltoolkit.controls.icons.IconifyIcon(icon));
+        item.setOnAction(e -> action.run());
+        return item;
+    }
+
+    static String label(LargeXmlStructure.Node node) {
+        StringBuilder label = new StringBuilder(node.name());
+        String id = node.fields().entrySet().stream().filter(e -> e.getKey().startsWith("@")).findFirst()
+                .map(e -> " " + e.getKey().substring(1) + "=\"" + e.getValue() + "\"").orElse("");
+        label.append(id);
+        if (!node.hasChildren() && !node.text().isEmpty()) {
+            label.append(" = ").append(node.text().length() > 60 ? node.text().substring(0, 60) + "…" : node.text());
+        }
+        return label.toString();
+    }
+
+    private void loadRoot() {
+        LargeFileIndex current = index;
+        recordsLabel.setText("Reading the structure…");
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try {
+                LargeXmlStructure s = new LargeXmlStructure(current);
+                LargeXmlStructure.Node root = s.root();
+                Platform.runLater(() -> {
+                    structure = s;
+                    javafx.scene.control.TreeItem<Object> item = treeItem(root);
+                    tree.setRoot(item);
+                    item.setExpanded(true);
+                    tree.getSelectionModel().select(item);
+                });
+            } catch (IOException | RuntimeException e) {
+                Platform.runLater(() -> recordsLabel.setText("No XML structure: " + e.getMessage()));
+            }
+        });
+    }
+
+    /** A tree item that lists its children when it is expanded the first time. */
+    private javafx.scene.control.TreeItem<Object> treeItem(LargeXmlStructure.Node node) {
+        javafx.scene.control.TreeItem<Object> item = new javafx.scene.control.TreeItem<>(node) {
+            @Override
+            public boolean isLeaf() {
+                return !node.hasChildren();
+            }
+        };
+        if (node.hasChildren()) {
+            item.getChildren().add(new javafx.scene.control.TreeItem<>("Loading…"));
+            item.expandedProperty().addListener((obs, was, expanded) -> {
+                if (expanded && !loaded.containsKey(node)) {
+                    loadPage(node, item);
+                }
+            });
+        }
+        return item;
+    }
+
+    /** Loads the next page of {@code parent}'s children into its tree item and, if shown, the table. */
+    private void loadPage(LargeXmlStructure.Node parent, javafx.scene.control.TreeItem<Object> parentItem) {
+        Loaded state = loaded.computeIfAbsent(parent, p -> {
+            Loaded l = new Loaded();
+            l.next = p.start();
+            return l;
+        });
+        if (state.loading || state.next < 0 || structure == null) {
+            return;
+        }
+        state.loading = true;
+        LargeXmlStructure s = structure;
+        long from = state.next;
+        var positions = state.positions;
+        showProgress("Reading children of " + parent.name() + "…", -1);
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try {
+                LargeXmlStructure.Page page = s.children(parent, from, positions, PAGE, closed::get, null);
+                Platform.runLater(() -> {
+                    hideProgress();
+                    state.loading = false;
+                    state.nodes.addAll(page.children());
+                    state.next = page.next();
+                    state.positions = page.positions();
+                    if (parentItem != null) {
+                        parentItem.getChildren().removeIf(c -> !(c.getValue() instanceof LargeXmlStructure.Node));
+                        for (LargeXmlStructure.Node child : page.children()) {
+                            parentItem.getChildren().add(treeItem(child));
+                        }
+                        if (state.next >= 0) {
+                            parentItem.getChildren().add(new javafx.scene.control.TreeItem<>(new More(parent)));
+                        }
+                    }
+                    if (parent.equals(recordsParent)) {
+                        fillRecords(parent);
+                    }
+                });
+            } catch (IOException | RuntimeException e) {
+                Platform.runLater(() -> {
+                    hideProgress();
+                    state.loading = false;
+                    recordsLabel.setText("Cannot read the children: " + e.getMessage());
+                });
+            }
+        });
+    }
+
+    private javafx.scene.control.TreeItem<Object> itemOf(LargeXmlStructure.Node node) {
+        java.util.Deque<javafx.scene.control.TreeItem<Object>> pending = new java.util.ArrayDeque<>();
+        if (tree.getRoot() != null) {
+            pending.add(tree.getRoot());
+        }
+        while (!pending.isEmpty()) {
+            var item = pending.poll();
+            if (node.equals(item.getValue())) {
+                return item;
+            }
+            if (item.isExpanded()) {
+                pending.addAll(item.getChildren());
+            }
+        }
+        return null;
+    }
+
+    private void showRecords(LargeXmlStructure.Node parent) {
+        recordsParent = parent;
+        if (!parent.hasChildren()) {
+            records.getItems().clear();
+            records.getColumns().clear();
+            recordsLabel.setText(parent.xpath() + " has no child elements.");
+            loadMoreButton.setDisable(true);
+            return;
+        }
+        Loaded state = loaded.get(parent);
+        if (state == null) {
+            loadPage(parent, itemOf(parent));
+        } else {
+            fillRecords(parent);
+        }
+    }
+
+    @FXML
+    public void onLoadMore() {
+        if (recordsParent != null) {
+            loadPage(recordsParent, itemOf(recordsParent));
+        }
+    }
+
+    /** The table: one row per child, a column per field (attributes and leaf texts) of the loaded children. */
+    private void fillRecords(LargeXmlStructure.Node parent) {
+        Loaded state = loaded.get(parent);
+        if (state == null) {
+            return;
+        }
+        java.util.LinkedHashSet<String> keys = new java.util.LinkedHashSet<>();
+        boolean anyText = false;
+        for (LargeXmlStructure.Node child : state.nodes) {
+            if (keys.size() < 40) {
+                keys.addAll(child.fields().keySet());
+            }
+            anyText |= !child.text().isEmpty();
+        }
+        records.getColumns().clear();
+        records.getColumns().add(column("#", 60, n -> Integer.toString(n.position())));
+        records.getColumns().add(column("Element", 120, LargeXmlStructure.Node::name));
+        for (String key : keys) {
+            records.getColumns().add(column(key, 120, n -> n.fields().getOrDefault(key, "")));
+        }
+        if (anyText) {
+            records.getColumns().add(column("Text", 160, LargeXmlStructure.Node::text));
+        }
+        records.getItems().setAll(state.nodes);
+        recordsLabel.setText("Children of " + parent.xpath() + ": " + String.format(Locale.ROOT, "%,d", state.nodes.size())
+                + (state.next >= 0 ? " loaded, more available" : ""));
+        loadMoreButton.setDisable(state.next < 0);
+    }
+
+    private static javafx.scene.control.TableColumn<LargeXmlStructure.Node, String> column(String title, double width,
+            java.util.function.Function<LargeXmlStructure.Node, String> value) {
+        javafx.scene.control.TableColumn<LargeXmlStructure.Node, String> column = new javafx.scene.control.TableColumn<>(title);
+        column.setPrefWidth(width);
+        column.setCellValueFactory(c -> new javafx.beans.property.ReadOnlyStringWrapper(value.apply(c.getValue())));
+        return column;
+    }
+
+    /** Switches to the Text tab at the element's first line. */
+    void showInText(LargeXmlStructure.Node node) {
+        if (node == null || index == null) {
+            return;
+        }
+        try {
+            long row = index.rowOfOffset(node.start());
+            views.getSelectionModel().select(textTab);
+            showRow(row);
+        } catch (IOException e) {
+            status.setText("Cannot read the file: " + e.getMessage());
+        }
+    }
+
+    /** Opens the element as a new, unsaved document (up to 50 MB). */
+    void extract(LargeXmlStructure.Node node) {
+        if (node == null || structure == null) {
+            return;
+        }
+        LargeXmlStructure s = structure;
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try {
+                String text = s.text(node, MAX_EXTRACT_BYTES);
+                Platform.runLater(() -> documentOpener.accept(node.name() + "-" + node.position() + ".xml", text));
+            } catch (IOException | RuntimeException e) {
+                Platform.runLater(() -> status.setText("Cannot open the element: " + e.getMessage()));
+            }
+        });
+    }
+
     /** Releases the file and stops a running index or search. */
     public void close() {
         cancel.set(true);
+        closed.set(true);
         LargeFileIndex current = index;
         if (current != null) {
             try {
@@ -499,6 +843,26 @@ public class LargeFileView extends VBox {
 
     String infoForTesting() {
         return info.getText();
+    }
+
+    void selectStructureForTesting() {
+        views.getSelectionModel().select(structureTab);
+    }
+
+    javafx.scene.control.TreeView<Object> treeForTesting() {
+        return tree;
+    }
+
+    List<LargeXmlStructure.Node> recordsForTesting() {
+        return List.copyOf(records.getItems());
+    }
+
+    List<String> recordColumnsForTesting() {
+        return records.getColumns().stream().map(javafx.scene.control.TableColumn::getText).toList();
+    }
+
+    String recordsLabelForTesting() {
+        return recordsLabel.getText();
     }
 
     void setFindForTesting(String text, boolean regex) {

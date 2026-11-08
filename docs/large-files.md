@@ -35,10 +35,31 @@ XML is coloured line by line (tags, attributes, values, comments). A line longer
 minified document on one line, is shown as several rows; the continuation rows are marked with `↪`
 instead of a line number. A match that spans two such rows is not found.
 
+## Structure (XML)
+
+For an XML file, the **Structure** tab shows the elements without reading the whole file:
+
+- **Tree** (left): the root element; expanding an element lists its children, 1,000 at a time.
+  **Load more…** at the end of a list reads the next 1,000. Each element shows its name, its first
+  attribute and, for an element with only text, the text.
+- **Table** (right): the children of the selected element as records, one row per child. The columns
+  are the children's attributes (`@id`, …) and the texts of their simple child elements (elements
+  that contain only text, such as `<amount>`), so a file of records reads like a spreadsheet.
+  **Load More** adds the next 1,000 children.
+
+Double-click a row, or choose **Show in Text** in the context menu, to see the element in the
+**Text** tab. **Open as New Document** opens the element (up to 50 MB) as a new, unsaved document
+in the editor, where it can be edited, validated or transformed like any other file. **Copy XPath**
+copies the element's path, such as `/orders[1]/order[42]`.
+
+The structure is read from the bytes of the file on demand, so the first 1,000 children of the root
+of a 1 GB file appear in well under a second. Reading assumes a well-formed document; DTD
+declarations are skipped, entities other than the predefined ones are not expanded.
+
 ## Limits
 
 - The viewer is read-only. To change a large file, open it in the editor (if it fits the memory
-  limit) or extract the part you need.
+  limit), or open the element you need as a new document from the **Structure** tab.
 - UTF-8, ASCII and single-byte encodings such as ISO-8859-1 are supported; UTF-16 and UTF-32 files
   are not.
 - The file is read where it is: if it changes on disk while it is open, close and reopen the viewer.
