@@ -2301,9 +2301,9 @@ final class EditorTab extends Tab {
             return;
         }
         try {
-            javafx.scene.web.WebView webView = new javafx.scene.web.WebView();
-            htmlPreviewUpdater = content ->
-                    webView.getEngine().loadContent(content == null ? "" : content);
+            // no JavaScript, no remote content unless allowed in Settings (SafeWebView)
+            javafx.scene.web.WebView webView = org.fxt.freexmltoolkit.controls.shell.SafeWebView.create();
+            htmlPreviewUpdater = content -> org.fxt.freexmltoolkit.controls.shell.SafeWebView.load(webView, content);
             htmlPreviewNode = webView;
         } catch (Throwable t) {
             // javafx.scene.web missing from the runtime: degrade to read-only text

@@ -395,8 +395,9 @@ public class TransformOutputPanel extends VBox {
     private void updateHtmlPreview(String html) {
         if (htmlPreviewUpdater == null) {
             try {
-                javafx.scene.web.WebView view = new javafx.scene.web.WebView();
-                htmlPreviewUpdater = content -> view.getEngine().loadContent(content == null ? "" : content);
+                // no JavaScript, no remote content unless allowed in Settings (SafeWebView)
+                javafx.scene.web.WebView view = org.fxt.freexmltoolkit.controls.shell.SafeWebView.create();
+                htmlPreviewUpdater = content -> org.fxt.freexmltoolkit.controls.shell.SafeWebView.load(view, content);
                 previewHolder.getChildren().setAll(view);
             } catch (Throwable t) {
                 TextArea fallback = new TextArea();

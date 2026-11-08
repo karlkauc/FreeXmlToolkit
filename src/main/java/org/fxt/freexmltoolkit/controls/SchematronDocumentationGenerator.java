@@ -135,7 +135,7 @@ public class SchematronDocumentationGenerator extends VBox {
         statusLabel.getStyleClass().add("status-label");
 
         // Documentation display
-        documentationView = new WebView();
+        documentationView = org.fxt.freexmltoolkit.controls.shell.SafeWebView.create();
         documentationView.setPrefHeight(400);
     }
 
@@ -791,11 +791,11 @@ public class SchematronDocumentationGenerator extends VBox {
      */
     private void displayDocumentation(String documentation) {
         if (selectedFormat == DocumentationFormat.HTML) {
-            documentationView.getEngine().loadContent(documentation);
+            org.fxt.freexmltoolkit.controls.shell.SafeWebView.load(documentationView, documentation);
         } else {
             // For non-HTML formats, wrap in HTML for display
             String htmlWrapper = "<html><body><pre>" + escapeHtml(documentation) + "</pre></body></html>";
-            documentationView.getEngine().loadContent(htmlWrapper);
+            org.fxt.freexmltoolkit.controls.shell.SafeWebView.load(documentationView, htmlWrapper);
         }
     }
 
