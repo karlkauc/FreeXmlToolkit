@@ -21,6 +21,7 @@ import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog;
 import org.fxt.freexmltoolkit.controls.shell.editor.AboutDialog;
+import org.fxt.freexmltoolkit.controls.shell.editor.DataConversionAction;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorActions;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
@@ -35,6 +36,7 @@ import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdDiagramOptions;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.service.ApplicationLauncherLocator;
+import org.fxt.freexmltoolkit.service.DataFormatConverter;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 import org.fxt.freexmltoolkit.util.DialogHelper;
@@ -259,6 +261,12 @@ public final class ShellMenuBar extends MenuBar {
                 item.setDisable(!hasDocument);
             } else if (TYPE_ITEMS.containsKey(id)) {
                 item.setDisable(!EditorActions.applicableFor(type, TYPE_ITEMS.get(id)));
+            } else if ("menu-tools-convert-json".equals(id)) {
+                item.setDisable(!DataConversionAction.canConvert(type, DataFormatConverter.Format.JSON));
+            } else if ("menu-tools-convert-xml".equals(id)) {
+                item.setDisable(!DataConversionAction.canConvert(type, DataFormatConverter.Format.XML));
+            } else if ("menu-tools-convert-yaml".equals(id)) {
+                item.setDisable(!DataConversionAction.canConvert(type, DataFormatConverter.Format.YAML));
             } else if ("menu-tools-generate-xsd".equals(id)) {
                 item.setDisable(type != EditorFileType.XML);
             } else if ("menu-tools-add-favorite".equals(id)) {
@@ -412,6 +420,9 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onGenerateXsdFromXml() { run("generate_xsd", shell::onGenerateXsdFromXml); }
     @FXML public void onGenerateXsdBatch() { run("generate_xsd_batch", shell::onGenerateXsdBatch); }
     @FXML public void onCompare() { run("compare", shell::onCompare); }
+    @FXML public void onConvertToJson() { run("convert_json", () -> shell.convertActive(DataFormatConverter.Format.JSON)); }
+    @FXML public void onConvertToXml() { run("convert_xml", () -> shell.convertActive(DataFormatConverter.Format.XML)); }
+    @FXML public void onConvertToYaml() { run("convert_yaml", () -> shell.convertActive(DataFormatConverter.Format.YAML)); }
     @FXML public void onSpreadsheet() { run("spreadsheet", shell::onSpreadsheet); }
     @FXML public void onAddToFavorites() { run("add_favorite", shell::addActiveDocumentToFavorites); }
 

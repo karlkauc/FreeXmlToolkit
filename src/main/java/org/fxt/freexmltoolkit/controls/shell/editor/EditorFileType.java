@@ -23,6 +23,8 @@ public enum EditorFileType {
     XPATH("XPath", "bi-slash-square", "#d63384", "xpath"),
     XPROC("XProc", "bi-diagram-2", "#0ca678", "xpl", "xproc"),
     HTML("HTML", "bi-filetype-html", "#e34c26", "html", "htm", "xhtml"),
+    /** Plain text editing; Tools → Convert to JSON / XML reads it (DataFormatConverter). */
+    YAML("YAML", "bi-filetype-yml", "#cb171e", "yaml", "yml"),
     OTHER("Text", "bi-file-earmark-text", "#8a93a0");
 
     private final String label;
@@ -139,6 +141,7 @@ public enum EditorFileType {
 
                     </p:declare-step>
                     """;
+            case YAML -> "";
             case HTML -> """
                     <!DOCTYPE html>
                     <html>

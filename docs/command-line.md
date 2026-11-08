@@ -1,7 +1,7 @@
 # Command Line (fxt-cli)
 
-`fxt-cli` runs FreeXmlToolkit's validators, transformation engines, schema documentation and PDF
-output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
+`fxt-cli` runs FreeXmlToolkit's validators, transformation engines, schema documentation, XML/JSON
+conversion and PDF output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
 same engines and the same security defaults as the application, and it is installed with it.
 
 ```bash
@@ -9,6 +9,8 @@ fxt-cli validate --xsd schema/order.xsd data/
 fxt-cli transform -s report.xsl -p year=2026 data/order.xml -o report.html
 fxt-cli xsd-doc schema/order.xsd -o site/
 fxt-cli fop -i data/order.xml -s order2fo.xsl -o order.pdf
+fxt-cli convert data/order.xml -o order.json
+fxt-cli convert -t yaml data/config.json
 ```
 
 ## Where it is
@@ -115,6 +117,31 @@ fxt-cli xsd-doc SCHEMA -o OUTPUT [-f html|pdf|docx]
 `-o` is a folder for the HTML site and a file for PDF and Word. Without `-f` the format follows
 the extension of `-o` (`.pdf`, `.docx`, otherwise HTML).
 
+## convert
+
+Converts between XML, JSON and YAML, like **Tools → Convert to JSON… / XML… / YAML…** in the
+application. The mappings are described in the
+[JSON Editor](json-editor.md#converting-between-xml-json-and-yaml) chapter.
+
+```bash
+fxt-cli convert [options] INPUT...
+```
+
+| Option | Meaning |
+|---|---|
+| `-t`, `--to FORMAT` | `json`, `xml` or `yaml`; default: `json` for XML input, `xml` for JSON and YAML input |
+| `--from FORMAT` | `xml`, `json`, `yaml`; default: by extension (`.json`/`.jsonc`/`.json5`, `.yaml`/`.yml`, everything else XML) |
+| `-m`, `--mapping MAPPING` | `structured` (default) or `w3c` (XPath 3.1 `fn:json-to-xml` vocabulary, lossless) |
+| `--typed` | XML to JSON or YAML: numbers and `true`/`false` become numbers and booleans |
+| `--root NAME` | JSON to XML: root element when the JSON does not name one; default `json` |
+| `--indent N` | Spaces per indentation level, `0` for compact output; default 2 |
+| `-o`, `--output FILE` | Output file (one input) |
+| `-d`, `--output-dir DIR` | Output folder for several inputs; each result is named after its input with the new extension |
+
+Without `-o` and `-d` the result goes to standard output. A file that cannot be converted
+(not well-formed, not valid JSON or YAML, not in the W3C vocabulary with `-m w3c`) is reported on
+standard error and gives exit code 1; the other files are still converted.
+
 ## fop
 
 Renders a PDF with Apache FOP, like the [PDF Generator](pdf-generator.md).
@@ -138,7 +165,7 @@ fxt-cli fop --fo DOCUMENT.fo -o OUT.pdf [options]
 | Code | Meaning |
 |---|---|
 | `0` | Success; all documents valid |
-| `1` | Problems found (an invalid document), or a transformation, documentation or PDF run failed |
+| `1` | Problems found (an invalid document), or a transformation, conversion, documentation or PDF run failed |
 | `2` | Invalid command line, or an input file does not exist |
 | `3` | A validation could not run: the schema or Schematron does not load, or a file is unreadable |
 

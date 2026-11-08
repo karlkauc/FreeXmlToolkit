@@ -1540,6 +1540,12 @@ public class UnifiedShellView extends BorderPane {
     public void onInsertTemplate() { toolbar("insert_template"); insertTemplate(); }
     public void onCompare() { toolbar("compare"); compareWithFile(); }
     public void onSpreadsheet() { toolbar("spreadsheet"); convertSpreadsheet(); }
+
+    /** Tools → Convert to JSON / XML / YAML: converts the active XML, JSON or YAML document (opens a new tab). */
+    public void convertActive(org.fxt.freexmltoolkit.service.DataFormatConverter.Format target) {
+        org.fxt.freexmltoolkit.controls.shell.editor.DataConversionAction.convertActive(editorHost,
+                getScene() != null ? getScene().getWindow() : null, target);
+    }
     @FXML public void onQueryConsole() { toolbar("query_console"); toggleQueryConsole(); }
     /**
      * Toolbar / Tools → Transform with XSLT…: one way to transform (UX plan 3.2) - opens the

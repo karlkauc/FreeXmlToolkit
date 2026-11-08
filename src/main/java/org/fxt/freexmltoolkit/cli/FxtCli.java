@@ -20,11 +20,12 @@ import picocli.CommandLine.Spec;
 @Command(name = "fxt-cli",
         mixinStandardHelpOptions = true,
         versionProvider = FxtCli.Version.class,
-        description = "FreeXmlToolkit on the command line: validate, transform, document schemas, render PDF.",
+        description = "FreeXmlToolkit on the command line: validate, transform, document schemas, convert, render PDF.",
         subcommands = {
                 ValidateCommand.class,
                 TransformCommand.class,
                 XsdDocCommand.class,
+                ConvertCommand.class,
                 FopCommand.class,
                 CommandLine.HelpCommand.class
         },

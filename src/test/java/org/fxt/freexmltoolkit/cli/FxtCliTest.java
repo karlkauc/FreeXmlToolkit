@@ -221,6 +221,49 @@ class FxtCliTest {
     }
 
     @Nested
+    @DisplayName("convert")
+    class Convert {
+
+        @Test
+        @DisplayName("XML to JSON on standard output, YAML to XML into a folder, JSON back to XML")
+        void conversions() throws Exception {
+            assertEquals(ExitCodes.OK, run("convert", "--typed", valid), err);
+            assertEquals("{\n  \"root\": {\n    \"n\": 3\n  }\n}\n", out);
+
+            Path yaml = write("in/config.yaml", "server:\n  port: 8080\n");
+            Path json = write("in/data.json", "{\"a\": [1, 2]}");
+            Path target = dir.resolve("out");
+            assertEquals(ExitCodes.OK, run("convert", "-d", target, "--root", "data", yaml, json), err);
+            assertTrue(Files.readString(target.resolve("config.xml")).contains("<port>8080</port>"));
+            assertTrue(Files.readString(target.resolve("data.xml")).contains("<data>\n  <a>1</a>\n  <a>2</a>\n</data>"),
+                    Files.readString(target.resolve("data.xml")));
+
+            assertEquals(ExitCodes.OK, run("convert", "-t", "json", "--indent", "0", yaml), err);
+            assertEquals("{\"server\":{\"port\":8080}}", out);
+
+            assertEquals(ExitCodes.OK, run("convert", "-t", "yaml", "--typed", "-d", target, valid), err);
+            assertEquals("root:\n  n: 3\n", Files.readString(target.resolve("valid.yaml")));
+        }
+
+        @Test
+        @DisplayName("W3C mapping round trip; errors exit 1, usage errors 2")
+        void w3cAndErrors() throws Exception {
+            Path json = write("w.json", "{\"a\": true}");
+            Path xml = dir.resolve("w.xml");
+            assertEquals(ExitCodes.OK, run("convert", "-m", "w3c", "-o", xml, json), err);
+            assertTrue(Files.readString(xml).contains("<boolean key=\"a\">true</boolean>"), Files.readString(xml));
+            assertEquals(ExitCodes.OK, run("convert", "-m", "w3c", xml), err);
+            assertTrue(out.contains("\"a\": true"), out);
+
+            assertEquals(ExitCodes.FAILED, run("convert", "-m", "w3c", valid), err);
+            assertTrue(err.contains("W3C"), err);
+            Path broken = write("broken.json", "{");
+            assertEquals(ExitCodes.FAILED, run("convert", broken));
+            assertEquals(ExitCodes.USAGE, run("convert", valid, json));
+        }
+    }
+
+    @Nested
     @DisplayName("transform")
     class Transform {
 

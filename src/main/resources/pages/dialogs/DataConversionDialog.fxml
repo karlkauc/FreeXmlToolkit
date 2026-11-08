@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  Content of the "Convert to JSON" / "Convert to XML" dialog: the mapping and its options. Loaded by
+  DataConversionDialog (FxmlViews.loadContent), which is the controller and adds title, header and buttons.
+-->
+<VBox spacing="8" prefWidth="520" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <fx:define>
+        <ToggleGroup fx:id="mappingGroup"/>
+    </fx:define>
+    <children>
+        <Label text="Mapping" style="-fx-font-weight: bold;"/>
+        <RadioButton fx:id="structuredMapping" id="convert-mapping-structured" toggleGroup="$mappingGroup"
+                     text="Structured (readable, for any XML)" selected="true"/>
+        <Label fx:id="structuredHint" wrapText="true" opacity="0.75" maxWidth="480">
+            <padding>
+                <Insets left="26"/>
+            </padding>
+        </Label>
+        <RadioButton fx:id="w3cMapping" id="convert-mapping-w3c" toggleGroup="$mappingGroup"
+                     text="W3C XPath 3.1 vocabulary (lossless, fn:json-to-xml)"/>
+        <Label fx:id="w3cHint" wrapText="true" opacity="0.75" maxWidth="480">
+            <padding>
+                <Insets left="26"/>
+            </padding>
+        </Label>
+        <Label text="Options" style="-fx-font-weight: bold;">
+            <VBox.margin>
+                <Insets top="6"/>
+            </VBox.margin>
+        </Label>
+        <CheckBox fx:id="typedValues" id="convert-typed-values"
+                  text="Numbers and true/false as JSON numbers and booleans"/>
+        <HBox fx:id="rootNameRow" spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <Label text="Root element when the data names none:"/>
+                <TextField fx:id="rootName" id="convert-root-name" prefColumnCount="14"/>
+            </children>
+        </HBox>
+        <Label fx:id="rootNameError" id="convert-root-name-error" wrapText="true" visible="false" managed="false"
+               style="-fx-text-fill: #e03131;"/>
+        <Label fx:id="noOptions" text="The W3C mapping has no options." opacity="0.75" visible="false"
+               managed="false"/>
+    </children>
+</VBox>

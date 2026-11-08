@@ -38,6 +38,7 @@ release, see [Licenses](licenses.md#software-bill-of-materials-sbom)) and the up
 | **Man in the middle on other downloads** | TLS certificates are validated unless the user switches on "Trust all certificates" (meant for proxies that re-sign traffic); it applies per connection, never to the JVM defaults. | `ssl.trustAllCerts` (default off) |
 | **Code opening its own connections** (proxy, TLS settings bypassed) | All HTTP goes through one service; a build test fails when any other class opens a connection. | – |
 | **Stored proxy password** | Encrypted with AES-256-GCM; the key is derived (PBKDF2-SHA256) from machine identifiers, so the properties file alone does not reveal it on another machine. This protects against casual disclosure, not against code running as the same user on the same machine. | – |
+| **YAML that expands or loops** (alias bombs, recursive aliases) when converting to JSON or XML | YAML is read with the core schema only (no Java objects are created from tags); at most 50 aliases per document, duplicate keys and recursive aliases are refused. | – |
 | **Path traversal in file names from documents** | Paths are validated (parent traversals, system directories, encoded sequences, null bytes, symlink escapes). | – |
 | **Telemetry leaking data** | Anonymous counts and error reports without file contents; documented on [Privacy & Telemetry](telemetry.md). | `FXT_TELEMETRY_DISABLED=1` or `DO_NOT_TRACK=1` (machine-wide), Settings |
 

@@ -98,6 +98,8 @@ dependencies {
 
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.5")
     implementation("com.google.code.gson:gson:2.14.0")
+    // YAML 1.2 reader for the XML/JSON/YAML conversion (DataFormatConverter); already pulled in by jackson-dataformat-yaml
+    implementation("org.snakeyaml:snakeyaml-engine:3.0.1")
 
     // JSON Editor support
     implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)

@@ -255,7 +255,7 @@ final class EditorTab extends Tab {
             case TREE -> switch (document.getFileType()) {
                 // Query documents are not XML — the DOM tree view cannot parse them.
                 // HTML output is often not well-formed XML (unclosed <br>, &nbsp;) either.
-                case OTHER, XQUERY, XPATH, HTML -> false;
+                case OTHER, XQUERY, XPATH, HTML, YAML -> false;
                 default -> true;
             };
             case GRAPHIC -> switch (document.getFileType()) {

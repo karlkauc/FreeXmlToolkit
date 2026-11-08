@@ -212,6 +212,82 @@ strip comments and trailing commas before parsing).
 }
 ```
 
+## Converting between XML, JSON and YAML
+
+The **Tools** menu converts the active document:
+
+| Command | From |
+|---|---|
+| **Convert to JSON…** | XML, YAML |
+| **Convert to XML…** | JSON, YAML |
+| **Convert to YAML…** | XML, JSON |
+
+When XML is involved, a dialog asks for the mapping (below) and remembers your choice; between JSON
+and YAML there is nothing to choose. The result opens in a new, unsaved tab named after the
+document (`order.xml` → `order.json`). The converter reads the text of the editor, including
+changes that are not saved yet. The indentation follows Settings (XML for XML output, JSON for
+JSON and YAML output).
+
+YAML files (`.yaml`, `.yml`) open in the editor as text. They are read as YAML 1.2 (core schema:
+`yes` and `on` stay strings); a file with several documents (`---`) becomes an array. YAML is
+written in block style. Strings that would otherwise read back as a number, boolean or null are
+quoted (`'007'`, `'true'`), so a conversion to YAML and back returns the same data. XML goes to
+YAML through its JSON form, with the same mapping. Comments and anchors of a YAML file are not
+kept.
+
+### Structured mapping
+
+The default. It works for any XML and gives JSON that reads naturally:
+
+| XML | JSON |
+|---|---|
+| `<order>…</order>` (the root) | `{"order": …}` |
+| `<name>Ada</name>` | `"name": "Ada"` |
+| `<item sku="A">Apple</item>` | `"item": {"@sku": "A", "#text": "Apple"}` |
+| two or more `<item>` siblings | `"item": [ … ]` |
+| `<empty/>` | `"empty": ""` |
+| `xmlns:p="urn:p"` | `"@xmlns:p": "urn:p"` |
+| comments, processing instructions | dropped |
+
+Element text is kept as it is, as a string. With **Numbers and true/false as JSON numbers and
+booleans**, text that is a JSON number (`42`, `1.5`, `-3e2`, but not `007`) or `true`/`false`
+becomes a number or boolean.
+
+From JSON to XML the same rules apply in reverse. A top-level object with exactly one property
+names the root element; anything else (several properties, an array, a single value) is wrapped
+in the root element set in the dialog (default `json`). An array repeats its element; an array
+inside an array becomes `<item>` elements. `null` becomes an empty element. A property name that is
+not an XML name is adapted: invalid characters become `_`, and a name that starts with a digit
+gets a leading `_` (`"first name"` → `first_name`, `"1st"` → `_1st`). A prefix like `p:` stays
+when the object declares it with `"@xmlns:p"`.
+
+What the structured mapping cannot keep: the order of differently named siblings
+(`<a/><b/><a/>` becomes `"a": [ … ], "b": …`), text between child elements in mixed content (it
+is joined into one `#text`), the difference between one element and an array of one, and empty
+arrays. Characters that XML 1.0 cannot hold (control characters such as `\u0001`) stop the
+conversion to XML; the W3C mapping replaces them.
+
+### W3C mapping (XPath 3.1)
+
+The XML representation of JSON defined for XPath 3.1, as written by `fn:json-to-xml` and read by
+`fn:xml-to-json` (Saxon). It converts any JSON to XML and back without loss:
+
+```xml
+<map xmlns="http://www.w3.org/2005/xpath-functions">
+   <array key="items">
+      <number>1</number>
+      <string>two</string>
+   </array>
+   <boolean key="active">true</boolean>
+</map>
+```
+
+Use it when the XML is processed further with XSLT or XQuery, or when the JSON must come back
+unchanged. Converting XML to JSON with this mapping needs a document in that vocabulary;
+other XML is refused with a message.
+
+On the command line: [`fxt-cli convert`](command-line.md#convert).
+
 ## Toolbar
 
 > JSON files use the shell's single-row editor toolbar. Related
