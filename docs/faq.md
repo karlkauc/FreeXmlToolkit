@@ -72,8 +72,10 @@ Folder** (it is fetched again when needed).
 
 ### Are DTD and RELAX NG supported?
 
-No. FreeXmlToolkit validates with **XSD 1.0 / 1.1**, **Schematron** and **JSON Schema**. See
-[Schema Support](schema-support.md).
+Yes, for validation and IntelliSense: a document is checked against the DTD of its `<!DOCTYPE>` or
+the RELAX NG schema of its `<?xml-model?>` (XML syntax `.rng` and compact syntax `.rnc`), or against
+one you bind. There is no graphical editor or documentation generator for DTDs and RELAX NG schemas
+(those are for XSD). See [Schema Support](schema-support.md#dtd-and-relax-ng).
 
 ## Settings, Logs and Privacy
 

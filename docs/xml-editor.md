@@ -384,7 +384,7 @@ Click **Format** or use `Shift+Alt+F` to format your XML with proper indentation
 |--------|---------|
 | XSD (XML Schema) | Full support (1.0 and 1.1) |
 | Schematron | Full support |
-| DTD | Not supported |
+| DTD, RELAX NG | Validation and IntelliSense ([Schema Support](schema-support.md#dtd-and-relax-ng)) |
 | RelaxNG | Not supported |
 
 ---

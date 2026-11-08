@@ -97,9 +97,9 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
   JSON, JUnit and SARIF reports), `transform` (XSLT, XQuery, XProc), `xsd-doc`, `fop`; installed
   with the application. See [Command Line](https://karlkauc.github.io/FreeXmlToolkit/command-line/).
 
-### Not Supported
-
-- **DTD** and **RELAX NG** - use XSD, Schematron or JSON Schema instead.
+- **DTD and RELAX NG** (XML and compact syntax): validation against the grammar a document declares
+  (`<!DOCTYPE>`, `<?xml-model?>`) or one you bind, with IntelliSense from it; DTDs load only from
+  files, XML catalogs or the schema cache, never external entities.
 
 ## Getting Started
 

@@ -51,6 +51,7 @@ Any key of the user's settings file works. These are the ones most often managed
 | `security.xslt.allow.extensions` | `false` | Lock Java extension calls in stylesheets off |
 | `security.xproc.unrestricted` | `false` | Lock the XProc restrictions on: no `p:os-exec`, `p:run`, `p:http-request`, no network (see [Threat Model](threat-model.md)) |
 | `security.htmlPreview.allowActiveContent` | `false` | Lock JavaScript and remote content in HTML previews off |
+| `security.dtd.allowed` | `false` | No DTD validation and no DTD loading; DOCTYPEs are only checked for well-formedness |
 | `fundsxml.enabled` | `true` / `false` | FundsXML extension |
 | `ui.language` | `system` / `en` / `de` | Language of the interface (Settings → Appearance → Language) |
 | `plugins.external.allowed` | `false` | **Policy only.** Load no [plugins](plugins.md) from the plugins folder (built-in ones still load) |

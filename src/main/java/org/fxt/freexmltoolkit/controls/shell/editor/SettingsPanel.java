@@ -101,6 +101,7 @@ public class SettingsPanel extends VBox {
     @FXML private CheckBox xsltExtensions;
     @FXML private CheckBox htmlActiveContent;
     @FXML private CheckBox xprocUnrestricted;
+    @FXML private CheckBox dtdAllowed;
 
     // Rendering (JavaFX Prism pipeline; applied at next startup)
     @FXML private ComboBox<String> renderingMode;
@@ -523,6 +524,7 @@ public class SettingsPanel extends VBox {
         xsltExtensions.setSelected(false);
         htmlActiveContent.setSelected(false);
         xprocUnrestricted.setSelected(false);
+        dtdAllowed.setSelected(true);
         schemaLibraryAutoBind.setSelected(true);
         useSystemTemp.setSelected(true);
         logCleanup.setSelected(true);
@@ -796,6 +798,7 @@ public class SettingsPanel extends VBox {
         keys.put(xsltExtensions, new String[] {"security.xslt.allow.extensions"});
         keys.put(htmlActiveContent, new String[] {org.fxt.freexmltoolkit.controls.shell.SafeWebView.ALLOW_ACTIVE_CONTENT});
         keys.put(xprocUnrestricted, new String[] {XProcSecurity.UNRESTRICTED});
+        keys.put(dtdAllowed, new String[] {org.fxt.freexmltoolkit.service.grammar.GrammarPolicy.DTD_ALLOWED});
         keys.put(renderingMode, new String[] {"rendering.mode"});
         keys.put(maxMemory, new String[] {org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY});
         keys.put(useSystemTemp, new String[] {"useSystemTempFolder"});
@@ -1258,6 +1261,7 @@ public class SettingsPanel extends VBox {
             htmlActiveContent.setSelected(Boolean.parseBoolean(
                     props.get(org.fxt.freexmltoolkit.controls.shell.SafeWebView.ALLOW_ACTIVE_CONTENT)));
             xprocUnrestricted.setSelected(Boolean.parseBoolean(props.get(XProcSecurity.UNRESTRICTED)));
+            dtdAllowed.setSelected(!"false".equalsIgnoreCase(props.get(org.fxt.freexmltoolkit.service.grammar.GrammarPolicy.DTD_ALLOWED)));
             renderingMode.setValue(renderingModeLabel(props.getRenderingMode()));
             maxMemory.setValue(memoryLabel(org.fxt.freexmltoolkit.app.MemoryLimit.configuredMb(
                     props.get(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY))));
@@ -1349,6 +1353,7 @@ public class SettingsPanel extends VBox {
             props.set(org.fxt.freexmltoolkit.controls.shell.SafeWebView.ALLOW_ACTIVE_CONTENT,
                     String.valueOf(htmlActiveContent.isSelected()));
             props.set(XProcSecurity.UNRESTRICTED, String.valueOf(xprocUnrestricted.isSelected()));
+            props.set(org.fxt.freexmltoolkit.service.grammar.GrammarPolicy.DTD_ALLOWED, String.valueOf(dtdAllowed.isSelected()));
             props.setRenderingMode(renderingModeValue(renderingMode.getValue()));
             props.set(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY, String.valueOf(memoryValue(maxMemory.getValue())));
             props.setUseSystemTempFolder(useSystemTemp.isSelected());

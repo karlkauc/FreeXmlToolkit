@@ -45,8 +45,8 @@ final class ValidateCommand implements Callable<Integer> {
             description = "Files or folders. Folders are searched recursively (see --include).")
     List<Path> inputs;
 
-    @Option(names = {"-x", "--xsd"}, paramLabel = "XSD",
-            description = "XML Schema (1.0 or 1.1) for all XML files.")
+    @Option(names = {"-x", "--xsd", "--schema"}, paramLabel = "SCHEMA",
+            description = "Schema for all XML files: XML Schema (.xsd, 1.0 or 1.1), DTD (.dtd) or RELAX NG (.rng, .rnc).")
     Path xsd;
 
     @Option(names = {"-s", "--schematron"}, paramLabel = "SCH",
@@ -58,7 +58,7 @@ final class ValidateCommand implements Callable<Integer> {
     Path jsonSchema;
 
     @Option(names = "--no-schema-lookup",
-            description = "Do not use the schema an XML file declares; without --xsd only well-formedness is checked.")
+            description = "Do not use the schema, DTD or RELAX NG schema an XML file declares; without --xsd only well-formedness is checked.")
     boolean noSchemaLookup;
 
     @Option(names = "--include", split = ",", paramLabel = "GLOB", defaultValue = "*.xml,*.json",
@@ -142,7 +142,9 @@ final class ValidateCommand implements Callable<Integer> {
 
     private FileResult validate(Path file) {
         long start = System.nanoTime();
-        if (!isJson(file) && schematron == null && sizeOf(file) >= streamingBytes) {
+        if (!isJson(file) && schematron == null && sizeOf(file) >= streamingBytes
+                && (xsd == null || org.fxt.freexmltoolkit.service.grammar.GrammarKind.ofFile(xsd)
+                        .orElse(org.fxt.freexmltoolkit.service.grammar.GrammarKind.XSD) == org.fxt.freexmltoolkit.service.grammar.GrammarKind.XSD)) {
             return validateStreaming(file, start);
         }
         String content;
@@ -166,7 +168,7 @@ final class ValidateCommand implements Callable<Integer> {
         ValidationRunner.RunResult run = ValidationRunner.runWithReport(content,
                 schema != null ? schema.toFile() : null,
                 schematron != null ? schematron.toFile() : null,
-                file.getFileName().toString());
+                file.getFileName().toString(), file, !noSchemaLookup);
         List<Finding> findings = findings(run.problems());
         String notRun = run.failed() ? FxtCli.messageOf(run.error()) : schemaNotLoaded(findings);
         return new FileResult(file, schema, findings, notRun, millisSince(start));

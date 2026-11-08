@@ -143,6 +143,25 @@ public final class ValidationRunner {
      * @param documentName display name of the validated document (for the report header)
      */
     public static RunResult runWithReport(String xml, File xsd, File schematron, String documentName) {
+        return runWithReport(xml, xsd, schematron, documentName, null);
+    }
+
+    /**
+     * Validates against an XSD, a DTD or a RELAX NG schema (by the bound file's extension); without a
+     * bound schema against the DTD or RELAX NG schema the document declares itself
+     * ({@code <!DOCTYPE>}, {@code <?xml-model?>}), else for well-formedness. Then the Schematron.
+     *
+     * @param documentPath the document's file (relative DTD and schema paths resolve against it), or
+     *                     {@code null}
+     */
+    public static RunResult runWithReport(String xml, File xsd, File schematron, String documentName,
+                                          java.nio.file.Path documentPath) {
+        return runWithReport(xml, xsd, schematron, documentName, documentPath, true);
+    }
+
+    /** @param declaredGrammars whether a DTD or RELAX NG schema the document declares is used without a bound schema */
+    public static RunResult runWithReport(String xml, File xsd, File schematron, String documentName,
+                                          java.nio.file.Path documentPath, boolean declaredGrammars) {
         List<ValidationProblem> problems = new ArrayList<>();
         SchematronReportData reportData = null;
         // Without an XSD this is a well-formedness (structural) check; with one it also
@@ -152,6 +171,11 @@ public final class ValidationRunner {
         Throwable error = null;
         long xsdStart = System.nanoTime();
         try {
+            List<ValidationProblem> grammar = xsd == null && !declaredGrammars ? null
+                    : GrammarStage.validate(xml, xsd, documentPath);
+            if (grammar != null) {
+                problems.addAll(grammar);
+            } else
             for (SAXParseException e : ServiceRegistry.get(XmlService.class).validateText(xml, xsd)) {
                 problems.add(new ValidationProblem(source, "error", e.getLineNumber(), e.getMessage())
                         .withColumn(e.getColumnNumber()));
@@ -315,7 +339,7 @@ public final class ValidationRunner {
                 // main sizing scenario for server/cloud offloading).
                 var probe = org.fxt.freexmltoolkit.service.ExecutionStatsService.getInstance().begin(
                         org.fxt.freexmltoolkit.service.ExecutionStats.OperationType.VALIDATION, file.getName());
-                RunResult runResult = runWithReport(content, xsd, schematron, file.getName());
+                RunResult runResult = runWithReport(content, xsd, schematron, file.getName(), file.toPath());
                 probe.phase("XSD", runResult.xsdMillis());
                 probe.phase("Schematron", runResult.schematronMillis());
                 probe.finish(content.length(), -1, runResult.problems().isEmpty(),

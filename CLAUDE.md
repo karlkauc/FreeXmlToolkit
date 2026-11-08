@@ -238,7 +238,7 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 
 ## Known Limitations
 
-**Schema Support:** XSD 1.0/1.1 (full), Schematron (full, via ph-schematron/SchXslt on Saxon; schematrons without `@queryBinding` compile as xslt2). DTD and RelaxNG not supported. OASIS XML catalogs are supported (system/public/uri/rewrite*/nextCatalog) via `SchemaLibraryService`.
+**Schema Support:** XSD 1.0/1.1 (full), Schematron (full, via ph-schematron/SchXslt on Saxon; schematrons without `@queryBinding` compile as xslt2). DTD and RELAX NG (.rng/.rnc): validation (Xerces DTD / Jing) and IntelliSense via a Trang-translated XSD (`service/grammar/`, `GrammarStage` in `ValidationRunner`, `EditorSchemaBinding.detectDeclaredGrammar` / `loadForIntelliSense`; policy `security.dtd.allowed`); no editor for them. OASIS XML catalogs are supported (system/public/uri/rewrite*/nextCatalog) via `SchemaLibraryService`.
 
 **Schematron Quick Fixes (SQF):** `service/sqf/` (parser/correlator/execution engine) + `controls/shell/editor/quickfix/` (UI). Fixes are applied as formatting-preserving text-range edits (one native undo step). Not supported: external `sch:extends href`, abstract patterns for fix discovery, `$sqf:match`, `@use-for-each`. See `docs/schematron-quick-fixes.md`.
 

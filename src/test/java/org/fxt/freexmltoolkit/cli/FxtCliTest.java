@@ -355,6 +355,28 @@ class FxtCliTest {
     }
 
     @Nested
+    @DisplayName("DTD and RELAX NG")
+    class Grammars {
+
+        @Test
+        @DisplayName("-x takes .dtd/.rng/.rnc; a declared DOCTYPE is used; --no-schema-lookup skips it")
+        void grammars() throws Exception {
+            write("book.dtd", "<!ELEMENT book (title)>\n<!ELEMENT title (#PCDATA)>\n");
+            Path declared = write("declared.xml", "<!DOCTYPE book SYSTEM \"book.dtd\">\n<book><chapter/></book>");
+            assertEquals(ExitCodes.FAILED, run("validate", declared), out);
+            assertTrue(out.contains("DTD"), out);
+            assertEquals(ExitCodes.OK, run("validate", "--no-schema-lookup", declared), out);
+
+            Path rnc = write("book.rnc", "start = element book { element title { text } }\n");
+            Path plain = write("plain.xml", "<book><title>T</title></book>");
+            assertEquals(ExitCodes.OK, run("validate", "-x", rnc, plain), out);
+            Path wrong = write("wrong.xml", "<book><para/></book>");
+            assertEquals(ExitCodes.FAILED, run("validate", "--schema", rnc, wrong), out);
+            assertTrue(out.contains("RELAX NG"), out);
+        }
+    }
+
+    @Nested
     @DisplayName("compare")
     class Compare {
 

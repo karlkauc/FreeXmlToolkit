@@ -77,6 +77,12 @@ dependencies {
     }
     // XML Calabash's resolver (same version): XProcSecurity restricts its network access
     implementation("org.xmlresolver:xmlresolver:6.1.0")
+    // RELAX NG validation (Jing) and DTD / RELAX NG to XSD conversion for IntelliSense (Trang), BSD-3-Clause.
+    // Jing's old Saxon 9.6 (used only by its Schematron bridge) is excluded: Saxon 12 is on the path.
+    implementation("org.relaxng:jing:20241231") {
+        exclude(group = "net.sf.saxon", module = "Saxon-HE")
+    }
+    implementation("org.relaxng:trang:20241231")
 
     // XSD 1.1 support with assertions - use special Xerces build from exist-db
     // This version includes XSD 1.1 support with assertions

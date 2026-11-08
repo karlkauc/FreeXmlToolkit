@@ -565,6 +565,12 @@
                                                         <Tooltip text="%SettingsPanel.by-default-pipelines-may-not.text"/>
                                                     </tooltip>
                                                 </CheckBox>
+                                                <CheckBox fx:id="dtdAllowed" id="settings-dtd-allowed"
+                                                          text="%SettingsPanel.dtdAllowed.text">
+                                                    <tooltip>
+                                                        <Tooltip text="%SettingsPanel.dtdAllowed.tooltip"/>
+                                                    </tooltip>
+                                                </CheckBox>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.updates.title" iconLiteral="bi-arrow-repeat">

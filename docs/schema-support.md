@@ -80,26 +80,41 @@ then the namespace, so `public` entries resolve schemas too.
 
 ---
 
-## Not Supported
+## DTD and RELAX NG
 
-### DTD (Document Type Definition)
+Documents can be validated against a **DTD** or a **RELAX NG** schema (XML syntax `.rng`, compact
+syntax `.rnc`). Validation is exact (Xerces for DTDs, Jing for RELAX NG); IntelliSense, the grid's
+entry helpers and the Properties inspector use an XML Schema translated from the grammar (Trang),
+which for some RELAX NG constructs is an approximation. There is no graphical editor, diagram or
+documentation generator for these languages.
 
-**Not Supported** - This older format is not available in FreeXmlToolkit.
+**Which grammar is used**, when no XSD is bound:
 
-| Reason | Alternative |
-|--------|-------------|
-| Less flexible than XSD | Convert your DTD to XSD |
-| Limited features | Use XSD for the same rules |
-| No namespace support | XSD handles namespaces |
+| The document has | It is validated against |
+|---|---|
+| `<!DOCTYPE book SYSTEM "book.dtd">` or `PUBLIC "…" "…"` | that DTD (and the internal subset, if any) |
+| `<!DOCTYPE book [ … ]>` (only an internal subset) | the internal subset |
+| `<?xml-model href="book.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>` | that RELAX NG schema |
+| `<?xml-model href="book.rnc" type="application/relax-ng-compact-syntax"?>` | that compact-syntax schema |
 
-### RelaxNG
+An `xsi:schemaLocation` (XSD) takes precedence. You can also bind a `.dtd`, `.rng` or `.rnc` file like
+an XSD: click the schema indicator in the status bar, use **Change** in the Validation panel, or drop
+the file there. A document's own DOCTYPE wins over a bound DTD.
 
-**Not Supported** - This alternative schema format is not available.
+**Where DTDs come from:** the XML catalogs and the [Schema Library](schema-library.md) first (public
+and system identifiers — the way to use DocBook, XHTML or other standard DTDs offline), then local
+files relative to the document, then — for `http`/`https` addresses only — the schema cache, which
+downloads once through the proxy settings. A DTD that cannot be loaded is reported as a warning and
+the document is checked for well-formedness only.
 
-| Reason | Alternative |
-|--------|-------------|
-| Less widely used | Use XSD instead |
-| Focus on standards | Schematron for business rules |
+**Security:** external entities (`<!ENTITY x SYSTEM "…">`) are never read, entity expansion is limited
+(no "billion laughs"), and DTDs are loaded only as described above. **Settings → Network & Security →
+Validate documents against their DTD** switches DTD validation off; administrators can lock it
+(`security.dtd.allowed=false`, see [Administration](administration.md)).
+
+On the command line, `fxt-cli validate -x book.rng …` binds a grammar for all files, and declared
+DOCTYPEs and `xml-model` instructions are used like `xsi:schemaLocation` (see
+[Command Line](command-line.md#validate)).
 
 ---
 

@@ -46,8 +46,8 @@ If processed without protection, this could expose sensitive files from your com
 | Attack Type | Description | Status |
 |-------------|-------------|--------|
 | External file access | Reading local files via `file://` URIs | Blocked |
-| External DTD loading | Loading DTD definitions from remote servers | Blocked |
-| Parameter entities | Using `%entity;` to include external content | Blocked |
+| External DTD loading | Loading DTD definitions from remote servers | Blocked, except for DTD validation (see below) |
+| Parameter entities | Using `%entity;` to include external content | Blocked, except DTD modules during DTD validation |
 | Entity expansion bombs | "Billion laughs" denial-of-service attacks | Limited (see below) |
 
 ### How It Works
@@ -72,7 +72,9 @@ and the known limits.
 - Transform with XSLT stylesheets
 - Work with XML that contains internal (non-external) entities
 
-**DTDs with external references are not resolved.** If you have an XML file that relies on an external DTD for entity definitions, those entities will appear as empty or cause parsing to fail. This is intentional for security.
+**External entities are never read.** If an XML file relies on external entities (`<!ENTITY x SYSTEM "…">`) for content, those entities stay unresolved. This is intentional for security.
+
+**DTD validation** is the one place where DTDs are loaded: a document with a `<!DOCTYPE>` is validated against its DTD, which — with its parameter-entity modules — is read only from XML catalogs, the Schema Library, local files, or `http(s)` through the schema cache (proxy settings, internal addresses refused). External general entities stay off and entity expansion stays limited. **Settings → Network & Security → Validate documents against their DTD** turns it off; administrators can lock it with `security.dtd.allowed=false`. See [Schema Support](schema-support.md#dtd-and-relax-ng).
 
 ---
 

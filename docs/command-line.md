@@ -45,7 +45,7 @@ fxt-cli validate [options] FILE|FOLDER...
 
 | Option | Meaning |
 |---|---|
-| `-x`, `--xsd XSD` | XML Schema for all XML files |
+| `-x`, `--xsd`, `--schema SCHEMA` | Schema for all XML files: XML Schema (`.xsd`), DTD (`.dtd`) or RELAX NG (`.rng`, `.rnc`) |
 | `-s`, `--schematron SCH` | Schematron, checked in addition to the schema |
 | `-j`, `--json-schema SCHEMA` | JSON Schema for all JSON files (`.json`, `.json5`) |
 | `--no-schema-lookup` | Do not use the schema a file declares (see below) |
@@ -55,13 +55,14 @@ fxt-cli validate [options] FILE|FOLDER...
 | `-p`, `--project FXTPROJ` | Use a [project's](projects.md) schema bindings and catalogs |
 | `--fail-on-warning` | Warnings make a file invalid too |
 
-**Which schema is used.** With `--xsd`, that schema for every XML file. With `--project`, the
+**Which schema is used.** With `--xsd` / `--schema`, that schema (or DTD, or RELAX NG schema) for every XML file. With `--project`, the
 schema the project binds to the file (first matching pattern). Otherwise each file
 is checked against the schema it declares itself, found the same way as when the file is opened
 in the editor: `xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` (relative to the file,
 remote schemas downloaded and cached), redirected by the [Schema Library](schema-library.md) and
-XML catalogs, else the Schema Library entry for the root namespace or element. A file that names
-no schema is checked for well-formedness. `--no-schema-lookup` skips the lookup.
+XML catalogs, else the Schema Library entry for the root namespace or element. A file with a
+`<!DOCTYPE>` or a RELAX NG `<?xml-model?>` is validated against that DTD or RELAX NG schema. A file that
+names no schema is checked for well-formedness. `--no-schema-lookup` skips the lookup.
 
 **Large files.** XML files of 64 MB or more are validated while they are read, as a stream:
 memory stays flat whatever the size (a 1 GB file needs less than 20 MB). This applies to XML

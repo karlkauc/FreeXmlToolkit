@@ -51,6 +51,8 @@ public class DragDropService {
     public static final List<String> XML_EXTENSIONS = List.of(".xml");
     /** XSD file extensions. */
     public static final List<String> XSD_EXTENSIONS = List.of(".xsd");
+    /** Schemas an XML document can be validated against: XSD, DTD, RELAX NG (XML and compact syntax). */
+    public static final List<String> GRAMMAR_EXTENSIONS = List.of(".xsd", ".dtd", ".rng", ".rnc");
     /** XSLT file extensions. */
     public static final List<String> XSLT_EXTENSIONS = List.of(".xsl", ".xslt");
     /** XQuery file extensions. */

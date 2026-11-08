@@ -104,7 +104,7 @@ public class ValidationPanel extends VBox {
         xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
         xsdRow.addExtras(xsdFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdRow,
-                org.fxt.freexmltoolkit.service.DragDropService.XSD_EXTENSIONS, this::pickXsd);
+                org.fxt.freexmltoolkit.service.DragDropService.GRAMMAR_EXTENSIONS, this::pickXsd);
         // Schemas picked from the favorites or dropped are bound to the active document and
         // loaded into the editor behind it (pick*).
         schematronFavoritesMenu = FavoritesMenu.create(
@@ -416,6 +416,7 @@ public class ValidationPanel extends VBox {
         File schematron = editorHost.getActiveSchematron();
         String documentName = editorHost.getActiveDocument()
                 .map(OpenDocument::getDisplayName).orElse(null);
+        java.nio.file.Path documentPath = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
         var docKind = editorHost.getActiveDocument().map(d -> d.getFileType().docKind()).orElse(null);
         PanelStatus.info(status, I18n.t("ValidationPanel.validating"));
         FxtGui.executorService.submit(() -> {
@@ -427,7 +428,7 @@ public class ValidationPanel extends VBox {
             ValidationRunner.RunResult runResult = json
                     ? new ValidationRunner.RunResult(
                             ValidationRunner.validateJson(content, schema), null)
-                    : ValidationRunner.runWithReport(content, schema, schematron, documentName);
+                    : ValidationRunner.runWithReport(content, schema, schematron, documentName, documentPath);
             List<ValidationProblem> result = runResult.problems();
             UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),
                     docKind, content, result.size(), t0, runResult.failure(), live);
@@ -669,7 +670,7 @@ public class ValidationPanel extends VBox {
     public void onChooseXsd() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("ValidationPanel.select-xsd-schema"));
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(I18n.t("Shell.schemaFiles"), "*.xsd", "*.dtd", "*.rng", "*.rnc"));
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             pickXsd(file);

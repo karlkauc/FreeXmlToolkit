@@ -110,12 +110,13 @@ public final class EditorActions {
         var schemaSupplier = editorHost.schemaForValidation(content);
         File schematron = editorHost.getActiveSchematron();
         var docKind = editorHost.getActiveDocument().map(d -> d.getFileType().docKind()).orElse(null);
+        java.nio.file.Path documentPath = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
             File schema = schemaSupplier.get();
             ValidationRunner.RunResult runResult = json
                     ? new ValidationRunner.RunResult(ValidationRunner.validateJson(content, schema), null)
-                    : ValidationRunner.runWithReport(content, schema, schematron, null);
+                    : ValidationRunner.runWithReport(content, schema, schematron, null, documentPath);
             List<ValidationProblem> result = runResult.problems();
             boolean hasSchema = json ? schema != null : (schema != null || schematron != null);
             UsageEvents.validated(UsageEvents.schemaKind(json, schema != null, !json && schematron != null),

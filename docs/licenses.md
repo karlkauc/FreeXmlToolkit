@@ -68,6 +68,9 @@ and `bom.xml`.
 | **Apache Xerces**, XSD 1.1 build (org.exist-db.thirdparty.xerces:xercesImpl, classifier `xml-schema-1.1`) | 2.12.2 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Eclipse WST XPath 2.0 Processor** "PsychoPath" (org.exist-db.thirdparty.org.eclipse.wst.xml:xpath2) | 1.2.0 | [Eclipse Public License 1.0](https://www.eclipse.org/legal/epl-v10.html) |
 | **Java CUP Runtime** (edu.princeton.cup:java-cup) | 10k | [CUP License](http://www2.cs.tum.edu/projects/cup/) (permissive, similar to the Standard ML of New Jersey license) |
+| **Jing** (org.relaxng:jing, RELAX NG validation) | 20241231 | [BSD 3-Clause License](https://github.com/relaxng/jing-trang/blob/master/copying.txt) |
+| **Trang** (org.relaxng:trang, DTD / RELAX NG to XSD for IntelliSense) | 20241231 | [BSD 3-Clause License](https://github.com/relaxng/jing-trang/blob/master/copying.txt) |
+| **ISO RELAX** (isorelax:isorelax, used by Jing) | 20030108 | [MIT License](https://opensource.org/licenses/MIT) |
 | **XML Commons External** (xml-apis:xml-apis, xml-apis:xml-apis-ext) | 1.4.01, 1.3.04 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0); contains the SAX (public domain) and W3C DOM interfaces ([W3C Software License](https://www.w3.org/copyright/software-license/)) |
 
 **Why a Xerces from eXist-db.** XSD 1.1 validation (assertions, conditional types, open content) comes from
@@ -234,8 +237,8 @@ The majority of libraries used in FreeXmlToolkit are licensed under permissive o
 | License Type | Count |
 |--------------|-------|
 | Apache License 2.0 | 32 |
-| MIT License | 6 |
-| BSD (2/3-Clause) | 5 |
+| MIT License | 7 |
+| BSD (2/3-Clause) | 7 |
 | Eclipse Public / Distribution License (1.0 / 2.0) | 5 |
 | EUPL-1.1 | 2 |
 | GPL v2 with Classpath Exception | 2 |

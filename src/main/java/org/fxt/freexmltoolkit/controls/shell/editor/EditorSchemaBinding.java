@@ -188,10 +188,75 @@ final class EditorSchemaBinding {
         loadXmlSchemaProviderAsync(et, xsd);
     }
 
+    /**
+     * Loads a bound schema into the view for IntelliSense: an XSD as it is, a DTD or RELAX NG schema
+     * translated to XSD (Trang). The binding stays the grammar itself (validation uses it); when the
+     * translation fails the grammar is bound without IntelliSense.
+     */
+    static boolean loadForIntelliSense(EditorTab tab, File schema) {
+        return intelliSenseXsd(schema).map(tab.view::loadSchema).orElse(schema != null);
+    }
+
+    /** @return the XSD that stands for a schema in IntelliSense; empty when a grammar cannot be translated */
+    static java.util.Optional<File> intelliSenseXsd(File schema) {
+        if (schema == null) {
+            return java.util.Optional.empty();
+        }
+        var kind = org.fxt.freexmltoolkit.service.grammar.GrammarKind.ofFile(schema)
+                .orElse(org.fxt.freexmltoolkit.service.grammar.GrammarKind.XSD);
+        if (kind == org.fxt.freexmltoolkit.service.grammar.GrammarKind.XSD) {
+            return java.util.Optional.of(schema);
+        }
+        try {
+            return java.util.Optional.of(org.fxt.freexmltoolkit.service.grammar.GrammarToXsd
+                    .convert(schema.toPath(), kind).toFile());
+        } catch (java.io.IOException | RuntimeException e) {
+            EditorHost.logger.warn("No IntelliSense for {}: {}", schema, e.getMessage());
+            return java.util.Optional.empty();
+        }
+    }
+
+    /**
+     * The DTD or RELAX NG schema a document declares ({@code <!DOCTYPE>}, {@code <?xml-model?>}):
+     * resolved through catalogs, Schema Library, local files or the schema cache, and loaded for
+     * IntelliSense. A DOCTYPE with only an internal subset binds that subset.
+     *
+     * @return the detection, or {@code null} when the document declares no such grammar
+     */
+    private SchemaDetection detectDeclaredGrammar(EditorTab tab, String content, Path pathOrNull) {
+        var declared = org.fxt.freexmltoolkit.service.grammar.DeclaredGrammar.of(content).orElse(null);
+        if (declared == null || (declared.kind() == org.fxt.freexmltoolkit.service.grammar.GrammarKind.DTD
+                && !org.fxt.freexmltoolkit.service.grammar.GrammarPolicy.dtdAllowed())) {
+            return null;
+        }
+        String base = pathOrNull == null ? null : pathOrNull.toAbsolutePath().toUri().toString();
+        String detail = declared.systemId() != null ? declared.systemId() : declared.publicId();
+        tab.lastDetectedSchemaLocation = detail;
+        try {
+            File grammar;
+            if (declared.systemId() == null && declared.publicId() == null) {
+                Path xsd = org.fxt.freexmltoolkit.service.grammar.GrammarToXsd.convertInternalSubset(content);
+                grammar = xsd.resolveSibling(xsd.getFileName().toString().replaceFirst("\\.xsd$", ".dtd")).toFile();
+                if (!grammar.exists()) {
+                    grammar = xsd.toFile();
+                }
+                detail = "internal subset";
+            } else {
+                grammar = org.fxt.freexmltoolkit.service.grammar.GrammarResolver
+                        .resolveToFile(declared.publicId(), declared.systemId(), base).toFile();
+            }
+            loadForIntelliSense(tab, grammar);
+            return new SchemaDetection(grammar, SchemaStatus.READY, SchemaSource.DECLARED, detail);
+        } catch (java.io.IOException | RuntimeException e) {
+            EditorHost.logger.info("Declared grammar {} not available: {}", detail, e.getMessage());
+            return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED, detail);
+        }
+    }
+
     /** {@code view.loadSchema} on a worker thread; an unexpected failure counts as "not bound". */
     private static boolean loadSchemaSafely(EditorTab tab, File xsd) {
         try {
-            return tab.view.loadSchema(xsd);
+            return loadForIntelliSense(tab, xsd);
         } catch (RuntimeException | StackOverflowError | OutOfMemoryError e) {
             EditorHost.logger.warn("Could not load schema {}: {}", xsd, e.toString());
             if (e instanceof OutOfMemoryError) {
@@ -601,7 +666,7 @@ final class EditorSchemaBinding {
         if (fromProject.isPresent()) {
             File xsd = fromProject.get().toFile();
             tab.lastDetectedSchemaLocation = xsd.getAbsolutePath();
-            if (!xsd.exists() || !tab.view.loadSchema(xsd)) {
+            if (!xsd.exists() || !loadForIntelliSense(tab, xsd)) {
                 return SchemaDetection.failed(SchemaSource.PROJECT, SchemaDetection.UNLOADABLE);
             }
             String project = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current()
@@ -618,13 +683,18 @@ final class EditorSchemaBinding {
             // validation-time reconcile can short-circuit unchanged documents.
             tab.lastDetectedSchemaLocation = declared.orElse(null);
             if (declared.isEmpty()) {
-                // No xsi:schemaLocation — ask the Schema Library by root namespace / root element.
+                // No xsi:schemaLocation — a declared DTD / RELAX NG schema comes next
+                SchemaDetection grammar = detectDeclaredGrammar(tab, content, pathOrNull);
+                if (grammar != null) {
+                    return grammar;
+                }
+                // Then ask the Schema Library by root namespace / root element.
                 LibraryHit fromLibrary = schemaFromLibrary(content);
                 if (fromLibrary == null) {
                     return SchemaDetection.NOT_FOUND; // the document references no schema
                 }
                 tab.lastDetectedSchemaLocation = fromLibrary.file().getAbsolutePath();
-                if (!tab.view.loadSchema(fromLibrary.file())) {
+                if (!loadForIntelliSense(tab, fromLibrary.file())) {
                     return SchemaDetection.failed(fromLibrary.source(), SchemaDetection.UNLOADABLE);
                 }
                 return new SchemaDetection(fromLibrary.file(), SchemaStatus.READY,
@@ -662,7 +732,7 @@ final class EditorSchemaBinding {
                     detail = declared.get();
                 }
             }
-            if (xsd == null || !xsd.exists() || !tab.view.loadSchema(xsd)) {
+            if (xsd == null || !xsd.exists() || !loadForIntelliSense(tab, xsd)) {
                 return SchemaDetection.failed(source, SchemaDetection.UNLOADABLE); // resolved, but missing or unparsable
             }
             return new SchemaDetection(xsd, SchemaStatus.READY, source, detail);
@@ -804,7 +874,7 @@ final class EditorSchemaBinding {
                     tab.lastDetectedSchemaLocation = raw.get();
                     SchemaSource source = entry.get().source() == org.fxt.freexmltoolkit.domain.EntrySource.CATALOG
                             ? SchemaSource.CATALOG : SchemaSource.LIBRARY;
-                    if (!tab.view.loadSchema(mapped)) {
+                    if (!loadForIntelliSense(tab, mapped)) {
                         return SchemaDetection.failed(source, SchemaDetection.UNLOADABLE);
                     }
                     String detail = source == SchemaSource.CATALOG ? entry.get().location() : raw.get();
@@ -824,7 +894,7 @@ final class EditorSchemaBinding {
             if (schema == null || !schema.exists()) {
                 return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNRESOLVED, declared.get());
             }
-            if (!tab.view.loadSchema(schema)) {
+            if (!loadForIntelliSense(tab, schema)) {
                 return SchemaDetection.failed(SchemaSource.DECLARED, SchemaDetection.UNLOADABLE);
             }
             return new SchemaDetection(schema, SchemaStatus.READY, SchemaSource.DECLARED, declared.get());
@@ -852,13 +922,20 @@ final class EditorSchemaBinding {
             java.util.Map<Path, Long> checksums = new java.util.HashMap<>();
             stamps.put(schemaPath, DiskStamp.of(schemaPath));
             checksums.put(schemaPath, DiskStamp.checksum(schemaPath));
+            boolean grammar = org.fxt.freexmltoolkit.service.grammar.GrammarKind.ofFile(xsd)
+                    .map(org.fxt.freexmltoolkit.service.grammar.GrammarKind::isNonXsd).orElse(false);
+            java.util.Optional<File> effective = intelliSenseXsd(xsd);
+            if (effective.isEmpty()) {
+                return;
+            }
+            File xsdFile = effective.get();
             try {
                 // The editor view has usually just parsed this very XSD for IntelliSense: share that
                 // model (read-only) instead of running the whole schema pipeline a second time.
-                var data = tab.view instanceof XmlEditorView xmlView ? xmlView.loadedSchemaData(xsd) : null;
+                var data = tab.view instanceof XmlEditorView xmlView ? xmlView.loadedSchemaData(xsdFile) : null;
                 if (data == null) {
                     var service = new org.fxt.freexmltoolkit.service.XsdDocumentationService();
-                    service.setXsdFilePath(xsd.getAbsolutePath());
+                    service.setXsdFilePath(xsdFile.getAbsolutePath());
                     service.setEagerSampleData(false);
                     service.processXsd(Boolean.TRUE);
                     data = service.xsdDocumentationData;
@@ -868,9 +945,10 @@ final class EditorSchemaBinding {
                 // The V2 model of the same XSD: lets the inspector show (and, through the schema's
                 // own tab, edit) the declaration behind an element. Best-effort like the provider.
                 org.fxt.freexmltoolkit.controls.v2.model.XsdSchema model = null;
-                try {
+                // A translated DTD / RELAX NG schema has no declarations to edit: no model
+                if (!grammar) try {
                     XsdUiParser.Result parsed = XsdUiParser.parseDetailed(
-                            Files.readString(xsd.toPath(), StandardCharsets.UTF_8), xsd.toPath(), null);
+                            Files.readString(xsdFile.toPath(), StandardCharsets.UTF_8), xsdFile.toPath(), null);
                     model = parsed.schema();
                     stamps.putAll(parsed.dependencyStamps());
                     checksums.putAll(parsed.dependencyChecksums());

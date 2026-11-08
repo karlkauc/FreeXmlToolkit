@@ -2599,10 +2599,10 @@ public class UnifiedShellView extends BorderPane {
         }
         boolean json = doc.getFileType() == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.JSON;
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle(json ? "Select JSON Schema" : "Select XSD Schema");
+        chooser.setTitle(json ? I18n.t("Shell.selectJsonSchema") : I18n.t("Shell.selectSchema"));
         chooser.getExtensionFilters().add(json
                 ? new javafx.stage.FileChooser.ExtensionFilter("JSON Schema", "*.json")
-                : new javafx.stage.FileChooser.ExtensionFilter("XSD Schema", "*.xsd"));
+                : new javafx.stage.FileChooser.ExtensionFilter(I18n.t("Shell.schemaFiles"), "*.xsd", "*.dtd", "*.rng", "*.rnc"));
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
             editorHost.setSchemaForActiveDocument(file);
@@ -2714,9 +2714,13 @@ public class UnifiedShellView extends BorderPane {
             return;
         }
         statusSchema.setCursor(javafx.scene.Cursor.HAND);
-        String kind = schemaKindLabel(doc.getFileType());
         var status = editorHost.activeSchemaStatusProperty().get();
         java.io.File schema = editorHost.activeSchemaProperty().get();
+        // A bound DTD or RELAX NG schema is named as such ("DTD: book.dtd")
+        String kind = org.fxt.freexmltoolkit.service.grammar.GrammarKind.ofFile(schema)
+                .filter(org.fxt.freexmltoolkit.service.grammar.GrammarKind::isNonXsd)
+                .map(org.fxt.freexmltoolkit.service.grammar.GrammarKind::label)
+                .orElse(schemaKindLabel(doc.getFileType()));
         var source = editorHost.activeSchemaSourceProperty().get();
         String detail = editorHost.activeSchemaSourceDetailProperty().get();
         statusSchema.setText(schemaStatusText(status, schema, kind, source));
