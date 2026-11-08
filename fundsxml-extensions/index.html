@@ -2087,6 +2087,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#data-quality-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data-Quality Checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grid-formulas-and-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid Formulas and Filters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-fundsxml-side-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3032,6 +3054,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#data-quality-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data-Quality Checks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grid-formulas-and-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grid Formulas and Filters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-fundsxml-side-panel" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3331,6 +3375,134 @@ back and forth freely.</p>
 <p><strong>Tip:</strong> Use the Schematron Favorites under <strong>FundsXML Schematron</strong> to run additional business-rule checks. Open a Schematron file from Favorites, then validate your XML against it as you would with any other Schematron file.</p>
 </blockquote>
 <hr />
+<h2 id="data-quality-checks">Data-Quality Checks<a class="headerlink" href="#data-quality-checks" title="Permanent link">&para;</a></h2>
+<p><strong>Run Data Quality Checks</strong> in the FundsXML side panel checks the active FundsXML document with
+17 XQuery checks and opens a report (passed / findings / not run, with every finding):</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>What it looks at</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Control data complete</td>
+<td><code>UniqueDocumentID</code>, <code>DocumentGenerated</code>, <code>ContentDate</code>, data supplier name</td>
+</tr>
+<tr>
+<td>Content date not in the future</td>
+<td><code>ControlData/ContentDate</code></td>
+</tr>
+<tr>
+<td>ISIN / LEI check digits</td>
+<td>every <code>ISIN</code> (ISO 6166) and <code>LEI</code> (ISO 17442)</td>
+</tr>
+<tr>
+<td>Currency codes</td>
+<td>currency elements and <code>ccy</code> attributes are ISO 4217 codes</td>
+</tr>
+<tr>
+<td>Position weights add up to 100 %</td>
+<td><code>TotalPercentage</code> of a fund's positions per date, over all portfolios (± 0.5)</td>
+</tr>
+<tr>
+<td>Positions vs. net asset value</td>
+<td>market values in fund currency against <code>TotalNetAssetValue</code> of the date (± 1 %)</td>
+</tr>
+<tr>
+<td>No duplicate positions</td>
+<td>one <code>UniqueID</code> per portfolio</td>
+</tr>
+<tr>
+<td>Positions have master data / unused master data</td>
+<td>positions without an <code>Asset</code>, assets nobody refers to</td>
+</tr>
+<tr>
+<td>No negative values of securities</td>
+<td>equities, bonds, fund shares, certificates, warrants</td>
+</tr>
+<tr>
+<td>Securities have an identifier</td>
+<td>the same positions without <code>Identifiers</code></td>
+</tr>
+<tr>
+<td>Portfolio dates have a net asset value</td>
+<td>each <code>Portfolio/NavDate</code> has a <code>TotalAssetValue</code></td>
+</tr>
+<tr>
+<td>Share classes add up to the fund</td>
+<td>share class net asset values against the fund's (± 0.5 %)</td>
+</tr>
+<tr>
+<td>Price × shares = share class value</td>
+<td><code>NavPrice</code> × <code>SharesOutstanding</code> against the share class's net asset value (± 1 %)</td>
+</tr>
+<tr>
+<td>Transactions settle after entry</td>
+<td><code>ValutaDate</code> not before <code>EntryDate</code></td>
+</tr>
+<tr>
+<td>No matured instruments held</td>
+<td>maturity dates before the content date of held assets</td>
+</tr>
+</tbody>
+</table>
+<p>The checks also run with every validation of a FundsXML document while the extension is on; their
+findings appear as warnings with the source <strong>FundsXML DQ</strong>. In the Query Console they are available as
+snippets (<strong>FUNDSXML</strong> section) together with analysis queries — all funds, top 10 positions, exposure
+by asset type and by currency, positions over 5 %, positions without ISIN, derivatives, share class
+prices — so each can be run, adapted and saved on its own. The checks were developed against the
+documents of the official <a href="https://github.com/fundsxml/examples">fundsxml/examples</a> repository.</p>
+<h2 id="grid-formulas-and-filters">Grid Formulas and Filters<a class="headerlink" href="#grid-formulas-and-filters" title="Permanent link">&para;</a></h2>
+<p><strong>Add Grid Formulas &amp; Filters</strong> in the side panel opens a copy of the active document in the
+<a href="../grid/">Grid view</a> with named formulas and saved filters added:</p>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Formulas</th>
+<th>Saved filter (off until clicked)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>root</td>
+<td>Funds, Positions, Assets</td>
+<td>–</td>
+</tr>
+<tr>
+<td><code>Fund</code></td>
+<td>Net asset value, Positions value, Weights %, Share classes</td>
+<td>–</td>
+</tr>
+<tr>
+<td><code>Positions</code></td>
+<td>Count, Value (per currency), Weight %, Largest, Without ISIN</td>
+<td>positions over 5 %</td>
+</tr>
+<tr>
+<td><code>AssetMasterData</code></td>
+<td>Assets, By asset type, By country</td>
+<td>assets without ISIN</td>
+</tr>
+<tr>
+<td><code>Transactions</code></td>
+<td>Count, Market value (per currency), By kind</td>
+<td>transactions settling before their entry</td>
+</tr>
+<tr>
+<td><code>ShareClasses</code></td>
+<td>Share classes, Net asset value (per currency)</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<p>Formulas show their live result as the first rows of their element; a saved filter appears as a grey
+funnel line and filters the rows when you click it. Running the action again adds nothing twice. The
+stylesheet behind it, <code>plugins/fundsxml/fundsxml-grid-setup.xsl</code>, can be used in the Transform panel on
+any FundsXML file as well. For a signed document you are asked first: the copy no longer matches the
+signature.</p>
 <h2 id="the-fundsxml-side-panel">The FundsXML Side Panel<a class="headerlink" href="#the-fundsxml-side-panel" title="Permanent link">&para;</a></h2>
 <p>Select the <strong>FundsXML</strong> activity in the activity bar to open its side panel.</p>
 <p><img alt="FundsXML side panel with the version picker, validate action and docs &amp; resources buttons" src="../img/unified-shell-fundsxml.png" /></p>

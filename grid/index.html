@@ -3006,7 +3006,9 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   gives an exact sum with two decimals and thousands separators (<code>12,005,649.85</code>). The German
   number format is predeclared as <code>de</code>: <code>format-number(…, '#.##0,00', 'de')</code> gives
   <code>12.005.649,85</code>. Formulas are saved in the file as
-  <code>&lt;?fxt-formula name="…" expression="…"?&gt;</code> instructions. A formula over more than 20,000 nodes
+  <code>&lt;?fxt-formula name="…" expression="…"?&gt;</code> instructions. Formulas and filters see only their own
+  element and what is inside it — not the rest of the document: <code>//Position</code> in a formula on
+  <code>AssetMasterData</code> finds nothing. Put the formula on a common ancestor instead (e.g. the root). A formula over more than 20,000 nodes
   is computed in the background: it shows <code>…</code> until its result arrives, and is computed again
   only after the data changed. <strong>Store Formula Result in Document</strong>
   also writes the result into an element named after the formula, right after it;
