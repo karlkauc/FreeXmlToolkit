@@ -1,7 +1,7 @@
 # Command Line (fxt-cli)
 
-`fxt-cli` runs FreeXmlToolkit's validators, transformation engines, schema documentation, XML/JSON
-conversion and PDF output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
+`fxt-cli` runs FreeXmlToolkit's validators, transformation engines, XML comparison, schema
+documentation, XML/JSON/YAML conversion and PDF output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
 same engines and the same security defaults as the application, and it is installed with it.
 
 ```bash
@@ -9,6 +9,7 @@ fxt-cli validate --xsd schema/order.xsd data/
 fxt-cli transform -s report.xsl -p year=2026 data/order.xml -o report.html
 fxt-cli xsd-doc schema/order.xsd -o site/
 fxt-cli fop -i data/order.xml -s order2fo.xsl -o order.pdf
+fxt-cli compare old/order.xml new/order.xml
 fxt-cli convert data/order.xml -o order.json
 fxt-cli convert -t yaml data/config.json
 ```
@@ -117,6 +118,33 @@ fxt-cli xsd-doc SCHEMA -o OUTPUT [-f html|pdf|docx]
 `-o` is a folder for the HTML site and a file for PDF and Word. Without `-f` the format follows
 the extension of `-o` (`.pdf`, `.docx`, otherwise HTML).
 
+## compare
+
+Compares two XML files by structure, or two folders file by file, like **Compare with File…** in
+XML mode and **Compare Folders…** in the application (see
+[Compare & Merge](unified-shell.md#comparing-as-xml)). Formatting, attribute order and namespace
+prefixes do not count.
+
+```bash
+fxt-cli compare [options] LEFT RIGHT
+```
+
+| Option | Meaning |
+|---|---|
+| `--exact-whitespace` | Whitespace in text counts (default: trimmed, runs collapsed, whitespace between elements ignored) |
+| `--ignore-comments` | Do not compare comments |
+| `--ignore-order` | Pair elements regardless of their position |
+| `--prefixes` | Also report changed namespace prefixes |
+| `-k`, `--key ATTR,...` | Attributes that identify an element among same-named siblings, e.g. `-k id` |
+| `--bytes` | Folders: compare XML files by their bytes only |
+| `-f`, `--format FORMAT` | `text` (default) or `json` |
+
+For two files, the text report has one line per difference in the form
+`left.xml:LINE: Attribute 'qty' changed: "1" → "2" (/order[1]/item[1]/@qty)` and a summary. For
+two folders it lists every file that differs or exists on one side only, then the counts. The exit
+code is 0 when the files are equivalent or the folders match, 1 when they differ, 3 when a file is
+not well-formed XML.
+
 ## convert
 
 Converts between XML, JSON and YAML, like **Tools → Convert to JSON… / XML… / YAML…** in the
@@ -165,9 +193,9 @@ fxt-cli fop --fo DOCUMENT.fo -o OUT.pdf [options]
 | Code | Meaning |
 |---|---|
 | `0` | Success; all documents valid |
-| `1` | Problems found (an invalid document), or a transformation, conversion, documentation or PDF run failed |
+| `1` | Problems found (an invalid document, a difference), or a transformation, conversion, documentation or PDF run failed |
 | `2` | Invalid command line, or an input file does not exist |
-| `3` | A validation could not run: the schema or Schematron does not load, or a file is unreadable |
+| `3` | A validation or comparison could not run: the schema or Schematron does not load, a file is unreadable or not well-formed |
 
 ## Output, logging and settings
 

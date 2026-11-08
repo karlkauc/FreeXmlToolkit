@@ -404,6 +404,11 @@ public final class DiffView extends Tab {
         currentChunkIndex = -1;
     }
 
+    /** @return the XML comparison options last chosen in a Compare view (also used by Compare Folders) */
+    public static XmlStructuralDiff.Options savedXmlOptions() {
+        return loadXmlOptions();
+    }
+
     private static XmlStructuralDiff.Options loadXmlOptions() {
         XmlStructuralDiff.Options d = XmlStructuralDiff.Options.DEFAULTS;
         return new XmlStructuralDiff.Options(

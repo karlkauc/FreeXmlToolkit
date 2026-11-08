@@ -221,6 +221,45 @@ class FxtCliTest {
     }
 
     @Nested
+    @DisplayName("compare")
+    class Compare {
+
+        @Test
+        @DisplayName("XML files by structure: equivalent 0, different 1 with line and XPath, broken 3")
+        void files() throws Exception {
+            Path a = write("a.xml", "<order id=\"1\" date=\"x\"><item>A</item></order>");
+            Path b = write("b.xml", "<order date=\"x\" id=\"1\">\n  <item>A</item>\n</order>\n");
+            Path c = write("c.xml", "<order id=\"2\" date=\"x\"><item>A</item></order>");
+            assertEquals(ExitCodes.OK, run("compare", a, b), err);
+            assertTrue(out.contains("equivalent"), out);
+
+            assertEquals(ExitCodes.FAILED, run("compare", a, c), err);
+            assertTrue(out.contains(a + ":1: Attribute 'id' changed: \"1\" → \"2\" (/order[1]/@id)"), out);
+            assertEquals(ExitCodes.FAILED, run("compare", "-f", "json", a, c), err);
+            assertTrue(out.contains("\"leftXPath\": \"/order[1]/@id\""), out);
+
+            Path broken = write("broken.xml", "<order>");
+            assertEquals(ExitCodes.NOT_RUN, run("compare", a, broken));
+            assertTrue(err.contains("Not well-formed"), err);
+            assertEquals(ExitCodes.USAGE, run("compare", a, dir));
+        }
+
+        @Test
+        @DisplayName("folders file by file; formatting-only changes match")
+        void folders() throws Exception {
+            write("l/x.xml", "<a><b/></a>");
+            write("r/x.xml", "<a>\n  <b/>\n</a>");
+            assertEquals(ExitCodes.OK, run("compare", dir.resolve("l"), dir.resolve("r")), err);
+            assertTrue(out.contains("the folders match"), out);
+            assertEquals(ExitCodes.FAILED, run("compare", "--bytes", dir.resolve("l"), dir.resolve("r")), err);
+            assertTrue(out.contains("differs    x.xml"), out);
+            write("r/y.txt", "new");
+            assertEquals(ExitCodes.FAILED, run("compare", dir.resolve("l"), dir.resolve("r")), err);
+            assertTrue(out.contains("only right y.txt"), out);
+        }
+    }
+
+    @Nested
     @DisplayName("convert")
     class Convert {
 

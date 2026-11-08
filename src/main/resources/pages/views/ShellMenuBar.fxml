@@ -134,6 +134,8 @@
                 <SeparatorMenuItem/>
                 <ShellMenuItem id="menu-tools-compare" text="Compare with File…" iconLiteral="bi-file-diff"
                                color="TOOL" onAction="#onCompare"/>
+                <ShellMenuItem id="menu-tools-compare-folders" text="Compare Folders…" iconLiteral="bi-folder2-open"
+                               color="TOOL" onAction="#onCompareFolders"/>
                 <ShellMenuItem id="menu-tools-spreadsheet" text="Spreadsheet Converter…" iconLiteral="bi-table"
                                color="TOOL" accelerator="Shortcut+E" onAction="#onSpreadsheet"/>
                 <ShellMenuItem id="menu-tools-convert-json" text="Convert to JSON…" iconLiteral="bi-filetype-json"

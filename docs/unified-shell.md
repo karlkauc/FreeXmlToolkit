@@ -296,7 +296,7 @@ schemas, **Save** needs an open document).
 | **File** | New…, Open…, Open from URL…, **Open Recent** (the last opened files), **Open Favorite** (all favorites, by folder, plus Manage Favorites…), Close Tab, Save, Save As…, Save All, Settings…, Exit (Ctrl+Q; asks to save unsaved changes first) |
 | **Edit** | Undo, Redo, Find…, Replace…, Find in Files…, Replace in Files…, Format Document, Minify, Insert Template… |
 | **View** | The view modes (Text / Tree / Graphic / Overview / Preview), Side Panel, Properties Inspector, Query Console, Favorites Panel, **Activities** (jump to any activity), **Show Constraints in Diagram**, **Show Constraints on Target Nodes**, Toggle Light / Dark Theme, Full Screen |
-| **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Spreadsheet Converter…, Convert to JSON…, Convert to XML…, Convert to YAML…, Add to Favorites |
+| **Tools** | Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Compare Folders…, Spreadsheet Converter…, Convert to JSON…, Convert to XML…, Convert to YAML…, Add to Favorites |
 | **Help** | Documentation, Keyboard Shortcuts, FundsXML Website and FundsXML Schema Docs (only while the [FundsXML extension](fundsxml-extensions.md) is enabled), Report a Problem… (when error reporting is enabled), GitHub Repository, Sponsor this Project, Check for Updates…, About FreeXmlToolkit - see [Help Menu & About](#help-menu-about) |
 
 ### macOS
@@ -1164,6 +1164,27 @@ error.
 
 The XML mode only compares. To take changes over, switch back to **Text** and use the arrows, or
 **All →** / **All ←**. The view opens in the mode you used last.
+
+### Comparing folders
+
+**Tools → Compare Folders…** asks for a left and a right folder and compares them file by file,
+including subfolders (hidden folders such as `.git` are skipped). A tab lists the files that
+differ:
+
+| Status | Meaning |
+|---|---|
+| **Identical** | Same bytes |
+| **Equivalent as XML** | An XML file whose bytes differ, but not its content: formatting, attribute order, prefixes (the [XML Options](#comparing-as-xml) of the Compare view apply) |
+| **Different** | The content differs; for XML files with the number of differences |
+| **Only left** / **Only right** | The file exists in one folder only |
+
+Identical and equivalent files are hidden until you tick **Show identical files**. Double-click a
+file to open the pair in the Compare view, or to open a file that exists on one side only. Untick
+**Compare XML files by structure** to compare every file by its bytes. **Change…** picks another
+folder, **Compare** runs the comparison again. XML files above 32 MB and files that are not
+well-formed are compared by their bytes (the **Note** column says so).
+
+On the command line: [`fxt-cli compare`](command-line.md#compare).
 
 ## Jump to Validation Errors
 

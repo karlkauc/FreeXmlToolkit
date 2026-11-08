@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Tools → Compare Folders: two folders, file by file. Loaded by FolderCompareView (fx:root), which fills the
+  table and opens a file pair in the Compare view on double-click.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="8" styleClass="fxt-folder-compare"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="12"/>
+    </padding>
+    <children>
+        <GridPane hgap="8" vgap="6">
+            <children>
+                <Label text="Left:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <Label fx:id="leftPath" id="folder-compare-left" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                       GridPane.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button text="Change…" id="folder-compare-left-change" onAction="#onChangeLeft"
+                        GridPane.rowIndex="0" GridPane.columnIndex="2">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <Label text="Right:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label fx:id="rightPath" id="folder-compare-right" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                       GridPane.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button text="Change…" id="folder-compare-right-change" onAction="#onChangeRight"
+                        GridPane.rowIndex="1" GridPane.columnIndex="2">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </GridPane>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <children>
+                <Button fx:id="compareButton" text="Compare" id="folder-compare-run" onAction="#onCompare"
+                        styleClass="btn-primary">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <CheckBox fx:id="compareXml" id="folder-compare-xml" text="Compare XML files by structure"
+                          selected="true"/>
+                <CheckBox fx:id="showIdentical" id="folder-compare-show-identical" text="Show identical files"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <ProgressIndicator fx:id="progress" prefWidth="18" prefHeight="18" visible="false" managed="false"/>
+                <Label fx:id="summary" id="folder-compare-summary"/>
+            </children>
+        </HBox>
+        <TableView fx:id="table" id="folder-compare-table" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="pathColumn" text="File" prefWidth="320"/>
+                <TableColumn fx:id="statusColumn" text="Status" prefWidth="200"/>
+                <TableColumn fx:id="leftSizeColumn" text="Left size" prefWidth="90"/>
+                <TableColumn fx:id="rightSizeColumn" text="Right size" prefWidth="90"/>
+                <TableColumn fx:id="leftModifiedColumn" text="Left modified" prefWidth="140"/>
+                <TableColumn fx:id="rightModifiedColumn" text="Right modified" prefWidth="140"/>
+                <TableColumn fx:id="noteColumn" text="Note" prefWidth="220"/>
+            </columns>
+            <placeholder>
+                <Label text="No files to show"/>
+            </placeholder>
+        </TableView>
+        <Label text="Double-click a file to compare it side by side, or to open a file that exists on one side only."
+               opacity="0.7"/>
+    </children>
+</fx:root>

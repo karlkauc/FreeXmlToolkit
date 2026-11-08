@@ -4696,3 +4696,20 @@
     -fx-background-color: -fxt-primary;
     -fx-text-fill: -fxt-on-primary;
 }
+
+/* Compare Folders (FolderCompareView): rows by status */
+.fxt-folder-compare-different .table-cell {
+    -fx-text-fill: -fxt-warning;
+}
+
+.fxt-folder-compare-only_left .table-cell,
+.fxt-folder-compare-only_right .table-cell {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-style: italic;
+}
+
+.fxt-folder-compare-different:selected .table-cell,
+.fxt-folder-compare-only_left:selected .table-cell,
+.fxt-folder-compare-only_right:selected .table-cell {
+    -fx-text-fill: -fxt-on-primary;
+}

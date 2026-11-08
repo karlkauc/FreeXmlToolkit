@@ -2492,6 +2492,27 @@ public class UnifiedShellView extends BorderPane {
         });
     }
 
+    /** Tools → Compare Folders: asks for two folders and compares them in a tool tab. */
+    public void compareFolders() {
+        javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;
+        javafx.stage.DirectoryChooser chooser = new javafx.stage.DirectoryChooser();
+        chooser.setTitle("Compare Folders: left folder");
+        java.io.File left = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, owner);
+        if (left == null) {
+            return;
+        }
+        chooser.setTitle("Compare Folders: right folder");
+        if (left.getParentFile() != null) {
+            chooser.setInitialDirectory(left.getParentFile());
+        }
+        java.io.File right = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, owner);
+        if (right == null) {
+            return;
+        }
+        editorHost.openToolTab("Compare: " + left.getName() + " ↔ " + right.getName(), "bi-folder2-open",
+                new org.fxt.freexmltoolkit.controls.shell.editor.FolderCompareView(editorHost, left.toPath(), right.toPath()));
+    }
+
     private void compareWithFile() {
         if (editorHost.getActiveDocument().isEmpty()) {
             return;
