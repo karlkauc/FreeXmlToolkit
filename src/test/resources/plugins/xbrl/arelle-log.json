@@ -1,0 +1,106 @@
+{
+ "log": [
+  {
+   "code": "info",
+   "level": "info",
+   "refs": [
+    {
+     "href": "/data/bad.xbrl"
+    }
+   ],
+   "message": {
+    "text": "[info] loaded in 0.01 secs at 2026-11-08T17:16:27 - /data/bad.xbrl ",
+    "args": {}
+   }
+  },
+  {
+   "code": "xbrl.4.6.2:numericUnit",
+   "level": "error",
+   "refs": [
+    {
+     "href": "bad.xbrl#element(/1/4)",
+     "sourceLine": 11,
+     "objectId": "__751",
+     "properties": [
+      [
+       "label",
+       "ex:Revenue"
+      ],
+      [
+       "namespace",
+       "http://example.com/tax"
+      ],
+      [
+       "name",
+       "Revenue"
+      ],
+      [
+       "QName",
+       "ex:Revenue"
+      ],
+      [
+       "contextRef",
+       "c1",
+       [
+        [
+         "entity",
+         "ACME",
+         [
+          [
+           "scheme",
+           "http://www.example.com"
+          ]
+         ]
+        ],
+        [
+         "startDate",
+         "2025-01-01"
+        ],
+        [
+         "endDate",
+         "2025-12-31"
+        ]
+       ]
+      ],
+      [
+       "decimals",
+       "0"
+      ],
+      [
+       "precision",
+       "None"
+      ],
+      [
+       "xsi:nil",
+       "false"
+      ],
+      [
+       "value",
+       "1,000"
+      ]
+     ]
+    }
+   ],
+   "message": {
+    "text": "[xbrl.4.6.2:numericUnit] Fact ex:Revenue context c1 is numeric and must have a unit - bad.xbrl 11",
+    "args": {
+     "fact": "ex:Revenue",
+     "contextID": "c1"
+    }
+   }
+  },
+  {
+   "code": "info",
+   "level": "info",
+   "refs": [
+    {
+     "href": "/data/bad.xbrl"
+    }
+   ],
+   "message": {
+    "text": "[info] validated in 0.01 secs - /data/bad.xbrl ",
+    "args": {}
+   }
+  }
+ ]
+}

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ScrollPane?>
@@ -42,6 +43,8 @@
                                                minHeight="-Infinity"/>
                                         <Label fx:id="checkResult" id="industry-check-result" wrapText="true"
                                                minHeight="-Infinity" visible="false" managed="false"/>
+                                        <Hyperlink fx:id="showAllLink" id="industry-show-all" text="Show All Problems"
+                                                   visible="false" managed="false" onAction="#onShowAll"/>
                                     </children>
                                 </VBox>
                                 <PanelActionList fx:id="actions" id="industry-actions">

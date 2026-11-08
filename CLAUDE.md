@@ -87,6 +87,11 @@ the jars in `~/.freeXmlToolkit/plugins` (`-Dfxt.plugins.dir`, own `URLClassLoade
 `createSidePanel` switches on `activity.id()`. The UI side is `ShellPluginUi`. FundsXML is the reference plugin
 (`controls/shell/editor/FundsXmlPlugin`; its Settings card and Welcome section are still core). Settings →
 Extensions → PLUGINS lists them. Docs: `docs/plugins.md`.
+Industry plugins (`plugins/`, off by default via `enabledByDefault()`): `iso20022` (schemas via
+`PluginContext.addSchema` → Schema Library source PLUGIN, control sums, EPC SEPA rules), `ebinterface`,
+`findatex` (EMT/EET/EPT CSV against `plugins/findatex/templates.json` from `scripts/findatex-fields.py`),
+`xbrl` (runs the user's Arelle, `ArelleRunner`). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
+`service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry-plugins.md`.
 
 ## Administrator Policy
 

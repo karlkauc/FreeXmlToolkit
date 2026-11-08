@@ -27,6 +27,16 @@ import org.fxt.freexmltoolkit.plugin.PluginUi;
  */
 public class IndustryPanel extends VBox {
 
+    /** The panel's check of the active document. */
+    @FunctionalInterface
+    public interface Checker {
+        /**
+         * @param path the saved file, or {@code null} for an unsaved document
+         * @throws Exception shown as "The check could not run: …" (e.g. a missing external program)
+         */
+        List<DocumentValidator.Problem> check(String content, java.nio.file.Path path, String name) throws Exception;
+    }
+
     /** An action row of the panel. */
     public record Action(String id, String text, String icon, ActionColor color, java.util.function.Consumer<PluginUi> run) {
     }
@@ -44,7 +54,9 @@ public class IndustryPanel extends VBox {
 
     private final PluginUi ui;
     private final Function<String, String> describer;
-    private final DocumentValidator validator;
+    private final Checker checker;
+    private List<DocumentValidator.Problem> lastProblems = List.of();
+    @FXML private javafx.scene.control.Hyperlink showAllLink;
 
     /**
      * @param describer   what the document is ({@code "pain.001.001.09 — 2 payments …"}), or {@code null}
@@ -55,9 +67,16 @@ public class IndustryPanel extends VBox {
     public IndustryPanel(PluginUi ui, String title, String aboutText, List<Action> extraActions,
                          Function<String, String> describer, DocumentValidator validator,
                          List<IdentifierKind> identifiers) {
+        this(ui, title, aboutText, extraActions, describer,
+                (content, path, name) -> validator.validate(content, name), identifiers);
+    }
+
+    /** @param checker the check of "Check Active Document" (for checks that need the saved file) */
+    public IndustryPanel(PluginUi ui, String title, String aboutText, List<Action> extraActions,
+                         Function<String, String> describer, Checker checker, List<IdentifierKind> identifiers) {
         this.ui = ui;
         this.describer = describer;
-        this.validator = validator;
+        this.checker = checker;
         FxmlViews.load(this, "/pages/panels/IndustryPanel.fxml");
         header.setTitle(title);
         about.setText(aboutText);
@@ -108,6 +127,8 @@ public class IndustryPanel extends VBox {
                 : description == null ? "The active document is not one this plugin checks." : description);
         checkButton.setDisable(description == null);
         showCheckResult(null);
+        showAllLink.setVisible(false);
+        showAllLink.setManaged(false);
     }
 
     @FXML
@@ -116,21 +137,28 @@ public class IndustryPanel extends VBox {
         if (text == null) {
             return;
         }
-        String name = ui.editorHost().getActiveDocument().map(d -> d.getDisplayName()).orElse(null);
+        var document = ui.editorHost().getActiveDocument();
+        String name = document.map(d -> d.getDisplayName()).orElse(null);
+        java.nio.file.Path path = document.map(d -> d.getPath()).orElse(null);
         checkButton.setDisable(true);
         showCheckResult("Checking…");
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             String result;
+            List<DocumentValidator.Problem> problems = List.of();
             try {
-                List<DocumentValidator.Problem> problems = validator.validate(text, name);
+                problems = checker.check(text, path, name);
                 result = summary(problems);
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 result = "The check could not run: " + e.getMessage();
             }
             String shown = result;
+            List<DocumentValidator.Problem> found = problems;
             Platform.runLater(() -> {
                 checkButton.setDisable(false);
+                lastProblems = found;
                 showCheckResult(shown);
+                showAllLink.setVisible(found.size() > 10);
+                showAllLink.setManaged(found.size() > 10);
             });
         });
     }
@@ -144,9 +172,22 @@ public class IndustryPanel extends VBox {
         problems.stream().limit(10).forEach(p -> text.append("\n• ")
                 .append(p.line() > 0 ? "Line " + p.line() + ": " : "").append(p.message()));
         if (problems.size() > 10) {
-            text.append("\n… and ").append(problems.size() - 10).append(" more (run Validate for the full list).");
+            text.append("\n… and ").append(problems.size() - 10).append(" more.");
         }
         return text.toString();
+    }
+
+    /** Opens all problems of the last check as a text document. */
+    @FXML
+    public void onShowAll() {
+        StringBuilder text = new StringBuilder(header.getTitle()).append(" — ").append(lastProblems.size())
+                .append(" problems\n\n");
+        for (DocumentValidator.Problem p : lastProblems) {
+            text.append(p.severity()).append('\t').append(p.line() > 0 ? "line " + p.line() : "").append('\t')
+                    .append(p.message()).append('\n');
+        }
+        ui.editorHost().openGeneratedDocument(text.toString(),
+                org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.OTHER, "problems.txt");
     }
 
     private void showCheckResult(String text) {

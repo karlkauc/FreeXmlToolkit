@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase"
+            xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+            xmlns:ex="http://example.com/tax">
+  <link:schemaRef xlink:type="simple" xlink:href="tax.xsd"/>
+  <xbrli:context id="c1">
+    <xbrli:entity><xbrli:identifier scheme="http://www.example.com">ACME</xbrli:identifier></xbrli:entity>
+    <xbrli:period><xbrli:startDate>2025-01-01</xbrli:startDate><xbrli:endDate>2025-12-31</xbrli:endDate></xbrli:period>
+  </xbrli:context>
+  <xbrli:unit id="eur"><xbrli:measure>iso4217:EUR</xbrli:measure></xbrli:unit>
+  <ex:Revenue contextRef="c1" unitRef="eur" decimals="0">1000</ex:Revenue>
+</xbrli:xbrl>

@@ -118,6 +118,7 @@ Rules:
 | ISO 20022 Payments (SEPA) | no | [Industry Plugins](industry-plugins.md#iso-20022-payments-sepa) |
 | ebInterface (Austrian e-invoice) | no | [Industry Plugins](industry-plugins.md#ebinterface-austrian-e-invoice) |
 | FinDatEx Templates (EMT, EET, EPT) | no | [Industry Plugins](industry-plugins.md#findatex-templates-emt-eet-ept) |
+| XBRL (with Arelle) | no | [Industry Plugins](industry-plugins.md#xbrl-with-arelle) |
 
 A plugin can say it is off until the user switches it on (`enabledByDefault()`), and it can add
 XML Schemas to the Schema Library (`context.addSchema(new PluginSchema(namespace, url, description, null))`).

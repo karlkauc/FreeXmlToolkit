@@ -6,7 +6,8 @@ default**: switch them on in **Settings → Extensions → PLUGINS** and restart
 - an **activity** in the Activity Bar with a side panel: what the active document is, a
   **Check Active Document** button, sample documents and an identifier checker;
 - **checks** that run with every validation (Validation panel, **F8**, `fxt-cli validate`) and appear
-  with the plugin's name as source;
+  with the plugin's name as source (ISO 20022 and ebInterface; FinDatEx and XBRL files are checked
+  from their side panel);
 - where the standard has official XML Schemas, **Schema Library entries** (source *Plugin*), so
   documents get their schema bound automatically. Remote schemas are downloaded once and cached.
 
@@ -95,3 +96,24 @@ detected. **New EMT / EET / EPT File** creates a file with the template's header
 Mandatory and conditional fields of the other sections depend on the reporting flags and on the
 product; they are not checked. At most 500 value problems are listed per file. Problems name the row
 (or instrument column), the instrument's identifier and the field, and jump to the line.
+
+## XBRL (with Arelle)
+
+For XBRL instances (root `xbrli:xbrl`) and inline XBRL reports (XHTML with `ix:` facts). XBRL
+validation needs the taxonomy — XBRL 2.1, dimensions, calculations and formulas — which is what
+[Arelle](https://arelle.org), the open-source XBRL processor, does. FreeXmlToolkit runs Arelle as a
+separate program; it is **not bundled**:
+
+1. Install it: `pip install arelle-release` (Python 3.11 or later). This puts `arelleCmdLine` on the PATH.
+2. If it is not on the PATH, click **Choose Arelle Command…** in the XBRL side panel and pick the
+   `arelleCmdLine` program (on Windows `arelleCmdLine.exe`).
+
+**Side panel:** the kind of document, its number of facts, contexts and units, and which Arelle is
+used. **Check Active Document** saves nothing itself — save the document first — and runs
+`arelleCmdLine -f <file> -v` on it. Arelle's errors and warnings are listed with their code
+(e.g. `[xbrl.4.6.2:numericUnit]`) and line; **Show All Problems** opens the full list. Information
+messages (timings) are left out. A run stops after 10 minutes.
+
+Arelle loads the taxonomies the document references from the internet (and caches them) with its
+own network settings; the proxy settings of FreeXmlToolkit do not apply to it. XBRL documents are
+not checked by the Validation panel or `fxt-cli validate`; use `arelleCmdLine` directly in scripts.
