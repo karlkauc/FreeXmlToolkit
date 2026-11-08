@@ -1913,6 +1913,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#testing-with-xspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing with XSpec
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tracing-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3236,6 +3247,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#testing-with-xspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing with XSpec
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#tracing-and-messages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3750,10 +3772,38 @@ steadier numbers. <strong>Export</strong> writes the profile as JSON (with the c
 <p>On the command line, <code>fxt-cli transform --profile report.json …</code> profiles a run (see
 <a href="../command-line/#transform">Command Line</a>).</p>
 <hr />
+<h2 id="testing-with-xspec">Testing with XSpec<a class="headerlink" href="#testing-with-xspec" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/xspec/xspec">XSpec</a> tests are part of FreeXmlToolkit (XSpec 3, bundled): unit
+tests for XSLT stylesheets, XQuery modules and Schematron, written as <code>.xspec</code> files.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">&lt;x:description</span><span class="w"> </span><span class="na">xmlns:x=</span><span class="s">"http://www.jenitennison.com/xslt/xspec"</span><span class="w"> </span><span class="na">xmlns:f=</span><span class="s">"urn:f"</span><span class="w"> </span><span class="na">stylesheet=</span><span class="s">"price.xsl"</span><span class="nt">&gt;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">&lt;x:scenario</span><span class="w"> </span><span class="na">label=</span><span class="s">"net price of 120"</span><span class="nt">&gt;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">&lt;x:call</span><span class="w"> </span><span class="na">function=</span><span class="s">"f:net"</span><span class="nt">&gt;&lt;x:param</span><span class="w"> </span><span class="na">select=</span><span class="s">"120"</span><span class="nt">/&gt;&lt;/x:call&gt;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nt">&lt;x:expect</span><span class="w"> </span><span class="na">label=</span><span class="s">"is 100"</span><span class="w"> </span><span class="na">select=</span><span class="s">"100"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nt">&lt;/x:scenario&gt;</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nt">&lt;x:scenario</span><span class="w"> </span><span class="na">label=</span><span class="s">"item template"</span><span class="nt">&gt;</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="nt">&lt;x:context&gt;&lt;item</span><span class="w"> </span><span class="na">name=</span><span class="s">"pen"</span><span class="nt">/&gt;&lt;/x:context&gt;</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="nt">&lt;x:expect</span><span class="w"> </span><span class="na">label=</span><span class="s">"upper-case line"</span><span class="nt">&gt;&lt;line&gt;</span>PEN<span class="nt">&lt;/line&gt;&lt;/x:expect&gt;</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="nt">&lt;/x:scenario&gt;</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="nt">&lt;/x:description&gt;</span>
+</code></pre></div>
+<p>Open the <code>.xspec</code> file and choose <strong>Tools → Run XSpec Tests</strong>. The tests run with the text in the
+editor (also unsaved changes); the file must be saved once, because the stylesheet, query or
+Schematron it names is found relative to it. What is tested follows the description:
+<code>stylesheet="…"</code> an XSLT stylesheet, <code>query="…"</code> with <code>query-at="…"</code> an XQuery module,
+<code>schematron="…"</code> a Schematron (with <code>x:expect-assert</code>, <code>x:expect-report</code>, <code>x:expect-valid</code>).</p>
+<p>The <strong>XSpec</strong> tab shows the summary (passed, failed, pending) and every scenario with its tests;
+scenarios with a failed test are expanded and the first failure is selected. <strong>Expected</strong> and
+<strong>Actual</strong> below show what the test expected and what the code returned. <strong>Run Again</strong> runs the
+tests again (after you changed the stylesheet or the tests), <strong>HTML Report</strong> opens XSpec's own
+report as a preview, <strong>Export JUnit…</strong> writes a JUnit XML report for CI servers. Scenarios marked
+<code>pending="…"</code> are listed but not run.</p>
+<p>On the command line: <code>fxt-cli xspec tests/price.xspec -r junit.xml</code> (see
+<a href="../command-line/#xspec">Command Line</a>).</p>
+<hr />
 <h2 id="tracing-and-messages">Tracing and Messages<a class="headerlink" href="#tracing-and-messages" title="Permanent link">&para;</a></h2>
 <p>Enable <strong>Trace run</strong> in <strong>OPTIONS &amp; TOOLS</strong> to open a <strong>Trace</strong> tool tab with the next run. It
 shows the sequence of <strong>template matches</strong> and all <code>xsl:message</code> output:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">&lt;xsl:message</span><span class="nt">&gt;</span>Processing<span class="w"> </span>book:<span class="w"> </span><span class="k">&lt;xsl:value-of</span><span class="w"> </span><span class="na">select=</span><span class="s">"title"</span><span class="nt">/&gt;</span><span class="k">&lt;/xsl:message&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">&lt;xsl:message</span><span class="nt">&gt;</span>Processing<span class="w"> </span>book:<span class="w"> </span><span class="k">&lt;xsl:value-of</span><span class="w"> </span><span class="na">select=</span><span class="s">"title"</span><span class="nt">/&gt;</span><span class="k">&lt;/xsl:message&gt;</span>
 </code></pre></div>
 <h3 id="tips-for-debugging">Tips for Debugging<a class="headerlink" href="#tips-for-debugging" title="Permanent link">&para;</a></h3>
 <ol>
@@ -3809,45 +3859,45 @@ the version from the stylesheet's <code>version</code> attribute.</p>
 <hr />
 <h2 id="xquery-examples">XQuery Examples<a class="headerlink" href="#xquery-examples" title="Permanent link">&para;</a></h2>
 <h3 id="data-extraction">Data Extraction<a class="headerlink" href="#data-extraction" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c">(: Extract all customer emails :)</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">for</span><span class="w"> </span><span class="nv">$</span><span class="n">customer</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="p">/</span><span class="nt">customers</span><span class="p">/</span><span class="nt">customer</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">return</span><span class="w"> </span><span class="nt">&lt;email&gt;</span><span class="p">{</span><span class="nv">$</span><span class="n">customer</span><span class="p">/</span><span class="nt">email</span><span class="p">/</span><span class="nf">text</span><span class="p">()}</span><span class="nt">&lt;/email&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c">(: Extract all customer emails :)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">for</span><span class="w"> </span><span class="nv">$</span><span class="n">customer</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="p">/</span><span class="nt">customers</span><span class="p">/</span><span class="nt">customer</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">return</span><span class="w"> </span><span class="nt">&lt;email&gt;</span><span class="p">{</span><span class="nv">$</span><span class="n">customer</span><span class="p">/</span><span class="nt">email</span><span class="p">/</span><span class="nf">text</span><span class="p">()}</span><span class="nt">&lt;/email&gt;</span>
 </code></pre></div>
 <h3 id="transformation">Transformation<a class="headerlink" href="#transformation" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c">(: Transform to HTML table :)</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nt">&lt;table&gt;</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="l">  </span><span class="nt">&lt;tr&gt;&lt;th&gt;</span><span class="l">Name</span><span class="nt">&lt;/th&gt;&lt;th&gt;</span><span class="l">Email</span><span class="nt">&lt;/th&gt;&lt;/tr&gt;</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="l">  </span><span class="p">{</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nv">$</span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="p">/</span><span class="nt">customers</span><span class="p">/</span><span class="nt">customer</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nt">&lt;tr&gt;</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="l">      </span><span class="nt">&lt;td&gt;</span><span class="p">{</span><span class="nv">$</span><span class="n">c</span><span class="p">/</span><span class="nt">name</span><span class="p">/</span><span class="nf">text</span><span class="p">()}</span><span class="nt">&lt;/td&gt;</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="l">      </span><span class="nt">&lt;td&gt;</span><span class="p">{</span><span class="nv">$</span><span class="n">c</span><span class="p">/</span><span class="nt">email</span><span class="p">/</span><span class="nf">text</span><span class="p">()}</span><span class="nt">&lt;/td&gt;</span>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="l">    </span><span class="nt">&lt;/tr&gt;</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="nt">&lt;/table&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c">(: Transform to HTML table :)</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nt">&lt;table&gt;</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="l">  </span><span class="nt">&lt;tr&gt;&lt;th&gt;</span><span class="l">Name</span><span class="nt">&lt;/th&gt;&lt;th&gt;</span><span class="l">Email</span><span class="nt">&lt;/th&gt;&lt;/tr&gt;</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="l">  </span><span class="p">{</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nv">$</span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="p">/</span><span class="nt">customers</span><span class="p">/</span><span class="nt">customer</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nt">&lt;tr&gt;</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="l">      </span><span class="nt">&lt;td&gt;</span><span class="p">{</span><span class="nv">$</span><span class="n">c</span><span class="p">/</span><span class="nt">name</span><span class="p">/</span><span class="nf">text</span><span class="p">()}</span><span class="nt">&lt;/td&gt;</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="l">      </span><span class="nt">&lt;td&gt;</span><span class="p">{</span><span class="nv">$</span><span class="n">c</span><span class="p">/</span><span class="nt">email</span><span class="p">/</span><span class="nf">text</span><span class="p">()}</span><span class="nt">&lt;/td&gt;</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="l">    </span><span class="nt">&lt;/tr&gt;</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="nt">&lt;/table&gt;</span>
 </code></pre></div>
 <h3 id="aggregation">Aggregation<a class="headerlink" href="#aggregation" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c">(: Calculate statistics :)</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">let</span><span class="w"> </span><span class="nv">$</span><span class="n">orders</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">/</span><span class="nt">orders</span><span class="p">/</span><span class="nt">order</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">return</span><span class="w"> </span><span class="nt">&lt;stats&gt;</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="l">  </span><span class="nt">&lt;count&gt;</span><span class="p">{</span><span class="nf">count</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">)}</span><span class="nt">&lt;/count&gt;</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="l">  </span><span class="nt">&lt;total&gt;</span><span class="p">{</span><span class="nf">sum</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">/</span><span class="nt">amount</span><span class="p">)}</span><span class="nt">&lt;/total&gt;</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="l">  </span><span class="nt">&lt;average&gt;</span><span class="p">{</span><span class="nf">avg</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">/</span><span class="nt">amount</span><span class="p">)}</span><span class="nt">&lt;/average&gt;</span>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="l">  </span><span class="nt">&lt;min&gt;</span><span class="p">{</span><span class="nf">min</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">/</span><span class="nt">amount</span><span class="p">)}</span><span class="nt">&lt;/min&gt;</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="l">  </span><span class="nt">&lt;max&gt;</span><span class="p">{</span><span class="nf">max</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">/</span><span class="nt">amount</span><span class="p">)}</span><span class="nt">&lt;/max&gt;</span>
-<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="nt">&lt;/stats&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c">(: Calculate statistics :)</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">let</span><span class="w"> </span><span class="nv">$</span><span class="n">orders</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">/</span><span class="nt">orders</span><span class="p">/</span><span class="nt">order</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">return</span><span class="w"> </span><span class="nt">&lt;stats&gt;</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="l">  </span><span class="nt">&lt;count&gt;</span><span class="p">{</span><span class="nf">count</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">)}</span><span class="nt">&lt;/count&gt;</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="l">  </span><span class="nt">&lt;total&gt;</span><span class="p">{</span><span class="nf">sum</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">/</span><span class="nt">amount</span><span class="p">)}</span><span class="nt">&lt;/total&gt;</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="l">  </span><span class="nt">&lt;average&gt;</span><span class="p">{</span><span class="nf">avg</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">/</span><span class="nt">amount</span><span class="p">)}</span><span class="nt">&lt;/average&gt;</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="l">  </span><span class="nt">&lt;min&gt;</span><span class="p">{</span><span class="nf">min</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">/</span><span class="nt">amount</span><span class="p">)}</span><span class="nt">&lt;/min&gt;</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="l">  </span><span class="nt">&lt;max&gt;</span><span class="p">{</span><span class="nf">max</span><span class="p">(</span><span class="nv">$</span><span class="n">orders</span><span class="p">/</span><span class="nt">amount</span><span class="p">)}</span><span class="nt">&lt;/max&gt;</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="nt">&lt;/stats&gt;</span>
 </code></pre></div>
 <h3 id="conditional-logic">Conditional Logic<a class="headerlink" href="#conditional-logic" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c">(: Categorize items :)</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">for</span><span class="w"> </span><span class="nv">$</span><span class="n">item</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="p">/</span><span class="nt">items</span><span class="p">/</span><span class="nt">item</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">return</span><span class="w"> </span><span class="nt">&lt;categorized&gt;</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="l">  </span><span class="nt">&lt;name&gt;</span><span class="p">{</span><span class="nv">$</span><span class="n">item</span><span class="p">/</span><span class="nt">name</span><span class="p">/</span><span class="nf">text</span><span class="p">()}</span><span class="nt">&lt;/name&gt;</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="l">  </span><span class="nt">&lt;category&gt;</span><span class="p">{</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nv">$</span><span class="n">item</span><span class="p">/</span><span class="nt">price</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="s2">"Premium"</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nv">$</span><span class="n">item</span><span class="p">/</span><span class="nt">price</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">50</span><span class="p">)</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="s2">"Standard"</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="s2">"Budget"</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">  </span><span class="p">}</span><span class="nt">&lt;/category&gt;</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="nt">&lt;/categorized&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c">(: Categorize items :)</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">for</span><span class="w"> </span><span class="nv">$</span><span class="n">item</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="p">/</span><span class="nt">items</span><span class="p">/</span><span class="nt">item</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="k">return</span><span class="w"> </span><span class="nt">&lt;categorized&gt;</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="l">  </span><span class="nt">&lt;name&gt;</span><span class="p">{</span><span class="nv">$</span><span class="n">item</span><span class="p">/</span><span class="nt">name</span><span class="p">/</span><span class="nf">text</span><span class="p">()}</span><span class="nt">&lt;/name&gt;</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="l">  </span><span class="nt">&lt;category&gt;</span><span class="p">{</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nv">$</span><span class="n">item</span><span class="p">/</span><span class="nt">price</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="s2">"Premium"</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nv">$</span><span class="n">item</span><span class="p">/</span><span class="nt">price</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">50</span><span class="p">)</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="s2">"Standard"</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="s2">"Budget"</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">  </span><span class="p">}</span><span class="nt">&lt;/category&gt;</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="nt">&lt;/categorized&gt;</span>
 </code></pre></div>
 <hr />
 <h2 id="tips">Tips<a class="headerlink" href="#tips" title="Permanent link">&para;</a></h2>
