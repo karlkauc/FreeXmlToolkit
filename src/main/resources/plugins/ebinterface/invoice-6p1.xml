@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ebInterface 6.1 invoice: two lines at 20 % and 10 % VAT, paid by SEPA credit transfer.
+     Sample data; replace parties, items and accounts. -->
+<Invoice xmlns="http://www.ebinterface.at/schema/6p1/" GeneratingSystem="FreeXmlToolkit"
+         DocumentType="Invoice" InvoiceCurrency="EUR" Language="de">
+  <InvoiceNumber>2026-0042</InvoiceNumber>
+  <InvoiceDate>2026-11-08</InvoiceDate>
+  <Delivery>
+    <Date>2026-11-05</Date>
+  </Delivery>
+  <Biller>
+    <VATIdentificationNumber>ATU13585627</VATIdentificationNumber>
+    <Address>
+      <Name>Beispiel Handels GmbH</Name>
+      <Street>Hauptstraße 1</Street>
+      <Town>Wien</Town>
+      <ZIP>1010</ZIP>
+      <Country CountryCode="AT">Österreich</Country>
+      <Email>rechnung@beispiel.at</Email>
+    </Address>
+  </Biller>
+  <InvoiceRecipient>
+    <VATIdentificationNumber>ATU00000000</VATIdentificationNumber>
+    <OrderReference>
+      <OrderID>B-2026-17</OrderID>
+    </OrderReference>
+    <Address>
+      <Name>Musterkunde AG</Name>
+      <Street>Ringstraße 5</Street>
+      <Town>Graz</Town>
+      <ZIP>8010</ZIP>
+      <Country CountryCode="AT">Österreich</Country>
+    </Address>
+  </InvoiceRecipient>
+  <Details>
+    <ItemList>
+      <ListLineItem>
+        <PositionNumber>1</PositionNumber>
+        <Description>Schraubendreher-Set</Description>
+        <Quantity Unit="C62">4.00</Quantity>
+        <UnitPrice>25.00</UnitPrice>
+        <TaxItem>
+          <TaxableAmount>100.00</TaxableAmount>
+          <TaxPercent TaxCategoryCode="S">20</TaxPercent>
+          <TaxAmount>20.00</TaxAmount>
+        </TaxItem>
+        <LineItemAmount>100.00</LineItemAmount>
+      </ListLineItem>
+      <ListLineItem>
+        <PositionNumber>2</PositionNumber>
+        <Description>Handbuch</Description>
+        <Quantity Unit="C62">2.00</Quantity>
+        <UnitPrice>12.50</UnitPrice>
+        <TaxItem>
+          <TaxableAmount>25.00</TaxableAmount>
+          <TaxPercent TaxCategoryCode="AA">10</TaxPercent>
+          <TaxAmount>2.50</TaxAmount>
+        </TaxItem>
+        <LineItemAmount>25.00</LineItemAmount>
+      </ListLineItem>
+    </ItemList>
+  </Details>
+  <Tax>
+    <TaxItem>
+      <TaxableAmount>100.00</TaxableAmount>
+      <TaxPercent TaxCategoryCode="S">20</TaxPercent>
+      <TaxAmount>20.00</TaxAmount>
+    </TaxItem>
+    <TaxItem>
+      <TaxableAmount>25.00</TaxableAmount>
+      <TaxPercent TaxCategoryCode="AA">10</TaxPercent>
+      <TaxAmount>2.50</TaxAmount>
+    </TaxItem>
+  </Tax>
+  <TotalGrossAmount>147.50</TotalGrossAmount>
+  <PayableAmount>147.50</PayableAmount>
+  <PaymentMethod>
+    <UniversalBankTransaction>
+      <BeneficiaryAccount>
+        <BIC>BKAUATWW</BIC>
+        <IBAN>AT611904300234573201</IBAN>
+        <BankAccountOwner>Beispiel Handels GmbH</BankAccountOwner>
+      </BeneficiaryAccount>
+    </UniversalBankTransaction>
+  </PaymentMethod>
+  <PaymentConditions>
+    <DueDate>2026-11-22</DueDate>
+  </PaymentConditions>
+</Invoice>

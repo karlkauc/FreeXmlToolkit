@@ -43,3 +43,26 @@ guidelines 2025 (SCT and SDD Core, customer-to-PSP):
 **Side panel:** the message type and name, the number of payment groups and transactions, their
 total and whether it is SEPA; **New SEPA Credit Transfer (pain.001)** and **New SEPA Direct Debit
 (pain.008)** open sample messages (schema-valid, version 2025) to start from.
+
+## ebInterface (Austrian e-invoice)
+
+For ebInterface invoices (root `Invoice`, namespace `http://www.ebinterface.at/schema/<version>/`).
+
+**Schemas** of versions 4.1, 4.2, 4.3, 5.0, 6.0 and 6.1 are bound automatically, downloaded from the
+standard's repository on GitHub (`austriapro/ebinterface-standards`).
+
+**Checks**, after the ebInterface 6.1 specification:
+
+| Check | Severity |
+|---|---|
+| Austrian VAT ids (`VATIdentificationNumber` starting with `ATU`): format and check digit; `ATU00000000` ("no UID") is accepted | error |
+| `IBAN` and `BIC` | error |
+| `PayableAmount` = `TotalGrossAmount` − `PrepaidAmount` + `RoundingAmount` (skipped with below-the-line items) | error |
+| `LineItemAmount` = `Quantity` × `UnitPrice` (/ `BaseQuantity`), for lines without surcharges or reductions | warning |
+| `TaxAmount` = `TaxableAmount` × `TaxPercent` / 100, for every tax item | warning |
+| the taxable amounts of the tax summary (`Tax/TaxItem`) add up to the line amounts (without invoice-level surcharges or reductions) | warning |
+| `TotalGrossAmount` = taxable amounts + taxes of the tax summary (without surcharges, reductions or other taxes) | warning |
+| the due date is not before the invoice date | warning |
+
+Amounts may differ by one cent of rounding. **Side panel:** document type, number, date, biller,
+number of lines and payable amount; **New ebInterface 6.1 Invoice** opens a schema-valid sample.
