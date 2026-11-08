@@ -2888,6 +2888,10 @@ to see whether it has already been reported. A good bug report contains:</p>
 <p>The UI tests use TestFX and need a display. On a headless Linux machine run them with
 <code>xvfb-run ./gradlew test</code>. The full suite takes a while — run the tests related to your change
 while you work, and the full suite before opening a pull request.</p>
+<p>Every pull request runs the whole suite on GitHub Actions (workflow <code>Tests</code>): it is split into four parallel
+jobs and takes about half an hour. The job summary lists failed tests and the line coverage; the HTML test
+report of a failed job and the coverage report are attached to the run as artifacts. To run one of the
+four parts locally: <code>./gradlew test -PtestShards=4 -PtestShard=0</code> (0 to 3).</p>
 <h2 id="coding-guidelines">Coding Guidelines<a class="headerlink" href="#coding-guidelines" title="Permanent link">&para;</a></h2>
 <p>The project has detailed architecture notes in <a href="https://github.com/karlkauc/FreeXmlToolkit/blob/main/CLAUDE.md"><code>CLAUDE.md</code></a> and
 <a href="https://github.com/karlkauc/FreeXmlToolkit/tree/main/.claude/rules"><code>.claude/rules/</code></a> (architecture, domain model, quick reference). The most important
