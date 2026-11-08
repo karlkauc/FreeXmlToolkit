@@ -341,7 +341,7 @@ public final class XSpecRunner {
             throw new IOException("XSpec is missing from the application: " + stylesheet);
         }
         XsltExecutable compiled;
-        try (InputStream in = url.openStream()) {
+        try (InputStream in = XSpecRunner.class.getResourceAsStream(BASE + stylesheet)) {
             StreamSource source = new StreamSource(in, url.toString());
             compiled = processor.newXsltCompiler().compile(source);
         }
