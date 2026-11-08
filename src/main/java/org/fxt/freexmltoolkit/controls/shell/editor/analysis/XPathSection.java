@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -37,6 +35,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstrain
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdXPathValidator.XPathSource;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdXPathValidator.XPathValidationIssue;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * "XPath Validation" sub-tab: one row per XPath expression used by the schema's identity

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -18,6 +16,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.AssertCommands;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.DeleteNodeCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAssert;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * "Assertions" tab of the {@link SchemaOverviewView}: the XSD 1.1 {@code xs:assert} of the

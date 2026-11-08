@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 
 import javafx.fxml.FXML;
@@ -23,6 +21,7 @@ import org.fxt.freexmltoolkit.domain.FileAssociationResult;
 import org.fxt.freexmltoolkit.domain.UnifiedEditorFileType;
 import org.fxt.freexmltoolkit.domain.XmlParserType;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.FileAssociationService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.TemplateFileService;

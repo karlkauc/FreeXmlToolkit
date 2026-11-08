@@ -7,6 +7,8 @@ import java.io.StringWriter;
 
 import javax.xml.transform.stream.StreamSource;
 
+import org.fxt.freexmltoolkit.service.SaxonResourceAccess;
+
 import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.QName;
 import net.sf.saxon.s9api.SaxonApiException;
@@ -14,8 +16,6 @@ import net.sf.saxon.s9api.Serializer;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.Xslt30Transformer;
 import net.sf.saxon.s9api.XsltExecutable;
-
-import org.fxt.freexmltoolkit.service.SaxonResourceAccess;
 
 /**
  * Adds grid formulas and saved filters to a FundsXML document with

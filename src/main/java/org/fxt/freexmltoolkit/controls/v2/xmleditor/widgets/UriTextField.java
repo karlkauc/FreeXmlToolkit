@@ -17,8 +17,6 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.function.Consumer;
@@ -34,6 +32,7 @@ import javafx.scene.layout.Priority;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * TextField widget for XSD anyURI type.

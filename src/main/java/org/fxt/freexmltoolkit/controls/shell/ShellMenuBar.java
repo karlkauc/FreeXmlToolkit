@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -22,7 +20,6 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog;
-import org.fxt.freexmltoolkit.controls.shell.editor.ProjectActions;
 import org.fxt.freexmltoolkit.controls.shell.editor.AboutDialog;
 import org.fxt.freexmltoolkit.controls.shell.editor.DataConversionAction;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorActions;
@@ -32,11 +29,13 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.FavoritesMenu;
 import org.fxt.freexmltoolkit.controls.shell.editor.KeyboardShortcutsDialog;
 import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
+import org.fxt.freexmltoolkit.controls.shell.editor.ProjectActions;
 import org.fxt.freexmltoolkit.controls.shell.editor.UpdateActionRunner;
 import org.fxt.freexmltoolkit.controls.shell.editor.ViewMode;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdDiagramOptions;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.ApplicationLauncherLocator;
 import org.fxt.freexmltoolkit.service.DataFormatConverter;
 import org.fxt.freexmltoolkit.service.PropertiesService;

@@ -17,8 +17,6 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -32,6 +30,7 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.layout.HBox;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Time picker widget for XSD time types.

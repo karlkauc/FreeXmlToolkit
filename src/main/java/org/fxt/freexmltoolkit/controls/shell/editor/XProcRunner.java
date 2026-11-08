@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.StringReader;
@@ -11,6 +9,7 @@ import java.util.Map;
 
 import javax.xml.transform.stream.StreamSource;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 
 import com.xmlcalabash.XmlCalabash;

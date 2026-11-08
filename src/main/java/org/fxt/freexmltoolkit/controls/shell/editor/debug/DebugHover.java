@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -21,6 +19,7 @@ import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
 import org.fxt.freexmltoolkit.debugger.HoverExpressions;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmValue;

@@ -18,8 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.format.DateTimeFormatter;
@@ -38,6 +36,7 @@ import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.DeveloperPropertyKeys;
 import org.fxt.freexmltoolkit.service.ExecutionStats;
 import org.fxt.freexmltoolkit.service.ExecutionStatsService;

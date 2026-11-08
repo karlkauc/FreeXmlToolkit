@@ -12,12 +12,12 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import org.fxt.freexmltoolkit.plugin.DocumentValidator;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import org.fxt.freexmltoolkit.plugin.DocumentValidator;
 
 /**
  * Validates XBRL instances and inline XBRL reports with Arelle (arelle.org), the open-source XBRL

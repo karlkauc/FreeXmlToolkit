@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -9,6 +7,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.TemplateMatchInfo;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage;

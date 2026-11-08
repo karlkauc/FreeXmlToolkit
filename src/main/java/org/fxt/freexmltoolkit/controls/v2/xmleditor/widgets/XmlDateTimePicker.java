@@ -17,8 +17,6 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -36,6 +34,7 @@ import javafx.scene.layout.HBox;
 import javafx.util.StringConverter;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Combined date and time picker widget for XSD dateTime types.

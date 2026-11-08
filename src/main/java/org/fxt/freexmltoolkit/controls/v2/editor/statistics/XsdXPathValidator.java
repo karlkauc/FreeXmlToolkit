@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.statistics;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -21,6 +19,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSelector;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnique;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.w3c.dom.Document;
 
 import net.sf.saxon.s9api.Processor;

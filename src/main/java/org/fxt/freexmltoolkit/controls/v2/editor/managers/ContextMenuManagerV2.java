@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ContextMenu;
@@ -22,6 +20,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.core.NavigationRequest;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.ContextAnalyzer;
 import org.fxt.freexmltoolkit.controls.v2.editor.intellisense.context.XmlContext;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XmlService;
 
 /**

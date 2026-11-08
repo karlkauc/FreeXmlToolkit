@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +50,7 @@ import org.fxt.freexmltoolkit.controls.v2.view.XsdDiagramOptions;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.util.MarkdownSupport;
 
 /**

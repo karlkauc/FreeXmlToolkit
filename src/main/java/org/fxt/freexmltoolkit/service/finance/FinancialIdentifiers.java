@@ -107,7 +107,7 @@ public final class FinancialIdentifiers {
         int sum = 0;
         for (int i = 0; i < 7; i++) {
             int d = uid.charAt(3 + i) - '0';
-            if (i % 2 == 1) { // digits 2, 4, 6 count twice (cross sum)
+            if (i % 2 != 0) { // digits 2, 4, 6 count twice (cross sum)
                 d *= 2;
                 d = d / 10 + d % 10;
             }

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -20,6 +18,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddGlobalTypeCommand.K
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdEditRules;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**

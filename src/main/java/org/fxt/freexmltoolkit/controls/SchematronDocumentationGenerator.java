@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
@@ -35,6 +33,7 @@ import javafx.stage.FileChooser;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

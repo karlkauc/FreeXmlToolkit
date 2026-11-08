@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,6 +37,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.SchematronService;
 import org.fxt.freexmltoolkit.service.SchematronServiceImpl;
 

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.search;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -39,6 +37,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.search.FileSearchRunner.Text
 import org.fxt.freexmltoolkit.controls.shell.editor.search.FileSearchRunner.TextSearchQuery;
 import org.fxt.freexmltoolkit.controls.shell.editor.search.ReplaceApplier.FileReplacePlan;
 import org.fxt.freexmltoolkit.controls.shell.editor.search.ReplaceApplier.ReplaceOutcome;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Text mode of the Search panel: VS-Code-style find/replace across all files of

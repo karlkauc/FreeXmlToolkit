@@ -18,8 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
@@ -31,6 +29,7 @@ import javafx.stage.Window;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService;
 
 /**

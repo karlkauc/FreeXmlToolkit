@@ -17,8 +17,6 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.function.Consumer;
 
 import javafx.geometry.Insets;
@@ -35,6 +33,7 @@ import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationSeverity;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * TextField widget with length validation (minLength, maxLength, length facets).

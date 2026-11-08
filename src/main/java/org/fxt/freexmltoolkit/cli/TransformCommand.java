@@ -107,7 +107,7 @@ final class TransformCommand implements Callable<Integer> {
         if (profileReport != null && (lang != Language.XSLT || inputs.size() != 1)) {
             throw new CommandLine.ParameterException(commandLine, "--profile works for XSLT with one input");
         }
-        PrintWriter err = commandLine.getErr();
+        PrintWriter err = commandLine.getErr(); // NOPMD - picocli's stream, owned by CommandLine
         if (lang == Language.XPROC && (!parameters.isEmpty() || method != null)) {
             err.println("fxt-cli: --param and --method are ignored for XProc pipelines");
         }
@@ -131,7 +131,7 @@ final class TransformCommand implements Callable<Integer> {
             }
             Path target = targetFor(input, outcome.format());
             if (target == null) {
-                PrintWriter out = commandLine.getOut();
+                PrintWriter out = commandLine.getOut(); // NOPMD - picocli's stream, owned by CommandLine
                 out.print(outcome.text());
                 out.flush();
             } else {

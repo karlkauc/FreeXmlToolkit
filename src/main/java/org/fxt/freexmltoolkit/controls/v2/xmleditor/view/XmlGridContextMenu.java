@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -51,6 +49,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Context menu for XML Grid View with all editing operations.

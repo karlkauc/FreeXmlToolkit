@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +27,7 @@ import org.fxt.freexmltoolkit.domain.GenerationProfile;
 import org.fxt.freexmltoolkit.domain.GenerationStrategy;
 import org.fxt.freexmltoolkit.domain.XPathInfo;
 import org.fxt.freexmltoolkit.domain.XPathRule;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.GenerationProfileService;
 
 /**

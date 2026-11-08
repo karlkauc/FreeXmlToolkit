@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
@@ -16,6 +14,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.serialization.XmlIndentDetector;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /** A tab bound to one {@link OpenDocument}, its editor view, and Text/Tree/Graphic modes. */
 final class EditorTab extends Tab {

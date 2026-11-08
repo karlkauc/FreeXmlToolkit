@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -11,6 +9,7 @@ import javafx.scene.control.MenuItem;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /** Context menu of the Variables and Watch tables: Open Value… and Copy Value for the selected row. */
 final class DebugValueMenu {

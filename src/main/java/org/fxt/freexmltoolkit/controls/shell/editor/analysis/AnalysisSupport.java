@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -26,6 +24,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.report.ReportFormat;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.report.ReportModel;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.report.ReportWriters;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /** Small UI helpers shared by the Schema Analysis sections (columns, chips, export menu). */

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.plugins.iso20022;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -12,6 +10,7 @@ import java.util.Map;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.Workflow;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.FxtPlugin;
 import org.fxt.freexmltoolkit.plugin.PluginActivity;
 import org.fxt.freexmltoolkit.plugin.PluginContext;
@@ -77,9 +76,10 @@ public final class Iso20022Plugin implements FxtPlugin {
 
     @Override
     public void register(PluginContext context) {
-        for (String message : MESSAGES.keySet()) {
+        for (var entry : MESSAGES.entrySet()) {
+            String message = entry.getKey();
             context.addSchema(new PluginSchema(Iso20022Validator.NAMESPACE_PREFIX + message, schemaUrl(message),
-                    "ISO 20022 " + message + " " + MESSAGES.get(message), null));
+                    "ISO 20022 " + message + " " + entry.getValue(), null));
         }
         context.addValidator(validator);
         context.addActivity(new PluginActivity(ID, "ISO 20022", "bi-bank", Workflow.VALIDATION,
@@ -151,9 +151,12 @@ public final class Iso20022Plugin implements FxtPlugin {
     /** Opens a bundled sample message as a new document. */
     static void openSample(PluginUi ui, String message) {
         try (InputStream in = Iso20022Plugin.class.getResourceAsStream("/plugins/iso20022/" + message + ".xml")) {
+            if (in == null) {
+                throw new IOException("The sample " + message + " is missing from the application.");
+            }
             String text = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             ui.editorHost().openGeneratedDocument(text, EditorFileType.XML, message + "-sample.xml");
-        } catch (IOException | NullPointerException e) {
+        } catch (IOException e) {
             DialogHelper.showError(I18n.t("Iso20022Plugin.iso-20022"), I18n.t("Iso20022Plugin.the-sample-could-not-be"), String.valueOf(e.getMessage()));
         }
     }

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
@@ -19,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The detailed Schematron validation report, opened as a tool tab by the

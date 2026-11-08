@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -15,6 +13,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.project.FxtProject;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 

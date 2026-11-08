@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +36,7 @@ import org.fxt.freexmltoolkit.debugger.VariableBinding;
 import org.fxt.freexmltoolkit.debugger.VariableScope;
 import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult;
 import org.fxt.freexmltoolkit.service.XsltTransformationResult.TransformationMessage;

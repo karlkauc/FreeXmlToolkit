@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -14,19 +12,18 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableListBase;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.IndexedCell;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
-import javafx.collections.ObservableListBase;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
@@ -40,6 +37,7 @@ import javafx.scene.text.TextFlow;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.largefile.LargeFileIndex;
 import org.fxt.freexmltoolkit.service.largefile.LargeXmlStructure;
 
@@ -343,7 +341,7 @@ public class LargeFileView extends VBox {
         cancel.set(true);
         AtomicBoolean cancelled = new AtomicBoolean();
         cancel = cancelled;
-        LargeFileIndex searched = index;
+        LargeFileIndex searched = index; // NOPMD - the view owns the index and closes it on dispose
         long size = searched.size();
         showProgress("Searching…", 0);
         findButton.setDisable(true);
@@ -514,7 +512,7 @@ public class LargeFileView extends VBox {
     }
 
     private void loadRoot() {
-        LargeFileIndex current = index;
+        LargeFileIndex current = index; // NOPMD - the view owns the index and closes it on dispose
         recordsLabel.setText(I18n.t("LargeFileView.reading-the-structure"));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             try {
@@ -839,7 +837,7 @@ public class LargeFileView extends VBox {
     public void close() {
         cancel.set(true);
         closed.set(true);
-        LargeFileIndex current = index;
+        LargeFileIndex current = index; // NOPMD - the view owns the index and closes it on dispose
         if (current != null) {
             try {
                 current.close();
@@ -900,7 +898,7 @@ public class LargeFileView extends VBox {
         protected void updateItem(Integer row, boolean empty) {
             super.updateItem(row, empty);
             text.getChildren().clear();
-            LargeFileIndex current = index;
+            LargeFileIndex current = index; // NOPMD - the view owns the index and closes it on dispose
             if (empty || row == null || current == null) {
                 setGraphic(null);
                 return;

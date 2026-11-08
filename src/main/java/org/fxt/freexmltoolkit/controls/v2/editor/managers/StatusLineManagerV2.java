@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.managers;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.v2.editor.core.EditorContext;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Status line manager for XmlCodeEditorV2.

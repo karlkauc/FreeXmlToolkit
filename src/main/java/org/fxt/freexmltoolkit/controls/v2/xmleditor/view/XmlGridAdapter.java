@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.beans.PropertyChangeEvent;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +28,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.TypeAwareWidgetFactory;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * {@link GridModelAdapter} for the XML instance grid: flattens the {@link XmlDocument} of an

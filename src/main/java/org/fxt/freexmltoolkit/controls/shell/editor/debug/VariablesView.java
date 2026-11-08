@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -25,6 +23,7 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.debugger.VariableBinding;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 import net.sf.saxon.s9api.XdmValue;
 

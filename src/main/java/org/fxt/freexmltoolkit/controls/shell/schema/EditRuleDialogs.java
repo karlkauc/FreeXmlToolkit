@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
@@ -13,6 +11,7 @@ import javafx.stage.Window;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.EditCheck;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**

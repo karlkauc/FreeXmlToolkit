@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,6 +12,7 @@ import javafx.scene.control.Tab;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.BoundSchemaWatch;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.ExitChoice;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**

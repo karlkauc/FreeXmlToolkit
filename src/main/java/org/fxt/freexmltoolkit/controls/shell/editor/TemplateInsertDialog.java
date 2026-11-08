@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 
 import javafx.fxml.FXML;
@@ -13,6 +11,7 @@ import javafx.scene.control.TextArea;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Lets the user pick an XML template to insert. Lists the available templates

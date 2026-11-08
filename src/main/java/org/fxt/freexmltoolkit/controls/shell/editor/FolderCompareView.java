@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -29,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.diff.DiffView;
 import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.FolderComparison;
 import org.fxt.freexmltoolkit.service.FolderComparison.Entry;
 import org.fxt.freexmltoolkit.service.FolderComparison.Status;

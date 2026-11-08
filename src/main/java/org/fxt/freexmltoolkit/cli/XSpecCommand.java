@@ -51,7 +51,7 @@ final class XSpecCommand implements Callable<Integer> {
             CliSupport.requireFile(commandLine, file, "XSpec file");
         }
         CliSupport.initServices();
-        PrintWriter out = commandLine.getOut();
+        PrintWriter out = commandLine.getOut(); // NOPMD - picocli's stream, owned by CommandLine
         XSpecRunner runner = new XSpecRunner();
         int exit = ExitCodes.OK;
         for (Path file : files) {

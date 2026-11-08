@@ -102,7 +102,7 @@ final class ValidateCommand implements Callable<Integer> {
             try {
                 project = org.fxt.freexmltoolkit.service.project.FxtProject.load(projectFile);
             } catch (java.io.IOException e) {
-                throw new CommandLine.ParameterException(commandLine, e.getMessage());
+                throw new CommandLine.ParameterException(commandLine, e.getMessage(), e, null, null);
             }
             try {
                 org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared().setProjectCatalogs(project.catalogs());
@@ -120,7 +120,7 @@ final class ValidateCommand implements Callable<Integer> {
 
         ReportWriters writers = new ReportWriters(Path.of("").toAbsolutePath(), failOnWarning);
         boolean quiet = parent != null && parent.quiet;
-        var out = commandLine.getOut();
+        var out = commandLine.getOut(); // NOPMD - picocli's stream, owned by CommandLine
         if (reportFile != null) {
             CliSupport.write(reportFile, writers.write(report, format));
             if (!quiet) {

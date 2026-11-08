@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +23,7 @@ import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The "Schema Analysis" tool tab: analyzes the active XSD document off the FX thread

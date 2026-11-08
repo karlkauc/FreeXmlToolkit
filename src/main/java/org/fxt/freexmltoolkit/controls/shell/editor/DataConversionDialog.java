@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.fxml.FXML;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -14,6 +12,7 @@ import javafx.scene.layout.HBox;
 
 import org.apache.xerces.util.XMLChar;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.DataFormatConverter.Format;
 import org.fxt.freexmltoolkit.service.DataFormatConverter.Mapping;
 import org.fxt.freexmltoolkit.service.DataFormatConverter.Options;

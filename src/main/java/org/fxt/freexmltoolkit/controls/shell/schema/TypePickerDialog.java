@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -14,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**

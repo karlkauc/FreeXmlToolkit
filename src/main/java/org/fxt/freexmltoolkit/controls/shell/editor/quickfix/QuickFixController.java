@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.quickfix;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -13,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.sqf.SqfCatalogCache;
 import org.fxt.freexmltoolkit.service.sqf.SqfExecutionEngine;
 import org.fxt.freexmltoolkit.service.sqf.SqfExecutionEngine.SqfEditPlan;

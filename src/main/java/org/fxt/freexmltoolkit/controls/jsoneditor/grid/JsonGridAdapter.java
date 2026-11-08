@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.jsoneditor.grid;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +30,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridModelAdapter;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.ToastNotification;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets.BooleanToggle;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * {@link GridModelAdapter} for JSON documents: flattens the {@link JsonDocument} of a

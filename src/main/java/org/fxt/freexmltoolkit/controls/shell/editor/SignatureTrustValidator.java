@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.security.KeyStore;
@@ -26,6 +24,7 @@ import java.util.Set;
 import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 

@@ -18,8 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls.jsoneditor.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -48,6 +46,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxt.freexmltoolkit.controls.shared.JsonSyntaxHighlighter;
 import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * JSON Code Editor component using RichTextFX.

@@ -49,9 +49,9 @@ final class ScenarioCommand implements Callable<Integer> {
         try {
             project = FxtProject.load(projectFile);
         } catch (IOException e) {
-            throw new CommandLine.ParameterException(commandLine, e.getMessage());
+            throw new CommandLine.ParameterException(commandLine, e.getMessage(), e, null, null);
         }
-        var out = commandLine.getOut();
+        var out = commandLine.getOut(); // NOPMD - picocli's stream, owned by CommandLine
         if (list) {
             for (FxtProject.Scenario scenario : project.scenarios()) {
                 out.println(scenario.name + "\t" + scenario.stylesheet

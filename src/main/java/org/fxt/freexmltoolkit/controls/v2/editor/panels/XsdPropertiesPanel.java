@@ -1,8 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
-
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -64,6 +61,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Properties panel for editing XSD node properties.

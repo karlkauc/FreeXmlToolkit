@@ -84,7 +84,7 @@ final class FopCommand implements Callable<Integer> {
                 ? FopRunner.renderFo(CliSupport.read(fo), output.toFile(), options)
                 : FopRunner.generateResult(input.toFile(), stylesheet.toFile(), output.toFile(), options);
 
-        PrintWriter err = commandLine.getErr();
+        PrintWriter err = commandLine.getErr(); // NOPMD - picocli's stream, owned by CommandLine
         boolean quiet = parent != null && parent.quiet;
         if (!quiet) {
             for (var message : result.messages()) {

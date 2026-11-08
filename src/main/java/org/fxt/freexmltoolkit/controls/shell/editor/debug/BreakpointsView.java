@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntConsumer;
@@ -17,6 +15,7 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.debugger.Breakpoint;
 import org.fxt.freexmltoolkit.debugger.DebugSession;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Lists the session's breakpoints with Remove / Clear all; double-click jumps to the line,

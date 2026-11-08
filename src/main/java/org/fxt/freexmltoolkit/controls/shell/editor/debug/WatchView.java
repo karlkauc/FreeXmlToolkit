@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -18,6 +16,7 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Add/remove XPath watch expressions. On each pause they are evaluated against the paused

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -17,6 +15,7 @@ import javafx.scene.layout.HBox;
 
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * In-app PDF preview: renders one page at a time (via {@link PdfPreviewRenderer})

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -19,6 +17,7 @@ import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.EntrySource;
 import org.fxt.freexmltoolkit.domain.SchemaKind;
 import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.SchemaLibraryService;
 import org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl;
 import org.fxt.freexmltoolkit.util.DialogHelper;

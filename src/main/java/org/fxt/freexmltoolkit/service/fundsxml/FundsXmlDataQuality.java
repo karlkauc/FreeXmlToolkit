@@ -13,6 +13,10 @@ import java.util.Set;
 
 import javax.xml.transform.stream.StreamSource;
 
+import org.fxt.freexmltoolkit.domain.XPathSnippet;
+import org.fxt.freexmltoolkit.service.SaxonResourceAccess;
+import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
+
 import com.google.gson.Gson;
 
 import net.sf.saxon.s9api.Processor;
@@ -21,10 +25,6 @@ import net.sf.saxon.s9api.XQueryEvaluator;
 import net.sf.saxon.s9api.XdmItem;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
-
-import org.fxt.freexmltoolkit.domain.XPathSnippet;
-import org.fxt.freexmltoolkit.service.SaxonResourceAccess;
-import org.fxt.freexmltoolkit.service.XPathSnippetRepository;
 
 /**
  * The data-quality checks for FundsXML 4 documents ({@code plugins/fundsxml/dq-checks.json}): XQuery

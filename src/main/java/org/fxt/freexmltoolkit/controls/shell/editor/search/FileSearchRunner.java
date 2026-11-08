@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.search;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -20,6 +18,8 @@ import java.util.function.IntConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * UI-free engine for "Find in Files": walks a folder, filters by glob, and

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -17,6 +15,7 @@ import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdDocumentation;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Editable list of per-language {@code xs:documentation} entries: each row is a small language code

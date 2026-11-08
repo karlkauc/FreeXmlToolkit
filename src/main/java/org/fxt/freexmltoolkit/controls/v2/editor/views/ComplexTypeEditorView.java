@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -24,6 +22,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.commands.XsdCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdGraphView;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Main view for editing a ComplexType in the graphic editor.

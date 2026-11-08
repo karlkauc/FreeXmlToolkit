@@ -325,7 +325,7 @@ public class XmlDocument extends XmlNode {
     public String serialize(int indentSize, LineRecorder lines) {
         // Sized after the last result: growing a builder to 150 MB copied it a dozen times
         StringBuilder sb = new StringBuilder(lastSerializedLength > 0
-                ? (int) Math.min(Integer.MAX_VALUE - 16, lastSerializedLength + (lastSerializedLength >> 6) + 1024)
+                ? (int) Math.min(Integer.MAX_VALUE - 16L, lastSerializedLength + (lastSerializedLength >> 6) + 1024L)
                 : 256);
 
         // XML declaration

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +38,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.usage.ComponentInfo;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.ComponentInfo.UsageRef;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.ComponentKey;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.ComponentKind;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**

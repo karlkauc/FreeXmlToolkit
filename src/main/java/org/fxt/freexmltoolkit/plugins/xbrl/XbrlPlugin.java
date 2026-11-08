@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.plugins.xbrl;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -13,6 +11,7 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.Workflow;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.FxtPlugin;
 import org.fxt.freexmltoolkit.plugin.PluginActivity;
 import org.fxt.freexmltoolkit.plugin.PluginContext;

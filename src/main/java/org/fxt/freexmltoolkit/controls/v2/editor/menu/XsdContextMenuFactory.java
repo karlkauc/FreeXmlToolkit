@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.menu;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -51,6 +49,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.TypeFrame;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Factory for creating context-sensitive context menus for XSD editor nodes.

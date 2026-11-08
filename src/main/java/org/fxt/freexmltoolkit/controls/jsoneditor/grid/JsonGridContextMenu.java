@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.jsoneditor.grid;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +54,7 @@ import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridContextMenu;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.TableEditOps.Placement;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Context menu of the JSON grid: the JSON counterpart of {@code XmlGridContextMenu} with

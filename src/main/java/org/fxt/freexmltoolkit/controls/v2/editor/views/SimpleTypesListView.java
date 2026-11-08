@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.Comparator;
 import java.util.function.Consumer;
 
@@ -43,6 +41,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * View showing a list of all SimpleTypes in the schema.

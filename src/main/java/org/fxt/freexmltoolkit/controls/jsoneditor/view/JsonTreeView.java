@@ -18,8 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls.jsoneditor.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -54,6 +52,7 @@ import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonDocument;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonNode;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonObject;
 import org.fxt.freexmltoolkit.controls.jsoneditor.model.JsonPrimitive;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * A TreeView-based component for displaying and navigating JSON documents.

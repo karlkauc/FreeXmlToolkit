@@ -17,8 +17,6 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.function.Consumer;
 
 import javafx.geometry.Insets;
@@ -29,6 +27,7 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider.ValidationResult;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Toggle button widget for XSD boolean types.

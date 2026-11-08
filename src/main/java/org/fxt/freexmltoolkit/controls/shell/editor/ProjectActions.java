@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -10,6 +8,7 @@ import java.util.Optional;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.project.FxtProject;
 import org.fxt.freexmltoolkit.service.project.ProjectService;
 import org.fxt.freexmltoolkit.util.DialogHelper;

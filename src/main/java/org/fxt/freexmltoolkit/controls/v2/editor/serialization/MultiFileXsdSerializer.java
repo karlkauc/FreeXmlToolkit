@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.serialization;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,6 +50,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleContent;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnique;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 

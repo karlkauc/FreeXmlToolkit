@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.dialogs;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.net.URI;
 
 import javafx.event.ActionEvent;
@@ -20,6 +18,7 @@ import javafx.stage.Window;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.SemanticColors;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
 import org.fxt.freexmltoolkit.service.telemetry.TelemetryService;
 import org.fxt.freexmltoolkit.util.DialogHelper;

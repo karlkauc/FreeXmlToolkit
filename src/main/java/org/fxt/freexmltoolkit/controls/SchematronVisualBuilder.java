@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.Optional;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -30,6 +28,7 @@ import javafx.scene.layout.VBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Visual Rule Builder for creating Schematron rules through a graphical interface.

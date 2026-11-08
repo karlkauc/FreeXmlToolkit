@@ -17,8 +17,6 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -29,6 +27,7 @@ import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Visual indicator for XSD cardinality (minOccurs/maxOccurs).

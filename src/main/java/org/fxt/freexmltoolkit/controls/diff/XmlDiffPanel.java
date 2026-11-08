@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -14,6 +12,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XmlStructuralDiff;
 import org.fxt.freexmltoolkit.service.XmlStructuralDiff.Difference;
 

@@ -1424,14 +1424,6 @@ public class XsltTransformationEngine {
         return code == null ? null : code.getLocalName();
     }
 
-    private XdmNode parseXmlDocument(String xmlContent) throws SaxonApiException {
-        return parseXmlDocument(saxonProcessor, xmlContent);
-    }
-
-    private static XdmNode parseXmlDocument(Processor processor, String xmlContent) throws SaxonApiException {
-        return parseXmlDocument(processor, xmlContent, null);
-    }
-
     private static XdmNode parseXmlDocument(Processor processor, String xmlContent, String baseUri)
             throws SaxonApiException {
         DocumentBuilder builder = processor.newDocumentBuilder();

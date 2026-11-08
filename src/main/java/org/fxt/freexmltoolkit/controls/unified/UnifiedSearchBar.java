@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.unified;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -18,6 +16,7 @@ import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
 import org.fxt.freexmltoolkit.controls.v2.editor.XmlCodeEditorV2;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * A search bar component for the Unified Editor.

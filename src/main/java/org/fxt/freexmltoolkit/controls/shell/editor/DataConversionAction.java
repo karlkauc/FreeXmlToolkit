@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -11,6 +9,7 @@ import javafx.stage.Window;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.DataFormatConverter;
 import org.fxt.freexmltoolkit.service.DataFormatConverter.ConversionException;
 import org.fxt.freexmltoolkit.service.DataFormatConverter.Format;

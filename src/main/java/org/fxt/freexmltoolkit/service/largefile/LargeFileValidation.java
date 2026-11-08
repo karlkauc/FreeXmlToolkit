@@ -105,11 +105,13 @@ public final class LargeFileValidation {
             return new Result(problems, false, null, true);
         } catch (SAXException e) {
             if (e.getCause() instanceof CancellationException c) {
-                throw c;
+                throw c; // NOPMD - the cancellation itself is the exception to report
             }
             return new Result(problems, false, String.valueOf(e.getMessage()), false);
         } catch (Cancelled e) {
-            throw new CancellationException("Validation cancelled");
+            CancellationException stopped = new CancellationException("Validation cancelled");
+            stopped.initCause(e);
+            throw stopped;
         }
         return new Result(problems, false, null, fatal[0]);
     }

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -37,6 +35,7 @@ import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.debugger.PausedSnapshot;
 import org.fxt.freexmltoolkit.debugger.SourceLocations;
 import org.fxt.freexmltoolkit.debugger.WatchEvaluator;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmValue;

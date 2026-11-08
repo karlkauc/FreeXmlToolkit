@@ -369,9 +369,9 @@ public final class LargeXmlStructure {
         }
 
         private void skipTo(Reader in, int stop) throws IOException {
-            int c;
-            while ((c = in.next()) >= 0 && c != stop) {
-                // skip
+            int c = in.next();
+            while (c >= 0 && c != stop) {
+                c = in.next();
             }
         }
 

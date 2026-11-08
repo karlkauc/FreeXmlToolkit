@@ -1,13 +1,12 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.quickfix;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.function.Consumer;
 
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 
 import org.fxt.freexmltoolkit.controls.shell.editor.ValidationProblem;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.sqf.SqfFixSuggestion;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 

@@ -1,5 +1,9 @@
 package org.fxt.freexmltoolkit.controls.shared;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import javafx.scene.input.Clipboard;
 
 import org.apache.logging.log4j.LogManager;
@@ -10,10 +14,6 @@ import org.fxmisc.richtext.model.RichTextChange;
 import org.fxmisc.richtext.model.StyledDocument;
 import org.fxt.freexmltoolkit.controls.v2.editor.TextEdits;
 import org.reactfx.EventStream;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * A {@link CodeArea} that pastes plain text. The editors compute their styling themselves, so

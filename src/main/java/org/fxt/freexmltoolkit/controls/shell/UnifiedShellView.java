@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -14,6 +12,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The Unified shell: the persistent frame that every activity plugs into.

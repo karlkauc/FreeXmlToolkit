@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,6 +34,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Panel for viewing and editing XSD facets (restrictions).

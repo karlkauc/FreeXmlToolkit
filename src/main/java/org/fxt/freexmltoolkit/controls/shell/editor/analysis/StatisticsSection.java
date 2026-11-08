@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,6 +41,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.usage.SchemaReferenceGraph.Comp
 import org.fxt.freexmltoolkit.controls.v2.model.XsdFacetType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNodeType;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * "Statistics" sub-tab: a KPI row with the declaration counts, detail cards (schema, files,

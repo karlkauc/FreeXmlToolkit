@@ -1,8 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.views;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
-
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -42,6 +39,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Main view for editing a SimpleType.

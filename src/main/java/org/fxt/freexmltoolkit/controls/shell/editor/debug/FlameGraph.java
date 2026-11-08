@@ -188,7 +188,7 @@ public final class FlameGraph extends Region {
         boxes.add(new Box(node, x, y, width));
         double childX = x;
         for (CallNode child : node.children()) {
-            double childWidth = width * child.totalNanos() / (double) Math.max(1, node.totalNanos());
+            double childWidth = width * child.totalNanos() / Math.max(1, node.totalNanos());
             draw(g, child, level + 1, childX, childWidth, total);
             childX += childWidth;
         }

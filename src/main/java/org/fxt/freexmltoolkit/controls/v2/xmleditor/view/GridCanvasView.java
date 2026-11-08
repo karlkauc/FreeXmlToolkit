@@ -1,8 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +27,7 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.controls.shared.utilities.XmlSearchTarget;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Flat row-based XML View (XMLSpy-style).
@@ -917,7 +915,6 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             result.add(row);
             String key = filtered.get(row);
             if (key != null) {
-                String expression = viewState.filter(key);
                 FlatRow line = new FlatRow(FlatRow.RowType.FILTER, row.getDepth() + 1, row.getModelNode(), row,
                         null, filterLineText(key), 0);
                 result.add(line);

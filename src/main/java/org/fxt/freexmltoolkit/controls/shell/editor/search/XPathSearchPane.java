@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.search;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -35,6 +33,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.PanelProgress;
 import org.fxt.freexmltoolkit.controls.shell.editor.PanelStatus;
 import org.fxt.freexmltoolkit.controls.shell.editor.search.ReplaceApplier.ReplaceOutcome;
 import org.fxt.freexmltoolkit.controls.shell.editor.search.XPathBatchRunner.FileXPathResult;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.xmledit.EditPlan;
 import org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator;
 import org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.NodeMatch;

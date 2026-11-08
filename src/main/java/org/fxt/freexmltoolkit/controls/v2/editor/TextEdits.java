@@ -7,8 +7,8 @@ import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.RichTextChange;
 import org.fxmisc.richtext.model.StyledDocument;
 import org.fxmisc.richtext.util.UndoUtils;
-import org.reactfx.EventStream;
 import org.reactfx.EventSource;
+import org.reactfx.EventStream;
 
 /**
  * The text edits of a code area as one shared stream, without building the changed text.

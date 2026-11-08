@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.Locale;
 
 import javafx.geometry.Pos;
@@ -22,6 +20,7 @@ import org.fxmisc.richtext.LineNumberFactory;
 import org.fxt.freexmltoolkit.controls.shared.CodeAreaFontZoom;
 import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.shell.editor.ResultHighlighter;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The "Output" tab of the DEBUG pane: what the transformation has written so far, refreshed at

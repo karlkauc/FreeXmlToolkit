@@ -131,7 +131,7 @@ public final class AccessibleNames {
                     button.setAccessibleText(name);
                 }
             }
-        } else if (isInput(node) && blank(((Control) node).getAccessibleText())) {
+        } else if (isInput(node) && blank(node.getAccessibleText())) {
             Label label = labelBefore(node);
             if (label != null && label.getLabelFor() == null) {
                 label.setLabelFor(node);

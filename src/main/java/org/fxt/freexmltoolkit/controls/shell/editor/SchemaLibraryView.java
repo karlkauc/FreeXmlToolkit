@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Locale;
@@ -40,6 +38,7 @@ import org.fxt.freexmltoolkit.domain.EntrySource;
 import org.fxt.freexmltoolkit.domain.SchemaCatalogRef;
 import org.fxt.freexmltoolkit.domain.SchemaEntryStatus;
 import org.fxt.freexmltoolkit.domain.SchemaLibraryEntry;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.SchemaCacheEntry;
 import org.fxt.freexmltoolkit.service.SchemaLibraryService;
 import org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl;

@@ -18,8 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls.jsoneditor.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -32,6 +30,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Manages the context menu for JSON code editing.

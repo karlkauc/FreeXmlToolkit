@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
@@ -34,6 +32,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.Is
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.NamingConvention;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.QualityIssue;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdQualityChecker.QualityResult;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * "Quality Checks" sub-tab: score tile, clickable severity / category count chips, a filterable

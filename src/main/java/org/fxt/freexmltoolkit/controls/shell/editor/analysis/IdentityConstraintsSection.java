@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
@@ -34,6 +32,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstrain
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer.IdentityConstraintInfo;
 import org.fxt.freexmltoolkit.controls.v2.editor.statistics.XsdIdentityConstraintAnalyzer.ValidationStatus;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * "Identity Constraints" sub-tab: every {@code xs:key}, {@code xs:keyref}, {@code xs:unique}

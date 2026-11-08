@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -19,6 +17,7 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs;
 import org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Collects the output file and the reduction options for schema flattening (see

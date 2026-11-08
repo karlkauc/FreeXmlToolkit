@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,6 +23,7 @@ import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.AddSchemaReferenceCommand.Kind;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**

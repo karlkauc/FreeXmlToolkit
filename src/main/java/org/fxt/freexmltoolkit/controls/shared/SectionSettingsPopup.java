@@ -18,8 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls.shared;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +41,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * A popup window that displays section settings for a {@link CustomizableSectionContainer}.

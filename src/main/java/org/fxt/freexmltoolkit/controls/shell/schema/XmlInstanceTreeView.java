@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -23,6 +21,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlProcessingInstruction;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * A selectable tree view of an <em>XML instance</em> document (as opposed to {@link XsdTreeView}

@@ -314,4 +314,28 @@
         <Method name="processAnnotations"/>
     </Match>
 
+
+    <!-- Test hooks: static answers that only tests set -->
+    <Match>
+        <Bug pattern="UWF_UNWRITTEN_FIELD"/>
+        <Or>
+            <Field name="saveWithConflictsAnswer"/>
+            <Field name="largeFileAnswer"/>
+        </Or>
+    </Match>
+
+    <!-- JSON data classes filled by Gson through reflection (FinDatEx templates, FundsXML checks) -->
+    <Match>
+        <Or>
+            <Bug pattern="UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
+            <Bug pattern="NP_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
+        </Or>
+        <Class name="~org\.fxt\.freexmltoolkit\.(plugins\.findatex\..*|service\.fundsxml\.FundsXmlDataQuality.*|controls\.shell\.editor\.FundsXmlPlugin.*)"/>
+    </Match>
+
+    <!-- Properties is backed by a concurrent map; reads need no lock -->
+    <Match>
+        <Bug pattern="UG_SYNC_SET_UNSYNC_GET"/>
+        <Class name="org.fxt.freexmltoolkit.service.AdminPolicy$PolicyProperties"/>
+    </Match>
 </FindBugsFilter>

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -20,6 +18,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdAttribute;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Builds the shared XSD node-editing context menu (New Complex/Simple Type on the schema,

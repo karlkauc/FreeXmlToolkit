@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -31,6 +29,7 @@ import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XsltProfile;
 import org.fxt.freexmltoolkit.service.XsltProfile.CallNode;
 import org.fxt.freexmltoolkit.service.XsltProfile.ComponentStats;

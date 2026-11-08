@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.dialogs;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -28,6 +26,7 @@ import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Dialog displaying all locations where a type is used in the schema.

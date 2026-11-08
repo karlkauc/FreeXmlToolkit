@@ -18,8 +18,6 @@
 
 package org.fxt.freexmltoolkit.controls.dialogs;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -44,6 +42,7 @@ import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.di.ServiceRegistry;
 import org.fxt.freexmltoolkit.domain.UpdateInfo;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.AutoUpdateService;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateProgress;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateResult;

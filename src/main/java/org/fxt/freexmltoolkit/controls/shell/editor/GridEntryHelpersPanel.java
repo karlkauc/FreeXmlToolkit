@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 
 import javafx.fxml.FXML;
@@ -27,6 +25,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.EntryHelperModel.Focus;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.FlatRow;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.TableEditOps.Placement;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.XmlCanvasView;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The entry helpers beside the XML grid (XMLSpy: Siblings / Children / Values): the

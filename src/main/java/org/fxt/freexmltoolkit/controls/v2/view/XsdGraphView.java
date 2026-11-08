@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.view;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.HashMap;
@@ -51,6 +49,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.IncludeSourceInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Graphical XSD visualization with rectangular nodes and expand/collapse functionality.

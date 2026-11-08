@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.inspector;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -20,6 +18,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The inspector's framed name/value list (Figma "FACETS" box): one row per entry with the name in

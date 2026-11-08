@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.Set;
 
 import javafx.fxml.FXML;
@@ -15,6 +13,7 @@ import javafx.scene.control.TextField;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Create/edit dialog for a user (non-built-in) {@link XmlTemplate}: name, category,

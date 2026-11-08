@@ -20,18 +20,18 @@ import com.thaiopensource.relaxng.edit.NameClass;
 import com.thaiopensource.relaxng.edit.Pattern;
 import com.thaiopensource.relaxng.edit.SchemaCollection;
 import com.thaiopensource.relaxng.edit.SourceLocation;
+import com.thaiopensource.relaxng.input.InputFormat;
+import com.thaiopensource.relaxng.input.dtd.DtdInputFormat;
 import com.thaiopensource.relaxng.input.parse.AnnotationsImpl;
 import com.thaiopensource.relaxng.input.parse.CommentListImpl;
 import com.thaiopensource.relaxng.input.parse.ElementAnnotationBuilderImpl;
-import com.thaiopensource.relaxng.parse.Parseable;
-import com.thaiopensource.resolver.xml.sax.SAXResolver;
-import com.thaiopensource.relaxng.input.InputFormat;
-import com.thaiopensource.relaxng.input.dtd.DtdInputFormat;
 import com.thaiopensource.relaxng.input.parse.compact.CompactParseInputFormat;
 import com.thaiopensource.relaxng.input.parse.sax.SAXParseInputFormat;
 import com.thaiopensource.relaxng.output.LocalOutputDirectory;
 import com.thaiopensource.relaxng.output.OutputDirectory;
 import com.thaiopensource.relaxng.output.xsd.XsdOutputFormat;
+import com.thaiopensource.relaxng.parse.Parseable;
+import com.thaiopensource.resolver.xml.sax.SAXResolver;
 
 /**
  * Translates a DTD or a RELAX NG schema into an equivalent XML Schema with Trang, for IntelliSense,

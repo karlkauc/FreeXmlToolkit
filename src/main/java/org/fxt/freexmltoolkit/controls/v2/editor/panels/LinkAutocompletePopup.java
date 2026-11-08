@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.panels;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -23,6 +21,7 @@ import javafx.stage.Window;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Popup for autocomplete suggestions when typing link references.

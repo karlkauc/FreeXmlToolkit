@@ -17,8 +17,6 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.schema;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.domain.XsdAttributeLookup;
 import org.fxt.freexmltoolkit.domain.XsdDocumentationData;
 import org.fxt.freexmltoolkit.domain.XsdExtendedElement;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Adapter that bridges XsdDocumentationData to XmlSchemaProvider.

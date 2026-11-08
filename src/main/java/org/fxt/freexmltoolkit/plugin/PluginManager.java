@@ -122,7 +122,7 @@ public final class PluginManager {
         for (Path jar : jars) {
             try {
                 // Never closed: the plugin's classes are used for the whole session.
-                URLClassLoader loader = new URLClassLoader("plugin:" + jar.getFileName(),
+                URLClassLoader loader = new URLClassLoader("plugin:" + jar.getFileName(), // NOPMD - a plugin class loader lives as long as the application
                         new URL[] {jar.toUri().toURL()}, PluginManager.class.getClassLoader());
                 boolean any = false;
                 for (FxtPlugin plugin : ServiceLoader.load(FxtPlugin.class, loader)) {

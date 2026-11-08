@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
@@ -20,6 +18,7 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.SchematronErrorDetector.ErrorSeverity;
 import org.fxt.freexmltoolkit.controls.SchematronErrorDetector.SchematronError;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Read-only result view for a Schematron rule check: a severity summary plus a table of the detected

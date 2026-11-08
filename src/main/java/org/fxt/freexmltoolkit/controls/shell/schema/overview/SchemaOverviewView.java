@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.schema.overview;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -30,6 +28,7 @@ import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.*;
 import org.fxt.freexmltoolkit.controls.v2.model.*;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 
 /**

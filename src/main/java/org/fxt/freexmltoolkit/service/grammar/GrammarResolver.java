@@ -144,7 +144,7 @@ public final class GrammarResolver {
     public static InputSource resolve(Session session, boolean root, String publicId, String systemId, String baseUri)
             throws IOException {
         Path file = resolveToFile(session, root, publicId, systemId, baseUri);
-        InputStream in = Files.newInputStream(file);
+        InputStream in = Files.newInputStream(file); // NOPMD - the parser reads and closes the stream
         InputSource source = new InputSource(in);
         source.setPublicId(publicId);
         source.setSystemId(systemId == null ? file.toUri().toString() : absolute(systemId, baseUri).toString());

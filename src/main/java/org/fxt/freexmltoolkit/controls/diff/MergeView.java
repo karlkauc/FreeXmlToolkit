@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -28,6 +26,7 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.ThreeWayMerge;
 import org.fxt.freexmltoolkit.service.XmlStructuralDiff;
 import org.fxt.freexmltoolkit.util.DialogHelper;

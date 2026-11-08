@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.plugins.ebinterface;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +10,7 @@ import javax.xml.stream.XMLStreamException;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.Workflow;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.FxtPlugin;
 import org.fxt.freexmltoolkit.plugin.PluginActivity;
 import org.fxt.freexmltoolkit.plugin.PluginContext;
@@ -104,9 +103,12 @@ public final class EbInterfacePlugin implements FxtPlugin {
 
     static void openSample(PluginUi ui) {
         try (InputStream in = EbInterfacePlugin.class.getResourceAsStream("/plugins/ebinterface/invoice-6p1.xml")) {
+            if (in == null) {
+                throw new IOException("The sample is missing from the application.");
+            }
             String text = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             ui.editorHost().openGeneratedDocument(text, EditorFileType.XML, "ebinterface-6p1-invoice.xml");
-        } catch (IOException | NullPointerException e) {
+        } catch (IOException e) {
             DialogHelper.showError("ebInterface", I18n.t("EbInterfacePlugin.the-sample-could-not-be"), String.valueOf(e.getMessage()));
         }
     }

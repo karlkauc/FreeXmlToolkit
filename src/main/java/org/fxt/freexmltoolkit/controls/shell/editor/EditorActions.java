@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +15,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.FxtGui;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 

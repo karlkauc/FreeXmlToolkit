@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
@@ -13,6 +11,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import org.fxt.freexmltoolkit.debugger.DebugStackFrame;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * Read-only call stack list (innermost frame first). Template and function frames are

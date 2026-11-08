@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.plugins.findatex;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +23,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.theme.ActionColor;
 import org.fxt.freexmltoolkit.controls.theme.Workflow;
+import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.plugin.FxtPlugin;
 import org.fxt.freexmltoolkit.plugin.PluginActivity;
 import org.fxt.freexmltoolkit.plugin.PluginContext;

@@ -1,7 +1,5 @@
 package org.fxt.freexmltoolkit.controls.diff;
 
-import org.fxt.freexmltoolkit.i18n.I18n;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +13,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxt.freexmltoolkit.i18n.I18n;
 
 /**
  * The thin pane between the two diff CodeAreas that renders per-chunk
