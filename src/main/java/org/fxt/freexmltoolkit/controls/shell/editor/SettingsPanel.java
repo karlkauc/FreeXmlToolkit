@@ -97,6 +97,8 @@ public class SettingsPanel extends VBox {
     // Parser
     @FXML private ComboBox<XmlParserType> parserType;
     @FXML private CheckBox xsltExtensions;
+    @FXML private CheckBox htmlActiveContent;
+    @FXML private CheckBox xprocUnrestricted;
 
     // Rendering (JavaFX Prism pipeline; applied at next startup)
     @FXML private ComboBox<String> renderingMode;
@@ -502,6 +504,8 @@ public class SettingsPanel extends VBox {
         backupSeparateDir.setSelected(false);
         parserType.setValue(XmlParserType.XERCES);
         xsltExtensions.setSelected(false);
+        htmlActiveContent.setSelected(false);
+        xprocUnrestricted.setSelected(false);
         schemaLibraryAutoBind.setSelected(true);
         useSystemTemp.setSelected(true);
         logCleanup.setSelected(true);
@@ -721,6 +725,8 @@ public class SettingsPanel extends VBox {
         keys.put(backupDir, new String[] {"backup.directory"});
         keys.put(parserType, new String[] {"xml.parser.type"});
         keys.put(xsltExtensions, new String[] {"security.xslt.allow.extensions"});
+        keys.put(htmlActiveContent, new String[] {org.fxt.freexmltoolkit.controls.shell.SafeWebView.ALLOW_ACTIVE_CONTENT});
+        keys.put(xprocUnrestricted, new String[] {XProcSecurity.UNRESTRICTED});
         keys.put(renderingMode, new String[] {"rendering.mode"});
         keys.put(maxMemory, new String[] {org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY});
         keys.put(useSystemTemp, new String[] {"useSystemTempFolder"});
@@ -1182,6 +1188,9 @@ public class SettingsPanel extends VBox {
             backupDir.setText(orEmpty(props.getBackupDirectory()));
             parserType.setValue(props.getXmlParserType());
             xsltExtensions.setSelected(props.isXsltExtensionsAllowed());
+            htmlActiveContent.setSelected(Boolean.parseBoolean(
+                    props.get(org.fxt.freexmltoolkit.controls.shell.SafeWebView.ALLOW_ACTIVE_CONTENT)));
+            xprocUnrestricted.setSelected(Boolean.parseBoolean(props.get(XProcSecurity.UNRESTRICTED)));
             renderingMode.setValue(renderingModeLabel(props.getRenderingMode()));
             maxMemory.setValue(memoryLabel(org.fxt.freexmltoolkit.app.MemoryLimit.configuredMb(
                     props.get(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY))));
@@ -1268,6 +1277,9 @@ public class SettingsPanel extends VBox {
                 props.setXmlParserType(parserType.getValue());
             }
             props.setXsltExtensionsAllowed(xsltExtensions.isSelected());
+            props.set(org.fxt.freexmltoolkit.controls.shell.SafeWebView.ALLOW_ACTIVE_CONTENT,
+                    String.valueOf(htmlActiveContent.isSelected()));
+            props.set(XProcSecurity.UNRESTRICTED, String.valueOf(xprocUnrestricted.isSelected()));
             props.setRenderingMode(renderingModeValue(renderingMode.getValue()));
             props.set(org.fxt.freexmltoolkit.app.MemoryLimit.PROPERTY, String.valueOf(memoryValue(maxMemory.getValue())));
             props.setUseSystemTempFolder(useSystemTemp.isSelected());

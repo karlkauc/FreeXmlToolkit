@@ -33,6 +33,9 @@ release, see [Licenses](licenses.md#software-bill-of-materials-sbom)) and the up
 | **Stylesheets calling Java** | Saxon-HE has no reflexive extension calls; external functions are switched off in the transformation engine. | `security.xslt.allow.extensions` (Settings, default off) |
 | **Stylesheets and queries reading the network** | In XSLT, XQuery and XPath (Query Console, grid formulas and filters), `doc()`, `document()`, `unparsed-text()` and `unparsed-text-lines()` refuse http, https and ftp (URLs mapped by the Schema Library or a catalog excepted); `collection()` serves only the files selected for the run. | – |
 | **XSL-FO reading or writing remote resources** | FOP's resource resolver refuses remote reads and writes. | – |
+| **Schematron** reading local files or the network | The document is read by the application's secure parser and the Schematron with external entities resolved to nothing; the compiled rules run in a Saxon configuration with the same parser settings and without remote `doc()`, `document()` or `unparsed-text()`. | – |
+| **XProc pipelines** running programs or reaching the network | Pipelines that use `p:os-exec`, `p:run` (a pipeline computed at run time) or `p:http-request`, also in imported libraries, are refused before they run. Documents, imports and `doc()` targets may only be local files: XML Calabash's resolver allows only `file:` and `jar:` URIs, and its HTTP client is sent to an address where nothing listens. Pipelines can still read and write local files (`p:store`, `p:file-*`). | `security.xproc.unrestricted` (Settings → Network & Security, default off) |
+| **HTML previews** running scripts or loading remote content | Previews of HTML files, XSLT output and generated documentation run no JavaScript, open no popups, load images, styles and fonts only from `data:` URIs or local files (a Content-Security-Policy is added to the page) and do not follow links to remote pages. | `security.htmlPreview.allowActiveContent` (Settings → Network & Security, default off) |
 | **Forged or weak XML signatures** | Verification uses the JDK's XML DSig with its secure-validation default; SHA-1 is rejected; references resolve only to plain file names in the signature's own folder. | – |
 | **Man in the middle on updates** | The update check, the update download and the SHA-256 digest it is checked against always validate the server certificate, also when "Trust all certificates" is on. | `update.requireChecksum=true` refuses updates without a published digest |
 | **Man in the middle on other downloads** | TLS certificates are validated unless the user switches on "Trust all certificates" (meant for proxies that re-sign traffic); it applies per connection, never to the JVM defaults. | `ssl.trustAllCerts` (default off) |
@@ -47,11 +50,9 @@ release, see [Licenses](licenses.md#software-bill-of-materials-sbom)) and the up
 These are not covered by the protections above. Keep them in mind when files come from
 untrusted sources:
 
-- **XProc pipelines** run unrestricted: `p:http-request` and remote `href`s are fetched (through
-  the configured proxy). Run only pipelines you trust.
-- **HTML previews** (HTML files, XSLT output) are shown in an embedded WebKit view with
-  JavaScript enabled, and it loads the remote resources the page refers to.
-- **Schematron** is compiled and run without extra restrictions beyond Saxon's defaults.
+- **XProc pipelines** can read and write local files (`p:store`, `p:file-copy`, `p:file-delete`, …)
+  with the user's rights, like a script. Run only pipelines you trust; with
+  `security.xproc.unrestricted` they can also run programs and reach the network.
 - **Opening a document downloads its schema.** An `xsi:schemaLocation` with an http(s) URL is
   fetched when the file is opened (from public addresses only; the Schema Library and catalogs
   are asked first). The download reveals to that server that the file was opened.
@@ -73,6 +74,8 @@ For machines that process untrusted files or must not contact the internet:
 | Nothing written next to schemas | `-Dfxt.schema.localCopies=false` |
 | Certificate checks everywhere | Leave "Trust all certificates" off |
 | No Java from stylesheets | Leave `security.xslt.allow.extensions` off (default) |
+| XProc without programs and network | Leave `security.xproc.unrestricted` off (default); lock it with `security.xproc.unrestricted=false` in the policy file |
+| HTML previews without scripts and remote content | Leave `security.htmlPreview.allowActiveContent` off (default); lock it in the policy file |
 
 The `-D…` options are Java options; the policy file takes them as `fxt.…=value` lines, and
 [Operation without internet](offline-operation.md#java-options-for-an-installed-application)

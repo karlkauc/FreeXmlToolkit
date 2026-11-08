@@ -27,3 +27,19 @@ target and streams the result into the OUTPUT panel.*
     `p:validate-with-xml-schema` and `p:xsl-formatter` require Saxon-EE and are not
     available; use the Validation activity (Xerces, full XSD 1.1) and the PDF/FOP
     activity instead. `p:validate-with-json-schema` is not supported in this bundle.
+
+## Restrictions
+
+Pipelines are programs, so by default they run with restrictions:
+
+- Pipelines that use **`p:os-exec`** (run a program), **`p:run`** (run a pipeline computed at run
+  time) or **`p:http-request`** are not run, also when the step is in an imported library. The
+  message names the step.
+- Documents, imports and `doc()` may only be **local files**; loading from `http:`, `https:` or
+  `ftp:` fails with a message that says so.
+- Reading and writing local files (`p:store`, `p:file-copy`, `p:file-delete`, …) works as before,
+  with your rights: run only pipelines you trust.
+
+**Settings → Network & Security → Run XProc pipelines without restrictions** lifts all of it (an
+administrator can lock it, see [Administration & Policies](administration.md)). The same rules apply
+to `fxt-cli transform`. See also the [Threat Model](threat-model.md).

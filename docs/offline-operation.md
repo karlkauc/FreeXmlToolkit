@@ -24,7 +24,7 @@ back to its cache; the application is never blocked.
 | Namespace-URL fallback | The namespace URI of an import without a usable location | When an import cannot be resolved otherwise | On | `-Dfxt.schema.namespaceFallback=false` | Not resolved |
 | Bundled Schema Library entries | `w3.org`, `oasis-open.org`, `xbrl.org`, `web3d.org`, `schemas.xmlsoap.org`, `raw.githubusercontent.com` | On first use of the schema, then cached | On | `-Dfxt.schema.namespaceFallback=false`, or disable single entries in the Schema Library | The cached copy is used |
 | JSON Schema `$schema` / `$ref` | The referenced URL | When a JSON document is validated or bound | On | Use local `$ref`s | Not resolved |
-| XProc `p:http-request` and remote `href`s | The URL in the pipeline | When the pipeline runs | – | Do not run such pipelines | Pipeline error |
+| XProc `p:http-request` and remote `href`s | The URL in the pipeline | When the pipeline runs, only with **Run XProc pipelines without restrictions** on | – | Blocked by default | Pipeline error |
 | HTML preview | Remote images, scripts and styles the page refers to | When the preview is shown | – | – | Missing resources |
 | Open from URL, proxy test | The URL you enter | On your action | – | – | Error message |
 

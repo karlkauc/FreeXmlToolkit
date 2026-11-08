@@ -112,7 +112,9 @@ error. XSLT needs an input document; XQuery and XProc can run without one. Relat
 `xsl:import`, `xsl:include` and `doc()` references resolve against the stylesheet's and the
 input's folder. As in the application, stylesheets cannot call Java, and `doc()`,
 `document()` and `unparsed-text()` refuse remote URLs (see [Threat Model](threat-model.md));
-XProc pipelines run unrestricted.
+XProc pipelines may not run programs (`p:os-exec`), run computed pipelines (`p:run`), send HTTP
+requests or load documents from the network, unless `security.xproc.unrestricted=true` is set in
+the settings (see [Threat Model](threat-model.md)).
 
 ## xsd-doc
 

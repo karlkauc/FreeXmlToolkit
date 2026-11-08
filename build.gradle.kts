@@ -75,6 +75,8 @@ dependencies {
         // CLI-only dead weight (interactive debugger terminal)
         exclude(group = "org.jline")
     }
+    // XML Calabash's resolver (same version): XProcSecurity restricts its network access
+    implementation("org.xmlresolver:xmlresolver:6.1.0")
 
     // XSD 1.1 support with assertions - use special Xerces build from exist-db
     // This version includes XSD 1.1 support with assertions

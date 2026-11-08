@@ -77,7 +77,13 @@ public final class XProcRunner {
      * settings; document loading goes through the JVM-wide proxy settings of the HTTP service.
      */
     static XmlCalabash newCalabash() {
+        return newCalabash(true);
+    }
+
+    /** @param unrestricted {@code false} blocks network loads (see {@link XProcSecurity}) */
+    static XmlCalabash newCalabash(boolean unrestricted) {
         com.xmlcalabash.XmlCalabashBuilder builder = new com.xmlcalabash.XmlCalabashBuilder();
+
         try {
             var connection = org.fxt.freexmltoolkit.di.ServiceRegistry.get(
                     org.fxt.freexmltoolkit.service.ConnectionService.class);
@@ -88,13 +94,27 @@ public final class XProcRunner {
             org.apache.logging.log4j.LogManager.getLogger(XProcRunner.class)
                     .debug("No proxy for XProc: {}", e.toString());
         }
+        if (!unrestricted) {
+            XProcSecurity.restrict(builder);      // after the user's proxy: replaces it
+        }
         return builder.build();
     }
 
     public static Result runPipeline(String pipelineText, File pipelineFile,
                                      String inputXmlText, File inputXmlFile) {
         try {
-            XmlCalabash calabash = newCalabash();
+            boolean unrestricted = XProcSecurity.unrestricted();
+            if (!unrestricted) {
+                List<String> refused = XProcSecurity.restrictedSteps(pipelineText, pipelineFile);
+                if (!refused.isEmpty()) {
+                    return error(XProcSecurity.refusal(refused),
+                            org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("xproc.restricted_step"));
+                }
+            }
+            XmlCalabash calabash = newCalabash(unrestricted);
+            if (!unrestricted) {
+                XProcSecurity.restrict(calabash);
+            }
 
             StreamSource pipelineSource = new StreamSource(new StringReader(pipelineText));
             pipelineSource.setSystemId(baseUriFor(pipelineFile));
@@ -125,11 +145,13 @@ public final class XProcRunner {
             }
             return new Result(serialize(outputs), detectFormat(outputs.getFirst()));
         } catch (XProcException e) {
-            return error(xprocMessage(e), org.fxt.freexmltoolkit.service.telemetry.QueryFailure
-                    .ofCode(e.getError().getCode().toString()));
+            String message = xprocMessage(e);
+            return error(XProcSecurity.unrestricted() ? message : XProcSecurity.explain(message),
+                    org.fxt.freexmltoolkit.service.telemetry.QueryFailure.ofCode(e.getError().getCode().toString()));
         } catch (Throwable t) {
             String message = t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName();
-            return error(message, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(t));
+            return error(XProcSecurity.unrestricted() ? message : XProcSecurity.explain(message),
+                    org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(t));
         }
     }
 

@@ -49,6 +49,8 @@ Any key of the user's settings file works. These are the ones most often managed
 | `http.connectTimeoutSeconds`, `http.readTimeoutSeconds` | seconds | Network timeouts |
 | `ssl.trustAllCerts` | `false` | Lock "Trust all certificates" off |
 | `security.xslt.allow.extensions` | `false` | Lock Java extension calls in stylesheets off |
+| `security.xproc.unrestricted` | `false` | Lock the XProc restrictions on: no `p:os-exec`, `p:run`, `p:http-request`, no network (see [Threat Model](threat-model.md)) |
+| `security.htmlPreview.allowActiveContent` | `false` | Lock JavaScript and remote content in HTML previews off |
 | `fundsxml.enabled` | `true` / `false` | FundsXML extension |
 | `schemaLibrary.autoBind.enabled` | `true` / `false` | Bind schemas from the Schema Library automatically |
 | `xml.parser.type` | `XERCES` / `SAXON` | XSD validator (XSD 1.1 schemas always use Xerces) |
@@ -87,6 +89,8 @@ fundsxml.enabled=false
 fxt.schema.namespaceFallback=false
 ssl.trustAllCerts=false
 security.xslt.allow.extensions=false
+security.xproc.unrestricted=false
+security.htmlPreview.allowActiveContent=false
 ```
 
 A company proxy that users can still change, with a shared template folder:

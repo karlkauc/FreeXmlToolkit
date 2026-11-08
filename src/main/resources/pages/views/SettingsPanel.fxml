@@ -4,6 +4,7 @@
 <?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Hyperlink?>
@@ -547,6 +548,18 @@
                                         <SettingsCard title="SECURITY" iconLiteral="bi-shield-lock">
                                             <children>
                                                 <CheckBox fx:id="trustAllCerts" text="Trust all certificates"/>
+                                                <CheckBox fx:id="htmlActiveContent" id="settings-html-active-content"
+                                                          text="Allow JavaScript and remote content in HTML previews">
+                                                    <tooltip>
+                                                        <Tooltip text="HTML files and XSLT results are shown without scripts and without loading anything from the network. Allow it only for documents you trust."/>
+                                                    </tooltip>
+                                                </CheckBox>
+                                                <CheckBox fx:id="xprocUnrestricted" id="settings-xproc-unrestricted"
+                                                          text="Run XProc pipelines without restrictions">
+                                                    <tooltip>
+                                                        <Tooltip text="By default, pipelines may not run programs (p:os-exec), run computed pipelines (p:run), send HTTP requests or load documents from the network. Allow it only for pipelines you trust."/>
+                                                    </tooltip>
+                                                </CheckBox>
                                             </children>
                                         </SettingsCard>
                                         <SettingsCard title="UPDATES" iconLiteral="bi-arrow-repeat">
