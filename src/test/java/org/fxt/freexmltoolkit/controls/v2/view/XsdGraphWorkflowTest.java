@@ -42,9 +42,7 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class XsdGraphWorkflowTest {
 
-    // The real-world schemas (JATS: hundreds of files) need well over a minute to open in the Graphic view on
-    // a 4-core CI runner; the waits poll, so a generous limit costs nothing when things are fast.
-    private static final long TIMEOUT_S = 180;
+    private static final long TIMEOUT_S = 60;
 
     private EditorHost host;
 
@@ -141,6 +139,9 @@ class XsdGraphWorkflowTest {
             "src/test/resources/schema/include_files/FundsXML4.xsd",
             "src/test/resources/xsd/real-world/jats-nlm-nih-gov-jats-archivearticle1-4/jats.nlm.nih.gov/archiving/1.4/xsd/JATS-archivearticle1-4.xsd"})
     void aDeferredCardOpensByClickAndStaysOpenAcrossAnUndoneEdit(String file) throws Exception {
+        // src/test/resources/xsd/real-world/ is a local corpus (.gitignore); a fresh checkout (CI) has none of it
+        org.junit.jupiter.api.Assumptions.assumeTrue(Files.isRegularFile(Path.of(file)),
+                "real-world schema corpus not present: " + file);
         XsdGraphView graph = openInGraphicView(Path.of(file).toAbsolutePath());
         VisualNode deferred = onFx(() -> {
             List<VisualNode> open = cards(graph.getRootNode());
