@@ -1,0 +1,152 @@
+name: Tests
+
+# Runs the whole test suite for every pull request and every push to main.
+# The suite forks one JVM per test class and takes ~1.5 h in one lane, so it is split into
+# shards (build.gradle.kts: -PtestShards / -PtestShard) that run in parallel. The report job
+# merges results and coverage; on main it also updates the coverage badge (branch `badges`).
+on:
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'requirements-docs.txt'
+      - '**/*.md'
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'requirements-docs.txt'
+      - '**/*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  # a new push to a pull request replaces the running check; runs on main always finish
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  SHARDS: 4
+
+jobs:
+  test:
+    name: Tests ${{ matrix.shard }}/4
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [ 0, 1, 2, 3 ]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK (Liberica Full JDK with JavaFX)
+        uses: actions/setup-java@v5
+        with:
+          java-package: 'jdk+fx'
+          java-version: '25'
+          distribution: 'liberica'
+          cache: 'gradle'
+
+      - name: Run tests (shard ${{ matrix.shard }})
+        run: |
+          chmod +x ./gradlew
+          ./gradlew test -PtestShards=$SHARDS -PtestShard=${{ matrix.shard }} -x jacocoTestReport --no-daemon
+
+      - name: Upload results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-shard-${{ matrix.shard }}
+          path: |
+            build/test-results/test/*.xml
+            build/jacoco/test.exec
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Upload HTML test report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-shard-${{ matrix.shard }}
+          path: build/reports/tests/test/
+          retention-days: 7
+
+  report:
+    name: Test report and coverage
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      coverage: ${{ steps.coverage.outputs.percent }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK (Liberica Full JDK with JavaFX)
+        uses: actions/setup-java@v5
+        with:
+          java-package: 'jdk+fx'
+          java-version: '25'
+          distribution: 'liberica'
+          cache: 'gradle'
+
+      - name: Download shard results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-shard-*
+          path: build/jacoco-shards
+
+      - name: Merge coverage
+        run: |
+          chmod +x ./gradlew
+          ./gradlew jacocoMergedReport --no-daemon
+
+      - name: Summary and badge
+        id: coverage
+        run: |
+          python3 .github/scripts/test-summary.py build/jacoco-shards build/reports/jacoco/merged/jacoco.xml >> "$GITHUB_STEP_SUMMARY"
+          percent=$(python3 .github/scripts/coverage-badge.py build/reports/jacoco/merged/jacoco.xml build/coverage.svg)
+          echo "percent=$percent" >> "$GITHUB_OUTPUT"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            build/reports/jacoco/merged-html/
+            build/reports/jacoco/merged/jacoco.xml
+            build/coverage.svg
+          retention-days: 14
+
+  badge:
+    name: Update coverage badge
+    needs: [ test, report ]
+    # only for main, and only when every shard passed
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.test.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: report
+
+      - name: Push the badge to the badges branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PERCENT: ${{ needs.report.outputs.coverage }}
+        run: |
+          mkdir badges && cd badges
+          git init -q -b badges
+          cp ../report/coverage.svg coverage.svg
+          git add coverage.svg
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Coverage ${PERCENT}% (${GITHUB_SHA::8})"
+          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" badges

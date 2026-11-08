@@ -2,6 +2,8 @@
 
 [![Java](https://img.shields.io/badge/Java-25-orange.svg)](https://openjdk.org/)
 [![JavaFX](https://img.shields.io/badge/JavaFX-25-blue.svg)](https://openjfx.io/)
+[![Tests](https://github.com/karlkauc/FreeXmlToolkit/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/karlkauc/FreeXmlToolkit/actions/workflows/tests.yml)
+[![Coverage](https://raw.githubusercontent.com/karlkauc/FreeXmlToolkit/badges/coverage.svg)](https://github.com/karlkauc/FreeXmlToolkit/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE.md)
 [![Sponsor](https://img.shields.io/github/sponsors/karlkauc?label=Sponsor&logo=GitHub&color=ea4aaa)](https://github.com/sponsors/karlkauc)
 

@@ -24,7 +24,7 @@ Closes #
 ## Checklist
 
 - [ ] I have read [CONTRIBUTING.md](../CONTRIBUTING.md)
-- [ ] Tests are added or updated, and `./gradlew test` passes
+- [ ] Tests are added or updated, and the `Tests` check passes
 - [ ] UI changes follow `STYLE_GUIDE.jsonc` (icons: `IconifyIcon` with `bi-*` names, `@FXML` handlers public)
 - [ ] Model changes go through commands (undo/redo works)
 - [ ] Long-running work does not block the UI thread

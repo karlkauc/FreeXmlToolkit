@@ -442,6 +442,20 @@ tasks.test {
         // dedicated `sampleXmlAudit` task instead.
         excludeTestsMatching("*RealWorldAuditTest*")
     }
+
+    // Sharding for CI (.github/workflows/tests.yml): -PtestShards=N -PtestShard=I runs only the test
+    // classes whose top-level class name hashes to I, so N jobs together run the whole suite once.
+    // Nested and inner classes stay with their top-level class.
+    val testShards = (findProperty("testShards") as String?)?.toInt() ?: 1
+    val testShard = (findProperty("testShard") as String?)?.toInt() ?: 0
+    if (testShards > 1) {
+        require(testShard in 0 until testShards) { "testShard must be in 0..${testShards - 1}" }
+        exclude { element ->
+            val path = element.relativePath.pathString
+            !element.isDirectory && path.endsWith(".class") &&
+                Math.floorMod(path.removeSuffix(".class").substringBefore('$').hashCode(), testShards) != testShard
+        }
+    }
 }
 
 // Documentation screenshot generator.
@@ -573,6 +587,24 @@ tasks.jacocoTestReport {
 
 tasks.test {
     finalizedBy(tasks.jacocoTestReport)
+}
+
+// Coverage over several test runs, e.g. the CI shards: every *.exec file below build/jacoco-shards/.
+// Report in build/reports/jacoco/merged/ (XML) and build/reports/jacoco/merged-html/.
+tasks.register<JacocoReport>("jacocoMergedReport") {
+    group = "verification"
+    description = "Coverage report over all *.exec files in build/jacoco-shards"
+    dependsOn(tasks.classes)
+    executionData(fileTree(layout.buildDirectory.dir("jacoco-shards")).include("**/*.exec"))
+    classDirectories.setFrom(tasks.jacocoTestReport.get().classDirectories)
+    sourceDirectories.setFrom(files("src/main/java"))
+    reports {
+        xml.required.set(true)
+        xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/merged/jacoco.xml"))
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/merged-html"))
+        csv.required.set(false)
+    }
 }
 
 idea {

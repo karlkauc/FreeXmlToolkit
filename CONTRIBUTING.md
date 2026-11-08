@@ -59,6 +59,11 @@ The UI tests use TestFX and need a display. On a headless Linux machine run them
 `xvfb-run ./gradlew test`. The full suite takes a while — run the tests related to your change
 while you work, and the full suite before opening a pull request.
 
+Every pull request runs the whole suite on GitHub Actions (workflow `Tests`): it is split into four parallel
+jobs and takes about half an hour. The job summary lists failed tests and the line coverage; the HTML test
+report of a failed job and the coverage report are attached to the run as artifacts. To run one of the
+four parts locally: `./gradlew test -PtestShards=4 -PtestShard=0` (0 to 3).
+
 ## Coding Guidelines
 
 The project has detailed architecture notes in [`CLAUDE.md`](https://github.com/karlkauc/FreeXmlToolkit/blob/main/CLAUDE.md) and
