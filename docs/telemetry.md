@@ -182,3 +182,5 @@ Events are queued locally in `~/.freeXmlToolkit/telemetry-queue.jsonl` (at most 
 14 days, oldest dropped first) and sent in small batches about every five minutes. Requests use
 the proxy configured in **Settings → Network & Security → HTTP PROXY**. If the server cannot be reached, sending is
 retried later with increasing pauses (up to six hours); the application is never slowed down.
+
+The [command line](command-line.md) (`fxt-cli`) sends no telemetry at all.

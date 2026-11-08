@@ -101,6 +101,7 @@ Icons are rendered by the in-house `IconifyIcon` control from bundled
 | **java-diff-utils** (io.github.java-diff-utils:java-diff-utils) | 4.18 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons Text** (org.apache.commons:commons-text) | 1.15.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **Apache Commons Validator** (commons-validator:commons-validator) | 1.11.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **picocli** (info.picocli:picocli), for `fxt-cli` | 4.7.7 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 
 ## Templating and Markdown
 

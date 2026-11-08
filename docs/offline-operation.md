@@ -32,6 +32,10 @@ Not on this list because they never connect: XSLT, XQuery and XPath (also in the
 grid formulas and filters: `doc()`, `document()` and `unparsed-text()` refuse remote URLs), XSL-FO/PDF output (remote resources are refused),
 XSD documentation (all assets are bundled), the user interface's icons and fonts.
 
+The [command line](command-line.md) (`fxt-cli`) connects only for what the files ask for (the
+schema rows above); it sends no telemetry, does not check for updates and does not start the
+FundsXML extension.
+
 ## Schemas without the internet
 
 Give the application a local copy of every schema your documents and schemas refer to:

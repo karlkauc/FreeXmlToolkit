@@ -89,6 +89,12 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 - **PDF generation** with Apache FOP, in-app preview, PDF/A-1b
 - **XML digital signatures**: sign, verify, create certificates
 
+### Command Line
+
+- **`fxt-cli`** for build pipelines and scripts: `validate` (XSD, Schematron, JSON Schema; text,
+  JSON, JUnit and SARIF reports), `transform` (XSLT, XQuery, XProc), `xsd-doc`, `fop`; installed
+  with the application. See [Command Line](https://karlkauc.github.io/FreeXmlToolkit/command-line/).
+
 ### Not Supported
 
 - **DTD** and **RELAX NG** - use XSD, Schematron or JSON Schema instead.
