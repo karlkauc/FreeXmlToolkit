@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Large File Viewer: a read-only view of a file of any size, read from disk on demand (LargeFileIndex).
+  Loaded by LargeFileView (fx:root), which puts the virtual row list into rowsSlot.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-large-file-view"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="xsd-toolbar">
+            <padding>
+                <Insets top="4" right="8" bottom="4" left="8"/>
+            </padding>
+            <children>
+                <IconifyIcon iconLiteral="bi-eye" iconSize="18"/>
+                <Label fx:id="info" id="large-file-info"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Line"/>
+                <TextField fx:id="lineField" id="large-file-line" prefColumnCount="8" promptText="Ctrl+G"
+                           onAction="#onGoToLine"/>
+                <TextField fx:id="findField" id="large-file-find" prefColumnCount="22" promptText="Find (Ctrl+F)"
+                           onAction="#onFind"/>
+                <CheckBox fx:id="regexCheck" id="large-file-regex" text="Regex"/>
+                <CheckBox fx:id="caseCheck" id="large-file-case" text="Match case"/>
+                <Button fx:id="findButton" text="Find" id="large-file-find-button" onAction="#onFind">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-search" iconSize="16"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+        <HBox fx:id="progressBox" spacing="8" alignment="CENTER_LEFT" visible="false" managed="false">
+            <padding>
+                <Insets top="4" right="8" bottom="4" left="8"/>
+            </padding>
+            <children>
+                <Label fx:id="progressLabel" id="large-file-progress-label"/>
+                <ProgressBar fx:id="progressBar" prefWidth="260"/>
+                <Button text="Cancel" id="large-file-cancel" onAction="#onCancel"/>
+            </children>
+        </HBox>
+        <SplitPane fx:id="split" orientation="VERTICAL" VBox.vgrow="ALWAYS">
+            <items>
+                <StackPane fx:id="rowsSlot" id="large-file-rows"/>
+            </items>
+        </SplitPane>
+        <ListView fx:id="results" id="large-file-results" visible="false" managed="false"/>
+        <HBox spacing="8" alignment="CENTER_LEFT" styleClass="diff-xml-summary">
+            <children>
+                <Label fx:id="status" id="large-file-status"/>
+            </children>
+        </HBox>
+    </children>
+</fx:root>

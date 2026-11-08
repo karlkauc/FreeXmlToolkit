@@ -374,6 +374,7 @@ public final class ShellMenuBar extends MenuBar {
     // ===== @FXML action handlers (onAction targets from ShellMenuBar.fxml). Public for jpackage. =====
     @FXML public void onNew() { run("new", shell::onNew); }
     @FXML public void onOpen() { run("open", shell::onOpen); }
+    @FXML public void onOpenInViewer() { run("open_viewer", shell::openInViewer); }
     @FXML public void onOpenFromUrl() { run("open_url", editorHost::openFromUrl); }
     @FXML public void onCloseTab() { run("close_tab", editorHost::closeActiveTab); }
     @FXML public void onSave() { run("save", shell::onSave); }

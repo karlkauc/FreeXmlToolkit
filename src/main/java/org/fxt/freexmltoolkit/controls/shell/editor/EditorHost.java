@@ -993,6 +993,25 @@ public class EditorHost extends BorderPane {
     }
 
     /**
+     * Opens a file in the read-only Large File Viewer (any size; read from disk on demand), or
+     * focuses the viewer already showing it. The viewer releases the file when its tab closes.
+     */
+    public LargeFileView openLargeFileViewer(Path path) {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab.getContent() instanceof LargeFileView view && view.path().equals(path)) {
+                tabPane.getSelectionModel().select(tab);
+                return view;
+            }
+        }
+        LargeFileView view = new LargeFileView(path);
+        Tab tab = openToolTab(path.getFileName() + " (viewer)", "bi-eye", view);
+        tab.setTooltip(new javafx.scene.control.Tooltip(path + " - Large File Viewer (read-only)"));
+        tab.setOnClosed(e -> view.close());
+        UsageEvents.command("large_file_viewer", UsageEvents.VIA_TOOLBAR);
+        return view;
+    }
+
+    /**
      * Focuses the tool tab with the given title if one is already open, else opens
      * a new one with the supplied content. Used by singleton tool views (e.g. the
      * favorites manager) whose owning side panel is recreated on every activity

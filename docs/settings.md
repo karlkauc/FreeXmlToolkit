@@ -73,9 +73,10 @@ therefore decides how large a file can be:
 - If the chosen limit cannot be used, the application falls back to **Automatic** on its own.
 - In a development run (`./gradlew run`) the setting has no effect; the Gradle task sets the memory.
 
-Opening a file of **50 MB or more** asks for confirmation first, because editing it will be
-slow. A file that does not fit into the current memory limit is not opened; the message names
-the limit and points to this card.
+Opening a file of **50 MB or more** asks whether to open it in the editor (editing will be slow)
+or in the read-only [Large File Viewer](large-files.md), which shows files of any size with a few
+megabytes of memory. A file that does not fit into the current memory limit can only be opened in
+the viewer; the message names the limit and points to this card.
 
 ## Rendering mode (hardware vs. software) {#rendering-mode}
 

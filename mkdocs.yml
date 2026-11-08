@@ -121,6 +121,7 @@ nav:
   - XML Editing:
     - XML Editor: xml-editor.md
     - Grid View: grid.md
+    - Large File Viewer: large-files.md
     - Auto-Completion: context-sensitive-intellisense.md
     - Query Console: query-console.md
     - Templates: template-management.md

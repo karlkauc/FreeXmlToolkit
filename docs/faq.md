@@ -29,7 +29,8 @@ If the interface appears blurry or animations are slow, your system may be using
 The editor keeps a document in memory several times over (text, highlighting, structured
 views). Raise the limit under **Settings → Appearance → MEMORY** (**Automatic** uses half of the
 installed memory) and restart the application. The [Memory and large files](settings.md#memory)
-section lists how large a file each limit allows.
+section lists how large a file each limit allows. To look at, search or copy from a file of any
+size without raising the limit, open it in the [Large File Viewer](large-files.md).
 
 ## Network
 

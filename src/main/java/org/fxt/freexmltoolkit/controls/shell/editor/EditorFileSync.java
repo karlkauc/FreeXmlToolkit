@@ -128,34 +128,68 @@ final class EditorFileSync {
                     if (EditorTab.isAbandoned(tab)) {
                         return;
                     }
-                    if (confirmLargeFile(path, size)) {
-                        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> readAndShow(tab, path, openStart));
-                    } else {
-                        UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, false);
-                        host.closeTabNow(tab);
+                    switch (askLargeFile(path, size, maxHeap, false)) {
+                        case EDITOR -> org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> readAndShow(tab, path, openStart));
+                        case VIEWER -> {
+                            host.closeTabNow(tab);
+                            host.openLargeFileViewer(path);
+                        }
+                        default -> {
+                            UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, false);
+                            host.closeTabNow(tab);
+                        }
                     }
                 });
                 case REFUSE -> Platform.runLater(() -> {
-                    UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, true);
                     host.closeTabNow(tab);
-                    org.fxt.freexmltoolkit.util.DialogHelper.showWarning("Open File", "File too large",
-                            path.getFileName() + " is " + LargeFileGuard.formatSize(size)
-                                    + ". With the current memory limit of " + LargeFileGuard.formatSize(maxHeap)
-                                    + ", files up to about " + LargeFileGuard.formatSize(LargeFileGuard.largestOpenable(maxHeap))
-                                    + " can be opened.\n\nRaise the limit under Settings > Memory and restart the application.");
+                    if (askLargeFile(path, size, maxHeap, true) == LargeFileChoice.VIEWER) {
+                        host.openLargeFileViewer(path);
+                    } else {
+                        UsageEvents.fileOpenDeclined(tab.document.getFileType().docKind(), size, true);
+                    }
                 });
                 default -> { }
             }
         });
     }
 
-    /** Asks before a large file is opened in the editor. Runs on the FX thread. */
-    private boolean confirmLargeFile(Path path, long size) {
-        return org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Open Large File",
-                path.getFileName() + " is " + LargeFileGuard.formatSize(size),
-                "Large files open slowly and make editing sluggish. Syntax highlighting, validation "
-                        + "and the structured views may take a long time.\n\nOpen it anyway?",
-                "Open Anyway", "Cancel");
+    /** How to open a large file. */
+    enum LargeFileChoice { EDITOR, VIEWER, CANCEL }
+
+    /** Test hook: answers the large-file question (path, too large for the editor) instead of a dialog. */
+    static java.util.function.BiFunction<Path, Boolean, LargeFileChoice> largeFileAnswer;
+
+    /**
+     * Asks how to open a large file: in the editor (only when it fits the memory), in the read-only
+     * Large File Viewer, or not at all. Runs on the FX thread.
+     */
+    private LargeFileChoice askLargeFile(Path path, long size, long maxHeap, boolean tooLarge) {
+        if (largeFileAnswer != null) {
+            return largeFileAnswer.apply(path, tooLarge);
+        }
+        String header = path.getFileName() + " is " + LargeFileGuard.formatSize(size);
+        String content = tooLarge
+                ? "With the current memory limit of " + LargeFileGuard.formatSize(maxHeap) + ", the editor opens files "
+                        + "up to about " + LargeFileGuard.formatSize(LargeFileGuard.largestOpenable(maxHeap))
+                        + " (raise it under Settings > Memory).\n\nThe Large File Viewer shows files of any size, "
+                        + "read-only: scroll, go to line, find, copy."
+                : "In the editor, large files open slowly and make editing sluggish; syntax highlighting, validation "
+                        + "and the structured views may take a long time.\n\nThe Large File Viewer shows the file at once, "
+                        + "read-only: scroll, go to line, find, copy.";
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createStyledAlert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION, "Open Large File", header, content);
+        javafx.scene.control.ButtonType viewer = new javafx.scene.control.ButtonType("Open in Viewer",
+                javafx.scene.control.ButtonBar.ButtonData.YES);
+        javafx.scene.control.ButtonType editor = new javafx.scene.control.ButtonType("Open in Editor",
+                javafx.scene.control.ButtonBar.ButtonData.OTHER);
+        javafx.scene.control.ButtonType cancel = javafx.scene.control.ButtonType.CANCEL;
+        if (tooLarge) {
+            alert.getButtonTypes().setAll(viewer, cancel);
+        } else {
+            alert.getButtonTypes().setAll(viewer, editor, cancel);
+        }
+        var answer = alert.showAndWait().orElse(cancel);
+        return answer == viewer ? LargeFileChoice.VIEWER : answer == editor ? LargeFileChoice.EDITOR : LargeFileChoice.CANCEL;
     }
 
     /** Reads {@code path} on the calling worker thread and shows it in {@code tab}. */

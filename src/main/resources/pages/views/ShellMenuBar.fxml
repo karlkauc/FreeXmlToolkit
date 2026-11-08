@@ -22,6 +22,8 @@
                                accelerator="Shortcut+N" onAction="#onNew"/>
                 <ShellMenuItem id="menu-file-open" text="Open…" iconLiteral="bi-folder2-open" color="TOOL"
                                accelerator="Shortcut+O" onAction="#onOpen"/>
+                <ShellMenuItem id="menu-file-open-viewer" text="Open in Large File Viewer…" iconLiteral="bi-eye"
+                               color="TOOL" onAction="#onOpenInViewer"/>
                 <ShellMenuItem id="menu-file-open-url" text="Open from URL…" iconLiteral="bi-globe" color="TOOL"
                                onAction="#onOpenFromUrl"/>
                 <Menu fx:id="openRecentMenu" id="menu-file-open-recent" text="Open Recent"/>

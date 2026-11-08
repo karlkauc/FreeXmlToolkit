@@ -1529,6 +1529,19 @@ public class UnifiedShellView extends BorderPane {
     // ===== @FXML action handlers (onAction targets from shell.fxml). Public for jpackage. =====
     @FXML public void onNew() { toolbar("new"); newDocument(); }
     @FXML public void onOpen() { toolbar("open"); openFile(); }
+
+    /** File → Open in Large File Viewer: any file, read-only, without loading it into memory. */
+    public void openInViewer() {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Open in Large File Viewer");
+        chooser.getExtensionFilters().addAll(
+                org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.fileChooserFilters());
+        java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
+                getScene() != null ? getScene().getWindow() : null);
+        if (file != null) {
+            editorHost.openLargeFileViewer(file.toPath());
+        }
+    }
     @FXML public void onSave() { toolbar("save"); saveActive(); }
     @FXML public void onSaveAs() { toolbar("save_as"); saveActiveAs(); }
     @FXML public void onSaveAll() { toolbar("save_all"); editorHost.saveAll(); }

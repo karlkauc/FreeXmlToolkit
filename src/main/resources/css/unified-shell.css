@@ -4740,3 +4740,49 @@
 .fxt-merge-status-ok {
     -fx-text-fill: -fxt-success-text;
 }
+
+/* Large File Viewer (LargeFileView) */
+.fxt-large-file-rows {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+.fxt-large-file-row {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.fxt-large-file-row {
+    -fx-cell-size: 18;
+}
+
+.fxt-large-file-row:filled:selected,
+.fxt-large-file-row:filled:selected:focused {
+    -fx-background-color: -fxt-bg-subtle;
+}
+
+.fxt-large-file-line-number {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-family: "JetBrains Mono", "Consolas", monospace;
+    -fx-alignment: center-right;
+}
+
+.fxt-lf {
+    -fx-font-family: "JetBrains Mono", "Consolas", monospace;
+    -fx-fill: -fxt-code-text;
+}
+
+.fxt-lf-tag {
+    -fx-fill: -fxt-code-elem;
+}
+
+.fxt-lf-attr {
+    -fx-fill: -fxt-code-attr;
+}
+
+.fxt-lf-value {
+    -fx-fill: -fxt-code-val;
+}
+
+.fxt-lf-comment {
+    -fx-fill: -fxt-text-muted;
+}
