@@ -2505,6 +2505,11 @@ public class UnifiedShellView extends BorderPane {
         });
     }
 
+    /** Tools → Run XSpec Tests: runs the active .xspec document and shows the results in a tool tab. */
+    public void runXSpec() {
+        org.fxt.freexmltoolkit.controls.shell.editor.XSpecView.runActive(editorHost);
+    }
+
     /** Tools → Compare Folders: asks for two folders and compares them in a tool tab. */
     public void compareFolders() {
         javafx.stage.Window owner = getScene() != null ? getScene().getWindow() : null;

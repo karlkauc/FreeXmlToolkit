@@ -1058,6 +1058,11 @@ public class EditorHost extends BorderPane {
     }
 
     /** Brings the given (already open) tab to the front. */
+    /** @return the open tabs that show no document (tool tabs: reports, views, diffs) */
+    public java.util.List<Tab> getToolTabs() {
+        return tabPane.getTabs().stream().filter(t -> !(t instanceof EditorTab)).toList();
+    }
+
     public void selectTab(Tab tab) {
         if (containsTab(tab)) {
             tabPane.getSelectionModel().select(tab);

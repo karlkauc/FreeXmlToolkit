@@ -336,6 +336,42 @@ On the command line, `fxt-cli transform --profile report.json …` profiles a ru
 
 ---
 
+## Testing with XSpec
+
+[XSpec](https://github.com/xspec/xspec) tests are part of FreeXmlToolkit (XSpec 3, bundled): unit
+tests for XSLT stylesheets, XQuery modules and Schematron, written as `.xspec` files.
+
+```xml
+<x:description xmlns:x="http://www.jenitennison.com/xslt/xspec" xmlns:f="urn:f" stylesheet="price.xsl">
+  <x:scenario label="net price of 120">
+    <x:call function="f:net"><x:param select="120"/></x:call>
+    <x:expect label="is 100" select="100"/>
+  </x:scenario>
+  <x:scenario label="item template">
+    <x:context><item name="pen"/></x:context>
+    <x:expect label="upper-case line"><line>PEN</line></x:expect>
+  </x:scenario>
+</x:description>
+```
+
+Open the `.xspec` file and choose **Tools → Run XSpec Tests**. The tests run with the text in the
+editor (also unsaved changes); the file must be saved once, because the stylesheet, query or
+Schematron it names is found relative to it. What is tested follows the description:
+`stylesheet="…"` an XSLT stylesheet, `query="…"` with `query-at="…"` an XQuery module,
+`schematron="…"` a Schematron (with `x:expect-assert`, `x:expect-report`, `x:expect-valid`).
+
+The **XSpec** tab shows the summary (passed, failed, pending) and every scenario with its tests;
+scenarios with a failed test are expanded and the first failure is selected. **Expected** and
+**Actual** below show what the test expected and what the code returned. **Run Again** runs the
+tests again (after you changed the stylesheet or the tests), **HTML Report** opens XSpec's own
+report as a preview, **Export JUnit…** writes a JUnit XML report for CI servers. Scenarios marked
+`pending="…"` are listed but not run.
+
+On the command line: `fxt-cli xspec tests/price.xspec -r junit.xml` (see
+[Command Line](command-line.md#xspec)).
+
+---
+
 ## Tracing and Messages
 
 Enable **Trace run** in **OPTIONS & TOOLS** to open a **Trace** tool tab with the next run. It

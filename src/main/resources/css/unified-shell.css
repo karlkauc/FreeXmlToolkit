@@ -4786,3 +4786,30 @@
 .fxt-lf-comment {
     -fx-fill: -fxt-text-muted;
 }
+
+/* XSpec results (XSpecView) */
+.fxt-xspec-failed {
+    -fx-text-fill: -fxt-danger;
+}
+
+.fxt-xspec-passed {
+    -fx-text-fill: -fxt-success-text;
+}
+
+.tree-table-row-cell.fxt-xspec-failed .tree-table-cell {
+    -fx-text-fill: -fxt-danger;
+}
+
+.tree-table-row-cell.fxt-xspec-pending .tree-table-cell {
+    -fx-text-fill: -fxt-text-muted;
+    -fx-font-style: italic;
+}
+
+.tree-table-row-cell.fxt-xspec-failed:selected .tree-table-cell,
+.tree-table-row-cell.fxt-xspec-pending:selected .tree-table-cell {
+    -fx-text-fill: -fxt-on-primary;
+}
+
+.fxt-xspec-value {
+    -fx-font-family: "JetBrains Mono", monospace;
+}

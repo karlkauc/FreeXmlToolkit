@@ -51,6 +51,7 @@ and `bom.xml`.
 | **JSON5 Java** (de.marhali:json5-java) | 3.0.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **SnakeYAML Engine** (org.snakeyaml:snakeyaml-engine, YAML) | 3.0.1 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
 | **XMLUnit** (org.xmlunit:xmlunit-core, XML comparison) | 2.14.0 | [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) |
+| **XSpec** (io.xspec:xspec, test framework; bundles SchXslt) | 3.2.2 | [MIT License](https://opensource.org/licenses/MIT) |
 
 ## Schematron Validation
 
@@ -222,7 +223,7 @@ The majority of libraries used in FreeXmlToolkit are licensed under permissive o
 | License Type | Count |
 |--------------|-------|
 | Apache License 2.0 | 32 |
-| MIT License | 5 |
+| MIT License | 6 |
 | BSD (2/3-Clause) | 5 |
 | Eclipse Public / Distribution License (1.0 / 2.0) | 5 |
 | EUPL-1.1 | 2 |

@@ -104,6 +104,10 @@ dependencies {
     implementation("org.snakeyaml:snakeyaml-engine:3.0.1")
     // XML-aware comparison (XmlStructuralDiff): structural diff with element matching
     implementation("org.xmlunit:xmlunit-core:2.14.0")
+    // XSpec test framework (stylesheets for XSLT, XQuery and Schematron tests; MIT) - XSpecRunner
+    implementation("io.xspec:xspec:3.2.2") {
+        isTransitive = false
+    }
 
     // JSON Editor support
     implementation("de.marhali:json5-java:3.0.0")                  // JSON5 support (comments, trailing commas)

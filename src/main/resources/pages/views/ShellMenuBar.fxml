@@ -112,6 +112,8 @@
                                color="TOOL" onAction="#onTransform"/>
                 <ShellMenuItem id="menu-tools-debug-xslt" text="Debug with XSLT…" iconLiteral="bi-bug"
                                color="TOOL" accelerator="Shift+F5" onAction="#onDebugXslt"/>
+                <ShellMenuItem id="menu-tools-xspec" text="Run XSpec Tests" iconLiteral="bi-ui-checks"
+                               color="TOOL" onAction="#onRunXSpec"/>
                 <ShellMenuItem id="menu-tools-debug-config" text="Debug Configuration…" iconLiteral="bi-sliders2"
                                color="TOOL" onAction="#onDebugConfiguration"/>
                 <ShellMenuItem id="menu-tools-rerun-debug" text="Re-run Last Debug" iconLiteral="bi-arrow-repeat"

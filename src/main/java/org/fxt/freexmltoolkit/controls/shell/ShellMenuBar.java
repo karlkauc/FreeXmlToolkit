@@ -261,6 +261,11 @@ public final class ShellMenuBar extends MenuBar {
                 item.setDisable(!hasDocument);
             } else if (TYPE_ITEMS.containsKey(id)) {
                 item.setDisable(!EditorActions.applicableFor(type, TYPE_ITEMS.get(id)));
+            } else if ("menu-tools-xspec".equals(id)) {
+                boolean xspec = document.map(OpenDocument::getPath)
+                        .map(p -> p.getFileName().toString().toLowerCase(java.util.Locale.ROOT).endsWith(".xspec"))
+                        .orElse(false);
+                item.setDisable(!xspec);
             } else if ("menu-tools-convert-json".equals(id)) {
                 item.setDisable(!DataConversionAction.canConvert(type, DataFormatConverter.Format.JSON));
             } else if ("menu-tools-convert-xml".equals(id)) {
@@ -422,6 +427,7 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onGenerateXsdBatch() { run("generate_xsd_batch", shell::onGenerateXsdBatch); }
     @FXML public void onCompare() { run("compare", shell::onCompare); }
     @FXML public void onCompareFolders() { run("compare_folders", shell::compareFolders); }
+    @FXML public void onRunXSpec() { run("xspec", shell::runXSpec); }
     @FXML public void onMergeFiles() { run("merge_files", shell::mergeFiles); }
     @FXML public void onConvertToJson() { run("convert_json", () -> shell.convertActive(DataFormatConverter.Format.JSON)); }
     @FXML public void onConvertToXml() { run("convert_xml", () -> shell.convertActive(DataFormatConverter.Format.XML)); }

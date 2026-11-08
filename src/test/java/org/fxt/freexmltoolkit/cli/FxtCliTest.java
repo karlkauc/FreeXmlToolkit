@@ -271,6 +271,43 @@ class FxtCliTest {
     }
 
     @Nested
+    @DisplayName("xspec")
+    class XSpec {
+
+        @Test
+        @DisplayName("passing tests exit 0, a failure 1 with expected and actual, JUnit report")
+        void xspec() throws Exception {
+            write("f.xsl", """
+                    <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+                                    xmlns:f="urn:f" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                      <xsl:function name="f:twice" as="xs:integer"><xsl:param name="n" as="xs:integer"/>
+                        <xsl:sequence select="$n * 2"/></xsl:function>
+                    </xsl:stylesheet>
+                    """);
+            Path ok = write("ok.xspec", """
+                    <x:description xmlns:x="http://www.jenitennison.com/xslt/xspec" xmlns:f="urn:f" stylesheet="f.xsl">
+                      <x:scenario label="twice"><x:call function="f:twice"><x:param select="2"/></x:call>
+                        <x:expect label="four" select="4"/></x:scenario>
+                    </x:description>
+                    """);
+            assertEquals(ExitCodes.OK, run("xspec", ok), err);
+            assertTrue(out.contains("passed   twice / four") && out.contains("1 test: 1 passed"), out);
+
+            Path bad = write("bad.xspec", """
+                    <x:description xmlns:x="http://www.jenitennison.com/xslt/xspec" xmlns:f="urn:f" stylesheet="f.xsl">
+                      <x:scenario label="twice"><x:call function="f:twice"><x:param select="2"/></x:call>
+                        <x:expect label="five" select="5"/></x:scenario>
+                    </x:description>
+                    """);
+            Path junit = dir.resolve("junit.xml");
+            assertEquals(ExitCodes.FAILED, run("xspec", "-r", junit, bad), err);
+            assertTrue(out.contains("FAILED   twice / five"), out);
+            assertTrue(Files.readString(junit).contains("<testsuite"), Files.readString(junit));
+            assertEquals(ExitCodes.NOT_RUN, run("xspec", write("not.xspec", "<a/>")));
+        }
+    }
+
+    @Nested
     @DisplayName("compare")
     class Compare {
 

@@ -14,7 +14,7 @@ import org.fxt.freexmltoolkit.service.telemetry.DocKind;
  * editor (syntax, IntelliSense) and the inspector can adapt to the content.
  */
 public enum EditorFileType {
-    XML("XML", "bi-code-slash", "#1373d9", "xml", "wsdl"),
+    XML("XML", "bi-code-slash", "#1373d9", "xml", "wsdl", "xspec"),
     XSD("XSD", "bi-diagram-3", "#2f9e44", "xsd"),
     XSLT("XSLT", "bi-arrow-repeat", "#f08c00", "xsl", "xslt"),
     SCHEMATRON("Schematron", "bi-check2-square", "#e8590c", "sch", "schematron"),

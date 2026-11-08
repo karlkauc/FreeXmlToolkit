@@ -10,6 +10,7 @@ fxt-cli transform -s report.xsl -p year=2026 data/order.xml -o report.html
 fxt-cli xsd-doc schema/order.xsd -o site/
 fxt-cli fop -i data/order.xml -s order2fo.xsl -o order.pdf
 fxt-cli compare old/order.xml new/order.xml
+fxt-cli xspec tests/price.xspec -r junit.xml
 fxt-cli merge base.xml mine.xml theirs.xml -o merged.xml
 fxt-cli convert data/order.xml -o order.json
 fxt-cli convert -t yaml data/config.json
@@ -127,6 +128,23 @@ fxt-cli xsd-doc SCHEMA -o OUTPUT [-f html|pdf|docx]
 
 `-o` is a folder for the HTML site and a file for PDF and Word. Without `-f` the format follows
 the extension of `-o` (`.pdf`, `.docx`, otherwise HTML).
+
+## xspec
+
+Runs [XSpec](xslt-developer.md#testing-with-xspec) tests for XSLT, XQuery and Schematron.
+
+```bash
+fxt-cli xspec [options] XSPEC...
+```
+
+| Option | Meaning |
+|---|---|
+| `-r`, `--report FILE` | Write a report for the (single) XSpec file |
+| `-f`, `--report-format FORMAT` | `junit` (default, for CI servers), `html` (XSpec's report) or `xml` (XSpec's XML report) |
+
+Every failed test is printed with its scenario, the expected and the actual result; `-q` leaves out
+the passed and pending ones. The exit code is 0 when all tests pass, 1 when a test fails and 3 when
+the tests cannot run (the XSpec file or the code it tests does not compile).
 
 ## compare
 

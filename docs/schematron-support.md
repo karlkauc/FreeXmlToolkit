@@ -337,3 +337,8 @@ Common XPath expressions for Schematron rules:
 | False positives | Review your test condition logic |
 | Namespace issues | Add namespace declarations to schema |
 | Performance slow | Optimize complex XPath expressions |
+
+## Testing Schematron with XSpec
+
+Schematron rules can be unit-tested with XSpec (`x:expect-assert`, `x:expect-report`, `x:expect-valid`): see
+[Testing with XSpec](xslt-developer.md#testing-with-xspec).
