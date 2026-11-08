@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://karlkauc.github.io/FreeXmlToolkit/plugins/">
       
       
-        <link rel="prev" href="../fundsxml-extensions/">
+        <link rel="prev" href="../industry-plugins/">
       
       
         <link rel="next" href="../SECURITY/">
@@ -1980,6 +1980,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../industry-plugins/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Industry Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -2069,6 +2097,17 @@
     <span class="md-ellipsis">
       
         Writing a plugin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#built-in-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in plugins
       
     </span>
   </a>
@@ -2748,6 +2787,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#built-in-plugins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Built-in plugins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-fundsxml-plugin" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2844,6 +2894,10 @@ takes effect at the next start. A plugin that could not be loaded is listed with
 <td><strong>Stylesheet</strong></td>
 <td>Added to the window, for the plugin's own panels</td>
 </tr>
+<tr>
+<td><strong>Schema</strong></td>
+<td>A Schema Library entry (source <em>Plugin</em>) while the plugin is on; never saved to the user's library</td>
+</tr>
 </tbody>
 </table>
 <p>Application services — settings, favorites, XPath snippets, templates, the Schema Library — are
@@ -2914,6 +2968,30 @@ listed in the jar's <code>META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlu
 <li>A plugin that throws while registering contributes nothing and is listed as failed; a panel that
   fails shows an error in the side panel; a failing validator becomes one error in the results.</li>
 </ul>
+<h2 id="built-in-plugins">Built-in plugins<a class="headerlink" href="#built-in-plugins" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Plugin</th>
+<th>On by default</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FundsXML</td>
+<td>yes (its activity appears once the extension is enabled)</td>
+<td><a href="../fundsxml-extensions/">FundsXML Extensions</a></td>
+</tr>
+<tr>
+<td>ISO 20022 Payments (SEPA)</td>
+<td>no</td>
+<td><a href="../industry-plugins/#iso-20022-payments-sepa">Industry Plugins</a></td>
+</tr>
+</tbody>
+</table>
+<p>A plugin can say it is off until the user switches it on (<code>enabledByDefault()</code>), and it can add
+XML Schemas to the Schema Library (<code>context.addSchema(new PluginSchema(namespace, url, description, null))</code>).</p>
 <h2 id="the-fundsxml-plugin">The FundsXML plugin<a class="headerlink" href="#the-fundsxml-plugin" title="Permanent link">&para;</a></h2>
 <p><code>FundsXmlPlugin</code> (built in, in <code>controls/shell/editor/</code>) is the reference: it contributes the
 FundsXML activity (visible while the extension is enabled), the <strong>FundsXML Website</strong> and
@@ -2979,7 +3057,7 @@ folder that software distribution fills. See <a href="../administration/">Admini
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../fundsxml-extensions/" class="md-footer__link md-footer__link--prev" aria-label="Previous: FundsXML Extensions">
+          <a href="../industry-plugins/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Industry Plugins">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2989,7 +3067,7 @@ folder that software distribution fills. See <a href="../administration/">Admini
                 Previous
               </span>
               <div class="md-ellipsis">
-                FundsXML Extensions
+                Industry Plugins
               </div>
             </div>
           </a>
