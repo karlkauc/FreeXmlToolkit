@@ -1125,6 +1125,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../large-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Large File Viewer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../context-sensitive-intellisense/" class="md-nav__link">
         
   
@@ -2796,9 +2824,10 @@ therefore decides how large a file can be:</p>
 <li>If the chosen limit cannot be used, the application falls back to <strong>Automatic</strong> on its own.</li>
 <li>In a development run (<code>./gradlew run</code>) the setting has no effect; the Gradle task sets the memory.</li>
 </ul>
-<p>Opening a file of <strong>50 MB or more</strong> asks for confirmation first, because editing it will be
-slow. A file that does not fit into the current memory limit is not opened; the message names
-the limit and points to this card.</p>
+<p>Opening a file of <strong>50 MB or more</strong> asks whether to open it in the editor (editing will be slow)
+or in the read-only <a href="../large-files/">Large File Viewer</a>, which shows files of any size with a few
+megabytes of memory. A file that does not fit into the current memory limit can only be opened in
+the viewer; the message names the limit and points to this card.</p>
 <h2 id="rendering-mode">Rendering mode (hardware vs. software)<a class="headerlink" href="#rendering-mode" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>The <strong>RENDERING</strong> card lets you choose how JavaFX draws the UI,
