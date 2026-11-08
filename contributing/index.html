@@ -3009,7 +3009,12 @@ four parts locally: <code>./gradlew test -PtestShards=4 -PtestShard=0</code> (0 
 <a href="https://github.com/karlkauc/FreeXmlToolkit/tree/main/.claude/rules"><code>.claude/rules/</code></a> (architecture, domain model, quick reference). The most important
 rules:</p>
 <ul>
-<li><strong>English everywhere</strong> — user-facing texts, comments and JavaDoc.</li>
+<li><strong>English everywhere</strong> — comments, JavaDoc and the source texts of the interface.</li>
+<li><strong>Translations</strong> — the interface texts live in <code>src/main/resources/i18n/messages.properties</code>
+  (English) and <code>messages_de.properties</code> (German). In FXML write the English text and run
+  <code>scripts/i18n-extract-fxml.py</code>: it replaces it with a <code>%Layout.key</code> reference and adds it to the
+  English bundle. In Java use <code>I18n.t("key")</code> / <code>I18n.t("key", args…)</code> (MessageFormat). Add the German
+  text for every new key — <code>I18nBundlesTest</code> fails for missing keys or mismatched placeholders.</li>
 <li><strong>Tests</strong> — add unit tests for new features and bug fixes; make sure existing tests still pass.</li>
 <li><strong>UI styling</strong> — consult <a href="https://github.com/karlkauc/FreeXmlToolkit/blob/main/STYLE_GUIDE.jsonc"><code>STYLE_GUIDE.jsonc</code></a> before changing or creating UI.
   Use the existing <code>-fxt-*</code> design tokens and CSS classes instead of hard-coded colors.</li>

@@ -2976,6 +2976,11 @@ forward slashes (<code>C:/Schemas</code>). Characters outside Latin-1 have to be
 <td>FundsXML extension</td>
 </tr>
 <tr>
+<td><code>ui.language</code></td>
+<td><code>system</code> / <code>en</code> / <code>de</code></td>
+<td>Language of the interface (Settings → Appearance → Language)</td>
+</tr>
+<tr>
 <td><code>plugins.external.allowed</code></td>
 <td><code>false</code></td>
 <td><strong>Policy only.</strong> Load no <a href="../plugins/">plugins</a> from the plugins folder (built-in ones still load)</td>
@@ -3045,6 +3050,10 @@ always apply. Those in <code>defaults.properties</code> apply unless the option 
 <tr>
 <td><code>fxt.schema.localCopies=false</code></td>
 <td>Never write downloaded schemas next to the schema that imports them</td>
+</tr>
+<tr>
+<td><code>fxt.locale=de</code></td>
+<td>Language of the interface, whatever the setting says (<code>en</code>, <code>de</code>)</td>
 </tr>
 <tr>
 <td><code>fxt.plugins.dir=&lt;folder&gt;</code></td>
