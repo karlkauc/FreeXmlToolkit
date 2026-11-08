@@ -18,7 +18,7 @@
         <link rel="prev" href="../industry-plugins/">
       
       
-        <link rel="next" href="../SECURITY/">
+        <link rel="next" href="../plugin-development/">
       
       
         
@@ -2145,6 +2145,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plugin-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writing Plugins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2931,71 +2959,11 @@ takes effect at the next start. A plugin that could not be loaded is listed with
 <p>Application services — settings, favorites, XPath snippets, templates, the Schema Library — are
 available to a plugin through <code>PluginContext.service(…)</code>.</p>
 <h2 id="writing-a-plugin">Writing a plugin<a class="headerlink" href="#writing-a-plugin" title="Permanent link">&para;</a></h2>
-<p>A plugin is a class implementing <code>org.fxt.freexmltoolkit.plugin.FxtPlugin</code>, compiled against the
-FreeXmlToolkit jar (<code>FreeXmlToolkit.jar</code> in the installation's <code>app</code> folder; Java 25, JavaFX 25), and
-listed in the jar's <code>META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">package</span><span class="w"> </span><span class="nn">com.example.orders</span><span class="p">;</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.List</span><span class="p">;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">javafx.scene.control.Label</span><span class="p">;</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="kn">import</span><span class="w"> </span><span class="nn">javafx.scene.layout.VBox</span><span class="p">;</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="kn">import</span><span class="w"> </span><span class="nn">org.fxt.freexmltoolkit.plugin.*</span><span class="p">;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">OrdersPlugin</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">FxtPlugin</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">    </span><span class="nd">@Override</span><span class="w"> </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">id</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="s">"com.example.orders"</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">    </span><span class="nd">@Override</span><span class="w"> </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">name</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="s">"Orders"</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="nd">@Override</span><span class="w"> </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">version</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="s">"1.0"</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="nd">@Override</span><span class="w"> </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">description</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="s">"Checks and tools for order documents."</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="nd">@Override</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="n">PluginContext</span><span class="w"> </span><span class="n">context</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">        </span><span class="c1">// An activity with its side panel (created on the JavaFX thread when first shown)</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">        </span><span class="n">context</span><span class="p">.</span><span class="na">addActivity</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">PluginActivity</span><span class="p">(</span><span class="s">"orders"</span><span class="p">,</span><span class="w"> </span><span class="s">"Orders"</span><span class="p">,</span><span class="w"> </span><span class="s">"bi-cart"</span><span class="p">,</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">                </span><span class="n">ui</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">VBox</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Label</span><span class="p">(</span><span class="s">"Order tools"</span><span class="p">))));</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">        </span><span class="c1">// A Tools menu item</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">        </span><span class="n">context</span><span class="p">.</span><span class="na">addMenuItem</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">PluginMenuItem</span><span class="p">(</span><span class="n">PluginMenuItem</span><span class="p">.</span><span class="na">Menu</span><span class="p">.</span><span class="na">TOOLS</span><span class="p">,</span><span class="w"> </span><span class="s">"orders-report"</span><span class="p">,</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">                </span><span class="s">"Orders Report…"</span><span class="p">,</span><span class="w"> </span><span class="s">"bi-table"</span><span class="p">,</span><span class="w"> </span><span class="n">ui</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">ui</span><span class="p">.</span><span class="na">showActivity</span><span class="p">(</span><span class="s">"orders"</span><span class="p">),</span><span class="w"> </span><span class="kc">null</span><span class="p">));</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">        </span><span class="c1">// A check that runs with every XML validation</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">        </span><span class="n">context</span><span class="p">.</span><span class="na">addValidator</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">DocumentValidator</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">            </span><span class="nd">@Override</span><span class="w"> </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">name</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="s">"Order rules"</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">            </span><span class="nd">@Override</span><span class="w"> </span><span class="kd">public</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">accepts</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">content</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">documentName</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="n">content</span><span class="p">.</span><span class="na">contains</span><span class="p">(</span><span class="s">"&lt;order"</span><span class="p">);</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">            </span><span class="p">}</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">            </span><span class="nd">@Override</span><span class="w"> </span><span class="kd">public</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">Problem</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">content</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">documentName</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="n">content</span><span class="p">.</span><span class="na">contains</span><span class="p">(</span><span class="s">"&lt;total&gt;0&lt;/total&gt;"</span><span class="p">)</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">                        </span><span class="o">?</span><span class="w"> </span><span class="n">List</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Problem</span><span class="p">(</span><span class="s">"warning"</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="s">"The order total is zero."</span><span class="p">))</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">                        </span><span class="p">:</span><span class="w"> </span><span class="n">List</span><span class="p">.</span><span class="na">of</span><span class="p">();</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">            </span><span class="p">}</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="w">        </span><span class="p">});</span>
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="p">}</span>
-</code></pre></div>
-<p><code>META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>com.example.orders.OrdersPlugin
-</code></pre></div>
-<p>Rules:</p>
-<ul>
-<li><strong><code>id()</code></strong> must be unique; it is also the settings key <code>plugin.&lt;id&gt;.enabled</code>. Two plugins with the
-  same id: the second is not loaded.</li>
-<li><strong><code>register()</code></strong> runs once at start, before the window opens — also in <code>fxt-cli</code>, where only the
-  validators are used. Only declare contributions there: do not block and do not create UI.</li>
-<li>Panels, menu actions and document listeners run on the JavaFX thread and get a <code>PluginUi</code>:
-  the editor area (<code>editorHost()</code>), the window, <code>openFile</code>, <code>showActivity</code>, <code>showEditorBar</code> /
-  <code>hideEditorBar</code> and <code>refreshContributions()</code> (asks the activities and menu items again whether
-  they are visible, e.g. after a setting changed).</li>
-<li>Validators and startup tasks run on background threads.</li>
-<li>Icons are <a href="https://icons.getbootstrap.com/">Bootstrap Icons</a> names (<code>bi-…</code>).</li>
-<li>Each external plugin has its own class loader; libraries it needs belong into its jar.</li>
-<li>A plugin that throws while registering contributes nothing and is listed as failed; a panel that
-  fails shows an error in the side panel; a failing validator becomes one error in the results.</li>
-</ul>
+<p>A plugin is a class implementing <code>org.fxt.freexmltoolkit.plugin.FxtPlugin</code>, listed in
+<code>META-INF/services/org.fxt.freexmltoolkit.plugin.FxtPlugin</code> of its jar. The full guide — how plugins are
+loaded, every contribution type, threads, translations, building, testing and debugging — is
+<a href="../plugin-development/">Writing Plugins</a>; a complete example project is in
+<a href="https://github.com/karlkauc/FreeXmlToolkit/tree/main/examples/plugin-sample"><code>examples/plugin-sample</code></a>.</p>
 <h2 id="built-in-plugins">Built-in plugins<a class="headerlink" href="#built-in-plugins" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -3117,13 +3085,13 @@ folder that software distribution fills. See <a href="../administration/">Admini
         
         
           
-          <a href="../SECURITY/" class="md-footer__link md-footer__link--next" aria-label="Next: Security Features">
+          <a href="../plugin-development/" class="md-footer__link md-footer__link--next" aria-label="Next: Writing Plugins">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Security Features
+                Writing Plugins
               </div>
             </div>
             <div class="md-footer__button md-icon">
