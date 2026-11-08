@@ -1492,6 +1492,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#merging-three-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Merging three files
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4070,6 +4081,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#merging-three-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Merging three files
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4624,7 +4646,7 @@ schemas, <strong>Save</strong> needs an open document).</p>
 </tr>
 <tr>
 <td><strong>Tools</strong></td>
-<td>Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Compare Folders…, Spreadsheet Converter…, Convert to JSON…, Convert to XML…, Convert to YAML…, Add to Favorites</td>
+<td>Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Compare Folders…, Merge Files…, Spreadsheet Converter…, Convert to JSON…, Convert to XML…, Convert to YAML…, Add to Favorites</td>
 </tr>
 <tr>
 <td><strong>Help</strong></td>
@@ -5751,6 +5773,57 @@ file to open the pair in the Compare view, or to open a file that exists on one 
 folder, <strong>Compare</strong> runs the comparison again. XML files above 32 MB and files that are not
 well-formed are compared by their bytes (the <strong>Note</strong> column says so).</p>
 <p>On the command line: <a href="../command-line/#compare"><code>fxt-cli compare</code></a>.</p>
+<h3 id="merging-three-files">Merging three files<a class="headerlink" href="#merging-three-files" title="Permanent link">&para;</a></h3>
+<p>When two people changed the same file, <strong>Tools → Merge Files…</strong> combines both versions with their
+common ancestor (a three-way merge, as in Git). Choose the <strong>Base</strong> (the version both started
+from), <strong>Left</strong> (mine; the active document is suggested) and <strong>Right</strong> (theirs), and optionally the
+<strong>Result file</strong> that <strong>Save</strong> writes.</p>
+<p>The merged text opens in a tab. Changes made on one side only, and the same change made on both
+sides, are taken over. Lines that both sides changed differently become a conflict block, marked
+like in Git:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&lt;&lt;&lt;&lt;&lt;&lt;&lt; order-mine.xml
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  &lt;note&gt;call first&lt;/note&gt;
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>||||||| order-base.xml
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  &lt;note&gt;none&lt;/note&gt;
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>=======
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  &lt;note&gt;urgent&lt;/note&gt;
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>&gt;&gt;&gt;&gt;&gt;&gt;&gt; order-theirs.xml
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Prev</strong> / <strong>Next</strong></td>
+<td>Jump to the previous or next conflict</td>
+</tr>
+<tr>
+<td><strong>Use Left</strong> / <strong>Use Right</strong></td>
+<td>Resolve the current conflict (at or after the caret) with one side</td>
+</tr>
+<tr>
+<td><strong>Use Both</strong></td>
+<td>Keep the left lines followed by the right ones</td>
+</tr>
+<tr>
+<td><strong>Use Base</strong></td>
+<td>Keep neither change</td>
+</tr>
+<tr>
+<td><strong>Save</strong> / <strong>Save As…</strong></td>
+<td>Write the result; with conflicts left you are asked first</td>
+</tr>
+</tbody>
+</table>
+<p>The text can also be edited directly. The status on the right counts the conflicts left; once
+there are none, it says whether the XML is well-formed. For XML files, two changes that differ only
+in whitespace (indentation) are not a conflict. Changes on adjacent lines count as one conflict,
+as in Git.</p>
+<p>On the command line, also as a Git merge driver: <a href="../command-line/#merge"><code>fxt-cli merge</code></a>.</p>
 <h2 id="jump-to-validation-errors">Jump to Validation Errors<a class="headerlink" href="#jump-to-validation-errors" title="Permanent link">&para;</a></h2>
 <p>Validation errors appear in the <strong>Properties / Validation</strong> sidebar (Ctrl+Shift+P). <strong>Double-click</strong>
 any error to jump straight to its location:</p>
