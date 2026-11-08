@@ -56,6 +56,26 @@ The structure is read from the bytes of the file on demand, so the first 1,000 c
 of a 1 GB file appear in well under a second. Reading assumes a well-formed document; DTD
 declarations are skipped, entities other than the predefined ones are not expanded.
 
+## Validation
+
+**Validate** in the toolbar checks the whole file while reading it as a stream, so memory stays
+flat whatever its size (a 1 GB file: well-formedness in about 10 seconds, XML Schema validation in
+about 25 seconds, with less than 20 MB of memory):
+
+| Item | Checks |
+|---|---|
+| **Against the Declared Schema** | The schema the document names (`xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation`, resolved as in the editor, also through the [Schema Library](schema-library.md)); the menu shows its file name, or "(none)" |
+| **Against a Schema…** | An XML Schema (`.xsd`, 1.0 or 1.1) you choose |
+| **Well-Formedness Only** | That the document is well-formed XML |
+
+The **Problems** tab lists severity, line, column and message; double-click a problem to see its
+line in the **Text** tab. The check stops after 1,000 problems, and at the first error that makes
+the document not well-formed. A progress bar shows how far it is; **Cancel** stops it. Schematron
+is not available for large files.
+
+`fxt-cli validate` validates XML files of 64 MB or more the same way (without Schematron), see
+[Command Line](command-line.md#validate).
+
 ## Limits
 
 - The viewer is read-only. To change a large file, open it in the editor (if it fits the memory

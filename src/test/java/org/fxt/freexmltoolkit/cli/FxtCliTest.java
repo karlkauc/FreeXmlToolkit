@@ -221,6 +221,30 @@ class FxtCliTest {
     }
 
     @Nested
+    @DisplayName("validate (large files, streaming)")
+    class ValidateStreaming {
+
+        @Test
+        @DisplayName("large XML files are validated as a stream with the same report")
+        void streaming() throws Exception {
+            long previous = ValidateCommand.streamingBytes;
+            ValidateCommand.streamingBytes = 1;
+            try {
+                assertEquals(ExitCodes.OK, run("validate", "-x", xsd, valid), err);
+                assertTrue(out.contains("1 file, all valid"), out);
+                assertEquals(ExitCodes.FAILED, run("validate", "-x", xsd, invalid), err);
+                assertTrue(out.contains(invalid + ":2:"), out);
+                assertTrue(out.contains("error: [XSD]"), out);
+                Path broken = write("broken.xml", "<root>\n<n>");
+                assertEquals(ExitCodes.FAILED, run("validate", broken), err);
+                assertTrue(out.contains("[Well-formed]"), out);
+            } finally {
+                ValidateCommand.streamingBytes = previous;
+            }
+        }
+    }
+
+    @Nested
     @DisplayName("transform --profile")
     class Profile {
 

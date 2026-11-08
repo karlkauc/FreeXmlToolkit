@@ -69,6 +69,15 @@ public class LargeFileView extends VBox {
     @FXML private StackPane rowsSlot;
     @FXML private ListView<LargeFileIndex.Hit> results;
     @FXML private Label status;
+    @FXML private javafx.scene.control.MenuButton validateButton;
+    @FXML private javafx.scene.control.MenuItem validateDeclared;
+    @FXML private javafx.scene.control.Tab problemsTab;
+    @FXML private Label problemsLabel;
+    @FXML private javafx.scene.control.TableView<org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.Problem> problems;
+    @FXML private javafx.scene.control.TableColumn<org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.Problem, String> severityColumn;
+    @FXML private javafx.scene.control.TableColumn<org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.Problem, String> problemLineColumn;
+    @FXML private javafx.scene.control.TableColumn<org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.Problem, String> problemColumnColumn;
+    @FXML private javafx.scene.control.TableColumn<org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.Problem, String> messageColumn;
     @FXML private javafx.scene.control.TabPane views;
     @FXML private javafx.scene.control.Tab textTab;
     @FXML private javafx.scene.control.Tab structureTab;
@@ -128,6 +137,7 @@ public class LargeFileView extends VBox {
         });
         addEventFilter(KeyEvent.KEY_PRESSED, this::onKey);
         setUpStructure();
+        setUpProblems();
         setDisableControls(true);
         info.setText(path.getFileName() + " · indexing…");
         index();
@@ -181,6 +191,7 @@ public class LargeFileView extends VBox {
     }
 
     private void setDisableControls(boolean disabled) {
+        validateButton.setDisable(disabled);
         lineField.setDisable(disabled);
         findField.setDisable(disabled);
         findButton.setDisable(disabled);
@@ -697,6 +708,135 @@ public class LargeFileView extends VBox {
         });
     }
 
+    // ---- validation ----------------------------------------------------------------------------
+
+    /** Stop after this many problems. */
+    static final int MAX_PROBLEMS = 1000;
+    /** Test hook: the schema chosen in "Against a Schema…" instead of a file chooser. */
+    static java.util.function.Supplier<java.io.File> schemaChoice;
+
+    private void setUpProblems() {
+        org.fxt.freexmltoolkit.controls.shell.FxmlColumns.text(severityColumn, p -> p.severity());
+        org.fxt.freexmltoolkit.controls.shell.FxmlColumns.text(problemLineColumn,
+                p -> p.line() > 0 ? String.format(Locale.ROOT, "%,d", p.line()) : "");
+        org.fxt.freexmltoolkit.controls.shell.FxmlColumns.text(problemColumnColumn,
+                p -> p.column() > 0 ? Integer.toString(p.column()) : "");
+        org.fxt.freexmltoolkit.controls.shell.FxmlColumns.text(messageColumn, p -> p.message());
+        problems.setRowFactory(t -> {
+            javafx.scene.control.TableRow<org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.Problem> row =
+                    new javafx.scene.control.TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty() && row.getItem().line() > 0) {
+                    try {
+                        views.getSelectionModel().select(textTab);
+                        showLine(row.getItem().line());
+                    } catch (IOException ex) {
+                        status.setText("Cannot read the file: " + ex.getMessage());
+                    }
+                }
+            });
+            return row;
+        });
+        validateButton.setOnShowing(e -> {
+            if (validateDeclared.getUserData() == null) {
+                validateDeclared.setUserData(Boolean.TRUE);
+                java.io.File declared = org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.declaredSchema(path)
+                        .orElse(null);
+                validateDeclared.setDisable(declared == null);
+                validateDeclared.setText(declared == null ? "Against the Declared Schema (none)"
+                        : "Against " + declared.getName());
+            }
+        });
+    }
+
+    @FXML
+    public void onValidateDeclared() {
+        validate(org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.declaredSchema(path).orElse(null), true);
+    }
+
+    @FXML
+    public void onValidateSchema() {
+        java.io.File schema;
+        if (schemaChoice != null) {
+            schema = schemaChoice.get();
+        } else {
+            javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+            chooser.setTitle("Validate Against a Schema");
+            chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("XML Schema", "*.xsd"));
+            schema = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
+                    getScene() != null ? getScene().getWindow() : null);
+        }
+        if (schema != null) {
+            validate(schema, true);
+        }
+    }
+
+    @FXML
+    public void onValidateWellFormed() {
+        validate(null, false);
+    }
+
+    /** Validates the file in the background (streaming) and lists the problems. */
+    void validate(java.io.File schema, boolean schemaWanted) {
+        if (index == null) {
+            return;
+        }
+        if (schemaWanted && schema == null) {
+            status.setText("The document declares no schema the application can find; choose one with Against a Schema….");
+            return;
+        }
+        cancel.set(true);
+        AtomicBoolean cancelled = new AtomicBoolean();
+        cancel = cancelled;
+        long size = index.size();
+        validateButton.setDisable(true);
+        showProgress(schema == null ? "Checking well-formedness…" : "Validating against " + schema.getName() + "…", 0);
+        long t0 = System.nanoTime();
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            try {
+                var result = org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.validate(path, schema, MAX_PROBLEMS,
+                        read -> Platform.runLater(() -> progressBar.setProgress(size <= 0 ? -1 : (double) read / size)),
+                        cancelled::get);
+                long ms = (System.nanoTime() - t0) / 1_000_000;
+                Platform.runLater(() -> showProblems(result, schema, ms));
+            } catch (CancellationException e) {
+                Platform.runLater(() -> {
+                    hideProgress();
+                    validateButton.setDisable(false);
+                    status.setText("Validation cancelled.");
+                });
+            } catch (IOException | RuntimeException e) {
+                Platform.runLater(() -> {
+                    hideProgress();
+                    validateButton.setDisable(false);
+                    status.setText("Validation failed: " + e.getMessage());
+                });
+            }
+        });
+    }
+
+    private void showProblems(org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.Result result,
+                              java.io.File schema, long ms) {
+        hideProgress();
+        validateButton.setDisable(false);
+        problemsTab.setDisable(false);
+        problems.getItems().setAll(result.problems());
+        String against = schema == null ? "Well-formedness" : schema.getName();
+        String text;
+        if (result.schemaError() != null) {
+            text = against + ": the schema cannot be used. " + result.schemaError();
+        } else if (result.valid()) {
+            text = schema == null ? "The document is well-formed." : "The document is valid against " + schema.getName() + ".";
+        } else {
+            text = against + ": " + String.format(Locale.ROOT, "%,d", result.problems().size())
+                    + (result.truncated() ? "+ problems (stopped after " + MAX_PROBLEMS + ")" : " problem(s)")
+                    + (result.fatal() ? "; not well-formed, checked up to the first fatal error" : "") + ".";
+        }
+        problemsLabel.setText(text + " (" + String.format(Locale.ROOT, "%,d", ms) + " ms)");
+        status.setText(text);
+        views.getSelectionModel().select(problemsTab);
+    }
+
     /** Releases the file and stops a running index or search. */
     public void close() {
         cancel.set(true);
@@ -843,6 +983,14 @@ public class LargeFileView extends VBox {
 
     String infoForTesting() {
         return info.getText();
+    }
+
+    List<org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.Problem> problemsForTesting() {
+        return List.copyOf(problems.getItems());
+    }
+
+    String problemsLabelForTesting() {
+        return problemsLabel.getText();
     }
 
     void selectStructureForTesting() {

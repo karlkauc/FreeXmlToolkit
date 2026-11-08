@@ -145,6 +145,38 @@ class LargeFileViewTest {
     }
 
     @Test
+    void validatesAgainstASchemaAndListsProblems(@TempDir Path dir) throws Exception {
+        Path xsd = Files.writeString(dir.resolve("orders.xsd"), """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="orders"><xs:complexType><xs:sequence>
+                    <xs:element name="order" maxOccurs="unbounded"><xs:complexType><xs:sequence>
+                      <xs:element name="amount" type="xs:short"/>
+                    </xs:sequence><xs:attribute name="id" type="xs:int"/></xs:complexType></xs:element>
+                  </xs:sequence></xs:complexType></xs:element>
+                </xs:schema>
+                """);
+        Path file = orders(dir, 20_000);   // amount = 3 * id: above 32767 from order 10,923 on
+        LargeFileView view = open(file);
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.validate(xsd.toFile(), true);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> !view.problemsForTesting().isEmpty()));
+        var problems = WaitForAsyncUtils.waitForAsyncFx(2000, view::problemsForTesting);
+        assertEquals(10_924, problems.get(0).line(), "order 10,923 is on line 10,924");
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, view::problemsLabelForTesting)
+                .startsWith("orders.xsd: 1,000+ problems (stopped after 1000)"));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            view.validate(null, false);
+            return null;
+        });
+        WaitForAsyncUtils.waitFor(30, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> view.problemsLabelForTesting().startsWith("The document is well-formed.")));
+    }
+
+    @Test
     void highlightsXml() {
         List<Text> parts = LargeFileView.highlight("<a id=\"1\">x<!-- c --></a>");
         assertEquals("<a", parts.get(0).getText());

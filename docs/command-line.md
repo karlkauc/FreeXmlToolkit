@@ -60,6 +60,11 @@ remote schemas downloaded and cached), redirected by the [Schema Library](schema
 XML catalogs, else the Schema Library entry for the root namespace or element. A file that names
 no schema is checked for well-formedness. `--no-schema-lookup` skips the lookup.
 
+**Large files.** XML files of 64 MB or more are validated while they are read, as a stream:
+memory stays flat whatever the size (a 1 GB file needs less than 20 MB). This applies to XML
+Schema and well-formedness checks; with `--schematron` the file is read into memory as usual.
+After 10,000 problems the file's report stops.
+
 **Folders** are searched recursively for the `--include` patterns; hidden folders (such as
 `.git`) are skipped. Files named directly are always validated; `.json` and `.json5` files are
 treated as JSON, everything else as XML.

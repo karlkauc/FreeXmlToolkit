@@ -5,6 +5,9 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
@@ -45,6 +48,29 @@
                         <IconifyIcon iconLiteral="bi-search" iconSize="16"/>
                     </graphic>
                 </Button>
+                <MenuButton fx:id="validateButton" text="Validate" id="large-file-validate">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-check2-circle" iconSize="16"/>
+                    </graphic>
+                    <items>
+                        <MenuItem fx:id="validateDeclared" text="Against the Declared Schema" id="large-file-validate-declared"
+                                  onAction="#onValidateDeclared">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-link-45deg" iconSize="16"/>
+                            </graphic>
+                        </MenuItem>
+                        <MenuItem text="Against a Schema…" id="large-file-validate-schema" onAction="#onValidateSchema">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
+                            </graphic>
+                        </MenuItem>
+                        <MenuItem text="Well-Formedness Only" id="large-file-validate-wellformed" onAction="#onValidateWellFormed">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-braces" iconSize="16"/>
+                            </graphic>
+                        </MenuItem>
+                    </items>
+                </MenuButton>
             </children>
         </HBox>
         <HBox fx:id="progressBox" spacing="8" alignment="CENTER_LEFT" visible="false" managed="false">
@@ -66,6 +92,26 @@
                                 <StackPane fx:id="rowsSlot" id="large-file-rows"/>
                             </items>
                         </SplitPane>
+                    </content>
+                </Tab>
+                <Tab fx:id="problemsTab" text="Problems" id="large-file-tab-problems" disable="true">
+                    <content>
+                        <VBox spacing="4">
+                            <children>
+                                <Label fx:id="problemsLabel" id="large-file-problems-label" styleClass="diff-xml-summary"/>
+                                <TableView fx:id="problems" id="large-file-problems" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="severityColumn" text="Severity" prefWidth="80"/>
+                                        <TableColumn fx:id="problemLineColumn" text="Line" prefWidth="90"/>
+                                        <TableColumn fx:id="problemColumnColumn" text="Column" prefWidth="70"/>
+                                        <TableColumn fx:id="messageColumn" text="Message" prefWidth="700"/>
+                                    </columns>
+                                    <placeholder>
+                                        <Label text="No problems"/>
+                                    </placeholder>
+                                </TableView>
+                            </children>
+                        </VBox>
                     </content>
                 </Tab>
                 <Tab fx:id="structureTab" text="Structure" id="large-file-tab-structure">

@@ -394,6 +394,49 @@ public class XercesXmlValidationService implements XmlValidationService {
      * @param xmlString the XML content to check
      * @return list of well-formedness errors (empty if well-formed)
      */
+    /**
+     * Validates a document read as a stream (a file of any size: nothing is kept in memory but the
+     * validator's state). Problems go to {@code handler}, which may throw a {@link SAXException} to
+     * stop (for example after a maximum number of errors). Without a schema only well-formedness is
+     * checked.
+     *
+     * @param systemId the document's URI (relative references, messages)
+     * @throws SAXException when the schema cannot be compiled ("Schema is invalid or unreadable: …"), or
+     *                      the handler stopped the run
+     */
+    public synchronized void validateStream(java.io.InputStream xml, String systemId, File schemaFile,
+                                            ErrorHandler handler) throws IOException, SAXException {
+        resourceResolver.resetCircularDetection();
+        org.xml.sax.InputSource input = new org.xml.sax.InputSource(xml);
+        input.setSystemId(systemId);
+        if (schemaFile == null) {
+            try {
+                javax.xml.parsers.SAXParser parser = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureSAXParser();
+                org.xml.sax.XMLReader reader = parser.getXMLReader();
+                reader.setErrorHandler(handler);
+                reader.parse(input);
+            } catch (ParserConfigurationException e) {
+                throw new SAXException(e.getMessage(), e);
+            }
+            return;
+        }
+        String schemaContent = Files.readString(schemaFile.toPath());
+        boolean isXsd11 = isXsd11Schema(schemaContent) && supportsXsd11();
+        SchemaFactory factory = isXsd11 ? schemaFactory11 : schemaFactory10;
+        StreamSource schemaSource = new StreamSource(schemaFile);
+        schemaSource.setSystemId(schemaFile.toURI().toString());
+        Schema schema;
+        try {
+            schema = factory.newSchema(schemaSource);
+        } catch (SAXException e) {
+            throw new SAXException("Schema is invalid or unreadable: " + e.getMessage(), e);
+        }
+        Validator validator = schema.newValidator();
+        validator.setErrorHandler(handler);
+        StreamSource source = new StreamSource(xml, systemId);
+        validator.validate(source);
+    }
+
     private List<SAXParseException> checkWellFormednessOnly(String xmlString) {
         final List<SAXParseException> exceptions = new LinkedList<>();
         try {

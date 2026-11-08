@@ -114,8 +114,16 @@ final class ValidateCommand implements Callable<Integer> {
         return report.exitCode(failOnWarning);
     }
 
+    /** XML files from this size on are validated as a stream (without Schematron): memory stays flat. */
+    static final long STREAMING_BYTES = 64L * 1024 * 1024;
+    /** The threshold in use (tests lower it). */
+    static long streamingBytes = STREAMING_BYTES;
+
     private FileResult validate(Path file) {
         long start = System.nanoTime();
+        if (!isJson(file) && schematron == null && sizeOf(file) >= streamingBytes) {
+            return validateStreaming(file, start);
+        }
         String content;
         try {
             content = CliSupport.read(file);
@@ -141,6 +149,45 @@ final class ValidateCommand implements Callable<Integer> {
         List<Finding> findings = findings(run.problems());
         String notRun = run.failed() ? FxtCli.messageOf(run.error()) : schemaNotLoaded(findings);
         return new FileResult(file, schema, findings, notRun, millisSince(start));
+    }
+
+    private static long sizeOf(Path file) {
+        try {
+            return java.nio.file.Files.size(file);
+        } catch (java.io.IOException e) {
+            return -1;
+        }
+    }
+
+    /** A large XML file: XSD (or well-formedness) validation reading the file as a stream. */
+    private FileResult validateStreaming(Path file, long start) {
+        Path schema = xsd;
+        if (schema == null && !noSchemaLookup) {
+            schema = org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.declaredSchema(file)
+                    .map(File::toPath).orElse(null);
+        }
+        try {
+            var result = org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.validate(file,
+                    schema != null ? schema.toFile() : null, 10_000, null, null);
+            if (result.schemaError() != null) {
+                return new FileResult(file, schema, List.of(new Finding("XSD", Severity.ERROR, 0, 0,
+                        result.schemaError(), null, null)), result.schemaError(), millisSince(start));
+            }
+            List<Finding> findings = new ArrayList<>();
+            for (var problem : result.problems()) {
+                findings.add(new Finding(problem.severity().equals("Fatal") ? "Well-formed" : schema != null ? "XSD" : "Well-formed",
+                        problem.severity().equals("Warning") ? Severity.WARNING : Severity.ERROR,
+                        (int) Math.min(Integer.MAX_VALUE, problem.line()), problem.column(), problem.message(), null, null));
+            }
+            if (result.truncated()) {
+                findings.add(new Finding("XSD", Severity.INFO, 0, 0, "Stopped after 10,000 problems.", null, null));
+            }
+            return new FileResult(file, schema, findings, null, millisSince(start));
+        } catch (java.io.IOException | RuntimeException e) {
+            String reason = "Cannot read the file: " + FxtCli.messageOf(e);
+            return new FileResult(file, schema, List.of(new Finding("File", Severity.ERROR, 0, 0, reason, null, null)),
+                    reason, millisSince(start));
+        }
     }
 
     /**
