@@ -42,7 +42,9 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 class XsdGraphWorkflowTest {
 
-    private static final long TIMEOUT_S = 60;
+    // The real-world schemas (JATS: hundreds of files) need well over a minute to open in the Graphic view on
+    // a 4-core CI runner; the waits poll, so a generous limit costs nothing when things are fast.
+    private static final long TIMEOUT_S = 180;
 
     private EditorHost host;
 
