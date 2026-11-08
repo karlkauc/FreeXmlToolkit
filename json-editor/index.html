@@ -1461,6 +1461,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#converting-between-xml-json-and-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting between XML, JSON and YAML
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting between XML, JSON and YAML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structured-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#w3c-mapping-xpath-31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        W3C mapping (XPath 3.1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#toolbar" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3008,6 +3047,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#converting-between-xml-json-and-yaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Converting between XML, JSON and YAML
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Converting between XML, JSON and YAML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#structured-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#w3c-mapping-xpath-31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        W3C mapping (XPath 3.1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#toolbar" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3375,6 +3453,111 @@ you once when it opens such a file. Edit in the <strong>Text</strong> view to ke
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nv">items</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">3</span><span class="p">,],</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">}</span>
 </code></pre></div>
+<h2 id="converting-between-xml-json-and-yaml">Converting between XML, JSON and YAML<a class="headerlink" href="#converting-between-xml-json-and-yaml" title="Permanent link">&para;</a></h2>
+<p>The <strong>Tools</strong> menu converts the active document:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>From</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Convert to JSON…</strong></td>
+<td>XML, YAML</td>
+</tr>
+<tr>
+<td><strong>Convert to XML…</strong></td>
+<td>JSON, YAML</td>
+</tr>
+<tr>
+<td><strong>Convert to YAML…</strong></td>
+<td>XML, JSON</td>
+</tr>
+</tbody>
+</table>
+<p>When XML is involved, a dialog asks for the mapping (below) and remembers your choice; between JSON
+and YAML there is nothing to choose. The result opens in a new, unsaved tab named after the
+document (<code>order.xml</code> → <code>order.json</code>). The converter reads the text of the editor, including
+changes that are not saved yet. The indentation follows Settings (XML for XML output, JSON for
+JSON and YAML output).</p>
+<p>YAML files (<code>.yaml</code>, <code>.yml</code>) open in the editor as text. They are read as YAML 1.2 (core schema:
+<code>yes</code> and <code>on</code> stay strings); a file with several documents (<code>---</code>) becomes an array. YAML is
+written in block style. Strings that would otherwise read back as a number, boolean or null are
+quoted (<code>'007'</code>, <code>'true'</code>), so a conversion to YAML and back returns the same data. XML goes to
+YAML through its JSON form, with the same mapping. Comments and anchors of a YAML file are not
+kept.</p>
+<h3 id="structured-mapping">Structured mapping<a class="headerlink" href="#structured-mapping" title="Permanent link">&para;</a></h3>
+<p>The default. It works for any XML and gives JSON that reads naturally:</p>
+<table>
+<thead>
+<tr>
+<th>XML</th>
+<th>JSON</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;order&gt;…&lt;/order&gt;</code> (the root)</td>
+<td><code>{"order": …}</code></td>
+</tr>
+<tr>
+<td><code>&lt;name&gt;Ada&lt;/name&gt;</code></td>
+<td><code>"name": "Ada"</code></td>
+</tr>
+<tr>
+<td><code>&lt;item sku="A"&gt;Apple&lt;/item&gt;</code></td>
+<td><code>"item": {"@sku": "A", "#text": "Apple"}</code></td>
+</tr>
+<tr>
+<td>two or more <code>&lt;item&gt;</code> siblings</td>
+<td><code>"item": [ … ]</code></td>
+</tr>
+<tr>
+<td><code>&lt;empty/&gt;</code></td>
+<td><code>"empty": ""</code></td>
+</tr>
+<tr>
+<td><code>xmlns:p="urn:p"</code></td>
+<td><code>"@xmlns:p": "urn:p"</code></td>
+</tr>
+<tr>
+<td>comments, processing instructions</td>
+<td>dropped</td>
+</tr>
+</tbody>
+</table>
+<p>Element text is kept as it is, as a string. With <strong>Numbers and true/false as JSON numbers and
+booleans</strong>, text that is a JSON number (<code>42</code>, <code>1.5</code>, <code>-3e2</code>, but not <code>007</code>) or <code>true</code>/<code>false</code>
+becomes a number or boolean.</p>
+<p>From JSON to XML the same rules apply in reverse. A top-level object with exactly one property
+names the root element; anything else (several properties, an array, a single value) is wrapped
+in the root element set in the dialog (default <code>json</code>). An array repeats its element; an array
+inside an array becomes <code>&lt;item&gt;</code> elements. <code>null</code> becomes an empty element. A property name that is
+not an XML name is adapted: invalid characters become <code>_</code>, and a name that starts with a digit
+gets a leading <code>_</code> (<code>"first name"</code> → <code>first_name</code>, <code>"1st"</code> → <code>_1st</code>). A prefix like <code>p:</code> stays
+when the object declares it with <code>"@xmlns:p"</code>.</p>
+<p>What the structured mapping cannot keep: the order of differently named siblings
+(<code>&lt;a/&gt;&lt;b/&gt;&lt;a/&gt;</code> becomes <code>"a": [ … ], "b": …</code>), text between child elements in mixed content (it
+is joined into one <code>#text</code>), the difference between one element and an array of one, and empty
+arrays. Characters that XML 1.0 cannot hold (control characters such as <code>\u0001</code>) stop the
+conversion to XML; the W3C mapping replaces them.</p>
+<h3 id="w3c-mapping-xpath-31">W3C mapping (XPath 3.1)<a class="headerlink" href="#w3c-mapping-xpath-31" title="Permanent link">&para;</a></h3>
+<p>The XML representation of JSON defined for XPath 3.1, as written by <code>fn:json-to-xml</code> and read by
+<code>fn:xml-to-json</code> (Saxon). It converts any JSON to XML and back without loss:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">&lt;map</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">"http://www.w3.org/2005/xpath-functions"</span><span class="nt">&gt;</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">   </span><span class="nt">&lt;array</span><span class="w"> </span><span class="na">key=</span><span class="s">"items"</span><span class="nt">&gt;</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">      </span><span class="nt">&lt;number&gt;</span>1<span class="nt">&lt;/number&gt;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">      </span><span class="nt">&lt;string&gt;</span>two<span class="nt">&lt;/string&gt;</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">   </span><span class="nt">&lt;/array&gt;</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">   </span><span class="nt">&lt;boolean</span><span class="w"> </span><span class="na">key=</span><span class="s">"active"</span><span class="nt">&gt;</span>true<span class="nt">&lt;/boolean&gt;</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nt">&lt;/map&gt;</span>
+</code></pre></div>
+<p>Use it when the XML is processed further with XSLT or XQuery, or when the JSON must come back
+unchanged. Converting XML to JSON with this mapping needs a document in that vocabulary;
+other XML is refused with a message.</p>
+<p>On the command line: <a href="../command-line/#convert"><code>fxt-cli convert</code></a>.</p>
 <h2 id="toolbar">Toolbar<a class="headerlink" href="#toolbar" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>JSON files use the shell's single-row editor toolbar. Related

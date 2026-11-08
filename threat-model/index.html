@@ -2794,6 +2794,11 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 <td>–</td>
 </tr>
 <tr>
+<td><strong>YAML that expands or loops</strong> (alias bombs, recursive aliases) when converting to JSON or XML</td>
+<td>YAML is read with the core schema only (no Java objects are created from tags); at most 50 aliases per document, duplicate keys and recursive aliases are refused.</td>
+<td>–</td>
+</tr>
+<tr>
 <td><strong>Path traversal in file names from documents</strong></td>
 <td>Paths are validated (parent traversals, system directories, encoded sequences, null bytes, symlink escapes).</td>
 <td>–</td>

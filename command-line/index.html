@@ -1010,6 +1010,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#convert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        convert
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#fop" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2742,6 +2753,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#convert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        convert
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#fop" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2806,13 +2828,15 @@
 
 
 <h1 id="command-line-fxt-cli">Command Line (fxt-cli)<a class="headerlink" href="#command-line-fxt-cli" title="Permanent link">&para;</a></h1>
-<p><code>fxt-cli</code> runs FreeXmlToolkit's validators, transformation engines, schema documentation and PDF
-output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
+<p><code>fxt-cli</code> runs FreeXmlToolkit's validators, transformation engines, schema documentation, XML/JSON
+conversion and PDF output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
 same engines and the same security defaults as the application, and it is installed with it.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>fxt-cli<span class="w"> </span>validate<span class="w"> </span>--xsd<span class="w"> </span>schema/order.xsd<span class="w"> </span>data/
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>fxt-cli<span class="w"> </span>transform<span class="w"> </span>-s<span class="w"> </span>report.xsl<span class="w"> </span>-p<span class="w"> </span><span class="nv">year</span><span class="o">=</span><span class="m">2026</span><span class="w"> </span>data/order.xml<span class="w"> </span>-o<span class="w"> </span>report.html
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>fxt-cli<span class="w"> </span>xsd-doc<span class="w"> </span>schema/order.xsd<span class="w"> </span>-o<span class="w"> </span>site/
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>-i<span class="w"> </span>data/order.xml<span class="w"> </span>-s<span class="w"> </span>order2fo.xsl<span class="w"> </span>-o<span class="w"> </span>order.pdf
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>fxt-cli<span class="w"> </span>convert<span class="w"> </span>data/order.xml<span class="w"> </span>-o<span class="w"> </span>order.json
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>fxt-cli<span class="w"> </span>convert<span class="w"> </span>-t<span class="w"> </span>yaml<span class="w"> </span>data/config.json
 </code></pre></div>
 <h2 id="where-it-is">Where it is<a class="headerlink" href="#where-it-is" title="Permanent link">&para;</a></h2>
 <table>
@@ -2984,10 +3008,61 @@ application.</p>
 </code></pre></div>
 <p><code>-o</code> is a folder for the HTML site and a file for PDF and Word. Without <code>-f</code> the format follows
 the extension of <code>-o</code> (<code>.pdf</code>, <code>.docx</code>, otherwise HTML).</p>
+<h2 id="convert">convert<a class="headerlink" href="#convert" title="Permanent link">&para;</a></h2>
+<p>Converts between XML, JSON and YAML, like <strong>Tools → Convert to JSON… / XML… / YAML…</strong> in the
+application. The mappings are described in the
+<a href="../json-editor/#converting-between-xml-json-and-yaml">JSON Editor</a> chapter.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>fxt-cli<span class="w"> </span>convert<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span>INPUT...
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-t</code>, <code>--to FORMAT</code></td>
+<td><code>json</code>, <code>xml</code> or <code>yaml</code>; default: <code>json</code> for XML input, <code>xml</code> for JSON and YAML input</td>
+</tr>
+<tr>
+<td><code>--from FORMAT</code></td>
+<td><code>xml</code>, <code>json</code>, <code>yaml</code>; default: by extension (<code>.json</code>/<code>.jsonc</code>/<code>.json5</code>, <code>.yaml</code>/<code>.yml</code>, everything else XML)</td>
+</tr>
+<tr>
+<td><code>-m</code>, <code>--mapping MAPPING</code></td>
+<td><code>structured</code> (default) or <code>w3c</code> (XPath 3.1 <code>fn:json-to-xml</code> vocabulary, lossless)</td>
+</tr>
+<tr>
+<td><code>--typed</code></td>
+<td>XML to JSON or YAML: numbers and <code>true</code>/<code>false</code> become numbers and booleans</td>
+</tr>
+<tr>
+<td><code>--root NAME</code></td>
+<td>JSON to XML: root element when the JSON does not name one; default <code>json</code></td>
+</tr>
+<tr>
+<td><code>--indent N</code></td>
+<td>Spaces per indentation level, <code>0</code> for compact output; default 2</td>
+</tr>
+<tr>
+<td><code>-o</code>, <code>--output FILE</code></td>
+<td>Output file (one input)</td>
+</tr>
+<tr>
+<td><code>-d</code>, <code>--output-dir DIR</code></td>
+<td>Output folder for several inputs; each result is named after its input with the new extension</td>
+</tr>
+</tbody>
+</table>
+<p>Without <code>-o</code> and <code>-d</code> the result goes to standard output. A file that cannot be converted
+(not well-formed, not valid JSON or YAML, not in the W3C vocabulary with <code>-m w3c</code>) is reported on
+standard error and gives exit code 1; the other files are still converted.</p>
 <h2 id="fop">fop<a class="headerlink" href="#fop" title="Permanent link">&para;</a></h2>
 <p>Renders a PDF with Apache FOP, like the <a href="../pdf-generator/">PDF Generator</a>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>-i<span class="w"> </span>XML<span class="w"> </span>-s<span class="w"> </span>XSL<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--fo<span class="w"> </span>DOCUMENT.fo<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>-i<span class="w"> </span>XML<span class="w"> </span>-s<span class="w"> </span>XSL<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>fxt-cli<span class="w"> </span>fop<span class="w"> </span>--fo<span class="w"> </span>DOCUMENT.fo<span class="w"> </span>-o<span class="w"> </span>OUT.pdf<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
 </code></pre></div>
 <table>
 <thead>
@@ -3038,7 +3113,7 @@ the extension of <code>-o</code> (<code>.pdf</code>, <code>.docx</code>, otherwi
 </tr>
 <tr>
 <td><code>1</code></td>
-<td>Problems found (an invalid document), or a transformation, documentation or PDF run failed</td>
+<td>Problems found (an invalid document), or a transformation, conversion, documentation or PDF run failed</td>
 </tr>
 <tr>
 <td><code>2</code></td>
@@ -3066,21 +3141,21 @@ the extension of <code>-o</code> (<code>.pdf</code>, <code>.docx</code>, otherwi
 </ul>
 <h2 id="in-a-ci-pipeline">In a CI pipeline<a class="headerlink" href="#in-a-ci-pipeline" title="Permanent link">&para;</a></h2>
 <p>GitHub Actions, uploading the SARIF report to code scanning:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Validate XML</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/freexmltoolkit/bin/fxt-cli validate --xsd schema/order.xsd -f sarif -r fxt.sarif data/</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github/codeql-action/upload-sarif@v3</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">if</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always()</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">sarif_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt.sarif</span>
 </code></pre></div>
 <p>GitLab CI with a JUnit report:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">validate</span><span class="p">:</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">validate</span><span class="p">:</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">script</span><span class="p">:</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-cli validate --xsd schema/order.xsd -f junit -r fxt-junit.xml data/</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="nt">artifacts</span><span class="p">:</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="nt">when</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">always</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="nt">reports</span><span class="p">:</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">      </span><span class="nt">junit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fxt-junit.xml</span>
 </code></pre></div>
 
 
