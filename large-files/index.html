@@ -1127,6 +1127,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#limits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2681,6 +2692,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#limits" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2785,6 +2807,38 @@ copies the element's path, such as <code>/orders[1]/order[42]</code>.</p>
 <p>The structure is read from the bytes of the file on demand, so the first 1,000 children of the root
 of a 1 GB file appear in well under a second. Reading assumes a well-formed document; DTD
 declarations are skipped, entities other than the predefined ones are not expanded.</p>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<p><strong>Validate</strong> in the toolbar checks the whole file while reading it as a stream, so memory stays
+flat whatever its size (a 1 GB file: well-formedness in about 10 seconds, XML Schema validation in
+about 25 seconds, with less than 20 MB of memory):</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Against the Declared Schema</strong></td>
+<td>The schema the document names (<code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code>, resolved as in the editor, also through the <a href="../schema-library/">Schema Library</a>); the menu shows its file name, or "(none)"</td>
+</tr>
+<tr>
+<td><strong>Against a Schema…</strong></td>
+<td>An XML Schema (<code>.xsd</code>, 1.0 or 1.1) you choose</td>
+</tr>
+<tr>
+<td><strong>Well-Formedness Only</strong></td>
+<td>That the document is well-formed XML</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong>Problems</strong> tab lists severity, line, column and message; double-click a problem to see its
+line in the <strong>Text</strong> tab. The check stops after 1,000 problems, and at the first error that makes
+the document not well-formed. A progress bar shows how far it is; <strong>Cancel</strong> stops it. Schematron
+is not available for large files.</p>
+<p><code>fxt-cli validate</code> validates XML files of 64 MB or more the same way (without Schematron), see
+<a href="../command-line/#validate">Command Line</a>.</p>
 <h2 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">&para;</a></h2>
 <ul>
 <li>The viewer is read-only. To change a large file, open it in the editor (if it fits the memory
