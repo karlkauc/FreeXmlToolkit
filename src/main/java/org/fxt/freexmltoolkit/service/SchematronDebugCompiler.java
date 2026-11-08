@@ -39,6 +39,9 @@ public final class SchematronDebugCompiler {
                 // like the validator: schematrons without @queryBinding compile as xslt2
                 .parameter("schxslt.compile.default-query-binding", "xslt2")
                 .validateSVRL(false)
+                // the same protections as the validator (SchematronServiceImpl): no external entities
+                .entityResolver(SchematronServiceImpl.NO_EXTERNAL_ENTITIES)
+                .transformerFactoryCustomizer(SchematronServiceImpl::secure)
                 .build();
         var provider = resource.getXSLTProvider();
         Document xsltDocument = provider == null ? null : provider.getXSLTDocument();

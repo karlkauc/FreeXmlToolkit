@@ -48,6 +48,46 @@ public class SchematronServiceImpl implements SchematronService {
         // Constructor
     }
 
+    /** Resolves every external entity and external DTD to nothing. */
+    static final org.xml.sax.EntityResolver NO_EXTERNAL_ENTITIES =
+            (publicId, systemId) -> new org.xml.sax.InputSource(new StringReader(""));
+
+    /** Hardens the Saxon factory ph-schematron compiles and runs the Schematron with. */
+    static void secure(javax.xml.transform.TransformerFactory factory) {
+        if (factory instanceof net.sf.saxon.TransformerFactoryImpl saxon) {
+            SaxonResourceAccess.restrict(saxon.getConfiguration());
+        } else {
+            try {
+                factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            } catch (javax.xml.transform.TransformerConfigurationException e) {
+                logger.warn("Could not secure the TransformerFactory {}: {}", factory.getClass(), e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * The document to check, parsed by the application's secure SAX parser (no external entities or
+     * DTDs; ph-schematron would otherwise parse it with the platform defaults).
+     */
+    private static Source secureSource(org.xml.sax.InputSource input) {
+        try {
+            org.xml.sax.XMLReader reader = org.fxt.freexmltoolkit.util.SecureXmlFactory.createSecureSAXParser().getXMLReader();
+            reader.setEntityResolver(NO_EXTERNAL_ENTITIES);
+            return new javax.xml.transform.sax.SAXSource(reader, input);
+        } catch (javax.xml.parsers.ParserConfigurationException | org.xml.sax.SAXException e) {
+            throw new IllegalStateException("No secure XML parser: " + e.getMessage(), e);
+        }
+    }
+
+    private static Source secureSource(String xml) {
+        return secureSource(new org.xml.sax.InputSource(new StringReader(xml)));
+    }
+
+    private static Source secureSource(File file) {
+        org.xml.sax.InputSource input = new org.xml.sax.InputSource(file.toURI().toString());
+        return secureSource(input);
+    }
+
     private static ISchematronResource resource(File schematronFile) {
         String key = schematronFile.getAbsolutePath();
         long lastModified = schematronFile.lastModified();
@@ -70,6 +110,11 @@ public class SchematronServiceImpl implements SchematronService {
                     // SchXslt emits svrl:metadata, which the strict SVRL schema check of
                     // ph-schematron 10 rejects; the report itself is read fine without it.
                     .validateSVRL(false)
+                    // Untrusted Schematron and documents: no external entities (an entity could read a
+                    // local file into a message), and Saxon gets the application's parser settings and
+                    // blocks remote doc()/document()/unparsed-text() (see docs/threat-model.md)
+                    .entityResolver(NO_EXTERNAL_ENTITIES)
+                    .transformerFactoryCustomizer(SchematronServiceImpl::secure)
                     .build();
             return new CachedResource(lastModified, r);
         });
@@ -84,7 +129,7 @@ public class SchematronServiceImpl implements SchematronService {
         }
         requireExistingSchematron(schematronFile);
         try {
-            return performValidationWithSvrl(new StreamSource(new StringReader(xmlContent)), schematronFile).errors();
+            return performValidationWithSvrl(secureSource(xmlContent), schematronFile).errors();
         } catch (SchematronLoadException e) {
             throw e;
         } catch (Exception e) {
@@ -102,7 +147,7 @@ public class SchematronServiceImpl implements SchematronService {
         }
         requireExistingSchematron(schematronFile);
         try {
-            return performValidationWithSvrl(new StreamSource(xmlFile), schematronFile).errors();
+            return performValidationWithSvrl(secureSource(xmlFile), schematronFile).errors();
         } catch (SchematronLoadException e) {
             throw e;
         } catch (Exception e) {
@@ -121,7 +166,7 @@ public class SchematronServiceImpl implements SchematronService {
         }
         requireExistingSchematron(schematronFile);
         try {
-            return performValidationWithSvrl(new StreamSource(new StringReader(xmlContent)), schematronFile);
+            return performValidationWithSvrl(secureSource(xmlContent), schematronFile);
         } catch (SchematronLoadException e) {
             throw e;
         } catch (Exception e) {
