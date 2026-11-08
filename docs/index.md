@@ -46,12 +46,17 @@ FreeXmlToolkit is a free desktop application for working with XML files. It help
 ### What Can You Do With FreeXmlToolkit?
 
 - **Edit XML files** with smart auto-completion and syntax highlighting
-- **Validate XML** against XSD schemas to check for errors
+- **Validate XML** against XSD schemas, DTDs and RELAX NG schemas to check for errors
 - **Validate JSON** against JSON Schemas, auto-detected from the document's `$schema` member
 - **Transform XML** into other formats (HTML, PDF, Text)
 - **Sign XML documents** with digital certificates
 - **Create business rules** with Schematron validation
 - **Generate documentation** from your XSD schemas
+- **Compare and merge** XML files by structure, compare folders, convert XML ↔ JSON ↔ YAML
+- **Open huge files** (gigabytes) in the [Large File Viewer](large-files.md)
+- **Automate** with the [command line](command-line.md) (`fxt-cli`) and [projects](projects.md)
+- **Extend** it with [plugins](plugins.md) — industry plugins for ISO 20022, ebInterface, FinDatEx and XBRL included
+- **Work in English or German**, [accessible](accessibility.md), centrally [administrable](administration.md)
 
 ### Works On All Platforms
 
@@ -180,6 +185,8 @@ Opt-in integration with the [FundsXML](https://fundsxml.org/) industry standard 
 | **Quick-Validate** | Check any open XML against the active FundsXML schema with one click in the FundsXML panel |
 | **Schematron Rules** | Ready-made business-rule checks for FundsXML documents |
 | **Query Snippets** | Pre-built XPath/XQuery expressions, ready to load in the Query Console |
+| **Data-Quality Checks** | 17 checks (ISIN/LEI, weights, positions vs. NAV, master data …) with a report, also in every validation |
+| **Grid Formulas & Filters** | Counts, sums per currency, weights and filters added to a document for the Grid view |
 
 This feature is **off by default**. Enable it from Settings only if you work with FundsXML files - when you open a FundsXML document, the app offers to enable it once.
 

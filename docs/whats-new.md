@@ -4,6 +4,51 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
+## Next release
+
+**Platform and enterprise**
+
+- **German user interface:** Settings → Appearance → Language (System default, English, Deutsch);
+  all layouts and the shell's messages are translated. See [Settings](settings.md).
+- **Command line `fxt-cli`:** validate (XSD, DTD, RELAX NG, Schematron, JSON Schema; text, JSON,
+  JUnit and SARIF reports), transform (XSLT, XQuery, XProc, with profiling), xsd-doc, xspec,
+  scenario, compare, merge, convert, fop. See [Command Line](command-line.md).
+- **Administrator policies:** machine-wide `policy.properties` (locked) and `defaults.properties`,
+  telemetry and updates can be switched off centrally, silent installation. See
+  [Administration](administration.md).
+- **Plugins:** an API for activities with side panels, menu items, validators, startup tasks,
+  document listeners, stylesheets and schemas; jars in `~/.freeXmlToolkit/plugins`, managed in
+  Settings → Extensions → PLUGINS. FundsXML is now a plugin. See [Plugins](plugins.md) and
+  [Writing Plugins](plugin-development.md).
+- **Industry plugins** (off by default): ISO 20022 payments / SEPA, ebInterface, FinDatEx EMT/EET/EPT,
+  XBRL with Arelle. See [Industry Plugins](industry-plugins.md).
+- **Projects and transformation scenarios:** `.fxtproj` files bind schemas to files by pattern, add
+  catalogs and store named scenarios (Transform panel, `fxt-cli scenario`). See
+  [Projects](projects.md).
+- **Accessibility:** screen-reader names for every button and field, WCAG AA contrast in both
+  themes, documented keyboard alternatives. See [Accessibility](accessibility.md).
+- **Security:** no external entities in Schematron validation, HTML previews without JavaScript or
+  remote content, XProc pipelines run no programs and reach no network, schemas are never fetched
+  from internal addresses, Saxon's parser hardened, SBOM with every release. See
+  [Threat Model](threat-model.md).
+
+**XML work**
+
+- **DTD and RELAX NG** (XML and compact syntax): validation against the declared or a bound
+  grammar, with IntelliSense. See [Schema Support](schema-support.md#dtd-and-relax-ng).
+- **Compare and merge:** XML compared by structure (namespaces, attribute order, whitespace,
+  element order), folder comparison, three-way merge. 
+- **Conversion:** XML ↔ JSON ↔ YAML (Tools menu, `fxt-cli convert`).
+- **Large File Viewer:** files of any size (1 GB in seconds, a few MB of memory) with search,
+  structure tree, record table and streaming validation. See [Large Files](large-files.md).
+- **XSLT profiler:** hot spots, call tree, flame graph and line times (Transform panel → Profile run).
+- **XSpec:** run XSpec tests for XSLT, XQuery and Schematron, with HTML and JUnit reports.
+- **FundsXML:** 17 data-quality checks with a report and as Query Console snippets, analysis queries,
+  and grid formulas and filters for funds, positions, master data and transactions. See
+  [FundsXML Extensions](fundsxml-extensions.md#data-quality-checks).
+- **Grid:** filters inside opened table cells, saved filters (off when opened), formulas first under
+  their element, German number format; much faster with very large tables (680,000 records).
+
 ## 2.10.0 (2026-11-05)
 
 - **XSD Overview view (XMLSpy style):** a new view mode for schemas lists all top-level

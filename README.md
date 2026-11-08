@@ -76,6 +76,8 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 - **XSD 1.0 / 1.1** validation with line-precise problems, live while you type
 - **Schematron** (ISO, via SchXslt) with **Schematron Quick Fixes** applied as one undo step
 - **JSON Schema** (Draft-07, 2019-09, 2020-12)
+- **DTD and RELAX NG** (XML and compact syntax): against the grammar a document declares or one you
+  bind, with IntelliSense; DTDs load only from files, catalogs or the schema cache
 - **Batch validation** of whole folders
 
 ### Transform, Query and Debug
@@ -91,15 +93,36 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 - **PDF generation** with Apache FOP, in-app preview, PDF/A-1b
 - **XML digital signatures**: sign, verify, create certificates
 
+### Compare, Convert and Large Files
+
+- **XML-aware compare** (structure, namespaces, attribute order, whitespace, element order),
+  **folder comparison** and **three-way merge**
+- **XML ↔ JSON ↔ YAML** conversion
+- **Large File Viewer** for files of any size (1 GB opens in seconds) with search, structure tree,
+  record table and streaming validation
+- **XSLT profiler** (hot spots, call tree, flame graph) and **XSpec** tests for XSLT, XQuery and Schematron
+
+### Projects, Plugins and Industry Standards
+
+- **Projects** (`.fxtproj`): schema bindings by file pattern, catalogs, named transformation scenarios
+- **Plugins**: activities, menu items, validators and schemas from jar files; a documented API and a
+  sample project
+- Optional **industry plugins**: FundsXML (data-quality checks, grid formulas), ISO 20022 / SEPA,
+  ebInterface, FinDatEx EMT/EET/EPT, XBRL (with Arelle)
+
+### Enterprise
+
+- **English and German** user interface
+- **Administrator policies** (locked and default settings, telemetry and updates switchable
+  machine-wide), silent installation, SBOM with every release, documented threat model
+- **Accessibility**: screen-reader names, WCAG AA contrast, keyboard alternatives
+
 ### Command Line
 
-- **`fxt-cli`** for build pipelines and scripts: `validate` (XSD, Schematron, JSON Schema; text,
-  JSON, JUnit and SARIF reports), `transform` (XSLT, XQuery, XProc), `xsd-doc`, `fop`; installed
-  with the application. See [Command Line](https://karlkauc.github.io/FreeXmlToolkit/command-line/).
-
-- **DTD and RELAX NG** (XML and compact syntax): validation against the grammar a document declares
-  (`<!DOCTYPE>`, `<?xml-model?>`) or one you bind, with IntelliSense from it; DTDs load only from
-  files, XML catalogs or the schema cache, never external entities.
+- **`fxt-cli`** for build pipelines and scripts: `validate` (XSD, DTD, RELAX NG, Schematron, JSON
+  Schema; text, JSON, JUnit and SARIF reports), `transform` (XSLT, XQuery, XProc, profiling),
+  `xsd-doc`, `xspec`, `scenario`, `compare`, `merge`, `convert`, `fop`; installed with the
+  application. See [Command Line](https://karlkauc.github.io/FreeXmlToolkit/command-line/).
 
 ## Getting Started
 
