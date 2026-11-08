@@ -1467,6 +1467,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Compare &amp; Merge">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comparing-as-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparing as XML
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4017,6 +4034,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Compare &amp; Merge">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comparing-as-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparing as XML
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -5547,7 +5581,8 @@ glows <strong>green</strong> while a loadable file hovers over it and <strong>re
 <p>All shortcuts are listed on the <strong><a href="../keyboard-shortcuts/">Keyboard Shortcuts</a></strong> page and in the app under <strong>Help → Keyboard Shortcuts</strong>.</p>
 <h2 id="compare-merge">Compare &amp; Merge<a class="headerlink" href="#compare-merge" title="Permanent link">&para;</a></h2>
 <p><strong>Tools → Compare with File…</strong> compares the active document (XML, XSD or any other text file)
-with another file, side by side, and lets you merge the differences.</p>
+with another file, side by side, and lets you merge the differences. XML documents can also be
+compared by structure (<a href="#comparing-as-xml">Comparing as XML</a>).</p>
 <ol>
 <li>Choose <strong>Tools → Compare with File…</strong> and pick a file to compare against the current document.</li>
 <li>A new tab opens titled <code>Compare: &lt;left&gt; ↔ &lt;right&gt;</code> with synchronized scrolling and live re-diff.</li>
@@ -5591,6 +5626,73 @@ with another file, side by side, and lets you merge the differences.</p>
 </tbody>
 </table>
 <p>The diff recomputes automatically about 300 ms after you stop typing.</p>
+<h3 id="comparing-as-xml">Comparing as XML<a class="headerlink" href="#comparing-as-xml" title="Permanent link">&para;</a></h3>
+<p>When both sides are XML, the <strong>XML</strong> button in the toolbar compares the documents by structure
+instead of by lines (<strong>Text</strong> switches back). Indentation, line breaks, the order of attributes,
+quote styles and the choice of namespace prefixes no longer count: two files that differ only in
+formatting are reported as equivalent. A list below the panes names each real difference:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Change</strong></td>
+<td>Added (only on the right), Removed (only on the left), Changed, Moved</td>
+</tr>
+<tr>
+<td><strong>Node</strong></td>
+<td><code>&lt;element&gt;</code>, <code>@attribute</code>, text, comment, processing instruction, namespace</td>
+</tr>
+<tr>
+<td><strong>Left</strong> / <strong>Right</strong></td>
+<td>The value on each side; an added or removed element as its start tag</td>
+</tr>
+<tr>
+<td><strong>Location</strong></td>
+<td>The XPath of the node (of its parent where it is missing)</td>
+</tr>
+</tbody>
+</table>
+<p>Click a row, or use <strong>Prev</strong> / <strong>Next</strong>, to show the lines of that difference in both panes.
+Editing either side compares again. A side that is not well-formed is named with the line of the
+error.</p>
+<p><strong>XML Options</strong> decides what else is ignored; your choice is remembered:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ignore whitespace differences</strong> (on)</td>
+<td>Text is trimmed and runs of whitespace count as one space; whitespace between elements is ignored</td>
+</tr>
+<tr>
+<td><strong>Ignore comments</strong></td>
+<td>Comments are not compared</td>
+</tr>
+<tr>
+<td><strong>Report namespace prefix changes</strong></td>
+<td>Also list elements whose prefix changed while the namespace stayed the same</td>
+</tr>
+<tr>
+<td><strong>Ignore element order</strong></td>
+<td>Elements are paired regardless of their position (by name and attributes, then by text); moves are not listed</td>
+</tr>
+<tr>
+<td><strong>Key Attributes…</strong></td>
+<td>Attributes that identify an element among siblings of the same name, e.g. <code>id</code>: <code>&lt;item id="2"&gt;</code> is compared with <code>&lt;item id="2"&gt;</code> on the other side wherever it is</td>
+</tr>
+</tbody>
+</table>
+<p>The XML mode only compares. To take changes over, switch back to <strong>Text</strong> and use the arrows, or
+<strong>All →</strong> / <strong>All ←</strong>. The view opens in the mode you used last.</p>
 <h2 id="jump-to-validation-errors">Jump to Validation Errors<a class="headerlink" href="#jump-to-validation-errors" title="Permanent link">&para;</a></h2>
 <p>Validation errors appear in the <strong>Properties / Validation</strong> sidebar (Ctrl+Shift+P). <strong>Double-click</strong>
 any error to jump straight to its location:</p>
