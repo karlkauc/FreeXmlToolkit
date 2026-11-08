@@ -22,6 +22,11 @@
        (user decision 2026-08-06); the previous indigo #3b5bdb is retired. */
     -fxt-on-primary: #ffffff;
     -fxt-primary: #1373d9;
+    /* Accessible variants (WCAG AA 4.5:1): primary as text on light backgrounds, the fill of
+       buttons with -fxt-on-primary text, warning as text */
+    -fxt-primary-text: #1068c4;
+    -fxt-primary-fill: #1373d9;
+    -fxt-warning-text: #a65500;
     -fxt-accent: #f08c2e;
 
     /* Backgrounds & borders */
@@ -34,7 +39,7 @@
     /* Text */
     -fxt-text-primary: #1a1d21;
     -fxt-text-secondary: #5a6472;
-    -fxt-text-muted: #8a93a0;
+    -fxt-text-muted: #667080;     /* 4.5:1 on canvas and surface-2 (WCAG AA; was #8a93a0) */
 
     /* Semantic — success */
     -fxt-success: #2f9e44;
@@ -109,6 +114,9 @@
     /* Brand */
     -fxt-on-primary: #ffffff;
     -fxt-primary: #4c9bf5;
+    -fxt-primary-text: #4c9bf5;
+    -fxt-primary-fill: #1f6fd1;   /* white text 4.9:1 (the light #4c9bf5 gave 2.9:1) */
+    -fxt-warning-text: #fab005;
     -fxt-accent: #f59f46;
 
     /* Backgrounds & borders */
@@ -121,7 +129,7 @@
     /* Text */
     -fxt-text-primary: #e6eaf0;
     -fxt-text-secondary: #9ba6b3;
-    -fxt-text-muted: #6b7480;
+    -fxt-text-muted: #858f9c;     /* 4.8:1 on surface-2 (WCAG AA; was #6b7480) */
 
     /* Semantic — success */
     -fxt-success: #51cf66;

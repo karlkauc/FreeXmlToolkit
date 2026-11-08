@@ -49,6 +49,10 @@ public final class DesignTokens {
     public enum ColorToken {
         ON_PRIMARY("-fxt-on-primary", "#ffffff", "#ffffff"),
         PRIMARY("-fxt-primary", "#1373d9", "#4c9bf5"),
+        /** Primary as text colour, at least 4.5:1 on the light backgrounds (WCAG AA). */
+        PRIMARY_TEXT("-fxt-primary-text", "#1068c4", "#4c9bf5"),
+        /** Fill of buttons whose text is {@link #ON_PRIMARY}: at least 4.5:1 with it in both themes. */
+        PRIMARY_FILL("-fxt-primary-fill", "#1373d9", "#1f6fd1"),
         ACCENT("-fxt-accent", "#f08c2e", "#f59f46"),
 
         BG_CANVAS("-fxt-bg-canvas", "#f5f7fa", "#0f1419"),
@@ -59,7 +63,7 @@ public final class DesignTokens {
 
         TEXT_PRIMARY("-fxt-text-primary", "#1a1d21", "#e6eaf0"),
         TEXT_SECONDARY("-fxt-text-secondary", "#5a6472", "#9ba6b3"),
-        TEXT_MUTED("-fxt-text-muted", "#8a93a0", "#6b7480"),
+        TEXT_MUTED("-fxt-text-muted", "#667080", "#858f9c"),
 
         SUCCESS("-fxt-success", "#2f9e44", "#51cf66"),
         SUCCESS_BG("-fxt-success-bg", "#eaf6ee", "#14301e"),
@@ -68,6 +72,8 @@ public final class DesignTokens {
 
         DANGER("-fxt-danger", "#e03131", "#ff6b6b"),
         WARNING("-fxt-warning", "#f08c00", "#fab005"),
+        /** Warning as text colour, at least 4.5:1 on the backgrounds (WCAG AA). */
+        WARNING_TEXT("-fxt-warning-text", "#a65500", "#fab005"),
 
         // Semantic icon/accent foregrounds (match the -fxt-tool-*-fg palette + secondary accents).
         // Used by SemanticIcon to colour IconifyIcons theme-aware; kept in lock-step with

@@ -131,9 +131,11 @@ public class TransformPanel extends VBox {
         // --- STYLESHEET -----------------------------------------------------
         recentXsltMenu.setGraphic(icon("bi-clock-history", 13));
         recentXsltMenu.getStyleClass().add("fxt-vp-source-fav");
+        recentXsltMenu.setTooltip(new javafx.scene.control.Tooltip(org.fxt.freexmltoolkit.i18n.I18n.t("TransformPanel.recentStylesheets")));
         recentXsltMenu.setOnShowing(e -> refreshRecentXsltMenu());
         xsltFavMenu.setGraphic(icon("bi-star", 13));
         xsltFavMenu.getStyleClass().add("fxt-vp-source-fav");
+        xsltFavMenu.setTooltip(new javafx.scene.control.Tooltip(org.fxt.freexmltoolkit.i18n.I18n.t("TransformPanel.xsltFavorites")));
         xsltFavMenu.setOnShowing(e -> refreshXsltFavMenu());
         xsltPos.getStyleClass().add("fxt-vp-browse-pos");
         xsltPos.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE); // "2 / 5" never shrinks to "…"
@@ -147,6 +149,7 @@ public class TransformPanel extends VBox {
         // --- INPUT ------------------------------------------------------------
         inputFavMenu.setGraphic(icon("bi-star", 13));
         inputFavMenu.getStyleClass().add("fxt-vp-source-fav");
+        inputFavMenu.setTooltip(new javafx.scene.control.Tooltip(org.fxt.freexmltoolkit.i18n.I18n.t("TransformPanel.xmlFavorites")));
         inputFavMenu.setOnShowing(e -> refreshInputFavMenu());
         inputPos.getStyleClass().add("fxt-vp-browse-pos");
         inputPos.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE); // "2 / 5" never shrinks to "…"
@@ -723,6 +726,7 @@ public class TransformPanel extends VBox {
     private Button navButton(String iconLiteral, Runnable action) {
         Button button = new Button(null, icon(iconLiteral, 13));
         button.getStyleClass().add("fxt-vp-browse-nav");
+        button.setAccessibleText(org.fxt.freexmltoolkit.i18n.I18n.t(iconLiteral.endsWith("left") ? "TransformPanel.previous" : "TransformPanel.next"));
         button.setOnAction(e -> action.run());
         return button;
     }

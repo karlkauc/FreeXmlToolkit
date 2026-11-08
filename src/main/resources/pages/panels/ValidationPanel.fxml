@@ -53,7 +53,7 @@
         <!-- The ⋮ overflow menu keeps only toggles; every tool is a visible row in TOOLS. -->
         <SidePanelHeader title="%ValidationPanel.validation.title">
             <children>
-                <MenuButton fx:id="overflowMenu" id="validation-overflow" styleClass="fxt-vp-overflow">
+                <MenuButton fx:id="overflowMenu" id="validation-overflow" styleClass="fxt-vp-overflow" accessibleText="%ValidationPanel.overflow.accessibleText">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-three-dots-vertical" iconSize="15"/>
                     </graphic>

@@ -341,9 +341,10 @@ public class UnifiedShellView extends BorderPane {
                 }
             }
         });
-        // The plugins' stylesheets, once the shell is in a scene
+        // The plugins' stylesheets, once the shell is in a scene; accessible names for its controls
         sceneProperty().addListener((obs, oldScene, scene) -> {
             if (scene != null) {
+                AccessibleNames.install(scene);
                 for (String sheet : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().stylesheets()) {
                     if (!scene.getStylesheets().contains(sheet)) {
                         scene.getStylesheets().add(sheet);

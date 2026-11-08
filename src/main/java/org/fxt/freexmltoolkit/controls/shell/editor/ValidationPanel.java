@@ -98,6 +98,7 @@ public class ValidationPanel extends VBox {
         // --- SOURCES ------------------------------------------------------
         xsdFavoritesMenu.setGraphic(icon("bi-star", 13));
         xsdFavoritesMenu.getStyleClass().add("fxt-vp-source-fav");
+        xsdFavoritesMenu.setTooltip(new javafx.scene.control.Tooltip(org.fxt.freexmltoolkit.i18n.I18n.t("ValidationPanel.xsdFavorites")));
         xsdFavoritesMenu.setOnShowing(e -> refreshXsdFavoritesMenu());
         xsdRow.addExtras(xsdFavoritesMenu);
         org.fxt.freexmltoolkit.controls.shell.FileDropSupport.install(xsdRow,

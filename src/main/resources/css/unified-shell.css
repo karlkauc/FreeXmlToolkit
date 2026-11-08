@@ -354,7 +354,7 @@
 .fxt-inspector-node-subtitle-type {
     -fx-font-family: "JetBrains Mono", monospace;
     -fx-font-size: 11.5px;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 /* Full-width section bars (surface-2 band, bottom divider) with the body padded below. */
@@ -505,7 +505,7 @@
     -fx-border-color: transparent;
     -fx-padding: 0;
     -fx-font-size: 11.5px;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-cursor: hand;
     -fx-graphic-text-gap: 5;
 }
@@ -523,7 +523,7 @@
     -fx-text-fill: -fxt-text-muted;
 }
 .fxt-inspector-hint-link {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-cursor: hand;
 }
 .fxt-inspector-hint-link:hover {
@@ -579,7 +579,7 @@
     -fx-padding: 4 10 4 10;
     -fx-font-family: "JetBrains Mono", monospace;
     -fx-font-size: 11.5px;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-cursor: hand;
 }
 /* Declared-but-not-set attribute chip for a required attribute */
@@ -622,7 +622,7 @@
 .fxt-inspector-usage-name {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12.5px;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 .fxt-inspector-usage-detail {
     -fx-font-family: "Inter", sans-serif;
@@ -707,7 +707,7 @@
 
 .fxt-status-item.fxt-status-schema-none:hover {
     -fx-background-color: -fxt-bg-subtle;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 /* Last-run badge: chip in the workflow's bg/border/fg; the result icon is bound to a semantic
@@ -973,7 +973,7 @@
     -fx-background-color: -fxt-text-secondary;
 }
 .fxt-editor-toolbar .fxt-tool-split:hover > .arrow-button > .arrow {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
 }
 
 .fxt-editor-toolbar .fxt-tool-button .iconify-icon {
@@ -1060,7 +1060,7 @@
 }
 
 .fxt-view-seg:selected {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: -fxt-on-primary;
 }
 
@@ -1146,7 +1146,7 @@
 
 .fxt-fav-tab:selected {
     -fx-background-color: transparent;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-border-color: transparent transparent -fxt-primary transparent;
 }
 
@@ -1199,7 +1199,7 @@
 }
 
 .fxt-settings-dirty {
-    -fx-text-fill: -fxt-warning;
+    -fx-text-fill: -fxt-warning-text;
     -fx-font-weight: bold;
 }
 
@@ -1585,7 +1585,7 @@
 
 /* A panel that received new content while another one is in front. */
 .fxt-dock-strip .fxt-seg.fxt-dock-updated {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-border-color: -fxt-primary;
     -fx-border-radius: 6;
 }
@@ -1617,11 +1617,11 @@
 
 /* Messages received output while another tab of its group was in front. */
 .fxt-debug-tabs > .tab-header-area > .headers-region > .tab.fxt-dock-updated .tab-label {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 .fxt-debug-tabs .fxt-output-badge {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: -fxt-on-primary;
 }
 
@@ -1794,7 +1794,7 @@
 
 .fxt-type-picker-detail-note {
     -fx-font-size: 11px;
-    -fx-text-fill: -fxt-warning;
+    -fx-text-fill: -fxt-warning-text;
 }
 
 .fxt-type-picker-detail-doc {
@@ -1873,7 +1873,7 @@
 .fxt-debug-frame-info {
     -fx-padding: 3 8 3 8;
     -fx-font-size: 11px;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-background-color: -fxt-bg-subtle;
     -fx-background-radius: 4;
 }
@@ -1884,7 +1884,7 @@
 }
 
 .fxt-debug-panel .table-row-cell:hover .table-cell.fxt-debug-value-cell {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-underline: true;
 }
 
@@ -1904,7 +1904,7 @@
 /* Variables / Watch: a value that changed since the previous pause in the same frame. */
 .fxt-debug-panel .table-cell.fxt-debug-changed,
 .fxt-debug-panel .tree-table-cell.fxt-debug-changed {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-font-weight: bold;
 }
 
@@ -1973,7 +1973,7 @@
 
 /* Logpoint messages (level LOG). */
 .fxt-debug-pane .list-cell.sev-log {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 .fxt-debug-pane .list-cell.sev-warning {
@@ -2121,7 +2121,7 @@
 
 .fxt-graph-zoom-button:hover {
     -fx-background-color: -fxt-bg-subtle;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 .fxt-graph-zoom-label {
@@ -2161,7 +2161,7 @@
 
 /* Hero */
 .fxt-welcome-hero-icon {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-background-radius: 16;
     -fx-min-width: 64; -fx-min-height: 64;
     -fx-max-width: 64; -fx-max-height: 64;
@@ -2202,7 +2202,7 @@
 .fxt-welcome-clear {
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12px;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-border-color: transparent;
     -fx-padding: 0;
 }
@@ -2225,7 +2225,7 @@
     -fx-background-color: -fxt-bg-surface-2;
 }
 .fxt-quick-card-primary {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-border-color: -fxt-primary;
 }
 .fxt-quick-card-primary:hover {
@@ -2648,7 +2648,7 @@
 
 .fxt-problems-chip-warning {
     -fx-font-size: 11.5px;
-    -fx-text-fill: -fxt-warning;
+    -fx-text-fill: -fxt-warning-text;
     -fx-graphic-text-gap: 4;
 }
 
@@ -2810,7 +2810,7 @@
 }
 
 .toggle-button.fxt-search-option-toggle:selected {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-border-color: -fxt-primary;
     -fx-text-fill: white;
 }
@@ -2847,7 +2847,7 @@
 }
 
 .fxt-explorer-tab:selected {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-border-color: transparent transparent -fxt-primary transparent;
 }
 
@@ -2887,7 +2887,7 @@
 }
 
 .fxt-vp-source-none.fxt-vp-source-name-line:hover {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 /* A bound source name is clickable (opens the file in the editor). */
@@ -2897,13 +2897,13 @@
 
 .fxt-vp-source-open:hover {
     -fx-underline: true;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 /* ...but not while the source is unset ("none" placeholder). */
 .fxt-vp-source-open.fxt-vp-source-none:hover {
     -fx-underline: false;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 .fxt-vp-source-fav {
@@ -2952,14 +2952,14 @@
 
 .fxt-vp-change {
     -fx-font-size: 11.5px;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-border-color: transparent;
     -fx-padding: 0;
     -fx-underline: false;
 }
 
 .fxt-vp-change:visited {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 .fxt-vp-change:hover {
@@ -2990,11 +2990,11 @@
     -fx-background-radius: 6;
     -fx-border-color: -fxt-border;
     -fx-border-radius: 6;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 .fxt-primary-button {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-background-radius: 7;
     -fx-text-fill: -fxt-on-primary;
     -fx-font-size: 12.5px;
@@ -3009,11 +3009,11 @@
 }
 
 .fxt-primary-button:hover {
-    -fx-background-color: derive(-fxt-primary, -10%);
+    -fx-background-color: derive(-fxt-primary-fill, -10%);
 }
 
 .fxt-primary-button:pressed {
-    -fx-background-color: derive(-fxt-primary, -18%);
+    -fx-background-color: derive(-fxt-primary-fill, -18%);
 }
 
 /* Secondary panel action: outlined sibling of .fxt-primary-button, so lesser
@@ -3038,7 +3038,7 @@
 .fxt-secondary-button:hover {
     -fx-background-color: -fxt-bg-subtle;
     -fx-border-color: -fxt-primary;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 .fxt-secondary-button:hover .iconify-icon {
@@ -3292,7 +3292,7 @@
 .fxt-cert-badge {
     -fx-font-size: 10px;
     -fx-font-weight: bold;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-background-color: -fxt-bg-subtle;
     -fx-background-radius: 8;
     -fx-padding: 1 8 1 8;
@@ -3605,7 +3605,7 @@
 }
 
 .fxt-analysis-bar > .bar {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-background-radius: 4;
     -fx-background-insets: 0;
     -fx-padding: 4;
@@ -3626,7 +3626,7 @@
     -fx-background-radius: 4;
 }
 
-.fxt-analysis-seg-optional { -fx-background-color: -fxt-primary; }
+.fxt-analysis-seg-optional { -fx-background-color: -fxt-primary-fill; }
 .fxt-analysis-seg-required { -fx-background-color: -fxt-accent; }
 
 .fxt-analysis-seg-track > .fxt-analysis-seg:first-child { -fx-background-radius: 4 0 0 4; }
@@ -3643,7 +3643,7 @@
 }
 
 .fxt-analysis-usage-fill {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-background-radius: 4;
     -fx-pref-height: 8;
     -fx-min-height: 8;
@@ -3791,7 +3791,7 @@
 .fxt-analysis-score-good { -fx-border-color: -fxt-success; }
 .fxt-analysis-score-good .fxt-analysis-score-number { -fx-text-fill: -fxt-success; }
 .fxt-analysis-score-fair { -fx-border-color: -fxt-warning; }
-.fxt-analysis-score-fair .fxt-analysis-score-number { -fx-text-fill: -fxt-warning; }
+.fxt-analysis-score-fair .fxt-analysis-score-number { -fx-text-fill: -fxt-warning-text; }
 .fxt-analysis-score-poor { -fx-border-color: -fxt-danger; }
 .fxt-analysis-score-poor .fxt-analysis-score-number { -fx-text-fill: -fxt-danger; }
 
@@ -3834,7 +3834,7 @@
 
 /* Clickable count chips: the active one is filled with its tone colour */
 .fxt-analysis-chip-active {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-border-color: -fxt-primary;
     -fx-text-fill: white;
 }
@@ -4135,7 +4135,7 @@
 }
 
 .fxt-action-row-primary {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: -fxt-on-primary;
 }
 
@@ -4145,12 +4145,12 @@
 }
 
 .fxt-action-row-primary:hover {
-    -fx-background-color: derive(-fxt-primary, -10%);
+    -fx-background-color: derive(-fxt-primary-fill, -10%);
 }
 
 .fxt-action-row-primary:armed,
 .fxt-action-row-primary:pressed {
-    -fx-background-color: derive(-fxt-primary, -18%);
+    -fx-background-color: derive(-fxt-primary-fill, -18%);
 }
 
 /* Drop-down row (MenuButton styled as an action row): label text via the inner .label,
@@ -4171,7 +4171,7 @@
 
 .fxt-action-row-menu:hover > .arrow-button > .arrow,
 .fxt-action-row-menu:showing > .arrow-button > .arrow {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
 }
 
 .fxt-action-row-menu:showing {
@@ -4267,7 +4267,7 @@
     -fx-max-height: 22;
     -fx-padding: 0 6 0 6;
     -fx-font-size: 11.5px;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-border-color: -fxt-border;
 }
 
@@ -4308,11 +4308,11 @@
 .fxt-open-name-active {
     -fx-font-size: 12.5px;
     -fx-font-weight: bold;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 .fxt-dirty-dot {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-background-radius: 999;
     -fx-min-width: 7;
     -fx-min-height: 7;
@@ -4419,7 +4419,7 @@
 
 /* Selected mode reads as the active segment (same pair as .fxt-view-seg). */
 .fxt-search-mode-toggle:selected {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: -fxt-on-primary;
 }
 
@@ -4595,7 +4595,7 @@
 }
 
 .fxt-overview-toolbar .toggle-button.fxt-tool-button:selected > .label {
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
 }
 
 /* ===== Favorites quick access: star MenuButtons (header bar, Explorer header) without the
@@ -4688,18 +4688,18 @@
     -fx-background-radius: 3;
     -fx-padding: 0 2 0 2;
     -fx-font-size: 10px;
-    -fx-text-fill: -fxt-primary;
+    -fx-text-fill: -fxt-primary-text;
     -fx-cursor: hand;
 }
 
 .diff-gutter-arrow:hover {
-    -fx-background-color: -fxt-primary;
+    -fx-background-color: -fxt-primary-fill;
     -fx-text-fill: -fxt-on-primary;
 }
 
 /* Compare Folders (FolderCompareView): rows by status */
 .fxt-folder-compare-different .table-cell {
-    -fx-text-fill: -fxt-warning;
+    -fx-text-fill: -fxt-warning-text;
 }
 
 .fxt-folder-compare-only_left .table-cell,
@@ -4733,7 +4733,7 @@
 }
 
 .fxt-merge-status-conflicts {
-    -fx-text-fill: -fxt-warning;
+    -fx-text-fill: -fxt-warning-text;
     -fx-font-weight: bold;
 }
 

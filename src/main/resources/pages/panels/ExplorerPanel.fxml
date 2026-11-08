@@ -136,10 +136,10 @@
                 <HBox styleClass="fxt-explorer-tabs" spacing="2">
                     <children>
                         <ToggleButton fx:id="favoritesTab" id="explorer-tab-favorites" text="%ExplorerPanel.favoritesTab.text"
-                                      styleClass="fxt-explorer-tab" focusTraversable="false"
+                                      styleClass="fxt-explorer-tab"
                                       onAction="#onFavoritesTab"/>
                         <ToggleButton fx:id="recentTab" id="explorer-tab-recent" text="%ExplorerPanel.recentTab.text"
-                                      styleClass="fxt-explorer-tab" focusTraversable="false"
+                                      styleClass="fxt-explorer-tab"
                                       onAction="#onRecentTab"/>
                     </children>
                 </HBox>

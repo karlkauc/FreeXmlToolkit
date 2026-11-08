@@ -190,6 +190,15 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 </MenuItem>
 ```
 
+### Accessibility
+
+`controls/shell/AccessibleNames` names controls for screen readers in every window (icon button →
+tooltip's first line or inner label, input → `Label` before it). Give icon-only buttons a tooltip or
+`accessibleText`. Text in the primary colour: `-fxt-primary-text`; fills behind `-fxt-on-primary`:
+`-fxt-primary-fill`; warning text: `-fxt-warning-text`. `AccessibilityAuditTest` (no unnamed
+controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES`) and `ContrastTest`
+(WCAG AA 4.5:1) guard it. Docs: `docs/accessibility.md`.
+
 ### CSS Style Classes
 
 - **Buttons:** `.btn-primary`, `.btn-success`, `.btn-danger`, `.toolbar-button`

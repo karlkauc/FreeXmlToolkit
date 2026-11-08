@@ -308,6 +308,8 @@ public class FxtGui extends Application {
     public void start(Stage primaryStage) {
         startWatch.start();
 
+        // Names for screen readers: icon-only buttons after their tooltip, fields after their label
+        org.fxt.freexmltoolkit.controls.shell.AccessibleNames.installGlobally();
         // macOS delivers "Open With" / Dock drops as Apple events to Glass, not to AWT.
         org.fxt.freexmltoolkit.app.MacOpenFilesHandler.install();
         if (singleInstance != null) {

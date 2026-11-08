@@ -65,15 +65,13 @@
                                             <children>
                                                 <HBox spacing="6">
                                                     <children>
-                                                        <ToggleButton fx:id="light" text="%SettingsPanel.light.text" toggleGroup="$themeGroup"
-                                                                      focusTraversable="false" styleClass="fxt-view-seg"
+                                                        <ToggleButton fx:id="light" text="%SettingsPanel.light.text" toggleGroup="$themeGroup" styleClass="fxt-view-seg"
                                                                       onAction="#onThemeLight">
                                                             <graphic>
                                                                 <IconifyIcon iconLiteral="bi-sun" iconSize="16"/>
                                                             </graphic>
                                                         </ToggleButton>
-                                                        <ToggleButton fx:id="dark" text="%SettingsPanel.dark.text" toggleGroup="$themeGroup"
-                                                                      focusTraversable="false" styleClass="fxt-view-seg"
+                                                        <ToggleButton fx:id="dark" text="%SettingsPanel.dark.text" toggleGroup="$themeGroup" styleClass="fxt-view-seg"
                                                                       onAction="#onThemeDark">
                                                             <graphic>
                                                                 <IconifyIcon iconLiteral="bi-moon" iconSize="16"/>
@@ -85,7 +83,7 @@
                                         </SettingsCard>
                                         <SettingsCard title="%SettingsPanel.language.title" iconLiteral="bi-translate">
                                             <children>
-                                                <ComboBox fx:id="uiLanguage" id="settings-language" maxWidth="Infinity"/>
+                                                <ComboBox fx:id="uiLanguage" id="settings-language" accessibleText="%SettingsPanel.language.accessibleText" maxWidth="Infinity"/>
                                                 <Label text="%SettingsPanel.language-restart.text" wrapText="true"
                                                        minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
                                             </children>
@@ -538,7 +536,7 @@
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <TextField fx:id="proxyTestUrl" id="settings-proxy-test-url" text="%SettingsPanel.proxyTestUrl.text" HBox.hgrow="ALWAYS"/>
+                                                        <TextField fx:id="proxyTestUrl" id="settings-proxy-test-url" accessibleText="%SettingsPanel.proxyTestUrl.accessibleText" text="%SettingsPanel.proxyTestUrl.text" HBox.hgrow="ALWAYS"/>
                                                         <Button fx:id="proxyTestButton" id="settings-proxy-test" text="%SettingsPanel.proxyTestButton.text"
                                                                 styleClass="fxt-tool-button" onAction="#onTestConnection">
                                                             <graphic>

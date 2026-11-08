@@ -162,7 +162,7 @@
                             <children>
                                 <VBox styleClass="fxt-tp-section-body">
                                     <children>
-                                        <ComboBox fx:id="formatChoice" id="transform-output-method" maxWidth="Infinity"
+                                        <ComboBox fx:id="formatChoice" id="transform-output-method" accessibleText="%TransformPanel.outputMethod.accessibleText" maxWidth="Infinity"
                                                   styleClass="fxt-neutral-combo"/>
                                     </children>
                                 </VBox>
