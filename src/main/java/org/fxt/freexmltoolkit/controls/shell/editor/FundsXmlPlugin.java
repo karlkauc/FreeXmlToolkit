@@ -60,6 +60,8 @@ public final class FundsXmlPlugin implements FxtPlugin {
                 "bi-file-earmark-text", ui -> ProjectLinks.openInBrowser(ProjectLinks.FUNDSXML_SCHEMA_DOCS_URL),
                 FundsXmlRunner::isEnabled));
         context.addStartupTask(FundsXmlPlugin::startupSync);
+        context.addStartupTask(FundsXmlPlugin::registerSnippets);
+        context.addValidator(new DataQualityValidator());
         context.addDocumentListener((ui, path, content) -> {
             if (FundsXmlHint.shouldOffer(content)) {
                 showHint(ui);
@@ -88,8 +90,48 @@ public final class FundsXmlPlugin implements FxtPlugin {
         contentFetcher.accept("hint-enable");
     }
 
+    /** Adds the data-quality checks and analysis queries as snippets while the extension is on. */
+    static void registerSnippets() {
+        if (FundsXmlRunner.isEnabled()) {
+            try {
+                org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.registerSnippets(
+                        org.fxt.freexmltoolkit.service.XPathSnippetRepository.getInstance());
+            } catch (RuntimeException e) {
+                logger.warn("FundsXML snippets not registered: {}", e.getMessage());
+            }
+        }
+    }
+
+    /** The data-quality checks as a validator of FundsXML documents (while the extension is on). */
+    static final class DataQualityValidator implements org.fxt.freexmltoolkit.plugin.DocumentValidator {
+        @Override
+        public String name() {
+            return "FundsXML DQ";
+        }
+
+        @Override
+        public boolean accepts(String content, String documentName) {
+            return FundsXmlRunner.isEnabled()
+                    && org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.isFundsXml(content);
+        }
+
+        @Override
+        public java.util.List<Problem> validate(String content, String documentName) {
+            java.util.List<Problem> problems = new java.util.ArrayList<>();
+            for (var result : org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.run(content)) {
+                String check = result.check().name.replaceFirst("^DQ: ", "");
+                if (result.error() != null) {
+                    problems.add(new Problem("error", 0, check + ": the check could not run (" + result.error() + ")"));
+                }
+                result.findings().forEach(f -> problems.add(new Problem("warning", 0, check + ": " + f)));
+            }
+            return problems;
+        }
+    }
+
     /** Downloads the FundsXML content (or registers the cached one) after the extension was turned on. */
     public static void fetchContent(String trigger) {
+        registerSnippets();
         var coordinator = FundsXmlDownloadCoordinator.getInstance();
         if (FundsXmlExtensionService.getInstance().isCacheEmpty()) {
             coordinator.startBackgroundDownload(trigger);

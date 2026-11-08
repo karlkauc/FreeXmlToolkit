@@ -146,6 +146,60 @@ public class FundsXmlPanel extends VBox {
         });
     }
 
+    /** Runs the data-quality checks on the active document and opens the report. */
+    @FXML
+    public void onDataQuality() {
+        String xml = editorHost.getActiveText().orElse(null);
+        if (xml == null || !org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.isFundsXml(xml)) {
+            PanelStatus.precondition(status, I18n.t("FundsXmlPanel.notFundsXml"));
+            return;
+        }
+        String name = editorHost.getActiveDocument().map(OpenDocument::getDisplayName).orElse("document");
+        PanelStatus.info(status, I18n.t("FundsXmlPanel.checking"));
+        FxtGui.executorService.submit(() -> {
+            var results = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.run(xml);
+            String html = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.htmlReport(results, name);
+            long failed = results.stream().filter(r -> !r.passed()).count();
+            Platform.runLater(() -> {
+                editorHost.openGeneratedDocument(html, EditorFileType.HTML, name.replaceFirst("\\.xml$", "") + "-dq.html");
+                editorHost.setActiveViewMode(ViewMode.PREVIEW);
+                if (failed == 0) {
+                    PanelStatus.success(status, I18n.t("FundsXmlPanel.dqPassed", results.size()));
+                } else {
+                    PanelStatus.info(status, I18n.t("FundsXmlPanel.dqFindings", failed, results.size()));
+                }
+            });
+        });
+    }
+
+    /** Adds the grid formulas and filters to a copy of the active document and opens it in the grid. */
+    @FXML
+    public void onGridSetup() {
+        String xml = editorHost.getActiveText().orElse(null);
+        if (xml == null || !org.fxt.freexmltoolkit.service.fundsxml.FundsXmlDataQuality.isFundsXml(xml)) {
+            PanelStatus.precondition(status, I18n.t("FundsXmlPanel.notFundsXml"));
+            return;
+        }
+        if (org.fxt.freexmltoolkit.service.fundsxml.FundsXmlGridSetup.isSigned(xml)
+                && !org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("FundsXmlPanel.fundsxml-grid-setup.text"),
+                        I18n.t("FundsXmlPanel.signedHeader"), I18n.t("FundsXmlPanel.signedContent"))) {
+            return;
+        }
+        String name = editorHost.getActiveDocument().map(OpenDocument::getDisplayName).orElse("document.xml");
+        FxtGui.executorService.submit(() -> {
+            try {
+                String result = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlGridSetup.apply(xml, true);
+                Platform.runLater(() -> {
+                    editorHost.openGeneratedDocument(result, EditorFileType.XML, name.replaceFirst("\\.xml$", "") + "-grid.xml");
+                    editorHost.setActiveViewMode(ViewMode.GRAPHIC);
+                    PanelStatus.success(status, I18n.t("FundsXmlPanel.gridSetupDone"));
+                });
+            } catch (java.io.IOException e) {
+                Platform.runLater(() -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.gridSetupFailed"), e.getMessage(), false));
+            }
+        });
+    }
+
     @FXML
     public void onGenerateDocs() {
         PanelStatus.info(status, I18n.t("FundsXmlPanel.generating-documentation"));

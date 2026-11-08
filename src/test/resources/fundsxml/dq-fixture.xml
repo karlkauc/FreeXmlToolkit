@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FundsXML4>
+  <ControlData>
+    <UniqueDocumentID>DQ-TEST-1</UniqueDocumentID>
+    <DocumentGenerated>2025-10-02T08:00:00</DocumentGenerated>
+    <ContentDate>2025-10-01</ContentDate>
+    <DataSupplier><SystemCountry>AT</SystemCountry><Short>FXT</Short><Name>FreeXmlToolkit Test</Name><Type>Asset Manager</Type></DataSupplier>
+    <DataOperation>INITIAL</DataOperation>
+  </ControlData>
+  <Funds>
+    <Fund>
+      <Identifiers><LEI>529900T8BM49AURSDO55</LEI></Identifiers>
+      <Names><OfficialName>Test Fund</OfficialName></Names>
+      <Currency>EUR</Currency>
+      <SingleFundFlag>true</SingleFundFlag>
+      <FundDynamicData>
+        <TotalAssetValues>
+          <TotalAssetValue>
+            <NavDate>2025-10-01</NavDate>
+            <TotalAssetNature>OFFICIAL</TotalAssetNature>
+            <TotalNetAssetValue><Amount ccy="EUR">10000000.00</Amount></TotalNetAssetValue>
+          </TotalAssetValue>
+        </TotalAssetValues>
+        <Portfolios>
+          <Portfolio>
+            <NavDate>2025-10-01</NavDate>
+            <Positions>
+              <Position>
+                <UniqueID>P1</UniqueID>
+                <Identifiers><ISIN>US0378331005</ISIN></Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue><Amount ccy="EUR">6000000.00</Amount></TotalValue>
+                <TotalPercentage>60.00</TotalPercentage>
+                <Equity><Units>1000</Units></Equity>
+              </Position>
+              <Position>
+                <UniqueID>P2</UniqueID>
+                <Identifiers><ISIN>DE0005140008</ISIN></Identifiers>
+                <Currency>EUR</Currency>
+                <TotalValue><Amount ccy="EUR">4000000.00</Amount></TotalValue>
+                <TotalPercentage>40.00</TotalPercentage>
+                <Equity><Units>2000</Units></Equity>
+              </Position>
+            </Positions>
+            <Transactions>
+              <Transaction>
+                <TransactionID>T1</TransactionID>
+                <AssetUniqueID>P1</AssetUniqueID>
+                <TransactionKind>BUY</TransactionKind>
+                <EntryDate>2025-09-29</EntryDate>
+                <ValutaDate>2025-10-01</ValutaDate>
+                <Currency>EUR</Currency>
+                <MarketValue><Amount ccy="EUR">100000.00</Amount></MarketValue>
+              </Transaction>
+            </Transactions>
+          </Portfolio>
+        </Portfolios>
+      </FundDynamicData>
+    </Fund>
+  </Funds>
+  <AssetMasterData>
+    <Asset><UniqueID>P1</UniqueID><Identifiers><ISIN>US0378331005</ISIN></Identifiers><Currency>EUR</Currency><Country>US</Country><Name>APPLE INC.</Name><AssetType>EQ</AssetType></Asset>
+    <Asset><UniqueID>P2</UniqueID><Identifiers><ISIN>DE0005140008</ISIN></Identifiers><Currency>EUR</Currency><Country>DE</Country><Name>DEUTSCHE BANK AG</Name><AssetType>EQ</AssetType></Asset>
+  </AssetMasterData>
+</FundsXML4>

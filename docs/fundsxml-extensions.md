@@ -136,6 +136,56 @@ The validation uses whichever FundsXML schema version is currently marked as act
 
 ---
 
+## Data-Quality Checks
+
+**Run Data Quality Checks** in the FundsXML side panel checks the active FundsXML document with
+17 XQuery checks and opens a report (passed / findings / not run, with every finding):
+
+| Check | What it looks at |
+|---|---|
+| Control data complete | `UniqueDocumentID`, `DocumentGenerated`, `ContentDate`, data supplier name |
+| Content date not in the future | `ControlData/ContentDate` |
+| ISIN / LEI check digits | every `ISIN` (ISO 6166) and `LEI` (ISO 17442) |
+| Currency codes | currency elements and `ccy` attributes are ISO 4217 codes |
+| Position weights add up to 100 % | `TotalPercentage` of a fund's positions per date, over all portfolios (± 0.5) |
+| Positions vs. net asset value | market values in fund currency against `TotalNetAssetValue` of the date (± 1 %) |
+| No duplicate positions | one `UniqueID` per portfolio |
+| Positions have master data / unused master data | positions without an `Asset`, assets nobody refers to |
+| No negative values of securities | equities, bonds, fund shares, certificates, warrants |
+| Securities have an identifier | the same positions without `Identifiers` |
+| Portfolio dates have a net asset value | each `Portfolio/NavDate` has a `TotalAssetValue` |
+| Share classes add up to the fund | share class net asset values against the fund's (± 0.5 %) |
+| Price × shares = share class value | `NavPrice` × `SharesOutstanding` against the share class's net asset value (± 1 %) |
+| Transactions settle after entry | `ValutaDate` not before `EntryDate` |
+| No matured instruments held | maturity dates before the content date of held assets |
+
+The checks also run with every validation of a FundsXML document while the extension is on; their
+findings appear as warnings with the source **FundsXML DQ**. In the Query Console they are available as
+snippets (**FUNDSXML** section) together with analysis queries — all funds, top 10 positions, exposure
+by asset type and by currency, positions over 5 %, positions without ISIN, derivatives, share class
+prices — so each can be run, adapted and saved on its own. The checks were developed against the
+documents of the official [fundsxml/examples](https://github.com/fundsxml/examples) repository.
+
+## Grid Formulas and Filters
+
+**Add Grid Formulas & Filters** in the side panel opens a copy of the active document in the
+[Grid view](grid.md) with named formulas and saved filters added:
+
+| Element | Formulas | Saved filter (off until clicked) |
+|---|---|---|
+| root | Funds, Positions, Assets | – |
+| `Fund` | Net asset value, Positions value, Weights %, Share classes | – |
+| `Positions` | Count, Value (per currency), Weight %, Largest, Without ISIN | positions over 5 % |
+| `AssetMasterData` | Assets, By asset type, By country | assets without ISIN |
+| `Transactions` | Count, Market value (per currency), By kind | transactions settling before their entry |
+| `ShareClasses` | Share classes, Net asset value (per currency) | – |
+
+Formulas show their live result as the first rows of their element; a saved filter appears as a grey
+funnel line and filters the rows when you click it. Running the action again adds nothing twice. The
+stylesheet behind it, `plugins/fundsxml/fundsxml-grid-setup.xsl`, can be used in the Transform panel on
+any FundsXML file as well. For a signed document you are asked first: the copy no longer matches the
+signature.
+
 ## The FundsXML Side Panel
 
 Select the **FundsXML** activity in the activity bar to open its side panel.

@@ -84,7 +84,7 @@ class PluginManagerTest {
         assertEquals(PluginManager.State.ACTIVE, fundsXml.state());
         assertTrue(manager.activities().stream().anyMatch(a -> a.id().equals("fundsxml")));
         assertTrue(manager.menuItems().stream().anyMatch(m -> m.id().equals("fundsxml-site")));
-        assertEquals(1, manager.startupTasks().size());
+        assertEquals(2, manager.startupTasks().size(), "content sync and snippets");
     }
 
     @Test

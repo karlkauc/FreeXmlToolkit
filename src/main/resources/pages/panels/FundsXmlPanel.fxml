@@ -42,6 +42,10 @@
                     <children>
                         <PanelActionButton id="fundsxml-validate" iconLiteral="bi-check2-circle"
                                            text="%FundsXmlPanel.fundsxml-validate.text" color="CREATE" onAction="#onValidate"/>
+                        <PanelActionButton id="fundsxml-dq" iconLiteral="bi-clipboard2-check"
+                                           text="%FundsXmlPanel.fundsxml-dq.text" color="CREATE" onAction="#onDataQuality"/>
+                        <PanelActionButton id="fundsxml-grid-setup" iconLiteral="bi-calculator"
+                                           text="%FundsXmlPanel.fundsxml-grid-setup.text" color="TOOL" onAction="#onGridSetup"/>
                     </children>
                 </PanelActionList>
             </children>
