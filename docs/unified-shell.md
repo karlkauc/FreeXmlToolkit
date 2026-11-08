@@ -1115,7 +1115,8 @@ All shortcuts are listed on the **[Keyboard Shortcuts](keyboard-shortcuts.md)** 
 ## Compare & Merge
 
 **Tools → Compare with File…** compares the active document (XML, XSD or any other text file)
-with another file, side by side, and lets you merge the differences.
+with another file, side by side, and lets you merge the differences. XML documents can also be
+compared by structure ([Comparing as XML](#comparing-as-xml)).
 
 1. Choose **Tools → Compare with File…** and pick a file to compare against the current document.
 2. A new tab opens titled `Compare: <left> ↔ <right>` with synchronized scrolling and live re-diff.
@@ -1132,6 +1133,37 @@ Merge controls let you reconcile the two files:
 | **Save Left** / **Save Right** | - | Write a pane back to its file |
 
 The diff recomputes automatically about 300 ms after you stop typing.
+
+### Comparing as XML
+
+When both sides are XML, the **XML** button in the toolbar compares the documents by structure
+instead of by lines (**Text** switches back). Indentation, line breaks, the order of attributes,
+quote styles and the choice of namespace prefixes no longer count: two files that differ only in
+formatting are reported as equivalent. A list below the panes names each real difference:
+
+| Column | Shows |
+|---|---|
+| **Change** | Added (only on the right), Removed (only on the left), Changed, Moved |
+| **Node** | `<element>`, `@attribute`, text, comment, processing instruction, namespace |
+| **Left** / **Right** | The value on each side; an added or removed element as its start tag |
+| **Location** | The XPath of the node (of its parent where it is missing) |
+
+Click a row, or use **Prev** / **Next**, to show the lines of that difference in both panes.
+Editing either side compares again. A side that is not well-formed is named with the line of the
+error.
+
+**XML Options** decides what else is ignored; your choice is remembered:
+
+| Option | Effect |
+|---|---|
+| **Ignore whitespace differences** (on) | Text is trimmed and runs of whitespace count as one space; whitespace between elements is ignored |
+| **Ignore comments** | Comments are not compared |
+| **Report namespace prefix changes** | Also list elements whose prefix changed while the namespace stayed the same |
+| **Ignore element order** | Elements are paired regardless of their position (by name and attributes, then by text); moves are not listed |
+| **Key Attributes…** | Attributes that identify an element among siblings of the same name, e.g. `id`: `<item id="2">` is compared with `<item id="2">` on the other side wherever it is |
+
+The XML mode only compares. To take changes over, switch back to **Text** and use the arrows, or
+**All →** / **All ←**. The view opens in the mode you used last.
 
 ## Jump to Validation Errors
 

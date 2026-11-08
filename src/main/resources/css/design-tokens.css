@@ -56,6 +56,14 @@
     -fxt-type-frame-bg: #fffbe0;
     -fxt-type-frame-border: #d4b84a;
     -fxt-type-frame-fg: #7d6c2c;
+    /* Compare view (DiffView): line backgrounds, changed words, XML-mode difference lines */
+    -fxt-diff-added-bg: #e6ffed;
+    -fxt-diff-deleted-bg: #ffe5e5;
+    -fxt-diff-modified-bg: #fff8c5;
+    -fxt-diff-word-added-bg: #c8f0d4;
+    -fxt-diff-word-added-fg: #22863a;
+    -fxt-diff-word-removed-bg: #ffd1d1;
+    -fxt-diff-word-removed-fg: #b31d28;
 
     /* Code syntax */
     -fxt-code-text: #1a1d21;
@@ -135,6 +143,13 @@
     -fxt-type-frame-bg: #2a2614;
     -fxt-type-frame-border: #7a6a2e;
     -fxt-type-frame-fg: #d9c27a;
+    -fxt-diff-added-bg: #173a24;
+    -fxt-diff-deleted-bg: #4a1f22;
+    -fxt-diff-modified-bg: #3d3815;
+    -fxt-diff-word-added-bg: #22593a;
+    -fxt-diff-word-added-fg: #8ce0a0;
+    -fxt-diff-word-removed-bg: #6e2a2e;
+    -fxt-diff-word-removed-fg: #ffa8a8;
 
     /* Code syntax */
     -fxt-code-text: #e6eaf0;

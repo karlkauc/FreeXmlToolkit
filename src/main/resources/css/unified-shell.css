@@ -4612,3 +4612,87 @@
 .fxt-fav-quick-access > .label {
     -fx-padding: 0;
 }
+
+/* ===================================== */
+/* Compare view (controls/diff/DiffView)  */
+/* ===================================== */
+.diff-view {
+    -fx-background-color: -fxt-bg-canvas;
+}
+
+.diff-pane-header-bar {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: transparent transparent -fxt-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.diff-pane-header {
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.diff-gutter {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 1 0 1;
+}
+
+/* text segments of the two CodeAreas (RichTextFX: -rtfx-background-color) */
+.diff-deleted {
+    -rtfx-background-color: -fxt-diff-deleted-bg;
+}
+
+.diff-added {
+    -rtfx-background-color: -fxt-diff-added-bg;
+}
+
+.diff-modified {
+    -rtfx-background-color: -fxt-diff-modified-bg;
+}
+
+.diff-word-removed {
+    -rtfx-background-color: -fxt-diff-word-removed-bg;
+    -fx-fill: -fxt-diff-word-removed-fg;
+}
+
+.diff-word-added {
+    -rtfx-background-color: -fxt-diff-word-added-bg;
+    -fx-fill: -fxt-diff-word-added-fg;
+}
+
+/* XML mode: the line of the selected difference */
+.diff-xml-current {
+    -rtfx-background-color: -fxt-diff-modified-bg;
+}
+
+.diff-xml-panel {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.diff-xml-summary {
+    -fx-padding: 4 8 4 8;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.diff-xml-error {
+    -fx-text-fill: -fxt-danger;
+}
+
+.diff-gutter-arrow {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-primary;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 0 2 0 2;
+    -fx-font-size: 10px;
+    -fx-text-fill: -fxt-primary;
+    -fx-cursor: hand;
+}
+
+.diff-gutter-arrow:hover {
+    -fx-background-color: -fxt-primary;
+    -fx-text-fill: -fxt-on-primary;
+}
