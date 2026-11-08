@@ -168,6 +168,23 @@ public final class TransformRunner {
     }
 
     /**
+     * Runs the transform with the XSLT profiler ({@link XsltTransformationEngine#profileTransformation}).
+     *
+     * @param warmupRuns runs before the measured one
+     */
+    public static XsltTransformationEngine.ProfiledTransformation profile(String xml, String xmlBaseUri,
+            String xsltContent, String xsltSystemId, java.util.Map<String, Object> parameters,
+            XsltTransformationEngine.OutputFormat outputFormat, int warmupRuns) {
+        try {
+            return XsltTransformationEngine.getInstance().profileTransformation(xml, xmlBaseUri, xsltContent,
+                    xsltSystemId, parameters, outputFormat, warmupRuns, null);
+        } catch (Exception e) {
+            return new XsltTransformationEngine.ProfiledTransformation(XsltTransformationResult.error(e.getMessage(), e),
+                    null);
+        }
+    }
+
+    /**
      * Pattern for the {@code method} attribute of a stylesheet's {@code xsl:output}
      * declaration (any namespace prefix).
      */

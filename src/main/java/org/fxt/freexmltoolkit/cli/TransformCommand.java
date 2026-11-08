@@ -73,6 +73,15 @@ final class TransformCommand implements Callable<Integer> {
             description = "Language: ${COMPLETION-CANDIDATES} (default: from the file extension).")
     Language language;
 
+    @Option(names = "--profile", paramLabel = "REPORT",
+            description = "XSLT: profile the run and write the report to REPORT (.json: JSON, otherwise text; "
+                    + "'-' for standard error). One input.")
+    String profileReport;
+
+    @Option(names = "--warmup", paramLabel = "N", defaultValue = "1",
+            description = "With --profile: runs before the measured one, so the JIT has warmed up (default: ${DEFAULT-VALUE}).")
+    int warmupRuns;
+
     @Override
     public Integer call() throws Exception {
         CommandLine commandLine = spec.commandLine();
@@ -94,6 +103,9 @@ final class TransformCommand implements Callable<Integer> {
         }
         if (lang == Language.XSLT && inputs.isEmpty()) {
             throw new CommandLine.ParameterException(commandLine, "An XSLT transformation needs an input document");
+        }
+        if (profileReport != null && (lang != Language.XSLT || inputs.size() != 1)) {
+            throw new CommandLine.ParameterException(commandLine, "--profile works for XSLT with one input");
         }
         PrintWriter err = commandLine.getErr();
         if (lang == Language.XPROC && (!parameters.isEmpty() || method != null)) {
@@ -132,6 +144,20 @@ final class TransformCommand implements Callable<Integer> {
         return exitCode;
     }
 
+    private void writeProfile(org.fxt.freexmltoolkit.service.XsltProfile profile) throws java.io.IOException {
+        boolean json = profileReport.toLowerCase(java.util.Locale.ROOT).endsWith(".json");
+        String report = json ? profile.toJson() : profile.toText(30);
+        if ("-".equals(profileReport)) {
+            spec.commandLine().getErr().print(report);
+            spec.commandLine().getErr().flush();
+        } else {
+            CliSupport.write(Path.of(profileReport), report);
+            if (parent == null || !parent.quiet) {
+                spec.commandLine().getErr().println("Wrote profile " + profileReport);
+            }
+        }
+    }
+
     /** The result of one run: output text and format, or an error; plus xsl:message output. */
     private record Outcome(String text, OutputFormat format, String error, List<String> messages) {
     }
@@ -144,6 +170,13 @@ final class TransformCommand implements Callable<Integer> {
         switch (lang) {
             case XSLT -> {
                 OutputFormat format = method != null ? method : TransformRunner.detectXsltOutputFormat(code);
+                if (profileReport != null) {
+                    var profiled = TransformRunner.profile(xml, inputUri, code, codeUri, params, format, warmupRuns);
+                    if (profiled.profile() != null) {
+                        writeProfile(profiled.profile());
+                    }
+                    return outcome(profiled.result(), format);
+                }
                 XsltTransformationResult result = TransformRunner.xsltTransformResult(
                         xml, inputUri, code, codeUri, params, format);
                 return outcome(result, format);

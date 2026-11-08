@@ -99,6 +99,8 @@ fxt-cli transform -s STYLESHEET [options] [INPUT...]
 | `-m`, `--method METHOD` | Output method `xml`, `html`, `xhtml`, `text`, `json`; default: the stylesheet's `xsl:output`, else `xml` |
 | `-o`, `--output FILE` | Output file (one input) |
 | `-d`, `--output-dir DIR` | Output folder for several inputs; each result is named after its input with the extension of the output method |
+| `--profile REPORT` | XSLT with one input: profile the run and write the report, as JSON when REPORT ends in `.json`, else as text (`-` for standard error) |
+| `--warmup N` | With `--profile`: runs before the measured one (default 1), so Java's JIT compiler has warmed up |
 
 Without `-o` and `-d` the result goes to standard output. `xsl:message` output goes to standard
 error. XSLT needs an input document; XQuery and XProc can run without one. Relative

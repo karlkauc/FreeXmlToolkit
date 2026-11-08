@@ -573,6 +573,81 @@ public class XsltTransformationEngine {
     }
 
     /**
+     * The result of {@link #profileTransformation}: the transformation result of the measured run and
+     * its profile ({@code null} when the run failed).
+     */
+    public record ProfiledTransformation(XsltTransformationResult result, XsltProfile profile) {
+    }
+
+    /**
+     * Runs an XSLT transformation with the profiler ({@link XsltProfilingTraceListener}): the
+     * stylesheet is compiled once with tracing on the debug processor, run {@code warmupRuns}
+     * times so the Java JIT compiler has warmed up, then once more measured.
+     *
+     * @param warmupRuns  runs before the measured one (0 to 10)
+     * @param moduleTexts unsaved texts of included modules by normalized URI, or {@code null}
+     */
+    public ProfiledTransformation profileTransformation(String xmlContent, String inputSystemId, String xsltContent,
+                                                        String xsltSystemId, Map<String, Object> parameters,
+                                                        OutputFormat outputFormat, int warmupRuns,
+                                                        java.util.function.Function<String, String> moduleTexts) {
+        int warmups = Math.max(0, Math.min(warmupRuns, 10));
+        long startTime = System.currentTimeMillis();
+        Processor processor = getDebugProcessor();
+        XsltDebugMessageListener messageListener = new XsltDebugMessageListener();
+        try {
+            XsltExecutable executable;
+            try {
+                executable = compileForDebug(processor, xsltContent, xsltSystemId, messageListener, moduleTexts);
+            } catch (StylesheetCompileException e) {
+                return new ProfiledTransformation(e.toResult(), null);
+            }
+            XdmNode sourceDoc;
+            try {
+                sourceDoc = parseXmlDocument(processor, xmlContent, inputSystemId);
+            } catch (SaxonApiException e) {
+                return new ProfiledTransformation(inputFailure(e), null);
+            }
+            String output = null;
+            XsltProfilingTraceListener listener = null;
+            long measured = 0;
+            for (int run = 0; run <= warmups; run++) {
+                XsltTransformer transformer = executable.load();
+                configureTransformer(transformer, parameters, outputFormat, false);
+                listener = new XsltProfilingTraceListener();
+                transformer.setTraceListener(listener);
+                XsltDebugMessageListener messages = run == warmups ? messageListener : new XsltDebugMessageListener();
+                transformer.setMessageHandler(messages);
+                transformer.setInitialContextNode(sourceDoc);
+                StringWriter outputWriter = new StringWriter();
+                transformer.setDestination(processor.newSerializer(outputWriter));
+                configureSerializer(transformer.getDestination(), outputFormat);
+                long t0 = System.nanoTime();
+                transformer.transform();
+                measured = System.nanoTime() - t0;
+                output = outputWriter.toString();
+            }
+            XsltProfile profile = listener.profile(measured, warmups);
+            TransformationProfile timing = new TransformationProfile();
+            XsltTransformationResult result = XsltTransformationResult.success(output, outputFormat, timing);
+            result.setExecutionTime(System.currentTimeMillis() - startTime);
+            result.setTransformationTime(measured / 1_000_000);
+            result.setInputSize(xmlContent.length());
+            result.setMessages(messageListener.getMessages());
+            if (!messageListener.getWarnings().isEmpty()) {
+                result.addAllWarnings(messageListener.getWarnings());
+            }
+            return new ProfiledTransformation(result, profile);
+        } catch (SaxonApiException e) {
+            logger.warn("XSLT transformation (profile) failed: {}", e.getMessage());
+            return new ProfiledTransformation(runtimeFailure(e), null);
+        } catch (Exception e) {
+            logger.error("Unexpected error during profiled XSLT transformation", e);
+            return new ProfiledTransformation(XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e), null);
+        }
+    }
+
+    /**
      * Runs an XQuery under the interactive debugger: the query is compiled with tracing on the
      * debug processor (line numbers on), {@code session} gets every traced expression (FLWOR
      * {@code let} clauses, constructors, function calls) through an

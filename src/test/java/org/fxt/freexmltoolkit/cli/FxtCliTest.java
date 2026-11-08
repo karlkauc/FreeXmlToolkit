@@ -221,6 +221,32 @@ class FxtCliTest {
     }
 
     @Nested
+    @DisplayName("transform --profile")
+    class Profile {
+
+        @Test
+        @DisplayName("writes a JSON or text profile next to the normal output")
+        void profile() throws Exception {
+            Path xsl = write("p.xsl", """
+                    <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                      <xsl:output method="text"/>
+                      <xsl:template match="/"><xsl:apply-templates select="//n"/></xsl:template>
+                      <xsl:template match="n"><xsl:value-of select="."/>;</xsl:template>
+                    </xsl:stylesheet>
+                    """);
+            Path json = dir.resolve("profile.json");
+            assertEquals(ExitCodes.OK, run("transform", "-s", xsl, "--profile", json, "--warmup", "0", valid), err);
+            assertEquals("3;", out);
+            String report = Files.readString(json);
+            assertTrue(report.contains("\"name\": \"match=\\\"n\\\"\"") && report.contains("\"callTree\""), report);
+
+            assertEquals(ExitCodes.OK, run("transform", "-s", xsl, "--profile", "-", valid), err);
+            assertTrue(err.contains("Total ") && err.contains("template rule match=\"n\""), err);
+            assertEquals(ExitCodes.USAGE, run("transform", "-s", xsl, "--profile", "-", valid, invalid));
+        }
+    }
+
+    @Nested
     @DisplayName("compare")
     class Compare {
 

@@ -102,6 +102,22 @@ class TransformPanelResultTabTest {
                 "a failed transform must not open a result tab");
     }
 
+    @Test
+    void profileRunOpensTheProfileTab(@TempDir Path tmp) throws Exception {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            panel.setProfileRunForTesting(true);
+            return null;
+        });
+        transform(tmp, XML_XSLT);
+        waitForResultDocument();
+        WaitForAsyncUtils.waitFor(10, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> !host.lookupAll("#profile-components").isEmpty()));
+        var summary = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> ((javafx.scene.control.Label) host.lookup("#profile-summary")).getText());
+        assertTrue(summary.startsWith("Total "), summary);
+        assertTrue(WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.lookup("#profile-again").isVisible()));
+    }
+
     private OpenDocument waitForResultDocument() throws Exception {
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> host.getOpenDocuments().stream()
                 .anyMatch(d -> d.getDisplayName() != null && d.getDisplayName().startsWith("Transform-Result")));

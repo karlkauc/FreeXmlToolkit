@@ -45,7 +45,10 @@ class ReportViewsTest {
         assertNotNull(result, "report result");
         assertTrue(result.isSuccess(), "transform succeeded: " + result.getErrorMessage());
 
-        ProfileView profileView = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new ProfileView(result));
+        var profiled = TransformRunner.profile(XML, null, XSLT, null, Map.of(), OutputFormat.XML, 0);
+        assertTrue(profiled.result().isSuccess(), profiled.result().getErrorMessage());
+        ProfileView profileView = WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> new ProfileView(profiled.profile(), profiled.result()));
         TraceView traceView = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new TraceView(result));
 
         assertFalse(profileView.getSummaryText().isBlank(), "profile summary non-blank");

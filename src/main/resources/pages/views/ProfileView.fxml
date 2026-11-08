@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  The XSLT profile of one run (Transform panel → Profile run, XsltProfile). Loaded by ProfileView (fx:root), which fills
+  the tables, the call tree and the flame graph.
+-->
+<fx:root type="javafx.scene.layout.VBox" spacing="8" styleClass="fxt-profile-view"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="12"/>
+    </padding>
+    <children>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <children>
+                <Label fx:id="summary" id="profile-summary" styleClass="fxt-side-panel-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="againButton" text="Profile Again" id="profile-again" onAction="#onProfileAgain">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
+                    </graphic>
+                </Button>
+                <MenuButton text="Export" id="profile-export">
+                    <graphic>
+                        <IconifyIcon iconLiteral="bi-box-arrow-up" iconSize="16"/>
+                    </graphic>
+                    <items>
+                        <MenuItem text="Profile as JSON…" id="profile-export-json" onAction="#onExportJson">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-filetype-json" iconSize="16"/>
+                            </graphic>
+                        </MenuItem>
+                        <MenuItem text="Report as Text…" id="profile-export-text" onAction="#onExportText">
+                            <graphic>
+                                <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="16"/>
+                            </graphic>
+                        </MenuItem>
+                    </items>
+                </MenuButton>
+            </children>
+        </HBox>
+        <TabPane fx:id="tabs" id="profile-tabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+            <tabs>
+                <Tab text="Hot Spots" id="profile-tab-hotspots">
+                    <content>
+                        <TableView fx:id="components" id="profile-components">
+                            <columns>
+                                <TableColumn fx:id="nameColumn" text="Template / Function" prefWidth="280"/>
+                                <TableColumn fx:id="kindColumn" text="Kind" prefWidth="135"/>
+                                <TableColumn fx:id="locationColumn" text="Location" prefWidth="150"/>
+                                <TableColumn fx:id="callsColumn" text="Calls" prefWidth="70"/>
+                                <TableColumn fx:id="selfColumn" text="Self (ms)" prefWidth="90"/>
+                                <TableColumn fx:id="selfPercentColumn" text="Self %" prefWidth="70"/>
+                                <TableColumn fx:id="totalColumn" text="Total (ms)" prefWidth="90"/>
+                                <TableColumn fx:id="avgColumn" text="Avg (ms)" prefWidth="90"/>
+                            </columns>
+                            <placeholder>
+                                <Label text="No templates or functions were executed."/>
+                            </placeholder>
+                        </TableView>
+                    </content>
+                </Tab>
+                <Tab text="Call Tree" id="profile-tab-tree">
+                    <content>
+                        <TreeTableView fx:id="tree" id="profile-tree" showRoot="true">
+                            <columns>
+                                <TreeTableColumn fx:id="treeNameColumn" text="Template / Function" prefWidth="360"/>
+                                <TreeTableColumn fx:id="treeCallsColumn" text="Calls" prefWidth="70"/>
+                                <TreeTableColumn fx:id="treeTotalColumn" text="Total (ms)" prefWidth="90"/>
+                                <TreeTableColumn fx:id="treePercentColumn" text="Total %" prefWidth="70"/>
+                                <TreeTableColumn fx:id="treeSelfColumn" text="Self (ms)" prefWidth="90"/>
+                            </columns>
+                        </TreeTableView>
+                    </content>
+                </Tab>
+                <Tab text="Flame Graph" id="profile-tab-flame">
+                    <content>
+                        <VBox spacing="6">
+                            <padding>
+                                <Insets top="6"/>
+                            </padding>
+                            <children>
+                                <HBox spacing="8" alignment="CENTER_LEFT">
+                                    <children>
+                                        <Button text="Reset Zoom" id="profile-flame-reset" onAction="#onResetZoom">
+                                            <graphic>
+                                                <IconifyIcon iconLiteral="bi-zoom-out" iconSize="16"/>
+                                            </graphic>
+                                        </Button>
+                                        <Label text="Width = total time. Click a bar to zoom in, double-click to open its source."
+                                               opacity="0.7"/>
+                                    </children>
+                                </HBox>
+                                <ScrollPane fx:id="flameScroll" fitToWidth="true" VBox.vgrow="ALWAYS"/>
+                            </children>
+                        </VBox>
+                    </content>
+                </Tab>
+                <Tab text="Lines" id="profile-tab-lines">
+                    <content>
+                        <TableView fx:id="lines" id="profile-lines">
+                            <columns>
+                                <TableColumn fx:id="lineLocationColumn" text="Line" prefWidth="150"/>
+                                <TableColumn fx:id="lineSourceColumn" text="Source" prefWidth="420"/>
+                                <TableColumn fx:id="lineHitsColumn" text="Hits" prefWidth="80"/>
+                                <TableColumn fx:id="lineSelfColumn" text="Self (ms)" prefWidth="90"/>
+                                <TableColumn fx:id="lineSelfPercentColumn" text="Self %" prefWidth="70"/>
+                            </columns>
+                        </TableView>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+        <Label fx:id="note" id="profile-note" wrapText="true" opacity="0.7"
+               text="Total: from entering a template or function until leaving it, including what it calls (recursion counted once). Self: without the templates and functions it calls. Measured with tracing on, so absolute times are higher than in a normal run; compare the parts. Double-click a row to open its source."/>
+    </children>
+</fx:root>

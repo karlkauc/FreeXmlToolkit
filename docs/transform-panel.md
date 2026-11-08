@@ -196,7 +196,7 @@ its header to collapse it) holds everything secondary. First the run
 |-------|--------------|
 | **Live preview** | Re-runs the transform automatically (debounced) while you edit the input document. |
 | **Watch stylesheet file** | Re-runs the transform whenever the chosen stylesheet changes on disk - handy while editing the stylesheet in another tool. |
-| **Profile run** | A transform also opens a read-only **Profile** tool tab (timings + per-template execution times). |
+| **Profile run** | The transform runs under the XSLT profiler and opens a **Profile** tab: hot spots by self time, call tree, flame graph and time per line (see [XSLT Developer → Performance and Profiling](xslt-developer.md#performance-and-profiling)). |
 | **Trace run** | A transform also opens a **Trace** tool tab (template matches + `xsl:message` output). |
 | **Auto-open result tab** | Additionally opens every successful result as a regular editor tab (HTML/XHTML results open rendered in the [Preview](unified-shell.md#html-preview) view). **Off by default.** |
 

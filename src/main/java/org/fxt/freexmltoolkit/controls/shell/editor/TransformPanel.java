@@ -779,6 +779,11 @@ public class TransformPanel extends VBox {
     }
 
     /** Enables/disables opening the result as an editor tab after each run (for tests/observers). */
+    /** Test hook: ticks Profile run. */
+    void setProfileRunForTesting(boolean enabled) {
+        profileCheck.setSelected(enabled);
+    }
+
     public void setAutoOpenResultTab(boolean enabled) {
         autoOpenResultTab.setSelected(enabled);
     }
@@ -886,15 +891,32 @@ public class TransformPanel extends VBox {
             String result;
             OutputFormat format = chosen != null ? chosen : OutputFormat.XML;
             org.fxt.freexmltoolkit.service.XsltTransformationResult fullResult = null;
+            org.fxt.freexmltoolkit.service.XsltTransformationResult traceResult = null;
+            org.fxt.freexmltoolkit.service.XsltProfile profile = null;
+            String profiledXslt = null;
             try {
                 String xsltContent = Files.readString(xslt.toPath(), StandardCharsets.UTF_8);
                 // Auto: detect the format from the stylesheet's xsl:output declaration.
                 format = chosen != null ? chosen : TransformRunner.detectXsltOutputFormat(xsltContent);
                 // One single run: the full result feeds the output view, the statistics
                 // probe, and (when requested) the Profile/Trace report tabs.
-                fullResult = (wantProfile || wantTrace)
-                        ? TransformRunner.transformForReport(xmlInput, xmlBaseUri, xsltContent, xsltSystemId, params, format)
-                        : TransformRunner.xsltTransformResult(xmlInput, xmlBaseUri, xsltContent, xsltSystemId, params, format);
+                if (wantProfile) {
+                    // the profiler's run delivers the output too; a trace needs its own run
+                    var profiled = TransformRunner.profile(xmlInput, xmlBaseUri, xsltContent, xsltSystemId, params,
+                            format, 0);
+                    fullResult = profiled.result();
+                    profile = profiled.profile();
+                    profiledXslt = xsltContent;
+                    if (wantTrace && fullResult.isSuccess()) {
+                        traceResult = TransformRunner.transformForReport(xmlInput, xmlBaseUri, xsltContent,
+                                xsltSystemId, params, format);
+                    }
+                } else {
+                    fullResult = wantTrace
+                            ? TransformRunner.transformForReport(xmlInput, xmlBaseUri, xsltContent, xsltSystemId, params, format)
+                            : TransformRunner.xsltTransformResult(xmlInput, xmlBaseUri, xsltContent, xsltSystemId, params, format);
+                    traceResult = fullResult;
+                }
                 result = fullResult.isSuccess()
                         ? fullResult.getOutputContent()
                         : "ERROR: " + fullResult.getErrorMessage();
@@ -917,6 +939,10 @@ public class TransformPanel extends VBox {
                     ? resultSource(inputPath, openInputSchema, inputFile != null ? xmlInput : null) : null;
             org.fxt.freexmltoolkit.service.XsltTransformationResult report =
                     (wantProfile || wantTrace) ? fullResult : null;
+            org.fxt.freexmltoolkit.service.XsltTransformationResult trace = traceResult;
+            org.fxt.freexmltoolkit.service.XsltProfile finalProfile = profile;
+            String xsltForProfile = profiledXslt;
+            String xmlForProfile = xmlInput;
             Platform.runLater(() -> {
                 if (abandoned.get()) {
                     return; // user cancelled — ignore the result
@@ -934,17 +960,69 @@ public class TransformPanel extends VBox {
                     out.openResultInEditor();
                 }
                 if (report != null && report.isSuccess()) {
-                    if (wantProfile) {
-                        editorHost.openToolTab("Profile", "bi-speedometer2",
-                                new org.fxt.freexmltoolkit.controls.shell.editor.debug.ProfileView(report));
+                    if (wantProfile && finalProfile != null) {
+                        showProfile(finalProfile, report, xmlForProfile, xmlBaseUri, xsltForProfile, xsltSystemId,
+                                params, finalFormat, xslt.getName(), null);
                     }
-                    if (wantTrace) {
+                    if (wantTrace && trace != null && trace.isSuccess()) {
                         editorHost.openToolTab("Trace", "bi-list-columns",
-                                new org.fxt.freexmltoolkit.controls.shell.editor.debug.TraceView(report));
+                                new org.fxt.freexmltoolkit.controls.shell.editor.debug.TraceView(trace));
                     }
                 }
             });
         });
+    }
+
+    /**
+     * Shows a profile in its tool tab (replacing the content of {@code tab} when profiling again).
+     * Profile Again measures once more with one warm-up run, off the FX thread.
+     */
+    private void showProfile(org.fxt.freexmltoolkit.service.XsltProfile profile,
+                             org.fxt.freexmltoolkit.service.XsltTransformationResult result, String xml,
+                             String xmlBaseUri, String xsltContent, String xsltSystemId, Map<String, Object> params,
+                             OutputFormat format, String stylesheetName, javafx.scene.control.Tab tab) {
+        var view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.ProfileView(profile, result);
+        view.setSourceOpener(this::openProfiledSource);
+        javafx.scene.control.Tab target = tab != null ? tab
+                : editorHost.openToolTab("Profile: " + stylesheetName, "bi-speedometer2", view);
+        if (tab != null) {
+            tab.setContent(view);
+        }
+        view.setOnProfileAgain(() -> FxtGui.executorService.submit(() -> {
+            var again = TransformRunner.profile(xml, xmlBaseUri, xsltContent, xsltSystemId, params, format, 1);
+            Platform.runLater(() -> {
+                if (again.profile() != null) {
+                    showProfile(again.profile(), again.result(), xml, xmlBaseUri, xsltContent, xsltSystemId, params,
+                            format, stylesheetName, target);
+                } else {
+                    out.showFailure("Profiling failed: " + again.result().getErrorMessage());
+                }
+            });
+        }));
+    }
+
+    /** Opens a stylesheet module at a line from the profile (a double-click there). */
+    private void openProfiledSource(String systemId, int line) {
+        java.nio.file.Path path = org.fxt.freexmltoolkit.controls.shell.editor.debug.ProfileView.toPath(systemId);
+        if (path == null) {
+            return;
+        }
+        editorHost.openFile(path);
+        goToLineWhenOpen(path, line, 15);
+    }
+
+    private void goToLineWhenOpen(java.nio.file.Path path, int line, int attemptsLeft) {
+        boolean ready = editorHost.getActiveDocument().map(d -> path.equals(d.getPath())).orElse(false)
+                && editorHost.getActiveText().map(t -> !t.isEmpty()).orElse(false);
+        if (ready || attemptsLeft <= 0) {
+            if (ready && line > 0) {
+                editorHost.goToLine(line);
+            }
+            return;
+        }
+        var retry = new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
+        retry.setOnFinished(e -> goToLineWhenOpen(path, line, attemptsLeft - 1));
+        retry.play();
     }
 
     /**
