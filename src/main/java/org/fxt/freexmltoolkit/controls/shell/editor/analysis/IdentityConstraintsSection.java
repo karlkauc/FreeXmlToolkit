@@ -275,7 +275,7 @@ final class IdentityConstraintsSection extends VBox {
                         .findFirst().orElse(null);
                 if (target != null) {
                     Hyperlink link = new Hyperlink(info.referTo());
-                    link.setTooltip(new Tooltip("Select the referenced " + typeName(target.type()).toLowerCase(Locale.ROOT)));
+                    link.setTooltip(new Tooltip(I18n.t("IdentityConstraintsSection.select-the-referenced", typeName(target.type()).toLowerCase(Locale.ROOT))));
                     link.setOnAction(e -> {
                         typeFilter.set(ALL);
                         statusFilter.set(ALL);

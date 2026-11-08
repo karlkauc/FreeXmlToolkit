@@ -138,7 +138,7 @@ final class EditorDebugSupport {
             // debug_run (stage start) carries the failure; the dialog explains it
             UsageEvents.debugStartFailed("xslt", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorDebugSupport.xslt-debug"), I18n.t("EditorDebugSupport.could-not-start-the-debugger"),
-                    "Could not read stylesheet: " + e.getMessage(), e, false);
+                    I18n.t("EditorDebugSupport.could-not-read-stylesheet", e.getMessage()), e, false);
             return;
         }
 
@@ -1076,7 +1076,7 @@ final class EditorDebugSupport {
         if (result.isSuccess()) {
             out.showTransformResult(result.getOutputContent(), result.getOutputFormat(), result.getExecutionTime());
         } else {
-            out.showError("ERROR: " + result.getErrorMessage());
+            out.showError(I18n.t("EditorDebugSupport.error", result.getErrorMessage()));
         }
         host.bottomDock().select(EditorHost.DEBUG_DOCK_KEY);
         host.bottomDock().markUpdated(TransformOutputPanel.DOCK_KEY);

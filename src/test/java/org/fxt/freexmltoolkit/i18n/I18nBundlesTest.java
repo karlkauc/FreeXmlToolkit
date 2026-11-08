@@ -68,6 +68,33 @@ class I18nBundlesTest {
         assertEquals(List.of(), wrong, "placeholders must match");
     }
 
+    @Test
+    @DisplayName("texts with placeholders are valid MessageFormat patterns without lost apostrophes")
+    void messageFormats() throws IOException {
+        List<String> wrong = new ArrayList<>();
+        for (String bundle : List.of("messages.properties", "messages_de.properties")) {
+            Properties texts = load(bundle);
+            for (String key : texts.stringPropertyNames()) {
+                String value = texts.getProperty(key);
+                if (!PLACEHOLDER.matcher(value).find()) {
+                    continue; // used with I18n.t(key): no MessageFormat
+                }
+                try {
+                    new java.text.MessageFormat(value);
+                } catch (IllegalArgumentException e) {
+                    wrong.add(bundle + " " + key + ": " + e.getMessage());
+                    continue;
+                }
+                // A single apostrophe starts a quoted section and disappears from the output
+                String withoutDoubled = value.replace("''", "");
+                if (withoutDoubled.replaceAll("'[{}]'", "").contains("'")) {
+                    wrong.add(bundle + " " + key + ": single apostrophe in " + value);
+                }
+            }
+        }
+        assertEquals(List.of(), wrong);
+    }
+
     private static Set<String> placeholders(String text) {
         Set<String> found = new TreeSet<>();
         Matcher m = PLACEHOLDER.matcher(text);

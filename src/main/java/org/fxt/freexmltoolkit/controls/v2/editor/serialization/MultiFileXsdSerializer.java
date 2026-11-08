@@ -1505,7 +1505,7 @@ public class MultiFileXsdSerializer {
             // Return failure result for the main schema path
             Path mainSchemaPath = schema.getMainSchemaPath();
             return Map.of(mainSchemaPath, SaveResult.failure(mainSchemaPath,
-                    "Atomic save failed: " + e.getMessage()));
+                    I18n.t("MultiFileXsdSerializer.atomic-save-failed", e.getMessage())));
         }
     }
 

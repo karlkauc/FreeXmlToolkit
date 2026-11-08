@@ -167,7 +167,7 @@ public class InspectorKeyValueList<T> extends VBox {
                 icon.setIconSize(12);
                 delete.setGraphic(icon);
                 delete.getStyleClass().addAll("fxt-inspector-icon-button", "fxt-inspector-kv-delete");
-                delete.setTooltip(new Tooltip("Delete " + entry.name()));
+                delete.setTooltip(new Tooltip(I18n.t("InspectorKeyValueList.delete", entry.name())));
                 delete.setOnAction(e -> onDelete.accept(entry));
                 // Shown on hover only, but always keeps its space so rows do not jump.
                 delete.visibleProperty().bind(row.hoverProperty().or(row.focusedProperty()));

@@ -481,7 +481,7 @@ public class BreakpointsView extends VBox {
         try {
             java.nio.file.Files.writeString(file.toPath(), exportText(), java.nio.charset.StandardCharsets.UTF_8);
         } catch (java.io.IOException e) {
-            showError("Could not export the breakpoints: " + e.getMessage());
+            showError(I18n.t("BreakpointsView.could-not-export-the-breakpoints", e.getMessage()));
         }
     }
 
@@ -494,7 +494,7 @@ public class BreakpointsView extends VBox {
         try {
             importText(java.nio.file.Files.readString(file.toPath(), java.nio.charset.StandardCharsets.UTF_8));
         } catch (java.io.IOException | IllegalArgumentException e) {
-            showError("Could not import the breakpoints: " + e.getMessage());
+            showError(I18n.t("BreakpointsView.could-not-import-the-breakpoints", e.getMessage()));
         }
     }
 

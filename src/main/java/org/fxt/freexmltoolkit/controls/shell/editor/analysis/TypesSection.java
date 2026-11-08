@@ -236,7 +236,7 @@ final class TypesSection extends VBox {
             return;
         }
         usages.getItems().setAll(component.usages());
-        usagesTitle.setText("USED IN (" + component.usageCount() + ")");
+        usagesTitle.setText(I18n.t("TypesSection.used-in-2", component.usageCount()));
         documentation.setText(component.documentation().isBlank() ? "(no documentation)" : component.documentation());
     }
 

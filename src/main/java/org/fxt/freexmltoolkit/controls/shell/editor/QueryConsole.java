@@ -291,7 +291,7 @@ public class QueryConsole extends Region {
     /** Names the active mode on the Run button and in the hint, so the mode is never a guess. */
     private void updateModeTexts() {
         String mode = modeName();
-        runButton.setText("Run " + mode);
+        runButton.setText(I18n.t("QueryConsole.run", mode));
         runHint.setText(mode + " mode · Ctrl+Enter runs the query · Enter adds a line");
         xpathPlaceholder.setText(isJsonActive()
                 ? "JSONPath expression, e.g. $.items[0].id"
@@ -584,8 +584,8 @@ public class QueryConsole extends Region {
     /** Asks for confirmation, then deletes the snippet file. */
     private void deleteSnippet(File file, boolean xquery) {
         if (DialogHelper.showConfirmation(I18n.t("QueryConsole.delete-snippet"),
-                "Delete snippet '" + snippetDisplayName(file, xquery) + "'?",
-                "The file " + file.getName() + " will be deleted permanently.")) {
+                I18n.t("QueryConsole.delete-snippet-2", snippetDisplayName(file, xquery)),
+                I18n.t("QueryConsole.the-file-will-be-deleted", file.getName()))) {
             deleteSnippetForTest(file);
         }
     }
@@ -648,9 +648,8 @@ public class QueryConsole extends Region {
             return;
         }
         if (DialogHelper.showConfirmation(I18n.t("QueryConsole.overwrite-snippet"),
-                "Overwrite snippet '" + snippetDisplayName(file, xquery) + "'?",
-                "The saved " + (xquery ? "XQuery" : "XPath")
-                        + " will be replaced with the current console content.")) {
+                I18n.t("QueryConsole.overwrite-snippet-2", snippetDisplayName(file, xquery)),
+                I18n.t("QueryConsole.the-saved-will-be-replaced", (xquery ? "XQuery" : "XPath")))) {
             overwriteSnippetForTest(file, xquery);
         }
     }

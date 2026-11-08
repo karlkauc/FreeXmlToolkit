@@ -825,8 +825,7 @@ public class InspectorPanel extends VBox {
                 javafx.scene.control.Alert.AlertType.CONFIRMATION);
         alert.setTitle(I18n.t("InspectorPanel.change-a-shared-schema-component"));
         alert.setHeaderText(kind + " \"" + component.getName() + "\" is used in " + uses + " places");
-        alert.setContentText("The change is made in " + xmlDeclEdit.decl().schemaFileName()
-                + " and applies to every place that uses it.");
+        alert.setContentText(I18n.t("InspectorPanel.the-change-is-made-in", xmlDeclEdit.decl().schemaFileName()));
         javafx.scene.control.ButtonType change = new javafx.scene.control.ButtonType(
                 "Change " + component.getName(), javafx.scene.control.ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(change, javafx.scene.control.ButtonType.CANCEL);
@@ -967,8 +966,7 @@ public class InspectorPanel extends VBox {
         typeLock = frame;
         boolean locked = frame != null;
         if (locked) {
-            typeLockInfo.setText("Part of type '" + frame.typeName() + "'. It is read-only here: "
-                    + "edit the type to change it.");
+            typeLockInfo.setText(I18n.t("InspectorPanel.part-of-type-it-is", frame.typeName()));
             nameField.setEditable(false);
         }
         show(typeLockBox, locked);
@@ -1059,7 +1057,7 @@ public class InspectorPanel extends VBox {
                 && editorHost.activeViewModeProperty().get() == org.fxt.freexmltoolkit.controls.shell.editor.ViewMode.TEXT;
         if (text) {
             int[] lc = editorHost.getActiveCaretLineColumn();
-            positionValue.setText("Ln " + lc[0] + " · Col " + lc[1]);
+            positionValue.setText(I18n.t("InspectorPanel.ln-col", lc[0], lc[1]));
         }
         showRow(positionRow, text);
     }
@@ -1323,7 +1321,7 @@ public class InspectorPanel extends VBox {
         }
         String type = typeName == null || PLACEHOLDER.equals(typeName) ? "the referenced type" : typeName;
         XsdNode typeNode = findNamedType(typeName);
-        facetHint.setText("Facets come from " + type + (typeNode != null ? " – click to edit them there." : "."));
+        facetHint.setText(I18n.t("InspectorPanel.facets-come-from", type, (typeNode != null ? " – click to edit them there." : ".")));
         facetHint.getStyleClass().remove("fxt-inspector-hint-link");
         facetHint.setOnMouseClicked(null);
         if (typeNode != null) {
@@ -1746,8 +1744,7 @@ public class InspectorPanel extends VBox {
             show(facetBox, true);
             if (onNamedType) {
                 show(facetAddRow, true);
-                facetHint.setText("Facets of the named type " + located.namedType().getName()
-                        + " – a change applies to every element of that type.");
+                facetHint.setText(I18n.t("InspectorPanel.facets-of-the-named-type", located.namedType().getName()));
                 facetHint.getStyleClass().remove("fxt-inspector-hint-link");
                 facetHint.setOnMouseClicked(null);
                 show(facetHint, true);

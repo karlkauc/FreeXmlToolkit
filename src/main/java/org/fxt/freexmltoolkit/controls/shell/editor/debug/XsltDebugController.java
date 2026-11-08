@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.debug;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -199,7 +201,7 @@ public final class XsltDebugController {
             xslt = args.xsltSource().get();
         } catch (RuntimeException e) {
             XsltTransformationResult failure = XsltTransformationResult.error(
-                    "Could not read stylesheet: " + e.getMessage(), e);
+                    I18n.t("XsltDebugController.could-not-read-stylesheet", e.getMessage()), e);
             lastResult = failure;
             session.close();
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.debugStartFailed(languageName,
@@ -260,7 +262,7 @@ public final class XsltDebugController {
             } catch (RuntimeException e) {
                 // the debug_run event carries class + stack; the log line only the summary
                 logger.warn("Debug run failed unexpectedly: {}", e.toString());
-                result = XsltTransformationResult.error("Debug run failed: " + e.getMessage(), e);
+                result = XsltTransformationResult.error(I18n.t("XsltDebugController.debug-run-failed", e.getMessage()), e);
                 if (session.getState() != DebugSession.State.IDLE) {
                     session.close();
                 }

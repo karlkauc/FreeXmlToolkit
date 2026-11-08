@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -113,7 +115,7 @@ public class XmlDateTimePicker implements TypeAwareWidgetFactory.EditWidget {
                 minuteSpinner.getValueFactory().setValue(dateTime.getMinute());
                 secondSpinner.getValueFactory().setValue(dateTime.getSecond());
             } catch (DateTimeParseException e) {
-                validationResult = ValidationResult.warning("Invalid dateTime format: " + currentValue);
+                validationResult = ValidationResult.warning(I18n.t("XmlDateTimePicker.invalid-datetime-format", currentValue));
             }
         } else {
             datePicker.setValue(LocalDate.now());
@@ -201,7 +203,7 @@ public class XmlDateTimePicker implements TypeAwareWidgetFactory.EditWidget {
             secondSpinner.getValueFactory().setValue(dateTime.getSecond());
             validationResult = ValidationResult.valid();
         } catch (DateTimeParseException e) {
-            validationResult = ValidationResult.warning("Invalid dateTime format: " + value);
+            validationResult = ValidationResult.warning(I18n.t("XmlDateTimePicker.invalid-datetime-format", value));
         }
     }
 

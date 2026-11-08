@@ -103,7 +103,7 @@ public class XmlDatePicker implements TypeAwareWidgetFactory.EditWidget {
                 LocalDate date = LocalDate.parse(dateOnly, ISO_DATE_FORMAT);
                 datePicker.setValue(date);
             } catch (DateTimeParseException e) {
-                validationResult = ValidationResult.warning("Invalid date format: " + currentValue);
+                validationResult = ValidationResult.warning(I18n.t("XmlDatePicker.invalid-date-format", currentValue));
                 applyValidationStyle();
             }
         }
@@ -172,7 +172,7 @@ public class XmlDatePicker implements TypeAwareWidgetFactory.EditWidget {
             datePicker.setValue(date);
             validationResult = ValidationResult.valid();
         } catch (DateTimeParseException e) {
-            validationResult = ValidationResult.warning("Invalid date format: " + value);
+            validationResult = ValidationResult.warning(I18n.t("XmlDatePicker.invalid-date-format", value));
         }
         applyValidationStyle();
     }

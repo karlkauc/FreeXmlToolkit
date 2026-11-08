@@ -246,7 +246,7 @@ public class SchemaLibraryView extends VBox {
                     info.setText("…");
                     info.getStyleClass().add("fxt-lib-catalog-count");
                 } else if (err != null) {
-                    info.setText("Error: " + err);
+                    info.setText(I18n.t("SchemaLibraryView.error", err));
                     info.getStyleClass().add("fxt-lib-catalog-error");
                 } else {
                     info.setText(catalogCountCache.getOrDefault(ref.id(), -1) + " entries" + (ref.enabled() ? "" : " (disabled)"));
@@ -379,7 +379,7 @@ public class SchemaLibraryView extends VBox {
                 java.awt.Desktop.getDesktop().open(cache.getCacheDirectory().toFile());
             } catch (Exception e) {
                 org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("reveal", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-                Platform.runLater(() -> setStatus("Cannot open folder: " + e.getMessage()));
+                Platform.runLater(() -> setStatus(I18n.t("SchemaLibraryView.cannot-open-folder", e.getMessage())));
             }
         });
     }
@@ -389,7 +389,7 @@ public class SchemaLibraryView extends VBox {
         var s = cacheTable.getSelectionModel().getSelectedItem();
         if (s == null || s.remoteUrl() == null) return;   // nothing to re-download
         String remote = s.remoteUrl();
-        setStatus("Refreshing " + remote + "…");
+        setStatus(I18n.t("SchemaLibraryView.refreshing", remote));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             var result = cache.refresh(remote);
             // a remote that cannot be fetched is the environment, not the app
@@ -402,7 +402,7 @@ public class SchemaLibraryView extends VBox {
     @FXML
     public void onDeleteCached() {
         var s = cacheTable.getSelectionModel().getSelectedItem();
-        if (s != null && DialogHelper.showConfirmation(I18n.t("SchemaLibraryView.delete-cached-schema"), "Delete the cached copy of\n" + urlOf(s) + "?",
+        if (s != null && DialogHelper.showConfirmation(I18n.t("SchemaLibraryView.delete-cached-schema"), I18n.t("SchemaLibraryView.delete-the-cached-copy-of", urlOf(s)),
                 I18n.t("SchemaLibraryView.it-will-be-downloaded-again"))) {
             deleteSelectedCacheEntryWithoutConfirm();
         }
@@ -414,7 +414,7 @@ public class SchemaLibraryView extends VBox {
                 cache.getCacheDirectory() + "\n\nThis action cannot be undone.")) {
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 int n = cache.clearCache();
-                Platform.runLater(() -> { setStatus("Deleted " + n + " cached file(s)."); refreshCache(); });
+                Platform.runLater(() -> { setStatus(I18n.t("SchemaLibraryView.deleted-cached-file-s", n)); refreshCache(); });
             });
         }
     }
@@ -426,7 +426,7 @@ public class SchemaLibraryView extends VBox {
                 I18n.t("SchemaLibraryView.they-are-downloaded-again-when"))) {
             org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
                 int n = xmlService.clearAutoDetectedSchemaCache();
-                Platform.runLater(() -> { setStatus("Deleted " + n + " file(s)."); refreshCache(); });
+                Platform.runLater(() -> { setStatus(I18n.t("SchemaLibraryView.deleted-file-s", n)); refreshCache(); });
             });
         }
     }
@@ -472,7 +472,7 @@ public class SchemaLibraryView extends VBox {
         cacheTable.getSelectionModel().clearSelection();
         cache.removeEntry(s.localFilename());
         refreshCache();
-        setStatus("Deleted cached copy of " + urlOf(s));
+        setStatus(I18n.t("SchemaLibraryView.deleted-cached-copy-of", urlOf(s)));
     }
 
     @FXML
@@ -504,7 +504,7 @@ public class SchemaLibraryView extends VBox {
         if (s == null) return;
         try {
             var preview = library.importCatalog(s.asPath());
-            if (preview.isEmpty()) { setStatus("No importable namespace mappings in " + s.asPath().getFileName()); return; }
+            if (preview.isEmpty()) { setStatus(I18n.t("SchemaLibraryView.no-importable-namespace-mappings-in", s.asPath().getFileName())); return; }
             var existing = library.getEntries().stream().map(SchemaLibraryEntry::key).collect(java.util.stream.Collectors.toSet());
             new CatalogImportDialog(preview, existing).showAndWait().ifPresent(chosen -> {
                 long alreadyPresent = chosen.stream().filter(e -> existing.contains(e.key())).count();
@@ -516,7 +516,7 @@ public class SchemaLibraryView extends VBox {
             });
         } catch (java.io.IOException e) {
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("import_catalog", org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
-            setStatus("Cannot read catalog: " + e.getMessage());
+            setStatus(I18n.t("SchemaLibraryView.cannot-read-catalog", e.getMessage()));
         }
     }
 
@@ -536,7 +536,7 @@ public class SchemaLibraryView extends VBox {
                 existingKeys.add(e.key());
                 added++;
             } catch (IllegalArgumentException ex) {
-                setStatus("Skipped " + e.namespace() + ": " + ex.getMessage());
+                setStatus(I18n.t("SchemaLibraryView.skipped", e.namespace(), ex.getMessage()));
             }
         }
         return added;
@@ -566,7 +566,7 @@ public class SchemaLibraryView extends VBox {
         new SchemaLibraryEntryDialog(library, null).showAndWait().ifPresent(e -> {
             try {
                 library.addEntry(e);
-                setStatus("Added mapping for " + display(e));
+                setStatus(I18n.t("SchemaLibraryView.added-mapping-for", display(e)));
             } catch (IllegalArgumentException ex) {
                 setStatus(ex.getMessage());
             }
@@ -580,7 +580,7 @@ public class SchemaLibraryView extends VBox {
         new SchemaLibraryEntryDialog(library, s).showAndWait().ifPresent(e -> {
             try {
                 library.updateEntry(e);
-                setStatus("Updated mapping for " + display(e));
+                setStatus(I18n.t("SchemaLibraryView.updated-mapping-for", display(e)));
             } catch (IllegalArgumentException ex) {
                 setStatus(ex.getMessage());
             }
@@ -591,7 +591,7 @@ public class SchemaLibraryView extends VBox {
     public void removeSelected() {
         SchemaLibraryEntry s = mappings.getSelectionModel().getSelectedItem();
         if (s == null || s.source() != EntrySource.USER) return;
-        if (DialogHelper.showConfirmation(I18n.t("SchemaLibraryView.remove-mapping"), "Remove the mapping for " + display(s) + "?",
+        if (DialogHelper.showConfirmation(I18n.t("SchemaLibraryView.remove-mapping"), I18n.t("SchemaLibraryView.remove-the-mapping-for", display(s)),
                 I18n.t("SchemaLibraryView.the-schema-file-itself-is"))) {
             removeSelectedWithoutConfirm();
         }
@@ -603,7 +603,7 @@ public class SchemaLibraryView extends VBox {
         if (s != null && s.source() == EntrySource.USER) {
             mappings.getSelectionModel().clearSelection();
             library.removeEntry(s.id());
-            setStatus("Removed mapping for " + display(s));
+            setStatus(I18n.t("SchemaLibraryView.removed-mapping-for", display(s)));
         }
     }
 
@@ -631,7 +631,7 @@ public class SchemaLibraryView extends VBox {
                 new SchemaLibraryEntryDialog(library, pre, true).showAndWait().ifPresent(e -> {
                     try {
                         library.addEntry(e);
-                        setStatus("Added mapping for " + display(e));
+                        setStatus(I18n.t("SchemaLibraryView.added-mapping-for", display(e)));
                     } catch (IllegalArgumentException ex) {
                         setStatus(ex.getMessage());
                     }
@@ -643,7 +643,7 @@ public class SchemaLibraryView extends VBox {
         SchemaLibraryEntry s = mappings.getSelectionModel().getSelectedItem();
         if (s == null) return;
         if (library instanceof SchemaLibraryServiceImpl impl) impl.clearFailure(s);
-        setStatus("Checking " + s.location() + "…");
+        setStatus(I18n.t("SchemaLibraryView.checking", s.location()));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             var result = library.materialize(s);
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("materialize", result.isPresent() ? null
@@ -656,13 +656,13 @@ public class SchemaLibraryView extends VBox {
     }
 
     private void openEntry(SchemaLibraryEntry e) {
-        setStatus("Opening " + display(e) + "…");
+        setStatus(I18n.t("SchemaLibraryView.opening", display(e)));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             var file = library.materialize(e);
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.schemaLibraryAction("open", file.isPresent() ? null
                     : org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("unavailable"));
             Platform.runLater(() -> file.ifPresentOrElse(p -> { editorHost.openFile(p.toFile()); setStatus(""); },
-                    () -> setStatus("Cannot open: " + library.lastError(e).orElse("schema not available"))));
+                    () -> setStatus(I18n.t("SchemaLibraryView.cannot-open", library.lastError(e).orElse("schema not available")))));
         });
     }
 

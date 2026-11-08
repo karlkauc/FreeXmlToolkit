@@ -165,7 +165,7 @@ public class ExecutionStatsView extends VBox {
             Files.writeString(file.toPath(), content, StandardCharsets.UTF_8);
         } catch (Exception e) {
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("ExecutionStatsView.export-failed"),
-                    "The statistics could not be written to " + file.getName() + ".",
+                    I18n.t("ExecutionStatsView.the-statistics-could-not-be", file.getName()),
                     org.fxt.freexmltoolkit.util.DialogHelper.Remedies.EXPORT, e);
         }
     }

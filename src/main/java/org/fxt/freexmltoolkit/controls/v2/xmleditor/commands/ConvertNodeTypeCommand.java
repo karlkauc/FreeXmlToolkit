@@ -39,7 +39,7 @@ public final class ConvertNodeTypeCommand implements XmlCommand {
 
         /** @return the menu label */
         public String label() {
-            return label;
+            return org.fxt.freexmltoolkit.i18n.I18n.or("ConvertNodeTypeCommand.Kind." + name(), label);
         }
     }
 

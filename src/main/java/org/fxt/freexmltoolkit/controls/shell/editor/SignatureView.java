@@ -67,6 +67,21 @@ public class SignatureView extends ScrollPane {
             this.subtitle = subtitle;
         }
 
+        /** @return the label in the side panel, in the interface language */
+        public String navLabel() {
+            return org.fxt.freexmltoolkit.i18n.I18n.or("SignatureView.Action." + name() + ".nav", navLabel);
+        }
+
+        /** @return the page title of the action */
+        public String title() {
+            return org.fxt.freexmltoolkit.i18n.I18n.or("SignatureView.Action." + name() + ".title", title);
+        }
+
+        /** @return the line under the title */
+        public String subtitle() {
+            return org.fxt.freexmltoolkit.i18n.I18n.or("SignatureView.Action." + name() + ".subtitle", subtitle);
+        }
+
         /** @return the stable key used by the side panel */
         public String key() {
             return key;
@@ -85,7 +100,7 @@ public class SignatureView extends ScrollPane {
 
     /** The actions as side-panel rows (ids {@code sig-nav-<key>}). */
     public static final List<PageNavigator.Entry> SECTIONS = java.util.Arrays.stream(Action.values())
-            .map(a -> new PageNavigator.Entry(a.key, a.navLabel, a.icon, a.title))
+            .map(a -> new PageNavigator.Entry(a.key, a.navLabel(), a.icon, a.title()))
             .toList();
 
     private final EditorHost editorHost;
@@ -186,8 +201,8 @@ public class SignatureView extends ScrollPane {
         }
         currentAction = action;
         actionIcon.setIconLiteral(action.icon);
-        actionTitle.setText(action.title);
-        actionSubtitle.setText(action.subtitle);
+        actionTitle.setText(action.title());
+        actionSubtitle.setText(action.subtitle());
         show(documentSection, action != Action.CREATE);
         show(keystoreSection, action == Action.SIGN || action == Action.CREATE);
         sections.forEach((a, box) -> show(box, a == action));

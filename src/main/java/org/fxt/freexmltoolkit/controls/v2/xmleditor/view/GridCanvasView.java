@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.view;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -1013,7 +1015,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
         }
         String error = filterErrors.get(key);
         if (error != null) {
-            showToast("Filter: " + error, ToastNotification.Type.WARNING);
+            showToast(I18n.t("GridCanvasView.filter", error), ToastNotification.Type.WARNING);
         }
     }
 

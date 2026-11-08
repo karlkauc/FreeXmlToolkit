@@ -161,7 +161,7 @@ public final class ValueViewerWindow extends Stage {
             pauseLabel.setText(source.location());
         } else if (snap != null) {
             String where = snap.hasFile() ? SourceLocations.fileName(snap.systemId()) + ":" : "line ";
-            pauseLabel.setText("paused at " + where + snap.lineNumber());
+            pauseLabel.setText(I18n.t("ValueViewerWindow.paused-at", where, snap.lineNumber()));
         }
     }
 

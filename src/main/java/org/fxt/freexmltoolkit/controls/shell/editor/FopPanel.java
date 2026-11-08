@@ -163,7 +163,7 @@ public class FopPanel extends VBox {
         try {
             xml = Files.readString(xmlFile.toPath(), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            PanelStatus.failure(status, I18n.t("FopPanel.could-not-read-xml"), "Could not read the XML input: " + e.getMessage());
+            PanelStatus.failure(status, I18n.t("FopPanel.could-not-read-xml"), I18n.t("FopPanel.could-not-read-the-xml", e.getMessage()));
             return;
         }
         java.util.Map<String, Object> parameters = new java.util.HashMap<>(currentOptions().stylesheetParameters());
@@ -184,7 +184,7 @@ public class FopPanel extends VBox {
         messagesButton.setText(lastResult.hasNotes()
                 ? "Messages & events (" + lastResult.messages().size() + ")" : "Messages & events");
         renderFoButton.setDisable(false);
-        PanelStatus.info(status, "Debug run finished · FO in OUTPUT · " + result.getExecutionTime() + " ms");
+        PanelStatus.info(status, I18n.t("FopPanel.debug-run-finished-fo-in", result.getExecutionTime()));
     }
 
     /** Renders the FO of the latest (debug) run to a PDF chosen by the user. */
@@ -221,7 +221,7 @@ public class FopPanel extends VBox {
                         outcome.stage(), outcome.failure());
                 messagesButton.setDisable(false);
                 if (outcome.ok()) {
-                    PanelStatus.success(status, "Generated: " + pdfOutput.getName());
+                    PanelStatus.success(status, I18n.t("FopPanel.generated", pdfOutput.getName()));
                     lastPdf = pdfOutput;
                     openButton.setDisable(false);
                     previewButton.setDisable(false);
@@ -351,9 +351,7 @@ public class FopPanel extends VBox {
                         : "Messages & events");
                 if (outcome.ok()) {
                     long warnings = outcome.warningCount();
-                    PanelStatus.success(status, "Generated: " + pdfOutput.getName()
-                            + (showStats ? " · " + elapsedMs + " ms" : "")
-                            + (warnings > 0 ? " · " + warnings + " FOP warning" + (warnings == 1 ? "" : "s") : ""));
+                    PanelStatus.success(status, I18n.t("FopPanel.generated-2", pdfOutput.getName(), (showStats ? " · " + elapsedMs + " ms" : ""), (warnings > 0 ? " · " + warnings + " FOP warning" + (warnings == 1 ? "" : "s") : "")));
                     lastPdf = pdfOutput;
                     openButton.setDisable(false);
                     previewButton.setDisable(false);

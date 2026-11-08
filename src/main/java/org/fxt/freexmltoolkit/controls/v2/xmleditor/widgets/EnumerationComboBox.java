@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -88,7 +90,7 @@ public class EnumerationComboBox implements TypeAwareWidgetFactory.EditWidget {
             // Value exists but not in enum - show warning
             comboBox.setValue(currentValue);
             validationResult = ValidationResult.warning(
-                    "Value '" + currentValue + "' is not in the enumeration list");
+                    I18n.t("EnumerationComboBox.value-is-not-in-the", currentValue));
             applyValidationStyle();
         }
 
@@ -114,7 +116,7 @@ public class EnumerationComboBox implements TypeAwareWidgetFactory.EditWidget {
     private void validateAndNotify(String value) {
         if (value != null && !value.isEmpty() && !enumerationValues.contains(value)) {
             validationResult = ValidationResult.warning(
-                    "Value '" + value + "' is not in the enumeration list");
+                    I18n.t("EnumerationComboBox.value-is-not-in-the", value));
         } else {
             validationResult = ValidationResult.valid();
         }

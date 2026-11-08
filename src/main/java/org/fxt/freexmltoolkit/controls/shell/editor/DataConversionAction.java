@@ -93,7 +93,7 @@ public final class DataConversionAction {
                 Platform.runLater(() -> editorHost.openGeneratedDocument(result, fileType(target), outputName));
             } catch (ConversionException e) {
                 Platform.runLater(() -> DialogHelper.showWarning(title,
-                        "The " + source.name() + " document could not be converted.", e.getMessage()));
+                        I18n.t("DataConversionAction.the-document-could-not-be", source.name()), e.getMessage()));
             } catch (OutOfMemoryError e) {
                 Platform.runLater(() -> DialogHelper.showWarning(title,
                         I18n.t("DataConversionAction.the-document-is-too-large"),
@@ -101,7 +101,7 @@ public final class DataConversionAction {
             } catch (RuntimeException e) {
                 logger.warn("Conversion to {} failed", target, e);
                 Platform.runLater(() -> DialogHelper.showWarning(title,
-                        "The " + source.name() + " document could not be converted.", String.valueOf(e.getMessage())));
+                        I18n.t("DataConversionAction.the-document-could-not-be", source.name()), String.valueOf(e.getMessage())));
             }
         });
     }

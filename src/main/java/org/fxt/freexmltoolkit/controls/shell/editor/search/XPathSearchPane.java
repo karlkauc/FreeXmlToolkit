@@ -397,8 +397,7 @@ public class XPathSearchPane extends VBox {
         ReplaceMode mode = selectedMode();
         String argument = argumentArea.getText() == null ? "" : argumentArea.getText();
         if (mode != ReplaceMode.DELETE && argument.isBlank()) {
-            PanelStatus.precondition(status, "Enter the replacement "
-                    + (mode == ReplaceMode.REPLACE_FRAGMENT ? "fragment" : "value"));
+            PanelStatus.precondition(status, I18n.t("XPathSearchPane.enter-the-replacement", (mode == ReplaceMode.REPLACE_FRAGMENT ? I18n.t("XPathSearchPane.replaceFragment") : I18n.t("XPathSearchPane.replaceValue"))));
             return;
         }
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
@@ -527,13 +526,11 @@ public class XPathSearchPane extends VBox {
                         .toList();
                 if (problems.isEmpty()) {
                     org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("xpath", "files", applied, null);
-                    PanelStatus.success(status, "Replaced " + applied + " match(es) in "
-                            + outcomes.size() + " file(s)");
+                    PanelStatus.success(status, I18n.t("XPathSearchPane.replaced-match-es-in-file", applied, outcomes.size()));
                 } else {
                     org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("xpath", "files", applied, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("files_skipped"));
                     PanelStatus.failure(status, I18n.t("XPathSearchPane.xpath-replace"),
-                            "Replaced " + applied + " match(es); " + problems.size()
-                                    + " file(s) skipped:\n" + String.join("\n", problems), false);
+                            I18n.t("XPathSearchPane.replaced-match-es-file-s", applied, problems.size(), String.join("\n", problems)), false);
                 }
             });
         });

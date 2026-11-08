@@ -60,7 +60,7 @@ public final class SchemaReferenceDialog extends Dialog<SchemaReferenceDialog.An
         this.kind = kind;
         this.documentPath = documentPath;
         String name = "xs:" + kind.name().toLowerCase(Locale.ROOT);
-        setTitle("Add " + name);
+        setTitle(I18n.t("SchemaReferenceDialog.add", name));
         setHeaderText(switch (kind) {
             case IMPORT -> "Import the components of a schema with another target namespace.";
             case INCLUDE -> "Include a schema with the same (or no) target namespace.";

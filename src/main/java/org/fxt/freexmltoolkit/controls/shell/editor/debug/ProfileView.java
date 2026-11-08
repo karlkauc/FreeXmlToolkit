@@ -87,9 +87,7 @@ public class ProfileView extends VBox {
         this.profile = profile;
         FxmlViews.load(this, "/pages/views/ProfileView.fxml");
         int outputSize = result == null || result.getOutputContent() == null ? 0 : result.getOutputContent().length();
-        summary.setText("Total " + XsltProfile.millis(profile.totalNanos()) + " ms · " + profile.totalCalls()
-                + " template/function calls · output " + outputSize + " chars"
-                + (profile.warmupRuns() > 0 ? " · after " + profile.warmupRuns() + " warm-up run(s)" : ""));
+        summary.setText(I18n.t("ProfileView.total-ms-template-function-calls", XsltProfile.millis(profile.totalNanos()), profile.totalCalls(), outputSize, (profile.warmupRuns() > 0 ? I18n.t("ProfileView.afterWarmup", profile.warmupRuns()) : "")));
         againButton.setVisible(false);
         againButton.setManaged(false);
 

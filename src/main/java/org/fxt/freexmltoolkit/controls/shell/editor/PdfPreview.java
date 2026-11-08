@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -77,7 +79,7 @@ public class PdfPreview extends BorderPane {
             return;
         }
         pageIndex = index;
-        pageLabel.setText("Page " + (index + 1) + " / " + pageCount);
+        pageLabel.setText(I18n.t("PdfPreview.page", (index + 1), pageCount));
         prev.setDisable(index == 0);
         next.setDisable(index == pageCount - 1);
         FxtGui.executorService.submit(() -> {
@@ -85,7 +87,7 @@ public class PdfPreview extends BorderPane {
                 var fx = SwingFXUtils.toFXImage(PdfPreviewRenderer.renderPage(pdf, index, DPI), null);
                 Platform.runLater(() -> imageView.setImage(fx));
             } catch (Exception e) {
-                Platform.runLater(() -> pageLabel.setText("Error rendering page: " + e.getMessage()));
+                Platform.runLater(() -> pageLabel.setText(I18n.t("PdfPreview.error-rendering-page", e.getMessage())));
             }
         });
     }

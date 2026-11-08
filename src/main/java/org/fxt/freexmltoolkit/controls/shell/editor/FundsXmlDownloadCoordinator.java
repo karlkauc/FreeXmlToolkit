@@ -127,7 +127,7 @@ public final class FundsXmlDownloadCoordinator {
             } catch (Throwable t) {
                 logger.warn("FundsXML background download failed: {}", t.getMessage());
                 result = FundsXmlExtensionService.DownloadResult.builder()
-                        .error("Download failed: " + t.getMessage())
+                        .error(I18n.t("FundsXmlDownloadCoordinator.download-failed", t.getMessage()))
                         .cause(t)
                         .build();
             } finally {
@@ -206,7 +206,7 @@ public final class FundsXmlDownloadCoordinator {
         try {
             if (result.isSuccess()) {
                 String version = result.schemaVersion() == null ? "" : " (schema " + result.schemaVersion() + ")";
-                ToastNotification.success(window, "FundsXML content updated" + version);
+                ToastNotification.success(window, I18n.t("FundsXmlDownloadCoordinator.fundsxml-content-updated", version));
             } else {
                 ToastNotification.info(window, I18n.t("FundsXmlDownloadCoordinator.fundsxml-update-failed-see-log"));
             }

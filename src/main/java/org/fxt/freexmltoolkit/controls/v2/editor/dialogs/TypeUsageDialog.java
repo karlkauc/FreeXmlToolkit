@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.dialogs;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -76,7 +78,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
     }
 
     private void initializeDialog() {
-        setTitle("Find Usages: " + typeName);
+        setTitle(I18n.t("TypeUsageDialog.find-usages", typeName));
         initModality(Modality.APPLICATION_MODAL);
 
         DialogPane dialogPane = getDialogPane();
@@ -96,7 +98,7 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         // Content: header, then the table with its help line or the "no usages" message
         dialogPane.setContent(FxmlViews.loadContent(this, "/pages/dialogs/TypeUsageDialog.fxml"));
         if (usages.isEmpty()) {
-            headerLabel.setText("No usages found for type '" + typeName + "'");
+            headerLabel.setText(I18n.t("TypeUsageDialog.no-usages-found-for-type", typeName));
             SemanticStyle.style(headerLabel, DesignTokens.ColorToken.SUCCESS, c -> "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + c + ";");
             SemanticIcon.paint(checkIcon, DesignTokens.ColorToken.SUCCESS);
             content.getChildren().removeAll(tableView, helpLabel);

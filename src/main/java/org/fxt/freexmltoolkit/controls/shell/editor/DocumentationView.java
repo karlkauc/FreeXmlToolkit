@@ -399,12 +399,12 @@ public class DocumentationView extends BorderPane {
             return;
         }
         if (options.output() == null) {
-            status.setText("Choose the output " + ("HTML".equals(options.format()) ? "folder" : "file") + " first.");
+            status.setText(I18n.t("DocumentationView.choose-the-output-first", ("HTML".equals(options.format()) ? I18n.t("DocumentationView.outputFolder") : I18n.t("DocumentationView.outputFile"))));
             return;
         }
         progressItems.clear();
         stepIndex.clear();
-        status.setText("Generating " + options.format() + "…");
+        status.setText(I18n.t("DocumentationView.generating", options.format()));
         generate.setDisable(true);
         cancel.setDisable(false);
         long start = System.currentTimeMillis();
@@ -721,7 +721,7 @@ public class DocumentationView extends BorderPane {
 
     private File chooseFile(javafx.stage.Window window, String initialName, String label, String glob) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save documentation as " + label);
+        chooser.setTitle(I18n.t("DocumentationView.save-documentation-as", label));
         chooser.setInitialFileName(initialName);
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(label, glob));
         return org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, window);

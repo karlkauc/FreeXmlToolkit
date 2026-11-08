@@ -211,13 +211,13 @@ final class EditorFileSync {
             UsageEvents.fileOpenFailed(tab.document.getFileType().docKind(), sizeOrUnknown(path),
                     UsageEvents.SOURCE_FILE, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
             Platform.runLater(() -> {
-                tab.view.setText("Could not read " + path + ": " + e.getMessage());
+                tab.view.setText(I18n.t("EditorFileSync.could-not-read", path, e.getMessage()));
                 tab.endLoading();
                 tab.document.setDiskStamp(stamp);
                 tab.loading = false;
                 host.publishSchemaStatus(tab, SchemaStatus.NONE);
                 org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorFileSync.open-failed"),
-                        "Could not read " + path.getFileName() + ".",
+                        I18n.t("EditorFileSync.could-not-read-2", path.getFileName()),
                         I18n.t("EditorFileSync.check-that-the-file-exists"), e, false);
             });
             return;
@@ -392,7 +392,7 @@ final class EditorFileSync {
         }
         // file_save already carries the failure; the dialog must not report it a second time.
         org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorFileSync.save-failed"),
-                "Could not save " + target.getFileName() + ".",
+                I18n.t("EditorFileSync.could-not-save", target.getFileName()),
                 I18n.t("EditorFileSync.check-that-the-file-is"), cause, false);
     }
 
@@ -403,7 +403,7 @@ final class EditorFileSync {
      */
     static java.util.function.Predicate<String> utf8SaveConfirmer = charset ->
             org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("EditorFileSync.save-failed"),
-                    "The text contains characters that " + charset + " cannot store.",
+                    I18n.t("EditorFileSync.the-text-contains-characters-that", charset),
                     I18n.t("EditorFileSync.save-the-file-as-utf"),
                     I18n.t("EditorFileSync.save-as-utf-8"), I18n.t("EditorFileSync.cancel"));
 
@@ -414,8 +414,7 @@ final class EditorFileSync {
                 tab.text()) != null) {
             // A declaration would pick the charset again on the next write: the user has to edit it.
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorFileSync.save-failed"),
-                    "Could not save " + target.getFileName() + ": the text contains characters that "
-                            + current.charset().name() + " cannot store.",
+                    I18n.t("EditorFileSync.could-not-save-the-text", target.getFileName(), current.charset().name()),
                     I18n.t("EditorFileSync.change-the-encoding-in-the"),
                     (String) null, false);
             return;
@@ -617,7 +616,7 @@ final class EditorFileSync {
                     }
                     tab.document.setDirty(true); // still the old content, which is not on disk
                     org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorFileSync.reload-failed"),
-                            "Could not read " + path + ".",
+                            I18n.t("EditorFileSync.could-not-read-2", path),
                             I18n.t("EditorFileSync.the-editor-still-shows-the"), e);
                 });
                 return;

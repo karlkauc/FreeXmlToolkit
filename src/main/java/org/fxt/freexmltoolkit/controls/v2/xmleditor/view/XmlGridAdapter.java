@@ -157,8 +157,7 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                     javafx.scene.control.Alert.AlertType.WARNING);
             alert.setTitle(I18n.t("XmlGridAdapter.mixed-content-detected"));
-            alert.setHeaderText("This XML contains " + mixedElements.size()
-                    + " element(s) with mixed content");
+            alert.setHeaderText(I18n.t("XmlGridAdapter.this-xml-contains-element-s", mixedElements.size()));
 
             StringBuilder details = new StringBuilder();
             details.append("Elements with both text and child elements were found:\n\n");

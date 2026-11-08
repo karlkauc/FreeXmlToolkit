@@ -37,7 +37,7 @@ public class ScenarioDialog extends Dialog<ScenarioDialog.Request> {
     public ScenarioDialog(FxtProject project, String name, String output) {
         this.project = project;
         setTitle(I18n.t("ScenarioDialog.save-as-scenario"));
-        setHeaderText("Save the Transform settings as a scenario of the project \"" + project.name() + "\".");
+        setHeaderText(I18n.t("ScenarioDialog.save-the-transform-settings-as", project.name()));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/ScenarioDialog.fxml"));
         nameField.setText(name == null ? "" : name);

@@ -243,7 +243,7 @@ public class TransformPanel extends VBox {
         } finally {
             fillingScenarios = false;
         }
-        project.ifPresent(p -> scenarioSection.setTitle("SCENARIO · " + p.name()));
+        project.ifPresent(p -> scenarioSection.setTitle(I18n.t("TransformPanel.scenario", p.name())));
         updateScenarioButtons();
     }
 
@@ -348,7 +348,7 @@ public class TransformPanel extends VBox {
         try {
             ProjectService.getInstance().save();
         } catch (java.io.IOException e) {
-            out.showFailure("The project could not be saved: " + e.getMessage());
+            out.showFailure(I18n.t("TransformPanel.the-project-could-not-be", e.getMessage()));
             return;
         }
         refreshScenarios();
@@ -366,7 +366,7 @@ public class TransformPanel extends VBox {
         Optional<FxtProject> project = ProjectService.getInstance().current();
         if (name == null || project.isEmpty()
                 || !org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("TransformPanel.delete-scenario"),
-                        "Delete the scenario \"" + name + "\"?", "It is removed from " + project.get().file().getFileName() + ".")) {
+                        I18n.t("TransformPanel.delete-the-scenario", name), I18n.t("TransformPanel.it-is-removed-from", project.get().file().getFileName()))) {
             return;
         }
         deleteScenario(project.get(), name);
@@ -377,7 +377,7 @@ public class TransformPanel extends VBox {
         try {
             ProjectService.getInstance().save();
         } catch (java.io.IOException e) {
-            out.showFailure("The project could not be saved: " + e.getMessage());
+            out.showFailure(I18n.t("TransformPanel.the-project-could-not-be", e.getMessage()));
         }
         refreshScenarios();
     }
@@ -391,7 +391,7 @@ public class TransformPanel extends VBox {
             return;
         }
         FxtProject.Scenario scenario = chosen.get();
-        out.showPending("Running scenario " + scenario.name + "…");
+        out.showPending(I18n.t("TransformPanel.running-scenario", scenario.name));
         runScenarioButton.setDisable(true);
         long t0 = System.nanoTime();
         FxtGui.executorService.submit(() -> {
@@ -404,7 +404,7 @@ public class TransformPanel extends VBox {
     void showScenarioResult(FxtProject project, FxtProject.Scenario scenario, ScenarioRunner.Result result, long ms) {
         runScenarioButton.setDisable(scenarioChoice.getValue() == null);
         if (!result.ok()) {
-            out.showFailure("Scenario " + scenario.name + " failed: " + result.error());
+            out.showFailure(I18n.t("TransformPanel.scenario-failed", scenario.name, result.error()));
             showScenarioInfo("Failed: " + result.error());
             return;
         }
@@ -582,7 +582,7 @@ public class TransformPanel extends VBox {
             try {
                 xml = Files.readString(inputOverride.toPath(), StandardCharsets.UTF_8);
             } catch (Exception e) {
-                out.showFailure("Could not read input file: " + e.getMessage());
+                out.showFailure(I18n.t("TransformPanel.could-not-read-input-file", e.getMessage()));
                 return;
             }
         } else {
@@ -620,7 +620,7 @@ public class TransformPanel extends VBox {
             try {
                 xsltContent = Files.readString(xsltFile.toPath(), StandardCharsets.UTF_8);
             } catch (Exception e) {
-                out.showFailure("Could not read stylesheet: " + e.getMessage());
+                out.showFailure(I18n.t("TransformPanel.could-not-read-stylesheet", e.getMessage()));
                 return;
             }
             view = new BatchTransformView(BatchTransformView.Kind.XSLT, xsltContent,
@@ -1109,7 +1109,7 @@ public class TransformPanel extends VBox {
                         if (!abandoned.get()) {
                             progress.finish();
                             transformButton.setDisable(false);
-                            out.showFailure("Could not read input file: " + e.getMessage());
+                            out.showFailure(I18n.t("TransformPanel.could-not-read-input-file", e.getMessage()));
                         }
                     });
                     return;
@@ -1216,7 +1216,7 @@ public class TransformPanel extends VBox {
         var view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.ProfileView(profile, result);
         view.setSourceOpener(this::openProfiledSource);
         javafx.scene.control.Tab target = tab != null ? tab
-                : editorHost.openToolTab("Profile: " + stylesheetName, "bi-speedometer2", view);
+                : editorHost.openToolTab(I18n.t("TransformPanel.profile", stylesheetName), "bi-speedometer2", view);
         if (tab != null) {
             tab.setContent(view);
         }
@@ -1227,7 +1227,7 @@ public class TransformPanel extends VBox {
                     showProfile(again.profile(), again.result(), xml, xmlBaseUri, xsltContent, xsltSystemId, params,
                             format, stylesheetName, target);
                 } else {
-                    out.showFailure("Profiling failed: " + again.result().getErrorMessage());
+                    out.showFailure(I18n.t("TransformPanel.profiling-failed", again.result().getErrorMessage()));
                 }
             });
         }));
@@ -1403,7 +1403,7 @@ public class TransformPanel extends VBox {
 
         @Override
         public String toString() {
-            return label;
+            return org.fxt.freexmltoolkit.i18n.I18n.or("TransformPanel.FormatChoice." + name(), label);
         }
     }
 }

@@ -376,7 +376,7 @@ public class CustomizableSectionContainer extends VBox {
     private void setupContextMenu(VBox wrapper, String sectionId, SectionDefinition def) {
         ContextMenu contextMenu = new ContextMenu();
 
-        MenuItem hideItem = new MenuItem("Hide \"" + def.displayName() + "\"");
+        MenuItem hideItem = new MenuItem(I18n.t("CustomizableSectionContainer.hide", def.displayName()));
         IconifyIcon hideIcon = new IconifyIcon("bi-eye-slash");
         hideIcon.setIconSize(14);
         hideItem.setGraphic(hideIcon);

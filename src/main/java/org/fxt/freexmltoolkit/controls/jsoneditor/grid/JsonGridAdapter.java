@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.jsoneditor.grid;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -429,7 +431,7 @@ public class JsonGridAdapter implements GridModelAdapter<JsonNode> {
         }
         RenameKeyCommand command = new RenameKeyCommand(node, key);
         if (!context.executeCommand(command)) {
-            toast("Key \"" + key + "\" already exists");
+            toast(I18n.t("JsonGridAdapter.key-already-exists", key));
             return false;
         }
         return true;

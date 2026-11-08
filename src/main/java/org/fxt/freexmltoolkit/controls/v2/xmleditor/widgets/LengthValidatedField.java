@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.function.Consumer;
 
 import javafx.geometry.Insets;
@@ -162,13 +164,13 @@ public class LengthValidatedField implements TypeAwareWidgetFactory.EditWidget {
 
         if (exactLength != null && length != exactLength) {
             validationResult = ValidationResult.warning(
-                    "Value must be exactly " + exactLength + " characters (currently " + length + ")");
+                    I18n.t("LengthValidatedField.value-must-be-exactly-characters", exactLength, length));
         } else if (minLength != null && length < minLength) {
             validationResult = ValidationResult.warning(
-                    "Value must be at least " + minLength + " characters (currently " + length + ")");
+                    I18n.t("LengthValidatedField.value-must-be-at-least", minLength, length));
         } else if (maxLength != null && length > maxLength) {
             validationResult = ValidationResult.warning(
-                    "Value must be at most " + maxLength + " characters (currently " + length + ")");
+                    I18n.t("LengthValidatedField.value-must-be-at-most", maxLength, length));
         } else {
             validationResult = ValidationResult.valid();
         }

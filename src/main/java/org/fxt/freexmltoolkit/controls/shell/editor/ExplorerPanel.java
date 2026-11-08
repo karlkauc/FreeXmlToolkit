@@ -840,7 +840,7 @@ public class ExplorerPanel extends VBox {
             editorHost.openDiffOfFiles(selected.get(0).toFile(), selected.get(1).toFile());
         } else if (selected.size() == 1) {
             FileChooser chooser = new FileChooser();
-            chooser.setTitle("Compare " + selected.getFirst().getFileName() + " with…");
+            chooser.setTitle(I18n.t("ExplorerPanel.compare-with", selected.getFirst().getFileName()));
             chooser.getExtensionFilters().addAll(EditorFileType.fileChooserFilters());
             File other = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
                     getScene() != null ? getScene().getWindow() : null);
@@ -999,7 +999,7 @@ public class ExplorerPanel extends VBox {
             shownProject = project.file();
             setWorkspaceFolder(project.folders().get(0));
         }
-        workspaceTitle.setText("PROJECT · " + project.name().toUpperCase(java.util.Locale.ROOT));
+        workspaceTitle.setText(I18n.t("ExplorerPanel.project", project.name().toUpperCase(java.util.Locale.ROOT)));
     }
 
     /** @return the workspace section title currently shown (for tests/observers). */

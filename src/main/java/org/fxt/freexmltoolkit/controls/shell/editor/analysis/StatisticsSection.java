@@ -251,14 +251,13 @@ final class StatisticsSection extends VBox {
         List<XsdSchemaReferenceInfo> refs = s.schemaReferences() == null ? List.of() : s.schemaReferences();
         references.getItems().setAll(refs);
         referencesBox.setVisible(!refs.isEmpty());
-        referencesTitle.setText("SCHEMA REFERENCES (" + refs.size() + ")"
-                + (s.unresolvedReferencesCount() > 0 ? " · " + s.unresolvedReferencesCount() + " unresolved" : ""));
+        referencesTitle.setText(I18n.t("StatisticsSection.schema-references", refs.size(), (s.unresolvedReferencesCount() > 0 ? " · " + s.unresolvedReferencesCount() + " unresolved" : "")));
 
         XsdStatistics.ComponentUsage usage = s.componentUsage();
         List<String> groups = new ArrayList<>(usage.unusedGroups());
         groups.addAll(usage.unusedAttributeGroups());
         unusedGroups.getItems().setAll(groups);
-        unusedGroupsTitle.setText("UNUSED GROUPS / ATTRIBUTE GROUPS (" + groups.size() + ")");
+        unusedGroupsTitle.setText(I18n.t("StatisticsSection.unused-groups-attribute-groups", groups.size()));
         List<String> cycleItems = new ArrayList<>();
         for (List<String> cycle : usage.derivationCycles()) {
             cycleItems.add(DERIVATION_PREFIX + chain(cycle));
@@ -267,16 +266,15 @@ final class StatisticsSection extends VBox {
             cycleItems.add(CONTAINMENT_PREFIX + chain(cycle));
         }
         cycles.getItems().setAll(cycleItems);
-        cyclesTitle.setText("CIRCULAR REFERENCES (" + cycleItems.size() + ")"
-                + (usage.derivationCycles().isEmpty() ? "" : " · " + usage.derivationCycles().size() + " derivation error(s)"));
+        cyclesTitle.setText(I18n.t("StatisticsSection.circular-references", cycleItems.size(), (usage.derivationCycles().isEmpty() ? "" : " · " + usage.derivationCycles().size() + " derivation error(s)")));
 
         List<XsdStatistics.TypeUsageEntry> top = s.topUsedTypes() == null ? List.of() : s.topUsedTypes();
         maxUsage = Math.max(1, top.stream().mapToInt(XsdStatistics.TypeUsageEntry::usageCount).max().orElse(1));
         topTypes.getItems().setAll(top);
         List<String> unused = s.unusedTypes() == null ? List.of() : s.unusedTypes().stream().sorted().toList();
         unusedTypes.getItems().setAll(unused);
-        unusedTitle.setText("UNUSED TYPES (" + unused.size() + ")");
-        topTypesTitle.setText("MOST USED TYPES (" + top.size() + ")");
+        unusedTitle.setText(I18n.t("StatisticsSection.unused-types", unused.size()));
+        topTypesTitle.setText(I18n.t("StatisticsSection.most-used-types", top.size()));
         status.setText("");
     }
 

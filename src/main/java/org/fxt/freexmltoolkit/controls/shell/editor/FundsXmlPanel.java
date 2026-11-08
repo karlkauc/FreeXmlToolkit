@@ -42,11 +42,11 @@ public class FundsXmlPanel extends VBox {
                         : "Download complete.");
             } else if (result.cause() != null) {
                 PanelStatus.failure(status, I18n.t("FundsXmlPanel.download-failed"),
-                        "Download failed: " + (result.error() == null ? "unknown error" : result.error()),
+                        I18n.t("FundsXmlPanel.download-failed-2", (result.error() == null ? "unknown error" : result.error())),
                         I18n.t("FundsXmlPanel.check-your-internet-connection-and"), result.cause());
             } else {
                 PanelStatus.failure(status, I18n.t("FundsXmlPanel.download-failed"),
-                        "Download failed: " + (result.error() == null ? "unknown error" : result.error()));
+                        I18n.t("FundsXmlPanel.download-failed-2", (result.error() == null ? "unknown error" : result.error())));
             }
             refreshVersions();
         }
@@ -76,7 +76,7 @@ public class FundsXmlPanel extends VBox {
     public void onVersionSelected() {
         String v = versionCombo.getValue();
         if (v != null && FundsXmlRunner.setActiveVersion(v)) {
-            PanelStatus.info(status, "Active schema version: " + v);
+            PanelStatus.info(status, I18n.t("FundsXmlPanel.active-schema-version", v));
         }
     }
 
@@ -177,13 +177,13 @@ public class FundsXmlPanel extends VBox {
             return;
         }
         org.fxt.freexmltoolkit.util.DesktopActions.open(dir.toFile(), e ->
-                PanelStatus.failure(status, I18n.t("FundsXmlPanel.could-not-open-folder"), "Could not open folder: " + e.getMessage(),
+                PanelStatus.failure(status, I18n.t("FundsXmlPanel.could-not-open-folder"), I18n.t("FundsXmlPanel.could-not-open-folder-2", e.getMessage()),
                         I18n.t("FundsXmlPanel.open-the-folder-in-your"), e));
     }
 
     private void openUrl(String url) {
         java.util.function.Consumer<Exception> failed = e -> PanelStatus.failure(status, I18n.t("FundsXmlPanel.could-not-open-browser"),
-                "Could not open browser: " + e.getMessage(), I18n.t("FundsXmlPanel.copy-the-address-into-your"), e);
+                I18n.t("FundsXmlPanel.could-not-open-browser-2", e.getMessage()), I18n.t("FundsXmlPanel.copy-the-address-into-your"), e);
         try {
             org.fxt.freexmltoolkit.util.DesktopActions.browse(new java.net.URI(url), failed);
         } catch (java.net.URISyntaxException e) {

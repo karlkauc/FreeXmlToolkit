@@ -49,7 +49,7 @@ public final class DebugConfigurationDialog extends Dialog<DebugConfigurationDia
 
     public DebugConfigurationDialog(String stylesheetName, DebugLaunchConfig config) {
         setTitle(I18n.t("DebugConfigurationDialog.debug-configuration"));
-        setHeaderText("Debug " + stylesheetName);
+        setHeaderText(I18n.t("DebugConfigurationDialog.debug", stylesheetName));
         IconifyIcon icon = new IconifyIcon("bi-bug");
         icon.setIconSize(32);
         setGraphic(icon);

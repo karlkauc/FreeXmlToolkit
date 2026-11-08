@@ -68,7 +68,7 @@ public final class SignatureTrustValidator {
      */
     public static TrustResult validate(File signedFile, KeyStore trustStore, boolean checkRevocation) {
         if (signedFile == null || !signedFile.isFile()) {
-            return TrustResult.error("file not found: " + signedFile);
+            return TrustResult.error(I18n.t("SignatureTrustValidator.file-not-found", signedFile));
         }
         try {
             Document doc = parse(signedFile);

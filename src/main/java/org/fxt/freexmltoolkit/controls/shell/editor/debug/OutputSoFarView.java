@@ -192,7 +192,7 @@ public class OutputSoFarView extends VBox {
             item.setOnAction(e -> onOpenDocument.accept(uri));
             documents.getItems().add(item);
         }
-        documents.setText("Documents (" + loaded.size() + ")");
+        documents.setText(I18n.t("OutputSoFarView.documents", loaded.size()));
         documents.setVisible(!loaded.isEmpty());
         documents.setManaged(!loaded.isEmpty());
     }

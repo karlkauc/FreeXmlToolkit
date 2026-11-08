@@ -242,8 +242,7 @@ public class SettingsPanel extends VBox {
                 templatesList.getSelectionModel().selectedItemProperty().isNull());
 
         initFileAssociationControls();
-        libraryFile.setText("Library file: "
-                + org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared().getStorageFile());
+        libraryFile.setText(I18n.t("SettingsPanel.library-file", org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared().getStorageFile()));
         sponsorButton.setGraphic(ProjectLinks.sponsorIcon(14));
 
         maxMemory.getItems().setAll(memoryChoices());
@@ -549,26 +548,25 @@ public class SettingsPanel extends VBox {
 
     @FXML
     public void onClearTemp() {
-        clearInBackground(this::clearTempFolder, " file(s).");
+        clearInBackground(this::clearTempFolder, "SettingsPanel.clearedFiles");
     }
 
     @FXML
     public void onClearCache() {
         if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("SettingsPanel.clear-cache"),
                 I18n.t("SettingsPanel.clear-the-local-cache-folder"),
-                "This deletes all cached files (downloaded schemas etc.) under\n"
-                        + cacheFolder().getAbsolutePath() + "\n\nThis action cannot be undone.")) {
-            clearInBackground(this::clearCacheFolder, " cached file(s).");
+                I18n.t("SettingsPanel.this-deletes-all-cached-files", cacheFolder().getAbsolutePath()))) {
+            clearInBackground(this::clearCacheFolder, "SettingsPanel.clearedCachedFiles");
         }
     }
 
     /** Deletes off the FX thread (thousands of cached schemas took seconds) and reports the count. */
-    private void clearInBackground(java.util.function.IntSupplier clear, String what) {
+    private void clearInBackground(java.util.function.IntSupplier clear, String resultKey) {
         tempStatus.setText(I18n.t("SettingsPanel.clearing"));
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             int cleared = clear.getAsInt();
             javafx.application.Platform.runLater(() -> {
-                tempStatus.setText("Cleared " + cleared + what);
+                tempStatus.setText(I18n.t(resultKey, cleared));
                 refreshFolderUsage();
             });
         });
@@ -656,8 +654,7 @@ public class SettingsPanel extends VBox {
     static java.util.function.Predicate<java.nio.file.Path> logCleanupConfirmer = dir ->
             org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("SettingsPanel.clean-up-log-files"),
                     I18n.t("SettingsPanel.delete-old-log-files-now"),
-                    "Log files beyond the limits set here are deleted from\n" + dir
-                            + "\n\nThe log file in use is kept. This action cannot be undone.");
+                    I18n.t("SettingsPanel.log-files-beyond-the-limits", dir));
 
     /** The log folder the page works on; replaceable by tests. */
     static java.util.function.Supplier<java.nio.file.Path> logDirectory =
@@ -730,10 +727,10 @@ public class SettingsPanel extends VBox {
         try {
             java.nio.file.Files.createDirectories(dir);
         } catch (java.io.IOException e) {
-            saveStatus.setText("Could not create " + dir + ".");
+            saveStatus.setText(I18n.t("SettingsPanel.could-not-create", dir));
             return;
         }
-        org.fxt.freexmltoolkit.util.DesktopActions.open(dir.toFile(), e -> saveStatus.setText("Could not open " + dir + "."));
+        org.fxt.freexmltoolkit.util.DesktopActions.open(dir.toFile(), e -> saveStatus.setText(I18n.t("SettingsPanel.could-not-open", dir)));
     }
 
     // test access
@@ -745,7 +742,7 @@ public class SettingsPanel extends VBox {
     public void onOpenLogFolder() {
         java.nio.file.Path dir = logDirectory.get();
         org.fxt.freexmltoolkit.util.DesktopActions.open(dir.toFile(),
-                e -> logStatus.setText("Could not open " + dir + "."));
+                e -> logStatus.setText(I18n.t("SettingsPanel.could-not-open", dir)));
     }
 
     /** Shows the log folder with its file count and size, counted off the FX thread, after {@code prefix}. */
@@ -865,9 +862,7 @@ public class SettingsPanel extends VBox {
         var policy = org.fxt.freexmltoolkit.service.AdminPolicy.current();
         boolean updatesOff = !policy.updatesAllowed();
         if (!policyLocked.isEmpty() || updatesOff) {
-            policyNotice.setText("Some settings are managed by your administrator and cannot be changed here"
-                    + (updatesOff ? "; updates are installed by your administrator" : "")
-                    + ". Policy file: " + policy.policyFile());
+            policyNotice.setText(I18n.t("SettingsPanel.some-settings-are-managed-by", (updatesOff ? I18n.t("SettingsPanel.updatesByAdmin") : ""), policy.policyFile()));
             policyNotice.setVisible(true);
             policyNotice.setManaged(true);
         }
@@ -928,7 +923,7 @@ public class SettingsPanel extends VBox {
         proxySettingsFromForm().writeTo(test);
         test.setProperty("ssl.trustAllCerts", String.valueOf(trustAllCerts.isSelected()));
         proxyTestButton.setDisable(true);
-        proxyTestStatus.setText("Connecting to " + uri.getHost() + "…");
+        proxyTestStatus.setText(I18n.t("SettingsPanel.connecting-to", uri.getHost()));
         java.net.URI target = uri;
         org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
             var result = org.fxt.freexmltoolkit.service.ConnectionServiceImpl.getInstance()
@@ -1061,7 +1056,7 @@ public class SettingsPanel extends VBox {
             return;
         }
         if (org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation(I18n.t("SettingsPanel.delete-template"),
-                "Delete template '" + selected.getName() + "'?",
+                I18n.t("SettingsPanel.delete-template-2", selected.getName()),
                 I18n.t("SettingsPanel.this-permanently-removes-the-template"))) {
             TemplateRepository.getInstance().removeTemplate(selected.getId(), true);
             reloadTemplatesList();
@@ -1196,8 +1191,8 @@ public class SettingsPanel extends VBox {
     /** Fills the pickers with the current theme's colours (the defaults when {@code defaults}). */
     private void fillGridColorPickers(boolean defaults) {
         var theme = org.fxt.freexmltoolkit.controls.theme.DesignTokens.currentTheme();
-        gridColorsTheme.setText("Colours for the " + (theme == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK
-                ? "dark" : "light") + " theme (switch the theme to set the other one).");
+        gridColorsTheme.setText(I18n.t("SettingsPanel.colours-for-the-theme-switch", (theme == org.fxt.freexmltoolkit.controls.theme.DesignTokens.Theme.DARK
+                ? I18n.t("SettingsPanel.themeDark") : I18n.t("SettingsPanel.themeLight"))));
         gridColorPickers().forEach((slot, picker) -> picker.setValue(defaults
                 ? org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.defaultColor(theme, slot)
                 : org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridColors.resolve(theme, slot)));

@@ -202,7 +202,7 @@ public class TextSearchPane extends VBox {
         try {
             FileSearchRunner.compile(query);
         } catch (PatternSyntaxException e) {
-            PanelStatus.precondition(status, "Invalid regular expression: " + e.getDescription());
+            PanelStatus.precondition(status, I18n.t("TextSearchPane.invalid-regular-expression", e.getDescription()));
             return;
         }
         savePrefs();
@@ -325,8 +325,7 @@ public class TextSearchPane extends VBox {
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle(I18n.t("TextSearchPane.replace-in-files"));
-        confirm.setHeaderText("Replace " + checked.size() + " match(es) in "
-                + checkedStarts.size() + " file(s)?");
+        confirm.setHeaderText(I18n.t("TextSearchPane.replace-match-es-in-file", checked.size(), checkedStarts.size()));
         confirm.setContentText(editorFiles > 0
                 ? editorFiles + " file(s) are open and will be edited in the editor (undo with Ctrl+Z, "
                 + "then save); the rest are written to disk."
@@ -397,14 +396,12 @@ public class TextSearchPane extends VBox {
                 .toList();
         if (problems.isEmpty()) {
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("text", "files", applied, null);
-            PanelStatus.success(status, "Replaced " + applied + " match(es) in " + okFiles + " file(s)");
+            PanelStatus.success(status, I18n.t("TextSearchPane.replaced-match-es-in-file", applied, okFiles));
         } else {
             // files that changed meanwhile or cannot be written: the environment, counted by the event
             org.fxt.freexmltoolkit.service.telemetry.UsageEvents.replaced("text", "files", applied, org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("files_skipped"));
             PanelStatus.failure(status, I18n.t("TextSearchPane.replace-in-files"),
-                    "Replaced " + applied + " match(es) in " + okFiles + " file(s); "
-                            + problems.size() + " file(s) skipped:\n"
-                            + String.join("\n", problems), false);
+                    I18n.t("TextSearchPane.replaced-match-es-in-file-2", applied, okFiles, problems.size(), String.join("\n", problems)), false);
         }
     }
 

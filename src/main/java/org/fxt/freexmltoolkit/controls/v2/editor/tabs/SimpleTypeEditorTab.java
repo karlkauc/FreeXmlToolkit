@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.v2.editor.tabs;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import javafx.scene.control.Alert;
 
 import org.apache.logging.log4j.LogManager;
@@ -147,7 +149,7 @@ public class SimpleTypeEditorTab extends AbstractTypeEditorTab {
             listView.setPrefWidth(400);
 
             javafx.scene.layout.VBox content = new javafx.scene.layout.VBox(10);
-            content.getChildren().add(new javafx.scene.control.Label("Found " + usages.size() + " usage(s):"));
+            content.getChildren().add(new javafx.scene.control.Label(I18n.t("SimpleTypeEditorTab.found-usage-s", usages.size())));
             content.getChildren().add(listView);
 
             dialog.getDialogPane().setContent(content);

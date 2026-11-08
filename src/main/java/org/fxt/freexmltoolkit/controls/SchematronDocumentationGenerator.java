@@ -340,12 +340,12 @@ public class SchematronDocumentationGenerator extends VBox {
             Throwable exception = documentationTask.getException();
             logger.error("Documentation generation failed", exception);
 
-            statusLabel.setText("Error: " + exception.getMessage());
+            statusLabel.setText(I18n.t("SchematronDocumentationGenerator.error", exception.getMessage()));
             progressBar.setVisible(false);
             generateButton.setDisable(false);
 
             org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("SchematronDocumentationGenerator.generation-error"), null,
-                    "Failed to generate documentation: " + exception.getMessage(), exception);
+                    I18n.t("SchematronDocumentationGenerator.failed-to-generate-documentation", exception.getMessage()), exception);
         });
 
         executor.execute(documentationTask);
@@ -844,12 +844,12 @@ public class SchematronDocumentationGenerator extends VBox {
         if (file != null) {
             try {
                 Files.writeString(file.toPath(), generatedDocumentation);
-                statusLabel.setText("Documentation exported to " + file.getName());
+                statusLabel.setText(I18n.t("SchematronDocumentationGenerator.documentation-exported-to", file.getName()));
                 logger.info("Documentation exported to: {}", file.getAbsolutePath());
             } catch (Exception e) {
                 logger.error("Export failed", e);
                 org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("SchematronDocumentationGenerator.export-error"), null,
-                        "Failed to export documentation: " + e.getMessage(), e);
+                        I18n.t("SchematronDocumentationGenerator.failed-to-export-documentation", e.getMessage()), e);
             }
         }
     }

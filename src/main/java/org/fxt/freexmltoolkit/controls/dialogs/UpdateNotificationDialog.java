@@ -142,8 +142,7 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         InstallSource installSource = InstallSourceDetector.peek();
         boolean managed = installSource.isManaged();
         if (managed) {
-            infoText.setText("This installation is managed by " + installSource.displayName()
-                    + ". Run the command above to update it.");
+            infoText.setText(I18n.t("UpdateNotificationDialog.this-installation-is-managed-by", installSource.displayName()));
             upgradeCommand.setText(installSource.upgradeCommand());
             managedBox.setVisible(true);
             managedBox.setManaged(true);

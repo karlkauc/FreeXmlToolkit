@@ -80,11 +80,11 @@ public enum UsageReferenceType {
      * @return the display name
      */
     public String getDisplayName() {
-        return displayName;
+        return org.fxt.freexmltoolkit.i18n.I18n.or("UsageReferenceType." + name(), displayName);
     }
 
     @Override
     public String toString() {
-        return displayName;
+        return getDisplayName();
     }
 }

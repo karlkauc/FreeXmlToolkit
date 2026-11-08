@@ -137,7 +137,7 @@ final class QualitySection extends VBox {
         scoreDescription.setText(result.getScoreDescription());
         scoreChecks.setText(result.passedChecks() + " of " + result.totalChecks() + " checks passed");
         NamingConvention naming = result.dominantNamingConvention();
-        scoreNaming.setText("Naming: " + (naming == null ? "–" : naming.getDisplayName()));
+        scoreNaming.setText(I18n.t("QualitySection.naming", (naming == null ? "–" : naming.getDisplayName())));
         scoreTile.getStyleClass().removeAll("fxt-analysis-score-good", "fxt-analysis-score-fair", "fxt-analysis-score-poor");
         scoreTile.getStyleClass().add(score >= 75 ? "fxt-analysis-score-good"
                 : score >= 60 ? "fxt-analysis-score-fair" : "fxt-analysis-score-poor");
@@ -307,7 +307,7 @@ final class QualitySection extends VBox {
             details.getChildren().add(where);
         }
         if (issue.suggestion() != null && !issue.suggestion().isBlank()) {
-            Label suggestion = new Label("Suggestion: " + issue.suggestion());
+            Label suggestion = new Label(I18n.t("QualitySection.suggestion", issue.suggestion()));
             suggestion.setWrapText(true);
             suggestion.getStyleClass().add("fxt-analysis-key");
             details.getChildren().add(suggestion);

@@ -162,7 +162,7 @@ public class XsdContextMenuFactory {
                 });
         editType.setId("xsd-menu-edit-frame-type");
         editType.setDisable(openComplexTypeEditorCallback == null || frame.type() == null);
-        MenuItem note = new MenuItem("Part of type '" + frame.typeName() + "' (read-only here)");
+        MenuItem note = new MenuItem(I18n.t("XsdContextMenuFactory.part-of-type-read-only", frame.typeName()));
         note.setGraphic(createColoredIcon("bi-lock", ActionColor.NEUTRAL));
         note.setDisable(true);
         menu.getItems().addAll(0, java.util.List.of(editType, note, new SeparatorMenuItem()));

@@ -75,7 +75,7 @@ public class SchematronCheckResultView extends VBox {
     /** Prompts for a target file and writes {@code content} to it. */
     private void export(String extension, String filterName, String content) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Export Schematron results as " + filterName);
+        chooser.setTitle(I18n.t("SchematronCheckResultView.export-schematron-results-as", filterName));
         chooser.setInitialFileName("schematron-results." + extension);
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter(filterName + " File (*." + extension + ")", "*." + extension));
@@ -85,9 +85,9 @@ public class SchematronCheckResultView extends VBox {
         }
         try {
             Files.writeString(file.toPath(), content);
-            summary.setText("Exported " + issues.size() + " issue(s) to " + file.getName());
+            summary.setText(I18n.t("SchematronCheckResultView.exported-issue-s-to", issues.size(), file.getName()));
         } catch (Exception ex) {
-            summary.setText("Export failed: " + ex.getMessage());
+            summary.setText(I18n.t("SchematronCheckResultView.export-failed", ex.getMessage()));
         }
     }
 

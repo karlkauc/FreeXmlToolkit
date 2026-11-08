@@ -562,7 +562,7 @@ public class SchematronTemplateLibrary extends VBox {
     private static class TemplateCustomizationDialog extends Dialog<String> {
         TemplateCustomizationDialog(TemplateItem template) {
             setTitle(I18n.t("SchematronTemplateLibrary.customize-template"));
-            setHeaderText("Customize: " + template.getName());
+            setHeaderText(I18n.t("SchematronTemplateLibrary.customize", template.getName()));
 
             ButtonType insertButtonType = new ButtonType("Insert", ButtonBar.ButtonData.OK_DONE);
             getDialogPane().getButtonTypes().addAll(insertButtonType, ButtonType.CANCEL);

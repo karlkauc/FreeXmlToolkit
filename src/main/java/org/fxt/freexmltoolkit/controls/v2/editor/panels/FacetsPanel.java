@@ -197,7 +197,7 @@ public class FacetsPanel extends VBox {
         setDisable(false); // Enable panel to show facets (but fields will be read-only)
 
         // Show info label
-        infoLabel.setText("These facets are inherited from type '" + typeName + "' (read-only)");
+        infoLabel.setText(I18n.t("FacetsPanel.these-facets-are-inherited-from", typeName));
         infoLabel.setVisible(true);
         infoLabel.setManaged(true);
 
@@ -255,7 +255,7 @@ public class FacetsPanel extends VBox {
                     : XsdDatatypeFacets.getApplicableFacets(baseType));
 
             if (applicableFacets.isEmpty()) {
-                noFacetsLabel.setText("No applicable facets for datatype: " + baseType);
+                noFacetsLabel.setText(I18n.t("FacetsPanel.no-applicable-facets-for-datatype", baseType));
                 facetsGridPane.add(noFacetsLabel, 0, 0, 3, 1);
                 return;
             }
@@ -308,7 +308,7 @@ public class FacetsPanel extends VBox {
                     inputControl.setDisable(true);
                     inputControl.setStyle("-fx-opacity: 0.7;");
                     label.setStyle("-fx-text-fill: #856404;");
-                    Tooltip tooltip = new Tooltip("Fixed value for " + baseType + " (defined by XSD specification)");
+                    Tooltip tooltip = new Tooltip(I18n.t("FacetsPanel.fixed-value-for-defined-by", baseType));
                     Tooltip.install(inputControl, tooltip);
                 } else if (isInheritedView) {
                     // Inherited from referenced type (read-only)

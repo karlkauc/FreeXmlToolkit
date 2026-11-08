@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -63,10 +65,10 @@ public class PatternTextField implements TypeAwareWidgetFactory.EditWidget {
         this.pattern = compiledPattern;
 
         this.textField = new TextField(currentValue != null ? currentValue : "");
-        this.textField.setPromptText("Pattern: " + patternString);
+        this.textField.setPromptText(I18n.t("PatternTextField.pattern", patternString));
 
         // Tooltip with pattern info
-        Tooltip tooltip = new Tooltip("Pattern: " + patternString);
+        Tooltip tooltip = new Tooltip(I18n.t("PatternTextField.pattern", patternString));
         textField.setTooltip(tooltip);
 
         // Validate initial value
@@ -90,9 +92,9 @@ public class PatternTextField implements TypeAwareWidgetFactory.EditWidget {
         if (value == null || value.isEmpty()) {
             validationResult = ValidationResult.valid();
         } else if (pattern == null) {
-            validationResult = ValidationResult.warning("Invalid pattern definition: " + patternString);
+            validationResult = ValidationResult.warning(I18n.t("PatternTextField.invalid-pattern-definition", patternString));
         } else if (!pattern.matcher(value).matches()) {
-            validationResult = ValidationResult.warning("Value does not match pattern: " + patternString);
+            validationResult = ValidationResult.warning(I18n.t("PatternTextField.value-does-not-match-pattern", patternString));
         } else {
             validationResult = ValidationResult.valid();
         }
@@ -114,7 +116,7 @@ public class PatternTextField implements TypeAwareWidgetFactory.EditWidget {
         } else {
             textField.setStyle(baseStyle +
                     "-fx-border-color: #28a745; -fx-border-width: 1px;");
-            Tooltip.install(textField, new Tooltip("Pattern: " + patternString + " (valid)"));
+            Tooltip.install(textField, new Tooltip(I18n.t("PatternTextField.pattern-valid", patternString)));
         }
     }
 

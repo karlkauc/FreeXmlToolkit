@@ -90,7 +90,7 @@ public class SchematronReportView extends VBox {
             return;
         }
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Save Schematron report as " + filterName);
+        chooser.setTitle(I18n.t("SchematronReportView.save-schematron-report-as", filterName));
         chooser.setInitialFileName("schematron-report." + extension);
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                 filterName + " File (*." + extension + ")", "*." + extension));
@@ -101,9 +101,9 @@ public class SchematronReportView extends VBox {
         }
         try {
             Files.writeString(file.toPath(), content);
-            status.setText("Saved " + file.getName());
+            status.setText(I18n.t("SchematronReportView.saved", file.getName()));
         } catch (Exception ex) {
-            status.setText("Save failed: " + ex.getMessage());
+            status.setText(I18n.t("SchematronReportView.save-failed", ex.getMessage()));
         }
     }
 

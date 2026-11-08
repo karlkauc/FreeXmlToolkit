@@ -116,7 +116,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
         SemanticIcon.paint(stageIcon, DesignTokens.ColorToken.PRIMARY);
         versionLabel.setText(String.format("Updating to version %s",
                 updateInfo.latestVersion() != null ? updateInfo.latestVersion() : "latest"));
-        detailsLabel.setText("Platform: " + autoUpdateService.getPlatformIdentifier());
+        detailsLabel.setText(I18n.t("UpdateProgressDialog.platform", autoUpdateService.getPlatformIdentifier()));
 
         // Custom buttons - only Cancel during download
         ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -170,7 +170,7 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
         }).exceptionally(e -> {
             Platform.runLater(() -> {
                 logger.error("Update exception", e);
-                UpdateResult failResult = UpdateResult.failure("Update error: " + e.getMessage());
+                UpdateResult failResult = UpdateResult.failure(I18n.t("UpdateProgressDialog.update-error", e.getMessage()));
                 handleUpdateFailure(failResult);
 
                 if (onComplete != null) {

@@ -68,7 +68,7 @@ public class BatchTransformView extends VBox {
         setPadding(new Insets(12));
         getStyleClass().add("fxt-side-panel-content");
 
-        Label title = new Label("BATCH (" + kind + ")");
+        Label title = new Label(I18n.t("BatchTransformView.batch", kind));
         title.getStyleClass().add("fxt-side-panel-title");
 
         Button addFiles = button("Add Files…", "bi-file-earmark-plus", this::addFiles);
@@ -185,7 +185,7 @@ public class BatchTransformView extends VBox {
         }
         int written = BatchTransformRunner.writeAll(lastResults, Path.of(dir.getAbsolutePath()),
                 format.getFileExtension());
-        summary.setText("Wrote " + written + " file(s) to " + dir.getName());
+        summary.setText(I18n.t("BatchTransformView.wrote-file-s-to", written, dir.getName()));
     }
 
     public int getFileCount() {

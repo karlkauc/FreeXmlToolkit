@@ -196,7 +196,7 @@ public class FolderCompareView extends VBox {
                     if (!cancelled.get()) {
                         progress.setVisible(false);
                         progress.setManaged(false);
-                        summary.setText("Cannot compare the folders: " + e.getMessage());
+                        summary.setText(I18n.t("FolderCompareView.cannot-compare-the-folders", e.getMessage()));
                         table.getItems().clear();
                     }
                 });

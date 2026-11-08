@@ -38,7 +38,7 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
     public BindSchemaDialog(FxtProject project, String files, Path schema) {
         this.project = project;
         setTitle(I18n.t("BindSchemaDialog.bind-schema-in-project"));
-        setHeaderText("Validate XML files of \"" + project.name() + "\" with a schema.");
+        setHeaderText(I18n.t("BindSchemaDialog.validate-xml-files-of-with", project.name()));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/BindSchemaDialog.fxml"));
         filesField.setText(files == null ? "" : files);

@@ -166,7 +166,7 @@ final class AnalysisSupport {
 
     private static void export(Node owner, String baseName, ReportFormat format, Label status, ExportWriter writer) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Export " + baseName + " as " + format.label());
+        chooser.setTitle(I18n.t("AnalysisSupport.export-as", baseName, format.label()));
         chooser.setInitialFileName(baseName.toLowerCase(Locale.ROOT).replace(' ', '-') + "." + format.extension());
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                 format.label() + " File (*." + format.extension() + ")", "*." + format.extension()));
@@ -175,7 +175,7 @@ final class AnalysisSupport {
         if (file == null) {
             return;
         }
-        status.setText("Exporting " + format.label() + "…");
+        status.setText(I18n.t("AnalysisSupport.exporting", format.label()));
         FxtGui.executorService.submit(() -> {
             String outcome;
             try {

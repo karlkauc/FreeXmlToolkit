@@ -215,7 +215,7 @@ public class XSpecView extends VBox {
                     try {
                         run(Files.readString(xspecFile, StandardCharsets.UTF_8));
                     } catch (IOException e) {
-                        summary.setText("Cannot read " + xspecFile + ": " + e.getMessage());
+                        summary.setText(I18n.t("XSpecView.cannot-read", xspecFile, e.getMessage()));
                     }
                 });
     }
@@ -235,7 +235,7 @@ public class XSpecView extends VBox {
                     editorHost.setActiveViewMode(ViewMode.PREVIEW);
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> summary.setText("Cannot create the HTML report: " + e.getMessage()));
+                Platform.runLater(() -> summary.setText(I18n.t("XSpecView.cannot-create-the-html-report", e.getMessage())));
             }
         });
     }

@@ -245,9 +245,9 @@ public class LargeFileView extends VBox {
             long line = Long.parseLong(lineField.getText().strip().replace(",", "").replace(".", ""));
             showRow(index.rowOfLine(line));
         } catch (NumberFormatException e) {
-            status.setText("Enter a line number between 1 and " + index.lineCount() + ".");
+            status.setText(I18n.t("LargeFileView.enter-a-line-number-between", index.lineCount()));
         } catch (IOException e) {
-            status.setText("Cannot read the file: " + e.getMessage());
+            status.setText(I18n.t("LargeFileView.cannot-read-the-file", e.getMessage()));
         }
     }
 
@@ -292,9 +292,7 @@ public class LargeFileView extends VBox {
         try {
             LargeFileIndex.Row first = index.row(range[0]);
             long rows = range[1] - range[0] + 1;
-            status.setText("Line " + String.format(Locale.ROOT, "%,d", first.line())
-                    + (rows > 1 ? " · " + String.format(Locale.ROOT, "%,d", rows) + " rows selected" : "")
-                    + " · byte offset " + String.format(Locale.ROOT, "%,d", first.offset()));
+            status.setText(I18n.t("LargeFileView.line-byte-offset", String.format(Locale.ROOT, "%,d", first.line()), (rows > 1 ? " · " + String.format(Locale.ROOT, "%,d", rows) + " rows selected" : ""), String.format(Locale.ROOT, "%,d", first.offset())));
         } catch (IOException e) {
             status.setText("");
         }
@@ -320,10 +318,9 @@ public class LargeFileView extends VBox {
             ClipboardContent content = new ClipboardContent();
             content.putString(text.toString());
             Clipboard.getSystemClipboard().setContent(content);
-            status.setText("Copied " + String.format(Locale.ROOT, "%,d", rows.size()) + " rows"
-                    + (count < selectionEnd - selectionStart + 1 ? " (at most " + MAX_COPY_ROWS + ")" : "") + ".");
+            status.setText(I18n.t("LargeFileView.copied-rows", String.format(Locale.ROOT, "%,d", rows.size()), (count < selectionEnd - selectionStart + 1 ? I18n.t("LargeFileView.atMost", MAX_COPY_ROWS) : "")));
         } catch (IOException e) {
-            status.setText("Cannot read the file: " + e.getMessage());
+            status.setText(I18n.t("LargeFileView.cannot-read-the-file", e.getMessage()));
         }
     }
 
@@ -340,7 +337,7 @@ public class LargeFileView extends VBox {
             pattern = regexCheck.isSelected() ? Pattern.compile(findField.getText(), flags)
                     : Pattern.compile(Pattern.quote(findField.getText()), flags);
         } catch (PatternSyntaxException e) {
-            status.setText("Invalid regular expression: " + e.getDescription());
+            status.setText(I18n.t("LargeFileView.invalid-regular-expression", e.getDescription()));
             return;
         }
         cancel.set(true);
@@ -366,7 +363,7 @@ public class LargeFileView extends VBox {
                 Platform.runLater(() -> {
                     hideProgress();
                     findButton.setDisable(false);
-                    status.setText("Search failed: " + e.getMessage());
+                    status.setText(I18n.t("LargeFileView.search-failed", e.getMessage()));
                 });
             }
         });
@@ -531,7 +528,7 @@ public class LargeFileView extends VBox {
                     tree.getSelectionModel().select(item);
                 });
             } catch (IOException | RuntimeException e) {
-                Platform.runLater(() -> recordsLabel.setText("No XML structure: " + e.getMessage()));
+                Platform.runLater(() -> recordsLabel.setText(I18n.t("LargeFileView.no-xml-structure", e.getMessage())));
             }
         });
     }
@@ -596,7 +593,7 @@ public class LargeFileView extends VBox {
                 Platform.runLater(() -> {
                     hideProgress();
                     state.loading = false;
-                    recordsLabel.setText("Cannot read the children: " + e.getMessage());
+                    recordsLabel.setText(I18n.t("LargeFileView.cannot-read-the-children", e.getMessage()));
                 });
             }
         });
@@ -667,8 +664,7 @@ public class LargeFileView extends VBox {
             records.getColumns().add(column("Text", 160, LargeXmlStructure.Node::text));
         }
         records.getItems().setAll(state.nodes);
-        recordsLabel.setText("Children of " + parent.xpath() + ": " + String.format(Locale.ROOT, "%,d", state.nodes.size())
-                + (state.next >= 0 ? " loaded, more available" : ""));
+        recordsLabel.setText(I18n.t("LargeFileView.children-of", parent.xpath(), String.format(Locale.ROOT, "%,d", state.nodes.size()), (state.next >= 0 ? " loaded, more available" : "")));
         loadMoreButton.setDisable(state.next < 0);
     }
 
@@ -690,7 +686,7 @@ public class LargeFileView extends VBox {
             views.getSelectionModel().select(textTab);
             showRow(row);
         } catch (IOException e) {
-            status.setText("Cannot read the file: " + e.getMessage());
+            status.setText(I18n.t("LargeFileView.cannot-read-the-file", e.getMessage()));
         }
     }
 
@@ -705,7 +701,7 @@ public class LargeFileView extends VBox {
                 String text = s.text(node, MAX_EXTRACT_BYTES);
                 Platform.runLater(() -> documentOpener.accept(node.name() + "-" + node.position() + ".xml", text));
             } catch (IOException | RuntimeException e) {
-                Platform.runLater(() -> status.setText("Cannot open the element: " + e.getMessage()));
+                Platform.runLater(() -> status.setText(I18n.t("LargeFileView.cannot-open-the-element", e.getMessage())));
             }
         });
     }
@@ -733,7 +729,7 @@ public class LargeFileView extends VBox {
                         views.getSelectionModel().select(textTab);
                         showLine(row.getItem().line());
                     } catch (IOException ex) {
-                        status.setText("Cannot read the file: " + ex.getMessage());
+                        status.setText(I18n.t("LargeFileView.cannot-read-the-file", ex.getMessage()));
                     }
                 }
             });
@@ -811,7 +807,7 @@ public class LargeFileView extends VBox {
                 Platform.runLater(() -> {
                     hideProgress();
                     validateButton.setDisable(false);
-                    status.setText("Validation failed: " + e.getMessage());
+                    status.setText(I18n.t("LargeFileView.validation-failed", e.getMessage()));
                 });
             }
         });

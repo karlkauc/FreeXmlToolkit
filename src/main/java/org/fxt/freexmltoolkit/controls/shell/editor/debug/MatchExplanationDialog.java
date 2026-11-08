@@ -35,7 +35,7 @@ public final class MatchExplanationDialog extends Dialog<Void> {
     public MatchExplanationDialog(String node, String mode, List<MatchExplanation.Line> lines,
                                   Consumer<MatchExplanation.Line> onOpen) {
         setTitle(I18n.t("MatchExplanationDialog.explain-match"));
-        setHeaderText("Template rules for " + node + ("#default".equals(mode) ? "" : "  ·  mode " + mode));
+        setHeaderText(I18n.t("MatchExplanationDialog.template-rules-for", node, ("#default".equals(mode) ? "" : "  ·  mode " + mode)));
         IconifyIcon icon = new IconifyIcon("bi-diagram-3");
         icon.setIconSize(32);
         setGraphic(icon);

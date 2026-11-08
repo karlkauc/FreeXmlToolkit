@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.StringReader;
@@ -127,9 +129,7 @@ public final class XProcRunner {
                     exec.input(inputPort.getName(), buildInputDocument(calabash, exec,
                             inputXmlText, inputXmlFile, pipelineFile));
                 } else if (inputPort.getDefaultBindings().isEmpty()) {
-                    return error("The pipeline declares an input port ('" + inputPort.getName()
-                            + "') but no XML target is available — open an XML document or pick "
-                            + "one via the Target dropdown.",
+                    return error(I18n.t("XProcRunner.the-pipeline-declares-an-input", inputPort.getName()),
                             org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("xproc.no_input"));
                 }
             }

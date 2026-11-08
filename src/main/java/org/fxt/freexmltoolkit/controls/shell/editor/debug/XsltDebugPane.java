@@ -494,8 +494,7 @@ public final class XsltDebugPane extends VBox {
                     String ctx = snap.contextItem().isEmpty() ? "" : "  ·  " + snap.contextItem();
                     breakpointsView.refresh(); // hit counts of this run
                     String note = controller.getSession().getPauseNote();
-                    status.setText("Paused at " + file + snap.lineNumber() + ctx
-                            + (note == null || note.isEmpty() ? "" : "  ·  " + note));
+                    status.setText(I18n.t("XsltDebugPane.paused-at", file, snap.lineNumber(), ctx, (note == null || note.isEmpty() ? "" : "  ·  " + note)));
                     status.getStyleClass().remove(CONDITION_ERROR_CLASS);
                     if (note != null && (note.startsWith("condition failed") || note.startsWith("error "))) {
                         status.getStyleClass().add(CONDITION_ERROR_CLASS);
@@ -545,14 +544,12 @@ public final class XsltDebugPane extends VBox {
             return;
         }
         if (result.isSuccess()) {
-            status.setText("Finished · " + result.getExecutionTime() + " ms · "
-                    + (result.getOutputContent() == null ? 0 : result.getOutputContent().length())
-                    + " chars → OUTPUT");
+            status.setText(I18n.t("XsltDebugPane.finished-ms-chars-output", result.getExecutionTime(), (result.getOutputContent() == null ? 0 : result.getOutputContent().length())));
         } else if (result.getErrorMessage() != null && result.getErrorMessage().contains("stopped")) {
             status.setText(I18n.t("XsltDebugPane.stopped"));
         } else {
-            status.setText("Error: " + (result.getErrorMessage() == null ? "transformation failed"
-                    : result.getErrorMessage()));
+            status.setText(I18n.t("XsltDebugPane.error", (result.getErrorMessage() == null ? "transformation failed"
+                    : result.getErrorMessage())));
             selectTab(rightTabs, messagesTab);
         }
         applyButtonState(controller.getSession().getState());

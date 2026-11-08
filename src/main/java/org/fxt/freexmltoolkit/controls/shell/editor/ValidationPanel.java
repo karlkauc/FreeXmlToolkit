@@ -567,7 +567,7 @@ public class ValidationPanel extends VBox {
         File xsd = editorHost.activeSchemaProperty().get();
         int total = files.size();
         java.util.concurrent.atomic.AtomicBoolean cancelled = new java.util.concurrent.atomic.AtomicBoolean(false);
-        PanelStatus.info(status, "Validating " + total + " file(s)…");
+        PanelStatus.info(status, I18n.t("ValidationPanel.validating-file-s", total));
         progress.beginDeterminate(total, () -> {
             cancelled.set(true);
             PanelStatus.info(status, I18n.t("ValidationPanel.cancelling"));
@@ -587,7 +587,7 @@ public class ValidationPanel extends VBox {
                 if (cancelled.get()) {
                     // showBatchResults set a "N valid/failed" status; correct it for a partial run.
                     PanelStatus.info(status,
-                            "Cancelled — validated " + results.size() + " of " + total + " file(s)");
+                            I18n.t("ValidationPanel.cancelled-validated-of-file-s", results.size(), total));
                 }
             });
         });
@@ -640,7 +640,7 @@ public class ValidationPanel extends VBox {
         if (dir == null || !dir.isDirectory()) {
             return;
         }
-        PanelStatus.info(status, "Scanning " + dir.getName() + "…");
+        PanelStatus.info(status, I18n.t("ValidationPanel.scanning", dir.getName()));
         FxtGui.executorService.submit(() -> {
             List<File> files;
             try (var paths = java.nio.file.Files.walk(dir.toPath())) {
@@ -651,12 +651,12 @@ public class ValidationPanel extends VBox {
                         .toList();
             } catch (java.io.IOException ex) {
                 Platform.runLater(() -> PanelStatus.failure(status, I18n.t("ValidationPanel.validation-failed"),
-                        "Could not scan " + dir.getName() + ": " + ex.getMessage()));
+                        I18n.t("ValidationPanel.could-not-scan", dir.getName(), ex.getMessage())));
                 return;
             }
             Platform.runLater(() -> {
                 if (files.isEmpty()) {
-                    PanelStatus.info(status, "No XML files found in " + dir.getName());
+                    PanelStatus.info(status, I18n.t("ValidationPanel.no-xml-files-found-in", dir.getName()));
                 } else {
                     runBatch(files);
                 }
@@ -866,14 +866,14 @@ public class ValidationPanel extends VBox {
         }
         File output = target.getName().toLowerCase().endsWith(".xlsx")
                 ? target : new File(target.getParentFile(), target.getName() + ".xlsx");
-        PanelStatus.info(status, "Exporting " + EditorActions.problemCount(snapshot.size()) + "…");
+        PanelStatus.info(status, I18n.t("ValidationPanel.exporting", EditorActions.problemCount(snapshot.size())));
         FxtGui.executorService.submit(() -> {
             try {
                 ValidationExcelExporter.export(snapshot, sourceName, output.toPath());
                 Platform.runLater(() -> {
-                    PanelStatus.success(status, "Exported " + EditorActions.problemCount(snapshot.size()));
+                    PanelStatus.success(status, I18n.t("ValidationPanel.exported", EditorActions.problemCount(snapshot.size())));
                     org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("ValidationPanel.export-problems"),
-                            null, "Wrote " + EditorActions.problemCount(snapshot.size()) + " to:\n" + output.getAbsolutePath());
+                            null, I18n.t("ValidationPanel.wrote-to", EditorActions.problemCount(snapshot.size()), output.getAbsolutePath()));
                 });
             } catch (Exception ex) {
                 Platform.runLater(() -> PanelStatus.failure(status, I18n.t("ValidationPanel.export-problems"),

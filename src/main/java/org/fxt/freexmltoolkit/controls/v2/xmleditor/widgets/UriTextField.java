@@ -110,7 +110,7 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
         Button btn = new Button(label);
         btn.setStyle("-fx-font-size: 9; -fx-padding: 2 4; -fx-background-radius: 2; " +
                 "-fx-background-color: #e9ecef; -fx-text-fill: #495057;");
-        btn.setTooltip(new Tooltip("Insert " + prefix));
+        btn.setTooltip(new Tooltip(I18n.t("UriTextField.insert", prefix)));
 
         btn.setOnAction(e -> {
             String current = textField.getText();
@@ -144,7 +144,7 @@ public class UriTextField implements TypeAwareWidgetFactory.EditWidget {
                 new URI(value);
                 validationResult = ValidationResult.valid();
             } catch (URISyntaxException e) {
-                validationResult = ValidationResult.warning("Invalid URI syntax: " + e.getMessage());
+                validationResult = ValidationResult.warning(I18n.t("UriTextField.invalid-uri-syntax", e.getMessage()));
             }
         }
         applyValidationStyle();

@@ -472,7 +472,7 @@ public class SchematronTester extends VBox {
             } catch (Exception e) {
                 logger.error("Error during test execution", e);
                 javafx.application.Platform.runLater(() -> {
-                    statusLabel.setText("Error: " + e.getMessage());
+                    statusLabel.setText(I18n.t("SchematronTester.error", e.getMessage()));
                     org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("SchematronTester.schematron-test"),
                             I18n.t("SchematronTester.the-schematron-test-could-not"),
                             I18n.t("SchematronTester.check-that-the-xml-file"),
@@ -547,7 +547,7 @@ public class SchematronTester extends VBox {
                 logger.info("Processing large XML file: {} ({} bytes)", fileName, fileSize);
                 // Update status to show large file processing
                 javafx.application.Platform.runLater(() -> {
-                    statusLabel.setText("Processing large file: " + fileName + " (this may take longer)");
+                    statusLabel.setText(I18n.t("SchematronTester.processing-large-file-this-may", fileName));
                 });
             }
 

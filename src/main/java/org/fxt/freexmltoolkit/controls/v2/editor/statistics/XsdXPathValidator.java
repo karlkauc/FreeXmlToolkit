@@ -399,7 +399,7 @@ public class XsdXPathValidator {
                         xpath,
                         constraintName,
                         source,
-                        "Element '" + elementName + "' not found in schema",
+                        I18n.t("XsdXPathValidator.element-not-found-in-schema", elementName),
                         sourceNode
                 ));
             }

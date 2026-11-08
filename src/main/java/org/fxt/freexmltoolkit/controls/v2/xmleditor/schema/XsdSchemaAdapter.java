@@ -533,7 +533,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
 
         // Check enumeration
         if (enumerationValues != null && !enumerationValues.isEmpty() && !enumerationValues.contains(value)) {
-            return ValidationResult.warning("Value should be one of: " + String.join(", ", enumerationValues));
+            return ValidationResult.warning(I18n.t("XsdSchemaAdapter.value-should-be-one-of", String.join(", ", enumerationValues)));
         }
 
         // Check pattern
@@ -541,7 +541,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
             String pattern = facets.get("pattern");
             try {
                 if (!Pattern.matches(pattern, value)) {
-                    return ValidationResult.warning("Value does not match pattern: " + pattern);
+                    return ValidationResult.warning(I18n.t("XsdSchemaAdapter.value-does-not-match-pattern", pattern));
                 }
             } catch (PatternSyntaxException e) {
                 logger.warn("Invalid pattern in schema: {}", pattern);
@@ -555,7 +555,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
                 try {
                     int minLength = Integer.parseInt(facets.get("minLength"));
                     if (value.length() < minLength) {
-                        return ValidationResult.warning("Value must be at least " + minLength + " characters");
+                        return ValidationResult.warning(I18n.t("XsdSchemaAdapter.value-must-be-at-least", minLength));
                     }
                 } catch (NumberFormatException ignored) {
                 }
@@ -566,7 +566,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
                 try {
                     int maxLength = Integer.parseInt(facets.get("maxLength"));
                     if (value.length() > maxLength) {
-                        return ValidationResult.warning("Value must be at most " + maxLength + " characters");
+                        return ValidationResult.warning(I18n.t("XsdSchemaAdapter.value-must-be-at-most", maxLength));
                     }
                 } catch (NumberFormatException ignored) {
                 }
@@ -577,7 +577,7 @@ public class XsdSchemaAdapter implements XmlSchemaProvider {
                 try {
                     int length = Integer.parseInt(facets.get("length"));
                     if (value.length() != length) {
-                        return ValidationResult.warning("Value must be exactly " + length + " characters");
+                        return ValidationResult.warning(I18n.t("XsdSchemaAdapter.value-must-be-exactly-characters", length));
                     }
                 } catch (NumberFormatException ignored) {
                 }

@@ -779,7 +779,7 @@ public class XsdPropertiesPanel extends BorderPane {
         if (!enumerations.isEmpty()) {
             enumerationsFromReferencedType = true;
             enumerationsListView.getItems().addAll(enumerations);
-            enumerationsListView.setPlaceholder(new Label("Enumerations from type '" + typeName + "' (read-only)"));
+            enumerationsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.enumerations-from-type-read-only", typeName)));
         } else {
             enumerationsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-enumeration-values-defined")));
         }
@@ -789,7 +789,7 @@ public class XsdPropertiesPanel extends BorderPane {
         if (!patterns.isEmpty()) {
             patternsFromReferencedType = true;
             patternsListView.getItems().addAll(patterns);
-            patternsListView.setPlaceholder(new Label("Patterns from type '" + typeName + "' (read-only)"));
+            patternsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.patterns-from-type-read-only", typeName)));
         } else {
             patternsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-patterns-defined-for-this-2")));
         }
@@ -799,7 +799,7 @@ public class XsdPropertiesPanel extends BorderPane {
         if (!assertions.isEmpty()) {
             assertionsFromReferencedType = true;
             assertionsListView.getItems().addAll(assertions);
-            assertionsListView.setPlaceholder(new Label("Assertions from type '" + typeName + "' (read-only)"));
+            assertionsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.assertions-from-type-read-only", typeName)));
         } else {
             assertionsListView.setPlaceholder(new Label(I18n.t("XsdPropertiesPanel.no-assertions-defined")));
         }
@@ -865,7 +865,7 @@ public class XsdPropertiesPanel extends BorderPane {
         }
 
         if (row == 0) {
-            Label noFacetsLabel = new Label("No applicable facets for datatype: " + datatype);
+            Label noFacetsLabel = new Label(I18n.t("XsdPropertiesPanel.no-applicable-facets-for-datatype", datatype));
             noFacetsLabel.getStyleClass().add("theme-text-muted");
             facetsGridPane.add(noFacetsLabel, 0, 0, 2, 1);
         }
@@ -1959,7 +1959,7 @@ public class XsdPropertiesPanel extends BorderPane {
         }
 
         if (row == 0) {
-            Label noFacetsLabel = new Label("No applicable facets for datatype: " + datatype);
+            Label noFacetsLabel = new Label(I18n.t("XsdPropertiesPanel.no-applicable-facets-for-datatype", datatype));
             noFacetsLabel.getStyleClass().add("theme-text-muted");
             facetsGridPane.add(noFacetsLabel, 0, 0, 2, 1);
         }

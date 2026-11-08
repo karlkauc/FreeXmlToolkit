@@ -102,7 +102,7 @@ public final class QuickFixController {
                         org.fxt.freexmltoolkit.service.telemetry.QueryFailure.invalidInput("SqfExecutionException"));
                 logger.info("Quick fix '{}' not applied: {}", fix.fixId(), e.getMessage());
                 Platform.runLater(() -> DialogHelper.showActionError(I18n.t("QuickFixController.quick-fix"),
-                        "The fix \"" + fix.title() + "\" could not be applied.",
+                        I18n.t("QuickFixController.the-fix-could-not-be-2", fix.title()),
                         e.getMessage(), (String) null, false));
             } catch (Exception e) {
                 // classified first (quick_fix carries class + stack), then logged
@@ -110,7 +110,7 @@ public final class QuickFixController {
                         org.fxt.freexmltoolkit.service.telemetry.QueryFailure.of(e));
                 logger.warn("Quick fix '{}' failed", fix.fixId(), e);
                 Platform.runLater(() -> DialogHelper.showActionError(I18n.t("QuickFixController.quick-fix"),
-                        "The fix \"" + fix.title() + "\" failed unexpectedly.",
+                        I18n.t("QuickFixController.the-fix-failed-unexpectedly", fix.title()),
                         I18n.t("QuickFixController.re-validate-the-document-and"), e, false));
             }
         });

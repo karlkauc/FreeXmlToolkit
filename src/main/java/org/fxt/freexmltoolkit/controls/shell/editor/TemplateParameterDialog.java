@@ -31,7 +31,7 @@ public class TemplateParameterDialog extends Dialog<Map<String, String>> {
 
     public TemplateParameterDialog(XmlTemplate template) {
         setTitle(I18n.t("TemplateParameterDialog.template-parameters"));
-        setHeaderText("Enter values for \"" + template.getName() + "\"");
+        setHeaderText(I18n.t("TemplateParameterDialog.enter-values-for", template.getName()));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         GridPane grid = new GridPane();

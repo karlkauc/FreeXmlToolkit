@@ -185,7 +185,7 @@ public final class EditorActions {
         }
         var target = resolved.get();
         boolean xquery = type == EditorFileType.XQUERY;
-        out.showPending("Running query against " + target.displayName() + "…");
+        out.showPending(I18n.t("EditorActions.running-query-against", target.displayName()));
         String queryTarget = doc.getDisplayName();
         final int gen = ++queryRunGeneration;
         FxtGui.executorService.submit(() -> {
@@ -200,7 +200,7 @@ public final class EditorActions {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     if (gen == queryRunGeneration) {
-                        out.showFailure("Cannot read target file: " + e.getMessage());
+                        out.showFailure(I18n.t("EditorActions.cannot-read-target-file", e.getMessage()));
                     }
                 });
                 return;
@@ -264,7 +264,7 @@ public final class EditorActions {
         }
         var target = resolved.get();
         var format = TransformRunner.detectXsltOutputFormat(xslt);
-        out.showPending("Transforming " + target.displayName() + "…");
+        out.showPending(I18n.t("EditorActions.transforming", target.displayName()));
         String stylesheetName = doc.getDisplayName();
         // The editor text runs, but under the file's location so relative imports/includes resolve
         String xsltSystemId = doc.getPath() != null ? doc.getPath().toUri().toString() : null;
@@ -282,7 +282,7 @@ public final class EditorActions {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     if (gen == queryRunGeneration) {
-                        out.showFailure("Cannot read target file: " + e.getMessage());
+                        out.showFailure(I18n.t("EditorActions.cannot-read-target-file", e.getMessage()));
                     }
                 });
                 return;
@@ -354,7 +354,7 @@ public final class EditorActions {
         try {
             xml = resolved.get().loadXml();
         } catch (Exception e) {
-            out.showFailure("Cannot read target file: " + e.getMessage());
+            out.showFailure(I18n.t("EditorActions.cannot-read-target-file", e.getMessage()));
             return;
         }
         String xslt = editorHost.getActiveText().orElse("");
@@ -385,7 +385,7 @@ public final class EditorActions {
             try {
                 xml = resolved.get().loadXml();
             } catch (Exception e) {
-                out.showFailure("Cannot read target file: " + e.getMessage());
+                out.showFailure(I18n.t("EditorActions.cannot-read-target-file", e.getMessage()));
                 return;
             }
             if (resolved.get().file() != null) {
@@ -419,7 +419,7 @@ public final class EditorActions {
         try {
             xml = resolved.get().loadXml();
         } catch (Exception e) {
-            out.showFailure("Cannot read target file: " + e.getMessage());
+            out.showFailure(I18n.t("EditorActions.cannot-read-target-file", e.getMessage()));
             return;
         }
         if (resolved.get().file() != null) {

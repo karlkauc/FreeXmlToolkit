@@ -46,9 +46,8 @@ public class DataConversionDialog extends Dialog<Options> {
     public DataConversionDialog(Format source, Format target, Options initial) {
         this.target = target;
         boolean toJson = target != Format.XML;   // JSON or YAML: the XML → JSON mapping
-        setTitle("Convert to " + target.label());
-        setHeaderText("Convert this " + source.name() + " document to " + target.name()
-                + ". The result opens in a new tab.");
+        setTitle(I18n.t("DataConversionDialog.convert-to", target.label()));
+        setHeaderText(I18n.t("DataConversionDialog.convert-this-document-to-the", source.name(), target.name()));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/DataConversionDialog.fxml"));
 

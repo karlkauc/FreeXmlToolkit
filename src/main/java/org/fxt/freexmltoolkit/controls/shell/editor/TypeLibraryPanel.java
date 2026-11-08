@@ -438,7 +438,7 @@ public class TypeLibraryPanel extends VBox {
             return;
         }
         javafx.stage.DirectoryChooser chooser = new javafx.stage.DirectoryChooser();
-        chooser.setTitle("Choose output folder for " + profile.getBatchCount() + " files");
+        chooser.setTitle(I18n.t("TypeLibraryPanel.choose-output-folder-for-files", profile.getBatchCount()));
         File dir = org.fxt.freexmltoolkit.util.FileChooserHelper.showDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (dir == null) {
             return;

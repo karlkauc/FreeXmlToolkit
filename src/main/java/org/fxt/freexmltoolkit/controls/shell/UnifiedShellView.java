@@ -1453,7 +1453,7 @@ public class UnifiedShellView extends BorderPane {
                     .warn("Plugin panel {} failed", activity.id(), e);
         }
         javafx.scene.control.Label error = new javafx.scene.control.Label(
-                "The panel of \"" + activity.label() + "\" could not be created. See the log for details.");
+                I18n.t("UnifiedShellView.the-panel-of-could-not", activity.label()));
         error.setWrapText(true);
         error.setId("plugin-panel-error");
         javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(error);
@@ -2465,7 +2465,7 @@ public class UnifiedShellView extends BorderPane {
                                   java.io.File file, boolean imported) {
         if (!result.isError()) {
             org.fxt.freexmltoolkit.util.DialogHelper.showInformation(I18n.t("UnifiedShellView.spreadsheet-converter"),
-                    I18n.t("UnifiedShellView.conversion-finished"), "Done: " + file.getAbsolutePath());
+                    I18n.t("UnifiedShellView.conversion-finished"), I18n.t("UnifiedShellView.done", file.getAbsolutePath()));
         } else if (result.error() instanceof org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.RowLimitExceededException limit) {
             org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.the-document-has-too-many"),
@@ -2481,9 +2481,7 @@ public class UnifiedShellView extends BorderPane {
             // it is instead of raising an error dialog (and an error report) with a stack trace.
             org.fxt.freexmltoolkit.util.DialogHelper.showWarning(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.the-document-is-not-well"),
-                    "Line " + parse.getLineNumber() + ", column " + parse.getColumnNumber() + ": "
-                            + parse.getMessage()
-                            + "\n\nFix the document (the Validation panel lists the problem), then convert again.");
+                    I18n.t("UnifiedShellView.line-column-fix-the-document", parse.getLineNumber(), parse.getColumnNumber(), parse.getMessage()));
         } else {
             org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("UnifiedShellView.spreadsheet-converter"),
                     I18n.t("UnifiedShellView.the-conversion-could-not-be"),
@@ -2556,7 +2554,7 @@ public class UnifiedShellView extends BorderPane {
         if (right == null) {
             return;
         }
-        editorHost.openToolTab("Compare: " + left.getName() + " ↔ " + right.getName(), "bi-folder2-open",
+        editorHost.openToolTab(I18n.t("UnifiedShellView.compare", left.getName(), right.getName()), "bi-folder2-open",
                 new org.fxt.freexmltoolkit.controls.shell.editor.FolderCompareView(editorHost, left.toPath(), right.toPath()));
     }
 
@@ -2575,7 +2573,7 @@ public class UnifiedShellView extends BorderPane {
                         org.fxt.freexmltoolkit.util.DialogHelper.showError(I18n.t("UnifiedShellView.merge-files"),
                                 I18n.t("UnifiedShellView.the-files-could-not-be"), String.valueOf(error.getMessage()), error);
                     } else {
-                        editorHost.openToolTab("Merge: " + request.left().getFileName(), "bi-sign-merge-left", view);
+                        editorHost.openToolTab(I18n.t("UnifiedShellView.merge", request.left().getFileName()), "bi-sign-merge-left", view);
                     }
                 })));
     }

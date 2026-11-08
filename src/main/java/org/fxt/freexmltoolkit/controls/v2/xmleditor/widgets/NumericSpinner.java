@@ -17,6 +17,8 @@
  */
 package org.fxt.freexmltoolkit.controls.v2.xmleditor.widgets;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -86,7 +88,7 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
             try {
                 initial = Double.parseDouble(currentValue);
             } catch (NumberFormatException e) {
-                validationResult = ValidationResult.warning("Invalid number: " + currentValue);
+                validationResult = ValidationResult.warning(I18n.t("NumericSpinner.invalid-number", currentValue));
             }
         }
 
@@ -205,7 +207,7 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
         } else if (totalDigits != null) {
             String strVal = formatValue(value).replace("-", "").replace(".", "");
             if (strVal.length() > totalDigits) {
-                validationResult = ValidationResult.warning("Value cannot have more than " + totalDigits + " digits");
+                validationResult = ValidationResult.warning(I18n.t("NumericSpinner.value-cannot-have-more-than", totalDigits));
             } else {
                 validationResult = ValidationResult.valid();
             }
@@ -258,7 +260,7 @@ public class NumericSpinner implements TypeAwareWidgetFactory.EditWidget {
             spinner.getValueFactory().setValue(parsed);
             validate(parsed);
         } catch (NumberFormatException e) {
-            validationResult = ValidationResult.warning("Invalid number: " + value);
+            validationResult = ValidationResult.warning(I18n.t("NumericSpinner.invalid-number", value));
             applyValidationStyle();
         }
     }

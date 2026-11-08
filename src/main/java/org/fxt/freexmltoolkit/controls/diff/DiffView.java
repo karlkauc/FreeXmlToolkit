@@ -207,7 +207,7 @@ public final class DiffView extends Tab {
 
         gutter = new DiffGutter(leftArea, rightArea, this::applyChunk);
 
-        setText("Compare: " + leftDisplayName + " ↔ " + rightDisplayName);
+        setText(I18n.t("DiffView.compare", leftDisplayName, rightDisplayName));
         setGraphic(new IconifyIcon("bi-files"));
         setContent(buildLayout());
 

@@ -2874,10 +2874,10 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
 
             if (sourceInfo != null && sourceInfo.isFromInclude()) {
                 String fileName = sourceInfo.getFileName();
-                currentSourceFileLabel.setText("From: " + fileName);
+                currentSourceFileLabel.setText(I18n.t("XsdGraphView.from", fileName));
                 currentSourceFileLabel.setVisible(true);
                 currentSourceFileLabel.setTooltip(new Tooltip(
-                        "This element is defined in: " + sourceInfo.getSchemaLocation()));
+                        I18n.t("XsdGraphView.this-element-is-defined-in", sourceInfo.getSchemaLocation())));
                 logger.info("Node '{}' is from included file: {}", xsdNode.getName(), fileName);
             } else {
                 currentSourceFileLabel.setText("");

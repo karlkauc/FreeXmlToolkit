@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.editor.analysis;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -142,7 +144,7 @@ public class SchemaAnalysisView extends BorderPane {
         int nestingLimit = quality.nestingLimit();
         cancelRunning();
         showBusy(true);
-        status.setText("Analyzing " + name + "…");
+        status.setText(I18n.t("SchemaAnalysisView.analyzing", name));
         running = FxtGui.executorService.submit(() -> {
             SchemaAnalysisData result = null;
             String outcome;
@@ -202,7 +204,7 @@ public class SchemaAnalysisView extends BorderPane {
                 + " · " + AnalysisSupport.plural(unused, "unused type")
                 + (unreachable > unused ? " · " + unreachable + " unreachable components" : ""));
         status.getStyleClass().remove("fxt-lib-error");
-        status.setText("Analyzed " + data.documentName());
+        status.setText(I18n.t("SchemaAnalysisView.analyzed", data.documentName()));
     }
 
     private static boolean isXsd(OpenDocument doc) {

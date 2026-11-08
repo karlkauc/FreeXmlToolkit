@@ -144,7 +144,7 @@ public final class FileSearchRunner {
             return matchText(file, loaded.text(), pattern, loaded.charset(), loaded.bom(), false,
                     attrs.lastModifiedTime().toMillis(), attrs.size());
         } catch (IOException e) {
-            return error(file, "Cannot read file: " + e.getMessage());
+            return error(file, I18n.t("FileSearchRunner.cannot-read-file", e.getMessage()));
         }
     }
 

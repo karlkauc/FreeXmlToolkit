@@ -1161,14 +1161,14 @@ public class EditorHost extends BorderPane {
             view.setOnChangeCallback(et::scheduleRoundTrip);
             view.setOnSaveCallback(et::scheduleRoundTrip);
             view.setOnFindUsageCallback(() -> schemaLookup.revealTypeByName(typeName));
-            tab = openToolTab("Type: " + typeName, "bi-braces-asterisk", view);
+            tab = openToolTab(I18n.t("EditorHost.type", typeName), "bi-braces-asterisk", view);
             Tab created = tab;
             view.setOnCloseCallback(() -> closeTypeTab(created));
         } else if (type instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdComplexType complexType) {
             // Name, abstract and mixed are commands of the schema document (its undo stack)
             var view = new org.fxt.freexmltoolkit.controls.v2.editor.views.ComplexTypeEditorView(
                     complexType, ctx.getSchema(), ctx);
-            tab = openToolTab("Type: " + typeName, "bi-diagram-3", buildComplexTypeEditor(view, et));
+            tab = openToolTab(I18n.t("EditorHost.type", typeName), "bi-diagram-3", buildComplexTypeEditor(view, et));
             Tab created = tab;
             view.setOnCloseCallback(() -> closeTypeTab(created));
             // Types used inside this type open in their own tabs (deferred: the context menu
@@ -1613,7 +1613,7 @@ public class EditorHost extends BorderPane {
                 Platform.runLater(() -> openGeneratedDocument(body, type, name, UsageEvents.SOURCE_URL));
             } catch (Exception e) {
                 Platform.runLater(() -> org.fxt.freexmltoolkit.util.DialogHelper.showActionError(
-                        I18n.t("EditorHost.open-from-url"), "Could not fetch \"" + url + "\".",
+                        I18n.t("EditorHost.open-from-url"), I18n.t("EditorHost.could-not-fetch", url),
                         org.fxt.freexmltoolkit.util.DialogHelper.Remedies.URL_FETCH, e));
             }
         });
@@ -1911,7 +1911,7 @@ public class EditorHost extends BorderPane {
             format = TransformRunner.detectXsltOutputFormat(xsltContent);
         } catch (IOException e) {
             org.fxt.freexmltoolkit.service.telemetry.Telemetry.reportError(e, "editor.batch_stylesheet");
-            out.showError("Could not read stylesheet: " + e.getMessage());
+            out.showError(I18n.t("EditorHost.could-not-read-stylesheet", e.getMessage()));
             return;
         }
         var view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView(
@@ -3465,7 +3465,7 @@ public class EditorHost extends BorderPane {
                 Path path = et.document.getPath().toAbsolutePath();
                 org.fxt.freexmltoolkit.util.DesktopActions.reveal(path.toFile(), e ->
                         org.fxt.freexmltoolkit.util.DialogHelper.showActionError(I18n.t("EditorHost.reveal-failed"),
-                                "Could not show " + path + " in the file manager.",
+                                I18n.t("EditorHost.could-not-show-in-the", path),
                                 I18n.t("EditorHost.open-the-folder-manually"), e));
             }
         }

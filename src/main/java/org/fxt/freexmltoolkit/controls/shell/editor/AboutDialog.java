@@ -140,7 +140,7 @@ public final class AboutDialog {
         addInfoRow(info, row++, "OS", System.getProperty("os.name", "?") + " "
                 + System.getProperty("os.version", "") + "  (" + System.getProperty("os.arch", "?") + ")");
 
-        copyright.setText("Copyright © " + VersionUtil.getVendor() + " 2024-2026. All rights reserved.");
+        copyright.setText(I18n.t("AboutDialog.copyright-2024-2026-all-rights", VersionUtil.getVendor()));
         sponsorButton.setGraphic(ProjectLinks.sponsorIcon(16));
         if (!org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog.isAvailable()) {
             links.getChildren().remove(reportButton);

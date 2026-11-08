@@ -1,5 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell.schema;
 
+import org.fxt.freexmltoolkit.i18n.I18n;
+
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
@@ -81,7 +83,7 @@ public class NewNodeDialog extends Dialog<ButtonType> {
         this.attribute = attribute;
         this.global = parent instanceof XsdSchema;
         String what = attribute ? "Attribute" : global ? "Root Element" : "Element";
-        setTitle("Add " + what);
+        setTitle(I18n.t("NewNodeDialog.add", what));
         String target = parent == null || parent.getName() == null || parent.getName().isBlank()
                 ? "" : " to '" + parent.getName() + "'";
         setHeaderText(global ? "Add a top-level element to the schema."
