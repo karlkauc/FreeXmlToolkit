@@ -1481,6 +1481,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#comparing-folders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparing folders
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4048,6 +4059,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#comparing-folders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparing folders
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4602,7 +4624,7 @@ schemas, <strong>Save</strong> needs an open document).</p>
 </tr>
 <tr>
 <td><strong>Tools</strong></td>
-<td>Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Spreadsheet Converter…, Convert to JSON…, Convert to XML…, Convert to YAML…, Add to Favorites</td>
+<td>Validate, Run, Transform with XSLT…, Debug with XSLT… (Shift+F5), Debug Configuration…, Re-run Last Debug (Ctrl+Shift+F5), Toggle Breakpoint (F9), Run to Cursor (Ctrl+F10), Set Schema…, Generate Documentation…, Generate Sample XML…, Generate XSD from XML, Generate XSD from XML Files…, Type Editor, Compare with File…, Compare Folders…, Spreadsheet Converter…, Convert to JSON…, Convert to XML…, Convert to YAML…, Add to Favorites</td>
 </tr>
 <tr>
 <td><strong>Help</strong></td>
@@ -5693,6 +5715,42 @@ error.</p>
 </table>
 <p>The XML mode only compares. To take changes over, switch back to <strong>Text</strong> and use the arrows, or
 <strong>All →</strong> / <strong>All ←</strong>. The view opens in the mode you used last.</p>
+<h3 id="comparing-folders">Comparing folders<a class="headerlink" href="#comparing-folders" title="Permanent link">&para;</a></h3>
+<p><strong>Tools → Compare Folders…</strong> asks for a left and a right folder and compares them file by file,
+including subfolders (hidden folders such as <code>.git</code> are skipped). A tab lists the files that
+differ:</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Identical</strong></td>
+<td>Same bytes</td>
+</tr>
+<tr>
+<td><strong>Equivalent as XML</strong></td>
+<td>An XML file whose bytes differ, but not its content: formatting, attribute order, prefixes (the <a href="#comparing-as-xml">XML Options</a> of the Compare view apply)</td>
+</tr>
+<tr>
+<td><strong>Different</strong></td>
+<td>The content differs; for XML files with the number of differences</td>
+</tr>
+<tr>
+<td><strong>Only left</strong> / <strong>Only right</strong></td>
+<td>The file exists in one folder only</td>
+</tr>
+</tbody>
+</table>
+<p>Identical and equivalent files are hidden until you tick <strong>Show identical files</strong>. Double-click a
+file to open the pair in the Compare view, or to open a file that exists on one side only. Untick
+<strong>Compare XML files by structure</strong> to compare every file by its bytes. <strong>Change…</strong> picks another
+folder, <strong>Compare</strong> runs the comparison again. XML files above 32 MB and files that are not
+well-formed are compared by their bytes (the <strong>Note</strong> column says so).</p>
+<p>On the command line: <a href="../command-line/#compare"><code>fxt-cli compare</code></a>.</p>
 <h2 id="jump-to-validation-errors">Jump to Validation Errors<a class="headerlink" href="#jump-to-validation-errors" title="Permanent link">&para;</a></h2>
 <p>Validation errors appear in the <strong>Properties / Validation</strong> sidebar (Ctrl+Shift+P). <strong>Double-click</strong>
 any error to jump straight to its location:</p>
