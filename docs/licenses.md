@@ -137,6 +137,17 @@ Icons are rendered by the in-house `IconifyIcon` control from bundled
 |---------|---------|---------|
 | **Bootstrap Icons** (bundled Iconify SVG data, `icons/iconify/bi.json`) | - | [MIT License](https://github.com/twbs/icons/blob/main/LICENSE) |
 
+## Industry Standards Data
+
+The [industry plugins](industry-plugins.md) bundle data derived from published standards; schemas
+are not bundled but downloaded from their publishers when first used.
+
+| Data | Source | Notes |
+|---|---|---|
+| FinDatEx field definitions (EMT V4.3, EET V1.1.3, EPT V2.1), `plugins/findatex/templates.json` | Template specifications published by FinDatEx, [findatex.eu](https://findatex.eu) | Field codes, short definitions and codifications extracted by `scripts/findatex-fields.py` |
+| ISO 20022 schemas | Downloaded from [iso20022.org](https://www.iso20022.org) on first use | Not bundled |
+| ebInterface schemas | Downloaded from [austriapro/ebinterface-standards](https://github.com/austriapro/ebinterface-standards) on first use | Not bundled |
+
 ## PDF and Document Processing
 
 | Library | Version | License |

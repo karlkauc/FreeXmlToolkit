@@ -66,3 +66,32 @@ standard's repository on GitHub (`austriapro/ebinterface-standards`).
 
 Amounts may differ by one cent of rounding. **Side panel:** document type, number, date, biller,
 number of lines and payable amount; **New ebInterface 6.1 Invoice** opens a schema-valid sample.
+
+## FinDatEx Templates (EMT, EET, EPT)
+
+For the FinDatEx data templates: **EMT V4.3** (European MiFID Template), **EET V1.1.3** (European
+ESG Template) and **EPT V2.1** (European PRIIPs Template). FinDatEx publishes no XML Schema; the
+templates are exchanged as CSV or Excel files. The plugin carries the field definitions of the
+official specifications (code, definition, codification, mandatory flag).
+
+**Opening a file:** open the CSV file like any other file, or use **Open Excel Template File…** in
+the side panel: the first sheet opens as semicolon-separated text (dates as `YYYY-MM-DD`, numbers
+without formatting). Both layouts are recognised: one instrument per row under a header row of field
+codes, or one field per row with one instrument per column. The separator (`;`, `,`, `|` or tab) is
+detected. **New EMT / EET / EPT File** creates a file with the template's header row.
+
+**Check Active Document** checks:
+
+| Check | Severity |
+|---|---|
+| unknown columns, duplicate columns | warning / error |
+| the template version (`00001_EMT_Version` …) is the one the checks follow | warning |
+| dates (`YYYY-MM-DD`), date and time (`YYYY-MM-DD hh:mm:ss`), numbers, whole numbers and their range | error |
+| closed code lists (`Y / N`, `Y / N / Neutral`, `R / P / B / N` …) | error |
+| currencies (ISO 4217), LEIs (check digits), text lengths | error |
+| the instrument identifier is a valid ISIN when its identification type is `1` | error |
+| mandatory fields of the general sections (data set information, instrument or manufacturer information) are present and filled | warning |
+
+Mandatory and conditional fields of the other sections depend on the reporting flags and on the
+product; they are not checked. At most 500 value problems are listed per file. Problems name the row
+(or instrument column), the instrument's identifier and the field, and jump to the line.
