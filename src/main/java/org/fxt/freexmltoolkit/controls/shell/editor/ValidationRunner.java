@@ -208,6 +208,12 @@ public final class ValidationRunner {
             }
             schematronMillis = (System.nanoTime() - schematronStart) / 1_000_000;
         }
+        // Plugins' own checks (only on a well-formed document: they read it as XML)
+        if (problems.stream().noneMatch(p -> "Well-formed".equals(p.source()))) {
+            for (var found : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().validate(xml, documentName)) {
+                problems.add(new ValidationProblem(found.source(), found.severity(), found.line(), found.message()));
+            }
+        }
         return new RunResult(problems, reportData, xsdMillis, schematronMillis, failure, error);
     }
 

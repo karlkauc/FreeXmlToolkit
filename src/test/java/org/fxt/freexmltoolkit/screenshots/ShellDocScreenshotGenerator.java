@@ -642,7 +642,7 @@ class ShellDocScreenshotGenerator {
                         instanceof org.fxt.freexmltoolkit.controls.shell.ActivityBar bar) {
                     bar.refresh();
                 }
-                shell.getSelectionModel().select(Activity.FUNDSXML);
+                shell.getSelectionModel().select(Activity.fromId("fundsxml").orElseThrow());
             });
             settle(600);
             shot("unified-shell-fundsxml");

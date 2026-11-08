@@ -28,7 +28,6 @@ import org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorHost;
 import org.fxt.freexmltoolkit.controls.shell.editor.FavoritesMenu;
-import org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner;
 import org.fxt.freexmltoolkit.controls.shell.editor.KeyboardShortcutsDialog;
 import org.fxt.freexmltoolkit.controls.shell.editor.OpenDocument;
 import org.fxt.freexmltoolkit.controls.shell.editor.UpdateActionRunner;
@@ -102,9 +101,11 @@ public final class ShellMenuBar extends MenuBar {
     @FXML private CheckMenuItem showConstraintTargetsItem;
     @FXML private ShellMenuItem fullScreenItem;
     @FXML private ShellMenuItem reportProblemItem;
-    @FXML private SeparatorMenuItem fundsSeparator;
-    @FXML private ShellMenuItem fundsSiteItem;
-    @FXML private ShellMenuItem fundsDocsItem;
+    @FXML private SeparatorMenuItem pluginHelpSeparator;
+    @FXML private Menu toolsMenu;
+    /** The plugins' menu items and their contributions (visibility asked in {@link #refresh()}). */
+    private final Map<MenuItem, org.fxt.freexmltoolkit.plugin.PluginMenuItem> pluginItems = new java.util.LinkedHashMap<>();
+    private SeparatorMenuItem pluginToolsSeparator;
     @FXML private ShellMenuItem sponsorItem;
     @FXML private SeparatorMenuItem helpAppSeparator;
     @FXML private ShellMenuItem updatesItem;
@@ -134,6 +135,7 @@ public final class ShellMenuBar extends MenuBar {
         showConstraintTargetsItem.disableProperty().bind(XsdDiagramOptions.showConstraintsProperty().not());
         buildViewModeItems();
         buildActivityItems();
+        buildPluginItems();
         rebuildRecentFiles();
         rebuildFavorites();
         sponsorItem.setGraphic(ProjectLinks.sponsorIcon(16));
@@ -188,15 +190,69 @@ public final class ShellMenuBar extends MenuBar {
         }
     }
 
+    /**
+     * Adds the plugins' menu items: Help items after {@code pluginHelpSeparator} (ids
+     * {@code menu-help-<id>}), Tools items at the end of Tools ({@code menu-tools-<id>}).
+     */
+    private void buildPluginItems() {
+        int helpIndex = helpMenu.getItems().indexOf(pluginHelpSeparator) + 1;
+        for (var contributed : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().menuItems()) {
+            boolean help = contributed.menu() == org.fxt.freexmltoolkit.plugin.PluginMenuItem.Menu.HELP;
+            ShellMenuItem item = new ShellMenuItem(contributed.text(), contributed.icon(), ActionColor.NAVIGATE);
+            item.setId((help ? "menu-help-" : "menu-tools-") + contributed.id());
+            item.setOnAction(e -> run("plugin_" + contributed.id(), () -> contributed.action().accept(shell.pluginUi())));
+            if (help) {
+                helpMenu.getItems().add(helpIndex++, item);
+            } else {
+                if (pluginToolsSeparator == null) {
+                    pluginToolsSeparator = new SeparatorMenuItem();
+                    toolsMenu.getItems().add(pluginToolsSeparator);
+                }
+                toolsMenu.getItems().add(item);
+            }
+            pluginItems.put(item, contributed);
+        }
+        refreshPluginItems();
+    }
+
+    /** Shows the plugin items (and the activities in View → Activities) that are visible now. */
+    void refreshPluginItems() {
+        boolean anyHelp = false;
+        boolean anyTools = false;
+        for (var entry : pluginItems.entrySet()) {
+            boolean visible;
+            try {
+                visible = entry.getValue().visible().getAsBoolean();
+            } catch (RuntimeException e) {
+                visible = false;
+            }
+            entry.getKey().setVisible(visible);
+            if (visible && entry.getValue().menu() == org.fxt.freexmltoolkit.plugin.PluginMenuItem.Menu.HELP) {
+                anyHelp = true;
+            } else if (visible) {
+                anyTools = true;
+            }
+        }
+        pluginHelpSeparator.setVisible(anyHelp);
+        if (pluginToolsSeparator != null) {
+            pluginToolsSeparator.setVisible(anyTools);
+        }
+        for (MenuItem item : activitiesMenu.getItems()) {
+            if (item.getUserData() instanceof Activity activity) {
+                item.setVisible(activity.isVisible());
+            }
+        }
+    }
+
     private void buildActivityItems() {
         for (Activity activity : Activity.values()) {
-            // Settings has its own item; FundsXML only exists while the extension is enabled.
-            if (activity == Activity.SETTINGS
-                    || (activity == Activity.FUNDSXML && !FundsXmlRunner.isEnabled())) {
+            // Settings has its own item; plugin activities may be hidden (refreshPluginItems)
+            if (activity == Activity.SETTINGS) {
                 continue;
             }
             ShellMenuItem item = new ShellMenuItem(activity.label(), activity.icon(), ActionColor.NAVIGATE);
             item.setId("menu-view-activity-" + activity.id());
+            item.setUserData(activity);
             item.setOnAction(e -> run("activity_" + activity.id(), () -> shell.showActivity(activity)));
             activitiesMenu.getItems().add(item);
         }
@@ -300,11 +356,7 @@ public final class ShellMenuBar extends MenuBar {
         allItems().stream().filter(i -> "menu-tools-run".equals(i.getId()))
                 .forEach(i -> i.setDisable(!shell.isActiveDocumentRunnable()));
         closeTabItem.setDisable(editorHost.activeTabProperty().get() == null);
-        // The extension can be switched on and off in the settings while the app runs.
-        boolean funds = FundsXmlRunner.isEnabled();
-        for (MenuItem item : List.of(fundsSeparator, fundsSiteItem, fundsDocsItem)) {
-            item.setVisible(funds);
-        }
+        refreshPluginItems();
         viewModeItems.forEach((mode, item) -> item.setDisable(!editorHost.activeSupportsView(mode)));
     }
 
@@ -467,12 +519,6 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onReportProblem() { run("report_problem", () -> ErrorReportDialog.show(window(), null)); }
     @FXML public void onGitHub() { run("github", () -> ProjectLinks.openInBrowser(ProjectLinks.GITHUB_URL)); }
     @FXML public void onSponsor() { run("sponsor", () -> ProjectLinks.openInBrowser(ProjectLinks.SPONSORS_URL)); }
-    @FXML public void onFundsXmlSite() {
-        run("fundsxml_site", () -> ProjectLinks.openInBrowser(ProjectLinks.FUNDSXML_SITE_URL));
-    }
-    @FXML public void onFundsXmlDocs() {
-        run("fundsxml_docs", () -> ProjectLinks.openInBrowser(ProjectLinks.FUNDSXML_SCHEMA_DOCS_URL));
-    }
     @FXML public void onAbout() { run("about", () -> AboutDialog.show(window())); }
 
     /** Checks for an application update in the background and reports the outcome in a dialog. */

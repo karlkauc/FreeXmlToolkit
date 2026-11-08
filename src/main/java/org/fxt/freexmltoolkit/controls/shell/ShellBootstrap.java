@@ -14,7 +14,7 @@ import org.fxt.freexmltoolkit.service.UpdateCheckService;
 
 /**
  * Owns the application's startup background tasks (install-source detection, app-update +
- * FundsXML-update checks, periodic telemetry flush) and their scheduler.
+ * plugin startup tasks such as the FundsXML content sync, periodic telemetry flush) and their scheduler.
  * Invoked once at boot by FxtGui; shut down by FxtGui.stop().
  */
 public final class ShellBootstrap {
@@ -53,7 +53,8 @@ public final class ShellBootstrap {
         // The project of the last session (its listeners switch to the FX thread themselves)
         scheduler.execute(() -> org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().reopenLast());
         scheduler.schedule(this::checkForAppUpdate, 2, TimeUnit.SECONDS);
-        scheduler.schedule(this::fundsXmlStartupSync, 5, TimeUnit.SECONDS);
+        // The plugins' startup tasks (e.g. the FundsXML content sync); a failing one does not stop the others
+        scheduler.schedule(ShellBootstrap::runPluginStartupTasks, 5, TimeUnit.SECONDS);
         scheduler.schedule(ShellBootstrap::cleanOldLogs, 10, TimeUnit.SECONDS);
         // Anonymous telemetry: first flush after ~60 s, then every 5 minutes. The flush itself
         // runs on the telemetry worker thread, so this scheduler thread is never blocked.
@@ -113,37 +114,14 @@ public final class ShellBootstrap {
         }
     }
 
-    /**
-     * Startup sync for the FundsXML extension: downloads missing content, installs
-     * updates in the background, or just re-registers cached content — all silently
-     * (log + toast, never a dialog). Runs on the daemon scheduler thread, where the
-     * blocking GitHub call inside {@code determineAction()} is acceptable.
-     */
-    private void fundsXmlStartupSync() {
-        try {
-            PropertiesService props = ServiceRegistry.get(PropertiesService.class);
-            var service = ServiceRegistry.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.class);
-            var checker = new org.fxt.freexmltoolkit.service.fundsxml.FundsXmlUpdateChecker(
-                    props, service, org.fxt.freexmltoolkit.service.fundsxml.FundsXmlCache.getInstance());
-            var sync = new org.fxt.freexmltoolkit.service.fundsxml.FundsXmlStartupSync(
-                    props::loadProperties, service, checker);
-            dispatchFundsXmlAction(sync.determineAction(),
-                    org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlDownloadCoordinator.getInstance());
-        } catch (Throwable t) {
-            logger.warn("FundsXML startup sync failed: {}", t.getMessage());
-        }
-    }
-
-    /** Maps a startup-sync decision onto coordinator work. Package-private for tests. */
-    static void dispatchFundsXmlAction(
-            org.fxt.freexmltoolkit.service.fundsxml.FundsXmlStartupSync.Action action,
-            org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlDownloadCoordinator coordinator) {
-        switch (action) {
-            case DOWNLOAD_INITIAL, DOWNLOAD_UPDATE -> coordinator.startBackgroundDownload("startup");
-            case REGISTER_ONLY -> coordinator.runRegisterOnly();
-            // Even with the feature off, stale seeded entries must be cleaned up.
-            case NONE -> coordinator.runCleanupOnly();
-            default -> { }
+    /** Runs every plugin's startup tasks; a failing one is logged and the others still run. */
+    static void runPluginStartupTasks() {
+        for (Runnable task : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().startupTasks()) {
+            try {
+                task.run();
+            } catch (Throwable t) {
+                logger.warn("Plugin startup task failed: {}", t.getMessage());
+            }
         }
     }
 

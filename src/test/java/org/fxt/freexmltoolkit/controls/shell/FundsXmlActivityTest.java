@@ -8,8 +8,9 @@ class FundsXmlActivityTest {
 
     @Test
     void fundsXmlActivityExists() {
-        // The enum constant must exist with the stable id "fundsxml".
-        Activity a = Activity.valueOf("FUNDSXML");
-        assertTrue(a.id().equals("fundsxml"));
+        // The FundsXML plugin contributes the activity with the stable id "fundsxml".
+        Activity a = Activity.fromId("fundsxml").orElseThrow();
+        assertTrue(a.plugin().isPresent(), "it comes from the plugin");
+        assertTrue(a.workflow() == org.fxt.freexmltoolkit.controls.theme.Workflow.FUNDSXML);
     }
 }

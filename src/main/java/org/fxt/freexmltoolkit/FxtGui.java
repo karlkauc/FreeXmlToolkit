@@ -167,6 +167,8 @@ public class FxtGui extends Application {
 
         logger.info("Initializing service registry...");
         ServiceRegistry.initialize();
+        // Plugins register now, before the window that shows their activities is built
+        org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().loadAll();
         logger.info("Service registry initialization complete");
         // The proxy settings apply to every connection, including the ones libraries open themselves.
         try {

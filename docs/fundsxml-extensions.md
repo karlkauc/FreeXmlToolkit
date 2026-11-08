@@ -4,6 +4,10 @@ Optional integration with the [FundsXML](https://fundsxml.org/) standard for the
 
 This feature is **off by default**. Enable it only if you work with FundsXML documents.
 
+The FundsXML integration is a built-in [plugin](plugins.md): **Settings → Extensions → PLUGINS**
+can switch it off completely (no FundsXML activity, Help links, update check or hint), and
+administrators can do the same with `plugin.fundsxml.enabled=false`.
+
 ---
 
 ## Overview

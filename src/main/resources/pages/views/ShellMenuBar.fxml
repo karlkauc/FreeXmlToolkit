@@ -119,7 +119,7 @@
             </items>
         </Menu>
 
-        <Menu id="menu-tools" text="_Tools">
+        <Menu fx:id="toolsMenu" id="menu-tools" text="_Tools">
             <items>
                 <ShellMenuItem id="menu-tools-validate" text="Validate" iconLiteral="bi-check2-circle"
                                color="CREATE" accelerator="F8" onAction="#onValidate"/>
@@ -180,12 +180,8 @@
                                onAction="#onDocs"/>
                 <ShellMenuItem id="menu-help-shortcuts" text="Keyboard Shortcuts" iconLiteral="bi-keyboard"
                                color="NAVIGATE" onAction="#onShortcuts"/>
-                <!-- FundsXML links: only visible while the extension is enabled -->
-                <SeparatorMenuItem fx:id="fundsSeparator"/>
-                <ShellMenuItem fx:id="fundsSiteItem" id="menu-help-fundsxml-site" text="FundsXML Website"
-                               iconLiteral="bi-globe" color="NAVIGATE" onAction="#onFundsXmlSite"/>
-                <ShellMenuItem fx:id="fundsDocsItem" id="menu-help-fundsxml-docs" text="FundsXML Schema Docs"
-                               iconLiteral="bi-file-earmark-text" color="NAVIGATE" onAction="#onFundsXmlDocs"/>
+                <!-- Plugins' Help items (e.g. the FundsXML links) are inserted after this separator -->
+                <SeparatorMenuItem fx:id="pluginHelpSeparator"/>
                 <SeparatorMenuItem/>
                 <ShellMenuItem fx:id="reportProblemItem" id="menu-help-report" text="Report a Problem…"
                                iconLiteral="bi-bug" color="MODIFY" onAction="#onReportProblem"/>

@@ -39,25 +39,25 @@ class ShellBootstrapTest {
         FundsXmlDownloadCoordinator coordinator =
                 new FundsXmlDownloadCoordinator(service, tasks::add);
 
-        ShellBootstrap.dispatchFundsXmlAction(FundsXmlStartupSync.Action.NONE, coordinator);
+        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.dispatch(FundsXmlStartupSync.Action.NONE, coordinator);
         assertEquals(1, tasks.size(), "NONE must still schedule the stale-entry cleanup");
         tasks.remove(0).run();
         assertEquals(1, service.cleanupCalls);
         assertEquals(0, service.reRegisterCalls);
         assertEquals(0, service.downloadCalls);
 
-        ShellBootstrap.dispatchFundsXmlAction(FundsXmlStartupSync.Action.REGISTER_ONLY, coordinator);
+        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.dispatch(FundsXmlStartupSync.Action.REGISTER_ONLY, coordinator);
         assertEquals(1, tasks.size());
         tasks.remove(0).run();
         assertEquals(1, service.reRegisterCalls);
         assertEquals(0, service.downloadCalls);
 
-        ShellBootstrap.dispatchFundsXmlAction(FundsXmlStartupSync.Action.DOWNLOAD_INITIAL, coordinator);
+        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.dispatch(FundsXmlStartupSync.Action.DOWNLOAD_INITIAL, coordinator);
         assertEquals(1, tasks.size());
         tasks.remove(0).run();
         assertEquals(1, service.downloadCalls);
 
-        ShellBootstrap.dispatchFundsXmlAction(FundsXmlStartupSync.Action.DOWNLOAD_UPDATE, coordinator);
+        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.dispatch(FundsXmlStartupSync.Action.DOWNLOAD_UPDATE, coordinator);
         assertEquals(1, tasks.size());
         tasks.remove(0).run();
         assertEquals(2, service.downloadCalls);

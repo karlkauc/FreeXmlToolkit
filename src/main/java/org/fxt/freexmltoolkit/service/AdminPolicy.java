@@ -49,6 +49,8 @@ public final class AdminPolicy {
     public static final String DEFAULTS_FILE_NAME = "defaults.properties";
     /** Policy key: {@code false} disables the update check, "Check for Updates" and installing updates. */
     public static final String KEY_UPDATES_ALLOWED = "update.allowed";
+    /** Policy key: {@code false} loads no plugins from the plugins folder (built-in ones still load). */
+    public static final String KEY_EXTERNAL_PLUGINS_ALLOWED = "plugins.external.allowed";
     /** Settings key of the automatic update check (see {@link PropertiesService#isUpdateCheckEnabled()}). */
     static final String KEY_UPDATE_CHECK = "update.check.enabled";
     /** Prefix of keys that are Java system properties rather than settings. */
@@ -237,6 +239,11 @@ public final class AdminPolicy {
     /** @return {@code false} when the administrator disabled updates ({@value #KEY_UPDATES_ALLOWED}=false) */
     public boolean updatesAllowed() {
         return !"false".equalsIgnoreCase(locked.getProperty(KEY_UPDATES_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator disabled plugins from the plugins folder */
+    public boolean externalPluginsAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_EXTERNAL_PLUGINS_ALLOWED, "true"));
     }
 
     /**

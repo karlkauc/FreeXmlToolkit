@@ -618,6 +618,20 @@
                                                 <CheckBox fx:id="fundsXmlEnabled" text="Enable FundsXML extensions"/>
                                             </children>
                                         </SettingsCard>
+                                        <!-- The plugins found at start (rows added by SettingsPanel); changes apply at the next start -->
+                                        <SettingsCard title="PLUGINS" iconLiteral="bi-puzzle">
+                                            <children>
+                                                <VBox fx:id="pluginRows" id="settings-plugins" spacing="6"/>
+                                                <Label text="Plugins are jar files in the plugins folder. Switching one on or off takes effect at the next start."
+                                                       wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+                                                <Button id="settings-open-plugins" text="Open Plugins Folder" styleClass="fxt-tool-button"
+                                                        onAction="#onOpenPluginsFolder">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+                                                    </graphic>
+                                                </Button>
+                                            </children>
+                                        </SettingsCard>
                                         <SettingsCard title="DEVELOPER" iconLiteral="bi-speedometer2">
                                             <children>
                                                 <CheckBox fx:id="execStatsEnabled" text="Record execution statistics"/>

@@ -111,12 +111,12 @@ class UnifiedShellStartTest {
             props.set(FundsXmlPropertyKeys.ENABLED, "false");
             props.set(FundsXmlHint.SHOWN_KEY, "false");
             java.util.List<String> fetched = new java.util.concurrent.CopyOnWriteArrayList<>();
-            shell.setFundsXmlContentFetcher(fetched::add); // no download in tests
+            org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.setContentFetcherForTesting(fetched::add); // no download in tests
             String fundsXml = "<?xml version=\"1.0\"?>\n<!-- a <comment> -->\n<FundsXML4><ControlData/></FundsXML4>";
             assertTrue(FundsXmlHint.shouldOffer(fundsXml));
 
             WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
-                shell.showFundsXmlHint();
+                org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.showHint(shell.pluginUi());
                 return null;
             });
             assertNotNull(lookup("#fundsxml-hint"), "the hint bar sits above the editor");
@@ -130,6 +130,7 @@ class UnifiedShellStartTest {
         } finally {
             props.set(FundsXmlPropertyKeys.ENABLED, enabledBefore == null ? "false" : enabledBefore);
             props.set(FundsXmlHint.SHOWN_KEY, shownBefore == null ? "false" : shownBefore);
+            org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.setContentFetcherForTesting(null);
         }
     }
 

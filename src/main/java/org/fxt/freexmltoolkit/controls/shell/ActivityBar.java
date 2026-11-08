@@ -1,7 +1,7 @@
 package org.fxt.freexmltoolkit.controls.shell;
 
-import java.util.EnumMap;
-import java.util.EnumSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javafx.scene.control.ToggleButton;
@@ -25,10 +25,10 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
  */
 public class ActivityBar extends VBox {
 
-    private static final EnumSet<Activity> BOTTOM = EnumSet.of(Activity.SETTINGS);
+    private static final List<Activity> BOTTOM = List.of(Activity.SETTINGS);
 
     private final ActivitySelectionModel selectionModel;
-    private final Map<Activity, ToggleButton> buttons = new EnumMap<>(Activity.class);
+    private final Map<Activity, ToggleButton> buttons = new LinkedHashMap<>();
     private final ToggleGroup group = new ToggleGroup();
     private Runnable onUserSelect;
 
@@ -75,17 +75,15 @@ public class ActivityBar extends VBox {
     }
 
     /**
-     * Rebuilds the bar's buttons into {@code group}. The conditional
-     * {@link Activity#FUNDSXML} button is only added when the FundsXML extension
-     * is enabled.
+     * Rebuilds the bar's buttons into {@code group}. A plugin activity is only added while it is
+     * visible (e.g. FundsXML while its extension is enabled).
      */
     private void rebuild(ToggleGroup group) {
         for (Activity a : Activity.values()) {
             if (BOTTOM.contains(a)) {
                 continue;
             }
-            if (a == Activity.FUNDSXML
-                    && !org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlRunner.isEnabled()) {
+            if (!a.isVisible()) {
                 continue;
             }
             getChildren().add(createButton(a, group));
@@ -101,8 +99,8 @@ public class ActivityBar extends VBox {
     }
 
     /**
-     * Rebuilds the activity bar so a change to the FundsXML enable flag adds or
-     * removes its button. Selection state is re-synced from the model.
+     * Rebuilds the activity bar so a plugin activity that was switched on or off
+     * (e.g. the FundsXML extension) appears or disappears. Selection state is re-synced from the model.
      */
     public void refresh() {
         getChildren().clear();
@@ -110,7 +108,7 @@ public class ActivityBar extends VBox {
         rebuild(group);
         Activity active = selectionModel.getActive();
         if (active == null || !buttons.containsKey(active)) {
-            // The previously-active activity (e.g. FUNDSXML) is gone after the
+            // The previously-active activity (e.g. a plugin's) is gone after the
             // rebuild. Fall back to the default so the side-panel listener fires
             // and swaps away the now-orphaned panel.
             selectionModel.select(Activity.defaultActivity());

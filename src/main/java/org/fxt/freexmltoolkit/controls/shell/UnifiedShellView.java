@@ -61,8 +61,7 @@ public class UnifiedShellView extends BorderPane {
      * back. Panels observe {@code editorHost} reactively, so a cached instance stays
      * in sync with the active document.
      */
-    private final java.util.Map<Activity, javafx.scene.Node> sidePanels =
-            new java.util.EnumMap<>(Activity.class);
+    private final java.util.Map<Activity, javafx.scene.Node> sidePanels = new java.util.HashMap<>();
     /** The Settings page tab in the main editor area (reused across activity selections). */
     private javafx.scene.control.Tab settingsTab;
     /** The Settings page shown in {@link #settingsTab}, and the side panel listing its groups. */
@@ -327,14 +326,29 @@ public class UnifiedShellView extends BorderPane {
         addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, this::handleGlobalShortcut);
         // Welcome/Dashboard tool cards switch activities (and "open-folder" → Explorer).
         editorHost.setWelcomeActionHandler(this::handleWelcomeAction);
-        // A FundsXML document while the extension is off: offer it once (UX plan 5.5).
+        // Plugins hear about opened documents (FundsXML offers its extension once, UX plan 5.5).
         editorHost.setDocumentLoadedHandler((doc, content) -> {
             if (doc == validateWhenLoaded) {
                 validateWhenLoaded = null;
                 validateActive();
             }
-            if (org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.shouldOffer(content)) {
-                showFundsXmlHint();
+            for (var listener : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().documentListeners()) {
+                try {
+                    listener.documentOpened(pluginUi(), doc.getPath(), content);
+                } catch (RuntimeException | LinkageError e) {
+                    org.apache.logging.log4j.LogManager.getLogger(UnifiedShellView.class)
+                            .warn("Plugin document listener failed", e);
+                }
+            }
+        });
+        // The plugins' stylesheets, once the shell is in a scene
+        sceneProperty().addListener((obs, oldScene, scene) -> {
+            if (scene != null) {
+                for (String sheet : org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().stylesheets()) {
+                    if (!scene.getStylesheets().contains(sheet)) {
+                        scene.getStylesheets().add(sheet);
+                    }
+                }
             }
         });
 
@@ -499,54 +513,36 @@ public class UnifiedShellView extends BorderPane {
         });
     }
 
-    /** Downloads the FundsXML content (or registers the cached one) after the extension was turned on. */
-    private void fetchFundsXmlContent(String trigger) {
-        var coordinator = org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlDownloadCoordinator.getInstance();
-        var service = org.fxt.freexmltoolkit.service.fundsxml.FundsXmlExtensionService.getInstance();
-        if (service.isCacheEmpty()) {
-            coordinator.startBackgroundDownload(trigger);
-        } else {
-            coordinator.runRegisterOnly();
-        }
+    /** The bar a plugin shows above the editor, or {@code null}. */
+    private javafx.scene.Node pluginEditorBar;
+
+    /** Shows a plugin's bar above the editor, replacing the one shown. */
+    void showEditorBar(javafx.scene.Node bar) {
+        hideEditorBar();
+        editorCenter.getChildren().add(editorCenter.getChildren().indexOf(editorHost), bar);
+        pluginEditorBar = bar;
     }
 
-    /** Shows the one-time FundsXML hint above the editor (no-op while one is showing). */
-    void showFundsXmlHint() {
-        if (editorCenter.lookup("#fundsxml-hint") != null) {
-            return;
+    /** Removes the plugin bar (also when the bar removed itself already). */
+    void hideEditorBar() {
+        if (pluginEditorBar != null) {
+            editorCenter.getChildren().remove(pluginEditorBar);
+            pluginEditorBar = null;
         }
-        org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHint.markShown();
-        var bar = new org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlHintBar(
-                this::enableFundsXmlFromHint, () -> { });
-        editorCenter.getChildren().add(editorCenter.getChildren().indexOf(editorHost), bar);
     }
 
     /**
-     * "Enable FundsXML extensions" in the hint: the same as ticking the box in Settings and saving
-     * it - the flag is stored, the rail gets its FundsXML button and the content is fetched.
+     * Re-asks the plugins which activities and menu items are visible (after a plugin setting
+     * changed, e.g. the FundsXML extension was enabled from its hint).
      */
-    private void enableFundsXmlFromHint() {
-        try {
-            org.fxt.freexmltoolkit.di.ServiceRegistry.get(org.fxt.freexmltoolkit.service.PropertiesService.class)
-                    .set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED, "true");
-        } catch (Throwable t) {
-            org.apache.logging.log4j.LogManager.getLogger(UnifiedShellView.class)
-                    .warn("Could not enable the FundsXML extension: {}", t.getMessage());
-            return;
-        }
+    void refreshPluginContributions() {
         if (settingsPage != null) {
-            settingsPage.markFundsXmlEnabled(); // an open Settings page must not save it off again
+            settingsPage.reloadExtensionToggles(); // an open Settings page must not save it off again
         }
         activityBar.refresh();
-        fundsXmlContentFetcher.accept("hint-enable");
-    }
-
-    /** Fetches the FundsXML content after the hint turned the extension on; replaceable in tests. */
-    private java.util.function.Consumer<String> fundsXmlContentFetcher = this::fetchFundsXmlContent;
-
-    /** Test seam: replaces the FundsXML content download started by the hint. */
-    void setFundsXmlContentFetcher(java.util.function.Consumer<String> fetcher) {
-        this.fundsXmlContentFetcher = fetcher;
+        if (menuBar != null) {
+            menuBar.refreshPluginItems();
+        }
     }
 
     /** Handles the Welcome page's FundsXML quick-access cards. */
@@ -1378,8 +1374,8 @@ public class UnifiedShellView extends BorderPane {
 
     /** Builds the side panel for {@code activity} (called once per activity; then cached). */
     private javafx.scene.Node createSidePanel(Activity activity) {
-        return switch (activity) {
-            case EXPLORER -> {
+        return switch (activity.id()) {
+            case "explorer" -> {
                 var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
                 explorer.setNewFileAction(this::newDocument);
                 explorer.setSchematronValidateAction(this::validateWithSchematron);
@@ -1398,9 +1394,9 @@ public class UnifiedShellView extends BorderPane {
                 explorerPanel = explorer;
                 yield explorer;
             }
-            case SEARCH -> searchPanel();
-            case SCHEMA -> new org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel(editorHost);
-            case SCHEMA_LIBRARY -> {
+            case "search" -> searchPanel();
+            case "schema" -> new org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel(editorHost);
+            case "schema-library" -> {
                 var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("library", "SCHEMA LIBRARY",
                         "The library opens as a page in the main window.",
                         org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryView.SECTIONS,
@@ -1411,11 +1407,11 @@ public class UnifiedShellView extends BorderPane {
                 }
                 yield nav;
             }
-            case VALIDATION -> validationPanel();
-            case TRANSFORM -> new org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel(editorHost);
-            case FAVORITES -> new org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel(editorHost);
-            case PDF_FOP -> new org.fxt.freexmltoolkit.controls.shell.editor.FopPanel(editorHost);
-            case SIGNATURE -> {
+            case "validation" -> validationPanel();
+            case "transform" -> new org.fxt.freexmltoolkit.controls.shell.editor.TransformPanel(editorHost);
+            case "favorites" -> new org.fxt.freexmltoolkit.controls.shell.editor.FavoritesActivityPanel(editorHost);
+            case "pdf" -> new org.fxt.freexmltoolkit.controls.shell.editor.FopPanel(editorHost);
+            case "signature" -> {
                 // The panel only picks the action; keystore and form are on the Signature page.
                 var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("sig", "SIGNATURE",
                         null, org.fxt.freexmltoolkit.controls.shell.editor.SignatureView.SECTIONS,
@@ -1428,8 +1424,7 @@ public class UnifiedShellView extends BorderPane {
                 }
                 yield nav;
             }
-            case FUNDSXML -> new org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPanel(editorHost);
-            case SETTINGS -> {
+            case "settings" -> {
                 // The groups of the Settings page, with a search that filters page and list.
                 var page = openSettingsTab();
                 var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("settings", "SETTINGS",
@@ -1439,8 +1434,39 @@ public class UnifiedShellView extends BorderPane {
                 settingsNavigator = nav;
                 yield nav;
             }
+            default -> pluginPanel(activity);
         };
     }
+
+    /** The side panel of a plugin activity; a failing plugin shows its error instead of breaking the shell. */
+    private javafx.scene.Node pluginPanel(Activity activity) {
+        try {
+            javafx.scene.Node panel = activity.plugin().orElseThrow().panel().apply(pluginUi());
+            if (panel != null) {
+                return panel;
+            }
+        } catch (RuntimeException | LinkageError e) {
+            org.apache.logging.log4j.LogManager.getLogger(UnifiedShellView.class)
+                    .warn("Plugin panel {} failed", activity.id(), e);
+        }
+        javafx.scene.control.Label error = new javafx.scene.control.Label(
+                "The panel of \"" + activity.label() + "\" could not be created. See the log for details.");
+        error.setWrapText(true);
+        error.setId("plugin-panel-error");
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(error);
+        box.setPadding(new javafx.geometry.Insets(12));
+        return box;
+    }
+
+    /** The window as plugins see it (created on first use). */
+    public org.fxt.freexmltoolkit.plugin.PluginUi pluginUi() {
+        if (pluginUi == null) {
+            pluginUi = new ShellPluginUi(this);
+        }
+        return pluginUi;
+    }
+
+    private org.fxt.freexmltoolkit.plugin.PluginUi pluginUi;
 
     /**
      * Opens the Settings page (selects the Settings activity and focuses its main-area tab).
@@ -1479,7 +1505,7 @@ public class UnifiedShellView extends BorderPane {
                 statusLastRun.setGraphic(null);
             }
         });
-        settings.setOnFundsXmlEnabled(() -> fetchFundsXmlContent("settings-enable"));
+        settings.setOnFundsXmlEnabled(() -> org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.fetchContent("settings-enable"));
         settingsTab = editorHost.openToolTab("Settings", "bi-gear", settings);
         return settings;
     }

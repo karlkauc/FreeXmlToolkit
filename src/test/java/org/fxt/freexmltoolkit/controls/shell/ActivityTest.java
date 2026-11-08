@@ -19,7 +19,7 @@ class ActivityTest {
         Activity[] expected = {
                 Activity.EXPLORER, Activity.SEARCH, Activity.FAVORITES, Activity.VALIDATION,
                 Activity.TRANSFORM, Activity.SCHEMA, Activity.SCHEMA_LIBRARY, Activity.PDF_FOP,
-                Activity.SIGNATURE, Activity.FUNDSXML, Activity.SETTINGS
+                Activity.SIGNATURE, Activity.fromId("fundsxml").orElseThrow(), Activity.SETTINGS
         };
         assertArrayEquals(expected, Activity.values(),
                 "Activity order drives the Activity Bar layout");
@@ -80,7 +80,7 @@ class ActivityTest {
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SCHEMA_LIBRARY, Activity.SCHEMA_LIBRARY.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.PDF, Activity.PDF_FOP.workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.SIGNATURE, Activity.SIGNATURE.workflow());
-        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.FUNDSXML, Activity.FUNDSXML.workflow());
+        assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.FUNDSXML, Activity.fromId("fundsxml").orElseThrow().workflow());
         assertEquals(org.fxt.freexmltoolkit.controls.theme.Workflow.NEUTRAL, Activity.SETTINGS.workflow());
         for (Activity a : Activity.values()) {
             assertNotNull(a.workflow(), () -> a + " has no workflow");

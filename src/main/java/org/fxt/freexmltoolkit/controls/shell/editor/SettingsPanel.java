@@ -164,6 +164,9 @@ public class SettingsPanel extends VBox {
     
     // FundsXML extension
     @FXML private CheckBox fundsXmlEnabled;
+    @FXML private VBox pluginRows;
+    /** One switch per plugin that can be switched (built-in and external, not failed ones). */
+    private final java.util.Map<String, CheckBox> pluginSwitches = new java.util.LinkedHashMap<>();
 
     // File associations
     @FXML private CheckBox assocXml;
@@ -241,6 +244,7 @@ public class SettingsPanel extends VBox {
         sponsorButton.setGraphic(ProjectLinks.sponsorIcon(14));
 
         maxMemory.getItems().setAll(memoryChoices());
+        buildPluginRows();
         loadSettings();
         refreshRenderingStatus();
         refreshMemoryStatus();
@@ -667,6 +671,60 @@ public class SettingsPanel extends VBox {
                         + formatMegabytes(result.bytes()) + " freed. ");
             });
         });
+    }
+
+    /** One row per plugin: a switch (name, version, origin) and its description or error. */
+    private void buildPluginRows() {
+        var manager = org.fxt.freexmltoolkit.plugin.PluginManager.getInstance();
+        var policy = org.fxt.freexmltoolkit.service.AdminPolicy.current();
+        pluginRows.getChildren().clear();
+        pluginSwitches.clear();
+        for (var info : manager.plugins()) {
+            String title = info.name() + (info.version() == null || info.version().isBlank() ? "" : " " + info.version())
+                    + (info.origin() == org.fxt.freexmltoolkit.plugin.PluginManager.Origin.EXTERNAL
+                            ? " (" + (info.jar() != null ? info.jar().getFileName() : "external") + ")" : " (built-in)");
+            CheckBox box = new CheckBox(title);
+            box.setId("settings-plugin-" + info.id());
+            box.setSelected(info.state() != org.fxt.freexmltoolkit.plugin.PluginManager.State.DISABLED);
+            String detail = info.state() == org.fxt.freexmltoolkit.plugin.PluginManager.State.FAILED
+                    ? "Failed: " + info.error() : info.description();
+            if (info.state() == org.fxt.freexmltoolkit.plugin.PluginManager.State.FAILED) {
+                box.setSelected(false);
+                box.setDisable(true);
+            } else if (policy.isLocked(org.fxt.freexmltoolkit.plugin.PluginManager.enabledKey(info.id()))) {
+                box.setDisable(true);
+                box.getStyleClass().add("fxt-policy-locked");
+            } else {
+                pluginSwitches.put(info.id(), box);
+            }
+            Label description = new Label(detail == null ? "" : detail);
+            description.setWrapText(true);
+            description.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+            description.getStyleClass().add("fxt-placeholder-text");
+            pluginRows.getChildren().add(new VBox(2, box, description));
+        }
+        if (pluginRows.getChildren().isEmpty()) {
+            Label none = new Label("No plugins found.");
+            none.getStyleClass().add("fxt-placeholder-text");
+            pluginRows.getChildren().add(none);
+        }
+    }
+
+    @FXML
+    public void onOpenPluginsFolder() {
+        java.nio.file.Path dir = org.fxt.freexmltoolkit.plugin.PluginManager.pluginsFolder();
+        try {
+            java.nio.file.Files.createDirectories(dir);
+        } catch (java.io.IOException e) {
+            saveStatus.setText("Could not create " + dir + ".");
+            return;
+        }
+        org.fxt.freexmltoolkit.util.DesktopActions.open(dir.toFile(), e -> saveStatus.setText("Could not open " + dir + "."));
+    }
+
+    // test access
+    java.util.Map<String, CheckBox> pluginSwitchesForTesting() {
+        return pluginSwitches;
     }
 
     @FXML
@@ -1308,6 +1366,8 @@ public class SettingsPanel extends VBox {
             saveTelemetrySettings(props);
             props.set(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED,
                     String.valueOf(execStatsEnabled.isSelected()));
+            pluginSwitches.forEach((id, box) -> props.set(
+                    org.fxt.freexmltoolkit.plugin.PluginManager.enabledKey(id), String.valueOf(box.isSelected())));
             boolean fundsXmlWasEnabled = Boolean.parseBoolean(props.get(
                     org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED));
             props.set(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED,
@@ -1502,14 +1562,14 @@ public class SettingsPanel extends VBox {
     }
 
     /**
-     * Ticks the FundsXML box after the extension was turned on elsewhere (the FundsXML hint),
-     * without marking the page dirty, so a later save keeps it on.
+     * Re-reads the extension switches (FundsXML) after a plugin changed them elsewhere (the FundsXML
+     * hint), without marking the page dirty, so a later save keeps the new value.
      */
-    public void markFundsXmlEnabled() {
+    public void reloadExtensionToggles() {
         boolean wasLoading = loading;
         loading = true;
         try {
-            fundsXmlEnabled.setSelected(true);
+            fundsXmlEnabled.setSelected(FundsXmlRunner.isEnabled());
         } finally {
             loading = wasLoading;
         }

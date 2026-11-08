@@ -37,6 +37,7 @@ final class CliSupport {
             System.setProperty("java.net.useSystemProxies", "true");
         }
         ServiceRegistry.initialize();
+        org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().loadAll(); // their validators
         try {
             org.fxt.freexmltoolkit.service.ConnectionServiceImpl.getInstance().applyGlobalSettings();
         } catch (RuntimeException e) {
