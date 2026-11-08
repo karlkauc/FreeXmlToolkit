@@ -29,8 +29,10 @@ running is shown under **Help → About FreeXmlToolkit**.
   themes, documented keyboard alternatives. See [Accessibility](accessibility.md).
 - **Security:** no external entities in Schematron validation, HTML previews without JavaScript or
   remote content, XProc pipelines run no programs and reach no network, schemas are never fetched
-  from internal addresses, Saxon's parser hardened, SBOM with every release. See
-  [Threat Model](threat-model.md).
+  from internal addresses, Saxon's parser hardened, SBOM with every release. DTDs and RELAX NG
+  schemas cannot send local files to a server (a parse never mixes local files and downloads), the
+  output of project scenarios stays inside the project folder, YAML alias bombs are stopped, and
+  Jackson, jsoup and AssertJ are past their known vulnerabilities. See [Threat Model](threat-model.md).
 
 **XML work**
 
