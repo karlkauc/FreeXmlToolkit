@@ -17,54 +17,54 @@
 <fx:root type="javafx.scene.layout.VBox"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <SidePanelHeader title="FUNDSXML"/>
+        <SidePanelHeader title="%FundsXmlPanel.fundsxml.title"/>
 
-        <SidePanelSection title="MANAGEMENT">
+        <SidePanelSection title="%FundsXmlPanel.management.title">
             <children>
                 <VBox spacing="4" styleClass="fxt-tp-section-body">
                     <children>
-                        <Label text="Active version"/>
+                        <Label text="%FundsXmlPanel.active-version.text"/>
                         <ComboBox fx:id="versionCombo" onAction="#onVersionSelected"/>
                     </children>
                 </VBox>
                 <PanelActionList>
                     <children>
                         <PanelActionButton id="fundsxml-download" iconLiteral="bi-cloud-arrow-down"
-                                           text="Download / Update Content" color="TOOL" onAction="#onDownload"/>
+                                           text="%FundsXmlPanel.fundsxml-download.text" color="TOOL" onAction="#onDownload"/>
                     </children>
                 </PanelActionList>
             </children>
         </SidePanelSection>
 
-        <SidePanelSection title="VALIDATE">
+        <SidePanelSection title="%FundsXmlPanel.validate.title">
             <children>
                 <PanelActionList>
                     <children>
                         <PanelActionButton id="fundsxml-validate" iconLiteral="bi-check2-circle"
-                                           text="Validate active document" color="CREATE" onAction="#onValidate"/>
+                                           text="%FundsXmlPanel.fundsxml-validate.text" color="CREATE" onAction="#onValidate"/>
                     </children>
                 </PanelActionList>
             </children>
         </SidePanelSection>
 
-        <SidePanelSection title="DOCS &amp; RESOURCES">
+        <SidePanelSection title="%FundsXmlPanel.docs-resources.title">
             <children>
                 <PanelActionList>
                     <children>
                         <PanelActionButton id="fundsxml-open-schema" iconLiteral="bi-file-earmark-code"
-                                           text="Open Schema in Editor" color="NAVIGATE" onAction="#onOpenSchema"/>
+                                           text="%FundsXmlPanel.fundsxml-open-schema.text" color="NAVIGATE" onAction="#onOpenSchema"/>
                         <PanelActionButton id="fundsxml-generate-docs" iconLiteral="bi-file-earmark-text"
-                                           text="Generate Documentation…" color="CREATE"
+                                           text="%FundsXmlPanel.fundsxml-generate-docs.text" color="CREATE"
                                            onAction="#onGenerateDocs"/>
                         <PanelActionButton id="fundsxml-examples-folder" iconLiteral="bi-folder2-open"
-                                           text="Open Examples Folder" color="NAVIGATE"
+                                           text="%FundsXmlPanel.fundsxml-examples-folder.text" color="NAVIGATE"
                                            onAction="#onOpenExamplesFolder"/>
                         <PanelActionButton id="fundsxml-schema-folder" iconLiteral="bi-folder2-open"
-                                           text="Open Schema Folder" color="NAVIGATE" onAction="#onOpenSchemaFolder"/>
+                                           text="%FundsXmlPanel.fundsxml-schema-folder.text" color="NAVIGATE" onAction="#onOpenSchemaFolder"/>
                         <PanelActionButton id="fundsxml-schematron-folder" iconLiteral="bi-folder2-open"
-                                           text="Open Schematron Folder" color="NAVIGATE"
+                                           text="%FundsXmlPanel.fundsxml-schematron-folder.text" color="NAVIGATE"
                                            onAction="#onOpenSchematronFolder"/>
-                        <PanelActionButton id="fundsxml-online-docs" iconLiteral="bi-globe" text="Open Online Docs"
+                        <PanelActionButton id="fundsxml-online-docs" iconLiteral="bi-globe" text="%FundsXmlPanel.fundsxml-online-docs.text"
                                            color="NAVIGATE" onAction="#onOpenOnlineDocs"/>
                     </children>
                 </PanelActionList>

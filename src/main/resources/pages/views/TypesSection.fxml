@@ -26,13 +26,13 @@
     <children>
         <HBox fx:id="toolbar" spacing="8" alignment="CENTER_LEFT">
             <children>
-                <Button fx:id="removeUnused" id="analysis-types-remove-unused" text="Remove unused…"
+                <Button fx:id="removeUnused" id="analysis-types-remove-unused" text="%TypesSection.removeUnused.text"
                         disable="true" styleClass="fxt-tool-button" onAction="#onRemoveUnused">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Delete every type, group and attribute group that no global element or attribute reaches (one undo step)"/>
+                        <Tooltip text="%TypesSection.delete-every-type-group-and.text"/>
                     </tooltip>
                 </Button>
                 <Label fx:id="status" id="analysis-types-status" styleClass="fxt-placeholder-text"/>
@@ -47,7 +47,7 @@
                     </graphic>
                 </Label>
                 <FlowPane fx:id="chips" id="analysis-types-chips" hgap="6" vgap="6" alignment="CENTER_LEFT"/>
-                <TextField fx:id="search" id="analysis-types-search" promptText="Search types…" prefWidth="220"/>
+                <TextField fx:id="search" id="analysis-types-search" promptText="%TypesSection.search.promptText" prefWidth="220"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="count" id="analysis-types-count" styleClass="fxt-analysis-count"/>
             </children>
@@ -55,15 +55,15 @@
 
         <TableView fx:id="table" id="analysis-types-table" styleClass="fxt-analysis-table" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="kindColumn" text="Kind" prefWidth="130"/>
-                <TableColumn fx:id="nameColumn" text="Name" prefWidth="220"/>
-                <TableColumn fx:id="baseColumn" text="Base" prefWidth="180"/>
-                <TableColumn fx:id="documentationColumn" text="Documentation" prefWidth="260"/>
-                <TableColumn fx:id="usageColumn" text="Usages" prefWidth="110"/>
-                <TableColumn fx:id="fileColumn" text="File" prefWidth="110"/>
+                <TableColumn fx:id="kindColumn" text="%TypesSection.kindColumn.text" prefWidth="130"/>
+                <TableColumn fx:id="nameColumn" text="%TypesSection.nameColumn.text" prefWidth="220"/>
+                <TableColumn fx:id="baseColumn" text="%TypesSection.baseColumn.text" prefWidth="180"/>
+                <TableColumn fx:id="documentationColumn" text="%TypesSection.documentationColumn.text" prefWidth="260"/>
+                <TableColumn fx:id="usageColumn" text="%TypesSection.usageColumn.text" prefWidth="110"/>
+                <TableColumn fx:id="fileColumn" text="%TypesSection.fileColumn.text" prefWidth="110"/>
             </columns>
             <placeholder>
-                <Label text="No global types, groups or attribute groups." styleClass="fxt-analysis-empty"/>
+                <Label text="%TypesSection.no-global-types-groups-or.text" styleClass="fxt-analysis-empty"/>
             </placeholder>
         </TableView>
 
@@ -71,11 +71,11 @@
             <children>
                 <VBox spacing="6" HBox.hgrow="ALWAYS">
                     <children>
-                        <Label fx:id="usagesTitle" text="USED IN" styleClass="fxt-analysis-group-title"/>
+                        <Label fx:id="usagesTitle" text="%TypesSection.usagesTitle.text" styleClass="fxt-analysis-group-title"/>
                         <ListView fx:id="usages" id="analysis-types-usages" prefHeight="150" maxWidth="Infinity"
                                   styleClass="fxt-analysis-list">
                             <placeholder>
-                                <Label text="Select a component to see where it is used."
+                                <Label text="%TypesSection.select-a-component-to-see.text"
                                        styleClass="fxt-analysis-empty"/>
                             </placeholder>
                         </ListView>
@@ -83,7 +83,7 @@
                 </VBox>
                 <VBox spacing="6" HBox.hgrow="ALWAYS">
                     <children>
-                        <Label text="DOCUMENTATION" styleClass="fxt-analysis-group-title"/>
+                        <Label text="%TypesSection.documentation.text" styleClass="fxt-analysis-group-title"/>
                         <TextArea fx:id="documentation" id="analysis-types-documentation" editable="false"
                                   wrapText="true" prefRowCount="4" maxWidth="Infinity"
                                   styleClass="fxt-analysis-details"/>

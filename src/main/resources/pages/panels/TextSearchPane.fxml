@@ -21,32 +21,32 @@
 <fx:root type="javafx.scene.layout.VBox" spacing="6" styleClass="fxt-search-text-pane"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <TextField fx:id="queryField" id="search-query" promptText="Search"/>
+        <TextField fx:id="queryField" id="search-query" promptText="%TextSearchPane.queryField.promptText"/>
         <!-- Options as labelled switches with a visible on/off state (UX plan 2.6); wraps when narrow -->
         <FlowPane hgap="4" vgap="4" styleClass="fxt-search-options">
             <children>
-                <ToggleButton fx:id="caseToggle" id="search-opt-case" text="Match case"
+                <ToggleButton fx:id="caseToggle" id="search-opt-case" text="%TextSearchPane.caseToggle.text"
                               styleClass="fxt-search-option-toggle">
                     <tooltip>
-                        <Tooltip text="Match upper and lower case exactly"/>
+                        <Tooltip text="%TextSearchPane.match-upper-and-lower-case.text"/>
                     </tooltip>
                 </ToggleButton>
-                <ToggleButton fx:id="wordToggle" id="search-opt-word" text="Whole word"
+                <ToggleButton fx:id="wordToggle" id="search-opt-word" text="%TextSearchPane.wordToggle.text"
                               styleClass="fxt-search-option-toggle">
                     <tooltip>
-                        <Tooltip text="Match whole words only"/>
+                        <Tooltip text="%TextSearchPane.match-whole-words-only.text"/>
                     </tooltip>
                 </ToggleButton>
-                <ToggleButton fx:id="regexToggle" id="search-opt-regex" text="Regex"
+                <ToggleButton fx:id="regexToggle" id="search-opt-regex" text="%TextSearchPane.regexToggle.text"
                               styleClass="fxt-search-option-toggle">
                     <tooltip>
-                        <Tooltip text="Treat the search text as a regular expression"/>
+                        <Tooltip text="%TextSearchPane.treat-the-search-text-as.text"/>
                     </tooltip>
                 </ToggleButton>
-                <ToggleButton fx:id="replaceToggle" id="search-replace-toggle" text="Replace"
+                <ToggleButton fx:id="replaceToggle" id="search-replace-toggle" text="%TextSearchPane.replaceToggle.text"
                               styleClass="fxt-search-option-toggle">
                     <tooltip>
-                        <Tooltip text="Show the replace field"/>
+                        <Tooltip text="%TextSearchPane.show-the-replace-field.text"/>
                     </tooltip>
                 </ToggleButton>
             </children>
@@ -55,32 +55,32 @@
         <!-- Replace row: collapsed until requested -->
         <VBox fx:id="replaceRow" spacing="4" visible="false" managed="false">
             <children>
-                <TextField fx:id="replaceField" id="search-replace" promptText="Replace"/>
-                <Button fx:id="replaceButton" id="search-replace-button" text="Replace…" maxWidth="Infinity"
+                <TextField fx:id="replaceField" id="search-replace" promptText="%TextSearchPane.replaceField.promptText"/>
+                <Button fx:id="replaceButton" id="search-replace-button" text="%TextSearchPane.replaceButton.text" maxWidth="Infinity"
                         styleClass="fxt-primary-button" onAction="#onReplaceChecked"/>
             </children>
         </VBox>
 
         <!-- Scope: folder and file globs, each with its own caption and line -->
-        <Label text="Search in folder" styleClass="fxt-sp-section-label"/>
+        <Label text="%TextSearchPane.search-in-folder.text" styleClass="fxt-sp-section-label"/>
         <HBox spacing="6" alignment="CENTER_LEFT">
             <children>
-                <Label fx:id="folderLabel" id="search-folder" text="No folder — choose one" maxWidth="Infinity"
+                <Label fx:id="folderLabel" id="search-folder" text="%TextSearchPane.folderLabel.text" maxWidth="Infinity"
                        styleClass="fxt-vp-source-name" HBox.hgrow="ALWAYS"/>
                 <Button styleClass="fxt-tool-button" onAction="#onChooseFolder">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-folder2-open"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Choose folder to search"/>
+                        <Tooltip text="%TextSearchPane.choose-folder-to-search.text"/>
                     </tooltip>
                 </Button>
             </children>
         </HBox>
-        <Label text="Files matching" styleClass="fxt-sp-section-label"/>
-        <TextField fx:id="globField" id="search-glob" promptText="File globs, e.g. *.xml,*.xsd"/>
+        <Label text="%TextSearchPane.files-matching.text" styleClass="fxt-sp-section-label"/>
+        <TextField fx:id="globField" id="search-glob" promptText="%TextSearchPane.globField.promptText"/>
 
-        <Label fx:id="status" text="Type to search" wrapText="true" styleClass="fxt-vp-status"/>
+        <Label fx:id="status" text="%TextSearchPane.status.text" wrapText="true" styleClass="fxt-vp-status"/>
         <PanelProgress fx:id="progress"/>
         <SearchResultsTree fx:id="resultsTree" VBox.vgrow="ALWAYS"/>
     </children>

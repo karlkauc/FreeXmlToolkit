@@ -19,12 +19,12 @@
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
-        <Label text="Output file" GridPane.rowIndex="0"/>
+        <Label text="%FlattenOptionsDialog.output-file.text" GridPane.rowIndex="0"/>
         <HBox spacing="6" GridPane.rowIndex="1">
             <children>
                 <TextField fx:id="outputField" id="flatten-output" prefColumnCount="40" HBox.hgrow="ALWAYS"
-                           promptText="Leave empty to open the result as an unsaved tab"/>
-                <Button text="Browse…" id="flatten-output-browse" onAction="#onBrowse">
+                           promptText="%FlattenOptionsDialog.outputField.promptText"/>
+                <Button text="%FlattenOptionsDialog.flatten-output-browse.text" id="flatten-output-browse" onAction="#onBrowse">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                     </graphic>
@@ -33,18 +33,18 @@
         </HBox>
         <Label fx:id="outputError" id="flatten-output-error" wrapText="true" maxWidth="520" visible="false"
                managed="false" style="-fx-text-fill: #e03131;" GridPane.rowIndex="2"/>
-        <CheckBox fx:id="removeAnnotations" text="Remove annotations (documentation, appinfo)" selected="true"
+        <CheckBox fx:id="removeAnnotations" text="%FlattenOptionsDialog.removeAnnotations.text" selected="true"
                   GridPane.rowIndex="3"/>
-        <CheckBox fx:id="removeComments" text="Remove XML comments" selected="true" GridPane.rowIndex="4"/>
-        <CheckBox fx:id="removeUnusedTypes" text="Remove unused global types and groups" selected="true"
+        <CheckBox fx:id="removeComments" text="%FlattenOptionsDialog.removeComments.text" selected="true" GridPane.rowIndex="4"/>
+        <CheckBox fx:id="removeUnusedTypes" text="%FlattenOptionsDialog.removeUnusedTypes.text" selected="true"
                   GridPane.rowIndex="5"/>
-        <CheckBox fx:id="minify" text="Minified output (no indentation)" selected="true" GridPane.rowIndex="6"/>
-        <CheckBox fx:id="trackSourceFiles" text="Track source files (xs:appinfo)" GridPane.rowIndex="7">
+        <CheckBox fx:id="minify" text="%FlattenOptionsDialog.minify.text" selected="true" GridPane.rowIndex="6"/>
+        <CheckBox fx:id="trackSourceFiles" text="%FlattenOptionsDialog.trackSourceFiles.text" GridPane.rowIndex="7">
             <tooltip>
-                <Tooltip text="Marks every component that came from an included file with an fxt:sourceFile annotation naming that file."/>
+                <Tooltip text="%FlattenOptionsDialog.marks-every-component-that-came.text"/>
             </tooltip>
         </CheckBox>
-        <Label text="Uncheck all options for a plain flatten that keeps documentation." opacity="0.7"
+        <Label text="%FlattenOptionsDialog.uncheck-all-options-for-a.text" opacity="0.7"
                GridPane.rowIndex="8"/>
     </children>
 </GridPane>

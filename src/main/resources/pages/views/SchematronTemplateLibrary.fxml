@@ -27,7 +27,7 @@
         <Insets topRightBottomLeft="10"/>
     </padding>
     <children>
-        <Label text="Schematron Template Library">
+        <Label text="%SchematronTemplateLibrary.schematron-template-library.text">
             <font>
                 <Font name="System Bold" size="16"/>
             </font>
@@ -40,7 +40,7 @@
                 <Insets topRightBottomLeft="5"/>
             </padding>
             <children>
-                <Label text="Filter Templates" styleClass="section-title">
+                <Label text="%SchematronTemplateLibrary.filter-templates.text" styleClass="section-title">
                     <font>
                         <Font name="System Bold" size="12"/>
                     </font>
@@ -49,7 +49,7 @@
                     <children>
                         <HBox spacing="10" alignment="CENTER_LEFT">
                             <children>
-                                <Label text="Category:"/>
+                                <Label text="%SchematronTemplateLibrary.category.text"/>
                                 <ComboBox fx:id="categoryComboBox" prefWidth="150">
                                     <items>
                                         <FXCollections fx:factory="observableArrayList">
@@ -65,8 +65,8 @@
                                         </FXCollections>
                                     </items>
                                 </ComboBox>
-                                <Label text="Search:"/>
-                                <TextField fx:id="searchField" promptText="Search templates..." prefWidth="200"/>
+                                <Label text="%SchematronTemplateLibrary.search.text"/>
+                                <TextField fx:id="searchField" promptText="%SchematronTemplateLibrary.searchField.promptText" prefWidth="200"/>
                             </children>
                         </HBox>
                     </children>
@@ -80,7 +80,7 @@
                 <Insets topRightBottomLeft="5"/>
             </padding>
             <children>
-                <Label text="Available Templates" styleClass="section-title">
+                <Label text="%SchematronTemplateLibrary.available-templates.text" styleClass="section-title">
                     <font>
                         <Font name="System Bold" size="12"/>
                     </font>
@@ -89,9 +89,9 @@
                     <children>
                         <TableView fx:id="templatesTable" prefHeight="250" VBox.vgrow="ALWAYS">
                             <columns>
-                                <TableColumn fx:id="nameColumn" text="Template" prefWidth="200"/>
-                                <TableColumn fx:id="categoryColumn" text="Category" prefWidth="120"/>
-                                <TableColumn fx:id="descColumn" text="Description" prefWidth="300"/>
+                                <TableColumn fx:id="nameColumn" text="%SchematronTemplateLibrary.nameColumn.text" prefWidth="200"/>
+                                <TableColumn fx:id="categoryColumn" text="%SchematronTemplateLibrary.categoryColumn.text" prefWidth="120"/>
+                                <TableColumn fx:id="descColumn" text="%SchematronTemplateLibrary.descColumn.text" prefWidth="300"/>
                             </columns>
                         </TableView>
                     </children>
@@ -105,7 +105,7 @@
                 <Insets topRightBottomLeft="5"/>
             </padding>
             <children>
-                <Label text="Template Preview" styleClass="section-title">
+                <Label text="%SchematronTemplateLibrary.template-preview.text" styleClass="section-title">
                     <font>
                         <Font name="System Bold" size="12"/>
                     </font>
@@ -113,13 +113,13 @@
                 <VBox spacing="5">
                     <children>
                         <TextArea fx:id="previewArea" editable="false" prefHeight="200"
-                                  promptText="Select a template to preview..."
+                                  promptText="%SchematronTemplateLibrary.previewArea.promptText"
                                   style="-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 11px;"/>
                         <HBox spacing="10" alignment="CENTER_LEFT">
                             <children>
-                                <Button fx:id="insertButton" text="Insert Template" disable="true"
+                                <Button fx:id="insertButton" text="%SchematronTemplateLibrary.insertButton.text" disable="true"
                                         styleClass="primary-button" onAction="#onInsertTemplate"/>
-                                <Button fx:id="customizeButton" text="Customize &amp; Insert" disable="true"
+                                <Button fx:id="customizeButton" text="%SchematronTemplateLibrary.customizeButton.text" disable="true"
                                         styleClass="secondary-button" onAction="#onCustomizeAndInsert"/>
                             </children>
                         </HBox>

@@ -31,29 +31,29 @@
         <ToggleGroup fx:id="inputGroup"/>
     </fx:define>
     <children>
-        <Label text="Input" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
+        <Label text="%DebugConfigurationDialog.input.text" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
         <VBox spacing="6" GridPane.rowIndex="0" GridPane.columnIndex="1">
             <children>
                 <RadioButton fx:id="runTargetRadio" id="debug-config-run-target" toggleGroup="$inputGroup" selected="true"
-                             text="Run target (the XML document the Run button uses)"/>
+                             text="%DebugConfigurationDialog.runTargetRadio.text"/>
                 <HBox spacing="6">
                     <children>
-                        <RadioButton fx:id="fileRadio" id="debug-config-file-radio" toggleGroup="$inputGroup" text="File"/>
-                        <TextField fx:id="fileField" id="debug-config-file" HBox.hgrow="ALWAYS" promptText="input XML file"/>
-                        <Button fx:id="browseButton" id="debug-config-browse" text="Browse…" onAction="#onBrowse"/>
+                        <RadioButton fx:id="fileRadio" id="debug-config-file-radio" toggleGroup="$inputGroup" text="%DebugConfigurationDialog.fileRadio.text"/>
+                        <TextField fx:id="fileField" id="debug-config-file" HBox.hgrow="ALWAYS" promptText="%DebugConfigurationDialog.fileField.promptText"/>
+                        <Button fx:id="browseButton" id="debug-config-browse" text="%DebugConfigurationDialog.browseButton.text" onAction="#onBrowse"/>
                     </children>
                 </HBox>
             </children>
         </VBox>
-        <Label text="Parameters" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
+        <Label text="%DebugConfigurationDialog.parameters.text" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
         <TextArea fx:id="paramsArea" id="debug-config-params" prefRowCount="4" GridPane.rowIndex="1" GridPane.columnIndex="1"
-                  promptText="one per line: name=value"/>
-        <Label text="Output" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                  promptText="%DebugConfigurationDialog.paramsArea.promptText"/>
+        <Label text="%DebugConfigurationDialog.output.text" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
         <ChoiceBox fx:id="formatChoice" id="debug-config-format" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="pauseBox" id="debug-config-pause" text="Pause on entry, even with breakpoints"
+        <CheckBox fx:id="pauseBox" id="debug-config-pause" text="%DebugConfigurationDialog.pauseBox.text"
                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
         <Label wrapText="true" opacity="0.7" maxWidth="480" GridPane.rowIndex="4" GridPane.columnIndex="0"
                GridPane.columnSpan="2"
-               text="Saved per stylesheet: Debug with XSLT (Shift+F5) and Run ▸ Debug Transform on this stylesheet use it. Re-run Last Debug (Ctrl+Shift+F5) repeats the last debug run with the same input, read again."/>
+               text="%DebugConfigurationDialog.saved-per-stylesheet-debug-with.text"/>
     </children>
 </GridPane>

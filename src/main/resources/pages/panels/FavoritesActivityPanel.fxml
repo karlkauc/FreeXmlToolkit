@@ -17,21 +17,21 @@
 <fx:root type="javafx.scene.layout.VBox"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <SidePanelHeader title="FAVORITES"/>
+        <SidePanelHeader title="%FavoritesActivityPanel.favorites.title"/>
         <PanelActionList>
             <children>
-                <PanelActionButton id="favorites-add-current" iconLiteral="bi-star" text="Add current"
+                <PanelActionButton id="favorites-add-current" iconLiteral="bi-star" text="%FavoritesActivityPanel.favorites-add-current.text"
                                    color="CREATE" onAction="#addCurrent"/>
-                <PanelActionButton id="favorites-manage" iconLiteral="bi-sliders" text="Manage…"
+                <PanelActionButton id="favorites-manage" iconLiteral="bi-sliders" text="%FavoritesActivityPanel.favorites-manage.text"
                                    onAction="#openManager"/>
             </children>
         </PanelActionList>
         <VBox styleClass="fxt-side-panel-body" VBox.vgrow="ALWAYS">
             <children>
-                <TextField fx:id="search" id="favorites-search" promptText="Search…"/>
+                <TextField fx:id="search" id="favorites-search" promptText="%FavoritesActivityPanel.search.promptText"/>
                 <ListView fx:id="list" styleClass="fxt-open-editors" VBox.vgrow="ALWAYS">
                     <placeholder>
-                        <Label text="No favorites"/>
+                        <Label text="%FavoritesActivityPanel.no-favorites.text"/>
                     </placeholder>
                 </ListView>
             </children>

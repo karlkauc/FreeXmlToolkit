@@ -36,12 +36,12 @@
         <!-- Shown below "Run Validation" in batch mode -->
         <ContextMenu fx:id="batchSourceMenu">
             <items>
-                <MenuItem text="Select XML files…" onAction="#onChooseBatch">
+                <MenuItem text="%ValidationPanel.select-xml-files.text" onAction="#onChooseBatch">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="16"/>
                     </graphic>
                 </MenuItem>
-                <MenuItem text="Select folder…" onAction="#onChooseBatchFolder">
+                <MenuItem text="%ValidationPanel.select-folder.text" onAction="#onChooseBatchFolder">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                     </graphic>
@@ -51,14 +51,14 @@
     </fx:define>
     <children>
         <!-- The ⋮ overflow menu keeps only toggles; every tool is a visible row in TOOLS. -->
-        <SidePanelHeader title="VALIDATION">
+        <SidePanelHeader title="%ValidationPanel.validation.title">
             <children>
                 <MenuButton fx:id="overflowMenu" id="validation-overflow" styleClass="fxt-vp-overflow">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-three-dots-vertical" iconSize="15"/>
                     </graphic>
                     <items>
-                        <CheckMenuItem fx:id="liveValidation" text="Validate while typing" selected="true"
+                        <CheckMenuItem fx:id="liveValidation" text="%ValidationPanel.liveValidation.text" selected="true"
                                        onAction="#onLiveValidationToggled"/>
                     </items>
                 </MenuButton>
@@ -67,44 +67,44 @@
 
         <!-- TOOLS in two groups (UX plan 2.4), both open at the top: results/reports of a run, and the
              Schematron authoring tools (needed also without a run, so they stay in this panel). -->
-        <SidePanelSection id="validation-reports-section" title="REPORTS &amp; CHECKS">
+        <SidePanelSection id="validation-reports-section" title="%ValidationPanel.validation-reports-section.title">
             <children>
                 <PanelActionList fx:id="tools" id="validation-tools">
                     <children>
                         <!-- Enabled after a validation run with a bound Schematron -->
                         <PanelActionButton fx:id="schematronReportButton" id="validation-schematron-report"
-                                           iconLiteral="bi-journal-check" text="Validation Report" color="NAVIGATE"
+                                           iconLiteral="bi-journal-check" text="%ValidationPanel.schematronReportButton.text" color="NAVIGATE"
                                            disable="true" onAction="#openSchematronReport">
                             <tooltip>
-                                <Tooltip text="Detailed report of the last Schematron run"/>
+                                <Tooltip text="%ValidationPanel.detailed-report-of-the-last.text"/>
                             </tooltip>
                         </PanelActionButton>
                         <PanelActionButton fx:id="exportProblems" id="validation-export-problems"
-                                           iconLiteral="bi-file-earmark-excel" text="Export Problems to Excel"
+                                           iconLiteral="bi-file-earmark-excel" text="%ValidationPanel.exportProblems.text"
                                            color="TOOL" onAction="#exportProblemsToExcel"/>
                         <PanelActionButton fx:id="batchReportButton" id="validation-tool-batch-report"
-                                           iconLiteral="bi-file-earmark-text" text="Open Last Batch Report"
+                                           iconLiteral="bi-file-earmark-text" text="%ValidationPanel.batchReportButton.text"
                                            color="NAVIGATE" onAction="#onOpenBatchReport"/>
                     </children>
                 </PanelActionList>
             </children>
         </SidePanelSection>
-        <SidePanelSection id="validation-authoring-section" title="SCHEMATRON AUTHORING">
+        <SidePanelSection id="validation-authoring-section" title="%ValidationPanel.validation-authoring-section.title">
             <children>
                 <PanelActionList fx:id="authoringTools" id="validation-authoring-tools">
                     <children>
                         <PanelActionButton id="validation-tool-templates" iconLiteral="bi-journal-code"
-                                           text="Rule Templates" color="NAVIGATE"
+                                           text="%ValidationPanel.validation-tool-templates.text" color="NAVIGATE"
                                            onAction="#openSchematronTemplates"/>
                         <PanelActionButton id="validation-tool-tester" iconLiteral="bi-flask"
-                                           text="Schematron Tester" color="NAVIGATE"
+                                           text="%ValidationPanel.validation-tool-tester.text" color="NAVIGATE"
                                            onAction="#openSchematronTester"/>
-                        <PanelActionButton id="validation-tool-builder" iconLiteral="bi-tools" text="Rule Builder"
+                        <PanelActionButton id="validation-tool-builder" iconLiteral="bi-tools" text="%ValidationPanel.validation-tool-builder.text"
                                            color="NAVIGATE" onAction="#openSchematronBuilder"/>
                         <PanelActionButton id="validation-tool-check" iconLiteral="bi-check2-square"
-                                           text="Check Rules" color="CREATE" onAction="#openSchematronCheck"/>
+                                           text="%ValidationPanel.validation-tool-check.text" color="CREATE" onAction="#openSchematronCheck"/>
                         <PanelActionButton id="validation-tool-documentation" iconLiteral="bi-book"
-                                           text="Schematron Documentation" color="NAVIGATE"
+                                           text="%ValidationPanel.validation-tool-documentation.text" color="NAVIGATE"
                                            onAction="#openSchematronDocumentation"/>
                     </children>
                 </PanelActionList>
@@ -115,27 +115,27 @@
         <HBox spacing="6" alignment="CENTER_LEFT" styleClass="fxt-vp-section-header">
             <children>
                 <IconifyIcon iconLiteral="bi-chevron-down" iconSize="11"/>
-                <Label text="SOURCES"/>
+                <Label text="%ValidationPanel.sources.text"/>
             </children>
         </HBox>
-        <SourceRow fx:id="xsdRow" id="validation-xsd-row" iconLiteral="bi-diagram-3" caption="XSD"
-                   emptyText="No XSD bound — choose or drop a file" onChange="#onChooseXsd">
+        <SourceRow fx:id="xsdRow" id="validation-xsd-row" iconLiteral="bi-diagram-3" caption="%ValidationPanel.xsdRow.caption"
+                   emptyText="%ValidationPanel.xsdRow.emptyText" onChange="#onChooseXsd">
             <name>
-                <Label fx:id="xsdName" text="none" styleClass="fxt-vp-source-name"/>
+                <Label fx:id="xsdName" text="%ValidationPanel.xsdName.text" styleClass="fxt-vp-source-name"/>
             </name>
         </SourceRow>
-        <SourceRow fx:id="schematronRow" id="validation-schematron-row" iconLiteral="bi-ui-checks-grid" caption="Schematron"
-                   emptyText="No Schematron — choose or drop a file"
+        <SourceRow fx:id="schematronRow" id="validation-schematron-row" iconLiteral="bi-ui-checks-grid" caption="%ValidationPanel.schematronRow.caption"
+                   emptyText="%ValidationPanel.schematronRow.emptyText"
                    onChange="#onChooseSchematron">
             <name>
-                <Label fx:id="schematronName" text="none" styleClass="fxt-vp-source-name"/>
+                <Label fx:id="schematronName" text="%ValidationPanel.schematronName.text" styleClass="fxt-vp-source-name"/>
             </name>
         </SourceRow>
-        <SourceRow fx:id="jsonSchemaRow" id="validation-json-schema-row" iconLiteral="bi-braces" caption="JSON Schema"
-                   emptyText="No JSON Schema — choose or drop a file"
+        <SourceRow fx:id="jsonSchemaRow" id="validation-json-schema-row" iconLiteral="bi-braces" caption="%ValidationPanel.jsonSchemaRow.caption"
+                   emptyText="%ValidationPanel.jsonSchemaRow.emptyText"
                    onChange="#onChooseJsonSchema">
             <name>
-                <Label fx:id="jsonSchemaName" text="none" styleClass="fxt-vp-source-name"/>
+                <Label fx:id="jsonSchemaName" text="%ValidationPanel.jsonSchemaName.text" styleClass="fxt-vp-source-name"/>
             </name>
         </SourceRow>
 
@@ -144,13 +144,13 @@
             <children>
                 <HBox spacing="2" styleClass="fxt-seg-group">
                     <children>
-                        <ToggleButton fx:id="singleMode" text="Single file" toggleGroup="$modeGroup" selected="true"
+                        <ToggleButton fx:id="singleMode" text="%ValidationPanel.singleMode.text" toggleGroup="$modeGroup" selected="true"
                                       maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-seg"/>
-                        <ToggleButton fx:id="batchMode" text="Batch" toggleGroup="$modeGroup" maxWidth="Infinity"
+                        <ToggleButton fx:id="batchMode" text="%ValidationPanel.batchMode.text" toggleGroup="$modeGroup" maxWidth="Infinity"
                                       HBox.hgrow="ALWAYS" styleClass="fxt-seg"/>
                     </children>
                 </HBox>
-                <Button fx:id="run" id="validation-run" text="Run Validation" maxWidth="Infinity"
+                <Button fx:id="run" id="validation-run" text="%ValidationPanel.run.text" maxWidth="Infinity"
                         styleClass="fxt-primary-button" onAction="#onRun">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/>
@@ -160,6 +160,6 @@
             </children>
         </VBox>
 
-        <Label fx:id="status" text="Not validated" styleClass="fxt-vp-status"/>
+        <Label fx:id="status" text="%ValidationPanel.status.text" styleClass="fxt-vp-status"/>
     </children>
 </fx:root>

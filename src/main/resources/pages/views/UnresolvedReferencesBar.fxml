@@ -16,7 +16,7 @@
         <IconifyIcon iconLiteral="bi-exclamation-triangle" iconSize="16" styleClass="fxt-hint-bar-icon"/>
         <Label fx:id="message" id="unresolved-references-message" wrapText="true" minWidth="0" maxWidth="Infinity"
                styleClass="fxt-hint-bar-text" HBox.hgrow="ALWAYS"/>
-        <Button id="unresolved-references-dismiss" text="Dismiss" styleClass="fxt-tool-button, fxt-tool-neutral"
+        <Button id="unresolved-references-dismiss" text="%UnresolvedReferencesBar.unresolved-references-dismiss.text" styleClass="fxt-tool-button, fxt-tool-neutral"
                 minWidth="-Infinity" onAction="#onDismiss"/>
     </children>
 </fx:root>

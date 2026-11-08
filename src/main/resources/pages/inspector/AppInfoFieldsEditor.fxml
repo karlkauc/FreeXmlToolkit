@@ -20,49 +20,49 @@
 <fx:root type="javafx.scene.layout.VBox" spacing="4" styleClass="fxt-appinfo-editor"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Label text="\@since" styleClass="fxt-inspector-sub-label"/>
+        <Label text="%AppInfoFieldsEditor.since.text" styleClass="fxt-inspector-sub-label"/>
         <TextField fx:id="sinceField" id="inspector-appinfo-since" promptText="e.g. 4.0.0"
                    styleClass="fxt-inspector-edit"/>
-        <Label text="\@version" styleClass="fxt-inspector-sub-label"/>
+        <Label text="%AppInfoFieldsEditor.version.text" styleClass="fxt-inspector-sub-label"/>
         <TextField fx:id="versionField" id="inspector-appinfo-version" promptText="e.g. 1.0"
                    styleClass="fxt-inspector-edit"/>
 
-        <Label text="\@see" styleClass="fxt-inspector-sub-label"/>
+        <Label text="%AppInfoFieldsEditor.see.text" styleClass="fxt-inspector-sub-label"/>
         <ListView fx:id="seeList" id="inspector-appinfo-see" prefHeight="70" styleClass="fxt-facet-table">
             <placeholder>
-                <Label text="No @see references"/>
+                <Label text="%AppInfoFieldsEditor.no-see-references.text"/>
             </placeholder>
         </ListView>
         <HBox spacing="6" alignment="CENTER_LEFT">
             <children>
-                <Button id="inspector-appinfo-see-add" text="Add" minWidth="-Infinity" onAction="#onAddSee"/>
-                <Button fx:id="removeSeeButton" id="inspector-appinfo-see-remove" text="Remove" minWidth="-Infinity"
+                <Button id="inspector-appinfo-see-add" text="%AppInfoFieldsEditor.inspector-appinfo-see-add.text" minWidth="-Infinity" onAction="#onAddSee"/>
+                <Button fx:id="removeSeeButton" id="inspector-appinfo-see-remove" text="%AppInfoFieldsEditor.removeSeeButton.text" minWidth="-Infinity"
                         disable="true" onAction="#onRemoveSee"/>
             </children>
         </HBox>
 
-        <CheckBox fx:id="deprecatedCheck" id="inspector-appinfo-deprecated" text="Deprecated"/>
+        <CheckBox fx:id="deprecatedCheck" id="inspector-appinfo-deprecated" text="%AppInfoFieldsEditor.deprecatedCheck.text"/>
         <TextArea fx:id="deprecatedArea" id="inspector-appinfo-deprecated-note" wrapText="true" prefRowCount="2"
-                  promptText="e.g. Use {@link /NewElement} instead" disable="true"
+                  promptText="%AppInfoFieldsEditor.deprecatedArea.promptText" disable="true"
                   styleClass="fxt-inspector-edit"/>
 
-        <Label text="Markdown" styleClass="fxt-inspector-sub-label"/>
+        <Label text="%AppInfoFieldsEditor.markdown.text" styleClass="fxt-inspector-sub-label"/>
         <ComboBox fx:id="markdownChoice" id="inspector-appinfo-markdown" maxWidth="Infinity">
             <tooltip>
-                <Tooltip text="Whether this node's documentation is rendered as Markdown. Only used when the documentation generator is set to &quot;Per node&quot;."/>
+                <Tooltip text="%AppInfoFieldsEditor.whether-this-node-s-documentation.text"/>
             </tooltip>
         </ComboBox>
 
-        <Label text="Example values" styleClass="fxt-inspector-sub-label"/>
+        <Label text="%AppInfoFieldsEditor.example-values.text" styleClass="fxt-inspector-sub-label"/>
         <ListView fx:id="exampleList" id="inspector-appinfo-examples" prefHeight="70" styleClass="fxt-facet-table">
             <placeholder>
-                <Label text="No example values"/>
+                <Label text="%AppInfoFieldsEditor.no-example-values.text"/>
             </placeholder>
         </ListView>
         <HBox spacing="6" alignment="CENTER_LEFT">
             <children>
-                <Button id="inspector-appinfo-example-add" text="Add" minWidth="-Infinity" onAction="#onAddExample"/>
-                <Button fx:id="removeExampleButton" id="inspector-appinfo-example-remove" text="Remove"
+                <Button id="inspector-appinfo-example-add" text="%AppInfoFieldsEditor.inspector-appinfo-example-add.text" minWidth="-Infinity" onAction="#onAddExample"/>
+                <Button fx:id="removeExampleButton" id="inspector-appinfo-example-remove" text="%AppInfoFieldsEditor.removeExampleButton.text"
                         minWidth="-Infinity" disable="true" onAction="#onRemoveExample"/>
             </children>
         </HBox>

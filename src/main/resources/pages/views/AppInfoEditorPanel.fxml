@@ -27,7 +27,7 @@
         <Insets topRightBottomLeft="5"/>
     </padding>
     <children>
-        <TitledPane text="Version Info" expanded="false">
+        <TitledPane text="%AppInfoEditorPanel.version-info.text" expanded="false">
             <graphic>
                 <IconifyIcon iconLiteral="bi-info-circle"/>
             </graphic>
@@ -41,21 +41,21 @@
                         <ColumnConstraints hgrow="ALWAYS"/>
                     </columnConstraints>
                     <children>
-                        <Label text="\@since:" style="-fx-font-weight: bold;" GridPane.rowIndex="0"/>
+                        <Label text="%AppInfoEditorPanel.since.text" style="-fx-font-weight: bold;" GridPane.rowIndex="0"/>
                         <TextField fx:id="sinceField" promptText="e.g., 4.0.0" prefWidth="200"
                                    GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                        <Label text="\@version:" style="-fx-font-weight: bold;" GridPane.rowIndex="1"/>
+                        <Label text="%AppInfoEditorPanel.version.text" style="-fx-font-weight: bold;" GridPane.rowIndex="1"/>
                         <TextField fx:id="versionField" promptText="e.g., 1.0" prefWidth="200"
                                    GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                        <Label text="\@author:" style="-fx-font-weight: bold;" GridPane.rowIndex="2"/>
-                        <TextField fx:id="authorField" promptText="e.g., John Doe" prefWidth="200"
+                        <Label text="%AppInfoEditorPanel.author.text" style="-fx-font-weight: bold;" GridPane.rowIndex="2"/>
+                        <TextField fx:id="authorField" promptText="%AppInfoEditorPanel.authorField.promptText" prefWidth="200"
                                    GridPane.rowIndex="2" GridPane.columnIndex="1"/>
                     </children>
                 </GridPane>
             </content>
         </TitledPane>
 
-        <TitledPane text="See Also (@see)" expanded="false">
+        <TitledPane text="%AppInfoEditorPanel.see-also-see.text" expanded="false">
             <graphic>
                 <IconifyIcon iconLiteral="bi-link-45deg"/>
             </graphic>
@@ -65,21 +65,21 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="Add references to related elements. Use {@link /XPath} for links."
+                        <Label text="%AppInfoEditorPanel.add-references-to-related-elements.text"
                                wrapText="true" style="-fx-text-fill: #666; -fx-font-size: 11px;"/>
                         <ListView fx:id="seeListView" prefHeight="100" VBox.vgrow="ALWAYS">
                             <placeholder>
-                                <Label text="No @see references defined"/>
+                                <Label text="%AppInfoEditorPanel.no-see-references-defined.text"/>
                             </placeholder>
                         </ListView>
                         <HBox spacing="8" alignment="CENTER_LEFT">
                             <children>
-                                <Button fx:id="addSeeButton" text="Add" onAction="#onAddSeeReference">
+                                <Button fx:id="addSeeButton" text="%AppInfoEditorPanel.addSeeButton.text" onAction="#onAddSeeReference">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-plus-circle"/>
                                     </graphic>
                                 </Button>
-                                <Button fx:id="removeSeeButton" text="Remove" disable="true"
+                                <Button fx:id="removeSeeButton" text="%AppInfoEditorPanel.removeSeeButton.text" disable="true"
                                         onAction="#onRemoveSeeReference">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-dash-circle"/>
@@ -93,7 +93,7 @@
         </TitledPane>
 
         <!-- AppInfoEditorPanel tints this pane's header while "Mark as deprecated" is checked -->
-        <TitledPane fx:id="deprecationPane" text="Deprecation (@deprecated)" expanded="false">
+        <TitledPane fx:id="deprecationPane" text="%AppInfoEditorPanel.deprecationPane.text" expanded="false">
             <graphic>
                 <IconifyIcon iconLiteral="bi-exclamation-triangle"/>
             </graphic>
@@ -103,11 +103,11 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <CheckBox fx:id="deprecatedCheckBox" text="Mark as deprecated"
+                        <CheckBox fx:id="deprecatedCheckBox" text="%AppInfoEditorPanel.deprecatedCheckBox.text"
                                   style="-fx-font-weight: bold;"/>
-                        <Label text="Provide a deprecation message. Use {@link /XPath} for replacement references."
+                        <Label text="%AppInfoEditorPanel.provide-a-deprecation-message-use.text"
                                wrapText="true" style="-fx-text-fill: #666; -fx-font-size: 11px;"/>
-                        <TextArea fx:id="deprecatedTextArea" promptText="e.g., Use {@link /NewElement} instead"
+                        <TextArea fx:id="deprecatedTextArea" promptText="%AppInfoEditorPanel.deprecatedTextArea.promptText"
                                   prefRowCount="2" wrapText="true" disable="true" VBox.vgrow="ALWAYS"/>
                     </children>
                 </VBox>

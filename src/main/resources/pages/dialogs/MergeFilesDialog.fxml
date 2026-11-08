@@ -16,38 +16,38 @@
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
-        <Label text="Base (common ancestor)" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label text="%MergeFilesDialog.base-common-ancestor.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
         <TextField fx:id="baseField" id="merge-base" prefColumnCount="40" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-        <Button id="merge-base-browse" text="Browse…" onAction="#onBrowseBase" GridPane.rowIndex="0" GridPane.columnIndex="2">
+        <Button id="merge-base-browse" text="%MergeFilesDialog.merge-base-browse.text" onAction="#onBrowseBase" GridPane.rowIndex="0" GridPane.columnIndex="2">
             <graphic>
                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
             </graphic>
         </Button>
-        <Label text="Left (mine)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Label text="%MergeFilesDialog.left-mine.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <TextField fx:id="leftField" id="merge-left" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Button id="merge-left-browse" text="Browse…" onAction="#onBrowseLeft" GridPane.rowIndex="1" GridPane.columnIndex="2">
+        <Button id="merge-left-browse" text="%MergeFilesDialog.merge-left-browse.text" onAction="#onBrowseLeft" GridPane.rowIndex="1" GridPane.columnIndex="2">
             <graphic>
                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
             </graphic>
         </Button>
-        <Label text="Right (theirs)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <Label text="%MergeFilesDialog.right-theirs.text" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
         <TextField fx:id="rightField" id="merge-right" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <Button id="merge-right-browse" text="Browse…" onAction="#onBrowseRight" GridPane.rowIndex="2" GridPane.columnIndex="2">
+        <Button id="merge-right-browse" text="%MergeFilesDialog.merge-right-browse.text" onAction="#onBrowseRight" GridPane.rowIndex="2" GridPane.columnIndex="2">
             <graphic>
                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
             </graphic>
         </Button>
-        <Label text="Result file" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <TextField fx:id="resultField" id="merge-result" promptText="Optional: where Save writes the result"
+        <Label text="%MergeFilesDialog.result-file.text" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="resultField" id="merge-result" promptText="%MergeFilesDialog.resultField.promptText"
                    GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-        <Button id="merge-result-browse" text="Browse…" onAction="#onBrowseResult" GridPane.rowIndex="3" GridPane.columnIndex="2">
+        <Button id="merge-result-browse" text="%MergeFilesDialog.merge-result-browse.text" onAction="#onBrowseResult" GridPane.rowIndex="3" GridPane.columnIndex="2">
             <graphic>
                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
             </graphic>
         </Button>
         <Label fx:id="error" id="merge-files-error" wrapText="true" visible="false" managed="false"
                style="-fx-text-fill: #e03131;" GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
-        <Label text="Changes made on one side only are taken over; lines both sides changed differently become conflicts to resolve."
+        <Label text="%MergeFilesDialog.changes-made-on-one-side.text"
                wrapText="true" opacity="0.7" maxWidth="560" GridPane.rowIndex="5" GridPane.columnIndex="0"
                GridPane.columnSpan="3"/>
     </children>

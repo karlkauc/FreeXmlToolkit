@@ -31,22 +31,22 @@
             <children>
                 <Label fx:id="summary" id="profile-summary" styleClass="fxt-side-panel-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="againButton" text="Profile Again" id="profile-again" onAction="#onProfileAgain">
+                <Button fx:id="againButton" text="%ProfileView.againButton.text" id="profile-again" onAction="#onProfileAgain">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
                     </graphic>
                 </Button>
-                <MenuButton text="Export" id="profile-export">
+                <MenuButton text="%ProfileView.profile-export.text" id="profile-export">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-box-arrow-up" iconSize="16"/>
                     </graphic>
                     <items>
-                        <MenuItem text="Profile as JSON…" id="profile-export-json" onAction="#onExportJson">
+                        <MenuItem text="%ProfileView.profile-export-json.text" id="profile-export-json" onAction="#onExportJson">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-filetype-json" iconSize="16"/>
                             </graphic>
                         </MenuItem>
-                        <MenuItem text="Report as Text…" id="profile-export-text" onAction="#onExportText">
+                        <MenuItem text="%ProfileView.profile-export-text.text" id="profile-export-text" onAction="#onExportText">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="16"/>
                             </graphic>
@@ -57,39 +57,39 @@
         </HBox>
         <TabPane fx:id="tabs" id="profile-tabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
             <tabs>
-                <Tab text="Hot Spots" id="profile-tab-hotspots">
+                <Tab text="%ProfileView.profile-tab-hotspots.text" id="profile-tab-hotspots">
                     <content>
                         <TableView fx:id="components" id="profile-components">
                             <columns>
-                                <TableColumn fx:id="nameColumn" text="Template / Function" prefWidth="280"/>
-                                <TableColumn fx:id="kindColumn" text="Kind" prefWidth="135"/>
-                                <TableColumn fx:id="locationColumn" text="Location" prefWidth="150"/>
-                                <TableColumn fx:id="callsColumn" text="Calls" prefWidth="70"/>
-                                <TableColumn fx:id="selfColumn" text="Self (ms)" prefWidth="90"/>
-                                <TableColumn fx:id="selfPercentColumn" text="Self %" prefWidth="70"/>
-                                <TableColumn fx:id="totalColumn" text="Total (ms)" prefWidth="90"/>
-                                <TableColumn fx:id="avgColumn" text="Avg (ms)" prefWidth="90"/>
+                                <TableColumn fx:id="nameColumn" text="%ProfileView.nameColumn.text" prefWidth="280"/>
+                                <TableColumn fx:id="kindColumn" text="%ProfileView.kindColumn.text" prefWidth="135"/>
+                                <TableColumn fx:id="locationColumn" text="%ProfileView.locationColumn.text" prefWidth="150"/>
+                                <TableColumn fx:id="callsColumn" text="%ProfileView.callsColumn.text" prefWidth="70"/>
+                                <TableColumn fx:id="selfColumn" text="%ProfileView.selfColumn.text" prefWidth="90"/>
+                                <TableColumn fx:id="selfPercentColumn" text="%ProfileView.selfPercentColumn.text" prefWidth="70"/>
+                                <TableColumn fx:id="totalColumn" text="%ProfileView.totalColumn.text" prefWidth="90"/>
+                                <TableColumn fx:id="avgColumn" text="%ProfileView.avgColumn.text" prefWidth="90"/>
                             </columns>
                             <placeholder>
-                                <Label text="No templates or functions were executed."/>
+                                <Label text="%ProfileView.no-templates-or-functions-were.text"/>
                             </placeholder>
                         </TableView>
                     </content>
                 </Tab>
-                <Tab text="Call Tree" id="profile-tab-tree">
+                <Tab text="%ProfileView.profile-tab-tree.text" id="profile-tab-tree">
                     <content>
                         <TreeTableView fx:id="tree" id="profile-tree" showRoot="true">
                             <columns>
-                                <TreeTableColumn fx:id="treeNameColumn" text="Template / Function" prefWidth="360"/>
-                                <TreeTableColumn fx:id="treeCallsColumn" text="Calls" prefWidth="70"/>
-                                <TreeTableColumn fx:id="treeTotalColumn" text="Total (ms)" prefWidth="90"/>
-                                <TreeTableColumn fx:id="treePercentColumn" text="Total %" prefWidth="70"/>
-                                <TreeTableColumn fx:id="treeSelfColumn" text="Self (ms)" prefWidth="90"/>
+                                <TreeTableColumn fx:id="treeNameColumn" text="%ProfileView.treeNameColumn.text" prefWidth="360"/>
+                                <TreeTableColumn fx:id="treeCallsColumn" text="%ProfileView.treeCallsColumn.text" prefWidth="70"/>
+                                <TreeTableColumn fx:id="treeTotalColumn" text="%ProfileView.treeTotalColumn.text" prefWidth="90"/>
+                                <TreeTableColumn fx:id="treePercentColumn" text="%ProfileView.treePercentColumn.text" prefWidth="70"/>
+                                <TreeTableColumn fx:id="treeSelfColumn" text="%ProfileView.treeSelfColumn.text" prefWidth="90"/>
                             </columns>
                         </TreeTableView>
                     </content>
                 </Tab>
-                <Tab text="Flame Graph" id="profile-tab-flame">
+                <Tab text="%ProfileView.profile-tab-flame.text" id="profile-tab-flame">
                     <content>
                         <VBox spacing="6">
                             <padding>
@@ -98,12 +98,12 @@
                             <children>
                                 <HBox spacing="8" alignment="CENTER_LEFT">
                                     <children>
-                                        <Button text="Reset Zoom" id="profile-flame-reset" onAction="#onResetZoom">
+                                        <Button text="%ProfileView.profile-flame-reset.text" id="profile-flame-reset" onAction="#onResetZoom">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-zoom-out" iconSize="16"/>
                                             </graphic>
                                         </Button>
-                                        <Label text="Width = total time. Click a bar to zoom in, double-click to open its source."
+                                        <Label text="%ProfileView.width-total-time-click-a.text"
                                                opacity="0.7"/>
                                     </children>
                                 </HBox>
@@ -112,15 +112,15 @@
                         </VBox>
                     </content>
                 </Tab>
-                <Tab text="Lines" id="profile-tab-lines">
+                <Tab text="%ProfileView.profile-tab-lines.text" id="profile-tab-lines">
                     <content>
                         <TableView fx:id="lines" id="profile-lines">
                             <columns>
-                                <TableColumn fx:id="lineLocationColumn" text="Line" prefWidth="150"/>
-                                <TableColumn fx:id="lineSourceColumn" text="Source" prefWidth="420"/>
-                                <TableColumn fx:id="lineHitsColumn" text="Hits" prefWidth="80"/>
-                                <TableColumn fx:id="lineSelfColumn" text="Self (ms)" prefWidth="90"/>
-                                <TableColumn fx:id="lineSelfPercentColumn" text="Self %" prefWidth="70"/>
+                                <TableColumn fx:id="lineLocationColumn" text="%ProfileView.lineLocationColumn.text" prefWidth="150"/>
+                                <TableColumn fx:id="lineSourceColumn" text="%ProfileView.lineSourceColumn.text" prefWidth="420"/>
+                                <TableColumn fx:id="lineHitsColumn" text="%ProfileView.lineHitsColumn.text" prefWidth="80"/>
+                                <TableColumn fx:id="lineSelfColumn" text="%ProfileView.lineSelfColumn.text" prefWidth="90"/>
+                                <TableColumn fx:id="lineSelfPercentColumn" text="%ProfileView.lineSelfPercentColumn.text" prefWidth="70"/>
                             </columns>
                         </TableView>
                     </content>
@@ -128,6 +128,6 @@
             </tabs>
         </TabPane>
         <Label fx:id="note" id="profile-note" wrapText="true" opacity="0.7"
-               text="Total: from entering a template or function until leaving it, including what it calls (recursion counted once). Self: without the templates and functions it calls. Measured with tracing on, so absolute times are higher than in a normal run; compare the parts. Double-click a row to open its source."/>
+               text="%ProfileView.note.text"/>
     </children>
 </fx:root>

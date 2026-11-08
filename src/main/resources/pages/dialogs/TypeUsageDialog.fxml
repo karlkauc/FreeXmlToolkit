@@ -36,7 +36,7 @@
             </padding>
             <children>
                 <IconifyIcon fx:id="checkIcon" iconLiteral="bi-check-circle" iconSize="48"/>
-                <Label text="This type is not used anywhere in the schema.&#10;It can be safely deleted."
+                <Label text="%TypeUsageDialog.this-type-is-not-used.text"
                        wrapText="true" style="-fx-font-size: 13px; -fx-text-alignment: center;"/>
             </children>
         </VBox>
@@ -44,25 +44,25 @@
         <!-- Shown when usages were found -->
         <TableView fx:id="tableView" onMouseClicked="#onTableClicked" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="nodeNameCol" text="Node" prefWidth="150"/>
-                <TableColumn fx:id="nodeTypeCol" text="Type" prefWidth="100"/>
-                <TableColumn fx:id="refTypeCol" text="Reference" prefWidth="120"/>
-                <TableColumn fx:id="pathCol" text="Path" prefWidth="200"/>
-                <TableColumn fx:id="fileCol" text="File" prefWidth="100"/>
+                <TableColumn fx:id="nodeNameCol" text="%TypeUsageDialog.nodeNameCol.text" prefWidth="150"/>
+                <TableColumn fx:id="nodeTypeCol" text="%TypeUsageDialog.nodeTypeCol.text" prefWidth="100"/>
+                <TableColumn fx:id="refTypeCol" text="%TypeUsageDialog.refTypeCol.text" prefWidth="120"/>
+                <TableColumn fx:id="pathCol" text="%TypeUsageDialog.pathCol.text" prefWidth="200"/>
+                <TableColumn fx:id="fileCol" text="%TypeUsageDialog.fileCol.text" prefWidth="100"/>
             </columns>
             <placeholder>
-                <Label text="No usages found"/>
+                <Label text="%TypeUsageDialog.no-usages-found.text"/>
             </placeholder>
             <contextMenu>
                 <ContextMenu>
                     <items>
-                        <MenuItem text="Navigate to Node" onAction="#onNavigate">
+                        <MenuItem text="%TypeUsageDialog.navigate-to-node.text" onAction="#onNavigate">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-arrow-right-circle"/>
                             </graphic>
                         </MenuItem>
                         <SeparatorMenuItem/>
-                        <MenuItem text="Copy Path" onAction="#onCopyPath">
+                        <MenuItem text="%TypeUsageDialog.copy-path.text" onAction="#onCopyPath">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-clipboard"/>
                             </graphic>
@@ -71,7 +71,7 @@
                 </ContextMenu>
             </contextMenu>
         </TableView>
-        <Label fx:id="helpLabel" text="Double-click a row to navigate to the usage location"
+        <Label fx:id="helpLabel" text="%TypeUsageDialog.helpLabel.text"
                styleClass="desc-label"/>
     </children>
 </VBox>

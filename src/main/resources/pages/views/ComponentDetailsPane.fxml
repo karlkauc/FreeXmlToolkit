@@ -26,22 +26,22 @@
 
         <GridPane fx:id="referenceBox" id="overview-reference" hgap="8" vgap="8">
             <children>
-                <Label fx:id="namespaceLabel" text="Namespace" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <Label fx:id="namespaceLabel" text="%ComponentDetailsPane.namespaceLabel.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
                 <TextField fx:id="namespaceField" id="overview-reference-namespace" onAction="#onApplyReference"
                            GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
-                <Label text="Schema location" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label text="%ComponentDetailsPane.schema-location.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
                 <TextField fx:id="locationField" id="overview-reference-location" onAction="#onApplyReference"
                            GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
                 <HBox spacing="6" GridPane.rowIndex="2" GridPane.columnIndex="1">
                     <children>
-                        <Button text="Apply" id="overview-reference-apply" onAction="#onApplyReference"
+                        <Button text="%ComponentDetailsPane.overview-reference-apply.text" id="overview-reference-apply" onAction="#onApplyReference"
                                 styleClass="btn-primary"/>
-                        <Button text="Browse…" id="overview-reference-browse" onAction="#onBrowse">
+                        <Button text="%ComponentDetailsPane.overview-reference-browse.text" id="overview-reference-browse" onAction="#onBrowse">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                             </graphic>
                         </Button>
-                        <Button text="Open File" id="overview-reference-open" onAction="#onOpenReference">
+                        <Button text="%ComponentDetailsPane.overview-reference-open.text" id="overview-reference-open" onAction="#onOpenReference">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="16"/>
                             </graphic>
@@ -56,13 +56,13 @@
 
         <GridPane fx:id="notationBox" id="overview-notation" hgap="8" vgap="8">
             <children>
-                <Label text="Public identifier" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <Label text="%ComponentDetailsPane.public-identifier.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
                 <TextField fx:id="publicField" id="overview-notation-public" onAction="#onApplyNotation"
                            GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
-                <Label text="System identifier" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label text="%ComponentDetailsPane.system-identifier.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
                 <TextField fx:id="systemField" id="overview-notation-system" onAction="#onApplyNotation"
                            GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
-                <Button text="Apply" id="overview-notation-apply" onAction="#onApplyNotation"
+                <Button text="%ComponentDetailsPane.overview-notation-apply.text" id="overview-notation-apply" onAction="#onApplyNotation"
                         styleClass="btn-primary" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
             </children>
         </GridPane>
@@ -71,13 +71,13 @@
             <children>
                 <HBox spacing="8" alignment="CENTER_LEFT">
                     <children>
-                        <Label text="Language (xml:lang)"/>
+                        <Label text="%ComponentDetailsPane.language-xml-lang.text"/>
                         <TextField fx:id="languageField" id="overview-annotation-lang" prefColumnCount="6"/>
                     </children>
                 </HBox>
                 <TextArea fx:id="documentationArea" id="overview-annotation-text" wrapText="true" prefRowCount="5"
                           VBox.vgrow="ALWAYS"/>
-                <Button text="Apply" id="overview-annotation-apply" onAction="#onApplyAnnotation"
+                <Button text="%ComponentDetailsPane.overview-annotation-apply.text" id="overview-annotation-apply" onAction="#onApplyAnnotation"
                         styleClass="btn-primary"/>
             </children>
         </VBox>
@@ -85,17 +85,17 @@
         <VBox fx:id="summaryBox" id="overview-summary" spacing="8">
             <children>
                 <Label fx:id="summaryLabel" id="overview-summary-text" wrapText="true"/>
-                <Label text="Edit the properties of this component in the Inspector on the right."
+                <Label text="%ComponentDetailsPane.edit-the-properties-of-this.text"
                        styleClass="fxt-placeholder-text" wrapText="true"/>
                 <HBox spacing="6">
                     <children>
-                        <Button fx:id="typeEditorButton" id="overview-open-type-editor" text="Open in Type Editor"
+                        <Button fx:id="typeEditorButton" id="overview-open-type-editor" text="%ComponentDetailsPane.typeEditorButton.text"
                                 onAction="#onOpenTypeEditor">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="16"/>
                             </graphic>
                         </Button>
-                        <Button fx:id="graphicButton" id="overview-show-graphic" text="Show in Graphic View"
+                        <Button fx:id="graphicButton" id="overview-show-graphic" text="%ComponentDetailsPane.graphicButton.text"
                                 onAction="#onShowInGraphic">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-diagram-2" iconSize="16"/>

@@ -21,37 +21,37 @@
         <ToggleGroup fx:id="mappingGroup"/>
     </fx:define>
     <children>
-        <Label text="Mapping" style="-fx-font-weight: bold;"/>
+        <Label text="%DataConversionDialog.mapping.text" style="-fx-font-weight: bold;"/>
         <RadioButton fx:id="structuredMapping" id="convert-mapping-structured" toggleGroup="$mappingGroup"
-                     text="Structured (readable, for any XML)" selected="true"/>
+                     text="%DataConversionDialog.structuredMapping.text" selected="true"/>
         <Label fx:id="structuredHint" wrapText="true" opacity="0.75" maxWidth="480">
             <padding>
                 <Insets left="26"/>
             </padding>
         </Label>
         <RadioButton fx:id="w3cMapping" id="convert-mapping-w3c" toggleGroup="$mappingGroup"
-                     text="W3C XPath 3.1 vocabulary (lossless, fn:json-to-xml)"/>
+                     text="%DataConversionDialog.w3cMapping.text"/>
         <Label fx:id="w3cHint" wrapText="true" opacity="0.75" maxWidth="480">
             <padding>
                 <Insets left="26"/>
             </padding>
         </Label>
-        <Label text="Options" style="-fx-font-weight: bold;">
+        <Label text="%DataConversionDialog.options.text" style="-fx-font-weight: bold;">
             <VBox.margin>
                 <Insets top="6"/>
             </VBox.margin>
         </Label>
         <CheckBox fx:id="typedValues" id="convert-typed-values"
-                  text="Numbers and true/false as JSON numbers and booleans"/>
+                  text="%DataConversionDialog.typedValues.text"/>
         <HBox fx:id="rootNameRow" spacing="8" alignment="CENTER_LEFT">
             <children>
-                <Label text="Root element when the data names none:"/>
+                <Label text="%DataConversionDialog.root-element-when-the-data.text"/>
                 <TextField fx:id="rootName" id="convert-root-name" prefColumnCount="14"/>
             </children>
         </HBox>
         <Label fx:id="rootNameError" id="convert-root-name-error" wrapText="true" visible="false" managed="false"
                style="-fx-text-fill: #e03131;"/>
-        <Label fx:id="noOptions" text="The W3C mapping has no options." opacity="0.75" visible="false"
+        <Label fx:id="noOptions" text="%DataConversionDialog.noOptions.text" opacity="0.75" visible="false"
                managed="false"/>
     </children>
 </VBox>

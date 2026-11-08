@@ -23,66 +23,66 @@
                 <Insets top="4" right="8" bottom="4" left="8"/>
             </padding>
             <children>
-                <Button text="Prev" id="merge-prev" onAction="#onPrevious" styleClass="toolbar-button">
+                <Button text="%MergeView.merge-prev.text" id="merge-prev" onAction="#onPrevious" styleClass="toolbar-button">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-up" iconSize="18"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Previous conflict"/>
+                        <Tooltip text="%MergeView.previous-conflict.text"/>
                     </tooltip>
                 </Button>
-                <Button text="Next" id="merge-next" onAction="#onNext" styleClass="toolbar-button">
+                <Button text="%MergeView.merge-next.text" id="merge-next" onAction="#onNext" styleClass="toolbar-button">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-down" iconSize="18"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Next conflict"/>
+                        <Tooltip text="%MergeView.next-conflict.text"/>
                     </tooltip>
                 </Button>
                 <Separator orientation="VERTICAL"/>
-                <Button fx:id="useLeft" text="Use Left" id="merge-use-left" onAction="#onUseLeft"
+                <Button fx:id="useLeft" text="%MergeView.useLeft.text" id="merge-use-left" onAction="#onUseLeft"
                         styleClass="toolbar-button">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-bar-left" iconSize="18"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Resolve the current conflict with the left version"/>
+                        <Tooltip text="%MergeView.resolve-the-current-conflict-with.text"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="useRight" text="Use Right" id="merge-use-right" onAction="#onUseRight"
+                <Button fx:id="useRight" text="%MergeView.useRight.text" id="merge-use-right" onAction="#onUseRight"
                         styleClass="toolbar-button">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-bar-right" iconSize="18"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Resolve the current conflict with the right version"/>
+                        <Tooltip text="%MergeView.resolve-the-current-conflict-with.text-2"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="useBoth" text="Use Both" id="merge-use-both" onAction="#onUseBoth"
+                <Button fx:id="useBoth" text="%MergeView.useBoth.text" id="merge-use-both" onAction="#onUseBoth"
                         styleClass="toolbar-button">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-layout-split" iconSize="18"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Resolve the current conflict with the left version followed by the right one"/>
+                        <Tooltip text="%MergeView.resolve-the-current-conflict-with.text-3"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="useBase" text="Use Base" id="merge-use-base" onAction="#onUseBase"
+                <Button fx:id="useBase" text="%MergeView.useBase.text" id="merge-use-base" onAction="#onUseBase"
                         styleClass="toolbar-button">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="18"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Resolve the current conflict with the base version (neither change)"/>
+                        <Tooltip text="%MergeView.resolve-the-current-conflict-with.text-4"/>
                     </tooltip>
                 </Button>
                 <Separator orientation="VERTICAL"/>
-                <Button text="Save" id="merge-save" onAction="#onSave" styleClass="toolbar-button">
+                <Button text="%MergeView.merge-save.text" id="merge-save" onAction="#onSave" styleClass="toolbar-button">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-floppy" iconSize="18"/>
                     </graphic>
                 </Button>
-                <Button text="Save As…" id="merge-save-as" onAction="#onSaveAs" styleClass="toolbar-button">
+                <Button text="%MergeView.merge-save-as.text" id="merge-save-as" onAction="#onSaveAs" styleClass="toolbar-button">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-file-earmark-arrow-down" iconSize="18"/>
                     </graphic>

@@ -30,13 +30,13 @@
     <children>
         <HBox spacing="8" alignment="CENTER_LEFT" styleClass="fxt-overview-header">
             <children>
-                <Label text="Target namespace" styleClass="fxt-overview-key"/>
-                <TextField fx:id="targetNamespaceField" id="overview-target-namespace" promptText="(no namespace)"
+                <Label text="%SchemaOverviewView.target-namespace.text" styleClass="fxt-overview-key"/>
+                <TextField fx:id="targetNamespaceField" id="overview-target-namespace" promptText="%SchemaOverviewView.targetNamespaceField.promptText"
                            HBox.hgrow="ALWAYS" onAction="#onTargetNamespaceCommit"/>
-                <Label text="elementFormDefault" styleClass="fxt-overview-key"/>
+                <Label text="%SchemaOverviewView.elementformdefault.text" styleClass="fxt-overview-key"/>
                 <ComboBox fx:id="elementFormCombo" id="overview-element-form" prefWidth="140" styleClass="fxt-neutral-combo"
                           onAction="#onElementFormChanged"/>
-                <Label text="attributeFormDefault" styleClass="fxt-overview-key"/>
+                <Label text="%SchemaOverviewView.attributeformdefault.text" styleClass="fxt-overview-key"/>
                 <ComboBox fx:id="attributeFormCombo" id="overview-attribute-form" prefWidth="140" styleClass="fxt-neutral-combo"
                           onAction="#onAttributeFormChanged"/>
             </children>
@@ -48,23 +48,23 @@
                     <children>
                         <HBox spacing="4" alignment="CENTER_LEFT" styleClass="fxt-overview-toolbar">
                             <children>
-                                <MenuButton fx:id="insertButton" styleClass="fxt-tool-button" id="overview-insert" text="Insert">
+                                <MenuButton fx:id="insertButton" styleClass="fxt-tool-button" id="overview-insert" text="%SchemaOverviewView.insertButton.text">
                                     <graphic>
                                         <IconifyIcon fx:id="insertIcon" iconLiteral="bi-plus-square" iconSize="16"/>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="Insert a new component in front of the selected row"/>
+                                        <Tooltip text="%SchemaOverviewView.insert-a-new-component-in.text"/>
                                     </tooltip>
                                 </MenuButton>
-                                <MenuButton fx:id="appendButton" styleClass="fxt-tool-button" id="overview-append" text="Append">
+                                <MenuButton fx:id="appendButton" styleClass="fxt-tool-button" id="overview-append" text="%SchemaOverviewView.appendButton.text">
                                     <graphic>
                                         <IconifyIcon fx:id="appendIcon" iconLiteral="bi-plus-lg" iconSize="16"/>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="Append a new component at the end of the schema"/>
+                                        <Tooltip text="%SchemaOverviewView.append-a-new-component-at.text"/>
                                     </tooltip>
                                 </MenuButton>
-                                <MenuButton fx:id="directiveButton" styleClass="fxt-tool-button" id="overview-directive" text="Import / Include">
+                                <MenuButton fx:id="directiveButton" styleClass="fxt-tool-button" id="overview-directive" text="%SchemaOverviewView.directiveButton.text">
                                     <graphic>
                                         <IconifyIcon fx:id="directiveIcon" iconLiteral="bi-box-arrow-in-down-right"
                                                      iconSize="16"/>
@@ -75,7 +75,7 @@
                                         <IconifyIcon fx:id="moveUpIcon" iconLiteral="bi-arrow-up" iconSize="16"/>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="Move up (Ctrl+Up)"/>
+                                        <Tooltip text="%SchemaOverviewView.move-up-ctrl-up.text"/>
                                     </tooltip>
                                 </Button>
                                 <Button fx:id="moveDownButton" styleClass="fxt-tool-button" id="overview-move-down" onAction="#onMoveDown">
@@ -83,18 +83,18 @@
                                         <IconifyIcon fx:id="moveDownIcon" iconLiteral="bi-arrow-down" iconSize="16"/>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="Move down (Ctrl+Down)"/>
+                                        <Tooltip text="%SchemaOverviewView.move-down-ctrl-down.text"/>
                                     </tooltip>
                                 </Button>
-                                <MenuButton fx:id="sortButton" styleClass="fxt-tool-button" id="overview-sort" text="Sort">
+                                <MenuButton fx:id="sortButton" styleClass="fxt-tool-button" id="overview-sort" text="%SchemaOverviewView.sortButton.text">
                                     <graphic>
                                         <IconifyIcon fx:id="sortIcon" iconLiteral="bi-sort-alpha-down" iconSize="16"/>
                                     </graphic>
                                     <items>
                                         <MenuItem fx:id="sortTypeThenName" id="overview-sort-type-name"
-                                                  text="Type, then Name" onAction="#onSortTypeThenName"/>
+                                                  text="%SchemaOverviewView.sortTypeThenName.text" onAction="#onSortTypeThenName"/>
                                         <MenuItem fx:id="sortNameThenType" id="overview-sort-name-type"
-                                                  text="Name, then Type" onAction="#onSortNameThenType"/>
+                                                  text="%SchemaOverviewView.sortNameThenType.text" onAction="#onSortNameThenType"/>
                                     </items>
                                 </MenuButton>
                                 <Button fx:id="deleteButton" styleClass="fxt-tool-button" id="overview-delete" onAction="#onDelete">
@@ -102,36 +102,36 @@
                                         <IconifyIcon fx:id="deleteIcon" iconLiteral="bi-trash" iconSize="16"/>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="Delete the selected components (Del)"/>
+                                        <Tooltip text="%SchemaOverviewView.delete-the-selected-components-del.text"/>
                                     </tooltip>
                                 </Button>
                                 <Region HBox.hgrow="ALWAYS"/>
                                 <ToggleButton fx:id="showIncludedToggle" styleClass="fxt-tool-button" id="overview-show-included"
-                                              text="Included" onAction="#onShowIncludedChanged">
+                                              text="%SchemaOverviewView.showIncludedToggle.text" onAction="#onShowIncludedChanged">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="Also list the components of included files (read-only)"/>
+                                        <Tooltip text="%SchemaOverviewView.also-list-the-components-of.text"/>
                                     </tooltip>
                                 </ToggleButton>
-                                <TextField fx:id="filterField" id="overview-filter" promptText="Filter components"
+                                <TextField fx:id="filterField" id="overview-filter" promptText="%SchemaOverviewView.filterField.promptText"
                                            prefColumnCount="16"/>
                             </children>
                         </HBox>
                         <TableView fx:id="componentTable" id="overview-components" editable="true"
                                    styleClass="fxt-analysis-table, fxt-overview-table" VBox.vgrow="ALWAYS">
                             <columns>
-                                <TableColumn fx:id="kindColumn" text="Kind" prefWidth="150" editable="false"
+                                <TableColumn fx:id="kindColumn" text="%SchemaOverviewView.kindColumn.text" prefWidth="150" editable="false"
                                              sortable="false"/>
-                                <TableColumn fx:id="nameColumn" text="Name" prefWidth="220" sortable="false"/>
-                                <TableColumn fx:id="detailsColumn" text="Details" prefWidth="240" editable="false"
+                                <TableColumn fx:id="nameColumn" text="%SchemaOverviewView.nameColumn.text" prefWidth="220" sortable="false"/>
+                                <TableColumn fx:id="detailsColumn" text="%SchemaOverviewView.detailsColumn.text" prefWidth="240" editable="false"
                                              sortable="false"/>
-                                <TableColumn fx:id="annotationColumn" text="Annotation" prefWidth="320"
+                                <TableColumn fx:id="annotationColumn" text="%SchemaOverviewView.annotationColumn.text" prefWidth="320"
                                              sortable="false"/>
                             </columns>
                             <placeholder>
-                                <Label text="The schema has no components yet. Use Insert or Append to add one."
+                                <Label text="%SchemaOverviewView.the-schema-has-no-components.text"
                                        contentDisplay="TOP" graphicTextGap="8" styleClass="fxt-placeholder-text">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-table" iconSize="48"/>
@@ -144,11 +144,11 @@
                 <TabPane fx:id="detailTabs" id="overview-detail-tabs" tabClosingPolicy="UNAVAILABLE"
                          styleClass="fxt-overview-tabs">
                     <tabs>
-                        <Tab fx:id="detailsTab" id="overview-tab-details" text="Details"/>
-                        <Tab fx:id="attributesTab" id="overview-tab-attributes" text="Attributes"/>
-                        <Tab fx:id="constraintsTab" id="overview-tab-constraints" text="Identity Constraints"/>
-                        <Tab fx:id="assertionsTab" id="overview-tab-assertions" text="Assertions"/>
-                        <Tab fx:id="namespacesTab" id="overview-tab-namespaces" text="Namespaces"/>
+                        <Tab fx:id="detailsTab" id="overview-tab-details" text="%SchemaOverviewView.detailsTab.text"/>
+                        <Tab fx:id="attributesTab" id="overview-tab-attributes" text="%SchemaOverviewView.attributesTab.text"/>
+                        <Tab fx:id="constraintsTab" id="overview-tab-constraints" text="%SchemaOverviewView.constraintsTab.text"/>
+                        <Tab fx:id="assertionsTab" id="overview-tab-assertions" text="%SchemaOverviewView.assertionsTab.text"/>
+                        <Tab fx:id="namespacesTab" id="overview-tab-namespaces" text="%SchemaOverviewView.namespacesTab.text"/>
                     </tabs>
                 </TabPane>
             </items>

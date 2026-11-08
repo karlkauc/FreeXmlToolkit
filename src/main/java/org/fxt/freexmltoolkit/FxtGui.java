@@ -167,6 +167,13 @@ public class FxtGui extends Application {
 
         logger.info("Initializing service registry...");
         ServiceRegistry.initialize();
+        // The interface language, before any view is built
+        try {
+            org.fxt.freexmltoolkit.i18n.I18n.initialize(ServiceRegistry.get(
+                    org.fxt.freexmltoolkit.service.PropertiesService.class).get(org.fxt.freexmltoolkit.i18n.I18n.SETTING));
+        } catch (RuntimeException e) {
+            org.fxt.freexmltoolkit.i18n.I18n.initialize(null);
+        }
         // Plugins register now, before the window that shows their activities is built
         org.fxt.freexmltoolkit.plugin.PluginManager.getInstance().loadAll();
         logger.info("Service registry initialization complete");
@@ -328,7 +335,8 @@ public class FxtGui extends Application {
             try {
                 splash.updateProgress(LoadingStep.LOADING_UI);
 
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/pages/tab_unified_shell.fxml"),
+                        org.fxt.freexmltoolkit.i18n.I18n.bundle());
                 Parent root = loader.load();
                 org.fxt.freexmltoolkit.service.telemetry.StartupPhases.markFxml();
                 org.fxt.freexmltoolkit.controller.UnifiedShellController shellController =

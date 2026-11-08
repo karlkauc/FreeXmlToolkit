@@ -32,30 +32,30 @@
                         <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Add documentation entry"/>
+                        <Tooltip text="%InlineDocumentationEditor.add-documentation-entry.text"/>
                     </tooltip>
                 </Button>
             </children>
         </HBox>
 
-        <TextArea fx:id="docTextArea" wrapText="true" prefRowCount="5" promptText="Enter documentation text..."
+        <TextArea fx:id="docTextArea" wrapText="true" prefRowCount="5" promptText="%InlineDocumentationEditor.docTextArea.promptText"
                   VBox.vgrow="ALWAYS"/>
 
         <HBox fx:id="bottomBar" spacing="8" alignment="CENTER_LEFT">
             <children>
-                <Label text="Lang:"/>
+                <Label text="%InlineDocumentationEditor.lang.text"/>
                 <ComboBox fx:id="langComboBox" editable="true" prefWidth="100">
                     <tooltip>
-                        <Tooltip text="Select or type a language code"/>
+                        <Tooltip text="%InlineDocumentationEditor.select-or-type-a-language.text"/>
                     </tooltip>
                 </ComboBox>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="deleteButton" text="Delete" styleClass="btn-danger" onAction="#onDelete">
+                <Button fx:id="deleteButton" text="%InlineDocumentationEditor.deleteButton.text" styleClass="btn-danger" onAction="#onDelete">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Delete this documentation entry"/>
+                        <Tooltip text="%InlineDocumentationEditor.delete-this-documentation-entry.text"/>
                     </tooltip>
                 </Button>
             </children>
@@ -67,7 +67,7 @@
             </padding>
             <children>
                 <IconifyIcon iconLiteral="bi-journal-text" iconSize="48" iconColor="#adb5bd"/>
-                <Label text="No documentation. Click + to add."
+                <Label text="%InlineDocumentationEditor.no-documentation-click-to-add.text"
                        style="-fx-text-fill: #6c757d; -fx-font-style: italic;"/>
             </children>
         </VBox>

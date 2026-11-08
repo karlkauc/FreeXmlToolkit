@@ -55,15 +55,15 @@
                         <!-- Header: breadcrumb · centered search pill · notifications/help/theme -->
                         <HBox styleClass="fxt-header-bar">
                             <children>
-                                <Label fx:id="breadcrumb" text="FreeXmlToolkit" styleClass="fxt-header-breadcrumb"/>
+                                <Label fx:id="breadcrumb" text="%shell.breadcrumb.text" styleClass="fxt-header-breadcrumb"/>
                                 <Region HBox.hgrow="ALWAYS"/>
                                 <HBox fx:id="searchPill" alignment="CENTER_LEFT" spacing="8" maxWidth="460"
                                       prefWidth="460" styleClass="fxt-header-search" onMouseClicked="#onSearchPillClicked">
                                     <children>
                                         <IconifyIcon iconLiteral="bi-search" iconSize="13"/>
-                                        <Label text="Run XPath / XQuery…" styleClass="fxt-header-search-hint"/>
+                                        <Label text="%shell.run-xpath-xquery.text" styleClass="fxt-header-search-hint"/>
                                         <Region HBox.hgrow="ALWAYS"/>
-                                        <Label text="Ctrl K" styleClass="fxt-header-kbd"/>
+                                        <Label text="%shell.ctrl-k.text" styleClass="fxt-header-kbd"/>
                                     </children>
                                 </HBox>
                                 <Region HBox.hgrow="ALWAYS"/>
@@ -72,16 +72,16 @@
                                 <MenuButton fx:id="favoritesButton" id="header-favorites"
                                             styleClass="fxt-header-icon, fxt-fav-quick-access" focusTraversable="false">
                                     <graphic><IconifyIcon iconLiteral="bi-star" iconSize="16"/></graphic>
-                                    <tooltip><Tooltip text="Favorites"/></tooltip>
+                                    <tooltip><Tooltip text="%shell.favorites.text"/></tooltip>
                                 </MenuButton>
                                 <Button fx:id="helpButton" id="header-help" styleClass="fxt-header-icon" focusTraversable="false" onAction="#onHelp">
                                     <graphic><IconifyIcon iconLiteral="bi-question-circle" iconSize="16"/></graphic>
-                                    <tooltip><Tooltip text="Help (F1)"/></tooltip>
+                                    <tooltip><Tooltip text="%shell.help-f1.text"/></tooltip>
                                 </Button>
                                 <Button fx:id="themeToggleButton" styleClass="fxt-header-icon"
                                         focusTraversable="false" onAction="#onToggleTheme">
                                     <graphic><IconifyIcon fx:id="themeToggleIcon" iconLiteral="bi-moon" iconSize="16"/></graphic>
-                                    <tooltip><Tooltip text="Toggle light / dark theme"/></tooltip>
+                                    <tooltip><Tooltip text="%shell.toggle-light-dark-theme.text"/></tooltip>
                                 </Button>
                             </children>
                         </HBox>
@@ -93,7 +93,7 @@
                                               styleClass="fxt-tool-button, fxt-tool-neutral, fxt-panel-toggle"
                                               onAction="#onToggleLeftPanel">
                                     <graphic><IconifyIcon iconLiteral="bi-layout-sidebar"/></graphic>
-                                    <tooltip><Tooltip text="Show / hide the side panel"/></tooltip>
+                                    <tooltip><Tooltip text="%shell.show-hide-the-side-panel.text"/></tooltip>
                                 </ToggleButton>
 
                                 <FlowPane fx:id="toolbarActions" hgap="2" vgap="2" rowValignment="CENTER"
@@ -109,26 +109,26 @@
                                              Icon tints follow the owning workflow (spec 2026-09-26 §2): file group =
                                              workspace blue, New = CREATE, editing tools neutral, Transform/Run =
                                              transform, Schema = schema, Validate filled in validation green. -->
-                                        <Button id="action-new" text="New"
+                                        <Button id="action-new" text="%shell.action-new.text"
                                                 styleClass="fxt-tool-button, fxt-tool-create" onAction="#onNew">
                                             <graphic><IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="New (Ctrl+N)"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.new-ctrl-n.text"/></tooltip>
                                         </Button>
-                                        <Button id="action-open" text="Open"
+                                        <Button id="action-open" text="%shell.action-open.text"
                                                 styleClass="fxt-tool-button, fxt-tool-primary" onAction="#onOpen">
                                             <graphic><IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Open (Ctrl+O)"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.open-ctrl-o.text"/></tooltip>
                                         </Button>
-                                        <SplitMenuButton id="action-save" text="Save"
+                                        <SplitMenuButton id="action-save" text="%shell.action-save.text"
                                                          styleClass="fxt-tool-button, fxt-tool-primary, fxt-tool-split"
                                                          onAction="#onSave">
                                             <graphic><IconifyIcon iconLiteral="bi-save" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Save (Ctrl+S) — arrow: Save As / Save All"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.save-ctrl-s-arrow-save.text"/></tooltip>
                                             <items>
-                                                <MenuItem id="action-save-as" text="Save As…  (Ctrl+Shift+S)" onAction="#onSaveAs">
+                                                <MenuItem id="action-save-as" text="%shell.action-save-as.text" onAction="#onSaveAs">
                                                     <graphic><IconifyIcon iconLiteral="bi-save2" iconSize="16"/></graphic>
                                                 </MenuItem>
-                                                <MenuItem id="action-save-all" text="Save All" onAction="#onSaveAll">
+                                                <MenuItem id="action-save-all" text="%shell.action-save-all.text" onAction="#onSaveAll">
                                                     <graphic><IconifyIcon iconLiteral="bi-files" iconSize="16"/></graphic>
                                                 </MenuItem>
                                             </items>
@@ -137,21 +137,21 @@
                                         <Button id="action-undo" text=""
                                                 styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onUndo">
                                             <graphic><IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Undo (Ctrl+Z)"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.undo-ctrl-z.text"/></tooltip>
                                         </Button>
                                         <Button id="action-redo" text=""
                                                 styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onRedo">
                                             <graphic><IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Redo (Ctrl+Y)"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.redo-ctrl-y.text"/></tooltip>
                                         </Button>
                                         <Separator orientation="VERTICAL"/>
-                                        <SplitMenuButton id="action-format" text="Format"
+                                        <SplitMenuButton id="action-format" text="%shell.action-format.text"
                                                          styleClass="fxt-tool-button, fxt-tool-neutral, fxt-tool-split"
                                                          onAction="#onFormat">
                                             <graphic><IconifyIcon iconLiteral="bi-text-indent-left" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Format (Shift+Alt+F) — arrow: Minify"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.format-shift-alt-f-arrow.text"/></tooltip>
                                             <items>
-                                                <MenuItem id="action-minify" text="Minify" onAction="#onMinify">
+                                                <MenuItem id="action-minify" text="%shell.action-minify.text" onAction="#onMinify">
                                                     <graphic><IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="16"/></graphic>
                                                 </MenuItem>
                                             </items>
@@ -159,98 +159,98 @@
                                         <Button id="action-query-console" text=""
                                                 styleClass="fxt-tool-button, fxt-tool-neutral" onAction="#onQueryConsole">
                                             <graphic><IconifyIcon iconLiteral="bi-terminal" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Query Console (XPath/XQuery) — Ctrl+Shift+X shows / hides it, Ctrl+K opens it and puts the cursor in the query"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.query-console-xpath-xquery-ctrl.text"/></tooltip>
                                         </Button>
                                         <Separator orientation="VERTICAL"/>
-                                        <SplitMenuButton fx:id="actionTransform" id="doc-action-transform" text="Transform"
+                                        <SplitMenuButton fx:id="actionTransform" id="doc-action-transform" text="%shell.actionTransform.text"
                                                          styleClass="fxt-tool-button, fxt-tool-transform, fxt-tool-split"
                                                          onAction="#onTransform">
                                             <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Transform with XSLT… (choose a stylesheet) — arrow: Debug with XSLT… (Shift+F5)"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.transform-with-xslt-choose-a.text"/></tooltip>
                                             <items>
-                                                <MenuItem id="doc-action-transform-item" text="Transform with XSLT…" onAction="#onTransform">
+                                                <MenuItem id="doc-action-transform-item" text="%shell.doc-action-transform-item.text" onAction="#onTransform">
                                                     <graphic><IconifyIcon iconLiteral="bi-arrow-left-right" iconSize="16"/></graphic>
                                                 </MenuItem>
-                                                <MenuItem id="doc-action-debug-xslt" text="Debug with XSLT…  (Shift+F5)" onAction="#onDebugXslt">
+                                                <MenuItem id="doc-action-debug-xslt" text="%shell.doc-action-debug-xslt.text" onAction="#onDebugXslt">
                                                     <graphic><IconifyIcon iconLiteral="bi-bug" iconSize="16"/></graphic>
                                                 </MenuItem>
                                             </items>
                                         </SplitMenuButton>
-                                        <MenuButton fx:id="queryTargetButton" id="doc-query-target" text="Input: Automatic"
+                                        <MenuButton fx:id="queryTargetButton" id="doc-query-target" text="%shell.queryTargetButton.text"
                                                     styleClass="fxt-tool-button, fxt-tool-neutral">
                                             <graphic><IconifyIcon iconLiteral="bi-bullseye" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Choose the XML document the query / transform runs against"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.choose-the-xml-document-the.text"/></tooltip>
                                         </MenuButton>
-                                        <SplitMenuButton fx:id="actionRun" id="doc-action-run" text="Run"
+                                        <SplitMenuButton fx:id="actionRun" id="doc-action-run" text="%shell.actionRun.text"
                                                          styleClass="fxt-tool-button, fxt-tool-transform, fxt-tool-split"
                                                          onAction="#onRunPrimary">
                                             <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Run the active document against the selected target (Ctrl+Enter) — arrow: Run Query / Transform / Pipeline"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.run-the-active-document-against.text"/></tooltip>
                                             <items>
                                                 <MenuItem fx:id="actionRunQuery" id="doc-action-run-query"
-                                                          text="Run Query  (Ctrl+Enter)" onAction="#onRunQuery">
+                                                          text="%shell.actionRunQuery.text" onAction="#onRunQuery">
                                                     <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem fx:id="actionRunTransform" id="doc-action-run-transform"
-                                                          text="Run Transform  (Ctrl+Enter)" onAction="#onRunTransform">
+                                                          text="%shell.actionRunTransform.text" onAction="#onRunTransform">
                                                     <graphic><IconifyIcon iconLiteral="bi-play-circle" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem fx:id="actionDebugTransform" id="doc-action-debug-transform"
-                                                          text="Debug Transform  (Shift+F5)" onAction="#onDebugTransform">
+                                                          text="%shell.actionDebugTransform.text" onAction="#onDebugTransform">
                                                     <graphic><IconifyIcon iconLiteral="bi-bug" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem fx:id="actionDebugQuery" id="doc-action-debug-query"
-                                                          text="Debug Query  (Shift+F5)" onAction="#onDebugQuery">
+                                                          text="%shell.actionDebugQuery.text" onAction="#onDebugQuery">
                                                     <graphic><IconifyIcon iconLiteral="bi-bug" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem fx:id="actionDebugSchematron" id="doc-action-debug-schematron"
-                                                          text="Debug Schematron  (Shift+F5)" onAction="#onDebugSchematron">
+                                                          text="%shell.actionDebugSchematron.text" onAction="#onDebugSchematron">
                                                     <graphic><IconifyIcon iconLiteral="bi-bug" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem fx:id="actionRunPipeline" id="doc-action-run-pipeline"
-                                                          text="Run Pipeline  (Ctrl+Enter)" onAction="#onRunPipeline">
+                                                          text="%shell.actionRunPipeline.text" onAction="#onRunPipeline">
                                                     <graphic><IconifyIcon iconLiteral="bi-play-btn" iconSize="16"/></graphic>
                                                 </MenuItem>
                                             </items>
                                         </SplitMenuButton>
-                                        <SplitMenuButton id="action-set-schema" text="Schema"
+                                        <SplitMenuButton id="action-set-schema" text="%shell.action-set-schema.text"
                                                          styleClass="fxt-tool-button, fxt-tool-schema, fxt-tool-split"
                                                          onAction="#onSetSchema">
                                             <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Set XSD Schema… (IntelliSense &amp; validation) — arrow: Generate Docs / Type Editor / Sample XML / Generate XSD from XML"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.set-xsd-schema-intellisense-validation.text"/></tooltip>
                                             <items>
-                                                <MenuItem id="action-set-schema-item" text="Set XSD Schema…" onAction="#onSetSchema">
+                                                <MenuItem id="action-set-schema-item" text="%shell.action-set-schema-item.text" onAction="#onSetSchema">
                                                     <graphic><IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem fx:id="actionGenerateDocs" id="doc-action-generate-docs"
-                                                          text="Generate Documentation…" onAction="#onGenerateDocs">
+                                                          text="%shell.actionGenerateDocs.text" onAction="#onGenerateDocs">
                                                     <graphic><IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem fx:id="actionTypeEditor" id="doc-action-type-editor"
-                                                          text="Type Editor…" onAction="#onTypeEditor">
+                                                          text="%shell.actionTypeEditor.text" onAction="#onTypeEditor">
                                                     <graphic><IconifyIcon iconLiteral="bi-braces-asterisk" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem fx:id="actionGenerateSample" id="doc-action-generate-sample"
-                                                          text="Generate Sample XML…" onAction="#onGenerateSample">
+                                                          text="%shell.actionGenerateSample.text" onAction="#onGenerateSample">
                                                     <graphic><IconifyIcon iconLiteral="bi-file-earmark-play" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <SeparatorMenuItem/>
                                                 <MenuItem fx:id="actionGenerateXsd" id="doc-action-generate-xsd"
-                                                          text="Generate XSD from XML" onAction="#onGenerateXsdFromXml">
+                                                          text="%shell.actionGenerateXsd.text" onAction="#onGenerateXsdFromXml">
                                                     <graphic><IconifyIcon iconLiteral="bi-magic" iconSize="16"/></graphic>
                                                 </MenuItem>
                                                 <MenuItem id="doc-action-generate-xsd-batch"
-                                                          text="Generate XSD from XML Files…" onAction="#onGenerateXsdBatch">
+                                                          text="%shell.doc-action-generate-xsd-batch.text" onAction="#onGenerateXsdBatch">
                                                     <graphic><IconifyIcon iconLiteral="bi-files" iconSize="16"/></graphic>
                                                 </MenuItem>
                                             </items>
                                         </SplitMenuButton>
                                         <Separator orientation="VERTICAL"/>
-                                        <Button fx:id="actionValidate" id="doc-action-validate" text="Validate"
+                                        <Button fx:id="actionValidate" id="doc-action-validate" text="%shell.actionValidate.text"
                                                 styleClass="fxt-tool-button, fxt-tool-primary, fxt-tool-accent"
                                                 onAction="#onValidate">
                                             <graphic><IconifyIcon iconLiteral="bi-check2-circle" iconSize="16"/></graphic>
-                                            <tooltip><Tooltip text="Validate the document (well-formedness, or against the bound XSD) — F8"/></tooltip>
+                                            <tooltip><Tooltip text="%shell.validate-the-document-well-formedness.text"/></tooltip>
                                         </Button>
                                     </children>
                                 </FlowPane>
@@ -262,7 +262,7 @@
                                               styleClass="fxt-tool-button, fxt-tool-neutral, fxt-panel-toggle"
                                               onAction="#onToggleInspector">
                                     <graphic><IconifyIcon iconLiteral="bi-layout-sidebar-reverse"/></graphic>
-                                    <tooltip><Tooltip text="Show / hide the Properties panel"/></tooltip>
+                                    <tooltip><Tooltip text="%shell.show-hide-the-properties-panel.text"/></tooltip>
                                 </ToggleButton>
                             </children>
                         </HBox>
@@ -312,15 +312,15 @@
     <bottom>
         <HBox alignment="CENTER_LEFT" styleClass="fxt-status-bar">
             <children>
-                <Label fx:id="statusPosition" text="Ln 1, Col 1" styleClass="fxt-status-item"/>
+                <Label fx:id="statusPosition" text="%shell.statusPosition.text" styleClass="fxt-status-item"/>
                 <Label fx:id="statusChars" styleClass="fxt-status-item"/>
                 <Label fx:id="statusType" styleClass="fxt-status-item"/>
-                <Label fx:id="statusSchema" id="status-schema" text="No XSD" styleClass="fxt-status-item"/>
-                <Label fx:id="statusEncoding" id="status-encoding" text="UTF-8" styleClass="fxt-status-item"/>
+                <Label fx:id="statusSchema" id="status-schema" text="%shell.statusSchema.text" styleClass="fxt-status-item"/>
+                <Label fx:id="statusEncoding" id="status-encoding" text="%shell.statusEncoding.text" styleClass="fxt-status-item"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="statusLastRun" styleClass="fxt-status-item"/>
                 <Label fx:id="statusMemory" styleClass="fxt-status-item"/>
-                <Label fx:id="statusFile" text="No file open" styleClass="fxt-status-item"/>
+                <Label fx:id="statusFile" text="%shell.statusFile.text" styleClass="fxt-status-item"/>
             </children>
         </HBox>
     </bottom>

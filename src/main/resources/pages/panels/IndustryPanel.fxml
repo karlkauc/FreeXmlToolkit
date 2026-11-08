@@ -20,12 +20,12 @@
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-industry-panel"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <SidePanelHeader fx:id="header" title="INDUSTRY"/>
+        <SidePanelHeader fx:id="header" title="%IndustryPanel.header.title"/>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
             <content>
                 <VBox>
                     <children>
-                        <SidePanelSection title="ABOUT">
+                        <SidePanelSection title="%IndustryPanel.about.title">
                             <children>
                                 <VBox styleClass="fxt-tp-section-body">
                                     <children>
@@ -35,7 +35,7 @@
                                 </VBox>
                             </children>
                         </SidePanelSection>
-                        <SidePanelSection title="ACTIVE DOCUMENT">
+                        <SidePanelSection title="%IndustryPanel.active-document.title">
                             <children>
                                 <VBox spacing="6" styleClass="fxt-tp-section-body">
                                     <children>
@@ -43,26 +43,26 @@
                                                minHeight="-Infinity"/>
                                         <Label fx:id="checkResult" id="industry-check-result" wrapText="true"
                                                minHeight="-Infinity" visible="false" managed="false"/>
-                                        <Hyperlink fx:id="showAllLink" id="industry-show-all" text="Show All Problems"
+                                        <Hyperlink fx:id="showAllLink" id="industry-show-all" text="%IndustryPanel.showAllLink.text"
                                                    visible="false" managed="false" onAction="#onShowAll"/>
                                     </children>
                                 </VBox>
                                 <PanelActionList fx:id="actions" id="industry-actions">
                                     <children>
                                         <PanelActionButton fx:id="checkButton" id="industry-check" iconLiteral="bi-check2-circle"
-                                                           text="Check Active Document" color="CREATE" primary="true"
+                                                           text="%IndustryPanel.checkButton.text" color="CREATE" primary="true"
                                                            onAction="#onCheck"/>
                                     </children>
                                 </PanelActionList>
                             </children>
                         </SidePanelSection>
-                        <SidePanelSection fx:id="identifierSection" title="CHECK AN IDENTIFIER">
+                        <SidePanelSection fx:id="identifierSection" title="%IndustryPanel.identifierSection.title">
                             <children>
                                 <VBox spacing="6" styleClass="fxt-tp-section-body">
                                     <children>
                                         <ComboBox fx:id="identifierKind" id="industry-identifier-kind" maxWidth="Infinity"
                                                   styleClass="fxt-neutral-combo"/>
-                                        <TextField fx:id="identifierField" id="industry-identifier" promptText="Paste a value"/>
+                                        <TextField fx:id="identifierField" id="industry-identifier" promptText="%IndustryPanel.identifierField.promptText"/>
                                         <Label fx:id="identifierResult" id="industry-identifier-result" wrapText="true"
                                                minHeight="-Infinity"/>
                                     </children>

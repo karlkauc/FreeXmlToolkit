@@ -16,13 +16,13 @@
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
-        <Label text="Name" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label text="%ScenarioDialog.name.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
         <TextField fx:id="nameField" id="scenario-name" prefColumnCount="36" GridPane.rowIndex="0" GridPane.columnIndex="1"
                    GridPane.columnSpan="2"/>
-        <Label text="Output file" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextField fx:id="outputField" id="scenario-output" promptText="Optional: where Run Scenario writes the result"
+        <Label text="%ScenarioDialog.output-file.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="outputField" id="scenario-output" promptText="%ScenarioDialog.outputField.promptText"
                    GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Button id="scenario-output-browse" text="Browse…" onAction="#onBrowseOutput" GridPane.rowIndex="1"
+        <Button id="scenario-output-browse" text="%ScenarioDialog.scenario-output-browse.text" onAction="#onBrowseOutput" GridPane.rowIndex="1"
                 GridPane.columnIndex="2">
             <graphic>
                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
@@ -30,7 +30,7 @@
         </Button>
         <Label fx:id="error" id="scenario-error" wrapText="true" visible="false" managed="false"
                style="-fx-text-fill: #e03131;" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
-        <Label text="Stylesheet, input file, parameters and output method are taken from the Transform panel. Paths are stored relative to the project file."
+        <Label text="%ScenarioDialog.stylesheet-input-file-parameters-and.text"
                wrapText="true" opacity="0.7" maxWidth="520" GridPane.rowIndex="3" GridPane.columnIndex="0"
                GridPane.columnSpan="3"/>
     </children>

@@ -23,16 +23,16 @@
         <HBox spacing="8" alignment="CENTER_LEFT">
             <children>
                 <IconifyIcon fx:id="icon" iconLiteral="bi-shield-check" iconSize="20"/>
-                <Label fx:id="title" text="Anonymous usage statistics"/>
+                <Label fx:id="title" text="%TelemetryNotice.title.text"/>
             </children>
         </HBox>
         <Label fx:id="message" wrapText="true"/>
         <HBox spacing="8" alignment="CENTER_LEFT">
             <children>
-                <Hyperlink id="telemetry-notice-what" text="What is sent?" onAction="#onWhatIsSent"/>
+                <Hyperlink id="telemetry-notice-what" text="%TelemetryNotice.telemetry-notice-what.text" onAction="#onWhatIsSent"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button id="telemetry-notice-settings" text="Settings…" onAction="#onSettings"/>
-                <Button id="telemetry-notice-ok" text="OK" defaultButton="true" onAction="#onOk"/>
+                <Button id="telemetry-notice-settings" text="%TelemetryNotice.telemetry-notice-settings.text" onAction="#onSettings"/>
+                <Button id="telemetry-notice-ok" text="%TelemetryNotice.telemetry-notice-ok.text" defaultButton="true" onAction="#onOk"/>
             </children>
         </HBox>
     </children>

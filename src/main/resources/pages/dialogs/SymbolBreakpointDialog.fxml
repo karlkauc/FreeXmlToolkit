@@ -21,13 +21,13 @@
         <ColumnConstraints hgrow="ALWAYS" minWidth="340"/>
     </columnConstraints>
     <children>
-        <Label text="Break on" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label text="%SymbolBreakpointDialog.break-on.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
         <ChoiceBox fx:id="kindChoice" id="symbol-kind" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-        <Label text="Name" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Label text="%SymbolBreakpointDialog.name.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <ComboBox fx:id="nameCombo" id="symbol-name" editable="true" maxWidth="Infinity"
                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
         <Label wrapText="true" opacity="0.7" maxWidth="440" GridPane.rowIndex="2" GridPane.columnIndex="0"
                GridPane.columnSpan="2"
-               text="The run pauses whenever that template, function or a template in that mode is entered — wherever it is defined, also in included modules. Match patterns compare without spaces; names may be given with or without their prefix."/>
+               text="%SymbolBreakpointDialog.the-run-pauses-whenever-that.text"/>
     </children>
 </GridPane>

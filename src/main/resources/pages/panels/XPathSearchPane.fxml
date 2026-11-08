@@ -28,62 +28,62 @@
         <ToggleGroup fx:id="scope"/>
     </fx:define>
     <children>
-        <TextArea fx:id="xpathArea" id="xpath-query" promptText="//Amount[@ccy='EUR']" prefRowCount="2"
+        <TextArea fx:id="xpathArea" id="xpath-query" promptText="%XPathSearchPane.xpathArea.promptText" prefRowCount="2"
                   wrapText="true" styleClass="fxt-query-input"/>
 
         <HBox spacing="6" alignment="CENTER_LEFT">
             <children>
-                <Label text="Namespaces" styleClass="fxt-sp-section-label"/>
+                <Label text="%XPathSearchPane.namespaces.text" styleClass="fxt-sp-section-label"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="Detect" styleClass="fxt-tool-button" onAction="#onDetectNamespaces">
+                <Button text="%XPathSearchPane.detect.text" styleClass="fxt-tool-button" onAction="#onDetectNamespaces">
                     <tooltip>
-                        <Tooltip text="Read the namespace bindings from the active document's root"/>
+                        <Tooltip text="%XPathSearchPane.read-the-namespace-bindings-from.text"/>
                     </tooltip>
                 </Button>
             </children>
         </HBox>
         <TextArea fx:id="nsArea" id="xpath-namespaces"
-                  promptText="prefix=uri per line (empty prefix = default namespace)" prefRowCount="2"/>
+                  promptText="%XPathSearchPane.nsArea.promptText" prefRowCount="2"/>
 
         <!-- Scope -->
         <HBox spacing="4">
             <children>
-                <ToggleButton fx:id="currentDocToggle" id="xpath-scope-doc" text="Document" toggleGroup="$scope"
+                <ToggleButton fx:id="currentDocToggle" id="xpath-scope-doc" text="%XPathSearchPane.currentDocToggle.text" toggleGroup="$scope"
                               maxWidth="Infinity" HBox.hgrow="ALWAYS"
                               styleClass="fxt-tool-button, fxt-search-mode-toggle"/>
-                <ToggleButton fx:id="folderToggle" id="xpath-scope-folder" text="Folder" toggleGroup="$scope"
+                <ToggleButton fx:id="folderToggle" id="xpath-scope-folder" text="%XPathSearchPane.folderToggle.text" toggleGroup="$scope"
                               maxWidth="Infinity" HBox.hgrow="ALWAYS"
                               styleClass="fxt-tool-button, fxt-search-mode-toggle"/>
             </children>
         </HBox>
         <HBox fx:id="folderRow" spacing="6" alignment="CENTER_LEFT" visible="false" managed="false">
             <children>
-                <Label fx:id="folderLabel" text="No folder — choose one" maxWidth="Infinity" styleClass="fxt-vp-source-name"
+                <Label fx:id="folderLabel" text="%XPathSearchPane.folderLabel.text" maxWidth="Infinity" styleClass="fxt-vp-source-name"
                        HBox.hgrow="ALWAYS"/>
                 <Button styleClass="fxt-tool-button" onAction="#onChooseFolder">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-folder2-open"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Choose folder"/>
+                        <Tooltip text="%XPathSearchPane.choose-folder.text"/>
                     </tooltip>
                 </Button>
             </children>
         </HBox>
-        <TextField fx:id="globField" id="xpath-glob" promptText="File globs, e.g. *.xml" visible="false"
+        <TextField fx:id="globField" id="xpath-glob" promptText="%XPathSearchPane.globField.promptText" visible="false"
                    managed="false"/>
 
-        <Button id="xpath-find" text="Find matches" maxWidth="Infinity" styleClass="fxt-primary-button"
+        <Button id="xpath-find" text="%XPathSearchPane.xpath-find.text" maxWidth="Infinity" styleClass="fxt-primary-button"
                 onAction="#onFind"/>
 
         <!-- Replace -->
-        <Label text="Replace" styleClass="fxt-sp-section-label"/>
+        <Label text="%XPathSearchPane.replace.text" styleClass="fxt-sp-section-label"/>
         <ChoiceBox fx:id="modeChoice" id="xpath-mode" maxWidth="Infinity"/>
         <TextArea fx:id="argumentArea" id="xpath-argument" prefRowCount="2" wrapText="true"/>
-        <Button fx:id="applyButton" id="xpath-apply" text="Replace checked…" maxWidth="Infinity"
+        <Button fx:id="applyButton" id="xpath-apply" text="%XPathSearchPane.applyButton.text" maxWidth="Infinity"
                 styleClass="fxt-primary-button" onAction="#onApply"/>
 
-        <Label fx:id="status" text="Enter an XPath and find matches" wrapText="true" styleClass="fxt-vp-status"/>
+        <Label fx:id="status" text="%XPathSearchPane.status.text" wrapText="true" styleClass="fxt-vp-status"/>
         <PanelProgress fx:id="progress"/>
         <SearchResultsTree fx:id="resultsTree" VBox.vgrow="ALWAYS"/>
     </children>

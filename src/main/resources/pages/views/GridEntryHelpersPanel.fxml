@@ -21,7 +21,7 @@
 
         <HBox alignment="CENTER_LEFT" spacing="2" styleClass="fxt-grid-entry-section">
             <children>
-                <Label text="SIBLINGS" styleClass="fxt-grid-entry-title"/>
+                <Label text="%GridEntryHelpersPanel.siblings.text" styleClass="fxt-grid-entry-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button fx:id="insertBeforeButton" id="grid-entry-insert-before" styleClass="fxt-tool-button"
                         focusTraversable="false" onAction="#onInsertBefore">
@@ -29,7 +29,7 @@
                         <IconifyIcon iconLiteral="bi-arrow-bar-up" iconSize="13"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Insert before the selected node"/>
+                        <Tooltip text="%GridEntryHelpersPanel.insert-before-the-selected-node.text"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="insertAfterButton" id="grid-entry-insert-after" styleClass="fxt-tool-button"
@@ -38,7 +38,7 @@
                         <IconifyIcon iconLiteral="bi-arrow-bar-down" iconSize="13"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Insert after the selected node (double-click)"/>
+                        <Tooltip text="%GridEntryHelpersPanel.insert-after-the-selected-node.text"/>
                     </tooltip>
                 </Button>
                 <Button fx:id="appendButton" id="grid-entry-append" styleClass="fxt-tool-button"
@@ -47,7 +47,7 @@
                         <IconifyIcon iconLiteral="bi-plus-square" iconSize="13"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Append as the last sibling"/>
+                        <Tooltip text="%GridEntryHelpersPanel.append-as-the-last-sibling.text"/>
                     </tooltip>
                 </Button>
             </children>
@@ -56,7 +56,7 @@
 
         <HBox alignment="CENTER_LEFT" spacing="2" styleClass="fxt-grid-entry-section">
             <children>
-                <Label text="CHILDREN" styleClass="fxt-grid-entry-title"/>
+                <Label text="%GridEntryHelpersPanel.children.text" styleClass="fxt-grid-entry-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button fx:id="addChildButton" id="grid-entry-add-child" styleClass="fxt-tool-button"
                         focusTraversable="false" onAction="#onAddChild">
@@ -64,7 +64,7 @@
                         <IconifyIcon iconLiteral="bi-plus-lg" iconSize="13"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Add to the selected element (double-click)"/>
+                        <Tooltip text="%GridEntryHelpersPanel.add-to-the-selected-element.text"/>
                     </tooltip>
                 </Button>
             </children>
@@ -73,7 +73,7 @@
 
         <HBox alignment="CENTER_LEFT" styleClass="fxt-grid-entry-section">
             <children>
-                <Label text="VALUES" styleClass="fxt-grid-entry-title"/>
+                <Label text="%GridEntryHelpersPanel.values.text" styleClass="fxt-grid-entry-title"/>
             </children>
         </HBox>
         <ListView fx:id="valuesList" id="grid-entry-values" styleClass="fxt-grid-entry-list" VBox.vgrow="SOMETIMES"/>

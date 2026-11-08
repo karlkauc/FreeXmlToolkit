@@ -29,7 +29,7 @@ public enum ViewMode {
     }
 
     public String label() {
-        return label;
+        return org.fxt.freexmltoolkit.i18n.I18n.or("ViewMode." + name(), label);
     }
 
     public String icon() {

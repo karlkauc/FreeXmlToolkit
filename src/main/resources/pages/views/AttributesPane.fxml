@@ -24,12 +24,12 @@
     <children>
         <HBox spacing="4" alignment="CENTER_LEFT" styleClass="fxt-overview-toolbar">
             <children>
-                <Button fx:id="addButton" styleClass="fxt-tool-button" id="overview-attribute-add" text="Add Attribute" onAction="#onAdd">
+                <Button fx:id="addButton" styleClass="fxt-tool-button" id="overview-attribute-add" text="%AttributesPane.addButton.text" onAction="#onAdd">
                     <graphic>
                         <IconifyIcon fx:id="addIcon" iconLiteral="bi-plus-lg" iconSize="16"/>
                     </graphic>
                 </Button>
-                <MenuButton fx:id="groupRefButton" styleClass="fxt-tool-button" id="overview-attribute-group-ref" text="Add Group Reference">
+                <MenuButton fx:id="groupRefButton" styleClass="fxt-tool-button" id="overview-attribute-group-ref" text="%AttributesPane.groupRefButton.text">
                     <graphic>
                         <IconifyIcon fx:id="groupRefIcon" iconLiteral="bi-link-45deg" iconSize="16"/>
                     </graphic>
@@ -44,14 +44,14 @@
         </HBox>
         <TableView fx:id="attributeTable" styleClass="fxt-analysis-table" id="overview-attributes" editable="true" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="nameColumn" text="Name" prefWidth="170" sortable="false"/>
-                <TableColumn fx:id="typeColumn" text="Type" prefWidth="170" sortable="false"/>
-                <TableColumn fx:id="useColumn" text="Use" prefWidth="100" sortable="false"/>
-                <TableColumn fx:id="defaultColumn" text="Default" prefWidth="140" sortable="false"/>
-                <TableColumn fx:id="fixedColumn" text="Fixed" prefWidth="140" sortable="false"/>
+                <TableColumn fx:id="nameColumn" text="%AttributesPane.nameColumn.text" prefWidth="170" sortable="false"/>
+                <TableColumn fx:id="typeColumn" text="%AttributesPane.typeColumn.text" prefWidth="170" sortable="false"/>
+                <TableColumn fx:id="useColumn" text="%AttributesPane.useColumn.text" prefWidth="100" sortable="false"/>
+                <TableColumn fx:id="defaultColumn" text="%AttributesPane.defaultColumn.text" prefWidth="140" sortable="false"/>
+                <TableColumn fx:id="fixedColumn" text="%AttributesPane.fixedColumn.text" prefWidth="140" sortable="false"/>
             </columns>
             <placeholder>
-                <Label text="No attributes." styleClass="fxt-placeholder-text"/>
+                <Label text="%AttributesPane.no-attributes.text" styleClass="fxt-placeholder-text"/>
             </placeholder>
         </TableView>
     </children>

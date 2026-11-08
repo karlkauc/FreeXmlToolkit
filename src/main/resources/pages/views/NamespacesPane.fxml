@@ -21,7 +21,7 @@
     <children>
         <HBox spacing="4" alignment="CENTER_LEFT" styleClass="fxt-overview-toolbar">
             <children>
-                <Button fx:id="addButton" styleClass="fxt-tool-button" id="overview-namespace-add" text="Add Prefix" onAction="#onAdd">
+                <Button fx:id="addButton" styleClass="fxt-tool-button" id="overview-namespace-add" text="%NamespacesPane.addButton.text" onAction="#onAdd">
                     <graphic>
                         <IconifyIcon fx:id="addIcon" iconLiteral="bi-plus-lg" iconSize="16"/>
                     </graphic>
@@ -31,16 +31,16 @@
                         <IconifyIcon fx:id="deleteIcon" iconLiteral="bi-trash" iconSize="16"/>
                     </graphic>
                 </Button>
-                <Label text="An empty prefix declares the default namespace." styleClass="fxt-placeholder-text"/>
+                <Label text="%NamespacesPane.an-empty-prefix-declares-the.text" styleClass="fxt-placeholder-text"/>
             </children>
         </HBox>
         <TableView fx:id="namespaceTable" styleClass="fxt-analysis-table" id="overview-namespaces" editable="true" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="prefixColumn" text="Prefix" prefWidth="120" sortable="false"/>
-                <TableColumn fx:id="uriColumn" text="Namespace URI" prefWidth="460" sortable="false"/>
+                <TableColumn fx:id="prefixColumn" text="%NamespacesPane.prefixColumn.text" prefWidth="120" sortable="false"/>
+                <TableColumn fx:id="uriColumn" text="%NamespacesPane.uriColumn.text" prefWidth="460" sortable="false"/>
             </columns>
             <placeholder>
-                <Label text="No namespace declarations." styleClass="fxt-placeholder-text"/>
+                <Label text="%NamespacesPane.no-namespace-declarations.text" styleClass="fxt-placeholder-text"/>
             </placeholder>
         </TableView>
     </children>

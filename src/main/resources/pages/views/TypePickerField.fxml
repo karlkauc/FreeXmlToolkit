@@ -20,7 +20,7 @@
                 <IconifyIcon iconLiteral="bi-chevron-down" iconSize="12"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Choose a type (Ctrl+Space)"/>
+                <Tooltip text="%TypePickerField.choose-a-type-ctrl-space.text"/>
             </tooltip>
         </Button>
     </children>

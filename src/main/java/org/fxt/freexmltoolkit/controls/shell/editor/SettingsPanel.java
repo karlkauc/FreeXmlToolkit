@@ -164,6 +164,7 @@ public class SettingsPanel extends VBox {
     
     // FundsXML extension
     @FXML private CheckBox fundsXmlEnabled;
+    @FXML private javafx.scene.control.ComboBox<org.fxt.freexmltoolkit.i18n.I18n.Language> uiLanguage;
     @FXML private VBox pluginRows;
     /** One switch per plugin that can be switched (built-in and external, not failed ones). */
     private final java.util.Map<String, CheckBox> pluginSwitches = new java.util.LinkedHashMap<>();
@@ -244,6 +245,19 @@ public class SettingsPanel extends VBox {
         sponsorButton.setGraphic(ProjectLinks.sponsorIcon(14));
 
         maxMemory.getItems().setAll(memoryChoices());
+        uiLanguage.getItems().setAll(org.fxt.freexmltoolkit.i18n.I18n.Language.values());
+        uiLanguage.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(org.fxt.freexmltoolkit.i18n.I18n.Language language) {
+                return language == null ? "" : language == org.fxt.freexmltoolkit.i18n.I18n.Language.SYSTEM
+                        ? org.fxt.freexmltoolkit.i18n.I18n.t("SettingsPanel.language.system") : language.label();
+            }
+
+            @Override
+            public org.fxt.freexmltoolkit.i18n.I18n.Language fromString(String text) {
+                return null;
+            }
+        });
         buildPluginRows();
         loadSettings();
         refreshRenderingStatus();
@@ -821,6 +835,7 @@ public class SettingsPanel extends VBox {
         keys.put(fundsXmlEnabled, new String[] {org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED});
         keys.put(templatesDir, new String[] {"templates.directory"});
         keys.put(schemaLibraryAutoBind, new String[] {"schemaLibrary.autoBind.enabled"});
+        keys.put(uiLanguage, new String[] {org.fxt.freexmltoolkit.i18n.I18n.SETTING});
         return keys;
     }
 
@@ -1278,6 +1293,8 @@ public class SettingsPanel extends VBox {
             telemetryErrors.setSelected(props.isTelemetryErrorsEnabled());
             execStatsEnabled.setSelected(Boolean.parseBoolean(orEmpty(
                     props.get(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED))));
+            uiLanguage.setValue(org.fxt.freexmltoolkit.i18n.I18n.Language.fromCode(
+                    props.get(org.fxt.freexmltoolkit.i18n.I18n.SETTING)));
             fundsXmlEnabled.setSelected(Boolean.parseBoolean(
                     props.get(org.fxt.freexmltoolkit.service.fundsxml.FundsXmlPropertyKeys.ENABLED) == null
                             ? "false"
@@ -1299,15 +1316,15 @@ public class SettingsPanel extends VBox {
      */
     private void refreshRenderingStatus() {
         String active = org.fxt.freexmltoolkit.util.RenderingStatus.activePipelineDescription();
-        renderingActiveStatus.setText("Active pipeline: " + (active != null ? active : "unknown"));
-        renderingGpuStatus.setText("Detected GPU: …");
+        renderingActiveStatus.setText(org.fxt.freexmltoolkit.i18n.I18n.t("SettingsPanel.activePipeline", active != null ? active : "?"));
+        renderingGpuStatus.setText(org.fxt.freexmltoolkit.i18n.I18n.t("SettingsPanel.detectedGpu", "…"));
 
         Thread t = new Thread(() -> {
             java.util.List<String> gpus =
                     org.fxt.freexmltoolkit.util.RenderingPipelineDetector.detectAdapterNames();
             String text = gpus.isEmpty()
-                    ? "Detected GPU: unknown"
-                    : "Detected GPU: " + String.join(", ", gpus);
+                    ? org.fxt.freexmltoolkit.i18n.I18n.t("SettingsPanel.detectedGpu", "?")
+                    : org.fxt.freexmltoolkit.i18n.I18n.t("SettingsPanel.detectedGpu", String.join(", ", gpus));
             javafx.application.Platform.runLater(() -> renderingGpuStatus.setText(text));
         }, "rendering-gpu-detect");
         t.setDaemon(true);
@@ -1366,6 +1383,9 @@ public class SettingsPanel extends VBox {
             saveTelemetrySettings(props);
             props.set(org.fxt.freexmltoolkit.service.DeveloperPropertyKeys.EXECUTION_STATS_ENABLED,
                     String.valueOf(execStatsEnabled.isSelected()));
+            if (uiLanguage.getValue() != null) {
+                props.set(org.fxt.freexmltoolkit.i18n.I18n.SETTING, uiLanguage.getValue().code());
+            }
             pluginSwitches.forEach((id, box) -> props.set(
                     org.fxt.freexmltoolkit.plugin.PluginManager.enabledKey(id), String.valueOf(box.isSelected())));
             boolean fundsXmlWasEnabled = Boolean.parseBoolean(props.get(
@@ -1654,7 +1674,7 @@ public class SettingsPanel extends VBox {
     /** @return the label of a limit in MB ({@code 0} = Automatic), e.g. {@code 8 GB} */
     static String memoryLabel(long mb) {
         if (mb <= 0) {
-            return "Automatic";
+            return org.fxt.freexmltoolkit.i18n.I18n.t("Shell.queryTarget.automatic");
         }
         return mb % 1024 == 0 ? (mb / 1024) + " GB" : mb + " MB";
     }

@@ -16,12 +16,12 @@
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
-        <Label text="XML files" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="filesField" id="bind-schema-files" prefColumnCount="36" promptText="data/**/*.xml"
+        <Label text="%BindSchemaDialog.xml-files.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="filesField" id="bind-schema-files" prefColumnCount="36" promptText="%BindSchemaDialog.filesField.promptText"
                    GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
-        <Label text="Schema" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Label text="%BindSchemaDialog.schema.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <TextField fx:id="schemaField" id="bind-schema-schema" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Button id="bind-schema-browse" text="Browse…" onAction="#onBrowseSchema" GridPane.rowIndex="1"
+        <Button id="bind-schema-browse" text="%BindSchemaDialog.bind-schema-browse.text" onAction="#onBrowseSchema" GridPane.rowIndex="1"
                 GridPane.columnIndex="2">
             <graphic>
                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
@@ -29,7 +29,7 @@
         </Button>
         <Label fx:id="error" id="bind-schema-error" wrapText="true" visible="false" managed="false"
                style="-fx-text-fill: #e03131;" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
-        <Label text="XML files is a path or pattern relative to the project folder: * matches within a folder, ** across folders (data/**/*.xml). The first matching binding wins over xsi:schemaLocation."
+        <Label text="%BindSchemaDialog.xml-files-is-a-path.text"
                wrapText="true" opacity="0.7" maxWidth="520" GridPane.rowIndex="3" GridPane.columnIndex="0"
                GridPane.columnSpan="3"/>
     </children>

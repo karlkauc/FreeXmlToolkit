@@ -25,19 +25,19 @@
     <children>
         <GridPane hgap="8" vgap="6">
             <children>
-                <Label text="Left:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <Label text="%FolderCompareView.left.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
                 <Label fx:id="leftPath" id="folder-compare-left" GridPane.rowIndex="0" GridPane.columnIndex="1"
                        GridPane.hgrow="ALWAYS" maxWidth="Infinity"/>
-                <Button text="Change…" id="folder-compare-left-change" onAction="#onChangeLeft"
+                <Button text="%FolderCompareView.folder-compare-left-change.text" id="folder-compare-left-change" onAction="#onChangeLeft"
                         GridPane.rowIndex="0" GridPane.columnIndex="2">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                     </graphic>
                 </Button>
-                <Label text="Right:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <Label text="%FolderCompareView.right.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
                 <Label fx:id="rightPath" id="folder-compare-right" GridPane.rowIndex="1" GridPane.columnIndex="1"
                        GridPane.hgrow="ALWAYS" maxWidth="Infinity"/>
-                <Button text="Change…" id="folder-compare-right-change" onAction="#onChangeRight"
+                <Button text="%FolderCompareView.folder-compare-right-change.text" id="folder-compare-right-change" onAction="#onChangeRight"
                         GridPane.rowIndex="1" GridPane.columnIndex="2">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
@@ -47,15 +47,15 @@
         </GridPane>
         <HBox spacing="12" alignment="CENTER_LEFT">
             <children>
-                <Button fx:id="compareButton" text="Compare" id="folder-compare-run" onAction="#onCompare"
+                <Button fx:id="compareButton" text="%FolderCompareView.compareButton.text" id="folder-compare-run" onAction="#onCompare"
                         styleClass="btn-primary">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
                     </graphic>
                 </Button>
-                <CheckBox fx:id="compareXml" id="folder-compare-xml" text="Compare XML files by structure"
+                <CheckBox fx:id="compareXml" id="folder-compare-xml" text="%FolderCompareView.compareXml.text"
                           selected="true"/>
-                <CheckBox fx:id="showIdentical" id="folder-compare-show-identical" text="Show identical files"/>
+                <CheckBox fx:id="showIdentical" id="folder-compare-show-identical" text="%FolderCompareView.showIdentical.text"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <ProgressIndicator fx:id="progress" prefWidth="18" prefHeight="18" visible="false" managed="false"/>
                 <Label fx:id="summary" id="folder-compare-summary"/>
@@ -63,19 +63,19 @@
         </HBox>
         <TableView fx:id="table" id="folder-compare-table" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="pathColumn" text="File" prefWidth="320"/>
-                <TableColumn fx:id="statusColumn" text="Status" prefWidth="200"/>
-                <TableColumn fx:id="leftSizeColumn" text="Left size" prefWidth="90"/>
-                <TableColumn fx:id="rightSizeColumn" text="Right size" prefWidth="90"/>
-                <TableColumn fx:id="leftModifiedColumn" text="Left modified" prefWidth="140"/>
-                <TableColumn fx:id="rightModifiedColumn" text="Right modified" prefWidth="140"/>
-                <TableColumn fx:id="noteColumn" text="Note" prefWidth="220"/>
+                <TableColumn fx:id="pathColumn" text="%FolderCompareView.pathColumn.text" prefWidth="320"/>
+                <TableColumn fx:id="statusColumn" text="%FolderCompareView.statusColumn.text" prefWidth="200"/>
+                <TableColumn fx:id="leftSizeColumn" text="%FolderCompareView.leftSizeColumn.text" prefWidth="90"/>
+                <TableColumn fx:id="rightSizeColumn" text="%FolderCompareView.rightSizeColumn.text" prefWidth="90"/>
+                <TableColumn fx:id="leftModifiedColumn" text="%FolderCompareView.leftModifiedColumn.text" prefWidth="140"/>
+                <TableColumn fx:id="rightModifiedColumn" text="%FolderCompareView.rightModifiedColumn.text" prefWidth="140"/>
+                <TableColumn fx:id="noteColumn" text="%FolderCompareView.noteColumn.text" prefWidth="220"/>
             </columns>
             <placeholder>
-                <Label text="No files to show"/>
+                <Label text="%FolderCompareView.no-files-to-show.text"/>
             </placeholder>
         </TableView>
-        <Label text="Double-click a file to compare it side by side, or to open a file that exists on one side only."
+        <Label text="%FolderCompareView.double-click-a-file-to.text"
                opacity="0.7"/>
     </children>
 </fx:root>

@@ -30,14 +30,14 @@
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <!-- Flat 14px header icon actions (no button chrome, per the mockup) -->
-        <SidePanelHeader title="EXPLORER" spacing="10">
+        <SidePanelHeader title="%ExplorerPanel.explorer.title" spacing="10">
             <children>
                 <Button id="explorer-new-file" styleClass="fxt-sp-action" onAction="#onNewFile">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="New file"/>
+                        <Tooltip text="%ExplorerPanel.new-file.text"/>
                     </tooltip>
                 </Button>
                 <Button id="explorer-open-folder" styleClass="fxt-sp-action" onAction="#onChooseFolder">
@@ -45,7 +45,7 @@
                         <IconifyIcon iconLiteral="bi-folder-plus" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Open folder…"/>
+                        <Tooltip text="%ExplorerPanel.open-folder.text"/>
                     </tooltip>
                 </Button>
                 <Button id="explorer-refresh" styleClass="fxt-sp-action" onAction="#onRefreshWorkspace">
@@ -53,7 +53,7 @@
                         <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Refresh workspace"/>
+                        <Tooltip text="%ExplorerPanel.refresh-workspace.text"/>
                     </tooltip>
                 </Button>
                 <MenuButton fx:id="favoritesButton" id="explorer-favorites"
@@ -62,7 +62,7 @@
                         <IconifyIcon iconLiteral="bi-star" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Favorites"/>
+                        <Tooltip text="%ExplorerPanel.favorites.text"/>
                     </tooltip>
                 </MenuButton>
             </children>
@@ -74,34 +74,34 @@
             <children>
                 <PanelActionList fx:id="fileActions">
                     <children>
-                        <PanelActionButton id="explorer-open-file" iconLiteral="bi-folder2-open" text="Open file…"
+                        <PanelActionButton id="explorer-open-file" iconLiteral="bi-folder2-open" text="%ExplorerPanel.explorer-open-file.text"
                                            color="TOOL" onAction="#onOpenFile"/>
-                        <PanelActionButton id="explorer-open-url" iconLiteral="bi-globe" text="Open from URL…"
+                        <PanelActionButton id="explorer-open-url" iconLiteral="bi-globe" text="%ExplorerPanel.explorer-open-url.text"
                                            color="TOOL" onAction="#onOpenFromUrl">
                             <tooltip>
-                                <Tooltip text="Open a file from a web address"/>
+                                <Tooltip text="%ExplorerPanel.open-a-file-from-a.text"/>
                             </tooltip>
                         </PanelActionButton>
                         <PanelActionButton fx:id="compareButton" id="explorer-compare" iconLiteral="bi-file-diff"
-                                           text="Compare files…" color="TOOL" onAction="#onCompare">
+                                           text="%ExplorerPanel.compareButton.text" color="TOOL" onAction="#onCompare">
                             <tooltip>
-                                <Tooltip text="Compare the two selected files, or the active document with a file"/>
+                                <Tooltip text="%ExplorerPanel.compare-the-two-selected-files.text"/>
                             </tooltip>
                         </PanelActionButton>
                         <PanelActionButton id="explorer-spreadsheet" iconLiteral="bi-table"
-                                           text="Spreadsheet Converter…" color="TOOL" onAction="#onSpreadsheet">
+                                           text="%ExplorerPanel.explorer-spreadsheet.text" color="TOOL" onAction="#onSpreadsheet">
                             <tooltip>
-                                <Tooltip text="Convert between XML and Excel / CSV"/>
+                                <Tooltip text="%ExplorerPanel.convert-between-xml-and-excel.text"/>
                             </tooltip>
                         </PanelActionButton>
                         <PanelActionButton id="explorer-generate-xsd-batch" iconLiteral="bi-files"
-                                           text="Generate XSD from XML files…" color="CREATE"
+                                           text="%ExplorerPanel.explorer-generate-xsd-batch.text" color="CREATE"
                                            onAction="#onGenerateXsdBatch">
                             <tooltip>
-                                <Tooltip text="Infer one schema from the selected XML files (or pick files)"/>
+                                <Tooltip text="%ExplorerPanel.infer-one-schema-from-the.text"/>
                             </tooltip>
                         </PanelActionButton>
-                        <PanelActionButton id="explorer-clear-recent" iconLiteral="bi-eraser" text="Clear recent"
+                        <PanelActionButton id="explorer-clear-recent" iconLiteral="bi-eraser" text="%ExplorerPanel.explorer-clear-recent.text"
                                            color="DELETE" onAction="#clearRecent"/>
                     </children>
                 </PanelActionList>
@@ -135,10 +135,10 @@
             <children>
                 <HBox styleClass="fxt-explorer-tabs" spacing="2">
                     <children>
-                        <ToggleButton fx:id="favoritesTab" id="explorer-tab-favorites" text="FAVORITES"
+                        <ToggleButton fx:id="favoritesTab" id="explorer-tab-favorites" text="%ExplorerPanel.favoritesTab.text"
                                       styleClass="fxt-explorer-tab" focusTraversable="false"
                                       onAction="#onFavoritesTab"/>
-                        <ToggleButton fx:id="recentTab" id="explorer-tab-recent" text="RECENT"
+                        <ToggleButton fx:id="recentTab" id="explorer-tab-recent" text="%ExplorerPanel.recentTab.text"
                                       styleClass="fxt-explorer-tab" focusTraversable="false"
                                       onAction="#onRecentTab"/>
                     </children>
@@ -146,14 +146,14 @@
                 <ListView fx:id="favoritesList" id="explorer-favorites-list" fixedCellSize="28" VBox.vgrow="ALWAYS"
                           styleClass="fxt-open-editors, fxt-explorer-list">
                     <placeholder>
-                        <Label text="Star files with Ctrl+D to see them here." wrapText="true"
+                        <Label text="%ExplorerPanel.star-files-with-ctrl-d.text" wrapText="true"
                                styleClass="fxt-placeholder-text"/>
                     </placeholder>
                 </ListView>
                 <ListView fx:id="recentList" id="explorer-recent-list" fixedCellSize="28" VBox.vgrow="ALWAYS"
                           styleClass="fxt-open-editors, fxt-explorer-list">
                     <placeholder>
-                        <Label text="Files you open appear here." styleClass="fxt-placeholder-text"/>
+                        <Label text="%ExplorerPanel.files-you-open-appear-here.text" styleClass="fxt-placeholder-text"/>
                     </placeholder>
                 </ListView>
             </children>

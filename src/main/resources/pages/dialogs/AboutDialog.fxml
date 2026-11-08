@@ -31,9 +31,9 @@
                 <ImageView fx:id="logo" fitHeight="72" preserveRatio="true" smooth="true"/>
                 <VBox spacing="4" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                     <children>
-                        <Label text="FreeXmlToolkit"
+                        <Label text="%AboutDialog.freexmltoolkit.text"
                                style="-fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: #1f2937;"/>
-                        <Label text="Universal Toolkit for XML, XSD, XSLT, Schematron &amp; FOP" wrapText="true"
+                        <Label text="%AboutDialog.universal-toolkit-for-xml-xsd.text" wrapText="true"
                                style="-fx-font-size: 12.5px; -fx-text-fill: #6b7280;"/>
                         <Label fx:id="versionPill"
                                style="-fx-background-color: #e7f3ff;-fx-text-fill: #0b5ed7;-fx-font-weight: 600;-fx-font-size: 12px;-fx-padding: 3 10 3 10;-fx-background-radius: 12;"/>
@@ -55,33 +55,33 @@
         <VBox spacing="2">
             <children>
                 <Label fx:id="copyright" style="-fx-font-size: 11.5px; -fx-text-fill: #6b7280;"/>
-                <Hyperlink text="Licensed under the Apache License, Version 2.0"
+                <Hyperlink text="%AboutDialog.licensed-under-the-apache-license.text"
                            style="-fx-padding: 0; -fx-text-fill: #0b5ed7;" onAction="#onLicense"/>
             </children>
         </VBox>
 
         <HBox fx:id="links" spacing="8" alignment="CENTER_LEFT">
             <children>
-                <Button text="GitHub" style="$linkStyle" onAction="#onGitHub">
+                <Button text="%AboutDialog.github.text" style="$linkStyle" onAction="#onGitHub">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-github"/>
                     </graphic>
                 </Button>
                 <!-- The sponsor heart keeps its own colour; AboutDialog sets the graphic. -->
-                <Button fx:id="sponsorButton" id="about-sponsor" text="Sponsor" style="$linkStyle"
+                <Button fx:id="sponsorButton" id="about-sponsor" text="%AboutDialog.sponsorButton.text" style="$linkStyle"
                         onAction="#onSponsor"/>
-                <Button text="Documentation" style="$linkStyle" onAction="#onDocs">
+                <Button text="%AboutDialog.documentation.text" style="$linkStyle" onAction="#onDocs">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-book"/>
                     </graphic>
                 </Button>
-                <Button text="Report an issue" style="$linkStyle" onAction="#onIssues">
+                <Button text="%AboutDialog.report-an-issue.text" style="$linkStyle" onAction="#onIssues">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-bug"/>
                     </graphic>
                 </Button>
                 <!-- Anonymous, in-app problem report (no GitHub account needed) -->
-                <Button fx:id="reportButton" text="Report a problem…" style="$linkStyle"
+                <Button fx:id="reportButton" text="%AboutDialog.reportButton.text" style="$linkStyle"
                         onAction="#onReportProblem">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-send"/>

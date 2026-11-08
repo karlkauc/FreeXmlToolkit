@@ -32,12 +32,12 @@
                     <children>
                         <VBox spacing="2">
                             <children>
-                                <Label id="library-title" text="Schema Library" styleClass="fxt-page-title">
+                                <Label id="library-title" text="%SchemaLibraryView.library-title.text" styleClass="fxt-page-title">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-collection" iconSize="18"/>
                                     </graphic>
                                 </Label>
-                                <Label text="Map namespaces to schemas, register XML catalogs and manage downloaded schemas."
+                                <Label text="%SchemaLibraryView.map-namespaces-to-schemas-register.text"
                                        wrapText="true" styleClass="fxt-page-subtitle"/>
                             </children>
                         </VBox>
@@ -47,7 +47,7 @@
                 <TabPane fx:id="tabs" id="schema-library-tabs" VBox.vgrow="ALWAYS">
                     <tabs>
                         <!-- Mappings -->
-                        <Tab fx:id="mappingsTab" text="Mappings" closable="false" styleClass="utility-tab">
+                        <Tab fx:id="mappingsTab" text="%SchemaLibraryView.mappingsTab.text" closable="false" styleClass="utility-tab">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-diagram-3" iconSize="16"/>
                             </graphic>
@@ -56,41 +56,41 @@
                                     <children>
                                         <FlowPane hgap="4" vgap="4" styleClass="fxt-schema-tools">
                                             <children>
-                                                <Button text="Add mapping…" id="library-add" styleClass="fxt-tool-button"
+                                                <Button text="%SchemaLibraryView.library-add.text" id="library-add" styleClass="fxt-tool-button"
                                                         onAction="#addEntry">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Edit…" fx:id="editButton" id="library-edit"
+                                                <Button text="%SchemaLibraryView.editButton.text" fx:id="editButton" id="library-edit"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#editSelected">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-pencil" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Remove" fx:id="removeButton" id="library-remove"
+                                                <Button text="%SchemaLibraryView.removeButton.text" fx:id="removeButton" id="library-remove"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#removeSelected">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Enable / disable" fx:id="toggleButton" id="library-toggle"
+                                                <Button text="%SchemaLibraryView.toggleButton.text" fx:id="toggleButton" id="library-toggle"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#toggleSelected">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-toggle-on" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Add schema of current document" fx:id="addCurrentButton" id="library-add-current"
+                                                <Button text="%SchemaLibraryView.addCurrentButton.text" fx:id="addCurrentButton" id="library-add-current"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#addCurrentSchema">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Download / verify" fx:id="downloadButton" id="library-download"
+                                                <Button text="%SchemaLibraryView.downloadButton.text" fx:id="downloadButton" id="library-download"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#downloadSelected">
                                                     <graphic>
@@ -100,21 +100,21 @@
                                             </children>
                                         </FlowPane>
                                         <TextField fx:id="filter" id="library-filter"
-                                                   promptText="Filter namespace, location, description, root element…"/>
+                                                   promptText="%SchemaLibraryView.filter.promptText"/>
                                         <TableView fx:id="mappings" id="library-mappings-table" 
                                                    VBox.vgrow="ALWAYS">
                                             <columns>
                                                 <TableColumn fx:id="statusColumn" minWidth="28" prefWidth="28"
                                                              maxWidth="28"/>
-                                                <TableColumn fx:id="namespaceColumn" text="Namespace" minWidth="60"/>
-                                                <TableColumn fx:id="locationColumn" text="Location" minWidth="60"/>
-                                                <TableColumn fx:id="kindColumn" text="Kind"/>
-                                                <TableColumn fx:id="sourceColumn" text="Source"/>
-                                                <TableColumn fx:id="enabledColumn" text="On" minWidth="40" prefWidth="40"
+                                                <TableColumn fx:id="namespaceColumn" text="%SchemaLibraryView.namespaceColumn.text" minWidth="60"/>
+                                                <TableColumn fx:id="locationColumn" text="%SchemaLibraryView.locationColumn.text" minWidth="60"/>
+                                                <TableColumn fx:id="kindColumn" text="%SchemaLibraryView.kindColumn.text"/>
+                                                <TableColumn fx:id="sourceColumn" text="%SchemaLibraryView.sourceColumn.text"/>
+                                                <TableColumn fx:id="enabledColumn" text="%SchemaLibraryView.enabledColumn.text" minWidth="40" prefWidth="40"
                                                              maxWidth="40"/>
                                             </columns>
                                             <placeholder>
-                                                <Label text="No schema mappings yet. Click Add to map a namespace to a schema."/>
+                                                <Label text="%SchemaLibraryView.no-schema-mappings-yet-click.text"/>
                                             </placeholder>
                                         </TableView>
                                     </children>
@@ -123,7 +123,7 @@
                         </Tab>
 
                         <!-- Catalogs -->
-                        <Tab fx:id="catalogsTab" text="Catalogs" closable="false" styleClass="utility-tab">
+                        <Tab fx:id="catalogsTab" text="%SchemaLibraryView.catalogsTab.text" closable="false" styleClass="utility-tab">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-journal-bookmark" iconSize="16"/>
                             </graphic>
@@ -132,35 +132,35 @@
                                     <children>
                                         <FlowPane hgap="4" vgap="4" styleClass="fxt-schema-tools">
                                             <children>
-                                                <Button text="Add catalog…" id="library-catalog-add"
+                                                <Button text="%SchemaLibraryView.library-catalog-add.text" id="library-catalog-add"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#chooseCatalog">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-plus-circle" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Remove" fx:id="catalogRemoveButton" id="library-catalog-remove"
+                                                <Button text="%SchemaLibraryView.catalogRemoveButton.text" fx:id="catalogRemoveButton" id="library-catalog-remove"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#onRemoveCatalog">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Enable / disable" fx:id="catalogToggleButton" id="library-catalog-toggle"
+                                                <Button text="%SchemaLibraryView.catalogToggleButton.text" fx:id="catalogToggleButton" id="library-catalog-toggle"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#onToggleCatalog">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-toggle-on" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Reload catalogs" id="library-catalog-reload"
+                                                <Button text="%SchemaLibraryView.library-catalog-reload.text" id="library-catalog-reload"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#onReloadCatalogs">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Import entries into Mappings…" fx:id="catalogImportButton" id="library-catalog-import"
+                                                <Button text="%SchemaLibraryView.catalogImportButton.text" fx:id="catalogImportButton" id="library-catalog-import"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#importSelectedCatalog">
                                                     <graphic>
@@ -171,7 +171,7 @@
                                         </FlowPane>
                                         <ListView fx:id="catalogList" id="library-catalogs-list" VBox.vgrow="ALWAYS">
                                             <placeholder>
-                                                <Label text="No XML catalogs registered. Add an OASIS catalog.xml to map system IDs and URIs."/>
+                                                <Label text="%SchemaLibraryView.no-xml-catalogs-registered-add.text"/>
                                             </placeholder>
                                         </ListView>
                                     </children>
@@ -180,7 +180,7 @@
                         </Tab>
 
                         <!-- Cache -->
-                        <Tab fx:id="cacheTab" text="Cache" closable="false" styleClass="utility-tab">
+                        <Tab fx:id="cacheTab" text="%SchemaLibraryView.cacheTab.text" closable="false" styleClass="utility-tab">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-hdd" iconSize="16"/>
                             </graphic>
@@ -189,35 +189,35 @@
                                     <children>
                                         <FlowPane hgap="4" vgap="4" styleClass="fxt-schema-tools">
                                             <children>
-                                                <Button text="Open cached file" fx:id="cacheOpenButton" id="library-cache-open"
+                                                <Button text="%SchemaLibraryView.cacheOpenButton.text" fx:id="cacheOpenButton" id="library-cache-open"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#onOpenCached">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Show in system file manager" id="library-cache-reveal"
+                                                <Button text="%SchemaLibraryView.library-cache-reveal.text" id="library-cache-reveal"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#onRevealCacheFolder">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-folder2-open" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Re-download" fx:id="cacheRefreshButton" id="library-cache-refresh"
+                                                <Button text="%SchemaLibraryView.cacheRefreshButton.text" fx:id="cacheRefreshButton" id="library-cache-refresh"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#onRefreshCached">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Delete cached file" fx:id="cacheDeleteButton" id="library-cache-delete"
+                                                <Button text="%SchemaLibraryView.cacheDeleteButton.text" fx:id="cacheDeleteButton" id="library-cache-delete"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#onDeleteCached">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button text="Clear entire cache" id="library-cache-clear"
+                                                <Button text="%SchemaLibraryView.library-cache-clear.text" id="library-cache-clear"
                                                         styleClass="fxt-tool-button"
                                                         onAction="#onClearCache">
                                                     <graphic>
@@ -227,29 +227,29 @@
                                             </children>
                                         </FlowPane>
                                         <TextField fx:id="cacheFilter" id="library-cache-filter"
-                                                   promptText="Filter URL or namespace…"/>
+                                                   promptText="%SchemaLibraryView.cacheFilter.promptText"/>
                                         <TableView fx:id="cacheTable" id="library-cache-table" 
                                                    VBox.vgrow="ALWAYS">
                                             <columns>
-                                                <TableColumn fx:id="cacheUrlColumn" text="URL" minWidth="80"/>
-                                                <TableColumn fx:id="cacheNamespaceColumn" text="Target namespace"/>
-                                                <TableColumn fx:id="cacheSizeColumn" text="Size"/>
-                                                <TableColumn fx:id="cacheDownloadedColumn" text="Downloaded"/>
-                                                <TableColumn fx:id="cacheHitsColumn" text="Hits"/>
+                                                <TableColumn fx:id="cacheUrlColumn" text="%SchemaLibraryView.cacheUrlColumn.text" minWidth="80"/>
+                                                <TableColumn fx:id="cacheNamespaceColumn" text="%SchemaLibraryView.cacheNamespaceColumn.text"/>
+                                                <TableColumn fx:id="cacheSizeColumn" text="%SchemaLibraryView.cacheSizeColumn.text"/>
+                                                <TableColumn fx:id="cacheDownloadedColumn" text="%SchemaLibraryView.cacheDownloadedColumn.text"/>
+                                                <TableColumn fx:id="cacheHitsColumn" text="%SchemaLibraryView.cacheHitsColumn.text"/>
                                             </columns>
                                             <placeholder>
-                                                <Label text="No cached remote schemas."/>
+                                                <Label text="%SchemaLibraryView.no-cached-remote-schemas.text"/>
                                             </placeholder>
                                         </TableView>
                                         <Label fx:id="cacheFooter" id="library-cache-footer" styleClass="fxt-lib-status"/>
 
                                         <!-- Legacy auto-detected cache (~/.freeXmlToolkit/cache/<MD5>/): read-only + clear -->
-                                        <TitledPane text="Auto-detected schemas (legacy cache)" expanded="false">
+                                        <TitledPane text="%SchemaLibraryView.auto-detected-schemas-legacy-cache.text" expanded="false">
                                             <content>
                                                 <VBox spacing="4">
                                                     <children>
                                                         <Label fx:id="legacyInfo" wrapText="true" styleClass="fxt-lib-status"/>
-                                                        <Button text="Clear auto-detected schema cache" id="library-legacy-cache-clear"
+                                                        <Button text="%SchemaLibraryView.library-legacy-cache-clear.text" id="library-legacy-cache-clear"
                                                                 styleClass="fxt-tool-button"
                                                                 onAction="#onClearLegacyCache">
                                                             <graphic>

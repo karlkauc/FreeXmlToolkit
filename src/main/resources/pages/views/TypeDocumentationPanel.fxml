@@ -23,12 +23,12 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <TitledPane fx:id="documentationPane" text="Documentation" expanded="true">
+                        <TitledPane fx:id="documentationPane" text="%TypeDocumentationPanel.documentationPane.text" expanded="true">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-file-text"/>
                             </graphic>
                         </TitledPane>
-                        <TitledPane text="Application Info (AppInfo)" expanded="false">
+                        <TitledPane text="%TypeDocumentationPanel.application-info-appinfo.text" expanded="false">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-gear"/>
                             </graphic>

@@ -25,29 +25,29 @@
         <ColumnConstraints hgrow="ALWAYS" fillWidth="true"/>
     </columnConstraints>
     <children>
-        <Label text="Namespace / $schema:" GridPane.rowIndex="0"/>
-        <TextField fx:id="namespace" promptText="http://www.example.org/ns  (empty for no-namespace XSD)"
+        <Label text="%SchemaLibraryEntryDialog.namespace-schema.text" GridPane.rowIndex="0"/>
+        <TextField fx:id="namespace" promptText="%SchemaLibraryEntryDialog.namespace.promptText"
                    GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
-        <Label text="Location:" GridPane.rowIndex="1"/>
+        <Label text="%SchemaLibraryEntryDialog.location.text" GridPane.rowIndex="1"/>
         <HBox spacing="6" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS">
             <children>
-                <TextField fx:id="locationField" promptText="/path/to/schema.xsd or https://…/schema.xsd"
+                <TextField fx:id="locationField" promptText="%SchemaLibraryEntryDialog.locationField.promptText"
                            HBox.hgrow="ALWAYS"/>
-                <Button text="Browse…" onAction="#onBrowse">
+                <Button text="%SchemaLibraryEntryDialog.browse.text" onAction="#onBrowse">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-folder2-open"/>
                     </graphic>
                 </Button>
             </children>
         </HBox>
-        <Label text="Kind:" GridPane.rowIndex="2"/>
+        <Label text="%SchemaLibraryEntryDialog.kind.text" GridPane.rowIndex="2"/>
         <ComboBox fx:id="kind" maxWidth="Infinity" GridPane.rowIndex="2" GridPane.columnIndex="1"
                   GridPane.hgrow="ALWAYS"/>
-        <Label text="Root element:" GridPane.rowIndex="3"/>
+        <Label text="%SchemaLibraryEntryDialog.root-element.text" GridPane.rowIndex="3"/>
         <TextField fx:id="rootElement"
-                   promptText="document element local name (optional, no-namespace XSD only)"
+                   promptText="%SchemaLibraryEntryDialog.rootElement.promptText"
                    GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
-        <Label text="Description:" GridPane.rowIndex="4"/>
+        <Label text="%SchemaLibraryEntryDialog.description.text" GridPane.rowIndex="4"/>
         <TextField fx:id="description" GridPane.rowIndex="4" GridPane.columnIndex="1"
                    GridPane.hgrow="ALWAYS"/>
         <Label fx:id="error" wrapText="true" styleClass="fxt-lib-error" GridPane.rowIndex="5"

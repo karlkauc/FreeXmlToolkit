@@ -70,7 +70,12 @@ The project has detailed architecture notes in [`CLAUDE.md`](https://github.com/
 [`.claude/rules/`](https://github.com/karlkauc/FreeXmlToolkit/tree/main/.claude/rules) (architecture, domain model, quick reference). The most important
 rules:
 
-- **English everywhere** — user-facing texts, comments and JavaDoc.
+- **English everywhere** — comments, JavaDoc and the source texts of the interface.
+- **Translations** — the interface texts live in `src/main/resources/i18n/messages.properties`
+  (English) and `messages_de.properties` (German). In FXML write the English text and run
+  `scripts/i18n-extract-fxml.py`: it replaces it with a `%Layout.key` reference and adds it to the
+  English bundle. In Java use `I18n.t("key")` / `I18n.t("key", args…)` (MessageFormat). Add the German
+  text for every new key — `I18nBundlesTest` fails for missing keys or mismatched placeholders.
 - **Tests** — add unit tests for new features and bug fixes; make sure existing tests still pass.
 - **UI styling** — consult [`STYLE_GUIDE.jsonc`](https://github.com/karlkauc/FreeXmlToolkit/blob/main/STYLE_GUIDE.jsonc) before changing or creating UI.
   Use the existing `-fxt-*` design tokens and CSS classes instead of hard-coded colors.

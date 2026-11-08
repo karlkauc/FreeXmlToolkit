@@ -26,76 +26,76 @@
     <children>
         <HBox spacing="6" alignment="CENTER_LEFT" styleClass="fxt-output-header">
             <children>
-                <Label text="DEBUG" styleClass="fxt-output-title" minWidth="-Infinity"/>
-                <Label fx:id="status" id="debug-status" text="Ready." styleClass="fxt-output-status"
+                <Label text="%XsltDebugPane.debug.text" styleClass="fxt-output-title" minWidth="-Infinity"/>
+                <Label fx:id="status" id="debug-status" text="%XsltDebugPane.status.text" styleClass="fxt-output-status"
                        HBox.hgrow="ALWAYS" maxWidth="Infinity" minWidth="60"/>
-                <Button fx:id="continueButton" id="debug-continue" text="Continue"
+                <Button fx:id="continueButton" id="debug-continue" text="%XsltDebugPane.continueButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onContinue">
                     <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Continue to the next breakpoint (F5)"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.continue-to-the-next-breakpoint.text"/></tooltip>
                 </Button>
-                <Button fx:id="pauseButton" id="debug-pause" text="Pause"
+                <Button fx:id="pauseButton" id="debug-pause" text="%XsltDebugPane.pauseButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onPause">
                     <graphic><IconifyIcon iconLiteral="bi-pause-fill" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Break into the running transformation at its next instruction (F6)"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.break-into-the-running-transformation.text"/></tooltip>
                 </Button>
-                <Button fx:id="stepIntoButton" id="debug-step-into" text="Step Into"
+                <Button fx:id="stepIntoButton" id="debug-step-into" text="%XsltDebugPane.stepIntoButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStepInto">
                     <graphic><IconifyIcon iconLiteral="bi-box-arrow-in-down-right" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Step into the current line (F7). Right-click or Shift+F7: choose the call to step into"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.step-into-the-current-line.text"/></tooltip>
                 </Button>
-                <Button fx:id="stepOverButton" id="debug-step-over" text="Step Over"
+                <Button fx:id="stepOverButton" id="debug-step-over" text="%XsltDebugPane.stepOverButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStepOver">
                     <graphic><IconifyIcon iconLiteral="bi-arrow-right-short" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Execute the current instruction without descending (F8)"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.execute-the-current-instruction-without.text"/></tooltip>
                 </Button>
-                <Button fx:id="stepOutButton" id="debug-step-out" text="Step Out"
+                <Button fx:id="stepOutButton" id="debug-step-out" text="%XsltDebugPane.stepOutButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStepOut">
                     <graphic><IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Run until the current template / function returns (Shift+F8)"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.run-until-the-current-template.text"/></tooltip>
                 </Button>
-                <Button fx:id="restartButton" id="debug-restart" text="Restart"
+                <Button fx:id="restartButton" id="debug-restart" text="%XsltDebugPane.restartButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onRestart">
                     <graphic><IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Run again from the start, keeping the breakpoints (re-reads the stylesheet)"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.run-again-from-the-start.text"/></tooltip>
                 </Button>
-                <Button fx:id="stopButton" id="debug-stop" text="Stop"
+                <Button fx:id="stopButton" id="debug-stop" text="%XsltDebugPane.stopButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onStop">
                     <graphic><IconifyIcon iconLiteral="bi-stop-fill" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Abort the running transformation"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.abort-the-running-transformation.text"/></tooltip>
                 </Button>
-                <CheckBox fx:id="pauseOnEntry" id="debug-pause-on-entry" text="Pause on entry" minWidth="-Infinity" onAction="#onPauseOnEntry">
-                    <tooltip><Tooltip text="Stop at the first instruction of the next run / restart"/></tooltip>
+                <CheckBox fx:id="pauseOnEntry" id="debug-pause-on-entry" text="%XsltDebugPane.pauseOnEntry.text" minWidth="-Infinity" onAction="#onPauseOnEntry">
+                    <tooltip><Tooltip text="%XsltDebugPane.stop-at-the-first-instruction.text"/></tooltip>
                 </CheckBox>
-                <ToggleButton fx:id="muteToggle" id="debug-mute" text="Mute"
+                <ToggleButton fx:id="muteToggle" id="debug-mute" text="%XsltDebugPane.muteToggle.text"
                               styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onMute">
                     <graphic><IconifyIcon iconLiteral="bi-slash-circle" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Mute all breakpoints: the run does not stop at them (steps and Pause still work)"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.mute-all-breakpoints-the-run.text"/></tooltip>
                 </ToggleButton>
-                <ToggleButton fx:id="coverageToggle" id="debug-coverage" text="Coverage"
+                <ToggleButton fx:id="coverageToggle" id="debug-coverage" text="%XsltDebugPane.coverageToggle.text"
                               styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onCoverage">
                     <graphic><IconifyIcon iconLiteral="bi-bar-chart-steps" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Coverage: from the next run on, mark the lines that ran (green) and the templates / functions that never ran (red); slows the run a little"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.coverage-from-the-next-run.text"/></tooltip>
                 </ToggleButton>
-                <Button fx:id="showButton" id="debug-show-in-editor" text="Show in editor"
+                <Button fx:id="showButton" id="debug-show-in-editor" text="%XsltDebugPane.showButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onShowInEditor">
                     <graphic><IconifyIcon iconLiteral="bi-eye" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Jump the editor to the paused line"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.jump-the-editor-to-the.text"/></tooltip>
                 </Button>
-                <Button fx:id="evaluateButton" id="debug-evaluate" text="Evaluate"
+                <Button fx:id="evaluateButton" id="debug-evaluate" text="%XsltDebugPane.evaluateButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity"
                         onAction="#onEvaluate">
                     <graphic><IconifyIcon iconLiteral="bi-calculator" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Evaluate an XPath in the selected frame (Alt+F8)"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.evaluate-an-xpath-in-the.text"/></tooltip>
                 </Button>
-                <Button fx:id="showInputButton" id="debug-show-input" text="Show input"
+                <Button fx:id="showInputButton" id="debug-show-input" text="%XsltDebugPane.showInputButton.text"
                         styleClass="fxt-sp-action, fxt-output-action, fxt-debug-icon-action" minWidth="-Infinity" onAction="#onShowInput">
                     <graphic><IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="Show the paused context node in the input document (marked blue there)"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.show-the-paused-context-node.text"/></tooltip>
                 </Button>
                 <Button fx:id="closeButton" id="debug-close" styleClass="fxt-sp-action" onAction="#onClose">
                     <graphic><IconifyIcon iconLiteral="bi-x" iconSize="14"/></graphic>
-                    <tooltip><Tooltip text="End the debug session and close this pane"/></tooltip>
+                    <tooltip><Tooltip text="%XsltDebugPane.end-the-debug-session-and.text"/></tooltip>
                 </Button>
             </children>
         </HBox>
@@ -105,10 +105,10 @@
                 <TabPane fx:id="leftTabs" id="debug-left-tabs" styleClass="fxt-analysis-tabs, fxt-debug-tabs"
                          tabClosingPolicy="UNAVAILABLE" minWidth="260">
                     <tabs>
-                        <Tab fx:id="variablesTab" id="debug-tab-variables" text="Variables" closable="false">
+                        <Tab fx:id="variablesTab" id="debug-tab-variables" text="%XsltDebugPane.variablesTab.text" closable="false">
                             <graphic><IconifyIcon iconLiteral="bi-braces" iconSize="14"/></graphic>
                         </Tab>
-                        <Tab fx:id="watchTab" id="debug-tab-watch" text="Watch" closable="false">
+                        <Tab fx:id="watchTab" id="debug-tab-watch" text="%XsltDebugPane.watchTab.text" closable="false">
                             <graphic><IconifyIcon iconLiteral="bi-eye" iconSize="14"/></graphic>
                         </Tab>
                     </tabs>
@@ -116,16 +116,16 @@
                 <TabPane fx:id="rightTabs" id="debug-right-tabs" styleClass="fxt-analysis-tabs, fxt-debug-tabs"
                          tabClosingPolicy="UNAVAILABLE" minWidth="340">
                     <tabs>
-                        <Tab fx:id="callStackTab" id="debug-tab-call-stack" text="Call Stack" closable="false">
+                        <Tab fx:id="callStackTab" id="debug-tab-call-stack" text="%XsltDebugPane.callStackTab.text" closable="false">
                             <graphic><IconifyIcon iconLiteral="bi-list-nested" iconSize="14"/></graphic>
                         </Tab>
-                        <Tab fx:id="messagesTab" id="debug-tab-messages" text="Messages" closable="false">
+                        <Tab fx:id="messagesTab" id="debug-tab-messages" text="%XsltDebugPane.messagesTab.text" closable="false">
                             <graphic><IconifyIcon iconLiteral="bi-chat-left-text" iconSize="14"/></graphic>
                         </Tab>
-                        <Tab fx:id="breakpointsTab" id="debug-tab-breakpoints" text="Breakpoints" closable="false">
+                        <Tab fx:id="breakpointsTab" id="debug-tab-breakpoints" text="%XsltDebugPane.breakpointsTab.text" closable="false">
                             <graphic><IconifyIcon iconLiteral="bi-record-circle" iconSize="14"/></graphic>
                         </Tab>
-                        <Tab fx:id="outputTab" id="debug-tab-output" text="Output" closable="false">
+                        <Tab fx:id="outputTab" id="debug-tab-output" text="%XsltDebugPane.outputTab.text" closable="false">
                             <graphic><IconifyIcon iconLiteral="bi-file-earmark-text" iconSize="14"/></graphic>
                         </Tab>
                     </tabs>

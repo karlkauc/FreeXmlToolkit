@@ -244,7 +244,11 @@ Requires `<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>`.
 
 - **Preserve View State:** Expanded/collapsed nodes must remain after edits.
 - **Workflow Continuity:** Multiple sequential actions without interruption.
-- **All User-Facing Text in English.**
+- **All User-Facing Text in English** as source text, translated into German: texts live in
+  `i18n/messages.properties` / `messages_de.properties` (`org.fxt.freexmltoolkit.i18n.I18n`; language
+  chosen at start from `-Dfxt.locale`, setting `ui.language`, or the system; tests run with `fxt.locale=en`).
+  FXML uses `%Layout.key` (run `scripts/i18n-extract-fxml.py` after adding texts), Java `I18n.t(key, args…)`;
+  `I18nBundlesTest` requires every key in both bundles. Many Java-built texts are still plain English.
 
 ## Documentation
 

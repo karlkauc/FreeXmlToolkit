@@ -161,7 +161,7 @@ public class TransformPanel extends VBox {
         fillFormatChoice();
 
         // --- PARAMETERS ----------------------------------------------------------
-        Button addParam = PanelActionList.inlineRow("Add parameter", "bi-plus-circle", () -> addParameter("", ""));
+        Button addParam = PanelActionList.inlineRow(org.fxt.freexmltoolkit.i18n.I18n.t("TransformPanel.addParameter"), "bi-plus-circle", () -> addParameter("", ""));
         addParam.setId("transform-add-parameter");
         paramsBox.getChildren().add(addParam);
 

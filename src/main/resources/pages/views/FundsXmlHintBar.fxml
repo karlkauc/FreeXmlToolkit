@@ -14,14 +14,14 @@
          xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <IconifyIcon iconLiteral="bi-lightbulb" iconSize="16" styleClass="fxt-hint-bar-icon"/>
-        <Label text="This looks like a FundsXML document. The FundsXML extension adds its schemas, examples and quality checks."
+        <Label text="%FundsXmlHintBar.this-looks-like-a-fundsxml.text"
                wrapText="true" minWidth="0" maxWidth="Infinity" styleClass="fxt-hint-bar-text"
                HBox.hgrow="ALWAYS"/>
-        <Button id="fundsxml-hint-enable" text="Enable FundsXML extensions" styleClass="fxt-primary-button"
+        <Button id="fundsxml-hint-enable" text="%FundsXmlHintBar.fundsxml-hint-enable.text" styleClass="fxt-primary-button"
                 onAction="#onEnable">
             <graphic><IconifyIcon iconLiteral="bi-toggle-on" iconSize="16"/></graphic>
         </Button>
-        <Button id="fundsxml-hint-dismiss" text="Not now" styleClass="fxt-tool-button, fxt-tool-neutral"
+        <Button id="fundsxml-hint-dismiss" text="%FundsXmlHintBar.fundsxml-hint-dismiss.text" styleClass="fxt-tool-button, fxt-tool-neutral"
                 onAction="#onDismiss"/>
     </children>
 </fx:root>

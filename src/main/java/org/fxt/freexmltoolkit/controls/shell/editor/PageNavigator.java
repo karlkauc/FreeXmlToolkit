@@ -63,7 +63,7 @@ public final class PageNavigator extends VBox {
         if (searchable) {
             filter = new TextField();
             filter.setId(idPrefix + "-nav-filter");
-            filter.setPromptText("Search " + title.toLowerCase(Locale.ROOT) + "…");
+            filter.setPromptText(org.fxt.freexmltoolkit.i18n.I18n.t("PageNavigator.search", title.toLowerCase(Locale.ROOT)));
             filter.textProperty().addListener((obs, oldV, query) -> applyFilter(query));
             body.getChildren().add(filter);
         } else {

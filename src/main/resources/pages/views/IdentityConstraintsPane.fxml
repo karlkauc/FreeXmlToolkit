@@ -24,15 +24,15 @@
     <children>
         <HBox spacing="4" alignment="CENTER_LEFT" styleClass="fxt-overview-toolbar">
             <children>
-                <MenuButton fx:id="addButton" styleClass="fxt-tool-button" id="overview-constraint-add" text="Add">
+                <MenuButton fx:id="addButton" styleClass="fxt-tool-button" id="overview-constraint-add" text="%IdentityConstraintsPane.addButton.text">
                     <graphic>
                         <IconifyIcon fx:id="addIcon" iconLiteral="bi-plus-lg" iconSize="16"/>
                     </graphic>
                     <items>
-                        <MenuItem fx:id="addKey" id="overview-constraint-add-key" text="Key" onAction="#onAddKey"/>
-                        <MenuItem fx:id="addUnique" id="overview-constraint-add-unique" text="Unique"
+                        <MenuItem fx:id="addKey" id="overview-constraint-add-key" text="%IdentityConstraintsPane.addKey.text" onAction="#onAddKey"/>
+                        <MenuItem fx:id="addUnique" id="overview-constraint-add-unique" text="%IdentityConstraintsPane.addUnique.text"
                                   onAction="#onAddUnique"/>
-                        <MenuItem fx:id="addKeyRef" id="overview-constraint-add-keyref" text="Keyref"
+                        <MenuItem fx:id="addKeyRef" id="overview-constraint-add-keyref" text="%IdentityConstraintsPane.addKeyRef.text"
                                   onAction="#onAddKeyRef"/>
                     </items>
                 </MenuButton>
@@ -41,19 +41,19 @@
                         <IconifyIcon fx:id="deleteIcon" iconLiteral="bi-trash" iconSize="16"/>
                     </graphic>
                 </Button>
-                <Label text="Fields: separate several XPaths with commas." styleClass="fxt-placeholder-text"/>
+                <Label text="%IdentityConstraintsPane.fields-separate-several-xpaths-with.text" styleClass="fxt-placeholder-text"/>
             </children>
         </HBox>
         <TableView fx:id="constraintTable" styleClass="fxt-analysis-table" id="overview-constraints" editable="true" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="kindColumn" text="Kind" prefWidth="80" editable="false" sortable="false"/>
-                <TableColumn fx:id="nameColumn" text="Name" prefWidth="150" sortable="false"/>
-                <TableColumn fx:id="selectorColumn" text="Selector" prefWidth="200" sortable="false"/>
-                <TableColumn fx:id="fieldsColumn" text="Fields" prefWidth="200" sortable="false"/>
-                <TableColumn fx:id="referColumn" text="Refer" prefWidth="150" sortable="false"/>
+                <TableColumn fx:id="kindColumn" text="%IdentityConstraintsPane.kindColumn.text" prefWidth="80" editable="false" sortable="false"/>
+                <TableColumn fx:id="nameColumn" text="%IdentityConstraintsPane.nameColumn.text" prefWidth="150" sortable="false"/>
+                <TableColumn fx:id="selectorColumn" text="%IdentityConstraintsPane.selectorColumn.text" prefWidth="200" sortable="false"/>
+                <TableColumn fx:id="fieldsColumn" text="%IdentityConstraintsPane.fieldsColumn.text" prefWidth="200" sortable="false"/>
+                <TableColumn fx:id="referColumn" text="%IdentityConstraintsPane.referColumn.text" prefWidth="150" sortable="false"/>
             </columns>
             <placeholder>
-                <Label text="No identity constraints." styleClass="fxt-placeholder-text"/>
+                <Label text="%IdentityConstraintsPane.no-identity-constraints.text" styleClass="fxt-placeholder-text"/>
             </placeholder>
         </TableView>
     </children>

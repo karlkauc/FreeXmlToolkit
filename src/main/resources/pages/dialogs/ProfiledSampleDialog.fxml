@@ -27,47 +27,47 @@
         <!-- Saved-profile selector with Load / Save As… -->
         <HBox spacing="8" alignment="CENTER_LEFT">
             <children>
-                <Label text="Profile:"/>
-                <ComboBox fx:id="profileCombo" promptText="(saved profiles)"/>
-                <Button text="Load" onAction="#onLoadProfile"/>
-                <Button text="Save As…" onAction="#onSaveProfile"/>
+                <Label text="%ProfiledSampleDialog.profile.text"/>
+                <ComboBox fx:id="profileCombo" promptText="%ProfiledSampleDialog.profileCombo.promptText"/>
+                <Button text="%ProfiledSampleDialog.load.text" onAction="#onLoadProfile"/>
+                <Button text="%ProfiledSampleDialog.save-as.text" onAction="#onSaveProfile"/>
             </children>
         </HBox>
 
-        <Label text="Per-XPath generation rules:"/>
+        <Label text="%ProfiledSampleDialog.per-xpath-generation-rules.text"/>
         <TableView fx:id="table" editable="true" prefHeight="320" prefWidth="640" VBox.vgrow="ALWAYS">
             <columnResizePolicy>
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
             </columnResizePolicy>
             <columns>
-                <TableColumn fx:id="xpathCol" text="XPath" editable="false"/>
-                <TableColumn fx:id="typeCol" text="Type" editable="false" maxWidth="140"/>
-                <TableColumn fx:id="stratCol" text="Strategy" maxWidth="170"/>
-                <TableColumn fx:id="configCol" text="Value / Pattern"/>
+                <TableColumn fx:id="xpathCol" text="%ProfiledSampleDialog.xpathCol.text" editable="false"/>
+                <TableColumn fx:id="typeCol" text="%ProfiledSampleDialog.typeCol.text" editable="false" maxWidth="140"/>
+                <TableColumn fx:id="stratCol" text="%ProfiledSampleDialog.stratCol.text" maxWidth="170"/>
+                <TableColumn fx:id="configCol" text="%ProfiledSampleDialog.configCol.text"/>
             </columns>
         </TableView>
 
-        <Label text="Set a strategy per XPath. Config: FIXED=value · SEQUENCE/TEMPLATE=pattern (e.g. ORD-{seq:4}) · RANDOM_FROM_LIST=comma list · XPATH_REF=source xpath."
+        <Label text="%ProfiledSampleDialog.set-a-strategy-per-xpath.text"
                wrapText="true" styleClass="fxt-inspector-hint"/>
 
         <GridPane hgap="10" vgap="8">
             <children>
-                <CheckBox fx:id="mandatoryOnly" text="Only mandatory elements" GridPane.rowIndex="0"
+                <CheckBox fx:id="mandatoryOnly" text="%ProfiledSampleDialog.mandatoryOnly.text" GridPane.rowIndex="0"
                           GridPane.columnSpan="2"/>
-                <Label text="Max. repetitions:" GridPane.rowIndex="1"/>
+                <Label text="%ProfiledSampleDialog.max-repetitions.text" GridPane.rowIndex="1"/>
                 <Spinner fx:id="maxOccurrences" editable="true" GridPane.rowIndex="1" GridPane.columnIndex="1">
                     <valueFactory>
                         <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="50" initialValue="2"/>
                     </valueFactory>
                 </Spinner>
-                <Label text="Batch count:" GridPane.rowIndex="2"/>
+                <Label text="%ProfiledSampleDialog.batch-count.text" GridPane.rowIndex="2"/>
                 <Spinner fx:id="batchCount" editable="true" GridPane.rowIndex="2" GridPane.columnIndex="1">
                     <valueFactory>
                         <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="1000" initialValue="1"/>
                     </valueFactory>
                 </Spinner>
-                <Label text="File name pattern:" GridPane.rowIndex="3"/>
-                <TextField fx:id="fileNamePattern" text="sample_{seq:3}.xml" GridPane.rowIndex="3"
+                <Label text="%ProfiledSampleDialog.file-name-pattern.text" GridPane.rowIndex="3"/>
+                <TextField fx:id="fileNamePattern" text="%ProfiledSampleDialog.fileNamePattern.text" GridPane.rowIndex="3"
                            GridPane.columnIndex="1"/>
             </children>
         </GridPane>

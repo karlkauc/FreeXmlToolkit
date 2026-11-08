@@ -29,10 +29,10 @@
             <children>
                 <Label fx:id="status" styleClass="fxt-placeholder-text"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Max nesting" styleClass="fxt-analysis-key"/>
+                <Label text="%QualitySection.max-nesting.text" styleClass="fxt-analysis-key"/>
                 <Spinner fx:id="nestingLimit" id="analysis-quality-nesting-limit" editable="true" prefWidth="76">
                     <tooltip>
-                        <Tooltip text="Deep-nesting limit: elements nested more than this many element levels inside one declaration are reported. Changing it re-runs the analysis."/>
+                        <Tooltip text="%QualitySection.deep-nesting-limit-elements-nested.text"/>
                     </tooltip>
                 </Spinner>
             </children>
@@ -50,13 +50,13 @@
                 </VBox>
                 <VBox spacing="6" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                     <children>
-                        <Label text="ISSUES BY SEVERITY" styleClass="fxt-analysis-group-title"/>
+                        <Label text="%QualitySection.issues-by-severity.text" styleClass="fxt-analysis-group-title"/>
                         <FlowPane fx:id="severityChips" id="analysis-quality-severity-chips" hgap="6" vgap="6"
                                   alignment="CENTER_LEFT"/>
-                        <Label text="ISSUES BY CATEGORY" styleClass="fxt-analysis-group-title"/>
+                        <Label text="%QualitySection.issues-by-category.text" styleClass="fxt-analysis-group-title"/>
                         <FlowPane fx:id="categoryChips" id="analysis-quality-category-chips" hgap="6" vgap="6"
                                   alignment="CENTER_LEFT"/>
-                        <Label text="NAMING CONVENTIONS" styleClass="fxt-analysis-group-title"/>
+                        <Label text="%QualitySection.naming-conventions.text" styleClass="fxt-analysis-group-title"/>
                         <FlowPane fx:id="namingChips" id="analysis-quality-naming" hgap="6" vgap="6"
                                   alignment="CENTER_LEFT"/>
                     </children>
@@ -71,13 +71,13 @@
                         <IconifyIcon iconLiteral="bi-funnel" iconSize="14"/>
                     </graphic>
                 </Label>
-                <Label text="Severity" styleClass="fxt-analysis-key"/>
+                <Label text="%QualitySection.severity.text" styleClass="fxt-analysis-key"/>
                 <ComboBox fx:id="severityFilter" id="analysis-quality-severity"/>
-                <Label text="Category" styleClass="fxt-analysis-key"/>
+                <Label text="%QualitySection.category.text" styleClass="fxt-analysis-key"/>
                 <ComboBox fx:id="categoryFilter" id="analysis-quality-category"/>
-                <TextField fx:id="search" id="analysis-quality-search" promptText="Search issues…"
+                <TextField fx:id="search" id="analysis-quality-search" promptText="%QualitySection.search.promptText"
                            prefWidth="220"/>
-                <Button text="Clear" styleClass="fxt-tool-button" onAction="#onClearFilters">
+                <Button text="%QualitySection.clear.text" styleClass="fxt-tool-button" onAction="#onClearFilters">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
                     </graphic>
@@ -89,14 +89,14 @@
 
         <TableView fx:id="table" id="analysis-quality-table" styleClass="fxt-analysis-table" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="severityColumn" text="Severity" prefWidth="110"/>
-                <TableColumn fx:id="categoryColumn" text="Category" prefWidth="170"/>
-                <TableColumn fx:id="messageColumn" text="Message" prefWidth="420"/>
-                <TableColumn fx:id="fileColumn" text="File" prefWidth="100"/>
-                <TableColumn fx:id="locationColumn" text="Location"/>
+                <TableColumn fx:id="severityColumn" text="%QualitySection.severityColumn.text" prefWidth="110"/>
+                <TableColumn fx:id="categoryColumn" text="%QualitySection.categoryColumn.text" prefWidth="170"/>
+                <TableColumn fx:id="messageColumn" text="%QualitySection.messageColumn.text" prefWidth="420"/>
+                <TableColumn fx:id="fileColumn" text="%QualitySection.fileColumn.text" prefWidth="100"/>
+                <TableColumn fx:id="locationColumn" text="%QualitySection.locationColumn.text"/>
             </columns>
             <placeholder>
-                <Label text="No quality issues found." styleClass="fxt-analysis-empty"/>
+                <Label text="%QualitySection.no-quality-issues-found.text" styleClass="fxt-analysis-empty"/>
             </placeholder>
         </TableView>
 

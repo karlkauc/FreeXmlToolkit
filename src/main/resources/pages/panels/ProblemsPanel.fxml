@@ -19,7 +19,7 @@
     <children>
         <HBox spacing="10" alignment="CENTER_LEFT" styleClass="fxt-problems-header">
             <children>
-                <Label text="PROBLEMS" styleClass="fxt-problems-title"/>
+                <Label text="%ProblemsPanel.problems.text" styleClass="fxt-problems-title"/>
                 <Label fx:id="errorChip" styleClass="fxt-problems-chip-error">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-x-circle" iconSize="13"/>

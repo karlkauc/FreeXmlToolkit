@@ -17,14 +17,14 @@
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
-        <Label fx:id="namespaceLabel" text="Namespace" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label fx:id="namespaceLabel" text="%SchemaReferenceDialog.namespaceLabel.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
         <TextField fx:id="namespaceField" id="schema-reference-namespace" prefColumnCount="34"
-                   promptText="(no namespace)" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                   promptText="%SchemaReferenceDialog.namespaceField.promptText" GridPane.rowIndex="0" GridPane.columnIndex="1"
                    GridPane.columnSpan="2"/>
-        <Label text="Schema location" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Label text="%SchemaReferenceDialog.schema-location.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <TextField fx:id="locationField" id="schema-reference-location" prefColumnCount="28"
                    GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Button text="Browse…" id="schema-reference-browse" onAction="#onBrowse"
+        <Button text="%SchemaReferenceDialog.schema-reference-browse.text" id="schema-reference-browse" onAction="#onBrowse"
                 GridPane.rowIndex="1" GridPane.columnIndex="2">
             <graphic>
                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>

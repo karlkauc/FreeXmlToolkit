@@ -69,7 +69,7 @@ public final class SourceRow extends VBox {
         // Text-only: the head line already carries the file-type icon and up to five extras
         // (favourites, browse arrows), so the button must stay narrow; its outline keeps
         // it recognisable as a button.
-        change = PanelActionList.inlineRow("Change", null, this::fireChange);
+        change = PanelActionList.inlineRow(org.fxt.freexmltoolkit.i18n.I18n.t("SourceRow.change"), null, this::fireChange);
         // Tight spacing: the head line can carry up to five extras (recent, star, ◀ pos ▶).
         head = new HBox(4, icon, captionLabel, spacer, change);
         head.getStyleClass().add("fxt-vp-source-head");

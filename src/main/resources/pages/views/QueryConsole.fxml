@@ -37,40 +37,40 @@
             <children>
                 <HBox spacing="8" alignment="CENTER_LEFT">
                     <children>
-                        <Label text="QUERY" minWidth="-Infinity" styleClass="fxt-side-panel-title"/>
+                        <Label text="%QueryConsole.query.text" minWidth="-Infinity" styleClass="fxt-side-panel-title"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="runButton" text="Run" minWidth="-Infinity" styleClass="fxt-tool-button" onAction="#run">
+                        <Button fx:id="runButton" text="%QueryConsole.runButton.text" minWidth="-Infinity" styleClass="fxt-tool-button" onAction="#run">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-play-fill" iconSize="16"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Run the query against the active document (Ctrl+Enter)"/>
+                                <Tooltip text="%QueryConsole.run-the-query-against-the.text"/>
                             </tooltip>
                         </Button>
-                        <Button text="Save" minWidth="-Infinity" styleClass="fxt-tool-button" onAction="#saveSnippet">
+                        <Button text="%QueryConsole.save.text" minWidth="-Infinity" styleClass="fxt-tool-button" onAction="#saveSnippet">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-save" iconSize="16"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Save the current query as a reusable snippet"/>
+                                <Tooltip text="%QueryConsole.save-the-current-query-as.text"/>
                             </tooltip>
                         </Button>
-                        <MenuButton minWidth="-Infinity" fx:id="snippetsMenu" text="Snippets" styleClass="fxt-tool-button"
+                        <MenuButton minWidth="-Infinity" fx:id="snippetsMenu" text="%QueryConsole.snippetsMenu.text" styleClass="fxt-tool-button"
                                     onShowing="#onSnippetsShowing">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Load a saved XPath/XQuery snippet"/>
+                                <Tooltip text="%QueryConsole.load-a-saved-xpath-xquery.text"/>
                             </tooltip>
                         </MenuButton>
-                        <MenuButton minWidth="-Infinity" fx:id="examplesMenu" id="query-examples" text="Examples"
+                        <MenuButton minWidth="-Infinity" fx:id="examplesMenu" id="query-examples" text="%QueryConsole.examplesMenu.text"
                                     styleClass="fxt-tool-button">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-lightbulb" iconSize="16"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Insert a built-in XQuery example"/>
+                                <Tooltip text="%QueryConsole.insert-a-built-in-xquery.text"/>
                             </tooltip>
                         </MenuButton>
                     </children>
@@ -81,36 +81,36 @@
                     <children>
                         <HBox styleClass="fxt-view-switch" minWidth="-Infinity" maxWidth="-Infinity">
                             <children>
-                                <ToggleButton fx:id="xpathToggle" id="query-mode-xpath" text="XPath" toggleGroup="$modeGroup"
+                                <ToggleButton fx:id="xpathToggle" id="query-mode-xpath" text="%QueryConsole.xpathToggle.text" toggleGroup="$modeGroup"
                                               selected="true" focusTraversable="false" styleClass="fxt-view-seg">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-signpost-split" iconSize="13"/>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="Evaluate an XPath expression against the active document"/>
+                                        <Tooltip text="%QueryConsole.evaluate-an-xpath-expression-against.text"/>
                                     </tooltip>
                                 </ToggleButton>
-                                <ToggleButton fx:id="xqueryToggle" id="query-mode-xquery" text="XQuery" toggleGroup="$modeGroup"
+                                <ToggleButton fx:id="xqueryToggle" id="query-mode-xquery" text="%QueryConsole.xqueryToggle.text" toggleGroup="$modeGroup"
                                               focusTraversable="false" styleClass="fxt-view-seg">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-code-square" iconSize="13"/>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="Run an XQuery script against the active document"/>
+                                        <Tooltip text="%QueryConsole.run-an-xquery-script-against.text"/>
                                     </tooltip>
                                 </ToggleButton>
                             </children>
                         </HBox>
                         <Label fx:id="target" styleClass="fxt-toolbar-status">
                             <tooltip>
-                                <Tooltip text="The query runs against the active document"/>
+                                <Tooltip text="%QueryConsole.the-query-runs-against-the.text"/>
                             </tooltip>
                         </Label>
                     </children>
                 </HBox>
                 <StackPane fx:id="inputStack" maxHeight="Infinity" VBox.vgrow="ALWAYS"/>
                 <!-- Enter adds a line (queries can span lines); say how to run (UX plan 7) -->
-                <Label fx:id="runHint" id="query-run-hint" text="Ctrl+Enter runs the query · Enter adds a line"
+                <Label fx:id="runHint" id="query-run-hint" text="%QueryConsole.runHint.text"
                        styleClass="fxt-placeholder-text"/>
             </children>
         </VBox>
@@ -122,32 +122,32 @@
             <children>
                 <HBox spacing="8" alignment="CENTER_LEFT">
                     <children>
-                        <Label text="RESULTS" styleClass="fxt-side-panel-title"/>
+                        <Label text="%QueryConsole.results.text" styleClass="fxt-side-panel-title"/>
                         <Label fx:id="statsLabel" styleClass="fxt-output-status"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button fx:id="tableButton" id="query-show-table" text="Table" styleClass="fxt-tool-button"
+                        <Button fx:id="tableButton" id="query-show-table" text="%QueryConsole.tableButton.text" styleClass="fxt-tool-button"
                                 disable="true" onAction="#onShowTable">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-table" iconSize="16"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Show the XQuery result as a table in the OUTPUT panel"/>
+                                <Tooltip text="%QueryConsole.show-the-xquery-result-as.text"/>
                             </tooltip>
                         </Button>
-                        <Button text="Copy" styleClass="fxt-tool-button" onAction="#onCopyResults">
+                        <Button text="%QueryConsole.copy.text" styleClass="fxt-tool-button" onAction="#onCopyResults">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-clipboard" iconSize="16"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Copy the full result to the clipboard"/>
+                                <Tooltip text="%QueryConsole.copy-the-full-result-to.text"/>
                             </tooltip>
                         </Button>
-                        <Button text="Save" styleClass="fxt-tool-button" onAction="#saveResults">
+                        <Button text="%QueryConsole.save.text-2" styleClass="fxt-tool-button" onAction="#saveResults">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-save" iconSize="16"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Save the result to a file"/>
+                                <Tooltip text="%QueryConsole.save-the-result-to-a.text"/>
                             </tooltip>
                         </Button>
                         <!-- Top right of the console: closes it (same as Ctrl+Shift+X). -->
@@ -156,7 +156,7 @@
                                 <IconifyIcon iconLiteral="bi-x-lg" iconSize="16"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Close the query console"/>
+                                <Tooltip text="%QueryConsole.close-the-query-console.text"/>
                             </tooltip>
                         </Button>
                     </children>

@@ -78,7 +78,7 @@ public class EditorWelcomePane extends VBox {
         this.onAction = onAction;
         FxmlViews.load(this, "/pages/views/EditorWelcomePane.fxml");
 
-        versionBadge.setText("v" + VersionUtil.getVersion() + " · up to date");
+        versionBadge.setText(org.fxt.freexmltoolkit.i18n.I18n.t("Welcome.version", VersionUtil.getVersion()));
         sponsorBanner.getChildren().add(0, ProjectLinks.sponsorIcon(16));
         fillTrend();
 

@@ -46,10 +46,10 @@
                                 </StackPane>
                                 <VBox spacing="6" alignment="CENTER_LEFT">
                                     <children>
-                                        <Label text="Welcome to FreeXmlToolkit" styleClass="fxt-welcome-hero-title"/>
+                                        <Label text="%EditorWelcomePane.welcome-to-freexmltoolkit.text" styleClass="fxt-welcome-hero-title"/>
                                         <HBox spacing="10" alignment="CENTER_LEFT">
                                             <children>
-                                                <Label text="The modern XML · XSD · XSLT · Schematron workbench"
+                                                <Label text="%EditorWelcomePane.the-modern-xml-xsd-xslt.text"
                                                        styleClass="fxt-welcome-hero-subtitle"/>
                                                 <Label fx:id="versionBadge" styleClass="fxt-welcome-version-badge">
                                                     <graphic>
@@ -66,21 +66,21 @@
                         <!-- Quick actions -->
                         <HBox spacing="16">
                             <children>
-                                <WelcomeQuickCard id="welcome-new" iconLiteral="bi-file-earmark-plus" title="New File"
-                                                  subtitle="XML · XSD · XSLT" primary="true" HBox.hgrow="ALWAYS"
+                                <WelcomeQuickCard id="welcome-new" iconLiteral="bi-file-earmark-plus" title="%EditorWelcomePane.welcome-new.title"
+                                                  subtitle="%EditorWelcomePane.welcome-new.subtitle" primary="true" HBox.hgrow="ALWAYS"
                                                   onAction="#onNew"/>
-                                <WelcomeQuickCard id="welcome-open" iconLiteral="bi-folder2-open" title="Open File"
-                                                  subtitle="Browse your disk" HBox.hgrow="ALWAYS" onAction="#onOpen"/>
-                                <WelcomeQuickCard id="welcome-openfolder" iconLiteral="bi-folder" title="Open Folder"
-                                                  subtitle="Open a workspace" userData="open-folder"
+                                <WelcomeQuickCard id="welcome-open" iconLiteral="bi-folder2-open" title="%EditorWelcomePane.welcome-open.title"
+                                                  subtitle="%EditorWelcomePane.welcome-open.subtitle" HBox.hgrow="ALWAYS" onAction="#onOpen"/>
+                                <WelcomeQuickCard id="welcome-openfolder" iconLiteral="bi-folder" title="%EditorWelcomePane.welcome-openfolder.title"
+                                                  subtitle="%EditorWelcomePane.welcome-openfolder.subtitle" userData="open-folder"
                                                   HBox.hgrow="ALWAYS" onAction="#onCardAction"/>
-                                <WelcomeQuickCard id="welcome-url" iconLiteral="bi-box-arrow-up-right" title="From URL"
-                                                  subtitle="Fetch &amp; open" userData="from-url" HBox.hgrow="ALWAYS"
+                                <WelcomeQuickCard id="welcome-url" iconLiteral="bi-box-arrow-up-right" title="%EditorWelcomePane.welcome-url.title"
+                                                  subtitle="%EditorWelcomePane.welcome-url.subtitle" userData="from-url" HBox.hgrow="ALWAYS"
                                                   onAction="#onCardAction"/>
                                 <!-- First start only (no recent files yet): a small XML + XSD + XSLT to try -->
                                 <WelcomeQuickCard fx:id="exampleCard" id="welcome-example"
-                                                  iconLiteral="bi-file-earmark-play" title="Open an Example"
-                                                  subtitle="XML with schema &amp; stylesheet" userData="open-example"
+                                                  iconLiteral="bi-file-earmark-play" title="%EditorWelcomePane.exampleCard.title"
+                                                  subtitle="%EditorWelcomePane.exampleCard.subtitle" userData="open-example"
                                                   HBox.hgrow="ALWAYS" onAction="#onCardAction"/>
                             </children>
                         </HBox>
@@ -88,21 +88,21 @@
                         <!-- FundsXML quick access: hidden until the extension is active and content is cached -->
                         <VBox fx:id="fundsXmlSection" spacing="12" visible="false" managed="false">
                             <children>
-                                <Label text="FUNDSXML" styleClass="fxt-welcome-section-title"/>
+                                <Label text="%EditorWelcomePane.fundsxml.text" styleClass="fxt-welcome-section-title"/>
                                 <HBox spacing="16">
                                     <children>
                                         <WelcomeQuickCard id="welcome-fundsxml-example"
-                                                          iconLiteral="bi-file-earmark-play" title="Open Example"
-                                                          subtitle="Starter FundsXML sample"
+                                                          iconLiteral="bi-file-earmark-play" title="%EditorWelcomePane.welcome-fundsxml-example.title"
+                                                          subtitle="%EditorWelcomePane.welcome-fundsxml-example.subtitle"
                                                           userData="fundsxml-open-example" HBox.hgrow="ALWAYS"
                                                           onAction="#onCardAction"/>
                                         <WelcomeQuickCard id="welcome-fundsxml-schema"
-                                                          iconLiteral="bi-file-earmark-code" title="Open Schema"
-                                                          subtitle="FundsXML4.xsd in the editor"
+                                                          iconLiteral="bi-file-earmark-code" title="%EditorWelcomePane.welcome-fundsxml-schema.title"
+                                                          subtitle="%EditorWelcomePane.welcome-fundsxml-schema.subtitle"
                                                           userData="fundsxml-open-schema" HBox.hgrow="ALWAYS"
                                                           onAction="#onCardAction"/>
                                         <WelcomeQuickCard id="welcome-fundsxml-browse" iconLiteral="bi-folder2-open"
-                                                          title="Browse Examples" subtitle="Cached example files"
+                                                          title="%EditorWelcomePane.welcome-fundsxml-browse.title" subtitle="%EditorWelcomePane.welcome-fundsxml-browse.subtitle"
                                                           userData="fundsxml-browse-examples" HBox.hgrow="ALWAYS"
                                                           onAction="#onCardAction"/>
                                     </children>
@@ -114,14 +114,14 @@
                         <HBox fx:id="statsRow" spacing="16">
                             <children>
                                 <WelcomeStatCard fx:id="recentStat" numberId="welcome-stat-recent"
-                                                 iconLiteral="bi-clock-history" caption="Recent files"
+                                                 iconLiteral="bi-clock-history" caption="%EditorWelcomePane.recentStat.caption"
                                                  HBox.hgrow="ALWAYS"/>
                                 <WelcomeStatCard fx:id="favoritesStat" numberId="welcome-stat-favorites"
-                                                 iconLiteral="bi-star" caption="Favorites" HBox.hgrow="ALWAYS"/>
+                                                 iconLiteral="bi-star" caption="%EditorWelcomePane.favoritesStat.caption" HBox.hgrow="ALWAYS"/>
                                 <WelcomeStatCard fx:id="templatesStat" numberId="welcome-stat-templates"
-                                                 iconLiteral="bi-collection" caption="Templates" HBox.hgrow="ALWAYS"/>
+                                                 iconLiteral="bi-collection" caption="%EditorWelcomePane.templatesStat.caption" HBox.hgrow="ALWAYS"/>
                                 <WelcomeStatCard fx:id="queriesStat" numberId="welcome-stat-queries"
-                                                 iconLiteral="bi-braces" caption="Saved queries" HBox.hgrow="ALWAYS"/>
+                                                 iconLiteral="bi-braces" caption="%EditorWelcomePane.queriesStat.caption" HBox.hgrow="ALWAYS"/>
                             </children>
                         </HBox>
 
@@ -129,7 +129,7 @@
                              shown only when the last 7 days recorded any activity (UX plan 5.1) -->
                         <VBox fx:id="trendBox" spacing="8" styleClass="fxt-welcome-trend">
                             <children>
-                                <Label text="ACTIVITY (LAST 7 DAYS)" styleClass="fxt-side-panel-title"/>
+                                <Label text="%EditorWelcomePane.activity-last-7-days.text" styleClass="fxt-side-panel-title"/>
                                 <Pane minWidth="220" minHeight="40" prefWidth="220" prefHeight="40" maxWidth="220"
                                       maxHeight="40">
                                     <children>
@@ -144,7 +144,7 @@
                         <HBox spacing="10" alignment="CENTER_LEFT" styleClass="fxt-welcome-tips">
                             <children>
                                 <IconifyIcon iconLiteral="bi-lightbulb" iconSize="16"/>
-                                <Label text="Tip: drag a file onto the window to open it · Ctrl+F to find, Ctrl+H to replace · drop an XSD on an XML to bind it for validation."
+                                <Label text="%EditorWelcomePane.tip-drag-a-file-onto.text"
                                        wrapText="true"/>
                             </children>
                         </HBox>
@@ -153,9 +153,9 @@
                         <HBox fx:id="sponsorBanner" spacing="10" alignment="CENTER_LEFT"
                               styleClass="fxt-welcome-sponsor">
                             <children>
-                                <Label text="FreeXmlToolkit is free and open source. If it saves you time, consider sponsoring its development."
+                                <Label text="%EditorWelcomePane.freexmltoolkit-is-free-and-open.text"
                                        wrapText="true"/>
-                                <Hyperlink id="welcome-sponsor" text="Sponsor on GitHub" onAction="#onSponsor"/>
+                                <Hyperlink id="welcome-sponsor" text="%EditorWelcomePane.welcome-sponsor.text" onAction="#onSponsor"/>
                             </children>
                         </HBox>
 
@@ -166,16 +166,16 @@
                                     <children>
                                         <HBox alignment="CENTER_LEFT">
                                             <children>
-                                                <Label text="Recent files" styleClass="fxt-welcome-section-title"/>
+                                                <Label text="%EditorWelcomePane.recent-files.text" styleClass="fxt-welcome-section-title"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
-                                                <Hyperlink id="welcome-clear" text="Clear"
+                                                <Hyperlink id="welcome-clear" text="%EditorWelcomePane.welcome-clear.text"
                                                            styleClass="fxt-welcome-clear" onAction="#onClearRecent"/>
                                             </children>
                                         </HBox>
                                         <ListView fx:id="recentList" styleClass="fxt-welcome-recent"
                                                   VBox.vgrow="ALWAYS">
                                             <placeholder>
-                                                <Label text="No recent files yet. Files you open or create appear here — start with Open File or New File above."
+                                                <Label text="%EditorWelcomePane.no-recent-files-yet-files.text"
                                                        wrapText="true" styleClass="fxt-placeholder-text"/>
                                             </placeholder>
                                         </ListView>
@@ -187,32 +187,32 @@
                                      repeated the Activity Bar. -->
                                 <VBox spacing="12" maxWidth="Infinity" HBox.hgrow="ALWAYS">
                                     <children>
-                                        <Label text="What do you want to do?" styleClass="fxt-welcome-section-title"/>
+                                        <Label text="%EditorWelcomePane.what-do-you-want-to.text" styleClass="fxt-welcome-section-title"/>
                                         <VBox fx:id="taskList" id="welcome-tasks" spacing="8">
                                             <children>
                                                 <WelcomeToolCard id="task-validate" activity="validation"
-                                                                 iconLiteral="bi-check2-circle" title="Validate an XML file"
-                                                                 subtitle="Pick a file, then check it against its XSD or Schematron" userData="task-validate"
+                                                                 iconLiteral="bi-check2-circle" title="%EditorWelcomePane.task-validate.title"
+                                                                 subtitle="%EditorWelcomePane.task-validate.subtitle" userData="task-validate"
                                                                  onAction="#onCardAction"/>
                                                 <WelcomeToolCard id="task-transform" activity="transform"
-                                                                 iconLiteral="bi-arrow-left-right" title="Run an XSLT transformation"
-                                                                 subtitle="Pick an XML file, then choose a stylesheet" userData="task-transform"
+                                                                 iconLiteral="bi-arrow-left-right" title="%EditorWelcomePane.task-transform.title"
+                                                                 subtitle="%EditorWelcomePane.task-transform.subtitle" userData="task-transform"
                                                                  onAction="#onCardAction"/>
                                                 <WelcomeToolCard id="task-query" activity="search"
-                                                                 iconLiteral="bi-terminal" title="Query a document"
-                                                                 subtitle="Pick an XML file and run XPath or XQuery in the Query Console" userData="task-query"
+                                                                 iconLiteral="bi-terminal" title="%EditorWelcomePane.task-query.title"
+                                                                 subtitle="%EditorWelcomePane.task-query.subtitle" userData="task-query"
                                                                  onAction="#onCardAction"/>
                                                 <WelcomeToolCard id="task-schema" activity="schema"
-                                                                 iconLiteral="bi-diagram-3" title="Edit a schema"
-                                                                 subtitle="Open an XSD, then edit it as text, tree or diagram" userData="task-schema"
+                                                                 iconLiteral="bi-diagram-3" title="%EditorWelcomePane.task-schema.title"
+                                                                 subtitle="%EditorWelcomePane.task-schema.subtitle" userData="task-schema"
                                                                  onAction="#onCardAction"/>
                                                 <WelcomeToolCard id="task-pdf" activity="pdf"
-                                                                 iconLiteral="bi-file-earmark-pdf" title="Create a PDF"
-                                                                 subtitle="Pick an XML file, then render it with an XSL-FO stylesheet" userData="task-pdf"
+                                                                 iconLiteral="bi-file-earmark-pdf" title="%EditorWelcomePane.task-pdf.title"
+                                                                 subtitle="%EditorWelcomePane.task-pdf.subtitle" userData="task-pdf"
                                                                  onAction="#onCardAction"/>
                                                 <WelcomeToolCard id="task-sign" activity="signature"
-                                                                 iconLiteral="bi-shield-lock" title="Sign or verify a document"
-                                                                 subtitle="XML digital signatures with your keystore" userData="task-sign"
+                                                                 iconLiteral="bi-shield-lock" title="%EditorWelcomePane.task-sign.title"
+                                                                 subtitle="%EditorWelcomePane.task-sign.subtitle" userData="task-sign"
                                                                  onAction="#onCardAction"/>
                                             </children>
                                         </VBox>

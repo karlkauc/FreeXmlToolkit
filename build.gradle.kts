@@ -238,6 +238,8 @@ tasks {
         // Tests never write downloaded schemas next to their fixtures (LocalSchemaCopies);
         // the tests of that feature switch it on themselves.
         systemProperty("fxt.schema.localCopies", "false")
+        // Tests see the English texts whatever the machine's language
+        systemProperty("fxt.locale", "en")
         // Telemetry kill switch: tests must never record or send anonymous usage/error
         // telemetry (TelemetryServiceImpl.isKillSwitchActive). Applies to every Test task
         // (test, docScreenshots, perfBenchmark, sampleXmlAudit).

@@ -21,17 +21,17 @@
     </padding>
     <children>
         <Label wrapText="true" minHeight="-Infinity"
-               text="Describe what you were doing when the problem occurred. The report is sent anonymously to the FreeXmlToolkit developers. File names, paths and document content are never included."/>
-        <Label text="Description:"/>
+               text="%ErrorReportDialog.describe-what-you-were-doing.text"/>
+        <Label text="%ErrorReportDialog.description.text"/>
         <TextArea fx:id="description" id="error-report-description" wrapText="true" prefRowCount="6"
                   minHeight="90"
-                  promptText="What did you do, what happened, what did you expect? (required)"
+                  promptText="%ErrorReportDialog.description.promptText"
                   VBox.vgrow="ALWAYS"/>
-        <Label text="Contact (optional):"/>
+        <Label text="%ErrorReportDialog.contact-optional.text"/>
         <TextField fx:id="contact" id="error-report-contact"
-                   promptText="Email (optional — only if you would like a reply)"/>
+                   promptText="%ErrorReportDialog.contact.promptText"/>
         <CheckBox fx:id="technical" selected="true"/>
-        <TitledPane fx:id="previewPane" text="Preview of the data that will be sent" expanded="false"
+        <TitledPane fx:id="previewPane" text="%ErrorReportDialog.previewPane.text" expanded="false"
                     animated="false">
             <content>
                 <TextArea fx:id="preview" editable="false" wrapText="false" prefRowCount="10"

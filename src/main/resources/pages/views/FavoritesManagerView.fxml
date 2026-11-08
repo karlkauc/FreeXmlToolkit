@@ -34,24 +34,24 @@
                     <children>
                         <VBox spacing="2">
                             <children>
-                                <Label text="Manage Favorites" styleClass="fxt-favmgr-title">
+                                <Label text="%FavoritesManagerView.manage-favorites.text" styleClass="fxt-favmgr-title">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-star" iconSize="18"/>
                                     </graphic>
                                 </Label>
-                                <Label text="Rename favorites, group them into folders, search."
+                                <Label text="%FavoritesManagerView.rename-favorites-group-them-into.text"
                                        styleClass="fxt-favmgr-subtitle"/>
                             </children>
                         </VBox>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <TextField fx:id="search" id="favmgr-search" promptText="Search favorites…"/>
-                        <Button id="favmgr-cleanup" text="Clean up" styleClass="fxt-tool-button"
+                        <TextField fx:id="search" id="favmgr-search" promptText="%FavoritesManagerView.search.promptText"/>
+                        <Button id="favmgr-cleanup" text="%FavoritesManagerView.favmgr-cleanup.text" styleClass="fxt-tool-button"
                                 onAction="#onCleanup">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-eraser" iconSize="14"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Remove favorites whose files no longer exist"/>
+                                <Tooltip text="%FavoritesManagerView.remove-favorites-whose-files-no.text"/>
                             </tooltip>
                         </Button>
                     </children>
@@ -68,24 +68,24 @@
                                 <Insets right="16"/>
                             </padding>
                             <children>
-                                <Label text="FOLDERS" styleClass="fxt-sp-section-label"/>
+                                <Label text="%FavoritesManagerView.folders.text" styleClass="fxt-sp-section-label"/>
                                 <ListView fx:id="folderList" id="favmgr-folders" prefWidth="200"
                                           VBox.vgrow="ALWAYS"/>
                                 <HBox spacing="6">
                                     <children>
-                                        <Button id="favmgr-folder-new" text="New…" styleClass="fxt-tool-button"
+                                        <Button id="favmgr-folder-new" text="%FavoritesManagerView.favmgr-folder-new.text" styleClass="fxt-tool-button"
                                                 onAction="#onNewFolder">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-folder-plus" iconSize="14"/>
                                             </graphic>
                                         </Button>
-                                        <Button id="favmgr-folder-rename" text="Rename…"
+                                        <Button id="favmgr-folder-rename" text="%FavoritesManagerView.favmgr-folder-rename.text"
                                                 styleClass="fxt-tool-button" onAction="#onRenameFolder">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-pencil" iconSize="14"/>
                                             </graphic>
                                         </Button>
-                                        <Button id="favmgr-folder-delete" text="Delete" styleClass="fxt-tool-button"
+                                        <Button id="favmgr-folder-delete" text="%FavoritesManagerView.favmgr-folder-delete.text" styleClass="fxt-tool-button"
                                                 onAction="#onDeleteFolder">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-x-circle" iconSize="14"/>
@@ -99,13 +99,13 @@
                     <center>
                         <TableView fx:id="table" id="favmgr-table" editable="true">
                             <columns>
-                                <TableColumn fx:id="nameColumn" text="Name" prefWidth="220"/>
-                                <TableColumn fx:id="typeColumn" text="Type" prefWidth="110" editable="false"/>
-                                <TableColumn fx:id="folderColumn" text="Folder" prefWidth="150"/>
-                                <TableColumn fx:id="pathColumn" text="Path" editable="false"/>
+                                <TableColumn fx:id="nameColumn" text="%FavoritesManagerView.nameColumn.text" prefWidth="220"/>
+                                <TableColumn fx:id="typeColumn" text="%FavoritesManagerView.typeColumn.text" prefWidth="110" editable="false"/>
+                                <TableColumn fx:id="folderColumn" text="%FavoritesManagerView.folderColumn.text" prefWidth="150"/>
+                                <TableColumn fx:id="pathColumn" text="%FavoritesManagerView.pathColumn.text" editable="false"/>
                             </columns>
                             <placeholder>
-                                <Label text="No favorites"/>
+                                <Label text="%FavoritesManagerView.no-favorites.text"/>
                             </placeholder>
                         </TableView>
                     </center>
@@ -115,37 +115,37 @@
                                 <Insets left="16"/>
                             </padding>
                             <children>
-                                <Label text="DETAILS" styleClass="fxt-sp-section-label"/>
+                                <Label text="%FavoritesManagerView.details.text" styleClass="fxt-sp-section-label"/>
                                 <VBox spacing="1">
                                     <children>
-                                        <Label text="Path" styleClass="fxt-sig-field-label"/>
+                                        <Label text="%FavoritesManagerView.path.text" styleClass="fxt-sig-field-label"/>
                                         <Label fx:id="detailPath" text="–" wrapText="true"
                                                styleClass="fxt-favmgr-detail"/>
                                     </children>
                                 </VBox>
                                 <VBox spacing="1">
                                     <children>
-                                        <Label text="Type" styleClass="fxt-sig-field-label"/>
+                                        <Label text="%FavoritesManagerView.type.text" styleClass="fxt-sig-field-label"/>
                                         <Label fx:id="detailType" text="–" wrapText="true"
                                                styleClass="fxt-favmgr-detail"/>
                                     </children>
                                 </VBox>
                                 <VBox spacing="1">
                                     <children>
-                                        <Label text="Added" styleClass="fxt-sig-field-label"/>
+                                        <Label text="%FavoritesManagerView.added.text" styleClass="fxt-sig-field-label"/>
                                         <Label fx:id="detailAdded" text="–" wrapText="true"
                                                styleClass="fxt-favmgr-detail"/>
                                     </children>
                                 </VBox>
                                 <VBox spacing="1">
                                     <children>
-                                        <Label text="Usage" styleClass="fxt-sig-field-label"/>
+                                        <Label text="%FavoritesManagerView.usage.text" styleClass="fxt-sig-field-label"/>
                                         <Label fx:id="detailUsage" text="–" wrapText="true"
                                                styleClass="fxt-favmgr-detail"/>
                                     </children>
                                 </VBox>
-                                <Label text="NOTES" styleClass="fxt-sp-section-label"/>
-                                <TextArea fx:id="notesArea" id="favmgr-notes" promptText="Your notes for this favorite…"
+                                <Label text="%FavoritesManagerView.notes.text" styleClass="fxt-sp-section-label"/>
+                                <TextArea fx:id="notesArea" id="favmgr-notes" promptText="%FavoritesManagerView.notesArea.promptText"
                                           wrapText="true" prefRowCount="7" disable="true"/>
                             </children>
                         </VBox>

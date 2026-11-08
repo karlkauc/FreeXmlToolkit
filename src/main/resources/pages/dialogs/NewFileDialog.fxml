@@ -19,29 +19,29 @@
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
-        <Label text="File type:" GridPane.rowIndex="0"/>
+        <Label text="%NewFileDialog.file-type.text" GridPane.rowIndex="0"/>
         <ComboBox fx:id="typeBox" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"
                   GridPane.columnSpan="2"/>
 
-        <Label text="Template:" GridPane.rowIndex="1"/>
+        <Label text="%NewFileDialog.template.text" GridPane.rowIndex="1"/>
         <ComboBox fx:id="templateBox" maxWidth="Infinity" GridPane.rowIndex="1" GridPane.columnIndex="1"
                   GridPane.columnSpan="2"/>
 
         <!-- Schema source: favorites + recents, or a file picker -->
-        <Label text="Schema:" GridPane.rowIndex="2"/>
-        <ComboBox fx:id="schemaSourceBox" promptText="From favorites / recent…" maxWidth="Infinity"
+        <Label text="%NewFileDialog.schema.text" GridPane.rowIndex="2"/>
+        <ComboBox fx:id="schemaSourceBox" promptText="%NewFileDialog.schemaSourceBox.promptText" maxWidth="Infinity"
                   GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS"/>
-        <Button fx:id="schemaBrowse" text="Browse…" onAction="#onBrowseSchema" GridPane.rowIndex="2"
+        <Button fx:id="schemaBrowse" text="%NewFileDialog.schemaBrowse.text" onAction="#onBrowseSchema" GridPane.rowIndex="2"
                 GridPane.columnIndex="2"/>
-        <TextField fx:id="schemaPath" editable="false" promptText="no schema selected" GridPane.rowIndex="3"
+        <TextField fx:id="schemaPath" editable="false" promptText="%NewFileDialog.schemaPath.promptText" GridPane.rowIndex="3"
                    GridPane.columnIndex="1" GridPane.columnSpan="2"/>
-        <CheckBox fx:id="generateMandatory" text="Pre-fill mandatory nodes (empty)" selected="true"
+        <CheckBox fx:id="generateMandatory" text="%NewFileDialog.generateMandatory.text" selected="true"
                   GridPane.rowIndex="4" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
 
-        <Label text="Save to:" GridPane.rowIndex="5"/>
-        <TextField fx:id="saveLocation" promptText="(optional) leave empty to open as untitled"
+        <Label text="%NewFileDialog.save-to.text" GridPane.rowIndex="5"/>
+        <TextField fx:id="saveLocation" promptText="%NewFileDialog.saveLocation.promptText"
                    GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-        <Button text="Browse…" onAction="#onBrowseSaveLocation" GridPane.rowIndex="5"
+        <Button text="%NewFileDialog.browse.text" onAction="#onBrowseSaveLocation" GridPane.rowIndex="5"
                 GridPane.columnIndex="2"/>
     </children>
 </GridPane>

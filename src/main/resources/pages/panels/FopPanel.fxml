@@ -31,27 +31,27 @@
     <fx:define>
         <ContextMenu fx:id="xmlMenu">
             <items>
-                <MenuItem text="Select XML file…" onAction="#onSelectXmlFile"/>
-                <MenuItem text="Use active editor" onAction="#onUseActiveEditor"/>
+                <MenuItem text="%FopPanel.select-xml-file.text" onAction="#onSelectXmlFile"/>
+                <MenuItem text="%FopPanel.use-active-editor.text" onAction="#onUseActiveEditor"/>
             </items>
         </ContextMenu>
     </fx:define>
     <children>
-        <SidePanelHeader title="PDF / FOP"/>
+        <SidePanelHeader title="%FopPanel.pdf-fop.title"/>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
             <content>
                 <VBox>
                     <children>
                         <!-- Debug the XSL-FO stylesheet with the XSLT debugger (breakpoints, stepping, variables);
                              the FO it produces lands in the OUTPUT panel and can be rendered from there. -->
-                        <SidePanelSection title="TOOLS">
+                        <SidePanelSection title="%FopPanel.tools.title">
                             <children>
                                 <PanelActionList>
                                     <children>
                                         <PanelActionButton id="fop-tool-debug" iconLiteral="bi-bug"
-                                                           text="Debug stylesheet…" color="TOOL" onAction="#onDebug"/>
+                                                           text="%FopPanel.fop-tool-debug.text" color="TOOL" onAction="#onDebug"/>
                                         <PanelActionButton fx:id="renderFoButton" id="fop-render-fo"
-                                                           iconLiteral="bi-file-earmark-pdf" text="Render PDF from FO…"
+                                                           iconLiteral="bi-file-earmark-pdf" text="%FopPanel.renderFoButton.text"
                                                            color="TOOL" disable="true" onAction="#onRenderFo"/>
                                     </children>
                                 </PanelActionList>
@@ -59,52 +59,52 @@
                         </SidePanelSection>
 
                         <!-- INPUT: XML (active editor or override) + XSL-FO stylesheet -->
-                        <SidePanelSection title="INPUT">
+                        <SidePanelSection title="%FopPanel.input.title">
                             <children>
-                                <SourceRow fx:id="xmlRow" id="fop-xml-row" iconLiteral="bi-code-slash" caption="XML"
-                                           emptyText="No XML — open a document or drop a file"
+                                <SourceRow fx:id="xmlRow" id="fop-xml-row" iconLiteral="bi-code-slash" caption="%FopPanel.xmlRow.caption"
+                                           emptyText="%FopPanel.xmlRow.emptyText"
                                            onChange="#onChangeXml">
                                     <name>
-                                        <Label fx:id="xmlName" id="fop-xml-name" text="none"
+                                        <Label fx:id="xmlName" id="fop-xml-name" text="%FopPanel.xmlName.text"
                                                styleClass="fxt-vp-source-name"/>
                                     </name>
                                 </SourceRow>
-                                <SourceRow fx:id="xslRow" id="fop-xsl-row" iconLiteral="bi-file-earmark-code" caption="XSL-FO"
-                                           emptyText="No stylesheet — choose or drop a file"
+                                <SourceRow fx:id="xslRow" id="fop-xsl-row" iconLiteral="bi-file-earmark-code" caption="%FopPanel.xslRow.caption"
+                                           emptyText="%FopPanel.xslRow.emptyText"
                                            onChange="#onChooseXsl">
                                     <name>
-                                        <Label fx:id="xslName" id="fop-xsl-name" text="none"
+                                        <Label fx:id="xslName" id="fop-xsl-name" text="%FopPanel.xslName.text"
                                                styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
                                     </name>
                                 </SourceRow>
                             </children>
                         </SidePanelSection>
 
-                        <SidePanelSection title="METADATA">
+                        <SidePanelSection title="%FopPanel.metadata.title">
                             <children>
                                 <VBox spacing="4" styleClass="fxt-tp-section-body">
                                     <children>
-                                        <Label text="Title" styleClass="fxt-sig-field-label"/>
-                                        <TextField fx:id="titleField" id="fop-meta-title" promptText="Document title"/>
-                                        <Label text="Author" styleClass="fxt-sig-field-label"/>
-                                        <TextField fx:id="authorField" id="fop-meta-author" promptText="Author"/>
-                                        <Label text="Subject" styleClass="fxt-sig-field-label"/>
-                                        <TextField fx:id="subjectField" id="fop-meta-subject" promptText="Subject"/>
+                                        <Label text="%FopPanel.title.text" styleClass="fxt-sig-field-label"/>
+                                        <TextField fx:id="titleField" id="fop-meta-title" promptText="%FopPanel.titleField.promptText"/>
+                                        <Label text="%FopPanel.author.text" styleClass="fxt-sig-field-label"/>
+                                        <TextField fx:id="authorField" id="fop-meta-author" promptText="%FopPanel.authorField.promptText"/>
+                                        <Label text="%FopPanel.subject.text" styleClass="fxt-sig-field-label"/>
+                                        <TextField fx:id="subjectField" id="fop-meta-subject" promptText="%FopPanel.subjectField.promptText"/>
                                     </children>
                                 </VBox>
                             </children>
                         </SidePanelSection>
 
-                        <SidePanelSection title="OPTIONS">
+                        <SidePanelSection title="%FopPanel.options.title">
                             <children>
                                 <VBox spacing="6" styleClass="fxt-tp-section-body">
                                     <children>
-                                        <CheckBox fx:id="pdfACompliant" id="fop-pdfa" text="PDF/A-1b compliant">
+                                        <CheckBox fx:id="pdfACompliant" id="fop-pdfa" text="%FopPanel.pdfACompliant.text">
                                             <tooltip>
-                                                <Tooltip text="Requires embeddable fonts: the stylesheet must use system fonts, not the PDF base-14 set"/>
+                                                <Tooltip text="%FopPanel.requires-embeddable-fonts-the-stylesheet.text"/>
                                             </tooltip>
                                         </CheckBox>
-                                        <Label text="Page size" styleClass="fxt-sig-field-label"/>
+                                        <Label text="%FopPanel.page-size.text" styleClass="fxt-sig-field-label"/>
                                         <ComboBox fx:id="pageSize" id="fop-page-size" maxWidth="Infinity"
                                                   styleClass="fxt-neutral-combo">
                                             <items>
@@ -117,7 +117,7 @@
                                             </items>
                                         </ComboBox>
                                         <Label id="fop-page-size-hint" wrapText="true" styleClass="fxt-placeholder-text"
-                                               text="Passed as the page-size and page-orientation parameters; it only applies if the stylesheet uses them."/>
+                                               text="%FopPanel.fop-page-size-hint.text"/>
                                     </children>
                                 </VBox>
                             </children>
@@ -126,7 +126,7 @@
                         <!-- Generate + progress -->
                         <VBox spacing="8" styleClass="fxt-vp-run-box">
                             <children>
-                                <Button fx:id="generateButton" id="fop-generate" text="Generate PDF"
+                                <Button fx:id="generateButton" id="fop-generate" text="%FopPanel.generateButton.text"
                                         maxWidth="Infinity" styleClass="fxt-primary-button" onAction="#onGenerate">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-file-earmark-pdf" iconSize="14"/>
@@ -136,24 +136,24 @@
                             </children>
                         </VBox>
 
-                        <Label fx:id="status" text="No PDF generated" wrapText="true" styleClass="fxt-vp-status"/>
+                        <Label fx:id="status" text="%FopPanel.status.text" wrapText="true" styleClass="fxt-vp-status"/>
 
                         <!-- Result actions: enabled once a PDF has been generated -->
-                        <SidePanelSection title="RESULT">
+                        <SidePanelSection title="%FopPanel.result.title">
                             <children>
                                 <PanelActionList>
                                     <children>
                                         <PanelActionButton fx:id="previewButton" id="fop-preview" iconLiteral="bi-eye"
-                                                           text="Preview PDF" color="NAVIGATE" disable="true"
+                                                           text="%FopPanel.previewButton.text" color="NAVIGATE" disable="true"
                                                            onAction="#onPreviewPdf"/>
                                         <PanelActionButton fx:id="openButton" id="fop-open"
-                                                           iconLiteral="bi-box-arrow-up-right" text="Open PDF"
+                                                           iconLiteral="bi-box-arrow-up-right" text="%FopPanel.openButton.text"
                                                            color="NAVIGATE" disable="true" onAction="#onOpenPdf"/>
                                         <PanelActionButton fx:id="showFoButton" id="fop-show-fo"
-                                                           iconLiteral="bi-filetype-xml" text="Show intermediate FO"
+                                                           iconLiteral="bi-filetype-xml" text="%FopPanel.showFoButton.text"
                                                            color="NAVIGATE" disable="true" onAction="#onShowFo"/>
                                         <PanelActionButton fx:id="messagesButton" id="fop-messages"
-                                                           iconLiteral="bi-chat-left-text" text="Messages &amp; events"
+                                                           iconLiteral="bi-chat-left-text" text="%FopPanel.messagesButton.text"
                                                            color="NAVIGATE" disable="true" onAction="#onShowMessages"/>
                                     </children>
                                 </PanelActionList>

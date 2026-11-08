@@ -52,6 +52,7 @@ Any key of the user's settings file works. These are the ones most often managed
 | `security.xproc.unrestricted` | `false` | Lock the XProc restrictions on: no `p:os-exec`, `p:run`, `p:http-request`, no network (see [Threat Model](threat-model.md)) |
 | `security.htmlPreview.allowActiveContent` | `false` | Lock JavaScript and remote content in HTML previews off |
 | `fundsxml.enabled` | `true` / `false` | FundsXML extension |
+| `ui.language` | `system` / `en` / `de` | Language of the interface (Settings → Appearance → Language) |
 | `plugins.external.allowed` | `false` | **Policy only.** Load no [plugins](plugins.md) from the plugins folder (built-in ones still load) |
 | `plugin.<id>.enabled` | `true` / `false` | A [plugin](plugins.md) on or off (Settings → Plugins), e.g. `plugin.fundsxml.enabled` |
 | `schemaLibrary.autoBind.enabled` | `true` / `false` | Bind schemas from the Schema Library automatically |
@@ -72,6 +73,7 @@ always apply. Those in `defaults.properties` apply unless the option is given on
 | `fxt.telemetry.disabled=true` | No telemetry at all |
 | `fxt.schema.namespaceFallback=false` | Never download a schema by its namespace URL; bundled Schema Library entries only from the cache |
 | `fxt.schema.localCopies=false` | Never write downloaded schemas next to the schema that imports them |
+| `fxt.locale=de` | Language of the interface, whatever the setting says (`en`, `de`) |
 | `fxt.plugins.dir=<folder>` | Load [plugins](plugins.md) from this folder instead of `~/.freeXmlToolkit/plugins` |
 
 !!! warning "No passwords in these files"

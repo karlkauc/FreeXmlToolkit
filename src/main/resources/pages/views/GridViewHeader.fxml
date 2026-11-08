@@ -30,7 +30,7 @@
         <ToggleGroup fx:id="splitGroup"/>
     </fx:define>
     <children>
-        <Label fx:id="title" text="Grid view" styleClass="fxt-grid-title" minWidth="-Infinity">
+        <Label fx:id="title" text="%GridViewHeader.title.text" styleClass="fxt-grid-title" minWidth="-Infinity">
             <graphic>
                 <IconifyIcon iconLiteral="bi-table" iconSize="15"/>
             </graphic>
@@ -44,56 +44,56 @@
                 <Button id="grid-zoom-out" text="−" focusTraversable="false" styleClass="fxt-graph-zoom-button"
                         onAction="#onZoomOut">
                     <tooltip>
-                        <Tooltip text="Zoom out (Ctrl −)"/>
+                        <Tooltip text="%GridViewHeader.zoom-out-ctrl.text"/>
                     </tooltip>
                 </Button>
                 <Label fx:id="zoomLabel" id="grid-zoom-label" styleClass="fxt-graph-zoom-label" minWidth="-Infinity"
                        onMouseClicked="#onZoomReset">
                     <tooltip>
-                        <Tooltip text="Reset zoom to 100% (Ctrl 0)"/>
+                        <Tooltip text="%GridViewHeader.reset-zoom-to-100-ctrl.text"/>
                     </tooltip>
                 </Label>
                 <Button id="grid-zoom-in" text="+" focusTraversable="false" styleClass="fxt-graph-zoom-button"
                         onAction="#onZoomIn">
                     <tooltip>
-                        <Tooltip text="Zoom in (Ctrl +)"/>
+                        <Tooltip text="%GridViewHeader.zoom-in-ctrl.text"/>
                     </tooltip>
                 </Button>
             </children>
         </HBox>
 
-        <Button fx:id="optimalWidthsButton" id="grid-optimal-widths" minWidth="-Infinity" text="Optimal widths" styleClass="fxt-tool-button" focusTraversable="false"
+        <Button fx:id="optimalWidthsButton" id="grid-optimal-widths" minWidth="-Infinity" text="%GridViewHeader.optimalWidthsButton.text" styleClass="fxt-tool-button" focusTraversable="false"
                 onAction="#onOptimalWidths">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-angle-expand" iconSize="13"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Size every name column and table column to its content"/>
+                <Tooltip text="%GridViewHeader.size-every-name-column-and.text"/>
             </tooltip>
         </Button>
-        <ToggleButton fx:id="wordWrapButton" id="grid-word-wrap" minWidth="-Infinity" text="Wrap" styleClass="fxt-tool-button"
+        <ToggleButton fx:id="wordWrapButton" id="grid-word-wrap" minWidth="-Infinity" text="%GridViewHeader.wordWrapButton.text" styleClass="fxt-tool-button"
                       focusTraversable="false" onAction="#onWordWrap">
             <graphic>
                 <IconifyIcon iconLiteral="bi-text-wrap" iconSize="13"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Word wrap: long values wrap onto further lines"/>
+                <Tooltip text="%GridViewHeader.word-wrap-long-values-wrap.text"/>
             </tooltip>
         </ToggleButton>
-        <Button fx:id="expandAllButton" id="grid-expand-all" minWidth="-Infinity" text="Expand all" styleClass="fxt-tool-button" onAction="#onExpandAll">
+        <Button fx:id="expandAllButton" id="grid-expand-all" minWidth="-Infinity" text="%GridViewHeader.expandAllButton.text" styleClass="fxt-tool-button" onAction="#onExpandAll">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-expand" iconSize="13"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Expand all nodes"/>
+                <Tooltip text="%GridViewHeader.expand-all-nodes.text"/>
             </tooltip>
         </Button>
-        <Button fx:id="collapseAllButton" id="grid-collapse-all" minWidth="-Infinity" text="Collapse all" styleClass="fxt-tool-button" onAction="#onCollapseAll">
+        <Button fx:id="collapseAllButton" id="grid-collapse-all" minWidth="-Infinity" text="%GridViewHeader.collapseAllButton.text" styleClass="fxt-tool-button" onAction="#onCollapseAll">
             <graphic>
                 <IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="13"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Collapse all nodes"/>
+                <Tooltip text="%GridViewHeader.collapse-all-nodes.text"/>
             </tooltip>
         </Button>
         <ToggleButton fx:id="sidePanelButton" id="grid-entry-helpers-toggle" minWidth="-Infinity" styleClass="fxt-tool-button"
@@ -102,7 +102,7 @@
                 <IconifyIcon iconLiteral="bi-layout-sidebar-reverse" iconSize="13"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Entry helpers: elements, attributes and values the schema allows here"/>
+                <Tooltip text="%GridViewHeader.entry-helpers-elements-attributes-and.text"/>
             </tooltip>
         </ToggleButton>
         <MenuButton id="grid-more" minWidth="-Infinity" styleClass="fxt-tool-button" focusTraversable="false">
@@ -110,64 +110,64 @@
                 <IconifyIcon iconLiteral="bi-three-dots" iconSize="13"/>
             </graphic>
             <tooltip>
-                <Tooltip text="Grid settings"/>
+                <Tooltip text="%GridViewHeader.grid-settings.text"/>
             </tooltip>
             <items>
                 <!-- Overflow: the tool buttons of the bar, shown here only while the bar is too narrow for them -->
-                <MenuItem fx:id="overflowOptimalWidths" id="grid-more-optimal-widths" text="Optimal widths"
+                <MenuItem fx:id="overflowOptimalWidths" id="grid-more-optimal-widths" text="%GridViewHeader.overflowOptimalWidths.text"
                           visible="false" onAction="#onOptimalWidths">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrows-angle-expand" iconSize="16"/>
                     </graphic>
                 </MenuItem>
-                <CheckMenuItem fx:id="overflowWordWrap" id="grid-more-word-wrap" text="Word wrap"
+                <CheckMenuItem fx:id="overflowWordWrap" id="grid-more-word-wrap" text="%GridViewHeader.overflowWordWrap.text"
                                visible="false" onAction="#onWordWrap">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-text-wrap" iconSize="16"/>
                     </graphic>
                 </CheckMenuItem>
-                <MenuItem fx:id="overflowExpandAll" id="grid-more-expand-all" text="Expand all"
+                <MenuItem fx:id="overflowExpandAll" id="grid-more-expand-all" text="%GridViewHeader.overflowExpandAll.text"
                           visible="false" onAction="#onExpandAll">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrows-expand" iconSize="16"/>
                     </graphic>
                 </MenuItem>
-                <MenuItem fx:id="overflowCollapseAll" id="grid-more-collapse-all" text="Collapse all"
+                <MenuItem fx:id="overflowCollapseAll" id="grid-more-collapse-all" text="%GridViewHeader.overflowCollapseAll.text"
                           visible="false" onAction="#onCollapseAll">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrows-collapse" iconSize="16"/>
                     </graphic>
                 </MenuItem>
-                <CheckMenuItem fx:id="overflowSidePanel" id="grid-more-entry-helpers" text="Entry helpers"
+                <CheckMenuItem fx:id="overflowSidePanel" id="grid-more-entry-helpers" text="%GridViewHeader.overflowSidePanel.text"
                                visible="false" onAction="#onSidePanel">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-layout-sidebar-reverse" iconSize="16"/>
                     </graphic>
                 </CheckMenuItem>
                 <SeparatorMenuItem fx:id="overflowSeparator" visible="false"/>
-                <RadioMenuItem fx:id="cellLinesOff" id="grid-cell-lines-off" text="Cell height: unlimited"
+                <RadioMenuItem fx:id="cellLinesOff" id="grid-cell-lines-off" text="%GridViewHeader.cellLinesOff.text"
                                toggleGroup="$cellLinesGroup" onAction="#onCellLinesOff"/>
-                <RadioMenuItem fx:id="cellLines3" id="grid-cell-lines-3" text="Cell height: 3 lines"
+                <RadioMenuItem fx:id="cellLines3" id="grid-cell-lines-3" text="%GridViewHeader.cellLines3.text"
                                toggleGroup="$cellLinesGroup" onAction="#onCellLines3"/>
-                <RadioMenuItem fx:id="cellLines6" id="grid-cell-lines-6" text="Cell height: 6 lines"
+                <RadioMenuItem fx:id="cellLines6" id="grid-cell-lines-6" text="%GridViewHeader.cellLines6.text"
                                toggleGroup="$cellLinesGroup" onAction="#onCellLines6"/>
-                <RadioMenuItem fx:id="cellLines12" id="grid-cell-lines-12" text="Cell height: 12 lines"
+                <RadioMenuItem fx:id="cellLines12" id="grid-cell-lines-12" text="%GridViewHeader.cellLines12.text"
                                toggleGroup="$cellLinesGroup" onAction="#onCellLines12"/>
                 <SeparatorMenuItem/>
-                <RadioMenuItem fx:id="siblingGroupsOff" id="grid-sibling-groups-off" text="Sibling groups: unlimited"
+                <RadioMenuItem fx:id="siblingGroupsOff" id="grid-sibling-groups-off" text="%GridViewHeader.siblingGroupsOff.text"
                                toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroupsOff"/>
-                <RadioMenuItem fx:id="siblingGroups100" id="grid-sibling-groups-100" text="Sibling groups: 100 nodes"
+                <RadioMenuItem fx:id="siblingGroups100" id="grid-sibling-groups-100" text="%GridViewHeader.siblingGroups100.text"
                                toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroups100"/>
-                <RadioMenuItem fx:id="siblingGroups1000" id="grid-sibling-groups-1000" text="Sibling groups: 1,000 nodes"
+                <RadioMenuItem fx:id="siblingGroups1000" id="grid-sibling-groups-1000" text="%GridViewHeader.siblingGroups1000.text"
                                toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroups1000"/>
-                <RadioMenuItem fx:id="siblingGroups10000" id="grid-sibling-groups-10000" text="Sibling groups: 10,000 nodes"
+                <RadioMenuItem fx:id="siblingGroups10000" id="grid-sibling-groups-10000" text="%GridViewHeader.siblingGroups10000.text"
                                toggleGroup="$siblingGroupGroup" onAction="#onSiblingGroups10000"/>
                 <SeparatorMenuItem/>
-                <RadioMenuItem fx:id="splitOff" id="grid-split-off" text="Single view"
+                <RadioMenuItem fx:id="splitOff" id="grid-split-off" text="%GridViewHeader.splitOff.text"
                                toggleGroup="$splitGroup" onAction="#onSplitOff"/>
-                <RadioMenuItem fx:id="splitTopBottom" id="grid-split-top-bottom" text="Split: top / bottom"
+                <RadioMenuItem fx:id="splitTopBottom" id="grid-split-top-bottom" text="%GridViewHeader.splitTopBottom.text"
                                toggleGroup="$splitGroup" onAction="#onSplitTopBottom"/>
-                <RadioMenuItem fx:id="splitSideBySide" id="grid-split-side-by-side" text="Split: side by side"
+                <RadioMenuItem fx:id="splitSideBySide" id="grid-split-side-by-side" text="%GridViewHeader.splitSideBySide.text"
                                toggleGroup="$splitGroup" onAction="#onSplitSideBySide"/>
             </items>
         </MenuButton>

@@ -20,27 +20,27 @@
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-schema-panel"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <SidePanelHeader title="SCHEMA"/>
+        <SidePanelHeader title="%TypeLibraryPanel.schema.title"/>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
             <content>
                 <VBox>
                     <children>
                         <!-- Tools for the open schema: at the top and open by default, as in every side panel.
                              Generating an XSD from XML lives in the toolbar's Schema ▾ and the Tools menu. -->
-                        <SidePanelSection fx:id="toolsSection" id="schema-tools-section" title="TOOLS">
+                        <SidePanelSection fx:id="toolsSection" id="schema-tools-section" title="%TypeLibraryPanel.toolsSection.title">
                             <children>
                                 <PanelActionList fx:id="tools" id="schema-tools">
                                     <children>
                                         <PanelActionButton id="schema-tool-sample" iconLiteral="bi-filetype-xml"
-                                                           text="Generate Sample XML…" color="CREATE"
+                                                           text="%TypeLibraryPanel.schema-tool-sample.text" color="CREATE"
                                                            onAction="#generateSampleXmlForActive"/>
                                         <PanelActionButton id="schema-tool-sample-advanced" iconLiteral="bi-sliders"
-                                                           text="Sample XML with Options…" color="CREATE"
+                                                           text="%TypeLibraryPanel.schema-tool-sample-advanced.text" color="CREATE"
                                                            onAction="#generateProfiledSampleForActive"/>
                                         <PanelActionButton id="schema-tool-flatten" iconLiteral="bi-layers"
-                                                           text="Flatten Schema…" color="TOOL"
+                                                           text="%TypeLibraryPanel.schema-tool-flatten.text" color="TOOL"
                                                            onAction="#onFlatten"/>
-                                        <PanelActionButton id="schema-tool-analysis" text="Schema Analysis"
+                                        <PanelActionButton id="schema-tool-analysis" text="%TypeLibraryPanel.schema-tool-analysis.text"
                                                            color="NAVIGATE" onAction="#analyzeActive">
                                             <iconLiteral>
                                                 <SchemaAnalysisView fx:constant="ICON"/>
@@ -48,7 +48,7 @@
                                         </PanelActionButton>
                                         <PanelActionButton id="schema-tool-documentation"
                                                            iconLiteral="bi-file-earmark-text"
-                                                           text="Generate Documentation…" color="CREATE"
+                                                           text="%TypeLibraryPanel.schema-tool-documentation.text" color="CREATE"
                                                            onAction="#generateDocumentationForActive"/>
                                     </children>
                                 </PanelActionList>
@@ -57,37 +57,37 @@
 
                         <VBox styleClass="fxt-tp-section-body">
                             <children>
-                                <TextField fx:id="filter" id="schema-filter" promptText="Filter types…"/>
+                                <TextField fx:id="filter" id="schema-filter" promptText="%TypeLibraryPanel.filter.promptText"/>
                             </children>
                         </VBox>
 
                         <!-- Grouped declaration lists -->
-                        <SidePanelSection title="GLOBAL ELEMENTS">
+                        <SidePanelSection title="%TypeLibraryPanel.global-elements.title">
                             <children>
                                 <ListView fx:id="elementsList" id="schema-elements-list" fixedCellSize="26"
                                           styleClass="fxt-open-editors, fxt-explorer-list">
                                     <placeholder>
-                                        <Label text="None"/>
+                                        <Label text="%TypeLibraryPanel.none.text"/>
                                     </placeholder>
                                 </ListView>
                             </children>
                         </SidePanelSection>
-                        <SidePanelSection fx:id="complexSection" title="COMPLEX TYPES">
+                        <SidePanelSection fx:id="complexSection" title="%TypeLibraryPanel.complexSection.title">
                             <children>
                                 <ListView fx:id="complexList" id="schema-complex-list" fixedCellSize="26"
                                           styleClass="fxt-open-editors, fxt-explorer-list">
                                     <placeholder>
-                                        <Label text="None"/>
+                                        <Label text="%TypeLibraryPanel.none.text-2"/>
                                     </placeholder>
                                 </ListView>
                             </children>
                         </SidePanelSection>
-                        <SidePanelSection fx:id="simpleSection" title="SIMPLE TYPES">
+                        <SidePanelSection fx:id="simpleSection" title="%TypeLibraryPanel.simpleSection.title">
                             <children>
                                 <ListView fx:id="simpleList" id="schema-simple-list" fixedCellSize="26"
                                           styleClass="fxt-open-editors, fxt-explorer-list">
                                     <placeholder>
-                                        <Label text="None"/>
+                                        <Label text="%TypeLibraryPanel.none.text-3"/>
                                     </placeholder>
                                 </ListView>
                             </children>

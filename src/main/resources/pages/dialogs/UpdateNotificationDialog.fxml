@@ -27,9 +27,9 @@
                         <IconifyIcon iconLiteral="bi-arrow-up-circle-fill" iconSize="48" iconColor="WHITE"/>
                         <VBox spacing="5">
                             <children>
-                                <Label text="Update Available"
+                                <Label text="%UpdateNotificationDialog.update-available.text"
                                        style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
-                                <Label text="A new version of FreeXmlToolkit is available"
+                                <Label text="%UpdateNotificationDialog.a-new-version-of-freexmltoolkit.text"
                                        style="-fx-font-size: 13px; -fx-text-fill: rgba(255,255,255,0.9);"/>
                             </children>
                         </VBox>
@@ -52,7 +52,7 @@
                     <children>
                         <VBox spacing="5" alignment="CENTER">
                             <children>
-                                <Label text="Current Version" styleClass="desc-label"/>
+                                <Label text="%UpdateNotificationDialog.current-version.text" styleClass="desc-label"/>
                                 <Label fx:id="currentVersion"
                                        style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #6c757d;"/>
                             </children>
@@ -60,7 +60,7 @@
                         <IconifyIcon iconLiteral="bi-arrow-right" iconSize="24" iconColor="#28a745"/>
                         <VBox spacing="5" alignment="CENTER">
                             <children>
-                                <Label text="New Version" styleClass="desc-label"/>
+                                <Label text="%UpdateNotificationDialog.new-version.text" styleClass="desc-label"/>
                                 <Label fx:id="latestVersion"
                                        style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #28a745;"/>
                             </children>
@@ -79,7 +79,7 @@
                 <HBox fx:id="notesHeader" spacing="10" alignment="CENTER_LEFT">
                     <children>
                         <IconifyIcon iconLiteral="bi-journal-text" iconSize="18" iconColor="#007bff"/>
-                        <Label text="What's New" styleClass="theme-text-primary"
+                        <Label text="%UpdateNotificationDialog.what-s-new.text" styleClass="theme-text-primary"
                                style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
                         <Label fx:id="publishedDate" styleClass="theme-text-secondary"
                                style="-fx-font-size: 12px;"/>
@@ -99,7 +99,7 @@
             <children>
                 <TextField fx:id="upgradeCommand" id="update-upgrade-command" editable="false" HBox.hgrow="ALWAYS"
                            style="-fx-font-family: 'Consolas', 'Courier New', monospace;"/>
-                <Button id="update-copy-command" text="Copy" onAction="#copyUpgradeCommand">
+                <Button id="update-copy-command" text="%UpdateNotificationDialog.update-copy-command.text" onAction="#copyUpgradeCommand">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/>
                     </graphic>
@@ -121,7 +121,7 @@
                     <children>
                         <IconifyIcon iconLiteral="bi-info-circle-fill" iconSize="16" iconColor="#0d6efd"/>
                         <Label fx:id="infoText"
-                               text="Click 'Download &amp; Install' to automatically update. The application will restart after installation."
+                               text="%UpdateNotificationDialog.infoText.text"
                                wrapText="true" styleClass="info-tip-text" style="-fx-font-size: 12px;"/>
                     </children>
                 </HBox>

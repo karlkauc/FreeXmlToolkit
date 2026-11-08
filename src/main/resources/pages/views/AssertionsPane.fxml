@@ -22,7 +22,7 @@
     <children>
         <HBox spacing="4" alignment="CENTER_LEFT" styleClass="fxt-overview-toolbar">
             <children>
-                <Button fx:id="addButton" styleClass="fxt-tool-button" id="overview-assertion-add" text="Add Assertion" onAction="#onAdd">
+                <Button fx:id="addButton" styleClass="fxt-tool-button" id="overview-assertion-add" text="%AssertionsPane.addButton.text" onAction="#onAdd">
                     <graphic>
                         <IconifyIcon fx:id="addIcon" iconLiteral="bi-plus-lg" iconSize="16"/>
                     </graphic>
@@ -37,11 +37,11 @@
         </HBox>
         <TableView fx:id="assertTable" styleClass="fxt-analysis-table" id="overview-assertions" editable="true" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="testColumn" text="Test (XPath)" prefWidth="420" sortable="false"/>
-                <TableColumn fx:id="namespaceColumn" text="xpathDefaultNamespace" prefWidth="200" sortable="false"/>
+                <TableColumn fx:id="testColumn" text="%AssertionsPane.testColumn.text" prefWidth="420" sortable="false"/>
+                <TableColumn fx:id="namespaceColumn" text="%AssertionsPane.namespaceColumn.text" prefWidth="200" sortable="false"/>
             </columns>
             <placeholder>
-                <Label text="No assertions." styleClass="fxt-placeholder-text"/>
+                <Label text="%AssertionsPane.no-assertions.text" styleClass="fxt-placeholder-text"/>
             </placeholder>
         </TableView>
     </children>

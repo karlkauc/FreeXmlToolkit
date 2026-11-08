@@ -15,15 +15,15 @@
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
-        <CheckBox fx:id="mandatoryOnly" text="Only mandatory elements" GridPane.rowIndex="0"
+        <CheckBox fx:id="mandatoryOnly" text="%SampleXmlOptionsDialog.mandatoryOnly.text" GridPane.rowIndex="0"
                   GridPane.columnSpan="2"/>
-        <Label text="Max. repetitions:" GridPane.rowIndex="1"/>
+        <Label text="%SampleXmlOptionsDialog.max-repetitions.text" GridPane.rowIndex="1"/>
         <Spinner fx:id="maxOccurrences" editable="true" GridPane.rowIndex="1" GridPane.columnIndex="1">
             <valueFactory>
                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="20" initialValue="2"/>
             </valueFactory>
         </Spinner>
-        <CheckBox fx:id="realistic" text="Realistic values (honor enumerations, patterns, ranges)"
+        <CheckBox fx:id="realistic" text="%SampleXmlOptionsDialog.realistic.text"
                   GridPane.rowIndex="2" GridPane.columnSpan="2"/>
     </children>
 </GridPane>

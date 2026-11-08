@@ -30,12 +30,12 @@
             <children>
                 <VBox spacing="2" HBox.hgrow="ALWAYS">
                     <children>
-                        <Label text="SCHEMA ANALYSIS" styleClass="fxt-side-panel-title"/>
+                        <Label text="%SchemaAnalysisView.schema-analysis.text" styleClass="fxt-side-panel-title"/>
                         <Label fx:id="subtitle" styleClass="fxt-analysis-subtitle"/>
                     </children>
                 </VBox>
                 <Label fx:id="status" id="analysis-status" styleClass="fxt-placeholder-text"/>
-                <Button fx:id="refresh" id="analysis-refresh" text="Refresh" styleClass="fxt-tool-button"
+                <Button fx:id="refresh" id="analysis-refresh" text="%SchemaAnalysisView.refresh.text" styleClass="fxt-tool-button"
                         onAction="#onRefresh">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-clockwise" iconSize="16"/>
@@ -50,27 +50,27 @@
                 <TabPane fx:id="tabs" id="schema-analysis-tabs" tabClosingPolicy="UNAVAILABLE"
                          styleClass="fxt-analysis-tabs">
                     <tabs>
-                        <Tab fx:id="statisticsTab" text="Statistics" closable="false">
+                        <Tab fx:id="statisticsTab" text="%SchemaAnalysisView.statisticsTab.text" closable="false">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-bar-chart" iconSize="14"/>
                             </graphic>
                         </Tab>
-                        <Tab fx:id="typesTab" text="Types" closable="false">
+                        <Tab fx:id="typesTab" text="%SchemaAnalysisView.typesTab.text" closable="false">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-collection" iconSize="14"/>
                             </graphic>
                         </Tab>
-                        <Tab fx:id="qualityTab" text="Quality Checks" closable="false">
+                        <Tab fx:id="qualityTab" text="%SchemaAnalysisView.qualityTab.text" closable="false">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-award" iconSize="14"/>
                             </graphic>
                         </Tab>
-                        <Tab fx:id="constraintsTab" text="Identity Constraints" closable="false">
+                        <Tab fx:id="constraintsTab" text="%SchemaAnalysisView.constraintsTab.text" closable="false">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-key" iconSize="14"/>
                             </graphic>
                         </Tab>
-                        <Tab fx:id="xpathTab" text="XPath Validation" closable="false">
+                        <Tab fx:id="xpathTab" text="%SchemaAnalysisView.xpathTab.text" closable="false">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-check2-circle" iconSize="14"/>
                             </graphic>
@@ -82,7 +82,7 @@
                         <VBox spacing="8" alignment="CENTER">
                             <children>
                                 <ProgressIndicator maxWidth="48" maxHeight="48"/>
-                                <Label text="Analyzing…" styleClass="fxt-placeholder-text"/>
+                                <Label text="%SchemaAnalysisView.analyzing.text" styleClass="fxt-placeholder-text"/>
                             </children>
                         </VBox>
                     </children>

@@ -16,184 +16,184 @@
 <fx:root type="javafx.scene.control.MenuBar" id="shell-menu-bar" styleClass="fxt-menu-bar"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <menus>
-        <Menu fx:id="fileMenu" id="menu-file" text="_File">
+        <Menu fx:id="fileMenu" id="menu-file" text="%ShellMenuBar.fileMenu.text">
             <items>
-                <ShellMenuItem id="menu-file-new" text="New…" iconLiteral="bi-file-earmark-plus" color="CREATE"
+                <ShellMenuItem id="menu-file-new" text="%ShellMenuBar.menu-file-new.text" iconLiteral="bi-file-earmark-plus" color="CREATE"
                                accelerator="Shortcut+N" onAction="#onNew"/>
-                <ShellMenuItem id="menu-file-open" text="Open…" iconLiteral="bi-folder2-open" color="TOOL"
+                <ShellMenuItem id="menu-file-open" text="%ShellMenuBar.menu-file-open.text" iconLiteral="bi-folder2-open" color="TOOL"
                                accelerator="Shortcut+O" onAction="#onOpen"/>
-                <ShellMenuItem id="menu-file-open-viewer" text="Open in Large File Viewer…" iconLiteral="bi-eye"
+                <ShellMenuItem id="menu-file-open-viewer" text="%ShellMenuBar.menu-file-open-viewer.text" iconLiteral="bi-eye"
                                color="TOOL" onAction="#onOpenInViewer"/>
-                <ShellMenuItem id="menu-file-open-url" text="Open from URL…" iconLiteral="bi-globe" color="TOOL"
+                <ShellMenuItem id="menu-file-open-url" text="%ShellMenuBar.menu-file-open-url.text" iconLiteral="bi-globe" color="TOOL"
                                onAction="#onOpenFromUrl"/>
-                <Menu fx:id="openRecentMenu" id="menu-file-open-recent" text="Open Recent"/>
-                <Menu fx:id="openFavoriteMenu" id="menu-file-open-favorite" text="Open Favorite"/>
-                <Menu fx:id="projectMenu" id="menu-file-project" text="Project">
+                <Menu fx:id="openRecentMenu" id="menu-file-open-recent" text="%ShellMenuBar.openRecentMenu.text"/>
+                <Menu fx:id="openFavoriteMenu" id="menu-file-open-favorite" text="%ShellMenuBar.openFavoriteMenu.text"/>
+                <Menu fx:id="projectMenu" id="menu-file-project" text="%ShellMenuBar.projectMenu.text">
                     <items>
-                        <ShellMenuItem id="menu-project-new" text="New Project…" iconLiteral="bi-folder-plus"
+                        <ShellMenuItem id="menu-project-new" text="%ShellMenuBar.menu-project-new.text" iconLiteral="bi-folder-plus"
                                        color="CREATE" onAction="#onNewProject"/>
-                        <ShellMenuItem id="menu-project-open" text="Open Project…" iconLiteral="bi-briefcase"
+                        <ShellMenuItem id="menu-project-open" text="%ShellMenuBar.menu-project-open.text" iconLiteral="bi-briefcase"
                                        color="TOOL" onAction="#onOpenProject"/>
-                        <ShellMenuItem fx:id="closeProjectItem" id="menu-project-close" text="Close Project"
+                        <ShellMenuItem fx:id="closeProjectItem" id="menu-project-close" text="%ShellMenuBar.closeProjectItem.text"
                                        iconLiteral="bi-x-lg" color="NEUTRAL" onAction="#onCloseProject"/>
                         <SeparatorMenuItem/>
-                        <ShellMenuItem fx:id="bindSchemaItem" id="menu-project-bind-schema" text="Bind Schema in Project…"
+                        <ShellMenuItem fx:id="bindSchemaItem" id="menu-project-bind-schema" text="%ShellMenuBar.bindSchemaItem.text"
                                        iconLiteral="bi-link-45deg" color="TOOL" onAction="#onBindProjectSchema"/>
-                        <ShellMenuItem fx:id="addCatalogItem" id="menu-project-add-catalog" text="Add Catalog to Project…"
+                        <ShellMenuItem fx:id="addCatalogItem" id="menu-project-add-catalog" text="%ShellMenuBar.addCatalogItem.text"
                                        iconLiteral="bi-journal-plus" color="TOOL" onAction="#onAddProjectCatalog"/>
-                        <ShellMenuItem fx:id="editProjectItem" id="menu-project-edit" text="Edit Project File"
+                        <ShellMenuItem fx:id="editProjectItem" id="menu-project-edit" text="%ShellMenuBar.editProjectItem.text"
                                        iconLiteral="bi-pencil-square" color="NAVIGATE" onAction="#onEditProject"/>
                     </items>
                 </Menu>
                 <SeparatorMenuItem/>
-                <ShellMenuItem fx:id="closeTabItem" id="menu-file-close-tab" text="Close Tab" iconLiteral="bi-x-lg"
+                <ShellMenuItem fx:id="closeTabItem" id="menu-file-close-tab" text="%ShellMenuBar.closeTabItem.text" iconLiteral="bi-x-lg"
                                color="NEUTRAL" accelerator="Shortcut+W" onAction="#onCloseTab"/>
                 <SeparatorMenuItem/>
-                <ShellMenuItem id="menu-file-save" text="Save" iconLiteral="bi-save" color="TOOL"
+                <ShellMenuItem id="menu-file-save" text="%ShellMenuBar.menu-file-save.text" iconLiteral="bi-save" color="TOOL"
                                accelerator="Shortcut+S" onAction="#onSave"/>
-                <ShellMenuItem id="menu-file-save-as" text="Save As…" iconLiteral="bi-save2" color="TOOL"
+                <ShellMenuItem id="menu-file-save-as" text="%ShellMenuBar.menu-file-save-as.text" iconLiteral="bi-save2" color="TOOL"
                                accelerator="Shortcut+Shift+S" onAction="#onSaveAs"/>
-                <ShellMenuItem id="menu-file-save-all" text="Save All" iconLiteral="bi-files" color="TOOL"
+                <ShellMenuItem id="menu-file-save-all" text="%ShellMenuBar.menu-file-save-all.text" iconLiteral="bi-files" color="TOOL"
                                onAction="#onSaveAll"/>
                 <SeparatorMenuItem fx:id="fileAppSeparator"/>
-                <ShellMenuItem fx:id="settingsItem" id="menu-file-settings" text="Settings…" iconLiteral="bi-gear"
+                <ShellMenuItem fx:id="settingsItem" id="menu-file-settings" text="%ShellMenuBar.settingsItem.text" iconLiteral="bi-gear"
                                color="NEUTRAL" accelerator="Shortcut+Comma" onAction="#onSettings"/>
-                <ShellMenuItem fx:id="exitItem" id="menu-file-exit" text="Exit" iconLiteral="bi-box-arrow-right"
+                <ShellMenuItem fx:id="exitItem" id="menu-file-exit" text="%ShellMenuBar.exitItem.text" iconLiteral="bi-box-arrow-right"
                                color="NEUTRAL" accelerator="Shortcut+Q" onAction="#onExit"/>
             </items>
         </Menu>
 
-        <Menu id="menu-edit" text="_Edit">
+        <Menu id="menu-edit" text="%ShellMenuBar.menu-edit.text">
             <items>
-                <ShellMenuItem id="menu-edit-undo" text="Undo" iconLiteral="bi-arrow-counterclockwise"
+                <ShellMenuItem id="menu-edit-undo" text="%ShellMenuBar.menu-edit-undo.text" iconLiteral="bi-arrow-counterclockwise"
                                color="NEUTRAL" accelerator="Shortcut+Z" onAction="#onUndo"/>
-                <ShellMenuItem id="menu-edit-redo" text="Redo" iconLiteral="bi-arrow-clockwise" color="NEUTRAL"
+                <ShellMenuItem id="menu-edit-redo" text="%ShellMenuBar.menu-edit-redo.text" iconLiteral="bi-arrow-clockwise" color="NEUTRAL"
                                accelerator="Shortcut+Shift+Z" onAction="#onRedo"/>
                 <SeparatorMenuItem/>
-                <ShellMenuItem id="menu-edit-find" text="Find…" iconLiteral="bi-search" color="NAVIGATE"
+                <ShellMenuItem id="menu-edit-find" text="%ShellMenuBar.menu-edit-find.text" iconLiteral="bi-search" color="NAVIGATE"
                                accelerator="Shortcut+F" onAction="#onFind"/>
-                <ShellMenuItem fx:id="replaceItem" id="menu-edit-replace" text="Replace…"
+                <ShellMenuItem fx:id="replaceItem" id="menu-edit-replace" text="%ShellMenuBar.replaceItem.text"
                                iconLiteral="bi-arrow-left-right" color="MODIFY"
                                accelerator="Shortcut+H" onAction="#onReplace"/>
-                <ShellMenuItem id="menu-edit-find-in-files" text="Find in Files…" iconLiteral="bi-search"
+                <ShellMenuItem id="menu-edit-find-in-files" text="%ShellMenuBar.menu-edit-find-in-files.text" iconLiteral="bi-search"
                                color="NAVIGATE" accelerator="Shortcut+Shift+F" onAction="#onFindInFiles"/>
-                <ShellMenuItem id="menu-edit-replace-in-files" text="Replace in Files…"
+                <ShellMenuItem id="menu-edit-replace-in-files" text="%ShellMenuBar.menu-edit-replace-in-files.text"
                                iconLiteral="bi-arrow-left-right" color="MODIFY"
                                accelerator="Shortcut+Shift+H" onAction="#onReplaceInFiles"/>
                 <SeparatorMenuItem/>
-                <ShellMenuItem id="menu-edit-format" text="Format Document" iconLiteral="bi-text-indent-left"
+                <ShellMenuItem id="menu-edit-format" text="%ShellMenuBar.menu-edit-format.text" iconLiteral="bi-text-indent-left"
                                color="TOOL" accelerator="Shift+Alt+F" onAction="#onFormat"/>
-                <ShellMenuItem id="menu-edit-minify" text="Minify" iconLiteral="bi-arrows-collapse" color="TOOL"
+                <ShellMenuItem id="menu-edit-minify" text="%ShellMenuBar.menu-edit-minify.text" iconLiteral="bi-arrows-collapse" color="TOOL"
                                onAction="#onMinify"/>
-                <ShellMenuItem id="menu-edit-insert-template" text="Insert Template…"
+                <ShellMenuItem id="menu-edit-insert-template" text="%ShellMenuBar.menu-edit-insert-template.text"
                                iconLiteral="bi-file-earmark-code" color="CREATE"
                                accelerator="Shortcut+T" onAction="#onInsertTemplate"/>
             </items>
         </Menu>
 
-        <Menu fx:id="viewMenu" id="menu-view" text="_View">
+        <Menu fx:id="viewMenu" id="menu-view" text="%ShellMenuBar.viewMenu.text">
             <items>
                 <!-- The view-mode items (Text / Tree / Graphic / Preview) are inserted here in code. -->
                 <SeparatorMenuItem/>
-                <ShellMenuItem id="menu-view-side-panel" text="Side Panel" iconLiteral="bi-layout-sidebar"
+                <ShellMenuItem id="menu-view-side-panel" text="%ShellMenuBar.menu-view-side-panel.text" iconLiteral="bi-layout-sidebar"
                                color="NEUTRAL" accelerator="Shortcut+L" onAction="#onToggleSidePanel"/>
-                <ShellMenuItem id="menu-view-inspector" text="Properties Inspector"
+                <ShellMenuItem id="menu-view-inspector" text="%ShellMenuBar.menu-view-inspector.text"
                                iconLiteral="bi-layout-sidebar-reverse" color="NEUTRAL"
                                accelerator="Shortcut+Shift+P" onAction="#onToggleInspector"/>
-                <ShellMenuItem id="menu-view-query-console" text="Query Console" iconLiteral="bi-terminal"
+                <ShellMenuItem id="menu-view-query-console" text="%ShellMenuBar.menu-view-query-console.text" iconLiteral="bi-terminal"
                                color="NEUTRAL" accelerator="Shortcut+Shift+X" onAction="#onToggleQueryConsole"/>
-                <ShellMenuItem id="menu-view-favorites" text="Favorites Panel" iconLiteral="bi-star"
+                <ShellMenuItem id="menu-view-favorites" text="%ShellMenuBar.menu-view-favorites.text" iconLiteral="bi-star"
                                color="NEUTRAL" accelerator="Shortcut+Shift+D" onAction="#onToggleFavorites"/>
-                <Menu fx:id="activitiesMenu" id="menu-view-activities" text="Activities"/>
+                <Menu fx:id="activitiesMenu" id="menu-view-activities" text="%ShellMenuBar.activitiesMenu.text"/>
                 <SeparatorMenuItem/>
                 <CheckMenuItem fx:id="showConstraintsItem" id="menu-view-show-constraints"
-                               text="Show Constraints in Diagram"/>
+                               text="%ShellMenuBar.showConstraintsItem.text"/>
                 <CheckMenuItem fx:id="showConstraintTargetsItem" id="menu-view-show-constraint-targets"
-                               text="Show Constraints on Target Nodes"/>
+                               text="%ShellMenuBar.showConstraintTargetsItem.text"/>
                 <SeparatorMenuItem/>
-                <ShellMenuItem id="menu-view-theme" text="Toggle Light / Dark Theme" iconLiteral="bi-moon-stars"
+                <ShellMenuItem id="menu-view-theme" text="%ShellMenuBar.menu-view-theme.text" iconLiteral="bi-moon-stars"
                                color="NEUTRAL" onAction="#onToggleTheme"/>
-                <ShellMenuItem fx:id="fullScreenItem" id="menu-view-full-screen" text="Full Screen"
+                <ShellMenuItem fx:id="fullScreenItem" id="menu-view-full-screen" text="%ShellMenuBar.fullScreenItem.text"
                                iconLiteral="bi-arrows-fullscreen" color="NEUTRAL"
                                accelerator="F11" onAction="#onToggleFullScreen"/>
             </items>
         </Menu>
 
-        <Menu fx:id="toolsMenu" id="menu-tools" text="_Tools">
+        <Menu fx:id="toolsMenu" id="menu-tools" text="%ShellMenuBar.toolsMenu.text">
             <items>
-                <ShellMenuItem id="menu-tools-validate" text="Validate" iconLiteral="bi-check2-circle"
+                <ShellMenuItem id="menu-tools-validate" text="%ShellMenuBar.menu-tools-validate.text" iconLiteral="bi-check2-circle"
                                color="CREATE" accelerator="F8" onAction="#onValidate"/>
-                <ShellMenuItem id="menu-tools-run" text="Run" iconLiteral="bi-play-fill" color="TOOL"
+                <ShellMenuItem id="menu-tools-run" text="%ShellMenuBar.menu-tools-run.text" iconLiteral="bi-play-fill" color="TOOL"
                                accelerator="F5" onAction="#onRun"/>
-                <ShellMenuItem id="menu-tools-transform" text="Transform with XSLT…" iconLiteral="bi-shuffle"
+                <ShellMenuItem id="menu-tools-transform" text="%ShellMenuBar.menu-tools-transform.text" iconLiteral="bi-shuffle"
                                color="TOOL" onAction="#onTransform"/>
-                <ShellMenuItem id="menu-tools-debug-xslt" text="Debug with XSLT…" iconLiteral="bi-bug"
+                <ShellMenuItem id="menu-tools-debug-xslt" text="%ShellMenuBar.menu-tools-debug-xslt.text" iconLiteral="bi-bug"
                                color="TOOL" accelerator="Shift+F5" onAction="#onDebugXslt"/>
-                <ShellMenuItem id="menu-tools-xspec" text="Run XSpec Tests" iconLiteral="bi-ui-checks"
+                <ShellMenuItem id="menu-tools-xspec" text="%ShellMenuBar.menu-tools-xspec.text" iconLiteral="bi-ui-checks"
                                color="TOOL" onAction="#onRunXSpec"/>
-                <ShellMenuItem id="menu-tools-debug-config" text="Debug Configuration…" iconLiteral="bi-sliders2"
+                <ShellMenuItem id="menu-tools-debug-config" text="%ShellMenuBar.menu-tools-debug-config.text" iconLiteral="bi-sliders2"
                                color="TOOL" onAction="#onDebugConfiguration"/>
-                <ShellMenuItem id="menu-tools-rerun-debug" text="Re-run Last Debug" iconLiteral="bi-arrow-repeat"
+                <ShellMenuItem id="menu-tools-rerun-debug" text="%ShellMenuBar.menu-tools-rerun-debug.text" iconLiteral="bi-arrow-repeat"
                                color="TOOL" accelerator="Shortcut+Shift+F5" onAction="#onRerunDebug"/>
-                <ShellMenuItem id="menu-tools-toggle-breakpoint" text="Toggle Breakpoint" iconLiteral="bi-record-circle"
+                <ShellMenuItem id="menu-tools-toggle-breakpoint" text="%ShellMenuBar.menu-tools-toggle-breakpoint.text" iconLiteral="bi-record-circle"
                                color="TOOL" accelerator="F9" onAction="#onToggleBreakpoint"/>
-                <ShellMenuItem id="menu-tools-run-to-cursor" text="Run to Cursor" iconLiteral="bi-skip-forward-fill"
+                <ShellMenuItem id="menu-tools-run-to-cursor" text="%ShellMenuBar.menu-tools-run-to-cursor.text" iconLiteral="bi-skip-forward-fill"
                                color="TOOL" accelerator="Shortcut+F10" onAction="#onRunToCursor"/>
                 <SeparatorMenuItem/>
-                <ShellMenuItem id="menu-tools-set-schema" text="Set Schema…" iconLiteral="bi-link-45deg"
+                <ShellMenuItem id="menu-tools-set-schema" text="%ShellMenuBar.menu-tools-set-schema.text" iconLiteral="bi-link-45deg"
                                color="STRUCTURE" onAction="#onSetSchema"/>
-                <ShellMenuItem id="menu-tools-generate-docs" text="Generate Documentation…"
+                <ShellMenuItem id="menu-tools-generate-docs" text="%ShellMenuBar.menu-tools-generate-docs.text"
                                iconLiteral="bi-file-earmark-richtext" color="CREATE" onAction="#onGenerateDocs"/>
-                <ShellMenuItem id="menu-tools-generate-sample" text="Generate Sample XML…"
+                <ShellMenuItem id="menu-tools-generate-sample" text="%ShellMenuBar.menu-tools-generate-sample.text"
                                iconLiteral="bi-file-earmark-play" color="CREATE" onAction="#onGenerateSample"/>
-                <ShellMenuItem id="menu-tools-generate-xsd" text="Generate XSD from XML"
+                <ShellMenuItem id="menu-tools-generate-xsd" text="%ShellMenuBar.menu-tools-generate-xsd.text"
                                iconLiteral="bi-magic" color="CREATE" onAction="#onGenerateXsdFromXml"/>
-                <ShellMenuItem id="menu-tools-generate-xsd-batch" text="Generate XSD from XML Files…"
+                <ShellMenuItem id="menu-tools-generate-xsd-batch" text="%ShellMenuBar.menu-tools-generate-xsd-batch.text"
                                iconLiteral="bi-files" color="CREATE" onAction="#onGenerateXsdBatch"/>
-                <ShellMenuItem id="menu-tools-type-editor" text="Type Editor" iconLiteral="bi-diagram-3"
+                <ShellMenuItem id="menu-tools-type-editor" text="%ShellMenuBar.menu-tools-type-editor.text" iconLiteral="bi-diagram-3"
                                color="NAVIGATE" onAction="#onTypeEditor"/>
                 <SeparatorMenuItem/>
-                <ShellMenuItem id="menu-tools-compare" text="Compare with File…" iconLiteral="bi-file-diff"
+                <ShellMenuItem id="menu-tools-compare" text="%ShellMenuBar.menu-tools-compare.text" iconLiteral="bi-file-diff"
                                color="TOOL" onAction="#onCompare"/>
-                <ShellMenuItem id="menu-tools-compare-folders" text="Compare Folders…" iconLiteral="bi-folder2-open"
+                <ShellMenuItem id="menu-tools-compare-folders" text="%ShellMenuBar.menu-tools-compare-folders.text" iconLiteral="bi-folder2-open"
                                color="TOOL" onAction="#onCompareFolders"/>
-                <ShellMenuItem id="menu-tools-merge" text="Merge Files…" iconLiteral="bi-sign-merge-left"
+                <ShellMenuItem id="menu-tools-merge" text="%ShellMenuBar.menu-tools-merge.text" iconLiteral="bi-sign-merge-left"
                                color="TOOL" onAction="#onMergeFiles"/>
-                <ShellMenuItem id="menu-tools-spreadsheet" text="Spreadsheet Converter…" iconLiteral="bi-table"
+                <ShellMenuItem id="menu-tools-spreadsheet" text="%ShellMenuBar.menu-tools-spreadsheet.text" iconLiteral="bi-table"
                                color="TOOL" accelerator="Shortcut+E" onAction="#onSpreadsheet"/>
-                <ShellMenuItem id="menu-tools-convert-json" text="Convert to JSON…" iconLiteral="bi-filetype-json"
+                <ShellMenuItem id="menu-tools-convert-json" text="%ShellMenuBar.menu-tools-convert-json.text" iconLiteral="bi-filetype-json"
                                color="TOOL" onAction="#onConvertToJson"/>
-                <ShellMenuItem id="menu-tools-convert-xml" text="Convert to XML…" iconLiteral="bi-filetype-xml"
+                <ShellMenuItem id="menu-tools-convert-xml" text="%ShellMenuBar.menu-tools-convert-xml.text" iconLiteral="bi-filetype-xml"
                                color="TOOL" onAction="#onConvertToXml"/>
-                <ShellMenuItem id="menu-tools-convert-yaml" text="Convert to YAML…" iconLiteral="bi-filetype-yml"
+                <ShellMenuItem id="menu-tools-convert-yaml" text="%ShellMenuBar.menu-tools-convert-yaml.text" iconLiteral="bi-filetype-yml"
                                color="TOOL" onAction="#onConvertToYaml"/>
                 <SeparatorMenuItem/>
-                <ShellMenuItem id="menu-tools-add-favorite" text="Add to Favorites" iconLiteral="bi-star-fill"
+                <ShellMenuItem id="menu-tools-add-favorite" text="%ShellMenuBar.menu-tools-add-favorite.text" iconLiteral="bi-star-fill"
                                color="CREATE" accelerator="Shortcut+D" onAction="#onAddToFavorites"/>
             </items>
         </Menu>
 
-        <Menu fx:id="helpMenu" id="menu-help" text="_Help">
+        <Menu fx:id="helpMenu" id="menu-help" text="%ShellMenuBar.helpMenu.text">
             <items>
                 <!-- Help is this menu only (no activity); the header's Help button and F1 show a copy. -->
-                <ShellMenuItem id="menu-help-docs" text="Documentation" iconLiteral="bi-book" color="NAVIGATE"
+                <ShellMenuItem id="menu-help-docs" text="%ShellMenuBar.menu-help-docs.text" iconLiteral="bi-book" color="NAVIGATE"
                                onAction="#onDocs"/>
-                <ShellMenuItem id="menu-help-shortcuts" text="Keyboard Shortcuts" iconLiteral="bi-keyboard"
+                <ShellMenuItem id="menu-help-shortcuts" text="%ShellMenuBar.menu-help-shortcuts.text" iconLiteral="bi-keyboard"
                                color="NAVIGATE" onAction="#onShortcuts"/>
                 <!-- Plugins' Help items (e.g. the FundsXML links) are inserted after this separator -->
                 <SeparatorMenuItem fx:id="pluginHelpSeparator"/>
                 <SeparatorMenuItem/>
-                <ShellMenuItem fx:id="reportProblemItem" id="menu-help-report" text="Report a Problem…"
+                <ShellMenuItem fx:id="reportProblemItem" id="menu-help-report" text="%ShellMenuBar.reportProblemItem.text"
                                iconLiteral="bi-bug" color="MODIFY" onAction="#onReportProblem"/>
-                <ShellMenuItem id="menu-help-github" text="GitHub Repository" iconLiteral="bi-github"
+                <ShellMenuItem id="menu-help-github" text="%ShellMenuBar.menu-help-github.text" iconLiteral="bi-github"
                                color="NAVIGATE" onAction="#onGitHub"/>
                 <!-- The sponsor heart keeps its own colour; ShellMenuBar sets the graphic. -->
-                <ShellMenuItem fx:id="sponsorItem" id="menu-help-sponsor" text="Sponsor this Project"
+                <ShellMenuItem fx:id="sponsorItem" id="menu-help-sponsor" text="%ShellMenuBar.sponsorItem.text"
                                onAction="#onSponsor"/>
                 <SeparatorMenuItem fx:id="helpAppSeparator"/>
-                <ShellMenuItem fx:id="updatesItem" id="menu-help-updates" text="Check for Updates…"
+                <ShellMenuItem fx:id="updatesItem" id="menu-help-updates" text="%ShellMenuBar.updatesItem.text"
                                iconLiteral="bi-arrow-repeat" color="TOOL" onAction="#onCheckForUpdates"/>
-                <ShellMenuItem fx:id="aboutItem" id="menu-help-about" text="About FreeXmlToolkit"
+                <ShellMenuItem fx:id="aboutItem" id="menu-help-about" text="%ShellMenuBar.aboutItem.text"
                                iconLiteral="bi-info-circle" color="NAVIGATE" onAction="#onAbout"/>
             </items>
         </Menu>

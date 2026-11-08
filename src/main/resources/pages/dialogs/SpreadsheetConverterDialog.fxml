@@ -26,34 +26,34 @@
         <Insets topRightBottomLeft="16"/>
     </padding>
     <children>
-        <Label text="Direction:" GridPane.rowIndex="0"/>
-        <RadioButton fx:id="toSpreadsheet" text="XML → Spreadsheet" toggleGroup="$directionGroup" selected="true"
+        <Label text="%SpreadsheetConverterDialog.direction.text" GridPane.rowIndex="0"/>
+        <RadioButton fx:id="toSpreadsheet" text="%SpreadsheetConverterDialog.toSpreadsheet.text" toggleGroup="$directionGroup" selected="true"
                      GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-        <RadioButton fx:id="toXml" text="Spreadsheet → XML" toggleGroup="$directionGroup"
+        <RadioButton fx:id="toXml" text="%SpreadsheetConverterDialog.toXml.text" toggleGroup="$directionGroup"
                      GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Label text="Format:" GridPane.rowIndex="2"/>
+        <Label text="%SpreadsheetConverterDialog.format.text" GridPane.rowIndex="2"/>
         <ComboBox fx:id="format" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-        <Label text="CSV delimiter:" GridPane.rowIndex="3"/>
+        <Label text="%SpreadsheetConverterDialog.csv-delimiter.text" GridPane.rowIndex="3"/>
         <ComboBox fx:id="delimiter" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-        <Label text="Schema (XSD):" GridPane.rowIndex="4"/>
+        <Label text="%SpreadsheetConverterDialog.schema-xsd.text" GridPane.rowIndex="4"/>
         <HBox spacing="6" GridPane.rowIndex="4" GridPane.columnIndex="1">
             <children>
                 <TextField fx:id="schemaFile" id="spreadsheet-import-schema" prefColumnCount="28"
-                           promptText="Detect from the spreadsheet (xsi:schemaLocation)"/>
-                <Button fx:id="browseSchema" id="spreadsheet-import-schema-browse" text="Browse…"
+                           promptText="%SpreadsheetConverterDialog.schemaFile.promptText"/>
+                <Button fx:id="browseSchema" id="spreadsheet-import-schema-browse" text="%SpreadsheetConverterDialog.browseSchema.text"
                         onAction="#onBrowseSchema"/>
             </children>
         </HBox>
-        <Label text="Options:" GridPane.rowIndex="5"/>
-        <CheckBox fx:id="includeComments" text="Include comments" selected="true"
+        <Label text="%SpreadsheetConverterDialog.options.text" GridPane.rowIndex="5"/>
+        <CheckBox fx:id="includeComments" text="%SpreadsheetConverterDialog.includeComments.text" selected="true"
                   GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="includeNamespaces" text="Include namespaces" selected="true"
+        <CheckBox fx:id="includeNamespaces" text="%SpreadsheetConverterDialog.includeNamespaces.text" selected="true"
                   GridPane.rowIndex="6" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="includeCData" text="Include CDATA" selected="true"
+        <CheckBox fx:id="includeCData" text="%SpreadsheetConverterDialog.includeCData.text" selected="true"
                   GridPane.rowIndex="7" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="includeTypeColumn" text="Include type column" selected="true"
+        <CheckBox fx:id="includeTypeColumn" text="%SpreadsheetConverterDialog.includeTypeColumn.text" selected="true"
                   GridPane.rowIndex="8" GridPane.columnIndex="1"/>
-        <CheckBox fx:id="prettyPrintXml" text="Pretty-print XML" selected="true"
+        <CheckBox fx:id="prettyPrintXml" text="%SpreadsheetConverterDialog.prettyPrintXml.text" selected="true"
                   GridPane.rowIndex="9" GridPane.columnIndex="1"/>
     </children>
 </GridPane>

@@ -28,43 +28,43 @@
     <children>
         <HBox spacing="10" alignment="CENTER_LEFT" styleClass="fxt-output-header">
             <children>
-                <Label text="OUTPUT" styleClass="fxt-output-title"/>
+                <Label text="%TransformOutputPanel.output.text" styleClass="fxt-output-title"/>
                 <Label fx:id="badge" visible="false" styleClass="fxt-output-badge"/>
                 <IconifyIcon fx:id="statusIcon" iconLiteral="bi-check-circle-fill" iconSize="12" visible="false"/>
                 <Label fx:id="statusLabel" styleClass="fxt-output-status"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <HBox spacing="2" styleClass="fxt-seg-group">
                     <children>
-                        <ToggleButton fx:id="previewToggle" text="Preview" toggleGroup="$viewGroup"
+                        <ToggleButton fx:id="previewToggle" text="%TransformOutputPanel.previewToggle.text" toggleGroup="$viewGroup"
                                       visible="false" managed="false" styleClass="fxt-seg"/>
-                        <ToggleButton fx:id="textToggle" text="Text" toggleGroup="$viewGroup" selected="true"
+                        <ToggleButton fx:id="textToggle" text="%TransformOutputPanel.textToggle.text" toggleGroup="$viewGroup" selected="true"
                                       styleClass="fxt-seg"/>
-                        <ToggleButton fx:id="tableToggle" text="Table" toggleGroup="$viewGroup"
+                        <ToggleButton fx:id="tableToggle" text="%TransformOutputPanel.tableToggle.text" toggleGroup="$viewGroup"
                                       visible="false" managed="false" styleClass="fxt-seg"/>
                     </children>
                 </HBox>
-                <Button id="transform-output-editor" text="Open as Tab" styleClass="fxt-sp-action, fxt-output-action" onAction="#openResultInEditor">
+                <Button id="transform-output-editor" text="%TransformOutputPanel.transform-output-editor.text" styleClass="fxt-sp-action, fxt-output-action" onAction="#openResultInEditor">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-file-earmark-plus" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Open result as editor tab"/>
+                        <Tooltip text="%TransformOutputPanel.open-result-as-editor-tab.text"/>
                     </tooltip>
                 </Button>
-                <Button id="transform-output-browser" text="Browser" styleClass="fxt-sp-action, fxt-output-action" onAction="#openInBrowser">
+                <Button id="transform-output-browser" text="%TransformOutputPanel.transform-output-browser.text" styleClass="fxt-sp-action, fxt-output-action" onAction="#openInBrowser">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-box-arrow-up-right" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Open in browser"/>
+                        <Tooltip text="%TransformOutputPanel.open-in-browser.text"/>
                     </tooltip>
                 </Button>
-                <Button id="transform-output-save" text="Save…" styleClass="fxt-sp-action, fxt-output-action" onAction="#saveResult">
+                <Button id="transform-output-save" text="%TransformOutputPanel.transform-output-save.text" styleClass="fxt-sp-action, fxt-output-action" onAction="#saveResult">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-download" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Save result…"/>
+                        <Tooltip text="%TransformOutputPanel.save-result.text"/>
                     </tooltip>
                 </Button>
                 <Button id="transform-output-close" styleClass="fxt-sp-action" onAction="#hide">
@@ -72,7 +72,7 @@
                         <IconifyIcon iconLiteral="bi-x" iconSize="14"/>
                     </graphic>
                     <tooltip>
-                        <Tooltip text="Hide output panel"/>
+                        <Tooltip text="%TransformOutputPanel.hide-output-panel.text"/>
                     </tooltip>
                 </Button>
             </children>
@@ -81,7 +81,7 @@
             <children>
                 <TableView fx:id="resultTable">
                     <placeholder>
-                        <Label text="Run an XQuery returning a sequence to see a table."/>
+                        <Label text="%TransformOutputPanel.run-an-xquery-returning-a.text"/>
                     </placeholder>
                 </TableView>
                 <StackPane fx:id="previewHolder" visible="false" managed="false"/>

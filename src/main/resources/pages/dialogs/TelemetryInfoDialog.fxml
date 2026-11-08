@@ -22,22 +22,22 @@
     </padding>
     <children>
         <Label wrapText="true"
-               text="FreeXmlToolkit sends anonymous usage statistics (which features are used, how long operations take, coarse document type such as XML or XSD, sizes and counts) and anonymous error reports (exception type and a stack signature of the application code). Your OS family, CPU architecture, Java version, UI language and app version are included.&#10;&#10;Never sent: file names, paths, document content, exception messages, user names, e-mail addresses or your IP address (the server derives only the country and discards the IP).&#10;&#10;The data goes to a self-hosted server in the EU (Finland). You can switch both kinds of data off at any time in Settings ▸ Usage Statistics."/>
-        <Label text="Example of the data sent (JSON):"/>
+               text="%TelemetryInfoDialog.freexmltoolkit-sends-anonymous-usage-statistics.text"/>
+        <Label text="%TelemetryInfoDialog.example-of-the-data-sent.text"/>
         <TextArea fx:id="payload" editable="false" wrapText="false" prefRowCount="14"
                   style="-fx-font-family: 'JetBrains Mono', monospace; -fx-font-size: 11px;"
                   VBox.vgrow="ALWAYS"/>
         <HBox spacing="6" alignment="CENTER_LEFT">
             <children>
-                <Label text="Anonymous installation ID:"/>
+                <Label text="%TelemetryInfoDialog.anonymous-installation-id.text"/>
                 <TextField fx:id="installId" id="telemetry-install-id" editable="false" HBox.hgrow="ALWAYS"/>
-                <Button text="Reset ID" onAction="#onResetId">
+                <Button text="%TelemetryInfoDialog.reset-id.text" onAction="#onResetId">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
                     </graphic>
                 </Button>
             </children>
         </HBox>
-        <Hyperlink text="Read the full privacy documentation" onAction="#onOpenDocs"/>
+        <Hyperlink text="%TelemetryInfoDialog.read-the-full-privacy-documentation.text" onAction="#onOpenDocs"/>
     </children>
 </VBox>

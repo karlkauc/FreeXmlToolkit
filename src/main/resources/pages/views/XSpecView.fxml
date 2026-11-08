@@ -27,17 +27,17 @@
                 <IconifyIcon fx:id="summaryIcon" iconLiteral="bi-ui-checks" iconSize="20"/>
                 <Label fx:id="summary" id="xspec-summary" styleClass="fxt-side-panel-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="runButton" text="Run Again" id="xspec-run-again" onAction="#onRunAgain">
+                <Button fx:id="runButton" text="%XSpecView.runButton.text" id="xspec-run-again" onAction="#onRunAgain">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-play-circle" iconSize="16"/>
                     </graphic>
                 </Button>
-                <Button fx:id="htmlButton" text="HTML Report" id="xspec-html" onAction="#onHtmlReport">
+                <Button fx:id="htmlButton" text="%XSpecView.htmlButton.text" id="xspec-html" onAction="#onHtmlReport">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-filetype-html" iconSize="16"/>
                     </graphic>
                 </Button>
-                <Button fx:id="junitButton" text="Export JUnit…" id="xspec-junit" onAction="#onExportJUnit">
+                <Button fx:id="junitButton" text="%XSpecView.junitButton.text" id="xspec-junit" onAction="#onExportJUnit">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-box-arrow-up" iconSize="16"/>
                     </graphic>
@@ -49,22 +49,22 @@
             <items>
                 <TreeTableView fx:id="tree" id="xspec-tree" showRoot="false">
                     <columns>
-                        <TreeTableColumn fx:id="labelColumn" text="Scenario / Test" prefWidth="520"/>
-                        <TreeTableColumn fx:id="statusColumn" text="Result" prefWidth="140"/>
+                        <TreeTableColumn fx:id="labelColumn" text="%XSpecView.labelColumn.text" prefWidth="520"/>
+                        <TreeTableColumn fx:id="statusColumn" text="%XSpecView.statusColumn.text" prefWidth="140"/>
                     </columns>
                 </TreeTableView>
                 <SplitPane dividerPositions="0.5">
                     <items>
                         <VBox spacing="4">
                             <children>
-                                <Label text="Expected"/>
+                                <Label text="%XSpecView.expected.text"/>
                                 <TextArea fx:id="expected" id="xspec-expected" editable="false" wrapText="true"
                                           styleClass="fxt-xspec-value" VBox.vgrow="ALWAYS"/>
                             </children>
                         </VBox>
                         <VBox spacing="4">
                             <children>
-                                <Label text="Actual"/>
+                                <Label text="%XSpecView.actual.text"/>
                                 <TextArea fx:id="actual" id="xspec-actual" editable="false" wrapText="true"
                                           styleClass="fxt-xspec-value" VBox.vgrow="ALWAYS"/>
                             </children>

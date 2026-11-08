@@ -28,30 +28,30 @@
                                 <Label fx:id="detailDoc" wrapText="true" styleClass="fxt-type-picker-detail-doc"/>
                                 <HBox fx:id="baseRow" spacing="8" alignment="TOP_LEFT" styleClass="fxt-type-picker-detail-row">
                                     <children>
-                                        <Label text="Base type" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
+                                        <Label text="%TypePickerPopup.base-type.text" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
                                         <Label fx:id="detailBase" wrapText="true" styleClass="fxt-type-picker-detail-value, fxt-type-picker-mono"/>
                                     </children>
                                 </HBox>
                                 <HBox fx:id="derivationRow" spacing="8" alignment="TOP_LEFT" styleClass="fxt-type-picker-detail-row">
                                     <children>
-                                        <Label text="Derivation" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
+                                        <Label text="%TypePickerPopup.derivation.text" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
                                         <Label fx:id="detailDerivation" wrapText="true" styleClass="fxt-type-picker-detail-value"/>
                                     </children>
                                 </HBox>
                                 <HBox fx:id="exampleRow" spacing="8" alignment="TOP_LEFT" styleClass="fxt-type-picker-detail-row">
                                     <children>
-                                        <Label text="Example" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
+                                        <Label text="%TypePickerPopup.example.text" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
                                         <Label fx:id="detailExample" wrapText="true" styleClass="fxt-type-picker-detail-value, fxt-type-picker-mono"/>
                                     </children>
                                 </HBox>
                                 <HBox fx:id="sourceRow" spacing="8" alignment="TOP_LEFT" styleClass="fxt-type-picker-detail-row">
                                     <children>
-                                        <Label text="Source" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
+                                        <Label text="%TypePickerPopup.source.text" minWidth="-Infinity" styleClass="fxt-type-picker-detail-key"/>
                                         <Label fx:id="detailSource" wrapText="true" styleClass="fxt-type-picker-detail-value"/>
                                     </children>
                                 </HBox>
                                 <VBox fx:id="detailFacts" spacing="2" styleClass="fxt-type-picker-detail-facts"/>
-                                <Label fx:id="detailEmpty" text="Highlight a type to see what it means."
+                                <Label fx:id="detailEmpty" text="%TypePickerPopup.detailEmpty.text"
                                        wrapText="true" styleClass="fxt-type-picker-detail-doc"/>
                             </children>
                         </VBox>
@@ -60,6 +60,6 @@
             </children>
         </HBox>
         <Label fx:id="footer" maxWidth="Infinity" styleClass="fxt-type-picker-footer"
-               text="↑ ↓ navigate · Enter select · Esc close · type to filter"/>
+               text="%TypePickerPopup.footer.text"/>
     </children>
 </VBox>

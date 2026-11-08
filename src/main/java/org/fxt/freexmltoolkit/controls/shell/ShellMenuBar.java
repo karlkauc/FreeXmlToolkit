@@ -181,7 +181,7 @@ public final class ShellMenuBar extends MenuBar {
     private void buildViewModeItems() {
         int index = 0;
         for (ViewMode mode : ViewMode.values()) {
-            ShellMenuItem item = new ShellMenuItem(mode.label() + " View", mode.icon(), ActionColor.NAVIGATE);
+            ShellMenuItem item = new ShellMenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("ShellMenuBar.viewMode", mode.label()), mode.icon(), ActionColor.NAVIGATE);
             item.setId("menu-view-mode-" + mode.name().toLowerCase(java.util.Locale.ROOT));
             item.setOnAction(e -> run("view_" + mode.name().toLowerCase(java.util.Locale.ROOT),
                     () -> editorHost.setActiveViewMode(mode)));
@@ -269,7 +269,7 @@ public final class ShellMenuBar extends MenuBar {
             items.add(item);
         }
         if (items.isEmpty()) {
-            MenuItem none = new ShellMenuItem("No Recent Files", "bi-clock-history", ActionColor.NEUTRAL);
+            MenuItem none = new ShellMenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("ShellMenuBar.noRecentFiles"), "bi-clock-history", ActionColor.NEUTRAL);
             none.setDisable(true);
             items.add(none);
         }
@@ -287,13 +287,13 @@ public final class ShellMenuBar extends MenuBar {
         int[] next = {0};
         items.forEach(item -> assignFavoriteIds(item, next));
         if (items.isEmpty()) {
-            MenuItem none = new ShellMenuItem("No Favorites Yet", "bi-star", ActionColor.NEUTRAL);
+            MenuItem none = new ShellMenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("ShellMenuBar.noFavorites"), "bi-star", ActionColor.NEUTRAL);
             none.setId("menu-file-no-favorites");
             none.setDisable(true);
             items.add(none);
         }
         items.add(new SeparatorMenuItem());
-        ShellMenuItem manage = new ShellMenuItem("Manage Favorites…", "bi-star", ActionColor.NAVIGATE);
+        ShellMenuItem manage = new ShellMenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("ShellMenuBar.manageFavorites"), "bi-star", ActionColor.NAVIGATE);
         manage.setId("menu-file-manage-favorites");
         manage.setOnAction(e -> run("manage_favorites", () -> shell.showActivity(Activity.FAVORITES)));
         items.add(manage);

@@ -35,21 +35,21 @@
                     <children>
                         <HBox styleClass="fxt-debug-toolbar">
                             <children>
-                                <Button fx:id="copyButton" id="value-viewer-copy" text="Copy"
+                                <Button fx:id="copyButton" id="value-viewer-copy" text="%ValueViewerWindow.copyButton.text"
                                         styleClass="fxt-sp-action, fxt-output-action" onAction="#onCopy">
                                     <graphic><IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/></graphic>
-                                    <tooltip><Tooltip text="Copy the whole value to the clipboard"/></tooltip>
+                                    <tooltip><Tooltip text="%ValueViewerWindow.copy-the-whole-value-to.text"/></tooltip>
                                 </Button>
-                                <ToggleButton fx:id="prettyToggle" id="value-viewer-pretty" text="Pretty print"
+                                <ToggleButton fx:id="prettyToggle" id="value-viewer-pretty" text="%ValueViewerWindow.prettyToggle.text"
                                               selected="true" styleClass="fxt-sp-action, fxt-output-action"
                                               onAction="#onPrettyPrint">
                                     <graphic><IconifyIcon iconLiteral="bi-text-indent-left" iconSize="14"/></graphic>
-                                    <tooltip><Tooltip text="Indent XML nodes"/></tooltip>
+                                    <tooltip><Tooltip text="%ValueViewerWindow.indent-xml-nodes.text"/></tooltip>
                                 </ToggleButton>
-                                <ToggleButton fx:id="wrapToggle" id="value-viewer-wrap" text="Wrap"
+                                <ToggleButton fx:id="wrapToggle" id="value-viewer-wrap" text="%ValueViewerWindow.wrapToggle.text"
                                               styleClass="fxt-sp-action, fxt-output-action" onAction="#onWrap">
                                     <graphic><IconifyIcon iconLiteral="bi-text-wrap" iconSize="14"/></graphic>
-                                    <tooltip><Tooltip text="Wrap long lines"/></tooltip>
+                                    <tooltip><Tooltip text="%ValueViewerWindow.wrap-long-lines.text"/></tooltip>
                                 </ToggleButton>
                                 <Region HBox.hgrow="ALWAYS"/>
                                 <Label fx:id="sizeLabel" id="value-viewer-size" styleClass="fxt-output-status"/>
@@ -61,19 +61,19 @@
                     <children>
                         <HBox styleClass="fxt-debug-toolbar">
                             <children>
-                                <Label text="XPath" styleClass="fxt-output-title"/>
+                                <Label text="%ValueViewerWindow.xpath.text" styleClass="fxt-output-title"/>
                                 <TextField fx:id="xpathField" id="value-viewer-xpath" HBox.hgrow="ALWAYS"
                                            styleClass="fxt-xpath-field" onAction="#onRunXPath"
-                                           promptText="XPath on this value, e.g. item[1]/price, count(//item) or $value[2]"/>
-                                <Button fx:id="runButton" id="value-viewer-run" text="Run"
+                                           promptText="%ValueViewerWindow.xpathField.promptText"/>
+                                <Button fx:id="runButton" id="value-viewer-run" text="%ValueViewerWindow.runButton.text"
                                         styleClass="fxt-sp-action, fxt-output-action" onAction="#onRunXPath">
                                     <graphic><IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/></graphic>
-                                    <tooltip><Tooltip text="Evaluate the XPath (Enter). Context: this value; $value is the whole value; every variable of the pause is in scope."/></tooltip>
+                                    <tooltip><Tooltip text="%ValueViewerWindow.evaluate-the-xpath-enter-context.text"/></tooltip>
                                 </Button>
-                                <Button fx:id="copyResultButton" id="value-viewer-copy-result" text="Copy result"
+                                <Button fx:id="copyResultButton" id="value-viewer-copy-result" text="%ValueViewerWindow.copyResultButton.text"
                                         styleClass="fxt-sp-action, fxt-output-action" onAction="#onCopyResult">
                                     <graphic><IconifyIcon iconLiteral="bi-clipboard" iconSize="14"/></graphic>
-                                    <tooltip><Tooltip text="Copy the XPath result to the clipboard"/></tooltip>
+                                    <tooltip><Tooltip text="%ValueViewerWindow.copy-the-xpath-result-to.text"/></tooltip>
                                 </Button>
                             </children>
                         </HBox>

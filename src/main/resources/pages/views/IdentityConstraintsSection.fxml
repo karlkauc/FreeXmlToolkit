@@ -35,16 +35,16 @@
         <TableView fx:id="table" id="analysis-constraints-table" styleClass="fxt-analysis-table"
                    VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="typeColumn" text="Type" prefWidth="95"/>
-                <TableColumn fx:id="nameColumn" text="Name" prefWidth="170"/>
-                <TableColumn fx:id="parentColumn" text="Parent element" prefWidth="150"/>
-                <TableColumn fx:id="selectorColumn" text="Selector" prefWidth="220"/>
-                <TableColumn fx:id="fieldsColumn" text="Fields" prefWidth="170"/>
-                <TableColumn fx:id="referColumn" text="Refers to / test" prefWidth="170"/>
-                <TableColumn fx:id="statusColumn" text="Status" prefWidth="110"/>
+                <TableColumn fx:id="typeColumn" text="%IdentityConstraintsSection.typeColumn.text" prefWidth="95"/>
+                <TableColumn fx:id="nameColumn" text="%IdentityConstraintsSection.nameColumn.text" prefWidth="170"/>
+                <TableColumn fx:id="parentColumn" text="%IdentityConstraintsSection.parentColumn.text" prefWidth="150"/>
+                <TableColumn fx:id="selectorColumn" text="%IdentityConstraintsSection.selectorColumn.text" prefWidth="220"/>
+                <TableColumn fx:id="fieldsColumn" text="%IdentityConstraintsSection.fieldsColumn.text" prefWidth="170"/>
+                <TableColumn fx:id="referColumn" text="%IdentityConstraintsSection.referColumn.text" prefWidth="170"/>
+                <TableColumn fx:id="statusColumn" text="%IdentityConstraintsSection.statusColumn.text" prefWidth="110"/>
             </columns>
             <placeholder>
-                <Label text="The schema declares no identity constraints or assertions." contentDisplay="TOP"
+                <Label text="%IdentityConstraintsSection.the-schema-declares-no-identity.text" contentDisplay="TOP"
                        graphicTextGap="8" styleClass="fxt-analysis-empty">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-key" iconSize="28"/>

@@ -923,15 +923,15 @@ public class UnifiedShellView extends BorderPane {
     private void updateStatusBar() {
         var docOpt = editorHost.getActiveDocument();
         if (docOpt.isEmpty()) {
-            statusPosition.setText("Ln 1, Col 1");
+            statusPosition.setText(org.fxt.freexmltoolkit.i18n.I18n.t("Shell.position", 1, 1));
             statusChars.setText("");
             statusType.setText("");
             statusEncoding.setText("");
-            statusFile.setText("No file open");
+            statusFile.setText(org.fxt.freexmltoolkit.i18n.I18n.t("Shell.noFileOpen"));
             return;
         }
         int[] pos = editorHost.getActiveCaretLineColumn();
-        statusPosition.setText("Ln " + pos[0] + ", Col " + pos[1]);
+        statusPosition.setText(org.fxt.freexmltoolkit.i18n.I18n.t("Shell.position", String.valueOf(pos[0]), String.valueOf(pos[1])));
         var doc = docOpt.get();
         statusType.setText(doc.getFileType().label());
         var encoding = doc.getEncoding();
@@ -1095,7 +1095,7 @@ public class UnifiedShellView extends BorderPane {
         if (signatureNavigator != null) {
             signaturePage.setOnActionShown(signatureNavigator::setCurrent);
         }
-        signatureTab = editorHost.openToolTab("Signature", "bi-shield-lock", signaturePage);
+        signatureTab = editorHost.openToolTab(org.fxt.freexmltoolkit.i18n.I18n.t("Activity.signature"), "bi-shield-lock", signaturePage);
         return signaturePage;
     }
 
@@ -1114,7 +1114,7 @@ public class UnifiedShellView extends BorderPane {
         if (schemaLibraryNavigator != null) {
             schemaLibraryView.setOnSectionShown(schemaLibraryNavigator::setCurrent);
         }
-        schemaLibraryTab = editorHost.openToolTab("Schema Library", "bi-collection", schemaLibraryView);
+        schemaLibraryTab = editorHost.openToolTab(org.fxt.freexmltoolkit.i18n.I18n.t("Activity.schema-library"), "bi-collection", schemaLibraryView);
         return schemaLibraryView;
     }
 
@@ -1397,8 +1397,8 @@ public class UnifiedShellView extends BorderPane {
             case "search" -> searchPanel();
             case "schema" -> new org.fxt.freexmltoolkit.controls.shell.editor.TypeLibraryPanel(editorHost);
             case "schema-library" -> {
-                var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("library", "SCHEMA LIBRARY",
-                        "The library opens as a page in the main window.",
+                var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("library", org.fxt.freexmltoolkit.i18n.I18n.t("Shell.nav.library"),
+                        org.fxt.freexmltoolkit.i18n.I18n.t("Shell.libraryHint"),
                         org.fxt.freexmltoolkit.controls.shell.editor.SchemaLibraryView.SECTIONS,
                         key -> openSchemaLibraryTab().showSection(key), false);
                 schemaLibraryNavigator = nav;
@@ -1413,7 +1413,7 @@ public class UnifiedShellView extends BorderPane {
             case "pdf" -> new org.fxt.freexmltoolkit.controls.shell.editor.FopPanel(editorHost);
             case "signature" -> {
                 // The panel only picks the action; keystore and form are on the Signature page.
-                var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("sig", "SIGNATURE",
+                var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("sig", org.fxt.freexmltoolkit.i18n.I18n.t("Shell.nav.signature"),
                         null, org.fxt.freexmltoolkit.controls.shell.editor.SignatureView.SECTIONS,
                         key -> openSignaturePage().selectAction(
                                 org.fxt.freexmltoolkit.controls.shell.editor.SignatureView.Action.fromKey(key)),
@@ -1427,7 +1427,7 @@ public class UnifiedShellView extends BorderPane {
             case "settings" -> {
                 // The groups of the Settings page, with a search that filters page and list.
                 var page = openSettingsTab();
-                var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("settings", "SETTINGS",
+                var nav = new org.fxt.freexmltoolkit.controls.shell.editor.PageNavigator("settings", org.fxt.freexmltoolkit.i18n.I18n.t("Shell.nav.settings"),
                         null, page.sections(), key -> openSettingsTab().showSection(key), true);
                 nav.setOnFilter(query -> openSettingsTab().filter(query));
                 page.setOnSectionShown(nav::setCurrent);
@@ -1506,7 +1506,7 @@ public class UnifiedShellView extends BorderPane {
             }
         });
         settings.setOnFundsXmlEnabled(() -> org.fxt.freexmltoolkit.controls.shell.editor.FundsXmlPlugin.fetchContent("settings-enable"));
-        settingsTab = editorHost.openToolTab("Settings", "bi-gear", settings);
+        settingsTab = editorHost.openToolTab(org.fxt.freexmltoolkit.i18n.I18n.t("Activity.settings"), "bi-gear", settings);
         return settings;
     }
 
@@ -1559,7 +1559,7 @@ public class UnifiedShellView extends BorderPane {
     /** File → Open in Large File Viewer: any file, read-only, without loading it into memory. */
     public void openInViewer() {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Open in Large File Viewer");
+        chooser.setTitle(org.fxt.freexmltoolkit.i18n.I18n.t("Shell.openInViewer"));
         chooser.getExtensionFilters().addAll(
                 org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.fileChooserFilters());
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser,
@@ -2105,7 +2105,7 @@ public class UnifiedShellView extends BorderPane {
 
         queryTargetButton.getItems().add(new javafx.scene.control.SeparatorMenuItem());
 
-        var browse = new javafx.scene.control.MenuItem("Choose XML from file system…");
+        var browse = new javafx.scene.control.MenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("Shell.queryTarget.browse"));
         browse.setGraphic(sizedIcon("bi-folder2-open"));
         browse.setOnAction(e -> {
             var chooser = new javafx.stage.FileChooser();
@@ -2125,7 +2125,7 @@ public class UnifiedShellView extends BorderPane {
         });
         queryTargetButton.getItems().add(browse);
 
-        var automatic = new javafx.scene.control.RadioMenuItem("Automatic (last active XML document)");
+        var automatic = new javafx.scene.control.RadioMenuItem(org.fxt.freexmltoolkit.i18n.I18n.t("Shell.queryTarget.automaticItem"));
         automatic.setToggleGroup(group);
         automatic.setGraphic(sizedIcon("bi-arrow-repeat"));
         automatic.setSelected(current instanceof org.fxt.freexmltoolkit.controls.shell.editor
@@ -2156,8 +2156,8 @@ public class UnifiedShellView extends BorderPane {
         var target = queryDoc == null
                 ? org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.AUTOMATIC
                 : editorHost.getQueryTarget(queryDoc);
-        String label = "Automatic";
-        String tooltip = "Choose the XML document the query / transform runs against";
+        String label = org.fxt.freexmltoolkit.i18n.I18n.t("Shell.queryTarget.automatic");
+        String tooltip = org.fxt.freexmltoolkit.i18n.I18n.t("Shell.queryTarget.tooltip");
         if (target instanceof org.fxt.freexmltoolkit.controls.shell.editor.QueryTarget.OpenDoc od
                 && editorHost.getOpenDocuments().contains(od.document())) {
             label = od.document().getDisplayName();
@@ -2165,7 +2165,7 @@ public class UnifiedShellView extends BorderPane {
             label = fs.file().getName();
             tooltip = fs.file().getAbsolutePath();
         }
-        queryTargetButton.setText("Input: " + label);
+        queryTargetButton.setText(org.fxt.freexmltoolkit.i18n.I18n.t("Shell.queryTarget.label", label));
         queryTargetButton.setTooltip(new javafx.scene.control.Tooltip(tooltip));
     }
 
@@ -2200,7 +2200,7 @@ public class UnifiedShellView extends BorderPane {
             return;
         }
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Save As");
+        chooser.setTitle(org.fxt.freexmltoolkit.i18n.I18n.t("Shell.saveAs"));
         doc.get().getFileType().configureSaveChooser(chooser, doc.get().getDisplayName());
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getScene() != null ? getScene().getWindow() : null);
         if (file != null) {
@@ -2304,7 +2304,7 @@ public class UnifiedShellView extends BorderPane {
 
     private void openFile() {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Open File");
+        chooser.setTitle(org.fxt.freexmltoolkit.i18n.I18n.t("Shell.openFile"));
         chooser.getExtensionFilters().addAll(
                 org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.fileChooserFilters());
         java.io.File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showOpenDialog(chooser, getScene() != null ? getScene().getWindow() : null);
@@ -2774,10 +2774,10 @@ public class UnifiedShellView extends BorderPane {
             java.io.File schema, String kind,
             org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource source) {
         String text = switch (status) {
-            case LOADING -> "Detecting " + kind + "…";
-            case READY -> schema != null ? kind + ": " + schema.getName() : kind + " ready";
-            case ERROR -> kind + " error";
-            case NONE -> "No " + kind;
+            case LOADING -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.schema.loading", kind);
+            case READY -> schema != null ? kind + ": " + schema.getName() : org.fxt.freexmltoolkit.i18n.I18n.t("Shell.schema.ready", kind);
+            case ERROR -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.schema.error", kind);
+            case NONE -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.schema.none", kind);
         };
         if (status == org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus.READY && schema != null) {
             text += schemaSourceSuffix(source);
@@ -2789,10 +2789,10 @@ public class UnifiedShellView extends BorderPane {
     private static String schemaSourceSuffix(
             org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource source) {
         return switch (source) {
-            case CATALOG -> " (catalog)";
-            case LIBRARY -> " (library)";
-            case PROJECT -> " (project)";
-            case MANUAL -> " (manual)";
+            case CATALOG -> " (" + org.fxt.freexmltoolkit.i18n.I18n.t("Shell.suffix.catalog") + ")";
+            case LIBRARY -> " (" + org.fxt.freexmltoolkit.i18n.I18n.t("Shell.suffix.library") + ")";
+            case PROJECT -> " (" + org.fxt.freexmltoolkit.i18n.I18n.t("Shell.suffix.project") + ")";
+            case MANUAL -> " (" + org.fxt.freexmltoolkit.i18n.I18n.t("Shell.suffix.manual") + ")";
             case DECLARED, NONE -> "";
         };
     }
@@ -2868,28 +2868,23 @@ public class UnifiedShellView extends BorderPane {
         String tooltip;
         if ("JSON Schema".equals(kind)) {
             tooltip = switch (status) {
-                case LOADING -> "Detecting the declared JSON Schema — schema validation will be available shortly";
-                case READY -> "Schema validation is active (schema: " + (schema != null ? schema.getName() : "bound")
-                        + "). Click to bind a different JSON Schema";
-                case ERROR -> "The declared JSON Schema could not be loaded — validation is well-formedness only. "
-                        + "Click to bind a JSON Schema manually";
-                case NONE -> "No JSON Schema is bound — validation is well-formedness only. "
-                        + "Click to bind a JSON Schema";
+                case LOADING -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.jsonSchema.loading.tip");
+                case READY -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.jsonSchema.ready.tip", schema != null ? schema.getName() : "bound");
+                case ERROR -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.jsonSchema.error.tip");
+                case NONE -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.jsonSchema.none.tip");
             };
         } else {
             tooltip = switch (status) {
-                case LOADING -> "Detecting and parsing the linked XSD schema — IntelliSense will be available shortly";
-                case READY -> "IntelliSense is available (schema: " + (schema != null ? schema.getName() : "bound")
-                        + "). Click to bind a different XSD";
-                case ERROR -> "The linked XSD could not be loaded — IntelliSense is unavailable. "
-                        + "Click to bind an XSD manually";
-                case NONE -> "No XSD schema is linked — IntelliSense is limited. Click to bind an XSD";
+                case LOADING -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.xsd.loading.tip");
+                case READY -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.xsd.ready.tip", schema != null ? schema.getName() : "bound");
+                case ERROR -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.xsd.error.tip");
+                case NONE -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.xsd.none.tip");
             };
         }
         if (status == org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaStatus.READY && schema != null) {
             String sourceLine = schemaSourceTooltipLine(source, detail);
             if (sourceLine != null) {
-                tooltip += "\n" + sourceLine + "\nPath: " + schema.getAbsolutePath();
+                tooltip += "\n" + sourceLine + "\n" + org.fxt.freexmltoolkit.i18n.I18n.t("Shell.schema.path", schema.getAbsolutePath());
             }
         }
         return tooltip;
@@ -2899,11 +2894,11 @@ public class UnifiedShellView extends BorderPane {
     private static String schemaSourceTooltipLine(
             org.fxt.freexmltoolkit.controls.shell.editor.EditorHost.SchemaSource source, String detail) {
         return switch (source) {
-            case CATALOG -> "Resolved through an XML catalog: " + (detail != null ? detail : "unknown target");
-            case LIBRARY -> "Mapped by the Schema Library"
+            case CATALOG -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.source.catalog", detail != null ? detail : "?");
+            case LIBRARY -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.source.library")
                     + (detail != null && !detail.isBlank() ? " (" + detail + ")" : "");
-            case PROJECT -> "Bound by the project" + (detail != null && !detail.isBlank() ? " (" + detail + ")" : "");
-            case MANUAL -> "Bound manually";
+            case PROJECT -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.source.project") + (detail != null && !detail.isBlank() ? " (" + detail + ")" : "");
+            case MANUAL -> org.fxt.freexmltoolkit.i18n.I18n.t("Shell.source.manual");
             case DECLARED, NONE -> null;
         };
     }

@@ -143,7 +143,7 @@ public class ActivityBar extends VBox {
         // When labels are enabled the activity name is shown under the icon (so the
         // rail is self-explanatory); otherwise the bar stays a slim icon-only rail.
         if (showLabels()) {
-            button.setText(activity.label());
+            button.setText(activity.railLabel());
             button.setContentDisplay(javafx.scene.control.ContentDisplay.TOP);
             // Two-word names ("Schema Library") wrap onto a second line instead of
             // being cut to "Schema Li…" in the 66 px rail.

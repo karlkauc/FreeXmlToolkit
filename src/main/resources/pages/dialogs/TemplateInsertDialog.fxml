@@ -12,9 +12,9 @@
 -->
 <VBox spacing="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
-        <Label text="Templates"/>
+        <Label text="%TemplateInsertDialog.templates.text"/>
         <ListView fx:id="list" prefHeight="260" VBox.vgrow="ALWAYS"/>
-        <Label text="Preview"/>
+        <Label text="%TemplateInsertDialog.preview.text"/>
         <TextArea fx:id="preview" editable="false" prefRowCount="8" wrapText="false"/>
     </children>
 </VBox>

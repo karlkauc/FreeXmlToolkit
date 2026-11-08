@@ -30,14 +30,14 @@
 
         <TableView fx:id="table" id="analysis-xpath-table" styleClass="fxt-analysis-table" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="statusColumn" text="Status" prefWidth="105"/>
-                <TableColumn fx:id="constraintColumn" text="Constraint" prefWidth="190"/>
-                <TableColumn fx:id="sourceColumn" text="Source" prefWidth="90"/>
-                <TableColumn fx:id="xpathColumn" text="XPath" prefWidth="260"/>
-                <TableColumn fx:id="messageColumn" text="Message"/>
+                <TableColumn fx:id="statusColumn" text="%XPathSection.statusColumn.text" prefWidth="105"/>
+                <TableColumn fx:id="constraintColumn" text="%XPathSection.constraintColumn.text" prefWidth="190"/>
+                <TableColumn fx:id="sourceColumn" text="%XPathSection.sourceColumn.text" prefWidth="90"/>
+                <TableColumn fx:id="xpathColumn" text="%XPathSection.xpathColumn.text" prefWidth="260"/>
+                <TableColumn fx:id="messageColumn" text="%XPathSection.messageColumn.text"/>
             </columns>
             <placeholder>
-                <Label text="The schema declares no constraint XPath expressions." contentDisplay="TOP"
+                <Label text="%XPathSection.the-schema-declares-no-constraint.text" contentDisplay="TOP"
                        graphicTextGap="8" styleClass="fxt-analysis-empty">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-check2-circle" iconSize="28"/>

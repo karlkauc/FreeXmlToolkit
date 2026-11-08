@@ -44,7 +44,7 @@
             <content>
                 <VBox fx:id="page" spacing="16" styleClass="fxt-settings-page">
                     <children>
-                        <Label text="SETTINGS" styleClass="fxt-side-panel-title, fxt-panel-title"/>
+                        <Label text="%SettingsPanel.settings.text" styleClass="fxt-side-panel-title, fxt-panel-title"/>
                         <!-- Shown when an administrator's policy file locks settings (AdminPolicy). -->
                         <Label fx:id="policyNotice" id="settings-policy-notice" visible="false" managed="false"
                                wrapText="true" maxWidth="1200" styleClass="fxt-settings-policy-notice">
@@ -58,21 +58,21 @@
                             <children>
                                 <VBox id="settings-group-appearance" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <Label text="Appearance" styleClass="fxt-settings-group-title"/>
+                                        <Label text="%SettingsPanel.appearance.text" styleClass="fxt-settings-group-title"/>
                                         <SettingsCardGrid color="#1373D9">
                                             <children>
-                                        <SettingsCard title="THEME" iconLiteral="bi-palette">
+                                        <SettingsCard title="%SettingsPanel.theme.title" iconLiteral="bi-palette">
                                             <children>
                                                 <HBox spacing="6">
                                                     <children>
-                                                        <ToggleButton fx:id="light" text="Light" toggleGroup="$themeGroup"
+                                                        <ToggleButton fx:id="light" text="%SettingsPanel.light.text" toggleGroup="$themeGroup"
                                                                       focusTraversable="false" styleClass="fxt-view-seg"
                                                                       onAction="#onThemeLight">
                                                             <graphic>
                                                                 <IconifyIcon iconLiteral="bi-sun" iconSize="16"/>
                                                             </graphic>
                                                         </ToggleButton>
-                                                        <ToggleButton fx:id="dark" text="Dark" toggleGroup="$themeGroup"
+                                                        <ToggleButton fx:id="dark" text="%SettingsPanel.dark.text" toggleGroup="$themeGroup"
                                                                       focusTraversable="false" styleClass="fxt-view-seg"
                                                                       onAction="#onThemeDark">
                                                             <graphic>
@@ -83,34 +83,41 @@
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="LAYOUT" iconLiteral="bi-layout-sidebar">
+                                        <SettingsCard title="%SettingsPanel.language.title" iconLiteral="bi-translate">
                                             <children>
-                                                <CheckBox fx:id="smallIcons" text="Use small icons"/>
-                                                <CheckBox fx:id="toolbarLabels" text="Show toolbar button labels"/>
-                                                <CheckBox fx:id="activityBarLabels" text="Show activity bar labels"/>
+                                                <ComboBox fx:id="uiLanguage" id="settings-language" maxWidth="Infinity"/>
+                                                <Label text="%SettingsPanel.language-restart.text" wrapText="true"
+                                                       minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
+                                            </children>
+                                        </SettingsCard>
+                                        <SettingsCard title="%SettingsPanel.layout.title" iconLiteral="bi-layout-sidebar">
+                                            <children>
+                                                <CheckBox fx:id="smallIcons" text="%SettingsPanel.smallIcons.text"/>
+                                                <CheckBox fx:id="toolbarLabels" text="%SettingsPanel.toolbarLabels.text"/>
+                                                <CheckBox fx:id="activityBarLabels" text="%SettingsPanel.activityBarLabels.text"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Toolbar icons:"/>
+                                                        <Label text="%SettingsPanel.toolbar-icons.text"/>
                                                         <HBox spacing="6">
                                                             <children>
-                                                                <ToggleButton fx:id="toolbarIconSmall" text="Small"
+                                                                <ToggleButton fx:id="toolbarIconSmall" text="%SettingsPanel.toolbarIconSmall.text"
                                                                               toggleGroup="$toolbarIconSizeGroup"/>
-                                                                <ToggleButton fx:id="toolbarIconLarge" text="Large"
+                                                                <ToggleButton fx:id="toolbarIconLarge" text="%SettingsPanel.toolbarIconLarge.text"
                                                                               toggleGroup="$toolbarIconSizeGroup"/>
                                                             </children>
                                                         </HBox>
                                                     </children>
                                                 </HBox>
-                                                <CheckBox fx:id="showLeftPanel" text="Show left side panel"/>
-                                                <CheckBox fx:id="showInspector" text="Show Properties (inspector) panel"/>
+                                                <CheckBox fx:id="showLeftPanel" text="%SettingsPanel.showLeftPanel.text"/>
+                                                <CheckBox fx:id="showInspector" text="%SettingsPanel.showInspector.text"/>
                                             </children>
                                         </SettingsCard>
                                         <!-- JavaFX Prism pipeline; applied at next startup -->
-                                        <SettingsCard title="RENDERING" iconLiteral="bi-gpu-card">
+                                        <SettingsCard title="%SettingsPanel.rendering.title" iconLiteral="bi-gpu-card">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Mode:"/>
+                                                        <Label text="%SettingsPanel.mode.text"/>
                                                         <ComboBox fx:id="renderingMode">
                                                             <items>
                                                                 <FXCollections fx:factory="observableArrayList">
@@ -125,20 +132,20 @@
                                                 <Label fx:id="renderingActiveStatus" wrapText="true"/>
                                                 <Label fx:id="renderingGpuStatus" wrapText="true"
                                                        styleClass="fxt-placeholder-text"/>
-                                                <Label text="Auto picks GPU rendering on dedicated graphics, software otherwise. Takes effect after restart."
+                                                <Label text="%SettingsPanel.auto-picks-gpu-rendering-on.text"
                                                        wrapText="true" styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="MEMORY" iconLiteral="bi-memory">
+                                        <SettingsCard title="%SettingsPanel.memory.title" iconLiteral="bi-memory">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Maximum memory:"/>
+                                                        <Label text="%SettingsPanel.maximum-memory.text"/>
                                                         <ComboBox fx:id="maxMemory" id="settings-max-memory"/>
                                                     </children>
                                                 </HBox>
                                                 <Label fx:id="memoryStatus" id="settings-memory-status" wrapText="true"/>
-                                                <Label text="More memory lets you open and edit larger files. Automatic uses half of the installed memory. Takes effect after restart."
+                                                <Label text="%SettingsPanel.more-memory-lets-you-open.text"
                                                        wrapText="true" styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
@@ -148,14 +155,14 @@
                                 </VBox>
                                 <VBox id="settings-group-editor" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <Label text="Editor" styleClass="fxt-settings-group-title"/>
+                                        <Label text="%SettingsPanel.editor.text" styleClass="fxt-settings-group-title"/>
                                         <SettingsCardGrid color="#0e8fa3">
                                             <children>
-                                        <SettingsCard title="EDITOR" iconLiteral="bi-pencil-square">
+                                        <SettingsCard title="%SettingsPanel.editor.title" iconLiteral="bi-pencil-square">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="XML indent:"/>
+                                                        <Label text="%SettingsPanel.xml-indent.text"/>
                                                         <Spinner fx:id="indentSpaces" editable="true">
                                                             <valueFactory>
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="8" initialValue="2"/>
@@ -165,7 +172,7 @@
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="JSON indent:"/>
+                                                        <Label text="%SettingsPanel.json-indent.text"/>
                                                         <Spinner fx:id="jsonIndent" editable="true">
                                                             <valueFactory>
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="8" initialValue="2"/>
@@ -173,12 +180,12 @@
                                                         </Spinner>
                                                     </children>
                                                 </HBox>
-                                                <CheckBox fx:id="autoFormat" text="Auto-format after loading"/>
-                                                <CheckBox fx:id="xsdPrettyPrint" text="Pretty-print XSD on save"/>
-                                                <CheckBox fx:id="schematronPretty" text="Pretty-print Schematron on load"/>
+                                                <CheckBox fx:id="autoFormat" text="%SettingsPanel.autoFormat.text"/>
+                                                <CheckBox fx:id="xsdPrettyPrint" text="%SettingsPanel.xsdPrettyPrint.text"/>
+                                                <CheckBox fx:id="schematronPretty" text="%SettingsPanel.schematronPretty.text"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Recent files to remember:"/>
+                                                        <Label text="%SettingsPanel.recent-files-to-remember.text"/>
                                                         <Spinner fx:id="recentFilesLimit" id="settings-recent-files-limit" editable="true">
                                                             <valueFactory>
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="100" initialValue="20"/>
@@ -188,65 +195,65 @@
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="GRID TABLE COLOURS" iconLiteral="bi-table">
+                                        <SettingsCard title="%SettingsPanel.grid-table-colours.title" iconLiteral="bi-table">
                                             <children>
                                                 <CheckBox fx:id="gridCustomColors" id="settings-grid-custom-colors"
-                                                          text="Custom cell colours in the Graphic grid"/>
+                                                          text="%SettingsPanel.gridCustomColors.text"/>
                                                 <Label fx:id="gridColorsTheme" styleClass="fxt-placeholder-text" wrapText="true"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Table header:" minWidth="110"/>
+                                                        <Label text="%SettingsPanel.table-header.text" minWidth="110"/>
                                                         <ColorPicker fx:id="gridHeaderColor" id="settings-grid-header-color"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Missing cell:" minWidth="110"/>
+                                                        <Label text="%SettingsPanel.missing-cell.text" minWidth="110"/>
                                                         <ColorPicker fx:id="gridMissingColor" id="settings-grid-missing-color"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Selection:" minWidth="110"/>
+                                                        <Label text="%SettingsPanel.selection.text" minWidth="110"/>
                                                         <ColorPicker fx:id="gridSelectionColor" id="settings-grid-selection-color"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Focus frame:" minWidth="110"/>
+                                                        <Label text="%SettingsPanel.focus-frame.text" minWidth="110"/>
                                                         <ColorPicker fx:id="gridFocusColor" id="settings-grid-focus-color"/>
                                                     </children>
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="TEMPLATES" iconLiteral="bi-file-earmark-plus">
+                                        <SettingsCard title="%SettingsPanel.templates.title" iconLiteral="bi-file-earmark-plus">
                                             <children>
-                                                <Label text="Templates directory:"/>
+                                                <Label text="%SettingsPanel.templates-directory.text"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
                                                         <TextField fx:id="templatesDir"
-                                                                   promptText="templates directory (leave empty for default)"
+                                                                   promptText="%SettingsPanel.templatesDir.promptText"
                                                                    HBox.hgrow="ALWAYS"/>
                                                         <Button text="…" onAction="#onBrowseTemplatesDir"/>
                                                     </children>
                                                 </HBox>
-                                                <Label text="Your templates:"/>
+                                                <Label text="%SettingsPanel.your-templates.text"/>
                                                 <ListView fx:id="templatesList" prefHeight="140" maxWidth="Infinity"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Button text="New" styleClass="fxt-tool-button"
+                                                        <Button text="%SettingsPanel.new.text" styleClass="fxt-tool-button"
                                                                 onAction="#onNewTemplate">
                                                             <graphic>
                                                                 <IconifyIcon iconLiteral="bi-plus-lg" iconSize="16"/>
                                                             </graphic>
                                                         </Button>
-                                                        <Button fx:id="editTemplateButton" text="Edit"
+                                                        <Button fx:id="editTemplateButton" text="%SettingsPanel.editTemplateButton.text"
                                                                 styleClass="fxt-tool-button" onAction="#onEditTemplate">
                                                             <graphic>
                                                                 <IconifyIcon iconLiteral="bi-pencil" iconSize="16"/>
                                                             </graphic>
                                                         </Button>
-                                                        <Button fx:id="deleteTemplateButton" text="Delete"
+                                                        <Button fx:id="deleteTemplateButton" text="%SettingsPanel.deleteTemplateButton.text"
                                                                 styleClass="fxt-tool-button" onAction="#onDeleteTemplate">
                                                             <graphic>
                                                                 <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
@@ -256,24 +263,24 @@
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="USER INFO" iconLiteral="bi-person">
+                                        <SettingsCard title="%SettingsPanel.user-info.title" iconLiteral="bi-person">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Name:"/>
-                                                        <TextField fx:id="userName" promptText="name"/>
+                                                        <Label text="%SettingsPanel.name.text"/>
+                                                        <TextField fx:id="userName" promptText="%SettingsPanel.userName.promptText"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Email:"/>
-                                                        <TextField fx:id="userEmail" promptText="email"/>
+                                                        <Label text="%SettingsPanel.email.text"/>
+                                                        <TextField fx:id="userEmail" promptText="%SettingsPanel.userEmail.promptText"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Company:"/>
-                                                        <TextField fx:id="userCompany" promptText="company"/>
+                                                        <Label text="%SettingsPanel.company.text"/>
+                                                        <TextField fx:id="userCompany" promptText="%SettingsPanel.userCompany.promptText"/>
                                                     </children>
                                                 </HBox>
                                             </children>
@@ -284,15 +291,15 @@
                                 </VBox>
                                 <VBox id="settings-group-schemas" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <Label text="Schemas &amp; Validation" styleClass="fxt-settings-group-title"/>
+                                        <Label text="%SettingsPanel.schemas-validation.text" styleClass="fxt-settings-group-title"/>
                                         <SettingsCardGrid color="#6f42c1">
                                             <children>
-                                        <SettingsCard title="XSD" iconLiteral="bi-diagram-3">
+                                        <SettingsCard title="%SettingsPanel.xsd.title" iconLiteral="bi-diagram-3">
                                             <children>
-                                                <CheckBox fx:id="xsdAutoSave" text="Auto-save"/>
+                                                <CheckBox fx:id="xsdAutoSave" text="%SettingsPanel.xsdAutoSave.text"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Interval (min):"/>
+                                                        <Label text="%SettingsPanel.interval-min.text"/>
                                                         <Spinner fx:id="xsdAutoSaveInterval" editable="true">
                                                             <valueFactory>
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="120" initialValue="5"/>
@@ -300,10 +307,10 @@
                                                         </Spinner>
                                                     </children>
                                                 </HBox>
-                                                <CheckBox fx:id="xsdBackup" text="Create backups on save"/>
+                                                <CheckBox fx:id="xsdBackup" text="%SettingsPanel.xsdBackup.text"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Keep versions:"/>
+                                                        <Label text="%SettingsPanel.keep-versions.text"/>
                                                         <Spinner fx:id="xsdBackupVersions" editable="true">
                                                             <valueFactory>
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="50" initialValue="5"/>
@@ -311,39 +318,39 @@
                                                         </Spinner>
                                                     </children>
                                                 </HBox>
-                                                <CheckBox fx:id="backupSeparateDir" text="Use a separate backup directory"/>
+                                                <CheckBox fx:id="backupSeparateDir" text="%SettingsPanel.backupSeparateDir.text"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <TextField fx:id="backupDir" promptText="backup directory"
+                                                        <TextField fx:id="backupDir" promptText="%SettingsPanel.backupDir.promptText"
                                                                    HBox.hgrow="ALWAYS"/>
                                                         <Button text="…" onAction="#onBrowseBackupDir"/>
                                                     </children>
                                                 </HBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="SCHEMA LIBRARY" iconLiteral="bi-collection">
+                                        <SettingsCard title="%SettingsPanel.schema-library.title" iconLiteral="bi-collection">
                                             <children>
                                                 <CheckBox fx:id="schemaLibraryAutoBind" id="settings-schema-library-autobind"
-                                                          text="Use the Schema Library to bind schemas automatically"
+                                                          text="%SettingsPanel.schemaLibraryAutoBind.text"
                                                           wrapText="true"/>
                                                 <Label fx:id="libraryFile" wrapText="true" styleClass="fxt-lib-status"/>
                                                 <Hyperlink id="settings-manage-schema-cache"
-                                                           text="Manage schema cache…" onAction="#onManageSchemaCache">
+                                                           text="%SettingsPanel.settings-manage-schema-cache.text" onAction="#onManageSchemaCache">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-collection" iconSize="16"/>
                                                     </graphic>
                                                 </Hyperlink>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="PARSER" iconLiteral="bi-cpu">
+                                        <SettingsCard title="%SettingsPanel.parser.title" iconLiteral="bi-cpu">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="XML parser:"/>
+                                                        <Label text="%SettingsPanel.xml-parser.text"/>
                                                         <ComboBox fx:id="parserType"/>
                                                     </children>
                                                 </HBox>
-                                                <CheckBox fx:id="xsltExtensions" text="Allow XSLT extension functions"/>
+                                                <CheckBox fx:id="xsltExtensions" text="%SettingsPanel.xsltExtensions.text"/>
                                             </children>
                                         </SettingsCard>
                                             </children>
@@ -352,33 +359,33 @@
                                 </VBox>
                                 <VBox id="settings-group-files" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <Label text="Files &amp; Cache" styleClass="fxt-settings-group-title"/>
+                                        <Label text="%SettingsPanel.files-cache.text" styleClass="fxt-settings-group-title"/>
                                         <SettingsCardGrid color="#c2850c">
                                             <children>
-                                        <SettingsCard title="TEMP &amp; CACHE" iconLiteral="bi-trash">
+                                        <SettingsCard title="%SettingsPanel.temp-cache.title" iconLiteral="bi-trash">
                                             <children>
-                                                <CheckBox fx:id="useSystemTemp" text="Use system temp folder"/>
+                                                <CheckBox fx:id="useSystemTemp" text="%SettingsPanel.useSystemTemp.text"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <TextField fx:id="customTempDir" promptText="custom temp folder"
+                                                        <TextField fx:id="customTempDir" promptText="%SettingsPanel.customTempDir.promptText"
                                                                    HBox.hgrow="ALWAYS"/>
                                                         <Button text="…" onAction="#onBrowseTempDir"/>
                                                     </children>
                                                 </HBox>
-                                                <Button fx:id="clearTempButton" id="settings-clear-temp" text="Clear Temp Folder" maxWidth="Infinity"
+                                                <Button fx:id="clearTempButton" id="settings-clear-temp" text="%SettingsPanel.clearTempButton.text" maxWidth="Infinity"
                                                         styleClass="fxt-tool-button" onAction="#onClearTemp">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button fx:id="clearCacheButton" id="settings-clear-cache" text="Clear Cache Folder" maxWidth="Infinity"
+                                                <Button fx:id="clearCacheButton" id="settings-clear-cache" text="%SettingsPanel.clearCacheButton.text" maxWidth="Infinity"
                                                         styleClass="fxt-tool-button" onAction="#onClearCache">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
                                                     </graphic>
                                                 </Button>
                                                 <Label fx:id="tempStatus" styleClass="fxt-placeholder-text"/>
-                                                <Hyperlink id="settings-manage-schema-cache-2" text="Manage schema cache…"
+                                                <Hyperlink id="settings-manage-schema-cache-2" text="%SettingsPanel.settings-manage-schema-cache-2.text"
                                                            onAction="#onManageSchemaCache">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-collection" iconSize="16"/>
@@ -386,13 +393,13 @@
                                                 </Hyperlink>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="LOG FILES" iconLiteral="bi-journal-text">
+                                        <SettingsCard title="%SettingsPanel.log-files.title" iconLiteral="bi-journal-text">
                                             <children>
                                                 <CheckBox fx:id="logCleanup" id="settings-log-cleanup"
-                                                          text="Delete old log files automatically at startup"/>
+                                                          text="%SettingsPanel.logCleanup.text"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Keep for (days):" minWidth="150"/>
+                                                        <Label text="%SettingsPanel.keep-for-days.text" minWidth="150"/>
                                                         <Spinner fx:id="logMaxAge" id="settings-log-max-age" editable="true" prefWidth="100">
                                                             <valueFactory>
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="365" initialValue="14"/>
@@ -402,7 +409,7 @@
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Maximum total size (MB):" minWidth="150"/>
+                                                        <Label text="%SettingsPanel.maximum-total-size-mb.text" minWidth="150"/>
                                                         <Spinner fx:id="logMaxSize" id="settings-log-max-size" editable="true" prefWidth="100">
                                                             <valueFactory>
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="10000" initialValue="100" amountToStepBy="10"/>
@@ -410,15 +417,15 @@
                                                         </Spinner>
                                                     </children>
                                                 </HBox>
-                                                <Label text="0 means no limit. The log file in use is never deleted."
+                                                <Label text="%SettingsPanel.0-means-no-limit-the.text"
                                                        styleClass="fxt-placeholder-text" wrapText="true"/>
-                                                <Button fx:id="cleanLogsButton" id="settings-log-clean-now" text="Clean Up Now"
+                                                <Button fx:id="cleanLogsButton" id="settings-log-clean-now" text="%SettingsPanel.cleanLogsButton.text"
                                                         maxWidth="Infinity" styleClass="fxt-tool-button" onAction="#onCleanLogsNow">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
                                                     </graphic>
                                                 </Button>
-                                                <Hyperlink id="settings-log-open-folder" text="Open log folder"
+                                                <Hyperlink id="settings-log-open-folder" text="%SettingsPanel.settings-log-open-folder.text"
                                                            onAction="#onOpenLogFolder">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
@@ -428,25 +435,25 @@
                                                        styleClass="fxt-placeholder-text" wrapText="true"/>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="FILE ASSOCIATIONS" iconLiteral="bi-file-earmark-check">
+                                        <SettingsCard title="%SettingsPanel.file-associations.title" iconLiteral="bi-file-earmark-check">
                                             <children>
-                                                <Label text="Make FreeXmlToolkit the default application for the selected file types (current user only)."
+                                                <Label text="%SettingsPanel.make-freexmltoolkit-the-default-application.text"
                                                        wrapText="true" styleClass="fxt-placeholder-text"/>
-                                                <CheckBox fx:id="assocXml" text="XML (.xml)"/>
-                                                <CheckBox fx:id="assocXsd" text="XSD Schema (.xsd)"/>
-                                                <CheckBox fx:id="assocXslt" text="XSLT Stylesheet (.xsl, .xslt)"/>
-                                                <CheckBox fx:id="assocSch" text="Schematron (.sch, .schematron)"/>
-                                                <CheckBox fx:id="assocJson" text="JSON (.json)"/>
+                                                <CheckBox fx:id="assocXml" text="%SettingsPanel.assocXml.text"/>
+                                                <CheckBox fx:id="assocXsd" text="%SettingsPanel.assocXsd.text"/>
+                                                <CheckBox fx:id="assocXslt" text="%SettingsPanel.assocXslt.text"/>
+                                                <CheckBox fx:id="assocSch" text="%SettingsPanel.assocSch.text"/>
+                                                <CheckBox fx:id="assocJson" text="%SettingsPanel.assocJson.text"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Button fx:id="assocRegister" text="Register"
+                                                        <Button fx:id="assocRegister" text="%SettingsPanel.assocRegister.text"
                                                                 styleClass="fxt-tool-button"
                                                                 onAction="#onRegisterAssociations">
                                                             <graphic>
                                                                 <IconifyIcon iconLiteral="bi-box-arrow-in-down" iconSize="16"/>
                                                             </graphic>
                                                         </Button>
-                                                        <Button fx:id="assocUnregister" text="Unregister"
+                                                        <Button fx:id="assocUnregister" text="%SettingsPanel.assocUnregister.text"
                                                                 styleClass="fxt-tool-button"
                                                                 onAction="#onUnregisterAssociations">
                                                             <graphic>
@@ -464,64 +471,64 @@
                                 </VBox>
                                 <VBox id="settings-group-network" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <Label text="Network &amp; Security" styleClass="fxt-settings-group-title"/>
+                                        <Label text="%SettingsPanel.network-security.text" styleClass="fxt-settings-group-title"/>
                                         <SettingsCardGrid color="#6610f2">
                                             <children>
-                                        <SettingsCard title="HTTP PROXY" iconLiteral="bi-globe">
+                                        <SettingsCard title="%SettingsPanel.http-proxy.title" iconLiteral="bi-globe">
                                             <children>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Connection:" minWidth="110"/>
+                                                        <Label text="%SettingsPanel.connection.text" minWidth="110"/>
                                                         <ComboBox fx:id="proxyMode" id="settings-proxy-mode" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Proxy host:" minWidth="110"/>
-                                                        <TextField fx:id="proxyHost" id="settings-proxy-host" promptText="proxy.example.com" HBox.hgrow="ALWAYS"/>
-                                                        <Label text="Port:"/>
+                                                        <Label text="%SettingsPanel.proxy-host.text" minWidth="110"/>
+                                                        <TextField fx:id="proxyHost" id="settings-proxy-host" promptText="%SettingsPanel.proxyHost.promptText" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="%SettingsPanel.port.text"/>
                                                         <TextField fx:id="proxyPort" id="settings-proxy-port" promptText="8080" prefColumnCount="5"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="No proxy for:" minWidth="110"/>
-                                                        <TextField fx:id="proxyBypass" id="settings-proxy-bypass" promptText="localhost, *.corp.example, 10.*" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="%SettingsPanel.no-proxy-for.text" minWidth="110"/>
+                                                        <TextField fx:id="proxyBypass" id="settings-proxy-bypass" promptText="%SettingsPanel.proxyBypass.promptText" HBox.hgrow="ALWAYS"/>
                                                     </children>
                                                 </HBox>
                                                 <Separator/>
-                                                <Label text="Proxy authentication" styleClass="fxt-settings-subtitle"/>
+                                                <Label text="%SettingsPanel.proxy-authentication.text" styleClass="fxt-settings-subtitle"/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="User:" minWidth="110"/>
-                                                        <TextField fx:id="proxyUser" id="settings-proxy-user" promptText="user or DOMAIN\user" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="%SettingsPanel.user.text" minWidth="110"/>
+                                                        <TextField fx:id="proxyUser" id="settings-proxy-user" promptText="%SettingsPanel.proxyUser.promptText" HBox.hgrow="ALWAYS"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Password:" minWidth="110"/>
+                                                        <Label text="%SettingsPanel.password.text" minWidth="110"/>
                                                         <PasswordField fx:id="proxyPassword" id="settings-proxy-password" HBox.hgrow="ALWAYS"/>
                                                     </children>
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Domain (NTLM):" minWidth="110"/>
-                                                        <TextField fx:id="proxyDomain" id="settings-proxy-domain" promptText="optional" HBox.hgrow="ALWAYS"/>
+                                                        <Label text="%SettingsPanel.domain-ntlm.text" minWidth="110"/>
+                                                        <TextField fx:id="proxyDomain" id="settings-proxy-domain" promptText="%SettingsPanel.proxyDomain.promptText" HBox.hgrow="ALWAYS"/>
                                                     </children>
                                                 </HBox>
                                                 <CheckBox fx:id="proxyWindowsSignOn" id="settings-proxy-windows-sign-on"
-                                                          text="Without a user, sign in with the Windows account (NTLM / Kerberos)" wrapText="true"/>
+                                                          text="%SettingsPanel.proxyWindowsSignOn.text" wrapText="true"/>
                                                 <Separator/>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <Label text="Timeouts (s):" minWidth="110"/>
-                                                        <Label text="connect"/>
+                                                        <Label text="%SettingsPanel.timeouts-s.text" minWidth="110"/>
+                                                        <Label text="%SettingsPanel.connect.text"/>
                                                         <Spinner fx:id="connectTimeout" id="settings-connect-timeout" editable="true" prefWidth="80">
                                                             <valueFactory>
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="600" initialValue="30"/>
                                                             </valueFactory>
                                                         </Spinner>
-                                                        <Label text="read"/>
+                                                        <Label text="%SettingsPanel.read.text"/>
                                                         <Spinner fx:id="readTimeout" id="settings-read-timeout" editable="true" prefWidth="80">
                                                             <valueFactory>
                                                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="3600" initialValue="60"/>
@@ -531,8 +538,8 @@
                                                 </HBox>
                                                 <HBox spacing="6" alignment="CENTER_LEFT">
                                                     <children>
-                                                        <TextField fx:id="proxyTestUrl" id="settings-proxy-test-url" text="https://github.com" HBox.hgrow="ALWAYS"/>
-                                                        <Button fx:id="proxyTestButton" id="settings-proxy-test" text="Test Connection"
+                                                        <TextField fx:id="proxyTestUrl" id="settings-proxy-test-url" text="%SettingsPanel.proxyTestUrl.text" HBox.hgrow="ALWAYS"/>
+                                                        <Button fx:id="proxyTestButton" id="settings-proxy-test" text="%SettingsPanel.proxyTestButton.text"
                                                                 styleClass="fxt-tool-button" onAction="#onTestConnection">
                                                             <graphic>
                                                                 <IconifyIcon iconLiteral="bi-plug" iconSize="16"/>
@@ -541,30 +548,30 @@
                                                     </children>
                                                 </HBox>
                                                 <Label fx:id="proxyTestStatus" id="settings-proxy-test-status" styleClass="fxt-placeholder-text"/>
-                                                <Label text="Used by every connection: schema and catalog downloads, updates, FundsXML, telemetry, doc() in XPath and XQuery, XProc and HTML previews. The test uses the values shown here, saved or not. Changing the Windows sign-in takes effect after a restart."
+                                                <Label text="%SettingsPanel.used-by-every-connection-schema.text"
                                                        styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="SECURITY" iconLiteral="bi-shield-lock">
+                                        <SettingsCard title="%SettingsPanel.security.title" iconLiteral="bi-shield-lock">
                                             <children>
-                                                <CheckBox fx:id="trustAllCerts" text="Trust all certificates"/>
+                                                <CheckBox fx:id="trustAllCerts" text="%SettingsPanel.trustAllCerts.text"/>
                                                 <CheckBox fx:id="htmlActiveContent" id="settings-html-active-content"
-                                                          text="Allow JavaScript and remote content in HTML previews">
+                                                          text="%SettingsPanel.htmlActiveContent.text">
                                                     <tooltip>
-                                                        <Tooltip text="HTML files and XSLT results are shown without scripts and without loading anything from the network. Allow it only for documents you trust."/>
+                                                        <Tooltip text="%SettingsPanel.html-files-and-xslt-results.text"/>
                                                     </tooltip>
                                                 </CheckBox>
                                                 <CheckBox fx:id="xprocUnrestricted" id="settings-xproc-unrestricted"
-                                                          text="Run XProc pipelines without restrictions">
+                                                          text="%SettingsPanel.xprocUnrestricted.text">
                                                     <tooltip>
-                                                        <Tooltip text="By default, pipelines may not run programs (p:os-exec), run computed pipelines (p:run), send HTTP requests or load documents from the network. Allow it only for pipelines you trust."/>
+                                                        <Tooltip text="%SettingsPanel.by-default-pipelines-may-not.text"/>
                                                     </tooltip>
                                                 </CheckBox>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="UPDATES" iconLiteral="bi-arrow-repeat">
+                                        <SettingsCard title="%SettingsPanel.updates.title" iconLiteral="bi-arrow-repeat">
                                             <children>
-                                                <CheckBox fx:id="updateCheck" text="Check for updates on startup"/>
+                                                <CheckBox fx:id="updateCheck" text="%SettingsPanel.updateCheck.text"/>
                                             </children>
                                         </SettingsCard>
                                             </children>
@@ -573,13 +580,13 @@
                                 </VBox>
                                 <VBox id="settings-group-privacy" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <Label text="Privacy" styleClass="fxt-settings-group-title"/>
+                                        <Label text="%SettingsPanel.privacy.text" styleClass="fxt-settings-group-title"/>
                                         <SettingsCardGrid color="#64748b">
                                             <children>
-                                        <SettingsCard title="USAGE STATISTICS" iconLiteral="bi-graph-up">
+                                        <SettingsCard title="%SettingsPanel.usage-statistics.title" iconLiteral="bi-graph-up">
                                             <children>
-                                                <CheckBox fx:id="trackingEnabled" text="Enable usage tracking"/>
-                                                <Button text="Clear statistics" maxWidth="Infinity"
+                                                <CheckBox fx:id="trackingEnabled" text="%SettingsPanel.trackingEnabled.text"/>
+                                                <Button text="%SettingsPanel.clear-statistics.text" maxWidth="Infinity"
                                                         styleClass="fxt-tool-button" onAction="#onClearStatistics">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="16"/>
@@ -589,14 +596,14 @@
                                                 <Separator/>
                                                 <!-- Anonymous telemetry (opt-out, see docs/telemetry.md) -->
                                                 <CheckBox fx:id="telemetryUsage" id="settings-telemetry-usage"
-                                                          text="Send anonymous usage statistics" wrapText="true"/>
+                                                          text="%SettingsPanel.telemetryUsage.text" wrapText="true"/>
                                                 <CheckBox fx:id="telemetryErrors" id="settings-telemetry-errors"
-                                                          text="Send anonymous error reports" wrapText="true"/>
+                                                          text="%SettingsPanel.telemetryErrors.text" wrapText="true"/>
                                                 <!-- minHeight -Infinity = USE_PREF_SIZE: wrap fully instead of ellipsizing -->
-                                                <Label text="Helps improve FreeXmlToolkit. Only anonymous data is sent (feature usage, timings, document type, error signatures) — never file names, paths or content. The local statistics above stay on this computer."
+                                                <Label text="%SettingsPanel.helps-improve-freexmltoolkit-only-anonymous.text"
                                                        wrapText="true" minHeight="-Infinity"
                                                        styleClass="fxt-placeholder-text"/>
-                                                <Hyperlink id="settings-telemetry-what" text="What is sent?"
+                                                <Hyperlink id="settings-telemetry-what" text="%SettingsPanel.settings-telemetry-what.text"
                                                            onAction="#onWhatIsSent">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-info-circle" iconSize="16"/>
@@ -610,21 +617,21 @@
                                 </VBox>
                                 <VBox id="settings-group-extensions" spacing="12" styleClass="fxt-settings-group">
                                     <children>
-                                        <Label text="Extensions" styleClass="fxt-settings-group-title"/>
+                                        <Label text="%SettingsPanel.extensions.text" styleClass="fxt-settings-group-title"/>
                                         <SettingsCardGrid color="#0ca678">
                                             <children>
-                                        <SettingsCard title="FUNDSXML" iconLiteral="bi-file-earmark-code">
+                                        <SettingsCard title="%SettingsPanel.fundsxml.title" iconLiteral="bi-file-earmark-code">
                                             <children>
-                                                <CheckBox fx:id="fundsXmlEnabled" text="Enable FundsXML extensions"/>
+                                                <CheckBox fx:id="fundsXmlEnabled" text="%SettingsPanel.fundsXmlEnabled.text"/>
                                             </children>
                                         </SettingsCard>
                                         <!-- The plugins found at start (rows added by SettingsPanel); changes apply at the next start -->
-                                        <SettingsCard title="PLUGINS" iconLiteral="bi-puzzle">
+                                        <SettingsCard title="%SettingsPanel.plugins.title" iconLiteral="bi-puzzle">
                                             <children>
                                                 <VBox fx:id="pluginRows" id="settings-plugins" spacing="6"/>
-                                                <Label text="Plugins are jar files in the plugins folder. Switching one on or off takes effect at the next start."
+                                                <Label text="%SettingsPanel.plugins-are-jar-files-in.text"
                                                        wrapText="true" minHeight="-Infinity" styleClass="fxt-placeholder-text"/>
-                                                <Button id="settings-open-plugins" text="Open Plugins Folder" styleClass="fxt-tool-button"
+                                                <Button id="settings-open-plugins" text="%SettingsPanel.settings-open-plugins.text" styleClass="fxt-tool-button"
                                                         onAction="#onOpenPluginsFolder">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
@@ -632,24 +639,24 @@
                                                 </Button>
                                             </children>
                                         </SettingsCard>
-                                        <SettingsCard title="DEVELOPER" iconLiteral="bi-speedometer2">
+                                        <SettingsCard title="%SettingsPanel.developer.title" iconLiteral="bi-speedometer2">
                                             <children>
-                                                <CheckBox fx:id="execStatsEnabled" text="Record execution statistics"/>
-                                                <Label text="Collects duration, CPU and memory per XSLT/XQuery/validation run. View them in the &quot;Execution Statistics&quot; tool tab."
+                                                <CheckBox fx:id="execStatsEnabled" text="%SettingsPanel.execStatsEnabled.text"/>
+                                                <Label text="%SettingsPanel.collects-duration-cpu-and-memory.text"
                                                        wrapText="true" minHeight="-Infinity"
                                                        styleClass="fxt-placeholder-text"/>
                                             </children>
                                         </SettingsCard>
                                         <!-- "Support the Project": short pitch plus a button to GitHub Sponsors -->
-                                        <SettingsCard title="SUPPORT THE PROJECT" iconLiteral="bi-heart-fill">
+                                        <SettingsCard title="%SettingsPanel.support-the-project.title" iconLiteral="bi-heart-fill">
                                             <color>
                                                 <SemanticColors fx:constant="SPONSOR"/>
                                             </color>
                                             <children>
-                                                <Label text="FreeXmlToolkit is free and open source. If it saves you time, please consider sponsoring its development on GitHub."
+                                                <Label text="%SettingsPanel.freexmltoolkit-is-free-and-open.text"
                                                        wrapText="true" styleClass="fxt-placeholder-text"/>
                                                 <!-- The sponsor heart keeps its own colour; SettingsPanel sets the graphic. -->
-                                                <Button fx:id="sponsorButton" id="settings-sponsor" text="Sponsor on GitHub"
+                                                <Button fx:id="sponsorButton" id="settings-sponsor" text="%SettingsPanel.sponsorButton.text"
                                                         styleClass="fxt-tool-button" onAction="#onSponsor"/>
                                             </children>
                                         </SettingsCard>
@@ -659,7 +666,7 @@
                                 </VBox>
                             </children>
                         </VBox>
-                        <Label fx:id="noMatch" id="settings-no-match" text="No settings match the search."
+                        <Label fx:id="noMatch" id="settings-no-match" text="%SettingsPanel.noMatch.text"
                                visible="false" managed="false" styleClass="fxt-placeholder-text"/>
 
                     </children>
@@ -670,7 +677,7 @@
         <!-- Fixed save bar (decision E5): changes apply on Save; the hint shows unsaved edits. -->
         <HBox id="settings-save-bar" spacing="8" alignment="CENTER_LEFT" styleClass="fxt-settings-save-bar">
             <children>
-                <Label fx:id="dirtyHint" id="settings-dirty" text="Unsaved changes" visible="false"
+                <Label fx:id="dirtyHint" id="settings-dirty" text="%SettingsPanel.dirtyHint.text" visible="false"
                        styleClass="fxt-settings-dirty">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-circle-fill" iconSize="8"/>
@@ -678,13 +685,13 @@
                 </Label>
                 <Label fx:id="saveStatus" id="settings-save-status" styleClass="fxt-placeholder-text"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button id="settings-reset" text="Reset to Defaults…" styleClass="fxt-tool-button"
+                <Button id="settings-reset" text="%SettingsPanel.settings-reset.text" styleClass="fxt-tool-button"
                         onAction="#onResetDefaults">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-arrow-counterclockwise" iconSize="16"/>
                     </graphic>
                 </Button>
-                <Button fx:id="saveButton" id="settings-save" text="Save Settings"
+                <Button fx:id="saveButton" id="settings-save" text="%SettingsPanel.saveButton.text"
                         styleClass="fxt-tool-button, fxt-primary-button" onAction="#onSave">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-save" iconSize="16"/>

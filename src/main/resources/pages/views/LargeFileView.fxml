@@ -36,35 +36,35 @@
                 <IconifyIcon iconLiteral="bi-eye" iconSize="18"/>
                 <Label fx:id="info" id="large-file-info"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Line"/>
-                <TextField fx:id="lineField" id="large-file-line" prefColumnCount="8" promptText="Ctrl+G"
+                <Label text="%LargeFileView.line.text"/>
+                <TextField fx:id="lineField" id="large-file-line" prefColumnCount="8" promptText="%LargeFileView.lineField.promptText"
                            onAction="#onGoToLine"/>
-                <TextField fx:id="findField" id="large-file-find" prefColumnCount="22" promptText="Find (Ctrl+F)"
+                <TextField fx:id="findField" id="large-file-find" prefColumnCount="22" promptText="%LargeFileView.findField.promptText"
                            onAction="#onFind"/>
-                <CheckBox fx:id="regexCheck" id="large-file-regex" text="Regex"/>
-                <CheckBox fx:id="caseCheck" id="large-file-case" text="Match case"/>
-                <Button fx:id="findButton" text="Find" id="large-file-find-button" onAction="#onFind">
+                <CheckBox fx:id="regexCheck" id="large-file-regex" text="%LargeFileView.regexCheck.text"/>
+                <CheckBox fx:id="caseCheck" id="large-file-case" text="%LargeFileView.caseCheck.text"/>
+                <Button fx:id="findButton" text="%LargeFileView.findButton.text" id="large-file-find-button" onAction="#onFind">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-search" iconSize="16"/>
                     </graphic>
                 </Button>
-                <MenuButton fx:id="validateButton" text="Validate" id="large-file-validate">
+                <MenuButton fx:id="validateButton" text="%LargeFileView.validateButton.text" id="large-file-validate">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-check2-circle" iconSize="16"/>
                     </graphic>
                     <items>
-                        <MenuItem fx:id="validateDeclared" text="Against the Declared Schema" id="large-file-validate-declared"
+                        <MenuItem fx:id="validateDeclared" text="%LargeFileView.validateDeclared.text" id="large-file-validate-declared"
                                   onAction="#onValidateDeclared">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-link-45deg" iconSize="16"/>
                             </graphic>
                         </MenuItem>
-                        <MenuItem text="Against a Schema…" id="large-file-validate-schema" onAction="#onValidateSchema">
+                        <MenuItem text="%LargeFileView.large-file-validate-schema.text" id="large-file-validate-schema" onAction="#onValidateSchema">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-file-earmark-code" iconSize="16"/>
                             </graphic>
                         </MenuItem>
-                        <MenuItem text="Well-Formedness Only" id="large-file-validate-wellformed" onAction="#onValidateWellFormed">
+                        <MenuItem text="%LargeFileView.large-file-validate-wellformed.text" id="large-file-validate-wellformed" onAction="#onValidateWellFormed">
                             <graphic>
                                 <IconifyIcon iconLiteral="bi-braces" iconSize="16"/>
                             </graphic>
@@ -80,12 +80,12 @@
             <children>
                 <Label fx:id="progressLabel" id="large-file-progress-label"/>
                 <ProgressBar fx:id="progressBar" prefWidth="260"/>
-                <Button text="Cancel" id="large-file-cancel" onAction="#onCancel"/>
+                <Button text="%LargeFileView.large-file-cancel.text" id="large-file-cancel" onAction="#onCancel"/>
             </children>
         </HBox>
         <TabPane fx:id="views" id="large-file-views" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
             <tabs>
-                <Tab fx:id="textTab" text="Text" id="large-file-tab-text">
+                <Tab fx:id="textTab" text="%LargeFileView.textTab.text" id="large-file-tab-text">
                     <content>
                         <SplitPane fx:id="split" orientation="VERTICAL">
                             <items>
@@ -94,27 +94,27 @@
                         </SplitPane>
                     </content>
                 </Tab>
-                <Tab fx:id="problemsTab" text="Problems" id="large-file-tab-problems" disable="true">
+                <Tab fx:id="problemsTab" text="%LargeFileView.problemsTab.text" id="large-file-tab-problems" disable="true">
                     <content>
                         <VBox spacing="4">
                             <children>
                                 <Label fx:id="problemsLabel" id="large-file-problems-label" styleClass="diff-xml-summary"/>
                                 <TableView fx:id="problems" id="large-file-problems" VBox.vgrow="ALWAYS">
                                     <columns>
-                                        <TableColumn fx:id="severityColumn" text="Severity" prefWidth="80"/>
-                                        <TableColumn fx:id="problemLineColumn" text="Line" prefWidth="90"/>
-                                        <TableColumn fx:id="problemColumnColumn" text="Column" prefWidth="70"/>
-                                        <TableColumn fx:id="messageColumn" text="Message" prefWidth="700"/>
+                                        <TableColumn fx:id="severityColumn" text="%LargeFileView.severityColumn.text" prefWidth="80"/>
+                                        <TableColumn fx:id="problemLineColumn" text="%LargeFileView.problemLineColumn.text" prefWidth="90"/>
+                                        <TableColumn fx:id="problemColumnColumn" text="%LargeFileView.problemColumnColumn.text" prefWidth="70"/>
+                                        <TableColumn fx:id="messageColumn" text="%LargeFileView.messageColumn.text" prefWidth="700"/>
                                     </columns>
                                     <placeholder>
-                                        <Label text="No problems"/>
+                                        <Label text="%LargeFileView.no-problems.text"/>
                                     </placeholder>
                                 </TableView>
                             </children>
                         </VBox>
                     </content>
                 </Tab>
-                <Tab fx:id="structureTab" text="Structure" id="large-file-tab-structure">
+                <Tab fx:id="structureTab" text="%LargeFileView.structureTab.text" id="large-file-tab-structure">
                     <content>
                         <SplitPane dividerPositions="0.35">
                             <items>
@@ -127,9 +127,9 @@
                                             </padding>
                                             <children>
                                                 <Label fx:id="recordsLabel" id="large-file-records-label"
-                                                       text="Select an element to list its children."/>
+                                                       text="%LargeFileView.recordsLabel.text"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
-                                                <Button fx:id="loadMoreButton" text="Load More" id="large-file-load-more"
+                                                <Button fx:id="loadMoreButton" text="%LargeFileView.loadMoreButton.text" id="large-file-load-more"
                                                         onAction="#onLoadMore" disable="true">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-chevron-double-down" iconSize="16"/>
@@ -139,7 +139,7 @@
                                         </HBox>
                                         <TableView fx:id="records" id="large-file-records" VBox.vgrow="ALWAYS">
                                             <placeholder>
-                                                <Label text="No child elements"/>
+                                                <Label text="%LargeFileView.no-child-elements.text"/>
                                             </placeholder>
                                         </TableView>
                                     </children>

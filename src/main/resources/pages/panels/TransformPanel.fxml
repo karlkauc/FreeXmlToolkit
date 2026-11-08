@@ -39,13 +39,13 @@
         <!-- Shown by "Change" in the INPUT row -->
         <ContextMenu fx:id="inputMenu">
             <items>
-                <MenuItem text="Select XML file…" onAction="#onChooseInputFile"/>
-                <MenuItem text="Use active editor" onAction="#onUseActiveEditor"/>
+                <MenuItem text="%TransformPanel.select-xml-file.text" onAction="#onChooseInputFile"/>
+                <MenuItem text="%TransformPanel.use-active-editor.text" onAction="#onUseActiveEditor"/>
             </items>
         </ContextMenu>
     </fx:define>
     <children>
-        <SidePanelHeader title="TRANSFORM"/>
+        <SidePanelHeader title="%TransformPanel.transform.title"/>
 
         <!-- The sections scroll on short windows. -->
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
@@ -54,28 +54,28 @@
                     <children>
                         <!-- One place for everything secondary (UX plan 2.5): the run options (formerly
                              in the ⋮ menu) and the tools, open at the top of the panel. -->
-                        <SidePanelSection id="transform-options-section" title="OPTIONS &amp; TOOLS">
+                        <SidePanelSection id="transform-options-section" title="%TransformPanel.transform-options-section.title">
                             <children>
                                 <VBox spacing="6" styleClass="fxt-tp-section-body">
                                     <children>
-                                        <CheckBox fx:id="livePreview" id="transform-live-preview" text="Live preview"
+                                        <CheckBox fx:id="livePreview" id="transform-live-preview" text="%TransformPanel.livePreview.text"
                                                   onAction="#onLivePreviewToggled"/>
-                                        <CheckBox fx:id="watchXslt" id="transform-watch-xslt" text="Watch stylesheet file"/>
-                                        <CheckBox fx:id="profileCheck" id="transform-profile" text="Profile run"/>
-                                        <CheckBox fx:id="traceCheck" id="transform-trace" text="Trace run"/>
+                                        <CheckBox fx:id="watchXslt" id="transform-watch-xslt" text="%TransformPanel.watchXslt.text"/>
+                                        <CheckBox fx:id="profileCheck" id="transform-profile" text="%TransformPanel.profileCheck.text"/>
+                                        <CheckBox fx:id="traceCheck" id="transform-trace" text="%TransformPanel.traceCheck.text"/>
                                         <CheckBox fx:id="autoOpenResultTab" id="transform-auto-open"
-                                                  text="Auto-open result tab"/>
+                                                  text="%TransformPanel.autoOpenResultTab.text"/>
                                     </children>
                                 </VBox>
                                 <PanelActionList fx:id="tools" id="transform-tools">
                                     <children>
                                         <PanelActionButton id="transform-tool-debug" iconLiteral="bi-bug"
-                                                           text="Debug XSLT…" color="TOOL" onAction="#startDebug"/>
+                                                           text="%TransformPanel.transform-tool-debug.text" color="TOOL" onAction="#startDebug"/>
                                         <PanelActionButton id="transform-tool-batch" iconLiteral="bi-collection"
-                                                           text="Batch Transform…" color="TOOL"
+                                                           text="%TransformPanel.transform-tool-batch.text" color="TOOL"
                                                            onAction="#openBatch"/>
                                         <PanelActionButton id="transform-tool-stats" iconLiteral="bi-speedometer2"
-                                                           text="Execution Statistics" color="NAVIGATE"
+                                                           text="%TransformPanel.transform-tool-stats.text" color="NAVIGATE"
                                                            onAction="#onOpenExecutionStats"/>
                                     </children>
                                 </PanelActionList>
@@ -84,27 +84,27 @@
 
                         <!-- The open project's transformation scenarios (shown only while a project is
                              open): choosing one fills stylesheet, input, parameters and output method. -->
-                        <SidePanelSection fx:id="scenarioSection" id="transform-scenario-section" title="SCENARIO"
+                        <SidePanelSection fx:id="scenarioSection" id="transform-scenario-section" title="%TransformPanel.scenarioSection.title"
                                           visible="false" managed="false">
                             <children>
                                 <VBox spacing="6" styleClass="fxt-tp-section-body">
                                     <children>
                                         <ComboBox fx:id="scenarioChoice" id="transform-scenario" maxWidth="Infinity"
-                                                  promptText="Choose a scenario…" styleClass="fxt-neutral-combo"
+                                                  promptText="%TransformPanel.scenarioChoice.promptText" styleClass="fxt-neutral-combo"
                                                   onAction="#onScenarioChosen"/>
                                         <Label fx:id="scenarioInfo" id="transform-scenario-info" wrapText="true"
                                                opacity="0.7" visible="false" managed="false"/>
                                         <HBox spacing="6">
                                             <children>
                                                 <Button fx:id="runScenarioButton" id="transform-scenario-run"
-                                                        text="Run Scenario" styleClass="fxt-secondary-button"
+                                                        text="%TransformPanel.runScenarioButton.text" styleClass="fxt-secondary-button"
                                                         HBox.hgrow="ALWAYS" maxWidth="Infinity"
                                                         onAction="#onRunScenario">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-play" iconSize="14"/>
                                                     </graphic>
                                                     <tooltip>
-                                                        <Tooltip text="Runs the saved scenario from the files on disk and writes its output file"/>
+                                                        <Tooltip text="%TransformPanel.runs-the-saved-scenario-from.text"/>
                                                     </tooltip>
                                                 </Button>
                                                 <Button id="transform-scenario-save" styleClass="fxt-secondary-button"
@@ -113,7 +113,7 @@
                                                         <IconifyIcon iconLiteral="bi-floppy" iconSize="14"/>
                                                     </graphic>
                                                     <tooltip>
-                                                        <Tooltip text="Save the current settings as a scenario of the project…"/>
+                                                        <Tooltip text="%TransformPanel.save-the-current-settings-as.text"/>
                                                     </tooltip>
                                                 </Button>
                                                 <Button fx:id="deleteScenarioButton" id="transform-scenario-delete"
@@ -122,7 +122,7 @@
                                                         <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
                                                     </graphic>
                                                     <tooltip>
-                                                        <Tooltip text="Remove the chosen scenario from the project"/>
+                                                        <Tooltip text="%TransformPanel.remove-the-chosen-scenario-from.text"/>
                                                     </tooltip>
                                                 </Button>
                                             </children>
@@ -132,33 +132,33 @@
                             </children>
                         </SidePanelSection>
 
-                        <SidePanelSection title="STYLESHEET">
+                        <SidePanelSection title="%TransformPanel.stylesheet.title">
                             <children>
                                 <SourceRow fx:id="xsltRow" id="transform-xslt-row" iconLiteral="bi-arrow-repeat"
-                                           emptyText="No stylesheet — choose or drop a file"
+                                           emptyText="%TransformPanel.xsltRow.emptyText"
                                            onChange="#onChooseXslt">
                                     <name>
-                                        <Label fx:id="xsltName" text="none"
+                                        <Label fx:id="xsltName" text="%TransformPanel.xsltName.text"
                                                styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
                                     </name>
                                 </SourceRow>
                             </children>
                         </SidePanelSection>
 
-                        <SidePanelSection title="INPUT">
+                        <SidePanelSection title="%TransformPanel.input.title">
                             <children>
                                 <SourceRow fx:id="inputRow" id="transform-input-row" iconLiteral="bi-code-slash"
-                                           emptyText="No input — open a document or drop a file"
+                                           emptyText="%TransformPanel.inputRow.emptyText"
                                            onChange="#onChangeInput">
                                     <name>
-                                        <Label fx:id="inputName" text="none" styleClass="fxt-vp-source-name"/>
+                                        <Label fx:id="inputName" text="%TransformPanel.inputName.text" styleClass="fxt-vp-source-name"/>
                                     </name>
                                 </SourceRow>
                             </children>
                         </SidePanelSection>
 
                         <!-- One line: Auto (from xsl:output) or a concrete format (UX plan 2.5) -->
-                        <SidePanelSection title="OUTPUT METHOD">
+                        <SidePanelSection title="%TransformPanel.output-method.title">
                             <children>
                                 <VBox styleClass="fxt-tp-section-body">
                                     <children>
@@ -169,7 +169,7 @@
                             </children>
                         </SidePanelSection>
 
-                        <SidePanelSection title="PARAMETERS">
+                        <SidePanelSection title="%TransformPanel.parameters.title">
                             <children>
                                 <VBox fx:id="paramsBox" spacing="4" styleClass="fxt-tp-params">
                                     <children>
@@ -185,31 +185,31 @@
                                      a stylesheet, not a hidden tool (it also stays listed under TOOLS). -->
                                 <HBox spacing="6">
                                     <children>
-                                        <Button fx:id="transformButton" id="transform-run" text="Run Transform"
+                                        <Button fx:id="transformButton" id="transform-run" text="%TransformPanel.transformButton.text"
                                                 maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="fxt-primary-button"
                                                 onAction="#onTransform">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/>
                                             </graphic>
                                         </Button>
-                                        <Button fx:id="debugButton" id="transform-debug" text="Debug"
+                                        <Button fx:id="debugButton" id="transform-debug" text="%TransformPanel.debugButton.text"
                                                 styleClass="fxt-secondary-button, fxt-run-debug-button"
                                                 onAction="#startDebug">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-bug-fill" iconSize="14"/>
                                             </graphic>
                                             <tooltip>
-                                                <Tooltip text="Debug the stylesheet: breakpoints, stepping, variables (Shift+F5)"/>
+                                                <Tooltip text="%TransformPanel.debug-the-stylesheet-breakpoints-stepping.text"/>
                                             </tooltip>
                                         </Button>
                                     </children>
                                 </HBox>
                                 <!-- Picking a stylesheet/input via drop, favourite or ◀ ▶ starts a run;
                                      visible here so the automatic behaviour can be switched off (UX plan 3.6). -->
-                                <CheckBox fx:id="runAutomatically" id="transform-auto-run" text="Run automatically"
+                                <CheckBox fx:id="runAutomatically" id="transform-auto-run" text="%TransformPanel.runAutomatically.text"
                                           selected="true">
                                     <tooltip>
-                                        <Tooltip text="Run as soon as a stylesheet or input is dropped, picked from favourites or browsed with ◀ ▶"/>
+                                        <Tooltip text="%TransformPanel.run-as-soon-as-a.text"/>
                                     </tooltip>
                                 </CheckBox>
                                 <PanelProgress fx:id="progress"/>
@@ -220,8 +220,8 @@
                         <VBox styleClass="fxt-tp-section-body">
                             <children>
                                 <Label wrapText="true" styleClass="fxt-placeholder-text"
-                                       text="XPath, XQuery and JSONPath queries against the open document: Query Console (Ctrl+K)."/>
-                                <Button id="transform-open-query-console" text="Open Query Console"
+                                       text="%TransformPanel.xpath-xquery-and-jsonpath-queries.text"/>
+                                <Button id="transform-open-query-console" text="%TransformPanel.transform-open-query-console.text"
                                         styleClass="fxt-tool-button" onAction="#onOpenQueryConsole">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-terminal" iconSize="15"/>

@@ -40,7 +40,7 @@
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <fx:define>
         <!-- ===== Attributes tab sections ===== -->
-        <TitledPane fx:id="generalPane" text="General" expanded="true">
+        <TitledPane fx:id="generalPane" text="%XsdPropertiesPanel.generalPane.text" expanded="true">
             <graphic>
                 <IconifyIcon iconLiteral="bi-gear" iconSize="14" iconColor="#007bff"/>
             </graphic>
@@ -50,10 +50,10 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="Name:" GridPane.rowIndex="0"/>
-                        <TextField fx:id="nameField" promptText="Element/Attribute name"
+                        <Label text="%XsdPropertiesPanel.name.text" GridPane.rowIndex="0"/>
+                        <TextField fx:id="nameField" promptText="%XsdPropertiesPanel.nameField.promptText"
                                    GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                        <Label text="Type:" GridPane.rowIndex="1"/>
+                        <Label text="%XsdPropertiesPanel.type.text" GridPane.rowIndex="1"/>
                         <HBox spacing="8" alignment="CENTER_LEFT" GridPane.rowIndex="1" GridPane.columnIndex="1">
                             <children>
                                 <TypePickerField fx:id="typePicker" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
@@ -67,7 +67,7 @@
             </content>
         </TitledPane>
 
-        <TitledPane fx:id="cardinalityPane" text="Cardinality" expanded="true">
+        <TitledPane fx:id="cardinalityPane" text="%XsdPropertiesPanel.cardinalityPane.text" expanded="true">
             <graphic>
                 <IconifyIcon iconLiteral="bi-hash" iconSize="14" iconColor="#007bff"/>
             </graphic>
@@ -77,28 +77,28 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="Min Occurs:" GridPane.rowIndex="0"/>
+                        <Label text="%XsdPropertiesPanel.min-occurs.text" GridPane.rowIndex="0"/>
                         <Spinner fx:id="minOccursSpinner" editable="true" prefWidth="100"
                                  GridPane.rowIndex="0" GridPane.columnIndex="1">
                             <valueFactory>
                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="0" max="999" initialValue="1"/>
                             </valueFactory>
                         </Spinner>
-                        <Label text="Max Occurs:" GridPane.rowIndex="1"/>
+                        <Label text="%XsdPropertiesPanel.max-occurs.text" GridPane.rowIndex="1"/>
                         <Spinner fx:id="maxOccursSpinner" editable="true" prefWidth="100"
                                  GridPane.rowIndex="1" GridPane.columnIndex="1">
                             <valueFactory>
                                 <javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory min="1" max="999" initialValue="1"/>
                             </valueFactory>
                         </Spinner>
-                        <CheckBox fx:id="unboundedCheckBox" text="Unbounded"
+                        <CheckBox fx:id="unboundedCheckBox" text="%XsdPropertiesPanel.unboundedCheckBox.text"
                                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
                     </children>
                 </GridPane>
             </content>
         </TitledPane>
 
-        <TitledPane fx:id="constraintsPane" text="Constraints" expanded="false">
+        <TitledPane fx:id="constraintsPane" text="%XsdPropertiesPanel.constraintsPane.text" expanded="false">
             <graphic>
                 <IconifyIcon iconLiteral="bi-lock" iconSize="14" iconColor="#007bff"/>
             </graphic>
@@ -108,13 +108,13 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <CheckBox fx:id="nillableCheckBox" text="Nillable (allows xsi:nil='true')"/>
-                        <CheckBox fx:id="abstractCheckBox" text="Abstract (cannot be used directly)"/>
+                        <CheckBox fx:id="nillableCheckBox" text="%XsdPropertiesPanel.nillableCheckBox.text"/>
+                        <CheckBox fx:id="abstractCheckBox" text="%XsdPropertiesPanel.abstractCheckBox.text"/>
                         <!-- The value field is enabled while "Fixed value" is checked -->
                         <HBox spacing="10">
                             <children>
-                                <CheckBox fx:id="fixedCheckBox" text="Fixed value"/>
-                                <TextField fx:id="fixedValueField" promptText="Enter fixed value" disable="true"
+                                <CheckBox fx:id="fixedCheckBox" text="%XsdPropertiesPanel.fixedCheckBox.text"/>
+                                <TextField fx:id="fixedValueField" promptText="%XsdPropertiesPanel.fixedValueField.promptText" disable="true"
                                            HBox.hgrow="ALWAYS"/>
                             </children>
                         </HBox>
@@ -123,7 +123,7 @@
             </content>
         </TitledPane>
 
-        <TitledPane fx:id="advancedPane" text="Advanced" expanded="false">
+        <TitledPane fx:id="advancedPane" text="%XsdPropertiesPanel.advancedPane.text" expanded="false">
             <graphic>
                 <IconifyIcon iconLiteral="bi-sliders" iconSize="14" iconColor="#007bff"/>
             </graphic>
@@ -133,8 +133,8 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="Form:" GridPane.rowIndex="0"/>
-                        <ComboBox fx:id="formComboBox" promptText="Select form"
+                        <Label text="%XsdPropertiesPanel.form.text" GridPane.rowIndex="0"/>
+                        <ComboBox fx:id="formComboBox" promptText="%XsdPropertiesPanel.formComboBox.promptText"
                                   GridPane.rowIndex="0" GridPane.columnIndex="1">
                             <items>
                                 <FXCollections fx:factory="observableArrayList">
@@ -143,8 +143,8 @@
                                 </FXCollections>
                             </items>
                         </ComboBox>
-                        <Label text="Use:" GridPane.rowIndex="1"/>
-                        <ComboBox fx:id="useComboBox" promptText="Select use"
+                        <Label text="%XsdPropertiesPanel.use.text" GridPane.rowIndex="1"/>
+                        <ComboBox fx:id="useComboBox" promptText="%XsdPropertiesPanel.useComboBox.promptText"
                                   GridPane.rowIndex="1" GridPane.columnIndex="1">
                             <items>
                                 <FXCollections fx:factory="observableArrayList">
@@ -154,8 +154,8 @@
                                 </FXCollections>
                             </items>
                         </ComboBox>
-                        <Label text="Substitution Group:" GridPane.rowIndex="2"/>
-                        <TextField fx:id="substitutionGroupField" promptText="Element name"
+                        <Label text="%XsdPropertiesPanel.substitution-group.text" GridPane.rowIndex="2"/>
+                        <TextField fx:id="substitutionGroupField" promptText="%XsdPropertiesPanel.substitutionGroupField.promptText"
                                    GridPane.rowIndex="2" GridPane.columnIndex="1"/>
                     </children>
                 </GridPane>
@@ -163,7 +163,7 @@
         </TitledPane>
 
         <!-- ===== Facets tab sections ===== -->
-        <TitledPane fx:id="facetsPane" text="Facets" expanded="true">
+        <TitledPane fx:id="facetsPane" text="%XsdPropertiesPanel.facetsPane.text" expanded="true">
             <graphic>
                 <IconifyIcon iconLiteral="bi-funnel" iconSize="14" iconColor="#fd7e14"/>
             </graphic>
@@ -173,7 +173,7 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="Facets define restrictions on data types (e.g., minLength, maxLength, totalDigits)"
+                        <Label text="%XsdPropertiesPanel.facets-define-restrictions-on-data.text"
                                wrapText="true" styleClass="desc-label"/>
                         <Separator/>
                         <!-- Facet name/value rows, rebuilt per datatype -->
@@ -187,7 +187,7 @@
             </content>
         </TitledPane>
 
-        <TitledPane fx:id="patternsPane" text="Patterns" expanded="true">
+        <TitledPane fx:id="patternsPane" text="%XsdPropertiesPanel.patternsPane.text" expanded="true">
             <graphic>
                 <IconifyIcon iconLiteral="bi-braces" iconSize="14" iconColor="#fd7e14"/>
             </graphic>
@@ -197,22 +197,22 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="Define regex patterns that values must match" wrapText="true"
+                        <Label text="%XsdPropertiesPanel.define-regex-patterns-that-values.text" wrapText="true"
                                styleClass="desc-label"/>
                         <Separator/>
                         <ListView fx:id="patternsListView" prefHeight="120">
                             <placeholder>
-                                <Label text="No patterns defined"/>
+                                <Label text="%XsdPropertiesPanel.no-patterns-defined.text"/>
                             </placeholder>
                         </ListView>
                         <HBox spacing="10">
                             <children>
-                                <Button fx:id="addPatternBtn" text="Add" onAction="#onAddPattern">
+                                <Button fx:id="addPatternBtn" text="%XsdPropertiesPanel.addPatternBtn.text" onAction="#onAddPattern">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-plus-circle"/>
                                     </graphic>
                                 </Button>
-                                <Button fx:id="removePatternBtn" text="Remove" disable="true"
+                                <Button fx:id="removePatternBtn" text="%XsdPropertiesPanel.removePatternBtn.text" disable="true"
                                         onAction="#onRemovePattern">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-trash"/>
@@ -225,7 +225,7 @@
             </content>
         </TitledPane>
 
-        <TitledPane fx:id="enumerationsPane" text="Enumerations" expanded="true">
+        <TitledPane fx:id="enumerationsPane" text="%XsdPropertiesPanel.enumerationsPane.text" expanded="true">
             <graphic>
                 <IconifyIcon iconLiteral="bi-list-ul" iconSize="14" iconColor="#fd7e14"/>
             </graphic>
@@ -235,22 +235,22 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="Define allowed values for this element" wrapText="true"
+                        <Label text="%XsdPropertiesPanel.define-allowed-values-for-this.text" wrapText="true"
                                styleClass="desc-label"/>
                         <Separator/>
                         <ListView fx:id="enumerationsListView" prefHeight="120">
                             <placeholder>
-                                <Label text="No enumeration values defined"/>
+                                <Label text="%XsdPropertiesPanel.no-enumeration-values-defined.text"/>
                             </placeholder>
                         </ListView>
                         <HBox spacing="10">
                             <children>
-                                <Button fx:id="addEnumerationBtn" text="Add" onAction="#onAddEnumeration">
+                                <Button fx:id="addEnumerationBtn" text="%XsdPropertiesPanel.addEnumerationBtn.text" onAction="#onAddEnumeration">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-plus-circle"/>
                                     </graphic>
                                 </Button>
-                                <Button fx:id="removeEnumerationBtn" text="Remove" disable="true"
+                                <Button fx:id="removeEnumerationBtn" text="%XsdPropertiesPanel.removeEnumerationBtn.text" disable="true"
                                         onAction="#onRemoveEnumeration">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-trash"/>
@@ -263,7 +263,7 @@
             </content>
         </TitledPane>
 
-        <TitledPane fx:id="assertionsPane" text="Assertions" expanded="false">
+        <TitledPane fx:id="assertionsPane" text="%XsdPropertiesPanel.assertionsPane.text" expanded="false">
             <graphic>
                 <IconifyIcon iconLiteral="bi-check2-square" iconSize="14" iconColor="#fd7e14"/>
             </graphic>
@@ -273,21 +273,21 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="XPath-based assertions (XSD 1.1)" wrapText="true" styleClass="desc-label"/>
+                        <Label text="%XsdPropertiesPanel.xpath-based-assertions-xsd-1.text" wrapText="true" styleClass="desc-label"/>
                         <Separator/>
                         <ListView fx:id="assertionsListView" prefHeight="120">
                             <placeholder>
-                                <Label text="No assertions defined"/>
+                                <Label text="%XsdPropertiesPanel.no-assertions-defined.text"/>
                             </placeholder>
                         </ListView>
                         <HBox spacing="10">
                             <children>
-                                <Button fx:id="addAssertionBtn" text="Add" onAction="#onAddAssertion">
+                                <Button fx:id="addAssertionBtn" text="%XsdPropertiesPanel.addAssertionBtn.text" onAction="#onAddAssertion">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-plus-circle"/>
                                     </graphic>
                                 </Button>
-                                <Button fx:id="removeAssertionBtn" text="Remove" disable="true"
+                                <Button fx:id="removeAssertionBtn" text="%XsdPropertiesPanel.removeAssertionBtn.text" disable="true"
                                         onAction="#onRemoveAssertion">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-trash"/>
@@ -295,7 +295,7 @@
                                 </Button>
                             </children>
                         </HBox>
-                        <Label text="Note: Assertions are an XSD 1.1 feature" wrapText="true"
+                        <Label text="%XsdPropertiesPanel.note-assertions-are-an-xsd.text" wrapText="true"
                                style="-fx-text-fill: #ff8c00; -fx-font-size: 10px; -fx-font-style: italic;"/>
                     </children>
                 </VBox>
@@ -304,13 +304,13 @@
 
         <!-- ===== Docs tab sections ===== -->
         <!-- Content: the InlineDocumentationEditor, set by XsdPropertiesPanel -->
-        <TitledPane fx:id="documentationPane" text="Documentation" expanded="true">
+        <TitledPane fx:id="documentationPane" text="%XsdPropertiesPanel.documentationPane.text" expanded="true">
             <graphic>
                 <IconifyIcon iconLiteral="bi-book" iconSize="14" iconColor="#28a745"/>
             </graphic>
         </TitledPane>
 
-        <TitledPane fx:id="appInfoPane" text="AppInfo" expanded="true">
+        <TitledPane fx:id="appInfoPane" text="%XsdPropertiesPanel.appInfoPane.text" expanded="true">
             <graphic>
                 <IconifyIcon iconLiteral="bi-info-square" iconSize="14" iconColor="#28a745"/>
             </graphic>
@@ -321,7 +321,7 @@
                         <Insets topRightBottomLeft="10"/>
                     </padding>
                     <children>
-                        <Label text="XsdDoc structured metadata:" styleClass="desc-label"/>
+                        <Label text="%XsdPropertiesPanel.xsddoc-structured-metadata.text" styleClass="desc-label"/>
                     </children>
                 </VBox>
             </content>
@@ -337,7 +337,7 @@
                         <Insets top="8" right="12" bottom="8" left="12"/>
                     </padding>
                     <children>
-                        <Label text="Schema Properties" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Label text="%XsdPropertiesPanel.schema-properties.text" style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Button fx:id="gearButton" styleClass="settings-gear-button, flat-button"
                                 onAction="#onCustomizeSections">
@@ -345,7 +345,7 @@
                                 <IconifyIcon iconLiteral="bi-gear" iconSize="14"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Customize sections"/>
+                                <Tooltip text="%XsdPropertiesPanel.customize-sections.text"/>
                             </tooltip>
                         </Button>
                         <Button styleClass="flat-button" onAction="#onHidePanel">
@@ -353,13 +353,13 @@
                                 <IconifyIcon iconLiteral="bi-x" iconSize="14"/>
                             </graphic>
                             <tooltip>
-                                <Tooltip text="Hide Panel"/>
+                                <Tooltip text="%XsdPropertiesPanel.hide-panel.text"/>
                             </tooltip>
                         </Button>
                     </children>
                 </HBox>
                 <Separator/>
-                <TitledPane fx:id="schemaInfoPane" text="Schema Information" expanded="true">
+                <TitledPane fx:id="schemaInfoPane" text="%XsdPropertiesPanel.schemaInfoPane.text" expanded="true">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-info-circle" iconSize="14" iconColor="#17a2b8"/>
                     </graphic>
@@ -369,15 +369,15 @@
                                 <Insets topRightBottomLeft="10"/>
                             </padding>
                             <children>
-                                <Label text="File Path:" GridPane.rowIndex="0"/>
-                                <Label fx:id="schemaFilePathLabel" text="No file loaded" wrapText="true"
+                                <Label text="%XsdPropertiesPanel.file-path.text" GridPane.rowIndex="0"/>
+                                <Label fx:id="schemaFilePathLabel" text="%XsdPropertiesPanel.schemaFilePathLabel.text" wrapText="true"
                                        styleClass="theme-text-secondary" GridPane.rowIndex="0"
                                        GridPane.columnIndex="1"/>
-                                <Label text="Target Namespace:" GridPane.rowIndex="1"/>
-                                <Label fx:id="schemaNamespaceLabel" text="No namespace" wrapText="true"
+                                <Label text="%XsdPropertiesPanel.target-namespace.text" GridPane.rowIndex="1"/>
+                                <Label fx:id="schemaNamespaceLabel" text="%XsdPropertiesPanel.schemaNamespaceLabel.text" wrapText="true"
                                        styleClass="theme-text-secondary" GridPane.rowIndex="1"
                                        GridPane.columnIndex="1"/>
-                                <Label text="Version:" GridPane.rowIndex="2"/>
+                                <Label text="%XsdPropertiesPanel.version.text" GridPane.rowIndex="2"/>
                                 <Label fx:id="schemaVersionLabel" text="-" styleClass="theme-text-secondary"
                                        GridPane.rowIndex="2" GridPane.columnIndex="1"/>
                             </children>
@@ -393,7 +393,7 @@
     <center>
         <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" disable="true">
             <tabs>
-                <Tab fx:id="attributesTab" text="Attributes">
+                <Tab fx:id="attributesTab" text="%XsdPropertiesPanel.attributesTab.text">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-tags" iconSize="16" iconColor="#007bff"/>
                     </graphic>
@@ -402,7 +402,7 @@
                                     vbarPolicy="AS_NEEDED"/>
                     </content>
                 </Tab>
-                <Tab fx:id="facetsTab" text="Facets">
+                <Tab fx:id="facetsTab" text="%XsdPropertiesPanel.facetsTab.text">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-sliders" iconSize="16" iconColor="#fd7e14"/>
                     </graphic>
@@ -411,7 +411,7 @@
                                     vbarPolicy="AS_NEEDED"/>
                     </content>
                 </Tab>
-                <Tab fx:id="docsTab" text="Docs">
+                <Tab fx:id="docsTab" text="%XsdPropertiesPanel.docsTab.text">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-journal-text" iconSize="16" iconColor="#28a745"/>
                     </graphic>

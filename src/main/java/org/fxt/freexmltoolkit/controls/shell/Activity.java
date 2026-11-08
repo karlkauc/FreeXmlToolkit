@@ -86,7 +86,12 @@ public final class Activity {
 
     /** @return the human-readable label shown in tooltips/headers. */
     public String label() {
-        return label;
+        return org.fxt.freexmltoolkit.i18n.I18n.or("Activity." + id, label);
+    }
+
+    /** @return the label under the icon in the Activity Bar (a shorter form where the language needs one) */
+    public String railLabel() {
+        return org.fxt.freexmltoolkit.i18n.I18n.or("Activity." + id + ".rail", label());
     }
 
     /** @return the Bootstrap icon literal (e.g. {@code bi-gear}). */

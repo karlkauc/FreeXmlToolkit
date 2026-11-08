@@ -44,9 +44,9 @@
                                 </StackPane>
                                 <VBox spacing="2">
                                     <children>
-                                        <Label fx:id="actionTitle" id="sig-action-title" text="Sign XML Document"
+                                        <Label fx:id="actionTitle" id="sig-action-title" text="%SignatureView.actionTitle.text"
                                                styleClass="fxt-sign-card-title"/>
-                                        <Label fx:id="actionSubtitle" text="XML Digital Signature · XML-DSig"
+                                        <Label fx:id="actionSubtitle" text="%SignatureView.actionSubtitle.text"
                                                wrapText="true" styleClass="fxt-sign-card-sub"/>
                                     </children>
                                 </VBox>
@@ -56,20 +56,20 @@
                         <!-- DOCUMENT (sign, validate, expert) -->
                         <VBox fx:id="documentSection" id="sig-section-document" spacing="8">
                             <children>
-                                <Label text="DOCUMENT" styleClass="fxt-sign-section-label"/>
+                                <Label text="%SignatureView.document.text" styleClass="fxt-sign-section-label"/>
                                 <HBox spacing="12" alignment="CENTER_LEFT" styleClass="fxt-sign-doc-row">
                                     <children>
                                         <IconifyIcon iconLiteral="bi-code-slash" iconSize="18"/>
                                         <VBox spacing="2">
                                             <children>
-                                                <Label fx:id="docName" id="sign-doc-name" text="No document"
+                                                <Label fx:id="docName" id="sign-doc-name" text="%SignatureView.docName.text"
                                                        styleClass="fxt-sign-doc-name"/>
-                                                <Label fx:id="docInfo" text="Open a saved XML file to sign it"
+                                                <Label fx:id="docInfo" text="%SignatureView.docInfo.text"
                                                        styleClass="fxt-sign-doc-info"/>
                                             </children>
                                         </VBox>
                                         <Region HBox.hgrow="ALWAYS"/>
-                                        <Hyperlink id="sign-doc-browse" text="Browse" styleClass="fxt-vp-change"
+                                        <Hyperlink id="sign-doc-browse" text="%SignatureView.sign-doc-browse.text" styleClass="fxt-vp-change"
                                                    onAction="#onChooseDocument"/>
                                     </children>
                                 </HBox>
@@ -79,12 +79,12 @@
                         <!-- KEYSTORE (sign, create certificate): file, alias and both passwords, once -->
                         <VBox fx:id="keystoreSection" id="sig-section-keystore" spacing="8">
                             <children>
-                                <Label text="KEYSTORE" styleClass="fxt-sign-section-label"/>
+                                <Label text="%SignatureView.keystore.text" styleClass="fxt-sign-section-label"/>
                                 <SourceRow fx:id="keystoreRow" id="sig-keystore-row" iconLiteral="bi-file-earmark-lock"
-                                           emptyText="No keystore — choose or drop a .jks / .p12"
+                                           emptyText="%SignatureView.keystoreRow.emptyText"
                                            onChange="#onChooseKeystore">
                                     <name>
-                                        <Label fx:id="keystoreName" id="sig-keystore-name" text="none"
+                                        <Label fx:id="keystoreName" id="sig-keystore-name" text="%SignatureView.keystoreName.text"
                                                styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
                                     </name>
                                 </SourceRow>
@@ -92,22 +92,22 @@
                                     <children>
                                         <VBox spacing="4" HBox.hgrow="ALWAYS">
                                             <children>
-                                                <Label text="Keystore alias" styleClass="fxt-sig-field-label"/>
-                                                <TextField fx:id="alias" id="sig-alias" promptText="alias"/>
+                                                <Label text="%SignatureView.keystore-alias.text" styleClass="fxt-sig-field-label"/>
+                                                <TextField fx:id="alias" id="sig-alias" promptText="%SignatureView.alias.promptText"/>
                                             </children>
                                         </VBox>
                                         <VBox spacing="4" HBox.hgrow="ALWAYS">
                                             <children>
-                                                <Label text="Keystore password" styleClass="fxt-sig-field-label"/>
+                                                <Label text="%SignatureView.keystore-password.text" styleClass="fxt-sig-field-label"/>
                                                 <PasswordField fx:id="keystorePassword" id="sig-keystore-password"
-                                                               promptText="keystore password"/>
+                                                               promptText="%SignatureView.keystorePassword.promptText"/>
                                             </children>
                                         </VBox>
                                         <VBox spacing="4" HBox.hgrow="ALWAYS">
                                             <children>
-                                                <Label text="Alias password" styleClass="fxt-sig-field-label"/>
+                                                <Label text="%SignatureView.alias-password.text" styleClass="fxt-sig-field-label"/>
                                                 <PasswordField fx:id="aliasPassword" id="sig-alias-password"
-                                                               promptText="private key password"/>
+                                                               promptText="%SignatureView.aliasPassword.promptText"/>
                                             </children>
                                         </VBox>
                                     </children>
@@ -118,44 +118,44 @@
                         <!-- SIGN -->
                         <VBox fx:id="signSection" id="sig-section-sign" spacing="12">
                             <children>
-                                <Label text="SIGNATURE OPTIONS" styleClass="fxt-sign-section-label"/>
-                                <Label text="Signature type" styleClass="fxt-sig-field-label"/>
+                                <Label text="%SignatureView.signature-options.text" styleClass="fxt-sign-section-label"/>
+                                <Label text="%SignatureView.signature-type.text" styleClass="fxt-sig-field-label"/>
                                 <HBox spacing="2" styleClass="fxt-seg-group">
                                     <children>
-                                        <ToggleButton fx:id="enveloped" id="sign-type-enveloped" text="Enveloped"
+                                        <ToggleButton fx:id="enveloped" id="sign-type-enveloped" text="%SignatureView.enveloped.text"
                                                       toggleGroup="$typeGroup" selected="true" maxWidth="Infinity"
                                                       HBox.hgrow="ALWAYS" styleClass="fxt-seg">
                                             <tooltip>
-                                                <Tooltip text="The signature is inserted into the signed document"/>
+                                                <Tooltip text="%SignatureView.the-signature-is-inserted-into.text"/>
                                             </tooltip>
                                         </ToggleButton>
-                                        <ToggleButton fx:id="enveloping" id="sign-type-enveloping" text="Enveloping"
+                                        <ToggleButton fx:id="enveloping" id="sign-type-enveloping" text="%SignatureView.enveloping.text"
                                                       toggleGroup="$typeGroup" maxWidth="Infinity" HBox.hgrow="ALWAYS"
                                                       styleClass="fxt-seg">
                                             <tooltip>
-                                                <Tooltip text="The signed content is wrapped inside the signature document"/>
+                                                <Tooltip text="%SignatureView.the-signed-content-is-wrapped.text"/>
                                             </tooltip>
                                         </ToggleButton>
-                                        <ToggleButton fx:id="detached" id="sign-type-detached" text="Detached"
+                                        <ToggleButton fx:id="detached" id="sign-type-detached" text="%SignatureView.detached.text"
                                                       toggleGroup="$typeGroup" maxWidth="Infinity" HBox.hgrow="ALWAYS"
                                                       styleClass="fxt-seg">
                                             <tooltip>
-                                                <Tooltip text="A standalone .sig.xml referencing the file - keep both together"/>
+                                                <Tooltip text="%SignatureView.a-standalone-sig-xml-referencing.text"/>
                                             </tooltip>
                                         </ToggleButton>
                                     </children>
                                 </HBox>
                                 <Label fx:id="detachedHint" id="sign-detached-hint" wrapText="true" visible="false"
                                        managed="false" styleClass="fxt-placeholder-text"
-                                       text="Detached writes a separate &lt;name&gt;.sig.xml next to the document. Validate that file, and keep both files in the same folder."/>
+                                       text="%SignatureView.detachedHint.text"/>
                                 <HBox alignment="CENTER_LEFT">
                                     <children>
-                                        <Label text="Algorithm" styleClass="fxt-sig-field-label"/>
+                                        <Label text="%SignatureView.algorithm.text" styleClass="fxt-sig-field-label"/>
                                         <Region HBox.hgrow="ALWAYS"/>
-                                        <Label text="RSA-SHA256 · C14N exclusive" styleClass="fxt-sign-algo"/>
+                                        <Label text="%SignatureView.rsa-sha256-c14n-exclusive.text" styleClass="fxt-sign-algo"/>
                                     </children>
                                 </HBox>
-                                <Button id="sign-card-run" text="Sign Document" maxWidth="Infinity"
+                                <Button id="sign-card-run" text="%SignatureView.sign-card-run.text" maxWidth="Infinity"
                                         styleClass="fxt-primary-button" onAction="#onSign">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-shield-lock" iconSize="15"/>
@@ -164,9 +164,9 @@
                                 <!-- CERTIFICATE (the certificate inspector) -->
                                 <HBox>
                                     <children>
-                                        <Label text="CERTIFICATE" styleClass="fxt-sign-section-label"/>
+                                        <Label text="%SignatureView.certificate.text" styleClass="fxt-sign-section-label"/>
                                         <Region HBox.hgrow="ALWAYS"/>
-                                        <Hyperlink id="sign-cert-load" text="Show certificate details"
+                                        <Hyperlink id="sign-cert-load" text="%SignatureView.sign-cert-load.text"
                                                    styleClass="fxt-vp-change" onAction="#onShowCertificate"/>
                                     </children>
                                 </HBox>
@@ -178,19 +178,19 @@
                         <!-- VALIDATE -->
                         <VBox fx:id="validateSection" id="sig-section-validate" spacing="8">
                             <children>
-                                <Button id="sig-validate-run" text="Run Validation" maxWidth="Infinity"
+                                <Button id="sig-validate-run" text="%SignatureView.sig-validate-run.text" maxWidth="Infinity"
                                         styleClass="fxt-primary-button" onAction="#validateActive">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-shield-check" iconSize="15"/>
                                     </graphic>
                                 </Button>
-                                <Button id="sig-validate-details" text="Validate (Details)" maxWidth="Infinity"
+                                <Button id="sig-validate-details" text="%SignatureView.sig-validate-details.text" maxWidth="Infinity"
                                         styleClass="fxt-tool-button" onAction="#validateDetailsActive">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-card-list" iconSize="15"/>
                                     </graphic>
                                     <tooltip>
-                                        <Tooltip text="Validate and open a report with the signing certificate"/>
+                                        <Tooltip text="%SignatureView.validate-and-open-a-report.text"/>
                                     </tooltip>
                                 </Button>
                             </children>
@@ -199,28 +199,28 @@
                         <!-- CREATE CERTIFICATE (uses the KEYSTORE alias and passwords) -->
                         <VBox fx:id="createSection" id="sig-section-create" spacing="8">
                             <children>
-                                <Label text="CERTIFICATE" styleClass="fxt-sign-section-label"/>
+                                <Label text="%SignatureView.certificate.text-2" styleClass="fxt-sign-section-label"/>
                                 <HBox spacing="16">
                                     <children>
-                                        <TextField fx:id="cnField" promptText="Common Name (CN)" HBox.hgrow="ALWAYS"/>
-                                        <TextField fx:id="emailField" promptText="Email" HBox.hgrow="ALWAYS"/>
+                                        <TextField fx:id="cnField" promptText="%SignatureView.cnField.promptText" HBox.hgrow="ALWAYS"/>
+                                        <TextField fx:id="emailField" promptText="%SignatureView.emailField.promptText" HBox.hgrow="ALWAYS"/>
                                     </children>
                                 </HBox>
                                 <HBox spacing="16">
                                     <children>
-                                        <TextField fx:id="orgField" promptText="Organization (O)" HBox.hgrow="ALWAYS"/>
-                                        <TextField fx:id="ouField" promptText="Organizational Unit (OU)"
+                                        <TextField fx:id="orgField" promptText="%SignatureView.orgField.promptText" HBox.hgrow="ALWAYS"/>
+                                        <TextField fx:id="ouField" promptText="%SignatureView.ouField.promptText"
                                                    HBox.hgrow="ALWAYS"/>
                                     </children>
                                 </HBox>
                                 <HBox spacing="16">
                                     <children>
-                                        <TextField fx:id="localityField" promptText="Locality (L)" HBox.hgrow="ALWAYS"/>
-                                        <TextField fx:id="stateField" promptText="State (ST)" HBox.hgrow="ALWAYS"/>
-                                        <TextField fx:id="countryField" promptText="Country (C)" HBox.hgrow="ALWAYS"/>
+                                        <TextField fx:id="localityField" promptText="%SignatureView.localityField.promptText" HBox.hgrow="ALWAYS"/>
+                                        <TextField fx:id="stateField" promptText="%SignatureView.stateField.promptText" HBox.hgrow="ALWAYS"/>
+                                        <TextField fx:id="countryField" promptText="%SignatureView.countryField.promptText" HBox.hgrow="ALWAYS"/>
                                     </children>
                                 </HBox>
-                                <Button id="sig-create-run" text="Create Certificate" maxWidth="Infinity"
+                                <Button id="sig-create-run" text="%SignatureView.sig-create-run.text" maxWidth="Infinity"
                                         styleClass="fxt-primary-button" onAction="#createCertificate">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-patch-plus" iconSize="15"/>
@@ -232,28 +232,28 @@
                         <!-- EXPERT (PKIX trust validation) -->
                         <VBox fx:id="expertSection" id="sig-section-expert" spacing="8">
                             <children>
-                                <Label text="TRUST STORE" styleClass="fxt-sign-section-label"/>
+                                <Label text="%SignatureView.trust-store.text" styleClass="fxt-sign-section-label"/>
                                 <SourceRow fx:id="trustRow" id="sig-truststore-row" iconLiteral="bi-key"
                                            onChange="#chooseTrustStore">
                                     <name>
                                         <Label fx:id="trustStoreName" id="sig-truststore-name"
-                                               text="default (cacerts)" styleClass="fxt-vp-source-name"/>
+                                               text="%SignatureView.trustStoreName.text" styleClass="fxt-vp-source-name"/>
                                     </name>
                                 </SourceRow>
                                 <HBox spacing="16" alignment="CENTER_LEFT">
                                     <children>
                                         <VBox spacing="4" HBox.hgrow="ALWAYS">
                                             <children>
-                                                <Label text="Trust store password (optional)"
+                                                <Label text="%SignatureView.trust-store-password-optional.text"
                                                        styleClass="fxt-sig-field-label"/>
                                                 <PasswordField fx:id="trustStorePassword" id="sig-truststore-password"
-                                                               promptText="trust store password"/>
+                                                               promptText="%SignatureView.trustStorePassword.promptText"/>
                                             </children>
                                         </VBox>
-                                        <CheckBox fx:id="checkRevocation" text="Check revocation (OCSP/CRL)"/>
+                                        <CheckBox fx:id="checkRevocation" text="%SignatureView.checkRevocation.text"/>
                                     </children>
                                 </HBox>
-                                <Button id="sig-trust-run" text="Validate (Trust)" maxWidth="Infinity"
+                                <Button id="sig-trust-run" text="%SignatureView.sig-trust-run.text" maxWidth="Infinity"
                                         styleClass="fxt-primary-button" onAction="#validateTrustActive">
                                     <graphic>
                                         <IconifyIcon iconLiteral="bi-patch-check" iconSize="15"/>
@@ -264,7 +264,7 @@
 
                         <Label fx:id="status" id="sig-status" wrapText="true" styleClass="fxt-vp-status"/>
                         <!-- After signing: check the new file without leaving the page (UX plan 7) -->
-                        <Hyperlink fx:id="validateSignedLink" id="sig-validate-signed" text="Validate this signature"
+                        <Hyperlink fx:id="validateSignedLink" id="sig-validate-signed" text="%SignatureView.validateSignedLink.text"
                                    visible="false" managed="false" styleClass="fxt-vp-change"
                                    onAction="#onValidateSigned"/>
                     </children>

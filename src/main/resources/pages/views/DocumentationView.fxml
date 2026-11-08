@@ -52,8 +52,8 @@
                                 </StackPane>
                                 <VBox spacing="2">
                                     <children>
-                                        <Label text="Generate Documentation" styleClass="fxt-favmgr-title"/>
-                                        <Label text="HTML, PDF, or Word documentation for an XSD schema."
+                                        <Label text="%DocumentationView.generate-documentation.text" styleClass="fxt-favmgr-title"/>
+                                        <Label text="%DocumentationView.html-pdf-or-word-documentation.text"
                                                styleClass="fxt-favmgr-subtitle"/>
                                     </children>
                                 </VBox>
@@ -72,85 +72,85 @@
                             <content>
                                 <VBox spacing="10" maxWidth="640" styleClass="fxt-docgen-form">
                                     <children>
-                                        <Label text="SOURCE &amp; OUTPUT" styleClass="fxt-sign-section-label"/>
+                                        <Label text="%DocumentationView.source-output.text" styleClass="fxt-sign-section-label"/>
                                         <HBox spacing="8" alignment="CENTER_LEFT">
                                             <children>
                                                 <IconifyIcon iconLiteral="bi-diagram-3" iconSize="15"/>
-                                                <Label fx:id="xsdName" id="docgen-xsd-name" text="Not selected"
+                                                <Label fx:id="xsdName" id="docgen-xsd-name" text="%DocumentationView.xsdName.text"
                                                        styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
-                                                <Hyperlink text="Browse" styleClass="fxt-vp-change"
+                                                <Hyperlink text="%DocumentationView.browse.text" styleClass="fxt-vp-change"
                                                            onAction="#onChooseXsd"/>
                                             </children>
                                         </HBox>
                                         <HBox spacing="8" alignment="CENTER_LEFT">
                                             <children>
                                                 <IconifyIcon iconLiteral="bi-folder2-open" iconSize="15"/>
-                                                <Label fx:id="outputName" id="docgen-output-name" text="Not selected"
+                                                <Label fx:id="outputName" id="docgen-output-name" text="%DocumentationView.outputName.text"
                                                        styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
-                                                <Hyperlink text="Browse" styleClass="fxt-vp-change"
+                                                <Hyperlink text="%DocumentationView.browse.text-2" styleClass="fxt-vp-change"
                                                            onAction="#onChooseOutput"/>
                                             </children>
                                         </HBox>
 
-                                        <Label text="FORMAT" styleClass="fxt-sign-section-label"/>
+                                        <Label text="%DocumentationView.format.text" styleClass="fxt-sign-section-label"/>
                                         <HBox spacing="2" styleClass="fxt-seg-group">
                                             <children>
-                                                <ToggleButton fx:id="html" text="HTML" toggleGroup="$formatGroup"
+                                                <ToggleButton fx:id="html" text="%DocumentationView.html.text" toggleGroup="$formatGroup"
                                                               selected="true" maxWidth="Infinity" HBox.hgrow="ALWAYS"
                                                               styleClass="fxt-seg"/>
-                                                <ToggleButton fx:id="pdf" text="PDF" toggleGroup="$formatGroup"
+                                                <ToggleButton fx:id="pdf" text="%DocumentationView.pdf.text" toggleGroup="$formatGroup"
                                                               maxWidth="Infinity" HBox.hgrow="ALWAYS"
                                                               styleClass="fxt-seg"/>
-                                                <ToggleButton fx:id="word" text="Word" toggleGroup="$formatGroup"
+                                                <ToggleButton fx:id="word" text="%DocumentationView.word.text" toggleGroup="$formatGroup"
                                                               maxWidth="Infinity" HBox.hgrow="ALWAYS"
                                                               styleClass="fxt-seg"/>
                                             </children>
                                         </HBox>
 
-                                        <Label text="OPTIONS" styleClass="fxt-sign-section-label"/>
+                                        <Label text="%DocumentationView.options.text" styleClass="fxt-sign-section-label"/>
                                         <VBox spacing="8">
                                             <children>
-                                                <Label text="Markdown rendering" styleClass="fxt-sig-field-label"/>
+                                                <Label text="%DocumentationView.markdown-rendering.text" styleClass="fxt-sig-field-label"/>
                                                 <ComboBox fx:id="markdownMode" id="docgen-markdown-mode">
                                                     <tooltip>
-                                                        <Tooltip text="A node's own xs:appinfo @markdown always wins over this setting. &quot;All documentation&quot; renders every node that does not say @markdown = false; &quot;Per node&quot; renders only the nodes that say @markdown = true; &quot;Off&quot; never renders, whatever the nodes say."/>
+                                                        <Tooltip text="%DocumentationView.a-node-s-own-xs.text"/>
                                                     </tooltip>
                                                 </ComboBox>
                                                 <CheckBox fx:id="includeTypeDefs"
-                                                          text="Include type definitions in source code" selected="true"/>
-                                                <CheckBox fx:id="showDocInSvg" text="Show documentation in diagrams"/>
+                                                          text="%DocumentationView.includeTypeDefs.text" selected="true"/>
+                                                <CheckBox fx:id="showDocInSvg" text="%DocumentationView.showDocInSvg.text"/>
                                                 <CheckBox fx:id="showConstraintsInSvg" id="docgen-show-constraints"
-                                                          text="Show constraints in diagrams" selected="true">
+                                                          text="%DocumentationView.showConstraintsInSvg.text" selected="true">
                                                     <tooltip>
-                                                        <Tooltip text="Lists keys, unique and keyref constraints and assertions inside the element boxes, as in the Graphic view."/>
+                                                        <Tooltip text="%DocumentationView.lists-keys-unique-and-keyref.text"/>
                                                     </tooltip>
                                                 </CheckBox>
                                                 <CheckBox fx:id="showRootConstraintsInSvg" id="docgen-show-root-constraints"
-                                                          text="Also in the page's own element box">
+                                                          text="%DocumentationView.showRootConstraintsInSvg.text">
                                                     <padding>
                                                         <Insets left="24"/>
                                                     </padding>
                                                     <tooltip>
-                                                        <Tooltip text="Off: only the child boxes list constraints; the page's own ones are in the sections below the diagram."/>
+                                                        <Tooltip text="%DocumentationView.off-only-the-child-boxes.text"/>
                                                     </tooltip>
                                                 </CheckBox>
                                                 <CheckBox fx:id="showConstraintTargetsInSvg" id="docgen-show-constraint-targets"
-                                                          text="Show constraints on their target elements">
+                                                          text="%DocumentationView.showConstraintTargetsInSvg.text">
                                                     <tooltip>
-                                                        <Tooltip text="Also lists a key, unique or keyref on the element its field points to (e.g. BenchmarkID): in its diagram box and in a 'Referenced by Identity Constraints' section of its page, linked to the element that declares it."/>
+                                                        <Tooltip text="%DocumentationView.also-lists-a-key-unique.text"/>
                                                     </tooltip>
                                                 </CheckBox>
-                                                <CheckBox fx:id="svgOverview" text="Generate SVG overview page" selected="true"/>
-                                                <CheckBox fx:id="addMetadata" text="Add metadata in output" selected="true"/>
+                                                <CheckBox fx:id="svgOverview" text="%DocumentationView.svgOverview.text" selected="true"/>
+                                                <CheckBox fx:id="addMetadata" text="%DocumentationView.addMetadata.text" selected="true"/>
                                                 <CheckBox fx:id="dedupDataDictionary"
-                                                          text="Deduplicate data dictionary by type">
+                                                          text="%DocumentationView.dedupDataDictionary.text">
                                                     <tooltip>
-                                                        <Tooltip text="List each named complex/simple type only once instead of every recursive occurrence (elements with a built-in or no type are still listed individually)."/>
+                                                        <Tooltip text="%DocumentationView.list-each-named-complex-simple.text"/>
                                                     </tooltip>
                                                 </CheckBox>
-                                                <Label text="Diagram image format" styleClass="fxt-sig-field-label"/>
+                                                <Label text="%DocumentationView.diagram-image-format.text" styleClass="fxt-sig-field-label"/>
                                                 <ComboBox fx:id="imageFormat">
                                                     <items>
                                                         <FXCollections fx:factory="observableArrayList">
@@ -160,16 +160,16 @@
                                                         </FXCollections>
                                                     </items>
                                                 </ComboBox>
-                                                <Label text="Favicon (HTML)" styleClass="fxt-sig-field-label"/>
+                                                <Label text="%DocumentationView.favicon-html.text" styleClass="fxt-sig-field-label"/>
                                                 <HBox spacing="8" alignment="CENTER_LEFT">
                                                     <children>
                                                         <IconifyIcon iconLiteral="bi-image" iconSize="15"/>
-                                                        <Label fx:id="faviconName" id="docgen-favicon-name" text="Not selected"
+                                                        <Label fx:id="faviconName" id="docgen-favicon-name" text="%DocumentationView.faviconName.text"
                                                                styleClass="fxt-vp-source-name, fxt-vp-source-none"/>
                                                         <Region HBox.hgrow="ALWAYS"/>
-                                                        <Hyperlink text="Browse" styleClass="fxt-vp-change"
+                                                        <Hyperlink text="%DocumentationView.browse.text-3" styleClass="fxt-vp-change"
                                                                    onAction="#onChooseFavicon"/>
-                                                        <Hyperlink text="Clear" styleClass="fxt-vp-change"
+                                                        <Hyperlink text="%DocumentationView.clear.text" styleClass="fxt-vp-change"
                                                                    onAction="#onClearFavicon"/>
                                                     </children>
                                                 </HBox>
@@ -179,96 +179,96 @@
                                         <!-- PDF/Word detail options: shown only for those formats -->
                                         <VBox fx:id="formatOptionsBox" id="docgen-format-options" spacing="8">
                                             <children>
-                                                <Label fx:id="formatOptionsLabel" text="PDF OPTIONS"
+                                                <Label fx:id="formatOptionsLabel" text="%DocumentationView.formatOptionsLabel.text"
                                                        styleClass="fxt-sign-section-label"/>
-                                                <Label text="Page size" styleClass="fxt-sig-field-label"/>
+                                                <Label text="%DocumentationView.page-size.text" styleClass="fxt-sig-field-label"/>
                                                 <ComboBox fx:id="docPageSize" id="docgen-page-size"
                                                           maxWidth="Infinity"/>
-                                                <Label text="Orientation" styleClass="fxt-sig-field-label"/>
+                                                <Label text="%DocumentationView.orientation.text" styleClass="fxt-sig-field-label"/>
                                                 <HBox spacing="2" styleClass="fxt-seg-group">
                                                     <children>
-                                                        <ToggleButton fx:id="portrait" text="Portrait"
+                                                        <ToggleButton fx:id="portrait" text="%DocumentationView.portrait.text"
                                                                       toggleGroup="$orientationGroup" selected="true"
                                                                       maxWidth="Infinity" HBox.hgrow="ALWAYS"
                                                                       styleClass="fxt-seg"/>
-                                                        <ToggleButton fx:id="landscape" text="Landscape"
+                                                        <ToggleButton fx:id="landscape" text="%DocumentationView.landscape.text"
                                                                       toggleGroup="$orientationGroup"
                                                                       maxWidth="Infinity" HBox.hgrow="ALWAYS"
                                                                       styleClass="fxt-seg"/>
                                                     </children>
                                                 </HBox>
-                                                <CheckBox fx:id="coverPage" text="Cover page"/>
-                                                <CheckBox fx:id="tableOfContents" text="Table of contents"
+                                                <CheckBox fx:id="coverPage" text="%DocumentationView.coverPage.text"/>
+                                                <CheckBox fx:id="tableOfContents" text="%DocumentationView.tableOfContents.text"
                                                           selected="true"/>
-                                                <CheckBox fx:id="dataDictionary" text="Data dictionary"
+                                                <CheckBox fx:id="dataDictionary" text="%DocumentationView.dataDictionary.text"
                                                           selected="true"/>
-                                                <CheckBox fx:id="schemaDiagram" text="Schema diagram" selected="true"/>
-                                                <CheckBox fx:id="elementDiagrams" text="Element diagrams" selected="true"/>
-                                                <Label text="Element reference" styleClass="fxt-sig-field-label"/>
+                                                <CheckBox fx:id="schemaDiagram" text="%DocumentationView.schemaDiagram.text" selected="true"/>
+                                                <CheckBox fx:id="elementDiagrams" text="%DocumentationView.elementDiagrams.text" selected="true"/>
+                                                <Label text="%DocumentationView.element-reference.text" styleClass="fxt-sig-field-label"/>
                                                 <ComboBox fx:id="pdfElementReference" id="docgen-element-reference">
                                                     <tooltip>
-                                                        <Tooltip text="A section per element with its diagram, documentation, restrictions, children and constraints. &quot;One section per declaration&quot; describes an element declared once but used at many paths once; its other paths link to it."/>
+                                                        <Tooltip text="%DocumentationView.a-section-per-element-with.text"/>
                                                     </tooltip>
                                                 </ComboBox>
                                                 <CheckBox fx:id="pdfSourceCode" id="docgen-pdf-source"
-                                                          text="XSD source in each section">
+                                                          text="%DocumentationView.pdfSourceCode.text">
                                                     <tooltip>
-                                                        <Tooltip text="Shows the XSD source of every element and type in its section. Makes the document considerably longer."/>
+                                                        <Tooltip text="%DocumentationView.shows-the-xsd-source-of.text"/>
                                                     </tooltip>
                                                 </CheckBox>
                                                 <!-- PDF only -->
                                                 <VBox fx:id="pdfOnlyBox" id="docgen-pdf-only" spacing="8">
                                                     <children>
-                                                        <Label text="Color scheme" styleClass="fxt-sig-field-label"/>
+                                                        <Label text="%DocumentationView.color-scheme.text" styleClass="fxt-sig-field-label"/>
                                                         <ComboBox fx:id="pdfColorScheme" id="docgen-color-scheme"/>
-                                                        <Label text="Watermark" styleClass="fxt-sig-field-label"/>
+                                                        <Label text="%DocumentationView.watermark.text" styleClass="fxt-sig-field-label"/>
                                                         <ComboBox fx:id="pdfWatermark" id="docgen-watermark"/>
-                                                        <CheckBox fx:id="pageNumbers" text="Page numbers"
+                                                        <CheckBox fx:id="pageNumbers" text="%DocumentationView.pageNumbers.text"
                                                                   selected="true"/>
-                                                        <CheckBox fx:id="pdfBookmarks" text="PDF bookmarks"
+                                                        <CheckBox fx:id="pdfBookmarks" text="%DocumentationView.pdfBookmarks.text"
                                                                   selected="true"/>
                                                     </children>
                                                 </VBox>
                                             </children>
                                         </VBox>
 
-                                        <Label text="LANGUAGES" styleClass="fxt-sign-section-label"/>
+                                        <Label text="%DocumentationView.languages.text" styleClass="fxt-sign-section-label"/>
                                         <VBox spacing="8">
                                             <children>
                                                 <HBox spacing="10">
                                                     <children>
-                                                        <Hyperlink id="docgen-scan-languages" text="Scan languages"
+                                                        <Hyperlink id="docgen-scan-languages" text="%DocumentationView.docgen-scan-languages.text"
                                                                    styleClass="fxt-vp-change"
                                                                    onAction="#onScanLanguages"/>
                                                         <Label fx:id="languagesStatus"
-                                                               text="Not scanned - all languages are included."
+                                                               text="%DocumentationView.languagesStatus.text"
                                                                styleClass="fxt-favmgr-subtitle"/>
                                                     </children>
                                                 </HBox>
                                                 <FlowPane fx:id="languagesPane" hgap="10" vgap="6"/>
-                                                <Label text="Fallback language" styleClass="fxt-sig-field-label"/>
-                                                <ComboBox fx:id="fallbackLanguage" promptText="(none)"/>
+                                                <Label text="%DocumentationView.fallback-language.text" styleClass="fxt-sig-field-label"/>
+                                                <ComboBox fx:id="fallbackLanguage" promptText="%DocumentationView.fallbackLanguage.promptText"/>
                                             </children>
                                         </VBox>
 
                                         <CheckBox fx:id="openAfter"
-                                                  text="Open the generated documentation after creation"
+                                                  text="%DocumentationView.openAfter.text"
                                                   selected="true"/>
                                         <HBox spacing="8">
                                             <children>
                                                 <Button fx:id="generate" id="docgen-generate"
-                                                        text="Generate Documentation" maxWidth="Infinity"
+                                                        text="%DocumentationView.generate.text" maxWidth="Infinity"
                                                         HBox.hgrow="ALWAYS" styleClass="fxt-primary-button"
                                                         onAction="#onGenerate">
                                                     <graphic>
                                                         <IconifyIcon iconLiteral="bi-play-fill" iconSize="14"/>
                                                     </graphic>
                                                 </Button>
-                                                <Button fx:id="cancel" id="docgen-cancel" text="Cancel" disable="true"
+                                                <Button fx:id="cancel" id="docgen-cancel" text="%DocumentationView.cancel.text" disable="true"
                                                         styleClass="fxt-tool-button" onAction="#onCancel"/>
                                             </children>
                                         </HBox>
-                                        <Label fx:id="status" id="docgen-status" text="Ready." wrapText="true"
+                                        <Label fx:id="status" id="docgen-status" text="%DocumentationView.status.text" wrapText="true"
                                                styleClass="fxt-vp-status"/>
                                     </children>
                                 </VBox>
@@ -281,7 +281,7 @@
                             <children>
                                 <HBox spacing="8" alignment="CENTER_LEFT">
                                     <children>
-                                        <Label text="PROGRESS" styleClass="fxt-sign-section-label"/>
+                                        <Label text="%DocumentationView.progress.text" styleClass="fxt-sign-section-label"/>
                                         <Region HBox.hgrow="ALWAYS"/>
                                         <ProgressIndicator fx:id="spinner" minWidth="16" minHeight="16"
                                                            prefWidth="16" prefHeight="16" maxWidth="16"
@@ -294,7 +294,7 @@
                                 <ListView fx:id="progressList" id="docgen-progress" focusTraversable="false"
                                           styleClass="fxt-docgen-progress" VBox.vgrow="ALWAYS">
                                     <placeholder>
-                                        <Label text="Progress messages appear here during generation."/>
+                                        <Label text="%DocumentationView.progress-messages-appear-here-during.text"/>
                                     </placeholder>
                                 </ListView>
                             </children>

@@ -52,7 +52,8 @@ public final class FxmlViews {
         if (url == null) {
             throw new IllegalStateException("FXML not found: " + resource);
         }
-        return new FXMLLoader(url);
+        // %key texts resolve in the interface language (i18n/messages*.properties)
+        return new FXMLLoader(url, org.fxt.freexmltoolkit.i18n.I18n.bundle());
     }
 
     private static <T> T run(FXMLLoader loader, String resource) {
