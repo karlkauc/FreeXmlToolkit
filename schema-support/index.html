@@ -1568,41 +1568,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#not-supported" class="md-nav__link">
+  <a href="#dtd-and-relax-ng" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Not Supported
+        DTD and RELAX NG
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Not Supported">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dtd-document-type-definition" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DTD (Document Type Definition)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#relaxng" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        RelaxNG
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2960,41 +2932,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#not-supported" class="md-nav__link">
+  <a href="#dtd-and-relax-ng" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Not Supported
+        DTD and RELAX NG
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Not Supported">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dtd-document-type-definition" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DTD (Document Type Definition)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#relaxng" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        RelaxNG
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -3206,51 +3150,54 @@ up an <code>xs:import</code>/<code>xs:include</code> or a schema reference by sy
 lookup tries the <strong>system identifier</strong>, then the <strong>public identifier</strong> (<code>public</code> entries),
 then the namespace, so <code>public</code> entries resolve schemas too.</p>
 <hr />
-<h2 id="not-supported">Not Supported<a class="headerlink" href="#not-supported" title="Permanent link">&para;</a></h2>
-<h3 id="dtd-document-type-definition">DTD (Document Type Definition)<a class="headerlink" href="#dtd-document-type-definition" title="Permanent link">&para;</a></h3>
-<p><strong>Not Supported</strong> - This older format is not available in FreeXmlToolkit.</p>
+<h2 id="dtd-and-relax-ng">DTD and RELAX NG<a class="headerlink" href="#dtd-and-relax-ng" title="Permanent link">&para;</a></h2>
+<p>Documents can be validated against a <strong>DTD</strong> or a <strong>RELAX NG</strong> schema (XML syntax <code>.rng</code>, compact
+syntax <code>.rnc</code>). Validation is exact (Xerces for DTDs, Jing for RELAX NG); IntelliSense, the grid's
+entry helpers and the Properties inspector use an XML Schema translated from the grammar (Trang),
+which for some RELAX NG constructs is an approximation. There is no graphical editor, diagram or
+documentation generator for these languages.</p>
+<p><strong>Which grammar is used</strong>, when no XSD is bound:</p>
 <table>
 <thead>
 <tr>
-<th>Reason</th>
-<th>Alternative</th>
+<th>The document has</th>
+<th>It is validated against</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Less flexible than XSD</td>
-<td>Convert your DTD to XSD</td>
+<td><code>&lt;!DOCTYPE book SYSTEM "book.dtd"&gt;</code> or <code>PUBLIC "…" "…"</code></td>
+<td>that DTD (and the internal subset, if any)</td>
 </tr>
 <tr>
-<td>Limited features</td>
-<td>Use XSD for the same rules</td>
+<td><code>&lt;!DOCTYPE book [ … ]&gt;</code> (only an internal subset)</td>
+<td>the internal subset</td>
 </tr>
 <tr>
-<td>No namespace support</td>
-<td>XSD handles namespaces</td>
+<td><code>&lt;?xml-model href="book.rng" schematypens="http://relaxng.org/ns/structure/1.0"?&gt;</code></td>
+<td>that RELAX NG schema</td>
+</tr>
+<tr>
+<td><code>&lt;?xml-model href="book.rnc" type="application/relax-ng-compact-syntax"?&gt;</code></td>
+<td>that compact-syntax schema</td>
 </tr>
 </tbody>
 </table>
-<h3 id="relaxng">RelaxNG<a class="headerlink" href="#relaxng" title="Permanent link">&para;</a></h3>
-<p><strong>Not Supported</strong> - This alternative schema format is not available.</p>
-<table>
-<thead>
-<tr>
-<th>Reason</th>
-<th>Alternative</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Less widely used</td>
-<td>Use XSD instead</td>
-</tr>
-<tr>
-<td>Focus on standards</td>
-<td>Schematron for business rules</td>
-</tr>
-</tbody>
-</table>
+<p>An <code>xsi:schemaLocation</code> (XSD) takes precedence. You can also bind a <code>.dtd</code>, <code>.rng</code> or <code>.rnc</code> file like
+an XSD: click the schema indicator in the status bar, use <strong>Change</strong> in the Validation panel, or drop
+the file there. A document's own DOCTYPE wins over a bound DTD.</p>
+<p><strong>Where DTDs come from:</strong> the XML catalogs and the <a href="../schema-library/">Schema Library</a> first (public
+and system identifiers — the way to use DocBook, XHTML or other standard DTDs offline), then local
+files relative to the document, then — for <code>http</code>/<code>https</code> addresses only — the schema cache, which
+downloads once through the proxy settings. A DTD that cannot be loaded is reported as a warning and
+the document is checked for well-formedness only.</p>
+<p><strong>Security:</strong> external entities (<code>&lt;!ENTITY x SYSTEM "…"&gt;</code>) are never read, entity expansion is limited
+(no "billion laughs"), and DTDs are loaded only as described above. <strong>Settings → Network &amp; Security →
+Validate documents against their DTD</strong> switches DTD validation off; administrators can lock it
+(<code>security.dtd.allowed=false</code>, see <a href="../administration/">Administration</a>).</p>
+<p>On the command line, <code>fxt-cli validate -x book.rng …</code> binds a grammar for all files, and declared
+DOCTYPEs and <code>xml-model</code> instructions are used like <code>xsi:schemaLocation</code> (see
+<a href="../command-line/#validate">Command Line</a>).</p>
 <hr />
 <h2 id="how-to-use-schemas">How to Use Schemas<a class="headerlink" href="#how-to-use-schemas" title="Permanent link">&para;</a></h2>
 <h3 id="loading-a-schema">Loading a Schema<a class="headerlink" href="#loading-a-schema" title="Permanent link">&para;</a></h3>

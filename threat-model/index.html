@@ -2889,6 +2889,11 @@ release, see <a href="../licenses/#software-bill-of-materials-sbom">Licenses</a>
 <td>–</td>
 </tr>
 <tr>
+<td><strong>DTD validation</strong> of documents with a DOCTYPE</td>
+<td>External general entities stay off (no XXE); the DTD and its parameter-entity modules load only from XML catalogs, the Schema Library, local files, or <code>http(s)</code> through the schema cache (proxy settings, internal addresses refused); entity expansion is limited to 100,000. RELAX NG schemas and the documents checked against them are read with external entities and DTD loading off.</td>
+<td><code>security.dtd.allowed=false</code></td>
+</tr>
+<tr>
 <td><strong>Remote schemas</strong> (<code>schemaLocation</code>, <code>xs:import</code>)</td>
 <td>Downloaded over http/https only from public addresses: loopback, private (10/8, 172.16/12, 192.168/16), link-local, cloud metadata (169.254.169.254) and multicast addresses are refused, at most 5 redirects. Downloads are checked to be a schema before they are cached.</td>
 <td><code>-Dfxt.schema.namespaceFallback=false</code>, <code>-Dfxt.schema.localCopies=false</code>; Schema Library / OASIS catalogs map URLs to local files</td>

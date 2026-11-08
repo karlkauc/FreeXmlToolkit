@@ -3116,8 +3116,8 @@ a JSON Schema, with the validators of the <a href="../validation-panel/">Validat
 </thead>
 <tbody>
 <tr>
-<td><code>-x</code>, <code>--xsd XSD</code></td>
-<td>XML Schema for all XML files</td>
+<td><code>-x</code>, <code>--xsd</code>, <code>--schema SCHEMA</code></td>
+<td>Schema for all XML files: XML Schema (<code>.xsd</code>), DTD (<code>.dtd</code>) or RELAX NG (<code>.rng</code>, <code>.rnc</code>)</td>
 </tr>
 <tr>
 <td><code>-s</code>, <code>--schematron SCH</code></td>
@@ -3153,13 +3153,14 @@ a JSON Schema, with the validators of the <a href="../validation-panel/">Validat
 </tr>
 </tbody>
 </table>
-<p><strong>Which schema is used.</strong> With <code>--xsd</code>, that schema for every XML file. With <code>--project</code>, the
+<p><strong>Which schema is used.</strong> With <code>--xsd</code> / <code>--schema</code>, that schema (or DTD, or RELAX NG schema) for every XML file. With <code>--project</code>, the
 schema the project binds to the file (first matching pattern). Otherwise each file
 is checked against the schema it declares itself, found the same way as when the file is opened
 in the editor: <code>xsi:schemaLocation</code> / <code>xsi:noNamespaceSchemaLocation</code> (relative to the file,
 remote schemas downloaded and cached), redirected by the <a href="../schema-library/">Schema Library</a> and
-XML catalogs, else the Schema Library entry for the root namespace or element. A file that names
-no schema is checked for well-formedness. <code>--no-schema-lookup</code> skips the lookup.</p>
+XML catalogs, else the Schema Library entry for the root namespace or element. A file with a
+<code>&lt;!DOCTYPE&gt;</code> or a RELAX NG <code>&lt;?xml-model?&gt;</code> is validated against that DTD or RELAX NG schema. A file that
+names no schema is checked for well-formedness. <code>--no-schema-lookup</code> skips the lookup.</p>
 <p><strong>Large files.</strong> XML files of 64 MB or more are validated while they are read, as a stream:
 memory stays flat whatever the size (a 1 GB file needs less than 20 MB). This applies to XML
 Schema and well-formedness checks; with <code>--schematron</code> the file is read into memory as usual.

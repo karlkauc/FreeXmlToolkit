@@ -3325,8 +3325,10 @@ the Schema Library's catalogs. When a server is unreachable, check the proxy set
 stale download can be removed with <strong>Settings → Files &amp; Cache → TEMP &amp; CACHE → Clear Cache
 Folder</strong> (it is fetched again when needed).</p>
 <h3 id="are-dtd-and-relax-ng-supported">Are DTD and RELAX NG supported?<a class="headerlink" href="#are-dtd-and-relax-ng-supported" title="Permanent link">&para;</a></h3>
-<p>No. FreeXmlToolkit validates with <strong>XSD 1.0 / 1.1</strong>, <strong>Schematron</strong> and <strong>JSON Schema</strong>. See
-<a href="../schema-support/">Schema Support</a>.</p>
+<p>Yes, for validation and IntelliSense: a document is checked against the DTD of its <code>&lt;!DOCTYPE&gt;</code> or
+the RELAX NG schema of its <code>&lt;?xml-model?&gt;</code> (XML syntax <code>.rng</code> and compact syntax <code>.rnc</code>), or against
+one you bind. There is no graphical editor or documentation generator for DTDs and RELAX NG schemas
+(those are for XSD). See <a href="../schema-support/#dtd-and-relax-ng">Schema Support</a>.</p>
 <h2 id="settings-logs-and-privacy">Settings, Logs and Privacy<a class="headerlink" href="#settings-logs-and-privacy" title="Permanent link">&para;</a></h2>
 <h3 id="where-are-my-settings-stored">Where are my settings stored?<a class="headerlink" href="#where-are-my-settings-stored" title="Permanent link">&para;</a></h3>
 <p>In <code>~/.freeXmlToolkit/FreeXmlToolkit.properties</code> in your home folder, next to the cache and

@@ -4102,12 +4102,12 @@
 <tr>
 <td>External DTD loading</td>
 <td>Loading DTD definitions from remote servers</td>
-<td>Blocked</td>
+<td>Blocked, except for DTD validation (see below)</td>
 </tr>
 <tr>
 <td>Parameter entities</td>
 <td>Using <code>%entity;</code> to include external content</td>
-<td>Blocked</td>
+<td>Blocked, except DTD modules during DTD validation</td>
 </tr>
 <tr>
 <td>Entity expansion bombs</td>
@@ -4133,7 +4133,8 @@ and the known limits.</p>
 - Validate against XSD schemas
 - Transform with XSLT stylesheets
 - Work with XML that contains internal (non-external) entities</p>
-<p><strong>DTDs with external references are not resolved.</strong> If you have an XML file that relies on an external DTD for entity definitions, those entities will appear as empty or cause parsing to fail. This is intentional for security.</p>
+<p><strong>External entities are never read.</strong> If an XML file relies on external entities (<code>&lt;!ENTITY x SYSTEM "…"&gt;</code>) for content, those entities stay unresolved. This is intentional for security.</p>
+<p><strong>DTD validation</strong> is the one place where DTDs are loaded: a document with a <code>&lt;!DOCTYPE&gt;</code> is validated against its DTD, which — with its parameter-entity modules — is read only from XML catalogs, the Schema Library, local files, or <code>http(s)</code> through the schema cache (proxy settings, internal addresses refused). External general entities stay off and entity expansion stays limited. <strong>Settings → Network &amp; Security → Validate documents against their DTD</strong> turns it off; administrators can lock it with <code>security.dtd.allowed=false</code>. See <a href="../schema-support/#dtd-and-relax-ng">Schema Support</a>.</p>
 <hr />
 <h2 id="xsltxquery-extension-security">XSLT/XQuery Extension Security<a class="headerlink" href="#xsltxquery-extension-security" title="Permanent link">&para;</a></h2>
 <h3 id="what-are-xslt-extensions">What Are XSLT Extensions?<a class="headerlink" href="#what-are-xslt-extensions" title="Permanent link">&para;</a></h3>
