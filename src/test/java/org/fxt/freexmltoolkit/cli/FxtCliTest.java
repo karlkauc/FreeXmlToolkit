@@ -308,6 +308,53 @@ class FxtCliTest {
     }
 
     @Nested
+    @DisplayName("project")
+    class Project {
+
+        @Test
+        @DisplayName("scenario runs a project's scenarios (all, by name, --list); validate --project uses its bindings")
+        void scenarios() throws Exception {
+            write("x/count.xsl", """
+                    <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                      <xsl:param name="label" select="'n'"/>
+                      <xsl:output method="text"/>
+                      <xsl:template match="/"><xsl:value-of select="$label"/>=<xsl:value-of select="count(//i)"/></xsl:template>
+                    </xsl:stylesheet>
+                    """);
+            write("data/d.xml", "<r><i/><i/></r>");
+            write("p.xsd", """
+                    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                      <xs:element name="r"><xs:complexType><xs:sequence>
+                        <xs:element name="i" maxOccurs="1"/></xs:sequence></xs:complexType></xs:element>
+                    </xs:schema>
+                    """);
+            var project = org.fxt.freexmltoolkit.service.project.FxtProject.create(dir.resolve("p.fxtproj"), "P");
+            project.putScenario(new org.fxt.freexmltoolkit.service.project.FxtProject.Scenario("count", "x/count.xsl",
+                    "data/d.xml", java.util.Map.of("label", "items"), null, null));
+            project.putScenario(new org.fxt.freexmltoolkit.service.project.FxtProject.Scenario("file", "x/count.xsl",
+                    "data/d.xml", java.util.Map.of(), null, "out/c.txt"));
+            project.putScenario(new org.fxt.freexmltoolkit.service.project.FxtProject.Scenario("broken", "x/none.xsl",
+                    "data/d.xml", java.util.Map.of(), null, null));
+            project.bindSchema("data/**/*.xml", dir.resolve("p.xsd"));
+            project.save();
+            Path file = dir.resolve("p.fxtproj");
+
+            assertEquals(ExitCodes.OK, run("scenario", file, "count"), err);
+            assertEquals("items=2", out);
+            assertEquals(ExitCodes.OK, run("scenario", file, "--list"), err);
+            assertTrue(out.contains("count\tx/count.xsl < data/d.xml") && out.contains("> out/c.txt"), out);
+            assertEquals(ExitCodes.FAILED, run("scenario", file), err);
+            assertTrue(err.contains("broken: error: Not found"), err);
+            assertEquals("n=2", Files.readString(dir.resolve("out/c.txt")));
+            assertEquals(ExitCodes.USAGE, run("scenario", file, "nope"));
+
+            assertEquals(ExitCodes.OK, run("validate", dir.resolve("data/d.xml")), err + out);
+            assertEquals(ExitCodes.FAILED, run("validate", "--project", file, dir.resolve("data/d.xml")),
+                    "the project's schema allows one i only: " + out);
+        }
+    }
+
+    @Nested
     @DisplayName("compare")
     class Compare {
 

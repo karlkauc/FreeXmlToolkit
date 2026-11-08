@@ -20,6 +20,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog;
+import org.fxt.freexmltoolkit.controls.shell.editor.ProjectActions;
 import org.fxt.freexmltoolkit.controls.shell.editor.AboutDialog;
 import org.fxt.freexmltoolkit.controls.shell.editor.DataConversionAction;
 import org.fxt.freexmltoolkit.controls.shell.editor.EditorActions;
@@ -84,6 +85,11 @@ public final class ShellMenuBar extends MenuBar {
     @FXML private Menu fileMenu;
     @FXML private Menu openRecentMenu;
     @FXML private Menu openFavoriteMenu;
+    @FXML private Menu projectMenu;
+    @FXML private ShellMenuItem closeProjectItem;
+    @FXML private ShellMenuItem bindSchemaItem;
+    @FXML private ShellMenuItem addCatalogItem;
+    @FXML private ShellMenuItem editProjectItem;
     @FXML private Menu viewMenu;
     @FXML private Menu activitiesMenu;
     @FXML private Menu helpMenu;
@@ -114,6 +120,12 @@ public final class ShellMenuBar extends MenuBar {
 
         openRecentMenu.setGraphic(ShellMenuItem.icon("bi-clock-history", ActionColor.NAVIGATE));
         openFavoriteMenu.setGraphic(ShellMenuItem.icon("bi-star", ActionColor.NAVIGATE));
+        projectMenu.setGraphic(ShellMenuItem.icon("bi-briefcase", ActionColor.NAVIGATE));
+        projectMenu.setOnShowing(e -> updateProjectItems());
+        // Also on every change: the macOS system menu bar mirrors the enabled state.
+        org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().addListener(
+                p -> Platform.runLater(this::updateProjectItems));
+        updateProjectItems();
         activitiesMenu.setGraphic(ShellMenuItem.icon("bi-grid", ActionColor.NAVIGATE));
         showConstraintsItem.setGraphic(ShellMenuItem.icon("bi-shield-check", ActionColor.NEUTRAL));
         showConstraintsItem.selectedProperty().bindBidirectional(XsdDiagramOptions.showConstraintsProperty());
@@ -380,6 +392,21 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onNew() { run("new", shell::onNew); }
     @FXML public void onOpen() { run("open", shell::onOpen); }
     @FXML public void onOpenInViewer() { run("open_viewer", shell::openInViewer); }
+    @FXML public void onNewProject() { run("project_new", () -> ProjectActions.newProject(window())); }
+    @FXML public void onOpenProject() { run("project_open", () -> ProjectActions.openProject(window())); }
+    @FXML public void onCloseProject() { run("project_close", ProjectActions::closeProject); }
+    @FXML public void onBindProjectSchema() { run("project_bind_schema", () -> ProjectActions.bindSchema(editorHost, window())); }
+    @FXML public void onAddProjectCatalog() { run("project_add_catalog", () -> ProjectActions.addCatalog(window())); }
+    @FXML public void onEditProject() { run("project_edit", () -> ProjectActions.editProjectFile(editorHost)); }
+
+    /** Project items that need an open project are disabled without one. */
+    void updateProjectItems() {
+        boolean none = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current().isEmpty();
+        for (ShellMenuItem item : new ShellMenuItem[] {closeProjectItem, bindSchemaItem, addCatalogItem, editProjectItem}) {
+            item.setDisable(none);
+        }
+    }
+
     @FXML public void onOpenFromUrl() { run("open_url", editorHost::openFromUrl); }
     @FXML public void onCloseTab() { run("close_tab", editorHost::closeActiveTab); }
     @FXML public void onSave() { run("save", shell::onSave); }

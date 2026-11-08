@@ -34,7 +34,7 @@ the tag-pinning gotcha), invoke the **`release` skill** (`.claude/skills/release
 
 ## Command Line (fxt-cli)
 
-`org.fxt.freexmltoolkit.cli.FxtCli` (picocli): `validate`, `transform`, `xsd-doc`, `xspec`, `compare`, `merge`, `convert`, `fop`. The
+`org.fxt.freexmltoolkit.cli.FxtCli` (picocli): `validate`, `transform`, `xsd-doc`, `xspec`, `scenario`, `compare`, `merge`, `convert`, `fop`. The
 subcommands only parse options and call the UI-free runners in `controls/shell/editor/`
 (`ValidationRunner`, `TransformRunner`, `XProcRunner`, `DocumentationRunner`, `FopRunner`) — put
 new logic there so the shell and the CLI share it. Logs go to stderr (`log4j2-cli.xml`), stdout is
@@ -62,6 +62,17 @@ via `XercesXmlValidationService.validateStream`). UI `controls/shell/editor/Larg
 Structure; `ListView` over `RowNumbers`, a list that stores nothing — a standalone `VirtualFlow` rendered no
 cells), opened by `EditorHost.openLargeFileViewer`, offered by `EditorFileSync` for files ≥ 50 MB / too large.
 `fxt-cli validate` streams XML files ≥ 64 MB. Docs: `docs/large-files.md`.
+
+## Projects
+
+`service/project/`: `FxtProject` (`.fxtproj`, JSON via Gson, paths relative to the file: folders,
+`schemaBindings` glob → XSD with `**/` also matching no folder, catalogs, scenarios) and `ProjectService`
+(one open project, listeners, `project.last` reopened by `ShellBootstrap`, catalogs via
+`SchemaLibraryService.setProjectCatalogs` — before the user's, never saved). Bindings win in
+`EditorSchemaBinding.detectSchemaFor` (`SchemaSource.PROJECT`). Scenarios run with
+`controls/shell/editor/ScenarioRunner` (XSLT/XQuery/XProc by extension). UI: File → Project
+(`ProjectActions`, `BindSchemaDialog`), Transform panel SCENARIO section (`ScenarioDialog`), Explorer
+workspace = first project folder. CLI: `scenario`, `validate --project`. Docs: `docs/projects.md`.
 
 ## Administrator Policy
 

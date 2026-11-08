@@ -20,6 +20,13 @@ is clickable to collapse or expand that section.
     and choose **[Transform with …](unified-shell.md#explorer-context-menu)**. It shares
     the same recent-stylesheet list and shows its result in the same OUTPUT panel.
 
+## SCENARIO
+
+Shown only while a [project](projects.md) is open: pick one of the project's saved transformation
+scenarios to fill stylesheet, input, parameters and output method in one step, run it with **Run
+Scenario** (writes its output file), save the current settings as a scenario (disk button) or remove
+one (trash button). See [Projects and Transformation Scenarios](projects.md#transformation-scenarios).
+
 ## STYLESHEET
 
 - Shows the **name of the chosen XSLT stylesheet** on its own line below the icon, the

@@ -73,6 +73,14 @@ final class ValidateCommand implements Callable<Integer> {
             description = "Write the report to this file; the text summary still goes to standard output.")
     Path reportFile;
 
+    @Option(names = {"-p", "--project"}, paramLabel = "FXTPROJ",
+            description = "Project file (.fxtproj): its schema bindings choose the XSD of each XML file "
+                    + "(before the declared one), its catalogs resolve schema references.")
+    Path projectFile;
+
+    /** The loaded {@link #projectFile}, or {@code null}. */
+    private org.fxt.freexmltoolkit.service.project.FxtProject project;
+
     @Option(names = "--fail-on-warning",
             description = "Warnings make a file invalid too (exit code 1).")
     boolean failOnWarning;
@@ -89,6 +97,19 @@ final class ValidateCommand implements Callable<Integer> {
                     "No files to validate (folders are searched for " + String.join(", ", include) + ")");
         }
         CliSupport.initServices();
+        if (projectFile != null) {
+            CliSupport.requireFile(commandLine, projectFile, "Project");
+            try {
+                project = org.fxt.freexmltoolkit.service.project.FxtProject.load(projectFile);
+            } catch (java.io.IOException e) {
+                throw new CommandLine.ParameterException(commandLine, e.getMessage());
+            }
+            try {
+                org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared().setProjectCatalogs(project.catalogs());
+            } catch (RuntimeException e) {
+                commandLine.getErr().println("warning: the project's catalogs are not used: " + FxtCli.messageOf(e));
+            }
+        }
 
         long start = System.nanoTime();
         List<FileResult> results = new ArrayList<>();
@@ -137,7 +158,7 @@ final class ValidateCommand implements Callable<Integer> {
                     jsonSchema != null ? jsonSchema.toFile() : null);
             return new FileResult(file, jsonSchema, findings(problems), null, millisSince(start));
         }
-        Path schema = xsd;
+        Path schema = xsd != null ? xsd : projectSchema(file);
         if (schema == null && !noSchemaLookup) {
             File baseDir = file.toAbsolutePath().getParent() != null ? file.toAbsolutePath().getParent().toFile() : null;
             schema = ValidationRunner.declaredSchema(content, baseDir).map(File::toPath).orElse(null);
@@ -151,6 +172,11 @@ final class ValidateCommand implements Callable<Integer> {
         return new FileResult(file, schema, findings, notRun, millisSince(start));
     }
 
+    /** @return the schema the project binds to {@code file}, or {@code null} */
+    private Path projectSchema(Path file) {
+        return project == null ? null : project.schemaFor(file).orElse(null);
+    }
+
     private static long sizeOf(Path file) {
         try {
             return java.nio.file.Files.size(file);
@@ -161,7 +187,7 @@ final class ValidateCommand implements Callable<Integer> {
 
     /** A large XML file: XSD (or well-formedness) validation reading the file as a stream. */
     private FileResult validateStreaming(Path file, long start) {
-        Path schema = xsd;
+        Path schema = xsd != null ? xsd : projectSchema(file);
         if (schema == null && !noSchemaLookup) {
             schema = org.fxt.freexmltoolkit.service.largefile.LargeFileValidation.declaredSchema(file)
                     .map(File::toPath).orElse(null);

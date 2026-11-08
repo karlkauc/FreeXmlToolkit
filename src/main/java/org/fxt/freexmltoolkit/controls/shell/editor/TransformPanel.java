@@ -33,6 +33,8 @@ import org.fxt.freexmltoolkit.controls.shell.editor.debug.BatchTransformView;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine.OutputFormat;
+import org.fxt.freexmltoolkit.service.project.FxtProject;
+import org.fxt.freexmltoolkit.service.project.ProjectService;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
 
 /**
@@ -84,6 +86,23 @@ public class TransformPanel extends VBox {
     private OpenDocument lastInputDocument;
     @FXML private PanelProgress progress;
     @FXML private Button transformButton;
+
+    // --- project scenarios (P3) ---
+    @FXML private SidePanelSection scenarioSection;
+    @FXML private javafx.scene.control.ComboBox<String> scenarioChoice;
+    @FXML private Label scenarioInfo;
+    @FXML private Button runScenarioButton;
+    @FXML private Button deleteScenarioButton;
+    /** Guards {@link #onScenarioChosen()} while the choice box is refilled. */
+    private boolean fillingScenarios;
+    private final java.util.function.Consumer<org.fxt.freexmltoolkit.service.project.FxtProject> projectListener =
+            project -> {
+                if (Platform.isFxApplicationThread()) {
+                    refreshScenarios();
+                } else {
+                    Platform.runLater(this::refreshScenarios);
+                }
+            };
 
     // --- favorites browsing (◀/▶ through XSLT / XML favorites, optionally folder-scoped) ---
     /** Star menu listing XSLT favorites (grouped by folder) for the STYLESHEET row. */
@@ -190,8 +209,202 @@ public class TransformPanel extends VBox {
         sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene == null) {
                 xsltWatch.stop();
+                ProjectService.getInstance().removeListener(projectListener);
+            } else if (oldScene == null) {
+                ProjectService.getInstance().removeListener(projectListener); // never twice
+                ProjectService.getInstance().addListener(projectListener);
+                refreshScenarios();
             }
         });
+
+        // --- SCENARIO (shown while a project is open) ------------------------------
+        ProjectService.getInstance().addListener(projectListener);
+        refreshScenarios();
+    }
+
+    // ----- project scenarios ------------------------------------------------------
+
+    /** Shows the SCENARIO section for the open project and refills its scenario list. */
+    void refreshScenarios() {
+        Optional<FxtProject> project = ProjectService.getInstance().current();
+        scenarioSection.setVisible(project.isPresent());
+        scenarioSection.setManaged(project.isPresent());
+        String selected = scenarioChoice.getValue();
+        fillingScenarios = true;
+        try {
+            scenarioChoice.getItems().setAll(project.map(p -> p.scenarios().stream()
+                    .map(s -> s.name).filter(n -> n != null && !n.isBlank()).toList()).orElse(List.of()));
+            scenarioChoice.setValue(selected != null && scenarioChoice.getItems().contains(selected) ? selected : null);
+        } finally {
+            fillingScenarios = false;
+        }
+        project.ifPresent(p -> scenarioSection.setTitle("SCENARIO · " + p.name()));
+        updateScenarioButtons();
+    }
+
+    private void updateScenarioButtons() {
+        boolean none = scenarioChoice.getValue() == null;
+        runScenarioButton.setDisable(none);
+        deleteScenarioButton.setDisable(none);
+        if (none) {
+            showScenarioInfo(scenarioChoice.getItems().isEmpty()
+                    ? "No scenarios yet — set up a transformation and save it with the disk button." : null);
+        }
+    }
+
+    private void showScenarioInfo(String text) {
+        boolean show = text != null && !text.isBlank();
+        scenarioInfo.setText(show ? text : "");
+        scenarioInfo.setVisible(show);
+        scenarioInfo.setManaged(show);
+    }
+
+    private Optional<FxtProject.Scenario> chosenScenario() {
+        String name = scenarioChoice.getValue();
+        return name == null ? Optional.empty()
+                : ProjectService.getInstance().current().flatMap(p -> p.scenario(name));
+    }
+
+    /** Loads the chosen scenario into the panel (stylesheet, input, parameters, output method). */
+    @FXML
+    public void onScenarioChosen() {
+        if (fillingScenarios) {
+            return;
+        }
+        updateScenarioButtons();
+        Optional<FxtProject> project = ProjectService.getInstance().current();
+        Optional<FxtProject.Scenario> chosen = chosenScenario();
+        if (project.isEmpty() || chosen.isEmpty()) {
+            return;
+        }
+        applyScenario(project.get(), chosen.get());
+    }
+
+    /** Fills the panel from a scenario; XQuery and XProc scenarios only run through Run Scenario. */
+    void applyScenario(FxtProject project, FxtProject.Scenario scenario) {
+        boolean xslt = scenario.stylesheet != null
+                && ScenarioRunner.languageOf(scenario.stylesheet) == ScenarioRunner.Language.XSLT;
+        if (xslt) {
+            setXsltFile(project.resolve(scenario.stylesheet).toFile());
+        }
+        setInputOverride(scenario.input == null || scenario.input.isBlank() ? null
+                : project.resolve(scenario.input).toFile());
+        paramRows.getChildren().clear();
+        if (scenario.parameters != null) {
+            scenario.parameters.forEach(this::addParameter);
+        }
+        OutputFormat format = null;
+        if (scenario.outputFormat != null && !scenario.outputFormat.isBlank()) {
+            try {
+                format = OutputFormat.valueOf(scenario.outputFormat.strip().toUpperCase(java.util.Locale.ROOT));
+            } catch (IllegalArgumentException ignored) {
+                // unknown name: Auto
+            }
+        }
+        setOutputFormat(format);
+        String target = scenario.output == null || scenario.output.isBlank() ? null : "Output: " + scenario.output;
+        showScenarioInfo(xslt ? target
+                : scenario.stylesheet + " is not a stylesheet — use Run Scenario"
+                        + (target == null ? "." : ". " + target));
+    }
+
+    /** Saves the panel's settings as a scenario of the open project (asks for name and output). */
+    @FXML
+    public void onSaveScenario() {
+        Optional<FxtProject> open = ProjectService.getInstance().current();
+        if (open.isEmpty()) {
+            return;
+        }
+        FxtProject project = open.get();
+        if (xsltFile == null) {
+            out.showError("Choose a stylesheet before saving a scenario.");
+            return;
+        }
+        Optional<FxtProject.Scenario> chosen = chosenScenario();
+        String initialName = chosen.map(s -> s.name).orElse(xsltFile.getName().replaceFirst("\\.[^.]*$", ""));
+        ScenarioDialog dialog = new ScenarioDialog(project, initialName, chosen.map(s -> s.output).orElse(null));
+        if (getScene() != null) {
+            dialog.initOwner(getScene().getWindow());
+        }
+        dialog.showAndWait().ifPresent(request -> saveScenario(project, request.name(), request.output()));
+    }
+
+    /** Stores the panel's current settings under {@code name} and saves the project. */
+    void saveScenario(FxtProject project, String name, java.nio.file.Path output) {
+        java.nio.file.Path input = inputOverride != null ? inputOverride.toPath()
+                : inputDocument().map(OpenDocument::getPath).orElse(null);
+        Map<String, String> parameters = new LinkedHashMap<>();
+        collectParameters().forEach((k, v) -> parameters.put(k, String.valueOf(v)));
+        FormatChoice choice = formatChoice.getValue();
+        project.putScenario(new FxtProject.Scenario(name, project.relativize(xsltFile.toPath()),
+                input == null ? null : project.relativize(input), parameters,
+                choice == null || choice.format == null ? null : choice.format.name(),
+                output == null ? null : project.relativize(output)));
+        try {
+            ProjectService.getInstance().save();
+        } catch (java.io.IOException e) {
+            out.showFailure("The project could not be saved: " + e.getMessage());
+            return;
+        }
+        refreshScenarios();
+        fillingScenarios = true;
+        scenarioChoice.setValue(name);
+        fillingScenarios = false;
+        updateScenarioButtons();
+        showScenarioInfo(output == null ? "Saved." : "Saved. Output: " + project.relativize(output));
+    }
+
+    /** Removes the chosen scenario from the project. */
+    @FXML
+    public void onDeleteScenario() {
+        String name = scenarioChoice.getValue();
+        Optional<FxtProject> project = ProjectService.getInstance().current();
+        if (name == null || project.isEmpty()
+                || !org.fxt.freexmltoolkit.util.DialogHelper.showConfirmation("Delete Scenario",
+                        "Delete the scenario \"" + name + "\"?", "It is removed from " + project.get().file().getFileName() + ".")) {
+            return;
+        }
+        deleteScenario(project.get(), name);
+    }
+
+    void deleteScenario(FxtProject project, String name) {
+        project.removeScenario(name);
+        try {
+            ProjectService.getInstance().save();
+        } catch (java.io.IOException e) {
+            out.showFailure("The project could not be saved: " + e.getMessage());
+        }
+        refreshScenarios();
+    }
+
+    /** Runs the chosen scenario from the files on disk; the result goes to the output panel (and its file). */
+    @FXML
+    public void onRunScenario() {
+        Optional<FxtProject> project = ProjectService.getInstance().current();
+        Optional<FxtProject.Scenario> chosen = chosenScenario();
+        if (project.isEmpty() || chosen.isEmpty()) {
+            return;
+        }
+        FxtProject.Scenario scenario = chosen.get();
+        out.showPending("Running scenario " + scenario.name + "…");
+        runScenarioButton.setDisable(true);
+        long t0 = System.nanoTime();
+        FxtGui.executorService.submit(() -> {
+            ScenarioRunner.Result result = ScenarioRunner.run(project.get(), scenario);
+            long ms = (System.nanoTime() - t0) / 1_000_000;
+            Platform.runLater(() -> showScenarioResult(project.get(), scenario, result, ms));
+        });
+    }
+
+    void showScenarioResult(FxtProject project, FxtProject.Scenario scenario, ScenarioRunner.Result result, long ms) {
+        runScenarioButton.setDisable(scenarioChoice.getValue() == null);
+        if (!result.ok()) {
+            out.showFailure("Scenario " + scenario.name + " failed: " + result.error());
+            showScenarioInfo("Failed: " + result.error());
+            return;
+        }
+        out.showTransformResult(result.text(), result.format() != null ? result.format() : OutputFormat.XML, ms);
+        showScenarioInfo(result.written() != null ? "Written to " + project.relativize(result.written()) : "Done.");
     }
 
     @FXML
@@ -763,6 +976,19 @@ public class TransformPanel extends VBox {
     /** @return the currently selected stylesheet file (for tests). */
     File currentXsltFile() {
         return xsltFile;
+    }
+
+    /** @return the SCENARIO section, its choice box and info line (for tests). */
+    SidePanelSection scenarioSectionForTesting() {
+        return scenarioSection;
+    }
+
+    javafx.scene.control.ComboBox<String> scenarioChoiceForTesting() {
+        return scenarioChoice;
+    }
+
+    String scenarioInfoForTesting() {
+        return scenarioInfo.isVisible() ? scenarioInfo.getText() : "";
     }
 
     /** @return the current fixed input override file, or {@code null} (for tests). */

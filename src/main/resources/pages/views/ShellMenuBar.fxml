@@ -28,6 +28,23 @@
                                onAction="#onOpenFromUrl"/>
                 <Menu fx:id="openRecentMenu" id="menu-file-open-recent" text="Open Recent"/>
                 <Menu fx:id="openFavoriteMenu" id="menu-file-open-favorite" text="Open Favorite"/>
+                <Menu fx:id="projectMenu" id="menu-file-project" text="Project">
+                    <items>
+                        <ShellMenuItem id="menu-project-new" text="New Project…" iconLiteral="bi-folder-plus"
+                                       color="CREATE" onAction="#onNewProject"/>
+                        <ShellMenuItem id="menu-project-open" text="Open Project…" iconLiteral="bi-briefcase"
+                                       color="TOOL" onAction="#onOpenProject"/>
+                        <ShellMenuItem fx:id="closeProjectItem" id="menu-project-close" text="Close Project"
+                                       iconLiteral="bi-x-lg" color="NEUTRAL" onAction="#onCloseProject"/>
+                        <SeparatorMenuItem/>
+                        <ShellMenuItem fx:id="bindSchemaItem" id="menu-project-bind-schema" text="Bind Schema in Project…"
+                                       iconLiteral="bi-link-45deg" color="TOOL" onAction="#onBindProjectSchema"/>
+                        <ShellMenuItem fx:id="addCatalogItem" id="menu-project-add-catalog" text="Add Catalog to Project…"
+                                       iconLiteral="bi-journal-plus" color="TOOL" onAction="#onAddProjectCatalog"/>
+                        <ShellMenuItem fx:id="editProjectItem" id="menu-project-edit" text="Edit Project File"
+                                       iconLiteral="bi-pencil-square" color="NAVIGATE" onAction="#onEditProject"/>
+                    </items>
+                </Menu>
                 <SeparatorMenuItem/>
                 <ShellMenuItem fx:id="closeTabItem" id="menu-file-close-tab" text="Close Tab" iconLiteral="bi-x-lg"
                                color="NEUTRAL" accelerator="Shortcut+W" onAction="#onCloseTab"/>

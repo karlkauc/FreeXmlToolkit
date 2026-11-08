@@ -29,6 +29,13 @@ public interface SchemaLibraryService {
     boolean removeCatalog(String id);
     boolean setCatalogEnabled(String id, boolean enabled);
     void reloadCatalogs();
+
+    /**
+     * Sets the catalogs of the open project: they are consulted like registered catalogs (before
+     * them) until replaced, and never saved to the user's library. An empty list removes them.
+     */
+    default void setProjectCatalogs(java.util.List<java.nio.file.Path> catalogFiles) {
+    }
     Path getStorageFile();
 
     // ---- resolution ---------------------------------------------------------------

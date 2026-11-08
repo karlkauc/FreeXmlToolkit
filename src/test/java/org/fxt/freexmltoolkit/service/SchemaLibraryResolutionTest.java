@@ -58,6 +58,21 @@ class SchemaLibraryResolutionTest {
     }
 
     @Test
+    void projectCatalogsResolveWithoutBeingSaved() throws Exception {
+        Path cat = dir.resolve("project-catalog.xml");
+        Files.writeString(cat, ("<catalog xmlns='%s'><uri name='urn:project' uri='local.xsd'/></catalog>").formatted(CATALOG_NS));
+        assertTrue(svc.resolveSystemId("urn:project", null).isEmpty());
+        svc.setProjectCatalogs(java.util.List.of(cat));
+        assertEquals(localXsd.toUri(), svc.resolveSystemId("urn:project", null).orElseThrow());
+        assertTrue(svc.getCatalogs().isEmpty(), "not one of the user's catalogs");
+        svc.addEntry(SchemaLibraryEntry.user("urn:other", localXsd.toString(), SchemaKind.XSD, "", null));
+        svc.awaitSave();
+        assertTrue(!Files.readString(dir.resolve("lib.json")).contains("project-catalog"), "never saved");
+        svc.setProjectCatalogs(java.util.List.of());
+        assertTrue(svc.resolveSystemId("urn:project", null).isEmpty());
+    }
+
+    @Test
     void disabledEntriesAreSkipped() {
         SchemaLibraryEntry e = svc.addEntry(SchemaLibraryEntry.user("urn:local", localXsd.toString(), SchemaKind.XSD, "", null));
         assertTrue(svc.resolveNamespace("urn:local", SchemaKind.XSD).isPresent());

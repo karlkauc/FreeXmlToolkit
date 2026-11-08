@@ -52,9 +52,11 @@ fxt-cli validate [options] FILE|FOLDER...
 | `--include GLOB,...` | File names to validate inside folders; default `*.xml,*.json` |
 | `-f`, `--report-format FORMAT` | `text` (default), `json`, `junit`, `sarif` |
 | `-r`, `--report FILE` | Write the report to a file; the text summary still goes to standard output |
+| `-p`, `--project FXTPROJ` | Use a [project's](projects.md) schema bindings and catalogs |
 | `--fail-on-warning` | Warnings make a file invalid too |
 
-**Which schema is used.** With `--xsd`, that schema for every XML file. Without it, each file
+**Which schema is used.** With `--xsd`, that schema for every XML file. With `--project`, the
+schema the project binds to the file (first matching pattern). Otherwise each file
 is checked against the schema it declares itself, found the same way as when the file is opened
 in the editor: `xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` (relative to the file,
 remote schemas downloaded and cached), redirected by the [Schema Library](schema-library.md) and
@@ -145,6 +147,23 @@ fxt-cli xspec [options] XSPEC...
 Every failed test is printed with its scenario, the expected and the actual result; `-q` leaves out
 the passed and pending ones. The exit code is 0 when all tests pass, 1 when a test fails and 3 when
 the tests cannot run (the XSpec file or the code it tests does not compile).
+
+## scenario
+
+Runs the transformation scenarios of a [project file](projects.md) — the ones saved from the
+Transform panel.
+
+```bash
+fxt-cli scenario [options] PROJECT [NAME...]
+```
+
+| Option | Meaning |
+|---|---|
+| `-l`, `--list` | List the scenarios (name, stylesheet, input, output) instead of running them |
+
+Without names, all scenarios run in the order of the project file. A scenario with an output file
+writes its result there; the others print it to standard output. The exit code is 1 when a scenario
+fails (the others still run) and 2 for an unknown scenario name.
 
 ## compare
 

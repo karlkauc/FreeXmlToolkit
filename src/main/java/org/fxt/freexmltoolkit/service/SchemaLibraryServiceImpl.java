@@ -87,6 +87,8 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
     protected volatile List<SchemaLibraryEntry> snapshot = List.of();
     /** Immutable snapshot of the registered catalogs for lock-free reads ({@code catalogsLoaded()}). */
     private volatile List<SchemaCatalogRef> catalogSnapshot = List.of();
+    /** Catalogs of the open project: used like registered ones, before them, never saved. */
+    private List<SchemaCatalogRef> projectCatalogs = List.of();
     private final ObservableList<SchemaLibraryEntry> observable = FXCollections.observableArrayList();
     private final ObservableList<SchemaLibraryEntry> readOnly = FXCollections.unmodifiableObservableList(observable);
 
@@ -211,7 +213,9 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
             merged.add(disabledBundled.contains(b.key()) ? b.withEnabled(false) : b);
         }
         snapshot = List.copyOf(merged);
-        catalogSnapshot = List.copyOf(catalogs);
+        List<SchemaCatalogRef> allCatalogs = new ArrayList<>(projectCatalogs);
+        allCatalogs.addAll(catalogs);
+        catalogSnapshot = List.copyOf(allCatalogs);
         List<SchemaLibraryEntry> copy = snapshot;
         if (javafx.application.Platform.isFxApplicationThread()) {
             observable.setAll(copy);
@@ -330,6 +334,17 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
     }
 
     @Override public void reloadCatalogs() { synchronized (lock) { rebuildSnapshot(); } }
+
+    @Override public void setProjectCatalogs(List<Path> catalogFiles) {
+        synchronized (lock) {
+            List<SchemaCatalogRef> refs = new ArrayList<>();
+            for (Path file : catalogFiles == null ? List.<Path>of() : catalogFiles) {
+                refs.add(new SchemaCatalogRef("project:" + file.toAbsolutePath(), file.toAbsolutePath().toString(), true));
+            }
+            projectCatalogs = List.copyOf(refs);
+            rebuildSnapshot();
+        }
+    }
 
     // ---- catalogs (parsed lazily, invalidated on mutation / mtime change) ------------
     private record LoadedCatalog(SchemaCatalogRef ref, java.nio.file.attribute.FileTime mtime,

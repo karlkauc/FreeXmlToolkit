@@ -82,6 +82,56 @@
                             </children>
                         </SidePanelSection>
 
+                        <!-- The open project's transformation scenarios (shown only while a project is
+                             open): choosing one fills stylesheet, input, parameters and output method. -->
+                        <SidePanelSection fx:id="scenarioSection" id="transform-scenario-section" title="SCENARIO"
+                                          visible="false" managed="false">
+                            <children>
+                                <VBox spacing="6" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <ComboBox fx:id="scenarioChoice" id="transform-scenario" maxWidth="Infinity"
+                                                  promptText="Choose a scenario…" styleClass="fxt-neutral-combo"
+                                                  onAction="#onScenarioChosen"/>
+                                        <Label fx:id="scenarioInfo" id="transform-scenario-info" wrapText="true"
+                                               opacity="0.7" visible="false" managed="false"/>
+                                        <HBox spacing="6">
+                                            <children>
+                                                <Button fx:id="runScenarioButton" id="transform-scenario-run"
+                                                        text="Run Scenario" styleClass="fxt-secondary-button"
+                                                        HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                                                        onAction="#onRunScenario">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-play" iconSize="14"/>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="Runs the saved scenario from the files on disk and writes its output file"/>
+                                                    </tooltip>
+                                                </Button>
+                                                <Button id="transform-scenario-save" styleClass="fxt-secondary-button"
+                                                        onAction="#onSaveScenario">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-floppy" iconSize="14"/>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="Save the current settings as a scenario of the project…"/>
+                                                    </tooltip>
+                                                </Button>
+                                                <Button fx:id="deleteScenarioButton" id="transform-scenario-delete"
+                                                        styleClass="fxt-secondary-button" onAction="#onDeleteScenario">
+                                                    <graphic>
+                                                        <IconifyIcon iconLiteral="bi-trash" iconSize="14"/>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="Remove the chosen scenario from the project"/>
+                                                    </tooltip>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+
                         <SidePanelSection title="STYLESHEET">
                             <children>
                                 <SourceRow fx:id="xsltRow" id="transform-xslt-row" iconLiteral="bi-arrow-repeat"

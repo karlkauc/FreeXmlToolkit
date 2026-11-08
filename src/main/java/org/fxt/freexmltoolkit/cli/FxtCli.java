@@ -29,6 +29,7 @@ import picocli.CommandLine.Spec;
                 CompareCommand.class,
                 MergeCommand.class,
                 XSpecCommand.class,
+                ScenarioCommand.class,
                 FopCommand.class,
                 CommandLine.HelpCommand.class
         },

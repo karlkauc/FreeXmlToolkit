@@ -137,6 +137,7 @@ nav:
     - Schema Library: schema-library.md
   - Transformations:
     - Transform Panel: transform-panel.md
+    - Projects & Scenarios: projects.md
     - XSLT Quick Start & Examples: xslt-viewer.md
     - XSLT Developer: xslt-developer.md
     - Debugger: debugger.md

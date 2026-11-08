@@ -118,7 +118,7 @@ public class EditorHost extends BorderPane {
      *       {@link #setSchemaForActiveDocument})</li>
      * </ul>
      */
-    public enum SchemaSource { NONE, DECLARED, LIBRARY, CATALOG, MANUAL }
+    public enum SchemaSource { NONE, DECLARED, LIBRARY, CATALOG, PROJECT, MANUAL }
 
     /** The most recently active editor tab — insertion target when a tool tab is in front. */
     private EditorTab lastEditorTab;

@@ -595,6 +595,19 @@ final class EditorSchemaBinding {
         if (tab.document.getFileType() == EditorFileType.JSON) {
             return detectJsonSchemaFor(tab, content, pathOrNull);
         }
+        // A binding of the open project comes first: it is the project's explicit decision
+        java.util.Optional<Path> fromProject = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance()
+                .schemaFor(pathOrNull);
+        if (fromProject.isPresent()) {
+            File xsd = fromProject.get().toFile();
+            tab.lastDetectedSchemaLocation = xsd.getAbsolutePath();
+            if (!xsd.exists() || !tab.view.loadSchema(xsd)) {
+                return SchemaDetection.failed(SchemaSource.PROJECT, SchemaDetection.UNLOADABLE);
+            }
+            String project = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current()
+                    .map(org.fxt.freexmltoolkit.service.project.FxtProject::name).orElse("");
+            return new SchemaDetection(xsd, SchemaStatus.READY, SchemaSource.PROJECT, project);
+        }
         try {
             org.fxt.freexmltoolkit.service.XmlService service =
                     new org.fxt.freexmltoolkit.service.XmlServiceImpl();

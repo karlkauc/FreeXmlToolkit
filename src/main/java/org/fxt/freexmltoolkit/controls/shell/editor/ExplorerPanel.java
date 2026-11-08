@@ -130,6 +130,16 @@ public class ExplorerPanel extends VBox {
             }
         });
 
+        // An open project makes its first folder the workspace (title "PROJECT · NAME").
+        org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().addListener(project -> {
+            if (javafx.application.Platform.isFxApplicationThread()) {
+                applyProject(project);
+            } else {
+                javafx.application.Platform.runLater(() -> applyProject(project));
+            }
+        });
+        org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current().ifPresent(this::applyProject);
+
         // --- collapsible section headers, each in front of the content it toggles ----
         // Panel schema: the TOOLS come first, open by default, then the files the panel is
         // opened for (OPEN EDITORS, WORKSPACE).
@@ -969,6 +979,25 @@ public class ExplorerPanel extends VBox {
             // The tree items carry paths in the root's own form (possibly relative).
             workspace.selectPath(root.resolve(root.toAbsolutePath().normalize().relativize(absolute)));
         }
+    }
+
+    /** The project file shown in the workspace; a save of the same project keeps the tree as it is. */
+    private Path shownProject;
+
+    /** Shows an opened project's first folder as the workspace; {@code null} = the project was closed. */
+    void applyProject(org.fxt.freexmltoolkit.service.project.FxtProject project) {
+        if (project == null) {
+            if (shownProject != null) {
+                shownProject = null;
+                setWorkspaceFolder(getWorkspaceFolder()); // the folder stays, the title becomes its name
+            }
+            return;
+        }
+        if (!project.file().equals(shownProject)) {
+            shownProject = project.file();
+            setWorkspaceFolder(project.folders().get(0));
+        }
+        workspaceTitle.setText("PROJECT · " + project.name().toUpperCase(java.util.Locale.ROOT));
     }
 
     /** @return the workspace section title currently shown (for tests/observers). */

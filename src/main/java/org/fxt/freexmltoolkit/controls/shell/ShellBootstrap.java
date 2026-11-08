@@ -50,6 +50,8 @@ public final class ShellBootstrap {
         // Full install-source detection (winget needs a process) for the next app_start event
         scheduler.schedule(() -> org.fxt.freexmltoolkit.service.telemetry.LaunchContext.recordInstallSource(
                 ServiceRegistry.get(PropertiesService.class)), 1, TimeUnit.SECONDS);
+        // The project of the last session (its listeners switch to the FX thread themselves)
+        scheduler.execute(() -> org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().reopenLast());
         scheduler.schedule(this::checkForAppUpdate, 2, TimeUnit.SECONDS);
         scheduler.schedule(this::fundsXmlStartupSync, 5, TimeUnit.SECONDS);
         scheduler.schedule(ShellBootstrap::cleanOldLogs, 10, TimeUnit.SECONDS);

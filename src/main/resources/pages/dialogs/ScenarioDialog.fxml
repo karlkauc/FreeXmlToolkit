@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Content of the "Save as Scenario" dialog: the scenario's name and an optional output file.
+  Loaded by ScenarioDialog (FxmlViews.loadContent), which is the controller and adds title and buttons.
+-->
+<GridPane hgap="8" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <children>
+        <Label text="Name" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField" id="scenario-name" prefColumnCount="36" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                   GridPane.columnSpan="2"/>
+        <Label text="Output file" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="outputField" id="scenario-output" promptText="Optional: where Run Scenario writes the result"
+                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Button id="scenario-output-browse" text="Browse…" onAction="#onBrowseOutput" GridPane.rowIndex="1"
+                GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label fx:id="error" id="scenario-error" wrapText="true" visible="false" managed="false"
+               style="-fx-text-fill: #e03131;" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+        <Label text="Stylesheet, input file, parameters and output method are taken from the Transform panel. Paths are stored relative to the project file."
+               wrapText="true" opacity="0.7" maxWidth="520" GridPane.rowIndex="3" GridPane.columnIndex="0"
+               GridPane.columnSpan="3"/>
+    </children>
+</GridPane>

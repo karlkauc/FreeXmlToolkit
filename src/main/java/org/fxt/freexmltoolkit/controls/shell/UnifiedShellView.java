@@ -2765,6 +2765,7 @@ public class UnifiedShellView extends BorderPane {
         return switch (source) {
             case CATALOG -> " (catalog)";
             case LIBRARY -> " (library)";
+            case PROJECT -> " (project)";
             case MANUAL -> " (manual)";
             case DECLARED, NONE -> "";
         };
@@ -2875,6 +2876,7 @@ public class UnifiedShellView extends BorderPane {
             case CATALOG -> "Resolved through an XML catalog: " + (detail != null ? detail : "unknown target");
             case LIBRARY -> "Mapped by the Schema Library"
                     + (detail != null && !detail.isBlank() ? " (" + detail + ")" : "");
+            case PROJECT -> "Bound by the project" + (detail != null && !detail.isBlank() ? " (" + detail + ")" : "");
             case MANUAL -> "Bound manually";
             case DECLARED, NONE -> null;
         };
