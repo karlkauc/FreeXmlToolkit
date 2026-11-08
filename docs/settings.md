@@ -16,6 +16,10 @@ scroll the page to it; the group you are looking at is highlighted. Type into th
 the group list and the cards on the page down to the matching settings; if nothing matches, the
 page shows *"No settings match the search."*.
 
+**Managed settings** - on a computer where an administrator manages FreeXmlToolkit, some
+settings may be greyed out and a notice at the top of the page says so; see
+[Administration & Policies](administration.md).
+
 **Saving** - a save bar stays fixed at the bottom of the page:
 
 - **Unsaved changes** appears as soon as you change an option that has not been saved yet.

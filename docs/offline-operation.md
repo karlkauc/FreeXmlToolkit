@@ -78,6 +78,11 @@ fundsxml.enabled=false
 and set the environment variable `FXT_TELEMETRY_DISABLED=1` machine-wide (it also suppresses the
 first-start notice; see [Privacy & Telemetry](telemetry.md#switching-it-off-for-every-user-administrators)).
 
+For every user of a computer, and without users being able to switch them back, put these
+lines into the machine-wide policy file instead (with `update.allowed=false`,
+`fxt.telemetry.disabled=true` and the `fxt.schema.…` options below), see
+[Administration & Policies](administration.md).
+
 ## Java options for an installed application
 
 Options written as `-D…` on this page are Java options. In an installed application they go into
@@ -92,6 +97,6 @@ java-options=-Dfxt.properties.file=\\server\share\fxt\FreeXmlToolkit.properties
 
 An update replaces this file, so software distribution should write it again after each update.
 On macOS the file is part of the signed application bundle: changing it breaks the signature, so
-use the environment variables and the properties file there instead.
+use the [policy file](administration.md) (`fxt.…` keys) or the environment variables there instead.
 
 See also the [Threat Model](threat-model.md) for the security side of these connections.

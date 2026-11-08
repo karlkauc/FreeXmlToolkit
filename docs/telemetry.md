@@ -140,6 +140,7 @@ notice is not shown - when any of these is set:
 | Environment variable `FXT_TELEMETRY_DISABLED` | `1`, `true` or `yes` | machine-wide, e.g. by group policy or a software-distribution script |
 | Environment variable `DO_NOT_TRACK` | `1`, `true` or `yes` | the cross-tool [Console Do Not Track](https://consoledonottrack.com/) convention |
 | Java system property `-Dfxt.telemetry.disabled=true` | `true` | a custom launcher or start script |
+| `fxt.telemetry.disabled=true` in the policy file | `true` | machine-wide, together with the other managed settings, see [Administration & Policies](administration.md) |
 
 Setting the environment variable machine-wide:
 

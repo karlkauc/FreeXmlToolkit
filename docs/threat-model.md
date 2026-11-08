@@ -65,15 +65,17 @@ For machines that process untrusted files or must not contact the internet:
 
 | Goal | How |
 |---|---|
-| No telemetry | Environment variable `FXT_TELEMETRY_DISABLED=1` (machine-wide) |
-| No update check | `update.check.enabled=false` in the properties file (Settings → Updates) |
+| Users cannot change the settings below | Put them into the machine-wide policy file, see [Administration & Policies](administration.md) |
+| No telemetry | Environment variable `FXT_TELEMETRY_DISABLED=1` (machine-wide), or `fxt.telemetry.disabled=true` in the policy file |
+| No update check | `update.check.enabled=false` in the properties file (Settings → Updates); `update.allowed=false` in the policy file also removes manual checks and installs |
 | Schemas only from local files | Schema Library entries or an OASIS catalog for every schema; `-Dfxt.schema.namespaceFallback=false` |
 | Nothing written next to schemas | `-Dfxt.schema.localCopies=false` |
 | Certificate checks everywhere | Leave "Trust all certificates" off |
 | No Java from stylesheets | Leave `security.xslt.allow.extensions` off (default) |
 
-The `-D…` options are Java options; [Operation without internet](offline-operation.md#java-options-for-an-installed-application)
-shows where to set them for an installed application, and lists every connection and cache.
+The `-D…` options are Java options; the policy file takes them as `fxt.…=value` lines, and
+[Operation without internet](offline-operation.md#java-options-for-an-installed-application)
+shows where else to set them for an installed application, and lists every connection and cache.
 
 ## Reporting a vulnerability
 
