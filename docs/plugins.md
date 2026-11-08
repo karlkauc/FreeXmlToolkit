@@ -32,6 +32,7 @@ takes effect at the next start. A plugin that could not be loaded is listed with
 | **Startup task** | Runs once in the background a few seconds after start (FundsXML: checks for new schema versions) |
 | **Document listener** | Is told when a document has been opened; it can show a bar above the editor (FundsXML: the hint bar) |
 | **Stylesheet** | Added to the window, for the plugin's own panels |
+| **Schema** | A Schema Library entry (source *Plugin*) while the plugin is on; never saved to the user's library |
 
 Application services — settings, favorites, XPath snippets, templates, the Schema Library — are
 available to a plugin through `PluginContext.service(…)`.
@@ -108,6 +109,16 @@ Rules:
 - Each external plugin has its own class loader; libraries it needs belong into its jar.
 - A plugin that throws while registering contributes nothing and is listed as failed; a panel that
   fails shows an error in the side panel; a failing validator becomes one error in the results.
+
+## Built-in plugins
+
+| Plugin | On by default | |
+|---|---|---|
+| FundsXML | yes (its activity appears once the extension is enabled) | [FundsXML Extensions](fundsxml-extensions.md) |
+| ISO 20022 Payments (SEPA) | no | [Industry Plugins](industry-plugins.md#iso-20022-payments-sepa) |
+
+A plugin can say it is off until the user switches it on (`enabledByDefault()`), and it can add
+XML Schemas to the Schema Library (`context.addSchema(new PluginSchema(namespace, url, description, null))`).
 
 ## The FundsXML plugin
 

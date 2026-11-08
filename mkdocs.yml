@@ -149,6 +149,7 @@ nav:
     - Schematron Quick Fixes: schematron-quick-fixes.md
   - Industry Standards:
     - FundsXML Extensions: fundsxml-extensions.md
+    - Industry Plugins: industry-plugins.md
     - Plugins: plugins.md
   - Security:
     - Security Features: SECURITY.md

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionButton?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.PanelActionList?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelHeader?>
+<?import org.fxt.freexmltoolkit.controls.shell.editor.SidePanelSection?>
+
+<!--
+  Side panel of the industry plugins (ISO 20022, ebInterface, FinDatEx, XBRL): about text, the
+  plugin's actions, the active document (what it is, result of the plugin's checks) and an
+  identifier checker. Loaded by IndustryPanel (fx:root); title, texts, the plugin's action rows and
+  the identifier kinds are set in code.
+-->
+<fx:root type="javafx.scene.layout.VBox" styleClass="fxt-industry-panel"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <SidePanelHeader fx:id="header" title="INDUSTRY"/>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="edge-to-edge" VBox.vgrow="ALWAYS">
+            <content>
+                <VBox>
+                    <children>
+                        <SidePanelSection title="ABOUT">
+                            <children>
+                                <VBox styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <Label fx:id="about" id="industry-about" wrapText="true" minHeight="-Infinity"
+                                               styleClass="fxt-placeholder-text"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+                        <SidePanelSection title="ACTIVE DOCUMENT">
+                            <children>
+                                <VBox spacing="6" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <Label fx:id="documentSummary" id="industry-document" wrapText="true"
+                                               minHeight="-Infinity"/>
+                                        <Label fx:id="checkResult" id="industry-check-result" wrapText="true"
+                                               minHeight="-Infinity" visible="false" managed="false"/>
+                                    </children>
+                                </VBox>
+                                <PanelActionList fx:id="actions" id="industry-actions">
+                                    <children>
+                                        <PanelActionButton fx:id="checkButton" id="industry-check" iconLiteral="bi-check2-circle"
+                                                           text="Check Active Document" color="CREATE" primary="true"
+                                                           onAction="#onCheck"/>
+                                    </children>
+                                </PanelActionList>
+                            </children>
+                        </SidePanelSection>
+                        <SidePanelSection fx:id="identifierSection" title="CHECK AN IDENTIFIER">
+                            <children>
+                                <VBox spacing="6" styleClass="fxt-tp-section-body">
+                                    <children>
+                                        <ComboBox fx:id="identifierKind" id="industry-identifier-kind" maxWidth="Infinity"
+                                                  styleClass="fxt-neutral-combo"/>
+                                        <TextField fx:id="identifierField" id="industry-identifier" promptText="Paste a value"/>
+                                        <Label fx:id="identifierResult" id="industry-identifier-result" wrapText="true"
+                                               minHeight="-Infinity"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </SidePanelSection>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </children>
+</fx:root>

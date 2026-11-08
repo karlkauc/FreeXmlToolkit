@@ -28,6 +28,14 @@ public interface FxtPlugin {
         return "";
     }
 
+    /**
+     * @return whether the plugin is on as long as the user did not switch it (Settings → Plugins);
+     *         optional industry plugins return {@code false}
+     */
+    default boolean enabledByDefault() {
+        return true;
+    }
+
     /** Declares the plugin's contributions. Must not block and must not touch the UI. */
     void register(PluginContext context);
 }

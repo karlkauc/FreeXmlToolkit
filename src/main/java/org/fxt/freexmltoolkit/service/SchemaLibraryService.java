@@ -36,6 +36,14 @@ public interface SchemaLibraryService {
      */
     default void setProjectCatalogs(java.util.List<java.nio.file.Path> catalogFiles) {
     }
+
+    /**
+     * Sets the entries the plugins contribute (source {@code PLUGIN}): used like bundled ones (a user
+     * entry for the same namespace wins), never saved; switching one off is remembered like for a
+     * bundled entry.
+     */
+    default void setPluginEntries(java.util.List<org.fxt.freexmltoolkit.domain.SchemaLibraryEntry> entries) {
+    }
     Path getStorageFile();
 
     // ---- resolution ---------------------------------------------------------------

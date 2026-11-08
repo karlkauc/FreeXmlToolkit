@@ -25,6 +25,9 @@ public interface PluginContext {
     /** Adds a listener called on the JavaFX thread when a document has been opened in the editor. */
     void addDocumentListener(DocumentListener listener);
 
+    /** Adds an XML Schema to the Schema Library while the plugin is on. */
+    void addSchema(PluginSchema schema);
+
     /** Adds a stylesheet (URL, e.g. from {@code getClass().getResource(…)}) to the window. */
     void addStylesheet(String url);
 

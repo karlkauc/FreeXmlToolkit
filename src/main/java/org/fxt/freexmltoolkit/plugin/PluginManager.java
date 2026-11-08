@@ -56,6 +56,7 @@ public final class PluginManager {
     private final List<Runnable> startupTasks = new CopyOnWriteArrayList<>();
     private final List<DocumentListener> documentListeners = new CopyOnWriteArrayList<>();
     private final List<String> stylesheets = new CopyOnWriteArrayList<>();
+    private final List<PluginSchema> schemas = new CopyOnWriteArrayList<>();
     private volatile boolean loaded;
 
     private PluginManager() {
@@ -149,11 +150,13 @@ public final class PluginManager {
         String name;
         String version;
         String description;
+        boolean onByDefault;
         try {
             id = plugin.id();
             name = plugin.name();
             version = plugin.version();
             description = plugin.description();
+            onByDefault = plugin.enabledByDefault();
         } catch (RuntimeException | LinkageError e) {
             plugins.add(new PluginInfo(plugin.getClass().getName(), plugin.getClass().getSimpleName(), "", "", origin,
                     jar, State.FAILED, String.valueOf(e.getMessage())));
@@ -164,7 +167,8 @@ public final class PluginManager {
                     id == null || id.isBlank() ? "The plugin has no id." : "Another plugin has the id " + id + "."));
             return;
         }
-        if ("false".equalsIgnoreCase(setting(enabledKey(id)))) {
+        String enabled = setting(enabledKey(id));
+        if (enabled == null || enabled.isBlank() ? !onByDefault : "false".equalsIgnoreCase(enabled)) {
             plugins.add(new PluginInfo(id, name, version, description, origin, jar, State.DISABLED, null));
             return;
         }
@@ -183,7 +187,31 @@ public final class PluginManager {
         startupTasks.addAll(collector.startupTasks);
         documentListeners.addAll(collector.documentListeners);
         stylesheets.addAll(collector.stylesheets);
+        if (!collector.schemas.isEmpty()) {
+            schemas.addAll(collector.schemas);
+            applySchemas();
+        }
         plugins.add(new PluginInfo(id, name, version, description, origin, jar, State.ACTIVE, null));
+    }
+
+    /** Hands the plugins' schemas to the Schema Library. */
+    private void applySchemas() {
+        List<org.fxt.freexmltoolkit.domain.SchemaLibraryEntry> entries = new ArrayList<>();
+        for (PluginSchema schema : schemas) {
+            entries.add(new org.fxt.freexmltoolkit.domain.SchemaLibraryEntry("plugin", schema.namespace(),
+                    schema.location(), org.fxt.freexmltoolkit.domain.SchemaKind.XSD,
+                    org.fxt.freexmltoolkit.domain.EntrySource.PLUGIN, true, schema.description(), schema.rootElement()));
+        }
+        try {
+            org.fxt.freexmltoolkit.service.SchemaLibraryServiceImpl.shared().setPluginEntries(entries);
+        } catch (RuntimeException | LinkageError e) {
+            logger.debug("No Schema Library for plugin schemas: {}", e.getMessage());
+        }
+    }
+
+    public List<PluginSchema> schemas() {
+        ensureLoaded();
+        return List.copyOf(schemas);
     }
 
     private static String setting(String key) {
@@ -284,6 +312,10 @@ public final class PluginManager {
         startupTasks.clear();
         documentListeners.clear();
         stylesheets.clear();
+        if (!schemas.isEmpty()) {
+            schemas.clear();
+            applySchemas();
+        }
         loaded = false;
     }
 
@@ -303,6 +335,7 @@ public final class PluginManager {
         final List<Runnable> startupTasks = new ArrayList<>();
         final List<DocumentListener> documentListeners = new ArrayList<>();
         final List<String> stylesheets = new ArrayList<>();
+        final List<PluginSchema> schemas = new ArrayList<>();
 
         Collector(String pluginId) {
             this.pluginId = pluginId;
@@ -315,6 +348,7 @@ public final class PluginManager {
         @Override public void addStartupTask(Runnable task) { startupTasks.add(task); }
         @Override public void addDocumentListener(DocumentListener listener) { documentListeners.add(listener); }
         @Override public void addStylesheet(String url) { stylesheets.add(url); }
+        @Override public void addSchema(PluginSchema schema) { schemas.add(schema); }
         @Override public <T> T service(Class<T> type) { return ServiceRegistry.get(type); }
     }
 }

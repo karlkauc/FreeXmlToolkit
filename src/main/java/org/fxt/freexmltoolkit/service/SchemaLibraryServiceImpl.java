@@ -89,6 +89,8 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
     private volatile List<SchemaCatalogRef> catalogSnapshot = List.of();
     /** Catalogs of the open project: used like registered ones, before them, never saved. */
     private List<SchemaCatalogRef> projectCatalogs = List.of();
+    /** Entries contributed by plugins: like bundled ones, never saved. */
+    private List<SchemaLibraryEntry> pluginEntries = List.of();
     private final ObservableList<SchemaLibraryEntry> observable = FXCollections.observableArrayList();
     private final ObservableList<SchemaLibraryEntry> readOnly = FXCollections.unmodifiableObservableList(observable);
 
@@ -211,6 +213,11 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
         for (SchemaLibraryEntry b : bundledEntries) {
             if (userKeys.contains(b.key())) continue;
             merged.add(disabledBundled.contains(b.key()) ? b.withEnabled(false) : b);
+            userKeys.add(b.key());
+        }
+        for (SchemaLibraryEntry p : pluginEntries) {
+            if (!userKeys.add(p.key())) continue;
+            merged.add(disabledBundled.contains(p.key()) ? p.withEnabled(false) : p);
         }
         snapshot = List.copyOf(merged);
         List<SchemaCatalogRef> allCatalogs = new ArrayList<>(projectCatalogs);
@@ -291,7 +298,7 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
                     return true;
                 }
             }
-            for (SchemaLibraryEntry b : bundledEntries) {
+            for (SchemaLibraryEntry b : concat(bundledEntries, pluginEntries)) {
                 if (b.id().equals(id)) {
                     if (enabled) disabledBundled.remove(b.key()); else disabledBundled.add(b.key());
                     save(); rebuildSnapshot();
@@ -334,6 +341,24 @@ public class SchemaLibraryServiceImpl implements SchemaLibraryService {
     }
 
     @Override public void reloadCatalogs() { synchronized (lock) { rebuildSnapshot(); } }
+
+    private static List<SchemaLibraryEntry> concat(List<SchemaLibraryEntry> a, List<SchemaLibraryEntry> b) {
+        List<SchemaLibraryEntry> all = new ArrayList<>(a);
+        all.addAll(b);
+        return all;
+    }
+
+    @Override public void setPluginEntries(List<SchemaLibraryEntry> entries) {
+        synchronized (lock) {
+            List<SchemaLibraryEntry> copy = new ArrayList<>();
+            for (SchemaLibraryEntry e : entries == null ? List.<SchemaLibraryEntry>of() : entries) {
+                copy.add(new SchemaLibraryEntry("plugin:" + e.key(), e.namespace(), e.location(), e.kind(),
+                        org.fxt.freexmltoolkit.domain.EntrySource.PLUGIN, true, e.description(), e.rootElement()));
+            }
+            pluginEntries = List.copyOf(copy);
+            rebuildSnapshot();
+        }
+    }
 
     @Override public void setProjectCatalogs(List<Path> catalogFiles) {
         synchronized (lock) {
