@@ -103,6 +103,8 @@ public class QueryConsole extends Region {
     private String lastXQueryResult;
     private XQueryTableRunner.XQueryTable lastXQueryTable;
     private long lastXQueryElapsedMs;
+    /** The run's result items that are nodes of the document: list, navigation, highlights. */
+    private QueryHits hits;
 
     /** Called by the close button; the shell removes the console from its split. */
     private Runnable onCloseRequest = () -> { };
@@ -137,6 +139,7 @@ public class QueryConsole extends Region {
     /** Close button at the top right of the console. */
     @FXML
     public void onClose() {
+        hits.clear();
         onCloseRequest.run();
     }
 
@@ -227,6 +230,24 @@ public class QueryConsole extends Region {
         VirtualizedScrollPane<CodeArea> resultsScroll = new VirtualizedScrollPane<>(resultsArea);
         VBox.setVgrow(resultsScroll, Priority.ALWAYS);
         resultsBox.getChildren().add(resultsScroll);
+        hits = new QueryHits(editorHost, resultsScroll);
+        VBox.setVgrow(hits.list(), Priority.ALWAYS);
+        resultsBox.getChildren().add(hits.list());
+        if (resultsBox.getChildren().getFirst() instanceof javafx.scene.layout.HBox header) {
+            header.getChildren().add(2, hits.bar()); // after RESULTS and the statistics
+        }
+        // F3 / Shift+F3 step through the hits while the console has the focus
+        addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.F3) {
+                hits.step(e.isShiftDown() ? -1 : 1);
+                e.consume();
+            }
+        });
+    }
+
+    /** @return the hits of the last run (tests) */
+    QueryHits hits() {
+        return hits;
     }
 
     /** The XPath toggle reads "JSONPath" while a JSON document is active (it then runs JSONPath). */
@@ -355,6 +376,8 @@ public class QueryConsole extends Region {
         }
         boolean json = isJsonActive();
         setResultsText("Running…");
+        hits.clear();
+        String revision = editorHost.activeRevisionKey();
         final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -373,10 +396,15 @@ public class QueryConsole extends Region {
             }
             long elapsedMs = probe.finish(content.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
+            List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem> items = ok && !json
+                    ? locateItems(() -> org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.locateItems(content,
+                            new org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.XPathQuery(path, Map.of())))
+                    : List.of();
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
                     setResultsText(result);
                     updateStatsLabel(result, elapsedMs);
+                    hits.setItems(items, revision);
                 }
             });
         });
@@ -398,6 +426,8 @@ public class QueryConsole extends Region {
         }
         String xml = editorHost.getActiveText().orElse("");
         setResultsText("Running…");
+        hits.clear();
+        String revision = editorHost.activeRevisionKey();
         final int gen = ++runGeneration;
         FxtGui.executorService.submit(() -> {
             long t0 = System.nanoTime();
@@ -410,9 +440,14 @@ public class QueryConsole extends Region {
             long elapsedMs = probe.finish(xml.length(), ok ? result.length() : -1, ok,
                     org.fxt.freexmltoolkit.service.ExecutionStats.firstLine(result));
             XQueryTableRunner.XQueryTable table = ok ? XQueryTableRunner.run(xml, xquery) : null;
+            List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem> items = ok
+                    ? locateItems(() -> org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.locateXQueryItems(
+                            xml, xquery, Map.of()))
+                    : List.of();
             Platform.runLater(() -> {
                 if (gen == runGeneration) {
                     setResultsText(result);
+                    hits.setItems(items, revision);
                     updateStatsLabel(result, elapsedMs);
                     lastXQueryResult = result;
                     lastXQueryTable = table;
@@ -421,6 +456,16 @@ public class QueryConsole extends Region {
                 }
             });
         });
+    }
+
+    /** A query whose hits cannot be located (unusual documents) still shows its text result. */
+    private static List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem> locateItems(
+            java.util.concurrent.Callable<List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.ResultItem>> run) {
+        try {
+            return run.call();
+        } catch (Exception e) {
+            return List.of();
+        }
     }
 
     private boolean isJsonActive() {

@@ -1181,6 +1181,122 @@ final class EditorTab extends Tab {
         });
     }
 
+    /** @return a key that changes with every text change and every model edit (query hits go stale) */
+    String revisionKey() {
+        return textRevision + ":" + xmlModelRevision;
+    }
+
+    /**
+     * Shows the query hit {@code current} of {@code hits} in the current view without switching
+     * it: the Text view highlights every hit and selects the current one, the Tree selects its
+     * node, the grid keeps every hit highlighted (whole table rows for table members, cells for
+     * nodes inside them) and reveals the current one.
+     */
+    void revealQueryHits(java.util.List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.NodeMatch> hits,
+                         int current) {
+        if (hits.isEmpty() || current < 0 || current >= hits.size()) {
+            return;
+        }
+        var hit = hits.get(current);
+        if (viewMode == ViewMode.TEXT || !viewMode.isStructured()) {
+            java.util.Map<Integer, Integer> ranges = new java.util.LinkedHashMap<>();
+            for (var h : hits) {
+                if (h.span() != null) {
+                    ranges.put(h.span().start(), h.span().end() - h.span().start());
+                }
+            }
+            view.setSearchMatchRanges(ranges);
+            if (hit.span() != null) {
+                var area = view.getCodeArea();
+                int length = area.getLength();
+                area.selectRange(Math.min(hit.span().start(), length), Math.min(hit.span().end(), length));
+                area.requestFollowCaret();
+            }
+            return;
+        }
+        if (!document.getFileType().isXmlFamily() || document.getFileType() == EditorFileType.XSD) {
+            return;
+        }
+        ensureXmlModelParsedAsync(() -> {
+            if (xmlEditorContext == null || xmlEditorContext.getDocument() == null) {
+                return;
+            }
+            var root = xmlEditorContext.getDocument().getRootElement();
+            var target = resolveHit(root, hit);
+            if (viewMode == ViewMode.TREE && xmlInstanceTreeView != null) {
+                if (target != null) {
+                    xmlInstanceTreeView.selectNode(target);
+                }
+            } else if (viewMode == ViewMode.GRAPHIC && xmlGridView != null) {
+                var canvas = xmlGridView.getCanvasView();
+                java.util.List<org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridCanvasView.Target<
+                        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode>> targets = new java.util.ArrayList<>();
+                for (var h : hits) {
+                    var node = resolveHit(root, h);
+                    if (node != null) {
+                        targets.add(new org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridCanvasView.Target<>(
+                                node, attributeOf(h)));
+                    }
+                }
+                canvas.setQueryHighlights(targets);
+                if (target != null) {
+                    canvas.revealProblem(target, attributeOf(hit));
+                }
+            }
+        });
+    }
+
+    /** Removes the query hits' highlights from every view of this document. */
+    void clearQueryHits() {
+        view.clearSearchMatches();
+        if (xmlGridView != null) {
+            xmlGridView.getCanvasView().setQueryHighlights(java.util.List.of());
+        }
+    }
+
+    private static String attributeOf(org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.NodeMatch hit) {
+        return hit.kind() == net.sf.saxon.s9api.XdmNodeKind.ATTRIBUTE ? hit.attrName() : null;
+    }
+
+    /**
+     * The model element of a query hit: its positional path (local names, 1-based positions among
+     * same-named siblings) walked from the root; an attribute or text node stands for its element.
+     */
+    static org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement resolveHit(
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement root,
+            org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.NodeMatch hit) {
+        if (root == null || hit == null || hit.path() == null || hit.path().isEmpty()) {
+            return null;
+        }
+        var steps = hit.path();
+        if (!localName(root).equals(steps.getFirst().localName())) {
+            return null;
+        }
+        var current = root;
+        for (int i = 1; i < steps.size(); i++) {
+            var step = steps.get(i);
+            int seen = 0;
+            org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement next = null;
+            for (var child : current.getChildElements()) {
+                if (localName(child).equals(step.localName()) && ++seen == step.position()) {
+                    next = child;
+                    break;
+                }
+            }
+            if (next == null) {
+                return null;
+            }
+            current = next;
+        }
+        return current;
+    }
+
+    private static String localName(org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement element) {
+        String name = element.getName();
+        int colon = name.indexOf(':');
+        return colon >= 0 ? name.substring(colon + 1) : name;
+    }
+
     /** Selects an XSD node in the current view, expanding the way to it; the Overview selects its top-level component. */
     private void revealXsdNode(XsdNode node) {
         currentSelection = node;

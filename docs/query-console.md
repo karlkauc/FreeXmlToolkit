@@ -78,6 +78,26 @@ The `map:`, `array:` and `math:` function namespaces are
     activity. For XSLT transformations, parameters, recent-stylesheet history, watch-and-rerun, and
     the OUTPUT panel's result table and HTML preview, use the [Transform Panel](transform-panel.md#transform-panel).
 
+### Showing Results in the Document
+
+When a result contains nodes of the document - elements, attributes or text, as in
+`//Position[TotalPercentage > 30]` - the RESULTS header shows a **Text | Hits** switch and a
+counter such as **1 of 2**. *Hits* lists every result item; a click on a node (or **Enter**, or
+the arrows next to the counter, **F3** / **Shift+F3** while the console has the focus) shows it
+**in the view you are in**, without switching it:
+
+- **Text** - every hit is highlighted, the current one is selected.
+- **Tree** - the node is selected and scrolled into view.
+- **Graphic** - every hit is highlighted in the grid: a whole table row when the hit is a member of
+  repeating elements, only the cell when it is a node inside one, the row otherwise. The current hit
+  is opened, selected and briefly flashed.
+
+Values that are not nodes of the document - `sum(...)`, strings, numbers, elements an XQuery
+builds - appear in the list without a link and are not highlighted; a result with no nodes shows
+no switch at all. After the document changes the hits are stale ("Document changed - run the query
+again"); running the query again finds the new places. Hits are shown for XPath and XQuery against
+XML documents (not JSONPath).
+
 ### Saving and Loading Snippets
 
 Reusable XPath **and** XQuery expressions are saved as **snippets**:

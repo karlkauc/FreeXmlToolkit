@@ -665,6 +665,33 @@ public class EditorHost extends BorderPane {
         }
     }
 
+    /** @return a key of the active document's content (changes with every edit), or {@code ""} */
+    public String activeRevisionKey() {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        return tab instanceof EditorTab et ? et.revisionKey() : "";
+    }
+
+    /**
+     * Shows a query hit in the active document's current view (Text, Tree or Graphic), every hit
+     * highlighted, without switching the view.
+     */
+    public void revealQueryHits(java.util.List<org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.NodeMatch> hits,
+                                int current) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (tab instanceof EditorTab et) {
+            et.revealQueryHits(hits, current);
+        }
+    }
+
+    /** Removes query-hit highlights from every open document. */
+    public void clearQueryHits() {
+        for (Tab tab : tabPane.getTabs()) {
+            if (tab instanceof EditorTab et) {
+                et.clearQueryHits();
+            }
+        }
+    }
+
     /** Removes the search-match highlight overlay from the active editor. */
     public void clearActiveSearchHighlights() {
         Tab tab = tabPane.getSelectionModel().getSelectedItem();

@@ -115,6 +115,7 @@ final class GridPainter<N> {
         selectedBorder = PRIMARY.color(theme);
         hoveredBg = BG_SURFACE_2.color(theme);
         view.highlightColor = WF_FAVORITES_BG.color(theme);
+        view.queryHighlightColor = org.fxt.freexmltoolkit.controls.theme.DesignTokens.ColorToken.WF_SEARCH_BG.color(theme);
 
         textElement = CODE_ELEM.color(theme);
         textAttributeName = CODE_ATTR.color(theme);
@@ -356,6 +357,8 @@ final class GridPainter<N> {
             bgColor = view.highlightColor;
         } else if (row.isSelected()) {
             bgColor = selectedBg;
+        } else if (view.queryRows.contains(row)) {
+            bgColor = view.queryHighlightColor;
         } else if (row.isHovered()) {
             bgColor = hoveredBg;
         }
@@ -787,10 +790,19 @@ final class GridPainter<N> {
         boolean inRange = view.tables.inCellRange(table, rowIndex, columnIndex);
         boolean flashed = table == view.highlightedTable && rowIndex == view.highlightedTableRow
                 && (view.highlightedTableColumn < 0 || columnIndex == view.highlightedTableColumn);
+        boolean queryHit = false;
+        for (int[] hit : view.queryCells.getOrDefault(table, java.util.List.of())) {
+            if (hit[0] == rowIndex && (hit[1] < 0 || hit[1] == columnIndex)) {
+                queryHit = true;
+                break;
+            }
+        }
         if (flashed) {
             bg = view.highlightColor;
         } else if (inRange) {
             bg = selectedBg;
+        } else if (queryHit) {
+            bg = view.queryHighlightColor;
         } else if (rowIndex == table.getSelectedRowIndex() && view.tables.selAnchorRow < 0) {
             bg = tableRowSelected;
         } else if (rowIndex == view.tables.hoveredTableRowIndex && table == view.tables.hoveredTable) {

@@ -200,6 +200,17 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // ==================== Highlight State ====================
 
     FlatRow highlightedRow = null;
+    /** A node to highlight (query hits), with the attribute it stands for or {@code null}. */
+    public record Target<T>(T node, String attribute) {
+    }
+
+    /** Query hits: their nodes, and where they are drawn (rows; table rows and cells). */
+    private List<Target<N>> queryTargets = List.of();
+    final java.util.Set<FlatRow> queryRows = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+    /** Per table: hit cells as {row, column}; column -1 marks the whole table row. */
+    final java.util.Map<RepeatingElementsTable, List<int[]>> queryCells = new java.util.IdentityHashMap<>();
+    Color queryHighlightColor;
+
     /** A table cell flashed by {@link #revealProblem} (with its row and column), or {@code null}. */
     RepeatingElementsTable highlightedTable;
     int highlightedTableRow = -1;
@@ -823,6 +834,9 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Main render method. Clears the canvas and draws visible rows.
      */
     public void render() {
+        if (!queryTargets.isEmpty() && queryMappedFor != rebuildCount) {
+            mapQueryHighlights(); // the rows were rebuilt: map the hits onto the new ones
+        }
         painter.render();
     }
 
@@ -2742,6 +2756,108 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             }
         });
         pause.play();
+    }
+
+    /**
+     * Highlights query hits until replaced or cleared: a table member's whole table row, a node
+     * inside a table member its cell, any other node its row. Nothing is opened for it.
+     */
+    public void setQueryHighlights(List<Target<N>> targets) {
+        queryTargets = targets == null ? List.of() : List.copyOf(targets);
+        mapQueryHighlights();
+        render();
+    }
+
+    /** @return whether the row is drawn as a query hit (tests) */
+    boolean isQueryHit(FlatRow row) {
+        return queryRows.contains(row);
+    }
+
+    /** @return the query-hit cells of a table as {row, column}, column -1 = whole row (tests) */
+    List<int[]> queryHitsOf(RepeatingElementsTable table) {
+        return queryCells.getOrDefault(table, List.of());
+    }
+
+    private int queryMappedFor = -1;
+
+    private void mapQueryHighlights() {
+        queryMappedFor = rebuildCount;
+        queryRows.clear();
+        queryCells.clear();
+        for (Target<N> target : queryTargets) {
+            mapQueryTarget(allRows, target.node(), target.attribute());
+        }
+    }
+
+    private void mapQueryTarget(List<FlatRow> rows, N target, String attribute) {
+        for (FlatRow row : rows) {
+            if (!row.hasRepeatingTable()) {
+                continue;
+            }
+            RepeatingElementsTable table = row.getRepeatingTable();
+            if (table == null) {
+                continue;
+            }
+            for (int i = 0; i < table.getRows().size(); i++) {
+                RepeatingElementsTable.TableRow member = table.getRows().get(i);
+                N memberNode = adapter.nodeOf(member);
+                if (memberNode == null || !adapter.contains(memberNode, target)) {
+                    continue;
+                }
+                String columnName = memberNode == target ? (attribute != null ? "@" + attribute : null)
+                        : columnOf(table, member, memberNode, target);
+                int column = columnName == null ? -1 : columnIndex(table, columnName);
+                if (columnName != null && member.isColumnExpanded(columnName)) {
+                    GridBlock grid = member.getCellGrid(columnName);
+                    N cell = adapter.cellNode(member, columnName);
+                    if (grid != null && cell != target) {
+                        int before = queryRows.size() + queryCells.size();
+                        mapQueryTarget(grid.rows(), target, attribute);
+                        if (queryRows.size() + queryCells.size() > before) {
+                            return;
+                        }
+                    }
+                }
+                queryCells.computeIfAbsent(table, t -> new ArrayList<>()).add(new int[]{i, column});
+                return;
+            }
+        }
+        for (FlatRow row : rows) {
+            if (attribute != null && row.getType().isAttribute() && attribute.equals(row.getLabel())
+                    && (row.getModelNode() == target
+                    || row.getParentRow() != null && row.getParentRow().getModelNode() == target)) {
+                queryRows.add(row);
+                return;
+            }
+        }
+        for (FlatRow row : rows) {
+            if (row.getModelNode() == target && !row.getType().isAttribute()) {
+                queryRows.add(row);
+                return;
+            }
+        }
+    }
+
+    private String columnOf(RepeatingElementsTable table, RepeatingElementsTable.TableRow member, N memberNode, N target) {
+        for (RepeatingElementsTable.TableColumn c : table.getColumns()) {
+            if (c.getName().startsWith("@")) {
+                continue;
+            }
+            N cell = adapter.cellNode(member, c.getName());
+            if (cell != null ? adapter.contains(cell, target) : adapter.containsInColumn(memberNode, c.getName(), target)) {
+                return c.getName();
+            }
+        }
+        return null;
+    }
+
+    private static int columnIndex(RepeatingElementsTable table, String name) {
+        for (int c = 0; c < table.getColumns().size(); c++) {
+            if (name.equals(table.getColumns().get(c).getName())) {
+                return c;
+            }
+        }
+        return -1;
     }
 
     /**

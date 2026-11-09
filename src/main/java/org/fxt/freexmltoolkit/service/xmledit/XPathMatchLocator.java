@@ -117,6 +117,98 @@ public final class XPathMatchLocator {
         return matches;
     }
 
+    /**
+     * One item of a query result: a node of the queried document ({@code match}, located or not)
+     * or anything else - an atomic value, a map, a node the query built - ({@code match == null}).
+     *
+     * @param value the item as text (the node's string value, the atomic value)
+     */
+    public record ResultItem(NodeMatch match, String value) {
+        /** @return whether the item is a node that can be shown in the document */
+        public boolean isLocated() {
+            return match != null && match.located();
+        }
+    }
+
+    /**
+     * Evaluates an XPath and returns every result item (nodes located like {@link #locate}, atomic
+     * values as they are): the Query Console's hits. Atomic values are no error here.
+     *
+     * @throws XPathEditException when the document or the XPath cannot be parsed
+     */
+    public static List<ResultItem> locateItems(String xml, XPathQuery query) throws XPathEditException {
+        XdmNode document = parseLineNumbered(xml);
+        XdmValue result;
+        try {
+            XPathSelector selector = newCompiler(query.namespaces()).compile(query.xpath()).load();
+            selector.setContextItem(document);
+            result = selector.evaluate();
+        } catch (SaxonApiException e) {
+            throw new XPathEditException("XPath error: " + rootMessage(e), e);
+        }
+        return items(xml, document, result);
+    }
+
+    /**
+     * Evaluates an XQuery with the document as context item and returns every result item; nodes
+     * of the document are located, nodes the query constructs and atomic values are not.
+     *
+     * @param variables external variables (string values), or {@code null}
+     * @throws XPathEditException when the document or the query cannot be parsed or run
+     */
+    public static List<ResultItem> locateXQueryItems(String xml, String xquery, Map<String, String> variables)
+            throws XPathEditException {
+        XdmNode document = parseLineNumbered(xml);
+        XdmValue result;
+        try {
+            var compiler = SaxonXPathHelper.getProcessor().newXQueryCompiler();
+            var evaluator = compiler.compile(xquery).load();
+            evaluator.setContextItem(document);
+            if (variables != null) {
+                for (var entry : variables.entrySet()) {
+                    evaluator.setExternalVariable(new net.sf.saxon.s9api.QName(entry.getKey()),
+                            new net.sf.saxon.s9api.XdmAtomicValue(entry.getValue()));
+                }
+            }
+            result = evaluator.evaluate();
+        } catch (SaxonApiException e) {
+            throw new XPathEditException("XQuery error: " + rootMessage(e), e);
+        }
+        return items(xml, document, result);
+    }
+
+    /** Upper bound of result items turned into hits (a query selecting every node of a large file). */
+    static final int MAX_ITEMS = 10_000;
+
+    private static List<ResultItem> items(String xml, XdmNode document, XdmValue result) {
+        List<ResultItem> items = new ArrayList<>();
+        Map<List<Step>, Optional<ElementRegion>> regions = new HashMap<>();
+        for (XdmItem item : result) {
+            if (items.size() >= MAX_ITEMS) {
+                break;
+            }
+            String value = preview(item.getStringValue());
+            if (item instanceof XdmNode node && node.getRoot() != null
+                    && node.getRoot().equals(document)
+                    && node.getNodeKind() != XdmNodeKind.DOCUMENT) {
+                items.add(new ResultItem(toMatch(xml, node, regions), value));
+            } else {
+                items.add(new ResultItem(null, value));
+            }
+        }
+        return items;
+    }
+
+    private static XdmNode parseLineNumbered(String xml) throws XPathEditException {
+        try {
+            DocumentBuilder builder = SaxonXPathHelper.getProcessor().newDocumentBuilder();
+            builder.setLineNumbering(true);
+            return builder.build(new StreamSource(new StringReader(xml)));
+        } catch (SaxonApiException e) {
+            throw new XPathEditException("Document is not well-formed XML: " + rootMessage(e), e);
+        }
+    }
+
     /** Builds an XPath 3.1 compiler with the app's standard prefixes plus user bindings. */
     public static XPathCompiler newCompiler(Map<String, String> namespaces) {
         XPathCompiler compiler = SaxonXPathHelper.getProcessor().newXPathCompiler();
