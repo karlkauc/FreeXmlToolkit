@@ -40,11 +40,16 @@ import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
  * emptyText="No XSD — choose or drop a file" onChange="#onChangeXml">} with the
  * file-name label in a {@code <name>} element; extras built in code go in via
  * {@link #addExtras(Node...)}.
+ *
+ * <p>On a wide page (Sign &amp; Encrypt) {@link #setSingleLine(boolean) singleLine} puts the
+ * name on the head line instead, between the icon and the controls.
  */
 public final class SourceRow extends VBox {
 
     /** Style class of the name label while no source is bound. */
     static final String NONE_STYLE_CLASS = "fxt-vp-source-none";
+    /** Style class of a row in {@linkplain #setSingleLine(boolean) single-line} mode. */
+    static final String SINGLE_LINE_STYLE_CLASS = "fxt-vp-source-single";
     private static final String DEFAULT_EMPTY_TEXT = "No file — choose or drop one";
 
     private final IconifyIcon icon = new IconifyIcon();
@@ -55,6 +60,8 @@ public final class SourceRow extends VBox {
             new SimpleObjectProperty<>(this, "onChange");
     private final StringProperty caption = new SimpleStringProperty(this, "caption", "");
     private final StringProperty emptyText = new SimpleStringProperty(this, "emptyText", DEFAULT_EMPTY_TEXT);
+    private final Region spacer = new Region();
+    private boolean singleLine;
     private Label name;
 
     public SourceRow() {
@@ -64,7 +71,6 @@ public final class SourceRow extends VBox {
         captionLabel.textProperty().bind(caption);
         captionLabel.visibleProperty().bind(caption.isNotEmpty());
         captionLabel.managedProperty().bind(captionLabel.visibleProperty());
-        Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         // Text-only: the head line already carries the file-type icon and up to five extras
         // (favourites, browse arrows), so the button must stay narrow; its outline keeps
@@ -198,13 +204,14 @@ public final class SourceRow extends VBox {
         emptyText.set(value != null && !value.isBlank() ? value : DEFAULT_EMPTY_TEXT);
     }
 
-    /** @return the label showing the bound file's name, on the second line */
+    /** @return the label showing the bound file's name (second line, or head line when single-line) */
     public Label getName() {
         return name;
     }
 
     public void setName(Label nameLabel) {
         getChildren().remove(name);
+        head.getChildren().remove(name);
         name = nameLabel;
         if (nameLabel == null) {
             return;
@@ -231,7 +238,45 @@ public final class SourceRow extends VBox {
             nameLabel.setText(getEmptyText());
             nameLabel.setWrapText(true);
         }
-        getChildren().add(nameLabel);
+        placeName();
+    }
+
+    /**
+     * Whether the name sits on the head line (between icon/caption and the controls) instead
+     * of a line of its own. For wide pages; the narrow side panels keep two lines.
+     */
+    public boolean isSingleLine() {
+        return singleLine;
+    }
+
+    public void setSingleLine(boolean value) {
+        if (singleLine == value) {
+            return;
+        }
+        singleLine = value;
+        getStyleClass().remove(SINGLE_LINE_STYLE_CLASS);
+        if (value) {
+            getStyleClass().add(SINGLE_LINE_STYLE_CLASS);
+        }
+        placeName();
+    }
+
+    /** Puts the name label on its own line or into the head line, per {@link #singleLine}. */
+    private void placeName() {
+        spacer.setManaged(!singleLine || name == null);
+        spacer.setVisible(!singleLine || name == null);
+        if (name == null) {
+            return;
+        }
+        getChildren().remove(name);
+        head.getChildren().remove(name);
+        if (singleLine) {
+            HBox.setHgrow(name, Priority.ALWAYS);
+            head.getChildren().add(head.getChildren().indexOf(spacer), name);
+        } else {
+            HBox.setHgrow(name, null);
+            getChildren().add(name);
+        }
     }
 
     /** Invoked when the user clicks "Change" (or an empty slot). */

@@ -85,7 +85,7 @@
                         <VBox fx:id="keystoreSection" id="sig-section-keystore" spacing="8">
                             <children>
                                 <Label text="%SignatureView.keystore.text" styleClass="fxt-sign-section-label"/>
-                                <SourceRow fx:id="keystoreRow" id="sig-keystore-row" iconLiteral="bi-file-earmark-lock"
+                                <SourceRow singleLine="true" fx:id="keystoreRow" id="sig-keystore-row" iconLiteral="bi-file-earmark-lock"
                                            emptyText="%SignatureView.keystoreRow.emptyText"
                                            onChange="#onChooseKeystore">
                                     <name>
@@ -439,7 +439,7 @@
                                 </HBox>
                                 <VBox fx:id="decPemBox" spacing="8" visible="false" managed="false">
                                     <children>
-                                        <SourceRow fx:id="decPemRow" id="dec-pem-row" iconLiteral="bi-key"
+                                        <SourceRow singleLine="true" fx:id="decPemRow" id="dec-pem-row" iconLiteral="bi-key"
                                                    emptyText="%SignatureView.decPemRow.emptyText" onChange="#onChooseDecryptionKey">
                                             <name>
                                                 <Label fx:id="decPemName" id="dec-pem-name" text="%SignatureView.decPemName.text"
@@ -452,7 +452,7 @@
                                 </VBox>
                                 <VBox fx:id="decKeyFileBox" spacing="8" visible="false" managed="false">
                                     <children>
-                                        <SourceRow fx:id="decKeyFileRow" id="dec-keyfile-row" iconLiteral="bi-key"
+                                        <SourceRow singleLine="true" fx:id="decKeyFileRow" id="dec-keyfile-row" iconLiteral="bi-key"
                                                    emptyText="%SignatureView.decKeyFileRow.emptyText" onChange="#onChooseDecryptionKeyFile">
                                             <name>
                                                 <Label fx:id="decKeyFileName" id="dec-keyfile-name" text="%SignatureView.decKeyFileName.text"
@@ -492,7 +492,7 @@
                         <VBox fx:id="expertSection" id="sig-section-expert" spacing="8">
                             <children>
                                 <Label text="%SignatureView.trust-store.text" styleClass="fxt-sign-section-label"/>
-                                <SourceRow fx:id="trustRow" id="sig-truststore-row" iconLiteral="bi-key"
+                                <SourceRow singleLine="true" fx:id="trustRow" id="sig-truststore-row" iconLiteral="bi-key"
                                            onChange="#chooseTrustStore">
                                     <name>
                                         <Label fx:id="trustStoreName" id="sig-truststore-name"

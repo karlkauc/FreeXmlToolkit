@@ -2877,6 +2877,11 @@
     -fx-padding: 0 0 0 23;
 }
 
+/* Single-line rows (wide pages): the name follows the icon on the head line. */
+.fxt-vp-source-single .fxt-vp-source-name-line {
+    -fx-padding: 0 0 0 4;
+}
+
 .fxt-vp-source-none {
     -fx-text-fill: -fxt-text-muted;
 }
@@ -4369,6 +4374,7 @@
 .fxt-vp-source-row.fxt-drop-valid .iconify-icon,
 .fxt-tool-button.fxt-drop-valid > .label,
 .fxt-vp-source-row.fxt-drop-valid > .label,
+.fxt-vp-source-row.fxt-drop-valid > .fxt-vp-source-head > .label,
 .fxt-status-item.fxt-drop-valid {
     -fx-icon-color: -fxt-tool-success-fg;
     -fx-text-fill: -fxt-tool-success-fg;

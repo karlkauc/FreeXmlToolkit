@@ -62,6 +62,26 @@ class SourceRowTest {
     }
 
     @Test
+    void singleLineMovesTheNameOntoTheHeadLineAndBack() {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            row.setSingleLine(true);
+            return null;
+        });
+        assertEquals(1, row.getChildren().size(), "only the head line");
+        assertTrue(row.head().getChildren().contains(name));
+        assertTrue(row.head().getChildren().indexOf(name) < row.head().getChildren().indexOf(row.changeButton()),
+                "the name comes before the controls");
+        assertTrue(row.getStyleClass().contains(SourceRow.SINGLE_LINE_STYLE_CLASS));
+
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            row.setSingleLine(false);
+            return null;
+        });
+        assertSame(name, row.getChildren().get(1), "back on its own line");
+        assertFalse(row.head().getChildren().contains(name));
+    }
+
+    @Test
     void showFileSetsNameAndPathTooltipAndNullRestoresTheEmptyText() {
         File file = new File(System.getProperty("java.io.tmpdir"), "a-rather-long-stylesheet-name.xsl");
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
