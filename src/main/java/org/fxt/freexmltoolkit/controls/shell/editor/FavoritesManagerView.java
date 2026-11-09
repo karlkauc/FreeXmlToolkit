@@ -28,6 +28,7 @@ import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * The full favorites management view, shown as a tool tab in the main editor
@@ -386,9 +387,9 @@ public class FavoritesManagerView extends BorderPane {
     }
 
     private java.util.Optional<String> prompt(String titleText, String label, String initial) {
-        TextInputDialog dialog = new TextInputDialog(initial);
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(initial);
         dialog.setTitle(titleText);
-        dialog.setHeaderText(null);
+        dialog.setHeaderText(dialog.getTitle());
         dialog.setContentText(label);
         return dialog.showAndWait().map(String::strip).filter(s -> !s.isEmpty());
     }

@@ -227,6 +227,9 @@ controls; controls outside the tab order need an entry in `KEYBOARD_ALTERNATIVES
 
 ## Common Mistakes to Avoid
 
+- **Dialogs:** never `new Alert/TextInputDialog/ChoiceDialog/Dialog<>` or own dialog stylesheets — use
+  `DialogHelper` factories (subclasses: `DialogHelper.prepare(this)`); `controls/shell/DialogTheming`
+  gives every dialog the shell look (tokens, Inter, light/dark live). `DialogCreationGuardTest` enforces it.
 - **Icons:** Use `IconifyIcon` with `bi-*` names. Unknown names no longer crash (placeholder +
   log), but `IconifyIconCoverageTest` fails the build for them — keep literals valid.
 - **CSS beats `setIconColor()`:** themed CSS rules (`-fx-icon-color`) override programmatically

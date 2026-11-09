@@ -298,10 +298,10 @@ public class MergeView extends VBox {
         if (saveWithConflictsAnswer != null) {
             return saveWithConflictsAnswer.getAsBoolean();
         }
-        var alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION,
-                "The result still contains " + blocks.size() + (blocks.size() == 1 ? " conflict" : " conflicts")
-                        + " with their markers. Save anyway?",
-                javafx.scene.control.ButtonType.YES, javafx.scene.control.ButtonType.CANCEL);
+        var alert = org.fxt.freexmltoolkit.util.DialogHelper.createAlert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        alert.setContentText("The result still contains " + blocks.size()
+                + (blocks.size() == 1 ? " conflict" : " conflicts") + " with their markers. Save anyway?");
+        alert.getButtonTypes().setAll(javafx.scene.control.ButtonType.YES, javafx.scene.control.ButtonType.CANCEL);
         alert.setTitle(I18n.t("MergeView.save-merge-result"));
         alert.setHeaderText(I18n.t("MergeView.unresolved-conflicts"));
         if (getScene() != null) {

@@ -89,7 +89,7 @@ public class NewNodeDialog extends Dialog<ButtonType> {
                 : "Add " + (attribute ? "an attribute" : "an element") + target + ".");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/NewNodeDialog.fxml"));
-        getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
+        DialogHelper.prepare(this);
 
         nameField.setText(defaultName);
         typeField.setChoices(() -> TypeChoices.of(schema == null ? null : schema.get()));

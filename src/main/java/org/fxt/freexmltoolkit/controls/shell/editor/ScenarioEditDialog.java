@@ -19,6 +19,7 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.project.FxtProject;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /**
@@ -47,6 +48,7 @@ public class ScenarioEditDialog extends Dialog<FxtProject.Scenario> {
      * @param otherNames names of the project's other scenarios (a name must be unique)
      */
     public ScenarioEditDialog(FxtProject project, FxtProject.Scenario scenario, Set<String> otherNames) {
+        DialogHelper.prepare(this);
         this.project = project;
         this.otherNames = otherNames;
         setTitle(I18n.t("ScenarioEditDialog.title"));

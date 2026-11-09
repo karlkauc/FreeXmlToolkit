@@ -32,7 +32,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 
 import org.apache.logging.log4j.LogManager;
@@ -45,6 +44,7 @@ import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.fxt.freexmltoolkit.service.update.InstallSource;
 import org.fxt.freexmltoolkit.service.update.InstallSourceDetector;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Dialog that displays update notification with release notes.
@@ -114,14 +114,8 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         dialogPane.setPrefWidth(860);
         dialogPane.setPrefHeight(500);
 
-        // Load CSS
-        try {
-            dialogPane.getStylesheets().addAll(
-                    org.fxt.freexmltoolkit.util.DialogHelper.getThemeStylesheets()
-            );
-        } catch (Exception e) {
-            logger.warn("Could not load dialog theme CSS", e);
-        }
+        // Shell look (stylesheets, theme, owner)
+        DialogHelper.prepare(this);
 
         // Content: header, versions, release notes, info tip
         dialogPane.setContent(FxmlViews.loadContent(this, "/pages/dialogs/UpdateNotificationDialog.fxml"));
@@ -171,20 +165,16 @@ public class UpdateNotificationDialog extends Dialog<UpdateNotificationDialog.Up
         // Style the Install button (primary action)
         Button installBtn = (Button) dialogPane.lookupButton(installButton);
         if (installBtn != null) {
-            installBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;");
             IconifyIcon installIcon = new IconifyIcon("bi-cloud-download");
             installIcon.setIconSize(14);
-            installIcon.setIconColor(Color.WHITE);
             installBtn.setGraphic(installIcon);
         }
 
         // Style the Download button (secondary action)
         Button downloadBtn = (Button) dialogPane.lookupButton(downloadButton);
         if (downloadBtn != null) {
-            downloadBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
             IconifyIcon downloadIcon = new IconifyIcon("bi-box-arrow-up-right");
             downloadIcon.setIconSize(14);
-            downloadIcon.setIconColor(Color.WHITE);
             downloadBtn.setGraphic(downloadIcon);
         }
 

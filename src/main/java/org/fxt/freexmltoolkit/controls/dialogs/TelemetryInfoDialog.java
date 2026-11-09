@@ -61,7 +61,7 @@ public final class TelemetryInfoDialog {
     public static Dialog<ButtonType> build(Window owner) {
         TelemetryService telemetry = Telemetry.get();
 
-        Dialog<ButtonType> dialog = new Dialog<>();
+        Dialog<ButtonType> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle("Anonymous Usage Statistics");
         if (owner != null) {
             dialog.initOwner(owner);
@@ -70,7 +70,7 @@ public final class TelemetryInfoDialog {
         dialog.setResizable(true);
 
         DialogPane pane = dialog.getDialogPane();
-        pane.getStylesheets().addAll(DialogHelper.getThemeStylesheets());
+        
         pane.setHeaderText(I18n.t("TelemetryInfoDialog.what-is-sent"));
         IconifyIcon headerIcon = new IconifyIcon("bi-shield-check");
         headerIcon.setIconSize(32);

@@ -997,29 +997,35 @@
       }
     },
 
-    // Dialog
+    // Dialog — every Alert / Dialog / TextInputDialog / ChoiceDialog looks like the shell.
+    // Built with util/DialogHelper (createAlert, createStyledAlert, show*, createTextInputDialog /
+    // promptText, createChoiceDialog / choose, createDialog; subclasses call DialogHelper.prepare(this)),
+    // themed by controls/shell/DialogTheming (global window hook: shell sheets, light/dark live,
+    // root class .fxt-dialog). Rules in unified-shell.css "Dialogs", -fxt-* tokens only.
+    // DialogCreationGuardTest forbids raw dialog constructors and per-dialog stylesheets.
     "dialog": {
-      "sizes": {
-        "small": { "width": "400px", "height": "300px" },
-        "medium": { "width": "600px", "height": "450px" },
-        "large": { "width": "850px", "height": "650px" },
-        "xlarge": { "width": "1000px", "height": "750px" }
-      },
+      "font": "Inter 13px (header 15px bold)",
       "header": {
-        "variants": {
-          "primary": "linear-gradient(to bottom, var(--color-primary), derive(var(--color-primary), -20%))",
-          "success": "linear-gradient(to bottom, var(--color-success), derive(var(--color-success), -20%))",
-          "info": "linear-gradient(to bottom, var(--color-info), derive(var(--color-info), -20%))",
-          "warning": "linear-gradient(to bottom, var(--color-warning), derive(var(--color-warning), -20%))",
-          "danger": "linear-gradient(to bottom, var(--color-danger), derive(var(--color-danger), -20%))"
+        "style": "calm: -fxt-bg-surface, bold title, 1px -fxt-border hairline below, type icon right (28px)",
+        "iconRoles": {
+          "information": "-fxt-info",
+          "confirmation": "-fxt-primary",
+          "warning": "-fxt-warning",
+          "error": "-fxt-danger",
+          "input": "-fxt-primary (text, choice and form dialogs)"
         }
       },
-      "infoBox": {
-        "info": { "background": "#e3f2fd", "border": "#90caf9", "text": "#1976d2" },
-        "success": { "background": "#e8f5e9", "border": "#a5d6a7", "text": "#2e7d32" },
-        "warning": { "background": "#fff3e0", "border": "#ffcc80", "text": "#e65100" },
-        "danger": { "background": "#ffebee", "border": "#ef9a9a", "text": "#c62828" }
-      }
+      "content": { "padding": "16 20", "text": "-fxt-text-primary" },
+      "buttonBar": {
+        "background": "-fxt-bg-surface-2",
+        "border": "1px top -fxt-border",
+        "default": "-fxt-primary-fill / -fxt-on-primary, bold",
+        "secondary": "-fxt-bg-surface, 1px -fxt-border, radius 6",
+        "order": "ButtonData: primary = YES / OK_DONE (default), NO for 'Don't Save', CANCEL_CLOSE for Cancel"
+      },
+      "owner": "DialogHelper.defaultOwner() (focused application window) unless the caller sets one",
+      "errorText": ".fxt-dialog-error (-fxt-danger)",
+      "infoBox": "-fxt-bg-surface-2 with a 3px left border in the semantic colour (dialog-info-box-<type>)"
     },
 
     // Menu Bar (File / Edit / View / Tools / Help) — controls/shell/ShellMenuBar,
@@ -1183,7 +1189,9 @@
 
     // Dialogs
     "dialogs": [
-      ".dialog-pane",
+      ".fxt-dialog (root of every dialog)",
+      ".fxt-dialog-icon",
+      ".fxt-dialog-error",
       ".dialog-header",
       ".dialog-header-primary",
       ".dialog-header-success",
@@ -1238,12 +1246,11 @@
     // Modern Unified Shell (source of truth) — use these for new shell UI:
     "designTokens": "src/main/resources/css/design-tokens.css",
     "unifiedShell": "src/main/resources/css/unified-shell.css",
-    // Legacy theme files (still used by dialogs, context menus, older controls):
+    // Legacy theme files (context menus, older controls; dialogs load them via DialogTheming):
     "legacyMain": "src/main/resources/css/fxt-theme.css",
     "appTheme": "src/main/resources/css/app-theme.css",
     "lightTheme": "src/main/resources/css/light-theme.css",
     "darkTheme": "src/main/resources/css/dark-theme.css",
-    "dialogTheme": "src/main/resources/css/dialog-theme.css",
     "jsonEditor": "src/main/resources/css/json-editor.css",
     "xmlIntelliSense": "src/main/resources/css/xml-intellisense.css",
     "xmlHighlighting": "src/main/resources/scss/xml-highlighting.css",
@@ -1273,7 +1280,7 @@
     "components": [
       "Use standard button variants for consistent styling",
       "Action cards should have fixed height (160px) for dashboard layout",
-      "Dialog headers should use gradient variants for visual hierarchy",
+      "Dialogs use the calm shell header (no gradients) and are built through DialogHelper",
       "Editor-toolbar icons are tinted per owning workflow via fxt-tool-* style classes; only Validate is filled"
     ],
     "bestPractices": [

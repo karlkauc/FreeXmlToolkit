@@ -8,6 +8,7 @@ import javafx.scene.control.Spinner;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Collects options for sample-XML generation (the common generation-profile
@@ -26,6 +27,7 @@ public class SampleXmlOptionsDialog extends Dialog<SampleXmlOptionsDialog.Option
     @FXML private CheckBox realistic;
 
     public SampleXmlOptionsDialog() {
+        DialogHelper.prepare(this);
         setTitle(I18n.t("SampleXmlOptionsDialog.generate-sample-xml"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 

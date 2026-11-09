@@ -18,6 +18,7 @@ import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.shell.schema.EditRuleDialogs;
 import org.fxt.freexmltoolkit.controls.v2.editor.flatten.FlattenOptions;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Collects the output file and the reduction options for schema flattening (see
@@ -60,6 +61,7 @@ public class FlattenOptionsDialog extends Dialog<FlattenOptionsDialog.Request> {
      * @param sourceFile the schema being flattened, or {@code null} for an unsaved document
      */
     public FlattenOptionsDialog(Path sourceFile) {
+        DialogHelper.prepare(this);
         this.sourceFile = sourceFile;
         setTitle(I18n.t("FlattenOptionsDialog.flatten-schema"));
         setHeaderText(I18n.t("FlattenOptionsDialog.create-a-standalone-schema-optionally"));

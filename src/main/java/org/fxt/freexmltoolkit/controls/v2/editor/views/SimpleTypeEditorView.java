@@ -40,6 +40,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdRestriction;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdUnion;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Main view for editing a SimpleType.
@@ -693,7 +694,7 @@ public class SimpleTypeEditorView extends BorderPane {
      * Handles adding a new enumeration value.
      */
     private void handleAddEnumeration() {
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add Enumeration");
         dialog.setHeaderText("Add Enumeration Value");
         dialog.setContentText("Enter value:");
@@ -732,7 +733,7 @@ public class SimpleTypeEditorView extends BorderPane {
             return;
         }
 
-        TextInputDialog dialog = new TextInputDialog(selected);
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(selected);
         dialog.setTitle("Edit Enumeration");
         dialog.setHeaderText("Edit Enumeration Value");
         dialog.setContentText("Enter new value:");
@@ -809,7 +810,7 @@ public class SimpleTypeEditorView extends BorderPane {
      * Handles adding a new pattern.
      */
     private void handleAddPattern() {
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add Pattern");
         dialog.setHeaderText("Add Regex Pattern");
         dialog.setContentText("Enter pattern:");
@@ -844,7 +845,7 @@ public class SimpleTypeEditorView extends BorderPane {
             return;
         }
 
-        TextInputDialog dialog = new TextInputDialog(selected);
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(selected);
         dialog.setTitle("Edit Pattern");
         dialog.setHeaderText("Edit Regex Pattern");
         dialog.setContentText("Enter new pattern:");
@@ -915,7 +916,7 @@ public class SimpleTypeEditorView extends BorderPane {
      * Handles adding a new assertion.
      */
     private void handleAddAssertion() {
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add Assertion");
         dialog.setHeaderText("Add XPath Assertion");
         dialog.setContentText("Enter XPath expression:");
@@ -950,7 +951,7 @@ public class SimpleTypeEditorView extends BorderPane {
             return;
         }
 
-        TextInputDialog dialog = new TextInputDialog(selected);
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(selected);
         dialog.setTitle("Edit Assertion");
         dialog.setHeaderText("Edit XPath Assertion");
         dialog.setContentText("Enter new XPath expression:");

@@ -34,7 +34,7 @@
         <TextField fx:id="nameField" id="new-type-name" prefColumnCount="28"
                    GridPane.rowIndex="1" GridPane.columnIndex="1"/>
         <Label fx:id="errorLabel" id="new-type-error" wrapText="true" maxWidth="460" visible="false" managed="false"
-               style="-fx-text-fill: #e03131;" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
+               styleClass="fxt-dialog-error" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
         <Label fx:id="hintLabel" wrapText="true" opacity="0.7" maxWidth="460"
                GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2"/>
     </children>

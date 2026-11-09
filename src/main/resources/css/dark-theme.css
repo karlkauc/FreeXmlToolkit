@@ -101,8 +101,8 @@
 }
 
 /* Code Area Defaults — editor surface = bg/surface dark (#161b22, Figma), not the legacy #1e1e1e.
-   Literal hex on purpose: dialogs load this sheet without the fxt-theme-dark root class, where a
-   -fxt-* token would resolve to its LIGHT value. */
+   Literal hex on purpose: a window that loads this sheet without the fxt-theme-dark root class
+   would resolve a -fxt-* token to its LIGHT value (dialogs get the class from DialogTheming). */
 .code-area {
   -fx-font-family: monospace;
   -fx-background-color: #161b22;
@@ -267,7 +267,7 @@
 /* XmlCodeEditorV2/JsonCodeEditor attach fxt-theme.css at NODE level, whose light
    .code-area rules out-rank same-specificity parent/scene rules. The .root.fxt-theme-dark
    scope wins on specificity regardless of attachment level. The unscoped rules above stay
-   for dialogs, whose scene root never carries the theme style class. */
+   for windows whose root does not carry the theme style class. */
 .root.fxt-theme-dark .code-area {
   -fx-background-color: -fxt-bg-surface;
 }
@@ -940,19 +940,6 @@
 
 .progress-bar .bar {
   -fx-background-color: #3794ff;
-}
-
-/* Dialog Pane */
-.dialog-pane {
-  -fx-background-color: #252526;
-}
-
-.dialog-pane .header-panel {
-  -fx-background-color: #2d2d30;
-}
-
-.dialog-pane .content {
-  -fx-background-color: #252526;
 }
 
 /* Titled Pane */

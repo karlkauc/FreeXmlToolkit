@@ -32,7 +32,7 @@
             </children>
         </HBox>
         <Label fx:id="outputError" id="flatten-output-error" wrapText="true" maxWidth="520" visible="false"
-               managed="false" style="-fx-text-fill: #e03131;" GridPane.rowIndex="2"/>
+               managed="false" styleClass="fxt-dialog-error" GridPane.rowIndex="2"/>
         <CheckBox fx:id="removeAnnotations" text="%FlattenOptionsDialog.removeAnnotations.text" selected="true"
                   GridPane.rowIndex="3"/>
         <CheckBox fx:id="removeComments" text="%FlattenOptionsDialog.removeComments.text" selected="true" GridPane.rowIndex="4"/>

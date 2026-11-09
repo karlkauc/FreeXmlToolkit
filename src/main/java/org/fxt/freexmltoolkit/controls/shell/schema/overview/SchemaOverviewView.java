@@ -736,11 +736,11 @@ public final class SchemaOverviewView extends VBox {
         }
         ButtonType update = new ButtonType("Rename and Update", ButtonBar.ButtonData.YES);
         ButtonType only = new ButtonType("Rename Only", ButtonBar.ButtonData.NO);
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "", update, only, ButtonType.CANCEL);
+        Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createAlert(Alert.AlertType.CONFIRMATION);
+        alert.getButtonTypes().setAll(update, only, ButtonType.CANCEL);
         alert.setTitle(I18n.t("SchemaOverviewView.rename-2"));
         alert.setHeaderText(I18n.t(references == 1 ? "SchemaOverviewView.referencedOnce" : "SchemaOverviewView.referencedTimes", node.getName(), references));
         alert.setContentText(I18n.t("SchemaOverviewView.update-the-references-to-the"));
-        alert.getDialogPane().getStylesheets().addAll(org.fxt.freexmltoolkit.util.DialogHelper.getThemeStylesheets());
         if (window() != null) {
             alert.initOwner(window());
         }

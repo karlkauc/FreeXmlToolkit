@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.Priority;
@@ -14,6 +13,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
@@ -524,11 +524,8 @@ public final class EditorActions {
                     "The active schema declares no named types.");
             return;
         }
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(names.get(0), names);
-        dialog.setTitle("Open Type Editor");
-        dialog.setHeaderText("Choose a named type to edit");
-        dialog.setContentText("Type:");
-        dialog.showAndWait().ifPresent(editorHost::openTypeEditorTab);
+        DialogHelper.choose("Open Type Editor", "Choose a named type to edit", "Type:", names.get(0), names)
+                .ifPresent(editorHost::openTypeEditorTab);
     }
 
     // ---------------------------------------------------------------------------------------------

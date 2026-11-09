@@ -28,6 +28,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.XsdEditorContext;
 import org.fxt.freexmltoolkit.controls.v2.editor.commands.ChangeAppinfoCommand;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Structured editor panel for XSD AppInfo annotations (XsdDoc).
@@ -329,7 +330,7 @@ public class AppInfoEditorPanel extends VBox {
      */
     private void handleAddSeeReference() {
         // Show dialog with autocomplete
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add @see Reference");
         dialog.setHeaderText("Enter a reference");
         dialog.setContentText("Reference:");

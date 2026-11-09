@@ -15,6 +15,7 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.project.FxtProject;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /** Asks for the name and the optional output file of a scenario saved from the Transform panel. */
@@ -46,6 +47,7 @@ public class ScenarioDialog extends Dialog<ScenarioDialog.Request> {
      * @param perFile whether the box "for the file it runs for" starts ticked
      */
     public ScenarioDialog(FxtProject project, String name, String output, boolean perFile) {
+        DialogHelper.prepare(this);
         this.project = project;
         setTitle(I18n.t("ScenarioDialog.save-as-scenario"));
         setHeaderText(I18n.t("ScenarioDialog.save-the-transform-settings-as", project.name()));

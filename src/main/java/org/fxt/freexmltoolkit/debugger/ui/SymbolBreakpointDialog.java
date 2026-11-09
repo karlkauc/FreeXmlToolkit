@@ -49,11 +49,7 @@ public final class SymbolBreakpointDialog extends Dialog<SymbolBreakpoint> {
         setGraphic(icon);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/SymbolBreakpointDialog.fxml"));
-        try {
-            getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
-        } catch (RuntimeException ignored) {
-            // unthemed is fine
-        }
+        DialogHelper.prepare(this);
         Map<SymbolBreakpoint.Kind, List<String>> names = suggestions == null ? Map.of() : suggestions;
         kindChoice.getItems().setAll(java.util.Arrays.stream(SymbolBreakpoint.Kind.values())
                 .filter(k -> k != SymbolBreakpoint.Kind.INPUT_NODE).toList()); // set from the input XML instead

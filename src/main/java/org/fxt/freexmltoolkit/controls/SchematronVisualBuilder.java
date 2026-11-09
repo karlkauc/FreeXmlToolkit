@@ -29,6 +29,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Visual Rule Builder for creating Schematron rules through a graphical interface.
@@ -385,7 +386,7 @@ public class SchematronVisualBuilder extends VBox {
      * @param message the message to display in the alert dialog
      */
     private void showAlert(String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
+        Alert alert = DialogHelper.createAlert(Alert.AlertType.WARNING);
         alert.setTitle(I18n.t("SchematronVisualBuilder.input-required"));
         alert.setHeaderText(null);
         alert.setContentText(message);
@@ -674,6 +675,7 @@ public class SchematronVisualBuilder extends VBox {
          * Creates a new assertion dialog with input fields for test, message, and flag.
          */
         AssertionDialog() {
+            DialogHelper.prepare(this);
             setTitle(I18n.t("SchematronVisualBuilder.add-assertion"));
             setHeaderText(I18n.t("SchematronVisualBuilder.create-a-new-assertion-rule"));
 
@@ -725,6 +727,7 @@ public class SchematronVisualBuilder extends VBox {
          * Creates a new report dialog with input fields for test, message, and flag.
          */
         ReportDialog() {
+            DialogHelper.prepare(this);
             setTitle(I18n.t("SchematronVisualBuilder.add-report"));
             setHeaderText(I18n.t("SchematronVisualBuilder.create-a-new-report-rule"));
 

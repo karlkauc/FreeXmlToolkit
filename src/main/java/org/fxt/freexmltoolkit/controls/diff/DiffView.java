@@ -45,6 +45,7 @@ import org.fxt.freexmltoolkit.controls.shared.PlainTextCodeArea;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XmlStructuralDiff;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * A {@link Tab} that hosts the side-by-side compare & merge view.
@@ -349,7 +350,7 @@ public final class DiffView extends Tab {
     }
 
     private void askKeyAttributes() {
-        TextInputDialog dialog = new TextInputDialog(String.join(", ", xmlOptions.keyAttributes()));
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(String.join(", ", xmlOptions.keyAttributes()));
         dialog.setTitle("Key Attributes");
         dialog.setHeaderText("Attributes that identify an element among siblings of the same name");
         dialog.setContentText("Attributes (comma-separated, e.g. id, key):");
@@ -756,9 +757,9 @@ public final class DiffView extends Tab {
 
     private void handleCloseRequest(Event ev) {
         if (!dirty[0] && !dirty[1]) return;
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
-                "There are unsaved changes in the diff view.\nClose anyway?",
-                ButtonType.YES, ButtonType.CANCEL);
+        Alert alert = DialogHelper.createAlert(Alert.AlertType.CONFIRMATION);
+        alert.setContentText("There are unsaved changes in the diff view.\nClose anyway?");
+        alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.CANCEL);
         alert.setTitle(I18n.t("DiffView.unsaved-changes"));
         alert.setHeaderText(I18n.t("DiffView.discard-merged-changes"));
         Optional<ButtonType> r = alert.showAndWait();

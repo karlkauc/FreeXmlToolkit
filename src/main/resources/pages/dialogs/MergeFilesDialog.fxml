@@ -46,7 +46,7 @@
             </graphic>
         </Button>
         <Label fx:id="error" id="merge-files-error" wrapText="true" visible="false" managed="false"
-               style="-fx-text-fill: #e03131;" GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+               styleClass="fxt-dialog-error" GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
         <Label text="%MergeFilesDialog.changes-made-on-one-side.text"
                wrapText="true" opacity="0.7" maxWidth="560" GridPane.rowIndex="5" GridPane.columnIndex="0"
                GridPane.columnSpan="3"/>

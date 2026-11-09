@@ -27,6 +27,7 @@ import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.FavoritesService;
 import org.fxt.freexmltoolkit.service.PropertiesService;
 import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Guided "New File" dialog: pick a file type, optionally a (type-filtered) template,
@@ -76,6 +77,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
     }
 
     NewFileDialog(List<XmlTemplate> templates) {
+        DialogHelper.prepare(this);
         this.allTemplates = templates == null ? List.of() : templates;
         setTitle(I18n.t("NewFileDialog.new-file"));
         setHeaderText(I18n.t("NewFileDialog.choose-what-to-create"));

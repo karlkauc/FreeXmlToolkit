@@ -24,6 +24,7 @@ import org.fxt.freexmltoolkit.controls.v2.editor.panels.LinkAutocompletePopup;
 import org.fxt.freexmltoolkit.controls.v2.editor.panels.XsdElementPathExtractor;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdAppInfo;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Compact, structured editor for the JavaDoc-style {@code xs:appinfo} tags (@since, @version,
@@ -206,7 +207,7 @@ public final class AppInfoFieldsEditor extends VBox {
 
     @FXML
     public void onAddSee() {
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add @see Reference");
         dialog.setHeaderText("Enter a reference (use {@link /XPath} for a link)");
         dialog.setContentText("Reference:");
@@ -235,7 +236,7 @@ public final class AppInfoFieldsEditor extends VBox {
 
     @FXML
     public void onAddExample() {
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add Example Value");
         dialog.setHeaderText("Enter a sample value for this element/attribute");
         dialog.setContentText("Value:");

@@ -47,6 +47,7 @@ import org.fxt.freexmltoolkit.service.AutoUpdateService;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateProgress;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateResult;
 import org.fxt.freexmltoolkit.service.AutoUpdateService.UpdateStage;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Dialog that shows progress during update download and installation.
@@ -101,14 +102,8 @@ public class UpdateProgressDialog extends Dialog<UpdateResult> {
         dialogPane.setPrefWidth(450);
         dialogPane.setPrefHeight(250);
 
-        // Load CSS
-        try {
-            dialogPane.getStylesheets().addAll(
-                    org.fxt.freexmltoolkit.util.DialogHelper.getThemeStylesheets()
-            );
-        } catch (Exception e) {
-            logger.warn("Could not load dialog theme CSS", e);
-        }
+        // Shell look (stylesheets, theme, owner)
+        DialogHelper.prepare(this);
 
         // Content: header, progress, details
         dialogPane.setContent(FxmlViews.loadContent(this, "/pages/dialogs/UpdateProgressDialog.fxml"));

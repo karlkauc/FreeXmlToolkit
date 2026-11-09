@@ -50,6 +50,7 @@ import org.fxt.freexmltoolkit.controls.v2.view.TypeFrame;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.NodeWrapperType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Factory for creating context-sensitive context menus for XSD editor nodes.
@@ -659,7 +660,7 @@ public class XsdContextMenuFactory {
      * Handles adding a new comment to a node.
      */
     private void handleAddComment(VisualNode node) {
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add Comment");
         dialog.setHeaderText("Enter comment text:");
         dialog.setContentText("Comment:");
@@ -679,7 +680,7 @@ public class XsdContextMenuFactory {
      */
     private void handleEditComment(VisualNode node) {
         if (node.getModelObject() instanceof XsdComment comment) {
-            TextInputDialog dialog = new TextInputDialog(comment.getContent());
+            TextInputDialog dialog = DialogHelper.createTextInputDialog(comment.getContent());
             dialog.setTitle("Edit Comment");
             dialog.setHeaderText("Edit comment text:");
             dialog.setContentText("Comment:");
@@ -698,7 +699,7 @@ public class XsdContextMenuFactory {
      * @param node the node to rename
      */
     private void handleRename(VisualNode node) {
-        TextInputDialog dialog = new TextInputDialog(node.getLabel());
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(node.getLabel());
         dialog.setTitle("Rename Node");
         dialog.setHeaderText("Rename '" + node.getLabel() + "'");
         dialog.setContentText("New name:");
@@ -784,7 +785,7 @@ public class XsdContextMenuFactory {
         // In a more complete implementation, this would be a custom dialog
         // with spinners for minOccurs/maxOccurs
 
-        TextInputDialog dialog = new TextInputDialog("1..1");
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("1..1");
         dialog.setTitle("Change Cardinality");
         dialog.setHeaderText("Change cardinality of '" + node.getLabel() + "'");
         dialog.setContentText("Enter cardinality [min..max] (e.g., 0..1, 1..*, 0..*):");
@@ -964,7 +965,7 @@ public class XsdContextMenuFactory {
      * @param node the enumeration visual node
      */
     private void handleEditEnumerationValue(VisualNode node) {
-        TextInputDialog dialog = new TextInputDialog(node.getLabel());
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(node.getLabel());
         dialog.setTitle("Edit Enumeration Value");
         dialog.setHeaderText("Edit value of enumeration");
         dialog.setContentText("New value:");

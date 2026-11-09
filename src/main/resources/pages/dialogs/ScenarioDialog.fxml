@@ -32,7 +32,7 @@
         <CheckBox fx:id="perFileBox" id="scenario-per-file" text="%ScenarioDialog.perFileBox.text"
                   GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
         <Label fx:id="error" id="scenario-error" wrapText="true" visible="false" managed="false"
-               style="-fx-text-fill: #e03131;" GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+               styleClass="fxt-dialog-error" GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
         <Label text="%ScenarioDialog.stylesheet-input-file-parameters-and.text"
                wrapText="true" opacity="0.7" maxWidth="520" GridPane.rowIndex="4" GridPane.columnIndex="0"
                GridPane.columnSpan="3"/>

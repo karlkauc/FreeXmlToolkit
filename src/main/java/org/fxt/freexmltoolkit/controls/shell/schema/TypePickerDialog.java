@@ -34,7 +34,7 @@ public final class TypePickerDialog {
      */
     public static Optional<String> show(Window owner, String title, String header, String current,
                                         Supplier<List<TypeChoice>> choices) {
-        Dialog<String> dialog = new Dialog<>();
+        Dialog<String> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle(title);
         dialog.setHeaderText(header);
         if (owner != null) {
@@ -54,7 +54,7 @@ public final class TypePickerDialog {
         DialogPane pane = dialog.getDialogPane();
         pane.setContent(content);
         pane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-        pane.getStylesheets().addAll(DialogHelper.getThemeStylesheets());
+        
         dialog.setResultConverter(button -> button == ButtonType.OK
                 ? (field.getEditor().getText() == null ? "" : field.getEditor().getText().trim())
                 : null);

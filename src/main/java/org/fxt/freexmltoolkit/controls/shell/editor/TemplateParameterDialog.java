@@ -17,6 +17,7 @@ import javafx.scene.layout.GridPane;
 import org.fxt.freexmltoolkit.domain.TemplateParameter;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Prompts for an {@link XmlTemplate}'s parameter values before insertion: one row per parameter
@@ -29,6 +30,7 @@ public class TemplateParameterDialog extends Dialog<Map<String, String>> {
     private final Map<String, Supplier<String>> readers = new LinkedHashMap<>();
 
     public TemplateParameterDialog(XmlTemplate template) {
+        DialogHelper.prepare(this);
         setTitle(I18n.t("TemplateParameterDialog.template-parameters"));
         setHeaderText(I18n.t("TemplateParameterDialog.enter-values-for", template.getName()));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);

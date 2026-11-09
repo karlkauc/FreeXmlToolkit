@@ -20,7 +20,7 @@ public class CatalogImportDialog extends Dialog<List<SchemaLibraryEntry>> {
     public CatalogImportDialog(List<SchemaLibraryEntry> preview, Set<String> existingKeys) {
         setTitle(I18n.t("CatalogImportDialog.import-catalog-entries"));
         setHeaderText(preview.size() + " namespace mapping(s) found. Entries already in the library are unchecked.");
-        getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
+        DialogHelper.prepare(this);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         List<CheckBox> boxes = new ArrayList<>();

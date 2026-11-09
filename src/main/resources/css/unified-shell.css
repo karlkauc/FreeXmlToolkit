@@ -4813,3 +4813,355 @@
 .fxt-xspec-value {
     -fx-font-family: "JetBrains Mono", monospace;
 }
+
+/* ===== Dialogs ===========================================================================
+   Every Alert / Dialog / TextInputDialog / ChoiceDialog gets the shell's sheets and the root
+   class "fxt-dialog" from controls/shell/DialogTheming (a global window hook), so popups look
+   like the shell: Inter, -fxt-* tokens, light/dark live. Calm header: surface background,
+   coloured type icon, bold title, a hairline below. No hard-coded colours. */
+.fxt-dialog.dialog-pane {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
+    -fx-font-size: 13px;
+    -fx-padding: 0;
+}
+
+.fxt-dialog.dialog-pane > .header-panel {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 16 20 14 20;
+}
+
+.fxt-dialog.dialog-pane > .header-panel > .label {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-wrap-text: true;
+}
+
+.fxt-dialog.dialog-pane > .header-panel .graphic-container,
+.fxt-dialog.dialog-pane > .graphic-container {
+    -fx-padding: 0 4 0 12;
+}
+
+.fxt-dialog.dialog-pane > .content {
+    -fx-padding: 16 20 16 20;
+}
+
+.fxt-dialog.dialog-pane > .content.label,
+.fxt-dialog.dialog-pane > .content > .label,
+.fxt-dialog.dialog-pane .label {
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-dialog.dialog-pane > .content.label {
+    -fx-line-spacing: 2px;
+    -fx-wrap-text: true;
+}
+
+.fxt-dialog.dialog-pane > .expandable-content {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 20 12 20;
+}
+
+.fxt-dialog.dialog-pane > .expandable-content .text-area {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 11px;
+}
+
+.fxt-dialog.dialog-pane > .button-bar {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 20 12 20;
+}
+
+.fxt-dialog.dialog-pane > .button-bar > .container {
+    -fx-spacing: 8;
+}
+
+/* Buttons: secondary = surface + border, default = primary fill (WCAG AA via -fxt-primary-fill). */
+.fxt-dialog.dialog-pane .button {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-text-fill: -fxt-text-primary;
+    -fx-font-weight: normal;
+    -fx-padding: 6 16 6 16;
+    -fx-cursor: hand;
+}
+
+.fxt-dialog.dialog-pane .button:hover {
+    -fx-background-color: -fxt-bg-surface-2;
+}
+
+.fxt-dialog.dialog-pane .button:focused {
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-dialog.dialog-pane .button:default {
+    -fx-background-color: -fxt-primary-fill;
+    -fx-border-color: -fxt-primary-fill;
+    -fx-text-fill: -fxt-on-primary;
+    -fx-font-weight: bold;
+}
+
+.fxt-dialog.dialog-pane .button:default:hover {
+    -fx-background-color: derive(-fxt-primary-fill, -10%);
+}
+
+.fxt-dialog.dialog-pane .button:default:focused {
+    -fx-border-color: -fxt-text-primary;
+}
+
+.fxt-dialog.dialog-pane .button:default .iconify-icon {
+    -fx-icon-color: -fxt-on-primary;
+}
+
+.fxt-dialog.dialog-pane .button:disabled {
+    -fx-opacity: 0.5;
+}
+
+.fxt-dialog.dialog-pane > .button-bar .details-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -fxt-primary-text;
+    -fx-padding: 6 4 6 4;
+}
+
+/* Text inputs keep a resting border: the field and the dialog share the surface colour. */
+.fxt-dialog.dialog-pane .text-field,
+.fxt-dialog.dialog-pane .text-area,
+.fxt-dialog.dialog-pane .combo-box {
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.fxt-dialog.dialog-pane .text-field:focused,
+.fxt-dialog.dialog-pane .text-area:focused,
+.fxt-dialog.dialog-pane .combo-box:focused {
+    -fx-border-color: -fxt-primary;
+}
+
+.fxt-dialog.dialog-pane .scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+}
+
+.fxt-dialog.dialog-pane .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.fxt-dialog.dialog-pane .progress-bar > .bar {
+    -fx-background-color: -fxt-primary;
+}
+
+.fxt-dialog.dialog-pane .progress-indicator {
+    -fx-progress-color: -fxt-primary;
+}
+
+/* Type icon of alerts and themed dialogs (DialogHelper sets the type class). */
+.fxt-dialog .fxt-dialog-icon {
+    -fx-icon-size: 28;
+    -fx-icon-color: -fxt-primary;
+}
+.fxt-dialog.information .fxt-dialog-icon { -fx-icon-color: -fxt-info; }
+.fxt-dialog.confirmation .fxt-dialog-icon { -fx-icon-color: -fxt-primary; }
+.fxt-dialog.warning .fxt-dialog-icon { -fx-icon-color: -fxt-warning; }
+.fxt-dialog.error .fxt-dialog-icon { -fx-icon-color: -fxt-danger; }
+.fxt-dialog.input .fxt-dialog-icon { -fx-icon-color: -fxt-primary; }
+
+/* ----- Dialog building blocks (DialogHelper.create*) ----- */
+.dialog-header {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 16 20 14 20;
+    -fx-spacing: 12;
+}
+
+.dialog-header-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.dialog-header-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.dialog-header .iconify-icon { -fx-icon-size: 28; -fx-icon-color: -fxt-primary; }
+.dialog-header-primary .iconify-icon { -fx-icon-color: -fxt-primary; }
+.dialog-header-success .iconify-icon { -fx-icon-color: -fxt-success; }
+.dialog-header-info .iconify-icon { -fx-icon-color: -fxt-info; }
+.dialog-header-warning .iconify-icon { -fx-icon-color: -fxt-warning; }
+.dialog-header-danger .iconify-icon { -fx-icon-color: -fxt-danger; }
+.dialog-header-purple .iconify-icon { -fx-icon-color: -fxt-purple; }
+
+.dialog-section,
+.dialog-help-section {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 16;
+    -fx-spacing: 12;
+}
+
+.dialog-section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.dialog-section-subtitle,
+.dialog-feature-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.dialog-feature-item {
+    -fx-spacing: 12;
+    -fx-alignment: TOP_LEFT;
+}
+
+.dialog-feature-icon { -fx-icon-size: 20; }
+
+.dialog-feature-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.dialog-help-content {
+    -fx-background-color: -fxt-bg-surface;
+}
+
+.dialog-info-box {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-border-color: -fxt-border -fxt-border -fxt-border -fxt-info;
+    -fx-border-width: 1 1 1 3;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 12;
+    -fx-spacing: 6;
+}
+.dialog-info-box-info { -fx-border-color: -fxt-border -fxt-border -fxt-border -fxt-info; }
+.dialog-info-box-success { -fx-border-color: -fxt-border -fxt-border -fxt-border -fxt-success; }
+.dialog-info-box-warning { -fx-border-color: -fxt-border -fxt-border -fxt-border -fxt-warning; }
+.dialog-info-box-danger { -fx-border-color: -fxt-border -fxt-border -fxt-border -fxt-danger; }
+.dialog-info-box-info .iconify-icon { -fx-icon-color: -fxt-info; }
+.dialog-info-box-success .iconify-icon { -fx-icon-color: -fxt-success; }
+.dialog-info-box-warning .iconify-icon { -fx-icon-color: -fxt-warning; }
+.dialog-info-box-danger .iconify-icon { -fx-icon-color: -fxt-danger; }
+
+.dialog-info-box-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.dialog-info-box-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+
+.dialog-group-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 0 0 0;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.dialog-group-label-primary { -fx-text-fill: -fxt-primary-text; }
+
+.dialog-separator { -fx-padding: 8 0 8 0; }
+
+.dialog-shortcut-key {
+    -fx-background-color: -fxt-bg-surface;
+    -fx-border-color: -fxt-border;
+    -fx-border-width: 1 1 2 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 4 10 4 10;
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.dialog-shortcut-description {
+    -fx-font-size: 13px;
+    -fx-text-fill: -fxt-text-primary;
+}
+
+.fxt-dialog-error {
+    -fx-text-fill: -fxt-danger;
+}
+
+/* ----- About dialog (AboutDialog.fxml) ----- */
+.fxt-about {
+    -fx-padding: 18 20 8 20;
+}
+.fxt-about-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-primary;
+}
+.fxt-about-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-about-version {
+    -fx-background-color: -fxt-bg-subtle;
+    -fx-text-fill: -fxt-primary-text;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 12;
+}
+.fxt-about-info {
+    -fx-background-color: -fxt-bg-surface-2;
+    -fx-background-radius: 8;
+    -fx-border-color: -fxt-border;
+    -fx-border-radius: 8;
+    -fx-padding: 12;
+}
+.fxt-about-key {
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fxt-text-secondary;
+}
+.fxt-about-value {
+    -fx-font-size: 12.5px;
+}
+.fxt-dialog.dialog-pane .fxt-about-license {
+    -fx-padding: 0;
+    -fx-text-fill: -fxt-primary-text;
+}
+.fxt-dialog.dialog-pane .fxt-about-link {
+    -fx-background-color: transparent;
+    -fx-padding: 5 12 5 12;
+}
+
+/* ----- Update dialog (UpdateNotificationDialog.fxml) ----- */
+.fxt-update-version-old,
+.fxt-update-version-new {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+.fxt-update-version-old { -fx-text-fill: -fxt-text-secondary; }
+.fxt-update-version-new { -fx-text-fill: -fxt-success-text; }
+.fxt-update-arrow { -fx-icon-color: -fxt-success; }
+.fxt-update-notes-icon { -fx-icon-color: -fxt-primary; }
+.fxt-update-notes {
+    -fx-font-family: "JetBrains Mono", monospace;
+    -fx-font-size: 12px;
+}

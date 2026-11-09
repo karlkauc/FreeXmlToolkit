@@ -38,6 +38,7 @@ import org.fxt.freexmltoolkit.controls.shell.editor.search.FileSearchRunner.Text
 import org.fxt.freexmltoolkit.controls.shell.editor.search.ReplaceApplier.FileReplacePlan;
 import org.fxt.freexmltoolkit.controls.shell.editor.search.ReplaceApplier.ReplaceOutcome;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Text mode of the Search panel: VS-Code-style find/replace across all files of
@@ -322,7 +323,7 @@ public class TextSearchPane extends VBox {
         long editorFiles = checkedStarts.keySet().stream()
                 .filter(p -> editorHost.getOpenDocumentText(p).isPresent()).count();
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert confirm = DialogHelper.createAlert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle(I18n.t("TextSearchPane.replace-in-files"));
         confirm.setHeaderText(I18n.t("TextSearchPane.replace-match-es-in-file", checked.size(), checkedStarts.size()));
         confirm.setContentText(editorFiles > 0

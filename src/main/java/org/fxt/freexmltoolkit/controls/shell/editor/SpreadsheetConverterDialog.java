@@ -16,6 +16,7 @@ import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.CsvHandler;
 import org.fxt.freexmltoolkit.service.XmlSpreadsheetConverterService.ConversionConfig;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /**
@@ -75,6 +76,7 @@ public class SpreadsheetConverterDialog extends Dialog<SpreadsheetConverterDialo
     @FXML private Button browseSchema;
 
     public SpreadsheetConverterDialog() {
+        DialogHelper.prepare(this);
         setTitle(I18n.t("SpreadsheetConverterDialog.spreadsheet-converter"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 

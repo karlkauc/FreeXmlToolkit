@@ -41,6 +41,7 @@ import org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.XPathEditExcepti
 import org.fxt.freexmltoolkit.service.xmledit.XPathMatchLocator.XPathQuery;
 import org.fxt.freexmltoolkit.service.xmledit.XPathReplacePlanner;
 import org.fxt.freexmltoolkit.service.xmledit.XPathReplacePlanner.ReplaceMode;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * XPath mode of the Search panel: evaluate an XPath 3.1 expression against the
@@ -399,7 +400,7 @@ public class XPathSearchPane extends VBox {
             PanelStatus.precondition(status, I18n.t("XPathSearchPane.enter-the-replacement", (mode == ReplaceMode.REPLACE_FRAGMENT ? I18n.t("XPathSearchPane.replaceFragment") : I18n.t("XPathSearchPane.replaceValue"))));
             return;
         }
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert confirm = DialogHelper.createAlert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle(I18n.t("XPathSearchPane.xpath-replace"));
         confirm.setHeaderText(modeChoice.getValue() + ": " + checked.size() + " match(es)");
         confirm.setContentText(docSnapshot != null

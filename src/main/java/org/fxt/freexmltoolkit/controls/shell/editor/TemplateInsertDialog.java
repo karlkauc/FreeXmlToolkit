@@ -12,6 +12,7 @@ import javafx.scene.control.TextArea;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Lets the user pick an XML template to insert. Lists the available templates
@@ -29,6 +30,7 @@ public class TemplateInsertDialog extends Dialog<XmlTemplate> {
     }
 
     public TemplateInsertDialog(List<XmlTemplate> templates) {
+        DialogHelper.prepare(this);
         setTitle(I18n.t("TemplateInsertDialog.insert-template"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 

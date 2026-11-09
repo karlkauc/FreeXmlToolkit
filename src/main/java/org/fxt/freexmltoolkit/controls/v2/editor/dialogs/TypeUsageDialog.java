@@ -27,6 +27,7 @@ import org.fxt.freexmltoolkit.controls.theme.SemanticStyle;
 import org.fxt.freexmltoolkit.controls.v2.editor.usage.TypeUsageLocation;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Dialog displaying all locations where a type is used in the schema.
@@ -84,15 +85,8 @@ public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
         dialogPane.setPrefWidth(700);
         dialogPane.setPrefHeight(450);
 
-        // Load CSS
-        try {
-            dialogPane.getStylesheets().addAll(
-                    getClass().getResource("/css/app-theme.css").toExternalForm(),
-                    getClass().getResource("/css/dialog-theme.css").toExternalForm()
-            );
-        } catch (Exception e) {
-            logger.warn("Could not load dialog theme CSS", e);
-        }
+        // Shell look (stylesheets, theme, owner)
+        DialogHelper.prepare(this);
 
         // Content: header, then the table with its help line or the "no usages" message
         dialogPane.setContent(FxmlViews.loadContent(this, "/pages/dialogs/TypeUsageDialog.fxml"));

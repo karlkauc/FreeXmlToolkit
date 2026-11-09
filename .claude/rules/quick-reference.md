@@ -167,6 +167,7 @@ class MyUITest {
 | New structural edit produces invalid XSD | Command runs without a rule check | Ask `XsdEditRules` first; resolve with `EditRuleDialogs.resolve` |
 | HTTP 407 / proxy ignored | Code opened its own connection (`url.openConnection`, `HttpClient`) | Only `ConnectionServiceImpl` opens connections: use `ConnectionService` (`openConnection`, `fetchBinary`, `executeHttpRequest`, `postJson`); settings in `ProxySettings`, JVM-wide `SettingsProxySelector` + `ProxyAuthenticator` for libraries; `HttpCallsGuardTest` enforces it |
 | Icon missing | Invalid icon name | `IconifyIconCoverageTest` catches it |
+| Dialog looks different from the rest (Modena, wrong font, light in dark mode) | Built with `new Alert/TextInputDialog/Dialog<>` or own stylesheets | Build it with `DialogHelper` (`createAlert`, `createStyledAlert`, `createTextInputDialog`, `createChoiceDialog`, `createDialog`); a `Dialog` subclass calls `DialogHelper.prepare(this)`. `DialogTheming` themes every dialog window; `DialogCreationGuardTest` enforces it |
 | Per-item icon color ignored | CSS `-fx-icon-color` overrides `setIconColor()` | `bind()` the property instead |
 | Native build fails | Non-public FXML method | Make all @FXML public |
 | ListView IndexOutOfBounds | `items.setAll` while a row is selected | `clearSelection()` first; open files via `Platform.runLater` |

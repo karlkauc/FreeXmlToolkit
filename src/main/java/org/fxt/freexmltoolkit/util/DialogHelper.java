@@ -8,23 +8,28 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog;
+import org.fxt.freexmltoolkit.controls.shell.DialogTheming;
+import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.i18n.I18n;
-import org.fxt.freexmltoolkit.service.PropertiesServiceImpl;
 import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
 
 /**
@@ -38,7 +43,10 @@ import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
  *   <li>Consistent CSS class application</li>
  * </ul>
  *
- * <p>All dialogs use the unified theme from dialog-theme.css for visual consistency.
+ * <p>All dialogs look like the shell: {@link DialogTheming} gives them the shell's stylesheets,
+ * the current light/dark theme and the {@code fxt-dialog} root class (the dialog rules live in
+ * {@code unified-shell.css}); the factories here also set an owner window
+ * ({@link #defaultOwner()}) and a type icon whose colour is a CSS role, not a hex value.
  *
  * @since 2.0
  */
@@ -52,25 +60,150 @@ public class DialogHelper {
     }
 
     /**
-     * Returns the list of theme-aware stylesheets for dialogs.
-     * Includes app-theme.css, the active theme (dark or light), and dialog-theme.css.
+     * Returns the shell stylesheets for a popup window that is not a {@link Dialog} (the theme
+     * sheet sits right before {@code unified-shell.css}, as {@link ThemeManager} places it).
+     * Dialogs do not need this: {@link DialogTheming} styles them.
      */
     public static java.util.List<String> getThemeStylesheets() {
-        var sheets = new java.util.ArrayList<String>();
-        sheets.add(DialogHelper.class.getResource("/css/app-theme.css").toExternalForm());
-        String theme;
-        try {
-            theme = PropertiesServiceImpl.getInstance().get("ui.theme");
-        } catch (Exception e) {
-            theme = "light";
+        var sheets = new java.util.ArrayList<>(DialogTheming.shellStylesheets());
+        var theme = DialogHelper.class.getResource(
+                ThemeManager.currentIsDark() ? "/css/dark-theme.css" : "/css/light-theme.css");
+        if (theme != null) {
+            sheets.add(Math.max(0, sheets.size() - 1), theme.toExternalForm());
         }
-        if ("dark".equals(theme)) {
-            sheets.add(DialogHelper.class.getResource("/css/dark-theme.css").toExternalForm());
-        } else {
-            sheets.add(DialogHelper.class.getResource("/css/light-theme.css").toExternalForm());
-        }
-        sheets.add(DialogHelper.class.getResource("/css/dialog-theme.css").toExternalForm());
         return sheets;
+    }
+
+    // ============================================
+    // OWNER + THEMING OF EVERY DIALOG
+    // ============================================
+
+    /**
+     * The window a new dialog belongs to: the focused application window, otherwise the first
+     * showing one (the main window). {@code null} before any window shows.
+     */
+    public static Window defaultOwner() {
+        Window fallback = null;
+        for (Window window : Window.getWindows()) {
+            if (!(window instanceof Stage) || !window.isShowing()) {
+                continue;
+            }
+            if (window.isFocused()) {
+                return window;
+            }
+            if (fallback == null) {
+                fallback = window;
+            }
+        }
+        return fallback;
+    }
+
+    /**
+     * Prepares any dialog (also a {@link Dialog} subclass, from its constructor): shell theming
+     * and, unless it already has one, the {@link #defaultOwner() default owner}, so it opens
+     * centred over the application window. A caller may still {@code initOwner} it afterwards.
+     *
+     * @return {@code dialog}, for chaining
+     */
+    public static <D extends Dialog<?>> D prepare(D dialog) {
+        DialogTheming.apply(dialog);
+        if (dialog.getOwner() == null && !dialog.isShowing()) {
+            Window owner = defaultOwner();
+            if (owner != null) {
+                try {
+                    dialog.initOwner(owner);
+                } catch (IllegalStateException alreadyShown) {
+                    // a reused dialog that has been visible before keeps its owner
+                }
+            }
+        }
+        return dialog;
+    }
+
+    /** A type icon for a dialog header; its colour comes from the pane's type class in CSS. */
+    private static IconifyIcon dialogIcon(String iconLiteral) {
+        IconifyIcon icon = new IconifyIcon(iconLiteral);
+        icon.setIconSize(28);
+        icon.getStyleClass().add(DIALOG_ICON_CLASS);
+        return icon;
+    }
+
+    private static final String DIALOG_ICON_CLASS = "fxt-dialog-icon";
+    /** Pane class of input dialogs (text, choice, forms): primary-coloured icon. */
+    private static final String INPUT_CLASS = "input";
+
+    /**
+     * Creates a themed, owned text input dialog (pencil icon, OK / Cancel) without showing it.
+     *
+     * @param title   window title
+     * @param header  header text (what is asked, e.g. "Rename element 'order'")
+     * @param label   label before the field (nullable)
+     * @param initial initial value (nullable)
+     */
+    public static TextInputDialog createTextInputDialog(String title, String header, String label,
+                                                        String initial) {
+        TextInputDialog dialog = new TextInputDialog(initial == null ? "" : initial);
+        dialog.setTitle(title);
+        dialog.setHeaderText(header);
+        dialog.setContentText(label);
+        dialog.setGraphic(dialogIcon("bi-pencil-square"));
+        dialog.getDialogPane().getStyleClass().add(INPUT_CLASS);
+        return prepare(dialog);
+    }
+
+    /** As {@link #createTextInputDialog(String, String, String, String)}, title etc. set by the caller. */
+    public static TextInputDialog createTextInputDialog(String initial) {
+        return createTextInputDialog(null, null, null, initial);
+    }
+
+    /**
+     * Asks for a text in a themed input dialog.
+     *
+     * @return the entered text, empty when cancelled
+     */
+    public static Optional<String> promptText(String title, String header, String label, String initial) {
+        return createTextInputDialog(title, header, label, initial).showAndWait();
+    }
+
+    /** Creates a themed, owned choice dialog (list icon, OK / Cancel) without showing it. */
+    public static <T> ChoiceDialog<T> createChoiceDialog(String title, String header, String label,
+                                                         T initial, java.util.Collection<T> choices) {
+        ChoiceDialog<T> dialog = new ChoiceDialog<>(initial, choices);
+        dialog.setTitle(title);
+        dialog.setHeaderText(header);
+        dialog.setContentText(label);
+        dialog.setGraphic(dialogIcon("bi-list-check"));
+        dialog.getDialogPane().getStyleClass().add(INPUT_CLASS);
+        return prepare(dialog);
+    }
+
+    /**
+     * Lets the user pick one of {@code choices} in a themed choice dialog.
+     *
+     * @return the chosen value, empty when cancelled
+     */
+    public static <T> Optional<T> choose(String title, String header, String label, T initial,
+                                         java.util.Collection<T> choices) {
+        return createChoiceDialog(title, header, label, initial, choices).showAndWait();
+    }
+
+    /**
+     * Creates a themed, owned, application-modal dialog for custom content (the caller adds
+     * content, button types and a result converter).
+     *
+     * @param title       window title
+     * @param header      header text (nullable)
+     * @param iconLiteral header icon (nullable: none)
+     */
+    public static <R> Dialog<R> createDialog(String title, String header, String iconLiteral) {
+        Dialog<R> dialog = new Dialog<>();
+        dialog.setTitle(title);
+        dialog.setHeaderText(header);
+        if (iconLiteral != null) {
+            dialog.setGraphic(dialogIcon(iconLiteral));
+        }
+        dialog.getDialogPane().getStyleClass().add(INPUT_CLASS);
+        return prepare(dialog);
     }
 
     /**
@@ -488,17 +621,30 @@ public class DialogHelper {
      * @return the configured, styled alert
      */
     public static Alert createStyledAlert(Alert.AlertType type, String title, String header, String content) {
-        String iconLiteral = switch (type) {
-            case WARNING -> "bi-exclamation-triangle";
-            case ERROR -> "bi-x-circle";
-            case CONFIRMATION -> "bi-question-circle";
-            default -> "bi-info-circle";
-        };
+        String iconLiteral = iconFor(type);
         if (type == Alert.AlertType.ERROR) {
             // An error the user is shown counts as an error, wherever the alert is built.
             Telemetry.reportError(ERROR_DIALOG_CODE, "dialog." + title);
         }
         return createAlert(type, title, header, content, iconLiteral);
+    }
+
+    /**
+     * Creates a themed, owned alert of {@code type} with its type icon and no texts yet (the
+     * caller sets title, header, content and buttons). Unlike {@link #createStyledAlert} it
+     * reports nothing to the error telemetry.
+     */
+    public static Alert createAlert(Alert.AlertType type) {
+        return createAlert(type, null, null, null, iconFor(type));
+    }
+
+    private static String iconFor(Alert.AlertType type) {
+        return switch (type) {
+            case WARNING -> "bi-exclamation-triangle";
+            case ERROR -> "bi-x-circle";
+            case CONFIRMATION -> "bi-question-circle";
+            default -> "bi-info-circle";
+        };
     }
 
     /**
@@ -558,46 +704,6 @@ public class DialogHelper {
     // ============================================
 
     /**
-     * Creates a custom dialog with styled header.
-     *
-     * @param title the window title
-     * @param headerTitle the header title text
-     * @param headerSubtitle the header subtitle text (can be null)
-     * @param iconLiteral the Bootstrap icon literal (e.g., "bi-diagram-2")
-     * @param theme the header color theme
-     * @return the dialog
-     */
-    public static Dialog<ButtonType> createDialog(String title, String headerTitle,
-                                                  String headerSubtitle, String iconLiteral,
-                                                  HeaderTheme theme) {
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle(title);
-        dialog.initModality(Modality.APPLICATION_MODAL);
-
-        DialogPane dialogPane = dialog.getDialogPane();
-
-        // Create header
-        VBox header = createDialogHeader(headerTitle, headerSubtitle, iconLiteral, theme);
-
-        // Wrap in BorderPane
-        BorderPane root = new BorderPane();
-        root.setTop(header);
-
-        // Content will be set by caller
-        VBox contentContainer = new VBox(20);
-        contentContainer.setPadding(new Insets(25));
-        root.setCenter(contentContainer);
-
-        dialogPane.setContent(root);
-        dialogPane.getStylesheets().addAll(getThemeStylesheets());
-
-        // Add standard buttons
-        dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        return dialog;
-    }
-
-    /**
      * Creates a dialog header with icon and text.
      *
      * @param title the header title
@@ -610,19 +716,16 @@ public class DialogHelper {
                                          String iconLiteral, HeaderTheme theme) {
         VBox header = new VBox();
         header.getStyleClass().addAll("dialog-header", theme.getStyleClass());
-        header.setPadding(new Insets(20));
-        header.setSpacing(15);
 
-        HBox headerContent = new HBox(15);
+        HBox headerContent = new HBox(12);
         headerContent.setAlignment(Pos.CENTER_LEFT);
 
-        // Icon
+        // Icon: colour from the header class (dialog-header-<theme> in unified-shell.css)
         IconifyIcon icon = new IconifyIcon(iconLiteral);
-        icon.setIconSize(48);
-        icon.setIconColor(Color.WHITE);
+        icon.setIconSize(28);
 
         // Title and subtitle
-        VBox textBox = new VBox(5);
+        VBox textBox = new VBox(2);
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("dialog-header-title");
         textBox.getChildren().add(titleLabel);
@@ -806,26 +909,13 @@ public class DialogHelper {
         alert.setHeaderText(header);
         alert.setContentText(content);
 
-        // Set custom icon
+        // Type icon: its colour follows the pane's type class (unified-shell.css, -fxt-* tokens)
         if (iconLiteral != null) {
-            IconifyIcon icon = new IconifyIcon(iconLiteral);
-            icon.setIconSize(32);
-
-            // Set icon color based on alert type
-            switch (type) {
-                case INFORMATION -> icon.setIconColor(Color.web("#17a2b8"));
-                case WARNING -> icon.setIconColor(Color.web("#ffc107"));
-                case ERROR -> icon.setIconColor(Color.web("#dc3545"));
-                case CONFIRMATION -> icon.setIconColor(Color.web("#007bff"));
-                default -> throw new IllegalStateException("Unexpected value: " + type);
-            }
-
-            alert.setGraphic(icon);
+            alert.setGraphic(dialogIcon(iconLiteral));
         }
 
-        // Apply dialog theme stylesheet
         DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().addAll(getThemeStylesheets());
+        prepare(alert);
 
         // Add type-specific style class
         String typeClass = switch (type) {
@@ -889,7 +979,7 @@ public class DialogHelper {
         icon.setIconColor(Color.web(iconColor));
 
         Label label = new Label(title);
-        label.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: " + iconColor + ";");
+        label.getStyleClass().add("dialog-section-title");
 
         titleBox.getChildren().addAll(icon, label);
         return titleBox;
@@ -919,10 +1009,9 @@ public class DialogHelper {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.initModality(Modality.APPLICATION_MODAL);
+        prepare(dialog);
 
         DialogPane dialogPane = dialog.getDialogPane();
-        dialogPane.getStylesheets().addAll(getThemeStylesheets()
-        );
 
         // Create header
         VBox header = createDialogHeader(headerTitle, headerSubtitle, iconLiteral, theme);
@@ -982,7 +1071,6 @@ public class DialogHelper {
         // Wrap in ScrollPane
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
         scrollPane.setPrefViewportHeight(400);
 
         // Main layout

@@ -95,11 +95,7 @@ public final class BreakpointPropertiesDialog extends Dialog<BreakpointPropertie
         setGraphic(icon);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/BreakpointPropertiesDialog.fxml"));
-        try {
-            getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
-        } catch (RuntimeException ignored) {
-            // unthemed is fine
-        }
+        DialogHelper.prepare(this);
 
         hitMode.getItems().setAll(MODES);
         hitTarget.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 1_000_000, 1));

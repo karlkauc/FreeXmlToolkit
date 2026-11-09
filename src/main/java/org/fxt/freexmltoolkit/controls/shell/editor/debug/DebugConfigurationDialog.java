@@ -54,11 +54,7 @@ public final class DebugConfigurationDialog extends Dialog<DebugConfigurationDia
         setGraphic(icon);
         getDialogPane().getButtonTypes().addAll(DEBUG, SAVE, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/DebugConfigurationDialog.fxml"));
-        try {
-            getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
-        } catch (RuntimeException ignored) {
-            // unthemed is fine
-        }
+        DialogHelper.prepare(this);
         formatChoice.getItems().add(AUTO);
         for (OutputFormat f : OutputFormat.values()) {
             formatChoice.getItems().add(f.name());

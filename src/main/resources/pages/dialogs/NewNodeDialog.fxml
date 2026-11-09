@@ -81,6 +81,6 @@
             </content>
         </TitledPane>
         <Label fx:id="errorLabel" id="new-node-error" wrapText="true" maxWidth="480" visible="false" managed="false"
-               style="-fx-text-fill: #e03131;"/>
+               styleClass="fxt-dialog-error"/>
     </children>
 </VBox>

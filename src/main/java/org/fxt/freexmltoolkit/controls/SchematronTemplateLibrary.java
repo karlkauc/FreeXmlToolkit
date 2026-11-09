@@ -26,6 +26,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Template library for common Schematron patterns and rules.
@@ -560,6 +561,7 @@ public class SchematronTemplateLibrary extends VBox {
      */
     private static class TemplateCustomizationDialog extends Dialog<String> {
         TemplateCustomizationDialog(TemplateItem template) {
+            DialogHelper.prepare(this);
             setTitle(I18n.t("SchematronTemplateLibrary.customize-template"));
             setHeaderText(I18n.t("SchematronTemplateLibrary.customize", template.getName()));
 

@@ -820,7 +820,7 @@ public class InspectorPanel extends VBox {
     private boolean confirmSharedChange(XsdNode component) {
         String kind = XsdNodeLabels.kindLabel(component.getNodeType());
         int uses = usageCount(component);
-        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+        javafx.scene.control.Alert alert = org.fxt.freexmltoolkit.util.DialogHelper.createAlert(
                 javafx.scene.control.Alert.AlertType.CONFIRMATION);
         alert.setTitle(I18n.t("InspectorPanel.change-a-shared-schema-component"));
         alert.setHeaderText(kind + " \"" + component.getName() + "\" is used in " + uses + " places");
@@ -830,7 +830,6 @@ public class InspectorPanel extends VBox {
         alert.getButtonTypes().setAll(change, javafx.scene.control.ButtonType.CANCEL);
         if (getScene() != null && getScene().getWindow() != null) {
             alert.initOwner(getScene().getWindow());
-            alert.getDialogPane().getStylesheets().setAll(getScene().getStylesheets());
         }
         return alert.showAndWait().filter(change::equals).isPresent();
     }

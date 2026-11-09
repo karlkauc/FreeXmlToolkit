@@ -55,6 +55,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.GridContextMenu;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.TableEditOps.Placement;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Context menu of the JSON grid: the JSON counterpart of {@code XmlGridContextMenu} with
@@ -901,7 +902,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     }
 
     private NewValue showNewValueDialog(String title, boolean askKey, String defaultKey) {
-        Dialog<NewValue> dialog = new Dialog<>();
+        Dialog<NewValue> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle(title);
         dialog.setHeaderText(askKey ? "Enter the key and choose the value type:" : "Choose the value type:");
         ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
@@ -951,7 +952,7 @@ public class JsonGridContextMenu implements GridContextMenu<JsonNode> {
     }
 
     private String showInputDialog(String title, String header, String defaultValue) {
-        TextInputDialog dialog = new TextInputDialog(defaultValue);
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(defaultValue);
         dialog.setTitle(title);
         dialog.setHeaderText(header);
         dialog.setContentText(null);

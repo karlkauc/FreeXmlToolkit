@@ -14,6 +14,7 @@ import javafx.scene.control.TextField;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.domain.XmlTemplate;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Create/edit dialog for a user (non-built-in) {@link XmlTemplate}: name, category,
@@ -37,6 +38,7 @@ public class TemplateEditDialog extends Dialog<XmlTemplate> {
     private final XmlTemplate existing;
 
     public TemplateEditDialog(XmlTemplate existing) {
+        DialogHelper.prepare(this);
         this.existing = existing;
         setTitle(existing == null ? "New Template" : "Edit Template");
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);

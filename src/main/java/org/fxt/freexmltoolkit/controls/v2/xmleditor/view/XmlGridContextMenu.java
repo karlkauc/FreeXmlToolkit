@@ -50,6 +50,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNodeXPath;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlText;
 import org.fxt.freexmltoolkit.controls.v2.xmleditor.schema.XmlSchemaProvider;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Context menu for XML Grid View with all editing operations.
@@ -560,7 +561,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     }
 
     private java.util.Optional<String> showRawTextDialog(String elementName, String text) {
-        javafx.scene.control.Dialog<String> dialog = new javafx.scene.control.Dialog<>();
+        javafx.scene.control.Dialog<String> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle("Edit as Raw Text");
         dialog.setHeaderText("Content of <" + elementName + "> as markup");
         javafx.scene.control.TextArea area = new javafx.scene.control.TextArea(text);
@@ -616,7 +617,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         if (element == null) {
             return;
         }
-        javafx.scene.control.Dialog<GridFormulas.Formula> dialog = new javafx.scene.control.Dialog<>();
+        javafx.scene.control.Dialog<GridFormulas.Formula> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle("Add Formula");
         dialog.setHeaderText("XQuery formula evaluated with <" + element.getName() + "> as context,\n"
                 + "e.g. avg(Month/Min) or count(item)");
@@ -842,7 +843,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
      * Displays valid child elements with optional documentation and cardinality.
      */
     private String showSchemaBasedElementDialog(List<String> validElements, String parentXPath) {
-        Dialog<String> dialog = new Dialog<>();
+        Dialog<String> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle("Add Child Element");
         dialog.setHeaderText("Select an element to add:");
 
@@ -1099,7 +1100,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
      * Displays valid attributes with type info, required/optional status, and documentation.
      */
     private AttributeDialogResult showSchemaBasedAttributeDialog(List<String> validAttributes, String elementXPath) {
-        Dialog<AttributeDialogResult> dialog = new Dialog<>();
+        Dialog<AttributeDialogResult> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle("Add Attribute");
         dialog.setHeaderText("Select an attribute to add:");
 
@@ -1636,7 +1637,7 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
     }
 
     private String showInputDialog(String title, String header, String defaultValue) {
-        TextInputDialog dialog = new TextInputDialog(defaultValue);
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(defaultValue);
         dialog.setTitle(title);
         dialog.setHeaderText(header);
         dialog.setContentText(null);

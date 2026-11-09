@@ -29,6 +29,7 @@ import org.fxt.freexmltoolkit.domain.XPathInfo;
 import org.fxt.freexmltoolkit.domain.XPathRule;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.GenerationProfileService;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Advanced sample-XML generation dialog: turns the schema's extracted XPaths into a table of editable
@@ -84,6 +85,7 @@ public class ProfiledSampleDialog extends Dialog<GenerationProfile> {
     @FXML private Spinner<Integer> maxOccurrences;
 
     public ProfiledSampleDialog(List<XPathInfo> xpaths) {
+        DialogHelper.prepare(this);
         setTitle(I18n.t("ProfiledSampleDialog.generate-sample-xml-advanced"));
         setResizable(true);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -121,10 +123,10 @@ public class ProfiledSampleDialog extends Dialog<GenerationProfile> {
     /** Saves the current control state as a named profile. */
     @FXML
     public void onSaveProfile() {
-        TextInputDialog prompt = new TextInputDialog(
+        TextInputDialog prompt = DialogHelper.createTextInputDialog(
                 profileCombo.getValue() != null ? profileCombo.getValue() : "Profile");
         prompt.setTitle(I18n.t("ProfiledSampleDialog.save-profile"));
-        prompt.setHeaderText(null);
+        prompt.setHeaderText(prompt.getTitle());
         prompt.setContentText(I18n.t("ProfiledSampleDialog.profile-name"));
         prompt.showAndWait().ifPresent(name -> {
             if (!name.isBlank()) {

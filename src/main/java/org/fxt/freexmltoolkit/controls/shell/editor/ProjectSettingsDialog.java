@@ -25,6 +25,7 @@ import org.fxt.freexmltoolkit.controls.shell.FxmlColumns;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.project.FxtProject;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /**
@@ -76,6 +77,7 @@ public class ProjectSettingsDialog extends Dialog<ButtonType> {
     java.util.function.BiFunction<FxtProject.Scenario, Set<String>, java.util.Optional<FxtProject.Scenario>> scenarioEditor;
 
     public ProjectSettingsDialog(FxtProject project) {
+        DialogHelper.prepare(this);
         this.project = project;
         setTitle(I18n.t("ProjectSettingsDialog.title"));
         setHeaderText(I18n.t("ProjectSettingsDialog.header", project.name()));

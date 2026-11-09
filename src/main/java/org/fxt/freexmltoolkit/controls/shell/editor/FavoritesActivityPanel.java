@@ -28,6 +28,7 @@ import org.fxt.freexmltoolkit.controls.theme.SemanticIcon;
 import org.fxt.freexmltoolkit.domain.FileFavorite;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.FavoritesService;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * The Favorites activity side panel: lists saved file favorites — grouped by
@@ -113,9 +114,9 @@ public class FavoritesActivityPanel extends VBox {
         }));
         MenuItem rename = new MenuItem(I18n.t("FavoritesActivityPanel.rename"), SemanticIcon.paint(icon("bi-pencil"), ActionColor.MODIFY));
         rename.setOnAction(e -> selectedFavorite().ifPresent(f -> {
-            TextInputDialog dialog = new TextInputDialog(displayName(f));
+            TextInputDialog dialog = DialogHelper.createTextInputDialog(displayName(f));
             dialog.setTitle("Rename Favorite");
-            dialog.setHeaderText(null);
+            dialog.setHeaderText(dialog.getTitle());
             dialog.setContentText("New name:");
             dialog.showAndWait().map(String::strip).filter(s -> !s.isEmpty())
                     .ifPresent(newName -> renameFavorite(f, newName));
@@ -223,9 +224,9 @@ public class FavoritesActivityPanel extends VBox {
         noFolder.setOnAction(e -> selectedFavorite().ifPresent(f -> moveToFolder(f, null)));
         MenuItem newFolder = new MenuItem(I18n.t("FavoritesActivityPanel.new-folder"), SemanticIcon.paint(icon("bi-folder-plus"), ActionColor.CREATE));
         newFolder.setOnAction(e -> selectedFavorite().ifPresent(f -> {
-            TextInputDialog dialog = new TextInputDialog();
+            TextInputDialog dialog = DialogHelper.createTextInputDialog("");
             dialog.setTitle("New Folder");
-            dialog.setHeaderText(null);
+            dialog.setHeaderText(dialog.getTitle());
             dialog.setContentText("Folder name:");
             dialog.showAndWait().map(String::strip).filter(s -> !s.isEmpty())
                     .ifPresent(name -> moveToFolder(f, name));

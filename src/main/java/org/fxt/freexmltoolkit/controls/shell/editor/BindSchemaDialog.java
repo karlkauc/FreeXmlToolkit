@@ -18,6 +18,7 @@ import javafx.stage.FileChooser;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.project.FxtProject;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /**
@@ -74,6 +75,7 @@ public class BindSchemaDialog extends Dialog<BindSchemaDialog.Request> {
      * @param scenarioNames the scenarios offered (Project Settings passes its edited list)
      */
     public BindSchemaDialog(FxtProject project, FxtProject.SchemaBinding binding, List<String> scenarioNames) {
+        DialogHelper.prepare(this);
         this.project = project;
         setTitle(I18n.t("BindSchemaDialog.bind-schema-in-project"));
         setHeaderText(I18n.t("BindSchemaDialog.validate-xml-files-of-with", project.name()));

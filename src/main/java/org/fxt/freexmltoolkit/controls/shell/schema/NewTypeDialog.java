@@ -55,7 +55,7 @@ public class NewTypeDialog extends Dialog<NewTypeDialog.NewType> {
         setHeaderText(I18n.t("NewTypeDialog.declare-a-new-top-level"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/NewTypeDialog.fxml"));
-        getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
+        DialogHelper.prepare(this);
 
         (kind == Kind.SIMPLE ? simpleKind : complexKind).setSelected(true);
         suggestedName = suggestion(kind);

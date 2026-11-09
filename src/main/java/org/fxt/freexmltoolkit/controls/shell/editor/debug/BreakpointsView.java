@@ -16,6 +16,7 @@ import javafx.scene.layout.VBox;
 import org.fxt.freexmltoolkit.debugger.Breakpoint;
 import org.fxt.freexmltoolkit.debugger.DebugSession;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Lists the session's breakpoints with Remove / Clear all; double-click jumps to the line,
@@ -226,18 +227,14 @@ public class BreakpointsView extends VBox {
 
     /** Asks for the error-code list (current text → new text, empty = all); replaceable for tests. */
     private java.util.function.Function<String, java.util.Optional<String>> errorCodesPrompt = current -> {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(current);
+        javafx.scene.control.TextInputDialog dialog = org.fxt.freexmltoolkit.util.DialogHelper.createTextInputDialog(current);
         dialog.setTitle("Break on Error Codes");
         dialog.setHeaderText("Pause only on these dynamic errors");
         dialog.setContentText("Error codes (comma-separated, XTDE* for a prefix; empty = every error):");
         if (getScene() != null && getScene().getWindow() != null) {
             dialog.initOwner(getScene().getWindow());
         }
-        try {
-            dialog.getDialogPane().getStylesheets().addAll(org.fxt.freexmltoolkit.util.DialogHelper.getThemeStylesheets());
-        } catch (RuntimeException ignored) {
-            // unthemed is fine
-        }
+        DialogHelper.prepare(dialog);
         return dialog.showAndWait();
     };
     private javafx.scene.control.MenuItem errorCodesItem;

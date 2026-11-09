@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.String?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
@@ -19,12 +18,8 @@
   info rows (the Build row is optional), the copyright line and the sponsor heart.
   "Report a problem…" is removed when error reporting is switched off.
 -->
-<VBox spacing="14" style="-fx-padding: 18 20 8 20;"
+<VBox spacing="14" styleClass="fxt-about"
       xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-    <fx:define>
-        <String fx:id="linkStyle"
-                fx:value="-fx-background-color: transparent;-fx-border-color: #d1d5db;-fx-border-radius: 6;-fx-background-radius: 6;-fx-text-fill: #1f2937;-fx-padding: 5 12 5 12;-fx-cursor: hand;"/>
-    </fx:define>
     <children>
         <HBox fx:id="header" spacing="16" alignment="CENTER_LEFT">
             <children>
@@ -32,11 +27,11 @@
                 <VBox spacing="4" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                     <children>
                         <Label text="%AboutDialog.freexmltoolkit.text"
-                               style="-fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: #1f2937;"/>
+                               styleClass="fxt-about-title"/>
                         <Label text="%AboutDialog.universal-toolkit-for-xml-xsd.text" wrapText="true"
-                               style="-fx-font-size: 12.5px; -fx-text-fill: #6b7280;"/>
+                               styleClass="fxt-about-subtitle"/>
                         <Label fx:id="versionPill"
-                               style="-fx-background-color: #e7f3ff;-fx-text-fill: #0b5ed7;-fx-font-weight: 600;-fx-font-size: 12px;-fx-padding: 3 10 3 10;-fx-background-radius: 12;"/>
+                               styleClass="fxt-about-version"/>
                     </children>
                 </VBox>
             </children>
@@ -45,7 +40,7 @@
         <Separator/>
 
         <GridPane fx:id="info" hgap="14" vgap="6"
-                  style="-fx-background-color: #f9fafb;-fx-background-radius: 8;-fx-border-color: #e5e7eb;-fx-border-radius: 8;-fx-padding: 12;">
+                  styleClass="fxt-about-info">
             <columnConstraints>
                 <ColumnConstraints minWidth="120" halignment="LEFT"/>
                 <ColumnConstraints hgrow="ALWAYS"/>
@@ -54,34 +49,34 @@
 
         <VBox spacing="2">
             <children>
-                <Label fx:id="copyright" style="-fx-font-size: 11.5px; -fx-text-fill: #6b7280;"/>
+                <Label fx:id="copyright" styleClass="fxt-about-subtitle"/>
                 <Hyperlink text="%AboutDialog.licensed-under-the-apache-license.text"
-                           style="-fx-padding: 0; -fx-text-fill: #0b5ed7;" onAction="#onLicense"/>
+                           styleClass="fxt-about-license" onAction="#onLicense"/>
             </children>
         </VBox>
 
         <HBox fx:id="links" spacing="8" alignment="CENTER_LEFT">
             <children>
-                <Button text="%AboutDialog.github.text" style="$linkStyle" onAction="#onGitHub">
+                <Button text="%AboutDialog.github.text" styleClass="fxt-about-link" onAction="#onGitHub">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-github"/>
                     </graphic>
                 </Button>
                 <!-- The sponsor heart keeps its own colour; AboutDialog sets the graphic. -->
-                <Button fx:id="sponsorButton" id="about-sponsor" text="%AboutDialog.sponsorButton.text" style="$linkStyle"
+                <Button fx:id="sponsorButton" id="about-sponsor" text="%AboutDialog.sponsorButton.text" styleClass="fxt-about-link"
                         onAction="#onSponsor"/>
-                <Button text="%AboutDialog.documentation.text" style="$linkStyle" onAction="#onDocs">
+                <Button text="%AboutDialog.documentation.text" styleClass="fxt-about-link" onAction="#onDocs">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-book"/>
                     </graphic>
                 </Button>
-                <Button text="%AboutDialog.report-an-issue.text" style="$linkStyle" onAction="#onIssues">
+                <Button text="%AboutDialog.report-an-issue.text" styleClass="fxt-about-link" onAction="#onIssues">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-bug"/>
                     </graphic>
                 </Button>
                 <!-- Anonymous, in-app problem report (no GitHub account needed) -->
-                <Button fx:id="reportButton" text="%AboutDialog.reportButton.text" style="$linkStyle"
+                <Button fx:id="reportButton" text="%AboutDialog.reportButton.text" styleClass="fxt-about-link"
                         onAction="#onReportProblem">
                     <graphic>
                         <IconifyIcon iconLiteral="bi-send"/>

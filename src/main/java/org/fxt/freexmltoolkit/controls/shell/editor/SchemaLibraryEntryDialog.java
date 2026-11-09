@@ -56,7 +56,7 @@ public class SchemaLibraryEntryDialog extends Dialog<SchemaLibraryEntry> {
         setHeaderText(editing == null
                 ? "Map a namespace (or JSON $schema URI) to a local schema file or URL."
                 : "Change the mapping for " + (editing.namespace().isEmpty() ? editing.rootElement() : editing.namespace()));
-        getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
+        DialogHelper.prepare(this);
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/SchemaLibraryEntryDialog.fxml"));

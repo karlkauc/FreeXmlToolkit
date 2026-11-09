@@ -14,6 +14,7 @@ import javafx.stage.FileChooser;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /** Asks for the base, left and right file of a three-way merge and an optional result file. */
@@ -35,6 +36,7 @@ public class MergeFilesDialog extends Dialog<MergeFilesDialog.Request> {
 
     /** @param left the left file to start with (the active document), or {@code null} */
     public MergeFilesDialog(Path left) {
+        DialogHelper.prepare(this);
         setTitle(I18n.t("MergeFilesDialog.merge-files"));
         setHeaderText(I18n.t("MergeFilesDialog.merge-two-changed-versions-of"));
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);

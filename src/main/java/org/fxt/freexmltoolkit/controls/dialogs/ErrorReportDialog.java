@@ -90,7 +90,7 @@ public final class ErrorReportDialog {
     public static Dialog<ButtonType> build(Window owner, Throwable error) {
         TelemetryService telemetry = Telemetry.get();
 
-        Dialog<ButtonType> dialog = new Dialog<>();
+        Dialog<ButtonType> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle("Send Error Report");
         if (owner != null) {
             dialog.initOwner(owner);
@@ -101,7 +101,7 @@ public final class ErrorReportDialog {
         dialog.setResizable(true);
 
         DialogPane pane = dialog.getDialogPane();
-        pane.getStylesheets().addAll(DialogHelper.getThemeStylesheets());
+        
         pane.setHeaderText(I18n.t("ErrorReportDialog.help-us-fix-this-problem"));
         IconifyIcon headerIcon = new IconifyIcon("bi-bug");
         headerIcon.setIconSize(32);

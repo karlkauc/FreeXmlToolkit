@@ -40,11 +40,7 @@ public final class MatchExplanationDialog extends Dialog<Void> {
         setGraphic(icon);
         getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/MatchExplanationDialog.fxml"));
-        try {
-            getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
-        } catch (RuntimeException ignored) {
-            // unthemed is fine
-        }
+        DialogHelper.prepare(this);
         setResizable(true);
         long matching = lines.stream().filter(l -> l.status() == MatchExplanation.Status.WINS
                 || l.status() == MatchExplanation.Status.LOSES).count();

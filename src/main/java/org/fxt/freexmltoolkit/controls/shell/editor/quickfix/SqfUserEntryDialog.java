@@ -16,6 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 
 import org.fxt.freexmltoolkit.service.sqf.SqfModel.SqfUserEntry;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Prompts the user for the {@code sqf:user-entry} values a quick fix needs:
@@ -37,7 +38,7 @@ public final class SqfUserEntryDialog {
      */
     public static Optional<Map<String, String>> prompt(String fixTitle, List<SqfUserEntry> entries,
                                                        Map<String, String> defaults) {
-        Dialog<Map<String, String>> dialog = new Dialog<>();
+        Dialog<Map<String, String>> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle("Quick Fix");
         dialog.setHeaderText(fixTitle);
         dialog.setGraphic(QuickFixIcons.lightbulb(24));

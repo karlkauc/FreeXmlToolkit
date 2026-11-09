@@ -68,7 +68,7 @@ public final class SchemaReferenceDialog extends Dialog<SchemaReferenceDialog.An
         });
         getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         getDialogPane().setContent(FxmlViews.loadContent(this, "/pages/dialogs/SchemaReferenceDialog.fxml"));
-        getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
+        DialogHelper.prepare(this);
         boolean isImport = kind == Kind.IMPORT;
         namespaceLabel.setVisible(isImport);
         namespaceLabel.setManaged(isImport);

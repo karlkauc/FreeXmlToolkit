@@ -551,9 +551,9 @@ public class QueryConsole extends Region {
             setResultsText("Enter a query to save.");
             return;
         }
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Save Snippet");
-        dialog.setHeaderText(null);
+        dialog.setHeaderText(dialog.getTitle());
         dialog.setContentText("Snippet name:");
         dialog.showAndWait().ifPresent(name -> {
             if (name.isBlank()) {
@@ -605,9 +605,9 @@ public class QueryConsole extends Region {
 
     /** Prompts for a new name (prefilled with the current one) and renames the snippet file. */
     private void renameSnippet(File file, boolean xquery) {
-        TextInputDialog dialog = new TextInputDialog(snippetDisplayName(file, xquery));
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(snippetDisplayName(file, xquery));
         dialog.setTitle("Rename Snippet");
-        dialog.setHeaderText(null);
+        dialog.setHeaderText(dialog.getTitle());
         dialog.setContentText("New name:");
         dialog.showAndWait().ifPresent(name -> {
             if (!name.isBlank()) {

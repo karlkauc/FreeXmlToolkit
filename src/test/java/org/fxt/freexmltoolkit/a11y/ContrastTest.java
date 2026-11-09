@@ -31,6 +31,8 @@ class ContrastTest {
             {"on-primary", "primary-fill"},
             {"warning-text", "bg-surface"}, {"warning-text", "bg-canvas"},
             {"danger", "bg-surface"}, {"success-text", "success-bg"}, {"type-frame-fg", "type-frame-bg"},
+            // Dialogs: button bar, sections and info boxes sit on surface-2
+            {"text-primary", "bg-surface-2"}, {"primary-text", "bg-surface-2"}, {"success-text", "bg-surface-2"},
     };
 
     @Test

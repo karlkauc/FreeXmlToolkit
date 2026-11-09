@@ -50,7 +50,7 @@
             </children>
         </HBox>
         <Label fx:id="rootNameError" id="convert-root-name-error" wrapText="true" visible="false" managed="false"
-               style="-fx-text-fill: #e03131;"/>
+               styleClass="fxt-dialog-error"/>
         <Label fx:id="noOptions" text="%DataConversionDialog.noOptions.text" opacity="0.75" visible="false"
                managed="false"/>
     </children>

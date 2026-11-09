@@ -27,6 +27,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSequence;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Manages tabs for the Type Editor.
@@ -144,7 +145,7 @@ public class TypeEditorTabManager {
      * Prompts the user for a type name and validates uniqueness.
      */
     public void createNewComplexType() {
-        TextInputDialog dialog = new TextInputDialog("NewComplexType");
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("NewComplexType");
         dialog.setTitle("Create New Complex Type");
         dialog.setHeaderText("Create New ComplexType");
         dialog.setContentText("Please enter a name for the new ComplexType:");
@@ -179,7 +180,7 @@ public class TypeEditorTabManager {
      * Prompts the user for a type name and validates uniqueness.
      */
     public void createNewSimpleType() {
-        TextInputDialog dialog = new TextInputDialog("NewSimpleType");
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("NewSimpleType");
         dialog.setTitle("Create New Simple Type");
         dialog.setHeaderText("Create New SimpleType");
         dialog.setContentText("Please enter a name for the new SimpleType:");
@@ -505,7 +506,7 @@ public class TypeEditorTabManager {
      * @return the entered name, or null if cancelled
      */
     private String promptForTypeName(String defaultName) {
-        TextInputDialog dialog = new TextInputDialog(defaultName);
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(defaultName);
         dialog.setTitle("New SimpleType");
         dialog.setHeaderText("Create New SimpleType");
         dialog.setContentText("Please enter a name for the new SimpleType:");

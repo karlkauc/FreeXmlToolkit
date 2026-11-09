@@ -1260,7 +1260,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
     /** Asks for the filter expression of a container row (empty removes the filter). */
     private void editFilter(FlatRow row) {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog(
+        javafx.scene.control.TextInputDialog dialog = org.fxt.freexmltoolkit.util.DialogHelper.createTextInputDialog(
                 viewState.filter(keyOf(row)) != null ? viewState.filter(keyOf(row)) : "");
         dialog.setTitle("Filter");
         dialog.setHeaderText("XQuery filter on <" + row.getLabel() + ">\n"

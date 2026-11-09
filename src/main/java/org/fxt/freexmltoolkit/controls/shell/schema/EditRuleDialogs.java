@@ -54,7 +54,7 @@ public final class EditRuleDialogs {
         if (confirmer != null) {
             return confirmer.test(title, check);
         }
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert alert = DialogHelper.createAlert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
         alert.setHeaderText(I18n.t("EditRuleDialogs.this-change-would-make-the"));
         alert.setContentText(check.reason());
@@ -80,7 +80,7 @@ public final class EditRuleDialogs {
         if (confirmer != null) {
             return confirmer.test(title, EditCheck.replaceable(message, okLabel));
         }
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert alert = DialogHelper.createAlert(Alert.AlertType.CONFIRMATION);
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(message);
@@ -106,7 +106,7 @@ public final class EditRuleDialogs {
         if (Boolean.getBoolean("fxt.suppressErrorDialogs")) {
             return;
         }
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Alert alert = DialogHelper.createAlert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(I18n.t("EditRuleDialogs.this-change-is-not-valid"));
         alert.setContentText(check.reason());
@@ -135,7 +135,7 @@ public final class EditRuleDialogs {
         if (owner != null) {
             alert.initOwner(owner);
         }
-        alert.getDialogPane().getStylesheets().addAll(DialogHelper.getThemeStylesheets());
+        DialogHelper.prepare(alert);
         alert.getDialogPane().setMinWidth(460);
     }
 }

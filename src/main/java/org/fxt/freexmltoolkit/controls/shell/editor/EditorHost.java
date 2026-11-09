@@ -1590,7 +1590,7 @@ public class EditorHost extends BorderPane {
 
     /** Prompts for a URL and opens its fetched content as a new document (Welcome "From URL"). */
     public void openFromUrl() {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+        javafx.scene.control.TextInputDialog dialog = org.fxt.freexmltoolkit.util.DialogHelper.createTextInputDialog("");
         dialog.setTitle("Open from URL");
         dialog.setHeaderText("Fetch and open a document from a URL");
         dialog.setContentText("URL:");

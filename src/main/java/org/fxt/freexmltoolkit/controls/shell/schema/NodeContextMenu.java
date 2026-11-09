@@ -19,6 +19,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdElement;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdNode;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Builds the shared XSD node-editing context menu (New Complex/Simple Type on the schema,
@@ -126,7 +127,7 @@ public final class NodeContextMenu {
     }
 
     private static void promptComment(NodeEditActions actions, XsdNode node) {
-        TextInputDialog dialog = new TextInputDialog("comment");
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("comment");
         dialog.setTitle("Add Comment");
         dialog.setHeaderText("Comment text:");
         dialog.showAndWait().ifPresent(text -> {
@@ -138,7 +139,7 @@ public final class NodeContextMenu {
 
     private static void promptName(BiConsumer<XsdNode, String> action, XsdNode node,
                                    String title, String defaultName) {
-        TextInputDialog dialog = new TextInputDialog(defaultName);
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(defaultName);
         dialog.setTitle(title);
         dialog.setHeaderText("Name:");
         dialog.showAndWait().ifPresent(name -> {
@@ -162,7 +163,7 @@ public final class NodeContextMenu {
     }
 
     private static void promptRename(NodeEditActions actions, XsdNode node) {
-        TextInputDialog dialog = new TextInputDialog(node.getName() != null ? node.getName() : "");
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(node.getName() != null ? node.getName() : "");
         dialog.setTitle("Rename");
         dialog.setHeaderText("New name:");
         dialog.showAndWait().ifPresent(name -> {
@@ -174,7 +175,7 @@ public final class NodeContextMenu {
 
     private static void promptCardinality(NodeEditActions actions, XsdNode node) {
         String current = node.getMinOccurs() + ".." + (node.getMaxOccurs() < 0 ? "*" : node.getMaxOccurs());
-        TextInputDialog dialog = new TextInputDialog(current);
+        TextInputDialog dialog = DialogHelper.createTextInputDialog(current);
         dialog.setTitle("Change Cardinality");
         dialog.setHeaderText("Cardinality as min..max (use * for unbounded):");
         dialog.showAndWait().ifPresent(text -> {

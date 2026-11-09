@@ -16,6 +16,7 @@ import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.DataFormatConverter.Format;
 import org.fxt.freexmltoolkit.service.DataFormatConverter.Mapping;
 import org.fxt.freexmltoolkit.service.DataFormatConverter.Options;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Asks for the mapping and options of a conversion between XML and JSON or YAML
@@ -43,6 +44,7 @@ public class DataConversionDialog extends Dialog<Options> {
      * @param initial the options to start from
      */
     public DataConversionDialog(Format source, Format target, Options initial) {
+        DialogHelper.prepare(this);
         this.target = target;
         boolean toJson = target != Format.XML;   // JSON or YAML: the XML → JSON mapping
         setTitle(I18n.t("DataConversionDialog.convert-to", target.label()));

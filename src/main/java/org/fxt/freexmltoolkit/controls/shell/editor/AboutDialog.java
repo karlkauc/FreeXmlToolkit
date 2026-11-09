@@ -31,6 +31,7 @@ import org.fxt.freexmltoolkit.domain.UpdateInfo;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.UpdateCheckService;
 import org.fxt.freexmltoolkit.service.telemetry.SessionMarker;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.ProjectLinks;
 import org.fxt.freexmltoolkit.util.VersionUtil;
 
@@ -57,7 +58,7 @@ public final class AboutDialog {
         final String version = VersionUtil.getVersion();
         final String buildTs = VersionUtil.getBuildTimestampFormatted();
 
-        Dialog<Void> dialog = new Dialog<>();
+        Dialog<Void> dialog = DialogHelper.createDialog(null, null, null);
         dialog.setTitle("About FreeXmlToolkit");
         dialog.initModality(Modality.APPLICATION_MODAL);
         if (owner != null) {
@@ -65,8 +66,6 @@ public final class AboutDialog {
         }
 
         DialogPane dialogPane = dialog.getDialogPane();
-        dialogPane.getStylesheets().add(Objects.requireNonNull(
-                AboutDialog.class.getResource("/css/dialog-theme.css")).toExternalForm());
         dialogPane.setPrefWidth(560);
 
         // Set the window icon once the dialog is showing (the Scene/Window does not
@@ -182,12 +181,11 @@ public final class AboutDialog {
         build(owner).showAndWait();
     }
 
-    // Ported verbatim from MainController.addInfoRow.
     private static void addInfoRow(GridPane grid, int row, String key, String value) {
         Label k = new Label(key);
-        k.setStyle("-fx-text-fill: #6b7280; -fx-font-size: 11.5px; -fx-font-weight: 600;");
+        k.getStyleClass().add("fxt-about-key");
         Label v = new Label(value);
-        v.setStyle("-fx-text-fill: #1f2937; -fx-font-size: 12.5px;");
+        v.getStyleClass().add("fxt-about-value");
         v.setWrapText(true);
         grid.add(k, 0, row);
         grid.add(v, 1, row);

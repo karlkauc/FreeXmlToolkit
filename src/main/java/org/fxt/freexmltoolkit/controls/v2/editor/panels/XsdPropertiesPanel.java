@@ -62,6 +62,7 @@ import org.fxt.freexmltoolkit.controls.v2.model.XsdSchema;
 import org.fxt.freexmltoolkit.controls.v2.model.XsdSimpleType;
 import org.fxt.freexmltoolkit.controls.v2.view.XsdNodeRenderer.VisualNode;
 import org.fxt.freexmltoolkit.i18n.I18n;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Properties panel for editing XSD node properties.
@@ -1273,7 +1274,7 @@ public class XsdPropertiesPanel extends BorderPane {
         }
 
         // Show input dialog for pattern
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add Pattern");
         dialog.setHeaderText("Add Regex Pattern Constraint");
         dialog.setContentText("Enter regex pattern:");
@@ -1311,7 +1312,7 @@ public class XsdPropertiesPanel extends BorderPane {
         }
 
         // Show input dialog for enumeration value
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add Enumeration");
         dialog.setHeaderText("Add Enumeration Value");
         dialog.setContentText("Enter value:");
@@ -1349,7 +1350,7 @@ public class XsdPropertiesPanel extends BorderPane {
         }
 
         // Show input dialog for assertion XPath expression
-        TextInputDialog dialog = new TextInputDialog();
+        TextInputDialog dialog = DialogHelper.createTextInputDialog("");
         dialog.setTitle("Add Assertion");
         dialog.setHeaderText("Add XSD 1.1 Assertion");
         dialog.setContentText("Enter XPath expression:");

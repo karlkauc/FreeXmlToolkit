@@ -31,7 +31,7 @@
             </graphic>
         </Button>
         <Label fx:id="errorLabel" id="schema-reference-error" wrapText="true" maxWidth="480" visible="false"
-               managed="false" style="-fx-text-fill: #e03131;" GridPane.rowIndex="2" GridPane.columnIndex="0"
+               managed="false" styleClass="fxt-dialog-error" GridPane.rowIndex="2" GridPane.columnIndex="0"
                GridPane.columnSpan="3"/>
     </children>
 </GridPane>
