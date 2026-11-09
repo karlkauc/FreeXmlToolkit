@@ -8,6 +8,8 @@
     f:is-valid-isin($isin)        format and check digit (ISO 6166, Luhn over the letter values)
 
   Templates (tested in 02-xslt-templates.xspec):
+    /          -> <position-report> with one <fund> per Fund (a direct transformation of a
+                  FundsXML file gives this report)
     Positions  -> <lines count="…"> with one <line> per position
     Position   -> <line isin="…" weight="…" class="…">amount</line>
 -->
@@ -52,6 +54,19 @@
                                else $reversed[$i])
                 return $sum mod 10 = 0"/>
     </xsl:function>
+
+    <!-- The whole document: one entry per fund with its positions. Without this rule XSLT's
+         built-in rules would copy the text of every other element into the result. -->
+    <xsl:template match="/">
+        <position-report>
+            <xsl:for-each select="//Funds/Fund">
+                <fund id="{(Identifiers/ISIN, Identifiers/LEI, Identifiers/*)[1]}" currency="{Currency}">
+                    <name><xsl:value-of select="normalize-space((Names/OfficialName, Names/ShortName)[1])"/></name>
+                    <xsl:apply-templates select=".//Portfolios/Portfolio/Positions"/>
+                </fund>
+            </xsl:for-each>
+        </position-report>
+    </xsl:template>
 
     <xsl:template match="Positions">
         <lines count="{count(Position)}">

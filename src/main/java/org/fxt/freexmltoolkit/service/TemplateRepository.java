@@ -278,6 +278,9 @@ public class TemplateRepository {
 
         // Transformation Templates
         addTransformationTemplates();
+
+        // Test Templates (XSpec)
+        addXSpecTemplates();
     }
 
     private void addBasicXmlTemplates() {
@@ -805,6 +808,124 @@ public class TemplateRepository {
         xsltTemplate.setBuiltIn(true);
         addTemplate(xsltTemplate);
     }
+
+    /** XSpec test skeletons for XSLT, XQuery and Schematron (New File, type XML, saved as .xspec). */
+    private void addXSpecTemplates() {
+        XmlTemplate xslt = new XmlTemplate("XSpec test (XSLT)",
+                XSLT_SPEC, "Testing");
+        xslt.setDescription("XSpec tests for an XSLT stylesheet: a template-rule scenario and a function example");
+        xslt.addParameter(TemplateParameter.stringParam("stylesheet", "my-stylesheet.xsl"));
+        xslt.addParameter(TemplateParameter.stringParam("scenarioLabel", "an item"));
+        addXSpecTemplate(xslt);
+
+        XmlTemplate xquery = new XmlTemplate("XSpec test (XQuery)",
+                XQUERY_SPEC, "Testing");
+        xquery.setDescription("XSpec tests for an XQuery library module");
+        xquery.addParameter(TemplateParameter.stringParam("moduleNamespace", "urn:my-module"));
+        xquery.addParameter(TemplateParameter.stringParam("moduleLocation", "my-module.xqm"));
+        xquery.addParameter(TemplateParameter.stringParam("functionName", "my-function"));
+        xquery.addParameter(TemplateParameter.stringParam("scenarioLabel", "my-function of 1"));
+        addXSpecTemplate(xquery);
+
+        XmlTemplate schematron = new XmlTemplate("XSpec test (Schematron)",
+                SCHEMATRON_SPEC, "Testing");
+        schematron.setDescription("XSpec tests for a Schematron: an assert that fires, one that holds, expect-valid");
+        schematron.addParameter(TemplateParameter.stringParam("schematron", "my-rules.sch"));
+        schematron.addParameter(TemplateParameter.stringParam("assertId", "item-qty"));
+        addXSpecTemplate(schematron);
+    }
+
+    private void addXSpecTemplate(XmlTemplate template) {
+        template.setFileExtensions(java.util.Set.of("xspec"));
+        template.addRelatedStandard("XSpec 3");
+        template.setTags(java.util.List.of("xspec", "test", "unit test"));
+        template.setComplexity(XmlTemplate.TemplateComplexity.SIMPLE);
+        template.setBuiltIn(true);
+        addTemplate(template);
+    }
+
+    private static final String XSLT_SPEC =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<!--\n" +
+                "  XSpec tests for an XSLT stylesheet. Save this file as name.xspec next to the stylesheet,\n" +
+                "  then Tools > Run XSpec Tests. More examples: the examples/xspec folder of the installation.\n" +
+                "-->\n" +
+                "<x:description xmlns:x=\"http://www.jenitennison.com/xslt/xspec\"\n" +
+                "               xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"\n" +
+                "               stylesheet=\"${stylesheet}\">\n" +
+                "\n" +
+                "    <!-- A template rule: the stylesheet is applied to the context node -->\n" +
+                "    <x:scenario label=\"${scenarioLabel}\">\n" +
+                "        <x:context>\n" +
+                "            <item id=\"1\">example</item>\n" +
+                "        </x:context>\n" +
+                "        <!-- '...' matches any content; a comment inside x:expect would be expected too -->\n" +
+                "        <x:expect label=\"produces the expected element\">\n" +
+                "            <result>...</result>\n" +
+                "        </x:expect>\n" +
+                "    </x:scenario>\n" +
+                "\n" +
+                "    <!-- A function: declare its namespace on x:description, e.g. xmlns:f=\"urn:my-functions\"\n" +
+                "    <x:scenario label=\"f:double of 2\">\n" +
+                "        <x:call function=\"f:double\">\n" +
+                "            <x:param select=\"2\"/>\n" +
+                "        </x:call>\n" +
+                "        <x:expect label=\"is 4\" select=\"4\"/>\n" +
+                "    </x:scenario>\n" +
+                "    -->\n" +
+                "\n" +
+                "</x:description>";
+
+    private static final String XQUERY_SPEC =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<!--\n" +
+                "  XSpec tests for an XQuery library module. Save this file as name.xspec next to the module,\n" +
+                "  then Tools > Run XSpec Tests. More examples: the examples/xspec folder of the installation.\n" +
+                "-->\n" +
+                "<x:description xmlns:x=\"http://www.jenitennison.com/xslt/xspec\"\n" +
+                "               xmlns:m=\"${moduleNamespace}\"\n" +
+                "               query=\"${moduleNamespace}\"\n" +
+                "               query-at=\"${moduleLocation}\">\n" +
+                "\n" +
+                "    <x:scenario label=\"${scenarioLabel}\">\n" +
+                "        <x:call function=\"m:${functionName}\">\n" +
+                "            <x:param select=\"1\"/>\n" +
+                "        </x:call>\n" +
+                "        <x:expect label=\"returns the expected value\" select=\"1\"/>\n" +
+                "    </x:scenario>\n" +
+                "\n" +
+                "    <!-- A document as parameter (relative to this file):\n" +
+                "        <x:param href=\"data/input.xml\" select=\"/root\"/>\n" +
+                "    -->\n" +
+                "\n" +
+                "</x:description>";
+
+    private static final String SCHEMATRON_SPEC =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<!--\n" +
+                "  XSpec tests for a Schematron. Save this file as name.xspec next to the Schematron, then\n" +
+                "  Tools > Run XSpec Tests. Give each assert and report an id to refer to it here.\n" +
+                "  More examples: the examples/xspec folder of the installation.\n" +
+                "-->\n" +
+                "<x:description xmlns:x=\"http://www.jenitennison.com/xslt/xspec\"\n" +
+                "               schematron=\"${schematron}\">\n" +
+                "\n" +
+                "    <x:scenario label=\"an invalid document\">\n" +
+                "        <x:context>\n" +
+                "            <order><item/></order>\n" +
+                "        </x:context>\n" +
+                "        <x:expect-assert id=\"${assertId}\" label=\"is reported\"/>\n" +
+                "    </x:scenario>\n" +
+                "\n" +
+                "    <x:scenario label=\"a valid document\">\n" +
+                "        <x:context>\n" +
+                "            <order><item qty=\"1\"/></order>\n" +
+                "        </x:context>\n" +
+                "        <x:expect-not-assert id=\"${assertId}\" label=\"passes\"/>\n" +
+                "        <x:expect-valid label=\"has no errors\"/>\n" +
+                "    </x:scenario>\n" +
+                "\n" +
+                "</x:description>";
 
     // ========== Search Index Management ==========
 

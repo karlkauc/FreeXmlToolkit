@@ -66,6 +66,18 @@
         <x:expect label="three of them are core positions" test="count($x:result//line[@class = 'core']) = 3"/>
     </x:scenario>
 
+    <x:scenario label="the whole bundled equity fund document">
+        <x:context href="../xml/FundsXML4_Equity_Fund.xml"/>
+        <x:expect label="one fund with its 27 positions">
+            <position-report>
+                <fund id="HU0000704200" currency="HUF">
+                    <name>...</name>
+                    <lines count="27">...</lines>
+                </fund>
+            </position-report>
+        </x:expect>
+    </x:scenario>
+
     <x:scenario label="positions in a foreign currency" pending="currency conversion is not implemented yet">
         <x:context>
             <Position>

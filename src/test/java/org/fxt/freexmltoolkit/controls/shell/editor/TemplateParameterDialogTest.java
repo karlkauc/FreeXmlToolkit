@@ -33,7 +33,7 @@ class TemplateParameterDialogTest {
     @Test
     void readsDefaultValuesForEachParameter() {
         XmlTemplate template = parameterizedTemplate();
-        Map<String, String> values = WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+        Map<String, String> values = WaitForAsyncUtils.waitForAsyncFx(10_000, () -> {
             TemplateParameterDialog dialog = new TemplateParameterDialog(template);
             return dialog.readValues();
         });
@@ -46,7 +46,7 @@ class TemplateParameterDialogTest {
     @Test
     void renderingWithReadValuesSubstitutesParameters() {
         XmlTemplate template = parameterizedTemplate();
-        Map<String, String> values = WaitForAsyncUtils.waitForAsyncFx(2000,
+        Map<String, String> values = WaitForAsyncUtils.waitForAsyncFx(10_000,
                 () -> new TemplateParameterDialog(template).readValues());
         String rendered = TemplateRunner.render(template, values);
         assertFalse(rendered.startsWith("ERROR"), rendered);

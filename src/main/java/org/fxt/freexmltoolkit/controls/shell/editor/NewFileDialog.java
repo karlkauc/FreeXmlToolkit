@@ -112,7 +112,10 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
             updateEnablement();
             updateSaveExtension();
         });
-        templateBox.valueProperty().addListener((obs, o, n) -> updateEnablement());
+        templateBox.valueProperty().addListener((obs, o, n) -> {
+            updateEnablement();
+            updateSaveExtension();
+        });
         schemaFile.addListener((obs, o, n) -> updateEnablement());
 
         refreshTemplates();
@@ -129,8 +132,7 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         File schema = xmlNoTemplate ? schemaFile.get() : null;
         boolean mandatory = schema != null && generateMandatory.isSelected();
         String loc = saveLocation.getText();
-        File save = (loc == null || loc.isBlank()) ? null
-                : type.withDefaultExtension(new File(loc.trim()).toPath()).toFile();
+        File save = (loc == null || loc.isBlank()) ? null : withExtension(new File(loc.trim()));
         return new Result(type, template, schema, mandatory, save);
     }
 
@@ -160,8 +162,30 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
 
     private void updateSaveExtension() {
         // Adjust the prompt only; the actual extension is enforced via the file chooser.
-        EditorFileType type = typeBox.getValue();
-        saveLocation.setPromptText("(optional) ." + type.primaryExtension() + " — empty = untitled");
+        saveLocation.setPromptText("(optional) ." + defaultExtension() + " — empty = untitled");
+    }
+
+    /**
+     * @return the extension a new file gets: the template's when it names exactly one (an XSpec
+     *         template: {@code xspec}), else the type's
+     */
+    String defaultExtension() {
+        XmlTemplate template = templateBox.getValue();
+        if (template != null && template.getFileExtensions() != null && template.getFileExtensions().size() == 1) {
+            return template.getFileExtensions().iterator().next().replace(".", "").toLowerCase(Locale.ROOT);
+        }
+        return typeBox.getValue().primaryExtension();
+    }
+
+    /** @return {@code file} with the default extension when it has none */
+    private File withExtension(File file) {
+        String name = file.getName();
+        int dot = name.lastIndexOf('.');
+        if (dot > 0 && dot < name.length() - 1) {
+            return file;
+        }
+        String base = dot == name.length() - 1 ? name.substring(0, dot) : name;
+        return new File(file.getParentFile(), base + "." + defaultExtension());
     }
 
     @FXML
@@ -186,13 +210,13 @@ public class NewFileDialog extends Dialog<NewFileDialog.Result> {
         EditorFileType type = typeBox.getValue();
         FileChooser chooser = new FileChooser();
         chooser.setTitle(I18n.t("NewFileDialog.save-new-file-as"));
-        String ext = type.primaryExtension();
+        String ext = defaultExtension();
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter(type.label() + " files", "*." + ext));
         chooser.setInitialFileName("untitled." + ext);
         File file = org.fxt.freexmltoolkit.util.FileChooserHelper.showSaveDialog(chooser, getOwnerWindow());
         if (file != null) {
-            saveLocation.setText(type.withDefaultExtension(file.toPath()).toString());
+            saveLocation.setText(withExtension(file).toString());
         }
     }
 
