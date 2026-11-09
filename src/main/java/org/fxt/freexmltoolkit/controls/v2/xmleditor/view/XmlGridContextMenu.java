@@ -441,6 +441,11 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
         contextMenu.hide();
     }
 
+    /** @return whether the menu is showing (for tests) */
+    boolean isShowing() {
+        return contextMenu.isShowing();
+    }
+
     private void updateMenuState(XmlNode node) {
         boolean hasSelection = node != null;
         boolean isElement = node instanceof XmlElement;

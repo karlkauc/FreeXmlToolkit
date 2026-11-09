@@ -1352,6 +1352,17 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         canvas.setOnMouseDragged(this::handleMouseDragged);
         canvas.setOnMouseReleased(this::handleMouseReleased);
 
+        // A press anywhere in the window closes an open context menu (presses inside the menu
+        // never reach the scene: the popup is a window of its own)
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (oldScene != null) {
+                oldScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, hideContextMenuFilter);
+            }
+            if (newScene != null) {
+                newScene.addEventFilter(MouseEvent.MOUSE_PRESSED, hideContextMenuFilter);
+            }
+        });
+
         // Setup keyboard shortcuts for zoom, properties toggle, and node operations
         this.setOnKeyPressed(event -> {
             if (event.isControlDown()) {
@@ -1513,6 +1524,29 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         }
     }
 
+    /** The context menu shown last, hidden by any press in the window. */
+    private ContextMenu openContextMenu;
+
+    private final javafx.event.EventHandler<MouseEvent> hideContextMenuFilter = e -> hideContextMenu();
+
+    /** Hides the open context menu, if any. */
+    void hideContextMenu() {
+        if (openContextMenu != null) {
+            openContextMenu.hide();
+            openContextMenu = null;
+        }
+    }
+
+    /** @return the diagram canvas (for tests that fire mouse events at it) */
+    javafx.scene.canvas.Canvas canvasForTest() {
+        return canvas;
+    }
+
+    /** @return the context menu shown last while it is still open (for tests) */
+    ContextMenu openContextMenuForTest() {
+        return openContextMenu != null && openContextMenu.isShowing() ? openContextMenu : null;
+    }
+
     /**
      * Handles right-click context menu.
      */
@@ -1534,7 +1568,9 @@ public class XsdGraphView extends BorderPane implements PropertyChangeListener,
         }
 
         // Create and show context menu
+        hideContextMenu();
         ContextMenu contextMenu = contextMenuFactory.createContextMenu(clickedNode);
+        openContextMenu = contextMenu;
         contextMenu.show(canvas, event.getScreenX(), event.getScreenY());
 
         logger.debug("Context menu shown for node: {}", clickedNode != null ? clickedNode.getLabel() : "empty canvas");

@@ -1745,6 +1745,36 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
 
         // Column resizing, column-header moves and node-drag candidates
         drags.installMouseHandlers();
+
+        // A press anywhere else in the window ends an inline edit and closes the menus
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (oldScene != null) {
+                oldScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, clickAwayFilter);
+            }
+            if (newScene != null) {
+                newScene.addEventFilter(MouseEvent.MOUSE_PRESSED, clickAwayFilter);
+            }
+        });
+    }
+
+    /**
+     * Scene-wide press filter: a press outside the inline editor commits the edit (as Enter
+     * does), and any press in the window hides the context menu and the type menu. Presses
+     * inside those popups (or a widget's drop-down) never reach it — popups are windows of their
+     * own. The press is not consumed, so it still selects, opens the next edit or a new menu.
+     */
+    private final javafx.event.EventHandler<MouseEvent> clickAwayFilter = this::handleClickAway;
+
+    void handleClickAway(MouseEvent event) {
+        if (contextMenu != null) {
+            contextMenu.hide();
+        }
+        if (typeMenu != null) {
+            typeMenu.hide();
+        }
+        if (editor.isEditing() && event.getTarget() instanceof javafx.scene.Node target) {
+            editor.commitIfOutside(target);
+        }
     }
 
     // ==================== Mouse Handling ====================

@@ -269,6 +269,28 @@ final class GridInlineEditor<N> {
         editField.selectAll();
     }
 
+    /** @return {@code true} while a text field or type-aware widget is open */
+    boolean isEditing() {
+        return editField != null || activeWidgetNode != null;
+    }
+
+    /**
+     * Commits the open edit unless {@code target} lies inside the editor (a press in the field
+     * itself keeps editing). A rejected value keeps the editor open, as on Enter.
+     */
+    void commitIfOutside(Node target) {
+        Node editorNode = editField != null ? editField : activeWidgetNode;
+        if (editorNode == null) {
+            return;
+        }
+        for (Node n = target; n != null; n = n.getParent()) {
+            if (n == editorNode) {
+                return;
+            }
+        }
+        commitEditing();
+    }
+
     private void commitEditing() {
         if (isCommitting) {
             return;

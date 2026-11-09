@@ -116,7 +116,8 @@ shows the editable grid, laid out as follows:
   follows the declared type: a **dropdown** for enumerations (elements and attributes, in tree rows,
   table columns and opened cells), date pickers, number spinners, length/pattern checks - also comments, CDATA sections
   and processing instructions; double-click the name of an attribute or a processing
-  instruction to rename it. **Click the type icon** of a row (or press **Ctrl+Alt+T**) to
+  instruction to rename it. **Enter** or a click anywhere else keeps the new value, **Esc**
+  discards it. A context menu closes as soon as you click somewhere else. **Click the type icon** of a row (or press **Ctrl+Alt+T**) to
   change the node's type - element, attribute, text, CDATA, comment or processing instruction;
   name and value are kept, attributes move into their element's attribute list. Containers
   with child elements keep their type. **Wrap in Element…** (**Ctrl+Alt+W**, context menu)
