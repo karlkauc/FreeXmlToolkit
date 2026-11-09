@@ -66,8 +66,8 @@ it in a single click, without browsing the file system:
 | **Validation** | JSON Schema (shown for JSON documents) | JSON favorites |
 | **Transform** | STYLESHEET / INPUT | XSLT / XML favorites |
 | **PDF / FOP** | XML input / XSL-FO stylesheet | XML / XSLT favorites |
-| **Signature** | Keystore (KEYSTORE section) | Keystore favorites |
-| **Signature** | Trust store (Expert Mode) | Keystore favorites |
+| **Sign & Encrypt** | Keystore (KEYSTORE section) | Keystore favorites |
+| **Sign & Encrypt** | Trust store (Expert Mode) | Keystore favorites |
 
 The menu is rebuilt each time you open it, so newly added favorites appear immediately.
 When you use more than one favorites folder, the entries are grouped by folder as

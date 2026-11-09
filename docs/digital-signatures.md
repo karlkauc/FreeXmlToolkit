@@ -2,8 +2,10 @@
 
 > **Note:** Signing, signature validation (including detailed and PKIX
 > trust/chain/revocation/timestamp validation) and self-signed certificate creation
-> live on the **Signature page** of the Unified Shell. Click **Signature** in the activity
-> bar to open it as a tab in the main editor area.
+> live on the **Sign & Encrypt** page of the Unified Shell. Click **Sign & Encrypt** in the
+> activity bar to open it as a tab in the main editor area. The same page encrypts and decrypts
+> XML - see [XML Encryption](xml-encryption.md). On the command line: `fxt-cli sign` and
+> `fxt-cli verify` ([Command Line](command-line.md#sign)).
 
 This tool lets you digitally sign XML documents and verify signatures. A digital signature proves that a document is authentic and hasn't been changed.
 
@@ -17,9 +19,9 @@ This tool lets you digitally sign XML documents and verify signatures. A digital
 
 ### What Can You Do?
 
-In the [Unified Shell](unified-shell.md), click **Signature** in the activity bar. The
-**Signature** page opens as a tab in the main editor area, and the side panel on the left lists
-the four actions in order of use. Click an action to show it on the page; the current action is
+In the [Unified Shell](unified-shell.md), click **Sign & Encrypt** in the activity bar. The
+page opens as a tab in the main editor area, and the side panel on the left lists the actions in
+order of use (Encrypt, Decrypt and Inspect Encryption are described in [XML Encryption](xml-encryption.md)). Click an action to show it on the page; the current action is
 highlighted, and the status message of the previously selected action is cleared:
 
 | Action | Description |
@@ -59,6 +61,12 @@ Before signing documents, you need a digital certificate (like a digital ID card
 ![Create Certificate](img/signature-create-cert.png)
 *Certificate creation form with DN details*
 
+
+### Key Type
+
+**RSA 2048** *(default)*, **RSA 3072**, **RSA 4096**, or an elliptic curve key **EC P-256**,
+**EC P-384**, **EC P-521**. EC keys sign with ECDSA and receive encrypted documents with ECDH-ES
+([XML Encryption](xml-encryption.md)); RSA keys sign with RSA or RSA-PSS and receive with RSA-OAEP.
 
 ### Certificate Details (Distinguished Name)
 
@@ -106,7 +114,7 @@ The files are written to `certs/<alias>/` in the application's working directory
 
 ### How to Create a Certificate
 
-1. On the **Signature** page, choose **Create Certificate** in the side panel
+1. On the **Sign & Encrypt** page, choose **Create Certificate** in the side panel
 2. Fill in the alias and both passwords in the **KEYSTORE** section
 3. Fill in the Distinguished Name fields
 4. Click **"Create Certificate"**
@@ -136,7 +144,7 @@ with the active document.
 | **DOCUMENT** | The XML file to sign (the active document by default); **Browse** picks a different file |
 | **KEYSTORE** | The keystore file, **Keystore alias**, **Keystore password** and **Alias password** |
 | **SIGNATURE OPTIONS - Signature type** | **Enveloped** *(default)*, **Enveloping** or **Detached** (see below). With **Detached** selected, a hint explains that a separate `<name>.sig.xml` is written - validate that file and keep both files in the same folder |
-| **SIGNATURE OPTIONS - Algorithm** | Read-only: `RSA-SHA256 · C14N exclusive` |
+| **SIGNATURE OPTIONS - Signature method, Digest, Canonicalization** | **Automatic** picks RSA-SHA256 for RSA keys and ECDSA-SHA256 for EC keys; also RSA-SHA384/512, RSA-PSS (SHA-256/384/512) and ECDSA-SHA384/512. Digest SHA-256 *(default)*, SHA-384 or SHA-512. Canonicalization exclusive *(default)*, inclusive or C14N 1.1, each with or without comments. SHA-1 is not offered and is rejected on verification |
 | **Sign Document** | Runs the signing; the outcome appears in the status line |
 | **CERTIFICATE** | **Show certificate details** loads the certificate of the selected keystore/alias: subject, issued/expires, serial, signature algorithm, key usage and the SHA-256 fingerprint (with a copy button) |
 
@@ -156,7 +164,7 @@ untouched, and opened in the editor automatically.
 
 ### How to Sign a Document
 
-1. Open the **Signature** page and choose **Sign XML File** in the side panel
+1. Open the **Sign & Encrypt** page and choose **Sign XML File** in the side panel
 2. Select your keystore in the **KEYSTORE** section - click
    **Change**, pick a favorited keystore from the **star menu** next to the keystore row (see
    [Favorites Integration](#favorites-integration) below), or **drop** a keystore file
@@ -190,7 +198,7 @@ untouched, and opened in the editor automatically.
 1. Right after signing, click **Validate this signature** below the status line - it switches to
    **Validate Signature** with the signed file and runs the check. Otherwise open the signed XML
    file in the editor (it becomes the active document)
-2. On the **Signature** page, choose **Validate Signature** in the side panel
+2. On the **Sign & Encrypt** page, choose **Validate Signature** in the side panel
 3. Check the **DOCUMENT** row - it shows the active document; click **Browse** to check a
    different file
 4. Click the **Run Validation** button
@@ -247,7 +255,7 @@ Expert Mode shows the **DOCUMENT** row, the **TRUST STORE** section and one acti
 
 ### How to Run Trust Validation
 
-1. Open the signed XML document, then choose **Expert Mode** on the **Signature** page (the
+1. Open the signed XML document, then choose **Expert Mode** on the **Sign & Encrypt** page (the
    DOCUMENT row shows the active document; **Browse** picks a different file).
 2. (Optional) Click **Change** in the trust store row to choose the trust store to validate
    against - or pick a favorited keystore from the **star menu** next to the trust store row.
@@ -357,7 +365,8 @@ Currently, files must be signed one at a time.
 
 ### What signature type is used?
 
-The tool creates XML signatures (XMLDSig) with RSA-SHA256 and exclusive canonicalization.
+The tool creates XML signatures (XMLDSig) with RSA-SHA256 (RSA keys) or ECDSA-SHA256 (EC keys)
+and exclusive canonicalization unless you choose other algorithms in the Sign form.
 You choose the structure in the Sign form: **enveloped** (default - the signature is embedded
 within the XML document), **enveloping** (the content is wrapped inside the signature document)
 or **detached** (a separate `.sig.xml` file referencing the original).

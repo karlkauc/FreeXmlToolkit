@@ -58,7 +58,7 @@ Every feature action records *why* it failed the same way: the processor's error
 exception class in `error_code`, a stack signature (`error_detail`, `error_hash`) for an app failure,
 and status `invalid_input` when the user's document, stylesheet, schema or environment was the cause
 (not well-formed input, a missing or unreadable file, an unreachable host). This applies to
-`xslt_transform`, `sign`, `verify_signature`, `create_certificate`, `schema_analysis`, `xsd_generate`,
+`xslt_transform`, `sign`, `verify_signature`, `create_certificate`, `encrypt` (target kind, data algorithm family, key methods, number of recipients, whether a legacy algorithm was used - never keys, passwords or content), `decrypt` (key source, number of decrypted elements), `inspect_encryption`, `schema_analysis`, `xsd_generate`,
 `sample_generate`, `spreadsheet_convert`, `format` (`meta.mode` = `format` or `minify`),
 `schematron_check`, `quick_fix` (a fix that does not apply to the document is `invalid_input`, a
 skipped one `cancelled` with `meta.reason`), `replace` (`meta.kind` = `xpath`/`text`, `meta.scope` =

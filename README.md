@@ -46,7 +46,7 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
     <td width="50%"><a href="docs/img/unified-shell-schema-statistics.png"><img src="docs/img/unified-shell-schema-statistics.png" alt="Schema documentation, analysis and test data" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/digital-signatures/">XML digital signatures</a></b><br>Sign and verify documents, create certificates.</td>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/digital-signatures/">XML signatures and encryption</a></b><br>Sign and verify documents (RSA, RSA-PSS, ECDSA), create RSA or EC certificates, and encrypt or decrypt elements and documents with W3C XML Encryption 1.1 for certificates, keys or a password.</td>
     <td width="50%"><a href="docs/img/signature-validation.png"><img src="docs/img/signature-validation.png" alt="XML digital signatures" width="420"></a></td>
   </tr>
 </table>
@@ -66,6 +66,7 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 | XSL-FO to PDF | ✓ | ✓ | ✓ | – |
 | XML compare · 3-way merge | ✓ | ✓ | ✓ | – |
 | XML digital signatures | ✓ | ✓ | ✓ | – |
+| XML encryption | ✓ | – | – | – |
 | JSON · JSON Schema · XML↔JSON | ✓ | ✓ | ✓ | ◐ |
 | Command line included | ✓ | ◐ | ◐ | ✓ |
 

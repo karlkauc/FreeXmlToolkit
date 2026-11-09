@@ -55,6 +55,8 @@ Any key of the user's settings file works. These are the ones most often managed
 | `fundsxml.enabled` | `true` / `false` | FundsXML extension |
 | `ui.language` | `system` / `en` / `de` | Language of the interface (Settings → Appearance → Language) |
 | `plugins.external.allowed` | `false` | **Policy only.** Load no [plugins](plugins.md) from the plugins folder (built-in ones still load) |
+| `xmlenc.allowed` | `false` | **Policy only.** No [XML encryption](xml-encryption.md) or decryption (page, editor menu and `fxt-cli`) |
+| `xmlenc.legacyAlgorithms.allowed` | `false` | **Policy only.** Block the legacy XML encryption algorithms (RSA-1_5, TripleDES, CBC modes, finite-field DH) for encryption and decryption |
 | `plugin.<id>.enabled` | `true` / `false` | A [plugin](plugins.md) on or off (Settings → Plugins), e.g. `plugin.fundsxml.enabled` |
 | `schemaLibrary.autoBind.enabled` | `true` / `false` | Bind schemas from the Schema Library automatically |
 | `xml.parser.type` | `XERCES` / `SAXON` | XSD validator (XSD 1.1 schemas always use Xerces) |

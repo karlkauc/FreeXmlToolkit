@@ -85,6 +85,7 @@ please [open an issue](https://github.com/karlkauc/FreeXmlToolkit/issues) and it
 | Compare folders | ✓ | ✓ | ✓ | – |
 | Three-way merge | ✓ | ✓ | ✓ | – |
 | XML digital signatures | ✓ sign and verify | ✓ sign | ✓ sign and verify | – |
+| XML encryption (W3C 1.1) | ✓ encrypt, decrypt, inspect | – | – | – |
 | Projects / transformation scenarios | ✓ | ✓ | ✓ | ◐ |
 | Command line | ✓ included (`fxt-cli`) | ◐ separate product (Oxygen Scripting) | ◐ separate product (RaptorXML Server) for automation | ✓ |
 | Plugin / extension API | ✓ Java plugins | ✓ | ◐ scripting, OLE / ActiveX | – |

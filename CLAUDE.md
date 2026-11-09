@@ -62,6 +62,22 @@ components, root "(query body)"); UI `controls/shell/editor/debug/ProfileView` +
 `XmlDiffPanel`), `MergeView` + `MergeFilesDialog`, `controls/shell/editor/FolderCompareView`,
 `DataConversionAction`. CLI: `compare`, `merge`, `convert`. Diff colours: `-fxt-diff-*` tokens.
 
+## XML Signatures and Encryption
+
+`service/crypto/`: `XmlEncryptionService` (W3C XML Encryption 1.1 on Santuario `XMLCipher`: element / content /
+document / binary for any number of recipients — `PublicKeyRecipient` RSA-OAEP/1_5 or ECDH-ES/X25519/X448 with
+ConcatKDF/HKDF, `SymmetricRecipient` key wrap or direct data key, `PasswordRecipient` PBKDF2 `xenc11:DerivedKey`
+(own code, Santuario has none); decrypt layer by layer with EncryptedKeys in KeyInfo, via RetrievalMethod or
+ReferenceList; CipherReference only to a sibling file, inlined here), `XmlEncryptionAlgorithms` (URIs, `legacy`
+flag), `EncryptionReport` (inspect, text/JSON), `KeyMaterial` (keystores by extension, PEM/DER certificates and
+keys, symmetric key files). Policy `xmlenc.allowed`, `xmlenc.legacyAlgorithms.allowed` (`AdminPolicy`).
+`SignatureService.SigningOptions` (RSA, RSA-PSS, ECDSA; digest; c14n), `KeyType` RSA/EC for new certificates.
+UI: `SignatureView` (activity "Sign & Encrypt") actions ENCRYPT/DECRYPT/INSPECT, `EncryptionRecipients`,
+`EncryptionActionRunner` (shared with the CLI); XML editor menu "Encrypt Element… / Decrypt…" via
+`XmlEncryptionMenuHook`. CLI `sign`, `verify`, `encrypt`, `decrypt` (`--inspect`), passwords via prompt or
+`*-env` (`CliSecrets`). Examples `release/examples/encryption/` (`EncryptionExamplesTest`). Docs:
+`docs/xml-encryption.md`. The Decryption Transform for signatures is not supported.
+
 ## Large File Viewer
 
 `service/largefile/`: `LargeFileIndex` (sparse row index, every 1024th row's offset; rows ≤ 4 KB, read

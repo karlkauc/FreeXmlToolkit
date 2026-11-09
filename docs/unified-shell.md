@@ -21,7 +21,7 @@ XML file next to its XSD schema, XSLT stylesheets and Schematron rules at the sa
 
 | Area | Purpose |
 |------|---------|
-| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Signature, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (**Settings**, **Schema Library** and **Signature** open as a full page in the editor area - see [Settings Page](settings.md#settings-page), [Schema Library Page](#schema-library-page) and [Signature Page](#signature-panel). Help is not an activity - it is the **Help** menu, see [Help Menu & About](#help-menu-about).) |
+| **Activity bar** (far left) | Switch tools / side panels: Explorer, Search, Favorites, Validation, Transform, Schema, Schema Library (its label wraps onto two lines), PDF/FOP, Sign & Encrypt, Settings - plus a **FundsXML** activity when the optional [FundsXML extension](fundsxml-extensions.md) is enabled (see [FundsXML Panel](#fundsxml-panel)). **Always visible** - it cannot be collapsed. (**Settings**, **Schema Library** and **Sign & Encrypt** open as a full page in the editor area - see [Settings Page](settings.md#settings-page), [Schema Library Page](#schema-library-page) and [Sign & Encrypt Page](#signature-panel). Help is not an activity - it is the **Help** menu, see [Help Menu & About](#help-menu-about).) |
 | **Menu bar** (very top) | **File / Edit / View / Tools / Help** - every action of the toolbar, the Activity Bar and the keyboard shortcuts in one place (see [Menu Bar](#menu-bar)). On macOS it is the system menu bar at the top of the screen. |
 | **Header bar** (top) | The breadcrumb (application / active file), a centered **search pill** (*"Run XPath / XQuery…"*, shortcut **Ctrl+K**) that opens the bottom [Query Console](query-console.md#query-console) when clicked, the **star** button ([Favorites quick access](#favorites-quick-access) - every favorite, from any activity or page), the **?** button (opens the [Help menu](#help-menu-about) as a popup - same as **F1**) and the Theme button. |
 | **Side panel** | The panel for the selected activity (e.g. the Transform panel, the Validation panel). **Resizable and collapsible** (see [Resizing and collapsing the side panels](#collapsing-the-side-panels)). |
@@ -58,7 +58,7 @@ collapsed to give the editor more room - the activity bar always stays visible.
 - The collapsed/expanded state is **remembered across restarts** and can also be changed under
   **Settings → Appearance → LAYOUT** ("Show left side panel" / "Show Properties (inspector) panel").
 - **The inspector only appears next to documents.** When you switch to a tab that is not a
-  document - **Settings**, **Schema Library**, **Signature**, a report or another tool tab - the
+  document - **Settings**, **Schema Library**, **Sign & Encrypt**, a report or another tool tab - the
   inspector hides automatically, so the page gets the full width. Its toggle button is greyed out
   on such tabs. As soon as you select a document tab again, the inspector comes back. Your own
   show/hide choice is not changed by this - if you had hidden the inspector, it stays hidden.
@@ -318,7 +318,7 @@ On macOS the menus appear in the **system menu bar** and follow the platform con
 > **Set XSD Schema… / Generate Documentation… / Type Editor…** under **Schema ▾**.
 
 The toolbar shows only what you can use right now. **Without a document** - on the Welcome
-page, or while a page such as **Settings**, **Signature** or **Schema Library** is in front - it
+page, or while a page such as **Settings**, **Sign & Encrypt** or **Schema Library** is in front - it
 shows just **New** and **Open**; the document groups (Save, Undo/Redo, Format, Query Console,
 Transform, Run, Schema, Validate) and the **Text / Tree / Graphic** view switch are hidden
 rather than shown greyed out. They come back as soon as a document tab is active.
@@ -771,11 +771,12 @@ of files written to a folder you choose. For a full walkthrough, see
 [Profiled XML Generation](profiled-xml-generation.md) and the
 [Sample XML Generator](xsd-tools.md#7-sample-xml-generator) section of the XSD Tools guide.
 
-## Signature Page {#signature-panel}
+## Sign & Encrypt Page {#signature-panel}
 
-Clicking **Signature** in the activity bar opens one page, **Signature**, as a tab in the main
-editor area. The side panel on the left only lists the four actions in order of use - **Sign XML
-File**, **Validate Signature**, **Create Certificate** and **Expert Mode**. Click one to show it on
+Clicking **Sign & Encrypt** in the activity bar opens one page, **Sign & Encrypt**, as a tab in the
+main editor area. The side panel on the left only lists the actions in order of use - **Sign XML
+File**, **Validate Signature**, **Encrypt**, **Decrypt**, **Inspect Encryption**, **Create
+Certificate** and **Expert Mode** (the encryption actions: [XML Encryption](xml-encryption.md)). Click one to show it on
 the page; the current action is highlighted, and the status message of the previous action is
 cleared.
 

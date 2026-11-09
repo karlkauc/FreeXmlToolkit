@@ -162,6 +162,7 @@ nav:
   - Security:
     - Security Features: SECURITY.md
     - Digital Signatures: digital-signatures.md
+    - XML Encryption: xml-encryption.md
     - Privacy & Telemetry: telemetry.md
     - Code Signing Policy: code-signing-policy.md
     - Threat Model: threat-model.md
