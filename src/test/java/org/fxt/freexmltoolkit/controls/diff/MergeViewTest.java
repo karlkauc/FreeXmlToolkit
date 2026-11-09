@@ -113,7 +113,8 @@ class MergeViewTest {
     @Test
     void dialogValidatesTheFiles(@TempDir Path dir) throws Exception {
         Path base = Files.writeString(dir.resolve("b.xml"), BASE);
-        MergeFilesDialog dialog = WaitForAsyncUtils.waitForAsyncFx(2000, () -> new MergeFilesDialog(base));
+        // the first dialog of a JVM sets up properties and theming, which can take a few seconds
+        MergeFilesDialog dialog = WaitForAsyncUtils.waitForAsyncFx(15000, () -> new MergeFilesDialog(base));
         assertEquals("Choose the base, the left and the right file.",
                 WaitForAsyncUtils.waitForAsyncFx(2000, dialog::validate));
         assertEquals("One of the files does not exist.", WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
