@@ -51,6 +51,26 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
   </tr>
 </table>
 
+## How It Compares
+
+| | FreeXmlToolkit | Oxygen XML Editor | XMLSpy | XMLBlueprint |
+|---|:-:|:-:|:-:|:-:|
+| License | **Free, open source** | Commercial | Commercial | Commercial |
+| Windows · macOS · Linux | ✓ ✓ ✓ | ✓ ✓ ✓ | ✓ ◐ – | ✓ – – |
+| Graphical XSD editor (XSD 1.1) | ✓ | ✓ | ✓ | – |
+| Schematron + Quick Fixes | ✓ | ✓ | – | ◐ |
+| XSLT 3.0 · XQuery | ✓ | ✓ | ✓ | ◐ |
+| XSLT / XQuery debugger | ✓ | ✓ | ✓ | – |
+| XSLT / XQuery profiler | ✓ | ✓ | ✓ | – |
+| XProc 3 · XSpec | ✓ | ✓ | – | ◐ |
+| XSL-FO to PDF | ✓ | ✓ | ✓ | – |
+| XML compare · 3-way merge | ✓ | ✓ | ✓ | – |
+| XML digital signatures | ✓ | ✓ | ✓ | – |
+| JSON · JSON Schema · XML↔JSON | ✓ | ✓ | ✓ | ◐ |
+| Command line included | ✓ | ◐ | ◐ | ✓ |
+
+✓ supported · ◐ partly or as a separate product · – not found in the publisher's documentation. As of November 2026; details, sources and trademarks: [Comparison with Other Editors](https://karlkauc.github.io/FreeXmlToolkit/comparison/).
+
 ## Features
 
 ### XML and JSON Editing
