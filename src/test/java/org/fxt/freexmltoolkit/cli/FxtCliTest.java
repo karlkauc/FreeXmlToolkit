@@ -279,6 +279,23 @@ class FxtCliTest {
             assertTrue(err.contains("Total ") && err.contains("template rule match=\"n\""), err);
             assertEquals(ExitCodes.USAGE, run("transform", "-s", xsl, "--profile", "-", valid, invalid));
         }
+
+        @Test
+        @DisplayName("profiles an XQuery, with or without input")
+        void profileXQuery() throws Exception {
+            Path xq = write("p.xq", """
+                    declare function local:twice($x) { $x * 2 };
+                    string-join((1 to 3) ! string(local:twice(.)), ',')
+                    """);
+            Path json = dir.resolve("xq-profile.json");
+            assertEquals(ExitCodes.OK, run("transform", "-s", xq, "--profile", json, "--warmup", "0"), err);
+            assertTrue(out.contains("2,4,6"), out);
+            String report = Files.readString(json);
+            assertTrue(report.contains("local:twice#1") && report.contains("(query body)"), report);
+
+            assertEquals(ExitCodes.OK, run("transform", "-s", xq, "--profile", "-", valid), err);
+            assertTrue(err.contains("function local:twice#1"), err);
+        }
     }
 
     @Nested
@@ -811,11 +828,79 @@ class FxtCliTest {
     }
 
     @Nested
+    @DisplayName("query")
+    class Query {
+
+        @Test
+        @DisplayName("XPath on files and folders; exit 0 found, 1 empty, 3 broken; file names with several inputs")
+        void xpath() throws Exception {
+            Path a = write("q/a.xml", "<r><i>1</i><i>2</i><i>3</i></r>");
+            Path b = write("q/b.xml", "<r><i>9</i></r>");
+            assertEquals(ExitCodes.OK, run("query", "-e", "count(//i)", a), err);
+            assertEquals("3\n", out);
+            assertEquals(ExitCodes.OK, run("query", "-e", "//i[. > 2]/string()", dir.resolve("q")), err);
+            assertEquals(a + ": 3\n" + b + ": 9\n", out);
+            assertEquals(ExitCodes.OK, run("query", "-e", "count(//i)", "--no-with-filename", a, b), err);
+            assertEquals("3\n1\n", out);
+            assertEquals(ExitCodes.FAILED, run("query", "-e", "//missing", a), err);
+            assertEquals("", out);
+            assertEquals(ExitCodes.NOT_RUN, run("query", "-e", "count(//i", a));
+            assertTrue(err.contains("error:"), err);
+            Path broken = write("q2/broken.xml", "<r>");
+            assertEquals(ExitCodes.NOT_RUN, run("query", "-e", "count(//i)", broken, a));
+            assertTrue(out.contains("3") && err.contains(broken + ": error:"), out + " / " + err);
+        }
+
+        @Test
+        @DisplayName("XQuery inline, from a file with --var, and without input")
+        void xquery() throws Exception {
+            Path a = write("x/a.xml", "<r><i>1</i><i>2</i></r>");
+            assertEquals(ExitCodes.OK, run("query", "-l", "xquery", "-e", "sum(for $i in //i return xs:int($i))", a), err);
+            assertEquals("3\n", out);
+            Path q = write("x/label.xq", "declare variable $label external; $label || '=' || count(//i)");
+            assertEquals(ExitCodes.OK, run("query", "--query-file", q, "--var", "label=items", a), err);
+            assertEquals("items=2\n", out);
+            assertEquals(ExitCodes.OK, run("query", "-l", "xquery", "-e", "1 + 1"), err);
+            assertEquals("2\n", out);
+            Path broken = write("x/broken.xml", "<r>");
+            assertEquals(ExitCodes.NOT_RUN, run("query", "-l", "xquery", "-e", "count(//i)", broken));
+            assertTrue(err.contains("error:"), err);
+        }
+
+        @Test
+        @DisplayName("JSONPath for .json, standard input, JSON report, output file, usage errors")
+        void moreInputsAndOutputs() throws Exception {
+            Path json = write("j/d.json", "{\"items\": [{\"name\": \"pen\"}, {\"name\": \"ink\"}]}");
+            assertEquals(ExitCodes.OK, run("query", "-e", "$.items[*].name", json), err);
+            assertTrue(out.contains("pen") && out.contains("ink"), out);
+
+            QueryCommand.stdin = () -> new java.io.ByteArrayInputStream("<r><t>hello</t></r>".getBytes(StandardCharsets.UTF_8));
+            try {
+                assertEquals(ExitCodes.OK, run("query", "-e", "//t/string()", "-"), err);
+                assertEquals("hello\n", out);
+            } finally {
+                QueryCommand.stdin = () -> System.in;
+            }
+
+            Path a = write("j/a.xml", "<r><i/></r>");
+            assertEquals(ExitCodes.OK, run("query", "-e", "count(//i)", "-f", "json", a), err);
+            assertTrue(out.contains("\"result\": \"1\"") && out.contains("\"file\""), out);
+            Path target = dir.resolve("out/result.txt");
+            assertEquals(ExitCodes.OK, run("query", "-e", "count(//i)", "-o", target, a), err);
+            assertEquals("1\n", Files.readString(target));
+
+            assertEquals(ExitCodes.USAGE, run("query", a));
+            assertEquals(ExitCodes.USAGE, run("query", "-e", "1"));
+            assertEquals(ExitCodes.USAGE, run("query", "-e", "1", "--var", "x=1", a));
+        }
+    }
+
+    @Nested
     @DisplayName("help")
     class Help {
 
         private static final List<String> COMMANDS = List.of(
-                "validate", "transform", "xsd-doc", "convert", "compare", "merge", "xspec", "scenario", "fop");
+                "validate", "transform", "query", "xsd-doc", "convert", "compare", "merge", "xspec", "scenario", "fop");
 
         @Test
         @DisplayName("every command has -h/--help with a description, options and examples")

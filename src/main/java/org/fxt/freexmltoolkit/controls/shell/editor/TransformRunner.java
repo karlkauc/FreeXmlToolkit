@@ -185,6 +185,25 @@ public final class TransformRunner {
     }
 
     /**
+     * Runs an XQuery with the profiler ({@link XsltTransformationEngine#profileXQuery}).
+     *
+     * @param xml           the context document, or {@code null} / blank for none
+     * @param querySystemId the query file's URI (module imports, profile locations), or {@code null}
+     * @param warmupRuns    runs before the measured one
+     */
+    public static XsltTransformationEngine.ProfiledTransformation profileXQuery(String xml, String xmlBaseUri,
+            String query, String querySystemId, java.util.Map<String, Object> externalVariables,
+            XsltTransformationEngine.OutputFormat outputFormat, int warmupRuns) {
+        try {
+            return XsltTransformationEngine.getInstance().profileXQuery(xml, xmlBaseUri, query, querySystemId,
+                    externalVariables, outputFormat, warmupRuns);
+        } catch (Exception e) {
+            return new XsltTransformationEngine.ProfiledTransformation(XsltTransformationResult.error(e.getMessage(), e),
+                    null);
+        }
+    }
+
+    /**
      * Pattern for the {@code method} attribute of a stylesheet's {@code xsl:output}
      * declaration (any namespace prefix).
      */

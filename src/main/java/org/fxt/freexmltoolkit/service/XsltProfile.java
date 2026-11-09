@@ -69,11 +69,19 @@ public final class XsltProfile {
         long totalNanos;
         long selfNanos;
 
+        private final String rootLabel;
+
         CallNode(Component component) {
-            this.component = component;
+            this(component, null);
         }
 
-        /** @return the component, or {@code null} for the root (the whole transformation) */
+        /** @param rootLabel the name of the root (no component), or {@code null} for "(transformation)" */
+        CallNode(Component component, String rootLabel) {
+            this.component = component;
+            this.rootLabel = rootLabel;
+        }
+
+        /** @return the component, or {@code null} for the root (the whole run: transformation or query body) */
         public Component component() {
             return component;
         }
@@ -103,7 +111,10 @@ public final class XsltProfile {
 
         /** @return the name shown for the node */
         public String label() {
-            return component == null ? "(transformation)" : component.name();
+            if (component == null) {
+                return rootLabel != null ? rootLabel : "(transformation)";
+            }
+            return component.name();
         }
     }
 

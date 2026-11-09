@@ -1063,7 +1063,9 @@ public class XmlServiceImpl implements XmlService {
             return finalResult;
 
         } catch (SaxonApiException e) {
-            logger.error("Saxon XPath error: {}", e.getMessage(), e);
+            // The expression's or the document's fault; the exception thrown carries the code to the
+            // caller's action event, so the log bridge must not count it again (WARN without throwable).
+            logger.warn("Saxon XPath error: {}", e.getMessage());
             throw new RuntimeException("Invalid XPath expression or XML: " + e.getMessage(), e);
         }
     }

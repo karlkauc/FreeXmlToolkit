@@ -648,6 +648,123 @@ public class XsltTransformationEngine {
     }
 
     /**
+     * Compiles an XQuery with tracing on {@code processor} (line numbers on), under the query file's
+     * URI so relative module imports resolve; static errors go to {@code messages} as well.
+     *
+     * @throws StylesheetCompileException with "XQuery compilation failed", line and error code
+     */
+    private static XQueryExecutable compileXQueryForTracing(Processor processor, String xqueryContent,
+                                                            String querySystemId, XsltDebugMessageListener messages)
+            throws StylesheetCompileException {
+        XQueryCompiler compiler = processor.newXQueryCompiler();
+        compiler.setCompileWithTracing(true);
+        if (querySystemId != null && !querySystemId.isBlank()) {
+            compiler.setBaseURI(java.net.URI.create(querySystemId));
+        }
+        List<XmlProcessingError> staticErrors = new ArrayList<>();
+        compiler.setErrorReporter(error -> {
+            if (!error.isWarning()) {
+                staticErrors.add(error);
+            }
+            messages.reportError(error);
+        });
+        try {
+            return compiler.compile(xqueryContent == null ? "" : xqueryContent);
+        } catch (SaxonApiException e) {
+            XmlProcessingError first = staticErrors.isEmpty() ? null : staticErrors.get(0);
+            String where = first == null ? at(e.getLineNumber(), -1) : at(first);
+            String code = first != null && first.getErrorCode() != null
+                    ? first.getErrorCode().getLocalName() : localCode(e.getErrorCode());
+            throw new StylesheetCompileException("XQuery compilation failed" + where + bracket(code) + ": "
+                    + (first != null ? first.getMessage() : e.getMessage()), code);
+        }
+    }
+
+    /**
+     * Runs an XQuery with the profiler ({@link XsltProfilingTraceListener}): the query is compiled
+     * once with tracing on the debug processor, run {@code warmupRuns} times so the Java JIT compiler
+     * has warmed up, then once more measured. User functions are the profile's components; the time
+     * outside them is the root's, "(query body)".
+     *
+     * @param xmlContent        the context document, or {@code null} / blank for a query without one
+     * @param inputSystemId     the context document's {@code file:} URI, or {@code null}
+     * @param querySystemId     the query file's {@code file:} URI, or {@code null}
+     * @param externalVariables external variables by name, or {@code null}
+     * @param warmupRuns        runs before the measured one (0 to 10)
+     */
+    public ProfiledTransformation profileXQuery(String xmlContent, String inputSystemId, String xqueryContent,
+                                                String querySystemId, Map<String, Object> externalVariables,
+                                                OutputFormat outputFormat, int warmupRuns) {
+        int warmups = Math.max(0, Math.min(warmupRuns, 10));
+        long startTime = System.currentTimeMillis();
+        Processor processor = getDebugProcessor();
+        XsltDebugMessageListener messageListener = new XsltDebugMessageListener();
+        try {
+            XQueryExecutable executable;
+            try {
+                executable = compileXQueryForTracing(processor, xqueryContent, querySystemId, messageListener);
+            } catch (StylesheetCompileException e) {
+                XsltTransformationResult failure = e.toResult();
+                failure.setMessages(messageListener.getMessages());
+                return new ProfiledTransformation(failure, null);
+            }
+            XdmNode context = null;
+            if (xmlContent != null && !xmlContent.isBlank()) {
+                try {
+                    context = parseXmlDocument(processor, xmlContent, inputSystemId);
+                } catch (SaxonApiException e) {
+                    return new ProfiledTransformation(inputFailure(e), null);
+                }
+            }
+            OutputFormat format = detectXQueryOutputFormat(xqueryContent, outputFormat);
+            String output = null;
+            XsltProfilingTraceListener listener = null;
+            long measured = 0;
+            for (int run = 0; run <= warmups; run++) {
+                XQueryEvaluator evaluator = executable.load();
+                if (externalVariables != null) {
+                    for (Map.Entry<String, Object> entry : externalVariables.entrySet()) {
+                        evaluator.setExternalVariable(new QName(entry.getKey()), convertToXdmValue(entry.getValue()));
+                    }
+                }
+                if (context != null) {
+                    evaluator.setContextItem(context);
+                }
+                listener = new XsltProfilingTraceListener("(query body)");
+                evaluator.setTraceListener(listener);
+                if (run == warmups) {
+                    evaluator.setErrorReporter(messageListener::reportError);
+                }
+                evaluator.setTraceFunctionDestination(new net.sf.saxon.lib.StandardLogger(new java.io.PrintStream(java.io.OutputStream.nullOutputStream())));
+                StringWriter outputWriter = new StringWriter();
+                Serializer serializer = processor.newSerializer(outputWriter);
+                configureSerializer(serializer, format);
+                long t0 = System.nanoTime();
+                evaluator.run(serializer);
+                measured = System.nanoTime() - t0;
+                output = outputWriter.toString();
+            }
+            XsltProfile profile = listener.profile(measured, warmups);
+            TransformationProfile timing = new TransformationProfile();
+            timing.setOutputSize(output.length());
+            XsltTransformationResult result = XsltTransformationResult.success(output, format, timing);
+            result.setExecutionTime(System.currentTimeMillis() - startTime);
+            result.setTransformationTime(measured / 1_000_000);
+            result.setInputSize(xmlContent == null ? 0 : xmlContent.length());
+            result.setMessages(messageListener.getMessages());
+            return new ProfiledTransformation(result, profile);
+        } catch (SaxonApiException e) {
+            logger.warn("XQuery (profile) failed: {}", e.getMessage());
+            XsltTransformationResult failure = runtimeFailure(e);
+            failure.setMessages(messageListener.getMessages());
+            return new ProfiledTransformation(failure, null);
+        } catch (Exception e) {
+            logger.error("Unexpected error during profiled XQuery run", e);
+            return new ProfiledTransformation(XsltTransformationResult.error("Unexpected error: " + e.getMessage(), e), null);
+        }
+    }
+
+    /**
      * Runs an XQuery under the interactive debugger: the query is compiled with tracing on the
      * debug processor (line numbers on), {@code session} gets every traced expression (FLWOR
      * {@code let} clauses, constructors, function calls) through an
@@ -668,28 +785,11 @@ public class XsltTransformationEngine {
         messageListener.setSink(liveMessages);
         Processor processor = getDebugProcessor();
         try {
-            XQueryCompiler compiler = processor.newXQueryCompiler();
-            compiler.setCompileWithTracing(true);
-            if (querySystemId != null && !querySystemId.isBlank()) {
-                compiler.setBaseURI(java.net.URI.create(querySystemId));
-            }
-            List<XmlProcessingError> staticErrors = new ArrayList<>();
-            compiler.setErrorReporter(error -> {
-                if (!error.isWarning()) {
-                    staticErrors.add(error);
-                }
-                messageListener.reportError(error);
-            });
             XQueryExecutable executable;
             try {
-                executable = compiler.compile(xqueryContent == null ? "" : xqueryContent);
-            } catch (SaxonApiException e) {
-                XmlProcessingError first = staticErrors.isEmpty() ? null : staticErrors.get(0);
-                String where = first == null ? at(e.getLineNumber(), -1) : at(first);
-                String code = first != null && first.getErrorCode() != null
-                        ? first.getErrorCode().getLocalName() : localCode(e.getErrorCode());
-                XsltTransformationResult failure = XsltTransformationResult.error("XQuery compilation failed" + where
-                        + bracket(code) + ": " + (first != null ? first.getMessage() : e.getMessage()), code, null);
+                executable = compileXQueryForTracing(processor, xqueryContent, querySystemId, messageListener);
+            } catch (StylesheetCompileException e) {
+                XsltTransformationResult failure = XsltTransformationResult.error(e.getMessage(), e.code(), null);
                 failure.setMessages(messageListener.getMessages());
                 return failure;
             }
@@ -1364,6 +1464,10 @@ public class XsltTransformationEngine {
 
         XsltTransformationResult toResult() {
             return XsltTransformationResult.error(getMessage(), code, XsltTransformationResult.PHASE_COMPILE);
+        }
+
+        String code() {
+            return code;
         }
     }
 

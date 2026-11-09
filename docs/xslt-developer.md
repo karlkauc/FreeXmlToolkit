@@ -331,8 +331,17 @@ transformation; compare the parts with each other. The first run of a stylesheet
 warm-up of Java's JIT compiler: **Profile Again** measures once more after a warm-up run, which gives
 steadier numbers. **Export** writes the profile as JSON (with the call tree) or as a text report.
 
-On the command line, `fxt-cli transform --profile report.json …` profiles a run (see
-[Command Line](command-line.md#transform)).
+### Profiling an XQuery
+
+An XQuery is profiled the same way: open the `.xq` file and choose **Run ▾ → Profile Query**. The
+query runs against the selected **Input** (or without a context item when none is chosen), its
+result goes to the OUTPUT panel, and a **Profile: <query>** tab opens with the same four views. The
+components are the query's user functions (`declare function`); the time outside them belongs to the
+root of the call tree, **(query body)**. Saxon may move an expression that does not depend on a loop
+out of it, so a function called in a loop can show fewer calls than iterations.
+
+On the command line, `fxt-cli transform --profile report.json …` profiles a stylesheet or a query run
+(see [Command Line](command-line.md#transform)).
 
 ---
 
@@ -354,7 +363,9 @@ tests for XSLT stylesheets, XQuery modules and Schematron, written as `.xspec` f
 </x:description>
 ```
 
-Open the `.xspec` file and choose **Tools → Run XSpec Tests**. The tests run with the text in the
+To start one, choose **File → New…**, type **XML**, and one of the templates **XSpec test (XSLT)**,
+**XSpec test (XQuery)** or **XSpec test (Schematron)**; the file is saved as `.xspec`. Open the
+`.xspec` file and choose **Tools → Run XSpec Tests**. The tests run with the text in the
 editor (also unsaved changes); the file must be saved once, because the stylesheet, query or
 Schematron it names is found relative to it. What is tested follows the description:
 `stylesheet="…"` an XSLT stylesheet, `query="…"` with `query-at="…"` an XQuery module,

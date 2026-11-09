@@ -37,9 +37,10 @@ import picocli.CommandLine.Spec;
                 "  # Many inputs into a folder",
                 "  fxt-cli transform orders/*.xml -s normalize.xsl -d out/",
                 "",
-                "  # XQuery to standard output; profile an XSLT run",
+                "  # XQuery to standard output; profile an XSLT run and an XQuery",
                 "  fxt-cli transform catalog.xml -s report.xq",
-                "  fxt-cli transform big.xml -s slow.xsl -o out.xml --profile profile.json"
+                "  fxt-cli transform big.xml -s slow.xsl -o out.xml --profile profile.json",
+                "  fxt-cli transform big.xml -s report.xq -o out.xml --profile -"
         },
         description = {
                 "Run an XSLT stylesheet, an XQuery or an XProc pipeline.",
@@ -87,8 +88,8 @@ final class TransformCommand implements Callable<Integer> {
     Language language;
 
     @Option(names = "--profile", paramLabel = "REPORT",
-            description = "XSLT: profile the run and write the report to REPORT (.json: JSON, otherwise text; "
-                    + "'-' for standard error). One input.")
+            description = "XSLT or XQuery: profile the run and write the report to REPORT (.json: JSON, otherwise "
+                    + "text; '-' for standard error). One input (an XQuery may have none).")
     String profileReport;
 
     @Option(names = "--warmup", paramLabel = "N", defaultValue = "1",
@@ -117,8 +118,10 @@ final class TransformCommand implements Callable<Integer> {
         if (lang == Language.XSLT && inputs.isEmpty()) {
             throw new CommandLine.ParameterException(commandLine, "An XSLT transformation needs an input document");
         }
-        if (profileReport != null && (lang != Language.XSLT || inputs.size() != 1)) {
-            throw new CommandLine.ParameterException(commandLine, "--profile works for XSLT with one input");
+        if (profileReport != null && (lang == Language.XPROC || inputs.size() > 1
+                || lang == Language.XSLT && inputs.size() != 1)) {
+            throw new CommandLine.ParameterException(commandLine,
+                    "--profile works for XSLT with one input or XQuery with at most one");
         }
         PrintWriter err = commandLine.getErr(); // NOPMD - picocli's stream, owned by CommandLine
         if (lang == Language.XPROC && (!parameters.isEmpty() || method != null)) {
@@ -196,6 +199,14 @@ final class TransformCommand implements Callable<Integer> {
             }
             case XQUERY -> {
                 OutputFormat format = method != null ? method : OutputFormat.XML;
+                if (profileReport != null) {
+                    var profiled = TransformRunner.profileXQuery(xml, inputUri, code, codeUri, params, format,
+                            warmupRuns);
+                    if (profiled.profile() != null) {
+                        writeProfile(profiled.profile());
+                    }
+                    return outcome(profiled.result(), format);
+                }
                 XsltTransformationResult result;
                 try {
                     result = XsltTransformationEngine.getInstance()

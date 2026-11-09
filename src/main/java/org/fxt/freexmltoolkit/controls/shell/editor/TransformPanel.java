@@ -1426,55 +1426,16 @@ public class TransformPanel extends VBox {
     }
 
     /**
-     * Shows a profile in its tool tab (replacing the content of {@code tab} when profiling again).
-     * Profile Again measures once more with one warm-up run, off the FX thread.
+     * Shows a profile in its tool tab ({@link ProfileTabs}); Profile Again measures once more with
+     * one warm-up run.
      */
     private void showProfile(org.fxt.freexmltoolkit.service.XsltProfile profile,
                              org.fxt.freexmltoolkit.service.XsltTransformationResult result, String xml,
                              String xmlBaseUri, String xsltContent, String xsltSystemId, Map<String, Object> params,
                              OutputFormat format, String stylesheetName, javafx.scene.control.Tab tab) {
-        var view = new org.fxt.freexmltoolkit.controls.shell.editor.debug.ProfileView(profile, result);
-        view.setSourceOpener(this::openProfiledSource);
-        javafx.scene.control.Tab target = tab != null ? tab
-                : editorHost.openToolTab(I18n.t("TransformPanel.profile", stylesheetName), "bi-speedometer2", view);
-        if (tab != null) {
-            tab.setContent(view);
-        }
-        view.setOnProfileAgain(() -> FxtGui.executorService.submit(() -> {
-            var again = TransformRunner.profile(xml, xmlBaseUri, xsltContent, xsltSystemId, params, format, 1);
-            Platform.runLater(() -> {
-                if (again.profile() != null) {
-                    showProfile(again.profile(), again.result(), xml, xmlBaseUri, xsltContent, xsltSystemId, params,
-                            format, stylesheetName, target);
-                } else {
-                    out.showFailure(I18n.t("TransformPanel.profiling-failed", again.result().getErrorMessage()));
-                }
-            });
-        }));
-    }
-
-    /** Opens a stylesheet module at a line from the profile (a double-click there). */
-    private void openProfiledSource(String systemId, int line) {
-        java.nio.file.Path path = org.fxt.freexmltoolkit.controls.shell.editor.debug.ProfileView.toPath(systemId);
-        if (path == null) {
-            return;
-        }
-        editorHost.openFile(path);
-        goToLineWhenOpen(path, line, 15);
-    }
-
-    private void goToLineWhenOpen(java.nio.file.Path path, int line, int attemptsLeft) {
-        boolean ready = editorHost.getActiveDocument().map(d -> path.equals(d.getPath())).orElse(false)
-                && editorHost.getActiveText().map(t -> !t.isEmpty()).orElse(false);
-        if (ready || attemptsLeft <= 0) {
-            if (ready && line > 0) {
-                editorHost.goToLine(line);
-            }
-            return;
-        }
-        var retry = new javafx.animation.PauseTransition(javafx.util.Duration.millis(120));
-        retry.setOnFinished(e -> goToLineWhenOpen(path, line, attemptsLeft - 1));
-        retry.play();
+        ProfileTabs.show(editorHost, I18n.t("TransformPanel.profile", stylesheetName), profile, result,
+                () -> TransformRunner.profile(xml, xmlBaseUri, xsltContent, xsltSystemId, params, format, 1),
+                message -> out.showFailure(I18n.t("TransformPanel.profiling-failed", message)), tab);
     }
 
     /**

@@ -1,12 +1,13 @@
 # Command Line (fxt-cli)
 
-`fxt-cli` runs FreeXmlToolkit's validators, transformation engines, XML comparison and merge, schema
-documentation, XML/JSON/YAML conversion and PDF output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
+`fxt-cli` runs FreeXmlToolkit's validators, transformation engines, XPath/XQuery/JSONPath queries, XML
+comparison and merge, schema documentation, XML/JSON/YAML conversion and PDF output without the user interface: in build pipelines, scripts and scheduled jobs. It uses the
 same engines and the same security defaults as the application, and it is installed with it.
 
 ```bash
 fxt-cli validate --xsd schema/order.xsd data/
 fxt-cli transform -s report.xsl -p year=2026 data/order.xml -o report.html
+fxt-cli query -e 'count(//item)' data/order.xml
 fxt-cli xsd-doc schema/order.xsd -o site/
 fxt-cli fop -i data/order.xml -s order2fo.xsl -o order.pdf
 fxt-cli compare old/order.xml new/order.xml
@@ -112,7 +113,7 @@ fxt-cli transform -s STYLESHEET [options] [INPUT...]
 | `-m`, `--method METHOD` | Output method `xml`, `html`, `xhtml`, `text`, `json`; default: the stylesheet's `xsl:output`, else `xml` |
 | `-o`, `--output FILE` | Output file (one input) |
 | `-d`, `--output-dir DIR` | Output folder for several inputs; each result is named after its input with the extension of the output method |
-| `--profile REPORT` | XSLT with one input: profile the run and write the report, as JSON when REPORT ends in `.json`, else as text (`-` for standard error) |
+| `--profile REPORT` | XSLT with one input, or XQuery with at most one: profile the run and write the report, as JSON when REPORT ends in `.json`, else as text (`-` for standard error) |
 | `--warmup N` | With `--profile`: runs before the measured one (default 1), so Java's JIT compiler has warmed up |
 
 Without `-o` and `-d` the result goes to standard output. `xsl:message` output goes to standard
@@ -123,6 +124,46 @@ input's folder. As in the application, stylesheets cannot call Java, and `doc()`
 XProc pipelines may not run programs (`p:os-exec`), run computed pipelines (`p:run`), send HTTP
 requests or load documents from the network, unless `security.xproc.unrestricted=true` is set in
 the settings (see [Threat Model](threat-model.md)).
+
+## query
+
+Evaluates an XPath 3.1, XQuery 3.1 or JSONPath expression against files, like the
+[Query Console](query-console.md) of the application. Made for scripts: one result per input, and
+an exit code like `grep`.
+
+```bash
+fxt-cli query -e EXPR [options] [FILE|FOLDER|-]...
+fxt-cli query --query-file QUERY.xq [options] [FILE|FOLDER|-]...
+```
+
+| Option | Meaning |
+|---|---|
+| `-e`, `--expression EXPR` | The expression |
+| `--query-file FILE` | Read the expression from a file instead (`.xq`, `.xquery`, `.xqy`, `.xql`, `.xqm`: XQuery) |
+| `-l`, `--language LANG` | `xpath`, `xquery` or `jsonpath`. Default: from `--query-file`'s extension, `jsonpath` when all inputs are `.json`, else `xpath` |
+| `--var NAME=VALUE` | An external XQuery variable (string value); repeatable |
+| `--include GLOB,...` | File names to query inside folders; default `*.xml,*.json` |
+| `--[no-]with-filename` | Prefix each result line with its file; default: when there is more than one input |
+| `-f`, `--format FORMAT` | `text` (default) or `json`: one object per input with `file`, `result`, `error` |
+| `-o`, `--output FILE` | Write the results to `FILE` |
+
+`-` as input reads standard input. An XQuery may run without input. XPath and XQuery run with
+Saxon (the `map:`, `array:` and `math:` prefixes are declared) under the application's security
+defaults: no Java calls, no remote `doc()`.
+
+The exit code is 0 when at least one result is not empty, 1 when all results are empty, 3 when the
+expression fails or an input cannot be read or is not well-formed (the other inputs still run, the
+errors go to standard error).
+
+```bash
+fxt-cli query -e 'count(//Position)' fund.xml                                   # 27
+fxt-cli query -e '//Position[xs:decimal(TotalPercentage) gt 10]/Identifiers/ISIN/string()' data/
+fxt-cli query --query-file report.xq --var year=2026 orders.xml
+fxt-cli query -l xquery -e 'current-date()'
+fxt-cli query -e '$.items[*].name' data.json
+curl -s https://example.org/feed.xml | fxt-cli query -e '//title/string()' -
+if fxt-cli query -e '//error' log.xml > /dev/null; then echo "errors found"; fi
+```
 
 ## xsd-doc
 

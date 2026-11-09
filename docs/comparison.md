@@ -72,7 +72,7 @@ please [open an issue](https://github.com/karlkauc/FreeXmlToolkit/issues) and it
 | XQuery | ✓ 3.1 | ✓ | ✓ 3.1 | – |
 | XSLT debugger | ✓ | ✓ | ✓ | – |
 | XQuery debugger | ✓ | ✓ | ✓ | – |
-| Profiler | ✓ XSLT | ✓ XSLT, XQuery | ✓ XSLT, XQuery | – |
+| Profiler | ✓ XSLT, XQuery | ✓ XSLT, XQuery | ✓ XSLT, XQuery | – |
 | XProc 3 | ✓ run pipelines | ✓ | – | ◐ editing and validation |
 | XSpec tests | ✓ | ✓ | – | – |
 | XSL-FO to PDF | ✓ Apache FOP | ✓ | ✓ | – |

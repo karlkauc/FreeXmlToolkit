@@ -20,10 +20,10 @@ import net.sf.saxon.trace.Traceable;
 import net.sf.saxon.trans.Mode;
 
 /**
- * Measures an XSLT run for {@link XsltProfile}: Saxon reports entering and leaving every traced
- * instruction (the stylesheet must be compiled with tracing); this listener keeps a stack of them
- * and adds the elapsed time to the component (template rule, named template, function), its node in
- * the call tree and the instruction's line. Only time is measured, no values, so the overhead stays
+ * Measures an XSLT or XQuery run for {@link XsltProfile}: Saxon reports entering and leaving every
+ * traced instruction or expression (the stylesheet or query must be compiled with tracing); this
+ * listener keeps a stack of them and adds the elapsed time to the component (template rule, named
+ * template, function), its node in the call tree and the instruction's line. Only time is measured, no values, so the overhead stays
  * a fraction of the debugger's. Not thread-safe: one listener per run.
  */
 public final class XsltProfilingTraceListener implements TraceListener {
@@ -75,13 +75,27 @@ public final class XsltProfilingTraceListener implements TraceListener {
     }
 
     private final Deque<Frame> stack = new ArrayDeque<>();
-    private final XsltProfile.CallNode root = new XsltProfile.CallNode(null);
+    /** The root of the call tree: the whole run; its self time is the time outside every component. */
+    private final XsltProfile.CallNode root;
     private final Map<XsltProfile.Component, Totals> totals = new HashMap<>();
     private final Map<XsltProfile.Component, Integer> active = new HashMap<>();
     private final Map<String, LineTotals> lines = new HashMap<>();
     private final Map<Traceable, String> patterns = new IdentityHashMap<>();
     private long started;
     private long finished;
+
+    /** A listener for an XSLT run (the root is "(transformation)"). */
+    public XsltProfilingTraceListener() {
+        this(null);
+    }
+
+    /**
+     * @param rootLabel the root's name, e.g. "(query body)" for XQuery, where the time outside the
+     *                  user functions is the main expression's; {@code null} for "(transformation)"
+     */
+    public XsltProfilingTraceListener(String rootLabel) {
+        this.root = new XsltProfile.CallNode(null, rootLabel);
+    }
 
     @Override
     public void setOutputDestination(net.sf.saxon.lib.Logger logger) {

@@ -397,6 +397,63 @@ public final class EditorActions {
     }
 
     /**
+     * Runs the active XQuery under the profiler against the Run target (a query without a target
+     * runs without a context item): the result goes to the OUTPUT panel, the profile opens in a
+     * "Profile: …" tab ({@link ProfileTabs}). The editor text runs, under the file's URI when saved.
+     */
+    public void profileActiveQuery() {
+        if (activeFileType() != EditorFileType.XQUERY) {
+            return;
+        }
+        TransformOutputPanel out = editorHost.transformOutputPanel();
+        String query = editorHost.getActiveText().orElse("");
+        if (query.isBlank()) {
+            out.showError(I18n.t("EditorActions.the-query-is-empty"));
+            return;
+        }
+        var doc = editorHost.getActiveDocument().orElseThrow();
+        String querySystemId = doc.getPath() == null ? null : doc.getPath().toUri().toString();
+        var target = editorHost.resolveQueryTarget(doc).orElse(null);
+        out.showPending(I18n.t("EditorActions.profiling-query-against",
+                target == null ? "-" : target.displayName()));
+        String title = I18n.t("TransformPanel.profile", doc.getDisplayName());
+        final int gen = ++queryRunGeneration;
+        FxtGui.executorService.submit(() -> {
+            String xml = "";
+            String xmlUri = null;
+            if (target != null) {
+                try {
+                    xml = target.loadXml();
+                } catch (Exception e) {
+                    Platform.runLater(() -> out.showFailure(I18n.t("EditorActions.cannot-read-target-file", e.getMessage())));
+                    return;
+                }
+                xmlUri = target.file() == null ? null : target.file().toURI().toString();
+            }
+            String input = xml;
+            String inputUri = xmlUri;
+            java.util.function.Supplier<org.fxt.freexmltoolkit.service.XsltTransformationEngine.ProfiledTransformation> measure =
+                    () -> TransformRunner.profileXQuery(input, inputUri, query, querySystemId, Map.of(),
+                            XsltTransformationEngine.OutputFormat.XML, 1);
+            var profiled = measure.get();
+            Platform.runLater(() -> {
+                if (gen != queryRunGeneration) {
+                    return;
+                }
+                var result = profiled.result();
+                if (!result.isSuccess() || profiled.profile() == null) {
+                    out.showFailure(I18n.t("TransformPanel.profiling-failed", result.getErrorMessage()));
+                    return;
+                }
+                out.showTransformResult(result.getOutputContent(), result.getOutputFormat(),
+                        result.getTransformationTime(), null);
+                ProfileTabs.show(editorHost, title, profiled.profile(), result, measure,
+                        message -> out.showFailure(I18n.t("TransformPanel.profiling-failed", message)), null);
+            });
+        });
+    }
+
+    /**
      * Debugs the active (saved) Schematron against the Run target: SchXslt compiles it to XSLT,
      * the debugger runs that and shows every stop at its {@code .sch} line. Needs an XML target.
      */

@@ -56,6 +56,15 @@ class UserQueryFailuresCountOnceTest {
         assertTrue(telemetry.errorReports().isEmpty(), telemetry.errorReports().toString());
     }
 
+    @Test
+    void failedXPathIsNotReportedByTheLogBridge() {
+        var run = org.fxt.freexmltoolkit.controls.shell.editor.TransformRunner.xpath("<r>abc</r>", "xs:integer(/r)");
+
+        assertTrue(run.failure() != null, "the failure reaches the caller: " + run.text());
+        assertEquals("FORG0001", run.failure().errorCode());
+        assertTrue(telemetry.errorReports().isEmpty(), telemetry.errorReports().toString());
+    }
+
     private static XsltTransformationResult run(String query) {
         return XsltTransformationEngine.getInstance().transformXQuery("<root/>", query, Map.of(),
                 XsltTransformationEngine.OutputFormat.XML);

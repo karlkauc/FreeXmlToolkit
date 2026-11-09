@@ -108,6 +108,7 @@ public class UnifiedShellView extends BorderPane {
     @FXML private javafx.scene.control.MenuItem actionRunTransform;
     @FXML private javafx.scene.control.MenuItem actionDebugTransform;
     @FXML private javafx.scene.control.MenuItem actionDebugQuery;
+    @FXML private javafx.scene.control.MenuItem actionProfileQuery;
     @FXML private javafx.scene.control.MenuItem actionDebugSchematron;
     @FXML private javafx.scene.control.MenuItem actionRunPipeline;
     /** Target dropdown for query/XSLT documents; visible only when one is active. */
@@ -1715,6 +1716,12 @@ public class UnifiedShellView extends BorderPane {
         editorActions.debugActiveQuery();
     }
 
+    /** Run menu → Profile Query: runs the active XQuery under the profiler against the Run target. */
+    @FXML public void onProfileQuery() {
+        toolbar("profile_query");
+        editorActions.profileActiveQuery();
+    }
+
     /** Run menu → Debug Schematron: debugs the active Schematron (compiled to XSLT) against the Run target. */
     @FXML public void onDebugSchematron() {
         toolbar("debug_schematron");
@@ -2010,6 +2017,7 @@ public class UnifiedShellView extends BorderPane {
                 .applicableFor(type, org.fxt.freexmltoolkit.controls.shell.editor.EditorActions.EditorAction.RUN_TRANSFORM));
         actionDebugTransform.setDisable(actionRunTransform.isDisable());
         actionDebugQuery.setDisable(type != org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.XQUERY);
+        actionProfileQuery.setDisable(actionDebugQuery.isDisable());
         boolean schematron = type == org.fxt.freexmltoolkit.controls.shell.editor.EditorFileType.SCHEMATRON;
         actionDebugSchematron.setDisable(!schematron);
         actionRunPipeline.setDisable(!org.fxt.freexmltoolkit.controls.shell.editor.EditorActions

@@ -34,7 +34,7 @@ the tag-pinning gotcha), invoke the **`release` skill** (`.claude/skills/release
 
 ## Command Line (fxt-cli)
 
-`org.fxt.freexmltoolkit.cli.FxtCli` (picocli): `validate`, `transform`, `xsd-doc`, `xspec`, `scenario`, `compare`, `merge`, `convert`, `fop`. The
+`org.fxt.freexmltoolkit.cli.FxtCli` (picocli): `validate`, `transform`, `query` (XPath/XQuery/JSONPath via `TransformRunner`, exit like grep), `xsd-doc`, `xspec`, `scenario`, `compare`, `merge`, `convert`, `fop`. The
 subcommands only parse options and call the UI-free runners in `controls/shell/editor/`
 (`ValidationRunner`, `TransformRunner`, `XProcRunner`, `DocumentationRunner`, `FopRunner`) — put
 new logic there so the shell and the CLI share it. Logs go to stderr (`log4j2-cli.xml`), stdout is
@@ -55,8 +55,10 @@ filters on both DOMs), XMLUnit placeholders in the LEFT/expected document (`xmlu
 numeric tolerance (own `DifferenceEvaluator`); `Difference.similar` marks XMLUnit's SIMILAR outcomes
 (moves, CDATA) — they still count for `equivalent()`. XSLT profiler: `XsltProfilingTraceListener` → `XsltProfile`
 (components with total/self, call tree, lines) via `XsltTransformationEngine.profileTransformation`
-(compiled with tracing on the debug processor, warm-up runs); UI `controls/shell/editor/debug/ProfileView`
-+ `FlameGraph` (Transform panel → Profile run), CLI `transform --profile`. UI: `controls/diff/DiffView` (Text | XML mode,
+(compiled with tracing on the debug processor, warm-up runs); XQuery: `profileXQuery` (user functions are the
+components, root "(query body)"); UI `controls/shell/editor/debug/ProfileView` + `FlameGraph` in a tab from
+`ProfileTabs` (Transform panel → Profile run, Run ▾ → Profile Query = `EditorActions.profileActiveQuery`), CLI
+`transform --profile` (XSLT and XQuery). UI: `controls/diff/DiffView` (Text | XML mode,
 `XmlDiffPanel`), `MergeView` + `MergeFilesDialog`, `controls/shell/editor/FolderCompareView`,
 `DataConversionAction`. CLI: `compare`, `merge`, `convert`. Diff colours: `-fxt-diff-*` tokens.
 

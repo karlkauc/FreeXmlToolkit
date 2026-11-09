@@ -32,6 +32,7 @@ import picocli.CommandLine.Spec;
         subcommands = {
                 ValidateCommand.class,
                 TransformCommand.class,
+                QueryCommand.class,
                 XsdDocCommand.class,
                 ConvertCommand.class,
                 CompareCommand.class,
