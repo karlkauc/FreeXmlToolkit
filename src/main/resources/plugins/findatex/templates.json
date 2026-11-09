@@ -8301,6 +8301,2994 @@
      "type": "number"
     }
    ]
+  },
+  {
+   "template": "TPT",
+   "version": "V7.0",
+   "sheet": "TPT V7.0",
+   "fields": [
+    {
+     "code": "1_Portfolio_identifying_data",
+     "definition": "Identification of the fund or share class",
+     "codification": "Use the following priority: - ISO 6166 code of ISIN when available - Other recognised codes (e.g.: CUSIP, Bloomberg Ticker, Reuters RIC) - Code attributed by the undertaking, when the options above are not available. Code must be unique and kept consistent over time.",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "identifier",
+     "typeField": "2_Type_of_identification_code_for_the_fund_share_or_portfolio",
+     "type1": "isin"
+    },
+    {
+     "code": "2_Type_of_identification_code_for_the_fund_share_or_portfolio",
+     "definition": "Codification chosen to identify the share of the CIS",
+     "codification": "One of the options in the following closed list to be used: 1 - ISO 6166 for ISIN code 2 - CUSIP (The Committee on Uniform Securities Identification Procedures number assigned by the CUSIP Service Bureau for U.S. and Canadian companies) 3 - SEDOL (Stock Exchange Daily Official List for the London S…",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "identifierType"
+    },
+    {
+     "code": "3_Portfolio_name",
+     "definition": "Name of the Portfolio or name of the CIS",
+     "codification": "Alphanum (max 255)",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "4_Portfolio_currency_(B)",
+     "definition": "Valuation currency of the portfolio",
+     "codification": "Code ISO 4217 CNH : 2 Chinese yuan (when traded offshore) - Hong Kong CNT: Chinese yuan (when traded offshore) -Taiwan GGP – Guernsey pound - Guernsey IMP: Isle of Man pound also Manx pound -Isle of Man JEP: Jersey pound - Jersey KID: Kiribati dollar -Kiribati NIS – New Israeli Shekel - Israel PRB …",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "currency"
+    },
+    {
+     "code": "5_Net_asset_valuation_of_the_portfolio_or_the_share_class_in_portfolio_currency",
+     "definition": "Portfolio valuation",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "6_Valuation_date",
+     "definition": "Date of valuation (date positions valid for)",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "date"
+    },
+    {
+     "code": "7_Reporting_date",
+     "definition": "Date of reference for the reporting",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "date"
+    },
+    {
+     "code": "8_Share_price",
+     "definition": "Share price of the fund/share class",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "8b_Total_number_of_shares",
+     "definition": "Total number of shares (per share class, if applicable)",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "9_Cash_ratio",
+     "definition": "Amount of cash of the fund / total net asset value of the fund, in %",
+     "codification": "number with floating decimal: 1 = 100%",
+     "flag": "O",
+     "section": 0,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "10_Portfolio_modified_duration",
+     "definition": "Weighted average modified duration of portfolio positions",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 0,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "11_Complete_SCR_delivery",
+     "definition": "Y/N",
+     "codification": "alpha(1)",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "12_CIC_code_of_the_instrument",
+     "definition": "CIC Code (Complementary Identification Code).",
+     "codification": "CIC code - Alphanumeric (4)",
+     "flag": "M",
+     "section": 1,
+     "cic": "0123456789ABCDEF",
+     "type": "cic"
+    },
+    {
+     "code": "13_Economic_zone_of_the_quotation_place",
+     "definition": "Indication of the economic zone of the quotation place",
+     "codification": "Integer return corresponding to the following closed list: 0 = non-listed 1 = EEA 2 = OECD exclude EEA 3 = Rest of the World",
+     "flag": "C",
+     "section": 1,
+     "cic": "3",
+     "type": "enum",
+     "values": [
+      "0",
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "code": "14_Identification_code_of_the_instrument",
+     "definition": "Identification code of the financial instrument - including identifier for leg of instrument if required",
+     "codification": "Code must be unique and kept consistent over time. Example of unique code /idenifier for each leg: 123456a and 123456b",
+     "flag": "M",
+     "section": 1,
+     "cic": "0123456789ABCDEF",
+     "type": "identifier",
+     "typeField": "15_Type_of_identification_code_for_the_instrument",
+     "type1": "isin"
+    },
+    {
+     "code": "15_Type_of_identification_code_for_the_instrument",
+     "definition": "Codification chosen to identify the instrument",
+     "codification": "One of the options in the following closed list to be used: 1 - ISO 6166 for ISIN code 2 - CUSIP (The Committee on Uniform Securities Identification Procedures number assigned by the CUSIP Service Bureau for U.S. and Canadian companies) 3 - SEDOL (Stock Exchange Daily Official List for the London S…",
+     "flag": "M",
+     "section": 1,
+     "cic": "0123456789ABCDEF",
+     "type": "identifierType"
+    },
+    {
+     "code": "16_Grouping_code_for_multiple_leg_instruments",
+     "definition": "grouping code for operations on multi leg instruments",
+     "codification": "Alphanum (max 255) Example: 123456",
+     "flag": "C",
+     "section": 1,
+     "cic": "D",
+     "type": "text"
+    },
+    {
+     "code": "17_Instrument_name",
+     "definition": "instrument name",
+     "codification": "Alphanum (max 255)",
+     "flag": "M",
+     "section": 1,
+     "cic": "0123456789ABCDEF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "17b_Asset_liability",
+     "definition": "Asset/Liability identification if needed",
+     "codification": "\"A\" for asset or \"L\" for liabilities",
+     "flag": "N",
+     "section": 2,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "A",
+      "L"
+     ]
+    },
+    {
+     "code": "18_Quantity",
+     "definition": "Number of instruments on position",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 2,
+     "cic": "034",
+     "type": "number"
+    },
+    {
+     "code": "19_Nominal_amount",
+     "definition": "Quantity * nominal unit amount",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 2,
+     "cic": "0125678EF",
+     "type": "number"
+    },
+    {
+     "code": "20_Contract_size_for_derivatives",
+     "definition": "Contract size",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 2,
+     "cic": "ABC",
+     "type": "number"
+    },
+    {
+     "code": "21_Quotation_currency_(A)",
+     "definition": "Currency of quotation for the instrument or denomination",
+     "codification": "Code ISO 4217 CNH : 2 Chinese yuan (when traded offshore) - Hong Kong CNT: Chinese yuan (when traded offshore) -Taiwan GGP – Guernsey pound - Guernsey IMP: Isle of Man pound also Manx pound -Isle of Man JEP: Jersey pound - Jersey KID: Kiribati dollar -Kiribati NIS – New Israeli Shekel - Israel PRB …",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "currency"
+    },
+    {
+     "code": "22_Market_valuation_in_quotation_currency_(A)",
+     "definition": "Market valuation of the position accrued interest included in quotation currency",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "23_Clean_market_valuation_in_quotation_currency_(A)",
+     "definition": "Market valuation of the position accrued interest excluded in quotation currency",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "24_Market_valuation_in_portfolio_currency_(B)",
+     "definition": "Market valuation of the position accrued interest included in portfolio currency",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "25_Clean_market_valuation_in_portfolio_currency_(B)",
+     "definition": "Market valuation of the position accrued interest excluded in portfolio currency",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "26_Valuation_weight",
+     "definition": "Market valuation in portfolio currency / portfolio net asset value in %",
+     "codification": "number with floating decimal: 1 = 100%",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "27_Market_exposure_amount_in_quotation_currency_(A)",
+     "definition": "Market exposure amount different from market valuation for derivatives (valuation of the equivalent position on the underlying asset)",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "28_Market_exposure_amount_in_portfolio_currency_(B)",
+     "definition": "Market exposure amount different from market valuation for derivatives (valuation of the equivalent position on the underlying asset) in the quotation currency of the portfolio",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "29_Market_exposure_amount_for_the_3rd_quotation_currency_(C)",
+     "definition": "Market exposure amount different from market valuation for derivatives (valuation of the equivalent position on the underlying asset) in the quotation currency of the underlying asset",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 2,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "30_Market_exposure_in_weight",
+     "definition": "Exposure valuation in portfolio currency / total net asset value of the fund, in %",
+     "codification": "number with floating decimal: 1 = 100%",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "31_Market_exposure_for_the_3rd_currency_in_weight_over_NAV",
+     "definition": "Exposure valuation for leg 2 in portfolio currency / total net asset value of the fund, in %",
+     "codification": "number with floating decimal: 1 = 100%",
+     "flag": "C",
+     "section": 2,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "32_Interest_rate_type",
+     "definition": "* Fixed - plain vanilla fixed coupon rate * Floating - plain vanilla floating coupon rates (for all interest rates, which refer to a reference interest rate like EONIA or EURIBOR + margin in BP) * Va…",
+     "codification": "\"Fixed\" or \"Floating\" or \"Variable\" or \"Inflation_linked\"",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568F",
+     "type": "enum",
+     "values": [
+      "Fixed",
+      "Floating",
+      "Variable",
+      "Inflation_linked"
+     ]
+    },
+    {
+     "code": "33_Coupon_rate",
+     "definition": "Fixed rate: coupon rate as a percentage of nominal amount Floating rate: last fixing rate + margin as a percentage of nominal amount Variable rate: estimation of current rate over the period + margin…",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568",
+     "type": "number"
+    },
+    {
+     "code": "34_Interest_rate_reference_identification",
+     "definition": "identification code for interest rate index",
+     "codification": "Example : EUR006M",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "35_Identification_type_for_interest_rate_index",
+     "definition": "Type of codification used for interest rate index",
+     "codification": "e.g. \"BLOOMBERG\" or empty (if internal codification)",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "36_Interest_rate_index_name",
+     "definition": "name of interest rate index",
+     "codification": "Euribor 6month",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "37_Interest_rate_margin",
+     "definition": "Facial margin as a percentage of nominal amount on an annual basis",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "38_Coupon_payment_frequency",
+     "definition": "number of coupon payment per year 0 = other than below options: 1= annual 2= biannual 4= quarterly 12= monthly 52= weekly",
+     "codification": "Frequency (\"0\" = other than /\"1\"= Annual / \"2\"= biannual / \"4\"=quarterly / \"12\"= monthly / \"52\" = weekly)",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568",
+     "type": "text"
+    },
+    {
+     "code": "39_Maturity_date",
+     "definition": "Last redemption date",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568ABCDEF",
+     "type": "date"
+    },
+    {
+     "code": "40_Redemption_type",
+     "definition": "Type of redemption payment schedule : bullet, constant annuity…",
+     "codification": "\"Bullet\", \"Sinkable\", \"defaulted\" empty if non applicable",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568",
+     "type": "text"
+    },
+    {
+     "code": "41_Redemption_rate",
+     "definition": "Redemption amount in % of nominal amount",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568",
+     "type": "number"
+    },
+    {
+     "code": "42_Callable_putable",
+     "definition": "Cal = Call Put = Put Cap = Cap Flr= Floor empty if none",
+     "codification": "Alpha(3)( \"Cal\" = Call / \"Put\" = Put / \"Cap\" = Cap / \"Flr\" = Floor)",
+     "flag": "C",
+     "section": 4,
+     "cic": "125678",
+     "type": "enum",
+     "values": [
+      "Cal",
+      "Put",
+      "Cap",
+      "Flr"
+     ]
+    },
+    {
+     "code": "43_Call_put_date",
+     "definition": "Next call/put date",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "date"
+    },
+    {
+     "code": "44_Issuer_bearer_option_exercise",
+     "definition": "I : issuer B : bearer O : Both",
+     "codification": "Alpha(1) (\"I \"= Issuer / \"B\" = bearer / \"O\"= both)",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "I",
+      "B",
+      "O"
+     ]
+    },
+    {
+     "code": "45_Strike_price_for_embedded_(call_put)_options",
+     "definition": "strike price, floor or cap rate for embedded options expressed as a percentage of the nominal amount.",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "46_Issuer_name",
+     "definition": "name of the issuer",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 5,
+     "cic": "12345678ABCDEF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "47_Issuer_identification_code",
+     "definition": "LEI",
+     "codification": "Alphanumeric (20)",
+     "flag": "C",
+     "section": 5,
+     "cic": "",
+     "type": "identifier",
+     "typeField": "48_Type_of_identification_code_for_issuer",
+     "type1": "lei"
+    },
+    {
+     "code": "48_Type_of_identification_code_for_issuer",
+     "definition": "C0220 1- LEI 9 - None",
+     "codification": "1 or 9",
+     "flag": "C",
+     "section": 5,
+     "cic": "12345678ABCDEF",
+     "type": "identifierType",
+     "values": [
+      "1",
+      "9"
+     ]
+    },
+    {
+     "code": "49_Name_of_the_group_of_the_issuer",
+     "definition": "Name of the highest parent company",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 5,
+     "cic": "12345678ABCDEF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "50_Identification_of_the_group",
+     "definition": "LEI",
+     "codification": "Alphanumeric (20)",
+     "flag": "C",
+     "section": 5,
+     "cic": "4",
+     "type": "identifier",
+     "typeField": "51_Type_of_identification_code_for_issuer_group",
+     "type1": "lei"
+    },
+    {
+     "code": "51_Type_of_identification_code_for_issuer_group",
+     "definition": "C0260 1- LEI 9 - None",
+     "codification": "1 or 9",
+     "flag": "C",
+     "section": 5,
+     "cic": "12345678ABCDEF",
+     "type": "identifierType",
+     "values": [
+      "1",
+      "9"
+     ]
+    },
+    {
+     "code": "52_Issuer_country",
+     "definition": "Country of the issuer company",
+     "codification": "Code ISO 3166-1 alpha 2",
+     "flag": "M",
+     "section": 5,
+     "cic": "0123456789ABCDEF",
+     "type": "country"
+    },
+    {
+     "code": "53_Issuer_economic_area",
+     "definition": "Economic area of the Issuer 1=EEA / 2=NON EEA / 3=NON OECD",
+     "codification": "Integer return corresponding to the following closed list: 1 = EEA 2 = OECD exclude EEA 3 = Rest of the World",
+     "flag": "O",
+     "section": 5,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "code": "54_Economic_sector",
+     "definition": "Economic sector",
+     "codification": "NACE Code (as per EIOPA documentation)",
+     "flag": "O",
+     "section": 5,
+     "cic": "12345678ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "55_Covered_not_covered",
+     "definition": "",
+     "codification": "Alpha(2) (\"C\" = Covered / \"NC\" = Non Covered)",
+     "flag": "C",
+     "section": 5,
+     "cic": "12",
+     "type": "enum",
+     "values": [
+      "C",
+      "NC"
+     ]
+    },
+    {
+     "code": "56_Securitisation",
+     "definition": "Securitisation typology",
+     "codification": "alpha (1) \"a\" refers to the fact that the asset managers have not assessed the eligibility of a treatment of the securitisation positions under Solvency II \"b\" refers to security positions eligible for art 178 (3) and art 178 (5) introduced by the regulation 2018/1221. (Senior STS) \"c\" refers to se…",
+     "flag": "C",
+     "section": 5,
+     "cic": "56",
+     "type": "enum",
+     "values": [
+      "a",
+      "b",
+      "c"
+     ]
+    },
+    {
+     "code": "57_Explicit_guarantee_by_the_country_of_issue",
+     "definition": "Y = guaranteed N = without guarantee",
+     "codification": "Alpha (1) (\"Y\" = yes \"N\"= no)",
+     "flag": "C",
+     "section": 5,
+     "cic": "1256",
+     "type": "enum",
+     "values": [
+      "Y",
+      "N"
+     ]
+    },
+    {
+     "code": "58_Subordinated_debt",
+     "definition": "Subordinated or not ?",
+     "codification": "Alpha (1) (\"Y\" = yes \"N\"= no)",
+     "flag": "O",
+     "section": 5,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "Y",
+      "N"
+     ]
+    },
+    {
+     "code": "58b_Nature_of_the_tranche",
+     "definition": "Tranche level (seniority)",
+     "codification": "Alpha",
+     "flag": "O",
+     "section": 5,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "59_Credit_quality_step",
+     "definition": "Credit quality step as defined by S2 regulation",
+     "codification": "num (1)",
+     "flag": "I",
+     "section": 5,
+     "cic": "12568BCDEF",
+     "type": "text"
+    },
+    {
+     "code": "60_Call_Put_Cap_Floor",
+     "definition": "Cal = Call Put = Put Cap = Cap Flr= Floor empty if none",
+     "codification": "Alpha(3)( \"Cal\" = Call / \"Put\" = Put / \"Cap\" = Cap / \"Flr\" = Floor)",
+     "flag": "C",
+     "section": 6,
+     "cic": "BCE",
+     "type": "enum",
+     "values": [
+      "Cal",
+      "Put",
+      "Cap",
+      "Flr"
+     ]
+    },
+    {
+     "code": "61_Strike_price",
+     "definition": "Strike price expressed as the quotation of the underlying asset",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 6,
+     "cic": "BCE",
+     "type": "number"
+    },
+    {
+     "code": "62_Conversion_factor_(convertibles)_concordance_factor_parity_(options)",
+     "definition": "Conversion factor for convertible",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 6,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "63_Effective_date_of_instrument",
+     "definition": "Effective Date",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "O",
+     "section": 6,
+     "cic": "",
+     "type": "date"
+    },
+    {
+     "code": "64_Exercise_type",
+     "definition": "AMerican, EUropean, ASiatic, BErmudian",
+     "codification": "Alpha (2)(\"AM\", \"EU\", \"AS\", \"BE\")",
+     "flag": "C",
+     "section": 6,
+     "cic": "BC",
+     "type": "enum",
+     "values": [
+      "AM",
+      "EU",
+      "AS",
+      "BE"
+     ]
+    },
+    {
+     "code": "65_Hedging_rolling",
+     "definition": "Indication of existing Risk Mitigation program ( Y = used for Risk Mitigation purpose and the position is systematically rolled before maturity, N = used for hedging purpose but no systematic roll be…",
+     "codification": "Alpha (3) (\"Y\" ; \"N\"; \"EPM\" )",
+     "flag": "C",
+     "section": 6,
+     "cic": "ABCDEF",
+     "type": "enum",
+     "values": [
+      "Y",
+      "N",
+      "EPM"
+     ]
+    },
+    {
+     "code": "67_CIC_of_the_underlying_asset",
+     "definition": "CIC Code (Complementary Identification Code).",
+     "codification": "Alphanumeric (4)",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "cic"
+    },
+    {
+     "code": "68_Identification_code_of_the_underlying_asset",
+     "definition": "identification code of underlying asset",
+     "codification": "Depends on identification type",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "identifier",
+     "typeField": "69_Type_of_identification_code_for_the_underlying_asset",
+     "type1": "isin"
+    },
+    {
+     "code": "69_Type_of_identification_code_for_the_underlying_asset",
+     "definition": "name of the codification used for identification of the underlying asset",
+     "codification": "One of the options in the following closed list to be used: 1 - ISO 6166 for ISIN code 2 - CUSIP (The Committee on Uniform Securities Identification Procedures number assigned by the CUSIP Service Bureau for U.S. and Canadian companies) 3 - SEDOL (Stock Exchange Daily Official List for the London S…",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "identifierType"
+    },
+    {
+     "code": "70_Name_of_the_underlying_asset",
+     "definition": "Name",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "71_Quotation_currency_of_the_underlying_asset_(C)",
+     "definition": "currency of quotation for the asset",
+     "codification": "Code ISO 4217",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "currency"
+    },
+    {
+     "code": "72_Last_valuation_price_of_the_underlying_asset",
+     "definition": "Last valuation price of the underlying asset",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "number"
+    },
+    {
+     "code": "73_Country_of_quotation_of_the_underlying_asset",
+     "definition": "Country of quotation of the underlying asset",
+     "codification": "Code ISO 3166-1 alpha 2",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "country"
+    },
+    {
+     "code": "74_Economic_area_of_quotation_of_the_underlying_asset",
+     "definition": "economic area of quotation 0= non listed, listed 1=EEA / 2=NON EEA / 3=NON OECD",
+     "codification": "Integer return corresponding to the following closed list: 0 = non-listed 1 = EEA 2 = OECD exclude EEA 3 = Rest of the World",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "0",
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "code": "75_Coupon_rate_of_the_underlying_asset",
+     "definition": "Fixed rate : coupon rate as a percentage of nominal amount all rates are expressed on an annual basis",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "76_Coupon_payment_frequency_of_the_underlying_asset",
+     "definition": "number of coupon payment per year 0 = other than below options: 1= annual 2= biannual 4= quarterly 12= monthly 52= weekly",
+     "codification": "Frequency (\"0\" = other than /\"1\"= Annual / \"2\"= biannual / \"4\"=quarterly / \"12\"= monthly / \"52\" = weekly)",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "77_Maturity_date_of_the_underlying_asset",
+     "definition": "Last redemption date",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "date"
+    },
+    {
+     "code": "78_Redemption_profile_of_the_underlying_asset",
+     "definition": "Type of redemption payment schedule : bullet, constant annuity…",
+     "codification": "\"Bullet\", \"Sinkable\", empty if non applicable",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "79_Redemption_rate_of_the_underlying_asset",
+     "definition": "Redemption amount in % of nominal amount",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "80_Issuer_name_of_the_underlying_asset",
+     "definition": "name of the issuer",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "81_Issuer_identification_code_of_the_underlying_asset",
+     "definition": "identification code of the issuer",
+     "codification": "Depend on the nomenclature used",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "82_Type_of_issuer_identification_code_of_the_underlying_asset",
+     "definition": "C0220 1- LEI 9 - None",
+     "codification": "1 or 9",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "1",
+      "9"
+     ]
+    },
+    {
+     "code": "83_Name_of_the_group_of_the_issuer_of_the_underlying_asset",
+     "definition": "Name of the highest parent company",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "84_Identification_of_the_group_of_the_underlying_asset",
+     "definition": "Identification code of the group",
+     "codification": "Depend on the nomenclature used",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "85_Type_of_the_group_identification_code_of_the_underlying_asset",
+     "definition": "C0260 1- LEI 9 - None",
+     "codification": "1 or 9",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "1",
+      "9"
+     ]
+    },
+    {
+     "code": "86_Issuer_country_of_the_underlying_asset",
+     "definition": "Country of the issuer company",
+     "codification": "Code ISO 3166-1 alpha 2",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "country"
+    },
+    {
+     "code": "87_Issuer_economic_area_of_the_underlying_asset",
+     "definition": "economic area of the Issuer 1=EEA / 2=NON EEA / 3=NON OECD",
+     "codification": "Integer return corresponding to the following closed list: 1 = EEA 2 = OECD exclude EEA 3 = Rest of the World",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "code": "88_Explicit_guarantee_by_the_country_of_issue_of_the_underlying_asset",
+     "definition": "Y = Guaranteed N = without guarantee",
+     "codification": "Alpha (1) (\"Y\" = yes \"N\"= no)",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "Y",
+      "N"
+     ]
+    },
+    {
+     "code": "89_Credit_quality_step_of_the_underlying_asset",
+     "definition": "Credit quality step as defined by S2 regulation",
+     "codification": "num (1)",
+     "flag": "I",
+     "section": 7,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "90_Modified_duration_to_maturity_date",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 8,
+     "cic": "128",
+     "type": "number"
+    },
+    {
+     "code": "91_Modified_duration_to_next_option_exercise_date",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 8,
+     "cic": "128",
+     "type": "number"
+    },
+    {
+     "code": "92_Credit_sensitivity",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 8,
+     "cic": "128F",
+     "type": "number"
+    },
+    {
+     "code": "93_Sensitivity_to_underlying_asset_price_(delta)",
+     "definition": "Sensitivity to the underlying asset",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 8,
+     "cic": "BCEF",
+     "type": "number"
+    },
+    {
+     "code": "94_Convexity_gamma_for_derivatives",
+     "definition": "Convexity for interest rates instruments; or gamma for derivatives with optional components",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 8,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "94b_Vega",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 8,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "95_Identification_of_the_original_portfolio_for_positions_embedded_in_a_fund",
+     "definition": "identification code of the investee funds",
+     "codification": "ISIN or CUSIP or any other identification",
+     "flag": "C",
+     "section": 9,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "97_SCR_mrkt_IR_up_weight_over_NAV",
+     "definition": "Capital requirement for interest rate risk for the \"up\" shock (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "98_SCR_mrkt_IR_down_weight_over_NAV",
+     "definition": "Capital requirement for interest rate risk for the \"down\" shock (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "99_SCR_mrkt_eq_type1_weight_over_NAV",
+     "definition": "Capital requirement for equity risk - Type 1 *) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "100_SCR_mrkt_eq_type2_weight_over_NAV",
+     "definition": "Capital requirement for equity risk - Type 2 *) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "101_SCR_mrkt_prop_weight_over_NAV",
+     "definition": "Capital requirement for property risk (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "102_SCR_mrkt_spread_bonds_weight_over_NAV",
+     "definition": "Capital requirement for spread risk on bonds (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "103_SCR_mrkt_spread_structured_weight_over_NAV",
+     "definition": "Capital requirement for spread risk on structured products (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "104_SCR_mrkt_spread_derivatives_up_weight_over_NAV",
+     "definition": "Capital requirement for spread risk - credit derivatives (upward shock) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "105_SCR_mrkt_spread_derivatives_down_weight_over_NAV",
+     "definition": "Capital requirement for spread risk - credit derivatives (downward shock) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "105a_SCR_mrkt_FX_up_weight_over_NAV",
+     "definition": "Capital requirement for FX (upward shock) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "105b_SCR_mrkt_FX_down_weight_over_NAV",
+     "definition": "Capital requirement for FX (downward shock) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "106_Asset_pledged_as_collateral",
+     "definition": "Indicator used to identify the under-written instruments (Assets D1)",
+     "codification": "One of the options in the following closed list shall be used for the pledged part of the asset: 1 – Assets in the balance sheet that are collateral pledged 2 – Collateral for reinsurance accepted 3 – Collateral for securities borrowed 4 – Repos 9 – Not collateral",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "identifierType"
+    },
+    {
+     "code": "107_Place_of_deposit",
+     "definition": "Instruments' place of deposit (S.06.02 - old: Assets D1)",
+     "codification": "ISO code",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "108_Participation",
+     "definition": "Indicator used to identify the guidelines of participation in accountancy terms",
+     "codification": "1 Participation / 2 non participation",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "110_Valorisation_method",
+     "definition": "valuation method (cf specifications QRT) (S.06.02 - old: Assets D1)",
+     "codification": "Identify the valuation method used when valuing assets. One of the options in the following closed list shall be used: 1 – quoted market price in active markets for the same assets 2 – quoted market price in active markets for similar assets 3 – alternative valuation methods 4 – adjusted equity met…",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "111_Value_of_acquisition",
+     "definition": "Value of acquisition (S.06.02 - old: Assets D1)",
+     "codification": "Total acquisition value for assets held, clean value without accrued interest. .Not applicable to CIC categories 7 and 8.",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "112_Credit_rating",
+     "definition": "Rating of the counterparty / issuer (cf specifications QRT) (S.06.02 - old: Assets D1)",
+     "codification": "",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "113_Rating_agency",
+     "definition": "Name of the rating agency (cf specification QRT) (S.06.02 - old: Assets D1)",
+     "codification": "",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "114_Issuer_economic_area",
+     "definition": "economic area of the Issuer 1=EEA / 2=NON EEA / 3=NON OECD",
+     "codification": "Integer return corresponding to the following closed list: 1 = EEA 2 = OECD exclude EEA 3 = Rest of the World",
+     "flag": "N",
+     "section": 11,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "code": "115_Fund_issuer_code",
+     "definition": "LEI when available, otherwise not reported",
+     "codification": "Alphanum",
+     "flag": "M",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "116_Fund_issuer_code_type",
+     "definition": "C0220 1- LEI 9 - None",
+     "codification": "",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "117_Fund_issuer_name",
+     "definition": "Name of Issuer of Fund or Share Class",
+     "codification": "Alphanum",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "118_Fund_issuer_sector",
+     "definition": "NACE code of Issuer of Fund or Share Class",
+     "codification": "Alphanum",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "119_Fund_issuer_group_code",
+     "definition": "LEI of ultimate parent when available, otherwise not reported",
+     "codification": "Alphanum",
+     "flag": "M",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "120_Fund_issuer_group_code_type",
+     "definition": "C0260 1- LEI 9 - None",
+     "codification": "",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "121_Fund_issuer_group_name",
+     "definition": "Name of Ultimate parent of issuer of Fund or Share Class",
+     "codification": "",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "122_Fund_issuer_country",
+     "definition": "Country ISO of Issuer of Fund or Share Class",
+     "codification": "ISO 3166-1 alpha-2 code",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "country"
+    },
+    {
+     "code": "123_Fund_CIC",
+     "definition": "CIC code - Fund or Share Class (4 digits)",
+     "codification": "",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "123a_Fund_custodian_country",
+     "definition": "First level of Custody - Fund or seggregated account Custodian",
+     "codification": "ISO 3166-1 alpha-2 code",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "country"
+    },
+    {
+     "code": "124_Duration",
+     "definition": "For funds or portfolios mainly invested in debt instruments (>50%) - Fund modified Duration (Residual modified duration)",
+     "codification": "",
+     "flag": "O",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "125_Accrued_income_(Security Denominated Currency)",
+     "definition": "Amount of accrued income in security denomination currency at report date",
+     "codification": "",
+     "flag": "O",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "126_Accrued_income_(Portfolio Denominated Currency)",
+     "definition": "Amount of accrued income in portfolio denomination currency at report date",
+     "codification": "",
+     "flag": "O",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "127_Bond_floor_(convertible_instrument_only)",
+     "definition": "Lowest value of a convertible bond expressed in quotation currency, at current issuer spread",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 13,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "128_Option_premium_(convertible_instrument_only)",
+     "definition": "Premium of the embedded option of a convertible bond in quotation currency",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 13,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "129_Valuation_yield",
+     "definition": "Valuation Yield of the interest rate instrument",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 14,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "130_Valuation_z_spread",
+     "definition": "Issuer spread calculated from Z coupon IRS curve of quotation currency",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 14,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "131_Underlying_asset_category",
+     "definition": "SII definition as per QRT S.06.03",
+     "codification": "One of the options in the following closed list shall be used: 1 - Government bonds 2 - Corporate bonds 3L - Listed equity 3X - Unlisted equity 4 - Collective Investment Undertakings 5 - Structured notes 6 - Collateralised securities 7 - Cash and deposits 8 - Mortgages and loans 9 - Properties 0 - …",
+     "flag": "M",
+     "section": 14,
+     "cic": "0123456789ABCDEF",
+     "type": "identifierType"
+    },
+    {
+     "code": "132_Infrastructure_investment",
+     "definition": "Type of infrastructure investment according to Type of infrastructure investment according to COMMISSION DELEGATED REGULATION (EU) 2016/467 of 30 September 2015 amending Commission Delegated Regulati…",
+     "codification": "0 - Not assessed 1 - Debt on eligible Infrastructure project 2 - Equity on eligible infrastructure project 3 - Debt on eligible Infrastructure corporate 4 - Equity on eligible infrastructure corporate 5 - Non eligible",
+     "flag": "I",
+     "section": 15,
+     "cic": "1235689",
+     "type": "text"
+    },
+    {
+     "code": "133_custodian_name",
+     "definition": "Name of the custodian of the seggregated account",
+     "codification": "text",
+     "flag": "O",
+     "section": 16,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "134_type1_private_equity_portfolio_eligibility",
+     "definition": "Eligibility of the investment to art 168a of the regulation UE DR 2019/981",
+     "codification": "Int (1) \"0\" = Not assessed \"1\" = elligible for re-classification as equity type 1 \"2\" = not elligible for re-classification as equity type 1",
+     "flag": "I",
+     "section": 17,
+     "cic": "34",
+     "type": "text"
+    },
+    {
+     "code": "135_type1_private_equity_issuer_beta",
+     "definition": "Beta of the issuer of the private equity calculated according to art 168a of the regulation UE DR 2019/981",
+     "codification": "number with floating decimal",
+     "flag": "I",
+     "section": 17,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "137_Counterparty_sector",
+     "definition": "Classification of the issuer or counterparty according to IORP II regulation based on FINREP breakdown ( ESA 2010) and EIOPA specifications",
+     "codification": "Alphanumeric (2) 1 – central bank (ESA 2010 sector S.121) 2 – deposit-taking corporations except the central bank (ESA 2010 sector S.122) 3 – money market funds (ESA 2010 sector S.123) 4 – investment funds other than money market funds (ESA 2010 sector S.124) 5 – other financial intermediaries, exc…",
+     "flag": "C",
+     "section": 18,
+     "cic": "12345678ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "138_Collateral_eligibility",
+     "definition": "Eligibility of the collateral according to solvency regulation (RD UE 2015/35 art 176.5 and related art197, art214)",
+     "codification": "0 - Not assessed or no collateral 1 - Compliant with art 214 and art 197.1a and art 197 1b 2 - Compliant with art 214 and art 197.1a 3 - Compliant with art 214. 4 - Not elligible",
+     "flag": "C",
+     "section": 18,
+     "cic": "2568",
+     "type": "text"
+    },
+    {
+     "code": "139_Collateral_Market_valuation_in_portfolio_currency",
+     "definition": "Market valuation of the collateral in portfolio currency",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 18,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "140_Custodian_identification_code",
+     "definition": "identification code of the custodian",
+     "codification": "Depend on the nomenclature used",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "141_Type_of_custodian_identification_code",
+     "definition": "C0220 1-LEI, 9-None or internal",
+     "codification": "\"1\" or \"9\"",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "1",
+      "9"
+     ]
+    },
+    {
+     "code": "142_Bail-in_Rule",
+     "definition": "Indicate if there is a \"Bail-in\" Rule applicable for debt instrument",
+     "codification": "0 - Not assessed 1 - Yes 2 - No 9 - Not Aplicable",
+     "flag": "C",
+     "section": 19,
+     "cic": "25",
+     "type": "text"
+    },
+    {
+     "code": "143_Maturity_date_expected",
+     "definition": "Expected redemption date after considering an expected prepayment / extension of the contractual terms based on the options in the instrument",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "date"
+    },
+    {
+     "code": "144_Modified_duration_to_maturity_date_expected",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "145_Credit_sensitivity_expected",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "146_PIK",
+     "definition": "",
+     "codification": "0 - No PIK 1 - No cash coupon. Existing PIK is included in the redemption rate (41) and described in the coupon data points (32-38). The period indicated for \"38_Coupon_payment_frequency\" is the period for PIK accrual. 2 - Existing PIK is included in the redemption rate (41) but not described in th…",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "147_Infrastructure_investment_additional_QRT",
+     "definition": "(for mandate or segregated account especially) Identify if the asset is an infrastructure investment as defined in Article 1(55a) and (55b) of Delegated Regulation (EU) 2015/35. One of the options in…",
+     "codification": "1 – Not an infrastructure investment; 2 – Infrastructure non-qualifying: Government Guarantee (Government, Central bank, Regional government or local authority); 3 – Infrastructure non-qualifying: Government Supported including Public Finance initiative (Government, Central bank, Regional governmen…",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "148_Economic_sector_NACE2.1",
+     "definition": "Economic sector",
+     "codification": "NACE V2.1 Code",
+     "flag": "C",
+     "section": 19,
+     "cic": "12345678ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "1000_TPT_Version",
+     "definition": "TPT Published Version",
+     "codification": "V2.0 (official); dated 9 January 2015 V3.0 (official) dated 12 October 2015 V4.0 (official) dated 13 February 2018 V5.0 (official) dated 16 January 2020 V6.0 (official) dated 10 January 2022 V7.0 (official) dated 25 November 2024",
+     "flag": "M",
+     "section": 19,
+     "cic": "0123456789ABCDEF",
+     "type": "version",
+     "values": [
+      "V7.0"
+     ]
+    }
+   ],
+   "label": "14_Identification_code_of_the_instrument"
+  },
+  {
+   "template": "TPT",
+   "version": "V8.0",
+   "sheet": "TPT V8.0",
+   "fields": [
+    {
+     "code": "1_Portfolio_identifying_data",
+     "definition": "Identification of the fund or share class",
+     "codification": "Use the following priority: - ISO 6166 code of ISIN when available - Other recognised codes (e.g.: CUSIP, Bloomberg Ticker, Reuters RIC) - Code attributed by the undertaking, when the options above are not available. Code must be unique and kept consistent over time.",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "identifier",
+     "typeField": "2_Type_of_identification_code_for_the_fund_share_or_portfolio",
+     "type1": "isin"
+    },
+    {
+     "code": "2_Type_of_identification_code_for_the_fund_share_or_portfolio",
+     "definition": "Codification chosen to identify the share of the CIS",
+     "codification": "One of the options in the following closed list to be used: 1 - ISO 6166 for ISIN code 2 - CUSIP (The Committee on Uniform Securities Identification Procedures number assigned by the CUSIP Service Bureau for U.S. and Canadian companies) 3 - SEDOL (Stock Exchange Daily Official List for the London S…",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "identifierType"
+    },
+    {
+     "code": "3_Portfolio_name",
+     "definition": "Name of the Portfolio or name of the CIS",
+     "codification": "Alphanum (max 255)",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "4_Portfolio_currency_(B)",
+     "definition": "Valuation currency of the portfolio",
+     "codification": "Code ISO 4217 CNH : 2 Chinese yuan (when traded offshore) - Hong Kong CNT: Chinese yuan (when traded offshore) -Taiwan GGP – Guernsey pound - Guernsey IMP: Isle of Man pound also Manx pound -Isle of Man JEP: Jersey pound - Jersey KID: Kiribati dollar -Kiribati NIS – New Israeli Shekel - Israel PRB …",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "currency"
+    },
+    {
+     "code": "5_Net_asset_valuation_of_the_portfolio_or_the_share_class_in_portfolio_currency",
+     "definition": "Portfolio valuation",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "6_Valuation_date",
+     "definition": "Date of valuation (date positions valid for)",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "date"
+    },
+    {
+     "code": "7_Reporting_date",
+     "definition": "Date of reference for the reporting",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "date"
+    },
+    {
+     "code": "8_Share_price",
+     "definition": "Share price of the fund/share class",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "8b_Total_number_of_shares",
+     "definition": "Total number of shares (per share class, if applicable)",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "9_Cash_ratio",
+     "definition": "Amount of cash of the fund / total net asset value of the fund, in %",
+     "codification": "number with floating decimal: 1 = 100%",
+     "flag": "O",
+     "section": 0,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "10_Portfolio_modified_duration",
+     "definition": "Weighted average modified duration of portfolio positions",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 0,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "11_Complete_SCR_delivery",
+     "definition": "Y/N",
+     "codification": "alpha(1)",
+     "flag": "M",
+     "section": 0,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "12_CIC_code_of_the_instrument",
+     "definition": "CIC Code (Complementary Identification Code).",
+     "codification": "CIC code - Alphanumeric (4)",
+     "flag": "M",
+     "section": 1,
+     "cic": "0123456789ABCDEF",
+     "type": "cic"
+    },
+    {
+     "code": "13_Economic_zone_of_the_quotation_place",
+     "definition": "Indication of the economic zone of the quotation place",
+     "codification": "Integer return corresponding to the following closed list: 0 = non-listed 1 = EEA 2 = OECD exclude EEA 3 = Rest of the World",
+     "flag": "C",
+     "section": 1,
+     "cic": "3",
+     "type": "enum",
+     "values": [
+      "0",
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "code": "14_Identification_code_of_the_instrument",
+     "definition": "Identification code of the financial instrument - including identifier for leg of instrument if required",
+     "codification": "Code must be unique and kept consistent over time. Example of unique code /idenifier for each leg: 123456a and 123456b",
+     "flag": "M",
+     "section": 1,
+     "cic": "0123456789ABCDEF",
+     "type": "identifier",
+     "typeField": "15_Type_of_identification_code_for_the_instrument",
+     "type1": "isin"
+    },
+    {
+     "code": "15_Type_of_identification_code_for_the_instrument",
+     "definition": "Codification chosen to identify the instrument",
+     "codification": "One of the options in the following closed list to be used: 1 - ISO 6166 for ISIN code 2 - CUSIP (The Committee on Uniform Securities Identification Procedures number assigned by the CUSIP Service Bureau for U.S. and Canadian companies) 3 - SEDOL (Stock Exchange Daily Official List for the London S…",
+     "flag": "M",
+     "section": 1,
+     "cic": "0123456789ABCDEF",
+     "type": "identifierType"
+    },
+    {
+     "code": "16_Grouping_code_for_multiple_leg_instruments",
+     "definition": "grouping code for operations on multi leg instruments",
+     "codification": "Alphanum (max 255) Example: 123456",
+     "flag": "C",
+     "section": 1,
+     "cic": "D",
+     "type": "text"
+    },
+    {
+     "code": "17_Instrument_name",
+     "definition": "instrument name",
+     "codification": "Alphanum (max 255)",
+     "flag": "M",
+     "section": 1,
+     "cic": "0123456789ABCDEF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "17b_Asset_liability",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 2,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "18_Quantity",
+     "definition": "Number of instruments on position",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 2,
+     "cic": "034",
+     "type": "number"
+    },
+    {
+     "code": "19_Nominal_amount",
+     "definition": "Quantity * nominal unit amount",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 2,
+     "cic": "0125678EF",
+     "type": "number"
+    },
+    {
+     "code": "20_Contract_size_for_derivatives",
+     "definition": "Contract size",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 2,
+     "cic": "ABC",
+     "type": "number"
+    },
+    {
+     "code": "21_Quotation_currency_(A)",
+     "definition": "Currency of quotation for the instrument or denomination",
+     "codification": "Code ISO 4217 CNH : 2 Chinese yuan (when traded offshore) - Hong Kong CNT: Chinese yuan (when traded offshore) -Taiwan GGP – Guernsey pound - Guernsey IMP: Isle of Man pound also Manx pound -Isle of Man JEP: Jersey pound - Jersey KID: Kiribati dollar -Kiribati NIS – New Israeli Shekel - Israel PRB …",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "currency"
+    },
+    {
+     "code": "22_Market_valuation_in_quotation_currency_(A)",
+     "definition": "Market valuation of the position accrued interest included in quotation currency",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "23_Clean_market_valuation_in_quotation_currency_(A)",
+     "definition": "Market valuation of the position accrued interest excluded in quotation currency",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "24_Market_valuation_in_portfolio_currency_(B)",
+     "definition": "Market valuation of the position accrued interest included in portfolio currency",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "25_Clean_market_valuation_in_portfolio_currency_(B)",
+     "definition": "Market valuation of the position accrued interest excluded in portfolio currency",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "26_Valuation_weight",
+     "definition": "Market valuation in portfolio currency / portfolio net asset value in %",
+     "codification": "number with floating decimal: 1 = 100%",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "27_Market_exposure_amount_in_quotation_currency_(A)",
+     "definition": "Market exposure amount different from market valuation for derivatives (valuation of the equivalent position on the underlying asset)",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "28_Market_exposure_amount_in_portfolio_currency_(B)",
+     "definition": "Market exposure amount different from market valuation for derivatives (valuation of the equivalent position on the underlying asset) in the quotation currency of the portfolio",
+     "codification": "number with floating decimal",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "29_Market_exposure_amount_for_the_3rd_quotation_currency_(C)",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 2,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "30_Market_exposure_in_weight",
+     "definition": "Exposure valuation in portfolio currency / total net asset value of the fund, in %",
+     "codification": "number with floating decimal: 1 = 100%",
+     "flag": "M",
+     "section": 2,
+     "cic": "0123456789ABCDEF",
+     "type": "number"
+    },
+    {
+     "code": "31_Market_exposure_for_the_3rd_currency_in_weight_over_NAV",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 2,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "32_Interest_rate_type",
+     "definition": "* Fixed - plain vanilla fixed coupon rate * Floating - plain vanilla floating coupon rates (for all interest rates, which refer to a reference interest rate like EONIA or EURIBOR + margin in BP) * Va…",
+     "codification": "\"Fixed\" or \"Floating\" or \"Variable\" or \"Inflation_linked\"",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568F",
+     "type": "enum",
+     "values": [
+      "Fixed",
+      "Floating",
+      "Variable",
+      "Inflation_linked"
+     ]
+    },
+    {
+     "code": "33_Coupon_rate",
+     "definition": "Fixed rate: coupon rate as a percentage of nominal amount Floating rate: last fixing rate + margin as a percentage of nominal amount Variable rate: estimation of current rate over the period + margin…",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568",
+     "type": "number"
+    },
+    {
+     "code": "34_Interest_rate_reference_identification",
+     "definition": "identification code for interest rate index",
+     "codification": "Example : EUR006M",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "35_Identification_type_for_interest_rate_index",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 4,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "36_Interest_rate_index_name",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 4,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "37_Interest_rate_margin",
+     "definition": "Facial margin as a percentage of nominal amount on an annual basis",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "38_Coupon_payment_frequency",
+     "definition": "number of coupon payment per year 0 = other than below options: 1= annual 2= biannual 4= quarterly 12= monthly 52= weekly",
+     "codification": "Frequency (\"0\" = other than /\"1\"= Annual / \"2\"= biannual / \"4\"=quarterly / \"12\"= monthly / \"52\" = weekly)",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568",
+     "type": "text"
+    },
+    {
+     "code": "39_Maturity_date",
+     "definition": "Last redemption date",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568ABCDEF",
+     "type": "date"
+    },
+    {
+     "code": "40_Redemption_type",
+     "definition": "Type of redemption payment schedule : bullet, constant annuity…",
+     "codification": "\"Bullet\", \"Sinkable\", \"defaulted\" empty if non applicable",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568",
+     "type": "text"
+    },
+    {
+     "code": "41_Redemption_rate",
+     "definition": "Redemption amount in % of nominal amount",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 4,
+     "cic": "12568",
+     "type": "number"
+    },
+    {
+     "code": "42_Callable_putable",
+     "definition": "Cal = Call Put = Put Cap = Cap Flr= Floor empty if none",
+     "codification": "Alpha(3)( \"Cal\" = Call / \"Put\" = Put / \"Cap\" = Cap / \"Flr\" = Floor)",
+     "flag": "C",
+     "section": 4,
+     "cic": "125678",
+     "type": "enum",
+     "values": [
+      "Cal",
+      "Put",
+      "Cap",
+      "Flr"
+     ]
+    },
+    {
+     "code": "43_Call_put_date",
+     "definition": "Next call/put date",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "date"
+    },
+    {
+     "code": "44_Issuer_bearer_option_exercise",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 4,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "45_Strike_price_for_embedded_(call_put)_options",
+     "definition": "strike price, floor or cap rate for embedded options expressed as a percentage of the nominal amount.",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 4,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "46_Issuer_name",
+     "definition": "name of the issuer",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 5,
+     "cic": "12345678ABCDEF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "47_Issuer_identification_code",
+     "definition": "Identification code of the issuer",
+     "codification": "Alphanumeric (max 20)",
+     "flag": "M",
+     "section": 5,
+     "cic": "012345678ABCDEF",
+     "type": "identifier",
+     "typeField": "48_Type_of_identification_code_for_issuer",
+     "type1": "lei"
+    },
+    {
+     "code": "48_Type_of_identification_code_for_issuer",
+     "definition": "Codification chosen to identify the issuer",
+     "codification": "1 - Legal Entity Identifier (LEI) 2 - other external Identifier (for example European VAT number or countrycode +National regitration number\" ) 9 - internal",
+     "flag": "M",
+     "section": 5,
+     "cic": "012345678ABCDEF",
+     "type": "identifierType"
+    },
+    {
+     "code": "49_Name_of_the_group_of_the_issuer",
+     "definition": "Name of the highest parent company",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 5,
+     "cic": "12345678ABCDEF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "50_Identification_of_the_group",
+     "definition": "Identification code of the issuer group",
+     "codification": "Alphanumeric (max 20)",
+     "flag": "M",
+     "section": 5,
+     "cic": "012345678ABCDEF",
+     "type": "identifier",
+     "typeField": "51_Type_of_identification_code_for_issuer_group",
+     "type1": "lei"
+    },
+    {
+     "code": "51_Type_of_identification_code_for_issuer_group",
+     "definition": "Codification chosen to identify the issuer",
+     "codification": "1 - Legal Entity Identifier (LEI) 2 - other external Identifier (for example European VAT number or countrycode +National regitration number\" ) 9 - internal",
+     "flag": "M",
+     "section": 5,
+     "cic": "012345678ABCDEF",
+     "type": "identifierType"
+    },
+    {
+     "code": "52_Issuer_country",
+     "definition": "Country of the issuer company",
+     "codification": "Code ISO 3166-1 alpha 2",
+     "flag": "M",
+     "section": 5,
+     "cic": "0123456789ABCDEF",
+     "type": "country"
+    },
+    {
+     "code": "53_Issuer_economic_area",
+     "definition": "Economic area of the Issuer 1=EEA / 2=NON EEA / 3=NON OECD",
+     "codification": "Integer return corresponding to the following closed list: 1 = EEA 2 = OECD exclude EEA 3 = Rest of the World",
+     "flag": "O",
+     "section": 5,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "code": "54_Economic_sector",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 5,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "55_Covered_not_covered",
+     "definition": "",
+     "codification": "Alpha(2) (\"C\" = Covered / \"NC\" = Non Covered)",
+     "flag": "C",
+     "section": 5,
+     "cic": "12",
+     "type": "enum",
+     "values": [
+      "C",
+      "NC"
+     ]
+    },
+    {
+     "code": "56_Securitisation",
+     "definition": "Securitisation typology",
+     "codification": "alpha (1) \"a\" refers to the fact that the asset managers have not assessed the eligibility of a treatment of the securitisation positions under Solvency II \"b\" refers to security positions eligible for art 178 (3) and art 178 (5) (Senior STS) \"c\" refers to security positions eligible for art 178 (4…",
+     "flag": "C",
+     "section": 5,
+     "cic": "56",
+     "type": "enum",
+     "values": [
+      "a",
+      "b",
+      "c"
+     ]
+    },
+    {
+     "code": "57_Explicit_guarantee_by_the_country_of_issue",
+     "definition": "Y = guaranteed N = without guarantee",
+     "codification": "Alpha (1) (\"Y\" = yes \"N\"= no)",
+     "flag": "C",
+     "section": 5,
+     "cic": "1256",
+     "type": "enum",
+     "values": [
+      "Y",
+      "N"
+     ]
+    },
+    {
+     "code": "58_Subordinated_debt",
+     "definition": "Subordinated or not ?",
+     "codification": "Alpha (1) (\"Y\" = yes \"N\"= no)",
+     "flag": "O",
+     "section": 5,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "Y",
+      "N"
+     ]
+    },
+    {
+     "code": "58b_Nature_of_the_tranche",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 5,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "59_Credit_quality_step",
+     "definition": "Credit quality step as defined by S2 regulation",
+     "codification": "num (1)",
+     "flag": "I",
+     "section": 5,
+     "cic": "12568BCDEF",
+     "type": "text"
+    },
+    {
+     "code": "60_Call_Put_Cap_Floor",
+     "definition": "Cal = Call Put = Put Cap = Cap Flr= Floor empty if none",
+     "codification": "Alpha(3)( \"Cal\" = Call / \"Put\" = Put / \"Cap\" = Cap / \"Flr\" = Floor)",
+     "flag": "C",
+     "section": 6,
+     "cic": "BCE",
+     "type": "enum",
+     "values": [
+      "Cal",
+      "Put",
+      "Cap",
+      "Flr"
+     ]
+    },
+    {
+     "code": "61_Strike_price",
+     "definition": "Strike price expressed as the quotation of the underlying asset",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 6,
+     "cic": "BCE",
+     "type": "number"
+    },
+    {
+     "code": "62_Conversion_factor",
+     "definition": "Conversion factor for convertible",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 6,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "63_Effective_date_of_instrument",
+     "definition": "Effective Date",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "O",
+     "section": 6,
+     "cic": "",
+     "type": "date"
+    },
+    {
+     "code": "64_Exercise_type",
+     "definition": "AMerican, EUropean, ASiatic, BErmudian",
+     "codification": "Alpha (2)(\"AM\", \"EU\", \"AS\", \"BE\")",
+     "flag": "C",
+     "section": 6,
+     "cic": "BC",
+     "type": "enum",
+     "values": [
+      "AM",
+      "EU",
+      "AS",
+      "BE"
+     ]
+    },
+    {
+     "code": "65_Hedging_rolling",
+     "definition": "Indication of existing Risk Mitigation program ( Y = used for Risk Mitigation purpose and the position is systematically rolled before maturity, N = used for hedging purpose but no systematic roll be…",
+     "codification": "Alpha (3) (\"Y\" ; \"N\"; \"EPM\" )",
+     "flag": "C",
+     "section": 6,
+     "cic": "ABCDEF",
+     "type": "enum",
+     "values": [
+      "Y",
+      "N",
+      "EPM"
+     ]
+    },
+    {
+     "code": "67_CIC_of_the_underlying_asset",
+     "definition": "CIC Code (Complementary Identification Code).",
+     "codification": "Alphanumeric (4)",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "cic"
+    },
+    {
+     "code": "68_Identification_code_of_the_underlying_asset",
+     "definition": "identification code of underlying asset",
+     "codification": "Depends on identification type",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "identifier",
+     "typeField": "69_Type_of_identification_code_for_the_underlying_asset",
+     "type1": "isin"
+    },
+    {
+     "code": "69_Type_of_identification_code_for_the_underlying_asset",
+     "definition": "name of the codification used for identification of the underlying asset",
+     "codification": "One of the options in the following closed list to be used: 1 - ISO 6166 for ISIN code 2 - CUSIP (The Committee on Uniform Securities Identification Procedures number assigned by the CUSIP Service Bureau for U.S. and Canadian companies) 3 - SEDOL (Stock Exchange Daily Official List for the London S…",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "identifierType"
+    },
+    {
+     "code": "70_Name_of_the_underlying_asset",
+     "definition": "Name",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "71_Quotation_currency_of_the_underlying_asset_(C)",
+     "definition": "currency of quotation for the asset",
+     "codification": "Code ISO 4217",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "currency"
+    },
+    {
+     "code": "72_Last_valuation_price_of_the_underlying_asset",
+     "definition": "Last valuation price of the underlying asset",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 7,
+     "cic": "ABCF",
+     "type": "number"
+    },
+    {
+     "code": "73_Country_of_quotation_of_the_underlying_asset",
+     "definition": "Country of quotation of the underlying asset",
+     "codification": "Code ISO 3166-1 alpha 2",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "country"
+    },
+    {
+     "code": "74_Economic_area_of_quotation_of_the_underlying_asset",
+     "definition": "economic area of quotation 0= non listed, listed 1=EEA / 2=NON EEA / 3=NON OECD",
+     "codification": "Integer return corresponding to the following closed list: 0 = non-listed 1 = EEA 2 = OECD exclude EEA 3 = Rest of the World",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "0",
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "code": "75_Coupon_rate_of_the_underlying_asset",
+     "definition": "Fixed rate : coupon rate as a percentage of nominal amount all rates are expressed on an annual basis",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "76_Coupon_payment_frequency_of_the_underlying_asset",
+     "definition": "number of coupon payment per year 0 = other than below options: 1= annual 2= biannual 4= quarterly 12= monthly 52= weekly",
+     "codification": "Frequency (\"0\" = other than /\"1\"= Annual / \"2\"= biannual / \"4\"=quarterly / \"12\"= monthly / \"52\" = weekly)",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "77_Maturity_date_of_the_underlying_asset",
+     "definition": "Last redemption date",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "date"
+    },
+    {
+     "code": "78_Redemption_profile_of_the_underlying_asset",
+     "definition": "Type of redemption payment schedule : bullet, constant annuity…",
+     "codification": "\"Bullet\", \"Sinkable\", empty if non applicable",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "79_Redemption_rate_of_the_underlying_asset",
+     "definition": "Redemption amount in % of nominal amount",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "80_Issuer_name_of_the_underlying_asset",
+     "definition": "name of the issuer",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "81_Issuer_identification_code_of_the_underlying_asset",
+     "definition": "Idenitification code of the issuer of the underlying security",
+     "codification": "Alphanumeric (max 20)",
+     "flag": "M",
+     "section": 7,
+     "cic": "2ABCDF",
+     "type": "text"
+    },
+    {
+     "code": "82_Type_of_issuer_identification_code_of_the_underlying_asset",
+     "definition": "Codification chosen to identify the issuer",
+     "codification": "1 - Legal Entity Identifier (LEI) 2 - other external Identifier (for example European VAT number or countrycode +National regitration number\" ) 9 - internal",
+     "flag": "M",
+     "section": 7,
+     "cic": "2ABCDF",
+     "type": "text"
+    },
+    {
+     "code": "83_Name_of_the_group_of_the_issuer_of_the_underlying_asset",
+     "definition": "Name of the highest parent company",
+     "codification": "Alpha (max 255)",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "text",
+     "max": 255
+    },
+    {
+     "code": "84_Identification_of_the_group_of_the_underlying_asset",
+     "definition": "Idenitification code of the issuer group of the underlying security",
+     "codification": "Alphanumeric (max 20)",
+     "flag": "C",
+     "section": 7,
+     "cic": "2ABCDF",
+     "type": "text"
+    },
+    {
+     "code": "85_Type_of_the_group_identification_code_of_the_underlying_asset",
+     "definition": "Codification chosen to identify the issuer",
+     "codification": "1 - Legal Entity Identifier (LEI) 2 - other external Identifier (for example European VAT number or countrycode +National regitration number\" ) 9 - internal",
+     "flag": "M",
+     "section": 7,
+     "cic": "2ABCDF",
+     "type": "text"
+    },
+    {
+     "code": "86_Issuer_country_of_the_underlying_asset",
+     "definition": "Country of the issuer company",
+     "codification": "Code ISO 3166-1 alpha 2",
+     "flag": "C",
+     "section": 7,
+     "cic": "",
+     "type": "country"
+    },
+    {
+     "code": "87_Issuer_economic_area_of_the_underlying_asset",
+     "definition": "economic area of the Issuer 1=EEA / 2=NON EEA / 3=NON OECD",
+     "codification": "Integer return corresponding to the following closed list: 1 = EEA 2 = OECD exclude EEA 3 = Rest of the World",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "1",
+      "2",
+      "3"
+     ]
+    },
+    {
+     "code": "88_Explicit_guarantee_by_the_country_of_issue_of_the_underlying_asset",
+     "definition": "Y = Guaranteed N = without guarantee",
+     "codification": "Alpha (1) (\"Y\" = yes \"N\"= no)",
+     "flag": "O",
+     "section": 7,
+     "cic": "",
+     "type": "enum",
+     "values": [
+      "Y",
+      "N"
+     ]
+    },
+    {
+     "code": "89_Credit_quality_step_of_the_underlying_asset",
+     "definition": "Credit quality step as defined by S2 regulation",
+     "codification": "num (1)",
+     "flag": "I",
+     "section": 7,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "90_Modified_duration_to_maturity_date",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 8,
+     "cic": "128",
+     "type": "number"
+    },
+    {
+     "code": "91_Modified_duration_to_next_option_exercise_date",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 8,
+     "cic": "128",
+     "type": "number"
+    },
+    {
+     "code": "92_Credit_sensitivity",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 8,
+     "cic": "128F",
+     "type": "number"
+    },
+    {
+     "code": "93_Sensitivity_to_underlying_asset_price_(delta)",
+     "definition": "Sensitivity to the underlying asset",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 8,
+     "cic": "BCEF",
+     "type": "number"
+    },
+    {
+     "code": "94_Convexity_gamma_for_derivatives",
+     "definition": "Convexity for interest rates instruments; or gamma for derivatives with optional components",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 8,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "94b_Vega",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 8,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "95_Identification_of_the_original_portfolio_for_positions_embedded_in_a_fund",
+     "definition": "identification code of the investee funds",
+     "codification": "ISIN or CUSIP or any other identification",
+     "flag": "C",
+     "section": 9,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "97_SCR_mrkt_IR_up_weight_over_NAV",
+     "definition": "Capital requirement for interest rate risk for the \"up\" shock (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "98_SCR_mrkt_IR_down_weight_over_NAV",
+     "definition": "Capital requirement for interest rate risk for the \"down\" shock (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "99_SCR_mrkt_eq_type1_weight_over_NAV",
+     "definition": "Capital requirement for equity risk - Type 1 *) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "100_SCR_mrkt_eq_type2_weight_over_NAV",
+     "definition": "Capital requirement for equity risk - Type 2 *) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "101_SCR_mrkt_prop_weight_over_NAV",
+     "definition": "Capital requirement for property risk (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "102_SCR_mrkt_spread_bonds_weight_over_NAV",
+     "definition": "Capital requirement for spread risk on bonds (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "103_SCR_mrkt_spread_structured_weight_over_NAV",
+     "definition": "Capital requirement for spread risk on structured products (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "104_SCR_mrkt_spread_derivatives_up_weight_over_NAV",
+     "definition": "Capital requirement for spread risk - credit derivatives (upward shock) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "105_SCR_mrkt_spread_derivatives_down_weight_over_NAV",
+     "definition": "Capital requirement for spread risk - credit derivatives (downward shock) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "105a_SCR_mrkt_FX_up_weight_over_NAV",
+     "definition": "Capital requirement for FX (upward shock) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "105b_SCR_mrkt_FX_down_weight_over_NAV",
+     "definition": "Capital requirement for FX (downward shock) (Delta between Market value before and market value after stress)",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 10,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "106_Asset_pledged_as_collateral",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "107_Place_of_deposit",
+     "definition": "Instruments' place of deposit (S.06.02 - old: Assets D1)",
+     "codification": "ISO code",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "108_Participation",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "110_Valorisation_method",
+     "definition": "valuation method (cf specifications QRT) (S.06.02 - old: Assets D1)",
+     "codification": "Identify the valuation method used when valuing assets. One of the options in the following closed list shall be used: 1 – quoted market price in active markets for the same assets 2 – quoted market price in active markets for similar assets 3 – alternative valuation methods 4 – adjusted equity met…",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "111_Value_of_acquisition",
+     "definition": "Value of acquisition (S.06.02 - old: Assets D1)",
+     "codification": "Total acquisition value for assets held, clean value without accrued interest. Not applicable to CIC categories 7 and 8.",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "112_Credit_rating",
+     "definition": "Rating of the counterparty / issuer (cf specifications QRT) (S.06.02 - old: Assets D1)",
+     "codification": "",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "113_Rating_agency",
+     "definition": "Name of the rating agency (cf specification QRT) (S.06.02 - old: Assets D1)",
+     "codification": "",
+     "flag": "O",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "114_Issuer_economic_area",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 11,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "115_Fund_issuer_code",
+     "definition": "LEI",
+     "codification": "Alphanum",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "116_Fund_issuer_code_type",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "117_Fund_issuer_name",
+     "definition": "Name of Issuer of Fund or Share Class",
+     "codification": "Alphanum",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "118_Fund_issuer_sector",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "119_Fund_issuer_group_code",
+     "definition": "LEI of ultimate parent",
+     "codification": "Alphanum",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "120_Fund_issuer_group_code_type",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "121_Fund_issuer_group_name",
+     "definition": "Name of Ultimate parent of issuer of Fund or Share Class",
+     "codification": "",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "122_Fund_issuer_country",
+     "definition": "Country ISO of Issuer of Fund or Share Class",
+     "codification": "ISO 3166-1 alpha-2 code",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "country"
+    },
+    {
+     "code": "123_Fund_CIC",
+     "definition": "CIC code - Fund or Share Class (4 characters)",
+     "codification": "",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "123a_Fund_custodian_country",
+     "definition": "First level of Custody - Fund or segregated account Custodian",
+     "codification": "ISO 3166-1 alpha-2 code",
+     "flag": "M",
+     "section": 12,
+     "cic": "0123456789ABCDEF",
+     "type": "country"
+    },
+    {
+     "code": "124_Duration",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "125_Accrued_income_(Security Denominated Currency)",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "126_Accrued_income_(Portfolio Denominated Currency)",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 12,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "127_Bond_floor_(convertible_instrument_only)",
+     "definition": "Lowest value of a convertible bond expressed in quotation currency, at current issuer spread",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 13,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "128_Option_premium_(convertible_instrument_only)",
+     "definition": "Premium of the embedded option of a convertible bond in quotation currency",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 13,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "129_Valuation_yield",
+     "definition": "Valuation Yield of the interest rate instrument",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 14,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "130_Valuation_z_spread",
+     "definition": "Issuer spread calculated from Z coupon IRS curve of quotation currency",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 14,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "131_Underlying_asset_category",
+     "definition": "SII definition as per QRT S.06.03",
+     "codification": "One of the options in the following closed list shall be used: 1 - Government bonds 2 - Corporate bonds 3L - Listed equity 3X - Unlisted equity 4 - Collective Investment Undertakings 5 - Structured notes 6 - Collateralised securities 7 - Cash and deposits 8 - Mortgages and loans 9 - Properties 0 - …",
+     "flag": "M",
+     "section": 14,
+     "cic": "0123456789ABCDEF",
+     "type": "identifierType"
+    },
+    {
+     "code": "132_Infrastructure_investment",
+     "definition": "Type of infrastructure investment according to Type of infrastructure investment according to COMMISSION DELEGATED REGULATION (EU) 2016/467 of 30 September 2015 amending Commission Delegated Regulati…",
+     "codification": "0 - Not assessed 1 - Debt on eligible Infrastructure project 2 - Equity on eligible infrastructure project 3 - Debt on eligible Infrastructure corporate 4 - Equity on eligible infrastructure corporate 5 - Non eligible",
+     "flag": "I",
+     "section": 15,
+     "cic": "1235689",
+     "type": "text"
+    },
+    {
+     "code": "133_custodian_name",
+     "definition": "Name of the custodian of the segregated account",
+     "codification": "text",
+     "flag": "O",
+     "section": 16,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "134_type1_private_equity_portfolio_eligibility",
+     "definition": "Eligibility of the investment to art 168a of the regulation UE DR 2019/981",
+     "codification": "Int (1) \"0\" = Not assessed \"1\" = eligible for re-classification as equity type 1 \"2\" = not eligible for re-classification as equity type 1",
+     "flag": "I",
+     "section": 17,
+     "cic": "34",
+     "type": "text"
+    },
+    {
+     "code": "135_type1_private_equity_issuer_beta",
+     "definition": "Beta of the issuer of the private equity calculated according to art 168a of the regulation UE DR 2019/981",
+     "codification": "number with floating decimal",
+     "flag": "I",
+     "section": 17,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "137_Counterparty_sector",
+     "definition": "Classification of the issuer or counterparty according to IORP II regulation based on FINREP breakdown ( ESA 2010) and EIOPA specifications",
+     "codification": "Alphanumeric (2) 1 – central bank (ESA 2010 sector S.121) 2 – deposit-taking corporations except the central bank (ESA 2010 sector S.122) 3 – money market funds (ESA 2010 sector S.123) 4 – investment funds other than money market funds (ESA 2010 sector S.124) 5 – other financial intermediaries, exc…",
+     "flag": "C",
+     "section": 18,
+     "cic": "12345678ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "138_Collateral_eligibility",
+     "definition": "Eligibility of the collateral according to solvency regulation (RD UE 2015/35 art 176.5 and related art197, art214)",
+     "codification": "0 - Not assessed or no collateral 1 - Compliant with art 214 and art 197.1a and art 197 1b 2 - Compliant with art 214 and art 197.1a 3 - Compliant with art 214. 4 - Not eligible",
+     "flag": "C",
+     "section": 18,
+     "cic": "2568",
+     "type": "text"
+    },
+    {
+     "code": "139_Collateral_Market_valuation_in_portfolio_currency",
+     "definition": "Market valuation of the collateral in portfolio currency",
+     "codification": "number with floating decimal",
+     "flag": "C",
+     "section": 18,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "140_Custodian_identification_code",
+     "definition": "identification code of the custodian",
+     "codification": "LEI of the custodian",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "141_Type_of_custodian_identification_code",
+     "definition": "",
+     "codification": "",
+     "flag": "N",
+     "section": 19,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "142_Bail-in_Rule",
+     "definition": "Indicate if there is a \"Bail-in\" Rule applicable for debt instrument",
+     "codification": "0 - Not assessed 1 - Yes 2 - No 9 - Not Applicable",
+     "flag": "C",
+     "section": 19,
+     "cic": "25",
+     "type": "text"
+    },
+    {
+     "code": "143_Maturity_date_expected",
+     "definition": "Expected redemption date after considering an expected prepayment / extension of the contractual terms based on the options in the instrument",
+     "codification": "YYYY-MM-DD ISO 8601",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "date"
+    },
+    {
+     "code": "144_Modified_duration_to_maturity_date_expected",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "145_Credit_sensitivity_expected",
+     "definition": "",
+     "codification": "number with floating decimal",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "number"
+    },
+    {
+     "code": "146_PIK",
+     "definition": "",
+     "codification": "0 - No PIK 1 - No cash coupon. Existing PIK is included in the redemption rate (41) and described in the coupon data points (32-38). The period indicated for \"38_Coupon_payment_frequency\" is the period for PIK accrual. 2 - Existing PIK is included in the redemption rate (41) but not described in th…",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "147_Infrastructure_investment_additional_QRT",
+     "definition": "(for mandate or segregated account especially) Identify if the asset is an infrastructure investment as defined in Article 1(55a) and (55b) of Delegated Regulation (EU) 2015/35. One of the options in…",
+     "codification": "1 – Not an infrastructure investment; 2 – Infrastructure non-qualifying: Government Guarantee (Government, Central bank, Regional government or local authority); 3 – Infrastructure non-qualifying: Government Supported including Public Finance initiative (Government, Central bank, Regional governmen…",
+     "flag": "O",
+     "section": 19,
+     "cic": "",
+     "type": "text"
+    },
+    {
+     "code": "148_Economic_sector_NACE",
+     "definition": "Economic sector",
+     "codification": "Latest version of NACE codification in force",
+     "flag": "C",
+     "section": 19,
+     "cic": "12345678ABCDEF",
+     "type": "text"
+    },
+    {
+     "code": "150_LTEI_Fund_Eligibility",
+     "definition": "Eligibility of the held fund to LTEI dispositions according to regulation",
+     "codification": "0 – Not assessed 1- Eligible 2- Not eligible",
+     "flag": "C",
+     "section": 19,
+     "cic": "34",
+     "type": "text"
+    },
+    {
+     "code": "151_Legislative_program_investment",
+     "definition": "Eligibility of the held equities to legislative programmes dispositions",
+     "codification": "0 – Not assessed 1- Eligible 2- Not eligible",
+     "flag": "C",
+     "section": 19,
+     "cic": "3",
+     "type": "text"
+    },
+    {
+     "code": "1000_TPT_Version",
+     "definition": "TPT Published Version",
+     "codification": "V2.0 (official); dated 9 January 2015 V3.0 (official) dated 12 October 2015 V4.0 (official) dated 13 February 2018 V5.0 (official) dated 16 January 2020 V6.0 (official) dated 10 January 2022 V7.0 (official) dated 25 November 2024 V8.0 (official) dated 8 October 2026",
+     "flag": "M",
+     "section": 19,
+     "cic": "0123456789ABCDEF",
+     "type": "version",
+     "values": [
+      "V8.0"
+     ]
+    }
+   ],
+   "label": "14_Identification_code_of_the_instrument"
   }
  ]
 }

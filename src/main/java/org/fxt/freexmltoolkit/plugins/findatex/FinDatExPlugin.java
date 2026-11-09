@@ -34,7 +34,7 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.util.FileChooserHelper;
 
 /**
- * FinDatEx templates (EMT, EET, EPT): checks template files in CSV form against the official field
+ * FinDatEx templates (EMT, EET, EPT, TPT V7/V8): checks template files in CSV form against the official field
  * definitions ({@link FinDatExValidator}), opens Excel template files as CSV, and creates new
  * files with the template's header row. Off by default.
  */
@@ -43,13 +43,13 @@ public final class FinDatExPlugin implements FxtPlugin {
     public static final String ID = "findatex";
 
     @Override public String id() { return ID; }
-    @Override public String name() { return "FinDatEx Templates (EMT, EET, EPT)"; }
+    @Override public String name() { return "FinDatEx Templates (EMT, EET, EPT, TPT)"; }
     @Override public String version() { return "1.0"; }
     @Override public boolean enabledByDefault() { return false; }
 
     @Override
     public String description() {
-        return "Checks EMT, EET and EPT files (CSV or Excel) against the official field definitions.";
+        return "Checks EMT, EET, EPT and TPT files (CSV or Excel) against the official field definitions.";
     }
 
     @Override
@@ -61,7 +61,7 @@ public final class FinDatExPlugin implements FxtPlugin {
         actions.add(new IndustryPanel.Action("findatex-open-excel", "Open Excel Template File…", "bi-file-earmark-spreadsheet",
                 ActionColor.NAVIGATE, FinDatExPlugin::openExcel));
         for (FinDatExTemplates.Template template : FinDatExTemplates.all()) {
-            actions.add(new IndustryPanel.Action("findatex-new-" + template.template.toLowerCase(java.util.Locale.ROOT),
+            actions.add(new IndustryPanel.Action(newFileActionId(template),
                     "New " + template.template + " " + template.version + " File", "bi-file-earmark-plus", ActionColor.CREATE,
                     ui -> newFile(ui, template)));
         }
@@ -69,11 +69,22 @@ public final class FinDatExPlugin implements FxtPlugin {
                 ui -> new IndustryPanel(ui, "FINDATEX",
                         "Checks FinDatEx template files against the field definitions of " + versions
                                 + ": columns, template version, the format of every value (dates, Y/N and other "
-                                + "code lists, numbers, currencies, LEIs, ISINs) and the mandatory fields of the "
-                                + "general sections. Open the file (CSV with one instrument per row or per column, "
+                                + "code lists, numbers, currencies, countries, CIC codes, LEIs, ISINs) and the mandatory "
+                                + "fields (in TPT those of each instrument's CIC category). TPT V7 and V8 are told apart "
+                                + "by the version in the file. Open the file (CSV with one instrument per row or per column, "
                                 + "or an Excel file) and click Check Active Document.",
                         actions, FinDatExPlugin::describe, validator, List.of(IdentifierKind.ISIN, IdentifierKind.LEI)),
                 null));
+    }
+
+    /**
+     * @return the id of a template's "New … File" action: {@code findatex-new-emt}; with the version when
+     *         the plugin knows several versions of the template ({@code findatex-new-tpt-v8-0})
+     */
+    static String newFileActionId(FinDatExTemplates.Template template) {
+        String id = "findatex-new-" + template.template.toLowerCase(java.util.Locale.ROOT);
+        long versions = FinDatExTemplates.all().stream().filter(t -> t.template.equals(template.template)).count();
+        return versions > 1 ? id + "-" + template.version.toLowerCase(java.util.Locale.ROOT).replace('.', '-') : id;
     }
 
     /** @return what the file is, or {@code null} when it is no template file */

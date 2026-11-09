@@ -15,15 +15,19 @@ import org.fxt.freexmltoolkit.plugin.DocumentValidator;
 import org.fxt.freexmltoolkit.service.finance.FinancialIdentifiers;
 
 /**
- * Checks FinDatEx template files (EMT, EET, EPT as CSV) against the field definitions of the
+ * Checks FinDatEx template files (EMT, EET, EPT, TPT as CSV) against the field definitions of the
  * official specification: unknown and missing columns, the template version, the format of every
- * value (dates, Y/N and other closed lists, numbers, ISO 4217 currencies, LEIs, ISINs when the
- * identification type is 1, text lengths) and the mandatory fields of the template's general sections.
+ * value (dates, Y/N and other closed lists, numbers, ISO 4217 currencies, ISO 3166 countries, CIC
+ * codes, LEIs, ISINs and LEIs when the identification type is 1, text lengths) and the mandatory
+ * fields: those of the template's general sections, in TPT those of the instrument's CIC category.
  */
 public final class FinDatExValidator implements DocumentValidator {
 
     private static final Pattern NUMBER = Pattern.compile("[-+]?(\\d+([.,]\\d*)?|[.,]\\d+)([eE][-+]?\\d+)?");
     private static final Pattern CURRENCY = Pattern.compile("[A-Z]{3}");
+    /** CIC: country of listing (or XL not listed, XT not tradable), category 0-9/A-F, subcategory. */
+    private static final Pattern CIC = Pattern.compile("[A-Z]{2}[0-9A-F][0-9A-Z]");
+    private static final Set<String> COUNTRIES = Set.of(java.util.Locale.getISOCountries());
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     /** At most this many value problems are reported per file. */
     static final int LIMIT = 500;
@@ -42,7 +46,7 @@ public final class FinDatExValidator implements DocumentValidator {
     public List<Problem> validate(String content, String documentName) {
         FinDatExFile file = FinDatExFile.parse(content).orElse(null);
         if (file == null) {
-            return List.of(new Problem("error", 0, "This is no EMT, EET or EPT file (no version field found)."));
+            return List.of(new Problem("error", 0, "This is no EMT, EET, EPT or TPT file (no version field found)."));
         }
         FinDatExTemplates.Template template = file.template();
         List<Problem> problems = new ArrayList<>();
@@ -69,11 +73,13 @@ public final class FinDatExValidator implements DocumentValidator {
         if (file.records().isEmpty()) {
             problems.add(new Problem("warning", headerLine, "The file has no instruments."));
         }
-        String identifierCode = code(template, "identifier");
+        String identifierCode = template.label != null ? template.label : code(template, "identifier");
         String identifierTypeCode = code(template, "identifierType");
+        String cicCode = code(template, "cic");
         int valueProblems = 0;
         for (FinDatExFile.Record record : file.records()) {
             String instrument = identifierCode == null ? "" : file.cell(record, identifierCode).value().strip();
+            char category = cicCode == null ? 0 : category(file.cell(record, cicCode).value());
             String where = (file.transposed() ? "Instrument " : "Row ") + record.number()
                     + (instrument.isEmpty() ? "" : " (" + instrument + ")") + ": ";
             for (int i = 0; i < file.codes().size() && i < record.cells().size(); i++) {
@@ -84,7 +90,7 @@ public final class FinDatExValidator implements DocumentValidator {
                     continue;
                 }
                 String problem = value.isEmpty()
-                        ? field.isGenerallyMandatory() ? "the mandatory field is empty" : null
+                        ? field.isMandatoryFor(category) ? mandatoryEmpty(field, category) : null
                         : check(field, value, file, record, identifierTypeCode);
                 if (problem != null) {
                     if (++valueProblems > LIMIT) {
@@ -98,6 +104,18 @@ public final class FinDatExValidator implements DocumentValidator {
             }
         }
         return problems;
+    }
+
+    /** @return the CIC category of a CIC code (its third character), or {@code 0} */
+    static char category(String cic) {
+        String value = cic == null ? "" : cic.strip().toUpperCase(java.util.Locale.ROOT);
+        return CIC.matcher(value).matches() ? value.charAt(2) : 0;
+    }
+
+    private static String mandatoryEmpty(FinDatExTemplates.Field field, char category) {
+        return field.cic != null && category != 0 && !field.isGenerallyMandatory()
+                ? "the field is mandatory for CIC category " + category + " and empty"
+                : "the mandatory field is empty";
     }
 
     private static String code(FinDatExTemplates.Template template, String type) {
@@ -117,14 +135,37 @@ public final class FinDatExValidator implements DocumentValidator {
                     : "expected one of " + String.join(", ", field.values);
             case "currency" -> CURRENCY.matcher(value).matches() ? null : "expected an ISO 4217 currency code like EUR";
             case "lei" -> FinancialIdentifiers.checkLei(value) == null ? null : "not a valid LEI";
-            case "identifier" -> identifierTypeCode != null
-                    && file.cell(record, identifierTypeCode).value().strip().equals("1")
-                    && FinancialIdentifiers.checkIsin(value) != null ? "not a valid ISIN (identification type 1)" : null;
+            case "identifier" -> identifier(field, value, file, record, identifierTypeCode);
+            case "cic" -> cic(value);
+            case "country" -> COUNTRIES.contains(value) ? null : "expected an ISO 3166 country code like DE";
             case "integer" -> integer(field, value);
             case "number" -> NUMBER.matcher(value).matches() ? null : "expected a number (decimal point, 5% = 0.05)";
             default -> field.max != null && value.length() > field.max
                     ? "longer than " + field.max + " characters" : null;
         };
+    }
+
+    /** Type 1 of the identification type field: an ISIN (instruments, funds) or an LEI (issuers). */
+    private static String identifier(FinDatExTemplates.Field field, String value, FinDatExFile file,
+                                     FinDatExFile.Record record, String identifierTypeCode) {
+        String typeCode = field.typeField != null ? field.typeField : identifierTypeCode;
+        if (typeCode == null || !file.cell(record, typeCode).value().strip().equals("1")) {
+            return null;
+        }
+        if ("lei".equals(field.type1)) {
+            return FinancialIdentifiers.checkLei(value) == null ? null : "not a valid LEI (identification type 1)";
+        }
+        return FinancialIdentifiers.checkIsin(value) == null ? null : "not a valid ISIN (identification type 1)";
+    }
+
+    /** A CIC code: two letters (ISO country, XL or XT), the category 0-9/A-F and the subcategory. */
+    private static String cic(String value) {
+        if (!CIC.matcher(value).matches()) {
+            return "expected a CIC code like DE31 (country or XL/XT, category 0-9 or A-F, subcategory)";
+        }
+        String country = value.substring(0, 2);
+        return COUNTRIES.contains(country) || country.equals("XL") || country.equals("XT") || country.equals("EU")
+                ? null : country + " is no ISO 3166 country code nor XL/XT";
     }
 
     private static String integer(FinDatExTemplates.Field field, String value) {

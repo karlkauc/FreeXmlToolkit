@@ -108,7 +108,7 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 - **Plugins**: activities, menu items, validators and schemas from jar files; a documented API and a
   sample project
 - Optional **industry plugins**: FundsXML (data-quality checks, grid formulas), ISO 20022 / SEPA,
-  ebInterface, FinDatEx EMT/EET/EPT, XBRL (with Arelle)
+  ebInterface, FinDatEx EMT/EET/EPT/TPT, XBRL (with Arelle)
 
 ### Enterprise
 

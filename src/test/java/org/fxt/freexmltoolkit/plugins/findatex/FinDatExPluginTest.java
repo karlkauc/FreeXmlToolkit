@@ -46,6 +46,86 @@ class FinDatExPluginTest {
         return values;
     }
 
+    /** The fields of a TPT version that are mandatory for an instrument of a CIC category, filled validly. */
+    private static Map<String, String> tpt(String version, String cic) {
+        var template = FinDatExTemplates.byName("TPT", version).orElseThrow();
+        Map<String, String> values = new LinkedHashMap<>();
+        for (var field : template.fields) {
+            if (!field.isMandatoryFor(FinDatExValidator.category(cic))) {
+                continue;
+            }
+            values.put(field.code, switch (field.type) {
+                case "version" -> template.version;
+                case "date" -> "2026-09-30";
+                case "datetime" -> "2026-09-30 10:00:00";
+                case "currency" -> "EUR";
+                case "country" -> "DE";
+                case "cic" -> cic;
+                case "identifier" -> "US0378331005";
+                case "identifierType" -> "1";
+                case "lei" -> "5493001KJTIIGC8Y1R12";
+                case "enum" -> field.values.getFirst();
+                case "integer" -> field.min == null ? "1" : String.valueOf(field.min);
+                case "number" -> "0.5";
+                default -> "x";
+            });
+        }
+        // the issuer is identified internally (type 9): no LEI check
+        values.computeIfPresent("48_Type_of_identification_code_for_issuer", (k, v) -> "9");
+        values.computeIfPresent("51_Type_of_identification_code_for_issuer_group", (k, v) -> "9");
+        return values;
+    }
+
+    @Test
+    @DisplayName("TPT: V7 and V8 told apart by the version value; CIC, country, LEI and per-category mandatory fields")
+    void tpt() {
+        Map<String, String> v8 = tpt("V8.0", "DE31");
+        assertEquals(List.of(), messages(csv(v8)));
+        assertEquals("V8.0", FinDatExFile.parse(csv(v8)).orElseThrow().template().version);
+        Map<String, String> v7 = tpt("V7.0", "DE31");
+        assertEquals(List.of(), messages(csv(v7)));
+        assertEquals("V7.0", FinDatExFile.parse(csv(v7)).orElseThrow().template().version);
+        assertTrue(FinDatExPlugin.describe(csv(v7)).startsWith("TPT V7.0 file · 1 instrument"), FinDatExPlugin.describe(csv(v7)));
+
+        Map<String, String> old = tpt("V8.0", "DE31");
+        old.put("1000_TPT_Version", "V6.0");
+        assertEquals("V8.0", FinDatExFile.parse(csv(old)).orElseThrow().template().version, "unknown versions: the newest");
+        assertTrue(messages(csv(old)).getFirst().contains("the checks follow V8.0"), messages(csv(old)).toString());
+
+        Map<String, String> bad = tpt("V8.0", "DE31");
+        bad.put("12_CIC_code_of_the_instrument", "D31");
+        bad.put("52_Issuer_country", "Germany");
+        List<String> problems = messages(csv(bad));
+        assertTrue(problems.stream().anyMatch(m -> m.contains("12_CIC_code_of_the_instrument \"D31\": expected a CIC code")), problems.toString());
+        assertTrue(problems.stream().anyMatch(m -> m.contains("52_Issuer_country \"Germany\": expected an ISO 3166")), problems.toString());
+        assertTrue(problems.getFirst().startsWith("Row 1 (US0378331005): "), "rows are named after the instrument code");
+        bad.put("12_CIC_code_of_the_instrument", "QQ31");
+        assertTrue(messages(csv(bad)).stream().anyMatch(m -> m.contains("QQ is no ISO 3166 country code")));
+
+        Map<String, String> lei = tpt("V8.0", "DE31");
+        lei.put("47_Issuer_identification_code", "5493001KJTIIGC8Y1R13");
+        lei.put("48_Type_of_identification_code_for_issuer", "1");
+        assertTrue(messages(csv(lei)).stream().anyMatch(m -> m.contains("not a valid LEI (identification type 1)")),
+                messages(csv(lei)).toString());
+
+        // The issuer is mandatory for equity (category 3), not for property (category 9)
+        Map<String, String> issuer = tpt("V8.0", "DE31");
+        issuer.put("47_Issuer_identification_code", "");
+        assertTrue(messages(csv(issuer)).contains("Row 1 (US0378331005): 47_Issuer_identification_code: "
+                + "the field is mandatory for CIC category 3 and empty."), messages(csv(issuer)).toString());
+        issuer.put("12_CIC_code_of_the_instrument", "DE91");
+        assertTrue(messages(csv(issuer)).stream().noneMatch(m -> m.contains("47_Issuer")), messages(csv(issuer)).toString());
+
+        String transposed = v7.entrySet().stream().map(e -> e.getKey() + ";" + e.getValue()).collect(Collectors.joining("\n"));
+        assertEquals("V7.0", FinDatExFile.parse(transposed).orElseThrow().template().version);
+        assertEquals(List.of(), messages(transposed));
+
+        String fresh = FinDatExPlugin.headerFile(FinDatExTemplates.byName("TPT", "V8.0").orElseThrow());
+        assertEquals("V8.0", FinDatExFile.parse(fresh).orElseThrow().template().version);
+        assertTrue(validator.validate(fresh, null).stream().allMatch(p -> p.severity().equals("warning")),
+                validator.validate(fresh, null).toString());
+    }
+
     private static String csv(Map<String, String> values) {
         return String.join(";", values.keySet()) + "\n"
                 + values.values().stream().map(v -> v.contains(";") ? "\"" + v + "\"" : v).collect(Collectors.joining(";")) + "\n";
@@ -56,10 +136,17 @@ class FinDatExPluginTest {
     }
 
     @Test
-    @DisplayName("the field definitions of EMT, EET and EPT are bundled")
+    @DisplayName("the field definitions of EMT, EET, EPT and TPT V7/V8 are bundled")
     void templates() {
-        assertEquals(List.of("EMT V4.3 114", "EET V1.1.3 614", "EPT V21 144"), FinDatExTemplates.all().stream()
-                .map(t -> t.template + " " + t.version + " " + t.fields.size()).toList());
+        assertEquals(List.of("EMT V4.3 114", "EET V1.1.3 614", "EPT V21 144", "TPT V7.0 152", "TPT V8.0 154"),
+                FinDatExTemplates.all().stream().map(t -> t.template + " " + t.version + " " + t.fields.size()).toList());
+        assertEquals("V8.0", FinDatExTemplates.byName("TPT").orElseThrow().version, "the newest version");
+        assertEquals("V7.0", FinDatExTemplates.byName("TPT", "V7").orElseThrow().version);
+        var cic = FinDatExTemplates.byName("TPT").orElseThrow().field("12_CIC_code_of_the_instrument").orElseThrow();
+        assertEquals("cic", cic.type);
+        assertTrue(cic.isGenerallyMandatory());
+        assertEquals(List.of("findatex-new-emt", "findatex-new-eet", "findatex-new-ept", "findatex-new-tpt-v7-0",
+                "findatex-new-tpt-v8-0"), FinDatExTemplates.all().stream().map(FinDatExPlugin::newFileActionId).toList());
         var currency = FinDatExTemplates.byName("EMT").orElseThrow().field("00040_Financial_Instrument_Currency").orElseThrow();
         assertEquals("currency", currency.type);
         assertTrue(currency.isGenerallyMandatory());

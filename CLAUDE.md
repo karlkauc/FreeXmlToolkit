@@ -99,7 +99,7 @@ the jars in `~/.freeXmlToolkit/plugins` (`-Dfxt.plugins.dir`, own `URLClassLoade
 Extensions → PLUGINS lists them. Docs: `docs/plugins.md`.
 Industry plugins (`plugins/`, off by default via `enabledByDefault()`): `iso20022` (schemas via
 `PluginContext.addSchema` → Schema Library source PLUGIN, control sums, EPC SEPA rules), `ebinterface`,
-`findatex` (EMT/EET/EPT CSV against `plugins/findatex/templates.json` from `scripts/findatex-fields.py`),
+`findatex` (EMT/EET/EPT/TPT V7+V8 CSV against `plugins/findatex/templates.json` from `scripts/findatex-fields.py NAME=xlsx…`; versions sharing a version field are picked by its value, `FinDatExTemplates.forVersion`; TPT mandatory fields per CIC category, `Field.isMandatoryFor`),
 `xbrl` (runs the user's Arelle, `ArelleRunner`). Shared: `IndustryPanel` (FXML), `IdentifierKind`,
 `service/finance/FinancialIdentifiers` (IBAN, BIC, LEI, ISIN, AT UID), `plugin/XmlScan`. Docs: `docs/industry-plugins.md`.
 

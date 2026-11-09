@@ -42,16 +42,18 @@ public final class FinDatExFile {
             return Optional.empty();
         }
         String start = text.length() > 200_000 ? text.substring(0, 200_000) : text;
-        FinDatExTemplates.Template template = null;
+        // Versions of one template share the version field: first the candidates, the version comes from the values
+        List<FinDatExTemplates.Template> candidates = List.of();
         for (FinDatExTemplates.Template t : FinDatExTemplates.all()) {
             if (start.contains(t.versionField())) {
-                template = t;
+                candidates = FinDatExTemplates.byVersionField(t.versionField());
                 break;
             }
         }
-        if (template == null) {
+        if (candidates.isEmpty()) {
             return Optional.empty();
         }
+        FinDatExTemplates.Template template = candidates.getLast();
         String firstLine = text.lines().filter(l -> !l.isBlank()).findFirst().orElse("");
         char separator = detectSeparator(firstLine);
         List<List<Cell>> rows = rows(text, separator);
@@ -92,7 +94,15 @@ public final class FinDatExFile {
                 }
             }
         }
-        return Optional.of(new FinDatExFile(template, List.copyOf(codes), List.copyOf(records), !header, separator));
+        FinDatExFile file = new FinDatExFile(template, List.copyOf(codes), List.copyOf(records), !header, separator);
+        if (candidates.size() > 1 && !records.isEmpty()) {
+            String version = file.cell(records.getFirst(), template.versionField()).value();
+            FinDatExTemplates.Template named = FinDatExTemplates.forVersion(candidates, version);
+            if (named != template) {
+                file = new FinDatExFile(named, file.codes, file.records, file.transposed, separator);
+            }
+        }
+        return Optional.of(file);
     }
 
     static char detectSeparator(String line) {

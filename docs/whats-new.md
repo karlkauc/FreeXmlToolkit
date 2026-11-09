@@ -20,7 +20,7 @@ running is shown under **Help → About FreeXmlToolkit**.
   document listeners, stylesheets and schemas; jars in `~/.freeXmlToolkit/plugins`, managed in
   Settings → Extensions → PLUGINS. FundsXML is now a plugin. See [Plugins](plugins.md) and
   [Writing Plugins](plugin-development.md).
-- **Industry plugins** (off by default): ISO 20022 payments / SEPA, ebInterface, FinDatEx EMT/EET/EPT,
+- **Industry plugins** (off by default): ISO 20022 payments / SEPA, ebInterface, FinDatEx EMT/EET/EPT/TPT (V7 and V8),
   XBRL with Arelle. See [Industry Plugins](industry-plugins.md).
 - **Projects and transformation scenarios:** `.fxtproj` files bind a schema (XSD, DTD, RELAX NG,
   JSON Schema), a Schematron and a transformation scenario to files by pattern, add catalogs and
