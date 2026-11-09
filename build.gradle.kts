@@ -801,9 +801,10 @@ fun createZipTask(jpackageTaskName: String, platform: String, arch: String): Str
 /**
  * Resources for the Windows installers (EXE, MSI): jpackage's WiX UI shows WixUIBannerBmp on top of
  * its dialogs and WixUIDialogBmp behind the welcome and finish pages. Both must be BMP files and are
- * set as WixVariables in an overrides.wxi in --resource-dir. The PNGs in release/ stay the source:
- * they are converted to 24-bit BMPs here, and jpackage's own overrides.wxi (read from the toolchain
- * JDK, so its defaults are kept) gets the two variables appended.
+ * set as WixVariables inside the product element of main.wxs in --resource-dir (overrides.wxi is
+ * included directly under <Wix>, where WiX allows no WixVariable). The PNGs in release/ stay the
+ * source: they are converted to 24-bit BMPs here, and jpackage's own main.wxs (read from the
+ * toolchain JDK, so everything else stays as jpackage ships it) gets the two variables added.
  *
  * @return the resource folder for --resource-dir
  */
@@ -828,60 +829,67 @@ fun prepareWindowsInstallerResources(javaHome: String, projectDir: File, outDir:
     val dialog = toBmp("release/win-dialog.png", "dialog.bmp")
 
     val resources = "/modules/jdk.jpackage/jdk/jpackage/internal/resources/"
-    val (original, mainWxs) = try {
+    val original = try {
         FileSystems.newFileSystem(URI.create("jrt:/"), mapOf("java.home" to javaHome)).use { jrt ->
-            fun read(name: String): String? {
-                val path = jrt.getPath(resources + name)
-                return if (NioFiles.exists(path)) NioFiles.readString(path) else null
-            }
-            Pair(read("overrides.wxi"), read("main.wxs"))
+            val path = jrt.getPath(resources + "main.wxs")
+            if (NioFiles.exists(path)) NioFiles.readString(path) else null
         }
     } catch (e: Exception) {
         throw GradleException("Cannot read jpackage's resources from $javaHome: ${e.message}", e)
     }
     if (original == null) {
         throw GradleException(
-            "jpackage's overrides.wxi was not found in $javaHome (jdk.jpackage). It exists in Windows JDKs only; " +
+            "jpackage's main.wxs was not found in $javaHome (jdk.jpackage). It exists in Windows JDKs only; " +
                 "the installer images are added to it, so the Windows installers must be built with a Windows JDK.")
     }
+    // an overrides.wxi from an earlier build carried the variables in the wrong place
+    File(outDir, "overrides.wxi").delete()
+    File(outDir, "overrides.original.wxi").delete()
     // kept next to the result, to see what jpackage ships when something goes wrong
-    File(outDir, "overrides.original.wxi").writeText(original)
+    File(outDir, "main.original.wxs").writeText(original)
 
-    File(outDir, "overrides.wxi").writeText(withInstallerImages(original, mainWxs,
+    File(outDir, "main.wxs").writeText(withInstallerImages(original,
         listOf("WixUIBannerBmp" to banner.absolutePath, "WixUIDialogBmp" to dialog.absolutePath)))
     return outDir
 }
 
 /**
- * jpackage's overrides.wxi with WixVariables added. Parsed as XML, not searched as text: the stub may
- * be an empty element ({@code <Include/>}) or carry a prefix. Without a namespace of its own the
- * variables get the one jpackage's main.wxs is written in.
+ * jpackage's main.wxs with WixVariables added to its product element ({@code Product} in WiX 3
+ * sources, which jpackage converts for WiX 4+, or {@code Package}), before its {@code UIRef}.
+ * Parsed as XML, not searched as text; the preprocessor instructions stay as they are.
  */
-fun withInstallerImages(original: String, mainWxs: String?, variables: List<Pair<String, String>>): String {
+fun withInstallerImages(mainWxs: String, variables: List<Pair<String, String>>): String {
     val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
     factory.isNamespaceAware = true
     factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
     val document = try {
-        factory.newDocumentBuilder().parse(org.xml.sax.InputSource(StringReader(original)))
+        factory.newDocumentBuilder().parse(org.xml.sax.InputSource(StringReader(mainWxs)))
     } catch (e: Exception) {
-        throw GradleException("jpackage's overrides.wxi is not well-formed XML: ${e.message}", e)
+        throw GradleException("jpackage's main.wxs is not well-formed XML: ${e.message}", e)
     }
-    val include = document.documentElement
-    val namespace = include.namespaceURI
-        ?: mainWxs?.let { Regex("""<Wix\b[^>]*\bxmlns="([^"]+)"""").find(it)?.groupValues?.get(1) }
-        ?: "http://schemas.microsoft.com/wix/2006/wi"
-    val qualified = { local: String -> if (include.prefix != null) "${include.prefix}:$local" else local }
-    include.appendChild(document.createComment(
+    val wix = document.documentElement
+    val children = wix.childNodes
+    val product = (0 until children.length).map { children.item(it) }
+        .filterIsInstance<org.w3c.dom.Element>()
+        .firstOrNull { it.localName == "Product" || it.localName == "Package" }
+        ?: throw GradleException("jpackage's main.wxs has no Product/Package element under <Wix>")
+    val elements = product.childNodes
+    val uiRef = (0 until elements.length).map { elements.item(it) }
+        .firstOrNull { it is org.w3c.dom.Element && it.localName == "UIRef" }
+    val qualified = { local: String -> if (product.prefix != null) "${product.prefix}:$local" else local }
+    fun insert(node: org.w3c.dom.Node) {
+        if (uiRef != null) product.insertBefore(node, uiRef) else product.appendChild(node)
+    }
+    insert(document.createComment(
         " FreeXmlToolkit: installer images (build.gradle.kts, prepareWindowsInstallerResources) "))
     for ((id, value) in variables) {
-        val variable = document.createElementNS(namespace, qualified("WixVariable"))
+        val variable = document.createElementNS(product.namespaceURI, qualified("WixVariable"))
         variable.setAttribute("Id", id)
         variable.setAttribute("Value", value)
-        include.appendChild(variable)
+        insert(variable)
     }
     val transformer = javax.xml.transform.TransformerFactory.newInstance().newTransformer()
     transformer.setOutputProperty(javax.xml.transform.OutputKeys.ENCODING, "utf-8")
-    transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes")
     val out = StringWriter()
     transformer.transform(javax.xml.transform.dom.DOMSource(document), javax.xml.transform.stream.StreamResult(out))
     return out.toString()
@@ -889,25 +897,35 @@ fun withInstallerImages(original: String, mainWxs: String?, variables: List<Pair
 
 tasks.register("checkInstallerOverrides") {
     group = "verification"
-    description = "Checks withInstallerImages on the forms jpackage's overrides.wxi can take (no Windows JDK needed)"
+    description = "Checks withInstallerImages on the forms jpackage's main.wxs can take (no Windows JDK needed)"
     doLast {
         val v3 = "http://schemas.microsoft.com/wix/2006/wi"
-        val main = """<?xml version="1.0"?><Wix xmlns="$v3"><Product/></Wix>"""
+        val v4 = "http://wixtoolset.org/schemas/v4/wxs"
         val images = listOf("WixUIBannerBmp" to "C:\\b.bmp", "WixUIDialogBmp" to "C:\\d.bmp")
-        for (stub in listOf(
-                """<?xml version="1.0" encoding="utf-8"?><!-- stub --><Include/>""",
-                """<Include xmlns="$v3"><?define JpAllowDowngrades = "yes"?></Include>""",
-                """<wix:Include xmlns:wix="$v3"/>""")) {
-            val result = withInstallerImages(stub, main, images)
+        val forms = listOf(
+            v3 to """<?xml version="1.0" encoding="utf-8"?><Wix xmlns="$v3"><?define JpProductLanguage=1033 ?>""" +
+                """<?include $(var.JpConfigDir)/overrides.wxi ?><Product Id="x"><Media Id="1"/><UIRef Id="JpUI"/>""" +
+                """<InstallExecuteSequence/></Product></Wix>""",
+            v4 to """<Wix xmlns="$v4"><Package Name="x"><Media Id="1"/></Package></Wix>""",
+            v3 to """<w:Wix xmlns:w="$v3"><w:Product Id="x"/></w:Wix>""")
+        for ((ns, main) in forms) {
+            val result = withInstallerImages(main, images)
             println(result)
             val doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }
                 .newDocumentBuilder().parse(org.xml.sax.InputSource(StringReader(result)))
-            val found = doc.getElementsByTagNameNS(v3, "WixVariable")
+            val found = doc.getElementsByTagNameNS(ns, "WixVariable")
             if (found.length != 2) {
                 throw GradleException("expected 2 WixVariables in the WiX namespace, got ${found.length}:\n$result")
             }
-            if (stub.contains("define") && !result.contains("JpAllowDowngrades")) {
-                throw GradleException("the stub's own defines were lost:\n$result")
+            val parent = found.item(0).parentNode.localName
+            if (parent != "Product" && parent != "Package") {
+                throw GradleException("WixVariable under <$parent>, not the product:\n$result")
+            }
+            if (main.contains("UIRef") && result.indexOf("WixUIDialogBmp") > result.indexOf("<UIRef")) {
+                throw GradleException("WixVariables not before UIRef:\n$result")
+            }
+            if (main.contains("include") && !result.contains("<?include \$(var.JpConfigDir)/overrides.wxi ?>")) {
+                throw GradleException("preprocessor instructions were lost:\n$result")
             }
         }
         println("withInstallerImages: OK")
@@ -916,7 +934,7 @@ tasks.register("checkInstallerOverrides") {
 
 tasks.register("prepareWindowsInstallerResources") {
     group = "distribution"
-    description = "Converts the Windows installer images to BMP and writes overrides.wxi (needs a Windows JDK)"
+    description = "Converts the Windows installer images to BMP and writes main.wxs (needs a Windows JDK)"
     doLast {
         val javaHome = javaToolchains.launcherFor {
             languageVersion = java.toolchain.languageVersion

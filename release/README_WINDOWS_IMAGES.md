@@ -12,13 +12,16 @@ The Windows installers (EXE and MSI, built by jpackage with WiX) show two images
 Keep the PNGs here; the build does the rest (`build.gradle.kts`, `prepareWindowsInstallerResources`):
 
 1. Both PNGs are converted to 24-bit BMP files — Windows Installer shows BMP, not PNG.
-2. jpackage's own `overrides.wxi` is read from the toolchain JDK and gets two WiX variables,
-   `WixUIBannerBmp` and `WixUIDialogBmp`, pointing at the BMPs.
+2. jpackage's own `main.wxs` is read from the toolchain JDK and gets two WiX variables,
+   `WixUIBannerBmp` and `WixUIDialogBmp`, pointing at the BMPs, inside its `Product` element.
+   (Not in `overrides.wxi`: that file is included directly under `<Wix>`, where WiX allows no
+   `WixVariable` — error WIX0005.) The unchanged original is kept as `main.original.wxs`.
 3. The result (`build/jpackage-resources/windows/`) is passed to jpackage as `--resource-dir`.
 
 This only works with a Windows JDK (jpackage's WiX files exist in Windows builds only), i.e. on the
 Windows runners of the release workflow. `./gradlew prepareWindowsInstallerResources` converts the
-images on any platform and then reports the missing `overrides.wxi` outside Windows.
+images on any platform and then reports the missing `main.wxs` outside Windows; `./gradlew checkInstallerOverrides`
+tests the insertion on any platform.
 
 ## Designing the images
 
