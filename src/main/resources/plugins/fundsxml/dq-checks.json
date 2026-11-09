@@ -6,103 +6,103 @@
       "key": "control-data",
       "name": "DQ: Control data complete",
       "description": "ControlData has UniqueDocumentID, DocumentGenerated, ContentDate and the data supplier's name.",
-      "query": "let $c := /FundsXML4/ControlData return (\n  if (empty($c)) then 'ControlData is missing' else (),\n  for $p in ('UniqueDocumentID', 'DocumentGenerated', 'ContentDate')\n  where exists($c) and empty($c/*[local-name() = $p])\n  return 'ControlData/' || $p || ' is missing',\n  if (exists($c) and empty($c/DataSupplier/Name)) then 'ControlData/DataSupplier/Name is missing' else ())"
+      "query": "let $c := /FundsXML4/ControlData return (\n  if (empty($c)) then local:at(/*, 'ControlData is missing') else (),\n  for $p in ('UniqueDocumentID', 'DocumentGenerated', 'ContentDate')\n  where exists($c) and empty($c/*[local-name() = $p])\n  return local:at($c, 'ControlData/' || $p || ' is missing'),\n  if (exists($c) and empty($c/DataSupplier/Name)) then local:at(($c/DataSupplier, $c)[1], 'ControlData/DataSupplier/Name is missing') else ())"
     },
     {
       "key": "content-date",
       "name": "DQ: Content date not in the future",
       "description": "The ContentDate is not later than today.",
-      "query": "for $d in /FundsXML4/ControlData/ContentDate[. castable as xs:date]\nwhere xs:date($d) gt current-date()\nreturn 'ContentDate ' || $d || ' is in the future'"
+      "query": "for $d in /FundsXML4/ControlData/ContentDate[. castable as xs:date]\nwhere xs:date($d) gt current-date()\nreturn local:at($d, 'ContentDate ' || $d || ' is in the future')"
     },
     {
       "key": "isin",
       "name": "DQ: ISIN check digits",
       "description": "Every ISIN has 12 characters and a correct check digit (ISO 6166).",
-      "query": "for $i in //ISIN[not(local:isin-ok(normalize-space(.)))]\nreturn local:where($i) || ': ISIN ' || $i || ' is invalid'"
+      "query": "for $i in //ISIN[not(local:isin-ok(normalize-space(.)))]\nreturn local:at($i, local:where($i) || ': ISIN ' || $i || ' is invalid')"
     },
     {
       "key": "lei",
       "name": "DQ: LEI check digits",
       "description": "Every LEI has 20 characters and correct check digits (ISO 17442).",
-      "query": "for $l in //LEI[not(local:lei-ok(normalize-space(.)))]\nreturn local:where($l) || ': LEI ' || $l || ' is invalid'"
+      "query": "for $l in //LEI[not(local:lei-ok(normalize-space(.)))]\nreturn local:at($l, local:where($l) || ': LEI ' || $l || ' is invalid')"
     },
     {
       "key": "currency",
       "name": "DQ: Currency codes",
       "description": "Currencies and ccy attributes are three capital letters (ISO 4217).",
-      "query": "(for $c in //*[local-name() = ('Currency', 'CurrencyBuy', 'CurrencySell', 'PriceCurrency', 'SettlementCurrency')][not(*)]\n  [not(matches(normalize-space(.), '^[A-Z]{3}$'))]\n  return local:where($c) || ': ' || local-name($c) || ' ' || $c || ' is no ISO 4217 code',\n for $a in //@ccy[not(matches(., '^[A-Z]{3}$'))]\n  return local:where($a) || ': ccy=' || $a || ' is no ISO 4217 code')"
+      "query": "(for $c in //*[local-name() = ('Currency', 'CurrencyBuy', 'CurrencySell', 'PriceCurrency', 'SettlementCurrency')][not(*)]\n  [not(matches(normalize-space(.), '^[A-Z]{3}$'))]\n  return local:at($c, local:where($c) || ': ' || local-name($c) || ' ' || $c || ' is no ISO 4217 code'),\n for $a in //@ccy[not(matches(., '^[A-Z]{3}$'))]\n  return local:at($a, local:where($a) || ': ccy=' || $a || ' is no ISO 4217 code'))"
     },
     {
       "key": "weights",
       "name": "DQ: Position weights add up to 100 %",
       "description": "The TotalPercentage of all positions of a fund on a date (over all its portfolios) add up to 100 % (± 0.5).",
-      "query": "for $f in //Fund[.//Position/TotalPercentage], $d in distinct-values($f//Portfolio/NavDate)\nlet $sum := sum($f//Portfolio[NavDate = $d]/Positions/Position/TotalPercentage ! local:dec(.))\nwhere abs($sum - 100) gt 0.5\nreturn local:fund($f) || ', ' || $d || ': the position weights add up to ' || $sum || ' %'"
+      "query": "for $f in //Fund[.//Position/TotalPercentage], $d in distinct-values($f//Portfolio/NavDate)\nlet $sum := sum($f//Portfolio[NavDate = $d]/Positions/Position/TotalPercentage ! local:dec(.))\nwhere abs($sum - 100) gt 0.5\nreturn local:at(($f//Portfolio[NavDate = $d])[1], local:fund($f) || ', ' || $d || ': the position weights add up to ' || $sum || ' %')"
     },
     {
       "key": "value-vs-nav",
       "name": "DQ: Positions vs. net asset value",
       "description": "The market values of all positions of a fund on a date (in fund currency, over all its portfolios) match its total net asset value of that date (± 1 %).",
-      "query": "for $f in //Fund, $d in distinct-values($f//Portfolio/NavDate)\nlet $ccy := string($f/Currency)\nlet $tna := local:dec(($f/FundDynamicData/TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $sum := sum($f//Portfolio[NavDate = $d]/Positions/Position/TotalValue/Amount[@ccy = $ccy] ! local:dec(.))\nwhere exists($tna) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.01\nreturn local:fund($f) || ', ' || $d || ': positions add up to ' || $sum || ' ' || $ccy || ', the net asset value is ' || $tna || ' ' || $ccy || ' (' || round(($sum - $tna) div $tna * 100, 2) || ' %)'"
+      "query": "for $f in //Fund, $d in distinct-values($f//Portfolio/NavDate)\nlet $ccy := string($f/Currency)\nlet $tna := local:dec(($f/FundDynamicData/TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $sum := sum($f//Portfolio[NavDate = $d]/Positions/Position/TotalValue/Amount[@ccy = $ccy] ! local:dec(.))\nwhere exists($tna) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.01\nreturn local:at(($f//Portfolio[NavDate = $d])[1], local:fund($f) || ', ' || $d || ': positions add up to ' || $sum || ' ' || $ccy || ', the net asset value is ' || $tna || ' ' || $ccy || ' (' || round(($sum - $tna) div $tna * 100, 2) || ' %)')"
     },
     {
       "key": "duplicate-positions",
       "name": "DQ: No duplicate positions",
       "description": "A portfolio lists every position (UniqueID) once.",
-      "query": "for $ps in //Positions, $id in distinct-values($ps/Position/UniqueID)\nwhere count($ps/Position[UniqueID = $id]) gt 1\nreturn local:fund($ps) || ': position ' || $id || ' appears ' || count($ps/Position[UniqueID = $id]) || ' times'"
+      "query": "for $ps in //Positions, $id in distinct-values($ps/Position/UniqueID)\nwhere count($ps/Position[UniqueID = $id]) gt 1\nreturn local:at($ps/Position[UniqueID = $id][2], local:fund($ps) || ': position ' || $id || ' appears ' || count($ps/Position[UniqueID = $id]) || ' times')"
     },
     {
       "key": "asset-master",
       "name": "DQ: Positions have master data",
       "description": "Every position's UniqueID has an Asset in AssetMasterData (when the document has AssetMasterData).",
-      "query": "let $assets := /FundsXML4/AssetMasterData/Asset/UniqueID\nwhere exists($assets)\nreturn for $pos in //Position[not(UniqueID = $assets)]\n       return 'Position ' || $pos/UniqueID || ' has no Asset in AssetMasterData'"
+      "query": "let $assets := /FundsXML4/AssetMasterData/Asset/UniqueID\nwhere exists($assets)\nreturn for $pos in //Position[not(UniqueID = $assets)]\n       return local:at($pos, 'Position ' || $pos/UniqueID || ' has no Asset in AssetMasterData')"
     },
     {
       "key": "unused-assets",
       "name": "DQ: Unused master data",
       "description": "Assets in AssetMasterData that no position or transaction refers to.",
-      "query": "let $used := (//Position/UniqueID, //Transaction/AssetUniqueID)\nfor $a in /FundsXML4/AssetMasterData/Asset[not(UniqueID = $used)]\nreturn 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') is not used by any position or transaction'"
+      "query": "let $used := (//Position/UniqueID, //Transaction/AssetUniqueID)\nfor $a in /FundsXML4/AssetMasterData/Asset[not(UniqueID = $used)]\nreturn local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') is not used by any position or transaction')"
     },
     {
       "key": "negative-values",
       "name": "DQ: No negative values of securities",
       "description": "Equities, bonds, fund shares, certificates and warrants have no negative market value.",
-      "query": "for $pos in //Position[Equity or Bond or ShareClass or Certificate or Warrant]\nlet $v := local:dec(($pos/TotalValue/Amount)[1])\nwhere exists($v) and $v lt 0\nreturn 'Position ' || $pos/UniqueID || ' has a negative value: ' || $v"
+      "query": "for $pos in //Position[Equity or Bond or ShareClass or Certificate or Warrant]\nlet $v := local:dec(($pos/TotalValue/Amount)[1])\nwhere exists($v) and $v lt 0\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has a negative value: ' || $v)"
     },
     {
       "key": "missing-identifier",
       "name": "DQ: Securities have an identifier",
       "description": "Equities, bonds, fund shares, certificates and warrants carry an identifier (ISIN …).",
-      "query": "for $pos in //Position[Equity or Bond or ShareClass or Certificate or Warrant][not(Identifiers/*)]\nreturn 'Position ' || $pos/UniqueID || ' has no identifier'"
+      "query": "for $pos in //Position[Equity or Bond or ShareClass or Certificate or Warrant][not(Identifiers/*)]\nreturn local:at($pos, 'Position ' || $pos/UniqueID || ' has no identifier')"
     },
     {
       "key": "nav-dates",
       "name": "DQ: Portfolio dates have a net asset value",
       "description": "Every portfolio's NavDate has a TotalAssetValue of the fund for that date.",
-      "query": "for $p in //Portfolio[NavDate]\nlet $fund := $p/ancestor::Fund[1]\nwhere exists($fund/FundDynamicData/TotalAssetValues/TotalAssetValue) and not($p/NavDate = $fund/FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate)\nreturn local:fund($p) || ': no net asset value for the portfolio date ' || $p/NavDate"
+      "query": "for $p in //Portfolio[NavDate]\nlet $fund := $p/ancestor::Fund[1]\nwhere exists($fund/FundDynamicData/TotalAssetValues/TotalAssetValue) and not($p/NavDate = $fund/FundDynamicData/TotalAssetValues/TotalAssetValue/NavDate)\nreturn local:at($p, local:fund($p) || ': no net asset value for the portfolio date ' || $p/NavDate)"
     },
     {
       "key": "share-classes-sum",
       "name": "DQ: Share classes add up to the fund",
       "description": "The net asset values of the share classes (in fund currency) add up to the fund's (± 0.5 %) for each date.",
-      "query": "for $f in //Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]\nlet $ccy := string($f/Currency)\nfor $tav in $f/FundDynamicData/TotalAssetValues/TotalAssetValue\nlet $d := $tav/NavDate\nlet $tna := local:dec(($tav/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $classes := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy]\nlet $sum := sum($classes ! local:dec(.))\nwhere exists($tna) and exists($classes) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.005\nreturn local:fund($f) || ', ' || $d || ': share classes add up to ' || $sum || ' ' || $ccy || ', the fund has ' || $tna || ' ' || $ccy"
+      "query": "for $f in //Fund[SingleFund/ShareClasses/ShareClass/TotalAssetValues]\nlet $ccy := string($f/Currency)\nfor $tav in $f/FundDynamicData/TotalAssetValues/TotalAssetValue\nlet $d := $tav/NavDate\nlet $tna := local:dec(($tav/TotalNetAssetValue/Amount[@ccy = $ccy])[1])\nlet $classes := $f/SingleFund/ShareClasses/ShareClass/TotalAssetValues/TotalAssetValue[NavDate = $d]/TotalNetAssetValue/Amount[@ccy = $ccy]\nlet $sum := sum($classes ! local:dec(.))\nwhere exists($tna) and exists($classes) and $tna ne 0 and abs($sum - $tna) div abs($tna) gt 0.005\nreturn local:at($tav, local:fund($f) || ', ' || $d || ': share classes add up to ' || $sum || ' ' || $ccy || ', the fund has ' || $tna || ' ' || $ccy)"
     },
     {
       "key": "price-x-shares",
       "name": "DQ: Price × shares = share class value",
       "description": "NAV price × shares outstanding of a share class matches its net asset value (± 1 %).",
-      "query": "for $sc in //ShareClass[Prices/Price and TotalAssetValues/TotalAssetValue]\nfor $tav in $sc/TotalAssetValues/TotalAssetValue\nlet $price := $sc/Prices/Price[NavDate = $tav/NavDate][1]\nlet $p := local:dec(($price/NavPrice)[1])\nlet $shares := local:dec(($tav/SharesOutstanding)[1])\nlet $tna := local:dec(($tav/TotalNetAssetValue/Amount[@ccy = $price/PriceCurrency], $tav/TotalNetAssetValue/Amount)[1])\nwhere exists($p) and exists($shares) and exists($tna) and $tna ne 0 and abs($p * $shares - $tna) div abs($tna) gt 0.01\nreturn 'Share class ' || ($sc/Identifiers/ISIN, $sc/Names/OfficialName)[1] || ', ' || $tav/NavDate || ': ' || $p || ' × ' || $shares || ' = ' || round($p * $shares, 2) || ', the net asset value is ' || $tna"
+      "query": "for $sc in //ShareClass[Prices/Price and TotalAssetValues/TotalAssetValue]\nfor $tav in $sc/TotalAssetValues/TotalAssetValue\nlet $price := $sc/Prices/Price[NavDate = $tav/NavDate][1]\nlet $p := local:dec(($price/NavPrice)[1])\nlet $shares := local:dec(($tav/SharesOutstanding)[1])\nlet $tna := local:dec(($tav/TotalNetAssetValue/Amount[@ccy = $price/PriceCurrency], $tav/TotalNetAssetValue/Amount)[1])\nwhere exists($p) and exists($shares) and exists($tna) and $tna ne 0 and abs($p * $shares - $tna) div abs($tna) gt 0.01\nreturn local:at($tav, 'Share class ' || ($sc/Identifiers/ISIN, $sc/Names/OfficialName)[1] || ', ' || $tav/NavDate || ': ' || $p || ' × ' || $shares || ' = ' || round($p * $shares, 2) || ', the net asset value is ' || $tna)"
     },
     {
       "key": "transaction-dates",
       "name": "DQ: Transactions settle after entry",
       "description": "A transaction's ValutaDate is not before its EntryDate.",
-      "query": "for $t in //Transaction[ValutaDate castable as xs:date and EntryDate castable as xs:date]\nwhere xs:date($t/ValutaDate) lt xs:date($t/EntryDate)\nreturn 'Transaction ' || $t/TransactionID || ': ValutaDate ' || $t/ValutaDate || ' is before EntryDate ' || $t/EntryDate"
+      "query": "for $t in //Transaction[ValutaDate castable as xs:date and EntryDate castable as xs:date]\nwhere xs:date($t/ValutaDate) lt xs:date($t/EntryDate)\nreturn local:at($t, 'Transaction ' || $t/TransactionID || ': ValutaDate ' || $t/ValutaDate || ' is before EntryDate ' || $t/EntryDate)"
     },
     {
       "key": "matured",
       "name": "DQ: No matured instruments held",
       "description": "Positions in bonds, futures, options, swaps, warrants … whose maturity date is before the content date.",
-      "query": "let $content := /FundsXML4/ControlData/ContentDate[. castable as xs:date] ! xs:date(.)\nwhere exists($content)\nreturn for $a in /FundsXML4/AssetMasterData/Asset[AssetDetails/*/MaturityDate castable as xs:date]\n       let $m := xs:date(($a/AssetDetails/*/MaturityDate)[1])\n       where $m lt $content and $a/UniqueID = //Position/UniqueID\n       return 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') matured on ' || $m || ' but is still held'"
+      "query": "let $content := /FundsXML4/ControlData/ContentDate[. castable as xs:date] ! xs:date(.)\nwhere exists($content)\nreturn for $a in /FundsXML4/AssetMasterData/Asset[AssetDetails/*/MaturityDate castable as xs:date]\n       let $m := xs:date(($a/AssetDetails/*/MaturityDate)[1])\n       where $m lt $content and $a/UniqueID = //Position/UniqueID\n       return local:at($a, 'Asset ' || $a/UniqueID || ' (' || $a/Name || ') matured on ' || $m || ' but is still held')"
     }
   ],
   "snippets": [

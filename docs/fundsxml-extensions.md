@@ -160,7 +160,9 @@ The validation uses whichever FundsXML schema version is currently marked as act
 | No matured instruments held | maturity dates before the content date of held assets |
 
 The checks also run with every validation of a FundsXML document while the extension is on; their
-findings appear as warnings with the source **FundsXML DQ**. In the Query Console they are available as
+findings appear as warnings with the source **FundsXML DQ**. Each finding carries the line of the element it is
+about (the position, the ISIN, the transaction …): a click in the PROBLEMS pane shows it in the current
+view — Text, Tree or the Graphic grid, where the row or table cell is highlighted. In the Query Console they are available as
 snippets (**FUNDSXML** section) together with analysis queries — all funds, top 10 positions, exposure
 by asset type and by currency, positions over 5 %, positions without ISIN, derivatives, share class
 prices — so each can be run, adapted and saved on its own. The checks were developed against the

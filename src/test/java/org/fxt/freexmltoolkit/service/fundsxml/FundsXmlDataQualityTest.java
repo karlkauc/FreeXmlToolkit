@@ -76,6 +76,39 @@ class FundsXmlDataQualityTest {
     }
 
     @Test
+    @DisplayName("every finding knows the line of the node it is about; the Console query still returns text")
+    void findingsCarryLines() throws Exception {
+        String xml = fixture()
+                .replace("<ISIN>DE0005140008</ISIN></Identifiers>\n                <Currency>", "<ISIN>DE0005140009</ISIN></Identifiers>\n                <Currency>")
+                .replace("<ValutaDate>2025-10-01</ValutaDate>", "<ValutaDate>2025-09-01</ValutaDate>")
+                .replace("<ContentDate>2025-10-01</ContentDate>", "<ContentDate>2999-01-01</ContentDate>");
+        List<String> lines = xml.lines().toList();
+        Map<String, FundsXmlDataQuality.Result> byKey = FundsXmlDataQuality.run(xml).stream()
+                .filter(r -> !r.passed()).collect(Collectors.toMap(r -> r.check().key, r -> r));
+        assertTrue(lines.get(byKey.get("isin").lineOf(0) - 1).contains("DE0005140009"), byKey.toString());
+        int contentDate = byKey.get("content-date").lineOf(0);
+        assertTrue(lines.get(contentDate - 1).contains("<ContentDate>2999-01-01"), contentDate + ": " + lines.get(contentDate - 1));
+        int transaction = byKey.get("transaction-dates").lineOf(0);
+        assertTrue(lines.get(transaction - 1).contains("<Transaction"), lines.get(transaction - 1));
+        byKey.values().forEach(r -> {
+            for (int i = 0; i < r.findings().size(); i++) {
+                assertTrue(r.lineOf(i) > 0, r.check().key + ": " + r.findings().get(i));
+            }
+        });
+
+        // the snippet / Query Console form of a check returns only the texts
+        var check = FundsXmlDataQuality.checks().stream().filter(c -> c.key.equals("isin")).findFirst().orElseThrow();
+        var processor = new net.sf.saxon.s9api.Processor(false);
+        var evaluator = processor.newXQueryCompiler().compile(FundsXmlDataQuality.fullQuery(check)).load();
+        evaluator.setContextItem(processor.newDocumentBuilder().build(
+                new javax.xml.transform.stream.StreamSource(new java.io.StringReader(xml))));
+        var value = evaluator.evaluate();
+        assertEquals(1, value.size());
+        assertTrue(value.itemAt(0).isAtomicValue());
+        assertEquals("Position P2: ISIN DE0005140009 is invalid", value.itemAt(0).getStringValue());
+    }
+
+    @Test
     @DisplayName("the report lists every check; the snippets are registered with the fundsxml tag")
     void reportAndSnippets() throws Exception {
         String html = FundsXmlDataQuality.htmlReport(FundsXmlDataQuality.run(fixture()), "fund.xml");

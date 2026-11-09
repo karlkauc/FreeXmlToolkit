@@ -23,6 +23,7 @@ import net.sf.saxon.s9api.Processor;
 import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XQueryEvaluator;
 import net.sf.saxon.s9api.XdmItem;
+import net.sf.saxon.s9api.XdmMap;
 import net.sf.saxon.s9api.XdmNode;
 import net.sf.saxon.s9api.XdmValue;
 
@@ -63,12 +64,42 @@ public final class FundsXmlDataQuality {
      *
      * @param findings one text per finding; empty when the check passed
      * @param error    why the check could not run, or {@code null}
+     * @param lines    per finding the line of the node it is about (1-based), 0 when unknown
      */
-    public record Result(Check check, List<String> findings, String error) {
+    public record Result(Check check, List<String> findings, String error, List<Integer> lines) {
+        public Result {
+            findings = List.copyOf(findings);
+            lines = lines == null || lines.size() != findings.size()
+                    ? java.util.Collections.nCopies(findings.size(), 0) : List.copyOf(lines);
+        }
+
+        public Result(Check check, List<String> findings, String error) {
+            this(check, findings, error, null);
+        }
+
         public boolean passed() {
             return error == null && findings.isEmpty();
         }
+
+        /** @return the line of finding {@code index}, 0 when it has none */
+        public int lineOf(int index) {
+            return lines.get(index);
+        }
     }
+
+    /**
+     * {@code local:at($node, $text)} wraps every finding of a check. For the snippets and the Query
+     * Console it is the text; {@link #run} uses {@link #AT_LOCATED}, which also returns the node, so a
+     * finding knows its line.
+     */
+    private static final String AT_TEXT = """
+            declare function local:at($n as node()?, $msg as xs:string) as item() { $msg };
+            """;
+    private static final String AT_LOCATED = """
+            declare function local:at($n as node()?, $msg as xs:string) as item() {
+              map { 'message': $msg, 'node': ($n/self::element(), $n/parent::element())[1] }
+            };
+            """;
 
     /** Tag of the snippets this class adds (the Query Console lists them in its FundsXML section). */
     public static final String SNIPPET_TAG = "fundsxml";
@@ -104,7 +135,11 @@ public final class FundsXmlDataQuality {
 
     /** @return the full XQuery of a check: prolog plus its query, its findings as strings */
     public static String fullQuery(Check check) {
-        return catalog().prolog + "\n" + check.query;
+        return catalog().prolog + "\n" + AT_TEXT + check.query;
+    }
+
+    private static String locatedQuery(Check check) {
+        return catalog().prolog + "\n" + AT_LOCATED + check.query;
     }
 
     /** @return whether the text is a FundsXML 4 document */
@@ -117,7 +152,9 @@ public final class FundsXmlDataQuality {
     public static List<Result> run(String xml) {
         XdmNode document;
         try {
-            document = PROCESSOR.newDocumentBuilder().build(new StreamSource(new StringReader(xml)));
+            var builder = PROCESSOR.newDocumentBuilder();
+            builder.setLineNumbering(true);
+            document = builder.build(new StreamSource(new StringReader(xml)));
         } catch (SaxonApiException e) {
             return checks().stream().map(c -> new Result(c, List.of(), "The document is not well-formed: "
                     + e.getMessage())).toList();
@@ -131,17 +168,31 @@ public final class FundsXmlDataQuality {
 
     static Result run(Check check, XdmNode document) {
         try {
-            XQueryEvaluator evaluator = PROCESSOR.newXQueryCompiler().compile(fullQuery(check)).load();
+            XQueryEvaluator evaluator = PROCESSOR.newXQueryCompiler().compile(locatedQuery(check)).load();
             evaluator.setContextItem(document);
             XdmValue value = evaluator.evaluate();
             List<String> findings = new ArrayList<>();
+            List<Integer> lines = new ArrayList<>();
             for (XdmItem item : value) {
-                String text = item.getStringValue().strip();
+                int line = 0;
+                String text;
+                if (item instanceof XdmMap map) {
+                    XdmValue message = map.get("message");
+                    text = message instanceof XdmItem m ? m.getStringValue() : "";
+                    XdmValue node = map.get("node");
+                    if (node instanceof XdmNode n && n.getLineNumber() > 0) {
+                        line = n.getLineNumber();
+                    }
+                } else {
+                    text = item.getStringValue();
+                }
+                text = text.strip();
                 if (!text.isEmpty()) {
                     findings.add(text);
+                    lines.add(line);
                 }
             }
-            return new Result(check, findings, null);
+            return new Result(check, findings, null, lines);
         } catch (SaxonApiException | RuntimeException e) {
             return new Result(check, List.of(), String.valueOf(e.getMessage()));
         }

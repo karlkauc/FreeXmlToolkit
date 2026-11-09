@@ -123,7 +123,9 @@ public final class FundsXmlPlugin implements FxtPlugin {
                 if (result.error() != null) {
                     problems.add(new Problem("error", 0, check + ": the check could not run (" + result.error() + ")"));
                 }
-                result.findings().forEach(f -> problems.add(new Problem("warning", 0, check + ": " + f)));
+                for (int i = 0; i < result.findings().size(); i++) {
+                    problems.add(new Problem("warning", result.lineOf(i), check + ": " + result.findings().get(i)));
+                }
             }
             return problems;
         }
