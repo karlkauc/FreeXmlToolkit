@@ -10,7 +10,7 @@
 **FreeXmlToolkit** is a free, open-source desktop workstation for XML: edit, validate, transform, debug and
 document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Windows, macOS and Linux.
 
-![FreeXmlToolkit Application](docs/img/main-window.png)
+![Feature tour: visual XSD editor, XML grid, IntelliSense, validation, debugger, transformations, Query Console, PDF, schema analysis, JSON, signatures, dark mode](docs/img/feature-tour.webp)
 
 **[⬇ Download the latest release](https://github.com/karlkauc/FreeXmlToolkit/releases/latest)** – Windows (.exe/.msi/portable), macOS (.dmg/.pkg, Apple Silicon & Intel), Linux (.deb/.rpm/portable) – or via `scoop install freexmltoolkit` / `brew install --cask karlkauc/tap/freexmltoolkit` ([details](#install-with-a-package-manager)). Full guide: [karlkauc.github.io/FreeXmlToolkit](https://karlkauc.github.io/FreeXmlToolkit/).
 
@@ -18,36 +18,36 @@ document XML, XSD, XSLT, XQuery, Schematron and JSON in one application - on Win
 
 <table>
   <tr>
-    <td width="50%"><b>Visual XSD editor</b><br>Design schemas as a graphical diagram or a tree, with type editor, facets, documentation and undo for every change. XSD 1.0 and 1.1.</td>
-    <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/xsd-tools/"><img src="docs/img/unified-shell-schema-graphic.png" alt="Visual XSD editor" width="420"></a></td>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/xsd-tools/">Visual XSD editor</a></b><br>Design schemas as a graphical diagram or a tree, with type editor, facets, documentation and undo for every change. XSD 1.0 and 1.1.</td>
+    <td width="50%"><a href="docs/img/unified-shell-schema-graphic.png"><img src="docs/img/unified-shell-schema-graphic.png" alt="Visual XSD editor" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b>Schema-aware XML editor</b><br>IntelliSense that offers only what the schema allows at the caret, live validation while you type, and three views of one document: Text, Tree and a <b>Grid</b> that shows repeating elements as editable tables.</td>
-    <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/grid/"><img src="docs/img/unified-shell-xml-grid.png" alt="Schema-aware XML editor" width="420"></a></td>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/grid/">Schema-aware XML editor</a></b><br>IntelliSense that offers only what the schema allows at the caret, live validation while you type, and three views of one document: Text, Tree and a <b>Grid</b> that shows repeating elements as editable tables.</td>
+    <td width="50%"><a href="docs/img/unified-shell-xml-grid.png"><img src="docs/img/unified-shell-xml-grid.png" alt="Schema-aware XML editor" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b>XSLT, XQuery and Schematron debugger</b><br>Breakpoints (conditional, hit counts, logpoints), stepping, variables, watches, call stack, inline values and coverage - right in the editor.</td>
-    <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/debugger/"><img src="docs/img/xslt-debugger-paused.png" alt="XSLT, XQuery and Schematron debugger" width="420"></a></td>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/debugger/">XSLT, XQuery and Schematron debugger</a></b><br>Breakpoints (conditional, hit counts, logpoints), stepping, variables, watches, call stack, inline values and coverage - right in the editor.</td>
+    <td width="50%"><a href="docs/img/xslt-debugger-paused.png"><img src="docs/img/xslt-debugger-paused.png" alt="XSLT, XQuery and Schematron debugger" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b>Validation that explains itself</b><br>XSD 1.1, Schematron with <b>Quick Fixes</b> (SQF), JSON Schema, batch validation of whole folders, and a Schema Library with OASIS XML catalogs that resolves imports without touching your files.</td>
-    <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/schematron-quick-fixes/"><img src="docs/img/xml-editor-schematron.png" alt="Validation that explains itself" width="420"></a></td>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/schematron-quick-fixes/">Validation that explains itself</a></b><br>XSD 1.1, Schematron with <b>Quick Fixes</b> (SQF), JSON Schema, batch validation of whole folders, and a Schema Library with OASIS XML catalogs that resolves imports without touching your files.</td>
+    <td width="50%"><a href="docs/img/xml-editor-schematron.png"><img src="docs/img/xml-editor-schematron.png" alt="Validation that explains itself" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b>Transformations</b><br>XSLT 3.0, XPath 3.1 and XQuery 3.1 with Saxon, live preview, XProc 3.0 pipelines, and a Query Console for ad-hoc XPath/XQuery (Ctrl+K).</td>
-    <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/transform-panel/"><img src="docs/img/xslt-developer-overview.png" alt="Transformations" width="420"></a></td>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/transform-panel/">Transformations</a></b><br>XSLT 3.0, XPath 3.1 and XQuery 3.1 with Saxon, live preview, XProc 3.0 pipelines, and a Query Console for ad-hoc XPath/XQuery (Ctrl+K).</td>
+    <td width="50%"><a href="docs/img/xslt-developer-overview.png"><img src="docs/img/xslt-developer-overview.png" alt="Transformations" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b>PDF with Apache FOP</b><br>XSL-FO to PDF with in-app preview, the intermediate FO and every FOP message at hand, and PDF/A-1b output.</td>
-    <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/pdf-generator/"><img src="docs/img/fop-pdf-preview.png" alt="PDF with Apache FOP" width="420"></a></td>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/pdf-generator/">PDF with Apache FOP</a></b><br>XSL-FO to PDF with in-app preview, the intermediate FO and every FOP message at hand, and PDF/A-1b output.</td>
+    <td width="50%"><a href="docs/img/fop-pdf-preview.png"><img src="docs/img/fop-pdf-preview.png" alt="PDF with Apache FOP" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b>Schema documentation, analysis and test data</b><br>HTML, PDF or Word documentation from XSD, schema analysis with quality score and reports, and sample XML generated from any schema.</td>
-    <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/xsd-tools/"><img src="docs/img/unified-shell-schema-statistics.png" alt="Schema documentation, analysis and test data" width="420"></a></td>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/xsd-tools/">Schema documentation, analysis and test data</a></b><br>HTML, PDF or Word documentation from XSD, schema analysis with quality score and reports, and sample XML generated from any schema.</td>
+    <td width="50%"><a href="docs/img/unified-shell-schema-statistics.png"><img src="docs/img/unified-shell-schema-statistics.png" alt="Schema documentation, analysis and test data" width="420"></a></td>
   </tr>
   <tr>
-    <td width="50%"><b>XML digital signatures</b><br>Sign and verify documents, create certificates.</td>
-    <td width="50%"><a href="https://karlkauc.github.io/FreeXmlToolkit/digital-signatures/"><img src="docs/img/signature-validation.png" alt="XML digital signatures" width="420"></a></td>
+    <td width="50%"><b><a href="https://karlkauc.github.io/FreeXmlToolkit/digital-signatures/">XML digital signatures</a></b><br>Sign and verify documents, create certificates.</td>
+    <td width="50%"><a href="docs/img/signature-validation.png"><img src="docs/img/signature-validation.png" alt="XML digital signatures" width="420"></a></td>
   </tr>
 </table>
 

@@ -48,6 +48,13 @@ theme:
 plugins:
   - search:
       lang: en
+  # Click on an image opens it full screen (zoom, arrow keys between the images of a page)
+  - glightbox:
+      zoomable: true
+      draggable: true
+      auto_caption: false
+      skip_classes:
+        - no-lightbox
 
 # Internal developer-reference documents that are not part of the published site
 # (gitignore-style patterns): planning/spec notes plus a few orphan dev docs.

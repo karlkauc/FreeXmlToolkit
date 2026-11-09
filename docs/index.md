@@ -40,8 +40,8 @@
 
 FreeXmlToolkit is a free desktop application for working with XML files. It helps you edit, validate, transform, and secure your XML documents - all in one place.
 
-![FreeXmlToolkit Main Window](img/main-window.png)
-***Screenshot: Main application window***
+![Feature tour: the main features of FreeXmlToolkit, one after the other](img/feature-tour.webp)
+***A tour of the main features - click to open it full screen***
 
 ### What Can You Do With FreeXmlToolkit?
 
