@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<order xmlns="urn:example:shop" id="2026-1104">
+  <customer>
+    <name>Ada Lovelace</name>
+    <email>ada@example.org</email>
+  </customer>
+  <items>
+    <item sku="XML-101" quantity="2">XML for Beginners</item>
+    <item sku="XSD-202" quantity="1">Schema Design</item>
+  </items>
+  <payment>
+    <card type="VISA">4111111111111111</card>
+    <expiry>12/29</expiry>
+    <holder>Ada Lovelace</holder>
+  </payment>
+</order>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><order xmlns="urn:example:shop" id="2026-1104">
+  <customer><xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" Id="ED-1" Type="http://www.w3.org/2001/04/xmlenc#Content"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2009/xmlenc11#aes256-gcm"/><ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><xenc:EncryptedKey Id="ED-1-K1"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#kw-aes256"/><ds:KeyInfo><xenc:AgreementMethod Algorithm="http://www.w3.org/2009/xmlenc11#ECDH-ES"><xenc11:KeyDerivationMethod xmlns:xenc11="http://www.w3.org/2009/xmlenc11#" Algorithm="http://www.w3.org/2009/xmlenc11#ConcatKDF"><xenc11:ConcatKDFParams AlgorithmID="0000" PartyUInfo="" PartyVInfo=""><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/></xenc11:ConcatKDFParams></xenc11:KeyDerivationMethod><xenc:OriginatorKeyInfo><ds:KeyValue><dsig11:ECKeyValue xmlns:dsig11="http://www.w3.org/2009/xmldsig11#"><dsig11:NamedCurve URI="urn:oid:1.2.840.10045.3.1.7"/><dsig11:PublicKey>BEDasKgVOJPt4LEayRQVZju+zY9RWMb5UnR4bzVTG7kw6T9vx7YsyMS/7j+JL60SSvqK8x40uYSQ/YIB8pHpDCc=</dsig11:PublicKey></dsig11:ECKeyValue></ds:KeyValue></xenc:OriginatorKeyInfo><xenc:RecipientKeyInfo/></xenc:AgreementMethod></ds:KeyInfo><xenc:CipherData><xenc:CipherValue>4LQbz4C22cQNvemKkA6Sg5zrsWSatoDufaADNen/lldaocKZE+3+sg==</xenc:CipherValue></xenc:CipherData></xenc:EncryptedKey></ds:KeyInfo><xenc:CipherData><xenc:CipherValue>SWyoNg+2tZ1mpWVl5D2Cp5aVN6eZB6Ij0wopVU7Da6+Db/EpwyYr7S7aEetUzf8iX7jeICWKJmJNINxx/a/iwRyShDXn/8F7ksGIw8G5qubXBTPpwLUrKKzUfKF71plq</xenc:CipherValue></xenc:CipherData></xenc:EncryptedData></customer>
+  <items>
+    <item quantity="2" sku="XML-101">XML for Beginners</item>
+    <item quantity="1" sku="XSD-202">Schema Design</item>
+  </items>
+  <payment>
+    <card type="VISA">4111111111111111</card>
+    <expiry>12/29</expiry>
+    <holder>Ada Lovelace</holder>
+  </payment>
+</order>

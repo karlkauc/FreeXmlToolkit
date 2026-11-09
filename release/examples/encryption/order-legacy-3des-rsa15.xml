@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><order xmlns="urn:example:shop" id="2026-1104">
+  <customer>
+    <name>Ada Lovelace</name>
+    <email>ada@example.org</email>
+  </customer>
+  <items>
+    <item quantity="2" sku="XML-101">XML for Beginners</item>
+    <item quantity="1" sku="XSD-202">Schema Design</item>
+  </items>
+  <xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" Id="ED-1" Type="http://www.w3.org/2001/04/xmlenc#Element"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#tripledes-cbc"/><ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#"><xenc:EncryptedKey Id="ED-1-K1"><xenc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#rsa-1_5"/><ds:KeyInfo><ds:X509Data><ds:X509IssuerSerial><ds:X509IssuerName>O=FreeXmlToolkit examples,CN=demo-rsa</ds:X509IssuerName><ds:X509SerialNumber>1794244551808</ds:X509SerialNumber></ds:X509IssuerSerial></ds:X509Data></ds:KeyInfo><xenc:CipherData><xenc:CipherValue>H1xuNGYIJZ4euBbB6ZnfXgp8r32+7AJdArIsvRSXAL376f6uojhrvHDo3lGzQ0dK4NgwQk9ez2qmdudt/s1XgQZENqQcE6YD79rgb8irUk/AjexXp8pBJ2RhoLtWRzVuU7x8+qDHKotqj7fzqLfocssKfpuIiBt2Iockn9pwLvMQJugHEj2OOkn36/bB4HWPqWtIAUwV97O/yYB8qYNFmAFK/S9F1H4lhqkKzEqtidGfSwaU95pC1yYIDSXwy7tknlxui2ZSPR8m040w43D7k4i9Ewps7OeVuhDjuTfIuzNAWaSId4kxMSjawS8XAqw+lM+DEtwOkUNOwYmhmX5DFA==</xenc:CipherValue></xenc:CipherData></xenc:EncryptedKey></ds:KeyInfo><xenc:CipherData><xenc:CipherValue>YXLuMdXAG69TcDVBJCgwY/CFroQvO3Q5hvM9iuikzreBAtGm+UeGcgkpAMSCFc8xazLTOfrdl+R2rY0mu9VmkKCLZvGJR0wgG1EBWs6j0NIYfbrCpyjIhn9pdoeM5lKA8IsqJNlaYUO0sAG/9de2POI6yYt+JKmtsr5vUHJcSfY8irdo4WlDFvM+gN71y2tq</xenc:CipherValue></xenc:CipherData></xenc:EncryptedData>
+</order>
