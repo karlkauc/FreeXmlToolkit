@@ -292,6 +292,8 @@
                                        text="%SignatureView.recipientsEmpty.text"/>
                                 <FlowPane hgap="8" vgap="4">
                                     <children>
+                                        <Label text="%SignatureView.enc-add-recipient.text" styleClass="fxt-sig-field-label"
+                                               minWidth="-Infinity"/>
                                         <Button id="enc-add-certificate" minWidth="-Infinity" text="%SignatureView.enc-add-certificate.text" styleClass="fxt-tool-button"
                                                 onAction="#onAddCertificate">
                                             <graphic>

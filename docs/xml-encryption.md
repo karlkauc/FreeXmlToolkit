@@ -38,13 +38,13 @@ target; **Decrypt…** (shown when the document contains `EncryptedData`) opens 
 2. **Data algorithm** - the block cipher of the data. **AES-256-GCM** is the default and the
    recommendation; see the [algorithm table](#algorithms).
 3. **Recipients** - who can decrypt. Every recipient gets its own `EncryptedKey` with the same data
-   key, so each of them opens the document alone:
-    - **Certificate…** - a recipient's certificate or public key (PEM or DER). RSA keys use RSA-OAEP,
+   key, so each of them opens the document alone. Add them with the buttons after **Add:**
+    - **Certificate** - a recipient's certificate or public key (PEM or DER). RSA keys use RSA-OAEP,
       EC keys ECDH-ES, X25519/X448 keys their key agreement.
     - **From keystore** - the certificate of the alias in the KEYSTORE section above.
-    - **Key file…** - a shared symmetric key (16, 24 or 32 bytes as hex, Base64 or raw). You can
+    - **Key file** - a shared symmetric key (16, 24 or 32 bytes as hex, Base64 or raw). You can
       give it a **KeyName** so the receiver knows which key to take.
-    - **Password…** - the key is derived from a password with PBKDF2 (600,000 iterations,
+    - **Password** - the key is derived from a password with PBKDF2 (600,000 iterations,
       HMAC-SHA256).
 4. **Encrypt**. The status line says how many elements were encrypted; legacy algorithms add a
    warning.
