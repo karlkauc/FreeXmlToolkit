@@ -191,6 +191,28 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         return row != null ? row.getElement() : null;
     }
 
+    @Override
+    public boolean contains(XmlNode ancestor, XmlNode node) {
+        for (XmlNode n = node; n != null; n = n.getParent()) {
+            if (n == ancestor) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean containsInColumn(XmlNode member, String column, XmlNode node) {
+        if (member instanceof XmlElement element && column != null && !column.startsWith("@")) {
+            for (XmlElement child : element.getChildElements(column)) {
+                if (contains(child, node)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** A child-element cell holding exactly one element of its column stands for that element. */
     @Override
     public XmlNode cellNode(RepeatingElementsTable.TableRow row, String column) {

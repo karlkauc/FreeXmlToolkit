@@ -116,8 +116,16 @@ source, message, file and line/column, plus rule and context for Schematron) or 
 Problems** (one problem per line). **Ctrl+C** (**Cmd+C** on macOS) copies the selected row
 like Copy Problem.
 
-Selecting a problem in either list jumps to its line - and, for XML and XSD errors, to the
-reported column - in the editor (Text view). This works for
+Selecting a problem in either list shows it **in the view you are in**:
+
+- **Text** - the caret jumps to its line and, for XML and XSD errors, to the reported column.
+- **Tree** - the element of that line is selected and scrolled into view.
+- **Graphic** - the grid selects the element's row; inside a repeating group it opens the table,
+  selects the cell (the attribute's cell when the message names an attribute) and opens table
+  cells on the way to errors nested deeper. The row or cell flashes briefly, the red problem
+  marker stays. For an XSD the diagram selects the schema node.
+
+The view does not change. This works for
 **Schematron problems too**: the failing rule's context node is resolved back to its
 line in the XML, so a click navigates straight to the offending element.
 

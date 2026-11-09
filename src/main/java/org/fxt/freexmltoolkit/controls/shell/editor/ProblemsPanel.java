@@ -87,7 +87,7 @@ public class ProblemsPanel extends VBox {
         });
         list.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             if (newV != null && newV.line() > 0) {
-                editorHost.goToLine(newV.line(), newV.column());
+                editorHost.revealProblem(newV.line(), newV.column(), newV.message());
             }
         });
 

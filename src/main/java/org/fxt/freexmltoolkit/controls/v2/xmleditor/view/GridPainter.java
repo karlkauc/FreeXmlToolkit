@@ -785,7 +785,11 @@ final class GridPainter<N> {
 
         Color bg = null;
         boolean inRange = view.tables.inCellRange(table, rowIndex, columnIndex);
-        if (inRange) {
+        boolean flashed = table == view.highlightedTable && rowIndex == view.highlightedTableRow
+                && (view.highlightedTableColumn < 0 || columnIndex == view.highlightedTableColumn);
+        if (flashed) {
+            bg = view.highlightColor;
+        } else if (inRange) {
             bg = selectedBg;
         } else if (rowIndex == table.getSelectedRowIndex() && view.tables.selAnchorRow < 0) {
             bg = tableRowSelected;

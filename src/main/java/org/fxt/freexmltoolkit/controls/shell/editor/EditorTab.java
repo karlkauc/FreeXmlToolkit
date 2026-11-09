@@ -1106,15 +1106,102 @@ final class EditorTab extends Tab {
         if (viewMode != ViewMode.TEXT) {
             return;
         }
-        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlNode resolved = null;
-        if (xmlEditorContext != null && xmlEditorContext.getDocument() != null
-                && caretMapDoc != null && caretMapDoc.getRootElement() != null) {
-            int line = view.getCodeArea().getCurrentParagraph() + 1;
-            var target = findElementByLine(caretMapDoc.getRootElement(), line);
-            java.util.List<Integer> path = indexPath(caretMapDoc.getRootElement(), target);
-            resolved = navigate(xmlEditorContext.getDocument().getRootElement(), path);
+        currentXmlSelection = xmlElementAtLine(view.getCodeArea().getCurrentParagraph() + 1);
+        selectionCallback.run();
+    }
+
+    /**
+     * The shared model's element of a source line (the deepest one starting on or before it),
+     * mapped through the current {@link #caretMapDoc}; {@code null} when the maps are missing.
+     */
+    private org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement xmlElementAtLine(int line) {
+        if (xmlEditorContext == null || xmlEditorContext.getDocument() == null
+                || caretMapDoc == null || caretMapDoc.getRootElement() == null) {
+            return null;
         }
-        currentXmlSelection = resolved;
+        var target = findElementByLine(caretMapDoc.getRootElement(), line);
+        java.util.List<Integer> path = indexPath(caretMapDoc.getRootElement(), target);
+        return navigate(xmlEditorContext.getDocument().getRootElement(), path);
+    }
+
+    /** XSD counterpart of {@link #xmlElementAtLine(int)}. */
+    private XsdNode xsdNodeAtLine(int line) {
+        if (editorContext == null || editorContext.getSchema() == null
+                || caretMapDoc == null || caretMapDoc.getRootElement() == null) {
+            return null;
+        }
+        var target = findElementByLine(caretMapDoc.getRootElement(), line);
+        java.util.List<Integer> path = xsdSourceIndexPath(caretMapDoc.getRootElement(), target);
+        return navigateXsd(editorContext.getSchema(), path);
+    }
+
+    /** "attribute 'currency'" in a validator message names the attribute a problem is about. */
+    private static final java.util.regex.Pattern PROBLEM_ATTRIBUTE =
+            java.util.regex.Pattern.compile("[Aa]ttribute '([^']+)'");
+
+    /**
+     * Shows the node of a problem's line in the current structured view - the Tree selects it, the
+     * Graphic view (grid) opens the way to its row or table cell and highlights it, an XSD view
+     * selects the schema node - without switching to the Text view. Asynchronous: the model and
+     * the line map are parsed first when needed.
+     *
+     * @param message the problem's message (an attribute it names is revealed in the grid)
+     */
+    void revealLine(int line, String message) {
+        EditorFileType type = document.getFileType();
+        if (type == EditorFileType.XSD) {
+            ensureModelParsedAsync(() -> ensureCaretMapAsync(() -> {
+                XsdNode node = xsdNodeAtLine(line);
+                if (node != null) {
+                    revealXsdNode(node);
+                }
+            }));
+            return;
+        }
+        if (!type.isXmlFamily()) {
+            return;
+        }
+        ensureXmlModelParsedAsync(() -> {
+            if (failedXmlParseRevision == textRevision) {
+                return;
+            }
+            ensureCaretMapAsync(() -> {
+                var element = xmlElementAtLine(line);
+                if (element == null) {
+                    return;
+                }
+                java.util.regex.Matcher m = PROBLEM_ATTRIBUTE.matcher(message == null ? "" : message);
+                String attribute = m.find() ? m.group(1) : null;
+                if (viewMode == ViewMode.TREE && xmlInstanceTreeView != null) {
+                    xmlInstanceTreeView.selectNode(element);
+                } else if (viewMode == ViewMode.GRAPHIC && xmlGridView != null) {
+                    xmlGridView.getCanvasView().revealProblem(element, attribute);
+                }
+            });
+        });
+    }
+
+    /** Selects an XSD node in the current view, expanding the way to it; the Overview selects its top-level component. */
+    private void revealXsdNode(XsdNode node) {
+        currentSelection = node;
+        if (viewMode == ViewMode.TREE && treeView != null) {
+            treeView.revealNode(node);
+        } else if (viewMode == ViewMode.GRAPHIC && xsdGraphView != null) {
+            java.util.LinkedList<XsdNode> path = new java.util.LinkedList<>();
+            for (XsdNode n = node; n != null && !(n instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema);
+                 n = n.getParent()) {
+                path.addFirst(n);
+            }
+            if (!xsdGraphView.revealModelPath(path)) {
+                xsdGraphView.selectModelNode(node);
+            }
+        } else if (viewMode == ViewMode.OVERVIEW && schemaOverview != null) {
+            XsdNode top = node;
+            while (top.getParent() != null && !(top.getParent() instanceof org.fxt.freexmltoolkit.controls.v2.model.XsdSchema)) {
+                top = top.getParent();
+            }
+            schemaOverview.select(top);
+        }
         selectionCallback.run();
     }
 
@@ -1186,15 +1273,7 @@ final class EditorTab extends Tab {
         if (viewMode != ViewMode.TEXT) {
             return;
         }
-        XsdNode resolved = null;
-        if (editorContext != null && editorContext.getSchema() != null
-                && caretMapDoc != null && caretMapDoc.getRootElement() != null) {
-            int line = view.getCodeArea().getCurrentParagraph() + 1;
-            var target = findElementByLine(caretMapDoc.getRootElement(), line);
-            java.util.List<Integer> path = xsdSourceIndexPath(caretMapDoc.getRootElement(), target);
-            resolved = navigateXsd(editorContext.getSchema(), path);
-        }
-        currentSelection = resolved;
+        currentSelection = xsdNodeAtLine(view.getCodeArea().getCurrentParagraph() + 1);
         selectionCallback.run();
     }
 

@@ -138,6 +138,67 @@ class ProblemsPanelTest {
                 "selecting the problem must move the caret to its line");
     }
 
+    /** Selects the first problem of {@code line} in a document opened in {@code mode}. */
+    private void openInModeAndSelectProblem(Path xml, ViewMode mode, int line, String message) throws Exception {
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.openFile(xml));
+        WaitForAsyncUtils.waitFor(3, TimeUnit.SECONDS,
+                () -> host.getActiveText().map(t -> t.contains("root")).orElse(false));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.setActiveViewMode(mode));
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.activeViewModeProperty().get() == mode));
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            host.setActiveProblems(List.of(new ValidationProblem("XSD", "error", line, message)));
+            @SuppressWarnings("unchecked")
+            var list = (ListView<ValidationProblem>) panel.lookup("#problems-panel-list");
+            list.getSelectionModel().select(0);
+            return null;
+        });
+    }
+
+    @Test
+    void inTheTreeTheProblemSelectsItsNodeAndTheViewStays(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root>\n<a/>\n<b/>\n<c/>\n</root>");
+        openInModeAndSelectProblem(xml, ViewMode.TREE, 3, "broken element");
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.activeXmlNodeProperty().get() instanceof
+                        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e && "b".equals(e.getName())));
+        assertEquals(ViewMode.TREE, WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeViewModeProperty().get()));
+    }
+
+    @Test
+    void inTheGraphicViewTheProblemSelectsItsGridRowAndTheViewStays(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("doc.xml");
+        Files.writeString(xml, "<root>\n<a/>\n<b>x</b>\n<c/>\n</root>");
+        openInModeAndSelectProblem(xml, ViewMode.GRAPHIC, 3, "cvc-datatype-valid: 'x' is not valid");
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.activeXmlNodeProperty().get() instanceof
+                        org.fxt.freexmltoolkit.controls.v2.xmleditor.model.XmlElement e && "b".equals(e.getName())));
+        assertEquals(ViewMode.GRAPHIC, WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeViewModeProperty().get()));
+    }
+
+    @Test
+    void inAnXsdTreeTheProblemSelectsTheSchemaNode(@TempDir Path tmp) throws Exception {
+        Path xsd = tmp.resolve("s.xsd");
+        Files.writeString(xsd, """
+                <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                  <xs:element name="root">
+                    <xs:complexType>
+                      <xs:sequence>
+                        <xs:element name="first" type="xs:string"/>
+                        <xs:element name="second" type="xs:int"/>
+                      </xs:sequence>
+                    </xs:complexType>
+                  </xs:element>
+                </xs:schema>
+                """);
+        openInModeAndSelectProblem(xsd, ViewMode.TREE, 6, "s4s-elt-invalid");
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> WaitForAsyncUtils.waitForAsyncFx(2000,
+                () -> host.activeSelectedNodeProperty().get() != null
+                        && "second".equals(host.activeSelectedNodeProperty().get().getName())));
+        assertEquals(ViewMode.TREE, WaitForAsyncUtils.waitForAsyncFx(2000, () -> host.activeViewModeProperty().get()));
+    }
+
     @Test
     void collapseTogglesListVisibilityButKeepsHeader() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> {

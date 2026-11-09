@@ -2973,6 +2973,23 @@ public class EditorHost extends BorderPane {
     }
 
     /**
+     * Shows a validation problem at {@code line} in the view the user is in: the Text view moves
+     * the caret there ({@link #goToLine(int, int)}), Tree and Graphic select the node of the line
+     * (the grid opens tables and cells on the way and highlights it), an XSD's views likewise.
+     *
+     * @param message the problem's message (an attribute it names is revealed in the grid)
+     */
+    public void revealProblem(int line, int column, String message) {
+        Tab tab = tabPane.getSelectionModel().getSelectedItem();
+        if (!(tab instanceof EditorTab et) || et.viewMode == ViewMode.TEXT || !et.viewMode.isStructured()
+                || line < 1) {
+            goToLine(line, column);
+            return;
+        }
+        et.revealLine(line, message);
+    }
+
+    /**
      * Switches to Text mode and moves the caret to the given 1-based line and column (a column
      * below 1 means the line start; one past the line end is clamped to it).
      */

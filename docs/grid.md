@@ -132,7 +132,9 @@ shows the editable grid, laid out as follows:
 - **Validation markers.** After a validation (Validation panel), rows whose element has a
   problem show a red **!** at the end of the name cell and a red value; hover the row for the
   message. Problems inside a repeating group mark the member's row number. The markers clear
-  on the next grid edit and come back with the next validation.
+  on the next grid edit and come back with the next validation. Selecting a problem in the
+  PROBLEMS panel keeps the grid open and reveals it: the row or table cell is selected, opened on
+  the way and briefly highlighted.
 - **Split view.** The header's **⋯** menu splits the grid *top / bottom* or *side by side* into
   two views of the same document; each scrolls, expands and selects on its own, and an edit in
   one appears in the other at once. *Single view* closes the second one.

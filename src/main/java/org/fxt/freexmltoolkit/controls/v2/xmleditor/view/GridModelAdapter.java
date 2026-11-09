@@ -282,6 +282,19 @@ public interface GridModelAdapter<N> {
     /** @return the model node behind an embedded-table row */
     N nodeOf(RepeatingElementsTable.TableRow row);
 
+    /** @return whether {@code node} is {@code ancestor} or lies inside it (problem reveal) */
+    default boolean contains(N ancestor, N node) {
+        return ancestor == node;
+    }
+
+    /**
+     * @return whether {@code node} lies in the column {@code column} of the table member
+     *         {@code member} when that column has no single cell node (several same-name children)
+     */
+    default boolean containsInColumn(N member, String column, N node) {
+        return false;
+    }
+
     /**
      * @return the node a table cell stands for — the target of the context menu's node actions on
      *         that cell — or {@code null} when the cell is no node of its own (the row's node then)

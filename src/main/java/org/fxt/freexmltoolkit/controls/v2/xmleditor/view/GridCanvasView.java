@@ -200,6 +200,10 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     // ==================== Highlight State ====================
 
     FlatRow highlightedRow = null;
+    /** A table cell flashed by {@link #revealProblem} (with its row and column), or {@code null}. */
+    RepeatingElementsTable highlightedTable;
+    int highlightedTableRow = -1;
+    int highlightedTableColumn = -1;
     Color highlightColor;  // Yellow highlight (theme-dependent, see applyPalette)
 
     // ==================== Status Bar & Toast ====================
@@ -2722,6 +2726,138 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
             render();
         });
         pause.play();
+    }
+
+    /** Flash highlight a table cell (a problem revealed in a table). */
+    void flashHighlightCell(RepeatingElementsTable table, int row, int column) {
+        highlightedTable = table;
+        highlightedTableRow = row;
+        highlightedTableColumn = column;
+        render();
+        PauseTransition pause = new PauseTransition(Duration.millis(1800));
+        pause.setOnFinished(e -> {
+            if (highlightedTable == table && highlightedTableRow == row && highlightedTableColumn == column) {
+                highlightedTable = null;
+                render();
+            }
+        });
+        pause.play();
+    }
+
+    /**
+     * Shows a validation problem's node: its row (an attribute row when {@code attribute} names
+     * one) or, inside a table, its cell - opening the owner, table cells and inner tables on the
+     * way - selects and highlights it. The view stays the grid.
+     *
+     * @param target    the element the problem's line belongs to
+     * @param attribute the attribute the problem names, or {@code null}
+     * @return whether the node was found
+     */
+    public boolean revealProblem(N target, String attribute) {
+        if (target == null) {
+            return false;
+        }
+        return revealProblemIn(allRows, target, attribute);
+    }
+
+    private boolean revealProblemIn(List<FlatRow> rows, N target, String attribute) {
+        // a table holding the target (as a member or deeper inside one) wins over plain rows
+        for (FlatRow row : rows) {
+            if (!row.hasRepeatingTable()) {
+                continue;
+            }
+            RepeatingElementsTable table = row.getRepeatingTable();
+            if (table == null) {
+                continue;
+            }
+            for (int i = 0; i < table.getRows().size(); i++) {
+                RepeatingElementsTable.TableRow member = table.getRows().get(i);
+                N memberNode = adapter.nodeOf(member);
+                if (memberNode == null || !adapter.contains(memberNode, target)) {
+                    continue;
+                }
+                return revealInTable(row, table, i, member, memberNode, target, attribute);
+            }
+        }
+        FlatRow match = null;
+        for (FlatRow row : rows) {
+            if (attribute != null && row.getType().isAttribute() && attribute.equals(row.getLabel())
+                    && (row.getModelNode() == target
+                    || row.getParentRow() != null && row.getParentRow().getModelNode() == target)) {
+                match = row;
+                break;
+            }
+            if (match == null && row.getModelNode() == target && !row.getType().isAttribute()) {
+                match = row;
+            }
+        }
+        if (match == null) {
+            return false;
+        }
+        revealRow(match);
+        flashHighlight(match);
+        return true;
+    }
+
+    private boolean revealInTable(FlatRow owner, RepeatingElementsTable table, int rowIndex,
+                                  RepeatingElementsTable.TableRow member, N memberNode, N target, String attribute) {
+        if (!owner.isExpanded()) {
+            owner.setExpanded(true);
+        }
+        revealRow(owner);
+        int column = -1;
+        String columnName = null;
+        if (memberNode == target && attribute != null) {
+            columnName = "@" + attribute;
+        } else if (memberNode != target) {
+            for (RepeatingElementsTable.TableColumn c : table.getColumns()) {
+                if (c.getName().startsWith("@")) {
+                    continue;
+                }
+                N cell = adapter.cellNode(member, c.getName());
+                if (cell != null && adapter.contains(cell, target)) {
+                    columnName = c.getName();
+                    break;
+                }
+                if (cell == null && adapter.containsInColumn(memberNode, c.getName(), target)) {
+                    columnName = c.getName(); // a column of several same-name children
+                    break;
+                }
+            }
+        }
+        if (columnName != null) {
+            for (int c = 0; c < table.getColumns().size(); c++) {
+                if (columnName.equals(table.getColumns().get(c).getName())) {
+                    column = c;
+                    break;
+                }
+            }
+        }
+        if (column < 0) {
+            tables.selectTableRow(table, rowIndex);
+            ensureCellVisible(owner, table, rowIndex, 0);
+            flashHighlightCell(table, rowIndex, -1);
+            render();
+            return true;
+        }
+        N cell = adapter.cellNode(member, columnName);
+        boolean deeper = member.hasComplexChild(columnName) && (cell == null || cell != target);
+        if (deeper) {
+            if (!member.isColumnExpanded(columnName)) {
+                member.toggleColumnExpanded(columnName);
+                table.recalculateColumnWidths();
+            }
+            GridBlock grid = member.getCellGrid(columnName);
+            if (grid != null && revealProblemIn(grid.rows(), target, attribute)) {
+                return true;
+            }
+        }
+        tables.selectTableRow(table, rowIndex);
+        tables.setCellRange(rowIndex, column, rowIndex, column);
+        ensureCellVisible(owner, table, rowIndex, column);
+        flashHighlightCell(table, rowIndex, column);
+        render();
+        return true;
     }
 
     /**
