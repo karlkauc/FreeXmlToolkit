@@ -162,6 +162,25 @@ public class XmlContextMenuManager {
             }
         });
 
+        // XML Encryption (handled by the shell's Sign & Encrypt page)
+        MenuItem encryptElementMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.encrypt-element"));
+        encryptElementMenuItem.setId("editor-encrypt-element");
+        encryptElementMenuItem.getStyleClass().add("xml-action");
+        encryptElementMenuItem.setGraphic(createColoredIcon("bi-lock", ActionColor.MODIFY));
+        encryptElementMenuItem.setOnAction(event -> XmlElementAtCaret.at(codeArea.getText(), codeArea.getCaretPosition())
+                .ifPresent(element -> XmlEncryptionMenuHook.encryptElement(element.xpath())));
+        MenuItem decryptMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.decrypt"));
+        decryptMenuItem.setId("editor-decrypt");
+        decryptMenuItem.getStyleClass().add("xml-action");
+        decryptMenuItem.setGraphic(createColoredIcon("bi-unlock", ActionColor.MODIFY));
+        decryptMenuItem.setOnAction(event -> XmlEncryptionMenuHook.decrypt());
+        // a handler, not setOnShowing: ContextMenuManagerV2 sets its own onShowing
+        contextMenu.addEventHandler(javafx.stage.WindowEvent.WINDOW_SHOWING, event -> {
+            boolean shell = XmlEncryptionMenuHook.isInstalled();
+            encryptElementMenuItem.setVisible(shell);
+            decryptMenuItem.setVisible(shell && codeArea.getText().contains("EncryptedData"));
+        });
+
         // Selection and search
         SeparatorMenuItem separator3 = new SeparatorMenuItem();
         MenuItem selectAllMenuItem = new MenuItem(I18n.t("XmlContextMenuManager.select-all-ctrl-a"));
@@ -229,6 +248,7 @@ public class XmlContextMenuManager {
                 cutMenuItem, copyMenuItem, pasteMenuItem,
                 separator2,
                 copyXPathMenuItem, copyNodeMenuItem, goToDefinitionMenuItem,
+                encryptElementMenuItem, decryptMenuItem,
                 separator3,
                 selectAllMenuItem, findReplaceMenuItem,
                 separator4,

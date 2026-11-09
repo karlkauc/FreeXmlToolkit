@@ -204,6 +204,11 @@ public class UnifiedShellView extends BorderPane {
         // PROBLEMS panel below the editor (hides itself while empty).
         editorCenter.getChildren().add(
                 new org.fxt.freexmltoolkit.controls.shell.editor.ProblemsPanel(editorHost));
+        // the XML editor's "Encrypt Element…" / "Decrypt…" open the Sign & Encrypt page
+        org.fxt.freexmltoolkit.controls.shared.utilities.XmlEncryptionMenuHook.install(
+                xpath -> openSignaturePage().encryptElement(xpath),
+                () -> openSignaturePage().selectAction(
+                        org.fxt.freexmltoolkit.controls.shell.editor.SignatureView.Action.DECRYPT));
         searchBar.hide(); // shown on Ctrl+F / Ctrl+H
         editorHost.queryConsoleRequestsProperty().addListener((obs, oldV, newV) -> openQueryConsole());
         // Keep the open search bar bound to the right view when the user switches

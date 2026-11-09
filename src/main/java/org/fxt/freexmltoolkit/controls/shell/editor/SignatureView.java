@@ -296,6 +296,17 @@ public class SignatureView extends ScrollPane {
         if (active != null || xmlFile == null) {
             setDocument(active);
         }
+        rememberCaretElement();
+    }
+
+    /**
+     * The editor's "Encrypt Element…": Encrypt with the element at {@code xpath} (the editor's
+     * positional XPath) as target.
+     */
+    public void encryptElement(String xpath) {
+        caretElementXPath = EncryptionRecipients.localNameXPath(xpath);
+        selectAction(Action.ENCRYPT);
+        encTargetGroup.selectToggle(encTargetCaret);
     }
 
     /** Sets the document the actions work on and refreshes the DOCUMENT row. */

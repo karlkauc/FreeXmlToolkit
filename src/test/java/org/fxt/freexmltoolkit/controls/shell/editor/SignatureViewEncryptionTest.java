@@ -130,6 +130,25 @@ class SignatureViewEncryptionTest {
     }
 
     @Test
+    void encryptElementFromTheEditorMenu(@TempDir Path tmp) throws Exception {
+        Path xml = tmp.resolve("order.xml");
+        Files.writeString(xml, "<p:order xmlns:p=\"urn:o\"><p:card>4111</p:card><p:card>5500</p:card></p:order>");
+        WaitForAsyncUtils.waitForAsyncFx(2000, () -> {
+            page.setDocument(xml.toFile());
+            page.encryptElement("/p:order/p:card[2]");
+            page.addPasswordRecipient("pw".toCharArray());
+            page.onEncrypt();
+            return null;
+        });
+        assertEquals(SignatureView.Action.ENCRYPT, page.currentAction());
+        Path encrypted = tmp.resolve("order.encrypted.xml");
+        WaitForAsyncUtils.waitFor(20, TimeUnit.SECONDS, () -> Files.exists(encrypted)
+                && WaitForAsyncUtils.waitForAsyncFx(2000, page::getStatusText).contains("Encrypted"));
+        String text = Files.readString(encrypted);
+        assertTrue(text.contains("4111") && !text.contains("5500"), "only the second card: " + text);
+    }
+
+    @Test
     void theLegacyWarningFollowsTheChoice() {
         WaitForAsyncUtils.waitForAsyncFx(2000, () -> page.selectAction(SignatureView.Action.ENCRYPT));
         assertFalse(visible("#enc-legacy-warning"));
