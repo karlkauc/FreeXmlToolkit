@@ -2845,7 +2845,10 @@ shows the editable grid, laid out like XMLSpy's Grid View:</p>
   <strong>embedded table beside the group's name cell</strong>: one row per element (numbered in the
   first column), one column per attribute (<code>=</code>) and child element (<code>&lt;&gt;</code>). Click the small
   <strong>arrow at the right of a column header</strong> to <strong>sort</strong> the group (also: <strong>Sort Column</strong> in the
-  context menu); cells with nested structure expand inline. <strong>Right-click a cell</strong> that is an
+  context menu); numbers, dates and text are recognised, and one <strong>Undo</strong> restores the order. A
+  table of 20,000 rows or more is sorted in the background: the grid stays usable (wait cursor),
+  and an edit made meanwhile makes the sort start again from the new state. Cells with nested
+  structure expand inline. <strong>Right-click a cell</strong> that is an
   element of its own (e.g. <code>Identifiers</code> of an <code>Asset</code> row): the node actions of the context menu
   (Add Child Element / Attribute, Rename, Copy, Delete, Move, …) act on that element; whole-row
   actions are in the <strong>Table</strong> submenu (<strong>Insert Row Before/After</strong>, <strong>Append Row</strong>, <strong>Delete Row</strong>).</li>
