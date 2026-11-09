@@ -18,6 +18,8 @@
 
 import java.awt.Color as AwtColor
 import java.awt.image.BufferedImage
+import java.io.StringReader
+import java.io.StringWriter
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.file.FileSystems
@@ -825,27 +827,91 @@ fun prepareWindowsInstallerResources(javaHome: String, projectDir: File, outDir:
     val banner = toBmp("release/win-banner.png", "banner.bmp")
     val dialog = toBmp("release/win-dialog.png", "dialog.bmp")
 
-    val original = try {
+    val resources = "/modules/jdk.jpackage/jdk/jpackage/internal/resources/"
+    val (original, mainWxs) = try {
         FileSystems.newFileSystem(URI.create("jrt:/"), mapOf("java.home" to javaHome)).use { jrt ->
-            val path = jrt.getPath("/modules/jdk.jpackage/jdk/jpackage/internal/resources/overrides.wxi")
-            if (NioFiles.exists(path)) NioFiles.readString(path) else null
+            fun read(name: String): String? {
+                val path = jrt.getPath(resources + name)
+                return if (NioFiles.exists(path)) NioFiles.readString(path) else null
+            }
+            Pair(read("overrides.wxi"), read("main.wxs"))
         }
     } catch (e: Exception) {
         throw GradleException("Cannot read jpackage's resources from $javaHome: ${e.message}", e)
-    } ?: throw GradleException(
-        "jpackage's overrides.wxi was not found in $javaHome (jdk.jpackage). It exists in Windows JDKs only; " +
-            "the installer images are added to it, so the Windows installers must be built with a Windows JDK.")
-    val end = original.lastIndexOf("</Include>")
-    if (end < 0) {
-        throw GradleException("jpackage's overrides.wxi has no </Include>: cannot add the installer images")
     }
-    val variables = """
-  <!-- FreeXmlToolkit: installer images (build.gradle.kts, prepareWindowsInstallerResources) -->
-  <WixVariable Id="WixUIBannerBmp" Value="${banner.absolutePath}"/>
-  <WixVariable Id="WixUIDialogBmp" Value="${dialog.absolutePath}"/>
-"""
-    File(outDir, "overrides.wxi").writeText(original.substring(0, end) + variables + original.substring(end))
+    if (original == null) {
+        throw GradleException(
+            "jpackage's overrides.wxi was not found in $javaHome (jdk.jpackage). It exists in Windows JDKs only; " +
+                "the installer images are added to it, so the Windows installers must be built with a Windows JDK.")
+    }
+    // kept next to the result, to see what jpackage ships when something goes wrong
+    File(outDir, "overrides.original.wxi").writeText(original)
+
+    File(outDir, "overrides.wxi").writeText(withInstallerImages(original, mainWxs,
+        listOf("WixUIBannerBmp" to banner.absolutePath, "WixUIDialogBmp" to dialog.absolutePath)))
     return outDir
+}
+
+/**
+ * jpackage's overrides.wxi with WixVariables added. Parsed as XML, not searched as text: the stub may
+ * be an empty element ({@code <Include/>}) or carry a prefix. Without a namespace of its own the
+ * variables get the one jpackage's main.wxs is written in.
+ */
+fun withInstallerImages(original: String, mainWxs: String?, variables: List<Pair<String, String>>): String {
+    val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+    factory.isNamespaceAware = true
+    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+    val document = try {
+        factory.newDocumentBuilder().parse(org.xml.sax.InputSource(StringReader(original)))
+    } catch (e: Exception) {
+        throw GradleException("jpackage's overrides.wxi is not well-formed XML: ${e.message}", e)
+    }
+    val include = document.documentElement
+    val namespace = include.namespaceURI
+        ?: mainWxs?.let { Regex("""<Wix\b[^>]*\bxmlns="([^"]+)"""").find(it)?.groupValues?.get(1) }
+        ?: "http://schemas.microsoft.com/wix/2006/wi"
+    val qualified = { local: String -> if (include.prefix != null) "${include.prefix}:$local" else local }
+    include.appendChild(document.createComment(
+        " FreeXmlToolkit: installer images (build.gradle.kts, prepareWindowsInstallerResources) "))
+    for ((id, value) in variables) {
+        val variable = document.createElementNS(namespace, qualified("WixVariable"))
+        variable.setAttribute("Id", id)
+        variable.setAttribute("Value", value)
+        include.appendChild(variable)
+    }
+    val transformer = javax.xml.transform.TransformerFactory.newInstance().newTransformer()
+    transformer.setOutputProperty(javax.xml.transform.OutputKeys.ENCODING, "utf-8")
+    transformer.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes")
+    val out = StringWriter()
+    transformer.transform(javax.xml.transform.dom.DOMSource(document), javax.xml.transform.stream.StreamResult(out))
+    return out.toString()
+}
+
+tasks.register("checkInstallerOverrides") {
+    group = "verification"
+    description = "Checks withInstallerImages on the forms jpackage's overrides.wxi can take (no Windows JDK needed)"
+    doLast {
+        val v3 = "http://schemas.microsoft.com/wix/2006/wi"
+        val main = """<?xml version="1.0"?><Wix xmlns="$v3"><Product/></Wix>"""
+        val images = listOf("WixUIBannerBmp" to "C:\\b.bmp", "WixUIDialogBmp" to "C:\\d.bmp")
+        for (stub in listOf(
+                """<?xml version="1.0" encoding="utf-8"?><!-- stub --><Include/>""",
+                """<Include xmlns="$v3"><?define JpAllowDowngrades = "yes"?></Include>""",
+                """<wix:Include xmlns:wix="$v3"/>""")) {
+            val result = withInstallerImages(stub, main, images)
+            println(result)
+            val doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }
+                .newDocumentBuilder().parse(org.xml.sax.InputSource(StringReader(result)))
+            val found = doc.getElementsByTagNameNS(v3, "WixVariable")
+            if (found.length != 2) {
+                throw GradleException("expected 2 WixVariables in the WiX namespace, got ${found.length}:\n$result")
+            }
+            if (stub.contains("define") && !result.contains("JpAllowDowngrades")) {
+                throw GradleException("the stub's own defines were lost:\n$result")
+            }
+        }
+        println("withInstallerImages: OK")
+    }
 }
 
 tasks.register("prepareWindowsInstallerResources") {
