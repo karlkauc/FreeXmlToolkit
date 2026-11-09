@@ -484,9 +484,106 @@ public class ExplorerPanel extends VBox {
         return row;
     }
 
-    /** Opens a file from the workspace tree and reveals the Open Editors entry. */
-    private void openWorkspaceFile(Path path) {
+    /**
+     * Opens a file from the workspace tree. A project file opens as the project (the open project's
+     * own file opens in the editor).
+     */
+    void openWorkspaceFile(Path path) {
+        if (org.fxt.freexmltoolkit.service.project.FxtProject.isProjectFile(path)) {
+            boolean isOpen = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current()
+                    .map(p -> p.file().equals(path.toAbsolutePath().normalize())).orElse(false);
+            if (!isOpen) {
+                ProjectActions.openProject(path);
+                return;
+            }
+        }
         editorHost.openFile(path);
+    }
+
+    /** Shell-wired File → Project → Validate Project. */
+    private Runnable projectValidateAction;
+
+    /** Sets what "Validate Project" in the context menu runs (the shell's Validation activity). */
+    public void setProjectValidateAction(Runnable action) {
+        this.projectValidateAction = action;
+    }
+
+    /** @return what the open project assigns to a file, as a tooltip text; {@code null} = nothing */
+    static String projectNote(Path file) {
+        var project = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current().orElse(null);
+        if (project == null) {
+            return null;
+        }
+        var assignment = project.assignmentFor(file);
+        if (assignment.isEmpty()) {
+            return null;
+        }
+        StringBuilder note = new StringBuilder(I18n.t("ExplorerPanel.project-note", project.name()));
+        if (assignment.schema() != null) {
+            note.append('\n').append(I18n.t("ExplorerPanel.note-schema", project.relativize(assignment.schema())));
+        }
+        if (assignment.schematron() != null) {
+            note.append('\n').append(I18n.t("ExplorerPanel.note-schematron", project.relativize(assignment.schematron())));
+        }
+        if (assignment.scenario() != null) {
+            note.append('\n').append(I18n.t("ExplorerPanel.note-scenario", assignment.scenario()));
+        }
+        return note.toString();
+    }
+
+    /** The project section of the file context menu (only while a project is open). */
+    java.util.List<MenuItem> projectContextMenuItems(java.util.List<Path> selected) {
+        var open = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current();
+        if (open.isEmpty()) {
+            return java.util.List.of();
+        }
+        var project = open.get();
+        java.util.List<Path> inProject = selected.stream()
+                .filter(p -> p.toAbsolutePath().normalize().startsWith(project.root())).toList();
+        java.util.List<MenuItem> items = new java.util.ArrayList<>();
+
+        MenuItem bind = menuItem(I18n.t("ExplorerPanel.bind-in-project"), () -> ProjectActions.bindFiles(editorHost,
+                getScene() != null ? getScene().getWindow() : null, inProject));
+        bind.setId("explorer-ctx-project-bind");
+        bind.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-link-45deg", 16),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL));
+        bind.setDisable(inProject.isEmpty());
+
+        javafx.scene.control.Menu run = new javafx.scene.control.Menu(I18n.t("ExplorerPanel.run-scenario"));
+        run.setId("explorer-ctx-project-run");
+        run.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-play-fill", 16),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.TOOL));
+        // the scenario bound to the (first) file comes first
+        String bound = inProject.isEmpty() ? null : project.assignmentFor(inProject.get(0)).scenario();
+        java.util.List<org.fxt.freexmltoolkit.service.project.FxtProject.Scenario> scenarios =
+                new java.util.ArrayList<>(project.scenarios());
+        scenarios.sort(java.util.Comparator.comparing(sc -> !java.util.Objects.equals(sc.name, bound)));
+        for (var scenario : scenarios) {
+            boolean isBound = java.util.Objects.equals(scenario.name, bound);
+            MenuItem item = menuItem(isBound ? I18n.t("ExplorerPanel.scenario-bound", scenario.name) : scenario.name,
+                    () -> ProjectActions.runScenario(editorHost, project, scenario, inProject));
+            item.setGraphic(icon(isBound ? "bi-play-fill" : "bi-play", 16));
+            run.getItems().add(item);
+        }
+        run.setDisable(inProject.isEmpty() || scenarios.isEmpty());
+
+        MenuItem validate = menuItem(I18n.t("ExplorerPanel.validate-project"), () -> {
+            if (projectValidateAction != null) {
+                projectValidateAction.run();
+            }
+        });
+        validate.setId("explorer-ctx-project-validate");
+        validate.setGraphic(org.fxt.freexmltoolkit.controls.theme.SemanticIcon.paint(icon("bi-check2-all", 16),
+                org.fxt.freexmltoolkit.controls.theme.ActionColor.CREATE));
+
+        MenuItem settings = menuItem(I18n.t("ExplorerPanel.project-settings"), () -> ProjectActions.openSettings(editorHost,
+                getScene() != null ? getScene().getWindow() : null));
+        settings.setId("explorer-ctx-project-settings");
+        settings.setGraphic(icon("bi-gear", 16));
+
+        items.add(new javafx.scene.control.SeparatorMenuItem());
+        items.addAll(java.util.List.of(bind, run, validate, settings));
+        return items;
     }
 
     // ----- one-click XSLT transform --------------------------------------------
@@ -786,6 +883,7 @@ public class ExplorerPanel extends VBox {
         items.addAll(java.util.List.of(transform, otherXslt, validate, otherSch));
         items.add(new javafx.scene.control.SeparatorMenuItem());
         items.addAll(java.util.List.of(compare, xsd));
+        items.addAll(projectContextMenuItems(selected));
         return items;
     }
 
@@ -988,16 +1086,19 @@ public class ExplorerPanel extends VBox {
     /** Shows an opened project's first folder as the workspace; {@code null} = the project was closed. */
     void applyProject(org.fxt.freexmltoolkit.service.project.FxtProject project) {
         if (project == null) {
+            workspace.setFileNote(null);
             if (shownProject != null) {
                 shownProject = null;
                 setWorkspaceFolder(getWorkspaceFolder()); // the folder stays, the title becomes its name
             }
             return;
         }
-        if (!project.file().equals(shownProject)) {
+        java.util.List<Path> folders = project.folders().stream().filter(java.nio.file.Files::isDirectory).distinct().toList();
+        if (!project.file().equals(shownProject) || !folders.equals(workspace.getRootFolders())) {
             shownProject = project.file();
-            setWorkspaceFolder(project.folders().get(0));
+            workspace.setRootFolders(folders);
         }
+        workspace.setFileNote(ExplorerPanel::projectNote); // bindings may have changed: redraw the tooltips
         workspaceTitle.setText(I18n.t("ExplorerPanel.project", project.name().toUpperCase(java.util.Locale.ROOT)));
     }
 

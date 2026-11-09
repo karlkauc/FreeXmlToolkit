@@ -52,11 +52,13 @@ fxt-cli validate [options] FILE|FOLDER...
 | `--include GLOB,...` | File names to validate inside folders; default `*.xml,*.json` |
 | `-f`, `--report-format FORMAT` | `text` (default), `json`, `junit`, `sarif` |
 | `-r`, `--report FILE` | Write the report to a file; the text summary still goes to standard output |
-| `-p`, `--project FXTPROJ` | Use a [project's](projects.md) schema bindings and catalogs |
+| `-p`, `--project FXTPROJ` | Use a [project's](projects.md) bindings (schema, Schematron, JSON Schema) and catalogs |
 | `--fail-on-warning` | Warnings make a file invalid too |
 
 **Which schema is used.** With `--xsd` / `--schema`, that schema (or DTD, or RELAX NG schema) for every XML file. With `--project`, the
-schema the project binds to the file (first matching pattern). Otherwise each file
+schema the project binds to the file (first matching pattern), and the Schematron it binds (unless
+`--schematron` is given); JSON files get the JSON Schema the project binds to them (unless
+`--json-schema` is given). Otherwise each file
 is checked against the schema it declares itself, found the same way as when the file is opened
 in the editor: `xsi:schemaLocation` / `xsi:noNamespaceSchemaLocation` (relative to the file,
 remote schemas downloaded and cached), redirected by the [Schema Library](schema-library.md) and
@@ -161,10 +163,24 @@ fxt-cli scenario [options] PROJECT [NAME...]
 | Option | Meaning |
 |---|---|
 | `-l`, `--list` | List the scenarios (name, stylesheet, input, output) instead of running them |
+| `-i`, `--input FILE...` | Run for these files or folders: the scenario runs once per file |
+| `--include GLOB,...` | File names to use inside `--input` folders; default `*.xml` |
 
 Without names, all scenarios run in the order of the project file. A scenario with an output file
 writes its result there; the others print it to standard output. The exit code is 1 when a scenario
 fails (the others still run) and 2 for an unknown scenario name.
+
+With `--input`, each file fills the scenario's `${file}` (and an empty input); `${name}` and
+`${dir}` in the output name the result after it. Without scenario names, each file runs the
+scenario the project [binds to it](projects.md#bindings):
+
+```bash
+fxt-cli scenario orders.fxtproj Report --input data/      # Report for every XML file in data/
+fxt-cli scenario orders.fxtproj -i data/a.xml data/b.xml  # each file's bound scenario
+```
+
+A file without a bound scenario, or one whose output an earlier file already wrote (no `${name}`
+in the output), counts as failed.
 
 ## compare
 

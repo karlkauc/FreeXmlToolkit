@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Content of the "Edit Scenario" dialog of Project Settings: every field of a transformation
+  scenario. Loaded by ScenarioEditDialog (FxmlViews.loadContent), its controller.
+-->
+<GridPane hgap="8" vgap="8" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets topRightBottomLeft="16"/>
+    </padding>
+    <children>
+        <Label text="%ScenarioEditDialog.name.text" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField" id="scenario-edit-name" prefColumnCount="36" GridPane.rowIndex="0"
+                   GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%ScenarioEditDialog.stylesheet-query-or-pipeline.text" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="stylesheetField" id="scenario-edit-stylesheet" promptText="%ScenarioEditDialog.stylesheetField.promptText"
+                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Button id="scenario-edit-browse-stylesheet" text="%ScenarioEditDialog.scenario-edit-browse-stylesheet.text" onAction="#onBrowseStylesheet" GridPane.rowIndex="1"
+                GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="%ScenarioEditDialog.input.text" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="inputField" id="scenario-edit-input" promptText="%ScenarioEditDialog.inputField.promptText"
+                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Button id="scenario-edit-browse-input" text="%ScenarioEditDialog.scenario-edit-browse-input.text" onAction="#onBrowseInput" GridPane.rowIndex="2"
+                GridPane.columnIndex="2">
+            <graphic>
+                <IconifyIcon iconLiteral="bi-folder2-open" iconSize="16"/>
+            </graphic>
+        </Button>
+        <Label text="%ScenarioEditDialog.parameters.text" GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
+        <TextArea fx:id="parametersArea" id="scenario-edit-parameters" prefRowCount="4" promptText="%ScenarioEditDialog.parametersArea.promptText"
+                  GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label text="%ScenarioEditDialog.output-method.text" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="formatChoice" id="scenario-edit-format" maxWidth="Infinity" GridPane.rowIndex="4"
+                  GridPane.columnIndex="1"/>
+        <Label text="%ScenarioEditDialog.output-file.text" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <TextField fx:id="outputField" id="scenario-edit-output" promptText="%ScenarioEditDialog.outputField.promptText"
+                   GridPane.rowIndex="5" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
+        <Label fx:id="error" id="scenario-edit-error" wrapText="true" visible="false" managed="false"
+               style="-fx-text-fill: #e03131;" GridPane.rowIndex="6" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+        <Label text="%ScenarioEditDialog.paths-are-relative-to-the.text"
+               wrapText="true" opacity="0.7" maxWidth="560" GridPane.rowIndex="7" GridPane.columnIndex="0"
+               GridPane.columnSpan="3"/>
+    </children>
+</GridPane>

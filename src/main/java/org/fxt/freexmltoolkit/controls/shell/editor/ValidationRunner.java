@@ -266,7 +266,7 @@ public final class ValidationRunner {
     }
 
     private static String findingKey(String test, String location) {
-        return (test == null ? "" : test) + " " + (location == null ? "" : location);
+        return (test == null ? "" : test) + "\0" + (location == null ? "" : location);
     }
 
     /**
@@ -351,6 +351,50 @@ public final class ValidationRunner {
             done++;
             if (onFileDone != null) {
                 onFileDone.accept(done);
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Validates the files of a project, each against what the project binds to it: its schema (XSD,
+     * DTD, RELAX NG; a JSON Schema for JSON files; without one the schema the file declares) and its
+     * Schematron.
+     *
+     * @param onFileDone called with the running completed-file count (may be null)
+     * @param cancelled  polled before each file (may be null); a cancelled run returns the results so far
+     */
+    public static List<FileValidationResult> batchProject(org.fxt.freexmltoolkit.service.project.FxtProject project,
+                                                          List<File> files,
+                                                          java.util.function.IntConsumer onFileDone,
+                                                          java.util.function.BooleanSupplier cancelled) {
+        List<FileValidationResult> results = new ArrayList<>();
+        for (File file : files) {
+            if (cancelled != null && cancelled.getAsBoolean()) {
+                break;
+            }
+            var assignment = project.assignmentFor(file.toPath());
+            File schema = assignment.schema() == null ? null : assignment.schema().toFile();
+            File schematron = assignment.schematron() == null ? null : assignment.schematron().toFile();
+            try {
+                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                String name = file.getName().toLowerCase(java.util.Locale.ROOT);
+                List<ValidationProblem> problems;
+                if (name.endsWith(".json") || name.endsWith(".json5")) {
+                    problems = validateJson(content, schema);
+                } else {
+                    if (schema == null) {
+                        File baseDir = file.getAbsoluteFile().getParentFile();
+                        schema = declaredSchema(content, baseDir).orElse(null);
+                    }
+                    problems = runWithReport(content, schema, schematron, file.getName(), file.toPath()).problems();
+                }
+                results.add(new FileValidationResult(file, problems, null));
+            } catch (Exception e) {
+                results.add(new FileValidationResult(file, List.of(), String.valueOf(e.getMessage())));
+            }
+            if (onFileDone != null) {
+                onFileDone.accept(results.size());
             }
         }
         return results;

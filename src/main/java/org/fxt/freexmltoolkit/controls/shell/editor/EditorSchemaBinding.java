@@ -857,6 +857,19 @@ final class EditorSchemaBinding {
      * Runs on a worker thread.
      */
     private SchemaDetection detectJsonSchemaFor(EditorTab tab, String content, Path pathOrNull) {
+        // A binding of the open project comes first, as for XML
+        java.util.Optional<Path> fromProject = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance()
+                .schemaFor(pathOrNull);
+        if (fromProject.isPresent()) {
+            File schema = fromProject.get().toFile();
+            tab.lastDetectedSchemaLocation = schema.getAbsolutePath();
+            if (!schema.exists() || !loadForIntelliSense(tab, schema)) {
+                return SchemaDetection.failed(SchemaSource.PROJECT, SchemaDetection.UNLOADABLE);
+            }
+            String project = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current()
+                    .map(org.fxt.freexmltoolkit.service.project.FxtProject::name).orElse("");
+            return new SchemaDetection(schema, SchemaStatus.READY, SchemaSource.PROJECT, project);
+        }
         try {
             var service = new org.fxt.freexmltoolkit.service.JsonService();
             File baseDir = pathOrNull != null && pathOrNull.getParent() != null

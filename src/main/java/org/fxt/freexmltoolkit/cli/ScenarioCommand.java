@@ -18,7 +18,9 @@ import picocli.CommandLine.Spec;
 
 /**
  * {@code fxt-cli scenario}: runs the transformation scenarios of a project file ({@code .fxtproj}) —
- * the ones saved from the Transform panel — with {@link ScenarioRunner}.
+ * the ones saved from the Transform panel — with {@link ScenarioRunner}. With {@code --input} a
+ * scenario runs once per file ({@code ${file}}, {@code ${name}}); without scenario names each file
+ * runs the scenario the project binds to it.
  */
 @Command(name = "scenario",
         description = "Run the transformation scenarios of a project file (.fxtproj).",
@@ -41,6 +43,15 @@ final class ScenarioCommand implements Callable<Integer> {
     @Option(names = {"-l", "--list"}, description = "List the scenarios instead of running them.")
     boolean list;
 
+    @Option(names = {"-i", "--input"}, arity = "1..*", paramLabel = "FILE",
+            description = "Run for these files or folders (folders are searched recursively, see --include): "
+                    + "the scenario runs once per file. Without NAME each file runs the scenario the project binds to it.")
+    List<Path> inputs = new ArrayList<>();
+
+    @Option(names = "--include", split = ",", paramLabel = "GLOB", defaultValue = "*.xml",
+            description = "File names to use inside --input folders (default: ${DEFAULT-VALUE}).")
+    List<String> include;
+
     @Override
     public Integer call() {
         CommandLine commandLine = spec.commandLine();
@@ -60,6 +71,9 @@ final class ScenarioCommand implements Callable<Integer> {
             }
             out.flush();
             return ExitCodes.OK;
+        }
+        if (!inputs.isEmpty()) {
+            return runForFiles(commandLine, project, out);
         }
         List<FxtProject.Scenario> chosen = new ArrayList<>();
         if (names.isEmpty()) {
@@ -88,6 +102,48 @@ final class ScenarioCommand implements Callable<Integer> {
             } else {
                 out.print(result.text());
                 out.flush();
+            }
+        }
+        return exit;
+    }
+
+    /** {@code --input}: every named scenario (or each file's bound one) once per file. */
+    private int runForFiles(CommandLine commandLine, FxtProject project, java.io.PrintWriter out) {
+        List<Path> files = CliSupport.expand(commandLine, inputs, include);
+        if (files.isEmpty()) {
+            throw new CommandLine.ParameterException(commandLine,
+                    "No input files (folders are searched for " + String.join(", ", include) + ")");
+        }
+        List<FxtProject.Scenario> named = new ArrayList<>();
+        for (String name : names) {
+            named.add(project.scenario(name).orElseThrow(() -> new CommandLine.ParameterException(commandLine,
+                    "No scenario \"" + name + "\" in " + projectFile)));
+        }
+        CliSupport.initServices();
+        boolean quiet = parent != null && parent.quiet;
+        int exit = ExitCodes.OK;
+        java.util.Set<Path> written = new java.util.HashSet<>();
+        for (Path file : files) {
+            List<FxtProject.Scenario> scenarios = named.isEmpty()
+                    ? project.scenarioFor(file).map(List::of).orElse(List.of()) : named;
+            if (scenarios.isEmpty()) {
+                commandLine.getErr().println(file + ": no scenario is bound to this file in the project");
+                exit = ExitCodes.FAILED;
+                continue;
+            }
+            for (FxtProject.Scenario scenario : scenarios) {
+                ScenarioRunner.Result result = ScenarioRunner.runOnce(project, scenario, file, written);
+                if (!result.ok()) {
+                    commandLine.getErr().println(scenario.name + " (" + file + "): error: " + result.error());
+                    exit = ExitCodes.FAILED;
+                } else if (result.written() != null) {
+                    if (!quiet) {
+                        commandLine.getErr().println(scenario.name + " (" + file + "): wrote " + result.written());
+                    }
+                } else {
+                    out.print(result.text());
+                    out.flush();
+                }
             }
         }
         return exit;

@@ -34,9 +34,14 @@
                                        color="CREATE" onAction="#onNewProject"/>
                         <ShellMenuItem id="menu-project-open" text="%ShellMenuBar.menu-project-open.text" iconLiteral="bi-briefcase"
                                        color="TOOL" onAction="#onOpenProject"/>
+                        <Menu fx:id="recentProjectsMenu" id="menu-project-recent" text="%ShellMenuBar.recentProjectsMenu.text"/>
                         <ShellMenuItem fx:id="closeProjectItem" id="menu-project-close" text="%ShellMenuBar.closeProjectItem.text"
                                        iconLiteral="bi-x-lg" color="NEUTRAL" onAction="#onCloseProject"/>
                         <SeparatorMenuItem/>
+                        <ShellMenuItem fx:id="projectSettingsItem" id="menu-project-settings" text="%ShellMenuBar.projectSettingsItem.text"
+                                       iconLiteral="bi-gear" color="TOOL" onAction="#onProjectSettings"/>
+                        <ShellMenuItem fx:id="validateProjectItem" id="menu-project-validate" text="%ShellMenuBar.validateProjectItem.text"
+                                       iconLiteral="bi-check2-all" color="CREATE" onAction="#onValidateProject"/>
                         <ShellMenuItem fx:id="bindSchemaItem" id="menu-project-bind-schema" text="%ShellMenuBar.bindSchemaItem.text"
                                        iconLiteral="bi-link-45deg" color="TOOL" onAction="#onBindProjectSchema"/>
                         <ShellMenuItem fx:id="addCatalogItem" id="menu-project-add-catalog" text="%ShellMenuBar.addCatalogItem.text"

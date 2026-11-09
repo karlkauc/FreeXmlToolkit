@@ -593,6 +593,59 @@ public class ValidationPanel extends VBox {
         });
     }
 
+    /**
+     * Validates the open project's files (those a binding gives a schema or Schematron), each with its
+     * own schema and Schematron, and shows them in RESULTS (async).
+     */
+    public void runProjectBatch() {
+        var open = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current();
+        if (open.isEmpty()) {
+            return;
+        }
+        var project = open.get();
+        setBatchMode(true);
+        PanelStatus.info(status, I18n.t("ValidationPanel.collecting-project-files"));
+        FxtGui.executorService.submit(() -> {
+            List<File> files = project.validatedFiles(MAX_PROJECT_FILES).stream().map(java.nio.file.Path::toFile).toList();
+            javafx.application.Platform.runLater(() -> {
+                if (files.isEmpty()) {
+                    PanelStatus.info(status, I18n.t("ValidationPanel.no-project-files"));
+                    return;
+                }
+                runProjectFiles(project, files);
+            });
+        });
+    }
+
+    /** At most this many files are checked by "Validate Project". */
+    static final int MAX_PROJECT_FILES = 10_000;
+
+    private void runProjectFiles(org.fxt.freexmltoolkit.service.project.FxtProject project, List<File> files) {
+        int total = files.size();
+        java.util.concurrent.atomic.AtomicBoolean cancelled = new java.util.concurrent.atomic.AtomicBoolean(false);
+        PanelStatus.info(status, I18n.t("ValidationPanel.validating-file-s", total));
+        progress.beginDeterminate(total, () -> {
+            cancelled.set(true);
+            PanelStatus.info(status, I18n.t("ValidationPanel.cancelling"));
+        });
+        FxtGui.executorService.submit(() -> {
+            List<ValidationRunner.FileValidationResult> results = ValidationRunner.batchProject(project, files,
+                    done -> javafx.application.Platform.runLater(() -> progress.setProgress(done)), cancelled::get);
+            String report = ValidationRunner.report(results, null, null)
+                    .replaceFirst("Batch Validation Report\n=======================",
+                            "Project Validation Report: " + java.util.regex.Matcher.quoteReplacement(project.name())
+                                    + "\n=======================");
+            javafx.application.Platform.runLater(() -> {
+                progress.finish();
+                showBatchResults(results, report);
+                if (cancelled.get()) {
+                    PanelStatus.info(status,
+                            I18n.t("ValidationPanel.cancelled-validated-of-file-s", results.size(), total));
+                }
+            });
+        });
+    }
+
     /** Publishes a finished batch run: RESULTS header + list and the TOOLS report row. */
     void showBatchResults(List<ValidationRunner.FileValidationResult> results, String report) {
         batchList.getSelectionModel().clearSelection();
@@ -985,6 +1038,7 @@ public class ValidationPanel extends VBox {
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
+                setTooltip(null);
                 return;
             }
             boolean failed = item.failed();
@@ -995,6 +1049,7 @@ public class ValidationPanel extends VBox {
 
             Label name = new Label(item.file().getName());
             name.getStyleClass().add(failed ? "fxt-vp-result-name-failed" : "fxt-vp-result-name");
+            setTooltip(new javafx.scene.control.Tooltip(item.file().getAbsolutePath()));
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 

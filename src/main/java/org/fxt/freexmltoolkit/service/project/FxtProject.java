@@ -18,16 +18,17 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 
 /**
- * A project file ({@code .fxtproj}, JSON): the folders that belong to it, which schema validates
- * which XML files, the XML catalogs to use, and named transformation scenarios. All paths in the
- * file are relative to the folder of the project file, so a project can be committed with the
- * files it describes and opened on another computer.
+ * A project file ({@code .fxtproj}, JSON): the folders that belong to it, which schema, Schematron
+ * and transformation scenario belong to which files, the XML catalogs to use, and named
+ * transformation scenarios. All paths in the file are relative to the folder of the project file,
+ * so a project can be committed with the files it describes and opened on another computer.
  *
  * <pre>{@code
  * {
  *   "name": "Orders",
  *   "folders": ["."],
- *   "schemaBindings": [ { "files": "data/**\/*.xml", "schema": "schemas/order.xsd" } ],
+ *   "schemaBindings": [ { "files": "data/**\/*.xml", "schema": "schemas/order.xsd",
+ *                         "schematron": "rules/order.sch", "scenario": "Report" } ],
  *   "catalogs": ["schemas/catalog.xml"],
  *   "scenarios": [ { "name": "Report", "stylesheet": "xsl/report.xsl", "input": "data/order.xml",
  *                    "parameters": { "year": "2026" }, "outputFormat": "HTML", "output": "out/report.html" } ]
@@ -39,10 +40,16 @@ public final class FxtProject {
     /** The file extension of project files. */
     public static final String EXTENSION = "fxtproj";
 
-    /** A schema for the XML files whose project-relative path matches a glob ({@code data/**\/*.xml}). */
+    /**
+     * What belongs to the files whose project-relative path matches a glob ({@code data/**\/*.xml}):
+     * a grammar ({@code schema}: XSD, DTD, RELAX NG, or a JSON Schema for JSON files), a Schematron
+     * and the name of a transformation scenario. Each of the three is optional.
+     */
     public static final class SchemaBinding {
         public String files;
         public String schema;
+        public String schematron;
+        public String scenario;
 
         public SchemaBinding() {
         }
@@ -51,7 +58,49 @@ public final class FxtProject {
             this.files = files;
             this.schema = schema;
         }
+
+        public SchemaBinding(String files, String schema, String schematron, String scenario) {
+            this.files = files;
+            this.schema = blankToNull(schema);
+            this.schematron = blankToNull(schematron);
+            this.scenario = blankToNull(scenario);
+        }
+
+        /** @return a copy (the dialogs edit copies) */
+        public SchemaBinding copy() {
+            return new SchemaBinding(files, schema, schematron, scenario);
+        }
+
+        /** @return whether the binding assigns anything */
+        public boolean isEmpty() {
+            return blankToNull(schema) == null && blankToNull(schematron) == null && blankToNull(scenario) == null;
+        }
     }
+
+    /**
+     * What the project assigns to one file: each part from the first binding that matches the file
+     * and names it.
+     *
+     * @param schema     the grammar (XSD, DTD, RELAX NG, JSON Schema), or {@code null}
+     * @param schematron the Schematron, or {@code null}
+     * @param scenario   the name of the transformation scenario, or {@code null}
+     */
+    public record Assignment(Path schema, Path schematron, String scenario) {
+
+        /** Nothing assigned. */
+        public static final Assignment NONE = new Assignment(null, null, null);
+
+        public boolean isEmpty() {
+            return schema == null && schematron == null && scenario == null;
+        }
+    }
+
+    /** In a scenario's input, parameters and output: the file the scenario runs for (project-relative). */
+    public static final String VAR_FILE = "${file}";
+    /** In a scenario's output: the name of that file without its extension. */
+    public static final String VAR_NAME = "${name}";
+    /** In a scenario's output: the project-relative folder of that file ({@code .} at the top). */
+    public static final String VAR_DIR = "${dir}";
 
     /**
      * A transformation scenario.
@@ -80,6 +129,24 @@ public final class FxtProject {
             this.parameters = parameters == null ? new LinkedHashMap<>() : new LinkedHashMap<>(parameters);
             this.outputFormat = outputFormat;
             this.output = output;
+        }
+
+        /** @return a copy (the dialogs edit copies) */
+        public Scenario copy() {
+            return new Scenario(name, stylesheet, input, parameters, outputFormat, output);
+        }
+
+        /**
+         * @return whether the scenario takes the file it runs for: its input is empty or contains
+         *         {@value FxtProject#VAR_FILE}
+         */
+        public boolean takesFile() {
+            return input == null || input.isBlank() || input.contains(VAR_FILE);
+        }
+
+        /** @return whether the result is a PDF (the stylesheet produces XSL-FO, FOP renders it) */
+        public boolean isPdf() {
+            return outputFormat != null && outputFormat.strip().equalsIgnoreCase("PDF");
         }
     }
 
@@ -207,6 +274,45 @@ public final class FxtProject {
         return List.copyOf(data.schemaBindings);
     }
 
+    /** Replaces all bindings (Project Settings); empty ones are dropped. */
+    public void setBindings(List<SchemaBinding> bindings) {
+        data.schemaBindings = new ArrayList<>(bindings.stream()
+                .filter(b -> b.files != null && !b.files.isBlank() && !b.isEmpty()).toList());
+    }
+
+    /** @return the folders as written in the project file */
+    public List<String> folderEntries() {
+        return List.copyOf(data.folders);
+    }
+
+    /** Replaces the folders (Project Settings); none = the project folder. */
+    public void setFolders(List<String> folders) {
+        data.folders = new ArrayList<>(folders.stream().filter(f -> f != null && !f.isBlank()).toList());
+        if (data.folders.isEmpty()) {
+            data.folders.add(".");
+        }
+    }
+
+    /** @return the catalogs as written in the project file */
+    public List<String> catalogEntries() {
+        return List.copyOf(data.catalogs);
+    }
+
+    /** Replaces the catalogs (Project Settings). */
+    public void setCatalogs(List<String> catalogs) {
+        data.catalogs = new ArrayList<>(catalogs.stream().filter(c -> c != null && !c.isBlank()).distinct().toList());
+    }
+
+    /** Replaces the scenarios (Project Settings); scenarios without a name are dropped. */
+    public void setScenarios(List<Scenario> scenarios) {
+        data.scenarios = new ArrayList<>(scenarios.stream().filter(sc -> sc.name != null && !sc.name.isBlank()).toList());
+        for (Scenario scenario : data.scenarios) {
+            if (scenario.parameters == null) {
+                scenario.parameters = new LinkedHashMap<>();
+            }
+        }
+    }
+
     /** @return the catalogs, absolute */
     public List<Path> catalogs() {
         return data.catalogs.stream().map(this::resolve).toList();
@@ -239,29 +345,170 @@ public final class FxtProject {
 
     /**
      * Binds a schema to XML files: {@code files} is a glob relative to the project folder
-     * ({@code data/**\/*.xml}) or one file's relative path. A binding for the same pattern is replaced.
+     * ({@code data/**\/*.xml}) or one file's relative path. A binding for the same pattern gets the
+     * new schema and keeps its Schematron and scenario.
      */
     public void bindSchema(String files, Path schema) {
-        data.schemaBindings.removeIf(b -> files.equals(b.files));
-        data.schemaBindings.add(new SchemaBinding(files, relativize(schema)));
+        SchemaBinding existing = bindingWithPattern(files);
+        if (existing != null) {
+            existing.schema = relativize(schema);
+        } else {
+            data.schemaBindings.add(new SchemaBinding(files, relativize(schema)));
+        }
+    }
+
+    /**
+     * Adds a binding, replacing the one with the same pattern in its place.
+     */
+    public void bind(SchemaBinding binding) {
+        for (int i = 0; i < data.schemaBindings.size(); i++) {
+            if (binding.files.equals(data.schemaBindings.get(i).files)) {
+                data.schemaBindings.set(i, binding);
+                return;
+            }
+        }
+        data.schemaBindings.add(binding);
+    }
+
+    /** @return the binding written for exactly this pattern, or {@code null} */
+    public SchemaBinding bindingWithPattern(String files) {
+        return data.schemaBindings.stream().filter(b -> files.equals(b.files)).findFirst().orElse(null);
     }
 
     /** @return the schema the project binds to an XML file (the first matching binding), if any */
     public Optional<Path> schemaFor(Path xml) {
-        Path absolute = xml.toAbsolutePath().normalize();
+        return Optional.ofNullable(assignmentFor(xml).schema());
+    }
+
+    /** @return the Schematron the project binds to a file, if any */
+    public Optional<Path> schematronFor(Path file) {
+        return Optional.ofNullable(assignmentFor(file).schematron());
+    }
+
+    /** @return the scenario the project binds to a file, if it exists */
+    public Optional<Scenario> scenarioFor(Path file) {
+        String name = assignmentFor(file).scenario();
+        return name == null ? Optional.empty() : scenario(name);
+    }
+
+    /**
+     * What the project assigns to a file: schema, Schematron and scenario, each from the first
+     * matching binding that names one (so {@code **\/*.xml → rules.sch} can add a Schematron to every
+     * file while narrower patterns before it choose the schemas).
+     */
+    public Assignment assignmentFor(Path file) {
+        if (file == null) {
+            return Assignment.NONE;
+        }
+        Path absolute = file.toAbsolutePath().normalize();
         if (!absolute.startsWith(root())) {
-            return Optional.empty();
+            return Assignment.NONE;
         }
         Path relative = root().relativize(absolute);
+        Path schema = null;
+        Path schematron = null;
+        String scenario = null;
         for (SchemaBinding binding : data.schemaBindings) {
-            if (binding.files == null || binding.schema == null) {
+            if (!matchesFile(binding.files, relative)) {
                 continue;
             }
-            if (matches(binding.files, relative) || binding.files.equals(relative.toString().replace('\\', '/'))) {
-                return Optional.of(resolve(binding.schema));
+            if (schema == null && blankToNull(binding.schema) != null) {
+                schema = resolve(binding.schema);
+            }
+            if (schematron == null && blankToNull(binding.schematron) != null) {
+                schematron = resolve(binding.schematron);
+            }
+            if (scenario == null && blankToNull(binding.scenario) != null) {
+                scenario = binding.scenario.strip();
             }
         }
-        return Optional.empty();
+        return new Assignment(schema, schematron, scenario);
+    }
+
+    /**
+     * The files of the project's folders whose path matches a binding pattern (hidden folders such
+     * as {@code .git} are skipped), in path order.
+     *
+     * @param files a pattern as in a binding
+     * @param limit stop after this many files
+     */
+    public List<Path> filesMatching(String files, int limit) {
+        return walkFiles(path -> matchesFile(files, root().relativize(path)), limit);
+    }
+
+    /**
+     * The files of the project's folders that a binding gives a schema or Schematron (the files
+     * "Validate Project" checks), in path order.
+     */
+    public List<Path> validatedFiles(int limit) {
+        return walkFiles(path -> {
+            Assignment assignment = assignmentFor(path);
+            return assignment.schema() != null || assignment.schematron() != null;
+        }, limit);
+    }
+
+    private List<Path> walkFiles(java.util.function.Predicate<Path> accept, int limit) {
+        java.util.Set<Path> found = new java.util.TreeSet<>();
+        for (Path folder : folders()) {
+            if (!Files.isDirectory(folder) || found.size() >= limit) {
+                continue;
+            }
+            try (java.util.stream.Stream<Path> walk = Files.walk(folder)) {
+                java.util.Iterator<Path> it = walk.filter(Files::isRegularFile)
+                        .filter(path -> !insideHiddenFolder(folder, path))
+                        .filter(path -> path.toAbsolutePath().normalize().startsWith(root()))
+                        .iterator();
+                while (it.hasNext() && found.size() < limit) {
+                    Path path = it.next().toAbsolutePath().normalize();
+                    if (!isProjectFile(path) && accept.test(path)) {
+                        found.add(path);
+                    }
+                }
+            } catch (IOException | java.io.UncheckedIOException e) {
+                // an unreadable folder contributes nothing
+            }
+        }
+        return List.copyOf(found);
+    }
+
+    private static boolean insideHiddenFolder(Path folder, Path file) {
+        Path relative = folder.relativize(file);
+        for (int i = 0; i < relative.getNameCount() - 1; i++) {
+            String part = relative.getName(i).toString();
+            if (part.startsWith(".") || part.equals("node_modules")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** @return whether a binding's pattern matches a project-relative path */
+    public static boolean matchesFile(String files, Path relative) {
+        if (files == null || files.isBlank()) {
+            return false;
+        }
+        return matches(files, relative) || files.equals(relative.toString().replace('\\', '/'));
+    }
+
+    /**
+     * A scenario prepared for one file: {@value #VAR_FILE} in the input and the parameters becomes the
+     * file's project-relative path (an empty input becomes the file), and {@value #VAR_NAME},
+     * {@value #VAR_DIR} and {@value #VAR_FILE} in the output are filled in.
+     */
+    public Scenario scenarioForFile(Scenario scenario, Path file) {
+        Scenario copy = scenario.copy();
+        String relative = relativize(file);
+        String fileName = file.getFileName() == null ? relative : file.getFileName().toString();
+        int dot = fileName.lastIndexOf('.');
+        String name = dot > 0 ? fileName.substring(0, dot) : fileName;
+        int slash = relative.lastIndexOf('/');
+        String dir = slash > 0 ? relative.substring(0, slash) : ".";
+        copy.input = copy.input == null || copy.input.isBlank() ? relative : copy.input.replace(VAR_FILE, relative);
+        copy.parameters.replaceAll((k, v) -> v == null ? null : v.replace(VAR_FILE, relative));
+        if (copy.output != null) {
+            copy.output = copy.output.replace(VAR_NAME, name).replace(VAR_DIR, dir).replace(VAR_FILE, relative);
+        }
+        return copy;
     }
 
     /**
@@ -269,15 +516,10 @@ public final class FxtProject {
      * matches {@code data/a.xml}), as in most tools; Java's globs need at least one folder there.
      */
     static boolean matches(String glob, Path relative) {
-        java.util.Set<String> variants = new java.util.LinkedHashSet<>();
-        variants.add(glob);
-        variants.add(glob.replace("/**/", "/"));
-        if (glob.startsWith("**/")) {
-            variants.add(glob.substring(3));
-            variants.add(glob.substring(3).replace("/**/", "/"));
+        if (MATCHERS.size() > 500) {
+            MATCHERS.clear();
         }
-        for (String variant : variants) {
-            PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + variant);
+        for (PathMatcher matcher : MATCHERS.computeIfAbsent(glob, FxtProject::compile)) {
             if (matcher.matches(relative)) {
                 return true;
             }
@@ -285,10 +527,42 @@ public final class FxtProject {
         return false;
     }
 
+    /** Compiled patterns (the Explorer asks for every file row it draws). */
+    private static final Map<String, List<PathMatcher>> MATCHERS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static List<PathMatcher> compile(String glob) {
+        java.util.Set<String> variants = new java.util.LinkedHashSet<>();
+        variants.add(glob);
+        variants.add(glob.replace("/**/", "/"));
+        if (glob.startsWith("**/")) {
+            variants.add(glob.substring(3));
+            variants.add(glob.substring(3).replace("/**/", "/"));
+        }
+        try {
+            return variants.stream().map(v -> FileSystems.getDefault().getPathMatcher("glob:" + v)).toList();
+        } catch (RuntimeException e) {
+            return List.of(); // an invalid pattern matches nothing (see isValidPattern)
+        }
+    }
+
+    /** @return whether a binding pattern is a valid glob */
+    public static boolean isValidPattern(String files) {
+        try {
+            FileSystems.getDefault().getPathMatcher("glob:" + files);
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
     /** @return whether a path is a project file */
     public static boolean isProjectFile(Path path) {
         return path != null && path.getFileName() != null
                 && path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith("." + EXTENSION);
+    }
+
+    private static String blankToNull(String text) {
+        return text == null || text.isBlank() ? null : text.strip();
     }
 
     private static String baseName(Path path) {

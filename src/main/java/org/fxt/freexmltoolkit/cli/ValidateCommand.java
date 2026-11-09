@@ -74,8 +74,9 @@ final class ValidateCommand implements Callable<Integer> {
     Path reportFile;
 
     @Option(names = {"-p", "--project"}, paramLabel = "FXTPROJ",
-            description = "Project file (.fxtproj): its schema bindings choose the XSD of each XML file "
-                    + "(before the declared one), its catalogs resolve schema references.")
+            description = "Project file (.fxtproj): its bindings choose the schema and Schematron of each file "
+                    + "(before the declared schema; --xsd, --schematron and --json-schema win), its catalogs "
+                    + "resolve schema references.")
     Path projectFile;
 
     /** The loaded {@link #projectFile}, or {@code null}. */
@@ -142,6 +143,8 @@ final class ValidateCommand implements Callable<Integer> {
 
     private FileResult validate(Path file) {
         long start = System.nanoTime();
+        Path schematron = this.schematron != null ? this.schematron
+                : project == null ? null : project.schematronFor(file).orElse(null);
         if (!isJson(file) && schematron == null && sizeOf(file) >= streamingBytes
                 && (xsd == null || org.fxt.freexmltoolkit.service.grammar.GrammarKind.ofFile(xsd)
                         .orElse(org.fxt.freexmltoolkit.service.grammar.GrammarKind.XSD) == org.fxt.freexmltoolkit.service.grammar.GrammarKind.XSD)) {
@@ -156,9 +159,10 @@ final class ValidateCommand implements Callable<Integer> {
                     reason, millisSince(start));
         }
         if (isJson(file)) {
+            Path schemaOfJson = jsonSchema != null ? jsonSchema : projectSchema(file);
             List<ValidationProblem> problems = ValidationRunner.validateJson(content,
-                    jsonSchema != null ? jsonSchema.toFile() : null);
-            return new FileResult(file, jsonSchema, findings(problems), null, millisSince(start));
+                    schemaOfJson != null ? schemaOfJson.toFile() : null);
+            return new FileResult(file, schemaOfJson, findings(problems), null, millisSince(start));
         }
         Path schema = xsd != null ? xsd : projectSchema(file);
         if (schema == null && !noSchemaLookup) {

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxt.freexmltoolkit.controls.icons.IconifyIcon?>
+
+<!--
+  Content of the "Project Settings" dialog: General (name, folders), Bindings, Scenarios, Catalogs.
+  Loaded by ProjectSettingsDialog (FxmlViews.loadContent), its controller; it edits copies and writes
+  them to the project on OK.
+-->
+<TabPane fx:id="tabs" id="project-settings-tabs" tabClosingPolicy="UNAVAILABLE" prefWidth="760" prefHeight="440"
+         xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <tabs>
+        <Tab id="project-settings-general" text="%ProjectSettingsDialog.project-settings-general.text">
+            <content>
+                <VBox spacing="8">
+                    <padding>
+                        <Insets topRightBottomLeft="12"/>
+                    </padding>
+                    <children>
+                        <Label text="%ProjectSettingsDialog.name.text" labelFor="$nameField"/>
+                        <TextField fx:id="nameField" id="project-settings-name"/>
+                        <Label text="%ProjectSettingsDialog.folders-the-first-one-is.text" labelFor="$folderList"/>
+                        <ListView fx:id="folderList" id="project-settings-folders" VBox.vgrow="ALWAYS"/>
+                        <HBox spacing="6">
+                            <children>
+                                <Button id="project-settings-folder-add" text="%ProjectSettingsDialog.project-settings-folder-add.text" onAction="#onAddFolder">
+                                    <graphic><IconifyIcon iconLiteral="bi-folder-plus" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="folderRemove" id="project-settings-folder-remove" text="%ProjectSettingsDialog.folderRemove.text" onAction="#onRemoveFolder">
+                                    <graphic><IconifyIcon iconLiteral="bi-trash" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="folderUp" id="project-settings-folder-up" text="%ProjectSettingsDialog.folderUp.text" onAction="#onFolderUp">
+                                    <graphic><IconifyIcon iconLiteral="bi-arrow-up" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="folderDown" id="project-settings-folder-down" text="%ProjectSettingsDialog.folderDown.text" onAction="#onFolderDown">
+                                    <graphic><IconifyIcon iconLiteral="bi-arrow-down" iconSize="16"/></graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <Label fx:id="fileLabel" id="project-settings-file" opacity="0.7" wrapText="true"/>
+                    </children>
+                </VBox>
+            </content>
+        </Tab>
+        <Tab id="project-settings-bindings" text="%ProjectSettingsDialog.project-settings-bindings.text">
+            <content>
+                <VBox spacing="8">
+                    <padding>
+                        <Insets topRightBottomLeft="12"/>
+                    </padding>
+                    <children>
+                        <TableView fx:id="bindingTable" id="project-settings-binding-table" onMouseClicked="#onBindingClicked"
+                                   VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="bindingFilesCol" text="%ProjectSettingsDialog.bindingFilesCol.text" prefWidth="200"/>
+                                <TableColumn fx:id="bindingSchemaCol" text="%ProjectSettingsDialog.bindingSchemaCol.text" prefWidth="180"/>
+                                <TableColumn fx:id="bindingSchematronCol" text="%ProjectSettingsDialog.bindingSchematronCol.text" prefWidth="170"/>
+                                <TableColumn fx:id="bindingScenarioCol" text="%ProjectSettingsDialog.bindingScenarioCol.text" prefWidth="140"/>
+                            </columns>
+                            <placeholder>
+                                <Label text="%ProjectSettingsDialog.no-bindings-yet-add-assigns.text" wrapText="true"/>
+                            </placeholder>
+                        </TableView>
+                        <HBox spacing="6">
+                            <children>
+                                <Button id="project-settings-binding-add" text="%ProjectSettingsDialog.project-settings-binding-add.text" onAction="#onAddBinding">
+                                    <graphic><IconifyIcon iconLiteral="bi-plus-lg" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="bindingEdit" id="project-settings-binding-edit" text="%ProjectSettingsDialog.bindingEdit.text" onAction="#onEditBinding">
+                                    <graphic><IconifyIcon iconLiteral="bi-pencil" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="bindingRemove" id="project-settings-binding-remove" text="%ProjectSettingsDialog.bindingRemove.text" onAction="#onRemoveBinding">
+                                    <graphic><IconifyIcon iconLiteral="bi-trash" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="bindingUp" id="project-settings-binding-up" text="%ProjectSettingsDialog.bindingUp.text" onAction="#onBindingUp">
+                                    <graphic><IconifyIcon iconLiteral="bi-arrow-up" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="bindingDown" id="project-settings-binding-down" text="%ProjectSettingsDialog.bindingDown.text" onAction="#onBindingDown">
+                                    <graphic><IconifyIcon iconLiteral="bi-arrow-down" iconSize="16"/></graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <Label text="%ProjectSettingsDialog.for-each-file-schema-schematron.text"
+                               opacity="0.7" wrapText="true"/>
+                    </children>
+                </VBox>
+            </content>
+        </Tab>
+        <Tab id="project-settings-scenarios" text="%ProjectSettingsDialog.project-settings-scenarios.text">
+            <content>
+                <VBox spacing="8">
+                    <padding>
+                        <Insets topRightBottomLeft="12"/>
+                    </padding>
+                    <children>
+                        <TableView fx:id="scenarioTable" id="project-settings-scenario-table" onMouseClicked="#onScenarioClicked"
+                                   VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="scenarioNameCol" text="%ProjectSettingsDialog.scenarioNameCol.text" prefWidth="140"/>
+                                <TableColumn fx:id="scenarioStylesheetCol" text="%ProjectSettingsDialog.scenarioStylesheetCol.text" prefWidth="180"/>
+                                <TableColumn fx:id="scenarioInputCol" text="%ProjectSettingsDialog.scenarioInputCol.text" prefWidth="140"/>
+                                <TableColumn fx:id="scenarioFormatCol" text="%ProjectSettingsDialog.scenarioFormatCol.text" prefWidth="70"/>
+                                <TableColumn fx:id="scenarioOutputCol" text="%ProjectSettingsDialog.scenarioOutputCol.text" prefWidth="170"/>
+                            </columns>
+                            <placeholder>
+                                <Label text="%ProjectSettingsDialog.no-scenarios-yet-add-one.text" wrapText="true"/>
+                            </placeholder>
+                        </TableView>
+                        <HBox spacing="6">
+                            <children>
+                                <Button id="project-settings-scenario-add" text="%ProjectSettingsDialog.project-settings-scenario-add.text" onAction="#onAddScenario">
+                                    <graphic><IconifyIcon iconLiteral="bi-plus-lg" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="scenarioEdit" id="project-settings-scenario-edit" text="%ProjectSettingsDialog.scenarioEdit.text" onAction="#onEditScenario">
+                                    <graphic><IconifyIcon iconLiteral="bi-pencil" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="scenarioDuplicate" id="project-settings-scenario-duplicate" text="%ProjectSettingsDialog.scenarioDuplicate.text" onAction="#onDuplicateScenario">
+                                    <graphic><IconifyIcon iconLiteral="bi-copy" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="scenarioRemove" id="project-settings-scenario-remove" text="%ProjectSettingsDialog.scenarioRemove.text" onAction="#onRemoveScenario">
+                                    <graphic><IconifyIcon iconLiteral="bi-trash" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="scenarioUp" id="project-settings-scenario-up" text="%ProjectSettingsDialog.scenarioUp.text" onAction="#onScenarioUp">
+                                    <graphic><IconifyIcon iconLiteral="bi-arrow-up" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="scenarioDown" id="project-settings-scenario-down" text="%ProjectSettingsDialog.scenarioDown.text" onAction="#onScenarioDown">
+                                    <graphic><IconifyIcon iconLiteral="bi-arrow-down" iconSize="16"/></graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </Tab>
+        <Tab id="project-settings-catalogs" text="%ProjectSettingsDialog.project-settings-catalogs.text">
+            <content>
+                <VBox spacing="8">
+                    <padding>
+                        <Insets topRightBottomLeft="12"/>
+                    </padding>
+                    <children>
+                        <Label text="%ProjectSettingsDialog.oasis-xml-catalogs-used-before.text" labelFor="$catalogList"
+                               wrapText="true"/>
+                        <ListView fx:id="catalogList" id="project-settings-catalog-list" VBox.vgrow="ALWAYS"/>
+                        <HBox spacing="6">
+                            <children>
+                                <Button id="project-settings-catalog-add" text="%ProjectSettingsDialog.project-settings-catalog-add.text" onAction="#onAddCatalog">
+                                    <graphic><IconifyIcon iconLiteral="bi-journal-plus" iconSize="16"/></graphic>
+                                </Button>
+                                <Button fx:id="catalogRemove" id="project-settings-catalog-remove" text="%ProjectSettingsDialog.catalogRemove.text" onAction="#onRemoveCatalog">
+                                    <graphic><IconifyIcon iconLiteral="bi-trash" iconSize="16"/></graphic>
+                                </Button>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </Tab>
+    </tabs>
+</TabPane>

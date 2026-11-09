@@ -160,6 +160,7 @@ public class TransformPanel extends VBox {
         updateInputPos();
         refreshInputName();
         editorHost.activeTabProperty().addListener((obs, oldV, newV) -> refreshInputName());
+        editorHost.activeTabProperty().addListener((obs, oldV, newV) -> chooseBoundScenario());
 
         // --- OUTPUT METHOD -----------------------------------------------------
         fillFormatChoice();
@@ -244,6 +245,52 @@ public class TransformPanel extends VBox {
         }
         project.ifPresent(p -> scenarioSection.setTitle(I18n.t("TransformPanel.scenario", p.name())));
         updateScenarioButtons();
+        chooseBoundScenario();
+    }
+
+    /** The scenario chosen because the project binds it to the active document (not by the user). */
+    private String boundChoice;
+
+    /**
+     * Chooses the scenario the project binds to the active document, unless the user chose one
+     * themselves; a scenario chosen this way is replaced when another document becomes active.
+     */
+    void chooseBoundScenario() {
+        Optional<FxtProject> project = ProjectService.getInstance().current();
+        if (project.isEmpty() || scenarioChoice == null) {
+            return;
+        }
+        String current = scenarioChoice.getValue();
+        if (current != null && !current.equals(boundChoice)) {
+            return; // the user's choice stays
+        }
+        java.nio.file.Path active = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
+        Optional<FxtProject.Scenario> bound = active == null ? Optional.empty() : project.get().scenarioFor(active);
+        if (bound.isEmpty()) {
+            if (current != null) {
+                fillingScenarios = true;
+                scenarioChoice.setValue(null);
+                fillingScenarios = false;
+                boundChoice = null;
+                updateScenarioButtons();
+            }
+            return;
+        }
+        String name = bound.get().name;
+        if (name.equals(current)) {
+            return;
+        }
+        fillingScenarios = true;
+        scenarioChoice.setValue(name);
+        fillingScenarios = false;
+        boundChoice = name;
+        updateScenarioButtons();
+        applyScenario(project.get(), bound.get());
+    }
+
+    /** @return the scenario chosen because the project binds it to the active document, or {@code null} */
+    String boundScenarioChoice() {
+        return boundChoice;
     }
 
     private void updateScenarioButtons() {
@@ -275,6 +322,7 @@ public class TransformPanel extends VBox {
         if (fillingScenarios) {
             return;
         }
+        boundChoice = null; // chosen by the user
         updateScenarioButtons();
         Optional<FxtProject> project = ProjectService.getInstance().current();
         Optional<FxtProject.Scenario> chosen = chosenScenario();
@@ -291,8 +339,9 @@ public class TransformPanel extends VBox {
         if (xslt) {
             setXsltFile(project.resolve(scenario.stylesheet).toFile());
         }
-        setInputOverride(scenario.input == null || scenario.input.isBlank() ? null
-                : project.resolve(scenario.input).toFile());
+        // An empty input or ${file} means the active document
+        setInputOverride(scenario.input == null || scenario.input.isBlank() || scenario.input.contains(FxtProject.VAR_FILE)
+                ? null : project.resolve(scenario.input).toFile());
         paramRows.getChildren().clear();
         if (scenario.parameters != null) {
             scenario.parameters.forEach(this::addParameter);
@@ -307,6 +356,10 @@ public class TransformPanel extends VBox {
         }
         setOutputFormat(format);
         String target = scenario.output == null || scenario.output.isBlank() ? null : "Output: " + scenario.output;
+        if (scenario.isPdf()) {
+            target = "PDF" + (target == null ? " — the scenario needs an output file." : ". " + target)
+                    + " Use Run Scenario.";
+        }
         showScenarioInfo(xslt ? target
                 : scenario.stylesheet + " is not a stylesheet — use Run Scenario"
                         + (target == null ? "." : ". " + target));
@@ -326,22 +379,32 @@ public class TransformPanel extends VBox {
         }
         Optional<FxtProject.Scenario> chosen = chosenScenario();
         String initialName = chosen.map(s -> s.name).orElse(xsltFile.getName().replaceFirst("\\.[^.]*$", ""));
-        ScenarioDialog dialog = new ScenarioDialog(project, initialName, chosen.map(s -> s.output).orElse(null));
+        ScenarioDialog dialog = new ScenarioDialog(project, initialName, chosen.map(s -> s.output).orElse(null),
+                chosen.map(s -> s.input != null && s.input.contains(FxtProject.VAR_FILE)).orElse(false));
         if (getScene() != null) {
             dialog.initOwner(getScene().getWindow());
         }
-        dialog.showAndWait().ifPresent(request -> saveScenario(project, request.name(), request.output()));
+        dialog.showAndWait().ifPresent(request -> saveScenario(project, request.name(), request.output(), request.perFile()));
     }
 
     /** Stores the panel's current settings under {@code name} and saves the project. */
     void saveScenario(FxtProject project, String name, java.nio.file.Path output) {
-        java.nio.file.Path input = inputOverride != null ? inputOverride.toPath()
+        saveScenario(project, name, output, false);
+    }
+
+    /**
+     * Stores the panel's current settings under {@code name} and saves the project.
+     *
+     * @param perFile the scenario's input is {@code ${file}}: the file it runs for
+     */
+    void saveScenario(FxtProject project, String name, java.nio.file.Path output, boolean perFile) {
+        java.nio.file.Path input = perFile ? null : inputOverride != null ? inputOverride.toPath()
                 : inputDocument().map(OpenDocument::getPath).orElse(null);
         Map<String, String> parameters = new LinkedHashMap<>();
         collectParameters().forEach((k, v) -> parameters.put(k, String.valueOf(v)));
         FormatChoice choice = formatChoice.getValue();
         project.putScenario(new FxtProject.Scenario(name, project.relativize(xsltFile.toPath()),
-                input == null ? null : project.relativize(input), parameters,
+                perFile ? FxtProject.VAR_FILE : input == null ? null : project.relativize(input), parameters,
                 choice == null || choice.format == null ? null : choice.format.name(),
                 output == null ? null : project.relativize(output)));
         try {
@@ -390,11 +453,22 @@ public class TransformPanel extends VBox {
             return;
         }
         FxtProject.Scenario scenario = chosen.get();
+        java.nio.file.Path forFile = null;
+        if (needsFile(scenario)) {
+            // ${file} (or no input for a stylesheet): the active, saved document
+            forFile = editorHost.getActiveDocument().map(OpenDocument::getPath).orElse(null);
+            if (forFile == null) {
+                out.showFailure(I18n.t("TransformPanel.scenario-failed", scenario.name,
+                        "The scenario runs for a file: open and save the document to run it for."));
+                return;
+            }
+        }
         out.showPending(I18n.t("TransformPanel.running-scenario", scenario.name));
         runScenarioButton.setDisable(true);
         long t0 = System.nanoTime();
+        java.nio.file.Path file = forFile;
         FxtGui.executorService.submit(() -> {
-            ScenarioRunner.Result result = ScenarioRunner.run(project.get(), scenario);
+            ScenarioRunner.Result result = ScenarioRunner.run(project.get(), scenario, file);
             long ms = (System.nanoTime() - t0) / 1_000_000;
             Platform.runLater(() -> showScenarioResult(project.get(), scenario, result, ms));
         });
@@ -407,8 +481,21 @@ public class TransformPanel extends VBox {
             showScenarioInfo("Failed: " + result.error());
             return;
         }
-        out.showTransformResult(result.text(), result.format() != null ? result.format() : OutputFormat.XML, ms);
+        if (scenario.isPdf() && result.written() != null) {
+            out.showMessages(scenario.name, result.text());
+            editorHost.openPdfPreview(result.written().toFile());
+        } else {
+            out.showTransformResult(result.text(), result.format() != null ? result.format() : OutputFormat.XML, ms);
+        }
         showScenarioInfo(result.written() != null ? "Written to " + project.relativize(result.written()) : "Done.");
+    }
+
+    /** @return whether a scenario runs for a file: {@code ${file}} in its input, or a stylesheet without input */
+    static boolean needsFile(FxtProject.Scenario scenario) {
+        boolean fileVariable = scenario.input != null && scenario.input.contains(FxtProject.VAR_FILE);
+        boolean stylesheetWithoutInput = (scenario.input == null || scenario.input.isBlank()) && scenario.stylesheet != null
+                && ScenarioRunner.languageOf(scenario.stylesheet) == ScenarioRunner.Language.XSLT;
+        return fileVariable || stylesheetWithoutInput;
     }
 
     @FXML

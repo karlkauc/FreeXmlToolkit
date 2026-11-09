@@ -1381,6 +1381,7 @@ public class UnifiedShellView extends BorderPane {
                 var explorer = new org.fxt.freexmltoolkit.controls.shell.editor.ExplorerPanel(editorHost);
                 explorer.setNewFileAction(this::newDocument);
                 explorer.setSchematronValidateAction(this::validateWithSchematron);
+                explorer.setProjectValidateAction(this::validateProject);
                 explorer.setFavoritesQuickAccess(favoritesQuickAccess("explorer"));
                 // File tools in the Explorer's TOOLS list reuse the Tools menu's actions.
                 explorer.setSpreadsheetAction(this::onSpreadsheet);
@@ -1821,6 +1822,18 @@ public class UnifiedShellView extends BorderPane {
         }
         selectionModel.select(Activity.VALIDATION);
         validationPanel().revalidate();
+    }
+
+    /**
+     * File → Project → Validate Project: validates the open project's files (each with the schema
+     * and Schematron the project binds to it) in the Validation activity.
+     */
+    public void validateProject() {
+        if (org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current().isEmpty()) {
+            return;
+        }
+        selectionModel.select(Activity.VALIDATION);
+        validationPanel().runProjectBatch();
     }
 
     /**

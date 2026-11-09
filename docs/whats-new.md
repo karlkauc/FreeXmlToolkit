@@ -22,9 +22,17 @@ running is shown under **Help → About FreeXmlToolkit**.
   [Writing Plugins](plugin-development.md).
 - **Industry plugins** (off by default): ISO 20022 payments / SEPA, ebInterface, FinDatEx EMT/EET/EPT,
   XBRL with Arelle. See [Industry Plugins](industry-plugins.md).
-- **Projects and transformation scenarios:** `.fxtproj` files bind schemas to files by pattern, add
-  catalogs and store named scenarios (Transform panel, `fxt-cli scenario`). See
-  [Projects](projects.md).
+- **Projects and transformation scenarios:** `.fxtproj` files bind a schema (XSD, DTD, RELAX NG,
+  JSON Schema), a Schematron and a transformation scenario to files by pattern, add catalogs and
+  store named scenarios (XSLT, XQuery, XProc, PDF through FOP).
+  - **Project Settings** edits all of it without touching the JSON.
+  - **Validate Project** checks every bound file.
+  - Scenarios run for the chosen files (`${file}`, `${name}`), from the Explorer and with
+    `fxt-cli scenario --input`.
+  - Recent projects are on the menu and the Welcome page.
+  - The project reloads when its file changes.
+
+  See [Projects](projects.md).
 - **Accessibility:** screen-reader names for every button and field, WCAG AA contrast in both
   themes, documented keyboard alternatives. See [Accessibility](accessibility.md).
 - **Security:** no external entities in Schematron validation, HTML previews without JavaScript or

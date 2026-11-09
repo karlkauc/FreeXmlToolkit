@@ -87,6 +87,9 @@ public final class ShellMenuBar extends MenuBar {
     @FXML private Menu openFavoriteMenu;
     @FXML private Menu projectMenu;
     @FXML private ShellMenuItem closeProjectItem;
+    @FXML private Menu recentProjectsMenu;
+    @FXML private ShellMenuItem projectSettingsItem;
+    @FXML private ShellMenuItem validateProjectItem;
     @FXML private ShellMenuItem bindSchemaItem;
     @FXML private ShellMenuItem addCatalogItem;
     @FXML private ShellMenuItem editProjectItem;
@@ -124,6 +127,9 @@ public final class ShellMenuBar extends MenuBar {
         openFavoriteMenu.setGraphic(ShellMenuItem.icon("bi-star", ActionColor.NAVIGATE));
         projectMenu.setGraphic(ShellMenuItem.icon("bi-briefcase", ActionColor.NAVIGATE));
         projectMenu.setOnShowing(e -> updateProjectItems());
+        recentProjectsMenu.setGraphic(ShellMenuItem.icon("bi-clock-history", ActionColor.NAVIGATE));
+        // filled before it shows (an empty menu never opens)
+        recentProjectsMenu.getItems().setAll(ProjectActions.recentProjectItems());
         // Also on every change: the macOS system menu bar mirrors the enabled state.
         org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().addListener(
                 p -> Platform.runLater(this::updateProjectItems));
@@ -452,10 +458,15 @@ public final class ShellMenuBar extends MenuBar {
     @FXML public void onAddProjectCatalog() { run("project_add_catalog", () -> ProjectActions.addCatalog(window())); }
     @FXML public void onEditProject() { run("project_edit", () -> ProjectActions.editProjectFile(editorHost)); }
 
-    /** Project items that need an open project are disabled without one. */
+    @FXML public void onProjectSettings() { run("project_settings", () -> ProjectActions.openSettings(editorHost, window())); }
+    @FXML public void onValidateProject() { run("project_validate", shell::validateProject); }
+
+    /** Project items that need an open project are disabled without one; the recent list is refilled. */
     void updateProjectItems() {
+        recentProjectsMenu.getItems().setAll(ProjectActions.recentProjectItems());
         boolean none = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().current().isEmpty();
-        for (ShellMenuItem item : new ShellMenuItem[] {closeProjectItem, bindSchemaItem, addCatalogItem, editProjectItem}) {
+        for (ShellMenuItem item : new ShellMenuItem[] {closeProjectItem, projectSettingsItem, validateProjectItem,
+                bindSchemaItem, addCatalogItem, editProjectItem}) {
             item.setDisable(none);
         }
     }

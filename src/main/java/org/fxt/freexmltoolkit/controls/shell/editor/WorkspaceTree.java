@@ -23,9 +23,10 @@ import org.fxt.freexmltoolkit.i18n.I18n;
  */
 public class WorkspaceTree extends VBox {
 
-    /** Extensions (without dot) shown in the tree — every type the editor host can open. */
-    private static final List<String> ALLOWED = EditorFileType.openableExtensions().stream()
-            .map(ext -> ext.substring(1))
+    /** Extensions (without dot) shown in the tree — every type the editor host can open, and project files. */
+    private static final List<String> ALLOWED = java.util.stream.Stream.concat(
+                    EditorFileType.openableExtensions().stream().map(ext -> ext.substring(1)),
+                    java.util.stream.Stream.of(org.fxt.freexmltoolkit.service.project.FxtProject.EXTENSION))
             .toList();
 
     private final TreeView<Path> tree = new TreeView<>();
@@ -33,6 +34,10 @@ public class WorkspaceTree extends VBox {
     /** Shown instead of the (empty) tree while no folder is open: says what to do next. */
     private final VBox emptyState = new VBox(8);
     private Runnable onOpenFolder;
+    /** The folders shown (several = a project with several folders, each a top-level node). */
+    private List<Path> rootFolders = List.of();
+    /** A file's note (what a project assigns to it) for its tooltip, or {@code null}. */
+    private java.util.function.Function<Path, String> fileNote = path -> null;
 
     public WorkspaceTree(Consumer<Path> fileOpener) {
         this.fileOpener = fileOpener;
@@ -41,7 +46,7 @@ public class WorkspaceTree extends VBox {
         // section header (the workspace folder's name) and the folder actions.
         tree.getStyleClass().add("fxt-workspace-tree");
         tree.setShowRoot(false);
-        tree.setCellFactory(tv -> new PathCell());
+        tree.setCellFactory(tv -> new PathCell(this));
         // Allow selecting several files at once (Ctrl/Shift) for batch actions (e.g. batch transform).
         tree.getSelectionModel().setSelectionMode(javafx.scene.control.SelectionMode.MULTIPLE);
         VBox.setVgrow(tree, Priority.ALWAYS);
@@ -112,42 +117,87 @@ public class WorkspaceTree extends VBox {
         if (folder == null || !Files.isDirectory(folder)) {
             return;
         }
-        // Folders are listed off the FX thread as they are expanded (large and network folders froze the UI)
-        FileExplorerTreeItem root = FileExplorerTreeItem.withBackgroundListing(folder, ALLOWED);
-        root.setExpanded(true);
-        tree.setRoot(root);
+        setRootFolders(List.of(folder));
+    }
+
+    /**
+     * Shows several folders: one folder is the tree's (hidden) root as before; several become
+     * top-level nodes below a hidden root. Missing folders are left out.
+     */
+    public void setRootFolders(List<Path> folders) {
+        List<Path> existing = folders.stream().filter(java.util.Objects::nonNull).filter(Files::isDirectory)
+                .distinct().toList();
+        if (existing.isEmpty()) {
+            return;
+        }
+        rootFolders = existing;
+        if (existing.size() == 1) {
+            // Folders are listed off the FX thread as they are expanded (large and network folders froze the UI)
+            FileExplorerTreeItem root = FileExplorerTreeItem.withBackgroundListing(existing.get(0), ALLOWED);
+            root.setExpanded(true);
+            tree.setRoot(root);
+        } else {
+            TreeItem<Path> root = new TreeItem<>(existing.get(0));
+            for (Path folder : existing) {
+                FileExplorerTreeItem item = FileExplorerTreeItem.withBackgroundListing(folder, ALLOWED);
+                item.setExpanded(true);
+                root.getChildren().add(item);
+            }
+            root.setExpanded(true);
+            tree.setRoot(root);
+        }
         showEmptyState(false);
     }
 
-    /** Re-reads the current root folder from disk (no-op without a root). */
+    /** Sets what a file's tooltip says (e.g. what the open project assigns to it); {@code null} = nothing. */
+    public void setFileNote(java.util.function.Function<Path, String> note) {
+        this.fileNote = note == null ? path -> null : note;
+        tree.refresh();
+    }
+
+    /** Re-reads the current root folders from disk (no-op without a root). */
     public void refresh() {
-        TreeItem<Path> root = tree.getRoot();
-        if (root != null) {
-            setRootFolder(root.getValue());
+        if (!rootFolders.isEmpty()) {
+            setRootFolders(rootFolders);
         }
     }
 
-    /** @return the current workspace root, or {@code null}. */
+    /** @return the current workspace root (the first folder), or {@code null}. */
     public Path getRootFolder() {
-        TreeItem<Path> root = tree.getRoot();
-        return root != null ? root.getValue() : null;
+        return rootFolders.isEmpty() ? null : rootFolders.get(0);
     }
 
-    /** Reveals and selects the given path in the tree, if present under the root. */
+    /** @return the folders shown at the top level */
+    public List<Path> getRootFolders() {
+        return rootFolders;
+    }
+
+    /** Reveals and selects the given path in the tree, if present under one of the roots. */
     public void selectPath(Path path) {
-        if (tree.getRoot() instanceof FileExplorerTreeItem root) {
-            TreeItem<Path> item = root.expandAndFind(path);
-            if (item != null) {
-                tree.getSelectionModel().select(item);
-                int row = tree.getRow(item);
-                if (row >= 0) {
-                    tree.scrollTo(row);
+        TreeItem<Path> item = null;
+        if (rootFolders.size() > 1 && tree.getRoot() != null) {
+            for (TreeItem<Path> child : tree.getRoot().getChildren()) {
+                if (child instanceof FileExplorerTreeItem folder
+                        && path.toAbsolutePath().normalize().startsWith(folder.getValue().toAbsolutePath().normalize())) {
+                    item = folder.expandAndFind(path);
+                    if (item != null) {
+                        break;
+                    }
                 }
+            }
+        } else if (tree.getRoot() instanceof FileExplorerTreeItem root) {
+            item = root.expandAndFind(path);
+        }
+        if (item != null) {
+            tree.getSelectionModel().select(item);
+            int row = tree.getRow(item);
+            if (row >= 0) {
+                tree.scrollTo(row);
             }
         }
     }
 
-    /** @return the file/folder names directly under the root (loads them lazily). */
+    /** @return the file/folder names directly under the root (loads them lazily); with several folders, their names. */
     public List<String> listTopLevelNames() {
         TreeItem<Path> root = tree.getRoot();
         if (root == null) {
@@ -185,7 +235,10 @@ public class WorkspaceTree extends VBox {
      * (no folder icon, per the mockup), files show their file-type icon.
      */
     private static final class PathCell extends TreeCell<Path> {
-        private PathCell() {
+        private final WorkspaceTree owner;
+
+        private PathCell(WorkspaceTree owner) {
+            this.owner = owner;
             // Follow the TreeView width instead of forcing a horizontal scrollbar.
             setPrefWidth(0);
         }
@@ -196,6 +249,7 @@ public class WorkspaceTree extends VBox {
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
+                setTooltip(null);
                 return;
             }
             Path name = item.getFileName();
@@ -204,6 +258,7 @@ public class WorkspaceTree extends VBox {
             boolean directory = getTreeItem() instanceof FileExplorerTreeItem entry
                     ? entry.isDirectoryItem() : Files.isDirectory(item);
             if (directory) {
+                setTooltip(null);
                 setGraphic(null);
                 if (!getStyleClass().contains("fxt-tree-folder")) {
                     getStyleClass().add("fxt-tree-folder");
@@ -211,6 +266,14 @@ public class WorkspaceTree extends VBox {
                 return;
             }
             getStyleClass().remove("fxt-tree-folder");
+            String note = owner.fileNote.apply(item);
+            setTooltip(note == null || note.isBlank() ? null : new javafx.scene.control.Tooltip(note));
+            if (org.fxt.freexmltoolkit.service.project.FxtProject.isProjectFile(item)) {
+                IconifyIcon project = new IconifyIcon("bi-briefcase");
+                project.setIconSize(15);
+                setGraphic(project);
+                return;
+            }
             EditorFileType type = EditorFileType.fromFileName(item.toString());
             IconifyIcon icon = new IconifyIcon(type.icon());
             icon.setIconSize(15);

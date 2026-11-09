@@ -52,6 +52,8 @@ public final class ShellBootstrap {
                 ServiceRegistry.get(PropertiesService.class)), 1, TimeUnit.SECONDS);
         // The project of the last session (its listeners switch to the FX thread themselves)
         scheduler.execute(() -> org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().reopenLast());
+        // The open project follows changes to its file (edited as JSON, updated by a pull)
+        scheduler.scheduleWithFixedDelay(ShellBootstrap::reloadChangedProject, 3, 3, TimeUnit.SECONDS);
         scheduler.schedule(this::checkForAppUpdate, 2, TimeUnit.SECONDS);
         // The plugins' startup tasks (e.g. the FundsXML content sync); a failing one does not stop the others
         scheduler.schedule(ShellBootstrap::runPluginStartupTasks, 5, TimeUnit.SECONDS);
@@ -66,6 +68,15 @@ public final class ShellBootstrap {
     static final long TELEMETRY_FIRST_FLUSH_SECONDS = 60;
     /** Interval of the periodic telemetry flush. */
     static final long TELEMETRY_FLUSH_INTERVAL_SECONDS = 300;
+
+    private static void reloadChangedProject() {
+        try {
+            org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().reloadIfChanged();
+        } catch (Throwable t) {
+            // a periodic task that throws is silently cancelled — never let that happen
+            logger.debug("Project reload failed: {}", t.toString());
+        }
+    }
 
     /** Deletes old log files with the user's limits (Settings → Log Files), when enabled. */
     private static void cleanOldLogs() {

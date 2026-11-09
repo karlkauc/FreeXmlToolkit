@@ -54,10 +54,68 @@ public final class ScenarioRunner {
         return Language.XSLT;
     }
 
+    /**
+     * Runs a scenario for one file: the file fills {@value FxtProject#VAR_FILE} and an empty input,
+     * {@value FxtProject#VAR_NAME} / {@value FxtProject#VAR_DIR} name the output after it.
+     */
+    public static Result run(FxtProject project, FxtProject.Scenario scenario, Path file) {
+        return run(project, file == null ? scenario : project.scenarioForFile(scenario, file));
+    }
+
+    /** One file's outcome of {@link #runAll}. */
+    public record FileResult(Path file, Result result) {
+    }
+
+    /**
+     * Runs a scenario for several files, one after the other (on the calling thread).
+     *
+     * @param progress  called with the number of files done (may be {@code null})
+     * @param cancelled polled before each file (may be {@code null}); a cancelled run returns the results so far
+     */
+    public static java.util.List<FileResult> runAll(FxtProject project, FxtProject.Scenario scenario,
+                                                    java.util.List<Path> files,
+                                                    java.util.function.IntConsumer progress,
+                                                    java.util.function.BooleanSupplier cancelled) {
+        java.util.List<FileResult> results = new java.util.ArrayList<>();
+        java.util.Set<Path> written = new java.util.HashSet<>();
+        for (Path file : files) {
+            if (cancelled != null && cancelled.getAsBoolean()) {
+                break;
+            }
+            results.add(new FileResult(file, runOnce(project, scenario, file, written)));
+            if (progress != null) {
+                progress.accept(results.size());
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Runs a scenario for one file of a series: a second file that would overwrite the output an
+     * earlier one wrote (no {@code ${name}} in the output) fails instead.
+     *
+     * @param written the outputs written so far in this series; the new one is added
+     */
+    public static Result runOnce(FxtProject project, FxtProject.Scenario scenario, Path file, java.util.Set<Path> written) {
+        FxtProject.Scenario prepared = project.scenarioForFile(scenario, file);
+        if (prepared.output != null && !prepared.output.isBlank() && !written.add(project.resolve(prepared.output))) {
+            return new Result(null, null, null, "The output " + prepared.output
+                    + " was already written for another file; use ${name} or ${dir} in the scenario's output.");
+        }
+        return run(project, prepared);
+    }
+
     /** Runs a scenario (on the calling thread). */
     public static Result run(FxtProject project, FxtProject.Scenario scenario) {
         if (scenario.stylesheet == null || scenario.stylesheet.isBlank()) {
             return new Result(null, null, null, "The scenario names no stylesheet, query or pipeline.");
+        }
+        if (scenario.input != null && scenario.input.contains(FxtProject.VAR_FILE)) {
+            return new Result(null, null, null, "The scenario runs for a file (" + FxtProject.VAR_FILE
+                    + "): run it for a file of the project.");
+        }
+        if (scenario.isPdf()) {
+            return runPdf(project, scenario);
         }
         Path code = project.resolve(scenario.stylesheet);
         Path input = scenario.input == null || scenario.input.isBlank() ? null : project.resolve(scenario.input);
@@ -121,6 +179,48 @@ public final class ScenarioRunner {
                 Files.writeString(written, text, StandardCharsets.UTF_8);
             }
             return new Result(text, format, written, null);
+        } catch (IOException | RuntimeException e) {
+            return new Result(null, null, null, String.valueOf(e.getMessage()));
+        }
+    }
+
+    /** XSLT to XSL-FO with the scenario's parameters, then FOP renders the PDF to the output file. */
+    private static Result runPdf(FxtProject project, FxtProject.Scenario scenario) {
+        if (languageOf(scenario.stylesheet) != Language.XSLT) {
+            return new Result(null, null, null, "A PDF scenario needs an XSLT stylesheet that produces XSL-FO.");
+        }
+        if (scenario.output == null || scenario.output.isBlank()) {
+            return new Result(null, null, null, "A PDF scenario needs an output file.");
+        }
+        if (scenario.input == null || scenario.input.isBlank()) {
+            return new Result(null, null, null, "An XSLT scenario needs an input document.");
+        }
+        try {
+            Path target = project.resolveWritable(scenario.output);
+            Path code = project.resolve(scenario.stylesheet);
+            Path input = project.resolve(scenario.input);
+            if (!Files.isRegularFile(code)) {
+                return new Result(null, null, null, "Not found: " + code);
+            }
+            if (!Files.isRegularFile(input)) {
+                return new Result(null, null, null, "Input not found: " + input);
+            }
+            Map<String, Object> parameters = new LinkedHashMap<>(scenario.parameters == null ? Map.of() : scenario.parameters);
+            XsltTransformationResult fo = TransformRunner.xsltTransformResult(
+                    Files.readString(input, StandardCharsets.UTF_8), input.toUri().toString(),
+                    Files.readString(code, StandardCharsets.UTF_8), code.toUri().toString(), parameters, OutputFormat.XML);
+            if (!fo.isSuccess()) {
+                return new Result(null, null, null, fo.getErrorMessage());
+            }
+            Path parent = target.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            FopRunner.FopResult pdf = FopRunner.renderFo(fo.getOutputContent(), target.toFile(), FopRunner.PdfOptions.none());
+            if (!pdf.ok()) {
+                return new Result(null, null, null, pdf.error());
+            }
+            return new Result("PDF written to " + target, null, target, null);
         } catch (IOException | RuntimeException e) {
             return new Result(null, null, null, String.valueOf(e.getMessage()));
         }

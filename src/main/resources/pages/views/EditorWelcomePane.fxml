@@ -85,6 +85,14 @@
                             </children>
                         </HBox>
 
+                        <!-- Recent projects: hidden until a project was opened once -->
+                        <VBox fx:id="projectsSection" id="welcome-projects" spacing="12" visible="false" managed="false">
+                            <children>
+                                <Label text="%EditorWelcomePane.projects.text" styleClass="fxt-welcome-section-title"/>
+                                <HBox fx:id="projectCards" spacing="16"/>
+                            </children>
+                        </VBox>
+
                         <!-- FundsXML quick access: hidden until the extension is active and content is cached -->
                         <VBox fx:id="fundsXmlSection" spacing="12" visible="false" managed="false">
                             <children>

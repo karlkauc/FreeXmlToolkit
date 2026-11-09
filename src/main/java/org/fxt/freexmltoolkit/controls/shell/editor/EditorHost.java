@@ -1437,10 +1437,12 @@ public class EditorHost extends BorderPane {
             }
             EditorWelcomePane.WelcomeStats stats = welcomeStats(recent.size());
             boolean fundsXml = fundsXmlContentAvailable();
+            java.util.List<Path> projects = org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().recent();
             Platform.runLater(() -> {
                 if (request != welcomeRequest || !tabPane.getTabs().isEmpty()) {
                     return;
                 }
+                welcomePane.setRecentProjects(projects, ProjectActions::openProject);
                 welcomePane.setRecentFiles(recent, modified);
                 welcomePane.setStats(stats);
                 welcomePane.setFundsXmlVisible(fundsXml);
@@ -2868,9 +2870,19 @@ public class EditorHost extends BorderPane {
 
     // ----- navigation ------------------------------------------------------
 
-    /** @return the Schematron file bound to the active document, or {@code null}. */
+    /**
+     * @return the Schematron bound to the active document: the one chosen for it, else the one the
+     *         open project binds to its file, else {@code null}
+     */
     public File getActiveSchematron() {
-        return tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et ? et.schematronFile : null;
+        if (!(tabPane.getSelectionModel().getSelectedItem() instanceof EditorTab et)) {
+            return null;
+        }
+        if (et.schematronFile != null) {
+            return et.schematronFile;
+        }
+        return org.fxt.freexmltoolkit.service.project.ProjectService.getInstance()
+                .assignmentFor(et.document.getPath()).schematron() instanceof java.nio.file.Path p ? p.toFile() : null;
     }
 
     /** Binds a Schematron file to the active document for the Validation activity. */

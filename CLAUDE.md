@@ -66,13 +66,23 @@ cells), opened by `EditorHost.openLargeFileViewer`, offered by `EditorFileSync` 
 ## Projects
 
 `service/project/`: `FxtProject` (`.fxtproj`, JSON via Gson, paths relative to the file: folders,
-`schemaBindings` glob → XSD with `**/` also matching no folder, catalogs, scenarios) and `ProjectService`
-(one open project, listeners, `project.last` reopened by `ShellBootstrap`, catalogs via
+`schemaBindings` glob → `schema` (XSD/DTD/RNG, JSON Schema for JSON) / `schematron` / `scenario`, each
+optional and resolved per part by `assignmentFor` (first matching binding naming it; compiled globs cached),
+`**/` also matching no folder, catalogs, scenarios with `${file}` input/parameters and `${name}`/`${dir}` output
+via `scenarioForFile`, `filesMatching` / `validatedFiles` walk the folders) and `ProjectService` (one open
+project, listeners, `project.last` reopened by `ShellBootstrap`, `project.recent` list, `reloadIfChanged`
+polled every 3 s by `ShellBootstrap` and after an editor save of a `.fxtproj`, catalogs via
 `SchemaLibraryService.setProjectCatalogs` — before the user's, never saved). Bindings win in
-`EditorSchemaBinding.detectSchemaFor` (`SchemaSource.PROJECT`). Scenarios run with
-`controls/shell/editor/ScenarioRunner` (XSLT/XQuery/XProc by extension). UI: File → Project
-(`ProjectActions`, `BindSchemaDialog`), Transform panel SCENARIO section (`ScenarioDialog`), Explorer
-workspace = first project folder. CLI: `scenario`, `validate --project`. Docs: `docs/projects.md`.
+`EditorSchemaBinding.detectSchemaFor` / `detectJsonSchemaFor` (`SchemaSource.PROJECT`); the bound Schematron
+is `EditorHost.getActiveSchematron`'s fallback. Scenarios run with `controls/shell/editor/ScenarioRunner`
+(XSLT/XQuery/XProc by extension, PDF = XSL-FO through `FopRunner.renderFo`; `run(…, file)`, `runAll`,
+`runOnce` refuses a second write of one output). UI: File → Project (`ProjectActions`: recent, settings,
+validate, bind), `ProjectSettingsDialog` (+ `ScenarioEditDialog`, `BindSchemaDialog`; works on copies,
+`applyTo`), Transform panel SCENARIO section (`ScenarioDialog`, bound scenario chosen by
+`chooseBoundScenario`), Explorer (project folders as roots, `.fxtproj` opens the project, file tooltips
+`projectNote`, context menu bind / run scenario / validate / settings), Validation panel `runProjectBatch`
+(`ValidationRunner.batchProject`), Welcome "Projects" cards. CLI: `scenario` (`--input`), `validate --project`
+(also Schematron / JSON Schema). Docs: `docs/projects.md`.
 
 ## Plugins
 

@@ -436,6 +436,10 @@ final class EditorFileSync {
                 // XML documents bound to this schema pick up the saved declarations.
                 host.schemaBinding.reloadXmlSchemasBoundTo(target);
             }
+            if (org.fxt.freexmltoolkit.service.project.FxtProject.isProjectFile(target)) {
+                // the open project's file was edited as JSON: use the saved settings right away
+                org.fxt.freexmltoolkit.service.project.ProjectService.getInstance().reloadIfChanged();
+            }
             return true;
         } catch (IOException | RuntimeException | StackOverflowError | OutOfMemoryError e) {
             reportSaveFailure(tab, target, e);

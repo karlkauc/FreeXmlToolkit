@@ -41,6 +41,8 @@ public class EditorWelcomePane extends VBox {
     private final Consumer<String> onAction;
     @FXML private Label versionBadge;
     @FXML private Region fundsXmlSection;
+    @FXML private VBox projectsSection;
+    @FXML private HBox projectCards;
     @FXML private WelcomeQuickCard exampleCard;
     @FXML private HBox statsRow;
     @FXML private VBox taskList;
@@ -121,6 +123,32 @@ public class EditorWelcomePane extends VBox {
     @FXML
     public void onClearRecent() {
         onClearRecent.run();
+    }
+
+    /** At most this many recent projects are shown as cards. */
+    static final int MAX_PROJECT_CARDS = 4;
+
+    /**
+     * Shows a card per recent project (newest first, at most {@value #MAX_PROJECT_CARDS}); the section
+     * is hidden without any. A card opens its project.
+     */
+    public void setRecentProjects(List<java.nio.file.Path> projects, Consumer<java.nio.file.Path> onOpenProject) {
+        projectCards.getChildren().clear();
+        for (java.nio.file.Path project : projects.stream().limit(MAX_PROJECT_CARDS).toList()) {
+            WelcomeQuickCard card = new WelcomeQuickCard();
+            card.setIconLiteral("bi-briefcase");
+            card.setTitle(project.getFileName().toString().replaceFirst("\\.[^.]*$", ""));
+            java.nio.file.Path parent = project.getParent();
+            card.setSubtitle(parent == null ? "" : parent.toString());
+            card.setId("welcome-project-" + projectCards.getChildren().size());
+            card.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(card, javafx.scene.layout.Priority.ALWAYS);
+            card.setOnAction(e -> onOpenProject.accept(project));
+            projectCards.getChildren().add(card);
+        }
+        boolean show = !projectCards.getChildren().isEmpty();
+        projectsSection.setVisible(show);
+        projectsSection.setManaged(show);
     }
 
     /** Replaces the recent-files list (most-recent first). */

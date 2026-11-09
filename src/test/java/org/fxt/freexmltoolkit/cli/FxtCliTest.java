@@ -352,6 +352,49 @@ class FxtCliTest {
             assertEquals(ExitCodes.FAILED, run("validate", "--project", file, dir.resolve("data/d.xml")),
                     "the project's schema allows one i only: " + out);
         }
+
+        @Test
+        @DisplayName("scenario --input runs once per file (named or bound scenario); validate --project uses bound Schematron and JSON Schema")
+        void bindings() throws Exception {
+            write("x/count.xsl", """
+                    <xsl:stylesheet version="3.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                      <xsl:output method="text"/>
+                      <xsl:template match="/"><xsl:value-of select="count(//i)"/></xsl:template>
+                    </xsl:stylesheet>
+                    """);
+            write("data/a.xml", "<r><i/></r>");
+            write("data/b.xml", "<r><i/><i/></r>");
+            write("other/c.xml", "<r/>");
+            write("rules.sch", """
+                    <schema xmlns="http://purl.oclc.org/dsdl/schematron" queryBinding="xslt2">
+                      <pattern><rule context="r"><assert test="count(i) le 1">at most one i</assert></rule></pattern>
+                    </schema>
+                    """);
+            write("j.schema.json", "{ \"type\": \"object\", \"required\": [\"id\"] }");
+            write("data/d.json", "{ \"name\": \"x\" }");
+            var project = org.fxt.freexmltoolkit.service.project.FxtProject.create(dir.resolve("p.fxtproj"), "P");
+            project.putScenario(new org.fxt.freexmltoolkit.service.project.FxtProject.Scenario("count", "x/count.xsl",
+                    "${file}", java.util.Map.of(), null, "out/${name}.txt"));
+            project.bind(new org.fxt.freexmltoolkit.service.project.FxtProject.SchemaBinding("data/*.xml", null,
+                    "rules.sch", "count"));
+            project.bind(new org.fxt.freexmltoolkit.service.project.FxtProject.SchemaBinding("**/*.json",
+                    "j.schema.json", null, null));
+            project.save();
+            Path file = dir.resolve("p.fxtproj");
+
+            assertEquals(ExitCodes.OK, run("scenario", file, "count", "--input", dir.resolve("data")), err);
+            assertEquals("1", Files.readString(dir.resolve("out/a.txt")));
+            assertEquals("2", Files.readString(dir.resolve("out/b.txt")));
+            assertEquals(ExitCodes.FAILED, run("scenario", file, "-i", dir.resolve("data/a.xml"), dir.resolve("other/c.xml")),
+                    "c.xml has no bound scenario: " + err);
+            assertTrue(err.contains("no scenario is bound"), err);
+
+            assertEquals(ExitCodes.OK, run("validate", "--project", file, dir.resolve("data/a.xml")), out);
+            assertEquals(ExitCodes.FAILED, run("validate", "--project", file, dir.resolve("data/b.xml")), out);
+            assertTrue(out.contains("at most one i"), out);
+            assertEquals(ExitCodes.FAILED, run("validate", "--project", file, dir.resolve("data/d.json")), out);
+            assertEquals(ExitCodes.OK, run("validate", dir.resolve("data/d.json")), "without the project: well-formed only");
+        }
     }
 
     @Nested
