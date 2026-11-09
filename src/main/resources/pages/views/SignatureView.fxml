@@ -12,6 +12,7 @@
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -65,17 +66,16 @@
                                 <HBox spacing="12" alignment="CENTER_LEFT" styleClass="fxt-sign-doc-row">
                                     <children>
                                         <IconifyIcon iconLiteral="bi-code-slash" iconSize="18"/>
-                                        <VBox spacing="2">
+                                        <VBox spacing="2" HBox.hgrow="ALWAYS" minWidth="0">
                                             <children>
                                                 <Label fx:id="docName" id="sign-doc-name" text="%SignatureView.docName.text"
                                                        styleClass="fxt-sign-doc-name"/>
-                                                <Label fx:id="docInfo" text="%SignatureView.docInfo.text"
+                                                <Label fx:id="docInfo" text="%SignatureView.docInfo.text" wrapText="true"
                                                        styleClass="fxt-sign-doc-info"/>
                                             </children>
                                         </VBox>
-                                        <Region HBox.hgrow="ALWAYS"/>
                                         <Hyperlink id="sign-doc-browse" text="%SignatureView.sign-doc-browse.text" styleClass="fxt-vp-change"
-                                                   onAction="#onChooseDocument"/>
+                                                   minWidth="-Infinity" onAction="#onChooseDocument"/>
                                     </children>
                                 </HBox>
                             </children>
@@ -242,8 +242,8 @@
                                 </HBox>
                                 <HBox spacing="12" alignment="CENTER_LEFT">
                                     <children>
-                                        <Label text="%SignatureView.key-type.text" styleClass="fxt-sig-field-label"/>
-                                        <ComboBox fx:id="keyTypeChoice" id="sig-create-key-type"/>
+                                        <Label text="%SignatureView.key-type.text" styleClass="fxt-sig-field-label" minWidth="-Infinity"/>
+                                        <ComboBox fx:id="keyTypeChoice" id="sig-create-key-type" minWidth="-Infinity"/>
                                         <Label text="%SignatureView.ec-keys-sign-with-ecdsa.text"
                                                wrapText="true" styleClass="fxt-placeholder-text" HBox.hgrow="ALWAYS"/>
                                     </children>
@@ -280,9 +280,9 @@
                                           text="%SignatureView.encContentOnly.text"/>
                                 <HBox spacing="12" alignment="CENTER_LEFT">
                                     <children>
-                                        <Label text="%SignatureView.data-algorithm.text" styleClass="fxt-sig-field-label"/>
+                                        <Label text="%SignatureView.data-algorithm.text" styleClass="fxt-sig-field-label" minWidth="-Infinity"/>
                                         <Region HBox.hgrow="ALWAYS"/>
-                                        <ComboBox fx:id="encDataAlgorithm" id="enc-data-alg"/>
+                                        <ComboBox fx:id="encDataAlgorithm" id="enc-data-alg" minWidth="-Infinity"/>
                                     </children>
                                 </HBox>
                                 <Label text="%SignatureView.recipients.text" styleClass="fxt-sign-section-label"/>
@@ -290,9 +290,9 @@
                                 <Label fx:id="recipientsEmpty" id="enc-recipients-empty" wrapText="true"
                                        styleClass="fxt-placeholder-text"
                                        text="%SignatureView.recipientsEmpty.text"/>
-                                <HBox spacing="8">
+                                <FlowPane hgap="8" vgap="4">
                                     <children>
-                                        <Button id="enc-add-certificate" text="%SignatureView.enc-add-certificate.text" styleClass="fxt-tool-button"
+                                        <Button id="enc-add-certificate" minWidth="-Infinity" text="%SignatureView.enc-add-certificate.text" styleClass="fxt-tool-button"
                                                 onAction="#onAddCertificate">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-person-badge" iconSize="15"/>
@@ -301,7 +301,7 @@
                                                 <Tooltip text="%SignatureView.a-recipient-s-certificate-or.text"/>
                                             </tooltip>
                                         </Button>
-                                        <Button id="enc-add-keystore" text="%SignatureView.enc-add-keystore.text" styleClass="fxt-tool-button"
+                                        <Button id="enc-add-keystore" minWidth="-Infinity" text="%SignatureView.enc-add-keystore.text" styleClass="fxt-tool-button"
                                                 onAction="#onAddKeystoreRecipient">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-file-earmark-lock" iconSize="15"/>
@@ -310,7 +310,7 @@
                                                 <Tooltip text="%SignatureView.the-certificate-of-the-alias.text"/>
                                             </tooltip>
                                         </Button>
-                                        <Button id="enc-add-key-file" text="%SignatureView.enc-add-key-file.text" styleClass="fxt-tool-button"
+                                        <Button id="enc-add-key-file" minWidth="-Infinity" text="%SignatureView.enc-add-key-file.text" styleClass="fxt-tool-button"
                                                 onAction="#onAddKeyFile">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-key" iconSize="15"/>
@@ -319,7 +319,7 @@
                                                 <Tooltip text="%SignatureView.a-shared-symmetric-key-16.text"/>
                                             </tooltip>
                                         </Button>
-                                        <Button id="enc-add-password" text="%SignatureView.enc-add-password.text" styleClass="fxt-tool-button"
+                                        <Button id="enc-add-password" minWidth="-Infinity" text="%SignatureView.enc-add-password.text" styleClass="fxt-tool-button"
                                                 onAction="#onAddPassword">
                                             <graphic>
                                                 <IconifyIcon iconLiteral="bi-asterisk" iconSize="15"/>
@@ -329,7 +329,7 @@
                                             </tooltip>
                                         </Button>
                                     </children>
-                                </HBox>
+                                </FlowPane>
                                 <TitledPane fx:id="encAdvanced" id="enc-advanced" text="%SignatureView.encAdvanced.text" expanded="false"
                                             animated="false">
                                     <content>
@@ -509,7 +509,7 @@
                                                                promptText="%SignatureView.trustStorePassword.promptText"/>
                                             </children>
                                         </VBox>
-                                        <CheckBox fx:id="checkRevocation" text="%SignatureView.checkRevocation.text"/>
+                                        <CheckBox fx:id="checkRevocation" text="%SignatureView.checkRevocation.text" minWidth="-Infinity"/>
                                     </children>
                                 </HBox>
                                 <Button id="sig-trust-run" text="%SignatureView.sig-trust-run.text" maxWidth="Infinity"
