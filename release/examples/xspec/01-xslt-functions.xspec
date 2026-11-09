@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  01 — Testing XSLT functions.
+
+  stylesheet="…"     the stylesheet under test, relative to this file
+  x:call function    calls a function; x:param passes the arguments in order
+  x:expect select    compares the result with an XPath value (deep-equal)
+  x:expect test      a boolean XPath over the result, available as $x:result
+  nested x:scenario  groups tests; labels are joined in the report
+
+  Run: open this file, Tools → Run XSpec Tests  (or: fxt-cli xspec 01-xslt-functions.xspec)
+-->
+<x:description xmlns:x="http://www.jenitennison.com/xslt/xspec"
+               xmlns:xs="http://www.w3.org/2001/XMLSchema"
+               xmlns:f="urn:fxt:examples:fund-utils"
+               stylesheet="fund-utils.xsl">
+
+    <x:scenario label="f:weight-class">
+        <x:scenario label="44.59 % of the fund">
+            <x:call function="f:weight-class">
+                <x:param select="44.5876"/>
+            </x:call>
+            <x:expect label="is a core position" select="'core'"/>
+        </x:scenario>
+        <x:scenario label="exactly 10 %">
+            <x:call function="f:weight-class">
+                <x:param select="10"/>
+            </x:call>
+            <x:expect label="is still core (the bound is inclusive)" select="'core'"/>
+        </x:scenario>
+        <x:scenario label="1.35 %">
+            <x:call function="f:weight-class">
+                <x:param select="1.3470"/>
+            </x:call>
+            <x:expect label="is a satellite" select="'satellite'"/>
+        </x:scenario>
+        <x:scenario label="a liability of -0.63 %">
+            <x:call function="f:weight-class">
+                <x:param select="-0.6330"/>
+            </x:call>
+            <x:expect label="counts by its absolute weight: minor" select="'minor'"/>
+        </x:scenario>
+    </x:scenario>
+
+    <x:scenario label="f:format-amount">
+        <x:call function="f:format-amount">
+            <x:param select="29411334597"/>
+            <x:param select="'HUF'"/>
+        </x:call>
+        <x:expect label="thousands separators, two decimals, currency" select="'29,411,334,597.00 HUF'"/>
+        <x:expect label="returns a single string" test="$x:result instance of xs:string"/>
+    </x:scenario>
+
+    <x:scenario label="f:is-valid-isin">
+        <x:scenario label="a Hungarian share">
+            <x:call function="f:is-valid-isin">
+                <x:param select="'HU0000061726'"/>
+            </x:call>
+            <x:expect label="is valid" select="true()"/>
+        </x:scenario>
+        <x:scenario label="an ISIN with letters in the body">
+            <x:call function="f:is-valid-isin">
+                <x:param select="'AT0000A0E9W5'"/>
+            </x:call>
+            <x:expect label="is valid" select="true()"/>
+        </x:scenario>
+        <x:scenario label="a wrong check digit">
+            <x:call function="f:is-valid-isin">
+                <x:param select="'HU0000061727'"/>
+            </x:call>
+            <x:expect label="is rejected" select="false()"/>
+        </x:scenario>
+        <x:scenario label="too short">
+            <x:call function="f:is-valid-isin">
+                <x:param select="'HU00000617'"/>
+            </x:call>
+            <x:expect label="is rejected" select="false()"/>
+        </x:scenario>
+        <x:scenario label="an empty sequence">
+            <x:call function="f:is-valid-isin">
+                <x:param select="()"/>
+            </x:call>
+            <x:expect label="is rejected" select="false()"/>
+        </x:scenario>
+    </x:scenario>
+
+</x:description>

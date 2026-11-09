@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  05 — A test run that FAILS ON PURPOSE.
+
+  Two of the three tests below expect the wrong thing, so you can see what a failure looks
+  like: the XSpec tab expands the failed scenarios and shows Expected and Actual side by side,
+  "Export JUnit…" writes the failures for a CI server, and fxt-cli exits with code 1.
+  Fix the expectations (or the stylesheet) and press Run Again to turn the run green.
+-->
+<x:description xmlns:x="http://www.jenitennison.com/xslt/xspec"
+               xmlns:f="urn:fxt:examples:fund-utils"
+               stylesheet="fund-utils.xsl">
+
+    <x:scenario label="f:weight-class of 5 %">
+        <x:call function="f:weight-class">
+            <x:param select="5"/>
+        </x:call>
+        <!-- Wrong on purpose: 5 % is a 'satellite' position -->
+        <x:expect label="is a core position (FAILS: it is a satellite)" select="'core'"/>
+    </x:scenario>
+
+    <x:scenario label="a position with 2.5 %">
+        <x:context>
+            <Position>
+                <UniqueID>HU0000120720</UniqueID>
+                <TotalValue><Amount ccy="HUF">449758000</Amount></TotalValue>
+                <TotalPercentage>2.5</TotalPercentage>
+            </Position>
+        </x:context>
+        <!-- Wrong on purpose: the amount has thousands separators and the class is 'satellite' -->
+        <x:expect label="becomes a line (FAILS: class and amount differ)">
+            <line isin="HU0000120720" weight="2.5" class="minor">449758000 HUF</line>
+        </x:expect>
+    </x:scenario>
+
+    <x:scenario label="f:is-valid-isin of a correct ISIN">
+        <x:call function="f:is-valid-isin">
+            <x:param select="'HU0000120720'"/>
+        </x:call>
+        <x:expect label="is valid (passes)" select="true()"/>
+    </x:scenario>
+
+</x:description>

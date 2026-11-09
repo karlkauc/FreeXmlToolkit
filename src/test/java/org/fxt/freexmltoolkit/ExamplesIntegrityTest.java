@@ -2,6 +2,7 @@ package org.fxt.freexmltoolkit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import java.util.Map;
 import org.fxt.freexmltoolkit.service.SignatureService;
 import org.fxt.freexmltoolkit.service.TemplateFileService;
 import org.fxt.freexmltoolkit.service.XmlService;
+import org.fxt.freexmltoolkit.service.XSpecRunner;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.junit.jupiter.api.Test;
@@ -202,5 +204,33 @@ class ExamplesIntegrityTest {
         assertTrue(result.getOutputContent().startsWith(
                         "FundISIN,FundName,PositionID,ISIN,AssetName,AssetClass,Currency,TotalValue,Percentage"),
                 "CSV output should start with the header row");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "xspec/01-xslt-functions.xspec",
+            "xspec/02-xslt-templates.xspec",
+            "xspec/03-xquery-module.xspec",
+            "xspec/04-schematron.xspec"
+    })
+    void xspecExamples_pass(String relativePath) throws IOException {
+        XSpecRunner.Result result = runXSpec(relativePath);
+        assertTrue(result.count(XSpecRunner.Status.PASSED) > 0, relativePath + " runs tests");
+        assertEquals(0, result.count(XSpecRunner.Status.FAILED), () -> relativePath + ": " + result.summary());
+        assertTrue(result.passed(), result::summary);
+    }
+
+    @Test
+    void xspecFailingDemo_failsOnPurpose() throws IOException {
+        XSpecRunner.Result result = runXSpec("xspec/05-failing-demo.xspec");
+        assertEquals(2, result.count(XSpecRunner.Status.FAILED), result::summary);
+        assertEquals(1, result.count(XSpecRunner.Status.PASSED), result::summary);
+    }
+
+    private static XSpecRunner.Result runXSpec(String relativePath) throws IOException {
+        Path file = EXAMPLES.resolve(relativePath).toAbsolutePath();
+        XSpecRunner.Result result = new XSpecRunner().run(Files.readString(file), file);
+        assertNull(result.error(), () -> relativePath + " could not run: " + result.error());
+        return result;
     }
 }

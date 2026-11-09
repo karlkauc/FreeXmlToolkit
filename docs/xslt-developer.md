@@ -370,6 +370,10 @@ report as a preview, **Export JUnit…** writes a JUnit XML report for CI server
 On the command line: `fxt-cli xspec tests/price.xspec -r junit.xml` (see
 [Command Line](command-line.md#xspec)).
 
+Ready-to-run examples are in the `examples/xspec/` folder of the installation: tests for an
+XSLT stylesheet (functions and template rules), an XQuery library module and a Schematron, plus
+`05-failing-demo.xspec`, which fails on purpose so you can see Expected and Actual.
+
 ---
 
 ## Tracing and Messages

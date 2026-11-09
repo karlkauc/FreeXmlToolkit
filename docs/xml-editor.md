@@ -487,6 +487,10 @@ collections in the `examples` folder next to the application:
   multi-step chains: slimming with `p:delete`, CSV/JSON export by orchestrating the
   bundled stylesheets, metadata stamping, `p:for-each` iteration, `p:choose`
   branching and a Schematron SVRL report. See the folder's `README.md`.
+- **`examples/xspec/`** - 5 [XSpec](xslt-developer.md#testing-with-xspec) test files for an
+  XSLT stylesheet, an XQuery module and a Schematron (with the code under test next to them);
+  `05-failing-demo.xspec` fails on purpose to show what a failure looks like. Open one and
+  choose **Tools → Run XSpec Tests**.
 
 All examples target the FundsXML4 sample documents in `examples/xml/`. The simplest way
 to run one: **open the file directly** and press the toolbar's **Run** button

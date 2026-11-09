@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  04 — Testing Schematron rules.
+
+  schematron="…"         the Schematron under test, relative to this file
+  x:expect-assert id     the assert with this id fails (count="n": exactly n times)
+  x:expect-not-assert id the assert with this id holds
+  x:expect-report id     the report with this id fires
+  x:expect-valid         no errors; asserts and reports with role="warning" or "info" do not count
+
+  Run: open this file, Tools → Run XSpec Tests  (or: fxt-cli xspec 04-schematron.xspec)
+-->
+<x:description xmlns:x="http://www.jenitennison.com/xslt/xspec"
+               schematron="fund-rules.sch">
+
+    <x:scenario label="an ISIN with 10 characters">
+        <x:context>
+            <Identifiers><ISIN>HU00000617</ISIN></Identifiers>
+        </x:context>
+        <x:expect-assert id="isin-length" label="is reported"/>
+    </x:scenario>
+
+    <x:scenario label="an ISIN with 12 characters">
+        <x:context>
+            <Identifiers><ISIN>HU0000061726</ISIN></Identifiers>
+        </x:context>
+        <x:expect-not-assert id="isin-length" label="passes"/>
+    </x:scenario>
+
+    <x:scenario label="a currency in lower case">
+        <x:context>
+            <Position><Currency>huf</Currency></Position>
+        </x:context>
+        <x:expect-assert id="currency-code" label="is reported"/>
+    </x:scenario>
+
+    <x:scenario label="weights that add up to 90 %">
+        <x:context>
+            <Positions>
+                <Position><UniqueID>A</UniqueID><TotalPercentage>60</TotalPercentage></Position>
+                <Position><UniqueID>B</UniqueID><TotalPercentage>30</TotalPercentage></Position>
+            </Positions>
+        </x:context>
+        <x:expect-assert id="weights-sum" label="are reported"/>
+        <x:expect-report id="concentration" count="2" label="and both positions are concentrated"/>
+    </x:scenario>
+
+    <x:scenario label="the bundled equity fund">
+        <x:context href="../xml/FundsXML4_Equity_Fund.xml"/>
+        <x:expect-not-assert id="weights-sum" label="has weights that add up to 100 %"/>
+        <x:expect-report id="concentration" count="3" label="has three positions above 10 %"/>
+        <x:expect-valid label="has no errors (the concentration reports are warnings)"/>
+    </x:scenario>
+
+</x:description>

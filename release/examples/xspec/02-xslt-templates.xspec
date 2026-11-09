@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  02 — Testing XSLT template rules.
+
+  x:context          the node the templates are applied to: inline XML, or a document
+                     (href, relative to this file) narrowed down with select
+  x:expect content   the expected result as XML; compared node by node
+  "..."              XSpec's wildcard: as text or attribute value it matches anything,
+                     as the only content of an element it matches any content
+  pending="…"        the scenario is listed but not run (shown as pending)
+
+  Run: open this file, Tools → Run XSpec Tests  (or: fxt-cli xspec 02-xslt-templates.xspec)
+-->
+<x:description xmlns:x="http://www.jenitennison.com/xslt/xspec"
+               stylesheet="fund-utils.xsl">
+
+    <x:scenario label="a position written inline">
+        <x:context>
+            <Position>
+                <UniqueID>HU0000061726</UniqueID>
+                <Identifiers>
+                    <ISIN>HU0000061726</ISIN>
+                </Identifiers>
+                <Currency>HUF</Currency>
+                <TotalValue>
+                    <Amount ccy="HUF">13114013488.50</Amount>
+                </TotalValue>
+                <TotalPercentage>44.5876</TotalPercentage>
+            </Position>
+        </x:context>
+        <x:expect label="becomes one line with ISIN, weight, class and formatted amount">
+            <line isin="HU0000061726" weight="44.5876" class="core">13,114,013,488.50 HUF</line>
+        </x:expect>
+    </x:scenario>
+
+    <x:scenario label="a position without an ISIN">
+        <x:context>
+            <Position>
+                <UniqueID>CASH-EUR</UniqueID>
+                <Identifiers/>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                    <Amount ccy="EUR">0</Amount>
+                </TotalValue>
+                <TotalPercentage>0.0000</TotalPercentage>
+            </Position>
+        </x:context>
+        <x:expect label="falls back to the UniqueID">
+            <line isin="CASH-EUR" weight="0.0000" class="minor">0.00 EUR</line>
+        </x:expect>
+    </x:scenario>
+
+    <x:scenario label="the largest position of the bundled equity fund">
+        <x:context href="../xml/FundsXML4_Equity_Fund.xml"
+                   select="//Position[Identifiers/ISIN = 'HU0000061726']"/>
+        <x:expect label="is a core position; the amount is left open with '...'">
+            <line isin="HU0000061726" weight="44.5876" class="core">...</line>
+        </x:expect>
+    </x:scenario>
+
+    <x:scenario label="all positions of the bundled equity fund">
+        <x:context href="../xml/FundsXML4_Equity_Fund.xml" select="//Positions"/>
+        <x:expect label="27 lines (their content is not checked here)">
+            <lines count="27">...</lines>
+        </x:expect>
+        <x:expect label="three of them are core positions" test="count($x:result//line[@class = 'core']) = 3"/>
+    </x:scenario>
+
+    <x:scenario label="positions in a foreign currency" pending="currency conversion is not implemented yet">
+        <x:context>
+            <Position>
+                <UniqueID>HU0000083696</UniqueID>
+                <Currency>EUR</Currency>
+                <TotalValue>
+                    <Amount ccy="EUR">1200000</Amount>
+                </TotalValue>
+                <TotalPercentage>1.6106</TotalPercentage>
+            </Position>
+        </x:context>
+        <x:expect label="would show the amount in the fund currency">
+            <line isin="HU0000083696" weight="1.6106" class="satellite">... HUF</line>
+        </x:expect>
+    </x:scenario>
+
+</x:description>

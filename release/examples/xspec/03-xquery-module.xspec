@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  03 — Testing an XQuery library module.
+
+  query="…"          the namespace URI of the module under test
+  query-at="…"       where the module is, relative to this file
+  x:param href       passes a document (relative to this file); select narrows it down
+  x:param content    passes inline XML
+
+  Run: open this file, Tools → Run XSpec Tests  (or: fxt-cli xspec 03-xquery-module.xspec)
+-->
+<x:description xmlns:x="http://www.jenitennison.com/xslt/xspec"
+               xmlns:q="urn:fxt:examples:fund-queries"
+               query="urn:fxt:examples:fund-queries"
+               query-at="fund-queries.xqm">
+
+    <x:scenario label="q:total-nav of the bundled equity fund">
+        <x:call function="q:total-nav">
+            <x:param href="../xml/FundsXML4_Equity_Fund.xml" select="/FundsXML4/Funds/Fund"/>
+        </x:call>
+        <x:expect label="is the official NAV in HUF" select="29411334597"/>
+    </x:scenario>
+
+    <x:scenario label="q:positions-over 10 %">
+        <x:call function="q:positions-over">
+            <x:param href="../xml/FundsXML4_Equity_Fund.xml" select="/FundsXML4/Funds/Fund"/>
+            <x:param select="10"/>
+        </x:call>
+        <x:expect label="three positions, largest first"
+                  select="('HU0000061726', 'HU0000123096', 'HU0000153937')"/>
+    </x:scenario>
+
+    <x:scenario label="q:positions-over with an inline fund">
+        <x:call function="q:positions-over">
+            <x:param>
+                <Fund>
+                    <Portfolios><Portfolio><Positions>
+                        <Position><UniqueID>A</UniqueID><TotalPercentage>60</TotalPercentage></Position>
+                        <Position><UniqueID>B</UniqueID><TotalPercentage>-25</TotalPercentage></Position>
+                        <Position><UniqueID>C</UniqueID><TotalPercentage>5</TotalPercentage></Position>
+                    </Positions></Portfolio></Portfolios>
+                </Fund>
+            </x:param>
+            <x:param select="20"/>
+        </x:call>
+        <x:expect label="counts short positions by their absolute weight" select="('A', 'B')"/>
+    </x:scenario>
+
+    <x:scenario label="q:currencies of the bundled equity fund">
+        <x:call function="q:currencies">
+            <x:param href="../xml/FundsXML4_Equity_Fund.xml"/>
+        </x:call>
+        <x:expect label="EUR and HUF, sorted" select="('EUR', 'HUF')"/>
+        <x:expect label="no duplicates" test="count($x:result) = count(distinct-values($x:result))"/>
+    </x:scenario>
+
+</x:description>
