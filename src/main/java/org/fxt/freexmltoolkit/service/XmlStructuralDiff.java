@@ -1,8 +1,8 @@
 package org.fxt.freexmltoolkit.service;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,9 +41,9 @@ import org.xmlunit.diff.ComparisonType;
 import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.DifferenceEvaluator;
 import org.xmlunit.diff.DifferenceEvaluators;
-import org.xmlunit.diff.NodeFilters;
 import org.xmlunit.diff.ElementSelector;
 import org.xmlunit.diff.ElementSelectors;
+import org.xmlunit.diff.NodeFilters;
 import org.xmlunit.placeholder.PlaceholderDifferenceEvaluator;
 
 /**

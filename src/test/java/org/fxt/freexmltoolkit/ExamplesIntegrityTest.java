@@ -13,8 +13,8 @@ import java.util.Map;
 
 import org.fxt.freexmltoolkit.service.SignatureService;
 import org.fxt.freexmltoolkit.service.TemplateFileService;
-import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XSpecRunner;
+import org.fxt.freexmltoolkit.service.XmlService;
 import org.fxt.freexmltoolkit.service.XmlServiceImpl;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.junit.jupiter.api.Test;

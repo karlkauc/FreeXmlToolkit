@@ -17,8 +17,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 import org.fxt.freexmltoolkit.controls.theme.DesignTokens;
@@ -37,8 +35,6 @@ import org.fxt.freexmltoolkit.util.DialogHelper;
  * @since 2.0
  */
 public class TypeUsageDialog extends Dialog<TypeUsageLocation> {
-
-    private static final Logger logger = LogManager.getLogger(TypeUsageDialog.class);
 
     private final String typeName;
     private final List<TypeUsageLocation> usages;

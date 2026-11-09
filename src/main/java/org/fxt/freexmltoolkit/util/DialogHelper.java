@@ -26,9 +26,9 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import org.fxt.freexmltoolkit.controls.dialogs.ErrorReportDialog;
+import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.controls.shell.DialogTheming;
 import org.fxt.freexmltoolkit.controls.shell.ThemeManager;
-import org.fxt.freexmltoolkit.controls.icons.IconifyIcon;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.telemetry.Telemetry;
 

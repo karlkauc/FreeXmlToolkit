@@ -13,11 +13,11 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Window;
 
-import org.fxt.freexmltoolkit.util.DialogHelper;
 import org.fxt.freexmltoolkit.FxtGui;
 import org.fxt.freexmltoolkit.i18n.I18n;
 import org.fxt.freexmltoolkit.service.XsltTransformationEngine;
 import org.fxt.freexmltoolkit.service.telemetry.UsageEvents;
+import org.fxt.freexmltoolkit.util.DialogHelper;
 
 /**
  * Editor-level document actions surfaced on the Unified shell's top toolbar so the

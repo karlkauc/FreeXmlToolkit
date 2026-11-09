@@ -676,7 +676,7 @@ public class XsltTransformationEngine {
             String code = first != null && first.getErrorCode() != null
                     ? first.getErrorCode().getLocalName() : localCode(e.getErrorCode());
             throw new StylesheetCompileException("XQuery compilation failed" + where + bracket(code) + ": "
-                    + (first != null ? first.getMessage() : e.getMessage()), code);
+                    + (first != null ? first.getMessage() : e.getMessage()), code, e);
         }
     }
 
@@ -1458,7 +1458,11 @@ public class XsltTransformationEngine {
         private final String code;
 
         StylesheetCompileException(String message, String code) {
-            super(message);
+            this(message, code, null);
+        }
+
+        StylesheetCompileException(String message, String code, Throwable cause) {
+            super(message, cause);
             this.code = code;
         }
 

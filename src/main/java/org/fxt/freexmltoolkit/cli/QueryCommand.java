@@ -1,7 +1,6 @@
 package org.fxt.freexmltoolkit.cli;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -190,9 +189,9 @@ final class QueryCommand implements Callable<Integer> {
         if (output != null) {
             CliSupport.write(output, out);
         } else {
-            PrintWriter writer = commandLine.getOut();
-            writer.print(out);
-            writer.flush();
+            // picocli owns the stream: print and flush, never close it
+            commandLine.getOut().print(out);
+            commandLine.getOut().flush();
         }
         if (failed) {
             return ExitCodes.NOT_RUN;

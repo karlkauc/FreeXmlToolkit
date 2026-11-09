@@ -2900,10 +2900,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * @return whether the node was found
      */
     public boolean revealProblem(N target, String attribute) {
-        if (target == null) {
-            return false;
-        }
-        return revealProblemIn(allRows, target, attribute);
+        return target != null && revealProblemIn(allRows, target, attribute);
     }
 
     private boolean revealProblemIn(List<FlatRow> rows, N target, String attribute) {

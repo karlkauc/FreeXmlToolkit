@@ -33,7 +33,6 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.xml.security.encryption.AgreementMethod;
 import org.apache.xml.security.encryption.EncryptedData;
 import org.apache.xml.security.encryption.EncryptedKey;
 import org.apache.xml.security.encryption.EncryptionProperties;
@@ -922,7 +921,8 @@ public final class XmlEncryptionService {
                     }
                 }
             } catch (XPathExpressionException e) {
-                throw new XmlEncryptionException("Invalid XPath '" + expression + "': " + message(e));
+                throw new XmlEncryptionException("Invalid XPath '" + expression + "': " + message(e),
+                        DecryptionStatus.ERROR, e);
             }
         }
         // an element inside another selected one is encrypted with its ancestor
