@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitMenuButton?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.Tooltip?>
@@ -43,7 +44,14 @@
 
     <!-- Full-height activity rail (controller injects the code-built ActivityBar). -->
     <left>
-        <StackPane fx:id="activityBarHost"/>
+        <!-- Scrolls (mouse wheel, no bar: the rail stays narrow) only in a window shorter than
+             the rail; its height would otherwise push the work area out of the window -->
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="NEVER"
+                    styleClass="fxt-side-panel-scroll" minHeight="0">
+            <content>
+                <StackPane fx:id="activityBarHost"/>
+            </content>
+        </ScrollPane>
     </left>
 
     <center>
@@ -287,7 +295,14 @@
                                 <StackPane fx:id="leftPanelWrapper" minWidth="200"
                                            SplitPane.resizableWithParent="false">
                                     <children>
-                                        <StackPane fx:id="sidePanelHost" styleClass="fxt-side-panel"/>
+                                        <!-- Scrolls only when the window is shorter than the panel: its height
+                                             would otherwise push the editor column (and PROBLEMS) out of the window -->
+                                        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER"
+                                                    styleClass="fxt-side-panel-scroll" minHeight="0">
+                                            <content>
+                                                <StackPane fx:id="sidePanelHost" styleClass="fxt-side-panel"/>
+                                            </content>
+                                        </ScrollPane>
                                     </children>
                                 </StackPane>
 
@@ -295,7 +310,7 @@
                                 <VBox fx:id="editorCenter" styleClass="fxt-editor-area, fxt-editor-center" minWidth="320">
                                     <children>
                                         <UnifiedSearchBar fx:id="searchBar"/>
-                                        <EditorHost fx:id="editorHost" VBox.vgrow="ALWAYS"/>
+                                        <EditorHost fx:id="editorHost" VBox.vgrow="ALWAYS" minHeight="100"/>
                                     </children>
                                 </VBox>
 

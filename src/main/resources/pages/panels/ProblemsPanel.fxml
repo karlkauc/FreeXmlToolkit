@@ -10,13 +10,17 @@
 
 <!--
   PROBLEMS panel below the editor (Figma "Redesign · Unified — Validation", node 42:3): a header
-  bar with severity counters and a collapse toggle above the problem list.
+  bar with severity counters and a collapse toggle above the problem list; its top edge is a
+  drag handle for the height.
   Loaded by ProblemsPanel via the fx:root pattern (FxmlViews.load); ProblemsPanel is root and
   controller. The problem rows (cells) and the counter texts are filled in code.
 -->
 <fx:root type="javafx.scene.layout.VBox" styleClass="fxt-problems-panel"
          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
     <children>
+        <!-- Drag handle: the panel's height (persisted, DockResizer) -->
+        <Region fx:id="resizer" id="problems-panel-resizer" minHeight="5" prefHeight="5" maxHeight="5"
+                styleClass="fxt-dock-resizer"/>
         <HBox spacing="10" alignment="CENTER_LEFT" styleClass="fxt-problems-header">
             <children>
                 <Label text="%ProblemsPanel.problems.text" styleClass="fxt-problems-title"/>
@@ -39,7 +43,7 @@
                 </Button>
             </children>
         </HBox>
-        <ListView fx:id="list" id="problems-panel-list" prefHeight="192" styleClass="fxt-problems-list"
+        <ListView fx:id="list" id="problems-panel-list" minHeight="0" prefHeight="0" styleClass="fxt-problems-list"
                   VBox.vgrow="ALWAYS"/>
     </children>
 </fx:root>

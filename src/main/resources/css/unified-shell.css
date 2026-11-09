@@ -5170,3 +5170,12 @@
 .diff-xml-panel .table-row-cell.diff-xml-similar .table-cell {
     -fx-text-fill: -fxt-text-muted;
 }
+
+/* Side panel scroller (shell.fxml): invisible until the window is shorter than the panel. */
+.fxt-side-panel-scroll,
+.fxt-side-panel-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+}

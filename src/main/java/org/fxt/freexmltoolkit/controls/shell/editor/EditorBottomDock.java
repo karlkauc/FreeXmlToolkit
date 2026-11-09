@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javafx.animation.PauseTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
@@ -14,7 +13,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 
 import org.fxt.freexmltoolkit.controls.shell.FxmlViews;
 
@@ -50,15 +48,11 @@ public final class EditorBottomDock extends VBox {
     @FXML private StackPane content;
     private final ToggleGroup group = new ToggleGroup();
     private final Map<String, Entry> panels = new LinkedHashMap<>();
-    private final PauseTransition heightSaveDebounce = new PauseTransition(Duration.millis(400));
-    private double dragStartY;
-    private double dragStartHeight;
 
     public EditorBottomDock() {
         FxmlViews.load(this, "/pages/panels/EditorBottomDock.fxml");
         setMinHeight(MIN_HEIGHT);
-        setPrefHeight(loadHeight());
-        heightSaveDebounce.setOnFinished(e -> saveHeight(getPrefHeight()));
+        setPrefHeight(new DockResizer(this, resizer, HEIGHT_KEY, MIN_HEIGHT, DEFAULT_HEIGHT).load());
         // A segmented control always keeps one segment active while panels exist.
         group.selectedToggleProperty().addListener((obs, oldT, newT) -> {
             if (newT == null && oldT != null && panels.values().stream().anyMatch(en -> en.toggle == oldT)) {
@@ -66,19 +60,6 @@ public final class EditorBottomDock extends VBox {
                 return;
             }
             updateContent();
-        });
-        resizer.setOnMousePressed(e -> {
-            dragStartY = e.getScreenY();
-            dragStartHeight = getHeight();
-            e.consume();
-        });
-        resizer.setOnMouseDragged(e -> {
-            double max = getParent() instanceof Region parent && parent.getHeight() > 0
-                    ? Math.max(MIN_HEIGHT, parent.getHeight() - 80) : Double.MAX_VALUE;
-            double height = Math.max(MIN_HEIGHT, Math.min(max, dragStartHeight + (dragStartY - e.getScreenY())));
-            setPrefHeight(height);
-            heightSaveDebounce.playFromStart();
-            e.consume();
         });
         hide();
     }
@@ -218,29 +199,6 @@ public final class EditorBottomDock extends VBox {
             boolean front = entry.toggle == selected;
             entry.panel.setVisible(front);
             entry.panel.setManaged(front);
-        }
-    }
-
-    private static double loadHeight() {
-        try {
-            String value = org.fxt.freexmltoolkit.di.ServiceRegistry
-                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class).get(HEIGHT_KEY);
-            if (value != null) {
-                return Math.max(MIN_HEIGHT, Double.parseDouble(value));
-            }
-        } catch (Throwable ignored) {
-            // properties service unavailable (tests) or malformed value — use the default
-        }
-        return DEFAULT_HEIGHT;
-    }
-
-    private static void saveHeight(double height) {
-        try {
-            org.fxt.freexmltoolkit.di.ServiceRegistry
-                    .get(org.fxt.freexmltoolkit.service.PropertiesService.class)
-                    .set(HEIGHT_KEY, String.valueOf(Math.round(height)));
-        } catch (Throwable ignored) {
-            // nothing to persist to
         }
     }
 }

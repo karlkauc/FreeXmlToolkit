@@ -50,7 +50,15 @@ public class ProblemsPanel extends VBox {
     @FXML private Label errorChip;
     @FXML private Label warningChip;
     @FXML private IconifyIcon collapseIcon;
+    @FXML private javafx.scene.layout.Region resizer;
     private boolean collapsed;
+    private double expandedHeight;
+
+    /** Properties key of the persisted height. */
+    static final String HEIGHT_KEY = "editor.problems.height";
+    static final double DEFAULT_HEIGHT = 220;
+    /** Resize handle, header bar and about two rows. */
+    static final double MIN_HEIGHT = 96;
 
     /** Loads the layout from {@code /pages/panels/ProblemsPanel.fxml} and binds the list to the host's problems. */
     public ProblemsPanel(EditorHost editorHost) {
@@ -58,6 +66,17 @@ public class ProblemsPanel extends VBox {
         FxmlViews.load(this, "/pages/panels/ProblemsPanel.fxml");
 
         list.setItems(items);
+        // A fixed height that the user drags (instead of the list's preferred height): on a small
+        // screen the editor above took all the room and pushed the list out of the window.
+        DockResizer resizing = new DockResizer(this, resizer, HEIGHT_KEY, MIN_HEIGHT, DEFAULT_HEIGHT);
+        expandedHeight = resizing.load();
+        setMinHeight(MIN_HEIGHT);
+        setPrefHeight(expandedHeight);
+        prefHeightProperty().addListener((obs, oldV, newV) -> {
+            if (!collapsed) {
+                expandedHeight = newV.doubleValue();
+            }
+        });
         list.setCellFactory(lv -> new ProblemRowCell());
         // Ctrl+C / Cmd+C copies the selected problem like the row menu's "Copy Problem"
         list.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
@@ -121,6 +140,11 @@ public class ProblemsPanel extends VBox {
         this.collapsed = collapsed;
         list.setVisible(!collapsed);
         list.setManaged(!collapsed);
+        resizer.setVisible(!collapsed);
+        resizer.setManaged(!collapsed);
+        // collapsed: only the header bar; expanded: the height the user dragged
+        setMinHeight(collapsed ? USE_PREF_SIZE : MIN_HEIGHT);
+        setPrefHeight(collapsed ? USE_COMPUTED_SIZE : expandedHeight);
         collapseIcon.setIconLiteral(collapsed ? "bi-chevron-up" : "bi-chevron-down");
     }
 
