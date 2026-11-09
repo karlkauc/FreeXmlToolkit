@@ -597,6 +597,8 @@ public final class XmlEncryptionService {
             throw new XmlEncryptionException("The document is no EncryptedData", DecryptionStatus.NO_ENCRYPTED_DATA, null);
         }
         List<String> warnings = new ArrayList<>();
+        checkCipherReference(root);
+        inlineCipherReference(document, root);
         Key dataKey = dataKeyFor(document, root, keys, warnings, new HashSet<>());
         try {
             XMLCipher cipher = XMLCipher.getInstance();
@@ -611,6 +613,7 @@ public final class XmlEncryptionService {
     private void decryptOne(Document document, Element element, DecryptionKeys keys, List<String> warnings,
                             Set<Element> usedKeys) throws XmlEncryptionException {
         checkCipherReference(element);
+        inlineCipherReference(document, element);
         Key dataKey = dataKeyFor(document, element, keys, warnings, usedKeys);
         try {
             XMLCipher cipher = XMLCipher.getInstance();
@@ -1067,6 +1070,68 @@ public final class XmlEncryptionService {
             throw new XmlEncryptionException("CipherReference to '" + uri + "' refused: only files next to the document",
                     DecryptionStatus.POLICY_BLOCKED, null);
         }
+    }
+
+    /** Largest file a CipherReference may point at. */
+    static final long MAX_REFERENCED_BYTES = 512L * 1024 * 1024;
+
+    /**
+     * Replaces a CipherReference to a file next to the document by a CipherValue with the file's
+     * (optionally Base64-transformed) octets: Santuario would resolve it without the document's
+     * location, and reading it here keeps the "only next to the document" rule in one place.
+     */
+    private static void inlineCipherReference(Document document, Element encryptedData) throws XmlEncryptionException {
+        Element cipherData = firstChild(encryptedData, XENC_NS, "CipherData");
+        Element reference = firstChild(cipherData, XENC_NS, "CipherReference");
+        if (reference == null) {
+            return;
+        }
+        String uri = reference.getAttribute("URI");
+        if (uri.startsWith("#")) {
+            throw new XmlEncryptionException("CipherReference within the document is not supported",
+                    DecryptionStatus.UNSUPPORTED, null);
+        }
+        String base = document.getDocumentURI();
+        if (base == null || !base.startsWith("file:")) {
+            throw new XmlEncryptionException("CipherReference '" + uri + "' needs the document's file location",
+                    DecryptionStatus.ERROR, null);
+        }
+        byte[] octets;
+        try {
+            java.nio.file.Path folder = java.nio.file.Path.of(java.net.URI.create(base)).toAbsolutePath().getParent();
+            java.nio.file.Path file = folder.resolve(java.net.URLDecoder.decode(uri, java.nio.charset.StandardCharsets.UTF_8))
+                    .normalize();
+            if (!folder.equals(file.getParent()) || !java.nio.file.Files.isRegularFile(file)) {
+                throw new XmlEncryptionException("CipherReference '" + uri + "' is no file next to the document",
+                        DecryptionStatus.POLICY_BLOCKED, null);
+            }
+            if (java.nio.file.Files.size(file) > MAX_REFERENCED_BYTES) {
+                throw new XmlEncryptionException("CipherReference '" + uri + "' is too large", DecryptionStatus.ERROR, null);
+            }
+            octets = java.nio.file.Files.readAllBytes(file);
+        } catch (XmlEncryptionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new XmlEncryptionException("Cannot read CipherReference '" + uri + "': " + message(e),
+                    DecryptionStatus.ERROR, e);
+        }
+        Element transforms = firstChild(reference, XENC_NS, "Transforms");
+        if (transforms != null) {
+            for (Node n = transforms.getFirstChild(); n != null; n = n.getNextSibling()) {
+                if (n instanceof Element transform) {
+                    String algorithm = transform.getAttribute("Algorithm");
+                    if (!"http://www.w3.org/2000/09/xmldsig#base64".equals(algorithm)) {
+                        throw new XmlEncryptionException("CipherReference transform " + algorithm + " is not supported",
+                                DecryptionStatus.UNSUPPORTED, null);
+                    }
+                    octets = Base64.getMimeDecoder().decode(octets);
+                }
+            }
+        }
+        Element value = document.createElementNS(XENC_NS, (reference.getPrefix() != null ? reference.getPrefix() + ":" : "")
+                + "CipherValue");
+        value.setTextContent(Base64.getEncoder().encodeToString(octets));
+        cipherData.replaceChild(value, reference);
     }
 
     private static int nextId(Document document) {

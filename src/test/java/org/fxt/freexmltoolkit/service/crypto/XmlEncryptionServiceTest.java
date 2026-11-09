@@ -326,6 +326,27 @@ class XmlEncryptionServiceTest {
     }
 
     @Test
+    void cipherReferenceToAFileNextToTheDocument(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir) throws Exception {
+        SecretKey key = new SecretKeySpec(new byte[32], "AES");
+        Document encrypted = service.encryptBinary("hello reference".getBytes(StandardCharsets.UTF_8), "text/plain",
+                EncryptionRequest.document(List.of(new SymmetricRecipient(key, "k", null, null))));
+        var value = (org.w3c.dom.Element) encrypted.getElementsByTagNameNS(XmlEncryptionService.XENC_NS, "CipherValue").item(0);
+        java.nio.file.Files.write(dir.resolve("data.bin"), java.util.Base64.getDecoder().decode(value.getTextContent().trim()));
+        var cipherData = (org.w3c.dom.Element) value.getParentNode();
+        cipherData.removeChild(value);
+        var reference = encrypted.createElementNS(XmlEncryptionService.XENC_NS, "xenc:CipherReference");
+        reference.setAttribute("URI", "data.bin");
+        cipherData.appendChild(reference);
+        java.nio.file.Path file = dir.resolve("ref.xml");
+        java.nio.file.Files.writeString(file, serialize(encrypted));
+
+        Document parsed = parse(java.nio.file.Files.readString(file));
+        parsed.setDocumentURI(file.toUri().toString());
+        assertArrayEquals("hello reference".getBytes(StandardCharsets.UTF_8),
+                service.decryptBinary(parsed, DecryptionKeys.secretKey("k", key)));
+    }
+
+    @Test
     void cipherReferenceOutsideTheFolderIsRefused() throws Exception {
         String xml = """
                 <xenc:EncryptedData xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" Id="x">\
