@@ -102,7 +102,7 @@ Problems appear in two places:
   saves the current list as an `.xlsx` workbook.
 - The **PROBLEMS panel below the editor**: it appears automatically when
   validation finds problems, shows error/warning counts in its header, and can be collapsed
-  to just the header. Each row shows the message and the file/line in a monospaced label.
+  to just the header. Drag its top edge to change its height (the height is remembered). Each row shows the message and the file/line in a monospaced label.
 
 Every row in the PROBLEMS panel below the editor carries a
 **source badge** - **XSD**, **Schematron**, **Well-formed**, or **JSON Schema** - so when a

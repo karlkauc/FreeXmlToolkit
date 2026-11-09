@@ -4,7 +4,7 @@ The highlights of each release. The complete notes and all downloads are on the
 [GitHub Releases page](https://github.com/karlkauc/FreeXmlToolkit/releases); the version you are
 running is shown under **Help → About FreeXmlToolkit**.
 
-## Next release
+## 3.0.0 (2026-11-09)
 
 **Platform and enterprise**
 
@@ -58,6 +58,32 @@ running is shown under **Help → About FreeXmlToolkit**.
   [FundsXML Extensions](fundsxml-extensions.md#data-quality-checks).
 - **Grid:** filters inside opened table cells, saved filters (off when opened), formulas first under
   their element, German number format; much faster with very large tables (680,000 records).
+
+**Signatures and encryption**
+
+- **XML Encryption 1.1:** the Signature page is now **Sign & Encrypt** with **Encrypt**, **Decrypt**
+  and **Inspect**. Encrypt the whole document, the element at the caret or an XPath selection for
+  any number of recipients (certificate, keystore entry, shared key file, password); decrypt with
+  your private key, a shared key or the password. The XML editor's context menu offers **Encrypt
+  Element… / Decrypt…**. See [XML Encryption](xml-encryption.md).
+- **Signature algorithms:** RSA, RSA-PSS and ECDSA, a selectable digest and canonicalization;
+  new certificates with RSA or EC keys. See [Digital Signatures](digital-signatures.md).
+- **`fxt-cli sign`, `verify`, `encrypt`, `decrypt`** (also `--inspect`). See
+  [Command Line](command-line.md#sign).
+
+**More**
+
+- **`fxt-cli query`** runs XPath, XQuery and JSONPath; the **XQuery profiler** shows where a query
+  spends its time (Run ▾ → Profile Query, `fxt-cli transform --profile`).
+- **Regression checks for scenarios:** compare a scenario's output with an expected result
+  (Check, Differences, Accept; `fxt-cli scenario --check`). See [Projects](projects.md).
+- **XML compare:** ignore XPaths, XMLUnit placeholders and a numeric tolerance.
+- **XSpec templates** in File → New.
+- **Problems, Query Console hits and FundsXML data-quality findings** open in the document's
+  current view (Tree or Graphic) instead of switching to the Text view.
+- **Grid:** a click elsewhere keeps the value you are editing (like Enter) and closes an open
+  context menu; the XSD diagram's context menu closes the same way.
+- **One look for every dialog**, light and dark; banner and dialog images in the Windows installers.
 
 ## 2.10.0 (2026-11-05)
 

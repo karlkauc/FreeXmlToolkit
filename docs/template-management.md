@@ -57,6 +57,7 @@ FreeXmlToolkit ships with a set of ready-made templates, grouped by category, fo
 | Build & configuration | `spring-config`, `maven-pom`, `api-documentation` |
 | Industry | `financial-transaction`, `patient-record`, `vehicle-information`, `government-form` |
 | Schema | `xsd-schema` |
+| Testing | `XSpec test (XSLT)`, `XSpec test (XQuery)`, `XSpec test (Schematron)` — a new file from one of these is saved as `.xspec` (see [Testing with XSpec](xslt-developer.md#testing-with-xspec)) |
 
 Built-in templates cannot be edited, but you can create your own with the same content and change
 it freely.

@@ -25,7 +25,10 @@ is clickable to collapse or expand that section.
 Shown only while a [project](projects.md) is open: pick one of the project's saved transformation
 scenarios to fill stylesheet, input, parameters and output method in one step, run it with **Run
 Scenario** (writes its output file), save the current settings as a scenario (disk button) or remove
-one (trash button). See [Projects and Transformation Scenarios](projects.md#transformation-scenarios).
+one (trash button). For a scenario with an expected result, **Check** compares the run's result
+with it; after a failed check, **Differences** opens both in the Compare view and **Accept** makes
+the current result the expected one. See [Projects and Transformation Scenarios](projects.md#transformation-scenarios)
+and [Regression checks](projects.md#regression-checks).
 
 ## STYLESHEET
 
@@ -241,6 +244,8 @@ The OUTPUT panel header shows:
     - **Text** - the result in a **read-only code editor** (the default):
       line numbers, syntax highlighting matching the result format (XML or JSON;
       plain text otherwise), and font zoom with **Ctrl+mouse wheel** (**Ctrl+0** resets).
+      A very large result (over 2 million characters) shows only its start with a note;
+      **Open as Tab**, **Browser** and **Save…** use the whole result.
     - **Preview** - the result rendered as a web page; available for **HTML/XHTML**
       results only.
     - **Table** - available for **XQuery** results that return a **sequence** of items

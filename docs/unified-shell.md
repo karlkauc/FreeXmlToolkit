@@ -1242,12 +1242,15 @@ On the command line, also as a Git merge driver: [`fxt-cli merge`](command-line.
 
 ## Jump to Validation Errors
 
-Validation errors appear in the **Properties / Validation** sidebar (Ctrl+Shift+P). **Double-click**
-any error to jump straight to its location:
+Validation errors appear in the **PROBLEMS** panel below the editor and in the **Validation**
+side panel. **Select** a problem to show it **in the view you are in** - the view does not change:
 
-- In the **Text** view the caret moves to the exact line and column, with the offending text highlighted.
-- In the **Graphic** view the matching element is selected, flashed, and scrolled into view.
-- In split mode both views navigate at once.
+- In the **Text** view the caret moves to the problem's line (and, for XML and XSD errors, its column).
+- In the **Tree** view the element of that line is selected and scrolled into view.
+- In the **Graphic** view the grid selects the element's row or table cell (opening tables and
+  cells on the way) and flashes it; for an XSD the diagram selects the schema node.
+
+See [Validation Panel](validation-panel.md) for details.
 
 ## Properties Inspector
 

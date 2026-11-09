@@ -84,7 +84,7 @@ Each entry in the problem list reads `[source] Ln N: message`:
 - **Line number** - where the problem is
 - **Severity icon** - red ✕ for errors, orange ⚠ for warnings
 
-Selecting a problem jumps to its line in the editor. The same problems are mirrored in the
+Selecting a problem shows it in the current view (Text: its line; Tree and Graphic: its element). The same problems are mirrored in the
 **PROBLEMS** panel below the editor, whose header shows error and warning counters; see
 [Jump to Validation Errors](unified-shell.md#jump-to-validation-errors) for navigation details.
 
