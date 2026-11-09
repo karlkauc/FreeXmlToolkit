@@ -1,80 +1,37 @@
-# Windows Installer Bilder
+# Windows Installer Images
 
-Für den Windows-Installer werden folgende benutzerdefinierte Bilder benötigt:
+The Windows installers (EXE and MSI, built by jpackage with WiX) show two images:
 
-## Erforderliche Bilder
+| File | Size | Where it appears |
+|------|------|------------------|
+| `win-banner.png` | 493 × 58 px | Banner across the top of the installer pages (destination folder, shortcuts, progress) |
+| `win-dialog.png` | 493 × 312 px | Background of the welcome and the finish page |
 
-### 1. `win-banner.png`
+## How they get into the installer
 
-- **Größe**: 493x58 Pixel
-- **Format**: PNG
-- **Verwendung**: Banner am oberen Rand des Installers
-- **Empfehlung**: Logo mit transparentem Hintergrund
+Keep the PNGs here; the build does the rest (`build.gradle.kts`, `prepareWindowsInstallerResources`):
 
-### 2. `win-dialog.png`
+1. Both PNGs are converted to 24-bit BMP files — Windows Installer shows BMP, not PNG.
+2. jpackage's own `overrides.wxi` is read from the toolchain JDK and gets two WiX variables,
+   `WixUIBannerBmp` and `WixUIDialogBmp`, pointing at the BMPs.
+3. The result (`build/jpackage-resources/windows/`) is passed to jpackage as `--resource-dir`.
 
-- **Größe**: 493x312 Pixel
-- **Format**: PNG
-- **Verwendung**: Hauptbild im Installer-Dialog
-- **Empfehlung**: Screenshot der Anwendung oder Logo mit Beschreibung
+This only works with a Windows JDK (jpackage's WiX files exist in Windows builds only), i.e. on the
+Windows runners of the release workflow. `./gradlew prepareWindowsInstallerResources` converts the
+images on any platform and then reports the missing `overrides.wxi` outside Windows.
 
-## Bildanforderungen
+## Designing the images
 
-### Technische Spezifikationen:
+The current images are drawn by `scripts/make-installer-images.py` (app logo, brand colours,
+Inter; needs Pillow): change the script and run it again, or replace the PNGs with your own.
 
-- **Format**: PNG (empfohlen) oder JPG
-- **Farbtiefe**: 24-bit oder 32-bit (mit Transparenz)
-- **Auflösung**: Exakte Pixelmaße einhalten
-- **Dateigröße**: Unter 1MB pro Bild
+WiX writes the page texts **in black on top of the images**:
 
-### Design-Empfehlungen:
+- **Banner:** the page title (bold) and its description start at the top left, across roughly the
+  left two thirds. Keep that area light; a logo belongs at the right end.
+- **Dialog:** the welcome/finish title and text start about 180 px from the left (135 dialog units),
+  across the rest of the image. Keep that part light; artwork belongs in a strip of up to ~165 px
+  on the left.
 
-- **Konsistente Farbgebung** mit dem Hauptlogo
-- **Professionelles Design** für seriöses Erscheinungsbild
-- **Gute Lesbarkeit** auch bei kleiner Darstellung
-- **Branding** entsprechend der Anwendung
-
-## Platzierung
-
-Legen Sie die Bilder im `release/` Verzeichnis ab:
-
-```
-release/
-├── logo.ico
-├── win-banner.png    ← Hier platzieren
-├── win-dialog.png    ← Hier platzieren
-└── ...
-```
-
-## Alternative: Standard-Bilder verwenden
-
-Falls Sie keine benutzerdefinierten Bilder erstellen möchten, können Sie die entsprechenden Zeilen in `build.gradle.kts`
-auskommentieren:
-
-```kotlin
-// "--win-banner-image", "${projectDir}/release/win-banner.png",
-// "--win-dialog-image", "${projectDir}/release/win-dialog.png",
-```
-
-## Tools zur Bildbearbeitung
-
-Empfohlene Tools für die Bildbearbeitung:
-
-- **GIMP** (kostenlos)
-- **Photoshop** (kommerziell)
-- **Canva** (online)
-- **Figma** (online)
-
-## Beispiel-Bilder erstellen
-
-### Banner (493x58):
-
-- Logo links, Text rechts
-- Einfacher, klarer Stil
-- Passend zur Anwendung
-
-### Dialog (493x312):
-
-- Screenshot der Anwendung
-- Oder Logo mit Beschreibung
-- Professionelles Layout
+Use the exact sizes; other sizes are stretched. Transparency is not supported (transparent areas
+become white).

@@ -16,7 +16,12 @@
  *
  */
 
+import java.awt.Color as AwtColor
+import java.awt.image.BufferedImage
+import java.net.URI
 import java.net.URLEncoder
+import java.nio.file.FileSystems
+import java.nio.file.Files as NioFiles
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -791,6 +796,72 @@ fun createZipTask(jpackageTaskName: String, platform: String, arch: String): Str
 }
 
 // Helper function to create platform-specific jpackage tasks
+/**
+ * Resources for the Windows installers (EXE, MSI): jpackage's WiX UI shows WixUIBannerBmp on top of
+ * its dialogs and WixUIDialogBmp behind the welcome and finish pages. Both must be BMP files and are
+ * set as WixVariables in an overrides.wxi in --resource-dir. The PNGs in release/ stay the source:
+ * they are converted to 24-bit BMPs here, and jpackage's own overrides.wxi (read from the toolchain
+ * JDK, so its defaults are kept) gets the two variables appended.
+ *
+ * @return the resource folder for --resource-dir
+ */
+fun prepareWindowsInstallerResources(javaHome: String, projectDir: File, outDir: File): File {
+    outDir.mkdirs()
+    fun toBmp(png: String, bmp: String): File {
+        val source = javax.imageio.ImageIO.read(File(projectDir, png))
+            ?: throw GradleException("Cannot read $png for the Windows installer")
+        val rgb = BufferedImage(source.width, source.height, BufferedImage.TYPE_INT_RGB)
+        val g = rgb.createGraphics()
+        g.color = AwtColor.WHITE
+        g.fillRect(0, 0, source.width, source.height)
+        g.drawImage(source, 0, 0, null)
+        g.dispose()
+        val target = File(outDir, bmp)
+        if (!javax.imageio.ImageIO.write(rgb, "bmp", target)) {
+            throw GradleException("No BMP writer for the Windows installer images")
+        }
+        return target
+    }
+    val banner = toBmp("release/win-banner.png", "banner.bmp")
+    val dialog = toBmp("release/win-dialog.png", "dialog.bmp")
+
+    val original = try {
+        FileSystems.newFileSystem(URI.create("jrt:/"), mapOf("java.home" to javaHome)).use { jrt ->
+            val path = jrt.getPath("/modules/jdk.jpackage/jdk/jpackage/internal/resources/overrides.wxi")
+            if (NioFiles.exists(path)) NioFiles.readString(path) else null
+        }
+    } catch (e: Exception) {
+        throw GradleException("Cannot read jpackage's resources from $javaHome: ${e.message}", e)
+    } ?: throw GradleException(
+        "jpackage's overrides.wxi was not found in $javaHome (jdk.jpackage). It exists in Windows JDKs only; " +
+            "the installer images are added to it, so the Windows installers must be built with a Windows JDK.")
+    val end = original.lastIndexOf("</Include>")
+    if (end < 0) {
+        throw GradleException("jpackage's overrides.wxi has no </Include>: cannot add the installer images")
+    }
+    val variables = """
+  <!-- FreeXmlToolkit: installer images (build.gradle.kts, prepareWindowsInstallerResources) -->
+  <WixVariable Id="WixUIBannerBmp" Value="${banner.absolutePath}"/>
+  <WixVariable Id="WixUIDialogBmp" Value="${dialog.absolutePath}"/>
+"""
+    File(outDir, "overrides.wxi").writeText(original.substring(0, end) + variables + original.substring(end))
+    return outDir
+}
+
+tasks.register("prepareWindowsInstallerResources") {
+    group = "distribution"
+    description = "Converts the Windows installer images to BMP and writes overrides.wxi (needs a Windows JDK)"
+    doLast {
+        val javaHome = javaToolchains.launcherFor {
+            languageVersion = java.toolchain.languageVersion
+            vendor = java.toolchain.vendor
+        }.get().metadata.installationPath.asFile.absolutePath
+        val dir = prepareWindowsInstallerResources(javaHome, project.projectDir,
+            project.layout.buildDirectory.dir("jpackage-resources/windows").get().asFile)
+        println("Windows installer resources in $dir")
+    }
+}
+
 fun createJPackageTask(taskName: String, platform: String, arch: String, packageType: String) {
     val currentOs = when {
         System.getProperty("os.name").lowercase().contains("windows") -> "windows"
@@ -884,7 +955,9 @@ fun createJPackageTask(taskName: String, platform: String, arch: String, package
 --win-menu
 --win-shortcut
 --win-upgrade-uuid
-$WINDOWS_UPGRADE_UUID"""
+$WINDOWS_UPGRADE_UUID
+--resource-dir
+""" + project.layout.buildDirectory.dir("jpackage-resources/windows").get().asFile
             // The bundle identifier is set for the app-image too: MacAssociationStrategy
             // addresses the app by it, and it is part of the code signature.
             platform == "macos" -> """
@@ -913,6 +986,10 @@ Development
         
         // Copy all runtime dependencies to libs directory and create argument file
         doFirst {
+            if (platform == "windows" && packageType != "app-image") {
+                prepareWindowsInstallerResources(toolchainJavaHome, project.projectDir,
+                    project.layout.buildDirectory.dir("jpackage-resources/windows").get().asFile)
+            }
             copy {
                 from(configurations.runtimeClasspath.get())
                 into("build/libs/lib")
