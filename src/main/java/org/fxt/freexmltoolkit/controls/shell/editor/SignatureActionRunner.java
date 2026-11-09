@@ -114,6 +114,12 @@ public final class SignatureActionRunner {
      */
     public static File createKeystore(CertificateInfo info, String alias,
                                       String keystorePassword, String aliasPassword) {
+        return createKeystore(info, alias, keystorePassword, aliasPassword, SignatureService.KeyType.RSA_2048);
+    }
+
+    /** As {@link #createKeystore(CertificateInfo, String, String, String)} with a key type (RSA or EC). */
+    public static File createKeystore(CertificateInfo info, String alias, String keystorePassword,
+                                      String aliasPassword, SignatureService.KeyType keyType) {
         X500NameBuilder nameBuilder = new X500NameBuilder(X500Name.getDefaultStyle());
         addRdn(nameBuilder, BCStyle.CN, info.commonName());
         addRdn(nameBuilder, BCStyle.OU, info.organizationUnit());
@@ -122,7 +128,7 @@ public final class SignatureActionRunner {
         addRdn(nameBuilder, BCStyle.ST, info.state());
         addRdn(nameBuilder, BCStyle.C, info.country());
         addRdn(nameBuilder, BCStyle.EmailAddress, info.email());
-        return new SignatureService().createNewKeystoreFile(nameBuilder, alias, keystorePassword, aliasPassword);
+        return new SignatureService().createNewKeystoreFile(nameBuilder, alias, keystorePassword, aliasPassword, keyType);
     }
 
     private static void addRdn(X500NameBuilder builder, org.bouncycastle.asn1.ASN1ObjectIdentifier oid, String value) {

@@ -184,6 +184,18 @@ class FxtCliCryptoTest {
         assertEquals(ExitCodes.OK, run("verify", signed), err + out);
         assertTrue(out.contains("VALID"), out);
 
+        // EC key (ECDSA by default) and RSA-PSS with SHA-512 and inclusive c14n, enveloping and detached
+        Identity erin = identity("erin", "EC");
+        assertEquals(ExitCodes.OK, run("sign", document, "--keystore", erin.keystore(), "--storepass-env", "KS_PW",
+                "--type", "enveloping", "-o", dir.resolve("ec.xml")), err);
+        assertTrue(Files.readString(dir.resolve("ec.xml")).contains("ecdsa-sha256"));
+        assertEquals(ExitCodes.OK, run("sign", document, "--keystore", alice.keystore(), "--storepass-env", "KS_PW",
+                "--signature-alg", "rsa-pss-sha512", "--digest-alg", "sha512", "--c14n", "inclusive",
+                "--type", "detached", "-o", dir.resolve("pss.sig.xml")), err);
+        assertEquals(ExitCodes.OK, run("verify", dir.resolve("ec.xml"), dir.resolve("pss.sig.xml")), err + out);
+        assertEquals(ExitCodes.USAGE, run("sign", document, "--keystore", alice.keystore(), "--storepass-env", "KS_PW",
+                "--signature-alg", "rsa-md5"));
+
         Files.writeString(signed, Files.readString(signed).replace("Ada</customer>", "Eve</customer>"));
         assertEquals(ExitCodes.FAILED, run("verify", "-f", "json", signed));
         assertTrue(out.contains("\"status\": \"invalid\""), out);

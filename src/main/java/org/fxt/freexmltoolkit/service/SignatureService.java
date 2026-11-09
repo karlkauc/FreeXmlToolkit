@@ -138,6 +138,72 @@ public class SignatureService {
     /** The encryption algorithm for private key PEM files (AES-256-CFB). */
     public static final String PEM_ENCRYPT_ALGORITHM = "AES-256-CFB";
 
+    /** Key types for new certificates: RSA with a size, or EC on a named curve. */
+    public enum KeyType {
+        RSA_2048("RSA", 2048, null, "RSA 2048"), RSA_3072("RSA", 3072, null, "RSA 3072"),
+        RSA_4096("RSA", 4096, null, "RSA 4096"),
+        EC_P256("EC", 0, "secp256r1", "EC P-256"), EC_P384("EC", 0, "secp384r1", "EC P-384"),
+        EC_P521("EC", 0, "secp521r1", "EC P-521");
+
+        private final String algorithm;
+        private final int size;
+        private final String curve;
+        private final String label;
+
+        KeyType(String algorithm, int size, String curve, String label) {
+            this.algorithm = algorithm;
+            this.size = size;
+            this.curve = curve;
+            this.label = label;
+        }
+
+        public boolean isEc() {
+            return curve != null;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
+    /** Signature methods (XML-DSig URIs) by short name; SHA-1 ones are not offered. */
+    public static final java.util.Map<String, String> SIGNATURE_METHODS = java.util.Map.ofEntries(
+            java.util.Map.entry("rsa-sha256", SignatureMethod.RSA_SHA256),
+            java.util.Map.entry("rsa-sha384", SignatureMethod.RSA_SHA384),
+            java.util.Map.entry("rsa-sha512", SignatureMethod.RSA_SHA512),
+            java.util.Map.entry("rsa-pss-sha256", SignatureMethod.SHA256_RSA_MGF1),
+            java.util.Map.entry("rsa-pss-sha384", SignatureMethod.SHA384_RSA_MGF1),
+            java.util.Map.entry("rsa-pss-sha512", SignatureMethod.SHA512_RSA_MGF1),
+            java.util.Map.entry("ecdsa-sha256", SignatureMethod.ECDSA_SHA256),
+            java.util.Map.entry("ecdsa-sha384", SignatureMethod.ECDSA_SHA384),
+            java.util.Map.entry("ecdsa-sha512", SignatureMethod.ECDSA_SHA512));
+
+    /** Digest methods by short name. */
+    public static final java.util.Map<String, String> DIGEST_METHODS = java.util.Map.of(
+            "sha256", DigestMethod.SHA256, "sha384", DigestMethod.SHA384, "sha512", DigestMethod.SHA512);
+
+    /** Canonicalization methods by short name. */
+    public static final java.util.Map<String, String> C14N_METHODS = java.util.Map.of(
+            "exclusive", CanonicalizationMethod.EXCLUSIVE,
+            "exclusive-comments", CanonicalizationMethod.EXCLUSIVE_WITH_COMMENTS,
+            "inclusive", CanonicalizationMethod.INCLUSIVE,
+            "inclusive-comments", CanonicalizationMethod.INCLUSIVE_WITH_COMMENTS,
+            "inclusive-11", "http://www.w3.org/2006/12/xml-c14n11");
+
+    /**
+     * Algorithms of a signature; {@code null} parts take the defaults (signature method by key
+     * type: RSA-SHA256 or ECDSA-SHA256; SHA-256; exclusive canonicalization).
+     */
+    public record SigningOptions(String signatureMethod, String digestMethod, String c14nMethod) {
+        public static final SigningOptions DEFAULT = new SigningOptions(null, null, null);
+    }
+
+    /** @return the default signature method for a private key */
+    public static String defaultSignatureMethod(PrivateKey key) {
+        return "EC".equalsIgnoreCase(key.getAlgorithm()) ? SignatureMethod.ECDSA_SHA256 : SIGNATURE_METHOD_XML;
+    }
+
     private final DocumentBuilderFactory dbf;
 
     /**
@@ -197,13 +263,19 @@ public class SignatureService {
      */
     public File signDocument(File documentToSign, File keystore, String keystorePassword, String alias,
                              String aliasPassword, String outputFileName, SignatureType type) {
+        return signDocument(documentToSign, keystore, keystorePassword, alias, aliasPassword, outputFileName, type,
+                SigningOptions.DEFAULT);
+    }
+
+    /** As {@link #signDocument(File, File, String, String, String, String, SignatureType)} with chosen algorithms. */
+    public File signDocument(File documentToSign, File keystore, String keystorePassword, String alias,
+                             String aliasPassword, String outputFileName, SignatureType type, SigningOptions options) {
+        SigningOptions chosen = options != null ? options : SigningOptions.DEFAULT;
         try {
             DocumentBuilder db = dbf.newDocumentBuilder();
 
-            KeyStore ks = KeyStore.getInstance(KEYSTORE_TYPE);
-            try (FileInputStream fis = new FileInputStream(keystore)) {
-                ks.load(fis, keystorePassword.toCharArray());
-            }
+            KeyStore ks = org.fxt.freexmltoolkit.service.crypto.KeyMaterial.loadKeystore(keystore.toPath(),
+                    keystorePassword.toCharArray());
 
             PrivateKey privateKey = (PrivateKey) ks.getKey(alias, aliasPassword.toCharArray());
             X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
@@ -212,6 +284,10 @@ public class SignatureService {
             }
 
             XMLSignatureFactory fac = XMLSignatureFactory.getInstance("DOM");
+            String signatureMethod = chosen.signatureMethod() != null ? chosen.signatureMethod()
+                    : defaultSignatureMethod(privateKey);
+            String digestMethod = chosen.digestMethod() != null ? chosen.digestMethod() : DIGEST_METHOD_XML;
+            String c14n = chosen.c14nMethod() != null ? chosen.c14nMethod() : CanonicalizationMethod.EXCLUSIVE;
             KeyInfoFactory kif = fac.getKeyInfoFactory();
             KeyValue kv = kif.newKeyValue(cert.getPublicKey());
             X509Data x509Data = kif.newX509Data(Collections.singletonList(cert));
@@ -241,8 +317,8 @@ public class SignatureService {
                     // canonicalization - the form of the reference JSR-105 enveloping
                     // example, which round-trips serialization reliably.
                     Reference ref = fac.newReference("#signed-content",
-                            fac.newDigestMethod(DIGEST_METHOD_XML, null));
-                    XMLSignature signature = fac.newXMLSignature(signedInfo(fac, ref), ki,
+                            fac.newDigestMethod(digestMethod, null));
+                    XMLSignature signature = fac.newXMLSignature(signedInfo(fac, ref, signatureMethod, c14n), ki,
                             List.of(object), null, null);
                     signature.sign(new DOMSignContext(privateKey, sigDoc));
                     outputDoc = sigDoc;
@@ -253,20 +329,20 @@ public class SignatureService {
                     String relativeUri = documentToSign.getParentFile().toURI()
                             .relativize(documentToSign.toURI()).toString();
                     Reference ref = fac.newReference(relativeUri,
-                            fac.newDigestMethod(DIGEST_METHOD_XML, null), null, null, null);
+                            fac.newDigestMethod(digestMethod, null), null, null, null);
                     Document sigDoc = db.newDocument();
                     DOMSignContext dsc = new DOMSignContext(privateKey, sigDoc);
                     dsc.setBaseURI(documentToSign.getParentFile().toURI().toString());
-                    XMLSignature signature = fac.newXMLSignature(signedInfo(fac, ref), ki);
+                    XMLSignature signature = fac.newXMLSignature(signedInfo(fac, ref, signatureMethod, c14n), ki);
                     signature.sign(dsc);
                     outputDoc = sigDoc;
                 }
                 default -> {
                     Document doc = db.parse(documentToSign);
-                    Reference ref = fac.newReference("", fac.newDigestMethod(DIGEST_METHOD_XML, null),
+                    Reference ref = fac.newReference("", fac.newDigestMethod(digestMethod, null),
                             Collections.singletonList(fac.newTransform(Transform.ENVELOPED,
                                     (TransformParameterSpec) null)), null, null);
-                    XMLSignature signature = fac.newXMLSignature(signedInfo(fac, ref), ki);
+                    XMLSignature signature = fac.newXMLSignature(signedInfo(fac, ref, signatureMethod, c14n), ki);
                     signature.sign(new DOMSignContext(privateKey, doc.getDocumentElement()));
                     outputDoc = doc;
                 }
@@ -282,20 +358,18 @@ public class SignatureService {
             logger.info("Document successfully signed ({}) and saved to '{}'", type, outputFile.getAbsolutePath());
             return outputFile;
 
-        } catch (ParserConfigurationException | SAXException | IOException | KeyStoreException |
-                 NoSuchAlgorithmException |
-                 UnrecoverableKeyException | InvalidAlgorithmParameterException | MarshalException |
-                 XMLSignatureException | TransformerException | CertificateException | KeyException e) {
+        } catch (ParserConfigurationException | SAXException | IOException | java.security.GeneralSecurityException
+                 | MarshalException | XMLSignatureException | TransformerException e) {
             logger.error("Failed to sign the document.", e);
             throw new SignatureServiceException("Failed to sign the document: " + e.getMessage(), e);
         }
     }
 
-    private SignedInfo signedInfo(XMLSignatureFactory fac, Reference ref)
+    private SignedInfo signedInfo(XMLSignatureFactory fac, Reference ref, String signatureMethod, String c14n)
             throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         return fac.newSignedInfo(
-                fac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (C14NMethodParameterSpec) null),
-                fac.newSignatureMethod(SIGNATURE_METHOD_XML, null),
+                fac.newCanonicalizationMethod(c14n, (C14NMethodParameterSpec) null),
+                fac.newSignatureMethod(signatureMethod, null),
                 Collections.singletonList(ref));
     }
 
@@ -523,12 +597,20 @@ public class SignatureService {
      * @throws SignatureServiceException if keystore creation fails.
      */
     public File createNewKeystoreFile(X500NameBuilder x500NameBuilder, String alias, String keystorePassword, String aliasPassword) {
+        return createNewKeystoreFile(x500NameBuilder, alias, keystorePassword, aliasPassword, KeyType.RSA_2048);
+    }
+
+    /** As {@link #createNewKeystoreFile(X500NameBuilder, String, String, String)} with a chosen key type. */
+    public File createNewKeystoreFile(X500NameBuilder x500NameBuilder, String alias, String keystorePassword,
+                                      String aliasPassword, KeyType keyType) {
+        KeyType type = keyType != null ? keyType : KeyType.RSA_2048;
         try {
             Path outputDir = Paths.get("certs", alias);
             Files.createDirectories(outputDir);
 
-            KeyPair keyPair = generateKeyPair();
-            X509Certificate certificate = createSelfSignedCertificate(keyPair, x500NameBuilder);
+            KeyPair keyPair = generateKeyPair(type);
+            X509Certificate certificate = createSelfSignedCertificate(keyPair, x500NameBuilder,
+                    type.isEc() ? "SHA256withECDSA" : SIGNATURE_ALGORITHM_BC);
 
             writePemAndSummaryFiles(outputDir, alias, certificate, keyPair, keystorePassword, aliasPassword);
 
@@ -548,10 +630,14 @@ public class SignatureService {
      * @throws NoSuchProviderException  if the BouncyCastle provider is not available
      * @throws NoSuchAlgorithmException if the RSA algorithm is not available
      */
-    private KeyPair generateKeyPair() throws NoSuchProviderException, NoSuchAlgorithmException {
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KEY_ALGORITHM, SECURITY_PROVIDER);
-        keyPairGenerator.initialize(KEY_SIZE, new SecureRandom());
-        logger.debug("Generating {} key pair with size {}", KEY_ALGORITHM, KEY_SIZE);
+    private KeyPair generateKeyPair(KeyType type) throws java.security.GeneralSecurityException {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(type.algorithm, SECURITY_PROVIDER);
+        if (type.isEc()) {
+            keyPairGenerator.initialize(new java.security.spec.ECGenParameterSpec(type.curve), new SecureRandom());
+        } else {
+            keyPairGenerator.initialize(type.size, new SecureRandom());
+        }
+        logger.debug("Generating {} key pair", type);
         return keyPairGenerator.generateKeyPair();
     }
 
@@ -565,7 +651,8 @@ public class SignatureService {
      * @return the generated self-signed X.509 certificate
      * @throws Exception if certificate creation fails
      */
-    private X509Certificate createSelfSignedCertificate(KeyPair keyPair, X500NameBuilder subjectNameBuilder) throws Exception {
+    private X509Certificate createSelfSignedCertificate(KeyPair keyPair, X500NameBuilder subjectNameBuilder,
+                                                        String signatureAlgorithm) throws Exception {
         long now = System.currentTimeMillis();
         Date startDate = new Date(now);
         Date endDate = new Date(now + 365L * 24 * 60 * 60 * 1000); // 1 year validity
@@ -576,7 +663,7 @@ public class SignatureService {
         X500Name issuer = subject;
 
         X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(issuer, serialNumber, startDate, endDate, subject, keyPair.getPublic());
-        ContentSigner contentSigner = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM_BC).build(keyPair.getPrivate());
+        ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithm).build(keyPair.getPrivate());
 
         logger.debug("Creating self-signed certificate for subject: {}", subject);
         return new JcaX509CertificateConverter().setProvider(SECURITY_PROVIDER).getCertificate(certBuilder.build(contentSigner));
@@ -748,12 +835,12 @@ public class SignatureService {
          * @return true if the algorithms are compatible, false otherwise
          */
         private boolean algEquals(String sigAlg, String keyAlg) {
-            // Allow RSA keys for SHA256 and SHA512 signatures
-            return (sigAlg.equalsIgnoreCase(SignatureMethod.RSA_SHA256) ||
-                    sigAlg.equalsIgnoreCase(SignatureMethod.RSA_SHA512)) &&
-                    keyAlg.equalsIgnoreCase("RSA");
-            // Support for the insecure RSA-SHA1 algorithm has been removed.
-            // Add other algorithm compatibility checks if needed
+            // RSA keys: RSA-SHA2 and RSA-PSS; EC keys: ECDSA-SHA2 (SHA-1 methods are rejected earlier)
+            boolean rsa = sigAlg.startsWith("http://www.w3.org/2001/04/xmldsig-more#rsa-sha")
+                    || sigAlg.startsWith("http://www.w3.org/2007/05/xmldsig-more#sha") && sigAlg.endsWith("-rsa-MGF1");
+            boolean ecdsa = sigAlg.startsWith("http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha")
+                    && !sigAlg.endsWith("sha1");
+            return rsa && keyAlg.equalsIgnoreCase("RSA") || ecdsa && keyAlg.equalsIgnoreCase("EC");
         }
     }
 

@@ -28,7 +28,8 @@ import picocli.CommandLine.Spec;
                 "  fxt-cli sign order.xml --keystore me.jks --alias me --storepass --type enveloping -o order.sig.xml"
         },
         description = {
-                "Signs with RSA-SHA256 and exclusive canonicalization; the certificate goes into KeyInfo.",
+                "Signs with RSA-SHA256 (RSA keys) or ECDSA-SHA256 (EC keys), SHA-256 digests and exclusive "
+                        + "canonicalization unless chosen otherwise; the certificate goes into KeyInfo.",
                 "Types: enveloped (the signature inside the document, default), enveloping (the document inside "
                         + "the signature), detached (a signature file referring to the document next to it)."
         },
@@ -75,6 +76,18 @@ final class SignCommand implements Callable<Integer> {
             description = "enveloped, enveloping or detached (default: ${DEFAULT-VALUE}).")
     Type type;
 
+    @Option(names = "--signature-alg", paramLabel = "ALG",
+            description = "rsa-sha256 (default for RSA keys), rsa-sha384, rsa-sha512, rsa-pss-sha256/384/512, "
+                    + "ecdsa-sha256 (default for EC keys), ecdsa-sha384, ecdsa-sha512.")
+    String signatureAlgorithm;
+
+    @Option(names = "--digest-alg", paramLabel = "ALG", description = "sha256 (default), sha384 or sha512.")
+    String digestAlgorithm;
+
+    @Option(names = "--c14n", paramLabel = "METHOD",
+            description = "exclusive (default), exclusive-comments, inclusive, inclusive-comments or inclusive-11.")
+    String c14n;
+
     @Override
     public Integer call() throws Exception {
         CommandLine commandLine = spec.commandLine();
@@ -86,6 +99,10 @@ final class SignCommand implements Callable<Integer> {
             throw new CommandLine.ParameterException(commandLine, "Give --storepass or --storepass-env");
         }
         char[] keyPass = CliSecrets.resolve(commandLine, keyPassword, keyPasswordEnv, "--keypass");
+        SignatureService.SigningOptions options = new SignatureService.SigningOptions(
+                pick(commandLine, SignatureService.SIGNATURE_METHODS, signatureAlgorithm, "--signature-alg"),
+                pick(commandLine, SignatureService.DIGEST_METHODS, digestAlgorithm, "--digest-alg"),
+                pick(commandLine, SignatureService.C14N_METHODS, c14n, "--c14n"));
         CliSupport.initServices();
         String chosen = alias;
         if (chosen == null || chosen.isBlank()) {
@@ -102,7 +119,7 @@ final class SignCommand implements Callable<Integer> {
         try {
             new SignatureService().signDocument(input.toFile(), keystore.toFile(), new String(storePass), chosen,
                     new String(keyPass != null ? keyPass : storePass), target.toString(),
-                    SignatureService.SignatureType.valueOf(type.name().toUpperCase(Locale.ROOT)));
+                    SignatureService.SignatureType.valueOf(type.name().toUpperCase(Locale.ROOT)), options);
         } catch (RuntimeException e) {
             err.println("fxt-cli: signing failed: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()));
             return ExitCodes.FAILED;
@@ -111,5 +128,21 @@ final class SignCommand implements Callable<Integer> {
             err.println("Wrote " + target);
         }
         return ExitCodes.OK;
+    }
+
+    /** @return the URI of a short name (or a URI given as is), {@code null} when not given */
+    private static String pick(CommandLine commandLine, java.util.Map<String, String> names, String value, String option) {
+        if (value == null) {
+            return null;
+        }
+        if (names.containsValue(value)) {
+            return value;
+        }
+        String uri = names.get(value.toLowerCase(Locale.ROOT));
+        if (uri == null) {
+            throw new CommandLine.ParameterException(commandLine, "Unknown " + option + " '" + value + "'; one of: "
+                    + String.join(", ", new java.util.TreeSet<>(names.keySet())));
+        }
+        return uri;
     }
 }
