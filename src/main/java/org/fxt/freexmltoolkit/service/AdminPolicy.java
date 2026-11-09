@@ -51,6 +51,10 @@ public final class AdminPolicy {
     public static final String KEY_UPDATES_ALLOWED = "update.allowed";
     /** Policy key: {@code false} loads no plugins from the plugins folder (built-in ones still load). */
     public static final String KEY_EXTERNAL_PLUGINS_ALLOWED = "plugins.external.allowed";
+    /** {@code false} disables XML encryption and decryption (page, editor and command line). */
+    public static final String KEY_XMLENC_ALLOWED = "xmlenc.allowed";
+    /** {@code false} blocks the legacy XML encryption algorithms (RSA-1_5, TripleDES, CBC, DH). */
+    public static final String KEY_XMLENC_LEGACY_ALLOWED = "xmlenc.legacyAlgorithms.allowed";
     /** Settings key of the automatic update check (see {@link PropertiesService#isUpdateCheckEnabled()}). */
     static final String KEY_UPDATE_CHECK = "update.check.enabled";
     /** Prefix of keys that are Java system properties rather than settings. */
@@ -244,6 +248,16 @@ public final class AdminPolicy {
     /** @return {@code false} when the administrator disabled plugins from the plugins folder */
     public boolean externalPluginsAllowed() {
         return !"false".equalsIgnoreCase(locked.getProperty(KEY_EXTERNAL_PLUGINS_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator disabled XML encryption */
+    public boolean xmlEncryptionAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_XMLENC_ALLOWED, "true"));
+    }
+
+    /** @return {@code false} when the administrator blocked the legacy XML encryption algorithms */
+    public boolean legacyXmlEncryptionAllowed() {
+        return !"false".equalsIgnoreCase(locked.getProperty(KEY_XMLENC_LEGACY_ALLOWED, "true"));
     }
 
     /**
