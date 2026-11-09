@@ -58,6 +58,22 @@ loaded, every contribution type, threads, translations, building, testing and de
 A plugin can say it is off until the user switches it on (`enabledByDefault()`), and it can add
 XML Schemas to the Schema Library (`context.addSchema(new PluginSchema(namespace, url, description, null))`).
 
+## Updating plugins
+
+Plugins have no update channel of their own. What keeps each part current:
+
+| Part | How it stays current |
+|---|---|
+| Built-in plugins (FundsXML, ISO 20022, ebInterface, FinDatEx, XBRL) and their data (FinDatEx field definitions, ISO 20022 schemas) | With the application: **Help → Check for Updates…** or the automatic update check, see [Installation](installation.md#updates) |
+| FundsXML schemas, samples, Schematron rules and snippets | In addition, the FundsXML plugin checks GitHub once a day and installs a new release in the background, see [FundsXML Extensions](fundsxml-extensions.md#automatic-update-checks) (`fundsxml.update.check.enabled=false` turns it off) |
+| Plugins from the plugins folder (`.jar`) | By hand: put the new jar into the folder, remove the old one, restart. **Settings → Extensions → PLUGINS** shows the version that is loaded. |
+| Arelle (used by the XBRL plugin) | It is a separate program: `pip install -U arelle-release` |
+
+With the policy `update.allowed=false`, application updates, and with them the built-in plugins and
+their data, arrive only through your software distribution. The FundsXML content check is not
+affected by this policy; switch it off with `fundsxml.update.check.enabled=false`, or switch the
+plugin off with `plugin.fundsxml.enabled=false`.
+
 ## The FundsXML plugin
 
 `FundsXmlPlugin` (built in, in `controls/shell/editor/`) is the reference: it contributes the

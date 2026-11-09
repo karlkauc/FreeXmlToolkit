@@ -315,6 +315,18 @@ Administrators control plugins with `plugins.external.allowed=false` (no jars fr
 and `plugin.<id>.enabled=false` (a single plugin), and can move the plugins folder with
 `fxt.plugins.dir`; see [Plugins → Administration](plugins.md#administration).
 
+## Updates
+
+FreeXmlToolkit has no update channel for plugins: users replace the jar in the plugins folder and
+restart. **Settings → Extensions → PLUGINS** shows `version()`, so raise it with every release.
+
+Data that changes more often than your plugin can be fetched at run time, as the FundsXML plugin does:
+
+- Use a startup task (`addStartupTask`) and `ConnectionService`; the latter applies the proxy and
+  certificate settings.
+- Cache the data under the user's folder.
+- Offer a setting to turn the check off.
+
 ## Compatibility
 
 The API in `org.fxt.freexmltoolkit.plugin` is kept compatible within a major version; new
