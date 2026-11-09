@@ -481,7 +481,11 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
      * Rebuilds the flat row list from the document.
      * Preserves expand/collapse state across rebuilds by matching rows by label+type+depth.
      */
+    /** Counts the rebuilds: work that started before one compares it to see whether its rows are still shown. */
+    int rebuildCount;
+
     void rebuildTree() {
+        rebuildCount++;
         // Remember expand state (at any depth), open cells and selection by stable key
         if (selectedRow != null) {
             viewState.setSelectedKey(keyOf(selectedRow));
@@ -561,7 +565,7 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     /**
      * Marks the layout as needing recalculation. Used as a callback for table layout changes.
      */
-    private void markLayoutDirty() {
+    void markLayoutDirty() {
         recalculateVisibleRows();
         updateScrollBars();
         render();
@@ -2029,7 +2033,8 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
                     this::removeAllFilters, this::hasAnyFilter,
                     this::toggleFilterActiveOfSelection, this::filterActiveStateOfSelection,
                     this::toggleFilterSavedOfSelection, this::filterSavedStateOfSelection,
-                    this::expandSelectionOneLevel, this::collapseSelectionOneLevel, this::selectModelNode));
+                    this::expandSelectionOneLevel, this::collapseSelectionOneLevel, this::selectModelNode,
+                    this::sortTable));
         }
         return contextMenu;
     }
@@ -2801,6 +2806,24 @@ public class GridCanvasView<N> extends Pane implements XmlSearchTarget {
     }
 
     // ==================== Public API ====================
+
+    /**
+     * Sorts a table by a column (the header's sort arrow and the context menu): a large table is
+     * sorted on a worker thread while the grid stays usable, see {@link GridTableInteraction#sortTable}.
+     */
+    public void sortTable(RepeatingElementsTable table, String columnName, boolean ascending) {
+        tables.sortTable(table, columnName, ascending);
+    }
+
+    /** @return whether a table is being sorted in the background (tests) */
+    public boolean isSorting() {
+        return tables.isSorting();
+    }
+
+    /** Shows the wait cursor while a background step (a sort) runs. */
+    void setBusy(boolean busy) {
+        canvas.setCursor(busy ? Cursor.WAIT : Cursor.DEFAULT);
+    }
 
     /** Rebuilds the rows from the model and pushes the serialized document to the round-trip callback. */
     public void refresh() {

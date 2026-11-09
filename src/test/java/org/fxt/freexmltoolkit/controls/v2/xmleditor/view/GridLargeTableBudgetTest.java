@@ -24,7 +24,8 @@ import org.testfx.util.WaitForAsyncUtils;
 
 /**
  * FX-thread budgets for the grid on a large table (a 9 MB document, above the size from which
- * grid edits are written into the text later: one table of about 40,000 records): switching to the grid, sorting, a cell edit, a filter on the root and switching back
+ * grid edits are written into the text later: one table of about 40,000 records): switching to the grid, sorting (at once and
+ * in the background), a cell edit, a filter on the root and switching back
  * to the text. Each step did work per record or over the whole document on the FX thread before
  * (an O(n²) sort, a serialization per edit, a filter over every node, string copies of the text).
  * Budgets are FX-thread CPU time ({@link FxThreadBudget}), several times what the step takes now.
@@ -91,6 +92,15 @@ class GridLargeTableBudgetTest {
         report("sort", sort);
         assertEquals("21", WaitForAsyncUtils.waitForAsyncFx(5000, () -> tableRow(canvas()).getRepeatingTable()
                 .getRows().get(records - 22).getValue("id")), "sorted by id, descending");
+
+        // The sort arrow sorts a table this large on a worker: start, apply and the repaint stay small
+        long background = FxThreadBudget.cpuUntil(() -> {
+            XmlCanvasView v = canvas();
+            v.sortTable(tableRow(v).getRepeatingTable(), "id", true);
+        }, () -> !canvas().isSorting() && "0".equals(tableRow(canvas()).getRepeatingTable().getRows().getFirst().getValue("id"))
+                && tableRow(canvas()).getRepeatingTable().getHeight() > 0, 60);
+        report("sort in the background", background);
+        assertTrue(background <= 600, "the background sort took " + background + " ms of FX-thread CPU time");
 
         int[] row = {3};
         long edit = FxThreadBudget.assertFast(200, 3, "a cell edit in a table of " + records + " records", () -> {

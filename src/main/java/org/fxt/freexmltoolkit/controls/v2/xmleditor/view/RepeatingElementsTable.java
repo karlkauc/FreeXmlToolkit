@@ -2046,6 +2046,55 @@ public class RepeatingElementsTable {
     }
 
     /**
+     * Puts the rows into a new order after their elements were sorted in the model, without
+     * rebuilding the table: records, measurements and cell layouts move with their rows, so only
+     * the row positions are recomputed (a rebuild re-analysed and re-laid out every record).
+     *
+     * @param order the same rows (by identity) in their new order
+     * @return {@code false} when {@code order} is not a permutation of the rows (nothing changed)
+     */
+    public boolean reorderRows(List<TableRow> order) {
+        if (order.size() != rows.size()) {
+            return false;
+        }
+        java.util.Set<TableRow> present = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>(rows.size()));
+        present.addAll(rows);
+        for (TableRow row : order) {
+            if (!present.remove(row)) {
+                return false;
+            }
+        }
+        rows.clear();
+        rows.addAll(order);
+        records.clear();
+        for (TableRow row : rows) {
+            records.add(row.record);
+        }
+        hoveredRowIndex = -1;
+        if (selectedRowIndex >= 0) {
+            setSelectedRowIndex(-1);
+        }
+        if (layoutValid && !flipped) {
+            positionRows();
+        } else {
+            invalidateLayout();
+        }
+        return true;
+    }
+
+    /** Recomputes the row positions from the rows' laid-out heights (standard orientation, layout valid). */
+    private void positionRows() {
+        double top = 0;
+        for (int r = 0; r < rows.size(); r++) {
+            rowTops[r] = top;
+            drawnRowTop[r + 1] = ROW_HEIGHT + top;
+            drawnRowH[r + 1] = rows.get(r).layoutHeight;
+            top += rows.get(r).layoutHeight;
+        }
+        rowTops[rows.size()] = top;
+    }
+
+    /**
      * Returns the nesting depth of this table.
      *
      * @return the depth level
@@ -2485,12 +2534,27 @@ public class RepeatingElementsTable {
      * @return the detected data type
      */
     public ColumnDataType detectColumnDataType(String columnName) {
+        List<String> values = new ArrayList<>(rows.size());
+        for (TableRow row : rows) {
+            values.add(row.getValue(columnName));
+        }
+        return detectDataType(values);
+    }
+
+    /**
+     * Detects the data type of a column from its values (NUMERIC when every non-empty value is a
+     * number, DATE when every one looks like a date, STRING otherwise). Static and side-effect free,
+     * so a sort can run it off the FX thread on values read beforehand.
+     *
+     * @param values the column's values (blank ones are skipped)
+     * @return the detected data type
+     */
+    public static ColumnDataType detectDataType(List<String> values) {
         // One pass with early exits (a stream pipeline per type over 680,000 rows cost ~0.3 s)
         boolean any = false;
         boolean allNumeric = true;
         boolean allDates = true;
-        for (TableRow row : rows) {
-            String v = row.getValue(columnName);
+        for (String v : values) {
             if (v == null || v.trim().isEmpty()) {
                 continue;
             }
@@ -2512,8 +2576,7 @@ public class RepeatingElementsTable {
             return ColumnDataType.NUMERIC;
         }
         // allDates was checked only from the first non-number on: check the values before it
-        for (TableRow row : rows) {
-            String v = row.getValue(columnName);
+        for (String v : values) {
             if (v != null && !v.trim().isEmpty() && !looksLikeDate(v)) {
                 return ColumnDataType.STRING;
             }
@@ -2535,7 +2598,7 @@ public class RepeatingElementsTable {
      * Checks if a string looks like a date.
      * Supports common formats: ISO 8601, yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy
      */
-    private boolean looksLikeDate(String value) {
+    private static boolean looksLikeDate(String value) {
         if (value == null || value.trim().isEmpty()) {
             return false;
         }

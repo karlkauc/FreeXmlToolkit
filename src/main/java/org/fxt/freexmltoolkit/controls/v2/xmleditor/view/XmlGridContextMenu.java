@@ -1664,6 +1664,11 @@ public class XmlGridContextMenu implements GridContextMenu<XmlNode> {
 
         logger.info("Sorting column '{}' {}", clickedColumnName, ascending ? "ascending" : "descending");
 
+        if (viewActions.sortTable() != null) {
+            // through the canvas: a large table is sorted in the background
+            viewActions.sortTable().sort(clickedTable, clickedColumnName, ascending);
+            return;
+        }
         SortElementsCommand cmd = new SortElementsCommand(clickedTable, clickedColumnName, ascending);
         context.executeCommand(cmd);
 

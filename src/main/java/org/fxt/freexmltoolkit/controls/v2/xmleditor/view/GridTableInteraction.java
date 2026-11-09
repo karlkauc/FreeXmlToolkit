@@ -16,6 +16,9 @@ import javafx.scene.input.MouseEvent;
  */
 final class GridTableInteraction<N> {
 
+    private static final org.apache.logging.log4j.Logger logger =
+            org.apache.logging.log4j.LogManager.getLogger(GridTableInteraction.class);
+
     /** The view whose tables this handles. */
     private final GridCanvasView<N> view;
 
@@ -355,11 +358,83 @@ final class GridTableInteraction<N> {
         } else {
             ascending = true;
         }
+        sortTable(table, columnName, ascending);
+    }
 
-        view.adapter.sortTable(table, columnName, ascending);
+    /** From this many rows on a table is sorted on a worker thread; smaller ones at once. */
+    static final int BACKGROUND_SORT_ROWS = 20_000;
+    /** Test hook: the threshold in use. */
+    static int backgroundSortRows = BACKGROUND_SORT_ROWS;
 
-        view.rebuildTree();
-        view.notifyDocumentModified();
+    /** True while a table is being sorted in the background; further sort requests wait for it. */
+    private boolean sorting;
+
+    boolean isSorting() {
+        return sorting;
+    }
+
+    /**
+     * Sorts a table by a column. A large table is sorted in the background: the values are read
+     * here, the order is computed on a worker thread while the grid stays usable (wait cursor), and
+     * the result is applied as one undoable command. When the document changed meanwhile the order
+     * is computed again (once); the table's rows are then put into the new order without a rebuild.
+     */
+    void sortTable(RepeatingElementsTable table, String columnName, boolean ascending) {
+        if (sorting) {
+            return;
+        }
+        if (table.getRows().size() < backgroundSortRows) {
+            view.adapter.sortTable(table, columnName, ascending);
+            view.rebuildTree();
+            view.notifyDocumentModified();
+            return;
+        }
+        sortInBackground(table, columnName, ascending, 1);
+    }
+
+    private void sortInBackground(RepeatingElementsTable table, String columnName, boolean ascending, int attempt) {
+        java.util.concurrent.Callable<java.util.function.Supplier<GridModelAdapter.SortOutcome>> job =
+                view.adapter.prepareSort(table, columnName, ascending);
+        int rebuilds = view.rebuildCount;
+        sorting = true;
+        view.setBusy(true);
+        org.fxt.freexmltoolkit.FxtGui.executorService.submit(() -> {
+            java.util.function.Supplier<GridModelAdapter.SortOutcome> apply;
+            try {
+                apply = job.call();
+            } catch (Exception | OutOfMemoryError e) {
+                logger.warn("Sorting the table failed: {}", e.toString());
+                apply = () -> null;
+            }
+            java.util.function.Supplier<GridModelAdapter.SortOutcome> step = apply;
+            javafx.application.Platform.runLater(() -> {
+                sorting = false;
+                view.setBusy(false);
+                GridModelAdapter.SortOutcome outcome = step.get();
+                if (outcome == null) {
+                    return;
+                }
+                switch (outcome) {
+                    case STALE -> {
+                        if (attempt < 2) {
+                            sortInBackground(table, columnName, ascending, attempt + 1);
+                        }
+                    }
+                    case REORDERED -> {
+                        if (view.rebuildCount == rebuilds) {
+                            view.markLayoutDirty(); // the table is still shown: only its row positions changed
+                        } else {
+                            view.rebuildTree(); // the grid rebuilt its rows meanwhile from the old order
+                        }
+                        view.notifyDocumentModified();
+                    }
+                    default -> {
+                        view.rebuildTree();
+                        view.notifyDocumentModified();
+                    }
+                }
+            });
+        });
     }
 
     /**

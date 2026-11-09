@@ -375,4 +375,60 @@ class SortElementsCommandTest {
         assertEquals(sorted, parentElement.getChildren());
         assertEquals("Alice", ((XmlElement) parentElement.getChildren().getFirst()).getAttribute("name"));
     }
+
+    @Nested
+    @DisplayName("Order computed beforehand (background sort)")
+    class PresortedTests {
+
+        @Test
+        @DisplayName("sortedRows detects the type and orders the rows; ofOrder applies it, undo and redo")
+        void presorted() {
+            XmlElement comment = new XmlElement("note"); // a sibling of another name keeps its slot
+            parentElement.addChild(1, comment);
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, 0, () -> {});
+            List<RepeatingElementsTable.TableRow> rows = SortElementsCommand.sortedRows(table.getRows(), "price", false);
+            assertEquals(List.of("30.00", "20.00", "10.00"), rows.stream().map(r -> r.getValue("price")).toList());
+
+            List<XmlElement> order = rows.stream().map(RepeatingElementsTable.TableRow::getElement).toList();
+            SortElementsCommand cmd = SortElementsCommand.ofOrder(parentElement, order, "price", false);
+            assertTrue(cmd.execute());
+            assertEquals(List.of(testElements.get(0), comment, testElements.get(2), testElements.get(1)),
+                    parentElement.getChildren());
+            assertTrue(cmd.undo());
+            assertEquals(List.of(testElements.get(0), comment, testElements.get(1), testElements.get(2)),
+                    parentElement.getChildren());
+            assertTrue(cmd.execute());
+            assertEquals(testElements.get(1), parentElement.getChildren().get(3));
+        }
+
+        @Test
+        @DisplayName("an element moved away meanwhile keeps no slot")
+        void movedAway() {
+            List<XmlElement> order = List.of(testElements.get(1), testElements.get(2), testElements.get(0));
+            parentElement.removeChild(testElements.get(2));
+            SortElementsCommand cmd = SortElementsCommand.ofOrder(parentElement, order, "name", true);
+            assertTrue(cmd.execute());
+            assertEquals(List.of(testElements.get(1), testElements.get(0)), parentElement.getChildren());
+        }
+
+        @Test
+        @DisplayName("reorderRows moves rows, records and laid-out heights; positions match a fresh layout")
+        void reorderRows() {
+            testElements.get(1).setAttribute("name", "Alice\nwith a second line");
+            RepeatingElementsTable table = new RepeatingElementsTable("item", testElements, 0, () -> {});
+            table.getHeight(); // laid out
+            List<RepeatingElementsTable.TableRow> sorted = SortElementsCommand.sortedRows(table.getRows(), "price", true);
+            assertTrue(table.reorderRows(sorted));
+            assertEquals(sorted, table.getRows());
+            assertEquals(List.of(testElements.get(1), testElements.get(2), testElements.get(0)), table.getElements());
+
+            RepeatingElementsTable fresh = new RepeatingElementsTable("item",
+                    List.of(testElements.get(1), testElements.get(2), testElements.get(0)), 0, () -> {});
+            assertEquals(fresh.getHeight(), table.getHeight(), 0.001);
+            for (int r = 0; r <= 3; r++) {
+                assertEquals(fresh.drawnRowTop(r), table.drawnRowTop(r), 0.001, "row " + r);
+            }
+            assertFalse(table.reorderRows(sorted.subList(0, 2)), "not a permutation");
+        }
+    }
 }

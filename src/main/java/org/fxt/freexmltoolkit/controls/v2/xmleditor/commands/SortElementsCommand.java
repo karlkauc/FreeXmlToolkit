@@ -21,6 +21,7 @@ import org.fxt.freexmltoolkit.controls.v2.xmleditor.view.RepeatingElementsTable.
  *   <li>Sorts elements by the specified column value</li>
  *   <li>Supports ascending and descending order</li>
  *   <li>Detects data type (String, Numeric, Date) for smart sorting</li>
+ *   <li>Can take an order computed beforehand off the FX thread ({@link #ofOrder}, {@link #sortedRows})</li>
  *   <li>Preserves positions of non-sorted siblings</li>
  *   <li>Can be undone to restore original order</li>
  * </ul>
@@ -34,12 +35,13 @@ public class SortElementsCommand implements XmlCommand {
     private final List<XmlElement> elementsToSort;
     private final String columnName;
     private final boolean ascending;
-    private final ColumnDataType dataType;
     /**
      * Read by the first {@link #execute()} only, then dropped: the command lives in the undo
      * history, and holding the table kept a whole table of 680,000 rows alive behind every sort.
      */
     private RepeatingElementsTable table;
+    /** The sorted order computed beforehand (off the FX thread), or {@code null} to compute it from {@link #table}. */
+    private List<XmlElement> presorted;
 
     // For undo - the parent's children in their order before the sort
     private List<XmlNode> originalOrder;
@@ -59,7 +61,6 @@ public class SortElementsCommand implements XmlCommand {
         this.elementsToSort = new ArrayList<>(table.getElements());
         this.columnName = columnName;
         this.ascending = ascending;
-        this.dataType = table.detectColumnDataType(columnName);
 
         // Get parent element (all elements should have the same parent)
         if (!elementsToSort.isEmpty()) {
@@ -68,6 +69,52 @@ public class SortElementsCommand implements XmlCommand {
         } else {
             this.parentElement = null;
         }
+    }
+
+    private SortElementsCommand(XmlElement parent, List<XmlElement> sortedElements, String columnName, boolean ascending) {
+        this.parentElement = parent;
+        this.elementsToSort = sortedElements;
+        this.presorted = sortedElements;
+        this.columnName = columnName;
+        this.ascending = ascending;
+    }
+
+    /**
+     * A sort whose order was computed beforehand with {@link #sortedRows} (on a worker thread):
+     * executing it only puts the parent's children into that order.
+     *
+     * @param parent         the parent of the repeating elements
+     * @param sortedElements the repeating elements in their sorted order
+     */
+    public static SortElementsCommand ofOrder(XmlElement parent, List<XmlElement> sortedElements,
+                                              String columnName, boolean ascending) {
+        return new SortElementsCommand(parent, List.copyOf(sortedElements), columnName, ascending);
+    }
+
+    /**
+     * The rows of a table sorted by a column: the type (number, date, text) is detected from the
+     * values, every value is converted once. Reads only the rows' values, so it may run off the FX
+     * thread on a copy of the row list.
+     *
+     * @return the rows in their sorted order (a new list)
+     */
+    public static List<RepeatingElementsTable.TableRow> sortedRows(List<RepeatingElementsTable.TableRow> rows,
+                                                                  String columnName, boolean ascending) {
+        List<String> values = new ArrayList<>(rows.size());
+        for (RepeatingElementsTable.TableRow row : rows) {
+            values.add(row.getValue(columnName));
+        }
+        ColumnDataType type = RepeatingElementsTable.detectDataType(values);
+        List<GridColumnSort.Key<RepeatingElementsTable.TableRow>> keys = new ArrayList<>(rows.size());
+        for (int i = 0; i < rows.size(); i++) {
+            keys.add(GridColumnSort.key(rows.get(i), values.get(i), type));
+        }
+        keys.sort(GridColumnSort.keyComparator(ascending));
+        List<RepeatingElementsTable.TableRow> sorted = new ArrayList<>(keys.size());
+        for (GridColumnSort.Key<RepeatingElementsTable.TableRow> key : keys) {
+            sorted.add(key.item());
+        }
+        return sorted;
     }
 
     @Override
@@ -82,20 +129,28 @@ public class SortElementsCommand implements XmlCommand {
             return true;
         }
 
-        // Each cell value is read and converted once: a lookup or parse per comparison made
-        // sorting large tables slow and froze the UI.
-        List<GridColumnSort.Key<XmlElement>> keys = new ArrayList<>(table.getRows().size());
-        for (RepeatingElementsTable.TableRow row : table.getRows()) {
+        if (presorted != null) {
+            // an element moved away meanwhile keeps no slot
+            List<XmlElement> present = new ArrayList<>(presorted.size());
+            for (XmlElement element : presorted) {
+                if (element.getParent() == parentElement) {
+                    present.add(element);
+                }
+            }
+            sortedOrder = withSortedSlots(originalOrder, present);
+            parentElement.reorderChildren(sortedOrder);
+            presorted = null;
+            executed = true;
+            return true;
+        }
+
+        List<XmlElement> sortedElements = new ArrayList<>(table.getRows().size());
+        for (RepeatingElementsTable.TableRow row : sortedRows(table.getRows(), columnName, ascending)) {
             XmlElement element = row.getElement();
             // an element moved away meanwhile keeps no slot
             if (element != null && element.getParent() == parentElement) {
-                keys.add(GridColumnSort.key(element, row.getValue(columnName), dataType));
+                sortedElements.add(element);
             }
-        }
-        keys.sort(GridColumnSort.keyComparator(ascending));
-        List<XmlElement> sortedElements = new ArrayList<>(keys.size());
-        for (GridColumnSort.Key<XmlElement> key : keys) {
-            sortedElements.add(key.item());
         }
 
         sortedOrder = withSortedSlots(originalOrder, sortedElements);

@@ -368,6 +368,29 @@ public interface GridModelAdapter<N> {
     /** Sorts the repeating group behind the table by a column, through the command stack. */
     void sortTable(RepeatingElementsTable table, String columnName, boolean ascending);
 
+    /** What applying a sort that was computed off the FX thread did. */
+    enum SortOutcome {
+        /** The model changed meanwhile: nothing was applied (the caller may compute again). */
+        STALE,
+        /** The model was sorted and the table's rows were put into the new order in place. */
+        REORDERED,
+        /** The model was sorted; the grid must rebuild its rows. */
+        CHANGED
+    }
+
+    /**
+     * Prepares a sort in three steps: this call (FX thread) takes what the computation needs, the
+     * returned job runs on a worker thread, and the step it returns is applied on the FX thread.
+     * By default everything happens in the last step ({@link #sortTable}).
+     */
+    default java.util.concurrent.Callable<java.util.function.Supplier<SortOutcome>> prepareSort(
+            RepeatingElementsTable table, String columnName, boolean ascending) {
+        return () -> () -> {
+            sortTable(table, columnName, ascending);
+            return SortOutcome.CHANGED;
+        };
+    }
+
     /** @return the document serialized to text (for the round-trip into the text editor) */
     String serialize();
 

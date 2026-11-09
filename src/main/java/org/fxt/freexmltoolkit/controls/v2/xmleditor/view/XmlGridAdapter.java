@@ -767,6 +767,41 @@ public class XmlGridAdapter implements GridModelAdapter<XmlNode> {
         table.setSortState(columnName, ascending);
     }
 
+    /**
+     * The order is computed on a worker from a copy of the table's rows (their values, not the
+     * model); applying it checks that no command, undo or redo ran meanwhile, executes the sort as
+     * one undoable command and reorders the table's rows in place.
+     */
+    @Override
+    public java.util.concurrent.Callable<java.util.function.Supplier<SortOutcome>> prepareSort(
+            RepeatingElementsTable table, String columnName, boolean ascending) {
+        List<RepeatingElementsTable.TableRow> rows = List.copyOf(table.getRows());
+        XmlElement first = rows.isEmpty() ? null : rows.getFirst().getElement();
+        if (first == null || !(first.getParent() instanceof XmlElement parent)) {
+            return GridModelAdapter.super.prepareSort(table, columnName, ascending);
+        }
+        long revision = context.getCommandManager().getRevision();
+        return () -> {
+            List<RepeatingElementsTable.TableRow> sorted = SortElementsCommand.sortedRows(rows, columnName, ascending);
+            return () -> {
+                if (context.getCommandManager().getRevision() != revision) {
+                    return SortOutcome.STALE;
+                }
+                List<XmlElement> elements = new java.util.ArrayList<>(sorted.size());
+                for (RepeatingElementsTable.TableRow row : sorted) {
+                    if (row.getElement() != null) {
+                        elements.add(row.getElement());
+                    }
+                }
+                if (!context.executeCommand(SortElementsCommand.ofOrder(parent, elements, columnName, ascending))) {
+                    return SortOutcome.STALE;
+                }
+                table.setSortState(columnName, ascending);
+                return table.reorderRows(sorted) ? SortOutcome.REORDERED : SortOutcome.CHANGED;
+            };
+        };
+    }
+
     // ==================== Serialization & menu ====================
 
     @Override

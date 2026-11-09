@@ -49,15 +49,21 @@ public interface GridContextMenu<N> {
                        Runnable toggleFilterActive, java.util.function.Supplier<java.util.Optional<Boolean>> filterActiveState,
                        Runnable toggleFilterSaved, java.util.function.Supplier<java.util.Optional<Boolean>> filterSavedState,
                        Runnable expandOneLevel, Runnable collapseOneLevel,
-                       java.util.function.Consumer<Object> revealNode) {
+                       java.util.function.Consumer<Object> revealNode, TableSorter sortTable) {
         /** @return actions that do nothing (for menus built without a canvas, e.g. in tests) */
         public static ViewActions none() {
             return new ViewActions(() -> { }, () -> { }, () -> { }, () -> { },
                     () -> { }, java.util.Optional::empty, () -> { }, java.util.Optional::empty, () -> { }, () -> { },
                     () -> false, () -> { }, () -> false, () -> { }, () -> false,
                     () -> { }, java.util.Optional::empty, () -> { }, java.util.Optional::empty,
-                    () -> { }, () -> { }, node -> { });
+                    () -> { }, () -> { }, node -> { }, null);
         }
+    }
+
+    /** Sorts a table through the canvas (large tables in the background). */
+    @FunctionalInterface
+    interface TableSorter {
+        void sort(RepeatingElementsTable table, String columnName, boolean ascending);
     }
 
     /**
