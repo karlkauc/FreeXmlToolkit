@@ -2480,10 +2480,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#next-release" class="md-nav__link">
+  <a href="#300-2026-11-09" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next release
+        3.0.0 (2026-11-09)
       
     </span>
   </a>
@@ -2939,10 +2939,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
       
         <li class="md-nav__item">
-  <a href="#next-release" class="md-nav__link">
+  <a href="#300-2026-11-09" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next release
+        3.0.0 (2026-11-09)
       
     </span>
   </a>
@@ -3094,7 +3094,7 @@
 <p>The highlights of each release. The complete notes and all downloads are on the
 <a href="https://github.com/karlkauc/FreeXmlToolkit/releases">GitHub Releases page</a>; the version you are
 running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
-<h2 id="next-release">Next release<a class="headerlink" href="#next-release" title="Permanent link">¶</a></h2>
+<h2 id="300-2026-11-09">3.0.0 (2026-11-09)<a class="headerlink" href="#300-2026-11-09" title="Permanent link">¶</a></h2>
 <p><strong>Platform and enterprise</strong></p>
 <ul>
 <li><strong>German user interface:</strong> Settings → Appearance → Language (System default, English, Deutsch);
@@ -3146,6 +3146,32 @@ running is shown under <strong>Help → About FreeXmlToolkit</strong>.</p>
   <a href="../fundsxml-extensions/#data-quality-checks">FundsXML Extensions</a>.</li>
 <li><strong>Grid:</strong> filters inside opened table cells, saved filters (off when opened), formulas first under
   their element, German number format; much faster with very large tables (680,000 records).</li>
+</ul>
+<p><strong>Signatures and encryption</strong></p>
+<ul>
+<li><strong>XML Encryption 1.1:</strong> the Signature page is now <strong>Sign &amp; Encrypt</strong> with <strong>Encrypt</strong>, <strong>Decrypt</strong>
+  and <strong>Inspect</strong>. Encrypt the whole document, the element at the caret or an XPath selection for
+  any number of recipients (certificate, keystore entry, shared key file, password); decrypt with
+  your private key, a shared key or the password. The XML editor's context menu offers <strong>Encrypt
+  Element… / Decrypt…</strong>. See <a href="../xml-encryption/">XML Encryption</a>.</li>
+<li><strong>Signature algorithms:</strong> RSA, RSA-PSS and ECDSA, a selectable digest and canonicalization;
+  new certificates with RSA or EC keys. See <a href="../digital-signatures/">Digital Signatures</a>.</li>
+<li><strong><code>fxt-cli sign</code>, <code>verify</code>, <code>encrypt</code>, <code>decrypt</code></strong> (also <code>--inspect</code>). See
+  <a href="../command-line/#sign">Command Line</a>.</li>
+</ul>
+<p><strong>More</strong></p>
+<ul>
+<li><strong><code>fxt-cli query</code></strong> runs XPath, XQuery and JSONPath; the <strong>XQuery profiler</strong> shows where a query
+  spends its time (Run ▾ → Profile Query, <code>fxt-cli transform --profile</code>).</li>
+<li><strong>Regression checks for scenarios:</strong> compare a scenario's output with an expected result
+  (Check, Differences, Accept; <code>fxt-cli scenario --check</code>). See <a href="../projects/">Projects</a>.</li>
+<li><strong>XML compare:</strong> ignore XPaths, XMLUnit placeholders and a numeric tolerance.</li>
+<li><strong>XSpec templates</strong> in File → New.</li>
+<li><strong>Problems, Query Console hits and FundsXML data-quality findings</strong> open in the document's
+  current view (Tree or Graphic) instead of switching to the Text view.</li>
+<li><strong>Grid:</strong> a click elsewhere keeps the value you are editing (like Enter) and closes an open
+  context menu; the XSD diagram's context menu closes the same way.</li>
+<li><strong>One look for every dialog</strong>, light and dark; banner and dialog images in the Windows installers.</li>
 </ul>
 <h2 id="2100-2026-11-05">2.10.0 (2026-11-05)<a class="headerlink" href="#2100-2026-11-05" title="Permanent link">¶</a></h2>
 <ul>

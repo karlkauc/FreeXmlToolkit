@@ -3094,7 +3094,10 @@ the same recent-stylesheet list and shows its result in the same OUTPUT panel.</
 <p>Shown only while a <a href="../projects/">project</a> is open: pick one of the project's saved transformation
 scenarios to fill stylesheet, input, parameters and output method in one step, run it with <strong>Run
 Scenario</strong> (writes its output file), save the current settings as a scenario (disk button) or remove
-one (trash button). See <a href="../projects/#transformation-scenarios">Projects and Transformation Scenarios</a>.</p>
+one (trash button). For a scenario with an expected result, <strong>Check</strong> compares the run's result
+with it; after a failed check, <strong>Differences</strong> opens both in the Compare view and <strong>Accept</strong> makes
+the current result the expected one. See <a href="../projects/#transformation-scenarios">Projects and Transformation Scenarios</a>
+and <a href="../projects/#regression-checks">Regression checks</a>.</p>
 <h2 id="stylesheet">STYLESHEET<a class="headerlink" href="#stylesheet" title="Permanent link">¶</a></h2>
 <ul>
 <li>Shows the <strong>name of the chosen XSLT stylesheet</strong> on its own line below the icon, the
@@ -3356,7 +3359,9 @@ while you work elsewhere.</p>
 <li><strong>View toggles</strong> - <strong>Preview | Text | Table</strong>:<ul>
 <li><strong>Text</strong> - the result in a <strong>read-only code editor</strong> (the default):
   line numbers, syntax highlighting matching the result format (XML or JSON;
-  plain text otherwise), and font zoom with <strong>Ctrl+mouse wheel</strong> (<strong>Ctrl+0</strong> resets).</li>
+  plain text otherwise), and font zoom with <strong>Ctrl+mouse wheel</strong> (<strong>Ctrl+0</strong> resets).
+  A very large result (over 2 million characters) shows only its start with a note;
+  <strong>Open as Tab</strong>, <strong>Browser</strong> and <strong>Save…</strong> use the whole result.</li>
 <li><strong>Preview</strong> - the result rendered as a web page; available for <strong>HTML/XHTML</strong>
   results only.</li>
 <li><strong>Table</strong> - available for <strong>XQuery</strong> results that return a <strong>sequence</strong> of items

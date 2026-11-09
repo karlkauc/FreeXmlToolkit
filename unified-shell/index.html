@@ -6100,13 +6100,15 @@ in whitespace (indentation) are not a conflict. Changes on adjacent lines count 
 as in Git.</p>
 <p>On the command line, also as a Git merge driver: <a href="../command-line/#merge"><code>fxt-cli merge</code></a>.</p>
 <h2 id="jump-to-validation-errors">Jump to Validation Errors<a class="headerlink" href="#jump-to-validation-errors" title="Permanent link">¶</a></h2>
-<p>Validation errors appear in the <strong>Properties / Validation</strong> sidebar (Ctrl+Shift+P). <strong>Double-click</strong>
-any error to jump straight to its location:</p>
+<p>Validation errors appear in the <strong>PROBLEMS</strong> panel below the editor and in the <strong>Validation</strong>
+side panel. <strong>Select</strong> a problem to show it <strong>in the view you are in</strong> - the view does not change:</p>
 <ul>
-<li>In the <strong>Text</strong> view the caret moves to the exact line and column, with the offending text highlighted.</li>
-<li>In the <strong>Graphic</strong> view the matching element is selected, flashed, and scrolled into view.</li>
-<li>In split mode both views navigate at once.</li>
+<li>In the <strong>Text</strong> view the caret moves to the problem's line (and, for XML and XSD errors, its column).</li>
+<li>In the <strong>Tree</strong> view the element of that line is selected and scrolled into view.</li>
+<li>In the <strong>Graphic</strong> view the grid selects the element's row or table cell (opening tables and
+  cells on the way) and flashes it; for an XSD the diagram selects the schema node.</li>
 </ul>
+<p>See <a href="../validation-panel/">Validation Panel</a> for details.</p>
 <h2 id="properties-inspector">Properties Inspector<a class="headerlink" href="#properties-inspector" title="Permanent link">¶</a></h2>
 <p>The right-hand <strong>Properties</strong> inspector shows and edits the selected node of XML, XSD and JSON documents in every view - see <strong><a href="../inspector/">Properties Inspector</a></strong>.</p>
 <h2 id="editor-toolbar-document-actions">Editor Toolbar Document Actions<a class="headerlink" href="#editor-toolbar-document-actions" title="Permanent link">¶</a></h2>

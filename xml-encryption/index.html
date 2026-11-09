@@ -3111,13 +3111,13 @@ target; <strong>Decrypt…</strong> (shown when the document contains <code>Encr
 <li><strong>Data algorithm</strong> - the block cipher of the data. <strong>AES-256-GCM</strong> is the default and the
    recommendation; see the <a href="#algorithms">algorithm table</a>.</li>
 <li><strong>Recipients</strong> - who can decrypt. Every recipient gets its own <code>EncryptedKey</code> with the same data
-   key, so each of them opens the document alone:<ul>
-<li><strong>Certificate…</strong> - a recipient's certificate or public key (PEM or DER). RSA keys use RSA-OAEP,
+   key, so each of them opens the document alone. Add them with the buttons after <strong>Add:</strong><ul>
+<li><strong>Certificate</strong> - a recipient's certificate or public key (PEM or DER). RSA keys use RSA-OAEP,
   EC keys ECDH-ES, X25519/X448 keys their key agreement.</li>
 <li><strong>From keystore</strong> - the certificate of the alias in the KEYSTORE section above.</li>
-<li><strong>Key file…</strong> - a shared symmetric key (16, 24 or 32 bytes as hex, Base64 or raw). You can
+<li><strong>Key file</strong> - a shared symmetric key (16, 24 or 32 bytes as hex, Base64 or raw). You can
   give it a <strong>KeyName</strong> so the receiver knows which key to take.</li>
-<li><strong>Password…</strong> - the key is derived from a password with PBKDF2 (600,000 iterations,
+<li><strong>Password</strong> - the key is derived from a password with PBKDF2 (600,000 iterations,
   HMAC-SHA256).</li>
 </ul>
 </li>
